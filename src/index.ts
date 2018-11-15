@@ -19,7 +19,8 @@ const server = new ApolloServer({
   context,
   engine: {
     apiKey: environment.engineApiKey
-  }
+  },
+  introspection: true // allow introspection for now, disable before release
 })
 
 server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
