@@ -6,9 +6,11 @@
   "scripts": {
     "clean": "pm2 kill && rimraf build",
     "build": "tsc --project tsconfig.json",
+    "postinstall": "npm run build",
+    "start": "node build/index.js",
     "watch:build": "tsc --project tsconfig.json --watch",
     "watch:server": "pm2 start processes.config.js --no-daemon",
-    "start": "npm-run-all clean build --parallel watch:build watch:server --print-label",
+    "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
     "deploy:production": "sh tools/deploy.sh build+push:production",
     "deploy:stage": "sh tools/deploy.sh build+push:stage",
     "push:production": "sh tools/deploy.sh push:production",
