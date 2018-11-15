@@ -1,10 +1,9 @@
 import { BaseService } from '../connectors/baseService'
-import { actionItems } from './mockData'
 
 export class ActionService extends BaseService {
   // items = items
   constructor() {
-    super(actionItems)
+    super('action')
   }
 
   // TODO: replaced by actual dynamoDB api

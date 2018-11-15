@@ -139,13 +139,8 @@ export const randomText = (length: number) => {
   })
 }
 
-export const randomIds = (size: number, max: number): Array<string> => {
-  const ids = new Set()
-  while (ids.size !== size) {
-    ids.add(String(Math.floor(Math.random() * max)))
-  }
-  return [...ids]
-}
+export const sequentialIds = (size: number) =>
+  [...Array(size).keys()].map(i => String(i))
 
 export const randomFrom = (
   items: Array<any>,
@@ -161,4 +156,12 @@ export const randomFrom = (
     }
   }
   return [...selections].map(i => items[i])
+}
+
+export const randomIds = (
+  size: number,
+  max: number,
+  exclude?: string
+): Array<string> => {
+  return randomFrom(sequentialIds(max), size, exclude)
 }
