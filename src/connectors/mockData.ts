@@ -146,3 +146,19 @@ export const randomIds = (size: number, max: number): Array<string> => {
   }
   return [...ids]
 }
+
+export const randomFrom = (
+  items: Array<any>,
+  number: number,
+  exclude?: any
+): Array<string> => {
+  const max = Math.min(items.length, number)
+  const selections = new Set()
+  while (selections.size !== max) {
+    const selection = Math.floor(Math.random() * items.length)
+    if (!exclude || items[selection] !== exclude) {
+      selections.add(selection)
+    }
+  }
+  return [...selections].map(i => items[i])
+}
