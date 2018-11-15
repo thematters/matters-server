@@ -1,0 +1,31 @@
+{
+  "defaultSeverity": "error",
+  "extends": [],
+  "jsRules": {},
+  "linterOptions": {
+    "exclude": ["node_modules/**", "src/v1/**"]
+  },
+  "rules": {
+    "await-promise": true,
+    "ban-comma-operator": true,
+    "curly": true,
+    "interface-name": [false, "never-prefix"],
+    "max-line-length": [
+      true,
+      {
+        "limit": 120,
+        "ignore-pattern": "^import |^const .*? = /.*?/"
+      }
+    ],
+    "no-debugger": true,
+    "no-duplicate-switch-case": true,
+    "no-empty": [true, "allow-empty-functions"],
+    "no-eval": true,
+    "no-invalid-template-strings": true,
+    "no-switch-case-fall-through": true,
+    "no-var-keyword": true,
+    "semicolon": false,
+    "radix": true
+  },
+  "rulesDirectory": []
+}

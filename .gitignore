@@ -1,0 +1,10 @@
+.idea
+.vscode
+.DS_store
+*.swp
+node_modules
+build
+webpack-stats.json
+uploads
+environment.sh
+logs
