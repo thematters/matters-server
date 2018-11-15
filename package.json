@@ -36,7 +36,6 @@
     "amazon-dax-client": "^1.1.4",
     "apollo-server": "^2.2.0",
     "aws-sdk": "^2.316.0",
-    "bcrypt": "^1.0.3",
     "bottleneck": "^2.3.0",
     "cheerio": "^1.0.0-rc.2",
     "cookie": "^0.3.1",
