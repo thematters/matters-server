@@ -13,7 +13,14 @@ const createTestUser = (id: string) => ({
   displayName: randomText(2).join(' '),
   userName: randomText(2).join('-'),
   description: randomText(25).join(' '),
-  email: `${randomText(2).join('')}@${randomText(1)}.com`
+  email: `${randomText(2).join('')}@${randomText(1)}.com`,
+  password: '',
+  settings: {
+    language: 'en',
+    thirdPartyAccounts: [
+      { accountName: 'Facebook', baseUrl: 'www.facebook.com', token: '' }
+    ]
+  }
 })
 
 const createTestComment = (id: string) => {

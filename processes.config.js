@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'graphql',
       script: 'build/index.js',
-      watch: process.env['MATERIA_LOCALDEV'] ? 'build' : false
+      watch: 'build'
     }
   ]
 }
