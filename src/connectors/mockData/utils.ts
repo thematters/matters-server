@@ -159,10 +159,6 @@ export const randomFrom = (
   const selections = new Set()
   while (selections.size !== max) {
     let selection = Math.floor(Math.random() * cleanItems.length)
-    if (exclude && cleanItems[selection] === exclude) {
-      console.log({ exclude, item: cleanItems[selection] })
-      continue
-    }
     selections.add(selection)
   }
   return [...selections].map(i => cleanItems[i])
@@ -174,4 +170,23 @@ export const randomIds = (
   exclude?: string
 ): Array<string> => {
   return randomFrom(sequentialIds(max), size, exclude)
+}
+
+export const randomRepeatIds = (
+  size: number,
+  max: number,
+  exclude?: string
+): Array<string> => {
+  let ids = sequentialIds(max)
+  if (exclude) {
+    const idsSet = new Set(ids)
+    idsSet.delete(exclude)
+    ids = [...idsSet]
+  }
+  let selections: Array<string> = []
+  while (selections.length !== size) {
+    let selection = ids[Math.floor(Math.random() * ids.length)]
+    selections = [...selections, selection]
+  }
+  return selections
 }

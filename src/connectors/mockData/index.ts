@@ -2,7 +2,7 @@ import { randomText, randomIds, sequentialIds } from './utils'
 import { createTestActions } from './actionTable'
 
 export const testSize = {
-  user: 10,
+  user: 20,
   article: 100,
   comment: 300,
   action: 50 // for each type of action
@@ -10,10 +10,8 @@ export const testSize = {
 
 const createTestUser = (id: string) => ({
   id,
-  name: {
-    displayName: randomText(2).join(' '),
-    userName: randomText(2).join('-')
-  },
+  displayName: randomText(2).join(' '),
+  userName: randomText(2).join('-'),
   description: randomText(25).join(' '),
   email: `${randomText(2).join('')}@${randomText(1)}.com`
 })

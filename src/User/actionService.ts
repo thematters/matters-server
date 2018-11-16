@@ -1,4 +1,5 @@
 import { BaseService } from '../connectors/baseService'
+import { resolve } from 'path'
 
 export class ActionService extends BaseService {
   // items = items
@@ -8,9 +9,24 @@ export class ActionService extends BaseService {
 
   // TODO: replaced by actual dynamoDB api
   // start of db calls ->
-  // findByIds = (ids: Array<string>): Promise<typeof items> =>
-  //   new Promise(resolve =>
-  //     resolve(this.items.filter(({ id: itemId }) => ids.includes(itemId)))
-  //   )
+
+  findActionByTarget = (actionType: string, target: string) =>
+    new Promise(resolve =>
+      resolve(
+        this.items.filter(
+          ({ action, targetId }) => action === actionType && targetId === target
+        )
+      )
+    )
+
+  findActionByUser = (actionType: string, userId: string) =>
+    new Promise(resolve =>
+      resolve(
+        this.items.filter(
+          ({ action, userId: id }) => action === actionType && id === userId
+        )
+      )
+    )
+
   // <- end of db calls
 }

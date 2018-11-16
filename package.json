@@ -1,5 +1,5 @@
 {
-  "name": "materia",
+  "name": "matters-server",
   "version": "0.0.1",
   "description": "Materia content engine",
   "main": "index.js",

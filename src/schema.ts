@@ -4,7 +4,6 @@ import { GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql'
 // local
 import { UserType } from './User'
 import { ArticleType } from './Article'
-import { CommentType } from './Comment'
 
 export const schema = new GraphQLSchema({
   query: new GraphQLObjectType({
