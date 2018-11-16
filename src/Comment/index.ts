@@ -10,7 +10,7 @@ import {
 
 // local
 import { DateTimeType } from '../common/graphqlTypes'
-import { UserType } from '../User'
+import { UserType } from 'src/User'
 import { ArticleType } from '../Article'
 
 export const CommentType: GraphQLObjectType = new GraphQLObjectType({
