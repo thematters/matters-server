@@ -1,16 +1,82 @@
+// module alias for absolute import
+require('module-alias/register')
 // external
 import {
   GraphQLObjectType,
   GraphQLString,
   GraphQLNonNull,
   GraphQLList,
-  GraphQLInt
+  GraphQLInt,
+  GraphQLFloat
 } from 'graphql'
+import lodash from 'lodash'
 
 // local
-import { userActions } from '../common/enums'
-import { ArticleType } from '../Article'
-import { CommentType } from '../Comment'
+import { enums } from 'src/common'
+import { ArticleType } from 'src/Article'
+import { CommentType } from 'src/Comment'
+import { AppreciationAction, RatingAction } from './actionService'
+
+const { userActions } = enums
+
+export const UserStatusType: GraphQLObjectType = new GraphQLObjectType({
+  name: 'UserStatus',
+  description: 'Activity Status of this user',
+  fields: () => ({
+    MAT: {
+      type: new GraphQLNonNull(GraphQLInt),
+      description: 'Total MAT left in wallet',
+      resolve: async ({ id }, _, { actionService, articleService }) => {
+        const articles = await articleService.findByAuthor(id)
+        const appreciateActions: Array<
+          AppreciationAction
+        > = await actionService.findActionByTargets(
+          userActions.appreciate,
+          articles.map(({ id }: { id: string }) => id)
+        )
+        return lodash.sumBy(appreciateActions, 'detail')
+      }
+    },
+    rating: {
+      type: new GraphQLNonNull(GraphQLFloat),
+      description: 'Average rating by other users, for mentors only',
+      resolve: async ({ id }, _, { actionService }) => {
+        const appreciateActions: Array<
+          RatingAction
+        > = await actionService.findActionByTarget(userActions.rateUser, id)
+        return lodash.meanBy(appreciateActions, 'detail')
+      }
+    },
+    articleCount: {
+      type: new GraphQLNonNull(GraphQLInt),
+      description: 'Number of articles published by user',
+      resolve: (parent, _, { articleService }) =>
+        articleService.countByAuthor(parent.id)
+    },
+    commentCount: {
+      type: new GraphQLNonNull(GraphQLInt),
+      description: 'Number of comments posted by user',
+      resolve: ({ id }, _, { commentService }) =>
+        commentService.countByAuthor(id)
+    },
+    followCount: {
+      type: new GraphQLNonNull(GraphQLInt),
+      description: 'Number of user that this user follows',
+      resolve: ({ id }, _, { actionService }) =>
+        actionService.countActionByUser(userActions.follow, id)
+    },
+    followerCount: {
+      type: new GraphQLNonNull(GraphQLInt),
+      description: 'Number of user that follows this user',
+      resolve: ({ id }, _, { actionService }) => {
+        return actionService.countActionByTarget(userActions.follow, id)
+      }
+    }
+    // draftCount: Number // 草稿數
+    // courseCount: Number // 已購買課程數
+    // subscriptionCount: Number // 總訂閱數
+  })
+})
 
 export const UserType: GraphQLObjectType = new GraphQLObjectType({
   name: 'User',
@@ -26,7 +92,10 @@ export const UserType: GraphQLObjectType = new GraphQLObjectType({
       description: 'Self description of this user'
     },
     email: { type: new GraphQLNonNull(GraphQLString) },
-    rating: { type: GraphQLInt },
+    status: {
+      type: new GraphQLNonNull(UserStatusType),
+      resolve: ({ id }) => ({ id }) // short hand for delegating resolver to UserStatusType
+    },
     // drafts
     // courses
     articles: {
@@ -40,7 +109,7 @@ export const UserType: GraphQLObjectType = new GraphQLObjectType({
       description: 'Comments posted by this user',
       resolve: ({ id }, _, { commentService }) =>
         commentService.findByAuthor(id)
-    }, //(first: Number, after: Number): [Comments] // 用戶的評論
+    },
     // subscriptions
     // history
     // dialogues

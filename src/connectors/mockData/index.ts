@@ -45,11 +45,8 @@ const createTestArticle = (id: string) => ({
   tags: randomText(3),
   upstreamId: randomIds(1, testSize.article, id)[0],
   downstreamIds: randomIds(5, testSize.article, id),
-  relatedArticleIds: randomIds(10, testSize.article, id),
-  MAT: Math.round(Math.random() * 100),
   timestamp: new Date().toISOString(),
   pinnedCommentIds: randomIds(3, testSize.comment),
-  subscriberIds: randomIds(10, testSize.user), // should be moved to action table
   publishState: 'published'
 })
 
