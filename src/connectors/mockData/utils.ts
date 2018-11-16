@@ -147,15 +147,25 @@ export const randomFrom = (
   number: number,
   exclude?: any
 ): Array<string> => {
-  const max = Math.min(items.length, number)
+  let cleanItems = items
+  if (exclude) {
+    const itemsSet = new Set(items)
+    itemsSet.delete(exclude)
+    cleanItems = [...itemsSet]
+  }
+
+  const max = Math.min(cleanItems.length, number)
+
   const selections = new Set()
   while (selections.size !== max) {
-    const selection = Math.floor(Math.random() * items.length)
-    if (!exclude || items[selection] !== exclude) {
-      selections.add(selection)
+    let selection = Math.floor(Math.random() * cleanItems.length)
+    if (exclude && cleanItems[selection] === exclude) {
+      console.log({ exclude, item: cleanItems[selection] })
+      continue
     }
+    selections.add(selection)
   }
-  return [...selections].map(i => items[i])
+  return [...selections].map(i => cleanItems[i])
 }
 
 export const randomIds = (

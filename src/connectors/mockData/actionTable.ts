@@ -90,8 +90,7 @@ export const createTestActions = (testSize: {
       timestamp: new Date().toISOString()
     }))
   }
-
-  return [
+  const test = [
     createAppreicationActions,
     createFollowActions,
     createSubscribeArticleAction,
@@ -99,10 +98,9 @@ export const createTestActions = (testSize: {
     createRateUserActions,
     createVoteCommentAction,
     createFinishAction
-  ]
-    .reduce(
-      (total: Array<any>, func) => [...total, ...func(testSize.action)],
-      []
-    )
-    .map((item, i) => ({ id: String(i), ...item }))
+  ].reduce(
+    (total: Array<any>, func) => [...total, ...func(testSize.action)],
+    []
+  )
+  return test.map((item, i) => ({ id: String(i), ...item }))
 }

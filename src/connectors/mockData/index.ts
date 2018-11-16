@@ -2,9 +2,9 @@ import { randomText, randomIds, sequentialIds } from './utils'
 import { createTestActions } from './actionTable'
 
 export const testSize = {
-  user: 20,
-  article: 50,
-  comment: 100,
+  user: 10,
+  article: 100,
+  comment: 300,
   action: 50 // for each type of action
 }
 
