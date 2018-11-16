@@ -7,17 +7,47 @@ import {
   GraphQLNonNull,
   GraphQLList,
   GraphQLInt,
-  GraphQLFloat
+  GraphQLFloat,
+  GraphQLEnumType
 } from 'graphql'
 import lodash from 'lodash'
 
 // local
-import { enums } from 'src/common'
+import { enums, ThirdPartyAccount } from 'src/common'
 import { ArticleType } from 'src/Article'
 import { CommentType } from 'src/Comment'
 import { AppreciationAction, RatingAction } from './actionService'
 
 const { userActions } = enums
+
+const LanguageType = new GraphQLEnumType({
+  name: 'UserLanguage',
+  values: {
+    english: { value: 'en' },
+    chineseTranditional: { value: 'zh_HANT' },
+    chineseSimplified: { value: 'zh_HANS' }
+  }
+})
+
+export const UserSettingsType: GraphQLObjectType = new GraphQLObjectType({
+  name: 'UserSettings',
+  description: 'User Settings',
+  fields: () => ({
+    language: {
+      type: new GraphQLNonNull(LanguageType),
+      description: 'User language setting',
+      resolve: ({ language }) => language
+    },
+    thirdPartyAccounts: {
+      type: new GraphQLList(GraphQLString),
+      description: 'Thrid  party accounts binded for the user',
+      resolve: ({ thirdPartyAccounts }) =>
+        thirdPartyAccounts.map(
+          ({ accountName }: ThirdPartyAccount) => accountName
+        )
+    }
+  })
+})
 
 export const UserStatusType: GraphQLObjectType = new GraphQLObjectType({
   name: 'UserStatus',
@@ -92,6 +122,10 @@ export const UserType: GraphQLObjectType = new GraphQLObjectType({
       description: 'Self description of this user'
     },
     email: { type: new GraphQLNonNull(GraphQLString) },
+    settings: {
+      type: new GraphQLNonNull(UserSettingsType),
+      resolve: ({ settings }) => settings
+    },
     status: {
       type: new GraphQLNonNull(UserStatusType),
       resolve: ({ id }) => ({ id }) // short hand for delegating resolver to UserStatusType
