@@ -5,6 +5,8 @@ export class CommentService extends BaseService {
     super('comment')
   }
 
+  // TODO: replace by DB calls
+  // start of db calls ->
   findByAuthor = (id: Array<string>) =>
     new Promise(resolve =>
       resolve(this.items.filter(({ authorId }) => id === authorId))
@@ -19,4 +21,15 @@ export class CommentService extends BaseService {
     new Promise(resolve =>
       resolve(this.items.filter(({ parentId }) => parentId === id))
     )
+
+  countByAuthor = (id: Array<string>) =>
+    new Promise(resolve =>
+      resolve(this.items.filter(({ authorId }) => id === authorId).length)
+    )
+
+  countByArticle = (id: Array<string>) =>
+    new Promise(resolve =>
+      resolve(this.items.filter(({ articleId }) => articleId === id).length)
+    )
+  // <- end of db calls
 }

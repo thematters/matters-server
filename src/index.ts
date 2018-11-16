@@ -2,7 +2,7 @@
 import { ApolloServer } from 'apollo-server'
 
 // internal
-import { environment } from './common/environment'
+import { environment } from './common'
 import { schema } from './schema'
 import { UserService, ActionService } from './User'
 import { ArticleService } from './Article'

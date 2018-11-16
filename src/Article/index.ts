@@ -1,4 +1,5 @@
 // external
+import lodash from 'lodash'
 import {
   GraphQLObjectType,
   GraphQLString,
@@ -8,12 +9,16 @@ import {
   GraphQLInt
 } from 'graphql'
 
-// local
-import { UserType } from '../User'
-import { CommentType } from '../Comment'
-import { DateTimeType } from '../common/graphqlTypes'
+// internal
+import { UserType } from 'src/User'
+import { CommentType } from 'src/Comment'
+import { DateTimeType } from 'src/common/graphqlTypes'
+import { enums } from 'src/common'
 
+// local
 export { ArticleService } from './articleService'
+
+const { userActions } = enums
 
 const ArticleFormType = new GraphQLEnumType({
   name: 'ArticleForm',
@@ -45,7 +50,17 @@ export const ArticleType: GraphQLObjectType = new GraphQLObjectType({
     tags: { type: new GraphQLList(new GraphQLNonNull(GraphQLString)) },
     publishState: { type: PublishStateType },
     hash: { type: GraphQLString },
-    MAT: { type: GraphQLInt },
+    MAT: {
+      type: new GraphQLNonNull(GraphQLInt),
+      description: 'MAT recieved for this article',
+      resolve: async ({ id }, _, { actionService }) => {
+        const appreciateActions = await actionService.findActionByTarget(
+          userActions.appreciate,
+          id
+        )
+        return lodash.sumBy(appreciateActions, 'detail')
+      }
+    },
     author: {
       type: new GraphQLNonNull(UserType),
       resolve: ({ authorId }, _, { userService }) =>
@@ -75,20 +90,30 @@ export const ArticleType: GraphQLObjectType = new GraphQLObjectType({
     },
     relatedArticles: {
       type: new GraphQLNonNull(new GraphQLList(ArticleType)),
-      resolve: ({ relatedArticleIds }, _, { articleService }) =>
-        articleService.loader.loadMany(relatedArticleIds)
+      resolve: ({ relatedArticleIds }, _, { articleService }) => [] // placeholder for recommendation engine
     },
     subscribers: {
       type: new GraphQLList(UserType),
-      resolve: ({ subscriberIds }, _, { userService }) =>
-        userService.loader.loadMany(subscriberIds)
+      resolve: async ({ id }, _, { actionService, userService }) => {
+        const actions = await actionService.findActionByTarget(
+          userActions.subscribeArticle,
+          id
+        )
+        return userService.loader.loadMany(
+          actions.map(({ userId }: { userId: string }) => userId)
+        )
+      }
     },
     // appreciators: {
     //   type: new GraphQLList(UserType),
     //   resolve: ({ appreciatorIds }, _, { userService }) =>
     //     appreciatorIds.map((id: string) => userService.findById(id))
     // },
-    // commentCount: { type: new GraphQLNonNull(GraphQLInt) },
+    commentCount: {
+      type: new GraphQLNonNull(GraphQLInt),
+      resolve: ({ id }, _, { commentService }) =>
+        commentService.countByArticle(id)
+    },
     comments: {
       type: new GraphQLList(CommentType),
       resolve: ({ id }, _, { commentService }) =>
