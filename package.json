@@ -1,8 +1,8 @@
 {
   "name": "matters-server",
   "version": "0.0.1",
-  "description": "Materia content engine",
-  "main": "index.js",
+  "description": "Matters Server",
+  "main": "build/index.js",
   "scripts": {
     "clean": "rimraf build",
     "build": "tsc --project tsconfig.json",
@@ -53,6 +53,7 @@
     "koa-router": "^7.3.0",
     "koa-session": "^5.5.1",
     "lodash": "^4.17.11",
+    "module-alias": "^2.1.0",
     "mongodb": "^2.2.33",
     "node": "^11.1.0",
     "node-fetch": "^1.7.3",
@@ -120,6 +121,9 @@
   "optionalDependencies": {
     "bufferutil": "^3.0.2",
     "utf-8-validate": "^3.0.3"
+  },
+  "_moduleAliases": {
+    "src": "./build"
   },
   "prettier": {
     "singleQuote": true,
