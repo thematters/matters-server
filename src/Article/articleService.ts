@@ -18,17 +18,26 @@ export class ArticleService extends BaseService {
 
   // TODO: replaced by actual dynamoDB api
   // start of db calls ->
-  findByAuthor = (id: Array<string>) => {
+  findByAuthor = (id: string) => {
     return new Promise(resolve =>
       resolve(this.items.filter(({ authorId }) => id === authorId))
     )
   }
 
-  countByAuthor = (id: Array<string>) =>
+  countByAuthor = (id: string) =>
     new Promise(resolve =>
       resolve(this.items.filter(({ authorId }) => id === authorId).length)
     )
 
+  // update an object with id and kv pairs object
+  updateById = (id: string, kv: { [k: string]: any }) =>
+    new Promise(resolve => {
+      const index = this.items.findIndex(
+        ({ id: articleId }) => id === articleId
+      )
+      this.items[index] = { ...this.items[index], ...kv }
+      resolve(this.items[index])
+    })
   // <- end of db calls
 
   // TODO: replaced by actual IPFS api

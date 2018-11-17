@@ -1,3 +1,4 @@
+require('module-alias/register')
 // external
 import { ApolloServer } from 'apollo-server'
 
