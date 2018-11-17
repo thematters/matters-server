@@ -38,6 +38,8 @@ export class ArticleService extends BaseService {
       this.items[index] = { ...this.items[index], ...kv }
       resolve(this.items[index])
     })
+
+  // publish = (userId, article) => {}
   // <- end of db calls
 
   // TODO: replaced by actual IPFS api
