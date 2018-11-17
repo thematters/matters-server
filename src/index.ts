@@ -3,7 +3,6 @@ require('module-alias/register')
 import { ApolloServer } from 'apollo-server'
 
 // internal
-import { environment } from './common'
 import { schema } from './schema'
 import { UserService, ActionService } from './User'
 import { ArticleService } from './Article'
@@ -20,7 +19,7 @@ const server = new ApolloServer({
   schema,
   context,
   engine: {
-    apiKey: environment.engineApiKey
+    apiKey: process.env['ENGINE_API_KEY']
   },
   introspection: true // allow introspection for now, disable before release
 })
