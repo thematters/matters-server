@@ -1,4 +1,4 @@
-import { randomIds, randomRepeatIds } from './utils'
+import { randomRepeatIds } from './utils'
 import { enums } from 'src/common'
 
 const { userActions, votes } = enums
@@ -44,18 +44,6 @@ export const createTestActions = (testSize: {
     }))
   }
 
-  const createSubscribeCommentAction = (size: number) => {
-    const commentIds = randomRepeatIds(size, testSize.comment)
-    const userIds = randomRepeatIds(size, testSize.user)
-    return [...Array(size).keys()].map(i => ({
-      userId: userIds[i],
-      action: userActions.subscribeComment,
-      detail: null,
-      targetId: commentIds[i],
-      timestamp: new Date().toISOString()
-    }))
-  }
-
   // const createRateCourseAction = () => {}
 
   const createRateUserActions = (size: number) => {
@@ -96,7 +84,6 @@ export const createTestActions = (testSize: {
     createAppreicationActions,
     createFollowActions,
     createSubscribeArticleAction,
-    createSubscribeCommentAction,
     createRateUserActions,
     createVoteCommentAction,
     createFinishAction

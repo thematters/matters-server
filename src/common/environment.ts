@@ -1,4 +1,4 @@
 export const environment = {
-  env: process.env['MATTERS_ENV'],
+  env: process.env['NODE_ENV'],
   engineApiKey: process.env['ENGINE_API_KEY']
 }
