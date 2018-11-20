@@ -6,6 +6,7 @@
   "scripts": {
     "clean": "rimraf build",
     "build": "tsc --project tsconfig.json",
+    "postinstall": "npm run build",
     "watch:build": "tsc --project tsconfig.json --watch",
     "watch:server": "nodemon build/index.js",
     "start": "node build/index.js",
