@@ -1,10 +1,14 @@
 import { BaseService, BaseItem, Item } from '../connectors/baseService'
+import DataLoader from 'dataloader'
 import { QueryInput } from 'aws-sdk/clients/dynamodb'
 
 export class UserService extends BaseService {
 
+  usersLoader: DataLoader<string, any>
+
   constructor() {
     super('user')
+    this.usersLoader = new DataLoader(this.findByIds)
   }
 
   /**

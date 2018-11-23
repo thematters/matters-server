@@ -1,7 +1,9 @@
 import * as AWS from 'aws-sdk'
 import { chunk } from 'lodash'
 import DataLoader from 'dataloader'
-import { environment, log } from '../common/'
+import { environment } from '../common/'
+import { log } from '../utils'
+import { newrelic } from '../decorators'
 import { tables } from './mockData'
 import { QueryInput, UpdateItemInput } from 'aws-sdk/clients/dynamodb'
 
