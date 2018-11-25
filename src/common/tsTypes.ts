@@ -10,7 +10,7 @@ export type Context = {
 }
 
 export type ThirdPartyAccount = {
-  accountName: 'Facebook' | 'WeChat' | 'Google'
+  accountName: 'facebook' | 'wechat' | 'google'
   baseUrl: string
   token: string
 }

@@ -22,8 +22,8 @@ const LanguageType = new GraphQLEnumType({
   name: 'UserLanguage',
   values: {
     english: { value: 'en' },
-    chineseTranditional: { value: 'zh_HANT' },
-    chineseSimplified: { value: 'zh_HANS' }
+    chineseTranditional: { value: 'zh_hant' },
+    chineseSimplified: { value: 'zh_hans' }
   }
 })
 
