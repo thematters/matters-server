@@ -1,10 +1,8 @@
 import lodash from 'lodash'
 
 import { ResolverMap, ThirdPartyAccount } from '../definitions'
-import { enums } from '../common'
+import { USER_ACTION } from '../common/enums'
 import { AppreciationAction, RatingAction } from './actionService'
-
-const { userActions } = enums
 
 export const resolvers: ResolverMap = {
   Query: {
@@ -28,7 +26,7 @@ export const resolvers: ResolverMap = {
     // settings
     followers: async ({ id }, _, { actionService, userService }) => {
       const followActions = await actionService.findActionByTarget(
-        userActions.follow,
+        USER_ACTION.follow,
         id
       )
       return userService.loader.loadMany(
@@ -37,7 +35,7 @@ export const resolvers: ResolverMap = {
     },
     follows: async ({ id }, _, { actionService, userService }) => {
       const followActions = await actionService.findActionByUser(
-        userActions.follow,
+        USER_ACTION.follow,
         id
       )
       return userService.loader.loadMany(
@@ -57,7 +55,7 @@ export const resolvers: ResolverMap = {
       const articles = await articleService.findByAuthor(id)
       // const appreciateActions: AppreciationAction[] = await actionService.findActionByTargets(
       const appreciateActions = await actionService.findActionByTargets(
-        userActions.appreciate,
+        USER_ACTION.appreciate,
         articles.map(({ id }) => id)
       )
       return lodash.sumBy(appreciateActions, 'detail')
@@ -65,7 +63,7 @@ export const resolvers: ResolverMap = {
     rating: async ({ id }, _, { actionService }) => {
       // const appreciateActions: RatingAction[] = await actionService.findActionByTarget(
       const appreciateActions = await actionService.findActionByTarget(
-        userActions.rateUser,
+        USER_ACTION.rateUser,
         id
       )
       return lodash.meanBy(appreciateActions, 'detail')
@@ -75,9 +73,9 @@ export const resolvers: ResolverMap = {
     commentCount: ({ id }, _, { commentService }) =>
       commentService.countByAuthor(id),
     followCount: ({ id }, _, { actionService }) =>
-      actionService.countActionByUser(userActions.follow, id),
+      actionService.countActionByUser(USER_ACTION.follow, id),
     followerCount: ({ id }, _, { actionService }) => {
-      return actionService.countActionByTarget(userActions.follow, id)
+      return actionService.countActionByTarget(USER_ACTION.follow, id)
     }
     // draftCount: Number // 草稿數
     // courseCount: Number // 已購買課程數

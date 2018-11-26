@@ -1,8 +1,7 @@
 import lodash from 'lodash'
 
-import { enums } from '../common'
+import { USER_ACTION } from '../common/enums'
 import { ResolverMap } from '../definitions'
-const { userActions } = enums
 
 export const resolvers: ResolverMap = {
   Query: {
@@ -20,7 +19,7 @@ export const resolvers: ResolverMap = {
   Article: {
     MAT: async ({ id }, _, { actionService }) => {
       const appreciateActions = await actionService.findActionByTarget(
-        userActions.appreciate,
+        USER_ACTION.appreciate,
         id
       )
       return lodash.sumBy(appreciateActions, 'detail')
@@ -40,7 +39,7 @@ export const resolvers: ResolverMap = {
     relatedArticles: ({ relatedArticleIds }, _, { articleService }) => [], // placeholder for recommendation engine
     subscribers: async ({ id }, _, { actionService, userService }) => {
       const actions = await actionService.findActionByTarget(
-        userActions.subscribeArticle,
+        USER_ACTION.subscribeArticle,
         id
       )
       return userService.loader.loadMany(actions.map(({ userId }) => userId))
