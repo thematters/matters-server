@@ -5,6 +5,7 @@ export const types = /* GraphQL */ `
 
   extend type Mutation {
     achiveArticle(id: String): Article
+    publishArticle(article: ArticleInputType): Article
   }
 
   type Article {
@@ -28,6 +29,14 @@ export const types = /* GraphQL */ `
     commentCount: Int!
     comments: [Comment]
     pinnedComments: [Comment]
+  }
+
+  input ArticleInputType {
+    upstreamId: String
+    title: String!
+    draftId: String
+    tags: [String]
+    cover: String
   }
 
   enum ArticleForm {
