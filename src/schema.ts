@@ -3,7 +3,7 @@ import { makeExecutableSchema } from 'graphql-tools'
 import { types as ArticleTypes, resolvers as ArticleResolvers } from './Article'
 import { types as CommentTypes, resolvers as CommentResolvers } from './Comment'
 import { types as UserTypes, resolvers as UserResolvers } from './User'
-import * as scalars from './common/scalars'
+import * as scalars from './scalars'
 
 const Root = /* GraphQL */ `
   # The dummy queries and mutations are necessary because
