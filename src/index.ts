@@ -1,14 +1,13 @@
 require('module-alias/register')
-// external
 import { ApolloServer } from 'apollo-server'
 
-// internal
-import { schema } from './schema'
+import schema from './schema'
+import { Context } from './definitions'
 import { UserService, ActionService } from './User'
 import { ArticleService } from './Article'
 import { CommentService } from './Comment'
 
-const context = () => ({
+const context = (): Context => ({
   userService: new UserService(),
   articleService: new ArticleService(),
   commentService: new CommentService(),

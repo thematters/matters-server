@@ -1,5 +1,5 @@
 import { randomRepeatIds } from './utils'
-import { enums } from 'src/common'
+import { enums } from '../../common'
 
 const { userActions, votes } = enums
 
@@ -87,9 +87,6 @@ export const createTestActions = (testSize: {
     createRateUserActions,
     createVoteCommentAction,
     createFinishAction
-  ].reduce(
-    (total: Array<any>, func) => [...total, ...func(testSize.action)],
-    []
-  )
+  ].reduce((total: any[], func) => [...total, ...func(testSize.action)], [])
   return test.map((item, i) => ({ id: String(i), ...item }))
 }
