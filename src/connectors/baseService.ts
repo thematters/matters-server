@@ -1,11 +1,11 @@
 import DataLoader from 'dataloader'
 import { tables } from './mockData'
 
-type Item = { id: string; [k: string]: any }
+export type Item = { id: string; [k: string]: any }
+export type TableName = 'article' | 'user' | 'comment' | 'action'
 
-type TableName = 'article' | 'user' | 'comment' | 'action'
 export class BaseService {
-  items: Array<Item>
+  items: Item[]
 
   loader: DataLoader<string, Item>
 
@@ -16,7 +16,7 @@ export class BaseService {
   }
 
   // replace with dynamoDB batch find function
-  findByIds = (ids: Array<string>): Promise<Array<Item>> =>
+  findByIds = (ids: string[]): Promise<Item[]> =>
     new Promise(resolve =>
       resolve(this.items.filter(({ id: itemId }) => ids.includes(itemId)))
     )

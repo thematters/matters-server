@@ -1,4 +1,4 @@
-import { BaseService } from '../connectors/baseService'
+import { BaseService, Item } from '../connectors/baseService'
 
 export type AppreciationAction = {
   userId: string
@@ -7,7 +7,6 @@ export type AppreciationAction = {
   targetId: string
   timestamp: string
 }
-
 export type RatingAction = AppreciationAction
 
 export class ActionService extends BaseService {
@@ -19,7 +18,7 @@ export class ActionService extends BaseService {
   // TODO: replaced by actual dynamoDB api
   // start of db calls ->
 
-  findActionByTarget = (actionType: string, target: string) =>
+  findActionByTarget = (actionType: string, target: string): Promise<Item[]> =>
     new Promise(resolve =>
       resolve(
         this.items.filter(
@@ -28,7 +27,10 @@ export class ActionService extends BaseService {
       )
     )
 
-  findActionByTargets = (actionType: string, targets: Array<string>) => {
+  findActionByTargets = (
+    actionType: string,
+    targets: string[]
+  ): Promise<Item[]> => {
     return new Promise(resolve =>
       resolve(
         this.items.filter(
@@ -39,7 +41,7 @@ export class ActionService extends BaseService {
     )
   }
 
-  findActionByUser = (actionType: string, userId: string) =>
+  findActionByUser = (actionType: string, userId: string): Promise<Item[]> =>
     new Promise(resolve =>
       resolve(
         this.items.filter(

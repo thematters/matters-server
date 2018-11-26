@@ -7,7 +7,7 @@
     "sourceMap": true,
     "target": "es2017",
     "types": ["node"],
-    "baseUrl": ".",
+    "baseUrl": "src",
     "pretty": true,
     "lib": [
       "es2015",
@@ -21,7 +21,5 @@
     "moduleResolution": "node",
     "esModuleInterop": true
   },
-  "exclude": ["node_modules", "src/v1"],
-  "include": ["*.ts?"],
-  "files": ["src/index.ts"]
+  "exclude": ["node_modules"]
 }
