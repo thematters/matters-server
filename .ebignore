@@ -1,0 +1,6 @@
+**/node_modules
+Dockerfile
+docker-compose.yml
+README.md
+tsconfig.json
+tslint.json

@@ -1,0 +1,35 @@
+{
+    "AWSEBDockerrunVersion": "1",
+    "Image": {
+        "Name": "matters/node:latest",
+        "Update": "true"
+    },
+    "Ports": [
+        {
+            "ContainerPort": "4000"
+        }
+    ],
+    "Volumes": [
+        {
+            "HostDirectory": "/var/app/current/build",
+            "ContainerDirectory": "/var/app/build"
+        },
+        {
+            "HostDirectory": "/var/app/current/src",
+            "ContainerDirectory": "/var/app/src"
+        },
+        {
+            "HostDirectory": "/var/app/current/processes.config.js",
+            "ContainerDirectory": "/var/app/processes.config.js"
+        },
+        {
+            "HostDirectory": "/var/log",
+            "ContainerDirectory": "/var/app/logs"
+        },
+        {
+            "HostDirectory": "/tmp/.ebextensions",
+            "ContainerDirectory": "/var/app/.ebextensions"
+        }
+    ],
+    "Logging": "/var/log/nginx"
+}
