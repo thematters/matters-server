@@ -9,7 +9,13 @@ export const resolvers: ResolverMap = {
     article: (root, { id }, { articleService }, info) =>
       articleService.loader.load(id)
   },
-  Mutation: {},
+  Mutation: {
+    achiveArticle: (root, { id }, { articleService }) =>
+      articleService.updateById(id, { publishState: 'archived' }),
+    publishArticle: (root, { article }, { articleService }) =>
+      // articleService.publish(article)
+      null
+  },
 
   Article: {
     MAT: async ({ id }, _, { actionService }) => {
