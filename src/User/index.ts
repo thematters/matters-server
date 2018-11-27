@@ -1,3 +1,5 @@
 export * from './userService'
 export * from './actionService'
-export * from './objectTypes'
+
+export * from './types'
+export * from './resolvers'

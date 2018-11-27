@@ -1,7 +1,5 @@
 import { randomRepeatIds } from './utils'
-import { enums } from 'src/common'
-
-const { userActions, votes } = enums
+import { USER_ACTION, VOTE } from '../../common/enums'
 
 export const createTestActions = (testSize: {
   article: number
@@ -14,7 +12,7 @@ export const createTestActions = (testSize: {
     const userIds = randomRepeatIds(size, testSize.user)
     return [...Array(size).keys()].map(i => ({
       userId: userIds[i],
-      action: userActions.appreciate,
+      action: USER_ACTION.appreciate,
       detail: 1, // MAT number
       targetId: articleIds[i],
       timestamp: new Date().toISOString()
@@ -25,7 +23,7 @@ export const createTestActions = (testSize: {
     const userIds = randomRepeatIds(size, testSize.user)
     return [...Array(size).keys()].map(i => ({
       userId: userIds[i],
-      action: userActions.follow,
+      action: USER_ACTION.follow,
       detail: null,
       targetId: randomRepeatIds(size, testSize.user, userIds[i])[0],
       timestamp: new Date().toISOString()
@@ -37,7 +35,7 @@ export const createTestActions = (testSize: {
     const userIds = randomRepeatIds(size, testSize.user)
     return [...Array(size).keys()].map(i => ({
       userId: userIds[i],
-      action: userActions.subscribeArticle,
+      action: USER_ACTION.subscribeArticle,
       detail: null,
       targetId: articleIds[i],
       timestamp: new Date().toISOString()
@@ -46,11 +44,11 @@ export const createTestActions = (testSize: {
 
   // const createRateCourseAction = () => {}
 
-  const createRateUserActions = (size: number) => {
+  const createRateUSER_ACTION = (size: number) => {
     const userIds = randomRepeatIds(size, testSize.user)
     return [...Array(size).keys()].map(i => ({
       userId: userIds[i],
-      action: userActions.rateUser,
+      action: USER_ACTION.rateUser,
       detail: 4,
       targetId: randomRepeatIds(size, testSize.user, userIds[i])[0],
       timestamp: new Date().toISOString()
@@ -62,8 +60,8 @@ export const createTestActions = (testSize: {
     const userIds = randomRepeatIds(size, testSize.user)
     return [...Array(size).keys()].map(i => ({
       userId: userIds[i],
-      action: userActions.vote,
-      detail: [votes.up, votes.down][Math.round(Math.random())],
+      action: USER_ACTION.vote,
+      detail: [VOTE.up, VOTE.down][Math.round(Math.random())],
       targetId: commentIds[i],
       timestamp: new Date().toISOString()
     }))
@@ -74,7 +72,7 @@ export const createTestActions = (testSize: {
     const userIds = randomRepeatIds(size, testSize.user)
     return [...Array(size).keys()].map(i => ({
       userId: userIds[i],
-      action: userActions.finish,
+      action: USER_ACTION.finish,
       detail: null,
       targetId: articleIds[i],
       timestamp: new Date().toISOString()
@@ -84,12 +82,9 @@ export const createTestActions = (testSize: {
     createAppreicationActions,
     createFollowActions,
     createSubscribeArticleAction,
-    createRateUserActions,
+    createRateUSER_ACTION,
     createVoteCommentAction,
     createFinishAction
-  ].reduce(
-    (total: Array<any>, func) => [...total, ...func(testSize.action)],
-    []
-  )
+  ].reduce((total: any[], func) => [...total, ...func(testSize.action)], [])
   return test.map((item, i) => ({ id: String(i), ...item }))
 }
