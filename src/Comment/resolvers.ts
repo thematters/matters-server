@@ -1,4 +1,4 @@
-import { ResolverMap } from '../definitions'
+import { ResolverMap } from 'src/definitions'
 
 export const resolvers: ResolverMap = {
   Query: {

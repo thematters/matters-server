@@ -1,7 +1,7 @@
 import lodash from 'lodash'
 
-import { USER_ACTION } from '../common/enums'
-import { ResolverMap } from '../definitions'
+import { USER_ACTION } from 'src/common/enums'
+import { ResolverMap } from 'src/definitions'
 
 export const resolvers: ResolverMap = {
   Query: {
