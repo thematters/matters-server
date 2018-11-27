@@ -1,4 +1,4 @@
-import { BaseService, Item } from '../connectors/baseService'
+import { BaseService, Item } from 'src/connectors/baseService'
 
 export class CommentService extends BaseService {
   constructor() {
