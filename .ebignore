@@ -4,3 +4,4 @@ docker-compose.yml
 README.md
 tsconfig.json
 tslint.json**/node_modules
+.git

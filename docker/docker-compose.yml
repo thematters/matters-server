@@ -2,7 +2,7 @@ version: '3'
 
 services:
   app:
-    image: matters/node:latest
+    image: matters-server:latest
     build:
       context: ../
       dockerfile: docker/Dockerfile
