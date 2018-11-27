@@ -38,6 +38,7 @@
     "@types/cheerio": "^0.22.6",
     "@types/graphql": "^14.0.3",
     "@types/graphql-iso-date": "^3.3.1",
+    "@types/knex": "^0.15.1",
     "@types/lodash": "^4.14.117",
     "@types/uuid": "^3.4.3",
     "@types/validator": "^9.4.3",
