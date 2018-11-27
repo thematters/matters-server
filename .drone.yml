@@ -1,0 +1,7 @@
+pipeline:
+  tslint:
+    image: node:8
+    commands:
+      - npm install --no-progress --quiet --unsafe-perm > npm-install.log
+      - npm run tslint:production
+      - npm run format:check
