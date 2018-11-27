@@ -1,7 +1,7 @@
 import lodash from 'lodash'
 
-import { ResolverMap, ThirdPartyAccount } from '../definitions'
-import { USER_ACTION } from '../common/enums'
+import { ResolverMap, ThirdPartyAccount } from 'src/definitions'
+import { USER_ACTION } from 'src/common/enums'
 import { AppreciationAction, RatingAction } from './actionService'
 
 export const resolvers: ResolverMap = {
