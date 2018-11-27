@@ -1,9 +1,8 @@
-// external
 import * as cheerio from 'cheerio'
 
-// internal
-import { BaseService } from '../connectors/baseService'
+import { BaseService, Item } from '../connectors/baseService'
 import { randomText } from '../connectors/mockData/utils'
+
 export class ArticleService extends BaseService {
   constructor() {
     super('article')
@@ -18,7 +17,7 @@ export class ArticleService extends BaseService {
 
   // TODO: replaced by actual dynamoDB api
   // start of db calls ->
-  findByAuthor = (id: string) => {
+  findByAuthor = (id: string): Promise<Item[]> => {
     return new Promise(resolve =>
       resolve(this.items.filter(({ authorId }) => id === authorId))
     )

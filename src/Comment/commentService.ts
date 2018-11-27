@@ -1,4 +1,4 @@
-import { BaseService } from '../connectors/baseService'
+import { BaseService, Item } from '../connectors/baseService'
 
 export class CommentService extends BaseService {
   constructor() {
@@ -7,27 +7,27 @@ export class CommentService extends BaseService {
 
   // TODO: replace by DB calls
   // start of db calls ->
-  findByAuthor = (id: Array<string>) =>
+  findByAuthor = (id: string[]): Promise<Item[]> =>
     new Promise(resolve =>
       resolve(this.items.filter(({ authorId }) => id === authorId))
     )
 
-  findByArticle = (id: string) =>
+  findByArticle = (id: string): Promise<Item[]> =>
     new Promise(resolve =>
       resolve(this.items.filter(({ articleId }) => articleId === id))
     )
 
-  findByParent = (id: string) =>
+  findByParent = (id: string): Promise<Item[]> =>
     new Promise(resolve =>
       resolve(this.items.filter(({ parentId }) => parentId === id))
     )
 
-  countByAuthor = (id: Array<string>) =>
+  countByAuthor = (id: string[]) =>
     new Promise(resolve =>
       resolve(this.items.filter(({ authorId }) => id === authorId).length)
     )
 
-  countByArticle = (id: Array<string>) =>
+  countByArticle = (id: string[]) =>
     new Promise(resolve =>
       resolve(this.items.filter(({ articleId }) => articleId === id).length)
     )

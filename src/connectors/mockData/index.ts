@@ -18,7 +18,7 @@ const createTestUser = (id: string) => ({
   settings: {
     language: 'en',
     thirdPartyAccounts: [
-      { accountName: 'Facebook', baseUrl: 'www.facebook.com', token: '' }
+      { accountName: 'facebook', baseUrl: 'www.facebook.com', token: '' }
     ]
   }
 })
