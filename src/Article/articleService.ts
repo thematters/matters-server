@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio'
 
-import { BaseService, Item } from '../connectors/baseService'
-import { randomText } from '../connectors/mockData/utils'
+import { BaseService, Item } from 'src/connectors/baseService'
+import { randomText } from 'src/connectors/mockData/utils'
 
 export class ArticleService extends BaseService {
   constructor() {
