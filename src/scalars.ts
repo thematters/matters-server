@@ -1,6 +1,6 @@
 import { GraphQLDate, GraphQLTime, GraphQLDateTime } from 'graphql-iso-date'
 
-export const typeDefs = /* GraphQL */ `
+export const types = /* GraphQL */ `
   scalar Date
   scalar Time
   scalar DateTime
