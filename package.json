@@ -8,7 +8,7 @@
     "build": "tsc --project tsconfig.json",
     "watch:build": "tsc --project tsconfig.json --watch",
     "watch:server": "nodemon build/index.js",
-    "postinstall": "npm run build",
+    "prestart": "npm run build",
     "start": "node build/index.js",
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
     "tslint:dev": "tslint --force -c tslint.json 'src/**/*.ts{,x}' -e '**/node_modules/**/*'",
