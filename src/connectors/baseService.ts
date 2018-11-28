@@ -8,7 +8,6 @@ export type Item = { id: string; [key: string]: any }
 export type TableName = 'article' | 'user' | 'comment' | 'action'
 
 export class BaseService {
-
   knex: Knex
 
   items: Item[]
