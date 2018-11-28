@@ -7,7 +7,6 @@ export type Item = { id: string; [key: string]: any }
 export type TableName = 'article' | 'user' | 'comment' | 'action'
 
 export class BaseService {
-
   knex: Knex
 
   items: Item[]
@@ -41,7 +40,10 @@ export class BaseService {
    * Find an item by a given id.
    */
   findById = async (id: string): Promise<any | null> => {
-    const result = await this.knex.select().from(this.table).where('id', id)
+    const result = await this.knex
+      .select()
+      .from(this.table)
+      .where('id', id)
     if (result && result.length > 0) {
       return result[0]
     }
@@ -52,6 +54,9 @@ export class BaseService {
    * Find items by given ids.
    */
   findByIds = async (ids: string[]): Promise<any[]> => {
-    return await this.knex.select().from(this.table).whereIn('id', ids)
+    return await this.knex
+      .select()
+      .from(this.table)
+      .whereIn('id', ids)
   }
 }
