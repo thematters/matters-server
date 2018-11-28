@@ -26,6 +26,7 @@
     "graphql": "^14.0.2",
     "graphql-iso-date": "^3.6.1",
     "graphql-tools": "^4.0.3",
+    "join-monster": "^2.1.0",
     "knex": "^0.15.2",
     "lodash": "^4.17.11",
     "module-alias": "^2.1.0",
