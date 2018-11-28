@@ -1,6 +1,6 @@
 /**
  * Here are all environment variables that server needs. Please add prefix
- * `MATTERS_` before environment varaibles.
+ * `MATTERS_` before environment variables.
  */
 export const environment = {
   env: process.env['MATTERS_ENV'],
