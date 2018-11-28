@@ -1,3 +1,4 @@
+import DataLoader from 'dataloader'
 import { environment } from '../common/environment'
 import Knex from 'knex'
 import { tables } from './mockData'
@@ -7,9 +8,12 @@ export type Item = { id: string; [key: string]: any }
 export type TableName = 'article' | 'user' | 'comment' | 'action'
 
 export class BaseService {
+
   knex: Knex
 
   items: Item[]
+
+  loader: DataLoader<string, Item>
 
   table: TableName
 
