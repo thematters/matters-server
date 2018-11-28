@@ -1,9 +1,6 @@
 import { ResolverMap } from 'src/definitions'
 
 export const resolvers: ResolverMap = {
-  Query: {
-    comment: () => null
-  },
   Mutation: {},
 
   Comment: {
