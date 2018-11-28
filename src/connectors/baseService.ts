@@ -17,9 +17,10 @@ export class BaseService {
 
   // replace with dynamoDB batch find function
   findByIds = (ids: string[]): Promise<Item[]> =>
-    new Promise(resolve =>
+    new Promise(resolve => {
+      console.log(this.items)
       resolve(this.items.filter(({ id: itemId }) => ids.includes(itemId)))
-    )
+    })
 
   // utility function for testing purpose, can be deleted if all services are connected to db
   getAllIds = () => this.items.map(({ id }) => id)
