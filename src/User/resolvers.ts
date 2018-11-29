@@ -60,14 +60,6 @@ export const resolvers: ResolverMap = {
       )
       return lodash.sumBy(appreciateActions, 'detail')
     },
-    rating: async ({ id }, _, { actionService }) => {
-      // const appreciateActions: RatingAction[] = await actionService.findActionByTarget(
-      const appreciateActions = await actionService.findActionByTarget(
-        USER_ACTION.rateUser,
-        id
-      )
-      return lodash.meanBy(appreciateActions, 'detail')
-    },
     articleCount: (parent, _, { articleService }) =>
       articleService.countByAuthor(parent.id),
     commentCount: ({ id }, _, { commentService }) =>

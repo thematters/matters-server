@@ -20,7 +20,7 @@ const server = new ApolloServer({
   engine: {
     apiKey: process.env['ENGINE_API_KEY']
   },
-  introspection: true // allow introspection for now, disable before release
+  mocks: true
 })
 
 server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
