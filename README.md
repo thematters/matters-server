@@ -30,5 +30,6 @@
 - `docker-compose -f docker/docker-compose.yml build`
 - `docker tag matters-server:latest 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:latest`
 - `docker push 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:latest`
+- `docker-compose -f docker/docker-compose.yml run app npm run build`
 - `eb init matters-stage --region ap-southeast-1`
 - `eb deploy matters-server-stage`
