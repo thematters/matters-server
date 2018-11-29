@@ -20,6 +20,7 @@ export class BaseService {
     this.knex = this.getKnexClient()
     this.table = table
     this.items = tables[table]
+    this.loader = new DataLoader(this.findByIds)
   }
 
   /**
