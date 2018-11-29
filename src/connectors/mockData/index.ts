@@ -16,7 +16,6 @@ const createTestUser = (id: string) => ({
   email: `${randomText(2).join('')}@${randomText(1)}.com`,
   password: '',
   settings: {
-    language: 'en',
     thirdPartyAccounts: [
       { accountName: 'facebook', baseUrl: 'www.facebook.com', token: '' }
     ]
