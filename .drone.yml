@@ -3,31 +3,30 @@ name: default
 
 steps:
 - name: install node modules
-  image: node:8
+  image: node:10.13
   commands:
-  - npm install --no-progress --quiet --unsafe-perm > npm-install.log
+  - npm install --no-progress --quiet --unsafe-perm >  npm-install.log
 
-# - name: tslint
-#   image: node:8
-#   commands:
-#   - npm run tslint:production
-#   - npm run format:check
-# 
+- name: tslint
+  image: node:10.13
+  commands:
+  - npm run tslint:production
+
 # - name: test
-#   image: node:8
+#   image: node:10.13
 #   commands:
 #   - npx jest
-# 
-# - name: deploy to stage environment
-#   image: node:8
-#   environment:
-#     SSH_KEY:
-#       from_secret: SSH_KEY
-#   commands:
-#   - export MATERIA_STAGE_DEPLOY_USER=ubuntu
-#   - export MATERIA_STAGE_TARGET_SERVER=13.251.102.167
-#   - apt-get update
-#   - apt upgrade bash -y 
-#   - apt install rsync -y
-#   - mkdir /root/.ssh && echo "$SSH_KEY" > /root/.ssh/id_rsa && chmod 0600 /root/.ssh/id_rsa
-#   - bash tools/deploy.sh build+push:stage
+
+- name: deploy to stage environment
+  image: mesosphere/aws-cli
+  environment:
+    AWS_ACCESS_KEY_ID:
+      from_secret: AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY:
+      from_secret: AWS_SECRET_ACCESS_KEY
+    AWS_DEFAULT_REGION: ap-southeast-1
+  commands:
+  - apk -v --update add py-pip git && pip install --upgrade awsebcli
+  - eb init matters-stage --region ap-southeast-1 --source codecommit/matters-server/develop
+  - eb codesource local
+  - eb deploy matters-server-stage 
