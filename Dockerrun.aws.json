@@ -19,10 +19,6 @@
       "ContainerDirectory": "/var/app/src"
     },
     {
-      "HostDirectory": "/var/app/current/processes.config.js",
-      "ContainerDirectory": "/var/app/processes.config.js"
-    },
-    {
       "HostDirectory": "/var/log",
       "ContainerDirectory": "/var/app/logs"
     },
