@@ -29,18 +29,18 @@ export const resolvers: ResolverMap = {
         USER_ACTION.follow,
         id
       )
-      //return userService.loader.loadMany(
-      //  followActions.map(({ userId }) => userId)
-      //)
+      return userService.loader.loadMany(
+        followActions.map(({ userId }) => userId)
+      )
     },
     follows: async ({ id }, _, { actionService, userService }) => {
       const followActions = await actionService.findActionByUser(
         USER_ACTION.follow,
         id
       )
-      //return userService.loader.loadMany(
-      //  followActions.map(({ targetId }) => targetId)
-      //)
+      return userService.loader.loadMany(
+        followActions.map(({ targetId }) => targetId)
+      )
     }
   },
   UserSettings: {
