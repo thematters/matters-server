@@ -19,7 +19,8 @@
     ],
     "outDir": "./build",
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strictPropertyInitialization": false
   },
   "exclude": ["node_modules"]
 }

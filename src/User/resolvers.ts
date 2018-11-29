@@ -1,12 +1,12 @@
 import lodash from 'lodash'
-
+import joinMonster from 'join-monster'
 import { ResolverMap, ThirdPartyAccount } from 'src/definitions'
 import { USER_ACTION } from 'src/common/enums'
 import { AppreciationAction, RatingAction } from './actionService'
 
 export const resolvers: ResolverMap = {
   Query: {
-    user: (root, { id }, { userService }, info) => userService.loader.load(id)
+    user: (root, { id }, { userService }, info) => userService.findById(id)
   },
   Mutation: {},
 
