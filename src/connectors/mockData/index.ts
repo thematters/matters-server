@@ -44,7 +44,6 @@ const createTestComment = (id: string) => {
 
 const createTestArticle = (id: string) => ({
   id,
-  form: ['article', 'course'][Math.round(Math.random())],
   authorId: randomIds(1, testSize.user)[0],
   title: randomText(5).join(' '),
   cover: 'im a test cover',

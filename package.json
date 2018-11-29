@@ -5,7 +5,8 @@
   "main": "build/index.js",
   "scripts": {
     "db:migrate": "knex migrate:latest",
-    "db:seed": "knex seed:run",
+    "db:rollback": "knex migrate:rollback",
+    "db:seed": "knex seeds:run",
     "clean": "rimraf build",
     "build": "tsc --project tsconfig.json",
     "watch:build": "tsc --project tsconfig.json --watch",
