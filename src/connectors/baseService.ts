@@ -8,6 +8,7 @@ export type Item = { id: string; [key: string]: any }
 export type TableName = 'article' | 'user' | 'comment' | 'action'
 
 export class BaseService {
+
   knex: Knex
 
   items: Item[]
@@ -20,8 +21,13 @@ export class BaseService {
     this.knex = this.getKnexClient()
     this.table = table
     this.items = tables[table]
-    this.loader = new DataLoader(this.findByIds)
+    this.loader = new DataLoader(this.fakeFindByIds)
   }
+
+  fakeFindByIds = (ids: string[]): Promise<Item[]> =>
+    new Promise(resolve =>
+      resolve(this.items.filter(({ id: itemId }) => ids.includes(itemId)))
+    )
 
   /**
    * Initialize a Knex client for PostgreSQL.
