@@ -7,6 +7,7 @@ RUN npm i
 
 # install os level packages
 RUN apt-get update && apt-get -y install curl \
+  postgresql-client \
   vim \
   wget
 
