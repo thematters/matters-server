@@ -1,26 +1,71 @@
 import DataLoader from 'dataloader'
+import { environment } from '../common/environment'
+import Knex from 'knex'
 import { tables } from './mockData'
 
-type Item = { id: string; [k: string]: any }
+export type Item = { id: string; [key: string]: any }
 
-type TableName = 'article' | 'user' | 'comment' | 'action'
+export type TableName = 'article' | 'user' | 'comment' | 'action'
+
 export class BaseService {
-  items: Array<Item>
+  knex: Knex
+
+  items: Item[]
 
   loader: DataLoader<string, Item>
 
+  table: TableName
+
   constructor(table: TableName) {
-    // replace items and related functions with dynamo or dax client
+    this.knex = this.getKnexClient()
+    this.table = table
     this.items = tables[table]
-    this.loader = new DataLoader(this.findByIds)
+    this.loader = new DataLoader(this.fakeFindByIds)
   }
 
-  // replace with dynamoDB batch find function
-  findByIds = (ids: Array<string>): Promise<Array<Item>> =>
+  fakeFindByIds = (ids: string[]): Promise<Item[]> =>
     new Promise(resolve =>
       resolve(this.items.filter(({ id: itemId }) => ids.includes(itemId)))
     )
 
-  // utility function for testing purpose, can be deleted if all services are connected to db
-  getAllIds = () => this.items.map(({ id }) => id)
+  /**
+   * Initialize a Knex client for PostgreSQL.
+   */
+  getKnexClient = (): Knex => {
+    const { env, pgHost, pgUser, pgPassword, pgDatabase } = environment
+    const host = env === 'dev' ? '0.0.0.0' : pgHost
+    return Knex({
+      client: 'pg',
+      connection: {
+        host,
+        user: pgUser,
+        password: pgPassword,
+        database: pgDatabase
+      }
+    })
+  }
+
+  /**
+   * Find an item by a given id.
+   */
+  findById = async (id: string): Promise<any | null> => {
+    const result = await this.knex
+      .select()
+      .from(this.table)
+      .where('id', id)
+    if (result && result.length > 0) {
+      return result[0]
+    }
+    return null
+  }
+
+  /**
+   * Find items by given ids.
+   */
+  findByIds = async (ids: string[]): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from(this.table)
+      .whereIn('id', ids)
+  }
 }

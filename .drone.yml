@@ -29,4 +29,8 @@ steps:
   - apk -v --update add py-pip git && pip install --upgrade awsebcli
   - eb init matters-stage --region ap-southeast-1 --source codecommit/matters-server/develop
   - eb codesource local
-  - eb deploy matters-server-stage 
+  - eb deploy matters-server-stage
+  when:
+    branch:
+    - develop
+    - feature/beanstalk
