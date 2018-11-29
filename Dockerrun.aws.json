@@ -11,12 +11,8 @@
   ],
   "Volumes": [
     {
-      "HostDirectory": "/var/app/current/build",
-      "ContainerDirectory": "/var/app/build"
-    },
-    {
-      "HostDirectory": "/var/app/current/src",
-      "ContainerDirectory": "/var/app/src"
+      "HostDirectory": "/var/app/current",
+      "ContainerDirectory": "/var/app"
     },
     {
       "HostDirectory": "/var/log",
