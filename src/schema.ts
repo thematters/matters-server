@@ -12,13 +12,13 @@ const Root = /* GraphQL */ `
   # these types later on
   # Ref: apollographql/graphql-tools#293
   type Query {
-    dummy: String
+    _: Boolean
   }
   type Mutation {
-    dummy: String
+    _: Boolean
   }
   type Subscription {
-    dummy: String
+    _: Boolean
   }
   schema {
     query: Query
