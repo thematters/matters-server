@@ -1,15 +1,15 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable('user', function(t) {
     t.increments()
-    t.uuid('origin_id')
     t.string('username').notNullable().unique()
     t.string('email').notNullable().unique()
     t.string('mobile').notNullable()
     t.string('password').notNullable()
     t.string('avatar').notNullable()
     t.text('description')
-    t.string('facebook')
     t.integer('read_speed').defaultTo(500)
+    t.string('language').notNullable()
+    t.specificType('thirdPartyAccounts', 'text ARRAY')
     // notification settings
     t.boolean('mention_notify').defaultTo(true)
     t.boolean('follow_notify').defaultTo(true)

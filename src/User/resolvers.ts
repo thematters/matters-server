@@ -6,7 +6,7 @@ import { AppreciationAction, RatingAction } from './actionService'
 
 export const resolvers: ResolverMap = {
   Query: {
-    user: (root, { id }, { userService }, info) => userService.findById(id)
+    user: (root, { id }, { userService }, info) => userService.loader.load(id)
   },
   Mutation: {},
 

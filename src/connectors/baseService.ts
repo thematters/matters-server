@@ -20,13 +20,7 @@ export class BaseService {
     this.knex = this.getKnexClient()
     this.table = table
     this.items = tables[table]
-    this.loader = new DataLoader(this.fakeFindByIds)
   }
-
-  fakeFindByIds = (ids: string[]): Promise<Item[]> =>
-    new Promise(resolve =>
-      resolve(this.items.filter(({ id: itemId }) => ids.includes(itemId)))
-    )
 
   /**
    * Initialize a Knex client for PostgreSQL.
@@ -45,10 +39,15 @@ export class BaseService {
     })
   }
 
+  fakeFindByIds = (ids: string[]): Promise<Item[]> =>
+    new Promise(resolve =>
+      resolve(this.items.filter(({ id: itemId }) => ids.includes(itemId)))
+    )
+
   /**
    * Find an item by a given id.
    */
-  findById = async (id: string): Promise<any | null> => {
+  baseFindById = async (id: string): Promise<any | null> => {
     const result = await this.knex
       .select()
       .from(this.table)
@@ -62,7 +61,7 @@ export class BaseService {
   /**
    * Find items by given ids.
    */
-  findByIds = async (ids: string[]): Promise<any[]> => {
+  baseFindByIds = async (ids: string[]): Promise<any[]> => {
     return await this.knex
       .select()
       .from(this.table)
