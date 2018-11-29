@@ -27,6 +27,7 @@
 - `pip install -U awscli awsebcli`
 - `aws configure`, then input your access key and secret
 - Login AWS ECR with `$(aws ecr get-login --no-include-email --region ap-southeast-1)`
+- `docker-compose -f docker/docker-compose.yml build`
 - `docker tag matters-server:latest 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:latest`
 - `docker push 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:latest`
 - `eb init matters-stage --region ap-southeast-1`
