@@ -1,6 +1,7 @@
 import { BaseService } from 'src/connectors/baseService'
 
 export class UserService extends BaseService {
+
   constructor() {
     super('user')
   }
