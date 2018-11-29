@@ -1,46 +1,42 @@
-// external
-import {
-  GraphQLObjectType,
-  GraphQLSchema,
-  GraphQLString,
-  GraphQLNonNull
-} from 'graphql'
+import { makeExecutableSchema } from 'graphql-tools'
+import { merge } from 'lodash'
 
-// local
-import { MutationType } from './mutations'
-import { UserType } from './User'
-import { ArticleType } from './Article'
+import { types as ArticleTypes, resolvers as ArticleResolvers } from './Article'
+import { types as CommentTypes, resolvers as CommentResolvers } from './Comment'
+import { types as UserTypes, resolvers as UserResolvers } from './User'
+import { types as scalarTypes, resolvers as scalarResolvers } from './scalars'
 
-// root query type
-const QueryType = new GraphQLObjectType({
-  name: 'Query',
-  fields: {
-    user: {
-      type: UserType,
-      description: 'User object with a given id',
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLString)
-        }
-      },
-      resolve: (root, { id }, { userService }, info) =>
-        userService.loader.load(id)
-    },
-    article: {
-      type: ArticleType,
-      description: 'Article object with a given id',
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLString)
-        }
-      },
-      resolve: (root, { id }, { articleService }, info) =>
-        articleService.loader.load(id)
-    }
+const Root = /* GraphQL */ `
+  # The dummy queries and mutations are necessary because
+  # graphql-js cannot have empty root types and we only extend
+  # these types later on
+  # Ref: apollographql/graphql-tools#293
+  type Query {
+    dummy: String
   }
+  type Mutation {
+    dummy: String
+  }
+  type Subscription {
+    dummy: String
+  }
+  schema {
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
+  }
+`
+
+// Create the final GraphQL schema out of the type definitions
+// and the resolvers
+const schema = makeExecutableSchema({
+  typeDefs: [Root, scalarTypes, ArticleTypes, CommentTypes, UserTypes],
+  resolvers: merge(
+    scalarResolvers,
+    ArticleResolvers,
+    CommentResolvers,
+    UserResolvers
+  )
 })
 
-export const schema = new GraphQLSchema({
-  query: QueryType,
-  mutation: MutationType
-})
+export default schema

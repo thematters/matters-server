@@ -143,10 +143,10 @@ export const sequentialIds = (size: number) =>
   [...Array(size).keys()].map(i => String(i))
 
 export const randomFrom = (
-  items: Array<any>,
+  items: any[],
   number: number,
   exclude?: any
-): Array<string> => {
+): string[] => {
   let cleanItems = items
   if (exclude) {
     const itemsSet = new Set(items)
@@ -168,7 +168,7 @@ export const randomIds = (
   size: number,
   max: number,
   exclude?: string
-): Array<string> => {
+): string[] => {
   return randomFrom(sequentialIds(max), size, exclude)
 }
 
@@ -176,14 +176,14 @@ export const randomRepeatIds = (
   size: number,
   max: number,
   exclude?: string
-): Array<string> => {
+): string[] => {
   let ids = sequentialIds(max)
   if (exclude) {
     const idsSet = new Set(ids)
     idsSet.delete(exclude)
     ids = [...idsSet]
   }
-  let selections: Array<string> = []
+  let selections: string[] = []
   while (selections.length !== size) {
     let selection = ids[Math.floor(Math.random() * ids.length)]
     selections = [...selections, selection]

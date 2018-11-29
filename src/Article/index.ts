@@ -1,2 +1,4 @@
 export * from './articleService'
-export * from './objectTypes'
+
+export * from './types'
+export * from './resolvers'

@@ -1,11 +1,27 @@
-import { BaseService } from '../connectors/baseService'
+import { BaseService } from 'src/connectors/baseService'
 
 export class UserService extends BaseService {
-  // items = items
   constructor() {
     super('user')
   }
 
-  // findById is defined in baseService
-  // other db calls can be added here
+  /**
+   * Find users by a given email.
+   */
+  findByEmail = async (email: string): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from(this.table)
+      .where('email', email)
+  }
+
+  /**
+   * Find users by a given user name.
+   */
+  findByUserName = async (name: string): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from(this.table)
+      .where('userName', name)
+  }
 }
