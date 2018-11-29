@@ -11,3 +11,4 @@
 
 - Create a new migration: `npx knex migrate:make <migration-name>`
 - Create a new seed file: `npx knex seed:make <seeds-name>`, seed files are run sequential so please pre-fix with order
+- Rollback a migration: `npm run db:rollback`
