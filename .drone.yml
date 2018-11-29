@@ -17,6 +17,11 @@ steps:
 #   commands:
 #   - npx jest
 
+- name: build
+  image: node:10.13
+  commands:
+  - npm run build
+
 - name: deploy to stage environment
   image: mesosphere/aws-cli
   environment:
