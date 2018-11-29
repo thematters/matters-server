@@ -5,7 +5,7 @@ export type AppreciationAction = {
   action: string
   detail: number
   targetId: string
-  timestamp: string
+  createdAt: string
 }
 export type RatingAction = AppreciationAction
 

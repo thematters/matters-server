@@ -14,13 +14,20 @@ const context = (): Context => ({
   actionService: new ActionService()
 })
 
+const mocks = {
+  JSON: () => ({
+    'index.html': '<html><p>hello</p></html>',
+    '1.png': 'some png string'
+  })
+}
+
 const server = new ApolloServer({
   schema,
   context,
   engine: {
     apiKey: process.env['ENGINE_API_KEY']
   },
-  mocks: true
+  mocks
 })
 
 server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
