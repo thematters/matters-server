@@ -1,6 +1,7 @@
 export const types = /* GraphQL */ `
   extend type Query {
     article(id: String!): Article
+    tags(partial: String!, first: Int, after: Int): [Tag]
   }
 
   extend type Mutation {
@@ -40,6 +41,12 @@ export const types = /* GraphQL */ `
     appreciatprs(first: Int, after: Int): [User]
     hasAppreciate: Boolean!
     publishState: PublishState!
+  }
+
+  type Tag {
+    text: String
+    count: Int
+    articles: [Article]
   }
 
   enum PublishState {

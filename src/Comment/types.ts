@@ -1,9 +1,9 @@
 export const types = /* GraphQL */ `
-  # extend type Query {
-  # }
 
   extend type Mutation {
-    createOrEditComment(comment: CommentInput, commentId: String): Comment
+    createOrEditComment(comment: CommentInput!, id: String): Comment
+    pinComment(id: String): Comment
+    deleteComment(id: String): Comment
   }
 
   type Comment {
