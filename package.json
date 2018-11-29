@@ -4,6 +4,9 @@
   "description": "Matters Server",
   "main": "build/index.js",
   "scripts": {
+    "db:migrate": "knex migrate:latest",
+    "db:rollback": "knex migrate:rollback",
+    "db:seed": "knex seed:run",
     "clean": "rimraf build",
     "build": "tsc --project tsconfig.json",
     "watch:build": "tsc --project tsconfig.json --watch",
