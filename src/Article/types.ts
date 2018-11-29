@@ -4,45 +4,44 @@ export const types = /* GraphQL */ `
   }
 
   extend type Mutation {
-    achiveArticle(id: String): Article
-    publishArticle(article: ArticleInputType): Article
+    # publish with draft id
+    publishArticle(id: String): Article!
+    achiveArticle(id: String): Article!
+    toggleSubscription(id: String): Article!
+    reportArticle(id: String, category: String, description: String): Article
+    appreciate(id: String, amount: Int): Int!
+    readArticle(id: String): Boolean!
   }
 
   type Article {
     id: String!
-    form: ArticleForm!
-    timestamp: DateTime!
-    title: String!
-    cover: String!
-    tags: [String!]
-    publishState: PublishState
-    hash: String
-    # MAT recieved for this article
-    MAT: Int!
+    createdAt: DateTime!
     author: User!
-    content: String!
+    title: String!
+    # url for cover
+    cover: String!
+    abstract: String!
+    tags: [String!]
     wordCount: Int
+    hash: String
+    content: JSON!
+    gatewayUrls: [String]
     upstream: Article
     downstreams: [Article]
     relatedArticles: [Article]!
-    subscribers: [User]
+    # MAT recieved for this article
+    MAT: Int!
     commentCount: Int!
-    comments: [Comment]
+    # Current user has subscribed
+    subscribed: Boolean!
     pinnedComments: [Comment]
+    comments(first: Int, after: Int): [Comment]
+    subscribers(first: Int, after: Int): [User]
+    appreciatprs(first: Int, after: Int): [User]
+    hasAppreciate: Boolean!
+    publishState: PublishState!
   }
 
-  input ArticleInputType {
-    upstreamId: String
-    title: String!
-    draftId: String
-    tags: [String]
-    cover: String
-  }
-
-  enum ArticleForm {
-    article
-    course
-  }
   enum PublishState {
     archived
     pending
