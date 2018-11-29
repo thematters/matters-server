@@ -2,24 +2,8 @@ kind: pipeline
 name: default
 
 steps:
-- name: download image
-  image: plugins/ecr
-  settings:
-    access_key:
-      from_secret: AWS_ACCESS_KEY_ID
-    secret_key:
-      from_secret: AWS_SECRET_ACCESS_KEY
-    repo: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server
-    registry: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com
-  commands:
-  - echo "Hello World"  
-  - aws ecr get-login --region us-east-1 | bash 
-  - docker pull 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:latest
-  volumes:
-  - /var/run/docker.sock:/var/run/docker.sock
-
 - name: install node modules
-  image: matters
+  image: node:8
   commands:
   - npm install --no-progress --quiet --unsafe-perm > npm-install.log
 
