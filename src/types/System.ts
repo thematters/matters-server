@@ -1,4 +1,4 @@
-export const types = /* GraphQL */ `
+export default /* GraphQL */ `
   extend type Query {
     frequentSearch(key: String): [String]
     search(key: String): [SearchResult]

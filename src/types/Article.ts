@@ -1,4 +1,4 @@
-export const types = /* GraphQL */ `
+export default /* GraphQL */ `
   extend type Query {
     article(id: String!): Article
     tags(partial: String!, first: Int, after: Int): [Tag]
