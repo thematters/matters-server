@@ -1,7 +1,7 @@
 import { BaseService } from 'src/connectors/baseService'
 import DataLoader from 'dataloader'
 
-export class UserOauthService extends BaseService {
+export class UserOAuthService extends BaseService {
 
   constructor() {
     super('user_oauth')
