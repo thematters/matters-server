@@ -1,12 +1,27 @@
 import { makeExecutableSchema } from 'graphql-tools'
 import { merge } from 'lodash'
 
-import { types as ArticleTypes, resolvers as ArticleResolvers } from './Article'
-import { types as CommentTypes, resolvers as CommentResolvers } from './Comment'
-import { types as UserTypes, resolvers as UserResolvers } from './User'
-import { types as SystemTypes } from './System'
-import { types as DraftTypes } from './Draft'
-import { types as scalarTypes, resolvers as scalarResolvers } from './scalars'
+import {
+  types as scalarTypes,
+  resolvers as scalarResolvers
+} from './types/scalars'
+import ArticleTypes from './types/Article'
+import CommentTypes from './types/Comment'
+import DraftTypes from './types/Draft'
+// import SystemTypes from './types/System'
+import UserTypes from './types/User'
+
+import ArticleQueries from './queries/article'
+import CommentQueries from './queries/comment'
+// import DraftQueries from './queries/draft'
+// import SystemQueries from './queries/system'
+import UserQueries from './queries/user'
+
+import ArticleMutations from './mutations/article'
+import CommentMutations from './mutations/comment'
+// import DraftMutations from './mutations/draft'
+// import SystemMutations from './mutations/system'
+import UserMutations from './mutations/user'
 
 const Root = /* GraphQL */ `
   # The dummy queries and mutations are necessary because
@@ -38,14 +53,23 @@ const schema = makeExecutableSchema({
     ArticleTypes,
     CommentTypes,
     UserTypes,
-    DraftTypes,
-    SystemTypes
+    DraftTypes
+    // SystemTypes
   ],
   resolvers: merge(
     scalarResolvers,
-    ArticleResolvers,
-    CommentResolvers,
-    UserResolvers
+    // queries
+    ArticleQueries,
+    CommentQueries,
+    // DraftQueries,
+    // SystemQueries,
+    UserQueries,
+    // mutations
+    ArticleMutations,
+    CommentMutations,
+    // DraftMutations,
+    // SystemMutations,
+    UserMutations
   )
 })
 

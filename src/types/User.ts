@@ -1,4 +1,4 @@
-export const types = /* GraphQL */ `
+export default /* GraphQL */ `
   extend type Query {
     viewer: User
     user(id: String!): User
@@ -75,7 +75,7 @@ export const types = /* GraphQL */ `
   }
 
   type UserActivity {
-    history(first: Int, after: Int): [Article] 
+    history(first: Int, after: Int): [Article]
     recentSearches(first: Int, after: Int): [String]
   }
 
