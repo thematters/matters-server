@@ -2,9 +2,30 @@ import { BaseService } from 'src/connectors/baseService'
 import DataLoader from 'dataloader'
 
 export class UserService extends BaseService {
+
   constructor() {
     super('user')
-    this.loader = new DataLoader(this.baseFindByIds)
+    this.fields = [
+      'id',
+      'uuid',
+      'user_name as userName',
+      'display_name as displayName',
+      'description',
+      'avatar',
+      'email',
+      'mobile',
+      'password',
+      'read_speed as readSpeed',
+      'base_gravity as baseGravity',
+      'curr_gravity as currGravity',
+      'mat',
+      'language',
+      'oauth_type as oauthType',
+      'status',
+      'created_at as createdAt',
+      'updated_at as updatedAt'
+    ]
+    this.loader = new DataLoader(this.baseFindByUUIDs)
   }
 
   /**
@@ -12,7 +33,7 @@ export class UserService extends BaseService {
    */
   findByEmail = async (email: string): Promise<any[]> => {
     return await this.knex
-      .select()
+      .select(this.fields)
       .from(this.table)
       .where('email', email)
   }
@@ -22,7 +43,7 @@ export class UserService extends BaseService {
    */
   findByUserName = async (name: string): Promise<any[]> => {
     return await this.knex
-      .select()
+      .select(this.fields)
       .from(this.table)
       .where('userName', name)
   }
