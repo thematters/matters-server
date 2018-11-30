@@ -8,7 +8,7 @@ import {
 import ArticleTypes from './types/Article'
 import CommentTypes from './types/Comment'
 import DraftTypes from './types/Draft'
-// import SystemTypes from './types/System'
+import SystemTypes from './types/System'
 import UserTypes from './types/User'
 
 import ArticleQueries from './queries/article'
@@ -53,8 +53,8 @@ const schema = makeExecutableSchema({
     ArticleTypes,
     CommentTypes,
     UserTypes,
-    DraftTypes
-    // SystemTypes
+    DraftTypes,
+    SystemTypes
   ],
   resolvers: merge(
     scalarResolvers,
