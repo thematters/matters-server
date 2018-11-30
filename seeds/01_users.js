@@ -11,7 +11,9 @@ exports.seed = function(knex, Promise) {
           mobile: '999',
           password: '123',
           avatar: 'some-s3-url',
-          description: 'test user 1'
+          description: 'test user 1',
+          language: 'zh_hant',
+          thirdPartyAccounts: []
         },
         {
           username: 'test 2',
@@ -19,7 +21,9 @@ exports.seed = function(knex, Promise) {
           mobile: '999',
           password: '123',
           avatar: 'some-s3-url',
-          description: 'test user 2'
+          description: 'test user 2',
+          language: 'en',
+          thirdPartyAccounts: []
         },
         {
           username: 'test 3',
@@ -27,7 +31,9 @@ exports.seed = function(knex, Promise) {
           mobile: '999',
           password: '123',
           avatar: 'some-s3-url',
-          description: 'test user 3'
+          description: 'test user 3',
+          language: 'zh_hant',
+          thirdPartyAccounts: []
         }
       ])
     })

@@ -1,11 +1,12 @@
 import * as cheerio from 'cheerio'
-
 import { BaseService, Item } from 'src/connectors/baseService'
+import DataLoader from 'dataloader'
 import { randomText } from 'src/connectors/mockData/utils'
 
 export class ArticleService extends BaseService {
   constructor() {
     super('article')
+    this.loader = new DataLoader(this.fakeFindByIds)
   }
 
   countWords = (html: string) =>

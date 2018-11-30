@@ -1,8 +1,10 @@
 import { BaseService, Item } from 'src/connectors/baseService'
+import DataLoader from 'dataloader'
 
 export class CommentService extends BaseService {
   constructor() {
     super('comment')
+    this.loader = new DataLoader(this.fakeFindByIds)
   }
 
   // TODO: replace by DB calls
