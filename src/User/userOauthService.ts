@@ -2,7 +2,6 @@ import { BaseService } from 'src/connectors/baseService'
 import DataLoader from 'dataloader'
 
 export class UserOAuthService extends BaseService {
-
   constructor() {
     super('user_oauth')
     this.fields = [
@@ -29,13 +28,16 @@ export class UserOAuthService extends BaseService {
   /**
    * Find user's OAuth accounts by a given user id and type.
    */
-  findByUserIdAndType = async (userId: number, type: string): Promise<any[]> => {
+  findByUserIdAndType = async (
+    userId: number,
+    type: string
+  ): Promise<any[]> => {
     return await this.knex
       .select(this.fields)
       .from(this.table)
       .where({
-        'user_id': userId,
-        'type': type
+        user_id: userId,
+        type: type
       })
   }
 }
