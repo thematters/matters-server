@@ -50,7 +50,7 @@ export class BaseService {
   /**
    * Find an item by a given id.
    */
-  baseFindById = async (id: string): Promise<any | null> => {
+  baseFindById = async (id: number): Promise<any | null> => {
     const result = await this.knex
       .select(this.fields)
       .from(this.table)
@@ -64,7 +64,7 @@ export class BaseService {
   /**
    * Find items by given ids.
    */
-  baseFindByIds = async (ids: string[]): Promise<any[]> => {
+  baseFindByIds = async (ids: number[]): Promise<any[]> => {
     return await this.knex
       .select(...this.fields)
       .from(this.table)
@@ -92,7 +92,7 @@ export class BaseService {
   baseFindByUUIDs = async (uuids: string[]): Promise<any[]> => {
     console.log(uuids)
     return await this.knex
-      .select(...this.fields)
+      .select(this.fields)
       .from(this.table)
       .whereIn('uuid', uuids)
   }
