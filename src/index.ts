@@ -18,7 +18,8 @@ const mocks = {
   JSON: () => ({
     'index.html': '<html><p>hello</p></html>',
     '1.png': 'some png string'
-  })
+  }),
+  DateTime: () => new Date().toISOString()
 }
 
 const server = new ApolloServer({
