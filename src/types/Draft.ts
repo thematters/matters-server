@@ -1,4 +1,4 @@
-export const types = /* GraphQL */ `
+export default /* GraphQL */ `
   extend type Mutation {
     singleUpload(file: Upload!): File!
     createOrEditAudioDraft(data: String!, title: String, id: String): AudioDraft
@@ -16,7 +16,7 @@ export const types = /* GraphQL */ `
     title: String
     content: JSON!
     createdAt: DateTime!
-    updateAt: DateTime! 
+    updateAt: DateTime!
     tags: [String]
     cover: String
     abstract: String
