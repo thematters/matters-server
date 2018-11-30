@@ -90,7 +90,6 @@ export class BaseService {
    * Find items by given ids.
    */
   baseFindByUUIDs = async (uuids: string[]): Promise<any[]> => {
-    console.log(uuids)
     return await this.knex
       .select(this.fields)
       .from(this.table)
