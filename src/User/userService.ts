@@ -2,7 +2,6 @@ import { BaseService } from 'src/connectors/baseService'
 import DataLoader from 'dataloader'
 
 export class UserService extends BaseService {
-
   constructor() {
     super('user')
     this.fields = [

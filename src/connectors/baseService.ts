@@ -5,7 +5,13 @@ import { tables } from './mockData'
 
 export type Item = { id: string; [key: string]: any }
 
-export type TableName = 'article' | 'user' | 'user_oauth' | 'user_notify_setting' | 'comment' | 'action'
+export type TableName =
+  | 'article'
+  | 'user'
+  | 'user_oauth'
+  | 'user_notify_setting'
+  | 'comment'
+  | 'action'
 
 export class BaseService {
   knex: Knex

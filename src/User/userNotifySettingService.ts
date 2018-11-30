@@ -2,7 +2,6 @@ import { BaseService } from 'src/connectors/baseService'
 import DataLoader from 'dataloader'
 
 export class UserNotifySettingService extends BaseService {
-
   constructor() {
     super('user_notify_setting')
     this.fields = [
