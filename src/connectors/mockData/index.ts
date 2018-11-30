@@ -57,6 +57,8 @@ const createTestArticle = (id: string) => ({
 
 export const tables = {
   user: sequentialIds(testSize.user).map(id => createTestUser(id)),
+  user_oauth: [],
+  user_notify_setting: [],
   article: sequentialIds(testSize.article).map(id => createTestArticle(id)),
   comment: sequentialIds(testSize.comment).map(id => createTestComment(id)),
   action: createTestActions(testSize)
