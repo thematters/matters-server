@@ -4,6 +4,8 @@ import { merge } from 'lodash'
 import { types as ArticleTypes, resolvers as ArticleResolvers } from './Article'
 import { types as CommentTypes, resolvers as CommentResolvers } from './Comment'
 import { types as UserTypes, resolvers as UserResolvers } from './User'
+import { types as SystemTypes } from './System'
+import { types as DraftTypes } from './Draft'
 import { types as scalarTypes, resolvers as scalarResolvers } from './scalars'
 
 const Root = /* GraphQL */ `
@@ -12,13 +14,13 @@ const Root = /* GraphQL */ `
   # these types later on
   # Ref: apollographql/graphql-tools#293
   type Query {
-    dummy: String
+    _: Boolean
   }
   type Mutation {
-    dummy: String
+    _: Boolean
   }
   type Subscription {
-    dummy: String
+    _: Boolean
   }
   schema {
     query: Query
@@ -30,7 +32,15 @@ const Root = /* GraphQL */ `
 // Create the final GraphQL schema out of the type definitions
 // and the resolvers
 const schema = makeExecutableSchema({
-  typeDefs: [Root, scalarTypes, ArticleTypes, CommentTypes, UserTypes],
+  typeDefs: [
+    Root,
+    scalarTypes,
+    ArticleTypes,
+    CommentTypes,
+    UserTypes,
+    DraftTypes,
+    SystemTypes
+  ],
   resolvers: merge(
     scalarResolvers,
     ArticleResolvers,
