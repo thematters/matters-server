@@ -1,5 +1,7 @@
+const table = 'article_tag'
+
 exports.up = function(knex, Promise) {
-  return knex.schema.createTable('article_tag', function(t) {
+  return knex.schema.createTable(table, function(t) {
     t.increments()
     t.integer('article_id')
       .unsigned()
@@ -15,5 +17,5 @@ exports.up = function(knex, Promise) {
 }
 
 exports.down = function(knex, Promise) {
-  return knex.schema.dropTable('article_tag')
+  return knex.schema.dropTable(table)
 }
