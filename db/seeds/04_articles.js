@@ -1,10 +1,10 @@
+const table = 'article'
+
 exports.seed = function(knex, Promise) {
-  // Deletes ALL existing entries
-  return knex('article')
+  return knex(table)
     .del()
     .then(function() {
-      // Inserts seed entries
-      return knex('article').insert([
+      return knex(table).insert([
         {
           author_id: '1',
           title: 'test article 1',
