@@ -28,8 +28,8 @@ export const types = /* GraphQL */ `
     hasFollowed: Boolean!
     # Articles written by this user
     articles(first: Int, after: Int): [Article]
-    # drafts(first: Int, after: Int): [Draft]
-    # audioDrafts(first: Int, after: Int): [AudioDraft]
+    drafts(first: Int, after: Int): [Draft]
+    audioDrafts(first: Int, after: Int): [AudioDraft]
     # Comments posted by this user
     comments(first: Int, after: Int): [Comment]
     # comments that citated this user's article
