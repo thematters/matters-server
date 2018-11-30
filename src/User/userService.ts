@@ -45,6 +45,6 @@ export class UserService extends BaseService {
     return await this.knex
       .select(this.fields)
       .from(this.table)
-      .where('userName', name)
+      .where('user_name', name)
   }
 }

@@ -14,7 +14,6 @@ export class UserOAuthService extends BaseService {
       'created_at as createdAt',
       'updated_at as updatedAt'
     ]
-    this.loader = new DataLoader(this.baseFindByIds)
   }
 
   /**
