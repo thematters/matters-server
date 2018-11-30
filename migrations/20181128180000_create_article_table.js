@@ -1,5 +1,7 @@
+const table = 'article'
+
 exports.up = function(knex, Promise) {
-  return knex.schema.createTable('article', function(t) {
+  return knex.schema.createTable(table, function(t) {
     t.increments()
     t.uuid('origin_id')
     t.integer('author_id')
@@ -32,5 +34,5 @@ exports.up = function(knex, Promise) {
 }
 
 exports.down = function(knex, Promise) {
-  return knex.schema.dropTable('article')
+  return knex.schema.dropTable(table)
 }
