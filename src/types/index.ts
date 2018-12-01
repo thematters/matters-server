@@ -1,10 +1,10 @@
-import article from './article'
-import comment from './comment'
-import draft from './draft'
-import scalars from './scalars'
-import system from './system'
-import user from './user'
-import notice from './notice'
+import article from './articleTypes'
+import comment from './commentTypes'
+import draft from './draftTypes'
+import scalars from './scalarsTypes'
+import system from './systemTypes'
+import user from './userTypes'
+import notice from './noticeTyeps'
 
 const Root = /* GraphQL */ `
   
