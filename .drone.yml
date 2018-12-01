@@ -23,7 +23,7 @@ steps:
   - npm run build
 
 - name: publish docker image
-  image: plugins/ecr
+  image: plugins/docker
   settings:
     access_key:
       from_secret: AWS_ACCESS_KEY_ID
