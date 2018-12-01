@@ -32,8 +32,7 @@ steps:
     AWS_DEFAULT_REGION: ap-southeast-1
   commands:
   - apk -v --update add py-pip git && pip install --upgrade awsebcli
-  - eb init matters-stage --region ap-southeast-1 --source codecommit/matters-server/develop
-  - eb codesource local
+  - printf 'n' | eb init matters-stage --region ap-southeast-1
   - eb deploy matters-server-stage
   when:
     branch:
