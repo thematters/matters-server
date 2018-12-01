@@ -22,17 +22,6 @@ steps:
   commands:
   - npm run build
 
-- name: publish docker image
-  image: plugins/ecr
-  settings:
-    access_key:
-      from_secret: AWS_ACCESS_KEY_ID
-    secret_key:
-      from_secret: AWS_SECRET_ACCESS_KEY
-    repo: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server
-    registry: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com
-    dockerfile: docker/Dockerfile
-
 - name: deploy to stage environment
   image: matters/awsebcli
   environment:
