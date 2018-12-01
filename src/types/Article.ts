@@ -21,7 +21,7 @@ export default /* GraphQL */ `
     title: String!
     # url for cover
     cover: String!
-    abstract: String!
+    summary: String!
     tags: [String!]
     wordCount: Int
     hash: String
@@ -55,4 +55,5 @@ export default /* GraphQL */ `
     error
     published
   }
+
 `
