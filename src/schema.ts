@@ -1,10 +1,27 @@
 import { makeExecutableSchema } from 'graphql-tools'
 import { merge } from 'lodash'
 
-import { types as ArticleTypes, resolvers as ArticleResolvers } from './Article'
-import { types as CommentTypes, resolvers as CommentResolvers } from './Comment'
-import { types as UserTypes, resolvers as UserResolvers } from './User'
-import { types as scalarTypes, resolvers as scalarResolvers } from './scalars'
+import {
+  types as scalarTypes,
+  resolvers as scalarResolvers
+} from './types/scalars'
+import ArticleTypes from './types/Article'
+import CommentTypes from './types/Comment'
+import DraftTypes from './types/Draft'
+// import SystemTypes from './types/System'
+import UserTypes from './types/User'
+
+import ArticleQueries from './queries/article'
+import CommentQueries from './queries/comment'
+// import DraftQueries from './queries/draft'
+// import SystemQueries from './queries/system'
+import UserQueries from './queries/user'
+
+import ArticleMutations from './mutations/article'
+import CommentMutations from './mutations/comment'
+// import DraftMutations from './mutations/draft'
+// import SystemMutations from './mutations/system'
+import UserMutations from './mutations/user'
 
 const Root = /* GraphQL */ `
   # The dummy queries and mutations are necessary because
@@ -12,13 +29,13 @@ const Root = /* GraphQL */ `
   # these types later on
   # Ref: apollographql/graphql-tools#293
   type Query {
-    dummy: String
+    _: Boolean
   }
   type Mutation {
-    dummy: String
+    _: Boolean
   }
   type Subscription {
-    dummy: String
+    _: Boolean
   }
   schema {
     query: Query
@@ -30,12 +47,29 @@ const Root = /* GraphQL */ `
 // Create the final GraphQL schema out of the type definitions
 // and the resolvers
 const schema = makeExecutableSchema({
-  typeDefs: [Root, scalarTypes, ArticleTypes, CommentTypes, UserTypes],
+  typeDefs: [
+    Root,
+    scalarTypes,
+    ArticleTypes,
+    CommentTypes,
+    UserTypes,
+    DraftTypes
+    // SystemTypes
+  ],
   resolvers: merge(
     scalarResolvers,
-    ArticleResolvers,
-    CommentResolvers,
-    UserResolvers
+    // queries
+    ArticleQueries,
+    CommentQueries,
+    // DraftQueries,
+    // SystemQueries,
+    UserQueries,
+    // mutations
+    ArticleMutations,
+    CommentMutations,
+    // DraftMutations,
+    // SystemMutations,
+    UserMutations
   )
 })
 

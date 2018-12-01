@@ -1,11 +1,12 @@
 import { BaseService, Item } from 'src/connectors/baseService'
+import DataLoader from 'dataloader'
 
 export type AppreciationAction = {
   userId: string
   action: string
   detail: number
   targetId: string
-  timestamp: string
+  createdAt: string
 }
 export type RatingAction = AppreciationAction
 
@@ -13,6 +14,7 @@ export class ActionService extends BaseService {
   // items = items
   constructor() {
     super('action')
+    this.loader = new DataLoader(this.fakeFindByIds)
   }
 
   // TODO: replaced by actual dynamoDB api
