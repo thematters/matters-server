@@ -9,6 +9,7 @@ import articleCount from './articleCount'
 import commentCount from './commentCount'
 import followCount from './followCount'
 import followerCount from './followerCount'
+import notices from './notices'
 
 export default {
   Query: {
@@ -26,9 +27,14 @@ export default {
     // history
     // dialogues
     // hasFollowed
-    // settings
     followers,
-    follows
+    follows,
+    notices
+  },
+  Notice: {
+    __resolveType(): string {
+      return 'UserNotice'
+    }
   },
   UserSettings: {
     // language,
