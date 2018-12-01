@@ -1,12 +1,12 @@
 import { makeExecutableSchema } from 'graphql-tools'
 import { merge } from 'lodash'
 
-import types from './types'
+import typeDefs from './types'
 import queries from './queries'
 import mutations from './mutations'
 
 const schema = makeExecutableSchema({
-  typeDefs: types,
+  typeDefs,
   resolvers: merge(queries, mutations)
 })
 
