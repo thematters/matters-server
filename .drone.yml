@@ -23,7 +23,7 @@ steps:
   - npm run build
 
 - name: deploy to stage environment
-  image: mesosphere/aws-cli
+  image: matters/awsebcli
   environment:
     AWS_ACCESS_KEY_ID:
       from_secret: AWS_ACCESS_KEY_ID
@@ -31,7 +31,6 @@ steps:
       from_secret: AWS_SECRET_ACCESS_KEY
     AWS_DEFAULT_REGION: ap-southeast-1
   commands:
-  - apk -v --update add py-pip git && pip install --upgrade awsebcli
   - eb init matters-stage --region ap-southeast-1 --source codecommit/matters-server/develop
   - eb codesource local
   - eb deploy matters-server-stage
