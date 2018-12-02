@@ -6,7 +6,8 @@ import { randomText } from 'src/connectors/mockData/utils'
 export class ArticleService extends BaseService {
   constructor() {
     super('article')
-    this.loader = new DataLoader(this.fakeFindByIds)
+    // this.loader = new DataLoader(this.fakeFindByIds)
+    this.loader = new DataLoader(this.baseFindByIds)
   }
 
   countWords = (html: string) =>
@@ -16,18 +17,19 @@ export class ArticleService extends BaseService {
       .split(' ')
       .filter(s => s !== '').length
 
-  // TODO: replaced by actual dynamoDB api
-  // start of db calls ->
-  findByAuthor = (id: number): Promise<Item[]> => {
-    return new Promise(resolve =>
-      resolve(this.items.filter(({ authorId }) => id === authorId))
-    )
+  findByAuthor = async (authorId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('article')
+      .where('author_id', authorId)
   }
 
-  countByAuthor = (id: string) =>
-    new Promise(resolve =>
-      resolve(this.items.filter(({ authorId }) => id === authorId).length)
-    )
+  findTagsById = async (id: number): Promise<any | null> => {
+    return await this.knex
+      .select()
+      .from('article_tag')
+      .where('article_id', id)
+  }
 
   // update an object with id and kv pairs object
   updateById = (id: string, kv: { [k: string]: any }) =>
@@ -40,7 +42,6 @@ export class ArticleService extends BaseService {
     })
 
   // publish = (userId, article) => {}
-  // <- end of db calls
 
   // TODO: replaced by actual IPFS api
   // return random string for now

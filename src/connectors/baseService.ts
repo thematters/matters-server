@@ -21,7 +21,7 @@ export class BaseService {
 
   items: Item[]
 
-  loader: DataLoader<string, Item>
+  loader: DataLoader<string | number, Item>
 
   table: TableName
 

@@ -1,17 +1,24 @@
 import { Context } from 'src/definitions'
 
 import article from './rootArticle'
-import MAT from './MAT'
 import author from './author'
-import content from './content'
+import cover from './cover'
+import summary from './summary'
+import tags from './tags'
 import wordCount from './wordCount'
+import content from './content'
+import gatewayUrls from './gatewayUrls'
 import upstream from './upstream'
 import downstreams from './downstreams'
 import relatedArticles from './relatedArticles'
-import subscribers from './subscribers'
+import MAT from './MAT'
 import commentCount from './commentCount'
-import comments from './comments'
+import subscribed from './subscribed'
 import pinnedComments from './pinnedComments'
+import comments from './comments'
+import subscribers from './subscribers'
+import appreciators from './appreciators'
+import hasAppreciate from './hasAppreciate'
 
 export default {
   Query: {
@@ -22,18 +29,23 @@ export default {
       articleService.findByAuthor(id)
   },
   Article: {
-    MAT,
     author,
-    content,
+    cover,
+    summary,
+    tags,
     wordCount,
+    content,
+    gatewayUrls,
     upstream,
     downstreams,
     relatedArticles, // placeholder for recommendation engine
-    subscribers,
-    // appreciators: ({ appreciatorIds }, _, { userService }) =>
-    //   appreciatorIds.map((id: string) => userService.findById(id)),
+    MAT,
     commentCount,
+    subscribed,
+    pinnedComments,
     comments,
-    pinnedComments
+    subscribers,
+    appreciators,
+    hasAppreciate
   }
 }

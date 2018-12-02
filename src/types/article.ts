@@ -5,7 +5,6 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    # publish with draft id
     publishArticle(id: String): Article!
     achiveArticle(id: String): Article!
     toggleSubscription(id: String): Article!
@@ -29,7 +28,7 @@ export default /* GraphQL */ `
     gatewayUrls: [String]
     upstream: Article
     downstreams: [Article]
-    relatedArticles: [Article]!
+    relatedArticles(first: Int, after: Int): [Article]!
     # MAT recieved for this article
     MAT: Int!
     commentCount: Int!
@@ -38,7 +37,7 @@ export default /* GraphQL */ `
     pinnedComments: [Comment]
     comments(first: Int, after: Int): [Comment]
     subscribers(first: Int, after: Int): [User]
-    appreciatprs(first: Int, after: Int): [User]
+    appreciators(first: Int, after: Int): [User]
     hasAppreciate: Boolean!
     publishState: PublishState!
   }

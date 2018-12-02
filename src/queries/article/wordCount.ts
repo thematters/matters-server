@@ -1,8 +1,7 @@
 import { Resolver } from 'src/definitions'
 
-const resolver: Resolver = (root, _, { articleService }) =>
-  articleService.countWords(
-    root.content || articleService.getContentFromHash(root.hash)
-  )
+const resolver: Resolver = ({ wordCount, hash }, _, { articleService }) =>
+  wordCount ||
+  articleService.countWords(articleService.getContentFromHash(hash))
 
 export default resolver
