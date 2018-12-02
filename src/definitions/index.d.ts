@@ -1,8 +1,11 @@
 import { GraphQLResolveInfo } from 'graphql'
 
-import { ArticleService } from 'src/Article'
-import { CommentService } from 'src/Comment'
-import { UserService, ActionService } from 'src/connectors'
+import {
+  UserService,
+  ActionService,
+  ArticleService,
+  CommentService
+} from 'src/connectors'
 
 export type Resolver = (
   parent: any,

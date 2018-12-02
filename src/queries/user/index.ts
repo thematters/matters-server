@@ -15,14 +15,12 @@ export default {
     user: (root: any, { id }: { id: string }, { userService }: Context) =>
       userService.loader.load(id)
   },
-
   User: {
     settings: ({ id }: { id: number }, _: any, { userService }: Context) =>
       userService.findSettingByUserId(id),
     // status, // short hand for delegating resolver to UserStatusType
     // drafts
     // courses
-    articles,
     followers,
     follows,
     notices,
