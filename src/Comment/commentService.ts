@@ -7,9 +7,8 @@ export class CommentService extends BaseService {
     this.loader = new DataLoader(this.fakeFindByIds)
   }
 
-  // TODO: replace by DB calls
   // start of db calls ->
-  findByAuthor = (id: string[]): Promise<Item[]> =>
+  findByAuthor = (id: string): Promise<Item[]> =>
     new Promise(resolve =>
       resolve(this.items.filter(({ authorId }) => id === authorId))
     )

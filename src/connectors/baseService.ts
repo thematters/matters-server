@@ -1,7 +1,10 @@
 import DataLoader from 'dataloader'
-import { environment } from '../common/environment'
 import Knex from 'knex'
+import { knexSnakeCaseMappers } from 'objection'
+import { environment } from '../common/environment'
 import { tables } from './mockData'
+
+const knexConfig = require('../../knexfile')
 
 export type Item = { id: string; [key: string]: any }
 
@@ -22,12 +25,9 @@ export class BaseService {
 
   table: TableName
 
-  fields: string[]
-
   constructor(table: TableName) {
     this.knex = this.getKnexClient()
     this.table = table
-    this.fields = ['*']
     this.items = tables[table]
   }
 
@@ -35,17 +35,8 @@ export class BaseService {
    * Initialize a Knex client for PostgreSQL.
    */
   getKnexClient = (): Knex => {
-    const { env, pgHost, pgUser, pgPassword, pgDatabase } = environment
-    const host = env === 'dev' ? '0.0.0.0' : pgHost
-    return Knex({
-      client: 'pg',
-      connection: {
-        host,
-        user: pgUser,
-        password: pgPassword,
-        database: pgDatabase
-      }
-    })
+    const { env } = environment
+    return Knex({ ...knexConfig[env], ...knexSnakeCaseMappers() })
   }
 
   fakeFindByIds = (ids: string[]): Promise<Item[]> =>
@@ -58,7 +49,7 @@ export class BaseService {
    */
   baseFindById = async (id: number): Promise<any | null> => {
     const result = await this.knex
-      .select(this.fields)
+      .select()
       .from(this.table)
       .where('id', id)
     if (result && result.length > 0) {
@@ -72,7 +63,7 @@ export class BaseService {
    */
   baseFindByIds = async (ids: number[]): Promise<any[]> => {
     return await this.knex
-      .select(...this.fields)
+      .select()
       .from(this.table)
       .whereIn('id', ids)
   }
@@ -83,7 +74,7 @@ export class BaseService {
    */
   baseFindByUUID = async (uuid: string): Promise<any | null> => {
     const result = await this.knex
-      .select(this.fields)
+      .select()
       .from(this.table)
       .where('uuid', uuid)
     if (result && result.length > 0) {
@@ -97,7 +88,7 @@ export class BaseService {
    */
   baseFindByUUIDs = async (uuids: string[]): Promise<any[]> => {
     return await this.knex
-      .select(this.fields)
+      .select()
       .from(this.table)
       .whereIn('uuid', uuids)
   }

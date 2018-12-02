@@ -1,9 +1,8 @@
-import user from './rootUser'
+import { Context } from 'src/definitions'
+
 import articles from './articles'
-import comments from './comments'
 import followers from './followers'
 import follows from './follows'
-import thirdPartyAccounts from './articles'
 import MAT from './MAT'
 import articleCount from './articleCount'
 import commentCount from './commentCount'
@@ -13,32 +12,26 @@ import notices from './notices'
 
 export default {
   Query: {
-    user
+    user: (root: any, { id }: { id: string }, { userService }: Context) =>
+      userService.loader.load(id)
   },
 
   User: {
-    // settings,
+    settings: ({ id }: { id: number }, _: any, { userService }: Context) =>
+      userService.findSettingByUserId(id),
     // status, // short hand for delegating resolver to UserStatusType
     // drafts
     // courses
     articles,
-    comments,
-    // subscriptions
-    // history
-    // dialogues
-    // hasFollowed
     followers,
     follows,
-    notices
+    notices,
+    info: (root: any) => root
   },
   Notice: {
     __resolveType(): string {
       return 'UserNotice'
     }
-  },
-  UserSettings: {
-    // language,
-    thirdPartyAccounts
   },
   UserStatus: {
     MAT,
