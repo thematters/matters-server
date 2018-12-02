@@ -3,9 +3,12 @@ import { ApolloServer } from 'apollo-server'
 
 import schema from './schema'
 import { Context } from './definitions'
-import { UserService, ActionService } from './connectors'
-import { ArticleService } from './Article'
-import { CommentService } from './Comment'
+import {
+  UserService,
+  ActionService,
+  ArticleService,
+  CommentService
+} from './connectors'
 
 const context = (): Context => ({
   userService: new UserService(),

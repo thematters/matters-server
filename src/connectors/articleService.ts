@@ -18,7 +18,7 @@ export class ArticleService extends BaseService {
 
   // TODO: replaced by actual dynamoDB api
   // start of db calls ->
-  findByAuthor = (id: string): Promise<Item[]> => {
+  findByAuthor = (id: number): Promise<Item[]> => {
     return new Promise(resolve =>
       resolve(this.items.filter(({ authorId }) => id === authorId))
     )
