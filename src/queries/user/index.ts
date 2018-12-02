@@ -1,13 +1,15 @@
 import { Context } from 'src/definitions'
 
-import articles from './articles'
 import followers from './followers'
 import follows from './follows'
-import MAT from './MAT'
-import articleCount from './articleCount'
-import commentCount from './commentCount'
-import followCount from './followCount'
-import followerCount from './followerCount'
+import {
+  gravity,
+  MAT,
+  articleCount,
+  commentCount,
+  followCount,
+  followerCount
+} from './status'
 import notices from './notices'
 
 export default {
@@ -16,15 +18,26 @@ export default {
       userService.loader.load(id)
   },
   User: {
-    settings: ({ id }: { id: number }, _: any, { userService }: Context) =>
-      userService.findSettingByUserId(id),
-    // status, // short hand for delegating resolver to UserStatusType
-    // drafts
-    // courses
+    info: (root: any) => root,
+    settings: (
+      { id, language }: { id: number; language: string },
+      _: any,
+      { userService }: Context
+    ) => ({
+      language,
+      ...userService.findSettingByUserId(id)
+    }),
+    // recommnedation,
+    // hasFollowed,
+    // drafts,
+    // audioDrafts,
+    // citations,
+    // subscriptions,
+    // activity,
     followers,
     follows,
-    notices,
-    info: (root: any) => root
+    status: (root: any) => root,
+    notices
   },
   Notice: {
     __resolveType(): string {
@@ -32,13 +45,15 @@ export default {
     }
   },
   UserStatus: {
+    gravity,
     MAT,
     articleCount,
+    // viewCount,
+    // draftCount,
     commentCount,
+    // citationCount
     followCount,
     followerCount
-    // draftCount: Number // 草稿數
-    // courseCount: Number // 已購買課程數
-    // subscriptionCount: Number // 總訂閱數
+    // subscriptionCount
   }
 }

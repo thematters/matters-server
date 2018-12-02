@@ -8,3 +8,4 @@ webpack-stats.json
 uploads
 environment.sh
 logs
+.env
