@@ -8,7 +8,7 @@ import parentComment from './parentComment'
 
 export default {
   User: {
-    comments: ({ id }: { id: string }, _: any, { commentService }: Context) =>
+    comments: ({ id }: { id: number }, _: any, { commentService }: Context) =>
       commentService.findByAuthor(id)
   },
 
