@@ -1,3 +1,5 @@
+import { Context } from 'src/definitions'
+
 import article from './rootArticle'
 import MAT from './MAT'
 import author from './author'
@@ -15,7 +17,10 @@ export default {
   Query: {
     article
   },
-
+  User: {
+    articles: ({ id }: { id: number }, _: any, { articleService }: Context) =>
+      articleService.findByAuthor(id)
+  },
   Article: {
     MAT,
     author,
