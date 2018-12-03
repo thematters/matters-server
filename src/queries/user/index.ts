@@ -23,7 +23,7 @@ export default {
     // courses
     followers,
     follows,
-    notices,
+    notices
     // status, // short hand for delegating resolver to UserStatusType
   },
   Notice: {
