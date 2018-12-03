@@ -62,7 +62,7 @@ export default /* GraphQL */ `
     # User language setting
     language: UserLanguage!
     # Thrid party accounts binded for the user
-    thirdPartyAccounts: [ThirdPartyAccount]
+    oauthType: [OAuthType]
     # Notification settings
     notification: NotificationSetting!
   }
@@ -80,7 +80,7 @@ export default /* GraphQL */ `
   }
 
   type UserStatus {
-    gravity: Int
+    currGravity: Int!
     # Total MAT left in wallet
     MAT: Int!
     # Number of articles published by user
@@ -99,18 +99,19 @@ export default /* GraphQL */ `
   }
 
   type NotificationSetting {
+    enable: Boolean!
     mention: Boolean!
-    folow: Boolean!
+    follow: Boolean!
     comment: Boolean!
     appreciation: Boolean!
-    subscribe: Boolean!
-    commentOnSubscribed: Boolean!
+    articleSubscription: Boolean!
+    commentSubscribed: Boolean!
     downstream: Boolean!
     commentPinned: Boolean!
     commentVoted: Boolean!
     walletUpdate: Boolean!
     officialNotice: Boolean!
-    reportResult: Boolean!
+    reportFeedback: Boolean!
   }
 
   enum UserLanguage {
@@ -118,7 +119,8 @@ export default /* GraphQL */ `
     zh_hans
     zh_hant
   }
-  enum ThirdPartyAccount {
+
+  enum OAuthType {
     facebook
     wechat
     google

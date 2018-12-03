@@ -9,22 +9,22 @@ import commentCount from './commentCount'
 import followCount from './followCount'
 import followerCount from './followerCount'
 import notices from './notices'
+import settings from './settings'
 
 export default {
   Query: {
     user: (root: any, { id }: { id: string }, { userService }: Context) =>
-      userService.loader.load(id)
+      userService.uuidLoader.load(id)
   },
   User: {
-    settings: ({ id }: { id: number }, _: any, { userService }: Context) =>
-      userService.findSettingByUserId(id),
-    // status, // short hand for delegating resolver to UserStatusType
+    info: (root: any) => root,
+    settings,
     // drafts
     // courses
     followers,
     follows,
     notices,
-    info: (root: any) => root
+    // status, // short hand for delegating resolver to UserStatusType
   },
   Notice: {
     __resolveType(): string {
