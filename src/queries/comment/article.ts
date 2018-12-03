@@ -1,6 +1,6 @@
 import { Resolver } from 'src/definitions'
 
-const resolver: Resolver = ({ articleId }, _, { articleService }) =>
-  articleService.loader.load(articleId)
+const resolver: Resolver = ({ articleUUID }, _, { articleService }) =>
+  articleService.loader.load(articleUUID)
 
 export default resolver

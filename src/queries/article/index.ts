@@ -25,8 +25,11 @@ export default {
     article
   },
   User: {
-    articles: ({ id }: { id: number }, _: any, { articleService }: Context) =>
-      articleService.findByAuthor(id)
+    articles: (
+      { uuid }: { uuid: number },
+      _: any,
+      { articleService }: Context
+    ) => articleService.findByAuthor(uuid)
   },
   Article: {
     author,

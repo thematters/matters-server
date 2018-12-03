@@ -1,9 +1,9 @@
 import { Resolver } from 'src/definitions'
 
-const resolver: Resolver = async (parent, _, { userService }) => {
+const resolver: Resolver = async ({ id, language }, _, { userService }) => {
   return {
-    language: parent.language,
-    ...(await userService.findSettingByUserId(parent.id))
+    language,
+    ...(await userService.findSettingByUserId(id))
   }
 }
 

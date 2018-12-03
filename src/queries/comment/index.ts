@@ -9,8 +9,11 @@ import parentComment from './parentComment'
 
 export default {
   User: {
-    comments: ({ id }: { id: string }, _: any, { commentService }: Context) =>
-      commentService.findByAuthor(id)
+    comments: (
+      { uuid }: { uuid: string },
+      _: any,
+      { commentService }: Context
+    ) => commentService.findByAuthor(uuid)
   },
   Comment: {
     article,

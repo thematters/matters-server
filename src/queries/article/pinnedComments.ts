@@ -1,6 +1,6 @@
 import { Resolver } from 'src/definitions'
 
-const resolver: Resolver = ({ pinnedCommentIds }, _, { commentService }) =>
-  commentService.loader.loadMany(pinnedCommentIds)
+const resolver: Resolver = ({ pinnedCommentUUIDs }, _, { commentService }) =>
+  commentService.loader.loadMany(pinnedCommentUUIDs)
 
 export default resolver

@@ -1,6 +1,6 @@
 import { Resolver } from 'src/definitions'
 
-const resolver: Resolver = ({ authorId }, _, { userService }) =>
-  userService.loader.load(authorId)
+const resolver: Resolver = ({ authorUUID }, _, { userService }) =>
+  userService.loader.load(authorUUID)
 
 export default resolver

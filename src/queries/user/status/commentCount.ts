@@ -1,6 +1,6 @@
 import { Resolver } from 'src/definitions'
 
-const resolver: Resolver = ({ id }, _, { commentService }) =>
-  commentService.countByAuthor(id)
+const resolver: Resolver = ({ uuid }, _, { commentService }) =>
+  commentService.countByAuthor(uuid)
 
 export default resolver
