@@ -6,19 +6,11 @@ steps:
   image: node:10.13
   commands:
   - npm install --no-progress --quiet --unsafe-perm >  npm-install.log
-  when:
-    ref:
-      exclude:
-      - refs/pull/*
 
 - name: tslint
   image: node:10.13
   commands:
   - npm run tslint:production
-  when:
-    ref:
-      exclude:
-      - refs/pull/*
 
 # - name: test
 #   image: node:10.13
@@ -29,10 +21,6 @@ steps:
   image: node:10.13
   commands:
   - npm run build
-  when:
-    ref:
-      exclude:
-      - refs/pull/*
 
 - name: deploy to stage environment
   image: matters/awsebcli
