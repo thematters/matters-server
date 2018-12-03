@@ -11,22 +11,16 @@ import {
   followerCount
 } from './status'
 import notices from './notices'
+import settings from './settings'
 
 export default {
   Query: {
     user: (root: any, { id }: { id: string }, { userService }: Context) =>
-      userService.loader.load(id)
+      userService.uuidLoader.load(id)
   },
   User: {
     info: (root: any) => root,
-    settings: (
-      { id, language }: { id: number; language: string },
-      _: any,
-      { userService }: Context
-    ) => ({
-      language,
-      ...userService.findSettingByUserId(id)
-    }),
+    settings,
     // recommnedation,
     // hasFollowed,
     // drafts,
@@ -36,8 +30,8 @@ export default {
     // activity,
     followers,
     follows,
-    status: (root: any) => root,
     notices
+    // status, // short hand for delegating resolver to UserStatusType
   },
   Notice: {
     __resolveType(): string {
