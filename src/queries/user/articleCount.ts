@@ -1,6 +1,6 @@
 import { Resolver } from 'src/definitions'
 
 const resolver: Resolver = (parent, _, { articleService }) =>
-  articleService.countByAuthor(parent.uuid)
+  articleService.countByAuthor(parent.id)
 
 export default resolver
