@@ -1,30 +1,30 @@
 export default /* GraphQL */ `
   extend type Mutation {
     singleUpload(file: Upload!): File!
-    createOrEditAudioDraft(data: String!, title: String, id: String): AudioDraft
+    createOrEditAudioDraft(data: String!, title: String, uuid: UUID): AudioDraft
     createDraft(draft: DraftInput): Draft
-    deleteDraft(id: String): Draft
-    editDraftMeta(id: String, field: DraftMetaField, value: String): Draft
-    editDraftTags(id: String, tags: [String]): Draft
-    addDraftContent(id: String, path: String, data: String): Draft
-    deleteDraftContent(id: String, path: String): Draft
+    deleteDraft(uuid: UUID): Draft
+    editDraftMeta(uuid: UUID, field: DraftMetaField, value: String): Draft
+    editDraftTags(uuid: UUID, tags: [String]): Draft
+    addDraftContent(uuid: UUID, path: String, data: String): Draft
+    deleteDraftContent(uuid: UUID, path: String): Draft
   }
 
   type Draft {
-    id: String!
+    uuid: UUID!
     upstream: Article
     title: String
     content: JSON!
     createdAt: DateTime!
-    updateAt: DateTime!
+    updatedAt: DateTime!
     tags: [String]
-    cover: String
+    cover: URL
     abstract: String
   }
 
   type AudioDraft {
     title: String
-    createdAt: String!
+    createdAt: DateTime!
     file: File!
   }
 
@@ -36,11 +36,11 @@ export default /* GraphQL */ `
   }
 
   input DraftInput {
-    upstreamId: String
+    upstreamUUID: UUID
     title: String
     content: JSON
     tags: [String]
-    cover: String
+    cover: URL
   }
 
   enum DraftMetaField {

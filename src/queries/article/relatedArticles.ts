@@ -1,5 +1,9 @@
 import { Resolver } from 'src/definitions'
 
-const resolver: Resolver = ({ relatedArticleIds }, _, { articleService }) => []
+const resolver: Resolver = (
+  { relatedArticleUUIDs },
+  _,
+  { articleService }
+) => []
 
 export default resolver

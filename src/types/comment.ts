@@ -1,12 +1,12 @@
 export default /* GraphQL */ `
   extend type Mutation {
-    createOrEditComment(comment: CommentInput!, id: String): Comment
-    pinComment(id: String): Comment
-    deleteComment(id: String): Comment
+    createOrEditComment(comment: CommentInput!, uuid: UUID): Comment
+    pinComment(uuid: UUID): Comment
+    deleteComment(uuid: UUID): Comment
   }
 
   type Comment {
-    id: String!
+    uuid: UUID!
     # Original article of this comment
     article: Article!
     # content
@@ -26,9 +26,9 @@ export default /* GraphQL */ `
   input CommentInput {
     text: String!
     quote: Boolean!
-    articleId: String!
-    parentId: String
-    mentions: [String]
+    articleUUID: UUID!
+    parentUUID: UUID
+    mentions: [UUID]
   }
 
   enum Vote {

@@ -1,6 +1,6 @@
 import { Resolver } from 'src/definitions'
 
-const resolver: Resolver = ({ id }, _, { commentService }) =>
-  commentService.findByArticle(id)
+const resolver: Resolver = ({ uuid }, _, { commentService }) =>
+  commentService.findByArticle(uuid)
 
 export default resolver

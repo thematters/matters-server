@@ -15,8 +15,8 @@ import settings from './settings'
 
 export default {
   Query: {
-    user: (root: any, { id }: { id: string }, { userService }: Context) =>
-      userService.uuidLoader.load(id)
+    user: (root: any, { uuid }: { uuid: string }, { userService }: Context) =>
+      userService.uuidLoader.load(uuid)
   },
   User: {
     info: (root: any) => root,
