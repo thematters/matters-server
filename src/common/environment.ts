@@ -3,7 +3,7 @@
  * `MATTERS_` before environment variables.
  */
 export const environment = {
-  env: process.env['MATTERS_ENV'],
+  env: process.env['MATTERS_ENV'] || 'development',
   domain: process.env['MATTERS_DOMAIN'],
   awsRegion: process.env['MATTERS_AWS_REGION'],
   pgHost: process.env['MATTERS_PG_HOST'],
