@@ -11,7 +11,6 @@ import {
   followerCount
 } from './status'
 import notices from './notices'
-import settings from './settings'
 
 export default {
   Query: {
@@ -20,7 +19,6 @@ export default {
   },
   User: {
     info: (root: any) => root,
-    settings,
     // recommnedation,
     // hasFollowed,
     // drafts,
@@ -30,13 +28,21 @@ export default {
     // activity,
     followers,
     follows,
-    notices
-    // status, // short hand for delegating resolver to UserStatusType
+    notices,
+    settings: (root: any) => root,
+    status: (root: any) => root
   },
   Notice: {
     __resolveType(): string {
       return 'UserNotice'
     }
+  },
+  UserSettings: {
+    language: ({ language }: { language: string }) => language,
+    oauthType: ({ id }: { id: number }, _: any, { userService }: Context) =>
+      userService.findOAuthTypesByUserId(id),
+    notification: ({ id }: { id: number }, _: any, { userService }: Context) =>
+      userService.findNotifySettingByUserId(id)
   },
   UserStatus: {
     gravity,
