@@ -6,17 +6,19 @@ steps:
   image: node:10.13
   commands:
   - npm install --no-progress --quiet --unsafe-perm >  npm-install.log
-  event:
-    exclude:
-    - pull_request
+  when:
+    ref:
+      exclude:
+      - refs/pull/*
 
 - name: tslint
   image: node:10.13
   commands:
   - npm run tslint:production
-  event:
-    exclude:
-    - pull_request
+  when:
+    ref:
+      exclude:
+      - refs/pull/*
 
 # - name: test
 #   image: node:10.13
@@ -27,9 +29,10 @@ steps:
   image: node:10.13
   commands:
   - npm run build
-  event:
-    exclude:
-    - pull_request
+  when:
+    ref:
+      exclude:
+      - refs/pull/*
 
 - name: deploy to stage environment
   image: matters/awsebcli
@@ -46,6 +49,6 @@ steps:
     branch:
     - develop
     - feature/beanstalk
-    event:
+    ref:
       exclude:
-      - pull_request
+      - refs/pull/*
