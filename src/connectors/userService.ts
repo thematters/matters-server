@@ -5,6 +5,7 @@ export class UserService extends BaseService {
   constructor() {
     super('user')
     this.loader = new DataLoader(this.baseFindByUUIDs)
+    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
   /**
@@ -28,25 +29,33 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Find user settings by a given user id
+   * Find user's setting by a given user id.
    */
-
   findSettingByUserId = async (userId: number) => {
-    const result = await Promise.all([
+    const [notification, oauthType] = await Promise.all([
       this.findNotifySettingByUserId(userId),
-      this.findOAuthByUserId(userId)
+      this.findOAuthTypesByUserId(userId)
     ])
-    return { notification: result[0], thirdPartyAccounts: result[1] }
+    return { notification, oauthType }
   }
 
-  findNotifySettingByUserId = async (userId: number): Promise<any[]> => {
+  /**
+   * Find user's notify setting by a given user id.
+   */
+  findNotifySettingByUserId = async (userId: number): Promise<any | null> => {
     const settings = await this.knex
       .select()
       .from('user_notify_setting')
       .where('user_id', userId)
-    return settings[0]
+    if (settings && settings.length > 0) {
+      return settings[0]
+    }
+    return null
   }
 
+  /**
+   * Find users' notify settings by given ids.
+   */
   findNotifySettingByUserIds = async (userIds: number[]): Promise<any[]> => {
     return await this.knex
       .select()
@@ -55,7 +64,7 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Find user's OAuth by a given user id.
+   * Find user's OAuth accounts by a given user id.
    */
   findOAuthByUserId = async (userId: number): Promise<any[]> => {
     return await this.knex
@@ -67,7 +76,7 @@ export class UserService extends BaseService {
   /**
    * Find user's OAuth accounts by a given user id and type.
    */
-  findByUserIdAndType = async (
+  findOAuthByUserIdAndType = async (
     userId: number,
     type: string
   ): Promise<any[]> => {
@@ -78,5 +87,15 @@ export class UserService extends BaseService {
         user_id: userId,
         type: type
       })
+  }
+
+  /**
+   * Find user's all OAuth types by a given user id.
+   */
+  findOAuthTypesByUserId = async (userId: number): Promise<any[]> => {
+    return await this.knex
+      .select('type')
+      .from('user_oauth')
+      .where('user_id', userId)
   }
 }
