@@ -9,12 +9,12 @@ const knexConfig = require('../../knexfile')
 export type Item = { id: string; [key: string]: any }
 
 export type TableName =
+  | 'action'
   | 'article'
+  | 'comment'
   | 'user'
   | 'user_oauth'
   | 'user_notify_setting'
-  | 'comment'
-  | 'action'
 
 export class BaseService {
   knex: Knex
@@ -22,6 +22,8 @@ export class BaseService {
   items: Item[]
 
   loader: DataLoader<string, Item>
+
+  uuidLoader: DataLoader<string, Item>
 
   table: TableName
 
@@ -39,6 +41,11 @@ export class BaseService {
     return Knex({ ...knexConfig[env], ...knexSnakeCaseMappers() })
   }
 
+  /**
+   * Find items from mock data.
+   *
+   * @deprecated since version 1.0
+   */
   fakeFindByIds = (ids: string[]): Promise<Item[]> =>
     new Promise(resolve =>
       resolve(this.items.filter(({ id: itemId }) => ids.includes(itemId)))
