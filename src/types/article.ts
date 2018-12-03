@@ -25,7 +25,7 @@ export default /* GraphQL */ `
     tags: [String!]
     wordCount: Int
     hash: String
-    content: JSON!
+    content: String!
     gatewayUrls: [URL]
     upstream: Article
     downstreams: [Article]
