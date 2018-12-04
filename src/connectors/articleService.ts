@@ -51,6 +51,16 @@ export class ArticleService extends BaseService {
     return result[0].sum
   }
 
+  /**
+   * Find an article's appreciations by a given article id.
+   */
+  findAppreciationByArticleId = async (articleId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('appreciate')
+      .where('article_id', articleId)
+  }
+
   findTagsById = async (id: number): Promise<any | null> => {
     return await this.knex
       .select()
