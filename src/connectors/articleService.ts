@@ -68,6 +68,19 @@ export class ArticleService extends BaseService {
       .where('article_id', id)
   }
 
+  /**
+   * Find an article's rates by a given target id (article).
+   */
+  findRateByTargetId = async (targetId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_user')
+      .where({
+        target_id: targetId,
+        action: 'rate'
+      })
+  }
+
   // update an object with id and kv pairs object
   updateById = (id: string, kv: { [k: string]: any }) =>
     new Promise(resolve => {
