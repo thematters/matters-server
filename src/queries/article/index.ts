@@ -31,6 +31,22 @@ export default {
       { articleService }: Context
     ) => articleService.findByAuthor(uuid)
   },
+  UserStatus: {
+    MAT: async (
+      { id }: { id: number },
+      _: any,
+      { articleService }: Context
+    ) => {
+      const articles = await articleService.findByAuthor(id)
+      const apprecitions = ((await Promise.all(
+        articles.map(
+          async ({ id }: { id: number }) =>
+            await articleService.countAppreciation(id)
+        )
+      )) as unknown) as number[]
+      return apprecitions.reduce((a: number, b: number): number => a + b, 0)
+    }
+  },
   Article: {
     author,
     cover,

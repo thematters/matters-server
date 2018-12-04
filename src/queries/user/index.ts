@@ -2,14 +2,6 @@ import { Context } from 'src/definitions'
 
 import followers from './followers'
 import follows from './follows'
-import {
-  gravity,
-  MAT,
-  articleCount,
-  commentCount,
-  followCount,
-  followerCount
-} from './status'
 import notices from './notices'
 
 export default {
@@ -18,6 +10,7 @@ export default {
       userService.uuidLoader.load(uuid)
   },
   User: {
+<<<<<<< HEAD
     info: (root: any) => root,
     // recommnedation,
     // hasFollowed,
@@ -45,8 +38,6 @@ export default {
       userService.findNotifySettingByUserId(id)
   },
   UserStatus: {
-    gravity,
-    MAT,
     articleCount,
     // viewCount,
     // draftCount,
