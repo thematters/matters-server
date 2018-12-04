@@ -9,19 +9,19 @@ exports.seed = function(knex, Promise) {
           uuid: '00000000-0000-0000-0000-000000000011',
           author_id: 1,
           article_id: 1,
-          text: 'Test comment'
+          content: '<div>Test comment 1</div>'
         },
         {
           uuid: '00000000-0000-0000-0000-000000000012',
           author_id: 2,
           article_id: 2,
-          text: 'Test comment'
+          content: '<div>Test comment 2</div>'
         },
         {
           uuid: '00000000-0000-0000-0000-000000000013',
           author_id: 3,
           article_id: 3,
-          text: 'Test comment'
+          content: '<div>Test comment 3</div>'
         }
       ])
     })
