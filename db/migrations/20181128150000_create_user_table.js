@@ -29,6 +29,7 @@ exports.up = function(knex, Promise) {
       .defaultTo(0)
     t.string('language').notNullable()
     t.specificType('oauth_type', 'text ARRAY')
+    t.enu('role', ['user', 'admin']).defaultTo('user')
     t.string('status').notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())

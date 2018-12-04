@@ -2,12 +2,12 @@ const table = 'article'
 
 exports.up = function(knex, Promise) {
   return knex.schema.createTable(table, function(t) {
-    t.increments()
-    t.uuid('origin_id')
-    t.integer('author_id')
+    t.bigIncrements('id').primary()
+    t.uuid('uuid')
+    t.bigInteger('author_id')
       .unsigned()
       .notNullable()
-    t.integer('upstream_id').unsigned()
+    t.bigInteger('upstream_id').unsigned()
     t.string('title').notNullable()
     t.string('cover').notNullable()
     t.string('abstract').notNullable()
