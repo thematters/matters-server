@@ -10,6 +10,32 @@ export class UserService extends BaseService {
   }
 
   /**
+   * Count user's following list by a given user id.
+   */
+  countFollowByUserId = async (userId: number): Promise<any[]> => {
+    const result = await this.knex('action_user')
+      .countDistinct('id')
+      .where({
+        user_id: userId,
+        action: USER_ACTION.follow
+      })
+    return result[0].count || 0
+  }
+
+  /**
+   * Count user's followed list by a given taget id (user).
+   */
+  countFollowByTargetId = async (targetId: number): Promise<any[]> => {
+    const result = await this.knex('action_user')
+      .countDistinct('id')
+      .where({
+        target_id: targetId,
+        action: USER_ACTION.follow
+      })
+    return result[0].count || 0
+  }
+
+  /**
    * Find users by a given email.
    */
   findByEmail = async (email: string): Promise<any[]> => {
