@@ -14,7 +14,8 @@ export class ActionService extends BaseService {
   // items = items
   constructor() {
     super('action')
-    this.loader = new DataLoader(this.fakeFindByIds)
+    this.idLoader = new DataLoader(this.baseFindByIds)
+    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
   // TODO: replaced by actual dynamoDB api

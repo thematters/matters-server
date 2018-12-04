@@ -1,35 +1,16 @@
 import { Context } from 'src/definitions'
 
-import article from './rootArticle'
-import author from './author'
-import cover from './cover'
-import summary from './summary'
-import tags from './tags'
-import wordCount from './wordCount'
-import content from './content'
-import gatewayUrls from './gatewayUrls'
-import upstream from './upstream'
-import downstreams from './downstreams'
-import relatedArticles from './relatedArticles'
-import MAT from './MAT'
-import commentCount from './commentCount'
-import subscribed from './subscribed'
-import pinnedComments from './pinnedComments'
-import comments from './comments'
-import subscribers from './subscribers'
-import appreciators from './appreciators'
-import hasAppreciate from './hasAppreciate'
-
 export default {
   Query: {
-    article
+    article: (
+      _: any,
+      { uuid }: { uuid: string },
+      { articleService }: Context
+    ) => articleService.uuidLoader.load(uuid)
   },
   User: {
-    articles: (
-      { uuid }: { uuid: number },
-      _: any,
-      { articleService }: Context
-    ) => articleService.findByAuthor(uuid)
+    articles: ({ id }: { id: number }, _: any, { articleService }: Context) =>
+      articleService.findByAuthor(id)
   },
   UserStatus: {
     MAT: async (
@@ -48,23 +29,49 @@ export default {
     }
   },
   Article: {
-    author,
-    cover,
-    summary,
-    tags,
-    wordCount,
-    content,
-    gatewayUrls,
-    upstream,
-    downstreams,
-    relatedArticles, // placeholder for recommendation engine
-    MAT,
-    commentCount,
-    subscribed,
-    pinnedComments,
-    comments,
-    subscribers,
-    appreciators,
-    hasAppreciate
+    author: ({ id }: { id: number }, _: any, { userService }: Context) =>
+      userService.idLoader.load(id),
+    summary: (
+      { hash }: { hash: string },
+      _: any,
+      { articleService }: Context
+    ) => articleService.getContentFromHash(hash).slice(0, 30),
+    tags: async (
+      { id }: { id: number },
+      _: any,
+      { articleService }: Context
+    ) => {
+      const tags = await articleService.findTagsById(id)
+      return tags.map((t: any) => t.tag)
+    },
+    wordCount: (
+      { wordCount, hash }: { wordCount: number; hash: string },
+      _: any,
+      { articleService }: Context
+    ) =>
+      wordCount ||
+      articleService.countWords(articleService.getContentFromHash(hash)),
+    content: (
+      { hash }: { hash: string },
+      _: any,
+      { articleService }: Context
+    ) => articleService.getContentFromHash(hash),
+    gatewayUrls: () => [],
+    upstream: (
+      { upstreamId }: { upstreamId: number },
+      _: any,
+      { articleService }: Context
+    ) => articleService.idLoader.load(upstreamId),
+    downstreams: (
+      { id }: { id: number },
+      _: any,
+      { articleService }: Context
+    ) => articleService.findByUpstream(id),
+    relatedArticles: () => [], // placeholder for recommendation engine
+    MAT: ({ mat }: { mat: number }) => mat,
+    subscribed: () => false,
+    subscribers: () => [],
+    appreciators: () => [],
+    hasAppreciate: () => false
   }
 }
