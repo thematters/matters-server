@@ -10,6 +10,14 @@ export class ArticleService extends BaseService {
     this.loader = new DataLoader(this.baseFindByIds)
   }
 
+  countByAuthor = async (authorId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('article')
+      .where('author_id', authorId)
+      .count()
+  }
+
   countWords = (html: string) =>
     cheerio
       .load(html)('body')

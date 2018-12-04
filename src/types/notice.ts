@@ -7,39 +7,49 @@ export default /* GraphQL */ `
     notices: [Notice]
   }
 
-  union Notice = CommentNotice | ArticleNotice | UserNotice
-
-  type UserNotice {
-    label: UserNoticeLabel
+  interface Notice {
     hasRead: Boolean
-    user: [User]!
+    createdAt: DateTime
+    user: User
   }
 
-  enum UserNoticeLabel {
+  type UserNotice implements Notice {
+    hasRead: Boolean
+    createdAt: DateTime
+    user: User
+    action: UserNoticeAction
+    target: User
+  }
+
+  enum UserNoticeAction {
     follow
     appreciate
     subscribe
   }
 
-  type ArticleNotice {
-    label: ArticleNoticeLabel
+  type ArticleNotice implements Notice {
     hasRead: Boolean
-    article: Article  
+    createdAt: DateTime
+    user: User  
+    action: ArticleNoticeAction
+    target: Article  
   }
 
-  enum ArticleNoticeLabel {
+  enum ArticleNoticeAction {
     downstream
     published
     newChapter
   }
 
-  type CommentNotice {
-    label: CommentNoticeLabel
-    hasRead: Boolean
-    comment: Comment
+  type CommentNotice implements Notice {
+    hasRead: Boolean 
+    createdAt: DateTime
+    user: User
+    action: CommentNoticeAction
+    target: Comment
   }
 
-  enum CommentNoticeLabel {
+  enum CommentNoticeAction {
     reply
     newOnArticle
     newOnSubscribed

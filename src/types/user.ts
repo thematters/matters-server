@@ -80,7 +80,7 @@ export default /* GraphQL */ `
   }
 
   type UserStatus {
-    currGravity: Int!
+    gravity: Int!
     # Total MAT left in wallet
     MAT: Int!
     # Number of articles published by user
