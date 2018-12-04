@@ -29,17 +29,6 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Find user's setting by a given user id.
-   */
-  findSettingByUserId = async (userId: number) => {
-    const [notification, oauthType] = await Promise.all([
-      this.findNotifySettingByUserId(userId),
-      this.findOAuthTypesByUserId(userId)
-    ])
-    return { notification, oauthType }
-  }
-
-  /**
    * Find user's notify setting by a given user id.
    */
   findNotifySettingByUserId = async (userId: number): Promise<any | null> => {

@@ -21,8 +21,6 @@ export class BaseService {
 
   items: Item[]
 
-  loader: DataLoader<string, Item>
-
   idLoader: DataLoader<number, Item>
 
   uuidLoader: DataLoader<string, Item>
