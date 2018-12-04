@@ -10,7 +10,7 @@ exports.up = function(knex, Promise) {
     t.bigInteger('article_id').notNullable()
     t.bigInteger('parent_comment_id')
     t.specificType('mentioned_user_id', 'bigint ARRAY')
-    t.text('text')
+    t.text('content')
     t.boolean('archived').defaultTo(false)
     t.boolean('pinned').defaultTo(false)
     t.boolean('has_citation').defaultTo(false)

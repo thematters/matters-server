@@ -1,9 +1,7 @@
 import { Context } from 'src/definitions'
 
-import articles from './articles'
 import followers from './followers'
 import follows from './follows'
-import MAT from './MAT'
 import articleCount from './articleCount'
 import commentCount from './commentCount'
 import followCount from './followCount'
@@ -17,14 +15,14 @@ export default {
       userService.uuidLoader.load(id)
   },
   User: {
-    info: (root: any) => root,
     settings,
     // drafts
     // courses
     followers,
     follows,
-    notices
-    // status, // short hand for delegating resolver to UserStatusType
+    notices,
+    info: (root: any) => root,
+    status: (root: any) => root
   },
   Notice: {
     __resolveType(): string {
@@ -32,7 +30,6 @@ export default {
     }
   },
   UserStatus: {
-    MAT,
     articleCount,
     commentCount,
     followCount,
