@@ -8,8 +8,10 @@ webpack-stats.json
 uploads
 environment.sh
 logs
+npm-install.log
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 .env
+Dockerrun.aws.json

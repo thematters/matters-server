@@ -3,23 +3,23 @@ name: default
 
 steps:
 - name: install node modules
-  image: node:10.13
+  image: node:10.14
   commands:
   - npm install --no-progress --quiet --unsafe-perm >  npm-install.log
 
 - name: tslint
-  image: node:10.13
+  image: node:10.14
   commands:
   - npm run tslint:production
   - npm run format:check
 
 # - name: test
-#   image: node:10.13
+#   image: node:10.14
 #   commands:
 #   - npx jest
 
 - name: build
-  image: node:10.13
+  image: node:10.14
   commands:
   - npm run build
 
@@ -34,6 +34,15 @@ steps:
     repo: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server
     registry: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com
     dockerfile: docker/Dockerfile
+    tags:
+    - staging
+  when:
+    branch:
+    - develop
+    - feature/beanstalk
+    ref:
+      exclude:
+      - refs/pull/*
 
 - name: deploy to stage environment
   image: matters/awsebcli
@@ -44,8 +53,7 @@ steps:
       from_secret: AWS_SECRET_ACCESS_KEY
     AWS_DEFAULT_REGION: ap-southeast-1
   commands:
-  - printf 'n' | eb init matters-stage --region ap-southeast-1
-  - eb deploy matters-server-stage
+  - bin/eb-deploy.sh staging
   when:
     branch:
     - develop
