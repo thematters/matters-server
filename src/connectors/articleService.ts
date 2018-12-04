@@ -18,10 +18,21 @@ export class ArticleService extends BaseService {
 
   // TODO: replaced by actual dynamoDB api
   // start of db calls ->
-  findByAuthor = (id: number): Promise<Item[]> => {
-    return new Promise(resolve =>
-      resolve(this.items.filter(({ authorId }) => id === authorId))
-    )
+  findByAuthor = async (id: number) => {
+    return await this.knex
+      .select()
+      .from(this.table)
+      .where('author_id', id)
+  }
+
+  countAppreciation = async (id: number): Promise<number> => {
+    const result = await this.knex
+      .select()
+      .from('appreciate')
+      .where('article_id', id)
+      .sum('amount')
+
+    return result[0].sum
   }
 
   countByAuthor = (id: string) =>
