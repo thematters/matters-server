@@ -75,4 +75,14 @@ export class CommentService extends BaseService {
       .from(this.table)
       .where('parent_comment_id', commentId)
   }
+
+  /**
+   * Find a comment's votes by a given target id (comment).
+   */
+  findVoteByTargetId = async (targetId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_comment')
+      .where('target_id', targetId)
+  }
 }

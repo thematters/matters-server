@@ -87,4 +87,63 @@ export class UserService extends BaseService {
       .from('user_oauth')
       .where('user_id', userId)
   }
+
+  /**
+   * Find user's all appreciation by a given user id.
+   */
+  findAppreciationByUserId = async (userId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('appreciate')
+      .where('user_id', userId)
+  }
+
+  /**
+   * Find user's following list by a given user id.
+   */
+  findFollowByUserId = async (userId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_user')
+      .where({
+        user_id: userId,
+        action: 'folow'
+      })
+  }
+
+  /**
+   * Find user's followed list by a given taget id (user).
+   */
+  findFollowByTargetId = async (targetId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_user')
+      .where({
+        target_id: targetId,
+        action: 'follow'
+      })
+  }
+
+  /**
+   * Find an user's rates by a given target id (user).
+   */
+  findRateByTargetId = async (targetId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_user')
+      .where({
+        target_id: targetId,
+        action: 'rate'
+      })
+  }
+
+  /**
+   * Find an users' subscription by a give user id.
+   */
+  findSubscriptionByUserId = async (userId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_article')
+      .where('user_id', userId)
+  }
 }
