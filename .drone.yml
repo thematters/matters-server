@@ -11,6 +11,7 @@ steps:
   image: node:10.13
   commands:
   - npm run tslint:production
+  - npm run format:check
 
 # - name: test
 #   image: node:10.13
@@ -21,6 +22,18 @@ steps:
   image: node:10.13
   commands:
   - npm run build
+
+- name: push docker image
+  image: plugins/ecr
+  settings:
+    access_key:
+      from_secret: AWS_ACCESS_KEY_ID
+    secret_key:
+      from_secret: AWS_SECRET_ACCESS_KEY
+    region: ap-southeast-1
+    repo: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server
+    registry: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com
+    dockerfile: docker/Dockerfile
 
 - name: deploy to stage environment
   image: matters/awsebcli
