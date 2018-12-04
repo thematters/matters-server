@@ -22,7 +22,7 @@ export default /* GraphQL */ `
     # url for cover
     cover: URL!
     summary: String!
-    tags: [String!]
+    tags: [Tag!]
     wordCount: Int
     hash: String
     content: String!
