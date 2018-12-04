@@ -40,9 +40,8 @@ steps:
     branch:
     - develop
     - feature/beanstalk
-    ref:
-      exclude:
-      - refs/pull/*
+    event:
+    - push
 
 - name: deploy to stage environment
   image: matters/awsebcli
@@ -61,6 +60,5 @@ steps:
     branch:
     - develop
     - feature/beanstalk
-    ref:
-      exclude:
-      - refs/pull/*
+    event:
+    - push
