@@ -1,0 +1,55 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:latest",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": "4000"
+    }
+  ],
+  "Volumes": [
+    {
+      "HostDirectory": "/var/app/current/build",
+      "ContainerDirectory": "/var/app/build"
+    },
+    {
+      "HostDirectory": "/var/app/current/src",
+      "ContainerDirectory": "/var/app/src"
+    },
+    {
+      "HostDirectory": "/var/app/current/migrations",
+      "ContainerDirectory": "/var/app/migrations"
+    },
+    {
+      "HostDirectory": "/var/app/current/seeds",
+      "ContainerDirectory": "/var/app/seeds"
+    },
+    {
+      "HostDirectory": "/var/app/current/knexfile.js",
+      "ContainerDirectory": "/var/app/knexfile.js"
+    },
+    {
+      "HostDirectory": "/var/app/current/package.json",
+      "ContainerDirectory": "/var/app/package.json"
+    },
+    {
+      "HostDirectory": "/var/app/current/tsconfig.json",
+      "ContainerDirectory": "/var/app/tsconfig.json"
+    },
+    {
+      "HostDirectory": "/var/app/current/tslint.json",
+      "ContainerDirectory": "/var/app/tslint.json"
+    },
+    {
+      "HostDirectory": "/var/log",
+      "ContainerDirectory": "/var/app/logs"
+    },
+    {
+      "HostDirectory": "/tmp/.ebextensions",
+      "ContainerDirectory": "/var/app/.ebextensions"
+    }
+  ],
+  "Logging": "/var/log/nginx"
+}

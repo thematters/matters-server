@@ -4,7 +4,7 @@ import DataLoader from 'dataloader'
 export class UserService extends BaseService {
   constructor() {
     super('user')
-    this.loader = new DataLoader(this.baseFindByUUIDs)
+    this.idLoader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
