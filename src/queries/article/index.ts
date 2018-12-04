@@ -1,21 +1,12 @@
 import { Context } from 'src/definitions'
 
-import article from './rootArticle'
-import MAT from './MAT'
-import author from './author'
-import content from './content'
-import wordCount from './wordCount'
-import upstream from './upstream'
-import downstreams from './downstreams'
-import relatedArticles from './relatedArticles'
-import subscribers from './subscribers'
-import commentCount from './commentCount'
-import comments from './comments'
-import pinnedComments from './pinnedComments'
-
 export default {
   Query: {
-    article
+    article: (
+      _: any,
+      { uuid }: { uuid: string },
+      { articleService }: Context
+    ) => articleService.uuidLoader.load(uuid)
   },
   User: {
     articles: ({ id }: { id: number }, _: any, { articleService }: Context) =>
@@ -38,18 +29,49 @@ export default {
     }
   },
   Article: {
-    MAT,
-    author,
-    content,
-    wordCount,
-    upstream,
-    downstreams,
-    relatedArticles, // placeholder for recommendation engine
-    subscribers,
-    // appreciators: ({ appreciatorIds }, _, { userService }) =>
-    // appreciatorIds.map((id: string) => userService.findById(id)),
-    commentCount,
-    comments,
-    pinnedComments
+    author: ({ id }: { id: number }, _: any, { userService }: Context) =>
+      userService.idLoader.load(id),
+    summary: (
+      { hash }: { hash: string },
+      _: any,
+      { articleService }: Context
+    ) => articleService.getContentFromHash(hash).slice(0, 30),
+    tags: async (
+      { id }: { id: number },
+      _: any,
+      { articleService }: Context
+    ) => {
+      const tags = await articleService.findTagsById(id)
+      return tags.map((t: any) => t.tag)
+    },
+    wordCount: (
+      { wordCount, hash }: { wordCount: number; hash: string },
+      _: any,
+      { articleService }: Context
+    ) =>
+      wordCount ||
+      articleService.countWords(articleService.getContentFromHash(hash)),
+    content: (
+      { hash }: { hash: string },
+      _: any,
+      { articleService }: Context
+    ) => articleService.getContentFromHash(hash),
+    gatewayUrls: () => [],
+    upstream: (
+      { upstreamId }: { upstreamId: number },
+      _: any,
+      { articleService }: Context
+    ) => articleService.idLoader.load(upstreamId),
+    downstreams: (
+      { id }: { id: number },
+      _: any,
+      { articleService }: Context
+    ) => articleService.findByUpstream(id),
+    relatedArticles: () => [], // placeholder for recommendation engine
+    MAT: ({ mat }: { mat: number }) => mat,
+    subscribed: () => false,
+    subscribers: () => [],
+    appreciators: () => [],
+    hasAppreciate: () => false
   }
 }

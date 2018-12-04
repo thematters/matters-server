@@ -6,7 +6,18 @@ import { randomText } from 'src/connectors/mockData/utils'
 export class ArticleService extends BaseService {
   constructor() {
     super('article')
-    this.loader = new DataLoader(this.fakeFindByIds)
+    this.idLoader = new DataLoader(this.baseFindByIds)
+    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+  }
+
+  /**
+   * Count articles by a given author id (user).
+   */
+  countByAuthor = async (authorId: number): Promise<number> => {
+    const qs = await this.knex(this.table)
+      .countDistinct('id')
+      .where('author_id', authorId)
+    return qs[0].count
   }
 
   countWords = (html: string) =>
@@ -16,13 +27,18 @@ export class ArticleService extends BaseService {
       .split(' ')
       .filter(s => s !== '').length
 
-  // TODO: replaced by actual dynamoDB api
-  // start of db calls ->
   findByAuthor = async (id: number) => {
     return await this.knex
       .select()
       .from(this.table)
       .where('author_id', id)
+  }
+
+  findByUpstream = async (upstreamId: number) => {
+    return await this.knex
+      .select()
+      .from(this.table)
+      .where('upstream_id', upstreamId)
   }
 
   countAppreciation = async (id: number): Promise<number> => {
@@ -35,10 +51,12 @@ export class ArticleService extends BaseService {
     return result[0].sum
   }
 
-  countByAuthor = (id: string) =>
-    new Promise(resolve =>
-      resolve(this.items.filter(({ authorId }) => id === authorId).length)
-    )
+  findTagsById = async (id: number): Promise<any | null> => {
+    return await this.knex
+      .select()
+      .from('article_tag')
+      .where('article_id', id)
+  }
 
   // update an object with id and kv pairs object
   updateById = (id: string, kv: { [k: string]: any }) =>
@@ -51,7 +69,6 @@ export class ArticleService extends BaseService {
     })
 
   // publish = (userId, article) => {}
-  // <- end of db calls
 
   // TODO: replaced by actual IPFS api
   // return random string for now
