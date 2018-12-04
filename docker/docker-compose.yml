@@ -10,7 +10,7 @@ services:
     env_file: ../.env
     volumes:
       - ..:/var/app
-      - node_modules:/var/app/node_modules
+      - /var/app/node_modules
     depends_on:
       - db
     ports:
@@ -23,5 +23,4 @@ services:
       - postgres_data:/var/lib/postgresql/data/
 
 volumes:
-  node_modules:
   postgres_data:
