@@ -12,9 +12,10 @@ export class CommentService extends BaseService {
    * Count comments by a given author id (user).
    */
   countByAuthor = async (authorId: number): Promise<number> => {
-    return await this.knex(this.table)
+    const qs = await this.knex(this.table)
       .countDistinct('id')
       .where('author_id', authorId)
+    return qs[0].count
   }
 
   /**
@@ -48,7 +49,7 @@ export class CommentService extends BaseService {
   /**
    * Find comments by a given article id.
    */
-  findByArticle = async (articleId: string): Promise<any[]> => {
+  findByArticle = async (articleId: number): Promise<any[]> => {
     return await this.knex
       .select()
       .from(this.table)
@@ -56,9 +57,19 @@ export class CommentService extends BaseService {
   }
 
   /**
+   * Find pinned comments by a given article id.
+   */
+  findPinnedByArticle = async (articleId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from(this.table)
+      .where({ article_id: articleId, pinned: true })
+  }
+
+  /**
    * Find comments by a given comment id.
    */
-  findByParent = async (commentId: string): Promise<any[]> => {
+  findByParent = async (commentId: number): Promise<any[]> => {
     return await this.knex
       .select()
       .from(this.table)

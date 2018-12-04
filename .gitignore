@@ -2,6 +2,7 @@
 .vscode
 .DS_store
 *.swp
+yarn.lock
 node_modules
 build
 webpack-stats.json
