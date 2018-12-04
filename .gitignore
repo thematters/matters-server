@@ -8,3 +8,8 @@ webpack-stats.json
 uploads
 environment.sh
 logs
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+.env

@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  app:
+    image: matters-server:latest
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    command: ["npm", "run", "start:dev"]
+    env_file: ../.env 
+    volumes: 
+      - ..:/var/app
+      - node_modules:/var/app/node_modules
+    ports:
+      - "4000:4000"
+    depends_on: 
+      - db
+    restart: always
+  db:
+    image: postgres:10
+    environment:
+      - POSTGRES_DB=matters-dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+  
+volumes:
+  node_modules:
+  postgres_data:
