@@ -1,4 +1,4 @@
-const table = 'article'
+const table = 'draft_audio'
 
 exports.up = function(knex, Promise) {
   return knex.schema.createTable(table, function(t) {
@@ -7,28 +7,15 @@ exports.up = function(knex, Promise) {
     t.bigInteger('author_id')
       .unsigned()
       .notNullable()
-    t.bigInteger('upstream_id').unsigned()
-    t.string('title').notNullable()
-    t.string('cover').notNullable()
-    t.string('abstract').notNullable()
-    t.integer('word_count').notNullable()
-    t.string('hash')
-    t.text('content').notNullable()
-    t.enu('publish_state', [
-      'archived',
-      'pending',
-      'error',
-      'published'
-    ]).notNullable()
+    t.string('mimetype')
+    t.string('encoding')
+    t.string('data')
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
     t.foreign('author_id')
       .references('id')
       .inTable('user')
-    t.foreign('upstream_id')
-      .references('id')
-      .inTable('article')
   })
 }
 
