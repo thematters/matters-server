@@ -6,16 +6,18 @@ import { randomText } from 'src/connectors/mockData/utils'
 export class ArticleService extends BaseService {
   constructor() {
     super('article')
-    // this.loader = new DataLoader(this.fakeFindByIds)
-    this.loader = new DataLoader(this.baseFindByIds)
+    this.idLoader = new DataLoader(this.baseFindByIds)
+    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
-  countByAuthor = async (authorId: number): Promise<any[]> => {
-    return await this.knex
-      .select()
-      .from('article')
+  /**
+   * Count articles by a given author id (user).
+   */
+  countByAuthor = async (authorId: number): Promise<number> => {
+    const qs = await this.knex(this.table)
+      .countDistinct('id')
       .where('author_id', authorId)
-      .count()
+    return qs[0].count
   }
 
   countWords = (html: string) =>
@@ -25,13 +27,18 @@ export class ArticleService extends BaseService {
       .split(' ')
       .filter(s => s !== '').length
 
-  // TODO: replaced by actual dynamoDB api
-  // start of db calls ->
   findByAuthor = async (id: number) => {
     return await this.knex
       .select()
       .from(this.table)
       .where('author_id', id)
+  }
+
+  findByUpstream = async (upstreamId: number) => {
+    return await this.knex
+      .select()
+      .from(this.table)
+      .where('upstream_id', upstreamId)
   }
 
   countAppreciation = async (id: number): Promise<number> => {

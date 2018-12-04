@@ -1,24 +1,49 @@
 import { Context } from 'src/definitions'
 
-import article from './article'
-import author from './author'
-import myVote from './myVote'
-import mentions from './mentions'
-import comments from './comments'
-import parentComment from './parentComment'
-
 export default {
   User: {
     comments: ({ id }: { id: number }, _: any, { commentService }: Context) =>
       commentService.findByAuthor(id)
   },
+  Article: {
+    commentCount: (
+      { id }: { id: number },
+      _: any,
+      { commentService }: Context
+    ) => commentService.countByArticle(id),
+    pinnedComments: (
+      { id }: { id: number },
+      _: any,
+      { commentService }: Context
+    ) => commentService.findPinnedByArticle(id),
+    comments: ({ id }: { id: number }, _: any, { commentService }: Context) =>
+      commentService.findByArticle(id)
+  },
   Comment: {
-    article,
-    author,
-    myVote,
-    mentions,
-    comments,
+    article: (
+      { articleId }: { articleId: number },
+      _: any,
+      { articleService }: Context
+    ) => articleService.idLoader.load(articleId),
+    author: (
+      { authorId }: { authorId: number },
+      _: any,
+      { userService }: Context
+    ) => userService.idLoader.load(authorId),
+    myVote: (parent: any, _: any, { userService }: Context) => 'up_vote',
+    mentions: (
+      { mentionedUserId }: { mentionedUserId: [number] },
+      _: any,
+      { userService }: Context
+    ) => userService.idLoader.loadMany(mentionedUserId),
+    comments: ({ id }: { id: number }, _: any, { commentService }: Context) =>
+      commentService.findByParent(id),
     // hasCitation,
-    parentComment
+    parentComment: (
+      { parentCommentId }: { parentCommentId: number },
+      _: any,
+      { commentService }: Context
+    ) =>
+      parentCommentId ? commentService.idLoader.load(parentCommentId) : null
   }
 }

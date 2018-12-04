@@ -2,7 +2,8 @@ import { Context } from 'src/definitions'
 
 import followers from './followers'
 import follows from './follows'
-import notices from './notices'
+import followCount from './followCount'
+import followerCount from './followCount'
 
 export default {
   Query: {
@@ -10,7 +11,6 @@ export default {
       userService.uuidLoader.load(uuid)
   },
   User: {
-<<<<<<< HEAD
     info: (root: any) => root,
     // recommnedation,
     // hasFollowed,
@@ -21,7 +21,7 @@ export default {
     // activity,
     followers,
     follows,
-    notices,
+    notices: ({ id }: { id: number }, _: any, { userService }: Context) => null,
     settings: (root: any) => root,
     status: (root: any) => root
   },
@@ -31,17 +31,25 @@ export default {
     }
   },
   UserSettings: {
-    language: ({ language }: { language: string }) => language,
+    // language: ({ language }: { language: string }) => language,
     oauthType: ({ id }: { id: number }, _: any, { userService }: Context) =>
       userService.findOAuthTypesByUserId(id),
     notification: ({ id }: { id: number }, _: any, { userService }: Context) =>
       userService.findNotifySettingByUserId(id)
   },
   UserStatus: {
-    articleCount,
+    articleCount: async (
+      { id }: { id: number },
+      _: any,
+      { articleService }: Context
+    ) => articleService.countByAuthor(id),
     // viewCount,
     // draftCount,
-    commentCount,
+    commentCount: (
+      { id }: { id: number },
+      _: any,
+      { commentService }: Context
+    ) => commentService.countByAuthor(id),
     // citationCount
     followCount,
     followerCount

@@ -2,16 +2,16 @@ import { Resolver } from 'src/definitions'
 import { USER_ACTION } from 'src/common/enums'
 
 const resolver: Resolver = async (
-  { uuid },
+  { userId },
   _,
   { actionService, userService }
 ) => {
   const followActions = await actionService.findActionByUser(
     USER_ACTION.follow,
-    uuid
+    userId
   )
-  return userService.loader.loadMany(
-    followActions.map(({ targetUUID }) => targetUUID)
+  return userService.idLoader.loadMany(
+    followActions.map(({ userId }) => userId)
   )
 }
 
