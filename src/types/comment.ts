@@ -10,7 +10,7 @@ export default /* GraphQL */ `
     # Original article of this comment
     article: Article!
     # content
-    text: String
+    content: String
     # Creation time of this comment
     createdAt: DateTime!
     author: User!
@@ -24,7 +24,7 @@ export default /* GraphQL */ `
   }
 
   input CommentInput {
-    text: String!
+    content: String!
     quote: Boolean!
     articleUUID: UUID!
     parentUUID: UUID

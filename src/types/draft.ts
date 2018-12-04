@@ -4,17 +4,17 @@ export default /* GraphQL */ `
     createOrEditAudioDraft(data: String!, title: String, uuid: UUID): AudioDraft
     createDraft(draft: DraftInput): Draft
     deleteDraft(uuid: UUID): Draft
-    editDraftMeta(uuid: UUID, field: DraftMetaField, value: String): Draft
-    editDraftTags(uuid: UUID, tags: [String]): Draft
-    addDraftContent(uuid: UUID, path: String, data: String): Draft
-    deleteDraftContent(uuid: UUID, path: String): Draft
+    editDraft(uuid: UUID, field: DraftField, value: String): Draft
+    addDraftTag(uuid: UUID, tag: String): Draft
+    deleteDraftTag(uuid: UUID, tag: String): Draft
+    deleteDraftContent(data: String): Draft
   }
 
   type Draft {
     uuid: UUID!
     upstream: Article
     title: String
-    content: JSON!
+    content: String!
     createdAt: DateTime!
     updatedAt: DateTime!
     tags: [String]
@@ -38,16 +38,16 @@ export default /* GraphQL */ `
   input DraftInput {
     upstreamUUID: UUID
     title: String
-    content: JSON
+    content: String
     tags: [String]
     cover: URL
   }
 
-  enum DraftMetaField {
+  enum DraftField {
     upstream
     title
-    tags
     cover
+    content
   }
 
 `
