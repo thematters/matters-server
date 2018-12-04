@@ -30,6 +30,10 @@ export default {
       _: any,
       { userService }: Context
     ) => userService.idLoader.load(authorId),
+    upvotes: ({ id }: { id: number }, _: any, { commentService }: Context) =>
+      commentService.countUpVoteByTargetId(id),
+    downvotes: ({ id }: { id: number }, _: any, { commentService }: Context) =>
+      commentService.countDownVoteByTargetId(id),
     myVote: (parent: any, _: any, { userService }: Context) => 'up_vote',
     mentions: (
       { mentionedUserId }: { mentionedUserId: [number] },
