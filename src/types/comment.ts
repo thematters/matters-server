@@ -7,11 +7,8 @@ export default /* GraphQL */ `
 
   type Comment {
     id: String!
-    # Original article of this comment
     article: Article!
-    # content
     text: String
-    # Creation time of this comment
     createdAt: DateTime!
     author: User!
     achieved: Boolean!
