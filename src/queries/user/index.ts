@@ -1,10 +1,5 @@
 import { Context } from 'src/definitions'
 
-import followers from './followers'
-import follows from './follows'
-import followCount from './followCount'
-import followerCount from './followCount'
-
 export default {
   Query: {
     user: (root: any, { uuid }: { uuid: string }, { userService }: Context) =>
@@ -19,8 +14,22 @@ export default {
     // citations,
     // subscriptions,
     // activity,
-    followers,
-    follows,
+    followers: async (
+      { id }: { id: number },
+      _: any,
+      { userService }: Context
+    ) => {
+      const actions = await userService.findFollowByTargetId(id)
+      return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+    },
+    follows: async (
+      { id }: { id: number },
+      _: any,
+      { userService }: Context
+    ) => {
+      const actions = await userService.findFollowByUserId(id)
+      return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+    },
     notices: ({ id }: { id: number }, _: any, { userService }: Context) => null,
     settings: (root: any) => root,
     status: (root: any) => root
@@ -51,8 +60,10 @@ export default {
       { commentService }: Context
     ) => commentService.countByAuthor(id),
     // citationCount
-    followCount,
-    followerCount
+    followerCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
+      userService.countFollowByTargetId(id),
+    followCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
+      userService.countFollowByUserId(id)
     // subscriptionCount
   }
 }
