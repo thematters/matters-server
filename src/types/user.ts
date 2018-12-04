@@ -1,13 +1,13 @@
 export default /* GraphQL */ `
   extend type Query {
     viewer: User
-    user(id: String!): User
+    user(uuid: UUID!): User
   }
 
   extend type Mutation {
-    sendVerificationEmail(email: String!): Boolean
-    registerUser(email: String!, userName: String!, displayName: String!, code: String): User
-    toggleFollow(id: String): User!
+    sendVerificationEmail(email: Email!): Boolean
+    registerUser(email: Email!, userName: String!, displayName: String!, code: String): User
+    toggleFollow(uuid: UUID): User!
     importArticles(platform: String, token: String): [Article]
     toggleNotificationSetting(type: String): NotificationSetting
     clearReadHistory: Boolean
@@ -15,11 +15,11 @@ export default /* GraphQL */ `
   }
 
   type User {
-    id: String!
+    uuid: UUID!
     # Get article for this user
-    article(id: String!): Article!
+    article(uuid: UUID!): Article!
     # Get other user info for this user
-    user(id: String!): User!
+    user(uuid: UUID!): User!
     info: UserInfo!
     settings: UserSettings!
     # Personalized recommendations
@@ -52,7 +52,7 @@ export default /* GraphQL */ `
     description: String!
     # URL for avatar
     avatar: String!
-    email: String!
+    email: Email!
     mobile: String!
     # Use 500 for now, adaptive in the future
     readSpeed: Int!

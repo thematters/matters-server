@@ -2,26 +2,27 @@ import { Context } from 'src/definitions'
 
 import followers from './followers'
 import follows from './follows'
-import articleCount from './articleCount'
-import commentCount from './commentCount'
 import followCount from './followCount'
-import followerCount from './followerCount'
-import notices from './notices'
-import settings from './settings'
+import followerCount from './followCount'
 
 export default {
   Query: {
-    user: (root: any, { id }: { id: string }, { userService }: Context) =>
-      userService.uuidLoader.load(id)
+    user: (root: any, { uuid }: { uuid: string }, { userService }: Context) =>
+      userService.uuidLoader.load(uuid)
   },
   User: {
-    settings,
-    // drafts
-    // courses
+    info: (root: any) => root,
+    // recommnedation,
+    // hasFollowed,
+    // drafts,
+    // audioDrafts,
+    // citations,
+    // subscriptions,
+    // activity,
     followers,
     follows,
-    notices,
-    info: (root: any) => root,
+    notices: ({ id }: { id: number }, _: any, { userService }: Context) => null,
+    settings: (root: any) => root,
     status: (root: any) => root
   },
   Notice: {
@@ -29,13 +30,29 @@ export default {
       return 'UserNotice'
     }
   },
+  UserSettings: {
+    // language: ({ language }: { language: string }) => language,
+    oauthType: ({ id }: { id: number }, _: any, { userService }: Context) =>
+      userService.findOAuthTypesByUserId(id),
+    notification: ({ id }: { id: number }, _: any, { userService }: Context) =>
+      userService.findNotifySettingByUserId(id)
+  },
   UserStatus: {
-    articleCount,
-    commentCount,
+    articleCount: async (
+      { id }: { id: number },
+      _: any,
+      { articleService }: Context
+    ) => articleService.countByAuthor(id),
+    // viewCount,
+    // draftCount,
+    commentCount: (
+      { id }: { id: number },
+      _: any,
+      { commentService }: Context
+    ) => commentService.countByAuthor(id),
+    // citationCount
     followCount,
     followerCount
-    // draftCount: Number // 草稿數
-    // courseCount: Number // 已購買課程數
-    // subscriptionCount: Number // 總訂閱數
+    // subscriptionCount
   }
 }
