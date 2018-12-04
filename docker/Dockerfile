@@ -1,4 +1,4 @@
-FROM node:10.13
+FROM node:10.14
 
 # install dependencies
 WORKDIR /var/app
