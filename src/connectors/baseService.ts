@@ -23,6 +23,8 @@ export class BaseService {
 
   loader: DataLoader<string | number, Item>
 
+  idLoader: DataLoader<number, Item>
+
   uuidLoader: DataLoader<string, Item>
 
   table: TableName

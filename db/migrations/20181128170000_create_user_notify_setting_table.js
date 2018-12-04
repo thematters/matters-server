@@ -3,7 +3,9 @@ const table = 'user_notify_setting'
 exports.up = function(knex, Promise) {
   return knex.schema.createTable(table, function(t) {
     t.bigIncrements('id').primary()
-    t.bigInteger('user_id').notNullable()
+    t.bigInteger('user_id')
+      .unsigned()
+      .notNullable()
     t.boolean('enable').defaultTo(true)
     t.boolean('mention').defaultTo(true)
     t.boolean('follow').defaultTo(true)
