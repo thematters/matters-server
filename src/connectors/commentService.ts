@@ -12,28 +12,56 @@ export class CommentService extends BaseService {
    * Count comments by a given author id (user).
    */
   countByAuthor = async (authorId: number): Promise<number> => {
-    const qs = await this.knex(this.table)
+    const result = await this.knex(this.table)
       .countDistinct('id')
       .where('author_id', authorId)
-    return qs[0].count
+    return result[0].count || 0
   }
 
   /**
    * Count comments by a given article id.
    */
   countByArticle = async (articleId: number): Promise<number> => {
-    return await this.knex(this.table)
+    const result = await this.knex(this.table)
       .countDistinct('id')
       .where('article_id', articleId)
+    return result[0].count || 0
   }
 
   /**
    * Count comments by a given comment id.
    */
   countByParent = async (commentId: number): Promise<number> => {
-    return await this.knex(this.table)
+    const result = await this.knex(this.table)
       .countDistinct('id')
       .where('parent_comment_id', commentId)
+    return result[0].count || 0
+  }
+
+  /**
+   * Count a comment's up votes by a given target id (comment).
+   */
+  countUpVoteByTargetId = async (targetId: number): Promise<any[]> => {
+    const result = await this.knex('action_comment')
+      .countDistinct('id')
+      .where({
+        target_id: targetId,
+        action: 'up_vote'
+      })
+    return result[0].count || 0
+  }
+
+  /**
+   * Count a comment's down votes by a given target id (comment).
+   */
+  countDownVoteByTargetId = async (targetId: number): Promise<any[]> => {
+    const result = await this.knex('action_comment')
+      .countDistinct('id')
+      .where({
+        target_id: targetId,
+        action: 'down_vote'
+      })
+    return result[0].count || 0
   }
 
   /**
@@ -77,12 +105,28 @@ export class CommentService extends BaseService {
   }
 
   /**
-   * Find a comment's votes by a given target id (comment).
+   * Find a comment's up votes by a given target id (comment).
    */
-  findVoteByTargetId = async (targetId: number): Promise<any[]> => {
+  findUpVoteByTargetId = async (targetId: number): Promise<any[]> => {
     return await this.knex
       .select()
       .from('action_comment')
-      .where('target_id', targetId)
+      .where({
+        target_id: targetId,
+        action: 'up_vote'
+      })
+  }
+
+  /**
+   * Find a comment's down votes by a given target id (comment).
+   */
+  findDownVoteByTargetId = async (targetId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_comment')
+      .where({
+        target_id: targetId,
+        action: 'down_vote'
+      })
   }
 }
