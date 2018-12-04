@@ -13,3 +13,4 @@ logs
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 .env
+yarn.lock
