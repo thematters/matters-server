@@ -28,7 +28,7 @@
 - `aws configure`, then input your access key and secret
 - Login AWS ECR with `$(aws ecr get-login --no-include-email --region ap-southeast-1)`
 - `docker-compose -f docker/docker-compose.yml build`
-- `docker tag matters-server:latest 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:latest`
-- `docker push 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:latest`
+- `docker tag matters-server:latest 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:staging`
+- `docker push 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:staging`
 - `docker-compose -f docker/docker-compose.yml run app npm run build`
 - `bin/eb-deploy.sh staging`

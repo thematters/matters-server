@@ -5,7 +5,7 @@ OUT_CONFIG="Dockerrun.aws.json"
 APP_PRODUCTION="matters-production"
 ENV_PRODUCTION="matters-server-production"
 REGION_PRODUCTION="ap-southeast-1"
-IMAGE_TAG_PRODUCTION="latest"
+IMAGE_TAG_PRODUCTION="production"
 
 APP_STAGING="matters-stage"
 ENV_STAGING="matters-server-stage"
