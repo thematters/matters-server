@@ -1,4 +1,5 @@
 import { BaseService } from 'src/connectors/baseService'
+import { USER_ACTION } from 'src/common/enums'
 import DataLoader from 'dataloader'
 
 export class UserService extends BaseService {
@@ -107,7 +108,7 @@ export class UserService extends BaseService {
       .from('action_user')
       .where({
         user_id: userId,
-        action: 'folow'
+        action: USER_ACTION.follow
       })
   }
 
@@ -120,7 +121,7 @@ export class UserService extends BaseService {
       .from('action_user')
       .where({
         target_id: targetId,
-        action: 'follow'
+        action: USER_ACTION.follow
       })
   }
 
