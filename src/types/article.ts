@@ -8,11 +8,11 @@ export default /* GraphQL */ `
     # publish with draft uuid
     publishArticle(input: PublishArticleInput): Article!
     achiveArticle(input: AchiveArticleInput): Article!
-    subscribe(input: SubscribeInput): Boolean
-    unsubscribe(input: UnsubscribeInput): Boolean
+    subscribeArticle(input: SubscribeArticleInput): Boolean
+    unsubscribeArticle(input: UnsubscribeArticleInput): Boolean
     reportArticle(input: ReportArticleInput): Boolean
     appreciate(input: AppreciateInput): Int!
-    readArticle(input: AeadArticleInput): Boolean
+    readArticle(input: ReadArticleInput): Boolean
   }
 
   type Article {
@@ -58,11 +58,11 @@ export default /* GraphQL */ `
     uuid: UUID
   }
 
-  input SubscribeInput {
+  input SubscribeArticleInput {
     uuid: UUID
   }
 
-  input UnsubscribeInput {
+  input UnsubscribeArticleInput {
     uuid: UUID
   }
 
@@ -77,7 +77,7 @@ export default /* GraphQL */ `
     amount: Int
   }
 
-  input ReportArticleInput {
+  input ReadArticleInput {
     uuid: UUID
   }
 
