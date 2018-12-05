@@ -26,7 +26,10 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "@types/bcrypt": "^3.0.0",
+    "@types/jsonwebtoken": "^8.3.0",
     "apollo-server": "^2.2.0",
+    "bcrypt": "^3.0.2",
     "cheerio": "^1.0.0-rc.2",
     "dataloader": "^1.4.0",
     "graphql": "^14.0.2",
@@ -36,6 +39,7 @@
     "graphql-type-json": "^0.2.1",
     "graphql-upload": "^8.0.2",
     "join-monster": "^2.1.0",
+    "jsonwebtoken": "^8.4.0",
     "knex": "^0.15.2",
     "lodash": "^4.17.11",
     "module-alias": "^2.1.0",

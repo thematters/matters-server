@@ -13,7 +13,7 @@ exports.seed = function(knex, Promise) {
           abstract: 'Some text',
           word_count: '1000',
           hash: 'some-ipfs-hash',
-          s3_path: 'some-s3-path',
+          content: '<div>some html string</div>',
           publish_state: 'published'
         },
         {
@@ -25,7 +25,7 @@ exports.seed = function(knex, Promise) {
           abstract: 'Some text',
           word_count: '1000',
           hash: 'some-ipfs-hash',
-          s3_path: 'some-s3-path',
+          content: '<div>some html string</div>',
           publish_state: 'published'
         },
         {
@@ -37,7 +37,7 @@ exports.seed = function(knex, Promise) {
           abstract: 'Some text',
           word_count: '1000',
           hash: 'some-ipfs-hash',
-          s3_path: 'some-s3-path',
+          content: '<div>some html string</div>',
           publish_state: 'published'
         }
       ])

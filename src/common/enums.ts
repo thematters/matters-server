@@ -19,3 +19,5 @@ export const PUBLISH_STATE = {
   error: 'error',
   published: 'published'
 }
+
+export const BCRYPT_ROUNDS = 12
