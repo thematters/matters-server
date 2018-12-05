@@ -1,3 +1,6 @@
+const bcrypt = require('bcrypt')
+const BCRYPT_ROUNDS = 12
+
 const table = 'user'
 
 exports.seed = function(knex, Promise) {
@@ -13,7 +16,7 @@ exports.seed = function(knex, Promise) {
           avatar: 'some-s3-url',
           email: 'test1@matters.news',
           mobile: '999',
-          password: '123',
+          password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS),
           language: 'zh_hant',
           oauth_type: [],
           status: 'enabled'
@@ -26,7 +29,7 @@ exports.seed = function(knex, Promise) {
           avatar: 'some-s3-url',
           email: 'test2@matters.news',
           mobile: '999',
-          password: '123',
+          password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS),
           language: 'zh_hant',
           oauth_type: [],
           status: 'enabled'
@@ -39,7 +42,7 @@ exports.seed = function(knex, Promise) {
           avatar: 'some-s3-url',
           email: 'test3@matters.news',
           mobile: '999',
-          password: '123',
+          password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS),
           language: 'zh_hant',
           oauth_type: [],
           status: 'enabled'
