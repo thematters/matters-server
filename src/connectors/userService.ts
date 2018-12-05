@@ -14,6 +14,10 @@ export class UserService extends BaseService {
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
+  /**
+   * Create a new user.
+   */
+
   create = async ({
     email,
     userName,
@@ -44,6 +48,10 @@ export class UserService extends BaseService {
       .returning('*')
     return qs[0]
   }
+
+  /**
+   * Login user and return jwt token.
+   */
 
   login = async ({ email, password }: { email: string; password: string }) => {
     const user = (await this.findByEmail(email))[0]

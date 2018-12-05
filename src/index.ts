@@ -1,4 +1,5 @@
 require('module-alias/register')
+
 import { ApolloServer } from 'apollo-server'
 import jwt from 'jsonwebtoken'
 // local

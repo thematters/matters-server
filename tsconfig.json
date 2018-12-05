@@ -6,10 +6,18 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "target": "es2017",
-    "types": ["node"],
+    "types": ["node", "jest"],
     "baseUrl": ".",
+    "paths": {
+      "common/*": ["src/common/*"],
+      "connectors/*": ["src/connectors/*"],
+      "definitions*": ["src/definitions*"],
+      "mutations/*": ["src/mutations/*"],
+      "queries/*": ["src/queries/*"]
+    },
     "pretty": true,
     "lib": [
+      "es6",
       "es2015",
       "es2016",
       "es2016.array.include",
@@ -22,5 +30,5 @@
     "esModuleInterop": true,
     "strictPropertyInitialization": false
   },
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/**/*.test.ts", "src/**/__test__/**/*.ts"]
 }

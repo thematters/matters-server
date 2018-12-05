@@ -17,16 +17,19 @@ export class ArticleService extends BaseService {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where('author_id', authorId)
-    return result[0].count || 0
+    return parseInt(result[0].count || '0')
   }
 
+  /**
+   * Count total appreciaton by a given article id.
+   */
   countAppreciation = async (id: number): Promise<number> => {
     const result = await this.knex
       .select()
       .from('appreciate')
       .where('article_id', id)
       .sum('amount')
-    return result[0].sum || 0
+    return parseInt(result[0].sum || '0')
   }
 
   countByTag = async (tag: string): Promise<number> => {
