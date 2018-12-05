@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:latest",
+    "Name": "903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:{{IMAGE_TAG}}",
     "Update": "true"
   },
   "Ports": [
@@ -15,16 +15,12 @@
       "ContainerDirectory": "/var/app/build"
     },
     {
+      "HostDirectory": "/var/app/current/db",
+      "ContainerDirectory": "/var/app/db"
+    },
+    {
       "HostDirectory": "/var/app/current/src",
       "ContainerDirectory": "/var/app/src"
-    },
-    {
-      "HostDirectory": "/var/app/current/migrations",
-      "ContainerDirectory": "/var/app/migrations"
-    },
-    {
-      "HostDirectory": "/var/app/current/seeds",
-      "ContainerDirectory": "/var/app/seeds"
     },
     {
       "HostDirectory": "/var/app/current/knexfile.js",

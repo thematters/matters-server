@@ -2,15 +2,17 @@
 .vscode
 .DS_store
 *.swp
+yarn.lock
 node_modules
 build
 webpack-stats.json
 uploads
 environment.sh
 logs
+npm-install.log
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 .env
-yarn.lock
+Dockerrun.aws.json
