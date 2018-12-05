@@ -42,7 +42,7 @@ export default {
       { articleService }: Context
     ) => {
       const tags = await articleService.findTagsById(id)
-      return tags.map((t: any) => t.tag)
+      return tags.map((t: any) => ({ text: t.tag }))
     },
     wordCount: (
       { wordCount, hash }: { wordCount: number; hash: string },
@@ -70,8 +70,38 @@ export default {
     relatedArticles: () => [], // placeholder for recommendation engine
     MAT: ({ mat }: { mat: number }) => mat,
     subscribed: () => false,
-    subscribers: () => [],
-    appreciators: () => [],
+    subscribers: async (
+      { id }: { id: number },
+      _: any,
+      { articleService, userService }: Context
+    ) => {
+      const actions = await articleService.findSubscriptionByTargetId(id)
+      return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+    },
+    appreciators: async (
+      { id }: { id: number },
+      _: any,
+      { articleService, userService }: Context
+    ) => {
+      const actions = await articleService.findAppreciationByArticleId(id)
+      return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+    },
     hasAppreciate: () => false
+  },
+  Tag: {
+    count: (
+      { text }: { text: string },
+      _: any,
+      { articleService }: Context
+    ) => {
+      return articleService.countByTag(text)
+    },
+    articles: (
+      { text }: { text: string },
+      _: any,
+      { articleService }: Context
+    ) => {
+      return articleService.findByTag(text)
+    }
   }
 }

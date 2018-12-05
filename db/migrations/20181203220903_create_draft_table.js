@@ -1,4 +1,4 @@
-const table = 'article'
+const table = 'draft'
 
 exports.up = function(knex, Promise) {
   return knex.schema.createTable(table, function(t) {
@@ -10,16 +10,8 @@ exports.up = function(knex, Promise) {
     t.bigInteger('upstream_id').unsigned()
     t.string('title').notNullable()
     t.string('cover').notNullable()
-    t.string('abstract').notNullable()
-    t.integer('word_count').notNullable()
-    t.string('hash')
     t.text('content').notNullable()
-    t.enu('publish_state', [
-      'archived',
-      'pending',
-      'error',
-      'published'
-    ]).notNullable()
+    t.specificType('tags', 'text ARRAY')
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
