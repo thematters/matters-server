@@ -70,8 +70,18 @@ export default {
     relatedArticles: () => [], // placeholder for recommendation engine
     MAT: ({ mat }: { mat: number }) => mat,
     subscribed: () => false,
-    subscribers: () => [],
-    appreciators: () => [],
+    subscribers: async ({ id }: { id: number }, _: any, { articleService, userService }: Context) => {
+      const actions = await articleService.findSubscriptionByTargetId(id)
+      return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+    },
+    appreciators: async (
+      { id }: { id: number },
+      _: any,
+      { articleService, userService }: Context
+    ) => {
+      const actions = await articleService.findAppreciationByArticleId(id)
+      return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+    },
     hasAppreciate: () => false
   }
 }
