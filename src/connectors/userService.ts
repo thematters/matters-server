@@ -91,6 +91,19 @@ export class UserService extends BaseService {
   }
 
   /**
+   * Count an users' subscription by a give user id.
+   */
+  countSubscriptionByUserId = async (userId: number): Promise<any[]> => {
+    const result = await this.knex('action_article')
+      .countDistinct('id')
+      .where({
+        user_id: userId,
+        action: USER_ACTION.subscribe
+      })
+    return result[0].count || 0
+  }
+
+  /**
    * Find users by a given email.
    */
   findByEmail = async (
@@ -230,6 +243,9 @@ export class UserService extends BaseService {
     return await this.knex
       .select()
       .from('action_article')
-      .where('user_id', userId)
+      .where({
+        user_id: userId,
+        action: USER_ACTION.subscribe
+      })
   }
 }
