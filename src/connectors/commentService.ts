@@ -16,7 +16,8 @@ export class CommentService extends BaseService {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where('author_id', authorId)
-    return result[0].count || 0
+      .first()
+    return parseInt(result.count)
   }
 
   /**
@@ -26,7 +27,8 @@ export class CommentService extends BaseService {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where('article_id', articleId)
-    return result[0].count || 0
+      .first()
+    return parseInt(result.count)
   }
 
   /**
@@ -36,33 +38,36 @@ export class CommentService extends BaseService {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where('parent_comment_id', commentId)
-    return result[0].count || 0
+      .first()
+    return parseInt(result.count)
   }
 
   /**
    * Count a comment's up votes by a given target id (comment).
    */
-  countUpVoteByTargetId = async (targetId: number): Promise<any[]> => {
+  countUpVoteByTargetId = async (targetId: number): Promise<number> => {
     const result = await this.knex('action_comment')
       .countDistinct('id')
       .where({
         target_id: targetId,
         action: USER_ACTION.upVote
       })
-    return result[0].count || 0
+      .first()
+    return parseInt(result.count)
   }
 
   /**
    * Count a comment's down votes by a given target id (comment).
    */
-  countDownVoteByTargetId = async (targetId: number): Promise<any[]> => {
+  countDownVoteByTargetId = async (targetId: number): Promise<number> => {
     const result = await this.knex('action_comment')
       .countDistinct('id')
       .where({
         target_id: targetId,
         action: USER_ACTION.downVote
       })
-    return result[0].count || 0
+      .first()
+    return parseInt(result.count)
   }
 
   /**

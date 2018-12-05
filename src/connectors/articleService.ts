@@ -17,7 +17,8 @@ export class ArticleService extends BaseService {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where('author_id', authorId)
-    return parseInt(result[0].count || '0')
+      .first()
+    return parseInt(result.count)
   }
 
   /**
@@ -29,7 +30,8 @@ export class ArticleService extends BaseService {
       .from('appreciate')
       .where('article_id', id)
       .sum('amount')
-    return parseInt(result[0].sum || '0')
+      .first()
+    return parseInt(result.sum)
   }
 
   countWords = (html: string) =>

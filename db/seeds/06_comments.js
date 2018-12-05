@@ -22,6 +22,14 @@ exports.seed = function(knex, Promise) {
           author_id: 3,
           article_id: 3,
           content: '<div>Test comment 3</div>'
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000014',
+          parent_comment_id: 1,
+          author_id: 1,
+          article_id: 3,
+          pinned: true,
+          content: '<div>Test comment 4</div>'
         }
       ])
     })
