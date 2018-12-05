@@ -6,13 +6,14 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    sendVerificationEmail(email: Email!): Boolean
-    userRegister(email: Email!, userName: String!, displayName: String!, description: String!, avatar: String!, password: String!, code: String): User
-    userLogin(email: Email!, password: String!): LoginResult!
-    toggleFollow(uuid: UUID): User!
-    importArticles(platform: String, token: String): [Article]
-    toggleNotificationSetting(type: String): NotificationSetting
-    clearReadHistory(uuid: UUID): Boolean
+    sendVerificationEmail(input: SendVerificationEmailInput): Boolean
+    userRegister(input: UserRegisterInput): User
+    userLogin(input: UserLoginInput): LoginResult!
+    follow(input: FollowInput): Boolean
+    unfollow(input: UnfollowInput): Boolean
+    importArticles(input: ImportArticlesInput): [Article]
+    updateNotificationSetting(input: UpdateNotificationSettingInput): NotificationSetting
+    clearReadHistory(input: ClearReadHistoryInput): Boolean
     clearSearchHistory: Boolean
   }
 
@@ -119,6 +120,47 @@ export default /* GraphQL */ `
   type LoginResult {
     auth: Boolean!
     token: String
+  }
+
+  input SendVerificationEmailInput {
+    email: Email!
+  }
+
+  input UserRegisterInput {
+    email: Email!
+    userName: String!
+    displayName: String!
+    description: String!
+    avatar: String!
+    password: String!
+    code: String
+  }
+
+  input UserLoginInput {
+    email: Email!
+    password: String!
+  }
+
+  input FollowInput {
+    uuid: UUID
+  }
+
+  input UnfollowInput {
+    uuid: UUID
+  }
+
+  input ImportArticlesInput {
+    platform: String
+    token: String
+  }
+
+  input ClearReadHistoryInput {
+    uuid: UUID
+  }
+
+  input UpdateNotificationSettingInput {
+    type: String
+    enabled: Boolean
   }
 
   enum UserLanguage {
