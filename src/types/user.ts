@@ -9,8 +9,8 @@ export default /* GraphQL */ `
     sendVerificationEmail(input: SendVerificationEmailInput): Boolean
     userRegister(input: UserRegisterInput): User
     userLogin(input: UserLoginInput): LoginResult!
-    follow(input: FollowInput): Boolean
-    unfollow(input: UnfollowInput): Boolean
+    followUser(input: FollowUserInput): Boolean
+    unfollowUser(input: UnfollowUserInput): Boolean
     importArticles(input: ImportArticlesInput): [Article]
     updateNotificationSetting(input: UpdateNotificationSettingInput): NotificationSetting
     clearReadHistory(input: ClearReadHistoryInput): Boolean
@@ -141,11 +141,11 @@ export default /* GraphQL */ `
     password: String!
   }
 
-  input FollowInput {
+  input FollowUserInput {
     uuid: UUID
   }
 
-  input UnfollowInput {
+  input UnfollowUserInput {
     uuid: UUID
   }
 
