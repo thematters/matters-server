@@ -10,10 +10,10 @@
     "baseUrl": ".",
     "paths": {
       "common/*": ["src/common/*"],
-      "connectors/*": ["src/connectors/*"],
-      "definitions*": ["src/definitions*"],
-      "mutations/*": ["src/mutations/*"],
-      "queries/*": ["src/queries/*"]
+      "connectors": ["src/connectors/"],
+      "definitions": ["src/definitions/"],
+      "mutations": ["src/mutations/"],
+      "queries": ["src/queries/"]
     },
     "pretty": true,
     "lib": [

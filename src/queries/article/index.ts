@@ -83,7 +83,7 @@ export default {
       _: any,
       { articleService, userService }: Context
     ) => {
-      const actions = await articleService.findAppreciationByArticleId(id)
+      const actions = await articleService.findAppreciations(id)
       return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
     hasAppreciate: () => false

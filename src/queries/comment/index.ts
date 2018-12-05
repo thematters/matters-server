@@ -1,4 +1,4 @@
-import { Context } from 'definitions/index'
+import { Context } from 'definitions'
 
 export default {
   User: {
