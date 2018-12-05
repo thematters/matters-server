@@ -26,6 +26,7 @@ steps:
 - name: migrate staging db
   image: node:10.14
   environment:
+    MATTERS_ENV: staging
     MATTERS_PG_HOST:
       from_secret: STAGING_PG_HOST
     MATTERS_PG_DATABASE:
