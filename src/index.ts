@@ -5,12 +5,7 @@ import jwt from 'jsonwebtoken'
 import { environment } from 'src/common/environment'
 import schema from './schema'
 import { Context } from './definitions'
-import {
-  UserService,
-  ActionService,
-  ArticleService,
-  CommentService
-} from './connectors'
+import { UserService, ArticleService, CommentService } from './connectors'
 
 const context = async ({
   req
@@ -30,8 +25,7 @@ const context = async ({
     viewer,
     userService,
     articleService: new ArticleService(),
-    commentService: new CommentService(),
-    actionService: new ActionService()
+    commentService: new CommentService()
   }
 }
 

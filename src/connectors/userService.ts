@@ -3,10 +3,10 @@ import { hash, compare } from 'bcrypt'
 import { v4 } from 'uuid'
 import jwt from 'jsonwebtoken'
 // local
-import { USER_ACTION } from 'src/common/enums'
 import { BaseService } from 'src/connectors/baseService'
+import { BCRYPT_ROUNDS, USER_ACTION } from 'src/common/enums'
 import { environment } from 'src/common/environment'
-import { BCRYPT_ROUNDS } from 'src/common/enums'
+
 export class UserService extends BaseService {
   constructor() {
     super('user')
@@ -219,7 +219,7 @@ export class UserService extends BaseService {
       .from('action_user')
       .where({
         target_id: targetId,
-        action: 'rate'
+        action: USER_ACTION.rate
       })
   }
 

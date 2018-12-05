@@ -1,5 +1,6 @@
 import { BaseService } from 'src/connectors/baseService'
 import DataLoader from 'dataloader'
+import { USER_ACTION } from 'src/common/enums'
 
 export class CommentService extends BaseService {
   constructor() {
@@ -46,7 +47,7 @@ export class CommentService extends BaseService {
       .countDistinct('id')
       .where({
         target_id: targetId,
-        action: 'up_vote'
+        action: USER_ACTION.upVote
       })
     return result[0].count || 0
   }
@@ -59,7 +60,7 @@ export class CommentService extends BaseService {
       .countDistinct('id')
       .where({
         target_id: targetId,
-        action: 'down_vote'
+        action: USER_ACTION.downVote
       })
     return result[0].count || 0
   }
@@ -113,7 +114,7 @@ export class CommentService extends BaseService {
       .from('action_comment')
       .where({
         target_id: targetId,
-        action: 'up_vote'
+        action: USER_ACTION.upVote
       })
   }
 
@@ -126,7 +127,7 @@ export class CommentService extends BaseService {
       .from('action_comment')
       .where({
         target_id: targetId,
-        action: 'down_vote'
+        action: USER_ACTION.downVote
       })
   }
 }
