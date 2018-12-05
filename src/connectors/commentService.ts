@@ -1,4 +1,4 @@
-import { BaseService } from 'connectors/baseService'
+import { BaseService } from './baseService'
 import DataLoader from 'dataloader'
 import { USER_ACTION } from 'common/enums'
 
