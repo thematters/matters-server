@@ -2,7 +2,7 @@ kind: pipeline
 name: default
 
 steps:
-- name: install node modules
+- name: node_modules
   image: node:10.14
   commands:
   - npm install --no-progress --quiet --unsafe-perm >  npm-install.log
@@ -23,7 +23,7 @@ steps:
   commands:
   - npm run build
 
-- name: migrate staging db
+- name: staging:db 
   image: node:10.14
   environment:
     MATTERS_ENV: staging
@@ -46,7 +46,7 @@ steps:
     event:
     - push
 
-- name: push staging docker image
+- name: staging:docker
   image: plugins/ecr
   settings:
     access_key:
@@ -66,7 +66,7 @@ steps:
     event:
     - push
 
-- name: deploy to stage environment
+- name: staging:deploy
   image: matters/awsebcli
   environment:
     AWS_ACCESS_KEY_ID:
