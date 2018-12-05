@@ -1,13 +1,13 @@
 export default /* GraphQL */ `
   extend type Mutation {
-    singleUpload(file: Upload!): File!
-    createOrEditAudioDraft(data: String!, title: String, uuid: UUID): AudioDraft
-    createDraft(draft: DraftInput): Draft
-    deleteDraft(uuid: UUID): Draft
-    editDraft(uuid: UUID, field: DraftField, value: String): Draft
-    addDraftTag(uuid: UUID, tag: String): Draft
-    deleteDraftTag(uuid: UUID, tag: String): Draft
-    deleteDraftContent(data: String): Draft
+    singleUpload(input: SingleUploadInput): File!
+    createOrEditAudioDraft(input: CreateOrEditAudioDraftInput): AudioDraft
+    createDraft(input: CreateDraftInput): Draft
+    deleteDraft(input: DeleteDraftInput): Boolean
+    editDraft(input: EditDraftInput): Draft
+    addDraftTag(input: AddDraftTagInput): Draft
+    deleteDraftTag(input: DeleteDraftTagInput): Boolean
+    deleteDraftContent(input: DeleteDraftContentInput): Boolean
   }
 
   type Draft {
@@ -35,12 +35,46 @@ export default /* GraphQL */ `
     data: String!
   }
 
-  input DraftInput {
+  input SingleUploadInput {
+    file: Upload!
+  }
+
+  input CreateOrEditAudioDraftInput {
+    data: String!
+    title: String
+    uuid: UUID
+  }
+
+  input CreateDraftInput {
     upstreamUUID: UUID
     title: String
     content: String
     tags: [String]
     cover: URL
+  }
+
+  input DeleteDraftInput {
+    uuid: UUID
+  }
+
+  input EditDraftInput {
+    uuid: UUID
+    field: DraftField
+    value: String
+  }
+
+  input AddDraftTagInput {
+    uuid: UUID
+    tag: String
+  }
+
+  input DeleteDraftTagInput {
+    uuid: UUID
+    tag: String
+  }
+
+  input DeleteDraftContentInput {
+    data: String
   }
 
   enum DraftField {

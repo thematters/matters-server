@@ -1,10 +1,10 @@
 export const USER_ACTION = {
   appreciate: 'appreciate',
   follow: 'follow',
-  subscribeArticle: 'subscribe_article',
-  rateArticle: 'rate_article',
-  rateUser: 'rate_user',
-  vote: 'vote',
+  subscribe: 'subscribe',
+  rate: 'rate',
+  upVote: 'up_vote',
+  downVote: 'down_vote',
   finish: 'finish'
 }
 
@@ -19,3 +19,5 @@ export const PUBLISH_STATE = {
   error: 'error',
   published: 'published'
 }
+
+export const BCRYPT_ROUNDS = 12

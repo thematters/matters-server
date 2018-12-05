@@ -1,11 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql'
 
-import {
-  UserService,
-  ActionService,
-  ArticleService,
-  CommentService
-} from 'src/connectors'
+import { UserService, ArticleService, CommentService } from 'src/connectors'
 
 export type Resolver = (
   parent: any,
@@ -20,10 +15,29 @@ export interface ResolverMap {
   }
 }
 
+export type User = {
+  userName: string
+  displayName: string
+  description: string
+  avatar: string
+  email: string
+  mobile: string | null
+  passwordHash: string
+  readSpead: number
+  baseGravity: number
+  currGravity: number
+  language: string
+  oauthType: any
+  role: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
 export type Context = {
+  viewer: User | undefined
   articleService: InstanceType<typeof ArticleService>
   commentService: InstanceType<typeof CommentService>
-  actionService: InstanceType<typeof ActionService>
   userService: InstanceType<typeof UserService>
 }
 
