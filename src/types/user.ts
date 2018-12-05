@@ -10,7 +10,7 @@ export default /* GraphQL */ `
     toggleFollow(uuid: UUID): User!
     importArticles(platform: String, token: String): [Article]
     toggleNotificationSetting(type: String): NotificationSetting
-    clearReadHistory: Boolean
+    clearReadHistory(uuid: UUID): Boolean
     clearSearchHistory: Boolean
   }
 
