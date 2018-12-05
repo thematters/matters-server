@@ -51,8 +51,8 @@ const server = new ApolloServer({
   context,
   engine: {
     apiKey: process.env['ENGINE_API_KEY']
-  },
-  mocks
+  }
+  // mocks
 })
 
 server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
