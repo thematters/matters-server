@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio'
 import { BaseService, Item } from 'src/connectors/baseService'
 import DataLoader from 'dataloader'
 import { randomText } from 'src/connectors/mockData/utils'
+import { USER_ACTION } from 'src/common/enums'
 
 export class ArticleService extends BaseService {
   constructor() {
@@ -14,10 +15,19 @@ export class ArticleService extends BaseService {
    * Count articles by a given author id (user).
    */
   countByAuthor = async (authorId: number): Promise<number> => {
-    const qs = await this.knex(this.table)
+    const result = await this.knex(this.table)
       .countDistinct('id')
       .where('author_id', authorId)
-    return qs[0].count
+    return result[0].count || 0
+  }
+
+  countAppreciation = async (id: number): Promise<number> => {
+    const result = await this.knex
+      .select()
+      .from('appreciate')
+      .where('article_id', id)
+      .sum('amount')
+    return result[0].sum || 0
   }
 
   countWords = (html: string) =>
@@ -41,16 +51,6 @@ export class ArticleService extends BaseService {
       .where('upstream_id', upstreamId)
   }
 
-  countAppreciation = async (id: number): Promise<number> => {
-    const result = await this.knex
-      .select()
-      .from('appreciate')
-      .where('article_id', id)
-      .sum('amount')
-
-    return result[0].sum
-  }
-
   /**
    * Find an article's appreciations by a given article id.
    */
@@ -69,6 +69,19 @@ export class ArticleService extends BaseService {
   }
 
   /**
+   * Find an article's subscribers by a given target id (article).
+   */
+  findSubscriptionByTargetId = async (targetId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_article')
+      .where({
+        target_id: targetId,
+        action: USER_ACTION.subscribe
+      })
+  }
+
+  /**
    * Find an article's rates by a given target id (article).
    */
   findRateByTargetId = async (targetId: number): Promise<any[]> => {
@@ -77,7 +90,7 @@ export class ArticleService extends BaseService {
       .from('action_user')
       .where({
         target_id: targetId,
-        action: 'rate'
+        action: USER_ACTION.rate
       })
   }
 

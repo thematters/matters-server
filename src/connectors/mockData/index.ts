@@ -1,5 +1,4 @@
 import { randomText, randomIds, sequentialIds } from './utils'
-import { createTestActions } from './actionTable'
 
 export const testSize = {
   user: 20,
@@ -55,13 +54,12 @@ const createTestArticle = (id: string) => ({
   publishState: 'published'
 })
 
-export const tables = {
+export const tables: { [key: string]: any } = {
   user: sequentialIds(testSize.user).map(id => createTestUser(id)),
   user_oauth: [],
   user_notify_setting: [],
   article: sequentialIds(testSize.article).map(id => createTestArticle(id)),
   comment: sequentialIds(testSize.comment).map(id => createTestComment(id)),
-  action: createTestActions(testSize),
   action_user: [],
   action_comment: [],
   action_article: [],

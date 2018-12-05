@@ -1,6 +1,6 @@
 import { BaseService } from 'src/connectors/baseService'
-import { USER_ACTION } from 'src/common/enums'
 import DataLoader from 'dataloader'
+import { USER_ACTION } from 'src/common/enums'
 
 export class UserService extends BaseService {
   constructor() {
@@ -160,7 +160,7 @@ export class UserService extends BaseService {
       .from('action_user')
       .where({
         target_id: targetId,
-        action: 'rate'
+        action: USER_ACTION.rate
       })
   }
 

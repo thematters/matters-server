@@ -3,18 +3,12 @@ import { ApolloServer } from 'apollo-server'
 
 import schema from './schema'
 import { Context } from './definitions'
-import {
-  UserService,
-  ActionService,
-  ArticleService,
-  CommentService
-} from './connectors'
+import { UserService, ArticleService, CommentService } from './connectors'
 
 const context = (): Context => ({
   userService: new UserService(),
   articleService: new ArticleService(),
-  commentService: new CommentService(),
-  actionService: new ActionService()
+  commentService: new CommentService()
 })
 
 const mocks = {
