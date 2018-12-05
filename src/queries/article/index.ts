@@ -70,7 +70,11 @@ export default {
     relatedArticles: () => [], // placeholder for recommendation engine
     MAT: ({ mat }: { mat: number }) => mat,
     subscribed: () => false,
-    subscribers: async ({ id }: { id: number }, _: any, { articleService, userService }: Context) => {
+    subscribers: async (
+      { id }: { id: number },
+      _: any,
+      { articleService, userService }: Context
+    ) => {
       const actions = await articleService.findSubscriptionByTargetId(id)
       return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
