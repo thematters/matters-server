@@ -23,7 +23,29 @@ steps:
   commands:
   - npm run build
 
-- name: push docker image
+- name: migrate staging db
+  image: node:10.14
+  environment:
+    MATTERS_PG_HOST:
+      from_secret: STAGING_PG_HOST
+    MATTERS_PG_DATABASE:
+      from_secret: STAGING_PG_DATABASE
+    MATTERS_PG_USER:
+      from_secret: STAGING_PG_USER
+    MATTERS_PG_PASSWORD:
+      from_secret: STAGING_PG_PASSWORD
+  commands:
+  - npm run db:rollback
+  - npm run db:migrate
+  - npm run db:seed
+  when:
+    branch:
+    - develop
+    - feature/beanstalk
+    event:
+    - push
+
+- name: push staging docker image
   image: plugins/ecr
   settings:
     access_key:
