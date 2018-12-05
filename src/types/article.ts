@@ -6,12 +6,13 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     # publish with draft uuid
-    publishArticle(uuid: UUID): Article!
-    achiveArticle(uuid: UUID): Article!
-    toggleSubscription(uuid: UUID): Article!
-    reportArticle(uuid: UUID, category: String, description: String): Article
-    appreciate(uuid: UUID, amount: Int): Int!
-    readArticle(uuid: UUID): Boolean!
+    publishArticle(input: PublishArticleInput): Article!
+    achiveArticle(input: AchiveArticleInput): Article!
+    subscribe(input: SubscribeInput): Boolean
+    unsubscribe(input: UnsubscribeInput): Boolean
+    reportArticle(input: ReportArticleInput): Boolean
+    appreciate(input: AppreciateInput): Int!
+    readArticle(input: AeadArticleInput): Boolean
   }
 
   type Article {
@@ -47,6 +48,37 @@ export default /* GraphQL */ `
     text: String
     count: Int
     articles: [Article]
+  }
+
+  input PublishArticleInput {
+    uuid: UUID
+  }
+
+  input AchiveArticleInput {
+    uuid: UUID
+  }
+
+  input SubscribeInput {
+    uuid: UUID
+  }
+
+  input UnsubscribeInput {
+    uuid: UUID
+  }
+
+  input ReportArticleInput {
+    uuid: UUID
+    category: String
+    description: String
+  }
+
+  input AppreciateInput {
+    uuid: UUID
+    amount: Int
+  }
+
+  input ReportArticleInput {
+    uuid: UUID
   }
 
   enum PublishState {
