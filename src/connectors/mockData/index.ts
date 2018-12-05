@@ -61,5 +61,9 @@ export const tables = {
   user_notify_setting: [],
   article: sequentialIds(testSize.article).map(id => createTestArticle(id)),
   comment: sequentialIds(testSize.comment).map(id => createTestComment(id)),
-  action: createTestActions(testSize)
+  action: createTestActions(testSize),
+  action_user: [],
+  action_comment: [],
+  action_article: [],
+  appreciate: []
 }

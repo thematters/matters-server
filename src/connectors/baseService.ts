@@ -10,6 +10,10 @@ export type Item = { id: string; [key: string]: any }
 
 export type TableName =
   | 'action'
+  | 'action_user'
+  | 'action_comment'
+  | 'action_article'
+  | 'appreciate'
   | 'article'
   | 'comment'
   | 'user'

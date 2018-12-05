@@ -1,4 +1,5 @@
 import { BaseService } from 'src/connectors/baseService'
+import { USER_ACTION } from 'src/common/enums'
 import DataLoader from 'dataloader'
 
 export class UserService extends BaseService {
@@ -6,6 +7,32 @@ export class UserService extends BaseService {
     super('user')
     this.idLoader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+  }
+
+  /**
+   * Count user's following list by a given user id.
+   */
+  countFollowByUserId = async (userId: number): Promise<any[]> => {
+    const result = await this.knex('action_user')
+      .countDistinct('id')
+      .where({
+        user_id: userId,
+        action: USER_ACTION.follow
+      })
+    return result[0].count || 0
+  }
+
+  /**
+   * Count user's followed list by a given taget id (user).
+   */
+  countFollowByTargetId = async (targetId: number): Promise<any[]> => {
+    const result = await this.knex('action_user')
+      .countDistinct('id')
+      .where({
+        target_id: targetId,
+        action: USER_ACTION.follow
+      })
+    return result[0].count || 0
   }
 
   /**
@@ -85,6 +112,65 @@ export class UserService extends BaseService {
     return await this.knex
       .select('type')
       .from('user_oauth')
+      .where('user_id', userId)
+  }
+
+  /**
+   * Find user's all appreciation by a given user id.
+   */
+  findAppreciationByUserId = async (userId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('appreciate')
+      .where('user_id', userId)
+  }
+
+  /**
+   * Find user's following list by a given user id.
+   */
+  findFollowByUserId = async (userId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_user')
+      .where({
+        user_id: userId,
+        action: USER_ACTION.follow
+      })
+  }
+
+  /**
+   * Find user's followed list by a given taget id (user).
+   */
+  findFollowByTargetId = async (targetId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_user')
+      .where({
+        target_id: targetId,
+        action: USER_ACTION.follow
+      })
+  }
+
+  /**
+   * Find an user's rates by a given target id (user).
+   */
+  findRateByTargetId = async (targetId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_user')
+      .where({
+        target_id: targetId,
+        action: 'rate'
+      })
+  }
+
+  /**
+   * Find an users' subscription by a give user id.
+   */
+  findSubscriptionByUserId = async (userId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_article')
       .where('user_id', userId)
   }
 }
