@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "Matters Server",
   "main": "build/index.js",
-  "engines" : { 
-    "node" : ">=10.14" 
+  "engines": {
+    "node": ">=10.14"
   },
   "scripts": {
     "db:migrate": "knex migrate:latest",
