@@ -1,3 +1,10 @@
+import { Context } from 'src/definitions'
+
 export default {
-  Mutation: {}
+  Mutation: {
+    userRegister: (root: any, args: any, { userService }: Context) =>
+      userService.create(args),
+    userLogin: (root: any, args: any, { userService }: Context) =>
+      userService.login(args)
+  }
 }

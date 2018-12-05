@@ -6,7 +6,8 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     sendVerificationEmail(email: Email!): Boolean
-    registerUser(email: Email!, userName: String!, displayName: String!, code: String): User
+    userRegister(email: Email!, userName: String!, displayName: String!, description: String!, avatar: String!, password: String!, code: String): User
+    userLogin(email: Email!, password: String!): LoginResult!
     toggleFollow(uuid: UUID): User!
     importArticles(platform: String, token: String): [Article]
     toggleNotificationSetting(type: String): NotificationSetting
@@ -112,6 +113,11 @@ export default /* GraphQL */ `
     walletUpdate: Boolean!
     officialNotice: Boolean!
     reportFeedback: Boolean!
+  }
+
+  type LoginResult {
+    auth: Boolean!
+    token: String
   }
 
   enum UserLanguage {

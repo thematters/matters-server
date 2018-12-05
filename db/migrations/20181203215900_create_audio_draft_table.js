@@ -9,7 +9,7 @@ exports.up = function(knex, Promise) {
       .notNullable()
     t.string('mimetype')
     t.string('encoding')
-    t.string('data')
+    t.string('s3_path')
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
