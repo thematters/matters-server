@@ -68,42 +68,38 @@ export class CommentService extends BaseService {
   /**
    * Find comments by a given author id (user).
    */
-  findByAuthor = async (authorId: number): Promise<any[]> => {
-    return await this.knex
+  findByAuthor = async (authorId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from(this.table)
       .where('author_id', authorId)
-  }
 
   /**
    * Find comments by a given article id.
    */
-  findByArticle = async (articleId: number): Promise<any[]> => {
-    return await this.knex
+  findByArticle = async (articleId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from(this.table)
       .where('article_id', articleId)
-  }
 
   /**
    * Find pinned comments by a given article id.
    */
-  findPinnedByArticle = async (articleId: number): Promise<any[]> => {
-    return await this.knex
+  findPinnedByArticle = async (articleId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from(this.table)
       .where({ article_id: articleId, pinned: true })
-  }
 
   /**
    * Find comments by a given comment id.
    */
-  findByParent = async (commentId: number): Promise<any[]> => {
-    return await this.knex
+  findByParent = async (commentId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from(this.table)
       .where('parent_comment_id', commentId)
-  }
 
   /**
    * Find a comment's up votes by a given target id (comment).

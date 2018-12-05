@@ -5,13 +5,12 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    # publish with draft uuid
     publishArticle(input: PublishArticleInput): Article!
     achiveArticle(input: AchiveArticleInput): Article!
     subscribeArticle(input: SubscribeArticleInput): Boolean
     unsubscribeArticle(input: UnsubscribeArticleInput): Boolean
     reportArticle(input: ReportArticleInput): Boolean
-    appreciate(input: AppreciateInput): Int!
+    appreciateArticle(input: AppreciateArticleInput): Int!
     readArticle(input: ReadArticleInput): Boolean
   }
 
@@ -51,6 +50,7 @@ export default /* GraphQL */ `
   }
 
   input PublishArticleInput {
+    # publish with draft uuid
     uuid: UUID
   }
 
@@ -72,7 +72,7 @@ export default /* GraphQL */ `
     description: String
   }
 
-  input AppreciateInput {
+  input AppreciateArticleInput {
     uuid: UUID
     amount: Int
   }
