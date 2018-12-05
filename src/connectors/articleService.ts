@@ -51,11 +51,34 @@ export class ArticleService extends BaseService {
     return result[0].sum
   }
 
+  /**
+   * Find an article's appreciations by a given article id.
+   */
+  findAppreciationByArticleId = async (articleId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('appreciate')
+      .where('article_id', articleId)
+  }
+
   findTagsById = async (id: number): Promise<any | null> => {
     return await this.knex
       .select()
       .from('article_tag')
       .where('article_id', id)
+  }
+
+  /**
+   * Find an article's rates by a given target id (article).
+   */
+  findRateByTargetId = async (targetId: number): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('action_user')
+      .where({
+        target_id: targetId,
+        action: 'rate'
+      })
   }
 
   // update an object with id and kv pairs object
