@@ -28,6 +28,22 @@ export default {
       return apprecitions.reduce((a: number, b: number): number => a + b, 0)
     }
   },
+  Tag: {
+    count: (
+      { text }: { text: string },
+      _: any,
+      { articleService }: Context
+    ) => {
+      return articleService.countByTag(text)
+    },
+    articles: (
+      { text }: { text: string },
+      _: any,
+      { articleService }: Context
+    ) => {
+      return articleService.findByTag(text)
+    }
+  },
   Article: {
     author: ({ id }: { id: number }, _: any, { userService }: Context) =>
       userService.idLoader.load(id),
@@ -42,7 +58,7 @@ export default {
       { articleService }: Context
     ) => {
       const tags = await articleService.findTagsById(id)
-      return tags.map((t: any) => t.tag)
+      return tags.map((t: any) => ({ text: t.tag }))
     },
     wordCount: (
       { wordCount, hash }: { wordCount: number; hash: string },
