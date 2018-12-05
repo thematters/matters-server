@@ -2,11 +2,11 @@ import DataLoader from 'dataloader'
 import Knex from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 import { environment } from '../common/environment'
-import { tables } from './mockData'
 
 const knexConfig = require('../../knexfile')
 
-export type Item = { id: string; [key: string]: any }
+export type Item = { id: number; [key: string]: any }
+export type ItemData = { [key: string]: any }
 
 export type TableName =
   | 'action'
@@ -23,8 +23,6 @@ export type TableName =
 export class BaseService {
   knex: Knex
 
-  items: Item[]
-
   idLoader: DataLoader<number, Item>
 
   uuidLoader: DataLoader<string, Item>
@@ -34,7 +32,6 @@ export class BaseService {
   constructor(table: TableName) {
     this.knex = this.getKnexClient()
     this.table = table
-    this.items = tables[table]
   }
 
   /**
@@ -44,16 +41,6 @@ export class BaseService {
     const { env } = environment
     return Knex({ ...knexConfig[env], ...knexSnakeCaseMappers() })
   }
-
-  /**
-   * Find items from mock data.
-   *
-   * @deprecated since version 1.0
-   */
-  fakeFindByIds = (ids: string[]): Promise<Item[]> =>
-    new Promise(resolve =>
-      resolve(this.items.filter(({ id: itemId }) => ids.includes(itemId)))
-    )
 
   /**
    * Find an item by a given id.
@@ -72,12 +59,11 @@ export class BaseService {
   /**
    * Find items by given ids.
    */
-  baseFindByIds = async (ids: number[]): Promise<any[]> => {
-    return await this.knex
+  baseFindByIds = async (ids: number[]): Promise<any[]> =>
+    await this.knex
       .select()
       .from(this.table)
       .whereIn('id', ids)
-  }
 
   /**
    * Find an item by a given uuid.
@@ -97,10 +83,35 @@ export class BaseService {
   /**
    * Find items by given ids.
    */
-  baseFindByUUIDs = async (uuids: string[]): Promise<any[]> => {
-    return await this.knex
+  baseFindByUUIDs = async (uuids: string[]): Promise<any[]> =>
+    await this.knex
       .select()
       .from(this.table)
       .whereIn('uuid', uuids)
-  }
+
+  /**
+   * Create item
+   */
+  baseCreate = async (data: ItemData): Promise<any> =>
+    (await this.knex
+      .insert(data)
+      .into(this.table)
+      .returning('*'))[0]
+
+  /**
+   * Update item
+   */
+  updateById = async (id: number, data: ItemData): Promise<any> =>
+    (await this.knex
+      .where('id', id)
+      .update(data)
+      .into(this.table)
+      .returning('*'))[0]
+
+  updateByUUID = async (uuid: string, data: ItemData): Promise<any> =>
+    (await this.knex
+      .where('uuid', uuid)
+      .update(data)
+      .into(this.table)
+      .returning('*'))[0]
 }

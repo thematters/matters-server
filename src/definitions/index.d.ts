@@ -16,6 +16,8 @@ export interface ResolverMap {
 }
 
 export type User = {
+  id: number
+  uuid: string
   userName: string
   displayName: string
   description: string
@@ -26,6 +28,7 @@ export type User = {
   readSpead: number
   baseGravity: number
   currGravity: number
+  mat: number
   language: string
   oauthType: any
   role: string
