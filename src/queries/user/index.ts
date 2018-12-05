@@ -3,7 +3,8 @@ import { Context } from 'src/definitions'
 export default {
   Query: {
     user: (root: any, { uuid }: { uuid: string }, { userService }: Context) =>
-      userService.uuidLoader.load(uuid)
+      userService.uuidLoader.load(uuid),
+    viewer: (root: any, _: any, { viewer }: Context) => viewer
   },
   User: {
     info: (root: any) => root,
@@ -35,9 +36,7 @@ export default {
     status: (root: any) => root
   },
   Notice: {
-    __resolveType(): string {
-      return 'UserNotice'
-    }
+    __resolveType: () => 'UserNotice'
   },
   UserSettings: {
     // language: ({ language }: { language: string }) => language,

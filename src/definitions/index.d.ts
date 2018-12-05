@@ -15,7 +15,27 @@ export interface ResolverMap {
   }
 }
 
+export type User = {
+  userName: string
+  displayName: string
+  description: string
+  avatar: string
+  email: string
+  mobile: string | null
+  passwordHash: string
+  readSpead: number
+  baseGravity: number
+  currGravity: number
+  language: string
+  oauthType: any
+  role: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
 export type Context = {
+  viewer: User | undefined
   articleService: InstanceType<typeof ArticleService>
   commentService: InstanceType<typeof CommentService>
   userService: InstanceType<typeof UserService>
