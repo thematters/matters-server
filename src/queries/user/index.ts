@@ -35,9 +35,7 @@ export default {
     status: (root: any) => root
   },
   Notice: {
-    __resolveType(): string {
-      return 'UserNotice'
-    }
+    __resolveType: () => 'UserNotice'
   },
   UserSettings: {
     // language: ({ language }: { language: string }) => language,
