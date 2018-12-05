@@ -1,6 +1,6 @@
-import { BaseService } from '@connectors/baseService'
+import { BaseService } from 'connectors/baseService'
 import DataLoader from 'dataloader'
-import { USER_ACTION } from '@common/enums'
+import { USER_ACTION } from 'common/enums'
 
 export class CommentService extends BaseService {
   constructor() {

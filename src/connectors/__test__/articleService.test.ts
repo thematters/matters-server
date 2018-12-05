@@ -13,7 +13,12 @@ afterAll(async () => {
   await knex.destroy()
 })
 
-test('articleService can countByAuthor', async () => {
+test('countByAuthor', async () => {
   const count = await articleService.countByAuthor(1)
   expect(count).toBe(2)
+})
+
+test('countAppreciation by aritlce id', async () => {
+  const appreciation = await articleService.countAppreciation(1)
+  expect(appreciation).toBe(150)
 })
