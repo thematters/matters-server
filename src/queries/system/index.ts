@@ -1,3 +1,6 @@
 export default {
-  Query: {}
+  Query: {},
+  Entity: {
+    __resolveType: () => 'Article'
+  }
 }

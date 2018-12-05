@@ -42,7 +42,7 @@ export default {
       { articleService }: Context
     ) => {
       const tags = await articleService.findTagsById(id)
-      return tags.map((t: any) => t.tag)
+      return tags.map((t: any) => ({ text: t.tag }))
     },
     wordCount: (
       { wordCount, hash }: { wordCount: number; hash: string },
@@ -73,5 +73,21 @@ export default {
     subscribers: () => [],
     appreciators: () => [],
     hasAppreciate: () => false
+  },
+  Tag: {
+    count: (
+      { text }: { text: string },
+      _: any,
+      { articleService }: Context
+    ) => {
+      return articleService.countByTag(text)
+    },
+    articles: (
+      { text }: { text: string },
+      _: any,
+      { articleService }: Context
+    ) => {
+      return articleService.findByTag(text)
+    }
   }
 }
