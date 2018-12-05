@@ -5,9 +5,11 @@ export default /* GraphQL */ `
     official: Official!
   }
 
+  union Entity = User | Article | Tag
+
   type SearchResult {
-    article: Article
-    contentSection: String
+    entity: Entity
+    match: String
   }
 
   type Official {

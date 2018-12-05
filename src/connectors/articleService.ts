@@ -61,6 +61,23 @@ export class ArticleService extends BaseService {
       .where('article_id', articleId)
   }
 
+  countByTag = async (tag: string): Promise<number> => {
+    const qs = await this.knex('article_tag')
+      .countDistinct('article_id')
+      .where('tag', tag)
+    return qs[0].count
+  }
+
+  findByTag = async (tag: string) => {
+    const qs = await this.knex
+      .select()
+      .from('article_tag')
+      .where('tag', tag)
+    return this.baseFindByIds(
+      qs.map(({ articleId }: { articleId: number }) => articleId)
+    )
+  }
+
   findTagsById = async (id: number): Promise<any | null> => {
     return await this.knex
       .select()
