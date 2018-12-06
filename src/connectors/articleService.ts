@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio'
-import { BaseService } from 'src/connectors/baseService'
+import { BaseService } from './baseService'
 import DataLoader from 'dataloader'
-import { USER_ACTION } from 'src/common/enums'
+import { USER_ACTION } from 'common/enums'
 
 export class ArticleService extends BaseService {
   constructor() {
@@ -17,23 +17,21 @@ export class ArticleService extends BaseService {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where('author_id', authorId)
-    return result[0].count || 0
+      .first()
+    return parseInt(result.count, 10)
   }
 
+  /**
+   * Count total appreciaton by a given article id.
+   */
   countAppreciation = async (id: number): Promise<number> => {
     const result = await this.knex
       .select()
       .from('appreciate')
       .where('article_id', id)
       .sum('amount')
-    return result[0].sum || 0
-  }
-
-  countByTag = async (tag: string): Promise<number> => {
-    const result = await this.knex('article_tag')
-      .countDistinct('article_id')
-      .where('tag', tag)
-    return result[0].count || 0
+      .first()
+    return parseInt(result.sum, 10)
   }
 
   countWords = (html: string) =>
@@ -58,11 +56,19 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findAppreciationByArticleId = async (articleId: number): Promise<any[]> => {
+  findAppreciations = async (articleId: number): Promise<any[]> => {
     return await this.knex
       .select()
       .from('appreciate')
       .where('article_id', articleId)
+  }
+
+  countByTag = async (tag: string): Promise<number> => {
+    const qs = await this.knex('article_tag')
+      .countDistinct('article_id')
+      .where('tag', tag)
+      .first()
+    return parseInt(qs.count, 10)
   }
 
   findByTag = async (tag: string) => {
@@ -75,23 +81,26 @@ export class ArticleService extends BaseService {
     )
   }
 
-  findTagsById = async (id: number): Promise<any | null> =>
-    await this.knex
+  findTags = async (id: number): Promise<any | null> => {
+    const qs = await this.knex
       .select()
       .from('article_tag')
       .where('article_id', id)
+    return qs.map(({ tag }: { tag: string }) => tag)
+  }
 
   /**
    * Find an article's subscribers by a given targetId (article).
    */
-  findSubscriptionByTargetId = async (targetId: number): Promise<any[]> =>
-    await this.knex
+  findSubscriptions = async (targetId: number): Promise<any[]> => {
+    return await this.knex
       .select()
       .from('action_article')
       .where({
         targetId,
         action: USER_ACTION.subscribe
       })
+  }
 
   /**
    * Find an article's subscriber by a given targetId (article) and user id.
@@ -185,6 +194,27 @@ export class ArticleService extends BaseService {
         .into('appreciate')
         .returning('*')
     })
+  // findRateByTargetId = async (targetId: number): Promise<any[]> => {
+  //   return await this.knex
+  //     .select()
+  //     .from('action_user')
+  //     .where({
+  //       target_id: targetId,
+  //       action: USER_ACTION.rate
+  //     })
+  // }
+
+  // update an object with id and kv pairs object
+  update = async (id: number, kv: { [k: string]: any }) => {
+    const qs = await this.knex(this.table)
+      .where({
+        id
+      })
+      .update(kv)
+      .returning('*')
+
+    return qs[0]
+  }
 
   /**
    * User read an article
