@@ -3,7 +3,7 @@ require('module-alias/register')
 import { ApolloServer } from 'apollo-server'
 import jwt from 'jsonwebtoken'
 // local
-import { environment } from 'src/common/environment'
+import { environment } from 'common/environment'
 import schema from './schema'
 import { Context } from './definitions'
 import { UserService, ArticleService, CommentService } from './connectors'

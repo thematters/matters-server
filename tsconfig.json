@@ -7,13 +7,13 @@
     "sourceMap": true,
     "target": "es2017",
     "types": ["node", "jest"],
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
-      "common/*": ["src/common/*"],
-      "connectors": ["src/connectors/"],
-      "definitions": ["src/definitions/"],
-      "mutations": ["src/mutations/"],
-      "queries": ["src/queries/"]
+      "common/*": ["common/*"],
+      "connectors": ["connectors/"],
+      "definitions": ["definitions/"],
+      "mutations": ["mutations/"],
+      "queries": ["queries/"]
     },
     "pretty": true,
     "lib": [
