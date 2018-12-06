@@ -15,7 +15,7 @@ steps:
 
 - name: test
   image: node:10.14
-  environments:
+  environment:
     MATTERS_PG_HOST: db
     MATTERS_PG_USER: postgres
     MATTERS_PG_PASSWORD: postgres
