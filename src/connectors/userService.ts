@@ -90,7 +90,7 @@ export class UserService extends BaseService {
         action: USER_ACTION.follow
       })
       .first()
-    return parseInt(result.count)
+    return parseInt(result.count, 10)
   }
 
   /**
@@ -104,7 +104,7 @@ export class UserService extends BaseService {
         action: USER_ACTION.follow
       })
       .first()
-    return parseInt(result.count)
+    return parseInt(result.count, 10)
   }
 
   /**

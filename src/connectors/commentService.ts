@@ -17,7 +17,7 @@ export class CommentService extends BaseService {
       .countDistinct('id')
       .where('author_id', authorId)
       .first()
-    return parseInt(result.count)
+    return parseInt(result.count, 10)
   }
 
   /**
@@ -28,7 +28,7 @@ export class CommentService extends BaseService {
       .countDistinct('id')
       .where('article_id', articleId)
       .first()
-    return parseInt(result.count)
+    return parseInt(result.count, 10)
   }
 
   /**
@@ -39,7 +39,7 @@ export class CommentService extends BaseService {
       .countDistinct('id')
       .where('parent_comment_id', commentId)
       .first()
-    return parseInt(result.count)
+    return parseInt(result.count, 10)
   }
 
   /**
@@ -53,7 +53,7 @@ export class CommentService extends BaseService {
         action: USER_ACTION.upVote
       })
       .first()
-    return parseInt(result.count)
+    return parseInt(result.count, 10)
   }
 
   /**
@@ -67,7 +67,7 @@ export class CommentService extends BaseService {
         action: USER_ACTION.downVote
       })
       .first()
-    return parseInt(result.count)
+    return parseInt(result.count, 10)
   }
 
   /**
