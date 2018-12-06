@@ -21,7 +21,7 @@ steps:
     MATTERS_PG_PASSWORD: postgres
     MATTERS_PG_DATABASE: matters-test
   commands:
-  - npm run test
+  - npx jest --forceExit --detectOpenHandles --coverage
 
 - name: build
   image: node:10.14
