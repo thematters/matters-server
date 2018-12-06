@@ -15,6 +15,11 @@ steps:
 
 - name: test
   image: node:10.14
+  environments:
+    MATTERS_PG_HOST: db
+    MATTERS_PG_USER: postgres
+    MATTERS_PG_PASSWORD: postgres
+    MATTERS_PG_DATABASE: matters-test
   commands:
   - npm run test
 
@@ -102,3 +107,11 @@ steps:
     - feature/beanstalk
     event:
     - push
+
+services:
+- name: db
+  image: postgres:10-alpine
+  environment:
+    POSTGRES_DB: matters-test
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
