@@ -18,7 +18,7 @@ export class ArticleService extends BaseService {
       .countDistinct('id')
       .where('author_id', authorId)
       .first()
-    return parseInt(result.count)
+    return parseInt(result.count, 10)
   }
 
   /**
@@ -31,7 +31,7 @@ export class ArticleService extends BaseService {
       .where('article_id', id)
       .sum('amount')
       .first()
-    return parseInt(result.sum)
+    return parseInt(result.sum, 10)
   }
 
   countWords = (html: string) =>
