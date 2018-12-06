@@ -46,6 +46,12 @@ steps:
       GRANT ALL ON SCHEMA public TO public;
       GRANT ALL ON SCHEMA public TO matters;
     SQL
+  when:
+    branch:
+    - develop
+    - feature/beanstalk
+    event:
+    - push
 
 - name: staging:db-migrate 
   image: node:10.14
