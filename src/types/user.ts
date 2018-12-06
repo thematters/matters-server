@@ -42,7 +42,7 @@ export default /* GraphQL */ `
     # Followers of this user
     followers: [User]
     # Users that this user follows
-    follows: [User]
+    followees: [User]
     status: UserStatus!
   }
 
@@ -96,7 +96,7 @@ export default /* GraphQL */ `
     citationCount: Int!
     subscriptionCount: Int!
     # Number of user that this user follows
-    followCount: Int!
+    followeeCount: Int!
     # Number of user that follows this user
     followerCount: Int!
   }

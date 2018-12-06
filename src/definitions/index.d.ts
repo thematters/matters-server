@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql'
 
-import { UserService, ArticleService, CommentService } from 'src/connectors'
+import { UserService, ArticleService, CommentService } from 'connectors'
 
 export type Resolver = (
   parent: any,
@@ -16,6 +16,8 @@ export interface ResolverMap {
 }
 
 export type User = {
+  id: number
+  uuid: string
   userName: string
   displayName: string
   description: string
@@ -26,6 +28,7 @@ export type User = {
   readSpead: number
   baseGravity: number
   currGravity: number
+  mat: number
   language: string
   oauthType: any
   role: string
