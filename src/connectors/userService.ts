@@ -31,22 +31,19 @@ export class UserService extends BaseService {
   }) => {
     // do code validation here
     const passwordHash = await hash(password, BCRYPT_ROUNDS)
-    const uuid = v4()
-    const qs = await this.knex(this.table)
-      .insert({
-        uuid,
-        email,
-        userName,
-        displayName,
-        description,
-        avatar,
-        passwordHash,
-        oauthType: [],
-        language: 'zh_hant',
-        status: 'enabled'
-      })
-      .returning('*')
-    return qs[0]
+    const result = await this.baseCreate({
+      uuid: v4(),
+      email,
+      userName,
+      displayName,
+      description,
+      avatar,
+      passwordHash,
+      oauthType: [],
+      language: 'zh_hant',
+      status: 'enabled'
+    })
+    return result
   }
 
   /**
@@ -125,13 +122,12 @@ export class UserService extends BaseService {
    */
   findByEmail = async (
     email: string
-  ): Promise<{ uuid: string; [key: string]: string }> => {
-    return this.knex
+  ): Promise<{ uuid: string; [key: string]: string }> =>
+    await this.knex
       .select()
       .from(this.table)
       .where('email', email)
       .first()
-  }
 
   /**
    * Find users by a given user name.
@@ -146,19 +142,18 @@ export class UserService extends BaseService {
   /**
    * Find user's notify setting by a given user id.
    */
-  findNotifySetting = async (userId: number): Promise<any | null> => {
-    return await this.knex
+  findNotifySetting = async (userId: number): Promise<any | null> =>
+    await this.knex
       .select()
       .from('user_notify_setting')
       .where('user_id', userId)
       .first()
-  }
 
   /**
    * Find users' notify settings by given ids.
    */
   findNotifySettingByIds = async (userIds: number[]): Promise<any[]> =>
-    this.knex
+    await this.knex
       .select()
       .from('user_notify_setting')
       .whereIn('user_id', userIds)
@@ -166,19 +161,18 @@ export class UserService extends BaseService {
   /**
    * Find user's OAuth accounts by a given user id.
    */
-  findOAuth = async (userId: number): Promise<any> => {
-    return await this.knex
+  findOAuth = async (userId: number): Promise<any> =>
+    await this.knex
       .select()
       .from('user_oauth')
       .where('user_id', userId)
       .first()
-  }
 
   /**
    * Find user's OAuth accounts by a given user id and type.
    */
   findOAuthByType = async (userId: number, type: string): Promise<any> =>
-    this.knex
+    await this.knex
       .select()
       .from('user_oauth')
       .where({
@@ -209,7 +203,7 @@ export class UserService extends BaseService {
    * Find user's followeelist by a given user id.
    */
   findFollowees = async (userId: number): Promise<any[]> =>
-    this.knex
+    await this.knex
       .select()
       .from('action_user')
       .where({
@@ -245,10 +239,9 @@ export class UserService extends BaseService {
   /**
    * Find an users' subscription by a give user id.
    */
-  findSubscriptions = async (userId: number): Promise<any[]> => {
-    return await this.knex
+  findSubscriptions = async (userId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
-  }
 }

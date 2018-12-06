@@ -22,10 +22,9 @@ export class DraftService extends BaseService {
   /**
    * Find user's drafts by a given author id (user).
    */
-  findByAuthorId = async (authorId: number): Promise<number> => {
-    return await this.knex
+  findByAuthorId = async (authorId: number): Promise<number> =>
+    await this.knex
       .select()
       .from(this.table)
       .where('author_id', authorId)
-  }
 }

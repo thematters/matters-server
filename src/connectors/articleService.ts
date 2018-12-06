@@ -56,12 +56,11 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findAppreciations = async (articleId: number): Promise<any[]> => {
-    return await this.knex
+  findAppreciations = async (articleId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('appreciate')
       .where('article_id', articleId)
-  }
 
   countByTag = async (tag: string): Promise<number> => {
     const qs = await this.knex('article_tag')
@@ -92,15 +91,14 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's subscribers by a given targetId (article).
    */
-  findSubscriptions = async (targetId: number): Promise<any[]> => {
-    return await this.knex
+  findSubscriptions = async (targetId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('action_article')
       .where({
         targetId,
         action: USER_ACTION.subscribe
       })
-  }
 
   /**
    * Find an article's subscriber by a given targetId (article) and user id.
@@ -194,6 +192,7 @@ export class ArticleService extends BaseService {
         .into('appreciate')
         .returning('*')
     })
+
   // findRateByTargetId = async (targetId: number): Promise<any[]> => {
   //   return await this.knex
   //     .select()
