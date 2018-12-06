@@ -3,9 +3,9 @@ import { hash, compare } from 'bcrypt'
 import { v4 } from 'uuid'
 import jwt from 'jsonwebtoken'
 // local
-import { BaseService } from 'src/connectors/baseService'
-import { BCRYPT_ROUNDS, USER_ACTION } from 'src/common/enums'
-import { environment } from 'src/common/environment'
+import { BaseService } from './baseService'
+import { BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
+import { environment } from 'common/environment'
 
 export class UserService extends BaseService {
   constructor() {
