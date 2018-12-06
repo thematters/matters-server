@@ -1,17 +1,6 @@
 import { CommentService } from '../commentService'
 
 const commentService = new CommentService()
-const { knex } = commentService
-
-beforeAll(async () => {
-  await knex.migrate.rollback()
-  await knex.migrate.latest()
-  await knex.seed.run()
-})
-
-afterAll(async () => {
-  await knex.destroy()
-})
 
 test('countByAuthor', async () => {
   const count = await commentService.countByAuthor(1)
