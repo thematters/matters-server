@@ -46,7 +46,7 @@ export class UserService extends BaseService {
   }
 
   login = async ({ email, password }: { email: string; password: string }) => {
-    const user = await this.findByEmail(email)
+    const user = (await this.findByEmail(email))[0]
 
     if (!user || !compare(password, user.passwordHash)) {
       return {
@@ -106,26 +106,20 @@ export class UserService extends BaseService {
   /**
    * Find users by a given email.
    */
-  findByEmail = async (
-    email: string
-  ): Promise<{ uuid: string; [key: string]: string }> => {
-    const qs = await this.knex
+  findByEmail = async (email: string): Promise<any[]> =>
+    await this.knex
       .select()
       .from(this.table)
       .where('email', email)
 
-    return qs[0]
-  }
-
   /**
    * Find users by a given user name.
    */
-  findByUserName = async (name: string): Promise<any[]> => {
-    return await this.knex
+  findByUserName = async (name: string): Promise<any[]> =>
+    await this.knex
       .select()
       .from(this.table)
       .where('user_name', name)
-  }
 
   /**
    * Find user's notify setting by a given user id.
@@ -144,22 +138,20 @@ export class UserService extends BaseService {
   /**
    * Find users' notify settings by given ids.
    */
-  findNotifySettingByUserIds = async (userIds: number[]): Promise<any[]> => {
-    return await this.knex
+  findNotifySettingByUserIds = async (userIds: number[]): Promise<any[]> =>
+    await this.knex
       .select()
       .from('user_notify_setting')
       .whereIn('user_id', userIds)
-  }
 
   /**
    * Find user's OAuth accounts by a given user id.
    */
-  findOAuthByUserId = async (userId: number): Promise<any[]> => {
-    return await this.knex
+  findOAuthByUserId = async (userId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('user_oauth')
       .where('user_id', userId)
-  }
 
   /**
    * Find user's OAuth accounts by a given user id and type.
@@ -167,80 +159,74 @@ export class UserService extends BaseService {
   findOAuthByUserIdAndType = async (
     userId: number,
     type: string
-  ): Promise<any[]> => {
-    return await this.knex
+  ): Promise<any[]> =>
+    await this.knex
       .select()
       .from('user_oauth')
       .where({
         user_id: userId,
         type: type
       })
-  }
 
   /**
    * Find user's all OAuth types by a given user id.
    */
-  findOAuthTypesByUserId = async (userId: number): Promise<any[]> => {
-    return await this.knex
+  findOAuthTypesByUserId = async (userId: number): Promise<any[]> =>
+    await this.knex
       .select('type')
       .from('user_oauth')
       .where('user_id', userId)
-  }
 
   /**
    * Find user's all appreciation by a given user id.
    */
-  findAppreciationByUserId = async (userId: number): Promise<any[]> => {
-    return await this.knex
+  findAppreciationByUserId = async (userId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('appreciate')
       .where('user_id', userId)
-  }
 
   /**
    * Find user's following list by a given user id.
    */
-  findFollowByUserId = async (userId: number): Promise<any[]> => {
-    return await this.knex
+  findFollowByUserId = async (userId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('action_user')
       .where({
         user_id: userId,
         action: USER_ACTION.follow
       })
-  }
 
   /**
    * Find user's followed list by a given taget id (user).
    */
-  findFollowByTargetId = async (targetId: number): Promise<any[]> => {
-    return await this.knex
+  findFollowByTargetId = async (targetId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('action_user')
       .where({
         target_id: targetId,
         action: USER_ACTION.follow
       })
-  }
 
   /**
    * Find an user's rates by a given target id (user).
    */
-  findRateByTargetId = async (targetId: number): Promise<any[]> => {
-    return await this.knex
+  findRateByTargetId = async (targetId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('action_user')
       .where({
         target_id: targetId,
         action: USER_ACTION.rate
       })
-  }
 
   /**
    * Find an users' subscription by a give user id.
    */
-  findSubscriptionByUserId = async (userId: number): Promise<any[]> => {
-    return await this.knex
+  findSubscriptionByUserId = async (userId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('action_article')
       .where({

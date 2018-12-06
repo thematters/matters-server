@@ -1,6 +1,6 @@
 import { Resolver } from 'src/definitions'
 
-const resolver: Resolver = (root, { article }, { articleService }) =>
-  // articleService.publish(article)
+const resolver: Resolver = (root, { input: { uuid } }, { articleService }) =>
   null
+
 export default resolver
