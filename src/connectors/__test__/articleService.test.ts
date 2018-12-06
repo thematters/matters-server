@@ -44,13 +44,13 @@ test('findByTag', async () => {
   expect(articles.length).toBe(2)
 })
 
-test('findTagsById', async () => {
-  const tags = await articleService.findTagsById(1)
+test('findTags', async () => {
+  const tags = await articleService.findTags(1)
   expect(tags).toEqual(['test', 'article'])
 })
 
-test('findSubscriptionByTargetId', async () => {
-  const subs = await articleService.findSubscriptionByTargetId(2)
+test('findSubscriptions', async () => {
+  const subs = await articleService.findSubscriptions(2)
   expect(subs.length).toEqual(2)
 })
 

@@ -81,7 +81,7 @@ export class ArticleService extends BaseService {
     )
   }
 
-  findTagsById = async (id: number): Promise<any | null> => {
+  findTags = async (id: number): Promise<any | null> => {
     const qs = await this.knex
       .select()
       .from('article_tag')
@@ -92,14 +92,15 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's subscribers by a given targetId (article).
    */
-  findSubscriptionByTargetId = async (targetId: number): Promise<any[]> =>
-    await this.knex
+  findSubscriptions = async (targetId: number): Promise<any[]> => {
+    return await this.knex
       .select()
       .from('action_article')
       .where({
         targetId,
         action: USER_ACTION.subscribe
       })
+  }
 
   /**
    * Find an article's subscriber by a given targetId (article) and user id.
