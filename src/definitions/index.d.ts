@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql'
 
-import { UserService, ArticleService, CommentService } from 'src/connectors'
+import { UserService, ArticleService, CommentService } from 'connectors'
 
 export type Resolver = (
   parent: any,

@@ -7,7 +7,7 @@ exports.seed = function(knex, Promise) {
       return knex(table).insert([
         {
           uuid: '00000000-0000-0000-0000-000000000001',
-          author_id: '1',
+          author_id: 1,
           title: 'test article 1',
           cover: 'some-s3-path',
           abstract: 'Some text',
@@ -18,8 +18,8 @@ exports.seed = function(knex, Promise) {
         },
         {
           uuid: '00000000-0000-0000-0000-000000000002',
-          author_id: '2',
-          upstream_id: '1',
+          author_id: 2,
+          upstream_id: 1,
           title: 'test article 2',
           cover: 'some-s3-path',
           abstract: 'Some text',
@@ -30,9 +30,21 @@ exports.seed = function(knex, Promise) {
         },
         {
           uuid: '00000000-0000-0000-0000-000000000003',
-          author_id: '3',
-          upstream_id: '2',
+          author_id: 3,
+          upstream_id: 2,
           title: 'test article 3',
+          cover: 'some-s3-path',
+          abstract: 'Some text',
+          word_count: '1000',
+          hash: 'some-ipfs-hash',
+          content: '<div>some html string</div>',
+          publish_state: 'published'
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000004',
+          author_id: 1,
+          upstream_id: 2,
+          title: 'test article 4',
           cover: 'some-s3-path',
           abstract: 'Some text',
           word_count: '1000',
