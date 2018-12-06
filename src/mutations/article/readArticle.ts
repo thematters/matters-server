@@ -1,4 +1,4 @@
-import { Resolver } from 'src/definitions'
+import { Resolver } from 'definitions'
 
 const resolver: Resolver = async (
   root,

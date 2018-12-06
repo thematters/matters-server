@@ -54,7 +54,7 @@ export class UserService extends BaseService {
    */
 
   login = async ({ email, password }: { email: string; password: string }) => {
-    const user = (await this.findByEmail(email))[0]
+    const user = await this.findByEmail(email)
 
     if (!user) {
       return {
@@ -166,7 +166,7 @@ export class UserService extends BaseService {
   /**
    * Find user's OAuth accounts by a given user id.
    */
-  findOAuthByUserId = async (userId: number): Promise<any> => {
+  findOAuth = async (userId: number): Promise<any> => {
     return await this.knex
       .select()
       .from('user_oauth')
@@ -190,7 +190,7 @@ export class UserService extends BaseService {
   /**
    * Find user's all OAuth types by a given user id.
    */
-  findOAuthTypesByUserId = async (userId: number): Promise<any[]> =>
+  findOAuthTypes = async (userId: number): Promise<any[]> =>
     await this.knex
       .select('type')
       .from('user_oauth')
