@@ -12,20 +12,21 @@ export class DraftService extends BaseService {
   /**
    * Count user's drafts by a given author id (user).
    */
-  countByAuthorId = async (authorId: number): Promise<number> => {
+  countByAuthor = async (authorId: number): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where('author_id', authorId)
-    return result[0].count || 0
+      .where({ authorId })
+      .first()
+    return parseInt(result.count, 10)
   }
 
   /**
    * Find user's drafts by a given author id (user).
    */
-  findByAuthorId = async (authorId: number): Promise<number> => {
-    return await this.knex
+  findByAuthor = async (authorId: number): Promise<number> =>
+    await this.knex
       .select()
       .from(this.table)
-      .where('author_id', authorId)
-  }
+      .where({ authorId })
+
 }
