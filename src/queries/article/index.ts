@@ -1,4 +1,4 @@
-import { Context } from 'src/definitions'
+import { Context } from 'definitions'
 
 export default {
   Query: {
@@ -41,7 +41,7 @@ export default {
       _: any,
       { articleService }: Context
     ) => {
-      const tags = await articleService.findTagsById(id)
+      const tags = await articleService.findTags(id)
       return tags.map((t: any) => ({ text: t.tag }))
     },
     wordCount: (
@@ -75,7 +75,7 @@ export default {
       _: any,
       { articleService, userService }: Context
     ) => {
-      const actions = await articleService.findSubscriptionByTargetId(id)
+      const actions = await articleService.findSubscriptions(id)
       return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
     appreciators: async (
@@ -83,7 +83,7 @@ export default {
       _: any,
       { articleService, userService }: Context
     ) => {
-      const actions = await articleService.findAppreciationByArticleId(id)
+      const actions = await articleService.findAppreciations(id)
       return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
     hasAppreciate: () => false

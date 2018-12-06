@@ -63,5 +63,7 @@ export const tables: { [key: string]: any } = {
   action_user: [],
   action_comment: [],
   action_article: [],
-  appreciate: []
+  appreciate: [],
+  draft: [],
+  audio_draft: []
 }

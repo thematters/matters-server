@@ -1,4 +1,4 @@
-import { Context } from 'src/definitions'
+import { Context } from 'definitions'
 
 export default {
   Query: {
@@ -20,15 +20,15 @@ export default {
       _: any,
       { userService }: Context
     ) => {
-      const actions = await userService.findFollowByTargetId(id)
+      const actions = await userService.findFollowers(id)
       return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
-    follows: async (
+    followees: async (
       { id }: { id: number },
       _: any,
       { userService }: Context
     ) => {
-      const actions = await userService.findFollowByUserId(id)
+      const actions = await userService.findFollowees(id)
       return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
     notices: ({ id }: { id: number }, _: any, { userService }: Context) => null,
@@ -41,9 +41,9 @@ export default {
   UserSettings: {
     // language: ({ language }: { language: string }) => language,
     oauthType: ({ id }: { id: number }, _: any, { userService }: Context) =>
-      userService.findOAuthTypesByUserId(id),
+      userService.findOAuthTypes(id),
     notification: ({ id }: { id: number }, _: any, { userService }: Context) =>
-      userService.findNotifySettingByUserId(id)
+      userService.findNotifySetting(id)
   },
   UserStatus: {
     articleCount: async (
@@ -60,9 +60,13 @@ export default {
     ) => commentService.countByAuthor(id),
     // citationCount
     followerCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
-      userService.countFollowByTargetId(id),
-    followCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
-      userService.countFollowByUserId(id)
-    // subscriptionCount
+      userService.countFollowers(id),
+    followeeCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
+      userService.countFollowees(id),
+    subscriptionCount: (
+      { id }: { id: number },
+      _: any,
+      { userService }: Context
+    ) => userService.countSubscriptionByUserId(id)
   }
 }

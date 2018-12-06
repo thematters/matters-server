@@ -1,6 +1,7 @@
 import { Resolver } from 'definitions'
+import { PUBLISH_STATE } from 'common/enums'
 
 const resolver: Resolver = (root, { input: { uuid } }, { articleService }) =>
-  null
+  articleService.updateByUUID(uuid, { publishState: PUBLISH_STATE.archived })
 
 export default resolver
