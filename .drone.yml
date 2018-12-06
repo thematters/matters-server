@@ -35,11 +35,11 @@ steps:
   commands:
   - |
     psql matters_stage <<SQL
-DROP SCHEMA public CASCADE;
-CREATE SCHEMA public;
-GRANT ALL ON SCHEMA public TO public;
-GRANT ALL ON SCHEMA public TO matters;
-SQL
+      DROP SCHEMA public CASCADE;
+      CREATE SCHEMA public;
+      GRANT ALL ON SCHEMA public TO public;
+      GRANT ALL ON SCHEMA public TO matters;
+    SQL
 
 - name: staging:db migrate 
   image: node:10.14
