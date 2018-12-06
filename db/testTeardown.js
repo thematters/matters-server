@@ -4,5 +4,4 @@ const knex = Knex(knexConfig[process.env['MATTERS_ENV']])
 
 module.exports = async () => {
   await global.knex.destroy()
-  process.exit()
 }
