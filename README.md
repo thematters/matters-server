@@ -22,6 +22,10 @@
 - `docker-compose -f docker/docker-compose.yml run app npm run db:seed`
 - `docker-compose -f docker/docker-compose.yml up`
 
+## Run test cases
+
+- `docker-compose -f docker/docker-compose.yml run app npx jest --forceExit --detectOpenHandles --coverage`
+
 ## Deploy to beanstalk staging environment
 
 - Make sure you have `python` and `pip` installed
