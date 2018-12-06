@@ -2,7 +2,7 @@ kind: pipeline
 name: default
 
 steps:
-- name: install node modules
+- name: node modules
   image: node:10.14
   commands:
   - npm install --no-progress --quiet --unsafe-perm >  npm-install.log
@@ -13,10 +13,10 @@ steps:
   - npm run tslint:production
   - npm run format:check
 
-# - name: test
-#   image: node:10.14
-#   commands:
-#   - npm run test
+- name: test
+  image: node:10.14
+  commands:
+  - npm run test
 
 - name: build
   image: node:10.14
