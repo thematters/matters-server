@@ -23,7 +23,7 @@ steps:
   commands:
   - npm run build
 
-- name: staging:db rollback
+- name: staging:db-rollback
   image: jbergknoff/postgresql-client
   environment:
     PGHOST:
@@ -41,7 +41,7 @@ steps:
       GRANT ALL ON SCHEMA public TO matters;
     SQL
 
-- name: staging:db migrate 
+- name: staging:db-migrate 
   image: node:10.14
   environment:
     MATTERS_ENV: staging
