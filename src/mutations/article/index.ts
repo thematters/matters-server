@@ -1,5 +1,5 @@
 import publishArticle from './publishArticle'
-import achiveArticle from './achiveArticle'
+import archiveArticle from './archiveArticle'
 import subscribeArticle from './subscribeArticle'
 import unsubscribeArticle from './unsubscribeArticle'
 import reportArticle from './reportArticle'
@@ -9,7 +9,7 @@ import readArticle from './readArticle'
 export default {
   Mutation: {
     publishArticle,
-    achiveArticle,
+    archiveArticle,
     subscribeArticle,
     unsubscribeArticle,
     reportArticle,

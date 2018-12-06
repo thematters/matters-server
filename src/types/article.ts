@@ -6,7 +6,7 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     publishArticle(input: PublishArticleInput): Article!
-    achiveArticle(input: AchiveArticleInput): Article!
+    archiveArticle(input: ArchiveArticleInput): Article!
     subscribeArticle(input: SubscribeArticleInput): Boolean
     unsubscribeArticle(input: UnsubscribeArticleInput): Boolean
     reportArticle(input: ReportArticleInput): Boolean
@@ -54,7 +54,7 @@ export default /* GraphQL */ `
     uuid: UUID
   }
 
-  input AchiveArticleInput {
+  input ArchiveArticleInput {
     uuid: UUID
   }
 
