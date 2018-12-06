@@ -17,13 +17,13 @@ test('countByParent', async () => {
   expect(count).toBe(1)
 })
 
-test('countUpVoteByTargetId', async () => {
-  const count = await commentService.countUpVoteByTargetId(1)
+test('countUpVote', async () => {
+  const count = await commentService.countUpVote(1)
   expect(count).toBe(1)
 })
 
-test('countDownVoteByTargetId', async () => {
-  const count = await commentService.countDownVoteByTargetId(3)
+test('countDownVote', async () => {
+  const count = await commentService.countDownVote(3)
   expect(count).toBe(0)
 })
 
@@ -47,12 +47,12 @@ test('findByParent', async () => {
   expect(comments.length).toBe(1)
 })
 
-test('findUpVoteByTargetId', async () => {
-  const votes = await commentService.findUpVoteByTargetId(1)
+test('findUpVotes', async () => {
+  const votes = await commentService.findUpVotes(1)
   expect(votes.length).toBe(1)
 })
 
-test('findDownVoteByTargetId', async () => {
-  const votes = await commentService.findDownVoteByTargetId(3)
+test('findDownVotes', async () => {
+  const votes = await commentService.findDownVotes(3)
   expect(votes.length).toBe(0)
 })
