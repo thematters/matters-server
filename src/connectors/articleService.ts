@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio'
-import { BaseService } from 'src/connectors/baseService'
+import { BaseService } from './baseService'
 import DataLoader from 'dataloader'
-import { USER_ACTION } from 'src/common/enums'
+import { USER_ACTION } from 'common/enums'
 
 export class ArticleService extends BaseService {
   constructor() {
