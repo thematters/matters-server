@@ -24,12 +24,14 @@ module.exports = async () => {
     host: process.env['MATTERS_PG_HOST'],
     user: process.env['MATTERS_PG_USER'],
     password: process.env['MATTERS_PG_PASSWORD'],
-    database: 'postgres',
+    database: 'postgres'
   })
 
   // create test db if it does not exist
   client.connect()
-  const result = await client.query('SELECT * FROM pg_catalog.pg_database WHERE datname = \'' + database + '\'')
+  const result = await client.query(
+    "SELECT * FROM pg_catalog.pg_database WHERE datname = '" + database + "'"
+  )
   if (!result.rowCount) {
     await client.query('CREATE DATABASE "' + database + '"')
   }
