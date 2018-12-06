@@ -17,6 +17,7 @@
 
 - `cp .env.example .env`
 - `docker-compose -f docker/docker-compose.yml build`
+- `docker-compose -f docker/docker-compose.yml run app npm run db:rollback`
 - `docker-compose -f docker/docker-compose.yml run app npm run db:migrate`
 - `docker-compose -f docker/docker-compose.yml run app npm run db:seed`
 - `docker-compose -f docker/docker-compose.yml up`

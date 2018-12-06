@@ -62,7 +62,11 @@ export default {
     followerCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
       userService.countFollowByTargetId(id),
     followCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
-      userService.countFollowByUserId(id)
-    // subscriptionCount
+      userService.countFollowByUserId(id),
+    subscriptionCount: (
+      { id }: { id: number },
+      _: any,
+      { userService }: Context
+    ) => userService.countSubscriptionByUserId(id)
   }
 }
