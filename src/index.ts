@@ -6,7 +6,12 @@ import jwt from 'jsonwebtoken'
 import { environment } from 'common/environment'
 import schema from './schema'
 import { Context } from './definitions'
-import { UserService, ArticleService, CommentService, DraftService } from './connectors'
+import {
+  UserService,
+  ArticleService,
+  CommentService,
+  DraftService
+} from './connectors'
 
 const context = async ({
   req

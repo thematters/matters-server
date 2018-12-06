@@ -1,6 +1,6 @@
 import { BaseService } from './baseService'
+import { BATCH_SIZE, USER_ACTION } from 'common/enums'
 import DataLoader from 'dataloader'
-import { USER_ACTION } from 'common/enums'
 
 export class DraftService extends BaseService {
   constructor() {
@@ -23,10 +23,24 @@ export class DraftService extends BaseService {
   /**
    * Find user's drafts by a given author id (user).
    */
-  findByAuthor = async (authorId: number): Promise<number> =>
+  findByAuthor = async (authorId: number): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
       .where({ authorId })
 
+  /**
+   *  Find drafts by a given author id (user) in batches.
+   */
+  findByAuthorInBatch = async (
+    authorId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .where({ authorId })
+      .offset(offset)
+      .limit(limit)
 }

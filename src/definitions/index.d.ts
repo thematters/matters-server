@@ -1,6 +1,11 @@
 import { GraphQLResolveInfo } from 'graphql'
 
-import { UserService, ArticleService, CommentService, DraftService } from 'connectors'
+import {
+  UserService,
+  ArticleService,
+  CommentService,
+  DraftService
+} from 'connectors'
 
 export type Resolver = (
   parent: any,
@@ -49,4 +54,9 @@ export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'
   baseUrl: string
   token: string
+}
+
+export interface BatchParams {
+  offset: number
+  limit: number
 }
