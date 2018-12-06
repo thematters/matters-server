@@ -76,7 +76,6 @@
     "utf-8-validate": "^5.0.0"
   },
   "_moduleAliases": {
-    "src": "./build",
     "common": "./build/common",
     "connectors": "./build/connectors",
     "definitions": "./build/definitions",

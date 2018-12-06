@@ -1,4 +1,4 @@
-import { Context } from 'src/definitions'
+import { Context } from 'definitions'
 
 export default {
   Query: {
