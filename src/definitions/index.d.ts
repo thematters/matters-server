@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo } from 'graphql'
 
-import { UserService, ArticleService, CommentService } from 'connectors'
+import { UserService, ArticleService, CommentService, DraftService } from 'connectors'
 
 export type Resolver = (
   parent: any,
@@ -41,6 +41,7 @@ export type Context = {
   viewer: User | undefined
   articleService: InstanceType<typeof ArticleService>
   commentService: InstanceType<typeof CommentService>
+  draftService: InstanceType<typeof DraftService>
   userService: InstanceType<typeof UserService>
 }
 
