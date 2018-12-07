@@ -261,6 +261,7 @@ export class ArticleService extends BaseService {
         .into('appreciate')
         .returning('*')
     })
+
   // findRateByTargetId = async (targetId: number): Promise<any[]> => {
   //   return await this.knex
   //     .select()

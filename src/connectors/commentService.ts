@@ -1,6 +1,8 @@
-import { BaseService } from './baseService'
-import { BATCH_SIZE, USER_ACTION } from 'common/enums'
 import DataLoader from 'dataloader'
+import { v4 } from 'uuid'
+
+import { BATCH_SIZE, USER_ACTION } from 'common/enums'
+import { BaseService } from './baseService'
 
 export class CommentService extends BaseService {
   constructor() {
@@ -8,6 +10,24 @@ export class CommentService extends BaseService {
     this.idLoader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
+
+  create = async ({
+    authorId,
+    articleId,
+    parentCommentId,
+    mentionedUserId,
+    content
+  }: {
+    [key: string]: string
+  }) =>
+    await this.baseCreate({
+      uuid: v4(),
+      authorId,
+      articleId,
+      parentCommentId,
+      mentionedUserId,
+      content
+    })
 
   /**
    * Count comments by a given author id (user).
@@ -139,15 +159,14 @@ export class CommentService extends BaseService {
   /**
    * Find a comment's up votes by a given target id (comment).
    */
-  findUpVotes = async (targetId: number): Promise<any[]> => {
-    return await this.knex
+  findUpVotes = async (targetId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('action_comment')
       .where({
         target_id: targetId,
         action: USER_ACTION.upVote
       })
-  }
 
   /**
    * Find a comment's down votes by a given target id (comment).

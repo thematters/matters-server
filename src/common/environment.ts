@@ -13,6 +13,6 @@ export const environment = {
   ipfsAddress: process.env['MATTERS_IPFS_ADDRESS'],
   sendgridKey: process.env['MATTERS_SENDGRID_KEY'],
   emailName: process.env['MATTERS_EMAIL_NAME'],
-  jwtSecret: process.env['MATTERS_JWT_SECRET'] || '',
+  jwtSecret: process.env['MATTERS_JWT_SECRET'] || '_dev_jwt_secret_',
   cloudinaryURL: 'https://res.cloudinary.com/domcnelhc'
 }
