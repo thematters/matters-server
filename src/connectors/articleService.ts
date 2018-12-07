@@ -40,7 +40,7 @@ export class ArticleService extends BaseService {
   countByTag = async (tag: string): Promise<number> => {
     const result = await this.knex('article_tag')
       .countDistinct('article_id')
-      .where(tag)
+      .where('tag', tag)
       .first()
     return parseInt(result.count, 10)
   }
@@ -128,7 +128,7 @@ export class ArticleService extends BaseService {
     const result = await this.knex
       .select()
       .from('article_tag')
-      .where(tag)
+      .where('tag', tag)
     return this.baseFindByIds(
       result.map(({ articleId }: { articleId: number }) => articleId)
     )
