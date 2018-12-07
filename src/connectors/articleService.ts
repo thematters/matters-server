@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio'
 import { BaseService } from './baseService'
+import { BATCH_SIZE, USER_ACTION } from 'common/enums'
 import DataLoader from 'dataloader'
-import { USER_ACTION } from 'common/enums'
 
 export class ArticleService extends BaseService {
   constructor() {
@@ -16,7 +16,7 @@ export class ArticleService extends BaseService {
   countByAuthor = async (authorId: number): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where('author_id', authorId)
+      .where({ authorId })
       .first()
     return parseInt(result.count, 10)
   }
@@ -24,14 +24,25 @@ export class ArticleService extends BaseService {
   /**
    * Count total appreciaton by a given article id.
    */
-  countAppreciation = async (id: number): Promise<number> => {
+  countAppreciation = async (articleId: number): Promise<number> => {
     const result = await this.knex
       .select()
       .from('appreciate')
-      .where('article_id', id)
+      .where({ articleId })
       .sum('amount')
       .first()
     return parseInt(result.sum, 10)
+  }
+
+  /**
+   * Count tags by a given tag text.
+   */
+  countByTag = async (tag: string): Promise<number> => {
+    const result = await this.knex('article_tag')
+      .countDistinct('article_id')
+      .where(tag)
+      .first()
+    return parseInt(result.count, 10)
   }
 
   countWords = (html: string) =>
@@ -41,66 +52,122 @@ export class ArticleService extends BaseService {
       .split(' ')
       .filter(s => s !== '').length
 
-  findByAuthor = async (id: number) =>
+  /**
+   * Find articles by a given author id (user).
+   */
+  findByAuthor = async (authorId: number) =>
     await this.knex
       .select()
       .from(this.table)
-      .where('author_id', id)
+      .where({ authorId })
+
+  /**
+   *  Find articles by a given author id (user) in batches.
+   */
+  findByAuthorInBatch = async (
+    authorId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ) =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .where({ authorId })
+      .offset(offset)
+      .limit(limit)
 
   findByUpstream = async (upstreamId: number) =>
     await this.knex
       .select()
       .from(this.table)
-      .where('upstream_id', upstreamId)
+      .where({ upstreamId })
 
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findAppreciations = async (articleId: number): Promise<any[]> => {
-    return await this.knex
+  findAppreciations = async (articleId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('appreciate')
-      .where('article_id', articleId)
-  }
+      .where({ articleId })
 
-  countByTag = async (tag: string): Promise<number> => {
-    const qs = await this.knex('article_tag')
-      .countDistinct('article_id')
-      .where('tag', tag)
-      .first()
-    return parseInt(qs.count, 10)
-  }
+  /**
+   * Find an article's appreciations by a given article id in batches.
+   */
+  findAppreciationsInBatch = async (
+    articleId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('appreciate')
+      .where({ articleId })
+      .offset(offset)
+      .limit(limit)
 
+  /**
+   * Find an article's appreciators by a given article id in batches.
+   */
+  findAppreciatorsInBatch = async (
+    articleId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> =>
+    await this.knex('appreciate')
+      .distinct('user_id')
+      .select()
+      .where({ articleId })
+      .offset(offset)
+      .limit(limit)
+
+  /**
+   * Find tags by a given tag text.
+   */
   findByTag = async (tag: string) => {
-    const qs = await this.knex
+    const result = await this.knex
       .select()
       .from('article_tag')
-      .where('tag', tag)
+      .where(tag)
     return this.baseFindByIds(
-      qs.map(({ articleId }: { articleId: number }) => articleId)
+      result.map(({ articleId }: { articleId: number }) => articleId)
     )
   }
 
-  findTags = async (id: number): Promise<any | null> => {
-    const qs = await this.knex
+  /**
+   * Find tages by a given article id.
+   */
+  findTags = async (articleId: number): Promise<any | null> => {
+    const result = await this.knex
       .select()
       .from('article_tag')
-      .where('article_id', id)
-    return qs.map(({ tag }: { tag: string }) => tag)
+      .where({ articleId })
+    return result.map(({ tag }: { tag: string }) => tag)
   }
 
   /**
    * Find an article's subscribers by a given targetId (article).
    */
-  findSubscriptions = async (targetId: number): Promise<any[]> => {
-    return await this.knex
+  findSubscriptions = async (targetId: number): Promise<any[]> =>
+    await this.knex
       .select()
       .from('action_article')
-      .where({
-        targetId,
-        action: USER_ACTION.subscribe
-      })
-  }
+      .where({ targetId, action: USER_ACTION.subscribe })
+
+  /**
+   * Find an article's subscribers by a given targetId (article) in batches.
+   */
+  findSubscriptionsInBatch = async (
+    targetId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('action_article')
+      .where({ targetId, action: USER_ACTION.subscribe })
+      .offset(offset)
+      .limit(limit)
 
   /**
    * Find an article's subscriber by a given targetId (article) and user id.
