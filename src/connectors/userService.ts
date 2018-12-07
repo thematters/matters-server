@@ -4,7 +4,7 @@ import { v4 } from 'uuid'
 import jwt from 'jsonwebtoken'
 // local
 import { BaseService } from './baseService'
-import { BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
+import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
 
 export class UserService extends BaseService {
@@ -96,10 +96,7 @@ export class UserService extends BaseService {
   countFollowers = async (targetId: number): Promise<number> => {
     const result = await this.knex('action_user')
       .countDistinct('id')
-      .where({
-        targetId,
-        action: USER_ACTION.follow
-      })
+      .where({ targetId, action: USER_ACTION.follow })
       .first()
     return parseInt(result.count, 10)
   }
@@ -107,14 +104,12 @@ export class UserService extends BaseService {
   /**
    * Count an users' subscription by a give user id.
    */
-  countSubscriptionByUserId = async (userId: number): Promise<any[]> => {
+  countSubscriptionByUserId = async (userId: number): Promise<number> => {
     const result = await this.knex('action_article')
       .countDistinct('id')
-      .where({
-        user_id: userId,
-        action: USER_ACTION.subscribe
-      })
-    return result[0].count || 0
+      .where({ userId, action: USER_ACTION.subscribe })
+      .first()
+    return parseInt(result.count, 10)
   }
 
   /**
@@ -175,10 +170,7 @@ export class UserService extends BaseService {
     await this.knex
       .select()
       .from('user_oauth')
-      .where({
-        user_id: userId,
-        type: type
-      })
+      .where({ userId, type })
       .first()
 
   /**
@@ -207,9 +199,24 @@ export class UserService extends BaseService {
       .select()
       .from('action_user')
       .where({
-        user_id: userId,
+        userId,
         action: USER_ACTION.follow
       })
+
+  /**
+   * Find user's followeelist by a given user id in batches.
+   */
+  findFolloweesInBatch = async (
+    userId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('action_user')
+      .where({ userId, action: USER_ACTION.follow })
+      .offset(offset)
+      .limit(limit)
 
   /**
    * Find user's follower list by a given taget id (user).
@@ -218,10 +225,20 @@ export class UserService extends BaseService {
     await this.knex
       .select()
       .from('action_user')
-      .where({
-        targetId,
-        action: USER_ACTION.follow
-      })
+      .where({ targetId, action: USER_ACTION.follow })
+
+  /**
+   * Find user's follower list by a given taget id (user) in batches.
+   */
+  findFollowersInBatch = async (
+    targetId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('action_user')
+      .where({ targetId, action: USER_ACTION.follow })
 
   /**
    * Find an user's rates by a given target id (user).
@@ -244,4 +261,19 @@ export class UserService extends BaseService {
       .select()
       .from('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
+
+  /**
+   * Find an users' subscription by a give user id in batches.
+   */
+  findSubscriptionsInBatch = async (
+    userId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('action_article')
+      .where({ userId, action: USER_ACTION.subscribe })
+      .offset(offset)
+      .limit(limit)
 }

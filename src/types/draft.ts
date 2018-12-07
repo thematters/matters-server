@@ -1,4 +1,8 @@
 export default /* GraphQL */ `
+  extend type Query {
+    draft(uuid: UUID!): Draft
+  }
+
   extend type Mutation {
     singleUpload(input: SingleUploadInput): File!
     createOrEditAudioDraft(input: CreateOrEditAudioDraftInput): AudioDraft

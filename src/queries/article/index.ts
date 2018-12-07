@@ -1,4 +1,4 @@
-import { Context } from 'definitions'
+import { BatchParams, Context } from 'definitions'
 
 export default {
   Query: {
@@ -9,8 +9,11 @@ export default {
     ) => articleService.uuidLoader.load(uuid)
   },
   User: {
-    articles: ({ id }: { id: number }, _: any, { articleService }: Context) =>
-      articleService.findByAuthor(id)
+    articles: (
+      { id }: { id: number },
+      { offset, limit }: BatchParams,
+      { articleService }: Context
+    ) => articleService.findByAuthorInBatch(id, offset, limit)
   },
   UserStatus: {
     MAT: async (
@@ -72,19 +75,29 @@ export default {
     subscribed: () => false,
     subscribers: async (
       { id }: { id: number },
-      _: any,
+      { offset, limit }: BatchParams,
       { articleService, userService }: Context
     ) => {
-      const actions = await articleService.findSubscriptions(id)
+      const actions = await articleService.findSubscriptionsInBatch(
+        id,
+        offset,
+        limit
+      )
       return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
     appreciators: async (
       { id }: { id: number },
-      _: any,
+      { offset, limit }: BatchParams,
       { articleService, userService }: Context
     ) => {
-      const actions = await articleService.findAppreciations(id)
-      return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+      const appreciators = await articleService.findAppreciatorsInBatch(
+        id,
+        offset,
+        limit
+      )
+      return userService.idLoader.loadMany(
+        appreciators.map(({ userId }) => userId)
+      )
     },
     hasAppreciate: () => false
   },
