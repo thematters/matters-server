@@ -1,6 +1,7 @@
 export default /* GraphQL */ `
   extend type Query {
     draft(uuid: UUID!): Draft
+    audioDraft(uuid: UUID!): AudioDraft
   }
 
   extend type Mutation {
@@ -27,9 +28,14 @@ export default /* GraphQL */ `
   }
 
   type AudioDraft {
+    uuid: UUID!
+    authorId: Int!
     title: String
+    mimetype: String!
+    encoding: String!
+    s3Path: String!
     createdAt: DateTime!
-    file: File!
+    updatedAt: DateTime!
   }
 
   type File {

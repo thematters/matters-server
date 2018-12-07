@@ -268,7 +268,7 @@ export class UserService extends BaseService {
       .where({ userId, action: USER_ACTION.subscribe })
 
   /**
-   * Find an users' subscription by a give user id in batches.
+   * Find an users' subscription by a given user id in batches.
    */
   findSubscriptionsInBatch = async (
     userId: number,
@@ -281,4 +281,5 @@ export class UserService extends BaseService {
       .where({ userId, action: USER_ACTION.subscribe })
       .offset(offset)
       .limit(limit)
+
 }
