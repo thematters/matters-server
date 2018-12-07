@@ -65,7 +65,11 @@ export class DraftService extends BaseService {
   /**
    * Find audio drafts by a given author id (user) in batches.
    */
-  findAudioDraftsByAuthorInBatch = async (authorId: number, offset: number, limit=BATCH_SIZE): Promise<any[]> =>
+  findAudioDraftsByAuthorInBatch = async (
+    authorId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> =>
     await this.knex
       .select()
       .from('audio_draft')
