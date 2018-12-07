@@ -36,7 +36,7 @@ export default /* GraphQL */ `
     filename: String!
     mimetype: String!
     encoding: String!
-    data: String!
+    path: String!
   }
 
   input SingleUploadInput {
@@ -44,7 +44,7 @@ export default /* GraphQL */ `
   }
 
   input CreateOrEditAudioDraftInput {
-    data: String!
+    path: String!
     title: String
     uuid: UUID
   }
@@ -78,7 +78,7 @@ export default /* GraphQL */ `
   }
 
   input DeleteDraftContentInput {
-    data: String
+    path: String
   }
 
   enum DraftField {
