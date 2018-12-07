@@ -1,9 +1,12 @@
-import { Context } from 'definitions'
+import { BatchParams, Context } from 'definitions'
 
 export default {
   User: {
-    comments: ({ id }: { id: number }, _: any, { commentService }: Context) =>
-      commentService.findByAuthor(id)
+    comments: (
+      { id }: { id: number },
+      { offset, limit }: BatchParams,
+      { commentService }: Context
+    ) => commentService.findByAuthorInBatch(id, offset, limit)
   },
   Article: {
     commentCount: (
@@ -16,8 +19,11 @@ export default {
       _: any,
       { commentService }: Context
     ) => commentService.findPinnedByArticle(id),
-    comments: ({ id }: { id: number }, _: any, { commentService }: Context) =>
-      commentService.findByArticle(id)
+    comments: (
+      { id }: { id: number },
+      { offset, limit }: BatchParams,
+      { commentService }: Context
+    ) => commentService.findByArticleInBatch(id, offset, limit)
   },
   Comment: {
     article: (

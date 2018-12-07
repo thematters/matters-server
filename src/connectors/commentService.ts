@@ -1,7 +1,7 @@
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 
-import { USER_ACTION } from 'common/enums'
+import { BATCH_SIZE, USER_ACTION } from 'common/enums'
 import { BaseService } from './baseService'
 
 export class CommentService extends BaseService {
@@ -100,13 +100,43 @@ export class CommentService extends BaseService {
       .where('author_id', authorId)
 
   /**
+   * Find comments by a given author id (user) in batches.
+   */
+  findByAuthorInBatch = async (
+    authorId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .where({ authorId })
+      .offset(offset)
+      .limit(limit)
+
+  /**
    * Find comments by a given article id.
    */
   findByArticle = async (articleId: number): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
-      .where('article_id', articleId)
+      .where({ articleId })
+
+  /**
+   * Find comments by a given article id in batches.
+   */
+  findByArticleInBatch = async (
+    articleId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .where({ articleId })
+      .offset(offset)
+      .limit(limit)
 
   /**
    * Find pinned comments by a given article id.

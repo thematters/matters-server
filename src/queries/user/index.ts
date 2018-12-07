@@ -1,4 +1,4 @@
-import { Context } from 'definitions'
+import { BatchParams, Context } from 'definitions'
 
 export default {
   Query: {
@@ -13,22 +13,35 @@ export default {
     // drafts,
     // audioDrafts,
     // citations,
-    // subscriptions,
+    subscriptions: async (
+      { id }: { id: number },
+      { offset, limit }: BatchParams,
+      { articleService, userService }: Context
+    ) => {
+      const actions = await userService.findSubscriptionsInBatch(
+        id,
+        offset,
+        limit
+      )
+      return articleService.idLoader.loadMany(
+        actions.map(({ targetId }) => targetId)
+      )
+    },
     // activity,
     followers: async (
       { id }: { id: number },
-      _: any,
+      { offset, limit }: BatchParams,
       { userService }: Context
     ) => {
-      const actions = await userService.findFollowers(id)
+      const actions = await userService.findFollowersInBatch(id, offset, limit)
       return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
     followees: async (
       { id }: { id: number },
-      _: any,
+      { offset, limit }: BatchParams,
       { userService }: Context
     ) => {
-      const actions = await userService.findFollowees(id)
+      const actions = await userService.findFolloweesInBatch(id, offset, limit)
       return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
     notices: ({ id }: { id: number }, _: any, { userService }: Context) => null,
