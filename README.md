@@ -24,7 +24,7 @@
 
 ## Run test cases
 
-- `docker-compose -f docker/docker-compose.yml run app npx jest --forceExit --detectOpenHandles --coverage`
+- `docker-compose -f docker/docker-compose.yml run -e MATTERS_ENV=test app npx jest`
 
 ## Deploy to beanstalk staging environment
 

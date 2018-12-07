@@ -5,7 +5,7 @@ module.exports = {
       host: process.env['MATTERS_PG_HOST'],
       user: process.env['MATTERS_PG_USER'],
       password: process.env['MATTERS_PG_PASSWORD'],
-      database: 'matters-test'
+      database: 'test_' + process.env['MATTERS_PG_DATABASE'] // always prefix test db with 'test_'
     },
     migrations: {
       tableName: 'knex_migrations',
