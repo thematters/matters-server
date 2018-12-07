@@ -1,8 +1,8 @@
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 
-import { BaseService } from 'connectors/baseService'
 import { USER_ACTION } from 'common/enums'
+import { BaseService } from './baseService'
 
 export class CommentService extends BaseService {
   constructor() {
