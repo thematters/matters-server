@@ -2,28 +2,59 @@ kind: pipeline
 name: default
 
 steps:
-  - name: install node modules
-    image: node:10.14
-    commands:
-      - npm install --no-progress --quiet --unsafe-perm >  npm-install.log
+- name: node modules
+  image: node:10.14
+  commands:
+  - npm install --no-progress --quiet --unsafe-perm >  npm-install.log
 
-  - name: tslint
-    image: node:10.14
-    commands:
-      - npm run tslint:production
-      - npm run format:check
+- name: tslint
+  image: node:10.14
+  commands:
+  - npm run tslint:production
+  - npm run format:check
 
-  - name: test
-    image: node:10.14
-    commands:
-      - npm run test
+- name: test
+  image: node:10.14
+  environment:
+    MATTERS_ENV: test
+    MATTERS_PG_HOST: db
+    MATTERS_PG_USER: postgres
+    MATTERS_PG_PASSWORD: postgres
+    MATTERS_PG_DATABASE: matters-test
+    MATTERS_JWT_SECRET: QsNmu9
+  commands:
+  - npx jest --forceExit --detectOpenHandles --coverage
 
-  - name: build
-    image: node:10.14
-    commands:
-      - npm run build
+- name: build
+  image: node:10.14
+  commands:
+  - npm run build
 
-- name: staging:db 
+- name: staging:db-rollback
+  image: jbergknoff/postgresql-client
+  environment:
+    PGHOST:
+      from_secret: STAGING_PG_HOST
+    PGUSER:
+      from_secret: STAGING_PG_USER
+    PGPASSWORD:
+      from_secret: STAGING_PG_PASSWORD 
+  commands:
+  - |
+    psql matters_stage <<SQL
+      DROP SCHEMA public CASCADE;
+      CREATE SCHEMA public;
+      GRANT ALL ON SCHEMA public TO public;
+      GRANT ALL ON SCHEMA public TO matters;
+    SQL
+  when:
+    branch:
+    - develop
+    - feature/beanstalk
+    event:
+    - push
+
+- name: staging:db-migrate 
   image: node:10.14
   environment:
     MATTERS_ENV: staging
@@ -36,7 +67,6 @@ steps:
     MATTERS_PG_PASSWORD:
       from_secret: STAGING_PG_PASSWORD
   commands:
-  - npm run db:rollback
   - npm run db:migrate
   - npm run db:seed
   when:
@@ -85,3 +115,11 @@ steps:
     - feature/beanstalk
     event:
     - push
+
+services:
+- name: db
+  image: postgres:10-alpine
+  environment:
+    POSTGRES_DB: matters-test
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres

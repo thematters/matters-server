@@ -13,6 +13,12 @@
 - Create a new seed file: `npx knex seed:make <seeds-name>`, seed files are run sequential so please pre-fix with order
 - Rollback a migration: `npm run db:rollback`
 
+## Run test cases on local dev
+
+- `MATTERS_ENV=test npx jest`; or 
+- `MATTERS_ENV=test npx jest --coverage`; or 
+- `MATTERS_ENV=test npx jest --forceExit --detectOpenHandles --coverage`.
+
 ## Start dev with docker-compose
 
 - `cp .env.example .env`
@@ -21,6 +27,10 @@
 - `docker-compose -f docker/docker-compose.yml run app npm run db:migrate`
 - `docker-compose -f docker/docker-compose.yml run app npm run db:seed`
 - `docker-compose -f docker/docker-compose.yml up`
+
+## Run test cases with docker-compose
+
+- `docker-compose -f docker/docker-compose.yml run -e MATTERS_ENV=test app npx jest`
 
 ## Deploy to beanstalk staging environment
 

@@ -1,4 +1,21 @@
 module.exports = {
+  test: {
+    client: 'postgresql',
+    connection: {
+      host: process.env['MATTERS_PG_HOST'],
+      user: process.env['MATTERS_PG_USER'],
+      password: process.env['MATTERS_PG_PASSWORD'],
+      database: 'test_' + process.env['MATTERS_PG_DATABASE'] // always prefix test db with 'test_'
+    },
+    migrations: {
+      tableName: 'knex_migrations',
+      directory: './db/migrations'
+    },
+    seeds: {
+      directory: './db/seeds'
+    }
+  },
+
   development: {
     client: 'postgresql',
     connection: {
