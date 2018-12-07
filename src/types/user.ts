@@ -30,19 +30,19 @@ export default /* GraphQL */ `
     # Current user has followed this user
     hasFollowed: Boolean!
     # Articles written by this user
-    articles(first: Int, after: Int): [Article]
-    drafts(first: Int, after: Int): [Draft]
-    audioDrafts(first: Int, after: Int): [AudioDraft]
+    articles(offset: Int, limit: Int): [Article]
+    drafts(offset: Int, limit: Int): [Draft]
+    audioDrafts(offset: Int, limit: Int): [AudioDraft]
     # Comments posted by this user
-    comments(first: Int, after: Int): [Comment]
+    comments(offset: Int, limit: Int): [Comment]
     # comments that citated this user's article
-    citations(first: Int, after: Int): [Comment]
-    subscriptions(first: Int, after: Int): [Article]
+    citations(offset: Int, limit: Int): [Comment]
+    subscriptions(offset: Int, limit: Int): [Article]
     activity: UserActivity!
     # Followers of this user
-    followers: [User]
+    followers(offset: Int, limit: Int): [User]
     # Users that this user follows
-    followees: [User]
+    followees(offset: Int, limit: Int): [User]
     status: UserStatus!
   }
 
