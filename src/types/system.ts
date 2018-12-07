@@ -5,6 +5,24 @@ export default /* GraphQL */ `
     official: Official!
   }
 
+  input SearchInput {
+    key: String!
+    type: SearchTypes
+    offset: Int
+    limit: Int
+  }
+
+  input ListInput {
+    offset: Int
+    limit: Int
+  }
+
+  enum SearchTypes {
+    Article
+    User
+    Tag
+  }
+
   union Entity = User | Article | Tag
 
   type SearchResult {

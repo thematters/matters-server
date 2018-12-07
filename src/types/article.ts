@@ -1,7 +1,13 @@
 export default /* GraphQL */ `
   extend type Query {
     article(uuid: UUID!): Article
-    tags(partial: String!, first: Int, after: Int): [Tag]
+    tags(input: TagsInput): [Tag]
+  }
+
+  input TagsInput {
+    partial: String
+    offset: Int
+    limit: Int
   }
 
   extend type Mutation {
@@ -29,16 +35,16 @@ export default /* GraphQL */ `
     gatewayUrls: [URL]
     upstream: Article
     downstreams: [Article]
-    relatedArticles(first: Int, after: Int): [Article]!
+    relatedArticles(input: ListInput): [Article]!
     # MAT recieved for this article
     MAT: Int!
     commentCount: Int!
     # Current user has subscribed
     subscribed: Boolean!
     pinnedComments: [Comment]
-    comments(offset: Int, limit: Int): [Comment]
-    subscribers(offset: Int, limit: Int): [User]
-    appreciators(offset: Int, limit: Int): [User]
+    comments(input: ListInput): [Comment]
+    subscribers(input: ListInput): [User]
+    appreciators(input: ListInput): [User]
     hasAppreciate: Boolean!
     publishState: PublishState!
   }

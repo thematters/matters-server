@@ -12,7 +12,6 @@ export default {
     // hasFollowed,
     // drafts,
     // audioDrafts,
-    // citations,
     subscriptions: async (
       { id }: { id: number },
       { offset, limit }: BatchParams,
@@ -27,6 +26,8 @@ export default {
         actions.map(({ targetId }) => targetId)
       )
     },
+    // quotations,
+
     // activity,
     followers: async (
       { id }: { id: number },
@@ -71,7 +72,7 @@ export default {
       _: any,
       { commentService }: Context
     ) => commentService.countByAuthor(id),
-    // citationCount
+    // quotationCount
     followerCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
       userService.countFollowers(id),
     followeeCount: ({ id }: { id: number }, _: any, { userService }: Context) =>

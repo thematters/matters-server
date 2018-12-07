@@ -7,8 +7,10 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     sendVerificationEmail(input: SendVerificationEmailInput): Boolean
+    sendPasswordResetEmail(input: SendVerificationEmailInput): Boolean
     userRegister(input: UserRegisterInput): User
     userLogin(input: UserLoginInput): LoginResult!
+    updateUserInfo(input: UpdateUserInfoInput): User!
     followUser(input: FollowUserInput): Boolean
     unfollowUser(input: UnfollowUserInput): Boolean
     importArticles(input: ImportArticlesInput): [Article]
@@ -30,14 +32,14 @@ export default /* GraphQL */ `
     # Current user has followed this user
     hasFollowed: Boolean!
     # Articles written by this user
-    articles(offset: Int, limit: Int): [Article]
-    drafts(offset: Int, limit: Int): [Draft]
-    audioDrafts(offset: Int, limit: Int): [AudioDraft]
+    articles(input: ListInput): [Article]
+    drafts(input: ListInput): [Draft]
+    audioDrafts(input: ListInput): [AudioDraft]
     # Comments posted by this user
-    comments(offset: Int, limit: Int): [Comment]
+    comments(input: ListInput): [Comment]
     # comments that citated this user's article
-    citations(offset: Int, limit: Int): [Comment]
-    subscriptions(offset: Int, limit: Int): [Article]
+    quotations(input: ListInput): [Comment]
+    subscriptions(input: ListInput): [Article]
     activity: UserActivity!
     # Followers of this user
     followers(offset: Int, limit: Int): [User]
@@ -71,15 +73,17 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
-    hottest(first: Int, after: Int): [Article]!
+    hottest(input: ListInput): [Article]!
     # In case you missed it
-    icymi(first: Int, after: Int): [Article]!
-    authors (first: Int, after: Int): [User]!
+    icymi(input: ListInput): [Article]!
+    authors(input: ListInput): [User]!
+    tags(input: ListInput): [Tag]!
+    topics(input: ListInput): [Article]!
   }
 
   type UserActivity {
-    history(first: Int, after: Int): [Article]
-    recentSearches(first: Int, after: Int): [String]
+    history(input: ListInput): [Article]
+    recentSearches(input: ListInput): [String]
   }
 
   type UserStatus {
@@ -93,7 +97,7 @@ export default /* GraphQL */ `
     draftCount: Int!
     # Number of comments posted by user
     commentCount: Int!
-    citationCount: Int!
+    quotationCount: Int!
     subscriptionCount: Int!
     # Number of user that this user follows
     followeeCount: Int!
@@ -126,12 +130,13 @@ export default /* GraphQL */ `
     email: Email!
   }
 
+  input SendPasswordResetEmailInput {
+    email: Email!
+  }
+
   input UserRegisterInput {
     email: Email!
-    userName: String!
     displayName: String!
-    description: String!
-    avatar: String!
     password: String!
     code: String
   }
@@ -161,6 +166,20 @@ export default /* GraphQL */ `
   input UpdateNotificationSettingInput {
     type: String
     enabled: Boolean
+  }
+
+
+  input UpdateUserInfoInput {
+    field: UserInfoFields
+    value: String!
+  }
+
+  enum UserInfoFields {
+    displayName
+    avatar
+    description
+    email
+    mobile
   }
 
   enum UserLanguage {

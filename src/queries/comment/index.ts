@@ -48,7 +48,6 @@ export default {
     ) => userService.idLoader.loadMany(mentionedUserId),
     comments: ({ id }: { id: number }, _: any, { commentService }: Context) =>
       commentService.findByParent(id),
-    // hasCitation,
     parentComment: (
       { parentCommentId }: { parentCommentId: number },
       _: any,
