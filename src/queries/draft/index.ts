@@ -10,6 +10,11 @@ export default {
       { id }: { id: number },
       { offset, limit }: BatchParams,
       { draftService }: Context
-    ) => draftService.findByAuthorInBatch(id, offset, limit)
+    ) => draftService.findByAuthorInBatch(id, offset, limit),
+    audioDrafts: (
+      { id }: { id: number },
+      { offset, limit }: BatchParams,
+      { draftService }: Context
+    ) => draftService.findAudioDraftsByAuthorInBatch(id, offset, limit)
   }
 }
