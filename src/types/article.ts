@@ -36,9 +36,9 @@ export default /* GraphQL */ `
     # Current user has subscribed
     subscribed: Boolean!
     pinnedComments: [Comment]
-    comments(first: Int, after: Int): [Comment]
-    subscribers(first: Int, after: Int): [User]
-    appreciators(first: Int, after: Int): [User]
+    comments(offset: Int, limit: Int): [Comment]
+    subscribers(offset: Int, limit: Int): [User]
+    appreciators(offset: Int, limit: Int): [User]
     hasAppreciate: Boolean!
     publishState: PublishState!
   }
