@@ -12,6 +12,9 @@ const schemaObj = makeExecutableSchema({
 const schemaString = printSchema(schemaObj)
 
 fs.writeFile('schema.graphql', schemaString, function(err) {
-  if (err) console.log(err)
-  console.log('Successfully printed schema.')
+  if (err) {
+    console.log(err)
+  } else {
+    console.log('Successfully printed schema.')
+  }
 })
