@@ -17,6 +17,7 @@ export default /* GraphQL */ `
     achieved: Boolean!
     upvotes: Int!
     downvotes: Int!
+    quotation: String
     myVote: Vote
     mentions: [User]
     comments: [Comment]
@@ -25,7 +26,7 @@ export default /* GraphQL */ `
 
   input CommentInput {
     content: String!
-    quote: Boolean!
+    quotation: String
     articleUUID: UUID!
     parentUUID: UUID
     mentions: [UUID]
