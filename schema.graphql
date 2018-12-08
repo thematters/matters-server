@@ -1,0 +1,553 @@
+input AddDraftTagInput {
+  uuid: UUID
+  tag: String
+}
+
+input AppreciateArticleInput {
+  uuid: UUID
+  amount: Int
+}
+
+input ArchiveArticleInput {
+  uuid: UUID
+}
+
+type Article {
+  uuid: UUID!
+  createdAt: DateTime!
+  author: User!
+  title: String!
+
+  """url for cover"""
+  cover: URL!
+  summary: String!
+  tags: [Tag!]
+  wordCount: Int
+  hash: String
+  content: String!
+  gatewayUrls: [URL]
+  upstream: Article
+  downstreams: [Article]
+  relatedArticles(input: ListInput): [Article]!
+
+  """MAT recieved for this article"""
+  MAT: Int!
+  commentCount: Int!
+
+  """Current user has subscribed"""
+  subscribed: Boolean!
+  pinnedComments: [Comment]
+  comments(input: ListInput): [Comment]
+  subscribers(input: ListInput): [User]
+  appreciators(input: ListInput): [User]
+  hasAppreciate: Boolean!
+  publishState: PublishState!
+}
+
+type ArticleNotice implements Notice {
+  hasRead: Boolean
+  createdAt: DateTime
+  user: User
+  action: ArticleNoticeAction
+  target: Article
+}
+
+enum ArticleNoticeAction {
+  downstream
+  published
+  newChapter
+}
+
+type AudioDraft {
+  title: String
+  createdAt: DateTime!
+  file: File!
+}
+
+input ClearReadHistoryInput {
+  uuid: UUID
+}
+
+type Comment {
+  uuid: UUID!
+
+  """Original article of this comment"""
+  article: Article!
+
+  """content"""
+  content: String
+
+  """Creation time of this comment"""
+  createdAt: DateTime!
+  author: User!
+  achieved: Boolean!
+  upvotes: Int!
+  downvotes: Int!
+  quotation: String
+  myVote: Vote
+  mentions: [User]
+  comments: [Comment]
+  parentComment: Comment
+}
+
+input CommentInput {
+  content: String!
+  quotation: String
+  articleUUID: UUID!
+  parentUUID: UUID
+  mentions: [UUID]
+}
+
+type CommentNotice implements Notice {
+  hasRead: Boolean
+  createdAt: DateTime
+  user: User
+  action: CommentNoticeAction
+  target: Comment
+}
+
+enum CommentNoticeAction {
+  reply
+  newOnArticle
+  newOnSubscribed
+  pin
+  vote
+  mention
+}
+
+input CreateDraftInput {
+  upstreamUUID: UUID
+  title: String
+  content: String
+  tags: [String]
+  cover: URL
+}
+
+input CreateOrEditAudioDraftInput {
+  path: String!
+  title: String
+  uuid: UUID
+}
+
+input CreateOrEditCommentInput {
+  comment: CommentInput!
+  uuid: UUID
+}
+
+scalar Date
+
+scalar DateTime
+
+input DeleteCommentInput {
+  uuid: UUID
+}
+
+input DeleteDraftContentInput {
+  path: String
+}
+
+input DeleteDraftInput {
+  uuid: UUID
+}
+
+input DeleteDraftTagInput {
+  uuid: UUID
+  tag: String
+}
+
+type Draft {
+  uuid: UUID!
+  upstream: Article
+  title: String
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  tags: [String]
+  cover: URL
+  abstract: String
+}
+
+enum DraftField {
+  upstream
+  title
+  cover
+  content
+}
+
+input EditDraftInput {
+  uuid: UUID
+  field: DraftField
+  value: String
+}
+
+scalar Email
+
+union Entity = User | Article | Tag
+
+type File {
+  filename: String!
+  mimetype: String!
+  encoding: String!
+  path: String!
+}
+
+input FollowUserInput {
+  uuid: UUID
+}
+
+input ImportArticlesInput {
+  platform: String
+  token: String
+}
+
+scalar JSON
+
+input ListInput {
+  offset: Int
+  limit: Int
+}
+
+type LoginResult {
+  auth: Boolean!
+  token: String
+}
+
+type Mutation {
+  _: Boolean
+  publishArticle(input: PublishArticleInput): Article!
+  archiveArticle(input: ArchiveArticleInput): Article!
+  subscribeArticle(input: SubscribeArticleInput): Boolean
+  unsubscribeArticle(input: UnsubscribeArticleInput): Boolean
+  reportArticle(input: ReportArticleInput): Boolean
+  appreciateArticle(input: AppreciateArticleInput): Int!
+  readArticle(input: ReadArticleInput): Boolean
+  createOrEditComment(input: CreateOrEditCommentInput): Comment
+  pinComment(input: PinCommentInput): Comment
+  deleteComment(input: DeleteCommentInput): Boolean
+  singleUpload(input: SingleUploadInput): File!
+  createOrEditAudioDraft(input: CreateOrEditAudioDraftInput): AudioDraft
+  createDraft(input: CreateDraftInput): Draft
+  deleteDraft(input: DeleteDraftInput): Boolean
+  editDraft(input: EditDraftInput): Draft
+  addDraftTag(input: AddDraftTagInput): Draft
+  deleteDraftTag(input: DeleteDraftTagInput): Boolean
+  deleteDraftContent(input: DeleteDraftContentInput): Boolean
+  sendVerificationEmail(input: SendVerificationEmailInput): Boolean
+  sendPasswordResetEmail(input: SendVerificationEmailInput): Boolean
+  userRegister(input: UserRegisterInput): User
+  userLogin(input: UserLoginInput): LoginResult!
+  updateUserInfo(input: UpdateUserInfoInput): User!
+  followUser(input: FollowUserInput): Boolean
+  unfollowUser(input: UnfollowUserInput): Boolean
+  importArticles(input: ImportArticlesInput): [Article]
+  updateNotificationSetting(input: UpdateNotificationSettingInput): NotificationSetting
+  clearReadHistory(input: ClearReadHistoryInput): Boolean
+  clearSearchHistory: Boolean
+}
+
+interface Notice {
+  hasRead: Boolean
+  createdAt: DateTime
+  user: User
+}
+
+type NotificationSetting {
+  enable: Boolean!
+  mention: Boolean!
+  follow: Boolean!
+  comment: Boolean!
+  appreciation: Boolean!
+  articleSubscription: Boolean!
+  commentSubscribed: Boolean!
+  downstream: Boolean!
+  commentPinned: Boolean!
+  commentVoted: Boolean!
+  walletUpdate: Boolean!
+  officialNotice: Boolean!
+  reportFeedback: Boolean!
+}
+
+enum OAuthType {
+  facebook
+  wechat
+  google
+}
+
+type Official {
+  reportCategory: [String]!
+}
+
+input PinCommentInput {
+  uuid: UUID
+}
+
+input PublishArticleInput {
+  """publish with draft uuid"""
+  uuid: UUID
+}
+
+enum PublishState {
+  archived
+  pending
+  error
+  published
+}
+
+"""
+The dummy queries and mutations are necessary because
+graphql-js cannot have empty root types and we only extend
+these types later on
+Ref: apollographql/graphql-tools#293
+"""
+type Query {
+  _: Boolean
+  article(uuid: UUID!): Article
+  tags(input: TagsInput): [Tag]
+  draft(uuid: UUID!): Draft
+  frequentSearch(key: String): [String]
+  search(key: String): [SearchResult]
+  official: Official!
+  viewer: User
+  user(uuid: UUID!): User
+}
+
+input ReadArticleInput {
+  uuid: UUID
+}
+
+type Recommendation {
+  hottest(input: ListInput): [Article]!
+
+  """In case you missed it"""
+  icymi(input: ListInput): [Article]!
+  authors(input: ListInput): [User]!
+  tags(input: ListInput): [Tag]!
+  topics(input: ListInput): [Article]!
+}
+
+input ReportArticleInput {
+  uuid: UUID
+  category: String
+  description: String
+}
+
+input SearchInput {
+  key: String!
+  type: SearchTypes
+  offset: Int
+  limit: Int
+}
+
+type SearchResult {
+  entity: Entity
+  match: String
+}
+
+enum SearchTypes {
+  Article
+  User
+  Tag
+}
+
+input SendPasswordResetEmailInput {
+  email: Email!
+}
+
+input SendVerificationEmailInput {
+  email: Email!
+}
+
+input SingleUploadInput {
+  file: Upload!
+}
+
+input SubscribeArticleInput {
+  uuid: UUID
+}
+
+type Subscription {
+  _: Boolean
+  notice: Notice
+}
+
+type Tag {
+  text: String
+  count: Int
+  articles: [Article]
+}
+
+input TagsInput {
+  partial: String
+  offset: Int
+  limit: Int
+}
+
+scalar Time
+
+input UnfollowUserInput {
+  uuid: UUID
+}
+
+input UnsubscribeArticleInput {
+  uuid: UUID
+}
+
+input UpdateNotificationSettingInput {
+  type: String
+  enabled: Boolean
+}
+
+input UpdateUserInfoInput {
+  field: UserInfoFields
+  value: String!
+}
+
+scalar Upload
+
+scalar URL
+
+type User {
+  uuid: UUID!
+
+  """Get article for this user"""
+  article(uuid: UUID!): Article!
+
+  """Get other user info for this user"""
+  user(uuid: UUID!): User!
+  info: UserInfo!
+  settings: UserSettings!
+
+  """Personalized recommendations"""
+  recommnedation: Recommendation!
+
+  """Current user has followed this user"""
+  hasFollowed: Boolean!
+
+  """Articles written by this user"""
+  articles(input: ListInput): [Article]
+  drafts(input: ListInput): [Draft]
+  audioDrafts(input: ListInput): [AudioDraft]
+
+  """Comments posted by this user"""
+  comments(input: ListInput): [Comment]
+
+  """comments that citated this user's article"""
+  quotations(input: ListInput): [Comment]
+  subscriptions(input: ListInput): [Article]
+  activity: UserActivity!
+
+  """Followers of this user"""
+  followers(offset: Int, limit: Int): [User]
+
+  """Users that this user follows"""
+  followees(offset: Int, limit: Int): [User]
+  status: UserStatus!
+  notices: [Notice]
+}
+
+type UserActivity {
+  history(input: ListInput): [Article]
+  recentSearches(input: ListInput): [String]
+}
+
+type UserInfo {
+  """Unique user name"""
+  userName: String!
+
+  """Display name on profile"""
+  displayName: String!
+
+  """User desciption"""
+  description: String!
+
+  """URL for avatar"""
+  avatar: String!
+  email: Email!
+  mobile: String!
+
+  """Use 500 for now, adaptive in the future"""
+  readSpeed: Int!
+}
+
+enum UserInfoFields {
+  displayName
+  avatar
+  description
+  email
+  mobile
+}
+
+enum UserLanguage {
+  en
+  zh_hans
+  zh_hant
+}
+
+input UserLoginInput {
+  email: Email!
+  password: String!
+}
+
+type UserNotice implements Notice {
+  hasRead: Boolean
+  createdAt: DateTime
+  user: User
+  action: UserNoticeAction
+  target: User
+}
+
+enum UserNoticeAction {
+  follow
+  appreciate
+  subscribe
+}
+
+input UserRegisterInput {
+  email: Email!
+  displayName: String!
+  password: String!
+  code: String
+}
+
+type UserSettings {
+  """User language setting"""
+  language: UserLanguage!
+
+  """Thrid party accounts binded for the user"""
+  oauthType: [OAuthType]
+
+  """Notification settings"""
+  notification: NotificationSetting!
+}
+
+type UserStatus {
+  currGravity: Int!
+
+  """Total MAT left in wallet"""
+  MAT: Int!
+
+  """Number of articles published by user"""
+  articleCount: Int!
+
+  """Number of views on articles"""
+  viewCount: Int!
+  draftCount: Int!
+
+  """Number of comments posted by user"""
+  commentCount: Int!
+  quotationCount: Int!
+  subscriptionCount: Int!
+
+  """Number of user that this user follows"""
+  followeeCount: Int!
+
+  """Number of user that follows this user"""
+  followerCount: Int!
+}
+
+scalar UUID
+
+enum Vote {
+  up
+  down
+}
