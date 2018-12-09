@@ -198,7 +198,7 @@ export class ArticleService extends BaseService {
       })
 
   /**
-   * Find article read records by articleId and userId
+   * Find article read records by articleId and user id
    */
   findReadByArticleIdAndUserId = async (
     articleId: number,
@@ -216,14 +216,14 @@ export class ArticleService extends BaseService {
    * User subscribe an article
    */
   subscribe = async (targetId: number, userId: number): Promise<any[]> =>
-    (await this.knex
-      .insert({
+    await this.baseCreate(
+      {
         targetId,
         userId,
         action: USER_ACTION.subscribe
-      })
-      .into('action_article')
-      .returning('*'))[0]
+      },
+      'action_article'
+    )
 
   /**
    * User unsubscribe an article
@@ -247,7 +247,7 @@ export class ArticleService extends BaseService {
     amount: number,
     userMAT: number
   ): Promise<any> =>
-    this.knex.transaction(async function(trx) {
+    this.knex.transaction(async trx => {
       await trx
         .where('id', userId)
         .update('mat', userMAT - amount)
@@ -288,13 +288,13 @@ export class ArticleService extends BaseService {
    * User read an article
    */
   read = async (articleId: number, userId: number): Promise<any[]> =>
-    (await this.knex
-      .insert({
+    await this.baseCreate(
+      {
         userId,
         articleId
-      })
-      .into('article_read')
-      .returning('*'))[0]
+      },
+      'article_read'
+    )
 
   /**
    * User report an article
@@ -305,15 +305,15 @@ export class ArticleService extends BaseService {
     category: string,
     description: string
   ): Promise<any[]> =>
-    (await this.knex
-      .insert({
+    await this.baseCreate(
+      {
         userId,
         articleId,
         category,
         description
-      })
-      .into('report_article')
-      .returning('*'))[0]
+      },
+      'report_article'
+    )
 
   // TODO
   getContentFromHash = (hash: string) => `

@@ -50,6 +50,22 @@ export type Context = {
   userService: InstanceType<typeof UserService>
 }
 
+export type TableName =
+  | 'action'
+  | 'action_user'
+  | 'action_comment'
+  | 'action_article'
+  | 'appreciate'
+  | 'article'
+  | 'article_read'
+  | 'audio_draft'
+  | 'comment'
+  | 'draft'
+  | 'user'
+  | 'user_oauth'
+  | 'user_notify_setting'
+  | 'report_article'
+
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'
   baseUrl: string

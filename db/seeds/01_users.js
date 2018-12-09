@@ -17,9 +17,7 @@ exports.seed = function(knex, Promise) {
           email: 'test1@matters.news',
           mobile: '999',
           password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS),
-          language: 'zh_hant',
-          oauth_type: [],
-          status: 'enabled'
+          oauth_type: []
         },
         {
           uuid: '00000000-0000-0000-0000-000000000002',
@@ -30,9 +28,8 @@ exports.seed = function(knex, Promise) {
           email: 'test2@matters.news',
           mobile: '999',
           password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS),
-          language: 'zh_hant',
-          oauth_type: [],
-          status: 'enabled'
+          language: 'zh_hans',
+          oauth_type: []
         },
         {
           uuid: '00000000-0000-0000-0000-000000000003',
@@ -43,9 +40,8 @@ exports.seed = function(knex, Promise) {
           email: 'test3@matters.news',
           mobile: '999',
           password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS),
-          language: 'zh_hant',
-          oauth_type: [],
-          status: 'enabled'
+          language: 'en',
+          oauth_type: []
         }
       ])
     })
