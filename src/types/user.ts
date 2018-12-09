@@ -56,7 +56,7 @@ export default /* GraphQL */ `
     # User desciption
     description: String!
     # URL for avatar
-    avatar: String!
+    avatar: URL!
     email: Email!
     mobile: String!
     # Use 500 for now, adaptive in the future
@@ -164,22 +164,17 @@ export default /* GraphQL */ `
   }
 
   input UpdateNotificationSettingInput {
-    type: String
-    enabled: Boolean
+    type: String!
+    enabled: Boolean!
   }
 
 
   input UpdateUserInfoInput {
-    field: UserInfoFields
-    value: String!
-  }
-
-  enum UserInfoFields {
-    displayName
-    avatar
-    description
-    email
-    mobile
+    displayName: String
+    avatar: URL
+    description: String
+    email: Email
+    mobile: String
   }
 
   enum UserLanguage {

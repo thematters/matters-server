@@ -2,10 +2,10 @@ import DataLoader from 'dataloader'
 import { hash, compare } from 'bcrypt'
 import { v4 } from 'uuid'
 import jwt from 'jsonwebtoken'
-// local
-import { BaseService } from './baseService'
+
 import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
+import { BaseService, ItemData } from './baseService'
 
 export class UserService extends BaseService {
   constructor() {
@@ -17,7 +17,6 @@ export class UserService extends BaseService {
   /**
    * Create a new user.
    */
-
   create = async ({
     email,
     userName,
@@ -29,27 +28,26 @@ export class UserService extends BaseService {
   }: {
     [key: string]: string
   }) => {
-    // do code validation here
+    // TODO: do code validation here
+    const uuid = v4()
     const passwordHash = await hash(password, BCRYPT_ROUNDS)
-    const result = await this.baseCreate({
-      uuid: v4(),
+    const user = await this.baseCreate({
+      uuid,
       email,
       userName,
       displayName,
       description,
       avatar,
       passwordHash,
-      oauthType: [],
-      language: 'zh_hant',
-      status: 'enabled'
+      oauthType: []
     })
-    return result
+    await this.baseCreate({ userId: user.id }, 'user_notify_setting')
+    return await this.idLoader.load(user.id)
   }
 
   /**
    * Login user and return jwt token.
    */
-
   login = async ({ email, password }: { email: string; password: string }) => {
     const user = await this.findByEmail(email)
 
@@ -102,9 +100,9 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Count an users' subscription by a give user id.
+   * Count an users' subscription by a given user id.
    */
-  countSubscriptionByUserId = async (userId: number): Promise<number> => {
+  countSubscription = async (userId: number): Promise<number> => {
     const result = await this.knex('action_article')
       .countDistinct('id')
       .where({ userId, action: USER_ACTION.subscribe })
@@ -121,17 +119,17 @@ export class UserService extends BaseService {
     await this.knex
       .select()
       .from(this.table)
-      .where('email', email)
+      .where({ email })
       .first()
 
   /**
    * Find users by a given user name.
    */
-  findByUserName = async (name: string): Promise<any[]> =>
+  findByUserName = async (userName: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
-      .where('user_name', name)
+      .where({ userName })
       .first()
 
   /**
@@ -141,7 +139,7 @@ export class UserService extends BaseService {
     await this.knex
       .select()
       .from('user_notify_setting')
-      .where('user_id', userId)
+      .where({ userId })
       .first()
 
   /**
@@ -180,7 +178,7 @@ export class UserService extends BaseService {
     await this.knex
       .select('type')
       .from('user_oauth')
-      .where('user_id', userId)
+      .where({ userId })
 
   /**
    * Find user's all appreciation by a given user id.
@@ -189,10 +187,10 @@ export class UserService extends BaseService {
     await this.knex
       .select()
       .from('appreciate')
-      .where('user_id', userId)
+      .where({ userId })
 
   /**
-   * Find user's followeelist by a given user id.
+   * Find user's followee list by a given user id.
    */
   findFollowees = async (userId: number): Promise<any[]> =>
     await this.knex
@@ -204,7 +202,7 @@ export class UserService extends BaseService {
       })
 
   /**
-   * Find user's followeelist by a given user id in batches.
+   * Find user's followee list by a given user id in batches.
    */
   findFolloweesInBatch = async (
     userId: number,
@@ -239,6 +237,8 @@ export class UserService extends BaseService {
       .select()
       .from('action_user')
       .where({ targetId, action: USER_ACTION.follow })
+      .offset(offset)
+      .limit(limit)
 
   /**
    * Find an user's rates by a given target id (user).
@@ -254,7 +254,7 @@ export class UserService extends BaseService {
   // }
 
   /**
-   * Find an users' subscription by a give user id.
+   * Find an users' subscription by a given user id.
    */
   findSubscriptions = async (userId: number): Promise<any[]> =>
     await this.knex
@@ -263,7 +263,7 @@ export class UserService extends BaseService {
       .where({ userId, action: USER_ACTION.subscribe })
 
   /**
-   * Find an users' subscription by a give user id in batches.
+   * Find an users' subscription by a given user id in batches.
    */
   findSubscriptionsInBatch = async (
     userId: number,
@@ -276,4 +276,40 @@ export class UserService extends BaseService {
       .where({ userId, action: USER_ACTION.subscribe })
       .offset(offset)
       .limit(limit)
+
+  /**
+   * Update user_notify_setting by a given user id
+   */
+  updateNotifySetting = async (
+    id: number,
+    data: ItemData
+  ): Promise<any | null> =>
+    await this.updateById(id, data, 'user_notify_setting')
+
+  /**
+   * Follow a user by a given taget id (user).
+   */
+  follow = async (userId: number, targetId: number): Promise<any[]> =>
+    await this.baseUpdateOrCreate(
+      {
+        userId,
+        targetId,
+        action: USER_ACTION.follow
+      },
+      ['userId', 'targetId', 'action'],
+      'action_user'
+    )
+
+  /**
+   * Unfollow a user by a given taget id (user).
+   */
+  unfollow = async (userId: number, targetId: number): Promise<any[]> =>
+    await this.knex
+      .from('action_user')
+      .where({
+        targetId,
+        userId,
+        action: USER_ACTION.follow
+      })
+      .del()
 }
