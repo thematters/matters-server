@@ -9,6 +9,7 @@ exports.up = function(knex, Promise) {
     t.bigInteger('author_id')
       .unsigned()
       .notNullable()
+    t.string('title').notNullable()
     t.string('mimetype')
     t.string('encoding')
     t.string('s3_path').notNullable()
