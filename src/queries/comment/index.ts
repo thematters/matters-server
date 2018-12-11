@@ -4,7 +4,7 @@ export default {
   User: {
     comments: (
       { id }: { id: number },
-      { offset, limit }: BatchParams,
+      { input: { offset, limit } }: BatchParams,
       { commentService }: Context
     ) => commentService.findByAuthorInBatch(id, offset, limit)
   },
@@ -21,7 +21,7 @@ export default {
     ) => commentService.findPinnedByArticle(id),
     comments: (
       { id }: { id: number },
-      { offset, limit }: BatchParams,
+      { input: { offset, limit } }: BatchParams,
       { commentService }: Context
     ) => commentService.findByArticleInBatch(id, offset, limit)
   },

@@ -213,6 +213,7 @@ export class UserService extends BaseService {
       .select()
       .from('action_user')
       .where({ userId, action: USER_ACTION.follow })
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
 
@@ -237,6 +238,7 @@ export class UserService extends BaseService {
       .select()
       .from('action_user')
       .where({ targetId, action: USER_ACTION.follow })
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
 
@@ -274,6 +276,7 @@ export class UserService extends BaseService {
       .select()
       .from('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
 

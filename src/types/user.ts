@@ -42,9 +42,9 @@ export default /* GraphQL */ `
     subscriptions(input: ListInput): [Article]
     activity: UserActivity!
     # Followers of this user
-    followers(offset: Int, limit: Int): [User]
+    followers(input: ListInput): [User]
     # Users that this user follows
-    followees(offset: Int, limit: Int): [User]
+    followees(input: ListInput): [User]
     status: UserStatus!
   }
 

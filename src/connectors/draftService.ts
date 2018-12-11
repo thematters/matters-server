@@ -41,6 +41,7 @@ export class DraftService extends BaseService {
       .select()
       .from(this.table)
       .where({ authorId })
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
 
@@ -74,6 +75,7 @@ export class DraftService extends BaseService {
       .select()
       .from('audio_draft')
       .where({ authorId })
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
 }

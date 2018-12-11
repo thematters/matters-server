@@ -111,6 +111,7 @@ export class CommentService extends BaseService {
       .select()
       .from(this.table)
       .where({ authorId })
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
 
@@ -135,6 +136,7 @@ export class CommentService extends BaseService {
       .select()
       .from(this.table)
       .where({ articleId })
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
 
