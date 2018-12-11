@@ -11,7 +11,7 @@ export default {
   User: {
     articles: (
       { id }: { id: number },
-      { offset, limit }: BatchParams,
+      { input: { offset, limit } }: BatchParams,
       { articleService }: Context
     ) => articleService.findByAuthorInBatch(id, offset, limit)
   },
@@ -75,7 +75,7 @@ export default {
     subscribed: () => false,
     subscribers: async (
       { id }: { id: number },
-      { offset, limit }: BatchParams,
+      { input: { offset, limit } }: BatchParams,
       { articleService, userService }: Context
     ) => {
       const actions = await articleService.findSubscriptionsInBatch(
@@ -87,7 +87,7 @@ export default {
     },
     appreciators: async (
       { id }: { id: number },
-      { offset, limit }: BatchParams,
+      { input: { offset, limit } }: BatchParams,
       { articleService, userService }: Context
     ) => {
       const appreciators = await articleService.findAppreciatorsInBatch(
