@@ -1,13 +1,11 @@
 export default /* GraphQL */ `
   extend type Query {
     article(uuid: UUID!): Article
-    tags(input: TagsInput): [Tag]
+    tag(input: TagInput): Tag
   }
 
-  input TagsInput {
-    partial: String
-    offset: Int
-    limit: Int
+  input TagInput {
+    tag: String!
   }
 
   extend type Mutation {
@@ -23,6 +21,7 @@ export default /* GraphQL */ `
   type Article {
     uuid: UUID!
     createdAt: DateTime!
+    public: Boolean!
     author: User!
     title: String!
     # url for cover
@@ -52,7 +51,14 @@ export default /* GraphQL */ `
   type Tag {
     text: String
     count: Int
-    articles: [Article]
+    articles(input: ListInput): [Article]
+  }
+
+  input CommentsInput {
+    offset: Int
+    limit: Int
+    byViewer: Boolean
+    hasCitation: Boolean
   }
 
   input PublishArticleInput {

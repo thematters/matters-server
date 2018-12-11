@@ -1,6 +1,8 @@
 // MATTERS_ENV must be 'test' in order to run test cases
-if (process.env['MATTERS_ENV'] != 'test')
-  throw new Error("In order to run test cases, MATTERS_ENV must be 'test'.")
+if (!['test', 'development'].includes(process.env['MATTERS_ENV']))
+  throw new Error(
+    "In order to run test cases, MATTERS_ENV must be 'test' or 'develop'."
+  )
 
 const { Client } = require('pg')
 const Knex = require('knex')

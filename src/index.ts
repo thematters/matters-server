@@ -1,9 +1,7 @@
 require('module-alias/register')
 // external
 import { ApolloServer } from 'apollo-server'
-// import jwt from 'jsonwebtoken'
 // internal
-
 import { makeContext } from 'common/util'
 // local
 import schema from './schema'
