@@ -1,26 +1,15 @@
+import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
-import { environment } from '../common/environment'
+import _ from 'lodash'
 
+import { TableName } from 'definitions'
+import { environment } from 'common/environment'
 const knexConfig = require('../../knexfile')
 
 export type Item = { id: number; [key: string]: any }
 export type ItemData = { [key: string]: any }
-
-export type TableName =
-  | 'action'
-  | 'action_user'
-  | 'action_comment'
-  | 'action_article'
-  | 'appreciate'
-  | 'article'
-  | 'audio_draft'
-  | 'comment'
-  | 'draft'
-  | 'user'
-  | 'user_oauth'
-  | 'user_notify_setting'
 
 export class BaseService {
   knex: Knex
@@ -94,26 +83,71 @@ export class BaseService {
   /**
    * Create item
    */
-  baseCreate = async (data: ItemData): Promise<any> =>
+  baseCreate = async (data: ItemData, table?: TableName): Promise<any> =>
     (await this.knex
       .insert(data)
-      .into(this.table)
+      .into(table || this.table)
       .returning('*'))[0]
+
+  /**
+   * Create or Update Item
+   * https://github.com/ratson/knex-upsert/blob/master/index.js
+   */
+  baseUpdateOrCreate = (
+    data: ItemData,
+    key: string | string[],
+    table: TableName
+  ) => {
+    const keys = _.isString(key) ? [key] : key
+    keys.forEach(field =>
+      assert(_.has(data, field), `Key "${field}" is missing.`)
+    )
+
+    const updateFields = _.keys(_.omit(data, keys))
+    const insert = this.knex.table(table).insert(data)
+    const keyPlaceholders = new Array(keys.length).fill('??').join(',')
+
+    if (updateFields.length === 0) {
+      return this.knex
+        .raw(`? ON CONFLICT (${keyPlaceholders}) DO NOTHING RETURNING *`, [
+          insert,
+          ...keys
+        ])
+        .then(result => _.get(result, ['rows', 0]))
+    }
+
+    const update = this.knex.queryBuilder().update(_.pick(data, updateFields))
+    return this.knex
+      .raw(`? ON CONFLICT (${keyPlaceholders}) DO ? RETURNING *`, [
+        insert,
+        ...keys,
+        update
+      ])
+      .then(result => _.get(result, ['rows', 0]))
+  }
 
   /**
    * Update item
    */
-  updateById = async (id: number, data: ItemData): Promise<any> =>
+  updateById = async (
+    id: number,
+    data: ItemData,
+    table?: TableName
+  ): Promise<any> =>
     (await this.knex
       .where('id', id)
       .update(data)
-      .into(this.table)
+      .into(table || this.table)
       .returning('*'))[0]
 
-  updateByUUID = async (uuid: string, data: ItemData): Promise<any> =>
+  updateByUUID = async (
+    uuid: string,
+    data: ItemData,
+    table?: TableName
+  ): Promise<any> =>
     (await this.knex
       .where('uuid', uuid)
       .update(data)
-      .into(this.table)
+      .into(table || this.table)
       .returning('*'))[0]
 }

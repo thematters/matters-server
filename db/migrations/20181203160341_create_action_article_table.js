@@ -9,6 +9,8 @@ exports.up = function(knex, Promise) {
     t.timestamp('updated_at').defaultTo(knex.fn.now())
     t.timestamp('created_at').defaultTo(knex.fn.now())
 
+    t.unique(['user_id', 'action', 'target_id'])
+
     // Setup foreign key
     t.foreign('user_id')
       .references('id')

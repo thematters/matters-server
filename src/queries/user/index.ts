@@ -81,6 +81,6 @@ export default {
       { id }: { id: number },
       _: any,
       { userService }: Context
-    ) => userService.countSubscriptionByUserId(id)
+    ) => userService.countSubscription(id)
   }
 }
