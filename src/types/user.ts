@@ -23,6 +23,7 @@ export default /* GraphQL */ `
   type User {
     uuid: UUID!
     # Get article for this user
+    createdAt: DateTime!
     article(uuid: UUID!): Article!
     # Get other user info for this user
     user(uuid: UUID!): User!
@@ -85,6 +86,7 @@ export default /* GraphQL */ `
   type UserActivity {
     history(input: ListInput): [Article]
     recentSearches(input: ListInput): [String]
+    invited(input: ListInput): [User]
   }
 
   type UserStatus {
