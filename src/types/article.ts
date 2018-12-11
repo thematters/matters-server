@@ -16,6 +16,7 @@ export default /* GraphQL */ `
     reportArticle(input: ReportArticleInput): Boolean
     appreciateArticle(input: AppreciateArticleInput): Int!
     readArticle(input: ReadArticleInput): Boolean
+    recallPublication(input: RecallPublicationInput): Draft!
   }
 
   type Article {
@@ -91,6 +92,10 @@ export default /* GraphQL */ `
   }
 
   input ReadArticleInput {
+    uuid: UUID
+  }
+
+  input RecallPublicationInput {
     uuid: UUID
   }
 

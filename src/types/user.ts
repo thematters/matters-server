@@ -8,6 +8,7 @@ export default /* GraphQL */ `
   extend type Mutation {
     sendVerificationEmail(input: SendVerificationEmailInput): Boolean
     sendPasswordResetEmail(input: SendVerificationEmailInput): Boolean
+    resetPassword(input: ResetPasswordInput): Boolean
     userRegister(input: UserRegisterInput): User
     userLogin(input: UserLoginInput): LoginResult!
     addOAuth(input: AddOAuthInput): Boolean
@@ -31,8 +32,6 @@ export default /* GraphQL */ `
     settings: UserSettings!
     # Personalized recommendations
     recommnedation: Recommendation!
-    # Current user has followed this user
-    hasFollowed: Boolean!
     # Articles written by this user
     articles(input: ListInput): [Article]
     drafts(input: ListInput): [Draft]
@@ -47,6 +46,10 @@ export default /* GraphQL */ `
     followers(input: ListInput): [User]
     # Users that this user follows
     followees(input: ListInput): [User]
+    # Current user has followed this user
+    isFollowee: Boolean!
+    # This user has followed current user
+    isFollower: Boolean!
     status: UserStatus!
   }
 
@@ -182,6 +185,10 @@ export default /* GraphQL */ `
     name: String!
     id: String!
     type: OAuthType
+  }
+
+  input ResetPasswordInput {
+    password: String!
   }
   
   enum UserInfoFields {
