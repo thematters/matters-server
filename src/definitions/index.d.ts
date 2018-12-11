@@ -73,6 +73,7 @@ export type ThirdPartyAccount = {
 }
 
 export interface BatchParams {
-  offset: number
-  limit: number
+  input: {
+    [key: string]: any
+  }
 }

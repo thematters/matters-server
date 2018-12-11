@@ -73,6 +73,7 @@ export class ArticleService extends BaseService {
       .select()
       .from(this.table)
       .where({ authorId })
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
 
@@ -103,6 +104,7 @@ export class ArticleService extends BaseService {
       .select()
       .from('appreciate')
       .where({ articleId })
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
 
@@ -116,8 +118,9 @@ export class ArticleService extends BaseService {
   ): Promise<any[]> =>
     await this.knex('appreciate')
       .distinct('user_id')
-      .select()
+      .select('id')
       .where({ articleId })
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
 
@@ -166,6 +169,7 @@ export class ArticleService extends BaseService {
       .select()
       .from('action_article')
       .where({ targetId, action: USER_ACTION.subscribe })
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
 

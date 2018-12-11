@@ -14,7 +14,7 @@ export default {
     // audioDrafts,
     subscriptions: async (
       { id }: { id: number },
-      { offset, limit }: BatchParams,
+      { input: { offset, limit } }: BatchParams,
       { articleService, userService }: Context
     ) => {
       const actions = await userService.findSubscriptionsInBatch(
@@ -31,7 +31,7 @@ export default {
     // activity,
     followers: async (
       { id }: { id: number },
-      { offset, limit }: BatchParams,
+      { input: { offset, limit } }: BatchParams,
       { userService }: Context
     ) => {
       const actions = await userService.findFollowersInBatch(id, offset, limit)
@@ -39,7 +39,7 @@ export default {
     },
     followees: async (
       { id }: { id: number },
-      { offset, limit }: BatchParams,
+      { input: { offset, limit } }: BatchParams,
       { userService }: Context
     ) => {
       const actions = await userService.findFolloweesInBatch(id, offset, limit)
