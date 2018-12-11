@@ -10,6 +10,7 @@ export default /* GraphQL */ `
     sendPasswordResetEmail(input: SendVerificationEmailInput): Boolean
     userRegister(input: UserRegisterInput): User
     userLogin(input: UserLoginInput): LoginResult!
+    addOAuth(input: AddOAuthInput): Boolean
     updateUserInfo(input: UpdateUserInfoInput): User!
     followUser(input: FollowUserInput): Boolean
     unfollowUser(input: UnfollowUserInput): Boolean
@@ -36,9 +37,9 @@ export default /* GraphQL */ `
     drafts(input: ListInput): [Draft]
     audioDrafts(input: ListInput): [AudioDraft]
     # Comments posted by this user
-    comments(input: ListInput): [Comment]
+    commentedArticles(input: ListInput): [Article]
     # comments that citated this user's article
-    quotations(input: ListInput): [Comment]
+    citedArticles(input: ListInput): [Article]
     subscriptions(input: ListInput): [Article]
     activity: UserActivity!
     # Followers of this user
@@ -168,13 +169,25 @@ export default /* GraphQL */ `
     enabled: Boolean!
   }
 
-
   input UpdateUserInfoInput {
     displayName: String
     avatar: URL
     description: String
-    email: Email
-    mobile: String
+    language: UserLanguage
+  }
+
+  input AddOAuthInput {
+    name: String!
+    id: String!
+    type: OAuthType
+  }
+  
+  enum UserInfoFields {
+    displayName
+    avatar
+    description
+    email
+    mobile
   }
 
   enum UserLanguage {
