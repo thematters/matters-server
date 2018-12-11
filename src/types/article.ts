@@ -41,7 +41,7 @@ export default /* GraphQL */ `
     # Current user has subscribed
     subscribed: Boolean!
     pinnedComments: [Comment]
-    comments(input: ListInput): [Comment]
+    comments(input: CommentsInput): [Comment]
     subscribers(input: ListInput): [User]
     appreciators(input: ListInput): [User]
     hasAppreciate: Boolean!
@@ -59,6 +59,7 @@ export default /* GraphQL */ `
     limit: Int
     byViewer: Boolean
     hasCitation: Boolean
+    sort: CommentSort
   }
 
   input PublishArticleInput {
@@ -100,4 +101,8 @@ export default /* GraphQL */ `
     published
   }
 
+  enum CommentSort {
+    upVotes
+    newest
+  }
 `
