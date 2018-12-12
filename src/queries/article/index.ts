@@ -13,7 +13,12 @@ export default {
       { id }: { id: number },
       { input: { offset, limit } }: BatchParams,
       { articleService }: Context
-    ) => articleService.findByAuthorInBatch(id, offset, limit)
+    ) => articleService.findByAuthorInBatch(id, offset, limit),
+    article: (
+      _: any,
+      { uuid }: { uuid: string },
+      { articleService }: Context
+    ) => articleService.uuidLoader.load(uuid)
   },
   UserStatus: {
     MAT: async (

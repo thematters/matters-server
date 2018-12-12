@@ -2,7 +2,7 @@ require('module-alias/register')
 // external
 import { ApolloServer } from 'apollo-server'
 // internal
-import { makeContext } from 'common/util'
+import { makeContext } from 'common/utils'
 // local
 import schema from './schema'
 

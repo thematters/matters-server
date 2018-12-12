@@ -9,7 +9,7 @@
     "types": ["node", "jest"],
     "baseUrl": "./src",
     "paths": {
-      "common/*": ["common/*"],
+      "common": ["common/"],
       "connectors": ["connectors/"],
       "definitions": ["definitions/"],
       "mutations": ["mutations/"],
