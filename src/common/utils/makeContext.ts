@@ -13,12 +13,16 @@ import {
 export const makeContext = async ({
   req
 }: {
-  req: { headers: { 'x-access-token': string } }
+  req: { headers?: { 'x-access-token'?: string } }
 }): Promise<Context> => {
   const userService = new UserService()
-  const token = req.headers['x-access-token']
+
   let viewer
   try {
+    const token =
+      req.headers && req.headers['x-access-token']
+        ? req.headers['x-access-token']
+        : ''
     const decoded = jwt.verify(token, environment.jwtSecret) as { uuid: string }
     viewer = await userService.baseFindByUUID(decoded.uuid)
   } catch (err) {

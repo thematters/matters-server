@@ -24,7 +24,6 @@ export default /* GraphQL */ `
   type User {
     uuid: UUID!
     # Get article for this user
-    createdAt: DateTime!
     article(uuid: UUID!): Article!
     # Get other user info for this user
     user(uuid: UUID!): User!
@@ -54,6 +53,7 @@ export default /* GraphQL */ `
   }
 
   type UserInfo {
+    createdAt: DateTime!
     # Unique user name
     userName: String!
     # Display name on profile

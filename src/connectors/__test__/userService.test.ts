@@ -5,7 +5,6 @@ const userService = new UserService()
 
 const testUser = {
   email: 'test@user.com',
-  avatar: 'https://example.com/avatar.jpg',
   userName: 'hi',
   displayName: 'world',
   password: '456',

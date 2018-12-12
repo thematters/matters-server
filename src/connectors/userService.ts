@@ -22,13 +22,21 @@ export class UserService extends BaseService {
     userName,
     displayName,
     description,
-    avatar,
     password,
     code
   }: {
     [key: string]: string
   }) => {
     // TODO: do code validation here
+
+    // TODO: better default unique user name
+    if (!userName) {
+      userName = email
+    }
+
+    // TODO:
+    const avatar = 'some-default-s3-url'
+
     const uuid = v4()
     const passwordHash = await hash(password, BCRYPT_ROUNDS)
     const user = await this.baseCreate({
@@ -52,6 +60,7 @@ export class UserService extends BaseService {
     const user = await this.findByEmail(email)
 
     if (!user) {
+      console.log('Cannot find user with email, login failed.')
       return {
         auth: false
       }
@@ -59,6 +68,7 @@ export class UserService extends BaseService {
 
     const auth = await compare(password, user.passwordHash)
     if (!auth) {
+      console.log('Password incorrect, login failed.')
       return {
         auth: false
       }
@@ -68,6 +78,7 @@ export class UserService extends BaseService {
       expiresIn: 86400 * 90 // expires in 24 * 90 hours
     })
 
+    console.log(`User logged in with uuid ${user.uuid}.`)
     return {
       auth: true,
       token
@@ -271,14 +282,15 @@ export class UserService extends BaseService {
     userId: number,
     offset: number,
     limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex
+  ): Promise<any[]> => {
+    return await this.knex
       .select()
       .from('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+  }
 
   /**
    * Update user_notify_setting by a given user id

@@ -8,7 +8,8 @@ export default {
   },
   User: {
     info: (root: any) => root,
-    // recommnedation,
+    user: (root: any, { uuid }: { uuid: string }, { userService }: Context) =>
+      userService.uuidLoader.load(uuid),
     // hasFollowed,
     // drafts,
     // audioDrafts,
