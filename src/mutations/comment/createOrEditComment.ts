@@ -1,4 +1,6 @@
 import { Resolver } from 'definitions'
+import { PUBSUB_EVENT } from 'common/enums'
+import pubsub from 'common/pubsub'
 
 const resolver: Resolver = async (
   _,
@@ -36,11 +38,15 @@ const resolver: Resolver = async (
 
   // Edit
   if (uuid) {
-    return await commentService.updateByUUID(uuid, data)
+    const comment = await commentService.updateByUUID(uuid, data)
+    pubsub.publish(PUBSUB_EVENT.commentUpdated, comment)
+    return comment
   }
   // Create
   else {
-    return commentService.create(data)
+    const comment = commentService.create(data)
+    pubsub.publish(PUBSUB_EVENT.commentCreated, comment)
+    return comment
   }
 }
 

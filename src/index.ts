@@ -13,12 +13,19 @@ import {
   DraftService
 } from './connectors'
 
+const userService = new UserService()
+
 const context = async ({
-  req
+  req,
+  connection
 }: {
   req: { headers: { 'x-access-token': string } }
+  connection: any
 }): Promise<Context> => {
-  const userService = new UserService()
+  if (connection) {
+    return connection.context
+  }
+
   const token = req.headers['x-access-token']
   let viewer
   try {
@@ -52,10 +59,31 @@ const server = new ApolloServer({
   context,
   engine: {
     apiKey: process.env['ENGINE_API_KEY']
+  },
+  subscriptions: {
+    onConnect: async ({ accessToken }: { accessToken?: string }, webSocket) => {
+      if (!accessToken) {
+        throw new Error('Missing accessToken!')
+      }
+
+      try {
+        const decoded = jwt.verify(accessToken, environment.jwtSecret) as {
+          uuid: string
+        }
+        return {
+          viewer: await userService.baseFindByUUID(decoded.uuid)
+        }
+      } catch (err) {
+        console.log('User is not logged in, viewing as guest')
+      }
+    }
   }
   // mocks
 })
 
-server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
-  console.log(`🚀  Server ready at ${url}`)
-})
+server
+  .listen({ port: process.env.PORT || 4000 })
+  .then(({ url, subscriptionsUrl }) => {
+    console.log(`🚀 Server ready at ${url}`)
+    console.log(`🚀 Subscriptions ready at ${subscriptionsUrl}`)
+  })

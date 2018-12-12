@@ -5,6 +5,10 @@ export default /* GraphQL */ `
     deleteComment(input: DeleteCommentInput): Boolean
   }
 
+  extend type Subscription {
+    commentChanged: Comment
+  }
+
   type Comment {
     uuid: UUID!
     # Original article of this comment
