@@ -16,7 +16,7 @@ export default {
     ) => articleService.findByAuthorInBatch(id, offset, limit),
     article: (
       _: any,
-      { uuid }: { uuid: string },
+      { input: { uuid } }: { input: { uuid: string } },
       { articleService }: Context
     ) => articleService.uuidLoader.load(uuid)
   },

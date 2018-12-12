@@ -2,7 +2,7 @@
 export default /* GraphQL */ `
   extend type Query {
     viewer: User
-    user(uuid: UUID!): User
+    user(input: UserInput!): User
   }
 
   extend type Mutation {
@@ -24,9 +24,9 @@ export default /* GraphQL */ `
   type User {
     uuid: UUID!
     # Get article for this user
-    article(uuid: UUID!): Article!
+    article(input: ArticleInput!): Article!
     # Get other user info for this user
-    user(uuid: UUID!): User!
+    user(input: UserInput!): User!
     info: UserInfo!
     settings: UserSettings!
     # Personalized recommendations
@@ -189,6 +189,14 @@ export default /* GraphQL */ `
 
   input ResetPasswordInput {
     password: String!
+  }
+
+  input UserInput {
+    uuid: UUID
+  }
+
+  input ArticleInput {
+    uuid: UUID
   }
   
   enum UserInfoFields {
