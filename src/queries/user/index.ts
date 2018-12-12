@@ -42,7 +42,7 @@ export default {
       { userService }: Context
     ) => {
       const actions = await userService.findFollowersInBatch(id, offset, limit)
-      return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+      return userService.baseFindByIds(actions.map(({ userId }) => userId))
     },
     followees: async (
       { id }: { id: number },
@@ -51,7 +51,7 @@ export default {
     ) => {
       const actions = await userService.findFollowees({ id, offset, limit })
 
-      return userService.idLoader.loadMany(
+      return userService.baseFindByIds(
         actions.map(({ targetId }: { targetId: number }) => targetId)
       )
     },

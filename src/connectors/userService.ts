@@ -209,8 +209,8 @@ export class UserService extends BaseService {
     limit = BATCH_SIZE
   }: {
     id: number
-    offset: number
-    limit: number
+    offset?: number
+    limit?: number
   }) =>
     this.knex
       .select()

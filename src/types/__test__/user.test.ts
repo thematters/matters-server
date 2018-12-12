@@ -286,20 +286,25 @@ describe('user query fields', () => {
 })
 
 describe('mutations on User object', () => {
-  test('followUser', async () => {
+  test('followUser and unfollowUser', async () => {
     const followeeUuid = '00000000-0000-0000-0000-000000000003'
+
     const followQuery = `
       mutation FollowerUser($input: FollowUserInput!) {
         followUser(input: $input)
       }
     `
-
     const context = await authContext()
-    const { data } = await graphql(schema, followQuery, {}, context, {
-      input: { uuid: followeeUuid }
-    })
-
-    expect(data && data.followUser).toBeTruthy()
+    const { data: followData } = await graphql(
+      schema,
+      followQuery,
+      {},
+      context,
+      {
+        input: { uuid: followeeUuid }
+      }
+    )
+    expect(followData && followData.followUser).toBeTruthy()
 
     const query = `
       query FloweesQuery($input: ListInput!) {
@@ -313,11 +318,89 @@ describe('mutations on User object', () => {
     const { data: followeeData } = await graphql(schema, query, {}, context, {
       input: {}
     })
-
     const followees =
       followeeData && followeeData.viewer && followeeData.viewer.followees
+
     expect(followees.map(({ uuid }: { uuid: string }) => uuid)).toContain(
       followeeUuid
     )
+
+    const unfollowQuery = `
+      mutation FollowerUser($input: UnfollowUserInput!) {
+        unfollowUser(input: $input)
+      }
+    `
+    const { data: unfollowData } = await graphql(
+      schema,
+      unfollowQuery,
+      {},
+      context,
+      {
+        input: { uuid: followeeUuid }
+      }
+    )
+
+    expect(unfollowData && unfollowData.unfollowUser).toBeTruthy()
+
+    const { data: followeeDataNew } = await graphql(
+      schema,
+      query,
+      {},
+      context,
+      {
+        input: {}
+      }
+    )
+    const followeesNew =
+      followeeDataNew &&
+      followeeDataNew.viewer &&
+      followeeDataNew.viewer.followees
+
+    expect(
+      followeesNew.filter(({ uuid }: { uuid: string }) => uuid === followeeUuid)
+        .length
+    ).toEqual(0)
+  })
+
+  test('updateUserInfo', async () => {
+    const description = 'foo bar'
+
+    const followQuery = `
+      mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
+        updateUserInfo(input: $input) {
+          info {
+            description
+          }
+        }
+      }
+    `
+    const context = await authContext()
+    const { data } = await graphql(schema, followQuery, {}, context, {
+      input: { description }
+    })
+    const info = data && data.updateUserInfo && data.updateUserInfo.info
+    expect(info.description).toEqual(description)
+  })
+
+  test('updateNotificationSetting', async () => {
+    const description = 'foo bar'
+
+    const followQuery = `
+      mutation UpdateNotificationSetting($input: UpdateNotificationSettingInput!) {
+        updateNotificationSetting(input: $input) {
+          enable
+        }
+      }
+    `
+    const context = await authContext()
+    const { data } = await graphql(schema, followQuery, {}, context, {
+      input: { type: 'enable', enabled: false }
+    })
+
+    const enable =
+      data &&
+      data.updateNotificationSetting &&
+      data.updateNotificationSetting.enable
+    expect(enable).toBeFalsy()
   })
 })
