@@ -203,27 +203,19 @@ export class UserService extends BaseService {
   /**
    * Find user's followee list by a given user id.
    */
-  findFollowees = async (userId: number): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_user')
-      .where({
-        userId,
-        action: USER_ACTION.follow
-      })
-
-  /**
-   * Find user's followee list by a given user id in batches.
-   */
-  findFolloweesInBatch = async (
-    userId: number,
-    offset: number,
+  findFollowees = async ({
+    id,
+    offset = 0,
     limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex
+  }: {
+    id: number
+    offset: number
+    limit: number
+  }) =>
+    this.knex
       .select()
       .from('action_user')
-      .where({ userId, action: USER_ACTION.follow })
+      .where({ userId: id, action: USER_ACTION.follow })
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)

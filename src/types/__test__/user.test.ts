@@ -4,6 +4,7 @@ import { graphql } from 'graphql'
 import schema from '../../schema'
 import { makeContext } from 'common/utils'
 import { knex } from 'connectors/db'
+import uuid = require('uuid')
 
 afterAll(knex.destroy)
 
@@ -55,15 +56,15 @@ describe('register and login functionarlities', () => {
 
     const { code, password, ...userSanitized } = user
     const query = `
-    mutation UserRegister($input: UserRegisterInput!) {
-      userRegister(input: $input) {
-        info {
-          email
-          displayName
+      mutation UserRegister($input: UserRegisterInput!) {
+        userRegister(input: $input) {
+          info {
+            email
+            displayName
+          }
         }
       }
-    }
-  `
+    `
     const context = await makeContext({ req: {} })
     const result = await graphql(schema, query, {}, context, {
       input: user
@@ -123,25 +124,7 @@ describe('register and login functionarlities', () => {
   })
 })
 
-describe('basic info', () => {
-  test('retrive an article for user', async () => {
-    const uuid = '00000000-0000-0000-0000-000000000001'
-    const viewerQuery = `
-      query ArtilceQuery($uuid: UUID!) {
-        viewer {
-          article(uuid: $uuid) {
-            uuid
-          }
-        }
-      }
-    `
-    const context = await authContext()
-    const { data } = await graphql(schema, viewerQuery, {}, context, { uuid })
-    const article = data && data.viewer && data.viewer.article
-
-    expect(article.uuid).toEqual(uuid)
-  })
-
+describe('user query fields', () => {
   test('retrive user articles', async () => {
     const viewerQuery = `
       query ArtilcesQuery($input: ListInput!) {
@@ -164,9 +147,9 @@ describe('basic info', () => {
 
   test('retrive an user', async () => {
     const query = `
-      query UserQuery($uuid: UUID!) {
+      query UserQuery($input: UserInput!) {
         viewer {
-          user(uuid: $uuid) {
+          user(input: $input) {
             uuid
           }
         }
@@ -175,10 +158,29 @@ describe('basic info', () => {
     const uuid = '00000000-0000-0000-0000-000000000002'
     const context = await authContext()
     const { data } = await graphql(schema, query, {}, context, {
-      uuid
+      input: { uuid }
     })
     const user = data && data.viewer && data.viewer.user
     expect(user.uuid).toEqual(uuid)
+  })
+
+  test('retrive an article', async () => {
+    const query = `
+      query ArticleQuery($input: ArticleInput!) {
+        viewer {
+          article(input: $input) {
+            uuid
+          }
+        }
+      }
+    `
+    const uuid = '00000000-0000-0000-0000-000000000001'
+    const context = await authContext()
+    const { data } = await graphql(schema, query, {}, context, {
+      input: { uuid }
+    })
+    const article = data && data.viewer && data.viewer.article
+    expect(article.uuid).toEqual(uuid)
   })
 
   test('retrive UserSettings', async () => {
@@ -252,7 +254,7 @@ describe('basic info', () => {
     const context = await authContext()
     const { data } = await graphql(schema, query, {}, context, { input: {} })
     const followees = data && data.viewer && data.viewer.followees
-    expect(followees.length).toEqual(2)
+    expect(followees.length).toEqual(1)
   })
 
   test('retrive UserStatus', async () => {
@@ -277,8 +279,45 @@ describe('basic info', () => {
       articleCount: 2,
       commentCount: 2,
       followerCount: 0,
-      followeeCount: 2,
+      followeeCount: 1,
       subscriptionCount: 3
     })
+  })
+})
+
+describe('mutations on User object', () => {
+  test('followUser', async () => {
+    const followeeUuid = '00000000-0000-0000-0000-000000000003'
+    const followQuery = `
+      mutation FollowerUser($input: FollowUserInput!) {
+        followUser(input: $input)
+      }
+    `
+
+    const context = await authContext()
+    const { data } = await graphql(schema, followQuery, {}, context, {
+      input: { uuid: followeeUuid }
+    })
+
+    expect(data && data.followUser).toBeTruthy()
+
+    const query = `
+      query FloweesQuery($input: ListInput!) {
+        viewer {
+          followees(input: $input) {
+            uuid
+          }
+        }
+      }
+    `
+    const { data: followeeData } = await graphql(schema, query, {}, context, {
+      input: {}
+    })
+
+    const followees =
+      followeeData && followeeData.viewer && followeeData.viewer.followees
+    expect(followees.map(({ uuid }: { uuid: string }) => uuid)).toContain(
+      followeeUuid
+    )
   })
 })
