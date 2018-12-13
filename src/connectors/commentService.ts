@@ -134,24 +134,6 @@ export class CommentService extends BaseService {
       .limit(limit)
 
   /**
-   * Find articles ids by comment author id (user) in batches.
-   */
-
-  findArticleByAuthorInBatch = async (
-    authorId?: number,
-    offset = 0,
-    limit = BATCH_SIZE
-  ): Promise<string[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ authorId })
-      .distinct()
-      .pluck('article_id')
-      .offset(offset)
-      .limit(limit)
-
-  /**
    * Find comments by a given article id.
    */
   findByArticle = async (articleId: number): Promise<any[]> =>
