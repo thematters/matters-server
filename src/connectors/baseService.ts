@@ -1,15 +1,17 @@
+import * as fs from 'fs'
+import * as AWS from 'aws-sdk'
+import _ from 'lodash'
 import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
-import _ from 'lodash'
+import { v4 } from 'uuid'
 
-import { TableName } from 'definitions'
+import { S3Bucket, S3Folder, ItemData, TableName } from 'definitions'
 import { environment } from 'common/environment'
 const knexConfig = require('../../knexfile')
 
 export type Item = { id: number; [key: string]: any }
-export type ItemData = { [key: string]: any }
 
 export class BaseService {
   knex: Knex
@@ -20,9 +22,15 @@ export class BaseService {
 
   table: TableName
 
+  s3: AWS.S3
+
+  s3Bucket: S3Bucket
+
   constructor(table: TableName) {
     this.knex = this.getKnexClient()
     this.table = table
+    this.s3 = this.getS3Client()
+    this.s3Bucket = this.getS3Bucket()
   }
 
   /**
@@ -31,6 +39,37 @@ export class BaseService {
   getKnexClient = (): Knex => {
     const { env } = environment
     return Knex({ ...knexConfig[env], ...knexSnakeCaseMappers() })
+  }
+
+  /**
+   * Get S3 Client.
+   */
+  getS3Client = (): AWS.S3 => {
+    const { env, awsRegion, awsAccessId, awsAccessKey } = environment
+    AWS.config.update({
+      region: awsRegion || '',
+      accessKeyId: awsAccessId || '',
+      secretAccessKey: awsAccessKey || ''
+    })
+    return new AWS.S3()
+  }
+
+  /**
+   * Get S3 bucket.
+   */
+  getS3Bucket = (): S3Bucket => {
+    const { env } = environment
+    switch (env) {
+      case 'staging': {
+        return 'matters-server-stage'
+      }
+      case 'production': {
+        return 'matters-server-production'
+      }
+      default: {
+        return 'matters-server-dev'
+      }
+    }
   }
 
   /**
@@ -127,7 +166,7 @@ export class BaseService {
   }
 
   /**
-   * Update item
+   * Update an item by a given id.
    */
   updateById = async (
     id: number,
@@ -140,6 +179,9 @@ export class BaseService {
       .into(table || this.table)
       .returning('*'))[0]
 
+  /**
+   * Update an item by a given UUID.
+   */
   updateByUUID = async (
     uuid: string,
     data: ItemData,
@@ -150,4 +192,22 @@ export class BaseService {
       .update(data)
       .into(table || this.table)
       .returning('*'))[0]
+
+  /**
+   * Upload file to AWS S3.
+   */
+  uploadFile = async (folder: S3Folder, file: any): Promise<string> => {
+    const { stream, filename, mimetype, encoding } = await file
+    const key = `${folder}/${v4()}`
+    const { Location: path } = await this.s3
+      .upload({
+        Body: stream,
+        Bucket: this.s3Bucket,
+        ContentEncoding: encoding,
+        ContentType: mimetype,
+        Key: `${folder}/${v4()}/${filename}`
+      })
+      .promise()
+    return path
+  }
 }

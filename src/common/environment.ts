@@ -6,6 +6,8 @@ export const environment = {
   env: process.env['MATTERS_ENV'] || 'development',
   domain: process.env['MATTERS_DOMAIN'],
   awsRegion: process.env['MATTERS_AWS_REGION'],
+  awsAccessId: process.env['MATTERS_AWS_ACCESS_ID'],
+  awsAccessKey: process.env['MATTERS_AWS_ACCESS_KEY'],
   pgHost: process.env['MATTERS_PG_HOST'],
   pgUser: process.env['MATTERS_PG_USER'],
   pgPassword: process.env['MATTERS_PG_PASSWORD'],
