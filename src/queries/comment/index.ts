@@ -2,11 +2,18 @@ import { BatchParams, Context } from 'definitions'
 
 export default {
   User: {
-    comments: (
+    commentedArticles: async (
       { id }: { id: number },
       { input: { offset, limit } }: BatchParams,
-      { commentService }: Context
-    ) => commentService.findByAuthorInBatch(id, offset, limit)
+      { commentService, articleService }: Context
+    ) => {
+      const articleIds = await commentService.findByAuthorInBatch(
+        id,
+        offset,
+        limit
+      )
+      return articleService.baseFindByIds(articleIds)
+    }
   },
   Article: {
     commentCount: (

@@ -3,6 +3,12 @@ input AddDraftTagInput {
   tag: String
 }
 
+input AddOAuthInput {
+  name: String!
+  id: String!
+  type: OAuthType
+}
+
 input AppreciateArticleInput {
   uuid: UUID
   amount: Int
@@ -15,6 +21,7 @@ input ArchiveArticleInput {
 type Article {
   uuid: UUID!
   createdAt: DateTime!
+  public: Boolean!
   author: User!
   title: String!
 
@@ -37,11 +44,15 @@ type Article {
   """Current user has subscribed"""
   subscribed: Boolean!
   pinnedComments: [Comment]
-  comments(input: ListInput): [Comment]
+  comments(input: CommentsInput): [Comment]
   subscribers(input: ListInput): [User]
   appreciators(input: ListInput): [User]
   hasAppreciate: Boolean!
   publishState: PublishState!
+}
+
+input ArticleInput {
+  uuid: UUID
 }
 
 type ArticleNotice implements Notice {
@@ -59,9 +70,14 @@ enum ArticleNoticeAction {
 }
 
 type AudioDraft {
+  uuid: UUID!
+  authorId: Int!
   title: String
+  mimetype: String!
+  encoding: String!
+  s3Path: String!
   createdAt: DateTime!
-  file: File!
+  updatedAt: DateTime!
 }
 
 input ClearReadHistoryInput {
@@ -113,6 +129,19 @@ enum CommentNoticeAction {
   pin
   vote
   mention
+}
+
+input CommentsInput {
+  offset: Int
+  limit: Int
+  byViewer: Boolean
+  hasCitation: Boolean
+  sort: CommentSort
+}
+
+enum CommentSort {
+  upVotes
+  newest
 }
 
 input CreateDraftInput {
@@ -221,6 +250,7 @@ type Mutation {
   reportArticle(input: ReportArticleInput): Boolean
   appreciateArticle(input: AppreciateArticleInput): Int!
   readArticle(input: ReadArticleInput): Boolean
+  recallPublication(input: RecallPublicationInput): Draft!
   createOrEditComment(input: CreateOrEditCommentInput): Comment
   pinComment(input: PinCommentInput): Comment
   deleteComment(input: DeleteCommentInput): Boolean
@@ -234,8 +264,10 @@ type Mutation {
   deleteDraftContent(input: DeleteDraftContentInput): Boolean
   sendVerificationEmail(input: SendVerificationEmailInput): Boolean
   sendPasswordResetEmail(input: SendVerificationEmailInput): Boolean
+  resetPassword(input: ResetPasswordInput): Boolean
   userRegister(input: UserRegisterInput): User
   userLogin(input: UserLoginInput): LoginResult!
+  addOAuth(input: AddOAuthInput): Boolean
   updateUserInfo(input: UpdateUserInfoInput): User!
   followUser(input: FollowUserInput): Boolean
   unfollowUser(input: UnfollowUserInput): Boolean
@@ -249,6 +281,12 @@ interface Notice {
   hasRead: Boolean
   createdAt: DateTime
   user: User
+}
+
+input NoticesInput {
+  offset: Int
+  limit: Int
+  hasRead: Boolean
 }
 
 type NotificationSetting {
@@ -302,16 +340,21 @@ Ref: apollographql/graphql-tools#293
 type Query {
   _: Boolean
   article(uuid: UUID!): Article
-  tags(input: TagsInput): [Tag]
+  tag(input: TagInput): Tag
   draft(uuid: UUID!): Draft
+  audioDraft(uuid: UUID!): AudioDraft
   frequentSearch(key: String): [String]
   search(key: String): [SearchResult]
   official: Official!
   viewer: User
-  user(uuid: UUID!): User
+  user(input: UserInput!): User
 }
 
 input ReadArticleInput {
+  uuid: UUID
+}
+
+input RecallPublicationInput {
   uuid: UUID
 }
 
@@ -329,6 +372,10 @@ input ReportArticleInput {
   uuid: UUID
   category: String
   description: String
+}
+
+input ResetPasswordInput {
+  password: String!
 }
 
 input SearchInput {
@@ -373,13 +420,11 @@ type Subscription {
 type Tag {
   text: String
   count: Int
-  articles: [Article]
+  articles(input: ListInput): [Article]
 }
 
-input TagsInput {
-  partial: String
-  offset: Int
-  limit: Int
+input TagInput {
+  tag: String!
 }
 
 scalar Time
@@ -393,13 +438,15 @@ input UnsubscribeArticleInput {
 }
 
 input UpdateNotificationSettingInput {
-  type: String
-  enabled: Boolean
+  type: String!
+  enabled: Boolean!
 }
 
 input UpdateUserInfoInput {
-  field: UserInfoFields
-  value: String!
+  displayName: String
+  avatar: URL
+  description: String
+  language: UserLanguage
 }
 
 scalar Upload
@@ -410,18 +457,15 @@ type User {
   uuid: UUID!
 
   """Get article for this user"""
-  article(uuid: UUID!): Article!
+  article(input: ArticleInput!): Article!
 
   """Get other user info for this user"""
-  user(uuid: UUID!): User!
+  user(input: UserInput!): User!
   info: UserInfo!
   settings: UserSettings!
 
   """Personalized recommendations"""
   recommnedation: Recommendation!
-
-  """Current user has followed this user"""
-  hasFollowed: Boolean!
 
   """Articles written by this user"""
   articles(input: ListInput): [Article]
@@ -429,28 +473,37 @@ type User {
   audioDrafts(input: ListInput): [AudioDraft]
 
   """Comments posted by this user"""
-  comments(input: ListInput): [Comment]
+  commentedArticles(input: ListInput): [Article]
 
   """comments that citated this user's article"""
-  quotations(input: ListInput): [Comment]
+  citedArticles(input: ListInput): [Article]
   subscriptions(input: ListInput): [Article]
   activity: UserActivity!
 
   """Followers of this user"""
-  followers(offset: Int, limit: Int): [User]
+  followers(input: ListInput): [User]
 
   """Users that this user follows"""
-  followees(offset: Int, limit: Int): [User]
+  followees(input: ListInput): [User]
+
+  """Current user has followed this user"""
+  isFollowee: Boolean!
+
+  """This user has followed current user"""
+  isFollower: Boolean!
   status: UserStatus!
-  notices: [Notice]
+  notices(input: NoticesInput): [Notice]
 }
 
 type UserActivity {
   history(input: ListInput): [Article]
   recentSearches(input: ListInput): [String]
+  invited(input: ListInput): [User]
 }
 
 type UserInfo {
+  createdAt: DateTime!
+
   """Unique user name"""
   userName: String!
 
@@ -461,7 +514,7 @@ type UserInfo {
   description: String!
 
   """URL for avatar"""
-  avatar: String!
+  avatar: URL!
   email: Email!
   mobile: String!
 
@@ -475,6 +528,10 @@ enum UserInfoFields {
   description
   email
   mobile
+}
+
+input UserInput {
+  uuid: UUID
 }
 
 enum UserLanguage {
