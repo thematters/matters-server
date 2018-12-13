@@ -56,3 +56,8 @@ test('findDownVotes', async () => {
   const votes = await commentService.findDownVotes(3)
   expect(votes.length).toBe(0)
 })
+
+test('findArticleByAuthorInBatch', async () => {
+  const articleIds = await commentService.findArticleByAuthorInBatch(1)
+  expect(articleIds).toMatchObject(['1', '3'])
+})

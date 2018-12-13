@@ -1,15 +1,15 @@
-import * as fs from 'fs'
+// external
 import * as AWS from 'aws-sdk'
 import _ from 'lodash'
 import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
-import { knexSnakeCaseMappers } from 'objection'
+import _ from 'lodash'
 import { v4 } from 'uuid'
-
+//local
 import { S3Bucket, S3Folder, ItemData, TableName } from 'definitions'
 import { environment } from 'common/environment'
-const knexConfig = require('../../knexfile')
+import { knex } from './db'
 
 export type Item = { id: number; [key: string]: any }
 
@@ -27,18 +27,10 @@ export class BaseService {
   s3Bucket: S3Bucket
 
   constructor(table: TableName) {
-    this.knex = this.getKnexClient()
+    this.knex = knex
     this.table = table
     this.s3 = this.getS3Client()
     this.s3Bucket = this.getS3Bucket()
-  }
-
-  /**
-   * Initialize a Knex client for PostgreSQL.
-   */
-  getKnexClient = (): Knex => {
-    const { env } = environment
-    return Knex({ ...knexConfig[env], ...knexSnakeCaseMappers() })
   }
 
   /**
@@ -89,7 +81,7 @@ export class BaseService {
   /**
    * Find items by given ids.
    */
-  baseFindByIds = async (ids: number[]): Promise<any[]> =>
+  baseFindByIds = async (ids: number[]) =>
     await this.knex
       .select()
       .from(this.table)

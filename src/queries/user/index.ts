@@ -2,13 +2,20 @@ import { BatchParams, Context } from 'definitions'
 
 export default {
   Query: {
-    user: (root: any, { uuid }: { uuid: string }, { userService }: Context) =>
-      userService.uuidLoader.load(uuid),
+    user: (
+      root: any,
+      { input: { uuid } }: { input: { uuid: string } },
+      { userService }: Context
+    ) => userService.uuidLoader.load(uuid),
     viewer: (root: any, _: any, { viewer }: Context) => viewer
   },
   User: {
     info: (root: any) => root,
-    // recommnedation,
+    user: (
+      root: any,
+      { input: { uuid } }: { input: { uuid: string } },
+      { userService }: Context
+    ) => userService.uuidLoader.load(uuid),
     // hasFollowed,
     // drafts,
     // audioDrafts,
@@ -35,15 +42,18 @@ export default {
       { userService }: Context
     ) => {
       const actions = await userService.findFollowersInBatch(id, offset, limit)
-      return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+      return userService.baseFindByIds(actions.map(({ userId }) => userId))
     },
     followees: async (
       { id }: { id: number },
       { input: { offset, limit } }: BatchParams,
       { userService }: Context
     ) => {
-      const actions = await userService.findFolloweesInBatch(id, offset, limit)
-      return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+      const actions = await userService.findFollowees({ id, offset, limit })
+
+      return userService.baseFindByIds(
+        actions.map(({ targetId }: { targetId: number }) => targetId)
+      )
     },
     notices: ({ id }: { id: number }, _: any, { userService }: Context) => null,
     settings: (root: any) => root,

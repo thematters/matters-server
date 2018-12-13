@@ -1,13 +1,11 @@
 export default /* GraphQL */ `
   extend type Query {
     article(uuid: UUID!): Article
-    tags(input: TagsInput): [Tag]
+    tag(input: TagInput): Tag
   }
 
-  input TagsInput {
-    partial: String
-    offset: Int
-    limit: Int
+  input TagInput {
+    tag: String!
   }
 
   extend type Mutation {
@@ -18,11 +16,13 @@ export default /* GraphQL */ `
     reportArticle(input: ReportArticleInput): Boolean
     appreciateArticle(input: AppreciateArticleInput): Int!
     readArticle(input: ReadArticleInput): Boolean
+    recallPublication(input: RecallPublicationInput): Draft!
   }
 
   type Article {
     uuid: UUID!
     createdAt: DateTime!
+    public: Boolean!
     author: User!
     title: String!
     # url for cover
@@ -42,7 +42,7 @@ export default /* GraphQL */ `
     # Current user has subscribed
     subscribed: Boolean!
     pinnedComments: [Comment]
-    comments(input: ListInput): [Comment]
+    comments(input: CommentsInput): [Comment]
     subscribers(input: ListInput): [User]
     appreciators(input: ListInput): [User]
     hasAppreciate: Boolean!
@@ -52,7 +52,15 @@ export default /* GraphQL */ `
   type Tag {
     text: String
     count: Int
-    articles: [Article]
+    articles(input: ListInput): [Article]
+  }
+
+  input CommentsInput {
+    offset: Int
+    limit: Int
+    byViewer: Boolean
+    hasCitation: Boolean
+    sort: CommentSort
   }
 
   input PublishArticleInput {
@@ -87,6 +95,10 @@ export default /* GraphQL */ `
     uuid: UUID
   }
 
+  input RecallPublicationInput {
+    uuid: UUID
+  }
+
   enum PublishState {
     archived
     pending
@@ -94,4 +106,8 @@ export default /* GraphQL */ `
     published
   }
 
+  enum CommentSort {
+    upVotes
+    newest
+  }
 `
