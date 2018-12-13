@@ -1,40 +1,10 @@
 require('module-alias/register')
-
+// external
 import { ApolloServer } from 'apollo-server'
-import jwt from 'jsonwebtoken'
+// internal
+import { makeContext } from 'common/utils'
 // local
-import { environment } from 'common/environment'
 import schema from './schema'
-import { Context } from './definitions'
-import {
-  UserService,
-  ArticleService,
-  CommentService,
-  DraftService
-} from './connectors'
-
-const context = async ({
-  req
-}: {
-  req: { headers: { 'x-access-token': string } }
-}): Promise<Context> => {
-  const userService = new UserService()
-  const token = req.headers['x-access-token']
-  let viewer
-  try {
-    const decoded = jwt.verify(token, environment.jwtSecret) as { uuid: string }
-    viewer = await userService.baseFindByUUID(decoded.uuid)
-  } catch (err) {
-    console.log('User is not logged in, viewing as guest')
-  }
-  return {
-    viewer,
-    userService,
-    articleService: new ArticleService(),
-    commentService: new CommentService(),
-    draftService: new DraftService()
-  }
-}
 
 const mocks = {
   JSON: () => ({
@@ -49,7 +19,7 @@ const mocks = {
 
 const server = new ApolloServer({
   schema,
-  context,
+  context: makeContext,
   engine: {
     apiKey: process.env['ENGINE_API_KEY']
   }
