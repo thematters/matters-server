@@ -51,6 +51,10 @@ type Article {
   publishState: PublishState!
 }
 
+input ArticleInput {
+  uuid: UUID
+}
+
 type ArticleNotice implements Notice {
   hasRead: Boolean
   createdAt: DateTime
@@ -343,7 +347,7 @@ type Query {
   search(key: String): [SearchResult]
   official: Official!
   viewer: User
-  user(uuid: UUID!): User
+  user(input: UserInput!): User
 }
 
 input ReadArticleInput {
@@ -434,8 +438,8 @@ input UnsubscribeArticleInput {
 }
 
 input UpdateNotificationSettingInput {
-  type: String
-  enabled: Boolean
+  type: String!
+  enabled: Boolean!
 }
 
 input UpdateUserInfoInput {
@@ -453,11 +457,10 @@ type User {
   uuid: UUID!
 
   """Get article for this user"""
-  createdAt: DateTime!
-  article(uuid: UUID!): Article!
+  article(input: ArticleInput!): Article!
 
   """Get other user info for this user"""
-  user(uuid: UUID!): User!
+  user(input: UserInput!): User!
   info: UserInfo!
   settings: UserSettings!
 
@@ -478,10 +481,10 @@ type User {
   activity: UserActivity!
 
   """Followers of this user"""
-  followers(offset: Int, limit: Int): [User]
+  followers(input: ListInput): [User]
 
   """Users that this user follows"""
-  followees(offset: Int, limit: Int): [User]
+  followees(input: ListInput): [User]
 
   """Current user has followed this user"""
   isFollowee: Boolean!
@@ -499,6 +502,8 @@ type UserActivity {
 }
 
 type UserInfo {
+  createdAt: DateTime!
+
   """Unique user name"""
   userName: String!
 
@@ -509,7 +514,7 @@ type UserInfo {
   description: String!
 
   """URL for avatar"""
-  avatar: String!
+  avatar: URL!
   email: Email!
   mobile: String!
 
@@ -523,6 +528,10 @@ enum UserInfoFields {
   description
   email
   mobile
+}
+
+input UserInput {
+  uuid: UUID
 }
 
 enum UserLanguage {
