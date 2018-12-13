@@ -1,6 +1,8 @@
-import { BaseService } from './baseService'
-import { BATCH_SIZE, USER_ACTION } from 'common/enums'
 import DataLoader from 'dataloader'
+
+import { ItemData } from 'definitions'
+import { BATCH_SIZE, USER_ACTION } from 'common/enums'
+import { BaseService } from './baseService'
 
 export class DraftService extends BaseService {
   constructor() {

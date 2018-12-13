@@ -31,8 +31,6 @@ export default /* GraphQL */ `
     uuid: UUID!
     authorId: Int!
     title: String
-    mimetype: String!
-    encoding: String!
     s3Path: String!
     createdAt: DateTime!
     updatedAt: DateTime!

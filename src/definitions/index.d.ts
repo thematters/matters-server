@@ -77,3 +77,12 @@ export interface BatchParams {
     [key: string]: any
   }
 }
+
+export type S3Folder = 'audioDraft' | 'draft'
+
+export type S3Bucket =
+  | 'matters-server-dev'
+  | 'matters-server-stage'
+  | 'matters-server-production'
+
+export type ItemData = { [key: string]: any }

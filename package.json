@@ -29,6 +29,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "apollo-server": "^2.2.0",
+    "aws-sdk": "^2.374.0",
     "bcrypt": "^3.0.2",
     "cheerio": "^1.0.0-rc.2",
     "dataloader": "^1.4.0",
