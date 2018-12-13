@@ -22,7 +22,7 @@ const resolver: Resolver = async (
     cover,
     abstract: '',
     content,
-    tags,
+    tags
   }
   return await draftService.baseCreate(data)
 }

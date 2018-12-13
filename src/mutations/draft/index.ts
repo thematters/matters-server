@@ -6,6 +6,6 @@ export default {
   Mutation: {
     singleUpload,
     createOrEditAudioDraft,
-    createDraft,
+    createDraft
   }
 }
