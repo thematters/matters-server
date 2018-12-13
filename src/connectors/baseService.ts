@@ -4,7 +4,6 @@ import _ from 'lodash'
 import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
-import _ from 'lodash'
 import { v4 } from 'uuid'
 //local
 import { S3Bucket, S3Folder, ItemData, TableName } from 'definitions'
@@ -189,8 +188,7 @@ export class BaseService {
    * Upload file to AWS S3.
    */
   uploadFile = async (folder: S3Folder, file: any): Promise<string> => {
-    const { stream, filename, mimetype, encoding } = await file
-    const key = `${folder}/${v4()}`
+    const { stream, filename, mimetype, encoding } = file
     const { Location: path } = await this.s3
       .upload({
         Body: stream,
