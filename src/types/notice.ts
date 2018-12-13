@@ -4,7 +4,13 @@ export default /* GraphQL */ `
   }
 
   extend type User {
-    notices: [Notice]
+    notices(input: NoticesInput): [Notice]
+  }
+
+  input NoticesInput {
+    offset: Int
+    limit: Int
+    hasRead: Boolean
   }
 
   interface Notice {
