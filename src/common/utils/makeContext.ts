@@ -35,6 +35,6 @@ export const makeContext = async ({
     articleService: new ArticleService(),
     awsService: new AWSService(),
     commentService: new CommentService(),
-    draftService: new DraftService(),
+    draftService: new DraftService()
   }
 }

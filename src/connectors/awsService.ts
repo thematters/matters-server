@@ -24,7 +24,7 @@ export class AWSService {
     return {
       region: awsRegion || '',
       accessKeyId: awsAccessId || '',
-      secretAccessKey: awsAccessKey || '',
+      secretAccessKey: awsAccessKey || ''
     }
   }
 
@@ -67,8 +67,10 @@ export class AWSService {
    * Delete file from AWS S3 by a given path key.
    */
   baseDeleteFile = async (key: string): Promise<any> =>
-    await this.s3.deleteObject({
-      Bucket: this.s3Bucket,
-      Key: key
-    }).promise()
+    await this.s3
+      .deleteObject({
+        Bucket: this.s3Bucket,
+        Key: key
+      })
+      .promise()
 }
