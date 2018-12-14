@@ -44,7 +44,7 @@ const resolver: Resolver = async (
   }
   // Create
   else {
-    const comment = commentService.create(data)
+    const comment = await commentService.create(data)
     pubsub.publish(PUBSUB_EVENT.commentCreated, comment)
     return comment
   }
