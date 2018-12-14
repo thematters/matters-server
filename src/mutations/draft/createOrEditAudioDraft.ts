@@ -7,12 +7,11 @@ const resolver: Resolver = async (
   { viewer, draftService }
 ) => {
   if (!viewer) {
-    //throw new Error('anonymous user cannot do this')
+    throw new Error('anonymous user cannot do this')
   }
 
   const data: ItemData = {
-    //authorId: viewer.id || 1,
-    authorId: 1,
+    authorId: viewer.id,
     title,
     s3Path: path
   }

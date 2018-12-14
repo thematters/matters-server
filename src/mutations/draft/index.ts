@@ -1,11 +1,17 @@
+import addDraftTag from './addDraftTag'
 import createDraft from './createDraft'
 import createOrEditAudioDraft from './createOrEditAudioDraft'
-import singleUpload from './singleUpload'
+import deleteDraft from './deleteDraft'
+import deleteDraftTag from './deleteDraftTag'
+import editDraft from './editDraft'
 
 export default {
   Mutation: {
-    singleUpload,
     createOrEditAudioDraft,
-    createDraft
+    createDraft,
+    deleteDraft,
+    editDraft,
+    addDraftTag,
+    deleteDraftTag
   }
 }

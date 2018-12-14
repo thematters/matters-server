@@ -12,7 +12,7 @@ const resolver: Resolver = async (
 
   const article = await articleService.uuidLoader.load(upstreamUUID)
   if (!article) {
-    throw new Error('upstream article does not exists')
+    throw new Error('upstream article does not exist')
   }
   const data: ItemData = {
     uuid: v4(),
