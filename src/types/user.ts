@@ -2,14 +2,16 @@
 export default /* GraphQL */ `
   extend type Query {
     viewer: User
-    user(uuid: UUID!): User
+    user(input: UserInput!): User
   }
 
   extend type Mutation {
     sendVerificationEmail(input: SendVerificationEmailInput): Boolean
     sendPasswordResetEmail(input: SendVerificationEmailInput): Boolean
+    resetPassword(input: ResetPasswordInput): Boolean
     userRegister(input: UserRegisterInput): User
     userLogin(input: UserLoginInput): LoginResult!
+    addOAuth(input: AddOAuthInput): Boolean
     updateUserInfo(input: UpdateUserInfoInput): User!
     followUser(input: FollowUserInput): Boolean
     unfollowUser(input: UnfollowUserInput): Boolean
@@ -22,33 +24,36 @@ export default /* GraphQL */ `
   type User {
     uuid: UUID!
     # Get article for this user
-    article(uuid: UUID!): Article!
+    article(input: ArticleInput!): Article!
     # Get other user info for this user
-    user(uuid: UUID!): User!
+    user(input: UserInput!): User!
     info: UserInfo!
     settings: UserSettings!
     # Personalized recommendations
     recommnedation: Recommendation!
-    # Current user has followed this user
-    hasFollowed: Boolean!
     # Articles written by this user
     articles(input: ListInput): [Article]
     drafts(input: ListInput): [Draft]
     audioDrafts(input: ListInput): [AudioDraft]
     # Comments posted by this user
-    comments(input: ListInput): [Comment]
+    commentedArticles(input: ListInput): [Article]
     # comments that citated this user's article
-    quotations(input: ListInput): [Comment]
+    citedArticles(input: ListInput): [Article]
     subscriptions(input: ListInput): [Article]
     activity: UserActivity!
     # Followers of this user
     followers(input: ListInput): [User]
     # Users that this user follows
     followees(input: ListInput): [User]
+    # Current user has followed this user
+    isFollowee: Boolean!
+    # This user has followed current user
+    isFollower: Boolean!
     status: UserStatus!
   }
 
   type UserInfo {
+    createdAt: DateTime!
     # Unique user name
     userName: String!
     # Display name on profile
@@ -84,6 +89,7 @@ export default /* GraphQL */ `
   type UserActivity {
     history(input: ListInput): [Article]
     recentSearches(input: ListInput): [String]
+    invited(input: ListInput): [User]
   }
 
   type UserStatus {
@@ -168,13 +174,37 @@ export default /* GraphQL */ `
     enabled: Boolean!
   }
 
-
   input UpdateUserInfoInput {
     displayName: String
     avatar: URL
     description: String
-    email: Email
-    mobile: String
+    language: UserLanguage
+  }
+
+  input AddOAuthInput {
+    name: String!
+    id: String!
+    type: OAuthType
+  }
+
+  input ResetPasswordInput {
+    password: String!
+  }
+
+  input UserInput {
+    uuid: UUID
+  }
+
+  input ArticleInput {
+    uuid: UUID
+  }
+
+  enum UserInfoFields {
+    displayName
+    avatar
+    description
+    email
+    mobile
   }
 
   enum UserLanguage {

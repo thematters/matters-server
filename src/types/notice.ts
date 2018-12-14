@@ -4,7 +4,13 @@ export default /* GraphQL */ `
   }
 
   extend type User {
-    notices: [Notice]
+    notices(input: NoticesInput): [Notice]
+  }
+
+  input NoticesInput {
+    offset: Int
+    limit: Int
+    hasRead: Boolean
   }
 
   interface Notice {
@@ -30,9 +36,9 @@ export default /* GraphQL */ `
   type ArticleNotice implements Notice {
     hasRead: Boolean
     createdAt: DateTime
-    user: User  
+    user: User
     action: ArticleNoticeAction
-    target: Article  
+    target: Article
   }
 
   enum ArticleNoticeAction {
@@ -42,7 +48,7 @@ export default /* GraphQL */ `
   }
 
   type CommentNotice implements Notice {
-    hasRead: Boolean 
+    hasRead: Boolean
     createdAt: DateTime
     user: User
     action: CommentNoticeAction

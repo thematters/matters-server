@@ -5,7 +5,6 @@ const userService = new UserService()
 
 const testUser = {
   email: 'test@user.com',
-  avatar: 'https://example.com/avatar.jpg',
   userName: 'hi',
   displayName: 'world',
   password: '456',
@@ -61,7 +60,7 @@ test('login fail with incorrect password', async () => {
 })
 
 test('countFollowees', async () => {
-  expect(await userService.countFollowees(1)).toBe(2)
+  expect(await userService.countFollowees(1)).toBe(1)
   expect(await userService.countFollowees(testUserId)).toBe(0)
 })
 
@@ -91,10 +90,10 @@ test('findNotifySetting', async () => {
 })
 
 test('findFollowees', async () => {
-  const user1Followees = await userService.findFollowees(1)
-  expect(user1Followees.length).toBe(2)
+  const user1Followees = await userService.findFollowees({ id: 1 })
+  expect(user1Followees.length).toBe(1)
 
-  const testUserFollowees = await userService.findFollowees(testUserId)
+  const testUserFollowees = await userService.findFollowees({ id: testUserId })
   expect(testUserFollowees.length).toBe(0)
 })
 

@@ -6,7 +6,7 @@ services:
     build:
       context: ../
       dockerfile: docker/Dockerfile
-    command: ["npm", "run", "start:dev"]
+    command: ['npm', 'run', 'start:dev']
     env_file: ../.env
     volumes:
       - ..:/var/app
@@ -14,7 +14,7 @@ services:
     depends_on:
       - db
     ports:
-      - "4000:4000"
+      - '4000:4000'
   db:
     image: postgres:10
     environment:
@@ -22,7 +22,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
-      - "5432:5432"
+      - '5432:5432'
+  redis:
+    image: redis
+    ports:
+      - '6379:6379'
+    restart: always
 
 volumes:
-  postgres_data:
+  ? postgres_data

@@ -1,12 +1,11 @@
+// external
 import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
-import { knexSnakeCaseMappers } from 'objection'
 import _ from 'lodash'
-
+//local
 import { TableName } from 'definitions'
-import { environment } from 'common/environment'
-const knexConfig = require('../../knexfile')
+import { knex } from './db'
 
 export type Item = { id: number; [key: string]: any }
 export type ItemData = { [key: string]: any }
@@ -21,16 +20,8 @@ export class BaseService {
   table: TableName
 
   constructor(table: TableName) {
-    this.knex = this.getKnexClient()
+    this.knex = knex
     this.table = table
-  }
-
-  /**
-   * Initialize a Knex client for PostgreSQL.
-   */
-  getKnexClient = (): Knex => {
-    const { env } = environment
-    return Knex({ ...knexConfig[env], ...knexSnakeCaseMappers() })
   }
 
   /**
@@ -50,7 +41,7 @@ export class BaseService {
   /**
    * Find items by given ids.
    */
-  baseFindByIds = async (ids: number[]): Promise<any[]> =>
+  baseFindByIds = async (ids: number[]) =>
     await this.knex
       .select()
       .from(this.table)
