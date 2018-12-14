@@ -1,17 +1,16 @@
-import * as fs from 'fs'
 import { Resolver } from 'definitions'
 
 const resolver: Resolver = async (
   root,
-  { input: { file } }: any,
-  { viewer, draftService }
+  { input: { purpose, file } },
+  { viewer, awsService }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this')
   }
   const data = await file
   const { filename, mimetype, encoding } = data
-  const path = await draftService.uploadFile('audioDraft', data)
+  const path = await awsService.baseUploadFile(purpose, data)
   return { filename, mimetype, encoding, path }
 }
 

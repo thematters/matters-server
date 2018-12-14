@@ -1,12 +1,10 @@
 // external
-import * as AWS from 'aws-sdk'
 import _ from 'lodash'
 import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
-import { v4 } from 'uuid'
 //local
-import { S3Bucket, S3Folder, ItemData, TableName } from 'definitions'
+import { ItemData, TableName } from 'definitions'
 import { environment } from 'common/environment'
 import { knex } from './db'
 
@@ -21,46 +19,9 @@ export class BaseService {
 
   table: TableName
 
-  s3: AWS.S3
-
-  s3Bucket: S3Bucket
-
   constructor(table: TableName) {
     this.knex = knex
     this.table = table
-    this.s3 = this.getS3Client()
-    this.s3Bucket = this.getS3Bucket()
-  }
-
-  /**
-   * Get S3 Client.
-   */
-  getS3Client = (): AWS.S3 => {
-    const { env, awsRegion, awsAccessId, awsAccessKey } = environment
-    AWS.config.update({
-      region: awsRegion || '',
-      accessKeyId: awsAccessId || '',
-      secretAccessKey: awsAccessKey || ''
-    })
-    return new AWS.S3()
-  }
-
-  /**
-   * Get S3 bucket.
-   */
-  getS3Bucket = (): S3Bucket => {
-    const { env } = environment
-    switch (env) {
-      case 'staging': {
-        return 'matters-server-stage'
-      }
-      case 'production': {
-        return 'matters-server-production'
-      }
-      default: {
-        return 'matters-server-dev'
-      }
-    }
   }
 
   /**
@@ -185,19 +146,10 @@ export class BaseService {
       .returning('*'))[0]
 
   /**
-   * Upload file to AWS S3.
+   * Delete an item by a given id.
    */
-  uploadFile = async (folder: S3Folder, file: any): Promise<string> => {
-    const { stream, filename, mimetype, encoding } = file
-    const { Location: path } = await this.s3
-      .upload({
-        Body: stream,
-        Bucket: this.s3Bucket,
-        ContentEncoding: encoding,
-        ContentType: mimetype,
-        Key: `${folder}/${v4()}/${filename}`
-      })
-      .promise()
-    return path
-  }
+  baseDelete = async (id: number, table?: TableName): Promise<any> =>
+    await this.knex(table || this.table)
+      .where({ id })
+      .del()
 }
