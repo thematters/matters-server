@@ -19,7 +19,8 @@ export default /* GraphQL */ `
     recallPublication(input: RecallPublicationInput): Draft!
   }
 
-  type Article {
+  type Article implements Node {
+    id: ID!
     uuid: UUID!
     createdAt: DateTime!
     public: Boolean!

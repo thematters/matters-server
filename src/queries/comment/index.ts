@@ -1,4 +1,5 @@
 import { BatchParams, Context } from 'definitions'
+import { toGlobalId } from 'common/utils'
 
 export default {
   User: {
@@ -33,6 +34,9 @@ export default {
     ) => commentService.findByArticleInBatch(id, offset, limit)
   },
   Comment: {
+    id: ({ id }: { id: string }) => {
+      return toGlobalId({ type: 'Comment', id })
+    },
     article: (
       { articleId }: { articleId: number },
       _: any,

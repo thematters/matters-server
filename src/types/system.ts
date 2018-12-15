@@ -1,8 +1,17 @@
 export default /* GraphQL */ `
   extend type Query {
+    node(input: NodeInput!): Node
     frequentSearch(key: String): [String]
     search(key: String): [SearchResult]
     official: Official!
+  }
+
+  interface Node {
+    id: ID!
+  }
+
+  input NodeInput {
+    id: ID!
   }
 
   input SearchInput {

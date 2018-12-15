@@ -1,4 +1,5 @@
 import { BatchParams, Context } from 'definitions'
+import { toGlobalId } from 'common/utils'
 
 export default {
   Query: {
@@ -10,6 +11,9 @@ export default {
     viewer: (root: any, _: any, { viewer }: Context) => viewer
   },
   User: {
+    id: ({ id }: { id: string }) => {
+      return toGlobalId({ type: 'User', id })
+    },
     info: (root: any) => root,
     user: (
       root: any,

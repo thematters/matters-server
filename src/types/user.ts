@@ -21,7 +21,8 @@ export default /* GraphQL */ `
     clearSearchHistory: Boolean
   }
 
-  type User {
+  type User implements Node {
+    id: ID!
     uuid: UUID!
     # Get article for this user
     article(input: ArticleInput!): Article!
