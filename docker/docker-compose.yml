@@ -6,7 +6,7 @@ services:
     build:
       context: ../
       dockerfile: docker/Dockerfile
-    command: ["npm", "run", "start:dev"]
+    command: ['npm', 'run', 'start:dev']
     env_file: ../.env
     volumes:
       - ..:/var/app
@@ -14,7 +14,8 @@ services:
     depends_on:
       - db
     ports:
-      - "4000:4000"
+      - '4000:4000'
+
   db:
     image: postgres:10
     environment:
@@ -22,7 +23,26 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
-      - "5432:5432"
+      - '5432:5432'
+
+  elasticsearch:
+    image: matters/elasticsearch:latest
+    command: elasticsearch -E network.host=0.0.0.0 -E discovery.zen.minimum_master_nodes=1
+    environment:
+      - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+  
+  kibana:
+    image: kibana:5.4
+    ports:
+      - '5601:5601'
+    depends_on:
+      - elasticsearch
 
 volumes:
   postgres_data:
+  elasticsearch_data:
