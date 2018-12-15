@@ -7,6 +7,8 @@ import {
   DraftService
 } from 'connectors'
 
+export type NodeTypes = 'Article' | 'User' | 'Comment'
+
 export type Resolver = (
   parent: any,
   args: any,

@@ -1,4 +1,5 @@
 import { BatchParams, Context } from 'definitions'
+import { toGlobalId } from 'common/utils'
 
 export default {
   Query: {
@@ -37,6 +38,9 @@ export default {
     }
   },
   Article: {
+    id: ({ id }: { id: string }) => {
+      return toGlobalId({ type: 'Article', id })
+    },
     author: ({ id }: { id: number }, _: any, { userService }: Context) =>
       userService.idLoader.load(id),
     summary: (
