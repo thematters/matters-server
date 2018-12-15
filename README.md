@@ -9,14 +9,14 @@
 
 ## DB migrations and seeds
 
-- Create a new migration: `npx knex migrate:make <migration-name>`
-- Create a new seed file: `npx knex seed:make <seeds-name>`, seed files are run sequential so please pre-fix with order
+- Create a new migration: `npm run db:migrate:make <migration-name>`
+- Create a new seed file: `npm run db:seed:make <seeds-name>`, seed files are run sequential so please pre-fix with order
 - Rollback a migration: `npm run db:rollback`
 
 ## Run test cases on local dev
 
-- `MATTERS_ENV=test npx jest`; or 
-- `MATTERS_ENV=test npx jest --coverage`; or 
+- `MATTERS_ENV=test npx jest`; or
+- `MATTERS_ENV=test npx jest --coverage`; or
 - `MATTERS_ENV=test npx jest --forceExit --detectOpenHandles --coverage`.
 
 ## Start dev with docker-compose
