@@ -48,6 +48,6 @@ test('findSubscriptions', async () => {
 })
 
 test('update', async () => {
-  const article = await articleService.update(1, { publishState: 'archived' })
+  const article = await articleService.update('1', { publishState: 'archived' })
   expect(article.publishState).toEqual('archived')
 })

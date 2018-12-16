@@ -144,7 +144,7 @@ describe('user query fields', () => {
     expect(articles[0].id).toEqual(toGlobalId({ type: 'Article', id: 4 }))
   })
 
-  test.only('retrive an user', async () => {
+  test('retrive an user', async () => {
     const query = `
       query UserQuery($input: UserInput!) {
         viewer {
