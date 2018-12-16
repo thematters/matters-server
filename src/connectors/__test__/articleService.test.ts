@@ -1,4 +1,7 @@
 import { ArticleService } from '../articleService'
+import { knex } from 'connectors/db'
+
+afterAll(knex.destroy)
 
 const articleService = new ArticleService()
 
@@ -34,19 +37,9 @@ test('findAppreciations', async () => {
   expect(appreciations.length).toBe(4)
 })
 
-test('countByTag', async () => {
-  const count = await articleService.countByTag('article')
-  expect(count).toBe(2)
-})
-
-test('findByTag', async () => {
-  const articles = await articleService.findByTag('article')
-  expect(articles.length).toBe(2)
-})
-
-test('findTags', async () => {
-  const tags = await articleService.findTags(1)
-  expect(tags).toEqual(['test', 'article'])
+test('findTagIds', async () => {
+  const tagIds = await articleService.findTagIds({ id: '1' })
+  expect(tagIds.length).toEqual(2)
 })
 
 test('findSubscriptions', async () => {

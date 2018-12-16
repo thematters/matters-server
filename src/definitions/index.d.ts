@@ -4,7 +4,8 @@ import {
   UserService,
   ArticleService,
   CommentService,
-  DraftService
+  DraftService,
+  TagService
 } from 'connectors'
 
 export type NodeTypes = 'Article' | 'User' | 'Comment'
@@ -50,6 +51,7 @@ export type Context = {
   commentService: InstanceType<typeof CommentService>
   draftService: InstanceType<typeof DraftService>
   userService: InstanceType<typeof UserService>
+  tagService: InstanceType<typeof TagService>
 }
 
 export type TableName =
@@ -59,6 +61,7 @@ export type TableName =
   | 'action_article'
   | 'appreciate'
   | 'article'
+  | 'tag'
   | 'article_read'
   | 'audio_draft'
   | 'comment'

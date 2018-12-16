@@ -51,7 +51,7 @@ export default /* GraphQL */ `
   }
 
   type Tag {
-    text: String
+    content: String
     count: Int
     articles(input: ListInput): [Article]
   }

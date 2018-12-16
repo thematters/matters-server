@@ -34,17 +34,6 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum, 10)
   }
 
-  /**
-   * Count tags by a given tag text.
-   */
-  countByTag = async (tag: string): Promise<number> => {
-    const result = await this.knex('article_tag')
-      .countDistinct('article_id')
-      .where('tag', tag)
-      .first()
-    return parseInt(result.count, 10)
-  }
-
   countWords = (html: string) =>
     cheerio
       .load(html)('body')
@@ -125,27 +114,19 @@ export class ArticleService extends BaseService {
       .limit(limit)
 
   /**
-   * Find tags by a given tag text.
-   */
-  findByTag = async (tag: string) => {
-    const result = await this.knex
-      .select()
-      .from('article_tag')
-      .where('tag', tag)
-    return this.baseFindByIds(
-      result.map(({ articleId }: { articleId: number }) => articleId)
-    )
-  }
-
-  /**
    * Find tages by a given article id.
    */
-  findTags = async (articleId: number): Promise<any | null> => {
+  findTagIds = async ({
+    id: articleId
+  }: {
+    id: string
+  }): Promise<any | null> => {
     const result = await this.knex
-      .select()
+      .select('tag_id')
       .from('article_tag')
       .where({ articleId })
-    return result.map(({ tag }: { tag: string }) => tag)
+
+    return result.map(({ tagId }: { tagId: string }) => tagId)
   }
 
   /**

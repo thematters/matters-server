@@ -1,10 +1,10 @@
 export default /* GraphQL */ `
-  extend type Subscription {
-    notice: Notice
+  extend type User {
+    notices(input: NoticesInput): [Notice]!
   }
 
-  extend type User {
-    notices(input: NoticesInput): [Notice]
+  input NodeEditedInput {
+    id: ID!
   }
 
   input NoticesInput {
@@ -16,13 +16,13 @@ export default /* GraphQL */ `
   interface Notice {
     hasRead: Boolean
     createdAt: DateTime
-    user: User
+    users: [User]
   }
 
   type UserNotice implements Notice {
     hasRead: Boolean
     createdAt: DateTime
-    user: User
+    users: [User]
     action: UserNoticeAction
     target: User
   }
@@ -36,7 +36,7 @@ export default /* GraphQL */ `
   type ArticleNotice implements Notice {
     hasRead: Boolean
     createdAt: DateTime
-    user: User  
+    users: [User]  
     action: ArticleNoticeAction
     target: Article  
   }
@@ -50,7 +50,7 @@ export default /* GraphQL */ `
   type CommentNotice implements Notice {
     hasRead: Boolean 
     createdAt: DateTime
-    user: User
+    users: [User]
     action: CommentNoticeAction
     target: Comment
   }

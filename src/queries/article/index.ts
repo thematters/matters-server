@@ -49,12 +49,12 @@ export default {
       { articleService }: Context
     ) => articleService.getContentFromHash(hash).slice(0, 30),
     tags: async (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
-      { articleService }: Context
+      { articleService, tagService }: Context
     ) => {
-      const tags = await articleService.findTags(id)
-      return tags.map((t: any) => ({ text: t.tag }))
+      const tagIds = await articleService.findTagIds({ id })
+      return tagService.idLoader.loadMany(tagIds)
     },
     wordCount: (
       { wordCount, hash }: { wordCount: number; hash: string },
@@ -111,19 +111,16 @@ export default {
     hasAppreciate: () => false
   },
   Tag: {
-    count: (
-      { text }: { text: string },
-      _: any,
-      { articleService }: Context
-    ) => {
-      return articleService.countByTag(text)
+    count: ({ id }: { id: string }, _: any, { tagService }: Context) => {
+      return tagService.countArticles({ id })
     },
-    articles: (
-      { text }: { text: string },
+    articles: async (
+      { id }: { id: string },
       _: any,
-      { articleService }: Context
+      { tagService, articleService }: Context
     ) => {
-      return articleService.findByTag(text)
+      const articleIds = await tagService.findArticleIds({ id })
+      return articleService.idLoader.loadMany(articleIds)
     }
   }
 }
