@@ -8,7 +8,7 @@ import {
   TagService
 } from 'connectors'
 
-export type NodeTypes = 'Article' | 'User' | 'Comment'
+export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
 
 export type Resolver = (
   parent: any,

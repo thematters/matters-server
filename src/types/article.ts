@@ -1,11 +1,10 @@
 export default /* GraphQL */ `
   extend type Query {
-    article(uuid: UUID!): Article
     tag(input: TagInput): Tag
   }
 
   input TagInput {
-    tag: String!
+    id: ID!
   }
 
   extend type Mutation {
@@ -21,7 +20,6 @@ export default /* GraphQL */ `
 
   type Article implements Node {
     id: ID!
-    uuid: UUID!
     createdAt: DateTime!
     public: Boolean!
     author: User!
@@ -50,7 +48,8 @@ export default /* GraphQL */ `
     publishState: PublishState!
   }
 
-  type Tag {
+  type Tag implements Node {
+    id: ID!
     content: String
     count: Int
     articles(input: ListInput): [Article]
@@ -65,39 +64,39 @@ export default /* GraphQL */ `
   }
 
   input PublishArticleInput {
-    # publish with draft uuid
-    uuid: UUID
+    # publish with draft id
+    id: ID!
   }
 
   input ArchiveArticleInput {
-    uuid: UUID
+    id: ID!
   }
 
   input SubscribeArticleInput {
-    uuid: UUID
+    id: ID!
   }
 
   input UnsubscribeArticleInput {
-    uuid: UUID
+    id: ID!
   }
 
   input ReportArticleInput {
-    uuid: UUID
+    id: ID!
     category: String
     description: String
   }
 
   input AppreciateArticleInput {
-    uuid: UUID
+    id: ID!
     amount: Int
   }
 
   input ReadArticleInput {
-    uuid: UUID
+    id: ID!
   }
 
   input RecallPublicationInput {
-    uuid: UUID
+    id: ID!
   }
 
   enum PublishState {

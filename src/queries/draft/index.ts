@@ -1,10 +1,7 @@
 import { BatchParams, Context } from 'definitions'
+import { toGlobalId } from 'common/utils'
 
 export default {
-  Query: {
-    draft: (_: any, { uuid }: { uuid: string }, { draftService }: Context) =>
-      draftService.uuidLoader.load(uuid)
-  },
   User: {
     drafts: (
       { id }: { id: number },
@@ -16,5 +13,10 @@ export default {
       { input: { offset, limit } }: BatchParams,
       { draftService }: Context
     ) => draftService.findAudioDraftsByAuthorInBatch(id, offset, limit)
+  },
+  Draft: {
+    id: ({ id }: { id: string }) => {
+      return toGlobalId({ type: 'Draft', id })
+    }
   }
 }

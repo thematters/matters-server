@@ -1,14 +1,7 @@
 import { BatchParams, Context } from 'definitions'
-import { toGlobalId } from 'common/utils'
+import { toGlobalId, fromGlobalId } from 'common/utils'
 
 export default {
-  Query: {
-    article: (
-      _: any,
-      { uuid }: { uuid: string },
-      { articleService }: Context
-    ) => articleService.uuidLoader.load(uuid)
-  },
   User: {
     articles: (
       { id }: { id: number },
@@ -17,9 +10,12 @@ export default {
     ) => articleService.findByAuthorInBatch(id, offset, limit),
     article: (
       _: any,
-      { input: { uuid } }: { input: { uuid: string } },
+      { input: { id } }: { input: { id: string } },
       { articleService }: Context
-    ) => articleService.uuidLoader.load(uuid)
+    ) => {
+      const { id: dbId } = fromGlobalId(id)
+      return articleService.idLoader.load(dbId)
+    }
   },
   UserStatus: {
     MAT: async (
@@ -41,7 +37,7 @@ export default {
     id: ({ id }: { id: string }) => {
       return toGlobalId({ type: 'Article', id })
     },
-    author: ({ id }: { id: number }, _: any, { userService }: Context) =>
+    author: ({ id }: { id: string }, _: any, { userService }: Context) =>
       userService.idLoader.load(id),
     summary: (
       { hash }: { hash: string },
@@ -70,7 +66,7 @@ export default {
     ) => articleService.getContentFromHash(hash),
     gatewayUrls: () => [],
     upstream: (
-      { upstreamId }: { upstreamId: number },
+      { upstreamId }: { upstreamId: string },
       _: any,
       { articleService }: Context
     ) => articleService.idLoader.load(upstreamId),
@@ -111,6 +107,9 @@ export default {
     hasAppreciate: () => false
   },
   Tag: {
+    id: ({ id }: { id: string }) => {
+      return toGlobalId({ type: 'Tag', id })
+    },
     count: ({ id }: { id: string }, _: any, { tagService }: Context) => {
       return tagService.countArticles({ id })
     },

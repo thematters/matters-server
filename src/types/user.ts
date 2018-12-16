@@ -23,7 +23,6 @@ export default /* GraphQL */ `
 
   type User implements Node {
     id: ID!
-    uuid: UUID!
     # Get article for this user
     article(input: ArticleInput!): Article!
     # Get other user info for this user
@@ -154,11 +153,11 @@ export default /* GraphQL */ `
   }
 
   input FollowUserInput {
-    uuid: UUID
+    id: ID!
   }
 
   input UnfollowUserInput {
-    uuid: UUID
+    id: ID!
   }
 
   input ImportArticlesInput {
@@ -193,11 +192,11 @@ export default /* GraphQL */ `
   }
 
   input UserInput {
-    uuid: UUID
+    id: ID!
   }
 
   input ArticleInput {
-    uuid: UUID
+    id: ID!
   }
   
   enum UserInfoFields {
