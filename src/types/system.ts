@@ -6,6 +6,10 @@ export default /* GraphQL */ `
     official: Official!
   }
 
+  extend type Subscription {
+    nodeEdited(input: NodeEditedInput!): Node!
+  }
+
   interface Node {
     id: ID!
   }
