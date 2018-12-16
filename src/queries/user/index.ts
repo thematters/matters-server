@@ -55,12 +55,8 @@ export default {
         actions.map(({ targetId }: { targetId: number }) => targetId)
       )
     },
-    notices: ({ id }: { id: number }, _: any, { userService }: Context) => null,
     settings: (root: any) => root,
     status: (root: any) => root
-  },
-  Notice: {
-    __resolveType: () => 'UserNotice'
   },
   UserSettings: {
     // language: ({ language }: { language: string }) => language,
