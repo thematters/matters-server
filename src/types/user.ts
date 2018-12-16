@@ -109,6 +109,8 @@ export default /* GraphQL */ `
     followeeCount: Int!
     # Number of user that follows this user
     followerCount: Int!
+    # Number of unread notices
+    unreadNoticeCount: Int!
   }
 
   type NotificationSetting {
@@ -198,7 +200,7 @@ export default /* GraphQL */ `
   input ArticleInput {
     uuid: UUID
   }
-  
+
   enum UserInfoFields {
     displayName
     avatar

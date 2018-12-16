@@ -122,6 +122,17 @@ export class UserService extends BaseService {
   }
 
   /**
+   * Count an users' unread notice by a given user id.
+   */
+  countUnreadNotice = async (userId: number): Promise<number> => {
+    const result = await this.knex('notice')
+      .countDistinct('id')
+      .where({ recipientId: userId, unread: true, deleted: false })
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  /**
    * Find users by a given email.
    */
   findByEmail = async (
@@ -282,6 +293,71 @@ export class UserService extends BaseService {
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+  }
+
+  /**
+   * Find an users' notices by a given user id in batches.
+   */
+  findNoticesInBatch = async (
+    userId: number,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> => {
+    const notices = await this.knex
+      .select()
+      .from('notice')
+      .where({ recipientId: userId, deleted: false })
+      .orderBy('updated_at', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+    return notices.map(async (notice: any) => {
+      // notice object
+      const {
+        noticeType,
+        entityTypeId,
+        entityId,
+        message,
+        data
+      } = await this.knex
+        .select('notice_type', 'entity_type_id', 'entity_id', 'message', 'data')
+        .from('notice_object')
+        .where({ id: notice.noticeObjectId })
+        .first()
+
+      let entity = null
+      if (entityTypeId && entityId) {
+        const { table: entityTableName } = await this.knex
+          .select('table')
+          .from('entity_type')
+          .where({ id: entityTypeId })
+          .first()
+        entity = await this.knex
+          .select()
+          .from(entityTableName)
+          .first()
+      }
+
+      // notice actors
+      const noticeActorIds = (await this.knex
+        .select('actor_id')
+        .from('notice_actor')
+        .where({ noticeId: notice.id })).map(
+        ({ actorId }: { actorId: any }) => actorId
+      )
+      const actors = await this.knex
+        .select()
+        .from('user')
+        .whereIn('id', noticeActorIds)
+
+      return Object.assign(notice, {
+        type: noticeType,
+        entity,
+        message,
+        data,
+        actors
+      })
+    })
   }
 
   /**
