@@ -18,7 +18,7 @@ export default {
         type: NodeTypes
         id: string
       }
-      const node = await serviceMap[type].idLoader.load(parseInt(dbId))
+      const node = await serviceMap[type].idLoader.load(dbId)
 
       return { ...node, __type: type }
     }
