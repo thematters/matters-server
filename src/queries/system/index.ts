@@ -6,12 +6,20 @@ export default {
     node: async (
       root: any,
       { input: { id } }: { input: { id: string } },
-      { articleService, userService, commentService }: Context
+      {
+        articleService,
+        userService,
+        commentService,
+        draftService,
+        tagService
+      }: Context
     ) => {
       const serviceMap = {
         Article: articleService,
         User: userService,
-        Comment: commentService
+        Comment: commentService,
+        Draft: draftService,
+        Tag: tagService
       }
 
       const { type, id: dbId } = fromGlobalId(id) as {

@@ -258,7 +258,7 @@ export class ArticleService extends BaseService {
   // }
 
   // update an object with id and kv pairs object
-  update = async (id: number, kv: { [k: string]: any }) => {
+  update = async (id: string, kv: { [k: string]: any }) => {
     const qs = await this.knex(this.table)
       .where({
         id

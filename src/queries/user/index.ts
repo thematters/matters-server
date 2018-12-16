@@ -1,13 +1,8 @@
 import { BatchParams, Context } from 'definitions'
-import { toGlobalId } from 'common/utils'
+import { toGlobalId, fromGlobalId } from 'common/utils'
 
 export default {
   Query: {
-    user: (
-      root: any,
-      { input: { uuid } }: { input: { uuid: string } },
-      { userService }: Context
-    ) => userService.uuidLoader.load(uuid),
     viewer: (root: any, _: any, { viewer }: Context) => viewer
   },
   User: {
@@ -17,9 +12,12 @@ export default {
     info: (root: any) => root,
     user: (
       root: any,
-      { input: { uuid } }: { input: { uuid: string } },
+      { input: { id } }: { input: { id: string } },
       { userService }: Context
-    ) => userService.uuidLoader.load(uuid),
+    ) => {
+      const { id: dbID } = fromGlobalId(id)
+      return userService.idLoader.load(dbID)
+    },
     // hasFollowed,
     // drafts,
     // audioDrafts,
