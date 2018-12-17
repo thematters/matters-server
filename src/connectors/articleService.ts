@@ -13,7 +13,7 @@ export class ArticleService extends BaseService {
   /**
    * Count articles by a given authorId (user).
    */
-  countByAuthor = async (authorId: number): Promise<number> => {
+  countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where({ authorId })
@@ -24,14 +24,14 @@ export class ArticleService extends BaseService {
   /**
    * Count total appreciaton by a given article id.
    */
-  countAppreciation = async (articleId: number): Promise<number> => {
+  countAppreciation = async (articleId: string): Promise<number> => {
     const result = await this.knex
       .select()
       .from('appreciate')
       .where({ articleId })
       .sum('amount')
       .first()
-    return parseInt(result.sum, 10)
+    return parseInt(result.sum || '0', 10)
   }
 
   countWords = (html: string) =>
@@ -44,7 +44,7 @@ export class ArticleService extends BaseService {
   /**
    * Find articles by a given author id (user).
    */
-  findByAuthor = async (authorId: number) =>
+  findByAuthor = async (authorId: string) =>
     await this.knex
       .select()
       .from(this.table)

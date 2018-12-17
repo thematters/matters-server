@@ -6,12 +6,12 @@ afterAll(knex.destroy)
 const articleService = new ArticleService()
 
 test('countByAuthor', async () => {
-  const count = await articleService.countByAuthor(1)
+  const count = await articleService.countByAuthor('1')
   expect(count).toBe(2)
 })
 
 test('countAppreciation', async () => {
-  const appreciation = await articleService.countAppreciation(1)
+  const appreciation = await articleService.countAppreciation('1')
   expect(appreciation).toBe(150)
 })
 
@@ -23,7 +23,7 @@ test('countWords', async () => {
 })
 
 test('findByAuthor', async () => {
-  const articles = await articleService.findByAuthor(1)
+  const articles = await articleService.findByAuthor('1')
   expect(articles.length).toBe(2)
 })
 
