@@ -1,3 +1,5 @@
+// external
+import { sum } from 'lodash'
 import { BatchParams, Context } from 'definitions'
 import { toGlobalId, fromGlobalId } from 'common/utils'
 
@@ -73,10 +75,23 @@ export default {
   },
   UserStatus: {
     articleCount: async (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
       { articleService }: Context
     ) => articleService.countByAuthor(id),
+    MAT: async (
+      { id }: { id: string },
+      _: any,
+      { articleService }: Context
+    ) => {
+      const articles = await articleService.findByAuthor(id)
+      const apprecations = await Promise.all(
+        articles.map(({ id }: { id: string }) =>
+          articleService.countAppreciation(id)
+        )
+      )
+      return sum(apprecations)
+    },
     // viewCount,
     // draftCount,
     commentCount: (

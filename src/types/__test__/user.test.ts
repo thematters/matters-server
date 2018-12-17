@@ -144,6 +144,25 @@ describe('user query fields', () => {
     expect(articles[0].id).toEqual(toGlobalId({ type: 'Article', id: 4 }))
   })
 
+  test('retrive user MAT', async () => {
+    const viewerQuery = `
+      query {
+        viewer {
+          status {
+            MAT
+          }
+        }
+      }
+    `
+    const context = await authContext()
+    const { data } = await graphql(schema, viewerQuery, {}, context, {
+      input: { limit: 1 }
+    })
+    const status = data && data.viewer && data.viewer.status
+
+    expect(status.MAT).toEqual(150)
+  })
+
   test('retrive an user', async () => {
     const query = `
       query UserQuery($input: UserInput!) {

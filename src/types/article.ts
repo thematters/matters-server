@@ -44,6 +44,7 @@ export default /* GraphQL */ `
     comments(input: CommentsInput): [Comment]
     subscribers(input: ListInput): [User]
     appreciators(input: ListInput): [User]
+    appreciatorCount: Int!
     hasAppreciate: Boolean!
     publishState: PublishState!
   }
@@ -107,7 +108,7 @@ export default /* GraphQL */ `
   }
 
   enum CommentSort {
-    upVotes
+    oldest
     newest
   }
 `

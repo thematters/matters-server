@@ -8,6 +8,8 @@ export default /* GraphQL */ `
   extend type Mutation {
     sendVerificationEmail(input: SendVerificationEmailInput): Boolean
     sendPasswordResetEmail(input: SendVerificationEmailInput): Boolean
+    sendEmailResetEmail(input: SendEmailResetEmailInput): Boolean
+    verifyEmailResetCode(input: VerifyEmailResetCodeInput): Boolean
     resetPassword(input: ResetPasswordInput): Boolean
     userRegister(input: UserRegisterInput): User
     userLogin(input: UserLoginInput): LoginResult!
@@ -136,8 +138,17 @@ export default /* GraphQL */ `
     email: Email!
   }
 
+  input SendEmailResetEmailInput {
+    email: Email!
+  }
+
   input SendPasswordResetEmailInput {
     email: Email!
+  }
+
+  input VerifyEmailResetCodeInput {
+    email: Email!
+    code: String!
   }
 
   input UserRegisterInput {
@@ -189,6 +200,7 @@ export default /* GraphQL */ `
 
   input ResetPasswordInput {
     password: String!
+    code: String
   }
 
   input UserInput {
