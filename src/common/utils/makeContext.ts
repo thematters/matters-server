@@ -5,7 +5,6 @@ import { Context } from 'definitions'
 import { environment } from 'common/environment'
 import {
   ArticleService,
-  AWSService,
   CommentService,
   DraftService,
   UserService
@@ -33,7 +32,6 @@ export const makeContext = async ({
     viewer,
     userService,
     articleService: new ArticleService(),
-    awsService: new AWSService(),
     commentService: new CommentService(),
     draftService: new DraftService()
   }

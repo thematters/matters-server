@@ -6,11 +6,14 @@ import Knex from 'knex'
 //local
 import { ItemData, TableName } from 'definitions'
 import { environment } from 'common/environment'
+import { aws, AWSService } from './aws'
 import { knex } from './db'
 
 export type Item = { id: number; [key: string]: any }
 
 export class BaseService {
+  aws: InstanceType<typeof AWSService>
+
   knex: Knex
 
   idLoader: DataLoader<number, Item>
@@ -22,6 +25,7 @@ export class BaseService {
   constructor(table: TableName) {
     this.knex = knex
     this.table = table
+    this.aws = aws
   }
 
   /**

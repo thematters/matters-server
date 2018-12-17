@@ -1,5 +1,4 @@
 export * from './articleService'
-export * from './awsService'
 export * from './commentService'
 export * from './draftService'
 export * from './userService'
