@@ -3,12 +3,12 @@ import { Resolver } from 'definitions'
 const resolver: Resolver = async (
   _,
   { input: { path } },
-  { viewer, awsService }
+  { viewer, userService }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this')
   }
-  await awsService.baseDeleteFile(path)
+  await userService.aws.baseDeleteFile(path)
 
   return true
 }

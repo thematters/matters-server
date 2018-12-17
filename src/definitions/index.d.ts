@@ -3,7 +3,6 @@ import { GraphQLResolveInfo } from 'graphql'
 import {
   UserService,
   ArticleService,
-  AWSService,
   CommentService,
   DraftService
 } from 'connectors'
@@ -46,7 +45,6 @@ export type User = {
 export type Context = {
   viewer: User | undefined
   articleService: InstanceType<typeof ArticleService>
-  awsService: InstanceType<typeof AWSService>
   commentService: InstanceType<typeof CommentService>
   draftService: InstanceType<typeof DraftService>
   userService: InstanceType<typeof UserService>

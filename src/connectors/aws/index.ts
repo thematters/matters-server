@@ -74,3 +74,5 @@ export class AWSService {
       })
       .promise()
 }
+
+export const aws = new AWSService()
