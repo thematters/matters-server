@@ -51,16 +51,17 @@ export class AWSService {
    */
   baseUploadFile = async (folder: S3Folder, file: any): Promise<string> => {
     const { stream, filename, mimetype, encoding } = file
-    const { Location: path } = await this.s3
+    const key = `${folder}/${v4()}/${filename}`
+    const result = await this.s3
       .upload({
         Body: stream,
         Bucket: this.s3Bucket,
         ContentEncoding: encoding,
         ContentType: mimetype,
-        Key: `${folder}/${v4()}/${filename}`
+        Key: key
       })
       .promise()
-    return path
+    return key
   }
 
   /**
