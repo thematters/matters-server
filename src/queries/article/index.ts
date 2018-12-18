@@ -19,14 +19,14 @@ export default {
   },
   UserStatus: {
     MAT: async (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
       { articleService }: Context
     ) => {
       const articles = await articleService.findByAuthor(id)
       const apprecitions = ((await Promise.all(
         articles.map(
-          async ({ id }: { id: number }) =>
+          async ({ id }: { id: string }) =>
             await articleService.countAppreciation(id)
         )
       )) as unknown) as number[]
