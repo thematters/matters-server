@@ -1,8 +1,34 @@
 export default /* GraphQL */ `
   extend type Query {
+    node(input: NodeInput!): Node
     frequentSearch(key: String): [String]
     search(key: String): [SearchResult]
     official: Official!
+  }
+
+  extend type Subscription {
+    nodeEdited(input: NodeEditedInput!): Node!
+  }
+
+  type SearchResult {
+    entity: Entity
+    match: String
+  }
+
+  type Official {
+    reportCategory: [String]!
+  }
+
+  interface Node {
+    id: ID!
+  }
+
+  input NodeInput {
+    id: ID!
+  }
+
+  input NodeEditedInput {
+    id: ID!
   }
 
   input SearchInput {
@@ -24,13 +50,4 @@ export default /* GraphQL */ `
   }
 
   union Entity = User | Article | Tag
-
-  type SearchResult {
-    entity: Entity
-    match: String
-  }
-
-  type Official {
-    reportCategory: [String]!
-  }
 `

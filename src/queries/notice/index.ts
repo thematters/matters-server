@@ -1,4 +1,5 @@
 import { BatchParams, Context } from 'definitions'
+import { toGlobalId } from 'common/utils'
 
 export default {
   User: {
@@ -15,17 +16,22 @@ export default {
       { userService }: Context
     ) => userService.countUnreadNotice(id)
   },
+  Notice: {
+    id: ({ id }: { id: string }) => {
+      return toGlobalId({ type: 'Notice', id })
+    }
+  },
   NoticeEntity: {
-    __resolveType: (obj: any) => {
-      if (obj.upstream) {
-        return 'Article'
+    node: ({ node }: any) => {
+      let type
+      if (node.title) {
+        type = 'Article'
+      } else if (node.content) {
+        type = 'Comment'
+      } else if (node.userName) {
+        type = 'User'
       }
-
-      if (obj.user_name) {
-        return 'User'
-      }
-
-      return 'Comment'
+      return { ...node, __type: type }
     }
   }
 }

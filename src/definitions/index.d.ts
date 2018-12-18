@@ -4,8 +4,11 @@ import {
   UserService,
   ArticleService,
   CommentService,
-  DraftService
+  DraftService,
+  TagService
 } from 'connectors'
+
+export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
 
 export type Resolver = (
   parent: any,
@@ -48,6 +51,7 @@ export type Context = {
   commentService: InstanceType<typeof CommentService>
   draftService: InstanceType<typeof DraftService>
   userService: InstanceType<typeof UserService>
+  tagService: InstanceType<typeof TagService>
 }
 
 export type TableName =
@@ -57,6 +61,7 @@ export type TableName =
   | 'action_article'
   | 'appreciate'
   | 'article'
+  | 'tag'
   | 'article_read'
   | 'audio_draft'
   | 'comment'
@@ -65,6 +70,10 @@ export type TableName =
   | 'user_oauth'
   | 'user_notify_setting'
   | 'report_article'
+  | 'notice_detail'
+  | 'notice'
+  | 'notice_actor'
+  | 'notice_entity'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'
@@ -77,3 +86,26 @@ export interface BatchParams {
     [key: string]: any
   }
 }
+
+export type NoticeType =
+  // user
+  | 'user_new_follower'
+  | 'user_disabled'
+  // article
+  | 'article_published'
+  | 'article_reported'
+  | 'article_archived_violation'
+  | 'article_new_downstream'
+  | 'article_new_appreciation'
+  | 'article_new_subscriber'
+  | 'article_new_comment'
+  | 'subscribed_article_new_comment'
+  // comment
+  | 'comment_pinned'
+  | 'comment_reported'
+  | 'comment_archived_violation'
+  | 'comment_new_reply'
+  | 'comment_new_upvote'
+  | 'comment_mentioned_you'
+  // official
+  | 'official_announcement'

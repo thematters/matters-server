@@ -36,7 +36,7 @@ const resolver: Resolver = async (
 
   // Edit
   if (uuid) {
-    return await commentService.updateByUUID(uuid, data)
+    return await commentService.baseUpdateByUUID(uuid, data)
   }
   // Create
   else {
