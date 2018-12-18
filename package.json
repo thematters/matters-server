@@ -9,7 +9,7 @@
   "scripts": {
     "db:rollback": "knex-migrate rollback",
     "db:migrate": "knex-migrate up",
-    "db:makemigration": "knex-migrate --stub db/stub/migration.stub generate",
+    "db:migration:make": "knex-migrate --stub db/stub/migration.stub generate",
     "db:seed": "knex seed:run",
     "db:seed:make": "knex seed:make",
     "clean": "rimraf build",

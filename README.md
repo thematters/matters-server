@@ -9,7 +9,7 @@
 
 ## DB migrations and seeds
 
-- Create a new migration: `npm run db:makemigration <migration-name>`
+- Create a new migration: `npm run db:migration:make <migration-name>`
 - Create a new seed file: `npm run db:seed:make <seeds-name>`, seed files are run sequential so please pre-fix with order
 - Rollback a migration: `npm run db:rollback`
 
