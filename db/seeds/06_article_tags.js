@@ -7,15 +7,15 @@ exports.seed = function(knex, Promise) {
       return knex(table).insert([
         {
           article_id: '1',
-          tag: 'test'
+          tag_id: '1'
         },
         {
           article_id: '1',
-          tag: 'article'
+          tag_id: '2'
         },
         {
           article_id: '2',
-          tag: 'article'
+          tag_id: '2'
         }
       ])
     })
