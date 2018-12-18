@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken'
 import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
 import { BaseService, ItemData } from './baseService'
+import notice from 'queries/notice'
 
 export class UserService extends BaseService {
   constructor() {
@@ -312,31 +313,35 @@ export class UserService extends BaseService {
       .limit(limit)
 
     return notices.map(async (notice: any) => {
-      // notice object
-      const {
-        noticeType,
-        entityTypeId,
-        entityId,
-        message,
-        data
-      } = await this.knex
-        .select('notice_type', 'entity_type_id', 'entity_id', 'message', 'data')
-        .from('notice_object')
-        .where({ id: notice.noticeObjectId })
+      // notice detail
+      const { noticeType, message, data } = await this.knex
+        .select('notice_type', 'message', 'data')
+        .from('notice_detail')
+        .where({ id: notice.noticeDetailId })
         .first()
 
-      let entity = null
-      if (entityTypeId && entityId) {
-        const { table: entityTableName } = await this.knex
-          .select('table')
-          .from('entity_type')
-          .where({ id: entityTypeId })
-          .first()
-        entity = await this.knex
-          .select()
-          .from(entityTableName)
-          .first()
-      }
+      // notice entities
+      let entities = await this.knex
+        .select()
+        .from('notice_entity')
+        .where({ noticeId: notice.id })
+      entities = entities.map(async ({ type, entityTypeId, entityId }: any) => {
+        if (entityTypeId && entityId) {
+          const { table: entityTableName } = await this.knex
+            .select('table')
+            .from('entity_type')
+            .where({ id: entityTypeId })
+            .first()
+          const node = await this.knex
+            .select()
+            .from(entityTableName)
+            .first()
+          return {
+            type,
+            node
+          }
+        }
+      })
 
       // notice actors
       const noticeActorIds = (await this.knex
@@ -352,7 +357,7 @@ export class UserService extends BaseService {
 
       return Object.assign(notice, {
         type: noticeType,
-        entity,
+        entities,
         message,
         data,
         actors
@@ -367,7 +372,7 @@ export class UserService extends BaseService {
     id: number,
     data: ItemData
   ): Promise<any | null> =>
-    await this.updateById(id, data, 'user_notify_setting')
+    await this.baseUpdateById(id, data, 'user_notify_setting')
 
   /**
    * Follow a user by a given taget id (user).

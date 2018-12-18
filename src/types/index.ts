@@ -7,7 +7,6 @@ import user from './user'
 import notice from './notice'
 
 const Root = /* GraphQL */ `
-  
   # The dummy queries and mutations are necessary because
   # graphql-js cannot have empty root types and we only extend
   # these types later on

@@ -11,10 +11,9 @@ exports.up = async knex => {
       .unique()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
-    t.timestamp('read_at').defaultTo(knex.fn.now())
     t.boolean('unread').defaultTo(true)
     t.boolean('deleted').defaultTo(false)
-    t.bigInteger('notice_object_id')
+    t.bigInteger('notice_detail_id')
       .unsigned()
       .notNullable()
     t.bigInteger('recipient_id')
@@ -25,9 +24,9 @@ exports.up = async knex => {
     t.index(['updated_at'])
 
     // Set foreign key
-    t.foreign('notice_object_id')
+    t.foreign('notice_detail_id')
       .references('id')
-      .inTable('notice_object')
+      .inTable('notice_detail')
     t.foreign('recipient_id')
       .references('id')
       .inTable('user')

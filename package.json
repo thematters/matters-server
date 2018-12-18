@@ -30,7 +30,9 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "@types/base-64": "^0.1.2",
     "apollo-server": "^2.2.0",
+    "base-64": "^0.1.0",
     "bcrypt": "^3.0.2",
     "cheerio": "^1.0.0-rc.2",
     "dataloader": "^1.4.0",

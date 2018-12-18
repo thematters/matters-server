@@ -1,8 +1,9 @@
 import { Resolver } from 'definitions'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   root,
-  { input: { uuid, amount } },
+  { input: { id, amount } },
   { viewer, articleService }
 ) => {
   if (!viewer) {
@@ -12,8 +13,8 @@ const resolver: Resolver = async (
   if (viewer.mat < amount) {
     throw new Error('not enough MAT to appreciate') // TODO
   }
-
-  const article = await articleService.uuidLoader.load(uuid)
+  const { id: dbId } = fromGlobalId(id)
+  const article = await articleService.idLoader.load(dbId)
   if (!article) {
     throw new Error('target article does not exists') // TODO
   }

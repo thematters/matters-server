@@ -11,7 +11,7 @@ const resolver: Resolver = async (
 
   // TODO: check permission
 
-  await commentService.updateByUUID(uuid, {
+  await commentService.baseUpdateByUUID(uuid, {
     pinned: true
   })
 

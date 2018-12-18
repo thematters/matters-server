@@ -13,7 +13,7 @@ export type ItemData = { [key: string]: any }
 export class BaseService {
   knex: Knex
 
-  idLoader: DataLoader<number, Item>
+  idLoader: DataLoader<string, Item>
 
   uuidLoader: DataLoader<string, Item>
 
@@ -41,7 +41,7 @@ export class BaseService {
   /**
    * Find items by given ids.
    */
-  baseFindByIds = async (ids: number[]) =>
+  baseFindByIds = async (ids: string[]) =>
     await this.knex
       .select()
       .from(this.table)
@@ -118,9 +118,9 @@ export class BaseService {
   }
 
   /**
-   * Update item
+   * Update item by a given id
    */
-  updateById = async (
+  baseUpdateById = async (
     id: number,
     data: ItemData,
     table?: TableName
@@ -131,7 +131,10 @@ export class BaseService {
       .into(table || this.table)
       .returning('*'))[0]
 
-  updateByUUID = async (
+  /**
+   * Update item by a given uuid
+   */
+  baseUpdateByUUID = async (
     uuid: string,
     data: ItemData,
     table?: TableName
