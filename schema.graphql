@@ -10,16 +10,16 @@ input AddOAuthInput {
 }
 
 input AppreciateArticleInput {
-  uuid: UUID
+  id: ID!
   amount: Int
 }
 
 input ArchiveArticleInput {
-  uuid: UUID
+  id: ID!
 }
 
-type Article {
-  uuid: UUID!
+type Article implements Node {
+  id: ID!
   createdAt: DateTime!
   public: Boolean!
   author: User!
@@ -47,18 +47,19 @@ type Article {
   comments(input: CommentsInput): [Comment]
   subscribers(input: ListInput): [User]
   appreciators(input: ListInput): [User]
+  appreciatorCount: Int!
   hasAppreciate: Boolean!
   publishState: PublishState!
 }
 
 input ArticleInput {
-  uuid: UUID
+  id: ID!
 }
 
 type ArticleNotice implements Notice {
   hasRead: Boolean
   createdAt: DateTime
-  user: User
+  users: [User]
   action: ArticleNoticeAction
   target: Article
 }
@@ -84,7 +85,8 @@ input ClearReadHistoryInput {
   uuid: UUID
 }
 
-type Comment {
+type Comment implements Node {
+  id: ID!
   uuid: UUID!
 
   """Original article of this comment"""
@@ -117,7 +119,7 @@ input CommentInput {
 type CommentNotice implements Notice {
   hasRead: Boolean
   createdAt: DateTime
-  user: User
+  users: [User]
   action: CommentNoticeAction
   target: Comment
 }
@@ -140,7 +142,7 @@ input CommentsInput {
 }
 
 enum CommentSort {
-  upVotes
+  oldest
   newest
 }
 
@@ -184,8 +186,8 @@ input DeleteDraftTagInput {
   tag: String
 }
 
-type Draft {
-  uuid: UUID!
+type Draft implements Node {
+  id: ID!
   upstream: Article
   title: String
   content: String!
@@ -221,7 +223,7 @@ type File {
 }
 
 input FollowUserInput {
-  uuid: UUID
+  id: ID!
 }
 
 input ImportArticlesInput {
@@ -264,6 +266,8 @@ type Mutation {
   deleteDraftContent(input: DeleteDraftContentInput): Boolean
   sendVerificationEmail(input: SendVerificationEmailInput): Boolean
   sendPasswordResetEmail(input: SendVerificationEmailInput): Boolean
+  sendEmailResetEmail(input: SendEmailResetEmailInput): Boolean
+  verifyEmailResetCode(input: VerifyEmailResetCodeInput): Boolean
   resetPassword(input: ResetPasswordInput): Boolean
   userRegister(input: UserRegisterInput): User
   userLogin(input: UserLoginInput): LoginResult!
@@ -277,10 +281,22 @@ type Mutation {
   clearSearchHistory: Boolean
 }
 
+interface Node {
+  id: ID!
+}
+
+input NodeEditedInput {
+  id: ID!
+}
+
+input NodeInput {
+  id: ID!
+}
+
 interface Notice {
   hasRead: Boolean
   createdAt: DateTime
-  user: User
+  users: [User]
 }
 
 input NoticesInput {
@@ -320,8 +336,8 @@ input PinCommentInput {
 }
 
 input PublishArticleInput {
-  """publish with draft uuid"""
-  uuid: UUID
+  """publish with draft id"""
+  id: ID!
 }
 
 enum PublishState {
@@ -339,10 +355,10 @@ Ref: apollographql/graphql-tools#293
 """
 type Query {
   _: Boolean
-  article(uuid: UUID!): Article
   tag(input: TagInput): Tag
   draft(uuid: UUID!): Draft
   audioDraft(uuid: UUID!): AudioDraft
+  node(input: NodeInput!): Node
   frequentSearch(key: String): [String]
   search(key: String): [SearchResult]
   official: Official!
@@ -351,11 +367,11 @@ type Query {
 }
 
 input ReadArticleInput {
-  uuid: UUID
+  id: ID!
 }
 
 input RecallPublicationInput {
-  uuid: UUID
+  id: ID!
 }
 
 type Recommendation {
@@ -369,13 +385,14 @@ type Recommendation {
 }
 
 input ReportArticleInput {
-  uuid: UUID
+  id: ID!
   category: String
   description: String
 }
 
 input ResetPasswordInput {
   password: String!
+  code: String
 }
 
 input SearchInput {
@@ -396,6 +413,10 @@ enum SearchTypes {
   Tag
 }
 
+input SendEmailResetEmailInput {
+  email: Email!
+}
+
 input SendPasswordResetEmailInput {
   email: Email!
 }
@@ -409,32 +430,33 @@ input SingleUploadInput {
 }
 
 input SubscribeArticleInput {
-  uuid: UUID
+  id: ID!
 }
 
 type Subscription {
   _: Boolean
-  notice: Notice
+  nodeEdited(input: NodeEditedInput!): Node!
 }
 
-type Tag {
-  text: String
+type Tag implements Node {
+  id: ID!
+  content: String
   count: Int
   articles(input: ListInput): [Article]
 }
 
 input TagInput {
-  tag: String!
+  id: ID!
 }
 
 scalar Time
 
 input UnfollowUserInput {
-  uuid: UUID
+  id: ID!
 }
 
 input UnsubscribeArticleInput {
-  uuid: UUID
+  id: ID!
 }
 
 input UpdateNotificationSettingInput {
@@ -453,8 +475,8 @@ scalar Upload
 
 scalar URL
 
-type User {
-  uuid: UUID!
+type User implements Node {
+  id: ID!
 
   """Get article for this user"""
   article(input: ArticleInput!): Article!
@@ -492,7 +514,7 @@ type User {
   """This user has followed current user"""
   isFollower: Boolean!
   status: UserStatus!
-  notices(input: NoticesInput): [Notice]
+  notices(input: NoticesInput): [Notice]!
 }
 
 type UserActivity {
@@ -531,7 +553,7 @@ enum UserInfoFields {
 }
 
 input UserInput {
-  uuid: UUID
+  id: ID!
 }
 
 enum UserLanguage {
@@ -548,7 +570,7 @@ input UserLoginInput {
 type UserNotice implements Notice {
   hasRead: Boolean
   createdAt: DateTime
-  user: User
+  users: [User]
   action: UserNoticeAction
   target: User
 }
@@ -603,6 +625,11 @@ type UserStatus {
 }
 
 scalar UUID
+
+input VerifyEmailResetCodeInput {
+  email: Email!
+  code: String!
+}
 
 enum Vote {
   up
