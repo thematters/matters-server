@@ -32,10 +32,10 @@ export class CommentService extends BaseService {
   /**
    * Count comments by a given author id (user).
    */
-  countByAuthor = async (authorId: number): Promise<number> => {
+  countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where('author_id', authorId)
+      .where({ authorId })
       .first()
     return parseInt(result.count, 10)
   }
@@ -43,10 +43,10 @@ export class CommentService extends BaseService {
   /**
    * Count comments by a given article id.
    */
-  countByArticle = async (articleId: number): Promise<number> => {
+  countByArticle = async (articleId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where('article_id', articleId)
+      .where({ articleId })
       .first()
     return parseInt(result.count, 10)
   }
@@ -54,7 +54,7 @@ export class CommentService extends BaseService {
   /**
    * Count comments by a given comment id.
    */
-  countByParent = async (commentId: number): Promise<number> => {
+  countByParent = async (commentId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where('parent_comment_id', commentId)
@@ -65,7 +65,7 @@ export class CommentService extends BaseService {
   /**
    * Count a comment's up votes by a given target id (comment).
    */
-  countUpVote = async (targetId: number): Promise<number> => {
+  countUpVote = async (targetId: string): Promise<number> => {
     const result = await this.knex('action_comment')
       .countDistinct('id')
       .where({
@@ -79,7 +79,7 @@ export class CommentService extends BaseService {
   /**
    * Count a comment's down votes by a given target id (comment).
    */
-  countDownVote = async (targetId: number): Promise<number> => {
+  countDownVote = async (targetId: string): Promise<number> => {
     const result = await this.knex('action_comment')
       .countDistinct('id')
       .where({
@@ -93,17 +93,17 @@ export class CommentService extends BaseService {
   /**
    * Find comments by a given author id (user).
    */
-  findByAuthor = async (authorId: number): Promise<any[]> =>
+  findByAuthor = async (authorId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
-      .where('author_id', authorId)
+      .where({ authorId })
 
   /**
    * Find comments by a given author id (user) in batches.
    */
   findByAuthorInBatch = async (
-    authorId: number,
+    authorId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
@@ -118,9 +118,8 @@ export class CommentService extends BaseService {
   /**
    * Find articles ids by comment author id (user) in batches.
    */
-
   findArticleByAuthorInBatch = async (
-    authorId?: number,
+    authorId: string,
     offset = 0,
     limit = BATCH_SIZE
   ): Promise<string[]> =>
@@ -136,7 +135,7 @@ export class CommentService extends BaseService {
   /**
    * Find comments by a given article id.
    */
-  findByArticle = async (articleId: number): Promise<any[]> =>
+  findByArticle = async (articleId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
@@ -146,7 +145,7 @@ export class CommentService extends BaseService {
    * Find comments by a given article id in batches.
    */
   findByArticleInBatch = async (
-    articleId: number,
+    articleId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
@@ -161,7 +160,7 @@ export class CommentService extends BaseService {
   /**
    * Find pinned comments by a given article id.
    */
-  findPinnedByArticle = async (articleId: number): Promise<any[]> =>
+  findPinnedByArticle = async (articleId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
@@ -170,7 +169,7 @@ export class CommentService extends BaseService {
   /**
    * Find comments by a given comment id.
    */
-  findByParent = async (commentId: number): Promise<any[]> =>
+  findByParent = async (commentId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
@@ -179,7 +178,7 @@ export class CommentService extends BaseService {
   /**
    * Find a comment's up votes by a given target id (comment).
    */
-  findUpVotes = async (targetId: number): Promise<any[]> =>
+  findUpVotes = async (targetId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('action_comment')
@@ -191,7 +190,7 @@ export class CommentService extends BaseService {
   /**
    * Find a comment's down votes by a given target id (comment).
    */
-  findDownVotes = async (targetId: number): Promise<any[]> => {
+  findDownVotes = async (targetId: string): Promise<any[]> => {
     return await this.knex
       .select()
       .from('action_comment')

@@ -54,7 +54,7 @@ export class ArticleService extends BaseService {
    *  Find articles by a given author id (user) in batches.
    */
   findByAuthorInBatch = async (
-    authorId: number,
+    authorId: string,
     offset: number,
     limit = BATCH_SIZE
   ) =>
@@ -66,7 +66,7 @@ export class ArticleService extends BaseService {
       .offset(offset)
       .limit(limit)
 
-  findByUpstream = async (upstreamId: number) =>
+  findByUpstream = async (upstreamId: string) =>
     await this.knex
       .select()
       .from(this.table)
@@ -75,7 +75,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findAppreciations = async (articleId: number): Promise<any[]> =>
+  findAppreciations = async (articleId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('appreciate')
@@ -85,7 +85,7 @@ export class ArticleService extends BaseService {
    * Find an article's appreciations by a given article id in batches.
    */
   findAppreciationsInBatch = async (
-    articleId: number,
+    articleId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
@@ -101,7 +101,7 @@ export class ArticleService extends BaseService {
    * Find an article's appreciators by a given article id in batches.
    */
   findAppreciatorsInBatch = async (
-    articleId: number,
+    articleId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
@@ -132,7 +132,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's subscribers by a given targetId (article).
    */
-  findSubscriptions = async (targetId: number): Promise<any[]> =>
+  findSubscriptions = async (targetId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('action_article')
@@ -142,7 +142,7 @@ export class ArticleService extends BaseService {
    * Find an article's subscribers by a given targetId (article) in batches.
    */
   findSubscriptionsInBatch = async (
-    targetId: number,
+    targetId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
@@ -158,8 +158,8 @@ export class ArticleService extends BaseService {
    * Find an article's subscriber by a given targetId (article) and user id.
    */
   findSubscriptionByTargetIdAndUserId = async (
-    targetId: number,
-    userId: number
+    targetId: string,
+    userId: string
   ): Promise<any[]> =>
     await this.knex
       .select()
@@ -173,7 +173,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's rates by a given targetId (article).
    */
-  findRateByTargetId = async (targetId: number): Promise<any[]> =>
+  findRateByTargetId = async (targetId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('action_user')
@@ -186,8 +186,8 @@ export class ArticleService extends BaseService {
    * Find article read records by articleId and user id
    */
   findReadByArticleIdAndUserId = async (
-    articleId: number,
-    userId: number
+    articleId: string,
+    userId: string
   ): Promise<any[]> =>
     await this.knex
       .select()
@@ -200,7 +200,7 @@ export class ArticleService extends BaseService {
   /**
    * User subscribe an article
    */
-  subscribe = async (targetId: number, userId: number): Promise<any[]> =>
+  subscribe = async (targetId: string, userId: string): Promise<any[]> =>
     await this.baseCreate(
       {
         targetId,
@@ -213,7 +213,7 @@ export class ArticleService extends BaseService {
   /**
    * User unsubscribe an article
    */
-  unsubscribe = async (targetId: number, userId: number): Promise<any[]> =>
+  unsubscribe = async (targetId: string, userId: string): Promise<any[]> =>
     await this.knex
       .from('action_article')
       .where({
@@ -227,8 +227,8 @@ export class ArticleService extends BaseService {
    * User appreciate an article
    */
   appreciate = async (
-    articleId: number,
-    userId: number,
+    articleId: string,
+    userId: string,
     amount: number,
     userMAT: number
   ): Promise<any> =>
@@ -247,7 +247,7 @@ export class ArticleService extends BaseService {
         .returning('*')
     })
 
-  // findRateByTargetId = async (targetId: number): Promise<any[]> => {
+  // findRateByTargetId = async (targetId: string): Promise<any[]> => {
   //   return await this.knex
   //     .select()
   //     .from('action_user')
@@ -272,7 +272,7 @@ export class ArticleService extends BaseService {
   /**
    * User read an article
    */
-  read = async (articleId: number, userId: number): Promise<any[]> =>
+  read = async (articleId: string, userId: string): Promise<any[]> =>
     await this.baseCreate(
       {
         userId,
@@ -285,8 +285,8 @@ export class ArticleService extends BaseService {
    * User report an article
    */
   report = async (
-    articleId: number,
-    userId: number,
+    articleId: string,
+    userId: string,
     category: string,
     description: string
   ): Promise<any[]> =>

@@ -4,14 +4,14 @@ import { toGlobalId } from 'common/utils'
 export default {
   User: {
     notices: (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { userService }: Context
     ) => userService.findNoticesInBatch(id, offset, limit)
   },
   UserStatus: {
     unreadNoticeCount: (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
       { userService }: Context
     ) => userService.countUnreadNotice(id)

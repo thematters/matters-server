@@ -12,7 +12,7 @@ export class DraftService extends BaseService {
   /**
    * Count user's drafts by a given author id (user).
    */
-  countByAuthor = async (authorId: number): Promise<number> => {
+  countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where({ authorId })
@@ -23,7 +23,7 @@ export class DraftService extends BaseService {
   /**
    * Find user's drafts by a given author id (user).
    */
-  findByAuthor = async (authorId: number): Promise<any[]> =>
+  findByAuthor = async (authorId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
@@ -33,7 +33,7 @@ export class DraftService extends BaseService {
    *  Find drafts by a given author id (user) in batches.
    */
   findByAuthorInBatch = async (
-    authorId: number,
+    authorId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
@@ -48,7 +48,7 @@ export class DraftService extends BaseService {
   /**
    * Find audio draft by a given id.
    */
-  findAudioDraft = async (id: number): Promise<any[]> =>
+  findAudioDraft = async (id: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('audio_draft')
@@ -57,7 +57,7 @@ export class DraftService extends BaseService {
   /**
    * Find audio drafts by a given author id (user).
    */
-  findAudioDraftsByAuthor = async (authorId: number): Promise<any[]> =>
+  findAudioDraftsByAuthor = async (authorId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('audio_draft')
@@ -67,7 +67,7 @@ export class DraftService extends BaseService {
    * Find audio drafts by a given author id (user) in batches.
    */
   findAudioDraftsByAuthorInBatch = async (
-    authorId: number,
+    authorId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> =>

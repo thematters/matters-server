@@ -12,19 +12,11 @@ export default {
       return toGlobalId({ type: 'User', id })
     },
     info: (root: any) => root,
-    user: (
-      root: any,
-      { input: { id } }: { input: { id: string } },
-      { userService }: Context
-    ) => {
-      const { id: dbID } = fromGlobalId(id)
-      return userService.idLoader.load(dbID)
-    },
     // hasFollowed,
     // drafts,
     // audioDrafts,
     subscriptions: async (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { articleService, userService }: Context
     ) => {
@@ -41,7 +33,7 @@ export default {
 
     // activity,
     followers: async (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { userService }: Context
     ) => {
@@ -49,14 +41,14 @@ export default {
       return userService.baseFindByIds(actions.map(({ userId }) => userId))
     },
     followees: async (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { userService }: Context
     ) => {
       const actions = await userService.findFollowees({ id, offset, limit })
 
       return userService.baseFindByIds(
-        actions.map(({ targetId }: { targetId: number }) => targetId)
+        actions.map(({ targetId }: { targetId: string }) => targetId)
       )
     },
     settings: (root: any) => root,
@@ -64,9 +56,9 @@ export default {
   },
   UserSettings: {
     // language: ({ language }: { language: string }) => language,
-    oauthType: ({ id }: { id: number }, _: any, { userService }: Context) =>
+    oauthType: ({ id }: { id: string }, _: any, { userService }: Context) =>
       userService.findOAuthTypes(id),
-    notification: ({ id }: { id: number }, _: any, { userService }: Context) =>
+    notification: ({ id }: { id: string }, _: any, { userService }: Context) =>
       userService.findNotifySetting(id)
   },
   UserStatus: {
@@ -91,17 +83,17 @@ export default {
     // viewCount,
     // draftCount,
     commentCount: (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
       { commentService }: Context
     ) => commentService.countByAuthor(id),
     // quotationCount
-    followerCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
+    followerCount: ({ id }: { id: string }, _: any, { userService }: Context) =>
       userService.countFollowers(id),
-    followeeCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
+    followeeCount: ({ id }: { id: string }, _: any, { userService }: Context) =>
       userService.countFollowees(id),
     subscriptionCount: (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
       { userService }: Context
     ) => userService.countSubscription(id)

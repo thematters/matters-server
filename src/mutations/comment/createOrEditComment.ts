@@ -1,28 +1,31 @@
 import { Resolver } from 'definitions'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,
-  { input: { comment, uuid } },
+  { input: { comment, id } },
   { viewer, commentService, articleService, userService }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO
   }
 
-  const { content, quote, articleUUID, parentUUID, mentions } = comment
+  const { content, quote, articleId, parentId, mentions } = comment
   const data: any = {
     content,
     authorId: viewer.id
   }
 
-  const article = await articleService.uuidLoader.load(articleUUID)
+  const { id: authorDbId } = fromGlobalId(articleId)
+  const article = await articleService.idLoader.load(authorDbId)
   if (!article) {
     throw new Error('target article does not exists') // TODO
   }
   data.articleId = article.id
 
-  if (parentUUID) {
-    const parentComment = await commentService.uuidLoader.load(parentUUID)
+  if (parentId) {
+    const { id: parentDbId } = fromGlobalId(parentId)
+    const parentComment = await commentService.idLoader.load(parentDbId)
     if (!parentComment) {
       throw new Error('target parentComment does not exists') // TODO
     }
@@ -30,13 +33,17 @@ const resolver: Resolver = async (
   }
 
   if (mentions) {
-    const users = await userService.uuidLoader.loadMany(mentions)
+    const mentionsDbIds = mentions.map(
+      (mentionId: string) => fromGlobalId(mentionId).id
+    )
+    const users = await userService.idLoader.loadMany(mentionsDbIds)
     data.mentionedUserId = users.map(u => u.id)
   }
 
   // Edit
-  if (uuid) {
-    return await commentService.baseUpdateByUUID(uuid, data)
+  if (id) {
+    const { id: commentDbId } = fromGlobalId(parentId)
+    return await commentService.baseUpdateById(commentDbId, data)
   }
   // Create
   else {
