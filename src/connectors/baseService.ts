@@ -7,7 +7,7 @@ import _ from 'lodash'
 import { TableName } from 'definitions'
 import { knex } from './db'
 
-export type Item = { id: number; [key: string]: any }
+export type Item = { id: string; [key: string]: any }
 export type ItemData = { [key: string]: any }
 
 export class BaseService {
@@ -27,7 +27,7 @@ export class BaseService {
   /**
    * Find an item by a given id.
    */
-  baseFindById = async (id: number): Promise<any | null> => {
+  baseFindById = async (id: string): Promise<any | null> => {
     const result = await this.knex
       .select()
       .from(this.table)
@@ -121,7 +121,7 @@ export class BaseService {
    * Update item by a given id
    */
   baseUpdateById = async (
-    id: number,
+    id: string,
     data: ItemData,
     table?: TableName
   ): Promise<any> =>

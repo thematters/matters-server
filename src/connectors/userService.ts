@@ -89,7 +89,7 @@ export class UserService extends BaseService {
   /**
    * Count user's following list by a given user id.
    */
-  countFollowees = async (userId: number): Promise<number> => {
+  countFollowees = async (userId: string): Promise<number> => {
     const result = await this.knex('action_user')
       .countDistinct('id')
       .where({
@@ -103,7 +103,7 @@ export class UserService extends BaseService {
   /**
    * Count user's followed list by a given taget id (user).
    */
-  countFollowers = async (targetId: number): Promise<number> => {
+  countFollowers = async (targetId: string): Promise<number> => {
     const result = await this.knex('action_user')
       .countDistinct('id')
       .where({ targetId, action: USER_ACTION.follow })
@@ -114,7 +114,7 @@ export class UserService extends BaseService {
   /**
    * Count an users' subscription by a given user id.
    */
-  countSubscription = async (userId: number): Promise<number> => {
+  countSubscription = async (userId: string): Promise<number> => {
     const result = await this.knex('action_article')
       .countDistinct('id')
       .where({ userId, action: USER_ACTION.subscribe })
@@ -125,7 +125,7 @@ export class UserService extends BaseService {
   /**
    * Count an users' unread notice by a given user id.
    */
-  countUnreadNotice = async (userId: number): Promise<number> => {
+  countUnreadNotice = async (userId: string): Promise<number> => {
     const result = await this.knex('notice')
       .countDistinct('id')
       .where({ recipientId: userId, unread: true, deleted: false })
@@ -158,7 +158,7 @@ export class UserService extends BaseService {
   /**
    * Find user's notify setting by a given user id.
    */
-  findNotifySetting = async (userId: number): Promise<any | null> =>
+  findNotifySetting = async (userId: string): Promise<any | null> =>
     await this.knex
       .select()
       .from('user_notify_setting')
@@ -177,7 +177,7 @@ export class UserService extends BaseService {
   /**
    * Find user's OAuth accounts by a given user id.
    */
-  findOAuth = async (userId: number): Promise<any> =>
+  findOAuth = async (userId: string): Promise<any> =>
     await this.knex
       .select()
       .from('user_oauth')
@@ -187,7 +187,7 @@ export class UserService extends BaseService {
   /**
    * Find user's OAuth accounts by a given user id and type.
    */
-  findOAuthByType = async (userId: number, type: string): Promise<any> =>
+  findOAuthByType = async (userId: string, type: string): Promise<any> =>
     await this.knex
       .select()
       .from('user_oauth')
@@ -197,7 +197,7 @@ export class UserService extends BaseService {
   /**
    * Find user's all OAuth types by a given user id.
    */
-  findOAuthTypes = async (userId: number): Promise<any[]> =>
+  findOAuthTypes = async (userId: string): Promise<any[]> =>
     await this.knex
       .select('type')
       .from('user_oauth')
@@ -206,7 +206,7 @@ export class UserService extends BaseService {
   /**
    * Find user's all appreciation by a given user id.
    */
-  findAppreciationByUserId = async (userId: number): Promise<any[]> =>
+  findAppreciationByUserId = async (userId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('appreciate')
@@ -220,7 +220,7 @@ export class UserService extends BaseService {
     offset = 0,
     limit = BATCH_SIZE
   }: {
-    id: number
+    id: string
     offset?: number
     limit?: number
   }) =>
@@ -235,7 +235,7 @@ export class UserService extends BaseService {
   /**
    * Find user's follower list by a given taget id (user).
    */
-  findFollowers = async (targetId: number): Promise<any[]> =>
+  findFollowers = async (targetId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('action_user')
@@ -245,7 +245,7 @@ export class UserService extends BaseService {
    * Find user's follower list by a given taget id (user) in batches.
    */
   findFollowersInBatch = async (
-    targetId: number,
+    targetId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
@@ -260,7 +260,7 @@ export class UserService extends BaseService {
   /**
    * Find an user's rates by a given target id (user).
    */
-  // findRateByTargetId = async (targetId: number): Promise<any[]> => {
+  // findRateByTargetId = async (targetId: string): Promise<any[]> => {
   //   return await this.knex
   //     .select()
   //     .from('action_user')
@@ -273,7 +273,7 @@ export class UserService extends BaseService {
   /**
    * Find an users' subscription by a given user id.
    */
-  findSubscriptions = async (userId: number): Promise<any[]> =>
+  findSubscriptions = async (userId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('action_article')
@@ -283,7 +283,7 @@ export class UserService extends BaseService {
    * Find an users' subscription by a given user id in batches.
    */
   findSubscriptionsInBatch = async (
-    userId: number,
+    userId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> => {
@@ -300,7 +300,7 @@ export class UserService extends BaseService {
    * Find an users' notices by a given user id in batches.
    */
   findNoticesInBatch = async (
-    userId: number,
+    userId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> => {
@@ -369,7 +369,7 @@ export class UserService extends BaseService {
    * Update user_notify_setting by a given user id
    */
   updateNotifySetting = async (
-    id: number,
+    id: string,
     data: ItemData
   ): Promise<any | null> =>
     await this.baseUpdateById(id, data, 'user_notify_setting')
@@ -377,7 +377,7 @@ export class UserService extends BaseService {
   /**
    * Follow a user by a given taget id (user).
    */
-  follow = async (userId: number, targetId: number): Promise<any[]> =>
+  follow = async (userId: string, targetId: string): Promise<any[]> =>
     await this.baseUpdateOrCreate(
       {
         userId,
@@ -391,7 +391,7 @@ export class UserService extends BaseService {
   /**
    * Unfollow a user by a given taget id (user).
    */
-  unfollow = async (userId: number, targetId: number): Promise<any[]> =>
+  unfollow = async (userId: string, targetId: string): Promise<any[]> =>
     await this.knex
       .from('action_user')
       .where({

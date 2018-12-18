@@ -24,7 +24,7 @@ export interface ResolverMap {
 }
 
 export type User = {
-  id: number
+  id: string
   uuid: string
   userName: string
   displayName: string

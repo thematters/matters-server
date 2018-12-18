@@ -4,7 +4,7 @@ import { toGlobalId } from 'common/utils'
 export default {
   User: {
     commentedArticles: async (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { commentService, articleService }: Context
     ) => {
@@ -18,17 +18,17 @@ export default {
   },
   Article: {
     commentCount: (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
       { commentService }: Context
     ) => commentService.countByArticle(id),
     pinnedComments: (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
       { commentService }: Context
     ) => commentService.findPinnedByArticle(id),
     comments: (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { commentService }: Context
     ) => commentService.findByArticleInBatch(id, offset, limit)
@@ -47,9 +47,9 @@ export default {
       _: any,
       { userService }: Context
     ) => userService.idLoader.load(authorId),
-    upvotes: ({ id }: { id: number }, _: any, { commentService }: Context) =>
+    upvotes: ({ id }: { id: string }, _: any, { commentService }: Context) =>
       commentService.countUpVote(id),
-    downvotes: ({ id }: { id: number }, _: any, { commentService }: Context) =>
+    downvotes: ({ id }: { id: string }, _: any, { commentService }: Context) =>
       commentService.countDownVote(id),
     myVote: (parent: any, _: any, { userService }: Context) => 'up_vote',
     mentions: (
@@ -57,7 +57,7 @@ export default {
       _: any,
       { userService }: Context
     ) => userService.idLoader.loadMany(mentionedUserId),
-    comments: ({ id }: { id: number }, _: any, { commentService }: Context) =>
+    comments: ({ id }: { id: string }, _: any, { commentService }: Context) =>
       commentService.findByParent(id),
     parentComment: (
       { parentCommentId }: { parentCommentId: string },

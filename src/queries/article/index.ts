@@ -4,7 +4,7 @@ import { toGlobalId, fromGlobalId } from 'common/utils'
 export default {
   User: {
     articles: (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { articleService }: Context
     ) => articleService.findByAuthorInBatch(id, offset, limit),
@@ -71,7 +71,7 @@ export default {
       { articleService }: Context
     ) => articleService.idLoader.load(upstreamId),
     downstreams: (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
       { articleService }: Context
     ) => articleService.findByUpstream(id),
@@ -79,7 +79,7 @@ export default {
     MAT: ({ mat }: { mat: number }) => mat,
     subscribed: () => false,
     subscribers: async (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { articleService, userService }: Context
     ) => {
@@ -91,7 +91,7 @@ export default {
       return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
     appreciators: async (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { articleService, userService }: Context
     ) => {
