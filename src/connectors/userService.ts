@@ -326,20 +326,19 @@ export class UserService extends BaseService {
         .from('notice_entity')
         .where({ noticeId: notice.id })
       entities = entities.map(async ({ type, entityTypeId, entityId }: any) => {
-        if (entityTypeId && entityId) {
-          const { table: entityTableName } = await this.knex
-            .select('table')
-            .from('entity_type')
-            .where({ id: entityTypeId })
-            .first()
-          const node = await this.knex
-            .select()
-            .from(entityTableName)
-            .first()
-          return {
-            type,
-            node
-          }
+        const { table: entityTableName } = await this.knex
+          .select('table')
+          .from('entity_type')
+          .where({ id: entityTypeId })
+          .first()
+        const node = await this.knex
+          .select()
+          .from(entityTableName)
+          .where({ id: entityId })
+          .first()
+        return {
+          type,
+          node
         }
       })
 
