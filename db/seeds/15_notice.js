@@ -26,6 +26,9 @@ exports.seed = async knex => {
         {
           notice_type: 'official_announcement',
           message: 'Version 1.0 is released!'
+        },
+        {
+          notice_type: 'article_new_appreciation'
         }
       ])
     })
@@ -74,6 +77,12 @@ exports.seed = async knex => {
           uuid: '00000000-0000-0000-0000-000000000006',
           notice_detail_id: 5,
           recipient_id: 3
+        },
+        // article_new_appreciation
+        {
+          uuid: '00000000-0000-0000-0000-000000000007',
+          notice_detail_id: 6,
+          recipient_id: 1
         }
       ])
     })
@@ -106,6 +115,15 @@ exports.seed = async knex => {
         {
           notice_id: 4,
           actor_id: 1
+        },
+        // article_new_appreciation
+        {
+          notice_id: 8,
+          actor_id: 2
+        },
+        {
+          notice_id: 8,
+          actor_id: 3
         }
       ])
     })
@@ -135,13 +153,13 @@ exports.seed = async knex => {
         },
         // article_new_downstrea,
         {
-          type: 'target',
+          type: 'downstream',
           entity_type_id: articleEntityTypeId,
           entity_id: 2,
           notice_id: 3
         },
         {
-          type: 'recipient_article',
+          type: 'target',
           entity_type_id: articleEntityTypeId,
           entity_id: 1,
           notice_id: 3
@@ -152,6 +170,13 @@ exports.seed = async knex => {
           entity_type_id: commentEntityTypeId,
           entity_id: 1,
           notice_id: 4
+        },
+        // article_new_appreciation
+        {
+          type: 'target',
+          entity_type_id: articleEntityTypeId,
+          entity_id: 1,
+          notice_id: 8
         }
       ])
     })

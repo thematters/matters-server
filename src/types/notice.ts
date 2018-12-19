@@ -1,44 +1,164 @@
 export default /* GraphQL */ `
+  extend type Mutation {
+    markAllNoticesAsRead: Boolean
+  }
+
   extend type User {
     notices(input: ListInput!): [Notice]
   }
 
-  type Notice {
+  interface Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    type: NoticeType!
+  }
+
+  type UserNewFollowerNotice implements Notice & Node {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
     actors: [User]
-    entities: [NoticeEntity]
-    message: String
+  }
+
+  type UserDisabledNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    reason: UserDisabledReason
+  }
+  enum UserDisabledReason {
+    violation
+  }
+
+  type ArticlePublishedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    target: Article!
+  }
+
+  type ArticleReportedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    target: Article!
+    reason: ArticleReportedReason
+  }
+  enum ArticleReportedReason {
+    violation
+  }
+
+  type ArticleArchivedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    target: Article!
+    reason: ArticleArchivedReason
+  }
+  enum ArticleArchivedReason {
+    violation
+  }
+
+  type ArticleNewDownstreamNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User]
+    downstream: Article!
+    target: Article!
+  }
+
+  type ArticleNewAppreciationNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User]
+    target: Article!
+    MAT: Int!
+  }
+
+  type ArticleNewSubscriberNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User]
+    target: Article!
+  }
+
+  type ArticleNewCommentNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User]
+    target: Article!
+  }
+
+  type SubscribedArticleNewCommentNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User]
+    target: Article!
+  }
+
+  type CommentPinnedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    target: Comment!
+  }
+
+  type CommentReportedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    target: Comment!
+    reason: CommentReportedReason
+  }
+  enum CommentReportedReason {
+    violation
+  }
+
+  type CommentArchivedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    target: Comment!
+    reason: CommentArchivedReason
+  }
+  enum CommentArchivedReason {
+    violation
+  }
+
+  type CommentNewReplyNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User]
+    target: Comment!
+  }
+
+  type CommentNewUpvoteNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User]
+    target: Comment!
+  }
+
+  type CommentMentionedYouNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User]
+    target: Comment!
+  }
+
+  type OfficialAnnouncementNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    message: String!
     data: JSON
-  }
-
-  type NoticeEntity {
-    type: String
-    node: Node
-  }
-
-  enum NoticeType {
-    user_new_follower
-    user_disabled
-
-    article_published
-    article_reported
-    article_archived_violation
-    article_new_downstream
-    article_new_appreciation
-    article_new_subscriber
-    article_new_comment
-    subscribed_article_new_comment
-
-    comment_pinned
-    comment_reported
-    comment_archived_violation
-    comment_new_reply
-    comment_new_upvote
-    comment_mentioned_you
-
-    official_announcement
   }
 `

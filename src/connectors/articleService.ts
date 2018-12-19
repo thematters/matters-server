@@ -34,6 +34,23 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
+  /**
+   * Count total appreciaton by a given article id and user ids.
+   */
+  countAppreciationByUserIds = async (
+    articleId: string,
+    userIds: string[]
+  ): Promise<number> => {
+    const result = await this.knex
+      .select()
+      .from('appreciate')
+      .where({ articleId })
+      .whereIn('userId', userIds)
+      .sum('amount')
+      .first()
+    return parseInt(result.sum || '0', 10)
+  }
+
   countWords = (html: string) =>
     cheerio
       .load(html)('body')
