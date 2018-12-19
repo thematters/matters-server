@@ -159,6 +159,6 @@ export default /* GraphQL */ `
     unread: Boolean!
     createdAt: DateTime!
     message: String!
-    data: JSON
+    link: URL
   }
 `

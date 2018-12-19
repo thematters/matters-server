@@ -3,11 +3,17 @@ import { toGlobalId } from 'common/utils'
 
 export default {
   User: {
-    notices: (
+    notices: async (
       { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { userService }: Context
-    ) => userService.findNoticesInBatch(id, offset, limit)
+    ) => {
+      const result = await Promise.all(
+        await userService.findNoticesInBatch(id, offset, limit)
+      )
+      console.log(result)
+      return result
+    }
   },
   UserStatus: {
     unreadNoticeCount: (
@@ -35,7 +41,7 @@ export default {
         comment_pinned: 'CommentPinnedNotice',
         comment_reported: 'CommentReportedNotice',
         comment_archived: 'CommentArchivedNotice',
-        comment_new_reply: 'CommentnewReplyNotice',
+        comment_new_reply: 'CommentNewReplyNotice',
         comment_new_upvote: 'CommentNewUpvoteNotice',
         comment_mentioned_you: 'CommentMentionedYouNotice',
         // official
@@ -48,10 +54,10 @@ export default {
     }
   },
   ArticleReportedNotice: {
-    reason: ({ data }: { data: any }) => data.reason
+    reason: ({ data }: { data: any }) => data && data.reason
   },
   ArticleArchivedNotice: {
-    reason: ({ data }: { data: any }) => data.reason
+    reason: ({ data }: { data: any }) => data && data.reason
   },
   ArticleNewDownstreamNotice: {
     downstream: ({ entities }: { entities: any }) => {
@@ -65,14 +71,16 @@ export default {
       { articleService }: Context
     ) => {
       const actorIds = actors.map(actor => actor.id)
-      console.log(target, actorIds)
       return articleService.countAppreciationByUserIds(target.id, actorIds)
     }
   },
   CommentArchivedNotice: {
-    reason: ({ data }: { data: any }) => data.reason
+    reason: ({ data }: { data: any }) => data && data.reason
   },
   CommentReportedNotice: {
-    reason: ({ data }: { data: any }) => data.reason
+    reason: ({ data }: { data: any }) => data && data.reason
+  },
+  OfficialAnnouncementNotice: {
+    link: ({ data }: { data: any }) => data && data.link
   }
 }
