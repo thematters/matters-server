@@ -7,13 +7,7 @@ export default {
       { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { userService }: Context
-    ) => {
-      const result = await Promise.all(
-        await userService.findNoticesInBatch(id, offset, limit)
-      )
-      console.log(result)
-      return result
-    }
+    ) => await userService.findNoticesInBatch(id, offset, limit)
   },
   UserStatus: {
     unreadNoticeCount: (
