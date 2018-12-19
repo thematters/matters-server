@@ -13,8 +13,6 @@ exports.up = async knex => {
       .unsigned()
       .notNullable()
     t.string('title').notNullable()
-    t.string('mimetype')
-    t.string('encoding')
     t.string('s3_path').notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())

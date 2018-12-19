@@ -112,3 +112,13 @@ export type NoticeType =
   | 'comment_mentioned_you'
   // official
   | 'official_announcement'
+export type S3Folder = 'audioDraft' | 'draft'
+
+export type S3Bucket =
+  | 'matters-server-dev'
+  | 'matters-server-stage'
+  | 'matters-server-production'
+
+export type Item = { id: string; [key: string]: any }
+
+export type ItemData = { [key: string]: any }
