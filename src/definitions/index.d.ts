@@ -3,13 +3,13 @@ import { GraphQLResolveInfo } from 'graphql'
 import {
   UserService,
   ArticleService,
-  AssetService,
   CommentService,
   DraftService,
+  SystemService,
   TagService
 } from 'connectors'
 
-export type NodeTypes = 'Article' | 'Asset' | 'User' | 'Comment' | 'Draft' | 'Tag'
+export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
 
 export type Resolver = (
   parent: any,
@@ -49,10 +49,10 @@ export type User = {
 export type Context = {
   viewer: User | undefined
   articleService: InstanceType<typeof ArticleService>
-  assetService: InstanceType<typeof AssetService>
   commentService: InstanceType<typeof CommentService>
   draftService: InstanceType<typeof DraftService>
   userService: InstanceType<typeof UserService>
+  systemService: InstanceType<typeof SystemService>
   tagService: InstanceType<typeof TagService>
 }
 
@@ -69,6 +69,7 @@ export type TableName =
   | 'audio_draft'
   | 'comment'
   | 'draft'
+  | 'noop'
   | 'user'
   | 'user_oauth'
   | 'user_notify_setting'
@@ -86,7 +87,7 @@ export interface BatchParams {
   }
 }
 
-export type S3Folder = 'audioDraft' | 'draft'
+export type S3Folder = 'avatar' | 'audioDraft' | 'draft'
 
 export type S3Bucket =
   | 'matters-server-dev'

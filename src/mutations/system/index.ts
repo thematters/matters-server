@@ -1,9 +1,7 @@
-import createAsset from './createAsset'
-import deleteAsset from './deleteAsset'
+import singleFileUpload from './singleFileUpload'
 
 export default {
   Mutation: {
-    createAsset,
-    deleteAsset
+    singleFileUpload
   }
 }

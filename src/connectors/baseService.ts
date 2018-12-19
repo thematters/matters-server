@@ -5,7 +5,6 @@ import DataLoader from 'dataloader'
 import Knex from 'knex'
 //local
 import { ItemData, TableName } from 'definitions'
-import { environment } from 'common/environment'
 import { aws, AWSService } from './aws'
 import { knex } from './db'
 
@@ -31,11 +30,11 @@ export class BaseService {
   /**
    * Find an item by a given id.
    */
-  baseFindById = async (id: number): Promise<any | null> => {
+  baseFindById = async (id: string, table?: TableName): Promise<any | null> => {
     const result = await this.knex
       .select()
-      .from(this.table)
-      .where('id', id)
+      .from(table || this.table)
+      .where({ id })
     if (result && result.length > 0) {
       return result[0]
     }
