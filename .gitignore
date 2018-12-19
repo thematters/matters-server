@@ -2,6 +2,8 @@
 .vscode
 .DS_store
 *.swp
+*.rdb
+*.log
 yarn.lock
 node_modules
 build
