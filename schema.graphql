@@ -76,7 +76,7 @@ type AudioDraft {
   title: String
   mimetype: String!
   encoding: String!
-  s3Path: String!
+  path: String!
   createdAt: DateTime!
   updatedAt: DateTime!
 }

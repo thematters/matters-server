@@ -13,7 +13,7 @@ const resolver: Resolver = async (
   const data: ItemData = {
     authorId: viewer.id,
     title,
-    s3Path: path
+    path
   }
 
   // Edit an audo draft item
