@@ -15,19 +15,31 @@ export class CommentService extends BaseService {
     authorId,
     articleId,
     parentCommentId,
-    mentionedUserId,
+    mentionedUserIds,
     content
   }: {
-    [key: string]: string
-  }) =>
-    await this.baseCreate({
+    [key: string]: any
+  }) => {
+    const comemnt = await this.baseCreate({
       uuid: v4(),
       authorId,
       articleId,
       parentCommentId,
-      mentionedUserId,
       content
     })
+    await Promise.all(
+      mentionedUserIds.map(async (userId: string) => {
+        await this.baseCreate(
+          {
+            commentId: comemnt.id,
+            userId
+          },
+          'comment_mentioned_user'
+        )
+      })
+    )
+    return comemnt
+  }
 
   /**
    * Count comments by a given author id (user).
@@ -164,7 +176,7 @@ export class CommentService extends BaseService {
     await this.knex
       .select()
       .from(this.table)
-      .where({ article_id: articleId, pinned: true })
+      .where({ articleId, pinned: true })
 
   /**
    * Find comments by a given comment id.
@@ -183,7 +195,7 @@ export class CommentService extends BaseService {
       .select()
       .from('action_comment')
       .where({
-        target_id: targetId,
+        targetId,
         action: USER_ACTION.upVote
       })
 
@@ -195,8 +207,20 @@ export class CommentService extends BaseService {
       .select()
       .from('action_comment')
       .where({
-        target_id: targetId,
+        targetId,
         action: USER_ACTION.downVote
+      })
+  }
+
+  /**
+   * Find a comment's mentioned users by a given comment id.
+   */
+  findMentionedUsers = async (commentId: string): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('comment_mentioned_user')
+      .where({
+        commentId
       })
   }
 }

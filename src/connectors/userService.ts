@@ -47,8 +47,7 @@ export class UserService extends BaseService {
       displayName,
       description,
       avatar,
-      passwordHash,
-      oauthType: []
+      passwordHash
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
     return await this.idLoader.load(user.id)
@@ -216,18 +215,18 @@ export class UserService extends BaseService {
    * Find user's followee list by a given user id.
    */
   findFollowees = async ({
-    id,
+    userId,
     offset = 0,
     limit = BATCH_SIZE
   }: {
-    id: string
+    userId: string
     offset?: number
     limit?: number
   }) =>
     this.knex
       .select()
       .from('action_user')
-      .where({ userId: id, action: USER_ACTION.follow })
+      .where({ userId, action: USER_ACTION.follow })
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
@@ -256,6 +255,23 @@ export class UserService extends BaseService {
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+
+  /**
+   * Is user following target
+   */
+  isFollowing = async ({
+    userId,
+    targetId
+  }: {
+    userId: string
+    targetId: string
+  }): Promise<boolean> => {
+    const result = await this.knex
+      .select()
+      .from('action_user')
+      .where({ userId, targetId, action: USER_ACTION.follow })
+    return result.length > 0
+  }
 
   /**
    * Find an user's rates by a given target id (user).

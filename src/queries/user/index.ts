@@ -30,7 +30,6 @@ export default {
       )
     },
     // quotations,
-
     // activity,
     followers: async (
       { id }: { id: string },
@@ -38,18 +37,47 @@ export default {
       { userService }: Context
     ) => {
       const actions = await userService.findFollowersInBatch(id, offset, limit)
-      return userService.baseFindByIds(actions.map(({ userId }) => userId))
+      return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
     followees: async (
       { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { userService }: Context
     ) => {
-      const actions = await userService.findFollowees({ id, offset, limit })
-
-      return userService.baseFindByIds(
+      const actions = await userService.findFollowees({
+        userId: id,
+        offset,
+        limit
+      })
+      return userService.idLoader.loadMany(
         actions.map(({ targetId }: { targetId: string }) => targetId)
       )
+    },
+    isFollower: async (
+      { id }: { id: string },
+      _: any,
+      { viewer, userService }: Context
+    ) => {
+      if (!viewer) {
+        return false
+      }
+      return await userService.isFollowing({
+        userId: id,
+        targetId: viewer.id
+      })
+    },
+    isFollowee: async (
+      { id }: { id: string },
+      _: any,
+      { viewer, userService }: Context
+    ) => {
+      if (!viewer) {
+        return false
+      }
+      return await userService.isFollowing({
+        userId: viewer.id,
+        targetId: id
+      })
     },
     settings: (root: any) => root,
     status: (root: any) => root
