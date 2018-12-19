@@ -20,7 +20,7 @@
     "test": "jest",
     "tslint:dev": "tslint --force -c tslint.json 'src/**/*.ts{,x}' -e '**/node_modules/**/*'",
     "tslint:watch:dev": "chokidar 'src/**/*.ts{,x}' -c 'npm run tslint:dev'",
-    "tslint:production": "tslint -t verbose -c tslint.json 'src/**/*.ts{,x}' -e '**/node_modules/**/*'",
+    "tslint:production": "node_modules/.bin/tslint -t verbose -c tslint.json 'src/**/*.ts{,x}' -e '**/node_modules/**/*'",
     "format": "prettier --single-quote --write \"{,!(node_modules|build)/**/}*.{js,jsx,ts,tsx,json}\"",
     "format:check": "npm run format -- --list-different",
     "exportSchema": "npm run build && node build/common/utils/exportSchema.js"
