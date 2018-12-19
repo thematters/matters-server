@@ -6,7 +6,7 @@ const draftValidation = {
   authorId: expect.any(String),
   upstreamId: null,
   title: expect.any(String),
-  cover: expect.any(String),
+  cover: null,
   abstract: expect.any(String),
   content: expect.any(String),
   createdAt: expect.any(Date),
@@ -18,7 +18,7 @@ const audioValidation = {
   uuid: expect.any(String),
   authorId: expect.any(String),
   title: expect.any(String),
-  path: expect.any(String),
+  audio: expect.any(String),
   createdAt: expect.any(Date),
   updatedAt: expect.any(Date)
 }
