@@ -1,21 +1,25 @@
+// external
+import { sum } from 'lodash'
 import { BatchParams, Context } from 'definitions'
+import { toGlobalId, fromGlobalId } from 'common/utils'
 
 export default {
   Query: {
-    user: (
-      root: any,
-      { input: { uuid } }: { input: { uuid: string } },
-      { userService }: Context
-    ) => userService.uuidLoader.load(uuid),
     viewer: (root: any, _: any, { viewer }: Context) => viewer
   },
   User: {
+    id: ({ id }: { id: string }) => {
+      return toGlobalId({ type: 'User', id })
+    },
     info: (root: any) => root,
     user: (
       root: any,
-      { input: { uuid } }: { input: { uuid: string } },
+      { input: { id } }: { input: { id: string } },
       { userService }: Context
-    ) => userService.uuidLoader.load(uuid),
+    ) => {
+      const { id: dbID } = fromGlobalId(id)
+      return userService.idLoader.load(dbID)
+    },
     // hasFollowed,
     // drafts,
     // audioDrafts,
@@ -71,10 +75,23 @@ export default {
   },
   UserStatus: {
     articleCount: async (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
       { articleService }: Context
     ) => articleService.countByAuthor(id),
+    MAT: async (
+      { id }: { id: string },
+      _: any,
+      { articleService }: Context
+    ) => {
+      const articles = await articleService.findByAuthor(id)
+      const apprecations = await Promise.all(
+        articles.map(({ id }: { id: string }) =>
+          articleService.countAppreciation(id)
+        )
+      )
+      return sum(apprecations)
+    },
     // viewCount,
     // draftCount,
     commentCount: (
