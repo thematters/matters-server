@@ -6,6 +6,11 @@ export default /* GraphQL */ `
     official: Official!
   }
 
+  extend type Mutation {
+    createAsset(input: CreateAssetInput): Asset
+    deleteAsset(input: DeleteAssetInput): Boolean
+  }
+
   extend type Subscription {
     nodeEdited(input: NodeEditedInput!): Node!
   }
@@ -45,5 +50,24 @@ export default /* GraphQL */ `
 
   type Official {
     reportCategory: [String]!
+  }
+
+  type Asset implements Node {
+    id: ID!
+    uuid: UUID!
+    authorId: Int!
+    type: String!
+    path: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  input CreateAssetInput {
+    type: String!
+    path: String!
+  }
+
+  input DeleteAssetInput {
+    id: ID!
   }
 `

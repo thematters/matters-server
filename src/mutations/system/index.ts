@@ -1,3 +1,9 @@
+import createAsset from './createAsset'
+import deleteAsset from './deleteAsset'
+
 export default {
-  Mutation: {}
+  Mutation: {
+    createAsset,
+    deleteAsset
+  }
 }
