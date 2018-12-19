@@ -1,20 +1,15 @@
 const { baseDown } = require('../utils')
 
-const table = 'serach_history'
+const table = 'notice_detail'
 
 exports.up = async knex => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
-    t.bigInteger('user_id').notNullable()
-    t.text('search_key').notNullable()
-    t.boolean('archived').defaultTo(false)
     t.timestamp('created_at').defaultTo(knex.fn.now())
-
-    // Setup foreign key
-    t.foreign('user_id')
-      .references('id')
-      .inTable('user')
+    t.string('notice_type').notNullable()
+    t.string('message')
+    t.json('data')
   })
 }
 

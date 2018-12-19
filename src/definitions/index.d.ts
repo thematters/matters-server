@@ -10,6 +10,8 @@ import {
 
 export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
 
+export type ProtectedNodeTypes = 'Notice'
+
 export type Resolver = (
   parent: any,
   args: any,
@@ -24,7 +26,7 @@ export interface ResolverMap {
 }
 
 export type User = {
-  id: number
+  id: string
   uuid: string
   userName: string
   displayName: string
@@ -65,11 +67,16 @@ export type TableName =
   | 'article_read'
   | 'audio_draft'
   | 'comment'
+  | 'comment_mentioned_user'
   | 'draft'
   | 'user'
   | 'user_oauth'
   | 'user_notify_setting'
   | 'report_article'
+  | 'notice_detail'
+  | 'notice'
+  | 'notice_actor'
+  | 'notice_entity'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'
@@ -83,11 +90,36 @@ export interface BatchParams {
   }
 }
 
+export type NoticeType =
+  // user
+  | 'user_new_follower'
+  | 'user_disabled'
+  // article
+  | 'article_published'
+  | 'article_reported'
+  | 'article_archived'
+  | 'article_new_downstream'
+  | 'article_new_appreciation'
+  | 'article_new_subscriber'
+  | 'article_new_comment'
+  | 'subscribed_article_new_comment'
+  // comment
+  | 'comment_pinned'
+  | 'comment_reported'
+  | 'comment_archived'
+  | 'comment_new_reply'
+  | 'comment_new_upvote'
+  | 'comment_mentioned_you'
+  // official
+  | 'official_announcement'
+
 export type S3Folder = 'audioDraft' | 'draft'
 
 export type S3Bucket =
   | 'matters-server-dev'
   | 'matters-server-stage'
   | 'matters-server-production'
+
+export type Item = { id: string; [key: string]: any }
 
 export type ItemData = { [key: string]: any }

@@ -4,12 +4,12 @@ import { toGlobalId } from 'common/utils'
 export default {
   User: {
     drafts: (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { draftService }: Context
     ) => draftService.findByAuthorInBatch(id, offset, limit),
     audioDrafts: (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { draftService }: Context
     ) => draftService.findAudioDraftsByAuthorInBatch(id, offset, limit)
