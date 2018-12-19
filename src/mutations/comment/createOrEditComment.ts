@@ -33,11 +33,9 @@ const resolver: Resolver = async (
   }
 
   if (mentions) {
-    const mentionsDbIds = mentions.map(
-      (mentionId: string) => fromGlobalId(mentionId).id
+    data.mentionedUserIds = mentions.map(
+      (userId: string) => fromGlobalId(userId).id
     )
-    const users = await userService.idLoader.loadMany(mentionsDbIds)
-    data.mentionedUserId = users.map(u => u.id)
   }
 
   // Edit

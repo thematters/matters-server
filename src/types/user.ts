@@ -23,8 +23,6 @@ export default /* GraphQL */ `
 
   type User implements Node {
     id: ID!
-    # Get article for this user
-    article(input: ArticleInput!): Article!
     info: UserInfo!
     settings: UserSettings!
     # Personalized recommendations
@@ -43,10 +41,10 @@ export default /* GraphQL */ `
     followers(input: ListInput!): [User]
     # Users that this user follows
     followees(input: ListInput!): [User]
-    # Current user has followed this user
-    isFollowee: Boolean!
-    # This user has followed current user
+    # This user is following viewer
     isFollower: Boolean!
+    # Viewer is following this user
+    isFollowee: Boolean!
     status: UserStatus!
   }
 
@@ -199,10 +197,6 @@ export default /* GraphQL */ `
   input ResetPasswordInput {
     password: String!
     code: String
-  }
-
-  input ArticleInput {
-    id: ID!
   }
 
   enum UserInfoFields {

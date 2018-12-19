@@ -10,6 +10,8 @@ import {
 
 export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
 
+export type ProtectedNodeTypes = 'Notice'
+
 export type Resolver = (
   parent: any,
   args: any,
@@ -65,6 +67,7 @@ export type TableName =
   | 'article_read'
   | 'audio_draft'
   | 'comment'
+  | 'comment_mentioned_user'
   | 'draft'
   | 'user'
   | 'user_oauth'

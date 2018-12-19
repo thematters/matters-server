@@ -90,10 +90,12 @@ test('findNotifySetting', async () => {
 })
 
 test('findFollowees', async () => {
-  const user1Followees = await userService.findFollowees({ id: '1' })
+  const user1Followees = await userService.findFollowees({ userId: '1' })
   expect(user1Followees.length).toBe(1)
 
-  const testUserFollowees = await userService.findFollowees({ id: testUserId })
+  const testUserFollowees = await userService.findFollowees({
+    userId: testUserId
+  })
   expect(testUserFollowees.length).toBe(0)
 })
 

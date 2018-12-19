@@ -8,12 +8,14 @@ export default {
       { input: { offset, limit } }: BatchParams,
       { commentService, articleService }: Context
     ) => {
-      const articleIds = await commentService.findByAuthorInBatch(
+      const comments = await commentService.findByAuthorInBatch(
         id,
         offset,
         limit
       )
-      return articleService.baseFindByIds(articleIds)
+      return articleService.idLoader.loadMany(
+        comments.map(({ articleId }: { articleId: string }) => articleId)
+      )
     }
   },
   Article: {
@@ -52,11 +54,16 @@ export default {
     downvotes: ({ id }: { id: string }, _: any, { commentService }: Context) =>
       commentService.countDownVote(id),
     myVote: (parent: any, _: any, { userService }: Context) => 'up_vote',
-    mentions: (
-      { mentionedUserId }: { mentionedUserId: [string] },
+    mentions: async (
+      { id }: { id: string },
       _: any,
-      { userService }: Context
-    ) => userService.idLoader.loadMany(mentionedUserId),
+      { userService, commentService }: Context
+    ) => {
+      const mentionedUserIds = (await commentService.findMentionedUsers(
+        id
+      )).map(m => m.userId)
+      return userService.idLoader.loadMany(mentionedUserIds)
+    },
     comments: ({ id }: { id: string }, _: any, { commentService }: Context) =>
       commentService.findByParent(id),
     parentComment: (

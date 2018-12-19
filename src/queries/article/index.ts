@@ -7,15 +7,7 @@ export default {
       { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { articleService }: Context
-    ) => articleService.findByAuthorInBatch(id, offset, limit),
-    article: (
-      _: any,
-      { input: { id } }: { input: { id: string } },
-      { articleService }: Context
-    ) => {
-      const { id: dbId } = fromGlobalId(id)
-      return articleService.idLoader.load(dbId)
-    }
+    ) => articleService.findByAuthorInBatch(id, offset, limit)
   },
   UserStatus: {
     MAT: async (
