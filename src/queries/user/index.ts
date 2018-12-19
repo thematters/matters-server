@@ -82,6 +82,11 @@ export default {
     settings: (root: any) => root,
     status: (root: any) => root
   },
+  UserInfo: {
+    avatar: async ({ avatar }: { avatar: string }, _: any, { systemService }: Context) => {
+      return avatar ? systemService.findAssetUrl(avatar) : null
+    }
+  },
   UserSettings: {
     // language: ({ language }: { language: string }) => language,
     oauthType: ({ id }: { id: string }, _: any, { userService }: Context) =>

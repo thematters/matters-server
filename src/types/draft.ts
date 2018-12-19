@@ -24,7 +24,7 @@ export default /* GraphQL */ `
     id: ID!
     authorId: Int!
     title: String
-    path: String!
+    audio: String!
     createdAt: DateTime!
     updatedAt: DateTime!
   }

@@ -7,9 +7,17 @@ export class SystemService extends BaseService {
   }
 
   /**
+   * Find the url of an asset by a given id.
+   */
+  findAssetUrl = async (id: string): Promise<string | null> => {
+    const { path } = await this.baseFindById(id, 'asset')
+    return path ? `${this.aws.s3Endpoint}/${path}` : null
+  }
+
+  /**
    * Find assets by a given author id (user).
    */
-  findByAuthorId = async (authorId: string): Promise<any[]> =>
+  findAssetsByAuthorId = async (authorId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('asset')
@@ -18,7 +26,7 @@ export class SystemService extends BaseService {
   /**
    * Find assets by a given author id (user) and type.
    */
-  findByAuthorIdAndType = async (
+  findAssetsByAuthorIdAndType = async (
     authorId: string,
     type: string
   ): Promise<any[]> =>
