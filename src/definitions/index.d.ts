@@ -96,8 +96,6 @@ export interface BatchParams {
 
 export type S3Folder = 'avatar' | 'audioDraft' | 'draft'
 
-export type S3Folder = 'audioDraft' | 'draft'
-
 export type S3Bucket =
   | 'matters-server-dev'
   | 'matters-server-stage'
