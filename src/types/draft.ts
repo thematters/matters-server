@@ -24,7 +24,7 @@ export default /* GraphQL */ `
     id: ID!
     authorId: Int!
     title: String
-    s3Path: String!
+    path: String!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
