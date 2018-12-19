@@ -1,15 +1,16 @@
 import { Resolver } from 'definitions'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   root,
-  { input: { uuid, category, description } },
+  { input: { id, category, description } },
   { viewer, articleService }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO
   }
-
-  const article = await articleService.uuidLoader.load(uuid)
+  const { id: dbID } = fromGlobalId(id)
+  const article = await articleService.idLoader.load(dbID)
   if (!article) {
     throw new Error('target article does not exists') // TODO
   }

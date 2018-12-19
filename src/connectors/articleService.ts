@@ -13,7 +13,7 @@ export class ArticleService extends BaseService {
   /**
    * Count articles by a given authorId (user).
    */
-  countByAuthor = async (authorId: number): Promise<number> => {
+  countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where({ authorId })
@@ -24,25 +24,14 @@ export class ArticleService extends BaseService {
   /**
    * Count total appreciaton by a given article id.
    */
-  countAppreciation = async (articleId: number): Promise<number> => {
+  countAppreciation = async (articleId: string): Promise<number> => {
     const result = await this.knex
       .select()
       .from('appreciate')
       .where({ articleId })
       .sum('amount')
       .first()
-    return parseInt(result.sum, 10)
-  }
-
-  /**
-   * Count tags by a given tag text.
-   */
-  countByTag = async (tag: string): Promise<number> => {
-    const result = await this.knex('article_tag')
-      .countDistinct('article_id')
-      .where('tag', tag)
-      .first()
-    return parseInt(result.count, 10)
+    return parseInt(result.sum || '0', 10)
   }
 
   countWords = (html: string) =>
@@ -55,7 +44,7 @@ export class ArticleService extends BaseService {
   /**
    * Find articles by a given author id (user).
    */
-  findByAuthor = async (authorId: number) =>
+  findByAuthor = async (authorId: string) =>
     await this.knex
       .select()
       .from(this.table)
@@ -125,27 +114,19 @@ export class ArticleService extends BaseService {
       .limit(limit)
 
   /**
-   * Find tags by a given tag text.
-   */
-  findByTag = async (tag: string) => {
-    const result = await this.knex
-      .select()
-      .from('article_tag')
-      .where('tag', tag)
-    return this.baseFindByIds(
-      result.map(({ articleId }: { articleId: number }) => articleId)
-    )
-  }
-
-  /**
    * Find tages by a given article id.
    */
-  findTags = async (articleId: number): Promise<any | null> => {
+  findTagIds = async ({
+    id: articleId
+  }: {
+    id: string
+  }): Promise<any | null> => {
     const result = await this.knex
-      .select()
+      .select('tag_id')
       .from('article_tag')
       .where({ articleId })
-    return result.map(({ tag }: { tag: string }) => tag)
+
+    return result.map(({ tagId }: { tagId: string }) => tagId)
   }
 
   /**
@@ -277,7 +258,7 @@ export class ArticleService extends BaseService {
   // }
 
   // update an object with id and kv pairs object
-  update = async (id: number, kv: { [k: string]: any }) => {
+  update = async (id: string, kv: { [k: string]: any }) => {
     const qs = await this.knex(this.table)
       .where({
         id

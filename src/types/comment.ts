@@ -5,7 +5,8 @@ export default /* GraphQL */ `
     deleteComment(input: DeleteCommentInput): Boolean
   }
 
-  type Comment {
+  type Comment implements Node {
+    id: ID!
     uuid: UUID!
     # Original article of this comment
     article: Article!
