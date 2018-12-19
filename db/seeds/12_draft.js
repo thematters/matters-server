@@ -9,7 +9,6 @@ exports.seed = function(knex, Promise) {
           uuid: '00000000-0000-0000-0000-000000000001',
           author_id: '1',
           title: 'test draft 1',
-          cover: 'some-s3-path',
           abstract: '',
           content: '<div>some html string</div>'
         },
@@ -18,7 +17,6 @@ exports.seed = function(knex, Promise) {
           author_id: '2',
           upstream_id: '1',
           title: 'test draft 2',
-          cover: 'some-s3-path',
           abstract: '',
           content: '<div>some html string</div>'
         },
@@ -27,7 +25,6 @@ exports.seed = function(knex, Promise) {
           author_id: '3',
           upstream_id: '2',
           title: 'test draft 3',
-          cover: 'some-s3-path',
           abstract: '',
           content: '<div>some html string</div>'
         }

@@ -57,11 +57,11 @@ export default /* GraphQL */ `
   }
 
   type SingleFileUploadResult {
-    id: ID!
+    uuid: UUID!
     path: String!
   }
 
-  type Asset implements Node {
+  type Asset {
     id: ID!
     uuid: UUID!
     authorId: String!
