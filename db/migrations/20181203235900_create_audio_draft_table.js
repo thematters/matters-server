@@ -10,7 +10,9 @@ exports.up = function(knex, Promise) {
       .unsigned()
       .notNullable()
     t.string('title').notNullable()
-    t.string('s3_path').notNullable()
+    t.bigInteger('audio')
+      .unsigned()
+      .notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
