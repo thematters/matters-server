@@ -4,10 +4,11 @@ import jwt from 'jsonwebtoken'
 import { Context } from 'definitions'
 import { environment } from 'common/environment'
 import {
-  UserService,
   ArticleService,
   CommentService,
-  DraftService
+  DraftService,
+  TagService,
+  UserService
 } from 'connectors'
 
 export const makeContext = async ({
@@ -33,6 +34,7 @@ export const makeContext = async ({
     userService,
     articleService: new ArticleService(),
     commentService: new CommentService(),
-    draftService: new DraftService()
+    draftService: new DraftService(),
+    tagService: new TagService()
   }
 }

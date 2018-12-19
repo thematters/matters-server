@@ -4,8 +4,11 @@ import {
   UserService,
   ArticleService,
   CommentService,
-  DraftService
+  DraftService,
+  TagService
 } from 'connectors'
+
+export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
 
 export type Resolver = (
   parent: any,
@@ -48,6 +51,7 @@ export type Context = {
   commentService: InstanceType<typeof CommentService>
   draftService: InstanceType<typeof DraftService>
   userService: InstanceType<typeof UserService>
+  tagService: InstanceType<typeof TagService>
 }
 
 export type TableName =
@@ -57,6 +61,7 @@ export type TableName =
   | 'action_article'
   | 'appreciate'
   | 'article'
+  | 'tag'
   | 'article_read'
   | 'audio_draft'
   | 'comment'
@@ -77,3 +82,12 @@ export interface BatchParams {
     [key: string]: any
   }
 }
+
+export type S3Folder = 'audioDraft' | 'draft'
+
+export type S3Bucket =
+  | 'matters-server-dev'
+  | 'matters-server-stage'
+  | 'matters-server-production'
+
+export type ItemData = { [key: string]: any }
