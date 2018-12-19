@@ -7,6 +7,7 @@ import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
 import { ItemData } from 'definitions'
 import { BaseService } from './baseService'
+import { TagService } from './tagService'
 
 export class UserService extends BaseService {
   constructor() {
@@ -321,63 +322,87 @@ export class UserService extends BaseService {
     limit = BATCH_SIZE
   ): Promise<any[]> => {
     const notices = await this.knex
-      .select()
+      .select([
+        'notice.id',
+        'notice.unread',
+        'notice.updated_at',
+        'notice_detail.notice_type',
+        'notice_detail.message',
+        'notice_detail.data'
+      ])
       .from('notice')
       .where({ recipientId: userId, deleted: false })
       .orderBy('updated_at', 'desc')
       .offset(offset)
       .limit(limit)
+      .innerJoin(
+        'notice_detail',
+        'notice.notice_detail_id',
+        '=',
+        'notice_detail.id'
+      )
 
     return notices.map(async (notice: any) => {
-      // notice detail
-      const { noticeType, message, data } = await this.knex
-        .select('notice_type', 'message', 'data')
-        .from('notice_detail')
-        .where({ id: notice.noticeDetailId })
-        .first()
-
       // notice entities
-      let entities = await this.knex
-        .select()
+      let target = null as any
+      const entities = {} as any
+      const _entities = await this.knex
+        .select([
+          'notice_entity.type',
+          'notice_entity.entity_id',
+          'entity_type.table'
+        ])
         .from('notice_entity')
         .where({ noticeId: notice.id })
-      entities = entities.map(async ({ type, entityTypeId, entityId }: any) => {
-        const { table: entityTableName } = await this.knex
-          .select('table')
-          .from('entity_type')
-          .where({ id: entityTypeId })
-          .first()
-        const node = await this.knex
-          .select()
-          .from(entityTableName)
-          .where({ id: entityId })
-          .first()
-        return {
-          type,
-          node
-        }
-      })
+        .innerJoin(
+          'entity_type',
+          'entity_type.id',
+          '=',
+          'notice_entity.entity_type_id'
+        )
+      await Promise.all(
+        await _entities.map(async ({ type, entityId, table }: any) => {
+          const entity = await this.knex
+            .select()
+            .from(table)
+            .where({ id: entityId })
+            .first()
+          if (type === 'target') {
+            target = entity
+          } else {
+            entities[type] = entity
+          }
+        })
+      )
 
       // notice actors
-      const noticeActorIds = (await this.knex
-        .select('actor_id')
-        .from('notice_actor')
-        .where({ noticeId: notice.id })).map(
-        ({ actorId }: { actorId: any }) => actorId
-      )
       const actors = await this.knex
-        .select()
-        .from('user')
-        .whereIn('id', noticeActorIds)
+        .select('user.*')
+        .from('notice_actor')
+        .where({ noticeId: notice.id })
+        .innerJoin('user', 'notice_actor.actor_id', '=', 'user.id')
 
-      return Object.assign(notice, {
-        type: noticeType,
+      return {
+        id: notice.id,
+        unread: notice.unread,
+        createdAt: notice.updatedAt,
+        type: notice.noticeType,
+        actors,
+        target,
         entities,
-        message,
-        data,
-        actors
-      })
+        message: notice.message,
+        data: notice.data
+      }
     })
+  }
+
+  /**
+   * Mark all notices as read
+   */
+  markAllNoticesAsRead = async (userId: string): Promise<any> => {
+    await this.knex('notice')
+      .where({ recipientId: userId, unread: true })
+      .update({ unread: false })
   }
 
   /**

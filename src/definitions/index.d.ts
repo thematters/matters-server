@@ -97,7 +97,7 @@ export type NoticeType =
   // article
   | 'article_published'
   | 'article_reported'
-  | 'article_archived_violation'
+  | 'article_archived'
   | 'article_new_downstream'
   | 'article_new_appreciation'
   | 'article_new_subscriber'
@@ -106,12 +106,13 @@ export type NoticeType =
   // comment
   | 'comment_pinned'
   | 'comment_reported'
-  | 'comment_archived_violation'
+  | 'comment_archived'
   | 'comment_new_reply'
   | 'comment_new_upvote'
   | 'comment_mentioned_you'
   // official
   | 'official_announcement'
+
 export type S3Folder = 'audioDraft' | 'draft'
 
 export type S3Bucket =
