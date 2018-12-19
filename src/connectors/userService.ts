@@ -5,8 +5,8 @@ import jwt from 'jsonwebtoken'
 
 import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
-import { BaseService, ItemData } from './baseService'
-import notice from 'queries/notice'
+import { ItemData } from 'definitions'
+import { BaseService } from './baseService'
 
 export class UserService extends BaseService {
   constructor() {

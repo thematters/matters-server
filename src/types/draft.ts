@@ -1,13 +1,11 @@
 export default /* GraphQL */ `
   extend type Mutation {
-    singleUpload(input: SingleUploadInput): File!
     createOrEditAudioDraft(input: CreateOrEditAudioDraftInput): AudioDraft
     createDraft(input: CreateDraftInput): Draft
     deleteDraft(input: DeleteDraftInput): Boolean
     editDraft(input: EditDraftInput): Draft
     addDraftTag(input: AddDraftTagInput): Draft
     deleteDraftTag(input: DeleteDraftTagInput): Boolean
-    deleteDraftContent(input: DeleteDraftContentInput): Boolean
   }
 
   type Draft implements Node {
@@ -26,22 +24,9 @@ export default /* GraphQL */ `
     id: ID!
     authorId: Int!
     title: String
-    mimetype: String!
-    encoding: String!
     s3Path: String!
     createdAt: DateTime!
     updatedAt: DateTime!
-  }
-
-  type File {
-    filename: String!
-    mimetype: String!
-    encoding: String!
-    path: String!
-  }
-
-  input SingleUploadInput {
-    file: Upload!
   }
 
   input CreateOrEditAudioDraftInput {
@@ -76,10 +61,6 @@ export default /* GraphQL */ `
   input DeleteDraftTagInput {
     id: ID
     tag: String
-  }
-
-  input DeleteDraftContentInput {
-    path: String
   }
 
   enum DraftField {
