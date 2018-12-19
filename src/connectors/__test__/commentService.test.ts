@@ -14,12 +14,12 @@ test('countByArticle', async () => {
 
 test('countByParent', async () => {
   const count = await commentService.countByParent('1')
-  expect(count).toBe(1)
+  expect(count).toBe(2)
 })
 
 test('countUpVote', async () => {
   const count = await commentService.countUpVote('1')
-  expect(count).toBe(1)
+  expect(count).toBe(2)
 })
 
 test('countDownVote', async () => {
@@ -44,12 +44,12 @@ test('findPinnedByArticle', async () => {
 
 test('findByParent', async () => {
   const comments = await commentService.findByParent('1')
-  expect(comments.length).toBe(1)
+  expect(comments.length).toBe(2)
 })
 
 test('findUpVotes', async () => {
   const votes = await commentService.findUpVotes('1')
-  expect(votes.length).toBe(1)
+  expect(votes.length).toBe(2)
 })
 
 test('findDownVotes', async () => {
