@@ -29,7 +29,7 @@ export default /* GraphQL */ `
     uuid: UUID!
     authorId: Int!
     title: String
-    s3Path: String!
+    path: String!
     createdAt: DateTime!
     updatedAt: DateTime!
   }

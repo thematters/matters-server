@@ -9,19 +9,19 @@ exports.seed = function(knex, Promise) {
           uuid: '00000000-0000-0000-0000-000000000001',
           author_id: '1',
           title: 'Audio 1',
-          s3_path: 'S3 path'
+          path: 'S3 path'
         },
         {
           uuid: '00000000-0000-0000-0000-000000000002',
           author_id: '2',
           title: 'Audio 2',
-          s3_path: 'S3 path'
+          path: 'S3 path'
         },
         {
           uuid: '00000000-0000-0000-0000-000000000003',
           author_id: '3',
           title: 'Audio 3',
-          s3_path: 'S3 path'
+          path: 'S3 path'
         }
       ])
     })
