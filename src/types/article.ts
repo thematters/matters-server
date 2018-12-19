@@ -17,7 +17,7 @@ export default /* GraphQL */ `
     author: User!
     title: String!
     # url for cover
-    cover: URL!
+    cover: URL
     summary: String!
     tags: [Tag!]
     wordCount: Int
