@@ -16,7 +16,7 @@ export class BaseService {
 
   knex: Knex
 
-  idLoader: DataLoader<number, Item>
+  idLoader: DataLoader<string, Item>
 
   uuidLoader: DataLoader<string, Item>
 
@@ -45,7 +45,7 @@ export class BaseService {
   /**
    * Find items by given ids.
    */
-  baseFindByIds = async (ids: number[]) =>
+  baseFindByIds = async (ids: string[]) =>
     await this.knex
       .select()
       .from(this.table)

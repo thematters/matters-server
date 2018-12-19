@@ -13,8 +13,8 @@ export default /* GraphQL */ `
     deleteDraftTag(input: DeleteDraftTagInput): Boolean
   }
 
-  type Draft {
-    uuid: UUID!
+  type Draft implements Node {
+    id: ID!
     upstream: Article
     title: String
     content: String!
