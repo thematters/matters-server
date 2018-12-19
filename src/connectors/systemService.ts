@@ -18,7 +18,10 @@ export class SystemService extends BaseService {
   /**
    * Find assets by a given author id (user) and type.
    */
-  findByAuthorIdAndType = async (authorId: string, type: string): Promise<any[]> =>
+  findByAuthorIdAndType = async (
+    authorId: string,
+    type: string
+  ): Promise<any[]> =>
     await this.knex
       .select()
       .from('asset')
