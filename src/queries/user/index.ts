@@ -83,7 +83,11 @@ export default {
     status: (root: any) => root
   },
   UserInfo: {
-    avatar: async ({ avatar }: { avatar: string }, _: any, { systemService }: Context) => {
+    avatar: async (
+      { avatar }: { avatar: string },
+      _: any,
+      { systemService }: Context
+    ) => {
       return avatar ? systemService.findAssetUrl(avatar) : null
     }
   },

@@ -31,7 +31,11 @@ export default {
     },
     author: ({ id }: { id: string }, _: any, { userService }: Context) =>
       userService.idLoader.load(id),
-    cover: async ({ cover }: { cover: string }, _: any, { systemService }: Context) => {
+    cover: async (
+      { cover }: { cover: string },
+      _: any,
+      { systemService }: Context
+    ) => {
       return cover ? systemService.findAssetUrl(cover) : null
     },
     summary: (
