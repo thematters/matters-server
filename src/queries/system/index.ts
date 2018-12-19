@@ -8,16 +8,15 @@ export default {
       { input: { id } }: { input: { id: string } },
       {
         articleService,
-        assetService,
         userService,
         commentService,
         draftService,
+        systemService,
         tagService
       }: Context
     ) => {
       const serviceMap = {
         Article: articleService,
-        Asset: assetService,
         User: userService,
         Comment: commentService,
         Draft: draftService,
