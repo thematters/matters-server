@@ -29,7 +29,9 @@ export class AWSService {
       region: awsRegion || '',
       accessKeyId: awsAccessId || '',
       secretAccessKey: awsAccessKey || '',
-      ...( env === 'development' ? { s3BucketEndpoint: true, endpoint: LOCAL_S3_ENDPOINT } : {})
+      ...(env === 'development'
+        ? { s3BucketEndpoint: true, endpoint: LOCAL_S3_ENDPOINT }
+        : {})
     }
   }
 
@@ -42,7 +44,9 @@ export class AWSService {
     switch (env) {
       case 'staging':
       case 'production': {
-        return `https://${awsCloudFrontEndpoint || awsS3Endpoint}/${this.s3Bucket}`
+        return `https://${awsCloudFrontEndpoint || awsS3Endpoint}/${
+          this.s3Bucket
+        }`
       }
       default: {
         return `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`

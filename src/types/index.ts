@@ -28,13 +28,4 @@ const Root = /* GraphQL */ `
   }
 `
 
-export default [
-  Root,
-  article,
-  comment,
-  draft,
-  notice,
-  scalars,
-  system,
-  user
-]
+export default [Root, article, comment, draft, notice, scalars, system, user]
