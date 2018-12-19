@@ -6,5 +6,6 @@ import draft from './draft'
 import file from './file'
 import system from './system'
 import user from './user'
+import notice from './notice'
 
-export default merge(article, comment, draft, file, system, user)
+export default merge(article, comment, draft, file, system, user, notice)

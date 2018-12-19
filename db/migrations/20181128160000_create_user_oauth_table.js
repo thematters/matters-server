@@ -1,7 +1,10 @@
+const { baseDown } = require('../utils')
+
 const table = 'user_oauth'
 
-exports.up = function(knex, Promise) {
-  return knex.schema.createTable(table, function(t) {
+exports.up = async knex => {
+  await knex('entity_type').insert({ table })
+  await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
     t.bigInteger('user_id')
       .unsigned()
@@ -19,6 +22,4 @@ exports.up = function(knex, Promise) {
   })
 }
 
-exports.down = function(knex, Promise) {
-  return knex.schema.dropTable(table)
-}
+exports.down = baseDown(table)

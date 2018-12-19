@@ -18,7 +18,7 @@ const resolver: Resolver = async (
   }
 
   const tags = [...draft.tags, tag]
-  return draftService.updateByUUID(uuid, { tags })
+  return draftService.baseUpdateByUUID(uuid, { tags })
 }
 
 export default resolver

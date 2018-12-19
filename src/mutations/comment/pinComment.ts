@@ -1,8 +1,9 @@
 import { Resolver } from 'definitions'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,
-  { input: { uuid } },
+  { input: { id } },
   { viewer, commentService }
 ) => {
   if (!viewer) {
@@ -10,8 +11,8 @@ const resolver: Resolver = async (
   }
 
   // TODO: check permission
-
-  await commentService.updateByUUID(uuid, {
+  const { id: dbID } = fromGlobalId(id)
+  await commentService.baseUpdateById(dbID, {
     pinned: true
   })
 

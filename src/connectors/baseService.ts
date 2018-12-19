@@ -4,12 +4,9 @@ import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
 //local
-import { ItemData, TableName } from 'definitions'
-import { environment } from 'common/environment'
+import { Item, ItemData, TableName } from 'definitions'
 import { aws, AWSService } from './aws'
 import { knex } from './db'
-
-export type Item = { id: number; [key: string]: any }
 
 export class BaseService {
   aws: InstanceType<typeof AWSService>
@@ -31,7 +28,7 @@ export class BaseService {
   /**
    * Find an item by a given id.
    */
-  baseFindById = async (id: number): Promise<any | null> => {
+  baseFindById = async (id: string): Promise<any | null> => {
     const result = await this.knex
       .select()
       .from(this.table)
@@ -124,8 +121,8 @@ export class BaseService {
   /**
    * Update an item by a given id.
    */
-  updateById = async (
-    id: number,
+  baseUpdateById = async (
+    id: string,
     data: ItemData,
     table?: TableName
   ): Promise<any> =>
@@ -138,7 +135,7 @@ export class BaseService {
   /**
    * Update an item by a given UUID.
    */
-  updateByUUID = async (
+  baseUpdateByUUID = async (
     uuid: string,
     data: ItemData,
     table?: TableName

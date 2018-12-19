@@ -10,11 +10,24 @@ export default /* GraphQL */ `
     nodeEdited(input: NodeEditedInput!): Node!
   }
 
+  type SearchResult {
+    entity: Entity
+    match: String
+  }
+
+  type Official {
+    reportCategory: [String]!
+  }
+
   interface Node {
     id: ID!
   }
 
   input NodeInput {
+    id: ID!
+  }
+
+  input NodeEditedInput {
     id: ID!
   }
 
@@ -37,13 +50,4 @@ export default /* GraphQL */ `
   }
 
   union Entity = User | Article | Tag
-
-  type SearchResult {
-    entity: Entity
-    match: String
-  }
-
-  type Official {
-    reportCategory: [String]!
-  }
 `
