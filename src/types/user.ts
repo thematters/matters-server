@@ -8,6 +8,8 @@ export default /* GraphQL */ `
   extend type Mutation {
     sendVerificationEmail(input: SendVerificationEmailInput): Boolean
     sendPasswordResetEmail(input: SendVerificationEmailInput): Boolean
+    sendEmailResetEmail(input: SendEmailResetEmailInput): Boolean
+    verifyEmailResetCode(input: VerifyEmailResetCodeInput): Boolean
     resetPassword(input: ResetPasswordInput): Boolean
     userRegister(input: UserRegisterInput): User
     userLogin(input: UserLoginInput): LoginResult!
@@ -21,8 +23,8 @@ export default /* GraphQL */ `
     clearSearchHistory: Boolean
   }
 
-  type User {
-    uuid: UUID!
+  type User implements Node {
+    id: ID!
     # Get article for this user
     article(input: ArticleInput!): Article!
     # Get other user info for this user
@@ -136,8 +138,17 @@ export default /* GraphQL */ `
     email: Email!
   }
 
+  input SendEmailResetEmailInput {
+    email: Email!
+  }
+
   input SendPasswordResetEmailInput {
     email: Email!
+  }
+
+  input VerifyEmailResetCodeInput {
+    email: Email!
+    code: String!
   }
 
   input UserRegisterInput {
@@ -153,11 +164,11 @@ export default /* GraphQL */ `
   }
 
   input FollowUserInput {
-    uuid: UUID
+    id: ID!
   }
 
   input UnfollowUserInput {
-    uuid: UUID
+    id: ID!
   }
 
   input ImportArticlesInput {
@@ -189,14 +200,15 @@ export default /* GraphQL */ `
 
   input ResetPasswordInput {
     password: String!
+    code: String
   }
 
   input UserInput {
-    uuid: UUID
+    id: ID!
   }
 
   input ArticleInput {
-    uuid: UUID
+    id: ID!
   }
   
   enum UserInfoFields {
