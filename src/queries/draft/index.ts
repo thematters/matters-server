@@ -18,12 +18,20 @@ export default {
     id: ({ id }: { id: string }) => {
       return toGlobalId({ type: 'Draft', id })
     },
-    cover: async ({ cover }: { cover: string }, _: any, { systemService }: Context) => {
+    cover: async (
+      { cover }: { cover: string },
+      _: any,
+      { systemService }: Context
+    ) => {
       return cover ? systemService.findAssetUrl(cover) : null
     }
   },
   AudioDraft: {
-    audio: async ({ audio }: { audio: string }, _: any, { systemService }: Context) => {
+    audio: async (
+      { audio }: { audio: string },
+      _: any,
+      { systemService }: Context
+    ) => {
       return audio ? systemService.findAssetUrl(audio) : null
     }
   }
