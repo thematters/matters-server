@@ -1,3 +1,5 @@
+const { v4 } = require('uuid')
+
 const table = {
   notice: 'notice',
   notice_detail: 'notice_detail',
@@ -6,178 +8,216 @@ const table = {
 }
 
 exports.seed = async knex => {
-  // notice detail
-  await knex(table.notice_detail)
-    .del()
-    .then(async function() {
-      return knex(table.notice_detail).insert([
-        {
-          notice_type: 'user_new_follower'
-        },
-        {
-          notice_type: 'article_published'
-        },
-        {
-          notice_type: 'article_new_downstream'
-        },
-        {
-          notice_type: 'comment_pinned'
-        },
-        {
-          notice_type: 'official_announcement',
-          message: 'Version 1.0 is released!'
-        },
-        {
-          notice_type: 'article_new_appreciation'
-        }
-      ])
-    })
+  /**
+   * prepare seeds
+   */
+  const { id: articleTypeId } = await knex
+    .select('id')
+    .from('entity_type')
+    .where({ table: 'article' })
+    .first()
+  const { id: commentTypeId } = await knex
+    .select('id')
+    .from('entity_type')
+    .where({ table: 'comment' })
+    .first()
+  const notices = [
+    // actors (2, 3) follow recipient_id (1)
+    {
+      notice_type: 'user_new_follower',
+      actors: ['2', '3'],
+      recipient_id: '1'
+    },
+    // recipient_id (1) was disabled due to violation
+    {
+      notice_type: 'user_disabled',
+      data: { reason: 'violation' },
+      recipient_id: '1'
+    },
+    // recipient_id (1) 's article (1) was published
+    {
+      notice_type: 'article_published',
+      entities: [
+        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s article (1) was reported due to violation
+    {
+      notice_type: 'article_reported',
+      data: { reason: 'violation' },
+      entities: [
+        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s article (1) was archived due to violation
+    {
+      notice_type: 'article_archived',
+      data: { reason: 'violation' },
+      entities: [
+        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s article (1) has a new downstream article (2) by actor (2)
+    {
+      notice_type: 'article_new_downstream',
+      actors: ['2'],
+      entities: [
+        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 },
+        { type: 'downstream', entity_type_id: articleTypeId, entity_id: 2 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s article (1) has new appreciations by actors (2, 3)
+    {
+      notice_type: 'article_new_appreciation',
+      actors: ['2', '3'],
+      entities: [
+        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s article (1) has new subscribebrs (2, 3)
+    {
+      notice_type: 'article_new_subscriber',
+      actors: ['2', '3'],
+      entities: [
+        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s article (1) has a new comment by actor (3)
+    {
+      notice_type: 'article_new_comment',
+      actors: ['3'],
+      entities: [
+        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s subscribed article (2) has a new comment by actor (3)
+    {
+      notice_type: 'subscribed_article_new_comment',
+      actors: ['3'],
+      entities: [
+        { type: 'target', entity_type_id: articleTypeId, entity_id: 2 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s comment (4) was pinned
+    {
+      notice_type: 'comment_pinned',
+      entities: [
+        { type: 'target', entity_type_id: commentTypeId, entity_id: 4 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s comment (4) was reported due to violation
+    {
+      notice_type: 'comment_reported',
+      data: { reason: 'violation' },
+      entities: [
+        { type: 'target', entity_type_id: commentTypeId, entity_id: 1 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s comment (4) was archived due to violation
+    {
+      notice_type: 'comment_archived',
+      data: { reason: 'violation' },
+      entities: [
+        { type: 'target', entity_type_id: commentTypeId, entity_id: 1 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s comment (4) has a new reply by actor (2)
+    {
+      notice_type: 'comment_new_reply',
+      actors: ['2'],
+      entities: [
+        { type: 'target', entity_type_id: commentTypeId, entity_id: 1 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1)'s comment (4) has a new upvote by actor (3)
+    {
+      notice_type: 'comment_new_upvote',
+      actors: ['3'],
+      entities: [
+        { type: 'target', entity_type_id: commentTypeId, entity_id: 1 }
+      ],
+      recipient_id: '1'
+    },
+    // recipient_id (1) was mentioned by actir (2)'s comment (2)
+    {
+      notice_type: 'comment_mentioned_you',
+      actors: ['2'],
+      entities: [
+        { type: 'target', entity_type_id: commentTypeId, entity_id: 2 }
+      ],
+      recipient_id: '1'
+    },
+    // Official Announcement
+    {
+      notice_type: 'official_announcement',
+      recipient_id: '1',
+      message: 'Click to update the latest version of Matters!',
+      data: { link: 'https://matters.news/download/' }
+    },
+    // Official Announcement - Report Feedback
+    {
+      notice_type: 'official_announcement',
+      recipient_id: '1',
+      message:
+        '你舉報的文章《改革開放四十週年大會看點》已被刪除！感謝你對 Matters 的支持！'
+    }
+  ]
 
-  // notice
-  await knex(table.notice)
-    .del()
-    .then(function() {
-      return knex(table.notice).insert([
-        // user_new_follower
-        {
-          uuid: '00000000-0000-0000-0000-000000000000',
-          notice_detail_id: 1,
-          recipient_id: 1
-        },
-        // article_published
-        {
-          uuid: '00000000-0000-0000-0000-000000000001',
-          notice_detail_id: 2,
-          recipient_id: 1
-        },
-        // article_new_downstream
-        {
-          uuid: '00000000-0000-0000-0000-000000000002',
-          notice_detail_id: 3,
-          recipient_id: 1
-        },
-        // comment_pinned
-        {
-          uuid: '00000000-0000-0000-0000-000000000003',
-          notice_detail_id: 4,
-          recipient_id: 2
-        },
-        // official_announcement
-        {
-          uuid: '00000000-0000-0000-0000-000000000004',
-          notice_detail_id: 5,
-          recipient_id: 1
-        },
-        {
-          uuid: '00000000-0000-0000-0000-000000000005',
-          notice_detail_id: 5,
-          recipient_id: 2
-        },
-        {
-          uuid: '00000000-0000-0000-0000-000000000006',
-          notice_detail_id: 5,
-          recipient_id: 3
-        },
-        // article_new_appreciation
-        {
-          uuid: '00000000-0000-0000-0000-000000000007',
-          notice_detail_id: 6,
-          recipient_id: 1
-        }
-      ])
+  /**
+   * start seeding
+   */
+  await Promise.all(
+    await notices.map(async (notice, index) => {
+      const id = index + 1
+      // create notice detail
+      await knex(table.notice_detail).insert({
+        notice_type: notice.notice_type,
+        message: notice.message,
+        data: notice.data
+      })
+      // create notice
+      const { id: notice_id } = (await knex(table.notice)
+        .insert({
+          uuid: v4(),
+          notice_detail_id: id,
+          recipient_id: notice.recipient_id
+        })
+        .returning('*'))[0]
+      // create notice actor
+      await Promise.all(
+        (notice.actors || []).map(async actor_id => {
+          console.log(notice_id, id, actor_id)
+          await knex(table.notice_actor).insert({
+            notice_id,
+            actor_id
+          })
+        })
+      )
+      // craete notice entities
+      await Promise.all(
+        (notice.entities || []).map(
+          async ({ type, entity_type_id, entity_id }) => {
+            await knex(table.notice_entity).insert({
+              type,
+              entity_type_id,
+              entity_id,
+              notice_id
+            })
+          }
+        )
+      )
     })
-
-  // notice actor
-  await knex(table.notice_actor)
-    .del()
-    .then(function() {
-      return knex(table.notice_actor).insert([
-        // user_new_follower
-        {
-          notice_id: 1,
-          actor_id: 2
-        },
-        {
-          notice_id: 1,
-          actor_id: 3
-        },
-        // article_published
-        {
-          notice_id: 2,
-          actor_id: 2
-        },
-        // article_new_downstream
-        {
-          notice_id: 3,
-          actor_id: 2
-        },
-        // comment_pinned
-        {
-          notice_id: 4,
-          actor_id: 1
-        },
-        // article_new_appreciation
-        {
-          notice_id: 8,
-          actor_id: 2
-        },
-        {
-          notice_id: 8,
-          actor_id: 3
-        }
-      ])
-    })
-
-  // notice entity
-  await knex(table.notice_entity)
-    .del()
-    .then(async function() {
-      const { id: articleEntityTypeId } = await knex
-        .select('id')
-        .from('entity_type')
-        .where({ table: 'article' })
-        .first()
-      const { id: commentEntityTypeId } = await knex
-        .select('id')
-        .from('entity_type')
-        .where({ table: 'comment' })
-        .first()
-
-      return knex(table.notice_entity).insert([
-        // article_published
-        {
-          type: 'target',
-          entity_type_id: articleEntityTypeId,
-          entity_id: 1,
-          notice_id: 2
-        },
-        // article_new_downstrea,
-        {
-          type: 'downstream',
-          entity_type_id: articleEntityTypeId,
-          entity_id: 2,
-          notice_id: 3
-        },
-        {
-          type: 'target',
-          entity_type_id: articleEntityTypeId,
-          entity_id: 1,
-          notice_id: 3
-        },
-        // comment_pinned
-        {
-          type: 'target',
-          entity_type_id: commentEntityTypeId,
-          entity_id: 1,
-          notice_id: 4
-        },
-        // article_new_appreciation
-        {
-          type: 'target',
-          entity_type_id: articleEntityTypeId,
-          entity_id: 1,
-          notice_id: 8
-        }
-      ])
-    })
+  )
 }
