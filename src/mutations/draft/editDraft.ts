@@ -17,7 +17,7 @@ const resolver: Resolver = async (
     throw new Error('disallow to process')
   }
 
-  return draftService.updateByUUID(uuid, { [field]: value })
+  return draftService.baseUpdateByUUID(uuid, { [field]: value })
 }
 
 export default resolver

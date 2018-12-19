@@ -1,8 +1,6 @@
-/* tslint:disable */
 export default /* GraphQL */ `
   extend type Query {
     viewer: User
-    user(input: UserInput!): User
   }
 
   extend type Mutation {
@@ -25,32 +23,28 @@ export default /* GraphQL */ `
 
   type User implements Node {
     id: ID!
-    # Get article for this user
-    article(input: ArticleInput!): Article!
-    # Get other user info for this user
-    user(input: UserInput!): User!
     info: UserInfo!
     settings: UserSettings!
     # Personalized recommendations
     recommnedation: Recommendation!
     # Articles written by this user
-    articles(input: ListInput): [Article]
-    drafts(input: ListInput): [Draft]
-    audioDrafts(input: ListInput): [AudioDraft]
+    articles(input: ListInput!): [Article]
+    drafts(input: ListInput!): [Draft]
+    audioDrafts(input: ListInput!): [AudioDraft]
     # Comments posted by this user
-    commentedArticles(input: ListInput): [Article]
+    commentedArticles(input: ListInput!): [Article]
     # comments that citated this user's article
-    citedArticles(input: ListInput): [Article]
-    subscriptions(input: ListInput): [Article]
+    citedArticles(input: ListInput!): [Article]
+    subscriptions(input: ListInput!): [Article]
     activity: UserActivity!
     # Followers of this user
-    followers(input: ListInput): [User]
+    followers(input: ListInput!): [User]
     # Users that this user follows
-    followees(input: ListInput): [User]
-    # Current user has followed this user
-    isFollowee: Boolean!
-    # This user has followed current user
+    followees(input: ListInput!): [User]
+    # This user is following viewer
     isFollower: Boolean!
+    # Viewer is following this user
+    isFollowee: Boolean!
     status: UserStatus!
   }
 
@@ -80,18 +74,18 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
-    hottest(input: ListInput): [Article]!
+    hottest(input: ListInput!): [Article]!
     # In case you missed it
-    icymi(input: ListInput): [Article]!
-    authors(input: ListInput): [User]!
-    tags(input: ListInput): [Tag]!
-    topics(input: ListInput): [Article]!
+    icymi(input: ListInput!): [Article]!
+    authors(input: ListInput!): [User]!
+    tags(input: ListInput!): [Tag]!
+    topics(input: ListInput!): [Article]!
   }
 
   type UserActivity {
-    history(input: ListInput): [Article]
-    recentSearches(input: ListInput): [String]
-    invited(input: ListInput): [User]
+    history(input: ListInput!): [Article]
+    recentSearches(input: ListInput!): [String]
+    invited(input: ListInput!): [User]
   }
 
   type UserStatus {
@@ -111,6 +105,8 @@ export default /* GraphQL */ `
     followeeCount: Int!
     # Number of user that follows this user
     followerCount: Int!
+    # Number of unread notices
+    unreadNoticeCount: Int!
   }
 
   type NotificationSetting {
@@ -203,14 +199,6 @@ export default /* GraphQL */ `
     code: String
   }
 
-  input UserInput {
-    id: ID!
-  }
-
-  input ArticleInput {
-    id: ID!
-  }
-  
   enum UserInfoFields {
     displayName
     avatar

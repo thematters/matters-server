@@ -1,12 +1,4 @@
 export default /* GraphQL */ `
-  extend type Query {
-    tag(input: TagInput): Tag
-  }
-
-  input TagInput {
-    id: ID!
-  }
-
   extend type Mutation {
     publishArticle(input: PublishArticleInput): Article!
     archiveArticle(input: ArchiveArticleInput): Article!
@@ -34,7 +26,7 @@ export default /* GraphQL */ `
     gatewayUrls: [URL]
     upstream: Article
     downstreams: [Article]
-    relatedArticles(input: ListInput): [Article]!
+    relatedArticles(input: ListInput!): [Article]!
     # MAT recieved for this article
     MAT: Int!
     commentCount: Int!
@@ -42,8 +34,8 @@ export default /* GraphQL */ `
     subscribed: Boolean!
     pinnedComments: [Comment]
     comments(input: CommentsInput): [Comment]
-    subscribers(input: ListInput): [User]
-    appreciators(input: ListInput): [User]
+    subscribers(input: ListInput!): [User]
+    appreciators(input: ListInput!): [User]
     appreciatorCount: Int!
     hasAppreciate: Boolean!
     publishState: PublishState!
@@ -53,7 +45,7 @@ export default /* GraphQL */ `
     id: ID!
     content: String
     count: Int
-    articles(input: ListInput): [Article]
+    articles(input: ListInput!): [Article]
   }
 
   input CommentsInput {

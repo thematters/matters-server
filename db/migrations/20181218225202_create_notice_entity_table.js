@@ -1,28 +1,31 @@
 const { baseDown } = require('../utils')
 
-const table = 'audio_draft'
+const table = 'notice_entity'
 
 exports.up = async knex => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
-    t.uuid('uuid')
-      .notNullable()
-      .unique()
-    t.bigInteger('author_id')
+    t.string('type').notNullable()
+    t.bigInteger('entity_type_id')
       .unsigned()
       .notNullable()
-    t.string('title').notNullable()
-    t.bigInteger('audio')
+    t.bigInteger('entity_id')
       .unsigned()
       .notNullable()
-    t.timestamp('created_at').defaultTo(knex.fn.now())
-    t.timestamp('updated_at').defaultTo(knex.fn.now())
+    t.bigInteger('notice_id')
+      .unsigned()
+      .notNullable()
+
+    t.unique(['type', 'entity_type_id', 'entity_id', 'notice_id'])
 
     // Set foreign key
-    t.foreign('author_id')
+    t.foreign('entity_type_id')
       .references('id')
-      .inTable('user')
+      .inTable('entity_type')
+    t.foreign('notice_id')
+      .references('id')
+      .inTable('notice')
   })
 }
 

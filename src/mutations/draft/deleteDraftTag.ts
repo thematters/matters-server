@@ -18,7 +18,7 @@ const resolver: Resolver = async (
   }
 
   const tags = draft.tags.filter((item: string) => item != tag)
-  const result = await draftService.updateByUUID(uuid, { tags })
+  const result = await draftService.baseUpdateByUUID(uuid, { tags })
   return true
 }
 

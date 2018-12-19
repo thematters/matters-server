@@ -18,7 +18,7 @@ const resolver: Resolver = async (
 
   // Edit an audo draft item
   if (typeof uuid === 'string') {
-    return await draftService.updateByUUID(uuid, data, 'audio_draft')
+    return await draftService.baseUpdateByUUID(uuid, data, 'audio_draft')
   }
   // Create an audio draft item
   else {
