@@ -3,12 +3,13 @@ import { GraphQLResolveInfo } from 'graphql'
 import {
   UserService,
   ArticleService,
+  AssetService,
   CommentService,
   DraftService,
   TagService
 } from 'connectors'
 
-export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
+export type NodeTypes = 'Article' | 'Asset' | 'User' | 'Comment' | 'Draft' | 'Tag'
 
 export type Resolver = (
   parent: any,
@@ -48,6 +49,7 @@ export type User = {
 export type Context = {
   viewer: User | undefined
   articleService: InstanceType<typeof ArticleService>
+  assetService: InstanceType<typeof AssetService>
   commentService: InstanceType<typeof CommentService>
   draftService: InstanceType<typeof DraftService>
   userService: InstanceType<typeof UserService>
@@ -60,6 +62,7 @@ export type TableName =
   | 'action_comment'
   | 'action_article'
   | 'appreciate'
+  | 'asset'
   | 'article'
   | 'tag'
   | 'article_read'

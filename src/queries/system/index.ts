@@ -8,6 +8,7 @@ export default {
       { input: { id } }: { input: { id: string } },
       {
         articleService,
+        assetService,
         userService,
         commentService,
         draftService,
@@ -16,6 +17,7 @@ export default {
     ) => {
       const serviceMap = {
         Article: articleService,
+        Asset: assetService,
         User: userService,
         Comment: commentService,
         Draft: draftService,
