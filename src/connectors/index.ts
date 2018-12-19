@@ -1,6 +1,6 @@
-export * from './userService'
 export * from './articleService'
 export * from './assetService'
 export * from './commentService'
 export * from './draftService'
 export * from './tagService'
+export * from './userService'

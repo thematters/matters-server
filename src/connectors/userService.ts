@@ -3,9 +3,10 @@ import { hash, compare } from 'bcrypt'
 import { v4 } from 'uuid'
 import jwt from 'jsonwebtoken'
 
+import { ItemData } from 'definitions'
 import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
-import { BaseService, ItemData } from './baseService'
+import { BaseService } from './baseService'
 
 export class UserService extends BaseService {
   constructor() {

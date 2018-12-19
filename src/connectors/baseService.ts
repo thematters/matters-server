@@ -1,16 +1,19 @@
 // external
+import _ from 'lodash'
 import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
-import _ from 'lodash'
 //local
-import { TableName } from 'definitions'
+import { ItemData, TableName } from 'definitions'
+import { environment } from 'common/environment'
+import { aws, AWSService } from './aws'
 import { knex } from './db'
 
 export type Item = { id: number; [key: string]: any }
-export type ItemData = { [key: string]: any }
 
 export class BaseService {
+  aws: InstanceType<typeof AWSService>
+
   knex: Knex
 
   idLoader: DataLoader<string, Item>
@@ -22,6 +25,7 @@ export class BaseService {
   constructor(table: TableName) {
     this.knex = knex
     this.table = table
+    this.aws = aws
   }
 
   /**
@@ -118,7 +122,7 @@ export class BaseService {
   }
 
   /**
-   * Update item
+   * Update an item by a given id.
    */
   updateById = async (
     id: number,
@@ -131,6 +135,9 @@ export class BaseService {
       .into(table || this.table)
       .returning('*'))[0]
 
+  /**
+   * Update an item by a given UUID.
+   */
   updateByUUID = async (
     uuid: string,
     data: ItemData,
@@ -141,4 +148,12 @@ export class BaseService {
       .update(data)
       .into(table || this.table)
       .returning('*'))[0]
+
+  /**
+   * Delete an item by a given id.
+   */
+  baseDelete = async (id: number, table?: TableName): Promise<any> =>
+    await this.knex(table || this.table)
+      .where({ id })
+      .del()
 }
