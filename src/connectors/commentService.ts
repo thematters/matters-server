@@ -4,6 +4,7 @@ import { v4 } from 'uuid'
 
 import { BATCH_SIZE, USER_ACTION } from 'common/enums'
 import { BaseService } from './baseService'
+import { OpsWorksCM } from 'aws-sdk'
 
 export class CommentService extends BaseService {
   constructor() {
@@ -16,11 +17,12 @@ export class CommentService extends BaseService {
     authorId,
     articleId,
     parentCommentId,
-    mentionedUserIds,
+    mentionedUserIds = [],
     content
   }: {
     [key: string]: any
   }) => {
+    // create comment
     const comemnt = await this.baseCreate({
       uuid: v4(),
       authorId,
@@ -28,17 +30,40 @@ export class CommentService extends BaseService {
       parentCommentId,
       content
     })
-    await Promise.all(
-      mentionedUserIds.map(async (userId: string) => {
-        await this.baseCreate(
-          {
-            commentId: comemnt.id,
-            userId
-          },
-          'comment_mentioned_user'
-        )
-      })
-    )
+    // create mentions
+    const mentionsDataItems = mentionedUserIds.map((userId: string) => ({
+      commentId: comemnt.id,
+      userId
+    }))
+    await this.baseBatchCreate(mentionsDataItems, 'comment_mentioned_user')
+    return comemnt
+  }
+
+  update = async ({
+    id,
+    articleId,
+    parentCommentId,
+    mentionedUserIds = [],
+    content
+  }: {
+    [key: string]: any
+  }) => {
+    // update comment
+    const comemnt = await this.baseUpdateById(id, {
+      articleId,
+      parentCommentId,
+      content
+    })
+    // remove exists mentions
+    await this.knex('comment_mentioned_user')
+      .where({ commentId: id })
+      .del()
+    // re-create mentions
+    const mentionsDataItems = mentionedUserIds.map((userId: string) => ({
+      commentId: comemnt.id,
+      userId
+    }))
+    await this.baseBatchCreate(mentionsDataItems, 'comment_mentioned_user')
     return comemnt
   }
 

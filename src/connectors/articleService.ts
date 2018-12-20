@@ -19,20 +19,25 @@ export class ArticleService extends BaseService {
     cover,
     abstract,
     content,
+    publishState = 'pending',
     tags
   }: {
     [key: string]: any
   }) => {
-    // TODO: tags
-    return await this.baseCreate({
+    // craete article
+    const article = await this.baseCreate({
       uuid: v4(),
       authorId,
       upstreamId,
       title,
       cover,
       abstract,
-      content
+      content,
+      publishState,
+      wordCount: this.countWords(content)
     })
+    // TODO: create tags
+    return article
   }
 
   // TODO: rank hottest
@@ -232,7 +237,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's subscriber by a given targetId (article) and user id.
    */
-  findSubscriptionByTargetIdAndUserId = async (
+  findSubscriptionByUserId = async (
     targetId: string,
     userId: string
   ): Promise<any[]> =>
@@ -260,7 +265,7 @@ export class ArticleService extends BaseService {
   /**
    * Find article read records by articleId and user id
    */
-  findReadByArticleIdAndUserId = async (
+  findReadByUserId = async (
     articleId: string,
     userId: string
   ): Promise<any[]> =>

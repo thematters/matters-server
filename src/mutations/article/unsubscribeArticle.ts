@@ -16,7 +16,7 @@ const resolver: Resolver = async (
     throw new Error('target article does not exists') // TODO
   }
 
-  const subscriptions = await articleService.findSubscriptionByTargetIdAndUserId(
+  const subscriptions = await articleService.findSubscriptionByUserId(
     article.id,
     viewer.id
   )

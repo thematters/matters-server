@@ -82,6 +82,15 @@ export class BaseService {
       .returning('*'))[0]
 
   /**
+   * Create a batch of items
+   */
+  baseBatchCreate = async (
+    dataItems: [ItemData],
+    table?: TableName
+  ): Promise<any> =>
+    await this.knex.batchInsert(table || this.table, dataItems).returning('*')
+
+  /**
    * Create or Update Item
    * https://github.com/ratson/knex-upsert/blob/master/index.js
    */
@@ -149,7 +158,7 @@ export class BaseService {
   /**
    * Delete an item by a given id.
    */
-  baseDelete = async (id: number, table?: TableName): Promise<any> =>
+  baseDelete = async (id: string, table?: TableName): Promise<any> =>
     await this.knex(table || this.table)
       .where({ id })
       .del()

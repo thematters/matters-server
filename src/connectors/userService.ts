@@ -24,8 +24,7 @@ export class UserService extends BaseService {
     userName,
     displayName,
     description,
-    password,
-    code
+    password
   }: {
     [key: string]: string
   }) => {

@@ -1,15 +1,17 @@
 import { Resolver } from 'definitions'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,
-  { input: { uuid, tag } },
+  { input: { id, tag } },
   { viewer, draftService }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this')
   }
 
-  const draft = await draftService.uuidLoader.load(uuid)
+  const { id: dbId } = fromGlobalId(id)
+  const draft = await draftService.idLoader.load(dbId)
   if (!draft) {
     throw new Error('target draft does not exist')
   }
@@ -18,7 +20,7 @@ const resolver: Resolver = async (
   }
 
   const tags = [...draft.tags, tag]
-  return draftService.baseUpdateByUUID(uuid, { tags })
+  return draftService.baseUpdateById(dbId, { tags })
 }
 
 export default resolver

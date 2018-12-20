@@ -25,7 +25,7 @@ const resolver: Resolver = async (
     throw new Error('draft does not exists') // TODO
   }
 
-  return await articleService.create({
+  const article = await articleService.create({
     authorId,
     upstreamId,
     title,
@@ -34,6 +34,10 @@ const resolver: Resolver = async (
     content,
     tags
   })
+
+  // TODO: Mark draft as used
+
+  return article
 }
 
 export default resolver

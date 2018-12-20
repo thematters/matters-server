@@ -10,8 +10,13 @@ const resolver: Resolver = async (
     throw new Error('anonymous user cannot do this') // TODO
   }
 
-  // TODO: check permission
   const { id: dbId } = fromGlobalId(id)
+  const { authorId } = await commentService.idLoader.load(dbId)
+
+  if (authorId !== viewer.id) {
+    throw new Error('viewer has no permission to do this') // TODO
+  }
+
   await commentService.baseUpdateById(dbId, {
     archived: true
   })

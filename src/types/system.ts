@@ -7,7 +7,7 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    singleFileUpload(input: SingleFileUploadInput!): SingleFileUploadResult!
+    singleFileUpload(input: SingleFileUploadInput!): Asset!
   }
 
   extend type Subscription {
@@ -27,9 +27,11 @@ export default /* GraphQL */ `
     reportCategory: [String!]!
   }
 
-  type SingleFileUploadResult {
+  type Asset {
     id: ID!
+    type: AssetType!
     path: String!
+    createdAt: DateTime!
   }
 
   input NodeInput {
