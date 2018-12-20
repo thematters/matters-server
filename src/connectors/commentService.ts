@@ -1,10 +1,11 @@
-import { GQLCommentsInput } from 'definitions'
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 
 import { BATCH_SIZE, USER_ACTION } from 'common/enums'
 import { BaseService } from './baseService'
-import { OpsWorksCM } from 'aws-sdk'
+// import { OpsWorksCM } from 'aws-sdk'
+
+import { GQLCommentsInput, GQLCommentSort } from 'definitions/schema'
 
 export class CommentService extends BaseService {
   constructor() {
@@ -189,19 +190,41 @@ export class CommentService extends BaseService {
       where = { ...where, quoted }
     }
 
-    // TODO: add sort for oldest, newest and most upvotes
-    // let order: { [key: string]: string }
-    // if (sort === 'oldest') {
-    //   order = {createdAt: 'desc'}
-    // }
+    const sortCreatedAt = (by: 'desc' | 'asc') =>
+      this.knex
+        .select()
+        .from(this.table)
+        .where(where)
+        .orderBy('created_at', by)
+        .offset(offset)
+        .limit(limit)
 
-    return this.knex
-      .select()
-      .from(this.table)
-      .where(where)
-      .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
+    switch (sort) {
+      case GQLCommentSort.upvotes:
+        return this.knex.raw(`
+          select
+            comment.*,
+            count(distinct upvotes.id) as upvote_count
+          from comment
+          left outer join
+            (
+              select *
+              from action_comment
+              where action = 'up_vote'
+            ) as upvotes
+          on upvotes.target_id = comment.id
+          where comment.article_id = ${id}
+          group by comment.id
+          order by upvote_count desc 
+          limit ${limit}
+          offset ${offset}`)
+      case GQLCommentSort.oldest:
+        return sortCreatedAt('desc')
+      case GQLCommentSort.newest:
+        return sortCreatedAt('asc')
+      default:
+        return sortCreatedAt('desc')
+    }
   }
 
   /**

@@ -38,6 +38,7 @@ type Article implements Node {
 
   """MAT recieved for this article"""
   MAT: Int!
+  participantCount: Int!
   commentCount: Int!
   pinnedComments: [Comment!]
   comments(input: CommentsInput!): [Comment!]
@@ -502,13 +503,13 @@ input RecallPublicationInput {
 }
 
 type Recommendation {
-  hottest(input: ListInput): [Article!]!
+  hottest(input: ListInput!): [Article!]!
 
   """In case you missed it"""
-  icymi(input: ListInput): [Article!]!
-  tags(input: ListInput): [Tag!]!
-  topics(input: ListInput): [Article!]!
-  authors(input: ListInput): [User!]!
+  icymi(input: ListInput!): [Article!]!
+  tags(input: ListInput!): [Tag!]!
+  topics(input: ListInput!): [Article!]!
+  authors(input: ListInput!): [User!]!
 }
 
 input ReportArticleInput {
@@ -667,11 +668,11 @@ type UserInfo {
   displayName: String!
 
   """User desciption"""
-  description: String!
+  description: String
 
   """URL for avatar"""
   avatar: URL
-  email: Email!
+  email: Email
   mobile: String!
 
   """Use 500 for now, adaptive in the future"""

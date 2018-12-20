@@ -132,13 +132,13 @@ export interface GQLUserInfo {
   /**
    * User desciption
    */
-  description: string;
+  description?: string;
   
   /**
    * URL for avatar
    */
   avatar?: GQLURL;
-  email: GQLEmail;
+  email?: GQLEmail;
   mobile: string;
   
   /**
@@ -241,6 +241,7 @@ export interface GQLArticle extends GQLNode {
    * MAT recieved for this article
    */
   MAT: number;
+  participantCount: number;
   commentCount: number;
   pinnedComments?: Array<GQLComment>;
   comments?: Array<GQLComment>;
@@ -1294,35 +1295,35 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
 }
 
 export interface RecommendationToHottestArgs {
-  input?: GQLListInput;
+  input: GQLListInput;
 }
 export interface RecommendationToHottestResolver<TParent = any, TResult = any> {
   (parent: TParent, args: RecommendationToHottestArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface RecommendationToIcymiArgs {
-  input?: GQLListInput;
+  input: GQLListInput;
 }
 export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
   (parent: TParent, args: RecommendationToIcymiArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface RecommendationToTagsArgs {
-  input?: GQLListInput;
+  input: GQLListInput;
 }
 export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: RecommendationToTagsArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface RecommendationToTopicsArgs {
-  input?: GQLListInput;
+  input: GQLListInput;
 }
 export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: RecommendationToTopicsArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface RecommendationToAuthorsArgs {
-  input?: GQLListInput;
+  input: GQLListInput;
 }
 export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: RecommendationToAuthorsArgs, context: any, info: GraphQLResolveInfo): TResult;
@@ -1346,6 +1347,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   downstreams?: ArticleToDownstreamsResolver<TParent>;
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>;
   MAT?: ArticleToMATResolver<TParent>;
+  participantCount?: ArticleToParticipantCountResolver<TParent>;
   commentCount?: ArticleToCommentCountResolver<TParent>;
   pinnedComments?: ArticleToPinnedCommentsResolver<TParent>;
   comments?: ArticleToCommentsResolver<TParent>;
@@ -1427,6 +1429,10 @@ export interface ArticleToRelatedArticlesResolver<TParent = any, TResult = any> 
 }
 
 export interface ArticleToMATResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface ArticleToParticipantCountResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 

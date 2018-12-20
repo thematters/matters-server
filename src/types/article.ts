@@ -29,6 +29,7 @@ export default /* GraphQL */ `
     relatedArticles(input: ListInput!): [Article!]
     # MAT recieved for this article
     MAT: Int!
+    participantCount: Int!
     commentCount: Int!
     pinnedComments: [Comment!]
     comments(input: CommentsInput!): [Comment!]
