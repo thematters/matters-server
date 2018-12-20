@@ -4,7 +4,9 @@ import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = (root, { input: { id } }, { articleService }) => {
   const { id: dbId } = fromGlobalId(id)
-  return articleService.update(dbId, { publishState: PUBLISH_STATE.archived })
+  return articleService.baseUpdateById(dbId, {
+    publishState: PUBLISH_STATE.archived
+  })
 }
 
 export default resolver

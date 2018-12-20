@@ -20,8 +20,8 @@ import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql';
 export interface GQLQuery {
   _?: boolean;
   node?: GQLNode;
-  frequentSearch?: Array<string | null>;
-  search?: Array<GQLSearchResult | null>;
+  frequentSearch?: Array<string>;
+  search?: Array<GQLSearchResult>;
   official: GQLOfficial;
   viewer?: GQLUser;
 }
@@ -79,31 +79,31 @@ export interface GQLUser extends GQLNode {
   /**
    * Articles written by this user
    */
-  articles?: Array<GQLArticle | null>;
-  drafts?: Array<GQLDraft | null>;
-  audioDrafts?: Array<GQLAudioDraft | null>;
+  articles?: Array<GQLArticle>;
+  drafts?: Array<GQLDraft>;
+  audioDrafts?: Array<GQLAudioDraft>;
   
   /**
    * Comments posted by this user
    */
-  commentedArticles?: Array<GQLArticle | null>;
+  commentedArticles?: Array<GQLArticle>;
   
   /**
    * comments that citated this user's article
    */
-  citedArticles?: Array<GQLArticle | null>;
-  subscriptions?: Array<GQLArticle | null>;
+  citedArticles?: Array<GQLArticle>;
+  subscriptions?: Array<GQLArticle>;
   activity: GQLUserActivity;
   
   /**
    * Followers of this user
    */
-  followers?: Array<GQLUser | null>;
+  followers?: Array<GQLUser>;
   
   /**
    * Users that this user follows
    */
-  followees?: Array<GQLUser | null>;
+  followees?: Array<GQLUser>;
   
   /**
    * This user is following viewer
@@ -115,7 +115,7 @@ export interface GQLUser extends GQLNode {
    */
   isFollowee: boolean;
   status: GQLUserStatus;
-  notices?: Array<GQLNotice | null>;
+  notices?: Array<GQLNotice>;
 }
 
 export interface GQLUserInfo {
@@ -139,7 +139,7 @@ export interface GQLUserInfo {
   /**
    * URL for avatar
    */
-  avatar: GQLURL;
+  avatar?: GQLURL;
   email: GQLEmail;
   mobile: string;
   
@@ -165,7 +165,7 @@ export interface GQLUserSettings {
   /**
    * Thrid party accounts binded for the user
    */
-  oauthType?: Array<GQLOAuthType | null>;
+  oauthType: Array<GQLOAuthType>;
   
   /**
    * Notification settings
@@ -196,21 +196,24 @@ export interface GQLNotificationSetting {
   downstream: boolean;
   commentPinned: boolean;
   commentVoted: boolean;
-  walletUpdate: boolean;
+  
+  /**
+   * walletUpdate: Boolean!
+   */
   officialNotice: boolean;
   reportFeedback: boolean;
 }
 
 export interface GQLRecommendation {
-  hottest: Array<GQLArticle | null>;
+  hottest?: Array<GQLArticle>;
   
   /**
    * In case you missed it
    */
-  icymi: Array<GQLArticle | null>;
-  tags: Array<GQLTag | null>;
-  topics: Array<GQLArticle | null>;
-  authors: Array<GQLUser | null>;
+  icymi?: Array<GQLArticle>;
+  tags?: Array<GQLTag>;
+  topics?: Array<GQLArticle>;
+  authors: Array<GQLUser>;
 }
 
 export interface GQLListInput {
@@ -221,75 +224,74 @@ export interface GQLListInput {
 export interface GQLArticle extends GQLNode {
   id: string;
   createdAt: GQLDateTime;
+  publishState: GQLPublishState;
   public: boolean;
   author: GQLUser;
   title: string;
-  
-  /**
-   * url for cover
-   */
-  cover: GQLURL;
+  cover?: GQLURL;
   summary: string;
   tags?: Array<GQLTag>;
   wordCount?: number;
   hash?: string;
   content: string;
-  gatewayUrls?: Array<GQLURL | null>;
+  gatewayUrls?: Array<GQLURL>;
   upstream?: GQLArticle;
-  downstreams?: Array<GQLArticle | null>;
-  relatedArticles: Array<GQLArticle | null>;
+  downstreams?: Array<GQLArticle>;
+  relatedArticles?: Array<GQLArticle>;
   
   /**
    * MAT recieved for this article
    */
   MAT: number;
   commentCount: number;
+  pinnedComments?: Array<GQLComment>;
+  comments?: Array<GQLComment>;
+  subscribers?: Array<GQLUser>;
+  appreciators?: Array<GQLUser>;
+  appreciatorCount: number;
   
   /**
-   * Current user has subscribed
+   * Viewer has subscribed
    */
   subscribed: boolean;
-  pinnedComments?: Array<GQLComment | null>;
-  comments?: Array<GQLComment | null>;
-  subscribers?: Array<GQLUser | null>;
-  appreciators?: Array<GQLUser | null>;
-  appreciatorCount: number;
+  
+  /**
+   * Viewer has appreciate
+   */
   hasAppreciate: boolean;
-  publishState: GQLPublishState;
+}
+
+export enum GQLPublishState {
+  archived = 'archived',
+  pending = 'pending',
+  error = 'error',
+  published = 'published'
 }
 
 export interface GQLTag extends GQLNode {
   id: string;
-  content?: string;
-  count?: number;
-  articles?: Array<GQLArticle | null>;
+  content: string;
+  count: number;
+  articles?: Array<GQLArticle>;
 }
 
 export interface GQLComment extends GQLNode {
   id: string;
+  createdAt: GQLDateTime;
   
   /**
    * Original article of this comment
    */
   article: GQLArticle;
-  
-  /**
-   * content
-   */
   content?: string;
-  
-  /**
-   * Creation time of this comment
-   */
-  createdAt: GQLDateTime;
   author: GQLUser;
-  achieved: boolean;
+  archived: boolean;
   upvotes: number;
   downvotes: number;
   quotation?: string;
   myVote?: GQLVote;
-  mentions?: Array<GQLUser | null>;
-  comments?: Array<GQLComment | null>;
+  mentions?: Array<GQLUser>;
+  comments?: Array<GQLComment>;
   parentComment?: GQLComment;
 }
 
@@ -312,13 +314,6 @@ export enum GQLCommentSort {
   upvotes = 'upvotes'
 }
 
-export enum GQLPublishState {
-  archived = 'archived',
-  pending = 'pending',
-  error = 'error',
-  published = 'published'
-}
-
 export interface GQLDraft extends GQLNode {
   id: string;
   upstream?: GQLArticle;
@@ -333,18 +328,18 @@ export interface GQLDraft extends GQLNode {
 
 export interface GQLAudioDraft {
   id: string;
-  authorId: number;
+  authorId: string;
   title?: string;
-  path: string;
+  audio: string;
   length: number;
   createdAt: GQLDateTime;
   updatedAt: GQLDateTime;
 }
 
 export interface GQLUserActivity {
-  history?: Array<GQLArticle | null>;
-  recentSearches?: Array<string | null>;
-  invited?: Array<GQLUser | null>;
+  history?: Array<GQLArticle>;
+  recentSearches?: Array<string>;
+  invited?: Array<GQLUser>;
 }
 
 export interface GQLUserStatus {
@@ -437,7 +432,7 @@ export interface GQLNoticeNameMap {
 }
 
 export interface GQLOfficial {
-  reportCategory: Array<string | null>;
+  reportCategory: Array<string>;
 }
 
 export interface GQLMutation {
@@ -447,43 +442,84 @@ export interface GQLMutation {
   subscribeArticle?: boolean;
   unsubscribeArticle?: boolean;
   reportArticle?: boolean;
-  appreciateArticle: number;
+  appreciateArticle: GQLArticle;
   readArticle?: boolean;
   recallPublication: GQLDraft;
-  createOrEditComment?: GQLComment;
-  pinComment?: GQLComment;
+  putComment: GQLComment;
+  pinComment: GQLComment;
   deleteComment?: boolean;
-  createOrEditAudioDraft?: GQLAudioDraft;
-  createDraft?: GQLDraft;
+  
+  /**
+   * audio dtaft
+   */
+  putAudioDraft: GQLAudioDraft;
+  
+  /**
+   * draft
+   */
+  createDraft: GQLDraft;
   deleteDraft?: boolean;
-  editDraft?: GQLDraft;
-  addDraftTag?: GQLDraft;
+  editDraft: GQLDraft;
+  
+  /**
+   * draft tag
+   */
+  addDraftTag: GQLDraft;
   deleteDraftTag?: boolean;
-  singleFileDelete?: boolean;
-  singleFileUpload: GQLFile;
   markAllNoticesAsRead?: boolean;
-  sendVerificationEmail?: boolean;
-  sendPasswordResetEmail?: boolean;
-  sendEmailResetEmail?: boolean;
-  verifyEmailResetCode?: boolean;
-  resetPassword?: boolean;
-  userRegister?: GQLUser;
-  userLogin: GQLLoginResult;
+  singleFileUpload: GQLSingleFileUploadResult;
+  
+  /**
+   * change or reset password
+   */
+  sendResetPasswrodCode?: boolean;
+  confirmResetPassword?: boolean;
+  
+  /**
+   * change email
+   */
+  sendChangeEmailCode?: boolean;
+  confirmChangeEmail?: boolean;
+  
+  /**
+   * verify email
+   */
+  sendVerfiyEmailCode?: boolean;
+  confirmVerifyEmail?: boolean;
+  
+  /**
+   * register
+   */
+  sendRegisterCode?: boolean;
+  userRegister: GQLAuthResult;
+  
+  /**
+   * login
+   */
+  userLogin: GQLAuthResult;
   addOAuth?: boolean;
+  
+  /**
+   * update info/ setting
+   */
   updateUserInfo: GQLUser;
+  updateNotificationSetting?: GQLNotificationSetting;
+  
+  /**
+   * follow/unfollow
+   */
   followUser?: boolean;
   unfollowUser?: boolean;
+  
+  /**
+   * misc
+   */
   importArticles?: Array<GQLArticle | null>;
-  updateNotificationSetting?: GQLNotificationSetting;
   clearReadHistory?: boolean;
   clearSearchHistory?: boolean;
 }
 
 export interface GQLPublishArticleInput {
-  
-  /**
-   * publish with draft id
-   */
   id: string;
 }
 
@@ -501,7 +537,7 @@ export interface GQLUnsubscribeArticleInput {
 
 export interface GQLReportArticleInput {
   id: string;
-  category?: string;
+  category: string;
   description?: string;
 }
 
@@ -518,7 +554,7 @@ export interface GQLRecallPublicationInput {
   id: string;
 }
 
-export interface GQLCreateOrEditCommentInput {
+export interface GQLPutCommentInput {
   comment: GQLCommentInput;
   id?: string;
 }
@@ -528,7 +564,7 @@ export interface GQLCommentInput {
   quotation?: string;
   articleId: string;
   parentId?: string;
-  mentions?: Array<string | null>;
+  mentions?: Array<string>;
 }
 
 export interface GQLPinCommentInput {
@@ -539,14 +575,15 @@ export interface GQLDeleteCommentInput {
   id: string;
 }
 
-export interface GQLCreateOrEditAudioDraftInput {
-  path: string;
-  title?: string;
+export interface GQLPutAudioDraftInput {
   id?: string;
+  audio: string;
+  title?: string;
+  length: number;
 }
 
 export interface GQLCreateDraftInput {
-  upstreamid?: string;
+  upstreamId?: string;
   title?: string;
   content?: string;
   tags?: Array<string | null>;
@@ -554,11 +591,11 @@ export interface GQLCreateDraftInput {
 }
 
 export interface GQLDeleteDraftInput {
-  id?: string;
+  id: string;
 }
 
 export interface GQLEditDraftInput {
-  id?: string;
+  id: string;
   field?: GQLDraftField;
   value?: string;
 }
@@ -571,66 +608,82 @@ export enum GQLDraftField {
 }
 
 export interface GQLAddDraftTagInput {
-  id?: string;
-  tag?: string;
+  id: string;
+  tag: string;
 }
 
 export interface GQLDeleteDraftTagInput {
-  id?: string;
-  tag?: string;
-}
-
-export interface GQLSingleFileDeleteInput {
-  path: string;
+  id: string;
+  tag: string;
 }
 
 export interface GQLSingleFileUploadInput {
-  purpose?: string;
+  type: GQLAssetType;
   file: GQLUpload;
+}
+
+export enum GQLAssetType {
+  avatar = 'avatar',
+  cover = 'cover',
+  audioDraft = 'audioDraft'
 }
 
 export type GQLUpload = any;
 
-export interface GQLFile {
-  filename: string;
-  mimetype: string;
-  encoding: string;
+export interface GQLSingleFileUploadResult {
+  id: string;
   path: string;
 }
 
-export interface GQLSendVerificationEmailInput {
+export interface GQLSendResetPasswrodCodeInput {
   email: GQLEmail;
 }
 
-export interface GQLSendEmailResetEmailInput {
+export interface GQLConfirmResetPasswordInput {
+  password: string;
+  code: string;
+}
+
+export interface GQLSendChangeEmailCodeInput {
   email: GQLEmail;
 }
 
-export interface GQLVerifyEmailResetCodeInput {
+export interface GQLConfirmChangeEmailInput {
+  oldEmail: GQLEmail;
+  oldEmailCode: string;
+  newEmail: GQLEmail;
+  newEmailCode: string;
+}
+
+export interface GQLSendVerifyEmailCodeInput {
+  email: GQLEmail;
+}
+
+export interface GQLConfirmVerifyEmailInput {
   email: GQLEmail;
   code: string;
 }
 
-export interface GQLResetPasswordInput {
-  password: string;
-  code?: string;
+export interface GQLSendRegisterCodeInput {
+  email: GQLEmail;
 }
 
 export interface GQLUserRegisterInput {
   email: GQLEmail;
   displayName: string;
   password: string;
-  code?: string;
+  avatar: string;
+  code: string;
+}
+
+export interface GQLAuthResult {
+  auth: boolean;
+  token?: string;
 }
 
 export interface GQLUserLoginInput {
   email: GQLEmail;
   password: string;
-}
-
-export interface GQLLoginResult {
-  auth: boolean;
-  token?: string;
 }
 
 export interface GQLAddOAuthInput {
@@ -646,6 +699,11 @@ export interface GQLUpdateUserInfoInput {
   language?: GQLUserLanguage;
 }
 
+export interface GQLUpdateNotificationSettingInput {
+  type: string;
+  enabled: boolean;
+}
+
 export interface GQLFollowUserInput {
   id: string;
 }
@@ -657,11 +715,6 @@ export interface GQLUnfollowUserInput {
 export interface GQLImportArticlesInput {
   platform?: string;
   token?: string;
-}
-
-export interface GQLUpdateNotificationSettingInput {
-  type: string;
-  enabled: boolean;
 }
 
 export interface GQLClearReadHistoryInput {
@@ -683,7 +736,7 @@ export interface GQLArticleArchivedNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  target: GQLArticle;
+  target?: GQLArticle;
   reason?: GQLArticleArchivedReason;
 }
 
@@ -696,47 +749,47 @@ export interface GQLArticleNewAppreciationNotice extends GQLNotice {
   unread: boolean;
   createdAt: GQLDateTime;
   actors?: Array<GQLUser | null>;
-  target: GQLArticle;
-  MAT: number;
+  target?: GQLArticle;
+  MAT?: number;
 }
 
 export interface GQLArticleNewCommentNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  actors?: Array<GQLUser | null>;
-  target: GQLArticle;
+  actors?: Array<GQLUser>;
+  target?: GQLArticle;
 }
 
 export interface GQLArticleNewDownstreamNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  actors?: Array<GQLUser | null>;
-  downstream: GQLArticle;
-  target: GQLArticle;
+  actors?: Array<GQLUser>;
+  downstream?: GQLArticle;
+  target?: GQLArticle;
 }
 
 export interface GQLArticleNewSubscriberNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  actors?: Array<GQLUser | null>;
-  target: GQLArticle;
+  actors?: Array<GQLUser>;
+  target?: GQLArticle;
 }
 
 export interface GQLArticlePublishedNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  target: GQLArticle;
+  target?: GQLArticle;
 }
 
 export interface GQLArticleReportedNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  target: GQLArticle;
+  target?: GQLArticle;
   reason?: GQLArticleReportedReason;
 }
 
@@ -748,7 +801,7 @@ export interface GQLCommentArchivedNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  target: GQLComment;
+  target?: GQLComment;
   reason?: GQLCommentArchivedReason;
 }
 
@@ -760,8 +813,8 @@ export interface GQLCommentMentionedYouNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  actors?: Array<GQLUser | null>;
-  target: GQLComment;
+  actors?: Array<GQLUser>;
+  target?: GQLComment;
 }
 
 export interface GQLCommentNewReplyNotice extends GQLNotice {
@@ -769,29 +822,29 @@ export interface GQLCommentNewReplyNotice extends GQLNotice {
   unread: boolean;
   createdAt: GQLDateTime;
   actors?: Array<GQLUser | null>;
-  target: GQLComment;
+  target?: GQLComment;
 }
 
 export interface GQLCommentNewUpvoteNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  actors?: Array<GQLUser | null>;
-  target: GQLComment;
+  actors?: Array<GQLUser>;
+  target?: GQLComment;
 }
 
 export interface GQLCommentPinnedNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  target: GQLComment;
+  target?: GQLComment;
 }
 
 export interface GQLCommentReportedNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  target: GQLComment;
+  target?: GQLComment;
   reason?: GQLCommentReportedReason;
 }
 
@@ -824,16 +877,12 @@ export enum GQLSearchTypes {
   Tag = 'Tag'
 }
 
-export interface GQLSendPasswordResetEmailInput {
-  email: GQLEmail;
-}
-
 export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  actors?: Array<GQLUser | null>;
-  target: GQLArticle;
+  actors?: Array<GQLUser>;
+  target?: GQLArticle;
 }
 
 export type GQLTime = any;
@@ -861,7 +910,7 @@ export interface GQLUserNewFollowerNotice extends GQLNotice, GQLNode {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
-  actors?: Array<GQLUser | null>;
+  actors?: Array<GQLUser>;
 }
 
 /*********************************
@@ -907,8 +956,8 @@ export interface GQLResolver {
   Official?: GQLOfficialTypeResolver;
   Mutation?: GQLMutationTypeResolver;
   Upload?: GraphQLScalarType;
-  File?: GQLFileTypeResolver;
-  LoginResult?: GQLLoginResultTypeResolver;
+  SingleFileUploadResult?: GQLSingleFileUploadResultTypeResolver;
+  AuthResult?: GQLAuthResultTypeResolver;
   UUID?: GraphQLScalarType;
   Subscription?: GQLSubscriptionTypeResolver;
   ArticleArchivedNotice?: GQLArticleArchivedNoticeTypeResolver;
@@ -1180,7 +1229,6 @@ export interface GQLNotificationSettingTypeResolver<TParent = any> {
   downstream?: NotificationSettingToDownstreamResolver<TParent>;
   commentPinned?: NotificationSettingToCommentPinnedResolver<TParent>;
   commentVoted?: NotificationSettingToCommentVotedResolver<TParent>;
-  walletUpdate?: NotificationSettingToWalletUpdateResolver<TParent>;
   officialNotice?: NotificationSettingToOfficialNoticeResolver<TParent>;
   reportFeedback?: NotificationSettingToReportFeedbackResolver<TParent>;
 }
@@ -1222,10 +1270,6 @@ export interface NotificationSettingToCommentPinnedResolver<TParent = any, TResu
 }
 
 export interface NotificationSettingToCommentVotedResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface NotificationSettingToWalletUpdateResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -1283,6 +1327,7 @@ export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
 export interface GQLArticleTypeResolver<TParent = any> {
   id?: ArticleToIdResolver<TParent>;
   createdAt?: ArticleToCreatedAtResolver<TParent>;
+  publishState?: ArticleToPublishStateResolver<TParent>;
   public?: ArticleToPublicResolver<TParent>;
   author?: ArticleToAuthorResolver<TParent>;
   title?: ArticleToTitleResolver<TParent>;
@@ -1298,14 +1343,13 @@ export interface GQLArticleTypeResolver<TParent = any> {
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>;
   MAT?: ArticleToMATResolver<TParent>;
   commentCount?: ArticleToCommentCountResolver<TParent>;
-  subscribed?: ArticleToSubscribedResolver<TParent>;
   pinnedComments?: ArticleToPinnedCommentsResolver<TParent>;
   comments?: ArticleToCommentsResolver<TParent>;
   subscribers?: ArticleToSubscribersResolver<TParent>;
   appreciators?: ArticleToAppreciatorsResolver<TParent>;
   appreciatorCount?: ArticleToAppreciatorCountResolver<TParent>;
+  subscribed?: ArticleToSubscribedResolver<TParent>;
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>;
-  publishState?: ArticleToPublishStateResolver<TParent>;
 }
 
 export interface ArticleToIdResolver<TParent = any, TResult = any> {
@@ -1313,6 +1357,10 @@ export interface ArticleToIdResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToCreatedAtResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface ArticleToPublishStateResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -1360,8 +1408,11 @@ export interface ArticleToUpstreamResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
+export interface ArticleToDownstreamsArgs {
+  input: GQLListInput;
+}
 export interface ArticleToDownstreamsResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+  (parent: TParent, args: ArticleToDownstreamsArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface ArticleToRelatedArticlesArgs {
@@ -1376,10 +1427,6 @@ export interface ArticleToMATResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToCommentCountResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -1412,11 +1459,11 @@ export interface ArticleToAppreciatorCountResolver<TParent = any, TResult = any>
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface ArticleToHasAppreciateResolver<TParent = any, TResult = any> {
+export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface ArticleToPublishStateResolver<TParent = any, TResult = any> {
+export interface ArticleToHasAppreciateResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -1448,11 +1495,11 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
 
 export interface GQLCommentTypeResolver<TParent = any> {
   id?: CommentToIdResolver<TParent>;
+  createdAt?: CommentToCreatedAtResolver<TParent>;
   article?: CommentToArticleResolver<TParent>;
   content?: CommentToContentResolver<TParent>;
-  createdAt?: CommentToCreatedAtResolver<TParent>;
   author?: CommentToAuthorResolver<TParent>;
-  achieved?: CommentToAchievedResolver<TParent>;
+  archived?: CommentToArchivedResolver<TParent>;
   upvotes?: CommentToUpvotesResolver<TParent>;
   downvotes?: CommentToDownvotesResolver<TParent>;
   quotation?: CommentToQuotationResolver<TParent>;
@@ -1466,6 +1513,10 @@ export interface CommentToIdResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
+export interface CommentToCreatedAtResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
 export interface CommentToArticleResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
@@ -1474,15 +1525,11 @@ export interface CommentToContentResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface CommentToCreatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
-}
-
 export interface CommentToAuthorResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface CommentToAchievedResolver<TParent = any, TResult = any> {
+export interface CommentToArchivedResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -1566,7 +1613,7 @@ export interface GQLAudioDraftTypeResolver<TParent = any> {
   id?: AudioDraftToIdResolver<TParent>;
   authorId?: AudioDraftToAuthorIdResolver<TParent>;
   title?: AudioDraftToTitleResolver<TParent>;
-  path?: AudioDraftToPathResolver<TParent>;
+  audio?: AudioDraftToAudioResolver<TParent>;
   length?: AudioDraftToLengthResolver<TParent>;
   createdAt?: AudioDraftToCreatedAtResolver<TParent>;
   updatedAt?: AudioDraftToUpdatedAtResolver<TParent>;
@@ -1584,7 +1631,7 @@ export interface AudioDraftToTitleResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface AudioDraftToPathResolver<TParent = any, TResult = any> {
+export interface AudioDraftToAudioResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -1706,31 +1753,32 @@ export interface GQLMutationTypeResolver<TParent = any> {
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>;
   readArticle?: MutationToReadArticleResolver<TParent>;
   recallPublication?: MutationToRecallPublicationResolver<TParent>;
-  createOrEditComment?: MutationToCreateOrEditCommentResolver<TParent>;
+  putComment?: MutationToPutCommentResolver<TParent>;
   pinComment?: MutationToPinCommentResolver<TParent>;
   deleteComment?: MutationToDeleteCommentResolver<TParent>;
-  createOrEditAudioDraft?: MutationToCreateOrEditAudioDraftResolver<TParent>;
+  putAudioDraft?: MutationToPutAudioDraftResolver<TParent>;
   createDraft?: MutationToCreateDraftResolver<TParent>;
   deleteDraft?: MutationToDeleteDraftResolver<TParent>;
   editDraft?: MutationToEditDraftResolver<TParent>;
   addDraftTag?: MutationToAddDraftTagResolver<TParent>;
   deleteDraftTag?: MutationToDeleteDraftTagResolver<TParent>;
-  singleFileDelete?: MutationToSingleFileDeleteResolver<TParent>;
-  singleFileUpload?: MutationToSingleFileUploadResolver<TParent>;
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>;
-  sendVerificationEmail?: MutationToSendVerificationEmailResolver<TParent>;
-  sendPasswordResetEmail?: MutationToSendPasswordResetEmailResolver<TParent>;
-  sendEmailResetEmail?: MutationToSendEmailResetEmailResolver<TParent>;
-  verifyEmailResetCode?: MutationToVerifyEmailResetCodeResolver<TParent>;
-  resetPassword?: MutationToResetPasswordResolver<TParent>;
+  singleFileUpload?: MutationToSingleFileUploadResolver<TParent>;
+  sendResetPasswrodCode?: MutationToSendResetPasswrodCodeResolver<TParent>;
+  confirmResetPassword?: MutationToConfirmResetPasswordResolver<TParent>;
+  sendChangeEmailCode?: MutationToSendChangeEmailCodeResolver<TParent>;
+  confirmChangeEmail?: MutationToConfirmChangeEmailResolver<TParent>;
+  sendVerfiyEmailCode?: MutationToSendVerfiyEmailCodeResolver<TParent>;
+  confirmVerifyEmail?: MutationToConfirmVerifyEmailResolver<TParent>;
+  sendRegisterCode?: MutationToSendRegisterCodeResolver<TParent>;
   userRegister?: MutationToUserRegisterResolver<TParent>;
   userLogin?: MutationToUserLoginResolver<TParent>;
   addOAuth?: MutationToAddOAuthResolver<TParent>;
   updateUserInfo?: MutationToUpdateUserInfoResolver<TParent>;
+  updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<TParent>;
   followUser?: MutationToFollowUserResolver<TParent>;
   unfollowUser?: MutationToUnfollowUserResolver<TParent>;
   importArticles?: MutationToImportArticlesResolver<TParent>;
-  updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<TParent>;
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>;
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>;
 }
@@ -1740,175 +1788,182 @@ export interface MutationTo_Resolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToPublishArticleArgs {
-  input?: GQLPublishArticleInput;
+  input: GQLPublishArticleInput;
 }
 export interface MutationToPublishArticleResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToPublishArticleArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToArchiveArticleArgs {
-  input?: GQLArchiveArticleInput;
+  input: GQLArchiveArticleInput;
 }
 export interface MutationToArchiveArticleResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToArchiveArticleArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToSubscribeArticleArgs {
-  input?: GQLSubscribeArticleInput;
+  input: GQLSubscribeArticleInput;
 }
 export interface MutationToSubscribeArticleResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToSubscribeArticleArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToUnsubscribeArticleArgs {
-  input?: GQLUnsubscribeArticleInput;
+  input: GQLUnsubscribeArticleInput;
 }
 export interface MutationToUnsubscribeArticleResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToUnsubscribeArticleArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToReportArticleArgs {
-  input?: GQLReportArticleInput;
+  input: GQLReportArticleInput;
 }
 export interface MutationToReportArticleResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToReportArticleArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToAppreciateArticleArgs {
-  input?: GQLAppreciateArticleInput;
+  input: GQLAppreciateArticleInput;
 }
 export interface MutationToAppreciateArticleResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToAppreciateArticleArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToReadArticleArgs {
-  input?: GQLReadArticleInput;
+  input: GQLReadArticleInput;
 }
 export interface MutationToReadArticleResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToReadArticleArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToRecallPublicationArgs {
-  input?: GQLRecallPublicationInput;
+  input: GQLRecallPublicationInput;
 }
 export interface MutationToRecallPublicationResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToRecallPublicationArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface MutationToCreateOrEditCommentArgs {
-  input?: GQLCreateOrEditCommentInput;
+export interface MutationToPutCommentArgs {
+  input: GQLPutCommentInput;
 }
-export interface MutationToCreateOrEditCommentResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToCreateOrEditCommentArgs, context: any, info: GraphQLResolveInfo): TResult;
+export interface MutationToPutCommentResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToPutCommentArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToPinCommentArgs {
-  input?: GQLPinCommentInput;
+  input: GQLPinCommentInput;
 }
 export interface MutationToPinCommentResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToPinCommentArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToDeleteCommentArgs {
-  input?: GQLDeleteCommentInput;
+  input: GQLDeleteCommentInput;
 }
 export interface MutationToDeleteCommentResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToDeleteCommentArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface MutationToCreateOrEditAudioDraftArgs {
-  input?: GQLCreateOrEditAudioDraftInput;
+export interface MutationToPutAudioDraftArgs {
+  input: GQLPutAudioDraftInput;
 }
-export interface MutationToCreateOrEditAudioDraftResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToCreateOrEditAudioDraftArgs, context: any, info: GraphQLResolveInfo): TResult;
+export interface MutationToPutAudioDraftResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToPutAudioDraftArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToCreateDraftArgs {
-  input?: GQLCreateDraftInput;
+  input: GQLCreateDraftInput;
 }
 export interface MutationToCreateDraftResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToCreateDraftArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToDeleteDraftArgs {
-  input?: GQLDeleteDraftInput;
+  input: GQLDeleteDraftInput;
 }
 export interface MutationToDeleteDraftResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToDeleteDraftArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToEditDraftArgs {
-  input?: GQLEditDraftInput;
+  input: GQLEditDraftInput;
 }
 export interface MutationToEditDraftResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToEditDraftArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToAddDraftTagArgs {
-  input?: GQLAddDraftTagInput;
+  input: GQLAddDraftTagInput;
 }
 export interface MutationToAddDraftTagResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToAddDraftTagArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToDeleteDraftTagArgs {
-  input?: GQLDeleteDraftTagInput;
+  input: GQLDeleteDraftTagInput;
 }
 export interface MutationToDeleteDraftTagResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToDeleteDraftTagArgs, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface MutationToSingleFileDeleteArgs {
-  input?: GQLSingleFileDeleteInput;
-}
-export interface MutationToSingleFileDeleteResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToSingleFileDeleteArgs, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface MutationToSingleFileUploadArgs {
-  input?: GQLSingleFileUploadInput;
-}
-export interface MutationToSingleFileUploadResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToSingleFileUploadArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToMarkAllNoticesAsReadResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface MutationToSendVerificationEmailArgs {
-  input?: GQLSendVerificationEmailInput;
+export interface MutationToSingleFileUploadArgs {
+  input: GQLSingleFileUploadInput;
 }
-export interface MutationToSendVerificationEmailResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToSendVerificationEmailArgs, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface MutationToSendPasswordResetEmailArgs {
-  input?: GQLSendVerificationEmailInput;
-}
-export interface MutationToSendPasswordResetEmailResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToSendPasswordResetEmailArgs, context: any, info: GraphQLResolveInfo): TResult;
+export interface MutationToSingleFileUploadResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToSingleFileUploadArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface MutationToSendEmailResetEmailArgs {
-  input?: GQLSendEmailResetEmailInput;
+export interface MutationToSendResetPasswrodCodeArgs {
+  input: GQLSendResetPasswrodCodeInput;
 }
-export interface MutationToSendEmailResetEmailResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToSendEmailResetEmailArgs, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface MutationToVerifyEmailResetCodeArgs {
-  input?: GQLVerifyEmailResetCodeInput;
-}
-export interface MutationToVerifyEmailResetCodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToVerifyEmailResetCodeArgs, context: any, info: GraphQLResolveInfo): TResult;
+export interface MutationToSendResetPasswrodCodeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToSendResetPasswrodCodeArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface MutationToResetPasswordArgs {
-  input?: GQLResetPasswordInput;
+export interface MutationToConfirmResetPasswordArgs {
+  input: GQLConfirmResetPasswordInput;
 }
-export interface MutationToResetPasswordResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToResetPasswordArgs, context: any, info: GraphQLResolveInfo): TResult;
+export interface MutationToConfirmResetPasswordResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToConfirmResetPasswordArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToSendChangeEmailCodeArgs {
+  input: GQLSendChangeEmailCodeInput;
+}
+export interface MutationToSendChangeEmailCodeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToSendChangeEmailCodeArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToConfirmChangeEmailArgs {
+  input: GQLConfirmChangeEmailInput;
+}
+export interface MutationToConfirmChangeEmailResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToConfirmChangeEmailArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToSendVerfiyEmailCodeArgs {
+  input: GQLSendVerifyEmailCodeInput;
+}
+export interface MutationToSendVerfiyEmailCodeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToSendVerfiyEmailCodeArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToConfirmVerifyEmailArgs {
+  input: GQLConfirmVerifyEmailInput;
+}
+export interface MutationToConfirmVerifyEmailResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToConfirmVerifyEmailArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToSendRegisterCodeArgs {
+  input: GQLSendRegisterCodeInput;
+}
+export interface MutationToSendRegisterCodeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToSendRegisterCodeArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToUserRegisterArgs {
@@ -1939,6 +1994,13 @@ export interface MutationToUpdateUserInfoResolver<TParent = any, TResult = any> 
   (parent: TParent, args: MutationToUpdateUserInfoArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
+export interface MutationToUpdateNotificationSettingArgs {
+  input?: GQLUpdateNotificationSettingInput;
+}
+export interface MutationToUpdateNotificationSettingResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToUpdateNotificationSettingArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
 export interface MutationToFollowUserArgs {
   input?: GQLFollowUserInput;
 }
@@ -1960,13 +2022,6 @@ export interface MutationToImportArticlesResolver<TParent = any, TResult = any> 
   (parent: TParent, args: MutationToImportArticlesArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface MutationToUpdateNotificationSettingArgs {
-  input?: GQLUpdateNotificationSettingInput;
-}
-export interface MutationToUpdateNotificationSettingResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: MutationToUpdateNotificationSettingArgs, context: any, info: GraphQLResolveInfo): TResult;
-}
-
 export interface MutationToClearReadHistoryArgs {
   input?: GQLClearReadHistoryInput;
 }
@@ -1978,39 +2033,29 @@ export interface MutationToClearSearchHistoryResolver<TParent = any, TResult = a
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface GQLFileTypeResolver<TParent = any> {
-  filename?: FileToFilenameResolver<TParent>;
-  mimetype?: FileToMimetypeResolver<TParent>;
-  encoding?: FileToEncodingResolver<TParent>;
-  path?: FileToPathResolver<TParent>;
+export interface GQLSingleFileUploadResultTypeResolver<TParent = any> {
+  id?: SingleFileUploadResultToIdResolver<TParent>;
+  path?: SingleFileUploadResultToPathResolver<TParent>;
 }
 
-export interface FileToFilenameResolver<TParent = any, TResult = any> {
+export interface SingleFileUploadResultToIdResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface FileToMimetypeResolver<TParent = any, TResult = any> {
+export interface SingleFileUploadResultToPathResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface FileToEncodingResolver<TParent = any, TResult = any> {
+export interface GQLAuthResultTypeResolver<TParent = any> {
+  auth?: AuthResultToAuthResolver<TParent>;
+  token?: AuthResultToTokenResolver<TParent>;
+}
+
+export interface AuthResultToAuthResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface FileToPathResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface GQLLoginResultTypeResolver<TParent = any> {
-  auth?: LoginResultToAuthResolver<TParent>;
-  token?: LoginResultToTokenResolver<TParent>;
-}
-
-export interface LoginResultToAuthResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface LoginResultToTokenResolver<TParent = any, TResult = any> {
+export interface AuthResultToTokenResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 

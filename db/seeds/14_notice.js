@@ -198,7 +198,6 @@ exports.seed = async knex => {
       // create notice actor
       await Promise.all(
         (notice.actors || []).map(async actor_id => {
-          console.log(notice_id, id, actor_id)
           await knex(table.notice_actor).insert({
             notice_id,
             actor_id

@@ -4,19 +4,29 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    sendVerificationEmail(input: SendVerificationEmailInput): Boolean
-    sendPasswordResetEmail(input: SendVerificationEmailInput): Boolean
-    sendEmailResetEmail(input: SendEmailResetEmailInput): Boolean
-    verifyEmailResetCode(input: VerifyEmailResetCodeInput): Boolean
-    resetPassword(input: ResetPasswordInput): Boolean
-    userRegister(input: UserRegisterInput): User
-    userLogin(input: UserLoginInput): LoginResult!
+    # change or reset password
+    sendResetPasswrodCode(input: SendResetPasswrodCodeInput!): Boolean
+    confirmResetPassword(input: ConfirmResetPasswordInput!): Boolean
+    # change email
+    sendChangeEmailCode(input: SendChangeEmailCodeInput!): Boolean
+    confirmChangeEmail(input: ConfirmChangeEmailInput!): Boolean
+    # verify email
+    sendVerfiyEmailCode(input: SendVerifyEmailCodeInput!): Boolean
+    confirmVerifyEmail(input: ConfirmVerifyEmailInput!): Boolean
+    # register
+    sendRegisterCode(input: SendRegisterCodeInput!): Boolean
+    userRegister(input: UserRegisterInput): AuthResult!
+    # login
+    userLogin(input: UserLoginInput): AuthResult!
     addOAuth(input: AddOAuthInput): Boolean
+    # update info/ setting
     updateUserInfo(input: UpdateUserInfoInput): User!
+    updateNotificationSetting(input: UpdateNotificationSettingInput): NotificationSetting
+    # follow/unfollow
     followUser(input: FollowUserInput): Boolean
     unfollowUser(input: UnfollowUserInput): Boolean
+    # misc
     importArticles(input: ImportArticlesInput): [Article]
-    updateNotificationSetting(input: UpdateNotificationSettingInput): NotificationSetting
     clearReadHistory(input: ClearReadHistoryInput): Boolean
     clearSearchHistory: Boolean
   }
@@ -27,19 +37,19 @@ export default /* GraphQL */ `
     settings: UserSettings!
     recommnedation: Recommendation!
     # Articles written by this user
-    articles(input: ListInput!): [Article]
-    drafts(input: ListInput!): [Draft]
-    audioDrafts(input: ListInput!): [AudioDraft]
+    articles(input: ListInput!): [Article!]
+    drafts(input: ListInput!): [Draft!]
+    audioDrafts(input: ListInput!): [AudioDraft!]
     # Comments posted by this user
-    commentedArticles(input: ListInput!): [Article]
+    commentedArticles(input: ListInput!): [Article!]
     # comments that citated this user's article
-    citedArticles(input: ListInput!): [Article]
-    subscriptions(input: ListInput!): [Article]
+    citedArticles(input: ListInput!): [Article!]
+    subscriptions(input: ListInput!): [Article!]
     activity: UserActivity!
     # Followers of this user
-    followers(input: ListInput!): [User]
+    followers(input: ListInput!): [User!]
     # Users that this user follows
-    followees(input: ListInput!): [User]
+    followees(input: ListInput!): [User!]
     # This user is following viewer
     isFollower: Boolean!
     # Viewer is following this user
@@ -48,12 +58,12 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
-    hottest(input: ListInput!): [Article]!
+    hottest(input: ListInput!): [Article!]
     # In case you missed it
-    icymi(input: ListInput!): [Article]!
-    tags(input: ListInput!): [Tag]!
-    topics(input: ListInput!): [Article]!
-    authors(input: ListInput!): [User]!
+    icymi(input: ListInput!): [Article!]
+    tags(input: ListInput!): [Tag!]
+    topics(input: ListInput!): [Article!]
+    authors(input: ListInput!): [User!]!
   }
 
   type UserInfo {
@@ -76,15 +86,15 @@ export default /* GraphQL */ `
     # User language setting
     language: UserLanguage!
     # Thrid party accounts binded for the user
-    oauthType: [OAuthType]
+    oauthType: [OAuthType!]!
     # Notification settings
     notification: NotificationSetting!
   }
 
   type UserActivity {
-    history(input: ListInput!): [Article]
-    recentSearches(input: ListInput!): [String]
-    invited(input: ListInput!): [User]
+    history(input: ListInput!): [Article!]
+    recentSearches(input: ListInput!): [String!]
+    invited(input: ListInput!): [User!]
   }
 
   type UserStatus {
@@ -119,43 +129,74 @@ export default /* GraphQL */ `
     downstream: Boolean!
     commentPinned: Boolean!
     commentVoted: Boolean!
-    walletUpdate: Boolean!
+    # walletUpdate: Boolean!
     officialNotice: Boolean!
     reportFeedback: Boolean!
   }
 
-  type LoginResult {
+  type AuthResult {
     auth: Boolean!
     token: String
   }
 
-  input SendVerificationEmailInput {
+  input SendResetPasswrodCodeInput {
     email: Email!
   }
-
-  input SendEmailResetEmailInput {
-    email: Email!
+  input ConfirmResetPasswordInput {
+    password: String!
+    code: String!
   }
 
-  input SendPasswordResetEmailInput {
+  input SendChangeEmailCodeInput {
     email: Email!
   }
+  input ConfirmChangeEmailInput {
+    oldEmail: Email!
+    oldEmailCode: String!
+    newEmail: Email!
+    newEmailCode: String!
+  }
 
-  input VerifyEmailResetCodeInput {
+  input SendVerifyEmailCodeInput {
+    email: Email!
+  }
+  input ConfirmVerifyEmailInput {
     email: Email!
     code: String!
   }
 
+  input SendRegisterCodeInput {
+    email: Email!
+  }
   input UserRegisterInput {
     email: Email!
     displayName: String!
     password: String!
-    code: String
+    avatar: String!
+    code: String!
   }
 
   input UserLoginInput {
     email: Email!
     password: String!
+  }
+
+  input AddOAuthInput {
+    name: String!
+    id: String!
+    type: OAuthType
+  }
+
+  input UpdateNotificationSettingInput {
+    type: String!
+    enabled: Boolean!
+  }
+
+  input UpdateUserInfoInput {
+    displayName: String
+    avatar: URL
+    description: String
+    language: UserLanguage
   }
 
   input FollowUserInput {
@@ -173,29 +214,6 @@ export default /* GraphQL */ `
 
   input ClearReadHistoryInput {
     uuid: UUID
-  }
-
-  input UpdateNotificationSettingInput {
-    type: String!
-    enabled: Boolean!
-  }
-
-  input UpdateUserInfoInput {
-    displayName: String
-    avatar: URL
-    description: String
-    language: UserLanguage
-  }
-
-  input AddOAuthInput {
-    name: String!
-    id: String!
-    type: OAuthType
-  }
-
-  input ResetPasswordInput {
-    password: String!
-    code: String
   }
 
   enum UserInfoFields {

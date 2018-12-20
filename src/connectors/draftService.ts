@@ -1,6 +1,7 @@
 import DataLoader from 'dataloader'
+import { v4 } from 'uuid'
 
-import { BATCH_SIZE, USER_ACTION } from 'common/enums'
+import { BATCH_SIZE } from 'common/enums'
 import { BaseService } from './baseService'
 
 export class DraftService extends BaseService {
@@ -8,6 +9,28 @@ export class DraftService extends BaseService {
     super('draft')
     this.idLoader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+  }
+
+  create = async ({
+    authorId,
+    upstreamId,
+    title,
+    cover,
+    content,
+    tags
+  }: {
+    [key: string]: any
+  }) => {
+    return await this.baseCreate({
+      uuid: v4(),
+      authorId,
+      upstreamId,
+      title,
+      cover,
+      abstract: '', // TODO
+      content,
+      tags
+    })
   }
 
   /**

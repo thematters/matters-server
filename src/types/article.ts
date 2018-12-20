@@ -1,51 +1,51 @@
 export default /* GraphQL */ `
   extend type Mutation {
-    publishArticle(input: PublishArticleInput): Article!
-    archiveArticle(input: ArchiveArticleInput): Article!
-    subscribeArticle(input: SubscribeArticleInput): Boolean
-    unsubscribeArticle(input: UnsubscribeArticleInput): Boolean
-    reportArticle(input: ReportArticleInput): Boolean
-    appreciateArticle(input: AppreciateArticleInput): Int!
-    readArticle(input: ReadArticleInput): Boolean
-    recallPublication(input: RecallPublicationInput): Draft!
+    publishArticle(input: PublishArticleInput!): Article!
+    archiveArticle(input: ArchiveArticleInput!): Article!
+    subscribeArticle(input: SubscribeArticleInput!): Boolean
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean
+    reportArticle(input: ReportArticleInput!): Boolean
+    appreciateArticle(input: AppreciateArticleInput!): Article!
+    readArticle(input: ReadArticleInput!): Boolean
+    recallPublication(input: RecallPublicationInput!): Draft!
   }
 
   type Article implements Node {
     id: ID!
     createdAt: DateTime!
+    publishState: PublishState!
     public: Boolean!
     author: User!
     title: String!
-    # url for cover
     cover: URL
     summary: String!
     tags: [Tag!]
     wordCount: Int
     hash: String
     content: String!
-    gatewayUrls: [URL]
+    gatewayUrls: [URL!]
     upstream: Article
-    downstreams: [Article]
-    relatedArticles(input: ListInput!): [Article]!
+    downstreams(input: ListInput!): [Article!]
+    relatedArticles(input: ListInput!): [Article!]
     # MAT recieved for this article
     MAT: Int!
     commentCount: Int!
-    # Current user has subscribed
-    subscribed: Boolean!
-    pinnedComments: [Comment]
-    comments(input: CommentsInput!): [Comment]
-    subscribers(input: ListInput!): [User]
-    appreciators(input: ListInput!): [User]
+    pinnedComments: [Comment!]
+    comments(input: CommentsInput!): [Comment!]
+    subscribers(input: ListInput!): [User!]
+    appreciators(input: ListInput!): [User!]
     appreciatorCount: Int!
+    # Viewer has subscribed
+    subscribed: Boolean!
+    # Viewer has appreciate
     hasAppreciate: Boolean!
-    publishState: PublishState!
   }
 
   type Tag implements Node {
     id: ID!
-    content: String
-    count: Int
-    articles(input: ListInput!): [Article]
+    content: String!
+    count: Int!
+    articles(input: ListInput!): [Article!]
   }
 
   input CommentsInput {
@@ -57,7 +57,6 @@ export default /* GraphQL */ `
   }
 
   input PublishArticleInput {
-    # publish with draft id
     id: ID!
   }
 
@@ -75,7 +74,7 @@ export default /* GraphQL */ `
 
   input ReportArticleInput {
     id: ID!
-    category: String
+    category: String!
     description: String
   }
 
