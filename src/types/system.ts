@@ -56,7 +56,7 @@ export default /* GraphQL */ `
   union Entity = User | Article | Tag
 
   input SingleFileUploadInput {
-    type: String
+    type: AssetType
     file: Upload!
   }
 
@@ -69,10 +69,16 @@ export default /* GraphQL */ `
     id: ID!
     uuid: UUID!
     authorId: String!
-    type: String!
+    type: AssetType!
     path: String!
     createdAt: DateTime!
     updatedAt: DateTime!
+  }
+
+  enum AssetType {
+    avatar
+    cover
+    audioDraft
   }
 
 `
