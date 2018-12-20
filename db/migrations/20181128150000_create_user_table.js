@@ -14,7 +14,7 @@ exports.up = async knex => {
       .unique()
     t.string('display_name').notNullable()
     t.text('description')
-    t.string('avatar').notNullable()
+    t.bigInteger('avatar').unsigned()
     t.string('email')
       .notNullable()
       .unique()

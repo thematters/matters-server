@@ -13,7 +13,12 @@ exports.up = async knex => {
       .unsigned()
       .notNullable()
     t.string('title').notNullable()
-    t.string('path').notNullable()
+    t.bigInteger('audio')
+      .unsigned()
+      .notNullable()
+    t.integer('length')
+      .notNullable()
+      .defaultTo(0)
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 

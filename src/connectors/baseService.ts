@@ -28,11 +28,11 @@ export class BaseService {
   /**
    * Find an item by a given id.
    */
-  baseFindById = async (id: string): Promise<any | null> => {
+  baseFindById = async (id: string, table?: TableName): Promise<any | null> => {
     const result = await this.knex
       .select()
-      .from(this.table)
-      .where('id', id)
+      .from(table || this.table)
+      .where({ id })
     if (result && result.length > 0) {
       return result[0]
     }

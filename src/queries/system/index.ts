@@ -11,6 +11,7 @@ export default {
         userService,
         commentService,
         draftService,
+        systemService,
         tagService
       }: Context
     ) => {

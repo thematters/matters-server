@@ -6,6 +6,10 @@ export default /* GraphQL */ `
     official: Official!
   }
 
+  extend type Mutation {
+    singleFileUpload(input: SingleFileUploadInput): SingleFileUploadResult!
+  }
+
   extend type Subscription {
     nodeEdited(input: NodeEditedInput!): Node!
   }
@@ -50,4 +54,31 @@ export default /* GraphQL */ `
   }
 
   union Entity = User | Article | Tag
+
+  input SingleFileUploadInput {
+    type: AssetType
+    file: Upload!
+  }
+
+  type SingleFileUploadResult {
+    uuid: UUID!
+    path: String!
+  }
+
+  type Asset {
+    id: ID!
+    uuid: UUID!
+    authorId: String!
+    type: AssetType!
+    path: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  enum AssetType {
+    avatar
+    cover
+    audioDraft
+  }
+
 `

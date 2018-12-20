@@ -5,6 +5,7 @@ import {
   ArticleService,
   CommentService,
   DraftService,
+  SystemService,
   TagService
 } from 'connectors'
 
@@ -53,6 +54,7 @@ export type Context = {
   commentService: InstanceType<typeof CommentService>
   draftService: InstanceType<typeof DraftService>
   userService: InstanceType<typeof UserService>
+  systemService: InstanceType<typeof SystemService>
   tagService: InstanceType<typeof TagService>
 }
 
@@ -62,6 +64,7 @@ export type TableName =
   | 'action_comment'
   | 'action_article'
   | 'appreciate'
+  | 'asset'
   | 'article'
   | 'tag'
   | 'article_read'
@@ -69,6 +72,7 @@ export type TableName =
   | 'comment'
   | 'comment_mentioned_user'
   | 'draft'
+  | 'noop'
   | 'user'
   | 'user_oauth'
   | 'user_notify_setting'
@@ -89,6 +93,17 @@ export interface BatchParams {
     [key: string]: any
   }
 }
+
+export type S3Folder = 'avatar' | 'audioDraft' | 'draft'
+
+export type S3Bucket =
+  | 'matters-server-dev'
+  | 'matters-server-stage'
+  | 'matters-server-production'
+
+export type Item = { id: string; [key: string]: any }
+
+export type ItemData = { [key: string]: any }
 
 export type NoticeType =
   // user
@@ -112,14 +127,3 @@ export type NoticeType =
   | 'comment_mentioned_you'
   // official
   | 'official_announcement'
-
-export type S3Folder = 'audioDraft' | 'draft'
-
-export type S3Bucket =
-  | 'matters-server-dev'
-  | 'matters-server-stage'
-  | 'matters-server-production'
-
-export type Item = { id: string; [key: string]: any }
-
-export type ItemData = { [key: string]: any }
