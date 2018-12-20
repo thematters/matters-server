@@ -8,8 +8,8 @@ const resolver: Resolver = async (
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO
   }
-  const { id: dbID } = fromGlobalId(id)
-  const user = await userService.idLoader.load(dbID)
+  const { id: dbId } = fromGlobalId(id)
+  const user = await userService.idLoader.load(dbId)
   if (!user) {
     throw new Error('target user does not exists') // TODO
   }

@@ -172,7 +172,6 @@ export default /* GraphQL */ `
     email: Email!
     displayName: String!
     password: String!
-    avatar: String!
     code: String!
   }
 

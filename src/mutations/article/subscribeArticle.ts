@@ -9,8 +9,8 @@ const resolver: Resolver = async (
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO
   }
-  const { id: dbID } = fromGlobalId(id)
-  const article = await articleService.idLoader.load(dbID)
+  const { id: dbId } = fromGlobalId(id)
+  const article = await articleService.idLoader.load(dbId)
   if (!article) {
     throw new Error('target article does not exists') // TODO
   }
