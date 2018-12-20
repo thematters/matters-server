@@ -308,7 +308,8 @@ export interface GQLCommentsInput {
 
 export enum GQLCommentSort {
   oldest = 'oldest',
-  newest = 'newest'
+  newest = 'newest',
+  upvotes = 'upvotes'
 }
 
 export enum GQLPublishState {

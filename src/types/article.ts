@@ -102,5 +102,6 @@ export default /* GraphQL */ `
   enum CommentSort {
     oldest
     newest
+    upvotes
   }
 `
