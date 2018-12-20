@@ -14,7 +14,7 @@ exports.up = async knex => {
       .notNullable()
     t.bigInteger('upstream_id').unsigned()
     t.string('title').notNullable()
-    t.string('cover').notNullable()
+    t.bigInteger('cover').unsigned()
     t.string('abstract').notNullable()
     t.text('content').notNullable()
     t.specificType('tags', 'text ARRAY')

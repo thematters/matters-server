@@ -37,7 +37,7 @@ export class UserService extends BaseService {
     }
 
     // TODO:
-    const avatar = 'some-default-s3-url'
+    const avatar = null
 
     const uuid = v4()
     const passwordHash = await hash(password, BCRYPT_ROUNDS)
