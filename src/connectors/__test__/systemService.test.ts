@@ -44,5 +44,3 @@ test('create and delete asset', async () => {
   const result = await service.baseFindById(asset.id, 'asset')
   expect(result).toBeNull()
 })
-
-
