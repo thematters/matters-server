@@ -3,7 +3,7 @@ import { ItemData, Resolver } from 'definitions'
 
 const resolver: Resolver = async (
   _,
-  { input: { path, title, uuid } },
+  { input: { audio, title, uuid } },
   { viewer, draftService }
 ) => {
   if (!viewer) {
@@ -13,7 +13,8 @@ const resolver: Resolver = async (
   const data: ItemData = {
     authorId: viewer.id,
     title,
-    path
+    audio,
+    length
   }
 
   // Edit an audo draft item

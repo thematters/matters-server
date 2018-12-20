@@ -7,6 +7,7 @@ import {
   ArticleService,
   CommentService,
   DraftService,
+  SystemService,
   TagService,
   UserService
 } from 'connectors'
@@ -35,6 +36,7 @@ export const makeContext = async ({
     articleService: new ArticleService(),
     commentService: new CommentService(),
     draftService: new DraftService(),
+    systemService: new SystemService(),
     tagService: new TagService()
   }
 }

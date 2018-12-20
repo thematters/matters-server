@@ -23,3 +23,5 @@ export const PUBLISH_STATE = {
 export const BCRYPT_ROUNDS = 12
 
 export const BATCH_SIZE = 10
+
+export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
