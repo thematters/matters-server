@@ -11,15 +11,15 @@ const resolver: Resolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const draft = await draftService.idLoader.load(dbId)
-  if (!draft) {
+  const audioDraft = await draftService.baseFindById(dbId, 'audio_draft')
+  if (!audioDraft) {
     throw new Error('target draft does not exist')
   }
-  if (draft.authroId !== viewer.id) {
+  if (audioDraft.authroId !== viewer.id) {
     throw new Error('disallow to process')
   }
 
-  await draftService.baseDelete(dbId)
+  await draftService.baseDelete(dbId, 'audio_draft')
 
   return true
 }

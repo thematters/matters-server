@@ -2,13 +2,14 @@ export default /* GraphQL */ `
   extend type Mutation {
     # audio dtaft
     putAudioDraft(input: PutAudioDraftInput!): AudioDraft!
+    deleteAudioDraft(input: DeleteAudioDraftInput!): Boolean
     # draft
     createDraft(input: CreateDraftInput!): Draft!
     deleteDraft(input: DeleteDraftInput!): Boolean
     editDraft(input: EditDraftInput!): Draft!
     # draft tag
     addDraftTag(input: AddDraftTagInput!): Draft!
-    deleteDraftTag(input: DeleteDraftTagInput!): Boolean
+    deleteDraftTag(input: DeleteDraftTagInput!): Draft!
   }
 
   type Draft implements Node {
@@ -27,7 +28,7 @@ export default /* GraphQL */ `
     id: ID!
     authorId: ID!
     title: String
-    audio: String!
+    audio: URL!
     length: Int!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -35,9 +36,13 @@ export default /* GraphQL */ `
 
   input PutAudioDraftInput {
     id: ID
-    audio: String!
+    audioAssetId: ID!
     title: String
     length: Int!
+  }
+
+  input DeleteAudioDraftInput {
+    id: ID!
   }
 
   input CreateDraftInput {
@@ -45,7 +50,7 @@ export default /* GraphQL */ `
     title: String
     content: String
     tags: [String]
-    cover: URL
+    coverAssetId: ID!
   }
 
   input DeleteDraftInput {
@@ -71,7 +76,7 @@ export default /* GraphQL */ `
   enum DraftField {
     upstream
     title
-    cover
+    coverAssetId
     content
   }
 

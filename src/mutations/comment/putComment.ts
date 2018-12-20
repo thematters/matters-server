@@ -10,7 +10,7 @@ const resolver: Resolver = async (
     throw new Error('anonymous user cannot do this') // TODO
   }
 
-  const { content, quote, articleId, parentId, mentions } = comment
+  const { content, quotation, articleId, parentId, mentions } = comment
   const data: any = {
     content,
     authorId: viewer.id
@@ -38,10 +38,10 @@ const resolver: Resolver = async (
     )
   }
 
-  // Edit
+  // Update
   if (id) {
-    const { id: commentDbId } = fromGlobalId(parentId)
-    return await commentService.baseUpdateById(commentDbId, data)
+    const { id: commentDbId } = fromGlobalId(id)
+    return commentService.update({ id: commentDbId, ...data })
   }
   // Create
   else {
