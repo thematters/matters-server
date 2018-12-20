@@ -16,6 +16,7 @@ import followerCount from './followerCount'
 import followeeCount from './followeeCount'
 import subscriptionCount from './subscriptionCount'
 import unreadNoticeCount from './unreadNoticeCount'
+import recommendation from './recommendation'
 
 export default {
   Query: {
@@ -29,6 +30,7 @@ export default {
     settings: (root: any) => root,
     status: (root: any) => root,
     activity: (root: any) => root,
+    recommendation: (root: any) => root,
     // hasFollowed,
     subscriptions,
     // quotations,
@@ -37,6 +39,7 @@ export default {
     isFollower,
     isFollowee
   },
+  Recommendation: recommendation,
   UserInfo: {
     avatar
   },
