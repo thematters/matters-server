@@ -351,20 +351,18 @@ export class UserService extends BaseService {
           '=',
           'notice_entity.entity_type_id'
         )
-      await Promise.all(
-        await _entities.map(async ({ type, entityId, table }: any) => {
-          const entity = await this.knex
-            .select()
-            .from(table)
-            .where({ id: entityId })
-            .first()
-          if (type === 'target') {
-            target = entity
-          } else {
-            entities[type] = entity
-          }
-        })
-      )
+      _entities.forEach(async ({ type, entityId, table }: any) => {
+        const entity = await this.knex
+          .select()
+          .from(table)
+          .where({ id: entityId })
+          .first()
+        if (type === 'target') {
+          target = entity
+        } else {
+          entities[type] = entity
+        }
+      })
 
       // notice actors
       const actors = await this.knex

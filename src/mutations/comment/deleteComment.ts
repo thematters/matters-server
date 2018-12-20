@@ -11,8 +11,8 @@ const resolver: Resolver = async (
   }
 
   // TODO: check permission
-  const { id: dbID } = fromGlobalId(id)
-  await commentService.baseUpdateById(id, {
+  const { id: dbId } = fromGlobalId(id)
+  await commentService.baseUpdateById(dbId, {
     archived: true
   })
 

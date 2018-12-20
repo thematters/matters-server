@@ -13,7 +13,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
-  type UserNewFollowerNotice implements Notice & Node {
+  type UserNewFollowerNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!

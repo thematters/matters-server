@@ -11,8 +11,8 @@ const resolver: Resolver = async (
   }
 
   // TODO: check permission
-  const { id: dbID } = fromGlobalId(id)
-  await commentService.baseUpdateById(dbID, {
+  const { id: dbId } = fromGlobalId(id)
+  await commentService.baseUpdateById(dbId, {
     pinned: true
   })
 
