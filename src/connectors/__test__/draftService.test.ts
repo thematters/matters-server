@@ -49,13 +49,7 @@ test('findAudioDraft', async () => {
 })
 
 test('findAudioDraftsByAuthor', async () => {
-  const audios = await service.findAudioDraftsByAuthor('1')
-  expect(audios.length).toBe(1)
-  expect(audios[0]).toEqual(expect.objectContaining(audioValidation))
-})
-
-test('findAudioDraftsByAuthorInBatch', async () => {
-  const audios = await service.findAudioDraftsByAuthorInBatch('1', 0)
+  const audios = await service.findAudioDraftsByAuthor('1', 0)
   expect(audios.length).toBe(1)
   expect(audios[0]).toEqual(expect.objectContaining(audioValidation))
 })

@@ -1,3 +1,4 @@
+import { GQLCommentsInput } from 'definitions'
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 
@@ -145,29 +146,37 @@ export class CommentService extends BaseService {
       .limit(limit)
 
   /**
-   * Find comments by a given article id.
-   */
-  findByArticle = async (articleId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ articleId })
-
-  /**
    * Find comments by a given article id in batches.
    */
-  findByArticleInBatch = async (
-    articleId: string,
-    offset: number,
+  findByArticle = async ({
+    id,
+    author,
+    quoted,
+    sort,
+    offset = 0,
     limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex
+  }: GQLCommentsInput & { id: string }) => {
+    let where: { [key: string]: string | boolean } = { articleId: id }
+    if (author) {
+      where = { ...where, authorId: author }
+    }
+    if (quoted) {
+      where = { ...where, quoted }
+    }
+
+    let order: { [key: string]: string }
+    if (sort === 'oldest') {
+      order
+    }
+
+    return this.knex
       .select()
       .from(this.table)
-      .where({ articleId })
+      .where(where)
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+  }
 
   /**
    * Find pinned comments by a given article id.

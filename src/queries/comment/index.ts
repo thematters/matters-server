@@ -1,5 +1,5 @@
-import { BatchParams, Context } from 'definitions'
-import { toGlobalId } from 'common/utils'
+import { BatchParams, Context, ArticleToCommentsArgs } from 'definitions'
+import { toGlobalId, fromGlobalId } from 'common/utils'
 
 export default {
   User: {
@@ -31,9 +31,17 @@ export default {
     ) => commentService.findPinnedByArticle(id),
     comments: (
       { id }: { id: string },
-      { input: { offset, limit } }: BatchParams,
+      { input }: ArticleToCommentsArgs,
       { commentService }: Context
-    ) => commentService.findByArticleInBatch(id, offset, limit)
+    ) => {
+      const args = { ...input, id }
+      if (input.author) {
+        const { id: authorId } = fromGlobalId(input.author)
+        args.author = authorId
+      }
+
+      return commentService.findByArticle(args)
+    }
   },
   Comment: {
     id: ({ id }: { id: string }) => {
