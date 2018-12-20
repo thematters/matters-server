@@ -25,14 +25,16 @@ export default /* GraphQL */ `
     authorId: Int!
     title: String
     audio: String!
+    length: Int!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
 
   input CreateOrEditAudioDraftInput {
-    path: String!
-    title: String
     id: ID
+    audio: String!
+    title: String
+    length: Int!
   }
 
   input CreateDraftInput {

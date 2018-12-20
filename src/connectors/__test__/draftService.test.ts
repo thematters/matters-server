@@ -19,6 +19,7 @@ const audioValidation = {
   authorId: expect.any(String),
   title: expect.any(String),
   audio: expect.any(String),
+  length: expect.any(Number),
   createdAt: expect.any(Date),
   updatedAt: expect.any(Date)
 }
