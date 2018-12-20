@@ -40,8 +40,7 @@ export type GQLPossibleNodeTypeNames =
 'Article' |
 'Tag' |
 'Comment' |
-'Draft' |
-'UserNewFollowerNotice';
+'Draft';
 
 export interface GQLNodeNameMap {
   Node: GQLNode;
@@ -50,7 +49,6 @@ export interface GQLNodeNameMap {
   Tag: GQLTag;
   Comment: GQLComment;
   Draft: GQLDraft;
-  UserNewFollowerNotice: GQLUserNewFollowerNotice;
 }
 
 export interface GQLSearchResult {
@@ -74,7 +72,7 @@ export interface GQLUser extends GQLNode {
   id: string;
   info: GQLUserInfo;
   settings: GQLUserSettings;
-  recommnedation: GQLRecommendation;
+  recommendation: GQLRecommendation;
   
   /**
    * Articles written by this user
@@ -205,14 +203,14 @@ export interface GQLNotificationSetting {
 }
 
 export interface GQLRecommendation {
-  hottest?: Array<GQLArticle>;
+  hottest: Array<GQLArticle>;
   
   /**
    * In case you missed it
    */
-  icymi?: Array<GQLArticle>;
-  tags?: Array<GQLTag>;
-  topics?: Array<GQLArticle>;
+  icymi: Array<GQLArticle>;
+  tags: Array<GQLTag>;
+  topics: Array<GQLArticle>;
   authors: Array<GQLUser>;
 }
 
@@ -330,7 +328,7 @@ export interface GQLAudioDraft {
   id: string;
   authorId: string;
   title?: string;
-  audio: string;
+  audio: GQLURL;
   length: number;
   createdAt: GQLDateTime;
   updatedAt: GQLDateTime;
@@ -453,6 +451,7 @@ export interface GQLMutation {
    * audio dtaft
    */
   putAudioDraft: GQLAudioDraft;
+  deleteAudioDraft?: boolean;
   
   /**
    * draft
@@ -465,9 +464,9 @@ export interface GQLMutation {
    * draft tag
    */
   addDraftTag: GQLDraft;
-  deleteDraftTag?: boolean;
+  deleteDraftTag: GQLDraft;
   markAllNoticesAsRead?: boolean;
-  singleFileUpload: GQLSingleFileUploadResult;
+  singleFileUpload: GQLAsset;
   
   /**
    * change or reset password
@@ -577,9 +576,13 @@ export interface GQLDeleteCommentInput {
 
 export interface GQLPutAudioDraftInput {
   id?: string;
-  audio: string;
+  audioAssetId: string;
   title?: string;
   length: number;
+}
+
+export interface GQLDeleteAudioDraftInput {
+  id: string;
 }
 
 export interface GQLCreateDraftInput {
@@ -587,7 +590,7 @@ export interface GQLCreateDraftInput {
   title?: string;
   content?: string;
   tags?: Array<string | null>;
-  cover?: GQLURL;
+  coverAssetId: string;
 }
 
 export interface GQLDeleteDraftInput {
@@ -603,7 +606,7 @@ export interface GQLEditDraftInput {
 export enum GQLDraftField {
   upstream = 'upstream',
   title = 'title',
-  cover = 'cover',
+  coverAssetId = 'coverAssetId',
   content = 'content'
 }
 
@@ -630,9 +633,11 @@ export enum GQLAssetType {
 
 export type GQLUpload = any;
 
-export interface GQLSingleFileUploadResult {
+export interface GQLAsset {
   id: string;
+  type: GQLAssetType;
   path: string;
+  createdAt: GQLDateTime;
 }
 
 export interface GQLSendResetPasswrodCodeInput {
@@ -672,7 +677,6 @@ export interface GQLUserRegisterInput {
   email: GQLEmail;
   displayName: string;
   password: string;
-  avatar: string;
   code: string;
 }
 
@@ -906,7 +910,7 @@ export enum GQLUserInfoFields {
   mobile = 'mobile'
 }
 
-export interface GQLUserNewFollowerNotice extends GQLNotice, GQLNode {
+export interface GQLUserNewFollowerNotice extends GQLNotice {
   id: string;
   unread: boolean;
   createdAt: GQLDateTime;
@@ -956,7 +960,7 @@ export interface GQLResolver {
   Official?: GQLOfficialTypeResolver;
   Mutation?: GQLMutationTypeResolver;
   Upload?: GraphQLScalarType;
-  SingleFileUploadResult?: GQLSingleFileUploadResultTypeResolver;
+  Asset?: GQLAssetTypeResolver;
   AuthResult?: GQLAuthResultTypeResolver;
   UUID?: GraphQLScalarType;
   Subscription?: GQLSubscriptionTypeResolver;
@@ -1024,7 +1028,7 @@ export interface QueryToViewerResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLNodeTypeResolver<TParent = any> {
-  (parent: TParent, context: any, info: GraphQLResolveInfo): 'User' | 'Article' | 'Tag' | 'Comment' | 'Draft' | 'UserNewFollowerNotice';
+  (parent: TParent, context: any, info: GraphQLResolveInfo): 'User' | 'Article' | 'Tag' | 'Comment' | 'Draft';
 }
 export interface GQLSearchResultTypeResolver<TParent = any> {
   entity?: SearchResultToEntityResolver<TParent>;
@@ -1046,7 +1050,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   id?: UserToIdResolver<TParent>;
   info?: UserToInfoResolver<TParent>;
   settings?: UserToSettingsResolver<TParent>;
-  recommnedation?: UserToRecommnedationResolver<TParent>;
+  recommendation?: UserToRecommendationResolver<TParent>;
   articles?: UserToArticlesResolver<TParent>;
   drafts?: UserToDraftsResolver<TParent>;
   audioDrafts?: UserToAudioDraftsResolver<TParent>;
@@ -1074,7 +1078,7 @@ export interface UserToSettingsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface UserToRecommnedationResolver<TParent = any, TResult = any> {
+export interface UserToRecommendationResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
@@ -1290,35 +1294,35 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
 }
 
 export interface RecommendationToHottestArgs {
-  input: GQLListInput;
+  input?: GQLListInput;
 }
 export interface RecommendationToHottestResolver<TParent = any, TResult = any> {
   (parent: TParent, args: RecommendationToHottestArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface RecommendationToIcymiArgs {
-  input: GQLListInput;
+  input?: GQLListInput;
 }
 export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
   (parent: TParent, args: RecommendationToIcymiArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface RecommendationToTagsArgs {
-  input: GQLListInput;
+  input?: GQLListInput;
 }
 export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: RecommendationToTagsArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface RecommendationToTopicsArgs {
-  input: GQLListInput;
+  input?: GQLListInput;
 }
 export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: RecommendationToTopicsArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface RecommendationToAuthorsArgs {
-  input: GQLListInput;
+  input?: GQLListInput;
 }
 export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (parent: TParent, args: RecommendationToAuthorsArgs, context: any, info: GraphQLResolveInfo): TResult;
@@ -1757,6 +1761,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   pinComment?: MutationToPinCommentResolver<TParent>;
   deleteComment?: MutationToDeleteCommentResolver<TParent>;
   putAudioDraft?: MutationToPutAudioDraftResolver<TParent>;
+  deleteAudioDraft?: MutationToDeleteAudioDraftResolver<TParent>;
   createDraft?: MutationToCreateDraftResolver<TParent>;
   deleteDraft?: MutationToDeleteDraftResolver<TParent>;
   editDraft?: MutationToEditDraftResolver<TParent>;
@@ -1869,6 +1874,13 @@ export interface MutationToPutAudioDraftArgs {
 }
 export interface MutationToPutAudioDraftResolver<TParent = any, TResult = any> {
   (parent: TParent, args: MutationToPutAudioDraftArgs, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface MutationToDeleteAudioDraftArgs {
+  input: GQLDeleteAudioDraftInput;
+}
+export interface MutationToDeleteAudioDraftResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: MutationToDeleteAudioDraftArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface MutationToCreateDraftArgs {
@@ -2033,16 +2045,26 @@ export interface MutationToClearSearchHistoryResolver<TParent = any, TResult = a
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface GQLSingleFileUploadResultTypeResolver<TParent = any> {
-  id?: SingleFileUploadResultToIdResolver<TParent>;
-  path?: SingleFileUploadResultToPathResolver<TParent>;
+export interface GQLAssetTypeResolver<TParent = any> {
+  id?: AssetToIdResolver<TParent>;
+  type?: AssetToTypeResolver<TParent>;
+  path?: AssetToPathResolver<TParent>;
+  createdAt?: AssetToCreatedAtResolver<TParent>;
 }
 
-export interface SingleFileUploadResultToIdResolver<TParent = any, TResult = any> {
+export interface AssetToIdResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface SingleFileUploadResultToPathResolver<TParent = any, TResult = any> {
+export interface AssetToTypeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface AssetToPathResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface AssetToCreatedAtResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
