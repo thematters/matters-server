@@ -25,9 +25,7 @@ export default {
     MAT: userMAT
   },
   Article: {
-    id: ({ id }: { id: string }) => {
-      return toGlobalId({ type: 'Article', id })
-    },
+    id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
     author,
     cover,
     summary,

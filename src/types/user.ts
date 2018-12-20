@@ -35,7 +35,7 @@ export default /* GraphQL */ `
     id: ID!
     info: UserInfo!
     settings: UserSettings!
-    recommnedation: Recommendation!
+    recommendation: Recommendation!
     # Articles written by this user
     articles(input: ListInput!): [Article!]
     drafts(input: ListInput!): [Draft!]
@@ -58,12 +58,12 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
-    hottest(input: ListInput!): [Article!]
+    hottest(input: ListInput): [Article!]!
     # In case you missed it
-    icymi(input: ListInput!): [Article!]
-    tags(input: ListInput!): [Tag!]
-    topics(input: ListInput!): [Article!]
-    authors(input: ListInput!): [User!]!
+    icymi(input: ListInput): [Article!]!
+    tags(input: ListInput): [Tag!]!
+    topics(input: ListInput): [Article!]!
+    authors(input: ListInput): [User!]!
   }
 
   type UserInfo {

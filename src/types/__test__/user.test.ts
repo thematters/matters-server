@@ -387,8 +387,8 @@ describe('user recommendations', () => {
     const query = (list: string) => `
       query($input: ListInput) {
         viewer {
-          recommendation(input: $input) {
-            ${list} {
+          recommendation {
+            ${list}(input: $input) {
               id
             }
           }
@@ -397,19 +397,19 @@ describe('user recommendations', () => {
     `
     const context = await authContext()
 
-    for (const list in lists) {
+    for (const list of lists) {
       const { data } = await graphql(schema, query(list), {}, context, {
         input: { limit: 1 }
       })
 
-      const id =
+      const article =
         data &&
         data.viewer &&
-        data.viewer.recommnedation &&
-        data.viewer.recommnedation[list] &&
-        data.viewer.recommnedation[list][0] &&
-        data.viewer.recommnedation[list][0].id
-      expect(fromGlobalId(id).type).toBe('Article')
+        data.viewer.recommendation &&
+        data.viewer.recommendation[list] &&
+        data.viewer.recommendation[list][0]
+
+      expect(fromGlobalId(article.id).type).toBe('Article')
     }
   })
 })

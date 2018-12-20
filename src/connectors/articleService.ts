@@ -41,8 +41,8 @@ export class ArticleService extends BaseService {
   }
 
   // TODO: rank hottest
-  recommendHottest = async ({ offset = 0, limit = 5 }) =>
-    await this.knex
+  recommendHottest = ({ offset = 0, limit = 5 }) =>
+    this.knex
       .select()
       .from(this.table)
       .orderBy('id', 'desc')
@@ -50,8 +50,8 @@ export class ArticleService extends BaseService {
       .limit(limit)
 
   // TODO: rank icymi
-  recommendIcymi = async ({ offset = 0, limit = 5 }) =>
-    await this.knex
+  recommendIcymi = ({ offset = 0, limit = 5 }) =>
+    this.knex
       .select()
       .from(this.table)
       .orderBy('id', 'desc')
@@ -59,8 +59,8 @@ export class ArticleService extends BaseService {
       .limit(limit)
 
   // TODO: rank topics
-  recommendTopics = async ({ offset = 0, limit = 5 }) =>
-    await this.knex
+  recommendTopics = ({ offset = 0, limit = 5 }) =>
+    this.knex
       .select()
       .from(this.table)
       .orderBy('id', 'desc')
