@@ -164,10 +164,11 @@ export class CommentService extends BaseService {
       where = { ...where, quoted }
     }
 
-    let order: { [key: string]: string }
-    if (sort === 'oldest') {
-      order
-    }
+    // TODO: add sort for oldest, newest and most upvotes
+    // let order: { [key: string]: string }
+    // if (sort === 'oldest') {
+    //   order = {createdAt: 'desc'}
+    // }
 
     return this.knex
       .select()

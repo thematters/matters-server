@@ -227,6 +227,7 @@ input CommentsInput {
 enum CommentSort {
   oldest
   newest
+  upvotes
 }
 
 input CreateDraftInput {
