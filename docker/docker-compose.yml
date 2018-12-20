@@ -23,6 +23,10 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     ports:
       - "5432:5432"
+  s3:
+    image: lphoward/fake-s3
+    ports:
+      - "4569:4569"
 
 volumes:
   postgres_data:

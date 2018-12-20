@@ -65,7 +65,7 @@ export default /* GraphQL */ `
     # User desciption
     description: String!
     # URL for avatar
-    avatar: URL!
+    avatar: URL
     email: Email!
     mobile: String!
     # Use 500 for now, adaptive in the future

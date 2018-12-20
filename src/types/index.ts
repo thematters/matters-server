@@ -1,7 +1,6 @@
 import article from './article'
 import comment from './comment'
 import draft from './draft'
-import file from './file'
 import notice from './notice'
 import scalars from './scalars'
 import system from './system'
@@ -28,14 +27,4 @@ const Root = /* GraphQL */ `
   }
 `
 
-export default [
-  Root,
-  article,
-  comment,
-  draft,
-  file,
-  notice,
-  scalars,
-  system,
-  user
-]
+export default [Root, article, comment, draft, notice, scalars, system, user]
