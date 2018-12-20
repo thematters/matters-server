@@ -223,6 +223,25 @@ export class CommentService extends BaseService {
   }
 
   /**
+   * Find a comment's vote by a given target id (comment).
+   */
+  findVotesByUserId = async ({
+    userId,
+    targetId
+  }: {
+    userId: string
+    targetId: string
+  }): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('action_comment')
+      .where({
+        userId,
+        targetId
+      })
+      .whereIn('action', [USER_ACTION.upVote, USER_ACTION.downVote])
+
+  /**
    * Find a comment's mentioned users by a given comment id.
    */
   findMentionedUsers = async (commentId: string): Promise<any[]> => {

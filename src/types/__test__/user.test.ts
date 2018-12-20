@@ -384,7 +384,7 @@ describe('mutations on User object', () => {
 describe('user recommendations', () => {
   test.only('retrive articles from hottest, icymi and topics', async () => {
     const lists = ['hottest', 'icymi', 'topics']
-    const query = list => `
+    const query = (list: string) => `
       query($input: ListInput) {
         viewer {
           recommendation(input: $input) {

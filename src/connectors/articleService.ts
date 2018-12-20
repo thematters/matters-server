@@ -1,13 +1,38 @@
 import * as cheerio from 'cheerio'
-import { BaseService } from './baseService'
-import { BATCH_SIZE, USER_ACTION } from 'common/enums'
 import DataLoader from 'dataloader'
+import { v4 } from 'uuid'
+
+import { BATCH_SIZE, USER_ACTION } from 'common/enums'
+import { BaseService } from './baseService'
 
 export class ArticleService extends BaseService {
   constructor() {
     super('article')
     this.idLoader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+  }
+
+  create = async ({
+    authorId,
+    upstreamId,
+    title,
+    cover,
+    abstract,
+    content,
+    tags
+  }: {
+    [key: string]: any
+  }) => {
+    // TODO: tags
+    return await this.baseCreate({
+      uuid: v4(),
+      authorId,
+      upstreamId,
+      title,
+      cover,
+      abstract,
+      content
+    })
   }
 
   // TODO: rank hottest
@@ -110,11 +135,17 @@ export class ArticleService extends BaseService {
       .offset(offset)
       .limit(limit)
 
-  findByUpstream = async (upstreamId: string) =>
+  findByUpstream = async (
+    upstreamId: string,
+    offset: number,
+    limit = BATCH_SIZE
+  ) =>
     await this.knex
       .select()
       .from(this.table)
       .where({ upstreamId })
+      .offset(offset)
+      .limit(limit)
 
   /**
    * Find an article's appreciations by a given articleId.
@@ -241,6 +272,34 @@ export class ArticleService extends BaseService {
         userId
       })
 
+  isSubscribed = async ({
+    userId,
+    targetId
+  }: {
+    userId: string
+    targetId: string
+  }): Promise<boolean> => {
+    const result = await this.knex
+      .select()
+      .from('action_article')
+      .where({ userId, targetId, action: USER_ACTION.subscribe })
+    return result.length > 0
+  }
+
+  hasAppreciate = async ({
+    userId,
+    articleId
+  }: {
+    userId: string
+    articleId: string
+  }): Promise<boolean> => {
+    const result = await this.knex
+      .select()
+      .from('appreciate')
+      .where({ userId, articleId })
+    return result.length > 0
+  }
+
   /**
    * User subscribe an article
    */
@@ -300,18 +359,6 @@ export class ArticleService extends BaseService {
   //       action: USER_ACTION.rate
   //     })
   // }
-
-  // update an object with id and kv pairs object
-  update = async (id: string, kv: { [k: string]: any }) => {
-    const qs = await this.knex(this.table)
-      .where({
-        id
-      })
-      .update(kv)
-      .returning('*')
-
-    return qs[0]
-  }
 
   /**
    * User read an article

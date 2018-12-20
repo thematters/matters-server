@@ -166,15 +166,6 @@ export class UserService extends BaseService {
       .first()
 
   /**
-   * Find users' notify settings by given ids.
-   */
-  findNotifySettingByIds = async (userIds: number[]): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('user_notify_setting')
-      .whereIn('user_id', userIds)
-
-  /**
    * Find user's OAuth accounts by a given user id.
    */
   findOAuth = async (userId: string): Promise<any> =>

@@ -33,7 +33,7 @@ test('findByAuthor', async () => {
 })
 
 test('findByArticle', async () => {
-  const comments = await commentService.findByArticle('3')
+  const comments = await commentService.findByArticle({ id: '3' })
   expect(comments.length).toBe(2)
 })
 

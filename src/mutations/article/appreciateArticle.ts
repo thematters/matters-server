@@ -13,15 +13,16 @@ const resolver: Resolver = async (
   if (viewer.mat < amount) {
     throw new Error('not enough MAT to appreciate') // TODO
   }
+
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.idLoader.load(dbId)
   if (!article) {
     throw new Error('target article does not exists') // TODO
   }
 
-  articleService.appreciate(article.id, viewer.id, amount, viewer.mat)
+  await articleService.appreciate(article.id, viewer.id, amount, viewer.mat)
 
-  return true
+  return articleService.idLoader.load(article.id)
 }
 
 export default resolver

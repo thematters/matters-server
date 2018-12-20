@@ -1,30 +1,25 @@
-import { v4 } from 'uuid'
-import { ItemData, Resolver } from 'definitions'
+import { Resolver } from 'definitions'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,
-  { input: { upstreamUUID, title, content, tags, cover } },
-  { viewer, draftService, articleService }
+  { input: { upstreamId, title, content, tags, cover } },
+  { viewer, draftService }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this')
   }
 
-  const article = await articleService.uuidLoader.load(upstreamUUID)
-  if (!article) {
-    throw new Error('upstream article does not exist')
-  }
-  const data: ItemData = {
-    uuid: v4(),
+  const { id: upstreamDBId } = fromGlobalId(upstreamId)
+
+  return await draftService.create({
     authorId: viewer.id,
-    upstreamId: article.id,
+    upstreamId: upstreamDBId,
     title,
     cover,
-    abstract: '',
     content,
     tags
-  }
-  return await draftService.baseCreate(data)
+  })
 }
 
 export default resolver
