@@ -12,7 +12,7 @@ export default {
       { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { draftService }: Context
-    ) => draftService.findAudioDraftsByAuthorInBatch(id, offset, limit)
+    ) => draftService.findAudioDraftsByAuthor(id, offset, limit)
   },
   Draft: {
     id: ({ id }: { id: string }) => {

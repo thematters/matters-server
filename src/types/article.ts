@@ -33,7 +33,7 @@ export default /* GraphQL */ `
     # Current user has subscribed
     subscribed: Boolean!
     pinnedComments: [Comment]
-    comments(input: CommentsInput): [Comment]
+    comments(input: CommentsInput!): [Comment]
     subscribers(input: ListInput!): [User]
     appreciators(input: ListInput!): [User]
     appreciatorCount: Int!
@@ -51,8 +51,8 @@ export default /* GraphQL */ `
   input CommentsInput {
     offset: Int
     limit: Int
-    byViewer: Boolean
-    hasCitation: Boolean
+    author: ID
+    quoted: Boolean
     sort: CommentSort
   }
 

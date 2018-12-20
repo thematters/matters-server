@@ -10,6 +10,33 @@ export class ArticleService extends BaseService {
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
+  // TODO: rank hottest
+  recommendHottest = async ({ offset = 0, limit = 5 }) =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .orderBy('id', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+  // TODO: rank icymi
+  recommendIcymi = async ({ offset = 0, limit = 5 }) =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .orderBy('id', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+  // TODO: rank topics
+  recommendTopics = async ({ offset = 0, limit = 5 }) =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .orderBy('id', 'desc')
+      .offset(offset)
+      .limit(limit)
+
   /**
    * Count articles by a given authorId (user).
    */

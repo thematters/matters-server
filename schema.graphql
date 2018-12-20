@@ -1,5 +1,5 @@
 input AddDraftTagInput {
-  uuid: UUID
+  id: ID
   tag: String
 }
 
@@ -35,7 +35,7 @@ type Article implements Node {
   gatewayUrls: [URL]
   upstream: Article
   downstreams: [Article]
-  relatedArticles(input: ListInput): [Article]!
+  relatedArticles(input: ListInput!): [Article]!
 
   """MAT recieved for this article"""
   MAT: Int!
@@ -44,39 +44,85 @@ type Article implements Node {
   """Current user has subscribed"""
   subscribed: Boolean!
   pinnedComments: [Comment]
-  comments(input: CommentsInput): [Comment]
-  subscribers(input: ListInput): [User]
-  appreciators(input: ListInput): [User]
+  comments(input: CommentsInput!): [Comment]
+  subscribers(input: ListInput!): [User]
+  appreciators(input: ListInput!): [User]
   appreciatorCount: Int!
   hasAppreciate: Boolean!
   publishState: PublishState!
 }
 
-input ArticleInput {
+type ArticleArchivedNotice implements Notice {
   id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  target: Article!
+  reason: ArticleArchivedReason
 }
 
-type ArticleNotice implements Notice {
-  hasRead: Boolean
-  createdAt: DateTime
-  users: [User]
-  action: ArticleNoticeAction
-  target: Article
+enum ArticleArchivedReason {
+  violation
 }
 
-enum ArticleNoticeAction {
-  downstream
-  published
-  newChapter
+type ArticleNewAppreciationNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  actors: [User]
+  target: Article!
+  MAT: Int!
+}
+
+type ArticleNewCommentNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  actors: [User]
+  target: Article!
+}
+
+type ArticleNewDownstreamNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  actors: [User]
+  downstream: Article!
+  target: Article!
+}
+
+type ArticleNewSubscriberNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  actors: [User]
+  target: Article!
+}
+
+type ArticlePublishedNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  target: Article!
+}
+
+type ArticleReportedNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  target: Article!
+  reason: ArticleReportedReason
+}
+
+enum ArticleReportedReason {
+  violation
 }
 
 type AudioDraft {
-  uuid: UUID!
+  id: ID!
   authorId: Int!
   title: String
-  mimetype: String!
-  encoding: String!
   path: String!
+  length: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -87,7 +133,6 @@ input ClearReadHistoryInput {
 
 type Comment implements Node {
   id: ID!
-  uuid: UUID!
 
   """Original article of this comment"""
   article: Article!
@@ -108,36 +153,74 @@ type Comment implements Node {
   parentComment: Comment
 }
 
+type CommentArchivedNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  target: Comment!
+  reason: CommentArchivedReason
+}
+
+enum CommentArchivedReason {
+  violation
+}
+
 input CommentInput {
   content: String!
   quotation: String
-  articleUUID: UUID!
-  parentUUID: UUID
-  mentions: [UUID]
+  articleId: ID!
+  parentId: ID
+  mentions: [ID]
 }
 
-type CommentNotice implements Notice {
-  hasRead: Boolean
-  createdAt: DateTime
-  users: [User]
-  action: CommentNoticeAction
-  target: Comment
+type CommentMentionedYouNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  actors: [User]
+  target: Comment!
 }
 
-enum CommentNoticeAction {
-  reply
-  newOnArticle
-  newOnSubscribed
-  pin
-  vote
-  mention
+type CommentNewReplyNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  actors: [User]
+  target: Comment!
+}
+
+type CommentNewUpvoteNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  actors: [User]
+  target: Comment!
+}
+
+type CommentPinnedNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  target: Comment!
+}
+
+type CommentReportedNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  target: Comment!
+  reason: CommentReportedReason
+}
+
+enum CommentReportedReason {
+  violation
 }
 
 input CommentsInput {
   offset: Int
   limit: Int
-  byViewer: Boolean
-  hasCitation: Boolean
+  author: ID
+  quoted: Boolean
   sort: CommentSort
 }
 
@@ -147,7 +230,7 @@ enum CommentSort {
 }
 
 input CreateDraftInput {
-  upstreamUUID: UUID
+  upstreamid: ID
   title: String
   content: String
   tags: [String]
@@ -157,12 +240,12 @@ input CreateDraftInput {
 input CreateOrEditAudioDraftInput {
   path: String!
   title: String
-  uuid: UUID
+  id: ID
 }
 
 input CreateOrEditCommentInput {
   comment: CommentInput!
-  uuid: UUID
+  id: ID
 }
 
 scalar Date
@@ -170,19 +253,15 @@ scalar Date
 scalar DateTime
 
 input DeleteCommentInput {
-  uuid: UUID
-}
-
-input DeleteDraftContentInput {
-  path: String
+  id: ID!
 }
 
 input DeleteDraftInput {
-  uuid: UUID
+  id: ID
 }
 
 input DeleteDraftTagInput {
-  uuid: UUID
+  id: ID
   tag: String
 }
 
@@ -206,7 +285,7 @@ enum DraftField {
 }
 
 input EditDraftInput {
-  uuid: UUID
+  id: ID
   field: DraftField
   value: String
 }
@@ -256,14 +335,15 @@ type Mutation {
   createOrEditComment(input: CreateOrEditCommentInput): Comment
   pinComment(input: PinCommentInput): Comment
   deleteComment(input: DeleteCommentInput): Boolean
-  singleUpload(input: SingleUploadInput): File!
   createOrEditAudioDraft(input: CreateOrEditAudioDraftInput): AudioDraft
   createDraft(input: CreateDraftInput): Draft
   deleteDraft(input: DeleteDraftInput): Boolean
   editDraft(input: EditDraftInput): Draft
   addDraftTag(input: AddDraftTagInput): Draft
   deleteDraftTag(input: DeleteDraftTagInput): Boolean
-  deleteDraftContent(input: DeleteDraftContentInput): Boolean
+  singleFileDelete(input: SingleFileDeleteInput): Boolean
+  singleFileUpload(input: SingleFileUploadInput): File!
+  markAllNoticesAsRead: Boolean
   sendVerificationEmail(input: SendVerificationEmailInput): Boolean
   sendPasswordResetEmail(input: SendVerificationEmailInput): Boolean
   sendEmailResetEmail(input: SendEmailResetEmailInput): Boolean
@@ -294,15 +374,9 @@ input NodeInput {
 }
 
 interface Notice {
-  hasRead: Boolean
-  createdAt: DateTime
-  users: [User]
-}
-
-input NoticesInput {
-  offset: Int
-  limit: Int
-  hasRead: Boolean
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
 }
 
 type NotificationSetting {
@@ -331,8 +405,16 @@ type Official {
   reportCategory: [String]!
 }
 
+type OfficialAnnouncementNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  message: String!
+  link: URL
+}
+
 input PinCommentInput {
-  uuid: UUID
+  id: ID!
 }
 
 input PublishArticleInput {
@@ -355,15 +437,11 @@ Ref: apollographql/graphql-tools#293
 """
 type Query {
   _: Boolean
-  tag(input: TagInput): Tag
-  draft(uuid: UUID!): Draft
-  audioDraft(uuid: UUID!): AudioDraft
   node(input: NodeInput!): Node
   frequentSearch(key: String): [String]
   search(key: String): [SearchResult]
   official: Official!
   viewer: User
-  user(input: UserInput!): User
 }
 
 input ReadArticleInput {
@@ -375,13 +453,13 @@ input RecallPublicationInput {
 }
 
 type Recommendation {
-  hottest(input: ListInput): [Article]!
+  hottest(input: ListInput!): [Article]!
 
   """In case you missed it"""
-  icymi(input: ListInput): [Article]!
-  authors(input: ListInput): [User]!
-  tags(input: ListInput): [Tag]!
-  topics(input: ListInput): [Article]!
+  icymi(input: ListInput!): [Article]!
+  tags(input: ListInput!): [Tag]!
+  topics(input: ListInput!): [Article]!
+  authors(input: ListInput!): [User]!
 }
 
 input ReportArticleInput {
@@ -425,12 +503,25 @@ input SendVerificationEmailInput {
   email: Email!
 }
 
-input SingleUploadInput {
+input SingleFileDeleteInput {
+  path: String!
+}
+
+input SingleFileUploadInput {
+  purpose: String
   file: Upload!
 }
 
 input SubscribeArticleInput {
   id: ID!
+}
+
+type SubscribedArticleNewCommentNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  actors: [User]
+  target: Article!
 }
 
 type Subscription {
@@ -442,11 +533,7 @@ type Tag implements Node {
   id: ID!
   content: String
   count: Int
-  articles(input: ListInput): [Article]
-}
-
-input TagInput {
-  id: ID!
+  articles(input: ListInput!): [Article]
 }
 
 scalar Time
@@ -477,50 +564,53 @@ scalar URL
 
 type User implements Node {
   id: ID!
-
-  """Get article for this user"""
-  article(input: ArticleInput!): Article!
-
-  """Get other user info for this user"""
-  user(input: UserInput!): User!
   info: UserInfo!
   settings: UserSettings!
-
-  """Personalized recommendations"""
   recommnedation: Recommendation!
 
   """Articles written by this user"""
-  articles(input: ListInput): [Article]
-  drafts(input: ListInput): [Draft]
-  audioDrafts(input: ListInput): [AudioDraft]
+  articles(input: ListInput!): [Article]
+  drafts(input: ListInput!): [Draft]
+  audioDrafts(input: ListInput!): [AudioDraft]
 
   """Comments posted by this user"""
-  commentedArticles(input: ListInput): [Article]
+  commentedArticles(input: ListInput!): [Article]
 
   """comments that citated this user's article"""
-  citedArticles(input: ListInput): [Article]
-  subscriptions(input: ListInput): [Article]
+  citedArticles(input: ListInput!): [Article]
+  subscriptions(input: ListInput!): [Article]
   activity: UserActivity!
 
   """Followers of this user"""
-  followers(input: ListInput): [User]
+  followers(input: ListInput!): [User]
 
   """Users that this user follows"""
-  followees(input: ListInput): [User]
+  followees(input: ListInput!): [User]
 
-  """Current user has followed this user"""
-  isFollowee: Boolean!
-
-  """This user has followed current user"""
+  """This user is following viewer"""
   isFollower: Boolean!
+
+  """Viewer is following this user"""
+  isFollowee: Boolean!
   status: UserStatus!
-  notices(input: NoticesInput): [Notice]!
+  notices(input: ListInput!): [Notice]
 }
 
 type UserActivity {
-  history(input: ListInput): [Article]
-  recentSearches(input: ListInput): [String]
-  invited(input: ListInput): [User]
+  history(input: ListInput!): [Article]
+  recentSearches(input: ListInput!): [String]
+  invited(input: ListInput!): [User]
+}
+
+type UserDisabledNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  reason: UserDisabledReason
+}
+
+enum UserDisabledReason {
+  violation
 }
 
 type UserInfo {
@@ -552,10 +642,6 @@ enum UserInfoFields {
   mobile
 }
 
-input UserInput {
-  id: ID!
-}
-
 enum UserLanguage {
   en
   zh_hans
@@ -567,18 +653,11 @@ input UserLoginInput {
   password: String!
 }
 
-type UserNotice implements Notice {
-  hasRead: Boolean
-  createdAt: DateTime
-  users: [User]
-  action: UserNoticeAction
-  target: User
-}
-
-enum UserNoticeAction {
-  follow
-  appreciate
-  subscribe
+type UserNewFollowerNotice implements Notice & Node {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  actors: [User]
 }
 
 input UserRegisterInput {
@@ -622,6 +701,9 @@ type UserStatus {
 
   """Number of user that follows this user"""
   followerCount: Int!
+
+  """Number of unread notices"""
+  unreadNoticeCount: Int!
 }
 
 scalar UUID

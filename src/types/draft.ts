@@ -25,6 +25,7 @@ export default /* GraphQL */ `
     authorId: Int!
     title: String
     path: String!
+    length: Int!
     createdAt: DateTime!
     updatedAt: DateTime!
   }

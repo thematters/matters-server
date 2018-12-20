@@ -25,7 +25,9 @@
     "tslint:production": "node_modules/.bin/tslint -t verbose -c tslint.json 'src/**/*.ts{,x}' -e '**/node_modules/**/*'",
     "format": "prettier --single-quote --write \"{,!(node_modules|build)/**/}*.{js,jsx,ts,tsx,json}\"",
     "format:check": "npm run format -- --list-different",
-    "exportSchema": "npm run build && node build/common/utils/exportSchema.js"
+    "gen": "npm run gen:graphql && npm run gen:ts",
+    "gen:graphql": "node build/common/utils/exportSchema.js",
+    "gen:ts": "graphql-schema-typescript generate-ts schema.graphql --output src/definitions/schema.d.ts"
   },
   "author": "",
   "license": "UNLICENSED",
@@ -40,6 +42,7 @@
     "graphql": "^14.0.2",
     "graphql-custom-types": "^1.5.0",
     "graphql-iso-date": "^3.6.1",
+    "graphql-schema-typescript": "^1.2.8",
     "graphql-tools": "^4.0.3",
     "graphql-type-json": "^0.2.1",
     "graphql-upload": "^8.0.2",

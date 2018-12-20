@@ -25,7 +25,6 @@ export default /* GraphQL */ `
     id: ID!
     info: UserInfo!
     settings: UserSettings!
-    # Personalized recommendations
     recommnedation: Recommendation!
     # Articles written by this user
     articles(input: ListInput!): [Article]
@@ -46,6 +45,15 @@ export default /* GraphQL */ `
     # Viewer is following this user
     isFollowee: Boolean!
     status: UserStatus!
+  }
+
+  type Recommendation {
+    hottest(input: ListInput!): [Article]!
+    # In case you missed it
+    icymi(input: ListInput!): [Article]!
+    tags(input: ListInput!): [Tag]!
+    topics(input: ListInput!): [Article]!
+    authors(input: ListInput!): [User]!
   }
 
   type UserInfo {
@@ -71,15 +79,6 @@ export default /* GraphQL */ `
     oauthType: [OAuthType]
     # Notification settings
     notification: NotificationSetting!
-  }
-
-  type Recommendation {
-    hottest(input: ListInput!): [Article]!
-    # In case you missed it
-    icymi(input: ListInput!): [Article]!
-    authors(input: ListInput!): [User]!
-    tags(input: ListInput!): [Tag]!
-    topics(input: ListInput!): [Article]!
   }
 
   type UserActivity {

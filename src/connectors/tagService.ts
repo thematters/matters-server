@@ -13,6 +13,14 @@ export class TagService extends BaseService {
       content
     })
 
+  recommendTags = async ({ offset = 0, limit = 5 }) =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .orderBy('id', 'desc')
+      .offset(offset)
+      .limit(limit)
+
   /**
    * Count tags by a given tag text.
    */

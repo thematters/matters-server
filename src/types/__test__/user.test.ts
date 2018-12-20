@@ -1,6 +1,7 @@
 // external
 import { graphql } from 'graphql'
 // local
+import { fromGlobalId } from 'common/utils'
 import schema from '../../schema'
 import { makeContext, toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
@@ -360,9 +361,7 @@ describe('mutations on User object', () => {
   })
 
   test('updateNotificationSetting', async () => {
-    const description = 'foo bar'
-
-    const followQuery = `
+    const query = `
       mutation UpdateNotificationSetting($input: UpdateNotificationSettingInput!) {
         updateNotificationSetting(input: $input) {
           enable
@@ -370,7 +369,7 @@ describe('mutations on User object', () => {
       }
     `
     const context = await authContext()
-    const { data } = await graphql(schema, followQuery, {}, context, {
+    const { data } = await graphql(schema, query, {}, context, {
       input: { type: 'enable', enabled: false }
     })
 
@@ -379,5 +378,38 @@ describe('mutations on User object', () => {
       data.updateNotificationSetting &&
       data.updateNotificationSetting.enable
     expect(enable).toBeFalsy()
+  })
+})
+
+describe('user recommendations', () => {
+  test.only('retrive articles from hottest, icymi and topics', async () => {
+    const lists = ['hottest', 'icymi', 'topics']
+    const query = list => `
+      query($input: ListInput) {
+        viewer {
+          recommendation(input: $input) {
+            ${list} {
+              id
+            }
+          }
+        }
+      }
+    `
+    const context = await authContext()
+
+    for (const list in lists) {
+      const { data } = await graphql(schema, query(list), {}, context, {
+        input: { limit: 1 }
+      })
+
+      const id =
+        data &&
+        data.viewer &&
+        data.viewer.recommnedation &&
+        data.viewer.recommnedation[list] &&
+        data.viewer.recommnedation[list][0] &&
+        data.viewer.recommnedation[list][0].id
+      expect(fromGlobalId(id).type).toBe('Article')
+    }
   })
 })

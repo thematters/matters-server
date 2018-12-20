@@ -8,6 +8,8 @@ import {
   TagService
 } from 'connectors'
 
+export * from './schema'
+
 export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
 
 export type ProtectedNodeTypes = 'Notice'
