@@ -31,15 +31,16 @@ export default {
     summary,
     tags,
     content,
-    gatewayUrls: () => null,
+    gatewayUrls: () => [],
     upstream,
     downstreams,
-    relatedArticles: () => null,
+    relatedArticles: () => [],
     MAT,
     subscribed,
     subscribers,
     appreciators,
-    hasAppreciate
+    hasAppreciate,
+    participantCount: () => 50
   },
   Tag: {
     id: ({ id }: { id: string }) => {

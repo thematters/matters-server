@@ -58,12 +58,12 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
-    hottest(input: ListInput): [Article!]!
+    hottest(input: ListInput!): [Article!]!
     # In case you missed it
-    icymi(input: ListInput): [Article!]!
-    tags(input: ListInput): [Tag!]!
-    topics(input: ListInput): [Article!]!
-    authors(input: ListInput): [User!]!
+    icymi(input: ListInput!): [Article!]!
+    tags(input: ListInput!): [Tag!]!
+    topics(input: ListInput!): [Article!]!
+    authors(input: ListInput!): [User!]!
   }
 
   type UserInfo {
@@ -73,10 +73,10 @@ export default /* GraphQL */ `
     # Display name on profile
     displayName: String!
     # User desciption
-    description: String!
+    description: String
     # URL for avatar
     avatar: URL
-    email: Email!
+    email: Email
     mobile: String!
     # Use 500 for now, adaptive in the future
     readSpeed: Int!
