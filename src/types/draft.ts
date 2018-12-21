@@ -74,7 +74,7 @@ export default /* GraphQL */ `
   }
 
   enum DraftField {
-    upstream
+    upstreamId
     title
     cover
     content
