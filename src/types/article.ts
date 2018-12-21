@@ -1,13 +1,4 @@
 export default /* GraphQL */ `
-  extend type Query {
-    article(uuid: UUID!): Article
-    tag(input: TagInput): Tag
-  }
-
-  input TagInput {
-    tag: String!
-  }
-
   extend type Mutation {
     publishArticle(input: PublishArticleInput): Article!
     archiveArticle(input: ArchiveArticleInput): Article!
@@ -19,14 +10,14 @@ export default /* GraphQL */ `
     recallPublication(input: RecallPublicationInput): Draft!
   }
 
-  type Article {
-    uuid: UUID!
+  type Article implements Node {
+    id: ID!
     createdAt: DateTime!
     public: Boolean!
     author: User!
     title: String!
     # url for cover
-    cover: URL!
+    cover: URL
     summary: String!
     tags: [Tag!]
     wordCount: Int
@@ -35,7 +26,7 @@ export default /* GraphQL */ `
     gatewayUrls: [URL]
     upstream: Article
     downstreams: [Article]
-    relatedArticles(input: ListInput): [Article]!
+    relatedArticles(input: ListInput!): [Article]!
     # MAT recieved for this article
     MAT: Int!
     commentCount: Int!
@@ -43,16 +34,18 @@ export default /* GraphQL */ `
     subscribed: Boolean!
     pinnedComments: [Comment]
     comments(input: CommentsInput): [Comment]
-    subscribers(input: ListInput): [User]
-    appreciators(input: ListInput): [User]
+    subscribers(input: ListInput!): [User]
+    appreciators(input: ListInput!): [User]
+    appreciatorCount: Int!
     hasAppreciate: Boolean!
     publishState: PublishState!
   }
 
-  type Tag {
-    text: String
+  type Tag implements Node {
+    id: ID!
+    content: String
     count: Int
-    articles(input: ListInput): [Article]
+    articles(input: ListInput!): [Article]
   }
 
   input CommentsInput {
@@ -64,39 +57,39 @@ export default /* GraphQL */ `
   }
 
   input PublishArticleInput {
-    # publish with draft uuid
-    uuid: UUID
+    # publish with draft id
+    id: ID!
   }
 
   input ArchiveArticleInput {
-    uuid: UUID
+    id: ID!
   }
 
   input SubscribeArticleInput {
-    uuid: UUID
+    id: ID!
   }
 
   input UnsubscribeArticleInput {
-    uuid: UUID
+    id: ID!
   }
 
   input ReportArticleInput {
-    uuid: UUID
+    id: ID!
     category: String
     description: String
   }
 
   input AppreciateArticleInput {
-    uuid: UUID
+    id: ID!
     amount: Int
   }
 
   input ReadArticleInput {
-    uuid: UUID
+    id: ID!
   }
 
   input RecallPublicationInput {
-    uuid: UUID
+    id: ID!
   }
 
   enum PublishState {
@@ -107,7 +100,7 @@ export default /* GraphQL */ `
   }
 
   enum CommentSort {
-    upVotes
+    oldest
     newest
   }
 `

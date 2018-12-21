@@ -1,19 +1,19 @@
 // external
+import _ from 'lodash'
 import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
-import _ from 'lodash'
 //local
-import { TableName } from 'definitions'
+import { Item, ItemData, TableName } from 'definitions'
+import { aws, AWSService } from './aws'
 import { knex } from './db'
 
-export type Item = { id: number; [key: string]: any }
-export type ItemData = { [key: string]: any }
-
 export class BaseService {
+  aws: InstanceType<typeof AWSService>
+
   knex: Knex
 
-  idLoader: DataLoader<number, Item>
+  idLoader: DataLoader<string, Item>
 
   uuidLoader: DataLoader<string, Item>
 
@@ -22,16 +22,17 @@ export class BaseService {
   constructor(table: TableName) {
     this.knex = knex
     this.table = table
+    this.aws = aws
   }
 
   /**
    * Find an item by a given id.
    */
-  baseFindById = async (id: number): Promise<any | null> => {
+  baseFindById = async (id: string, table?: TableName): Promise<any | null> => {
     const result = await this.knex
       .select()
-      .from(this.table)
-      .where('id', id)
+      .from(table || this.table)
+      .where({ id })
     if (result && result.length > 0) {
       return result[0]
     }
@@ -41,7 +42,7 @@ export class BaseService {
   /**
    * Find items by given ids.
    */
-  baseFindByIds = async (ids: number[]) =>
+  baseFindByIds = async (ids: string[]) =>
     await this.knex
       .select()
       .from(this.table)
@@ -118,10 +119,10 @@ export class BaseService {
   }
 
   /**
-   * Update item
+   * Update an item by a given id.
    */
-  updateById = async (
-    id: number,
+  baseUpdateById = async (
+    id: string,
     data: ItemData,
     table?: TableName
   ): Promise<any> =>
@@ -131,7 +132,10 @@ export class BaseService {
       .into(table || this.table)
       .returning('*'))[0]
 
-  updateByUUID = async (
+  /**
+   * Update an item by a given UUID.
+   */
+  baseUpdateByUUID = async (
     uuid: string,
     data: ItemData,
     table?: TableName
@@ -141,4 +145,12 @@ export class BaseService {
       .update(data)
       .into(table || this.table)
       .returning('*'))[0]
+
+  /**
+   * Delete an item by a given id.
+   */
+  baseDelete = async (id: number, table?: TableName): Promise<any> =>
+    await this.knex(table || this.table)
+      .where({ id })
+      .del()
 }

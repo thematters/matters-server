@@ -1,7 +1,10 @@
+const { baseDown } = require('../utils')
+
 const table = 'comment'
 
-exports.up = function(knex, Promise) {
-  return knex.schema.createTable(table, function(t) {
+exports.up = async knex => {
+  await knex('entity_type').insert({ table })
+  await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
     t.uuid('uuid')
       .notNullable()
@@ -9,7 +12,6 @@ exports.up = function(knex, Promise) {
     t.bigInteger('author_id').notNullable()
     t.bigInteger('article_id').notNullable()
     t.bigInteger('parent_comment_id')
-    t.specificType('mentioned_user_id', 'bigint ARRAY')
     t.text('content')
     t.boolean('archived').defaultTo(false)
     t.boolean('pinned').defaultTo(false)
@@ -24,9 +26,10 @@ exports.up = function(knex, Promise) {
     t.foreign('article_id')
       .references('id')
       .inTable('article')
+    t.foreign('parent_comment_id')
+      .references('id')
+      .inTable('comment')
   })
 }
 
-exports.down = function(knex, Promise) {
-  return knex.schema.dropTable(table)
-}
+exports.down = baseDown(table)

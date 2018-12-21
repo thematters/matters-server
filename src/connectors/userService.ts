@@ -5,7 +5,9 @@ import jwt from 'jsonwebtoken'
 
 import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
-import { BaseService, ItemData } from './baseService'
+import { ItemData } from 'definitions'
+import { BaseService } from './baseService'
+import { TagService } from './tagService'
 
 export class UserService extends BaseService {
   constructor() {
@@ -35,7 +37,7 @@ export class UserService extends BaseService {
     }
 
     // TODO:
-    const avatar = 'some-default-s3-url'
+    const avatar = null
 
     const uuid = v4()
     const passwordHash = await hash(password, BCRYPT_ROUNDS)
@@ -46,8 +48,7 @@ export class UserService extends BaseService {
       displayName,
       description,
       avatar,
-      passwordHash,
-      oauthType: []
+      passwordHash
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
     return await this.idLoader.load(user.id)
@@ -88,7 +89,7 @@ export class UserService extends BaseService {
   /**
    * Count user's following list by a given user id.
    */
-  countFollowees = async (userId: number): Promise<number> => {
+  countFollowees = async (userId: string): Promise<number> => {
     const result = await this.knex('action_user')
       .countDistinct('id')
       .where({
@@ -102,7 +103,7 @@ export class UserService extends BaseService {
   /**
    * Count user's followed list by a given taget id (user).
    */
-  countFollowers = async (targetId: number): Promise<number> => {
+  countFollowers = async (targetId: string): Promise<number> => {
     const result = await this.knex('action_user')
       .countDistinct('id')
       .where({ targetId, action: USER_ACTION.follow })
@@ -113,10 +114,21 @@ export class UserService extends BaseService {
   /**
    * Count an users' subscription by a given user id.
    */
-  countSubscription = async (userId: number): Promise<number> => {
+  countSubscription = async (userId: string): Promise<number> => {
     const result = await this.knex('action_article')
       .countDistinct('id')
       .where({ userId, action: USER_ACTION.subscribe })
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  /**
+   * Count an users' unread notice by a given user id.
+   */
+  countUnreadNotice = async (userId: string): Promise<number> => {
+    const result = await this.knex('notice')
+      .countDistinct('id')
+      .where({ recipientId: userId, unread: true, deleted: false })
       .first()
     return parseInt(result.count, 10)
   }
@@ -146,7 +158,7 @@ export class UserService extends BaseService {
   /**
    * Find user's notify setting by a given user id.
    */
-  findNotifySetting = async (userId: number): Promise<any | null> =>
+  findNotifySetting = async (userId: string): Promise<any | null> =>
     await this.knex
       .select()
       .from('user_notify_setting')
@@ -165,7 +177,7 @@ export class UserService extends BaseService {
   /**
    * Find user's OAuth accounts by a given user id.
    */
-  findOAuth = async (userId: number): Promise<any> =>
+  findOAuth = async (userId: string): Promise<any> =>
     await this.knex
       .select()
       .from('user_oauth')
@@ -175,7 +187,7 @@ export class UserService extends BaseService {
   /**
    * Find user's OAuth accounts by a given user id and type.
    */
-  findOAuthByType = async (userId: number, type: string): Promise<any> =>
+  findOAuthByType = async (userId: string, type: string): Promise<any> =>
     await this.knex
       .select()
       .from('user_oauth')
@@ -185,7 +197,7 @@ export class UserService extends BaseService {
   /**
    * Find user's all OAuth types by a given user id.
    */
-  findOAuthTypes = async (userId: number): Promise<any[]> =>
+  findOAuthTypes = async (userId: string): Promise<any[]> =>
     await this.knex
       .select('type')
       .from('user_oauth')
@@ -194,7 +206,7 @@ export class UserService extends BaseService {
   /**
    * Find user's all appreciation by a given user id.
    */
-  findAppreciationByUserId = async (userId: number): Promise<any[]> =>
+  findAppreciationByUserId = async (userId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('appreciate')
@@ -204,18 +216,18 @@ export class UserService extends BaseService {
    * Find user's followee list by a given user id.
    */
   findFollowees = async ({
-    id,
+    userId,
     offset = 0,
     limit = BATCH_SIZE
   }: {
-    id: number
+    userId: string
     offset?: number
     limit?: number
   }) =>
     this.knex
       .select()
       .from('action_user')
-      .where({ userId: id, action: USER_ACTION.follow })
+      .where({ userId, action: USER_ACTION.follow })
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
@@ -223,7 +235,7 @@ export class UserService extends BaseService {
   /**
    * Find user's follower list by a given taget id (user).
    */
-  findFollowers = async (targetId: number): Promise<any[]> =>
+  findFollowers = async (targetId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('action_user')
@@ -233,7 +245,7 @@ export class UserService extends BaseService {
    * Find user's follower list by a given taget id (user) in batches.
    */
   findFollowersInBatch = async (
-    targetId: number,
+    targetId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
@@ -246,9 +258,26 @@ export class UserService extends BaseService {
       .limit(limit)
 
   /**
+   * Is user following target
+   */
+  isFollowing = async ({
+    userId,
+    targetId
+  }: {
+    userId: string
+    targetId: string
+  }): Promise<boolean> => {
+    const result = await this.knex
+      .select()
+      .from('action_user')
+      .where({ userId, targetId, action: USER_ACTION.follow })
+    return result.length > 0
+  }
+
+  /**
    * Find an user's rates by a given target id (user).
    */
-  // findRateByTargetId = async (targetId: number): Promise<any[]> => {
+  // findRateByTargetId = async (targetId: string): Promise<any[]> => {
   //   return await this.knex
   //     .select()
   //     .from('action_user')
@@ -261,7 +290,7 @@ export class UserService extends BaseService {
   /**
    * Find an users' subscription by a given user id.
    */
-  findSubscriptions = async (userId: number): Promise<any[]> =>
+  findSubscriptions = async (userId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('action_article')
@@ -271,7 +300,7 @@ export class UserService extends BaseService {
    * Find an users' subscription by a given user id in batches.
    */
   findSubscriptionsInBatch = async (
-    userId: number,
+    userId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> => {
@@ -285,18 +314,110 @@ export class UserService extends BaseService {
   }
 
   /**
+   * Find an users' notices by a given user id in batches.
+   */
+  findNoticesInBatch = async (
+    userId: string,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> => {
+    const notices = await this.knex
+      .select([
+        'notice.id',
+        'notice.unread',
+        'notice.updated_at',
+        'notice_detail.notice_type',
+        'notice_detail.message',
+        'notice_detail.data'
+      ])
+      .from('notice')
+      .where({ recipientId: userId, deleted: false })
+      .orderBy('updated_at', 'desc')
+      .offset(offset)
+      .limit(limit)
+      .innerJoin(
+        'notice_detail',
+        'notice.notice_detail_id',
+        '=',
+        'notice_detail.id'
+      )
+
+    return notices.map(async (notice: any) => {
+      // notice entities
+      let target = null as any
+      const entities = {} as any
+      const _entities = await this.knex
+        .select([
+          'notice_entity.type',
+          'notice_entity.entity_id',
+          'entity_type.table'
+        ])
+        .from('notice_entity')
+        .where({ noticeId: notice.id })
+        .innerJoin(
+          'entity_type',
+          'entity_type.id',
+          '=',
+          'notice_entity.entity_type_id'
+        )
+      await Promise.all(
+        await _entities.map(async ({ type, entityId, table }: any) => {
+          const entity = await this.knex
+            .select()
+            .from(table)
+            .where({ id: entityId })
+            .first()
+          if (type === 'target') {
+            target = entity
+          } else {
+            entities[type] = entity
+          }
+        })
+      )
+
+      // notice actors
+      const actors = await this.knex
+        .select('user.*')
+        .from('notice_actor')
+        .where({ noticeId: notice.id })
+        .innerJoin('user', 'notice_actor.actor_id', '=', 'user.id')
+
+      return {
+        id: notice.id,
+        unread: notice.unread,
+        createdAt: notice.updatedAt,
+        type: notice.noticeType,
+        actors,
+        target,
+        entities,
+        message: notice.message,
+        data: notice.data
+      }
+    })
+  }
+
+  /**
+   * Mark all notices as read
+   */
+  markAllNoticesAsRead = async (userId: string): Promise<any> => {
+    await this.knex('notice')
+      .where({ recipientId: userId, unread: true })
+      .update({ unread: false })
+  }
+
+  /**
    * Update user_notify_setting by a given user id
    */
   updateNotifySetting = async (
-    id: number,
+    id: string,
     data: ItemData
   ): Promise<any | null> =>
-    await this.updateById(id, data, 'user_notify_setting')
+    await this.baseUpdateById(id, data, 'user_notify_setting')
 
   /**
    * Follow a user by a given taget id (user).
    */
-  follow = async (userId: number, targetId: number): Promise<any[]> =>
+  follow = async (userId: string, targetId: string): Promise<any[]> =>
     await this.baseUpdateOrCreate(
       {
         userId,
@@ -310,7 +431,7 @@ export class UserService extends BaseService {
   /**
    * Unfollow a user by a given taget id (user).
    */
-  unfollow = async (userId: number, targetId: number): Promise<any[]> =>
+  unfollow = async (userId: string, targetId: string): Promise<any[]> =>
     await this.knex
       .from('action_user')
       .where({

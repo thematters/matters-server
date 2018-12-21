@@ -5,12 +5,8 @@ export default /* GraphQL */ `
     deleteComment(input: DeleteCommentInput): Boolean
   }
 
-  extend type Subscription {
-    commentChanged: Comment
-  }
-
-  type Comment {
-    uuid: UUID!
+  type Comment implements Node {
+    id: ID!
     # Original article of this comment
     article: Article!
     # content
@@ -31,22 +27,22 @@ export default /* GraphQL */ `
   input CommentInput {
     content: String!
     quotation: String
-    articleUUID: UUID!
-    parentUUID: UUID
-    mentions: [UUID]
+    articleId: ID!
+    parentId: ID
+    mentions: [ID]
   }
 
   input CreateOrEditCommentInput {
     comment: CommentInput!
-    uuid: UUID
+    id: ID
   }
 
   input PinCommentInput {
-    uuid: UUID
+    id: ID!
   }
 
   input DeleteCommentInput {
-    uuid: UUID
+    id: ID!
   }
 
   enum Vote {

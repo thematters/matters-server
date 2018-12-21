@@ -2,9 +2,8 @@
 import { graphql } from 'graphql'
 // local
 import schema from '../../schema'
-import { makeContext } from 'common/utils'
+import { makeContext, toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
-import uuid = require('uuid')
 
 afterAll(knex.destroy)
 
@@ -130,7 +129,7 @@ describe('user query fields', () => {
       query ArtilcesQuery($input: ListInput!) {
         viewer {
           articles(input: $input) {
-            uuid
+            id
           }
         }
       }
@@ -142,45 +141,26 @@ describe('user query fields', () => {
     const articles = data && data.viewer && data.viewer.articles
 
     expect(articles.length).toEqual(1)
-    expect(articles[0].uuid).toEqual('00000000-0000-0000-0000-000000000004')
+    expect(articles[0].id).toEqual(toGlobalId({ type: 'Article', id: 4 }))
   })
 
-  test('retrive an user', async () => {
-    const query = `
-      query UserQuery($input: UserInput!) {
+  test('retrive user MAT', async () => {
+    const viewerQuery = `
+      query {
         viewer {
-          user(input: $input) {
-            uuid
+          status {
+            MAT
           }
         }
       }
     `
-    const uuid = '00000000-0000-0000-0000-000000000002'
     const context = await authContext()
-    const { data } = await graphql(schema, query, {}, context, {
-      input: { uuid }
+    const { data } = await graphql(schema, viewerQuery, {}, context, {
+      input: { limit: 1 }
     })
-    const user = data && data.viewer && data.viewer.user
-    expect(user.uuid).toEqual(uuid)
-  })
+    const status = data && data.viewer && data.viewer.status
 
-  test('retrive an article', async () => {
-    const query = `
-      query ArticleQuery($input: ArticleInput!) {
-        viewer {
-          article(input: $input) {
-            uuid
-          }
-        }
-      }
-    `
-    const uuid = '00000000-0000-0000-0000-000000000001'
-    const context = await authContext()
-    const { data } = await graphql(schema, query, {}, context, {
-      input: { uuid }
-    })
-    const article = data && data.viewer && data.viewer.article
-    expect(article.uuid).toEqual(uuid)
+    expect(status.MAT).toEqual(150)
   })
 
   test('retrive UserSettings', async () => {
@@ -210,7 +190,7 @@ describe('user query fields', () => {
       query UserSubscriptionsQuery($input: ListInput!) {
         viewer {
           subscriptions(input: $input) {
-            uuid
+            id
           }
         }
       }
@@ -228,7 +208,7 @@ describe('user query fields', () => {
       query FlowersQuery($input: ListInput!) {
         viewer {
           followers(input: $input) {
-            uuid
+            id
           }
         }
       }
@@ -245,7 +225,7 @@ describe('user query fields', () => {
       query FloweesQuery($input: ListInput!) {
         viewer {
           followees(input: $input) {
-            uuid
+            id
           }
         }
       }
@@ -287,7 +267,7 @@ describe('user query fields', () => {
 
 describe('mutations on User object', () => {
   test('followUser and unfollowUser', async () => {
-    const followeeUuid = '00000000-0000-0000-0000-000000000003'
+    const followeeId = toGlobalId({ type: 'User', id: '3' })
 
     const followQuery = `
       mutation FollowerUser($input: FollowUserInput!) {
@@ -301,7 +281,7 @@ describe('mutations on User object', () => {
       {},
       context,
       {
-        input: { uuid: followeeUuid }
+        input: { id: followeeId }
       }
     )
     expect(followData && followData.followUser).toBeTruthy()
@@ -310,7 +290,7 @@ describe('mutations on User object', () => {
       query FloweesQuery($input: ListInput!) {
         viewer {
           followees(input: $input) {
-            uuid
+            id
           }
         }
       }
@@ -321,9 +301,7 @@ describe('mutations on User object', () => {
     const followees =
       followeeData && followeeData.viewer && followeeData.viewer.followees
 
-    expect(followees.map(({ uuid }: { uuid: string }) => uuid)).toContain(
-      followeeUuid
-    )
+    expect(followees.map(({ id }: { id: string }) => id)).toContain(followeeId)
 
     const unfollowQuery = `
       mutation FollowerUser($input: UnfollowUserInput!) {
@@ -336,7 +314,7 @@ describe('mutations on User object', () => {
       {},
       context,
       {
-        input: { uuid: followeeUuid }
+        input: { id: followeeId }
       }
     )
 
@@ -357,8 +335,7 @@ describe('mutations on User object', () => {
       followeeDataNew.viewer.followees
 
     expect(
-      followeesNew.filter(({ uuid }: { uuid: string }) => uuid === followeeUuid)
-        .length
+      followeesNew.filter(({ id }: { id: string }) => id === followeeId).length
     ).toEqual(0)
   })
 
