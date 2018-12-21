@@ -177,7 +177,7 @@ export class CommentService extends BaseService {
   findByArticle = async ({
     id,
     author,
-    quoted,
+    quote,
     sort,
     offset = 0,
     limit = BATCH_SIZE
@@ -186,8 +186,8 @@ export class CommentService extends BaseService {
     if (author) {
       where = { ...where, authorId: author }
     }
-    if (quoted) {
-      where = { ...where, quoted }
+    if (quote) {
+      where = { ...where, quote }
     }
 
     const sortCreatedAt = (by: 'desc' | 'asc') =>
@@ -199,31 +199,29 @@ export class CommentService extends BaseService {
         .offset(offset)
         .limit(limit)
 
-    switch (sort) {
-      case GQLCommentSort.upvotes:
-        return this.knex.raw(`
-          select
-            comment.*,
-            count(distinct upvotes.id) as upvote_count
-          from comment
-          left outer join
-            (
-              select *
-              from action_comment
-              where action = 'up_vote'
-            ) as upvotes
-          on upvotes.target_id = comment.id
-          where comment.article_id = ${id}
-          group by comment.id
-          order by upvote_count desc 
-          limit ${limit}
-          offset ${offset}`)
-      case GQLCommentSort.oldest:
-        return sortCreatedAt('desc')
-      case GQLCommentSort.newest:
-        return sortCreatedAt('asc')
-      default:
-        return sortCreatedAt('desc')
+    if (sort == 'upvotes') {
+      const result = await this.knex('comment')
+        .select('comment.*', 'votes.count as upvotes')
+        .leftJoin(
+          this.knex
+            .select('target_id, count')
+            .countDistinct('user_id')
+            .from('action_comment')
+            .groupBy('target_id')
+            .as('votes'),
+          'votes.target_id',
+          'comment.id'
+        )
+        .where(where)
+        .orderBy('upvotes', 'desc')
+      console.log({ result })
+      return result
+    } else if (sort === 'oldest') {
+      return sortCreatedAt('asc')
+    } else if (sort === 'newest') {
+      return sortCreatedAt('desc')
+    } else {
+      return sortCreatedAt('desc')
     }
   }
 

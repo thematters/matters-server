@@ -15,11 +15,17 @@ export default /* GraphQL */ `
     archived: Boolean!
     upvotes: Int!
     downvotes: Int!
-    quotation: String
+    quote: Boolean!
     myVote: Vote
     mentions: [User!]
     comments: [Comment!]
     parentComment: Comment
+  }
+
+  extend type Article {
+    commentCount: Int!
+    pinnedComments: [Comment!]
+    comments(input: CommentsInput!): [Comment!]
   }
 
   input PutCommentInput {
@@ -33,6 +39,20 @@ export default /* GraphQL */ `
     articleId: ID!
     parentId: ID
     mentions: [ID!]
+  }
+
+  input CommentsInput {
+    offset: Int
+    limit: Int
+    author: ID
+    quote: Boolean
+    sort: CommentSort
+  }
+
+  enum CommentSort {
+    oldest
+    newest
+    upvotes
   }
 
   input PinCommentInput {

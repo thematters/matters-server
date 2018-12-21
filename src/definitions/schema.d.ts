@@ -242,9 +242,6 @@ export interface GQLArticle extends GQLNode {
    */
   MAT: number;
   participantCount: number;
-  commentCount: number;
-  pinnedComments?: Array<GQLComment>;
-  comments?: Array<GQLComment>;
   subscribers?: Array<GQLUser>;
   appreciators?: Array<GQLUser>;
   appreciatorCount: number;
@@ -258,6 +255,9 @@ export interface GQLArticle extends GQLNode {
    * Viewer has appreciate
    */
   hasAppreciate: boolean;
+  commentCount: number;
+  pinnedComments?: Array<GQLComment>;
+  comments?: Array<GQLComment>;
 }
 
 export enum GQLPublishState {
@@ -287,7 +287,7 @@ export interface GQLComment extends GQLNode {
   archived: boolean;
   upvotes: number;
   downvotes: number;
-  quotation?: string;
+  quote: boolean;
   myVote?: GQLVote;
   mentions?: Array<GQLUser>;
   comments?: Array<GQLComment>;
@@ -303,7 +303,7 @@ export interface GQLCommentsInput {
   offset?: number;
   limit?: number;
   author?: string;
-  quoted?: boolean;
+  quote?: boolean;
   sort?: GQLCommentSort;
 }
 
@@ -1348,14 +1348,14 @@ export interface GQLArticleTypeResolver<TParent = any> {
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>;
   MAT?: ArticleToMATResolver<TParent>;
   participantCount?: ArticleToParticipantCountResolver<TParent>;
-  commentCount?: ArticleToCommentCountResolver<TParent>;
-  pinnedComments?: ArticleToPinnedCommentsResolver<TParent>;
-  comments?: ArticleToCommentsResolver<TParent>;
   subscribers?: ArticleToSubscribersResolver<TParent>;
   appreciators?: ArticleToAppreciatorsResolver<TParent>;
   appreciatorCount?: ArticleToAppreciatorCountResolver<TParent>;
   subscribed?: ArticleToSubscribedResolver<TParent>;
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>;
+  commentCount?: ArticleToCommentCountResolver<TParent>;
+  pinnedComments?: ArticleToPinnedCommentsResolver<TParent>;
+  comments?: ArticleToCommentsResolver<TParent>;
 }
 
 export interface ArticleToIdResolver<TParent = any, TResult = any> {
@@ -1436,21 +1436,6 @@ export interface ArticleToParticipantCountResolver<TParent = any, TResult = any>
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface ArticleToCommentCountResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface ArticleToPinnedCommentsResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
-}
-
-export interface ArticleToCommentsArgs {
-  input: GQLCommentsInput;
-}
-export interface ArticleToCommentsResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: ArticleToCommentsArgs, context: any, info: GraphQLResolveInfo): TResult;
-}
-
 export interface ArticleToSubscribersArgs {
   input: GQLListInput;
 }
@@ -1475,6 +1460,21 @@ export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
 
 export interface ArticleToHasAppreciateResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface ArticleToCommentCountResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface ArticleToPinnedCommentsResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
+}
+
+export interface ArticleToCommentsArgs {
+  input: GQLCommentsInput;
+}
+export interface ArticleToCommentsResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: ArticleToCommentsArgs, context: any, info: GraphQLResolveInfo): TResult;
 }
 
 export interface GQLTagTypeResolver<TParent = any> {
@@ -1512,7 +1512,7 @@ export interface GQLCommentTypeResolver<TParent = any> {
   archived?: CommentToArchivedResolver<TParent>;
   upvotes?: CommentToUpvotesResolver<TParent>;
   downvotes?: CommentToDownvotesResolver<TParent>;
-  quotation?: CommentToQuotationResolver<TParent>;
+  quote?: CommentToQuoteResolver<TParent>;
   myVote?: CommentToMyVoteResolver<TParent>;
   mentions?: CommentToMentionsResolver<TParent>;
   comments?: CommentToCommentsResolver<TParent>;
@@ -1551,7 +1551,7 @@ export interface CommentToDownvotesResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
-export interface CommentToQuotationResolver<TParent = any, TResult = any> {
+export interface CommentToQuoteResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult;
 }
 
