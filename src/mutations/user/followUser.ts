@@ -1,5 +1,6 @@
 import { Resolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+
 const resolver: Resolver = async (
   _,
   { input: { id } },
