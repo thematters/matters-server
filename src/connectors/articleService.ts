@@ -123,11 +123,7 @@ export class ArticleService extends BaseService {
   /**
    *  Find articles by a given author id (user) in batches.
    */
-  findByAuthor = async (
-    authorId: string,
-    offset = 0,
-    limit = BATCH_SIZE
-  ) =>
+  findByAuthor = async (authorId: string, offset = 0, limit = BATCH_SIZE) =>
     await this.knex
       .select()
       .from(this.table)
