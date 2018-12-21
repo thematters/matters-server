@@ -16,7 +16,6 @@
     "build": "tsc -p .",
     "watch:build": "tsc -p . --watch",
     "watch:server": "nodemon build/index.js",
-    "postinstall": "npm run build",
     "start": "node build/index.js",
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
     "test": "jest",
