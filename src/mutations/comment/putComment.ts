@@ -1,4 +1,5 @@
 import { Resolver } from 'definitions'
+import pubsub from 'common/pubsub'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
@@ -10,7 +11,7 @@ const resolver: Resolver = async (
     throw new Error('anonymous user cannot do this') // TODO
   }
 
-  const { content, quote, articleId, parentId, mentions } = comment
+  const { content, quotation, articleId, parentId, mentions } = comment
   const data: any = {
     content,
     authorId: viewer.id
@@ -38,14 +39,18 @@ const resolver: Resolver = async (
     )
   }
 
-  // Edit
+  // Update
   if (id) {
-    const { id: commentDbId } = fromGlobalId(parentId)
-    return await commentService.baseUpdateById(commentDbId, data)
+    const { id: commentDbId } = fromGlobalId(id)
+    const comment = await commentService.update({ id: commentDbId, ...data })
+    pubsub.publish(articleId, article)
+    return comment
   }
   // Create
   else {
-    return commentService.create(data)
+    const comment = await commentService.create(data)
+    pubsub.publish(articleId, article)
+    return comment
   }
 }
 

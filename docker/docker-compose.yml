@@ -6,15 +6,17 @@ services:
     build:
       context: ../
       dockerfile: docker/Dockerfile
-    command: ["npm", "run", "start:dev"]
+    command: ['npm', 'run', 'start:dev']
     env_file: ../.env
     volumes:
       - ..:/var/app
       - /var/app/node_modules
     depends_on:
       - db
+      - redis
+      - s3
     ports:
-      - "4000:4000"
+      - '4000:4000'
   db:
     image: postgres:10
     environment:
@@ -22,11 +24,15 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
-      - "5432:5432"
+      - '5432:5432'
+  redis:
+    image: redis
+    ports:
+      - '6379:6379'
+    restart: always
   s3:
     image: lphoward/fake-s3
     ports:
-      - "4569:4569"
-
+      - '4569:4569'
 volumes:
-  postgres_data:
+  ? postgres_data

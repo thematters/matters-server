@@ -1,5 +1,6 @@
 import { Resolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+
 const resolver: Resolver = async (
   _,
   { input: { id } },
@@ -8,6 +9,7 @@ const resolver: Resolver = async (
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO
   }
+
   const { id: dbId } = fromGlobalId(id)
   const user = await userService.idLoader.load(dbId)
   if (!user) {

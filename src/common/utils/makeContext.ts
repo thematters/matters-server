@@ -13,10 +13,16 @@ import {
 } from 'connectors'
 
 export const makeContext = async ({
-  req
+  req,
+  connection
 }: {
   req: { headers?: { 'x-access-token'?: string } }
+  connection?: any
 }): Promise<Context> => {
+  if (connection) {
+    return connection.context
+  }
+
   const userService = new UserService()
 
   let viewer

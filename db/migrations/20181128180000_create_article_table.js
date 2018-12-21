@@ -13,7 +13,7 @@ exports.up = async knex => {
     t.bigInteger('upstream_id').unsigned()
     t.string('title').notNullable()
     t.bigInteger('cover').unsigned()
-    t.string('abstract').notNullable()
+    t.string('summary').notNullable()
     t.integer('word_count').notNullable()
     t.string('hash')
     t.text('content').notNullable()
