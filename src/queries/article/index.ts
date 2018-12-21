@@ -40,7 +40,7 @@ export default {
     subscribers,
     appreciators,
     hasAppreciate,
-    participantCount: () => 50
+    participantCount: () => 50 // TODO
   },
   Tag: {
     id: ({ id }: { id: string }) => {
