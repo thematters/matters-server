@@ -200,22 +200,20 @@ export class CommentService extends BaseService {
         .limit(limit)
 
     if (sort == 'upvotes') {
-      const result = await this.knex('comment')
-        .select('comment.*', 'votes.count as upvotes')
+      return this.knex('comment')
+        .select('comment.*')
+        .countDistinct('votes.user_id as upvotes')
         .leftJoin(
           this.knex
-            .select('target_id, count')
-            .countDistinct('user_id')
+            .select('target_id', 'user_id')
             .from('action_comment')
-            .groupBy('target_id')
             .as('votes'),
           'votes.target_id',
           'comment.id'
         )
+        .groupBy('comment.id')
         .where(where)
         .orderBy('upvotes', 'desc')
-      console.log({ result })
-      return result
     } else if (sort === 'oldest') {
       return sortCreatedAt('asc')
     } else if (sort === 'newest') {

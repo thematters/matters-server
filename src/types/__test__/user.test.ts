@@ -58,10 +58,8 @@ describe('register and login functionarlities', () => {
     const query = `
       mutation UserRegister($input: UserRegisterInput!) {
         userRegister(input: $input) {
-          info {
-            email
-            displayName
-          }
+          auth
+          token
         }
       }
     `
@@ -69,11 +67,12 @@ describe('register and login functionarlities', () => {
     const result = await graphql(schema, query, {}, context, {
       input: user
     })
-
-    expect(result.data && result.data.userRegister).toBeTruthy()
-    if (result.data && result.data.userRegister) {
-      expect(result.data.userRegister.info).toMatchObject(userSanitized)
-    }
+    expect(
+      result.data &&
+        result.data.userRegister &&
+        result.data.userRegister.auth &&
+        result.data.userRegister.token
+    ).toBeTruthy()
   })
 
   test('auth fail when password is incorrect', async () => {
@@ -382,10 +381,10 @@ describe('mutations on User object', () => {
 })
 
 describe('user recommendations', () => {
-  test.only('retrive articles from hottest, icymi and topics', async () => {
+  test('retrive articles from hottest, icymi and topics', async () => {
     const lists = ['hottest', 'icymi', 'topics']
     const query = (list: string) => `
-      query($input: ListInput) {
+      query($input: ListInput!) {
         viewer {
           recommendation {
             ${list}(input: $input) {
@@ -401,7 +400,6 @@ describe('user recommendations', () => {
       const { data } = await graphql(schema, query(list), {}, context, {
         input: { limit: 1 }
       })
-
       const article =
         data &&
         data.viewer &&

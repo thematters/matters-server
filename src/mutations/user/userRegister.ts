@@ -1,9 +1,14 @@
 import { Resolver } from 'definitions'
 
-const resolver: Resolver = (root, { input }, { userService }) => {
+const resolver: Resolver = async (root, { input }, { userService }) => {
   // TODO: check email
   // TODO: check username
-  return userService.create(input)
+  try {
+    await userService.create(input)
+    return userService.login(input)
+  } catch (err) {
+    throw err
+  }
 }
 
 export default resolver
