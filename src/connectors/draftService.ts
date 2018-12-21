@@ -13,29 +13,6 @@ export class DraftService extends BaseService {
   }
 
   /**
-   * Create a new Draft item.
-   */
-  create = async ({
-    authorId,
-    upstreamId,
-    title,
-    cover,
-    content,
-    tags
-  }: ItemData) => {
-    return await this.baseCreate({
-      uuid: v4(),
-      authorId,
-      upstreamId,
-      title,
-      cover,
-      abstract: '', // TODO
-      content,
-      tags
-    })
-  }
-
-  /**
    * Count user's drafts by a given author id (user).
    */
   countByAuthor = async (authorId: string): Promise<number> => {
@@ -86,4 +63,5 @@ export class DraftService extends BaseService {
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+
 }
