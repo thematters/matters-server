@@ -4,24 +4,20 @@ export default /* GraphQL */ `
     putAudioDraft(input: PutAudioDraftInput!): AudioDraft!
     deleteAudioDraft(input: DeleteAudioDraftInput!): Boolean
     # draft
-    createDraft(input: CreateDraftInput!): Draft!
+    putDraft(input: PutDraftInput!): Draft!
     deleteDraft(input: DeleteDraftInput!): Boolean
-    editDraft(input: EditDraftInput!): Draft!
-    # draft tag
-    addDraftTag(input: AddDraftTagInput!): Draft!
-    deleteDraftTag(input: DeleteDraftTagInput!): Draft!
   }
 
   type Draft implements Node {
     id: ID!
     upstream: Article
     title: String
+    summary: String
     content: String!
     createdAt: DateTime!
     updatedAt: DateTime!
     tags: [String]
     cover: URL
-    abstract: String
   }
 
   type AudioDraft {
@@ -36,48 +32,26 @@ export default /* GraphQL */ `
 
   input PutAudioDraftInput {
     id: ID
-    audioAssetId: ID!
+    audioAssetId: ID
     title: String
-    length: Int!
+    length: Int
   }
 
   input DeleteAudioDraftInput {
     id: ID!
   }
 
-  input CreateDraftInput {
+  input PutDraftInput {
+    id: ID
     upstreamId: ID
     title: String
     content: String
     tags: [String]
-    coverAssetId: ID!
+    coverAssetId: ID
   }
 
   input DeleteDraftInput {
     id: ID!
-  }
-
-  input EditDraftInput {
-    id: ID!
-    field: DraftField
-    value: String
-  }
-
-  input AddDraftTagInput {
-    id: ID!
-    tag: String!
-  }
-
-  input DeleteDraftTagInput {
-    id: ID!
-    tag: String!
-  }
-
-  enum DraftField {
-    upstreamId
-    title
-    cover
-    content
   }
 
 `
