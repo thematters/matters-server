@@ -1,4 +1,5 @@
 import DataLoader from 'dataloader'
+import { ItemData } from 'definitions'
 import { v4 } from 'uuid'
 
 import { BATCH_SIZE } from 'common/enums'
@@ -11,6 +12,9 @@ export class DraftService extends BaseService {
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
+  /**
+   * Create a new Draft item.
+   */
   create = async ({
     authorId,
     upstreamId,
@@ -18,9 +22,7 @@ export class DraftService extends BaseService {
     cover,
     content,
     tags
-  }: {
-    [key: string]: any
-  }) => {
+  }: ItemData) => {
     return await this.baseCreate({
       uuid: v4(),
       authorId,
@@ -45,21 +47,12 @@ export class DraftService extends BaseService {
   }
 
   /**
-   * Find user's drafts by a given author id (user).
-   */
-  findByAuthor = async (authorId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ authorId })
-
-  /**
    *  Find drafts by a given author id (user) in batches.
    */
-  findByAuthorInBatch = async (
+  findByAuthor = async (
     authorId: string,
-    offset: number,
-    limit = BATCH_SIZE
+    offset = 0,
+    limit = BATCH_SIZE,
   ): Promise<any[]> =>
     await this.knex
       .select()
@@ -77,15 +70,6 @@ export class DraftService extends BaseService {
       .select()
       .from('audio_draft')
       .where({ id })
-
-  // /**
-  //  * Find audio drafts by a given author id (user).
-  //  */
-  // findAudioDraftsByAuthor = async (authorId: string): Promise<any[]> =>
-  //   await this.knex
-  //     .select()
-  //     .from('audio_draft')
-  //     .where({ authorId })
 
   /**
    * Find audio drafts by a given author id (user) in batches.

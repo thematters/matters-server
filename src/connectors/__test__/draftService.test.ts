@@ -7,7 +7,7 @@ const draftValidation = {
   upstreamId: null,
   title: expect.any(String),
   cover: null,
-  abstract: expect.any(String),
+  summary: expect.any(String),
   content: expect.any(String),
   createdAt: expect.any(Date),
   updatedAt: expect.any(Date)
@@ -33,12 +33,6 @@ test('countByAuthor', async () => {
 
 test('findByAuthor', async () => {
   const drafts = await service.findByAuthor('1')
-  expect(drafts.length).toBe(1)
-  expect(drafts[0]).toEqual(expect.objectContaining(draftValidation))
-})
-
-test('findByAuthorInBatch', async () => {
-  const drafts = await service.findByAuthorInBatch('1', 0)
   expect(drafts.length).toBe(1)
   expect(drafts[0]).toEqual(expect.objectContaining(draftValidation))
 })
