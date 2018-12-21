@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio'
 import DataLoader from 'dataloader'
+import { ItemData } from 'definitions'
 import { v4 } from 'uuid'
 
 import { BATCH_SIZE, USER_ACTION } from 'common/enums'
@@ -12,18 +13,19 @@ export class ArticleService extends BaseService {
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
+  /**
+   * Create a new article item.
+   */
   create = async ({
     authorId,
     upstreamId,
     title,
     cover,
-    abstract,
+    summary,
     content,
     publishState = 'pending',
     tags
-  }: {
-    [key: string]: any
-  }) => {
+  }: ItemData) => {
     // craete article
     const article = await this.baseCreate({
       uuid: v4(),
@@ -31,7 +33,7 @@ export class ArticleService extends BaseService {
       upstreamId,
       title,
       cover,
-      abstract,
+      summary,
       content,
       publishState,
       wordCount: this.countWords(content)
@@ -108,6 +110,9 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
+  /**
+   * Counts words witin in html content.
+   */
   countWords = (html: string) =>
     cheerio
       .load(html)('body')
@@ -116,20 +121,11 @@ export class ArticleService extends BaseService {
       .filter(s => s !== '').length
 
   /**
-   * Find articles by a given author id (user).
-   */
-  findByAuthor = async (authorId: string) =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ authorId })
-
-  /**
    *  Find articles by a given author id (user) in batches.
    */
-  findByAuthorInBatch = async (
+  findByAuthor = async (
     authorId: string,
-    offset: number,
+    offset = 0,
     limit = BATCH_SIZE
   ) =>
     await this.knex
@@ -140,6 +136,9 @@ export class ArticleService extends BaseService {
       .offset(offset)
       .limit(limit)
 
+  /**
+   * Find articles by upstream id (article).
+   */
   findByUpstream = async (
     upstreamId: string,
     offset: number,
@@ -166,7 +165,7 @@ export class ArticleService extends BaseService {
    */
   findAppreciationsInBatch = async (
     articleId: string,
-    offset: number,
+    offset = 0,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
     await this.knex
@@ -182,7 +181,7 @@ export class ArticleService extends BaseService {
    */
   findAppreciatorsInBatch = async (
     articleId: string,
-    offset: number,
+    offset = 0,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
     await this.knex('appreciate')
@@ -354,16 +353,6 @@ export class ArticleService extends BaseService {
         .into('appreciate')
         .returning('*')
     })
-
-  // findRateByTargetId = async (targetId: string): Promise<any[]> => {
-  //   return await this.knex
-  //     .select()
-  //     .from('action_user')
-  //     .where({
-  //       target_id: targetId,
-  //       action: USER_ACTION.rate
-  //     })
-  // }
 
   /**
    * User read an article
