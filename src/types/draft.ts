@@ -1,11 +1,15 @@
 export default /* GraphQL */ `
   extend type Mutation {
-    createOrEditAudioDraft(input: CreateOrEditAudioDraftInput): AudioDraft
-    createDraft(input: CreateDraftInput): Draft
-    deleteDraft(input: DeleteDraftInput): Boolean
-    editDraft(input: EditDraftInput): Draft
-    addDraftTag(input: AddDraftTagInput): Draft
-    deleteDraftTag(input: DeleteDraftTagInput): Boolean
+    # audio dtaft
+    putAudioDraft(input: PutAudioDraftInput!): AudioDraft!
+    deleteAudioDraft(input: DeleteAudioDraftInput!): Boolean
+    # draft
+    createDraft(input: CreateDraftInput!): Draft!
+    deleteDraft(input: DeleteDraftInput!): Boolean
+    editDraft(input: EditDraftInput!): Draft!
+    # draft tag
+    addDraftTag(input: AddDraftTagInput!): Draft!
+    deleteDraftTag(input: DeleteDraftTagInput!): Draft!
   }
 
   type Draft implements Node {
@@ -22,51 +26,55 @@ export default /* GraphQL */ `
 
   type AudioDraft {
     id: ID!
-    authorId: Int!
+    authorId: ID!
     title: String
-    audio: String!
+    audio: URL!
     length: Int!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
 
-  input CreateOrEditAudioDraftInput {
+  input PutAudioDraftInput {
     id: ID
-    audio: String!
+    audioAssetId: ID!
     title: String
     length: Int!
   }
 
+  input DeleteAudioDraftInput {
+    id: ID!
+  }
+
   input CreateDraftInput {
-    upstreamid: ID
+    upstreamId: ID
     title: String
     content: String
     tags: [String]
-    cover: URL
+    coverAssetId: ID!
   }
 
   input DeleteDraftInput {
-    id: ID
+    id: ID!
   }
 
   input EditDraftInput {
-    id: ID
+    id: ID!
     field: DraftField
     value: String
   }
 
   input AddDraftTagInput {
-    id: ID
-    tag: String
+    id: ID!
+    tag: String!
   }
 
   input DeleteDraftTagInput {
-    id: ID
-    tag: String
+    id: ID!
+    tag: String!
   }
 
   enum DraftField {
-    upstream
+    upstreamId
     title
     cover
     content

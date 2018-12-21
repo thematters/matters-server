@@ -1,6 +1,7 @@
 // external
 import { graphql } from 'graphql'
 // local
+import { fromGlobalId } from 'common/utils'
 import schema from '../../schema'
 import { makeContext, toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
@@ -57,10 +58,8 @@ describe('register and login functionarlities', () => {
     const query = `
       mutation UserRegister($input: UserRegisterInput!) {
         userRegister(input: $input) {
-          info {
-            email
-            displayName
-          }
+          auth
+          token
         }
       }
     `
@@ -68,11 +67,12 @@ describe('register and login functionarlities', () => {
     const result = await graphql(schema, query, {}, context, {
       input: user
     })
-
-    expect(result.data && result.data.userRegister).toBeTruthy()
-    if (result.data && result.data.userRegister) {
-      expect(result.data.userRegister.info).toMatchObject(userSanitized)
-    }
+    expect(
+      result.data &&
+        result.data.userRegister &&
+        result.data.userRegister.auth &&
+        result.data.userRegister.token
+    ).toBeTruthy()
   })
 
   test('auth fail when password is incorrect', async () => {
@@ -360,9 +360,7 @@ describe('mutations on User object', () => {
   })
 
   test('updateNotificationSetting', async () => {
-    const description = 'foo bar'
-
-    const followQuery = `
+    const query = `
       mutation UpdateNotificationSetting($input: UpdateNotificationSettingInput!) {
         updateNotificationSetting(input: $input) {
           enable
@@ -370,7 +368,7 @@ describe('mutations on User object', () => {
       }
     `
     const context = await authContext()
-    const { data } = await graphql(schema, followQuery, {}, context, {
+    const { data } = await graphql(schema, query, {}, context, {
       input: { type: 'enable', enabled: false }
     })
 
@@ -379,5 +377,37 @@ describe('mutations on User object', () => {
       data.updateNotificationSetting &&
       data.updateNotificationSetting.enable
     expect(enable).toBeFalsy()
+  })
+})
+
+describe('user recommendations', () => {
+  test('retrive articles from hottest, icymi and topics', async () => {
+    const lists = ['hottest', 'icymi', 'topics']
+    const query = (list: string) => `
+      query($input: ListInput!) {
+        viewer {
+          recommendation {
+            ${list}(input: $input) {
+              id
+            }
+          }
+        }
+      }
+    `
+    const context = await authContext()
+
+    for (const list of lists) {
+      const { data } = await graphql(schema, query(list), {}, context, {
+        input: { limit: 1 }
+      })
+      const article =
+        data &&
+        data.viewer &&
+        data.viewer.recommendation &&
+        data.viewer.recommendation[list] &&
+        data.viewer.recommendation[list][0]
+
+      expect(fromGlobalId(article.id).type).toBe('Article')
+    }
   })
 })

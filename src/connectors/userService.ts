@@ -24,8 +24,7 @@ export class UserService extends BaseService {
     userName,
     displayName,
     description,
-    password,
-    code
+    password
   }: {
     [key: string]: string
   }) => {
@@ -164,15 +163,6 @@ export class UserService extends BaseService {
       .from('user_notify_setting')
       .where({ userId })
       .first()
-
-  /**
-   * Find users' notify settings by given ids.
-   */
-  findNotifySettingByIds = async (userIds: number[]): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('user_notify_setting')
-      .whereIn('user_id', userIds)
 
   /**
    * Find user's OAuth accounts by a given user id.
@@ -360,20 +350,18 @@ export class UserService extends BaseService {
           '=',
           'notice_entity.entity_type_id'
         )
-      await Promise.all(
-        await _entities.map(async ({ type, entityId, table }: any) => {
-          const entity = await this.knex
-            .select()
-            .from(table)
-            .where({ id: entityId })
-            .first()
-          if (type === 'target') {
-            target = entity
-          } else {
-            entities[type] = entity
-          }
-        })
-      )
+      _entities.forEach(async ({ type, entityId, table }: any) => {
+        const entity = await this.knex
+          .select()
+          .from(table)
+          .where({ id: entityId })
+          .first()
+        if (type === 'target') {
+          target = entity
+        } else {
+          entities[type] = entity
+        }
+      })
 
       // notice actors
       const actors = await this.knex

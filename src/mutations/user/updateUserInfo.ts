@@ -5,8 +5,6 @@ const resolver: Resolver = async (_, { input }, { viewer, userService }) => {
     throw new Error('anonymous user cannot do this') // TODO
   }
 
-  // TODO: check permission
-
   return await userService.baseUpdateById(viewer.id, input)
 }
 

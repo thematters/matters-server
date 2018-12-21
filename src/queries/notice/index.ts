@@ -1,20 +1,11 @@
-import { BatchParams, Context, NoticeType } from 'definitions'
+import { Context, NoticeType } from 'definitions'
 import { toGlobalId } from 'common/utils'
+
+import notices from './notices'
 
 export default {
   User: {
-    notices: async (
-      { id }: { id: string },
-      { input: { offset, limit } }: BatchParams,
-      { userService }: Context
-    ) => await userService.findNoticesInBatch(id, offset, limit)
-  },
-  UserStatus: {
-    unreadNoticeCount: (
-      { id }: { id: string },
-      _: any,
-      { userService }: Context
-    ) => userService.countUnreadNotice(id)
+    notices
   },
   Notice: {
     __resolveType: ({ type }: { type: NoticeType }) => {

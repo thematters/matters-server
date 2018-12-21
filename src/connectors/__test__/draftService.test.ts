@@ -7,7 +7,7 @@ const draftValidation = {
   upstreamId: null,
   title: expect.any(String),
   cover: null,
-  abstract: expect.any(String),
+  summary: expect.any(String),
   content: expect.any(String),
   createdAt: expect.any(Date),
   updatedAt: expect.any(Date)
@@ -37,12 +37,6 @@ test('findByAuthor', async () => {
   expect(drafts[0]).toEqual(expect.objectContaining(draftValidation))
 })
 
-test('findByAuthorInBatch', async () => {
-  const drafts = await service.findByAuthorInBatch('1', 0)
-  expect(drafts.length).toBe(1)
-  expect(drafts[0]).toEqual(expect.objectContaining(draftValidation))
-})
-
 test('findAudioDraft', async () => {
   const audios = await service.findAudioDraft('1')
   expect(audios.length).toBe(1)
@@ -50,13 +44,7 @@ test('findAudioDraft', async () => {
 })
 
 test('findAudioDraftsByAuthor', async () => {
-  const audios = await service.findAudioDraftsByAuthor('1')
-  expect(audios.length).toBe(1)
-  expect(audios[0]).toEqual(expect.objectContaining(audioValidation))
-})
-
-test('findAudioDraftsByAuthorInBatch', async () => {
-  const audios = await service.findAudioDraftsByAuthorInBatch('1', 0)
+  const audios = await service.findAudioDraftsByAuthor('1', 0)
   expect(audios.length).toBe(1)
   expect(audios[0]).toEqual(expect.objectContaining(audioValidation))
 })

@@ -4,7 +4,7 @@ export default /* GraphQL */ `
   }
 
   extend type User {
-    notices(input: ListInput!): [Notice]
+    notices(input: ListInput!): [Notice!]
   }
 
   interface Notice {
@@ -13,11 +13,11 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
-  type UserNewFollowerNotice implements Notice & Node {
+  type UserNewFollowerNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actors: [User]
+    actors: [User!]
   }
 
   type UserDisabledNotice implements Notice {
@@ -34,14 +34,14 @@ export default /* GraphQL */ `
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    target: Article!
+    target: Article
   }
 
   type ArticleReportedNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    target: Article!
+    target: Article
     reason: ArticleReportedReason
   }
   enum ArticleReportedReason {
@@ -52,7 +52,7 @@ export default /* GraphQL */ `
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    target: Article!
+    target: Article
     reason: ArticleArchivedReason
   }
   enum ArticleArchivedReason {
@@ -63,9 +63,9 @@ export default /* GraphQL */ `
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actors: [User]
-    downstream: Article!
-    target: Article!
+    actors: [User!]
+    downstream: Article
+    target: Article
   }
 
   type ArticleNewAppreciationNotice implements Notice {
@@ -73,46 +73,46 @@ export default /* GraphQL */ `
     unread: Boolean!
     createdAt: DateTime!
     actors: [User]
-    target: Article!
-    MAT: Int!
+    target: Article
+    MAT: Int
   }
 
   type ArticleNewSubscriberNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actors: [User]
-    target: Article!
+    actors: [User!]
+    target: Article
   }
 
   type ArticleNewCommentNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actors: [User]
-    target: Article!
+    actors: [User!]
+    target: Article
   }
 
   type SubscribedArticleNewCommentNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actors: [User]
-    target: Article!
+    actors: [User!]
+    target: Article
   }
 
   type CommentPinnedNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    target: Comment!
+    target: Comment
   }
 
   type CommentReportedNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    target: Comment!
+    target: Comment
     reason: CommentReportedReason
   }
   enum CommentReportedReason {
@@ -123,7 +123,7 @@ export default /* GraphQL */ `
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    target: Comment!
+    target: Comment
     reason: CommentArchivedReason
   }
   enum CommentArchivedReason {
@@ -135,23 +135,23 @@ export default /* GraphQL */ `
     unread: Boolean!
     createdAt: DateTime!
     actors: [User]
-    target: Comment!
+    target: Comment
   }
 
   type CommentNewUpvoteNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actors: [User]
-    target: Comment!
+    actors: [User!]
+    target: Comment
   }
 
   type CommentMentionedYouNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actors: [User]
-    target: Comment!
+    actors: [User!]
+    target: Comment
   }
 
   type OfficialAnnouncementNotice implements Notice {
