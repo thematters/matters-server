@@ -1,13 +1,14 @@
 import { RedisPubSub } from 'graphql-redis-subscriptions'
-import Redis from 'ioredis'
-
-const options = {
-  host: process.env['MATTERS_REDIS_HOST']
-}
 
 const pubsub = new RedisPubSub({
-  publisher: new Redis(options),
-  subscriber: new Redis(options)
+  connection: {
+    host: process.env['MATTERS_REDIS_HOST'] as string,
+    port: (process.env['MATTERS_REDIS_PORT'] || 6379) as number,
+    retryStrategy: (times: number) => {
+      // reconnect after
+      return Math.max(times * 100, 3000)
+    }
+  }
 })
 
 export default pubsub

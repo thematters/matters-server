@@ -42,11 +42,14 @@ const resolver: Resolver = async (
   // Update
   if (id) {
     const { id: commentDbId } = fromGlobalId(id)
-    return commentService.update({ id: commentDbId, ...data })
+    const comment = await commentService.update({ id: commentDbId, ...data })
+    pubsub.publish(articleId, article)
+    return comment
   }
   // Create
   else {
     const comment = await commentService.create(data)
+    pubsub.publish(articleId, article)
     return comment
   }
 }
