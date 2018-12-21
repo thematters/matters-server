@@ -13,6 +13,8 @@ services:
       - /var/app/node_modules
     depends_on:
       - db
+      - redis
+      - s3
     ports:
       - '4000:4000'
   db:
@@ -31,6 +33,6 @@ services:
   s3:
     image: lphoward/fake-s3
     ports:
-      - "4569:4569"
+      - '4569:4569'
 volumes:
   ? postgres_data
