@@ -17,7 +17,7 @@ export const makeContext = async ({
   connection
 }: {
   req: { headers?: { 'x-access-token'?: string } }
-  connection: any
+  connection?: any
 }): Promise<Context> => {
   if (connection) {
     return connection.context
