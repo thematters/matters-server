@@ -1,7 +1,10 @@
+const { baseDown } = require('../utils')
+
 const table = 'user'
 
-exports.up = function(knex, Promise) {
-  return knex.schema.createTable(table, function(t) {
+exports.up = async knex => {
+  await knex('entity_type').insert({ table })
+  await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
     t.uuid('uuid')
       .notNullable()
@@ -11,7 +14,7 @@ exports.up = function(knex, Promise) {
       .unique()
     t.string('display_name').notNullable()
     t.text('description')
-    t.string('avatar').notNullable()
+    t.bigInteger('avatar').unsigned()
     t.string('email')
       .notNullable()
       .unique()
@@ -27,10 +30,7 @@ exports.up = function(knex, Promise) {
     t.integer('mat')
       .notNullable()
       .defaultTo(0)
-    t.string('language')
-      .notNullable()
-      .defaultTo('zh_hant')
-    t.specificType('oauth_type', 'text ARRAY')
+    t.enu('language', ['zh_hant', 'zh_hans', 'en']).defaultTo('zh_hant')
     t.enu('role', ['user', 'admin']).defaultTo('user')
     t.string('status')
       .notNullable()
@@ -40,6 +40,4 @@ exports.up = function(knex, Promise) {
   })
 }
 
-exports.down = function(knex, Promise) {
-  return knex.schema.dropTable(table)
-}
+exports.down = baseDown(table)

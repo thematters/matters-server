@@ -1,3 +1,7 @@
+import singleFileUpload from './singleFileUpload'
+
 export default {
-  Mutation: {}
+  Mutation: {
+    singleFileUpload
+  }
 }

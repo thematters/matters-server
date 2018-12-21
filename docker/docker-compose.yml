@@ -28,6 +28,9 @@ services:
     ports:
       - '6379:6379'
     restart: always
-
+  s3:
+    image: lphoward/fake-s3
+    ports:
+      - "4569:4569"
 volumes:
   ? postgres_data

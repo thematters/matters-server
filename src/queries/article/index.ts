@@ -1,35 +1,24 @@
 import { BatchParams, Context } from 'definitions'
+import { toGlobalId, fromGlobalId } from 'common/utils'
 
 export default {
-  Query: {
-    article: (
-      _: any,
-      { uuid }: { uuid: string },
-      { articleService }: Context
-    ) => articleService.uuidLoader.load(uuid)
-  },
   User: {
     articles: (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { articleService }: Context
-    ) => articleService.findByAuthorInBatch(id, offset, limit),
-    article: (
-      _: any,
-      { input: { uuid } }: { input: { uuid: string } },
-      { articleService }: Context
-    ) => articleService.uuidLoader.load(uuid)
+    ) => articleService.findByAuthorInBatch(id, offset, limit)
   },
   UserStatus: {
     MAT: async (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
       { articleService }: Context
     ) => {
       const articles = await articleService.findByAuthor(id)
       const apprecitions = ((await Promise.all(
         articles.map(
-          async ({ id }: { id: number }) =>
+          async ({ id }: { id: string }) =>
             await articleService.countAppreciation(id)
         )
       )) as unknown) as number[]
@@ -37,20 +26,30 @@ export default {
     }
   },
   Article: {
-    author: ({ id }: { id: number }, _: any, { userService }: Context) =>
+    id: ({ id }: { id: string }) => {
+      return toGlobalId({ type: 'Article', id })
+    },
+    author: ({ id }: { id: string }, _: any, { userService }: Context) =>
       userService.idLoader.load(id),
+    cover: async (
+      { cover }: { cover: string },
+      _: any,
+      { systemService }: Context
+    ) => {
+      return cover ? systemService.findAssetUrl(cover) : null
+    },
     summary: (
       { hash }: { hash: string },
       _: any,
       { articleService }: Context
     ) => articleService.getContentFromHash(hash).slice(0, 30),
     tags: async (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
-      { articleService }: Context
+      { articleService, tagService }: Context
     ) => {
-      const tags = await articleService.findTags(id)
-      return tags.map((t: any) => ({ text: t.tag }))
+      const tagIds = await articleService.findTagIds({ id })
+      return tagService.idLoader.loadMany(tagIds)
     },
     wordCount: (
       { wordCount, hash }: { wordCount: number; hash: string },
@@ -66,12 +65,12 @@ export default {
     ) => articleService.getContentFromHash(hash),
     gatewayUrls: () => [],
     upstream: (
-      { upstreamId }: { upstreamId: number },
+      { upstreamId }: { upstreamId: string },
       _: any,
       { articleService }: Context
     ) => articleService.idLoader.load(upstreamId),
     downstreams: (
-      { id }: { id: number },
+      { id }: { id: string },
       _: any,
       { articleService }: Context
     ) => articleService.findByUpstream(id),
@@ -79,7 +78,7 @@ export default {
     MAT: ({ mat }: { mat: number }) => mat,
     subscribed: () => false,
     subscribers: async (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { articleService, userService }: Context
     ) => {
@@ -91,7 +90,7 @@ export default {
       return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
     },
     appreciators: async (
-      { id }: { id: number },
+      { id }: { id: string },
       { input: { offset, limit } }: BatchParams,
       { articleService, userService }: Context
     ) => {
@@ -107,19 +106,19 @@ export default {
     hasAppreciate: () => false
   },
   Tag: {
-    count: (
-      { text }: { text: string },
-      _: any,
-      { articleService }: Context
-    ) => {
-      return articleService.countByTag(text)
+    id: ({ id }: { id: string }) => {
+      return toGlobalId({ type: 'Tag', id })
     },
-    articles: (
-      { text }: { text: string },
+    count: ({ id }: { id: string }, _: any, { tagService }: Context) => {
+      return tagService.countArticles({ id })
+    },
+    articles: async (
+      { id }: { id: string },
       _: any,
-      { articleService }: Context
+      { tagService, articleService }: Context
     ) => {
-      return articleService.findByTag(text)
+      const articleIds = await tagService.findArticleIds({ id })
+      return articleService.idLoader.loadMany(articleIds)
     }
   }
 }

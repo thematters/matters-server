@@ -1,13 +1,12 @@
 import article from './article'
 import comment from './comment'
 import draft from './draft'
+import notice from './notice'
 import scalars from './scalars'
 import system from './system'
 import user from './user'
-import notice from './notice'
 
 const Root = /* GraphQL */ `
-  
   # The dummy queries and mutations are necessary because
   # graphql-js cannot have empty root types and we only extend
   # these types later on
@@ -28,4 +27,4 @@ const Root = /* GraphQL */ `
   }
 `
 
-export default [Root, article, comment, draft, scalars, system, user, notice]
+export default [Root, article, comment, draft, notice, scalars, system, user]
