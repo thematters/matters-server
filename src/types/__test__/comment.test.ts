@@ -7,6 +7,12 @@ import schema from '../../schema'
 
 afterAll(knex.destroy)
 
+const isDesc = (ints: number[]) =>
+  ints
+    .slice(1)
+    .map((e, i) => e <= ints[i])
+    .every(x => x)
+
 const initialize = async () => {
   const context = await makeContext({ req: {} })
   const articleId = toGlobalId({ type: 'Article', id: 1 })
@@ -19,6 +25,7 @@ const initialize = async () => {
           comments(input: $commentsInput) {
             quote
             upvotes
+            createdAt
             author {
               id
             }
@@ -60,20 +67,31 @@ describe('query comment list on article', async () => {
     }
   })
 
-  test.only('query comments by upvotes', async () => {
+  test('sort comments by upvotes', async () => {
     const { articleId, context, query } = await initialize()
     const { data } = await graphql(schema, query, {}, context, {
       nodeInput: { id: articleId },
       commentsInput: { sort: 'upvotes' }
     })
-    console.log({ data })
     const comments = data && data.node && data.node.comments
-    const isDesc = (ints: number[]): Boolean =>
-      ints.length < 2 || (ints[0] > ints[2] && isDesc(ints.slice(1)))
+
     const commentVotes = comments.map(
       ({ upvotes }: { upvotes: number }) => upvotes
     )
-    console.log({ commentVotes })
     expect(isDesc(commentVotes)).toBe(true)
+  })
+
+  test('sort comments by newest', async () => {
+    const { articleId, context, query } = await initialize()
+    const { data } = await graphql(schema, query, {}, context, {
+      nodeInput: { id: articleId },
+      commentsInput: { sort: 'newest' }
+    })
+    const comments = data && data.node && data.node.comments
+
+    const commentTimestamps = comments.map(
+      ({ createdAt }: { createdAt: string }) => new Date(createdAt).getTime()
+    )
+    expect(isDesc(commentTimestamps)).toBe(true)
   })
 })
