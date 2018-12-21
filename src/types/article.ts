@@ -30,9 +30,6 @@ export default /* GraphQL */ `
     # MAT recieved for this article
     MAT: Int!
     participantCount: Int!
-    commentCount: Int!
-    pinnedComments: [Comment!]
-    comments(input: CommentsInput!): [Comment!]
     subscribers(input: ListInput!): [User!]
     appreciators(input: ListInput!): [User!]
     appreciatorCount: Int!
@@ -47,14 +44,6 @@ export default /* GraphQL */ `
     content: String!
     count: Int!
     articles(input: ListInput!): [Article!]
-  }
-
-  input CommentsInput {
-    offset: Int
-    limit: Int
-    author: ID
-    quoted: Boolean
-    sort: CommentSort
   }
 
   input PublishArticleInput {
@@ -97,11 +86,5 @@ export default /* GraphQL */ `
     pending
     error
     published
-  }
-
-  enum CommentSort {
-    oldest
-    newest
-    upvotes
   }
 `
