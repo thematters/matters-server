@@ -29,7 +29,7 @@ export class DraftService extends BaseService {
   findByAuthor = async (
     authorId: string,
     offset = 0,
-    limit = BATCH_SIZE,
+    limit = BATCH_SIZE
   ): Promise<any[]> =>
     await this.knex
       .select()
@@ -63,5 +63,4 @@ export class DraftService extends BaseService {
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
-
 }

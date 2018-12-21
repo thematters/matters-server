@@ -8,6 +8,6 @@ export default {
     putAudioDraft,
     deleteAudioDraft,
     putDraft,
-    deleteDraft,
+    deleteDraft
   }
 }

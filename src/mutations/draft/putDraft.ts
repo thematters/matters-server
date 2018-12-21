@@ -38,7 +38,7 @@ const resolver: Resolver = async (
   }
   // Create
   else {
-    return await draftService.baseCreate({uuid: v4(), ...data}, 'draft')
+    return await draftService.baseCreate({ uuid: v4(), ...data }, 'draft')
   }
 }
 
