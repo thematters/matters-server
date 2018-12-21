@@ -1,4 +1,5 @@
 import { Resolver } from 'definitions'
+import pubsub from 'common/pubsub'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
@@ -41,11 +42,15 @@ const resolver: Resolver = async (
   // Update
   if (id) {
     const { id: commentDbId } = fromGlobalId(id)
-    return commentService.update({ id: commentDbId, ...data })
+    const comment = await commentService.update({ id: commentDbId, ...data })
+    pubsub.publish(articleId, article)
+    return comment
   }
   // Create
   else {
-    return commentService.create(data)
+    const comment = await commentService.create(data)
+    pubsub.publish(articleId, article)
+    return comment
   }
 }
 
