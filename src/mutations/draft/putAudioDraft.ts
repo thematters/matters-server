@@ -1,9 +1,11 @@
 import { v4 } from 'uuid'
+
 import { ItemData, Resolver } from 'definitions'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,
-  { input: { audio, title, uuid } },
+  { input: { audioAssetId, title, id, length } },
   { viewer, draftService }
 ) => {
   if (!viewer) {
@@ -13,15 +15,16 @@ const resolver: Resolver = async (
   const data: ItemData = {
     authorId: viewer.id,
     title,
-    audio,
+    audio: audioAssetId,
     length
   }
 
-  // Edit an audo draft item
-  if (typeof uuid === 'string') {
-    return await draftService.baseUpdateByUUID(uuid, data, 'audio_draft')
+  // Update
+  if (id) {
+    const { id: dbId } = fromGlobalId(id)
+    return await draftService.baseUpdateById(dbId, data, 'audio_draft')
   }
-  // Create an audio draft item
+  // Create
   else {
     return await draftService.baseCreate({ uuid: v4(), ...data }, 'audio_draft')
   }

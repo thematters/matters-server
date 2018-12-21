@@ -1,19 +1,17 @@
-import { Context } from 'definitions'
-
+import userRegister from './userRegister'
+import userLogin from './userLogin'
 import updateUserInfo from './updateUserInfo'
+import updateNotificationSetting from './updateNotificationSetting'
 import followUser from './followUser'
 import unfollowUser from './unfollowUser'
-import updateNotificationSetting from './updateNotificationSetting'
 
 export default {
   Mutation: {
-    userRegister: (root: any, { input }: any, { userService }: Context) =>
-      userService.create(input),
-    userLogin: (root: any, { input }: any, { userService }: Context) =>
-      userService.login(input),
+    userRegister,
+    userLogin,
     updateUserInfo,
+    updateNotificationSetting,
     followUser,
-    unfollowUser,
-    updateNotificationSetting
+    unfollowUser
   }
 }

@@ -1,17 +1,21 @@
 export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node
-    frequentSearch(key: String): [String]
-    search(key: String): [SearchResult]
+    frequentSearch(key: String): [String!]
+    search(key: String): [SearchResult!]
     official: Official!
   }
 
   extend type Mutation {
-    singleFileUpload(input: SingleFileUploadInput): SingleFileUploadResult!
+    singleFileUpload(input: SingleFileUploadInput!): Asset!
   }
 
   extend type Subscription {
     nodeEdited(input: NodeEditedInput!): Node!
+  }
+
+  interface Node {
+    id: ID!
   }
 
   type SearchResult {
@@ -20,11 +24,14 @@ export default /* GraphQL */ `
   }
 
   type Official {
-    reportCategory: [String]!
+    reportCategory: [String!]!
   }
 
-  interface Node {
+  type Asset {
     id: ID!
+    type: AssetType!
+    path: String!
+    createdAt: DateTime!
   }
 
   input NodeInput {
@@ -42,10 +49,17 @@ export default /* GraphQL */ `
     limit: Int
   }
 
+  input SingleFileUploadInput {
+    type: AssetType!
+    file: Upload!
+  }
+
   input ListInput {
     offset: Int
     limit: Int
   }
+
+  union Entity = User | Article | Tag
 
   enum SearchTypes {
     Article
@@ -53,32 +67,9 @@ export default /* GraphQL */ `
     Tag
   }
 
-  union Entity = User | Article | Tag
-
-  input SingleFileUploadInput {
-    type: AssetType
-    file: Upload!
-  }
-
-  type SingleFileUploadResult {
-    uuid: UUID!
-    path: String!
-  }
-
-  type Asset {
-    id: ID!
-    uuid: UUID!
-    authorId: String!
-    type: AssetType!
-    path: String!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-  }
-
   enum AssetType {
     avatar
     cover
     audioDraft
   }
-
 `
