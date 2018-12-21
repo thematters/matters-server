@@ -1,5 +1,6 @@
 import { Resolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
+import pubsub from 'common/pubsub'
 
 const resolver: Resolver = async (
   _,
@@ -21,6 +22,13 @@ const resolver: Resolver = async (
   await commentService.baseUpdateById(dbId, {
     pinned: true
   })
+
+  try {
+    const article = await articleService.idLoader.load(articleId)
+    pubsub.publish(toGlobalId({ type: 'Article', id: articleId }), article)
+  } catch (e) {
+    //
+  }
 
   return true
 }
