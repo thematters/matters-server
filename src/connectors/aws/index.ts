@@ -44,9 +44,7 @@ export class AWSService {
     switch (env) {
       case 'staging':
       case 'production': {
-        return `https://${awsCloudFrontEndpoint || awsS3Endpoint}/${
-          this.s3Bucket
-        }`
+        return `https://${awsCloudFrontEndpoint || `${this.s3Bucket}.${awsS3Endpoint}`}`
       }
       default: {
         return `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
