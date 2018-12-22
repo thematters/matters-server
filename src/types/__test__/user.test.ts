@@ -1,49 +1,12 @@
 // external
 import { graphql } from 'graphql'
 // local
-import { fromGlobalId } from 'common/utils'
-import schema from '../../schema'
-import { makeContext, toGlobalId } from 'common/utils'
+import { fromGlobalId, makeContext, toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
+import schema from '../../schema'
+import { authContext, testUser, login, loginQuery } from './utils'
 
 afterAll(knex.destroy)
-
-const testUser = {
-  email: 'test1@matters.news',
-  password: '123'
-}
-
-const loginQuery = `
-  mutation UserLogin($input: UserLoginInput!) {
-    userLogin(input: $input) {
-      auth
-      token
-    }
-  }
-`
-
-const login = async ({
-  email,
-  password
-}: {
-  email: string
-  password: string
-}) => {
-  const context = await makeContext({ req: {} })
-  const { data } = await graphql(schema, loginQuery, {}, context, {
-    input: { email, password }
-  })
-
-  const result = data && data.userLogin
-  return result
-}
-
-const authContext = async (user = testUser) => {
-  const { token } = await login(user)
-  return await makeContext({
-    req: { headers: { 'x-access-token': token } }
-  })
-}
 
 describe('register and login functionarlities', () => {
   test('register user and retrive info', async () => {
