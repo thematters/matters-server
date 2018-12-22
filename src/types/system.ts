@@ -2,7 +2,7 @@ export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node
     frequentSearch(key: String): [String!]
-    search(key: String): [SearchResult!]
+    search(input: SearchInput!): [SearchResult!]
     official: Official!
   }
 
