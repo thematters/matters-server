@@ -315,12 +315,12 @@ export interface GQLDraft extends GQLNode {
   id: string
   upstream?: GQLArticle
   title?: string
+  summary?: string
   content: string
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
   tags?: Array<string | null>
   cover?: GQLURL
-  abstract?: string
 }
 
 export interface GQLAudioDraft {
@@ -455,15 +455,8 @@ export interface GQLMutation {
   /**
    * draft
    */
-  createDraft: GQLDraft
+  putDraft: GQLDraft
   deleteDraft?: boolean
-  editDraft: GQLDraft
-
-  /**
-   * draft tag
-   */
-  addDraftTag: GQLDraft
-  deleteDraftTag: GQLDraft
   markAllNoticesAsRead?: boolean
   singleFileUpload: GQLAsset
 
@@ -575,48 +568,26 @@ export interface GQLDeleteCommentInput {
 
 export interface GQLPutAudioDraftInput {
   id?: string
-  audioAssetId: string
+  audioAssetId?: string
   title?: string
-  length: number
+  length?: number
 }
 
 export interface GQLDeleteAudioDraftInput {
   id: string
 }
 
-export interface GQLCreateDraftInput {
+export interface GQLPutDraftInput {
+  id?: string
   upstreamId?: string
   title?: string
   content?: string
   tags?: Array<string | null>
-  coverAssetId: string
+  coverAssetId?: string
 }
 
 export interface GQLDeleteDraftInput {
   id: string
-}
-
-export interface GQLEditDraftInput {
-  id: string
-  field?: GQLDraftField
-  value?: string
-}
-
-export enum GQLDraftField {
-  upstream = 'upstream',
-  title = 'title',
-  coverAssetId = 'coverAssetId',
-  content = 'content'
-}
-
-export interface GQLAddDraftTagInput {
-  id: string
-  tag: string
-}
-
-export interface GQLDeleteDraftTagInput {
-  id: string
-  tag: string
 }
 
 export interface GQLSingleFileUploadInput {
@@ -1746,12 +1717,12 @@ export interface GQLDraftTypeResolver<TParent = any> {
   id?: DraftToIdResolver<TParent>
   upstream?: DraftToUpstreamResolver<TParent>
   title?: DraftToTitleResolver<TParent>
+  summary?: DraftToSummaryResolver<TParent>
   content?: DraftToContentResolver<TParent>
   createdAt?: DraftToCreatedAtResolver<TParent>
   updatedAt?: DraftToUpdatedAtResolver<TParent>
   tags?: DraftToTagsResolver<TParent>
   cover?: DraftToCoverResolver<TParent>
-  abstract?: DraftToAbstractResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -1763,6 +1734,10 @@ export interface DraftToUpstreamResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToTitleResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface DraftToSummaryResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -1783,10 +1758,6 @@ export interface DraftToTagsResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToCoverResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface DraftToAbstractResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -1998,11 +1969,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   putAudioDraft?: MutationToPutAudioDraftResolver<TParent>
   deleteAudioDraft?: MutationToDeleteAudioDraftResolver<TParent>
-  createDraft?: MutationToCreateDraftResolver<TParent>
+  putDraft?: MutationToPutDraftResolver<TParent>
   deleteDraft?: MutationToDeleteDraftResolver<TParent>
-  editDraft?: MutationToEditDraftResolver<TParent>
-  addDraftTag?: MutationToAddDraftTagResolver<TParent>
-  deleteDraftTag?: MutationToDeleteDraftTagResolver<TParent>
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
   singleFileUpload?: MutationToSingleFileUploadResolver<TParent>
   sendResetPasswrodCode?: MutationToSendResetPasswrodCodeResolver<TParent>
@@ -2207,13 +2175,13 @@ export interface MutationToDeleteAudioDraftResolver<
   ): TResult
 }
 
-export interface MutationToCreateDraftArgs {
-  input: GQLCreateDraftInput
+export interface MutationToPutDraftArgs {
+  input: GQLPutDraftInput
 }
-export interface MutationToCreateDraftResolver<TParent = any, TResult = any> {
+export interface MutationToPutDraftResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: MutationToCreateDraftArgs,
+    args: MutationToPutDraftArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult
@@ -2226,45 +2194,6 @@ export interface MutationToDeleteDraftResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToDeleteDraftArgs,
-    context: any,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToEditDraftArgs {
-  input: GQLEditDraftInput
-}
-export interface MutationToEditDraftResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToEditDraftArgs,
-    context: any,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToAddDraftTagArgs {
-  input: GQLAddDraftTagInput
-}
-export interface MutationToAddDraftTagResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToAddDraftTagArgs,
-    context: any,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToDeleteDraftTagArgs {
-  input: GQLDeleteDraftTagInput
-}
-export interface MutationToDeleteDraftTagResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToDeleteDraftTagArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult

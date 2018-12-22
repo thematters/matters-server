@@ -1,8 +1,3 @@
-input AddDraftTagInput {
-  id: ID!
-  tag: String!
-}
-
 input AddOAuthInput {
   name: String!
   id: String!
@@ -262,14 +257,6 @@ input ConfirmVerifyEmailInput {
   code: String!
 }
 
-input CreateDraftInput {
-  upstreamId: ID
-  title: String
-  content: String
-  tags: [String]
-  coverAssetId: ID!
-}
-
 scalar Date
 
 scalar DateTime
@@ -286,34 +273,16 @@ input DeleteDraftInput {
   id: ID!
 }
 
-input DeleteDraftTagInput {
-  id: ID!
-  tag: String!
-}
-
 type Draft implements Node {
   id: ID!
   upstream: Article
   title: String
+  summary: String
   content: String!
   createdAt: DateTime!
   updatedAt: DateTime!
   tags: [String]
   cover: URL
-  abstract: String
-}
-
-enum DraftField {
-  upstream
-  title
-  coverAssetId
-  content
-}
-
-input EditDraftInput {
-  id: ID!
-  field: DraftField
-  value: String
 }
 
 scalar Email
@@ -355,13 +324,8 @@ type Mutation {
   deleteAudioDraft(input: DeleteAudioDraftInput!): Boolean
 
   """draft"""
-  createDraft(input: CreateDraftInput!): Draft!
+  putDraft(input: PutDraftInput!): Draft!
   deleteDraft(input: DeleteDraftInput!): Boolean
-  editDraft(input: EditDraftInput!): Draft!
-
-  """draft tag"""
-  addDraftTag(input: AddDraftTagInput!): Draft!
-  deleteDraftTag(input: DeleteDraftTagInput!): Draft!
   markAllNoticesAsRead: Boolean
   singleFileUpload(input: SingleFileUploadInput!): Asset!
 
@@ -469,14 +433,23 @@ enum PublishState {
 
 input PutAudioDraftInput {
   id: ID
-  audioAssetId: ID!
+  audioAssetId: ID
   title: String
-  length: Int!
+  length: Int
 }
 
 input PutCommentInput {
   comment: CommentInput!
   id: ID
+}
+
+input PutDraftInput {
+  id: ID
+  upstreamId: ID
+  title: String
+  content: String
+  tags: [String]
+  coverAssetId: ID
 }
 
 """
