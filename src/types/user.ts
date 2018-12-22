@@ -15,18 +15,18 @@ export default /* GraphQL */ `
     confirmVerifyEmail(input: ConfirmVerifyEmailInput!): Boolean
     # register
     sendRegisterCode(input: SendRegisterCodeInput!): Boolean
-    userRegister(input: UserRegisterInput): AuthResult!
+    userRegister(input: UserRegisterInput!): AuthResult!
     # login
-    userLogin(input: UserLoginInput): AuthResult!
-    addOAuth(input: AddOAuthInput): Boolean
+    userLogin(input: UserLoginInput!): AuthResult!
+    addOAuth(input: AddOAuthInput!): Boolean
     # update info/ setting
-    updateUserInfo(input: UpdateUserInfoInput): User!
-    updateNotificationSetting(input: UpdateNotificationSettingInput): NotificationSetting
+    updateUserInfo(input: UpdateUserInfoInput!): User!
+    updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
     # follow/unfollow
-    followUser(input: FollowUserInput): Boolean
-    unfollowUser(input: UnfollowUserInput): Boolean
+    followUser(input: FollowUserInput!): Boolean
+    unfollowUser(input: UnfollowUserInput!): Boolean
     # misc
-    importArticles(input: ImportArticlesInput): [Article]
+    importArticles(input: ImportArticlesInput!): [Article]
     clearReadHistory(input: ClearReadHistoryInput): Boolean
     clearSearchHistory: Boolean
   }
@@ -76,7 +76,7 @@ export default /* GraphQL */ `
     description: String
     # URL for avatar
     avatar: URL
-    email: Email
+    email: Email!
     mobile: String!
     # Use 500 for now, adaptive in the future
     readSpeed: Int!

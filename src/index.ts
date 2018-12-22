@@ -2,13 +2,10 @@ require('newrelic')
 require('module-alias/register')
 // external
 import { ApolloServer } from 'apollo-server'
-import jwt from 'jsonwebtoken'
 // internal
-import { makeContext } from 'common/utils'
-import { environment } from 'common/environment'
+import { makeContext, initSubscriptions } from 'common/utils'
 // local
 import schema from './schema'
-import { UserService } from './connectors'
 
 const mocks = {
   JSON: () => ({
@@ -21,31 +18,13 @@ const mocks = {
   URL: () => 'test-url'
 }
 
-const userService = new UserService()
 const server = new ApolloServer({
   schema,
   context: makeContext,
   engine: {
     apiKey: process.env['ENGINE_API_KEY']
   },
-  subscriptions: {
-    onConnect: async ({ accessToken }: { accessToken?: string }, webSocket) => {
-      if (!accessToken) {
-        throw new Error('Missing accessToken!')
-      }
-
-      try {
-        const decoded = jwt.verify(accessToken, environment.jwtSecret) as {
-          uuid: string
-        }
-        return {
-          viewer: await userService.baseFindByUUID(decoded.uuid)
-        }
-      } catch (err) {
-        console.log('User is not logged in, viewing as guest')
-      }
-    }
-  }
+  subscriptions: initSubscriptions()
   // mocks
 })
 
