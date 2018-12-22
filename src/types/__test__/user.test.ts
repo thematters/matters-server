@@ -38,15 +38,15 @@ const login = async ({
   return result
 }
 
-const authContext = async () => {
-  const { token } = await login(testUser)
+const authContext = async (user = testUser) => {
+  const { token } = await login(user)
   return await makeContext({
     req: { headers: { 'x-access-token': token } }
   })
 }
 
 describe('register and login functionarlities', () => {
-  test('register user', async () => {
+  test('register user and retrive info', async () => {
     const user = {
       email: 'test9@matters.news',
       displayName: 'test user',
@@ -73,6 +73,32 @@ describe('register and login functionarlities', () => {
         result.data.userRegister.auth &&
         result.data.userRegister.token
     ).toBeTruthy()
+
+    const newUserContext = await authContext(user)
+    const newUserQuery = `
+      query {
+        viewer {
+          info {
+            email
+            displayName
+            mobile
+            description
+          }
+        }
+      }
+    `
+    const newUserResult = await graphql(
+      schema,
+      newUserQuery,
+      {},
+      newUserContext
+    )
+    const info =
+      newUserResult.data &&
+      newUserResult.data.viewer &&
+      newUserResult.data.viewer.info
+    expect(info.displayName).toBe(user.displayName)
+    expect(info.email).toBe(user.email)
   })
 
   test('auth fail when password is incorrect', async () => {
