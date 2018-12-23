@@ -7,7 +7,6 @@ import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
 import { ItemData } from 'definitions'
 import { BaseService } from './baseService'
-import { TagService } from './tagService'
 
 export class UserService extends BaseService {
   constructor() {
@@ -49,8 +48,7 @@ export class UserService extends BaseService {
       avatar,
       passwordHash
     })
-    await this.baseCreate({ userId: user.id }, 'user_notify_setting')
-    return await this.dataloader.load(user.id)
+    return this.baseCreate({ userId: user.id }, 'user_notify_setting')
   }
 
   /**

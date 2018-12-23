@@ -99,7 +99,17 @@ test('query null upstream on article', async () => {
   expect(upstream).toBeNull()
 })
 
-test.only('create draft and publish', async () => {
+test('create draft and publish', async () => {
+  const draft = {
+    title: Math.random().toString(),
+    content: Math.random().toString()
+  }
+  const { id } = await createDraft(draft)
+  const article = await publishArticle({ id })
+  expect(article).toMatchObject(draft)
+})
+
+test('create draft and publish', async () => {
   const draft = {
     title: Math.random().toString(),
     content: Math.random().toString()

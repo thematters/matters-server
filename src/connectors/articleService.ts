@@ -42,6 +42,9 @@ export class ArticleService extends BaseService {
     return article
   }
 
+  // publish an article to IPFS, add to search, and mark draft as read
+  publish = async () => {}
+
   // TODO: rank hottest
   recommendHottest = ({ offset = 0, limit = 5 }) =>
     this.knex

@@ -24,7 +24,7 @@ const resolver: Resolver = async (
   if (authorId !== viewer.id) {
     throw new Error('draft does not exists') // TODO
   }
-  // TODO: add ipfs logic
+
   const article = await articleService.create({
     authorId,
     upstreamId,
@@ -35,7 +35,10 @@ const resolver: Resolver = async (
     tags
   })
 
-  // TODO: Mark draft as used
+  // TODO: add ipfs logic
+  // TODO: add count down for publish to IPFS
+  // mark draft as read and add to search engine after countdown
+
   return article
 }
 
