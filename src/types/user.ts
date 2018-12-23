@@ -4,17 +4,15 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
+    # send verification code
+    sendVerificationCode(input: SendVerificationCodeInput!): Boolean
     # change or reset password
-    sendResetPasswrodCode(input: SendResetPasswrodCodeInput!): Boolean
     confirmResetPassword(input: ConfirmResetPasswordInput!): Boolean
     # change email
-    sendChangeEmailCode(input: SendChangeEmailCodeInput!): Boolean
     confirmChangeEmail(input: ConfirmChangeEmailInput!): Boolean
     # verify email
-    sendVerfiyEmailCode(input: SendVerifyEmailCodeInput!): Boolean
     confirmVerifyEmail(input: ConfirmVerifyEmailInput!): Boolean
     # register
-    sendRegisterCode(input: SendRegisterCodeInput!): Boolean
     userRegister(input: UserRegisterInput!): AuthResult!
     # login
     userLogin(input: UserLoginInput!): AuthResult!
@@ -76,7 +74,7 @@ export default /* GraphQL */ `
     description: String
     # URL for avatar
     avatar: URL
-    email: Email!
+    email: Email
     mobile: String!
     # Use 500 for now, adaptive in the future
     readSpeed: Int!
@@ -139,17 +137,16 @@ export default /* GraphQL */ `
     token: String
   }
 
-  input SendResetPasswrodCodeInput {
+  input SendVerificationCodeInput {
     email: Email!
+    type: VerificationCodeType!
   }
+
   input ConfirmResetPasswordInput {
     password: String!
     code: String!
   }
 
-  input SendChangeEmailCodeInput {
-    email: Email!
-  }
   input ConfirmChangeEmailInput {
     oldEmail: Email!
     oldEmailCode: String!
@@ -157,17 +154,11 @@ export default /* GraphQL */ `
     newEmailCode: String!
   }
 
-  input SendVerifyEmailCodeInput {
-    email: Email!
-  }
   input ConfirmVerifyEmailInput {
     email: Email!
     code: String!
   }
 
-  input SendRegisterCodeInput {
-    email: Email!
-  }
   input UserRegisterInput {
     email: Email!
     displayName: String!
@@ -213,6 +204,13 @@ export default /* GraphQL */ `
 
   input ClearReadHistoryInput {
     uuid: UUID
+  }
+
+  enum VerificationCodeType {
+    register
+    email_reset
+    password_reset
+    email_verify
   }
 
   enum UserInfoFields {
