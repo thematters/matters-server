@@ -80,11 +80,12 @@ export class BaseService {
   /**
    * Create item
    */
-  baseCreate = async (data: ItemData, table?: TableName): Promise<any> =>
-    (await this.knex
+  baseCreate = async (data: ItemData, table?: TableName): Promise<any> => {
+    const [result] = await this.knex(table || this.table)
+      .returning('*')
       .insert(data)
-      .into(table || this.table)
-      .returning('*'))[0]
+    return result
+  }
 
   /**
    * Create a batch of items

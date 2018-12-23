@@ -1,11 +1,35 @@
 // external
 import { graphql } from 'graphql'
-// local
+// internal
 import { makeContext, toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
 import schema from '../../schema'
+import { GQLPublishArticleInput } from 'definitions'
+// local
+import { authContext } from './utils'
+import { createDraft } from './draft.test'
 
 afterAll(knex.destroy)
+
+export const publishArticle = async (input: GQLPublishArticleInput) => {
+  const mutation = `
+    mutation($input: PublishArticleInput!) {
+      publishArticle(input: $input) {
+        id
+        title
+        content
+        createdAt
+      }
+    }
+  `
+  const context = await authContext()
+  const result = await graphql(schema, mutation, {}, context, {
+    input
+  })
+  const article = result && result.data && result.data.publishArticle
+
+  return article
+}
 
 test('query tag on article', async () => {
   const id = toGlobalId({ type: 'Article', id: 1 })
@@ -73,4 +97,14 @@ test('query null upstream on article', async () => {
   })
   const upstream = data && data.node && data.node.upstream
   expect(upstream).toBeNull()
+})
+
+test.only('create draft and publish', async () => {
+  const draft = {
+    title: Math.random().toString(),
+    content: Math.random().toString()
+  }
+  const { id } = await createDraft(draft)
+  const article = await publishArticle({ id })
+  expect(article).toMatchObject(draft)
 })
