@@ -6,7 +6,7 @@ const resolver = async (
   { userService }: Context
 ) => {
   const actions = await userService.findFollowersInBatch(id, offset, limit)
-  return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+  return userService.dataloader.loadMany(actions.map(({ userId }) => userId))
 }
 
 export default resolver

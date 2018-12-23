@@ -5,7 +5,7 @@ import DataLoader from 'dataloader'
 export class TagService extends BaseService {
   constructor() {
     super('tag')
-    this.idLoader = new DataLoader(this.baseFindByIds)
+    this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
   create = ({ content }: { content: string }) =>

@@ -15,14 +15,14 @@ const resolver: Resolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.idLoader.load(dbId)
+  const article = await articleService.dataloader.load(dbId)
   if (!article) {
     throw new Error('target article does not exists') // TODO
   }
 
   await articleService.appreciate(article.id, viewer.id, amount, viewer.mat)
 
-  return articleService.idLoader.load(article.id)
+  return articleService.dataloader.load(article.id)
 }
 
 export default resolver

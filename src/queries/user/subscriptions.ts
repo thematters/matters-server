@@ -6,7 +6,7 @@ const resolver = async (
   { articleService, userService }: Context
 ) => {
   const actions = await userService.findSubscriptionsInBatch(id, offset, limit)
-  return articleService.idLoader.loadMany(
+  return articleService.dataloader.loadMany(
     actions.map(({ targetId }) => targetId)
   )
 }

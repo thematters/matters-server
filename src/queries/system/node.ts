@@ -25,7 +25,7 @@ const resolver: Resolver = async (
     type: NodeTypes
     id: string
   }
-  const node = await serviceMap[type].idLoader.load(dbId)
+  const node = await serviceMap[type].dataloader.load(dbId)
 
   return { ...node, __type: type }
 }

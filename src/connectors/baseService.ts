@@ -17,9 +17,9 @@ export class BaseService {
 
   knex: Knex
 
-  idLoader: DataLoader<string, Item>
+  dataloader: DataLoader<string, Item>
 
-  uuidLoader: DataLoader<string, Item>
+  uudataloader: DataLoader<string, Item>
 
   table: TableName
 

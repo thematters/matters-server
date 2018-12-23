@@ -10,7 +10,7 @@ const resolver: Resolver = async (
     offset,
     limit
   )
-  return userService.idLoader.loadMany(actions.map(({ userId }) => userId))
+  return userService.dataloader.loadMany(actions.map(({ userId }) => userId))
 }
 
 export default resolver

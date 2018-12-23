@@ -9,8 +9,8 @@ import { BaseService } from './baseService'
 export class ArticleService extends BaseService {
   constructor() {
     super('article')
-    this.idLoader = new DataLoader(this.baseFindByIds)
-    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+    this.dataloader = new DataLoader(this.baseFindByIds)
+    this.uudataloader = new DataLoader(this.baseFindByUUIDs)
   }
 
   /**

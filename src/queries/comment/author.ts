@@ -1,6 +1,6 @@
 import { Resolver } from 'definitions'
 
 const resolver: Resolver = ({ authorId }, _, { userService }) =>
-  userService.idLoader.load(authorId)
+  userService.dataloader.load(authorId)
 
 export default resolver

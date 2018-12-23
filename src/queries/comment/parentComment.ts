@@ -1,6 +1,6 @@
 import { Resolver } from 'definitions'
 
 const resolver: Resolver = ({ parentCommentId }, _, { commentService }) =>
-  parentCommentId ? commentService.idLoader.load(parentCommentId) : null
+  parentCommentId ? commentService.dataloader.load(parentCommentId) : null
 
 export default resolver

@@ -12,8 +12,8 @@ import { TagService } from './tagService'
 export class UserService extends BaseService {
   constructor() {
     super('user')
-    this.idLoader = new DataLoader(this.baseFindByIds)
-    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+    this.dataloader = new DataLoader(this.baseFindByIds)
+    this.uudataloader = new DataLoader(this.baseFindByUUIDs)
   }
 
   /**
@@ -50,7 +50,7 @@ export class UserService extends BaseService {
       passwordHash
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
-    return await this.idLoader.load(user.id)
+    return await this.dataloader.load(user.id)
   }
 
   /**

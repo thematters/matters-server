@@ -19,12 +19,13 @@ const resolver: Resolver = async (
     abstract,
     content,
     tags
-  } = await draftService.idLoader.load(draftDBId)
+  } = await draftService.dataloader.load(draftDBId)
 
   if (authorId !== viewer.id) {
     throw new Error('draft does not exists') // TODO
   }
 
+  // TODO: add ipfs logic
   const article = await articleService.create({
     authorId,
     upstreamId,
