@@ -3,12 +3,16 @@ import _ from 'lodash'
 import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
+import { Client as ESClient } from 'elasticsearch'
 //local
 import { Item, ItemData, TableName } from 'definitions'
 import { aws, AWSService } from './aws'
 import { knex } from './db'
+import { es } from './es'
 
 export class BaseService {
+  es: ESClient
+
   aws: InstanceType<typeof AWSService>
 
   knex: Knex
@@ -20,6 +24,7 @@ export class BaseService {
   table: TableName
 
   constructor(table: TableName) {
+    this.es = es
     this.knex = knex
     this.table = table
     this.aws = aws
