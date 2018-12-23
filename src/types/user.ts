@@ -193,7 +193,7 @@ export default /* GraphQL */ `
 
   input UpdateUserInfoInput {
     displayName: String
-    avatar: URL
+    avatar: ID
     description: String
     language: UserLanguage
   }
