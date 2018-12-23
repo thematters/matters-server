@@ -51,6 +51,15 @@ export class ArticleService extends BaseService {
       .offset(offset)
       .limit(limit)
 
+  // TODO: get articles from hottest
+  followeeArticles = ({ offset = 0, limit = 5 }) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .orderBy('id', 'desc')
+      .offset(offset)
+      .limit(limit)
+
   // TODO: rank icymi
   recommendIcymi = ({ offset = 0, limit = 5 }) =>
     this.knex

@@ -1,6 +1,8 @@
 import { GQLRecommendationTypeResolver, Context } from 'definitions'
 
 const resolvers: GQLRecommendationTypeResolver = {
+  followeeArticles: async ({ id }, { input }, { articleService }: Context) =>
+    articleService.followeeArticles(input),
   hottest: ({ id }, { input }, { articleService }: Context) =>
     articleService.recommendHottest(input),
   icymi: ({ id }, { input }, { articleService }: Context) =>

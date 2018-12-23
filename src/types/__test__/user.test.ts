@@ -1,52 +1,15 @@
 // external
 import { graphql } from 'graphql'
 // local
-import { fromGlobalId } from 'common/utils'
-import schema from '../../schema'
-import { makeContext, toGlobalId } from 'common/utils'
+import { fromGlobalId, makeContext, toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
+import schema from '../../schema'
+import { authContext, testUser, login, loginQuery } from './utils'
 
 afterAll(knex.destroy)
 
-const testUser = {
-  email: 'test1@matters.news',
-  password: '123'
-}
-
-const loginQuery = `
-  mutation UserLogin($input: UserLoginInput!) {
-    userLogin(input: $input) {
-      auth
-      token
-    }
-  }
-`
-
-const login = async ({
-  email,
-  password
-}: {
-  email: string
-  password: string
-}) => {
-  const context = await makeContext({ req: {} })
-  const { data } = await graphql(schema, loginQuery, {}, context, {
-    input: { email, password }
-  })
-
-  const result = data && data.userLogin
-  return result
-}
-
-const authContext = async () => {
-  const { token } = await login(testUser)
-  return await makeContext({
-    req: { headers: { 'x-access-token': token } }
-  })
-}
-
 describe('register and login functionarlities', () => {
-  test('register user', async () => {
+  test('register user and retrive info', async () => {
     const user = {
       email: 'test9@matters.news',
       displayName: 'test user',
@@ -73,6 +36,32 @@ describe('register and login functionarlities', () => {
         result.data.userRegister.auth &&
         result.data.userRegister.token
     ).toBeTruthy()
+
+    const newUserContext = await authContext(user)
+    const newUserQuery = `
+      query {
+        viewer {
+          info {
+            email
+            displayName
+            mobile
+            description
+          }
+        }
+      }
+    `
+    const newUserResult = await graphql(
+      schema,
+      newUserQuery,
+      {},
+      newUserContext
+    )
+    const info =
+      newUserResult.data &&
+      newUserResult.data.viewer &&
+      newUserResult.data.viewer.info
+    expect(info.displayName).toBe(user.displayName)
+    expect(info.email).toBe(user.email)
   })
 
   test('auth fail when password is incorrect', async () => {

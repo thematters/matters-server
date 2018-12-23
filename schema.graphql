@@ -343,22 +343,22 @@ type Mutation {
 
   """register"""
   sendRegisterCode(input: SendRegisterCodeInput!): Boolean
-  userRegister(input: UserRegisterInput): AuthResult!
+  userRegister(input: UserRegisterInput!): AuthResult!
 
   """login"""
-  userLogin(input: UserLoginInput): AuthResult!
-  addOAuth(input: AddOAuthInput): Boolean
+  userLogin(input: UserLoginInput!): AuthResult!
+  addOAuth(input: AddOAuthInput!): Boolean
 
   """update info/ setting"""
-  updateUserInfo(input: UpdateUserInfoInput): User!
-  updateNotificationSetting(input: UpdateNotificationSettingInput): NotificationSetting
+  updateUserInfo(input: UpdateUserInfoInput!): User!
+  updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
 
   """follow/unfollow"""
-  followUser(input: FollowUserInput): Boolean
-  unfollowUser(input: UnfollowUserInput): Boolean
+  followUser(input: FollowUserInput!): Boolean
+  unfollowUser(input: UnfollowUserInput!): Boolean
 
   """misc"""
-  importArticles(input: ImportArticlesInput): [Article]
+  importArticles(input: ImportArticlesInput!): [Article]
   clearReadHistory(input: ClearReadHistoryInput): Boolean
   clearSearchHistory: Boolean
 }
@@ -447,7 +447,7 @@ input PutDraftInput {
   id: ID
   upstreamId: ID
   title: String
-  content: String
+  content: String!
   tags: [String]
   coverAssetId: ID
 }
@@ -462,7 +462,7 @@ type Query {
   _: Boolean
   node(input: NodeInput!): Node
   frequentSearch(key: String): [String!]
-  search(key: String): [SearchResult!]
+  search(input: SearchInput!): [SearchResult!]
   official: Official!
   viewer: User
 }
@@ -471,11 +471,17 @@ input ReadArticleInput {
   id: ID!
 }
 
+type ReadHistory {
+  article: Article!
+  readAt: DateTime!
+}
+
 input RecallPublicationInput {
   id: ID!
 }
 
 type Recommendation {
+  followeeArticles(input: ListInput!): [Article!]!
   hottest(input: ListInput!): [Article!]!
 
   """In case you missed it"""
@@ -615,7 +621,7 @@ type User implements Node {
 }
 
 type UserActivity {
-  history(input: ListInput!): [Article!]
+  history(input: ListInput!): [ReadHistory!]
   recentSearches(input: ListInput!): [String!]
   invited(input: ListInput!): [User!]
 }
@@ -645,8 +651,8 @@ type UserInfo {
 
   """URL for avatar"""
   avatar: URL
-  email: Email
-  mobile: String!
+  email: Email!
+  mobile: String
 
   """Use 500 for now, adaptive in the future"""
   readSpeed: Int!
