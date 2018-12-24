@@ -8,6 +8,7 @@ exports.up = async knex => {
     t.bigIncrements('id').primary()
     t.bigInteger('user_id').notNullable()
     t.bigInteger('article_id').notNullable()
+    t.boolean('archived').defaultTo(false)
     t.timestamp('created_at').defaultTo(knex.fn.now())
 
     // Setup foreign key

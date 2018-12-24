@@ -11,9 +11,13 @@ const resolver: Resolver = async (
     throw new Error('anonymous user cannot do this')
   }
 
+  let upstreamDBId
+  if (upstreamId) {
+    upstreamDBId = fromGlobalId(upstreamId).id
+  }
+
   // TODO: Extract summary from html string
   const summary = content ? '' : undefined
-  const { id: upstreamDBId } = fromGlobalId(upstreamId)
   const data: ItemData = {
     authorId: id ? undefined : viewer.id,
     upstreamId: upstreamDBId,
