@@ -7,7 +7,7 @@ exports.up = async knex => {
   await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
     t.bigInteger('user_id').notNullable()
-    t.enu('action', ['up_vote', 'down_vote'])
+    t.enu('action', ['up_vote', 'down_vote']).notNullable()
     t.bigInteger('target_id').notNullable()
     t.timestamp('updated_at').defaultTo(knex.fn.now())
     t.timestamp('created_at').defaultTo(knex.fn.now())
