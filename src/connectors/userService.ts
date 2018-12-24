@@ -48,7 +48,8 @@ export class UserService extends BaseService {
       avatar,
       passwordHash
     })
-    return this.baseCreate({ userId: user.id }, 'user_notify_setting')
+    await this.baseCreate({ userId: user.id }, 'user_notify_setting')
+    return user
   }
 
   /**
