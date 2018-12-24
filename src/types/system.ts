@@ -19,7 +19,7 @@ export default /* GraphQL */ `
   }
 
   type SearchResult {
-    entity: Entity
+    node: Node
     match: String
   }
 
@@ -58,8 +58,6 @@ export default /* GraphQL */ `
     offset: Int
     limit: Int
   }
-
-  union Entity = User | Article | Tag
 
   enum SearchTypes {
     Article

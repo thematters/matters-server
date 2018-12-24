@@ -1,9 +1,13 @@
 // external
 import { graphql } from 'graphql'
-// local
+// internal
 import { makeContext, toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
 import schema from '../../schema'
+// local
+import { authContext, delay } from './utils'
+import { createDraft } from './draft.test'
+import { publishArticle } from './article.test'
 
 afterAll(knex.destroy)
 
@@ -68,5 +72,44 @@ describe('query nodes of different type', async () => {
     })
     const node = data && data.node
     expect(node).toEqual({ id, content: '<div>Test comment 1</div>' })
+  })
+})
+
+describe('Search', async () => {
+  test.only('create draft, publish and search', async () => {
+    const draft = {
+      title: Math.random().toString(),
+      content: (Math.random() * 100).toString(),
+      tags: ['test', 'article']
+    }
+    const { id } = await createDraft(draft)
+    await publishArticle({ id })
+
+    await delay(2000)
+
+    const searchQuery = `
+      query($input: SearchInput!) {
+        search(input: $input) {
+          match
+          node {
+            ... on Article {
+              content
+            }
+          }
+        }
+      }
+  `
+    const context = await authContext()
+    const result = await graphql(schema, searchQuery, {}, context, {
+      input: {
+        key: draft.content,
+        type: 'Article',
+        limit: 1
+      }
+    })
+
+    const search = result && result.data && result.data.search
+    const node = search && search[0] && search[0].node
+    expect(node.content).toBe(draft.content)
   })
 })

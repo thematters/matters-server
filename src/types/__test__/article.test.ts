@@ -108,13 +108,3 @@ test('create draft and publish', async () => {
   const article = await publishArticle({ id })
   expect(article).toMatchObject(draft)
 })
-
-test('create draft and publish', async () => {
-  const draft = {
-    title: Math.random().toString(),
-    content: Math.random().toString()
-  }
-  const { id } = await createDraft(draft)
-  const article = await publishArticle({ id })
-  expect(article).toMatchObject(draft)
-})

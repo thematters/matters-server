@@ -4,7 +4,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: Resolver = async (
   root,
   { input: { id } },
-  { viewer, articleService, draftService }
+  { viewer, articleService, draftService, tagService }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO
@@ -27,17 +27,33 @@ const resolver: Resolver = async (
 
   const article = await articleService.create({
     authorId,
+    draftId: draftDBId,
     upstreamId,
     title,
     cover,
     summary,
-    content,
-    tags
+    content
   })
 
-  // TODO: add ipfs logic
-  // TODO: add count down for publish to IPFS
-  // mark draft as read and add to search engine after countdown
+  // TODO: trigger publication and tag creation with task queue
+  await articleService.publish(article.id)
+
+  if (tags) {
+    // create tag records, return tag record if already exists
+    const dbTags = ((await Promise.all(
+      tags.map((tag: string) => tagService.create({ content: tag }))
+    )) as unknown) as { id: string; content: string }[]
+
+    // create article_tag record
+    await Promise.all(
+      dbTags.map(({ id: tagId }: { id: string }) =>
+        tagService.createArticleTag({ tagId, articleId: article.id })
+      )
+    )
+  }
+
+  // add to search
+  await articleService.addToSearch({ ...article, tags })
 
   return article
 }

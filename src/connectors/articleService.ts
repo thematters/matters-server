@@ -23,8 +23,8 @@ export class ArticleService extends BaseService {
     cover,
     summary,
     content,
-    publishState = 'pending',
-    tags
+    draftId,
+    publishState = PUBLISH_STATE.pending
   }: ItemData) => {
     // craete article
     const article = await this.baseCreate({
@@ -34,6 +34,7 @@ export class ArticleService extends BaseService {
       title,
       cover,
       summary,
+      draftId,
       content,
       publishState,
       wordCount: this.countWords(content)
@@ -43,7 +44,45 @@ export class ArticleService extends BaseService {
   }
 
   // publish an article to IPFS, add to search, and mark draft as read
-  publish = async () => {}
+  publish = async (id: string) => {
+    // TODO: publish to IPFS and get hashes
+    const dataHash = 'some-test-hash'
+    const mediaHash = 'some-test-hash'
+
+    // edit db record
+    const [article] = await this.knex(this.table)
+      .returning('*')
+      .where({ id })
+      .update({
+        dataHash,
+        mediaHash,
+        publishState: PUBLISH_STATE.published,
+        updatedAt: this.knex.fn.now()
+      })
+
+    return article
+  }
+
+  addToSearch = ({
+    id,
+    title,
+    summary,
+    content,
+    tags
+  }: {
+    [key: string]: string
+  }) =>
+    this.es.index({
+      index: 'article',
+      id,
+      type: 'article',
+      body: {
+        title,
+        summary,
+        content,
+        tags
+      }
+    })
 
   // TODO: rank hottest
   recommendHottest = ({ offset = 0, limit = 5 }) =>
