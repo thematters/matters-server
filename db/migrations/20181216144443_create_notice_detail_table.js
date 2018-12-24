@@ -8,7 +8,7 @@ exports.up = async knex => {
     t.bigIncrements('id').primary()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.string('notice_type').notNullable()
-    t.string('message')
+    t.text('message')
     t.json('data')
   })
 }

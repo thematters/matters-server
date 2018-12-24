@@ -12,10 +12,12 @@ exports.up = async knex => {
       .notNullable()
       .unique()
     t.bigInteger('user_id') // anonymous
-    t.enu('provider', ['jpush', 'fcm']).defaultTo('jpush')
+    t.enu('provider', ['jpush', 'fcm'])
+      .notNullable()
+      .defaultTo('jpush')
     t.text('user_agent')
     t.text('version')
-    t.enu('platform', ['ios', 'android', 'web'])
+    t.enu('platform', ['ios', 'android', 'web']).notNullable()
 
     // Setup foreign key
     t.foreign('user_id')
