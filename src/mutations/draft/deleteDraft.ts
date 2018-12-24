@@ -15,7 +15,7 @@ const resolver: Resolver = async (
   if (!draft) {
     throw new Error('target draft does not exist')
   }
-  if (draft.authroId !== viewer.id) {
+  if (draft.authorId !== viewer.id) {
     throw new Error('disallow to process')
   }
 
