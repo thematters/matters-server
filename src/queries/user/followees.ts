@@ -10,7 +10,7 @@ const resolver = async (
     offset,
     limit
   })
-  return userService.idLoader.loadMany(
+  return userService.dataloader.loadMany(
     actions.map(({ targetId }: { targetId: string }) => targetId)
   )
 }

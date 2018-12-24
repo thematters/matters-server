@@ -18,7 +18,7 @@ const resolver: Resolver = async (
   }
 
   const { id: authorDbId } = fromGlobalId(articleId)
-  const article = await articleService.idLoader.load(authorDbId)
+  const article = await articleService.dataloader.load(authorDbId)
   if (!article) {
     throw new Error('target article does not exists') // TODO
   }
@@ -26,7 +26,7 @@ const resolver: Resolver = async (
 
   if (parentId) {
     const { id: parentDbId } = fromGlobalId(parentId)
-    const parentComment = await commentService.idLoader.load(parentDbId)
+    const parentComment = await commentService.dataloader.load(parentDbId)
     if (!parentComment) {
       throw new Error('target parentComment does not exists') // TODO
     }

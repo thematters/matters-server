@@ -3,13 +3,13 @@ import DataLoader from 'dataloader'
 import { ItemData } from 'definitions'
 import { v4 } from 'uuid'
 
-import { BATCH_SIZE, USER_ACTION } from 'common/enums'
+import { BATCH_SIZE, USER_ACTION, PUBLISH_STATE } from 'common/enums'
 import { BaseService } from './baseService'
 
 export class ArticleService extends BaseService {
   constructor() {
     super('article')
-    this.idLoader = new DataLoader(this.baseFindByIds)
+    this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
@@ -23,8 +23,8 @@ export class ArticleService extends BaseService {
     cover,
     summary,
     content,
-    publishState = 'pending',
-    tags
+    draftId,
+    publishState = PUBLISH_STATE.pending
   }: ItemData) => {
     // craete article
     const article = await this.baseCreate({
@@ -34,6 +34,7 @@ export class ArticleService extends BaseService {
       title,
       cover,
       summary,
+      draftId,
       content,
       publishState,
       wordCount: this.countWords(content)
@@ -41,6 +42,47 @@ export class ArticleService extends BaseService {
     // TODO: create tags
     return article
   }
+
+  // publish an article to IPFS, add to search, and mark draft as read
+  publish = async (id: string) => {
+    // TODO: publish to IPFS and get hashes
+    const dataHash = 'some-test-hash'
+    const mediaHash = 'some-test-hash'
+
+    // edit db record
+    const [article] = await this.knex(this.table)
+      .returning('*')
+      .where({ id })
+      .update({
+        dataHash,
+        mediaHash,
+        publishState: PUBLISH_STATE.published,
+        updatedAt: this.knex.fn.now()
+      })
+
+    return article
+  }
+
+  addToSearch = ({
+    id,
+    title,
+    summary,
+    content,
+    tags
+  }: {
+    [key: string]: string
+  }) =>
+    this.es.index({
+      index: 'article',
+      id,
+      type: 'article',
+      body: {
+        title,
+        summary,
+        content,
+        tags
+      }
+    })
 
   // TODO: rank hottest
   recommendHottest = ({ offset = 0, limit = 5 }) =>
@@ -84,7 +126,7 @@ export class ArticleService extends BaseService {
   countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where({ authorId })
+      .where({ authorId, publishState: PUBLISH_STATE.published })
       .first()
     return parseInt(result.count, 10)
   }
@@ -132,14 +174,29 @@ export class ArticleService extends BaseService {
   /**
    *  Find articles by a given author id (user) in batches.
    */
-  findByAuthor = async (authorId: string, offset = 0, limit = BATCH_SIZE) =>
-    await this.knex
+  findByAuthor = async ({
+    id: authorId,
+    publishState,
+    offset = 0,
+    limit = BATCH_SIZE
+  }: {
+    id: string
+    publishState?: string
+    offset?: number
+    limit?: number
+  }) => {
+    let where: { [key: string]: string } = { authorId }
+    if (publishState) {
+      where.publishState = publishState
+    }
+    return await this.knex
       .select()
       .from(this.table)
-      .where({ authorId })
+      .where(where)
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+  }
 
   /**
    * Find articles by upstream id (article).

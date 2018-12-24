@@ -12,7 +12,7 @@ const resolver: Resolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const { authorId, articleId } = await commentService.idLoader.load(dbId)
+  const { authorId, articleId } = await commentService.dataloader.load(dbId)
 
   if (authorId !== viewer.id) {
     throw new Error('viewer has no permission to do this') // TODO
@@ -23,7 +23,7 @@ const resolver: Resolver = async (
   })
 
   try {
-    const article = await articleService.idLoader.load(articleId)
+    const article = await articleService.dataloader.load(articleId)
     pubsub.publish(toGlobalId({ type: 'Article', id: articleId }), article)
   } catch (e) {
     //

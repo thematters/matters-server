@@ -31,7 +31,7 @@ const resolver: Resolver = async (
   // Update
   if (id) {
     const { id: dbId } = fromGlobalId(id)
-    const draft = await draftService.idLoader.load(dbId)
+    const draft = await draftService.dataloader.load(dbId)
     if (!draft) {
       throw new Error('target draft does not exist')
     }

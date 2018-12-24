@@ -15,7 +15,8 @@ exports.up = async knex => {
     t.bigInteger('cover').unsigned()
     t.string('summary').notNullable()
     t.integer('word_count').notNullable()
-    t.string('hash')
+    t.string('data_hash')
+    t.string('media_hash')
     t.text('content').notNullable()
     t.enu('publish_state', [
       'archived',

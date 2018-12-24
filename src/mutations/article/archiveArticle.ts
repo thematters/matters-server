@@ -12,7 +12,7 @@ const resolver: Resolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const { authorId } = await articleService.idLoader.load(dbId)
+  const { authorId } = await articleService.dataloader.load(dbId)
 
   if (authorId !== viewer.id) {
     throw new Error('viewer has no permission to do this') // TODO

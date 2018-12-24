@@ -5,7 +5,7 @@ const resolver: Resolver = ({ upstreamId }, _, { articleService }) => {
     return null
   }
 
-  return articleService.idLoader.load(upstreamId)
+  return articleService.dataloader.load(upstreamId)
 }
 
 export default resolver

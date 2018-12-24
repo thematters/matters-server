@@ -10,7 +10,7 @@ import { GQLCommentsInput, GQLCommentSort } from 'definitions/schema'
 export class CommentService extends BaseService {
   constructor() {
     super('comment')
-    this.idLoader = new DataLoader(this.baseFindByIds)
+    this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 

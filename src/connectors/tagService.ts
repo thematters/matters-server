@@ -5,13 +5,35 @@ import DataLoader from 'dataloader'
 export class TagService extends BaseService {
   constructor() {
     super('tag')
-    this.idLoader = new DataLoader(this.baseFindByIds)
+    this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
-  create = ({ content }: { content: string }) =>
-    this.baseCreate({
+  create = async ({
+    content
+  }: {
+    content: string
+  }): Promise<{ id: string; content: string }> => {
+    const [tag] = await this.findByContent(content)
+    if (tag) {
+      return tag
+    }
+    return await this.baseCreate({
       content
     })
+  }
+
+  createArticleTag = async ({
+    articleId,
+    tagId
+  }: {
+    articleId: string
+    tagId: string
+  }) => this.knex('article_tag').insert({ articleId, tagId })
+
+  findByContent = async (content: string) =>
+    this.knex(this.table)
+      .select()
+      .where({ content })
 
   recommendTags = async ({ offset = 0, limit = 5 }) =>
     await this.knex
