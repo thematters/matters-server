@@ -50,6 +50,19 @@ export interface GQLNodeNameMap {
   Draft: GQLDraft
 }
 
+export interface GQLSearchInput {
+  key: string
+  type?: GQLSearchTypes
+  offset?: number
+  limit?: number
+}
+
+export enum GQLSearchTypes {
+  Article = 'Article',
+  User = 'User',
+  Tag = 'Tag'
+}
+
 export interface GQLSearchResult {
   entity?: GQLEntity
   match?: string
@@ -137,8 +150,8 @@ export interface GQLUserInfo {
    * URL for avatar
    */
   avatar?: GQLURL
-  email?: GQLEmail
-  mobile: string
+  email: GQLEmail
+  mobile?: string
 
   /**
    * Use 500 for now, adaptive in the future
@@ -201,6 +214,7 @@ export interface GQLNotificationSetting {
 }
 
 export interface GQLRecommendation {
+  followeeArticles: Array<GQLArticle>
   hottest: Array<GQLArticle>
 
   /**
@@ -334,9 +348,14 @@ export interface GQLAudioDraft {
 }
 
 export interface GQLUserActivity {
-  history?: Array<GQLArticle>
+  history?: Array<GQLReadHistory>
   recentSearches?: Array<string>
   invited?: Array<GQLUser>
+}
+
+export interface GQLReadHistory {
+  article: GQLArticle
+  readAt: GQLDateTime
 }
 
 export interface GQLUserStatus {
@@ -581,7 +600,7 @@ export interface GQLPutDraftInput {
   id?: string
   upstreamId?: string
   title?: string
-  content?: string
+  content: string
   tags?: Array<string | null>
   coverAssetId?: string
 }
@@ -838,19 +857,6 @@ export interface GQLOfficialAnnouncementNotice extends GQLNotice {
   link?: GQLURL
 }
 
-export interface GQLSearchInput {
-  key: string
-  type?: GQLSearchTypes
-  offset?: number
-  limit?: number
-}
-
-export enum GQLSearchTypes {
-  Article = 'Article',
-  User = 'User',
-  Tag = 'Tag'
-}
-
 export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
   id: string
   unread: boolean
@@ -922,6 +928,7 @@ export interface GQLResolver {
   Draft?: GQLDraftTypeResolver
   AudioDraft?: GQLAudioDraftTypeResolver
   UserActivity?: GQLUserActivityTypeResolver
+  ReadHistory?: GQLReadHistoryTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
   Notice?: {
     __resolveType: GQLNoticeTypeResolver
@@ -993,7 +1000,7 @@ export interface QueryToFrequentSearchResolver<TParent = any, TResult = any> {
 }
 
 export interface QueryToSearchArgs {
-  key?: string
+  input: GQLSearchInput
 }
 export interface QueryToSearchResolver<TParent = any, TResult = any> {
   (
@@ -1365,11 +1372,27 @@ export interface NotificationSettingToReportFeedbackResolver<
 }
 
 export interface GQLRecommendationTypeResolver<TParent = any> {
+  followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
   authors?: RecommendationToAuthorsResolver<TParent>
+}
+
+export interface RecommendationToFolloweeArticlesArgs {
+  input: GQLListInput
+}
+export interface RecommendationToFolloweeArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFolloweeArticlesArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface RecommendationToHottestArgs {
@@ -1842,6 +1865,19 @@ export interface UserActivityToInvitedResolver<TParent = any, TResult = any> {
     context: any,
     info: GraphQLResolveInfo
   ): TResult
+}
+
+export interface GQLReadHistoryTypeResolver<TParent = any> {
+  article?: ReadHistoryToArticleResolver<TParent>
+  readAt?: ReadHistoryToReadAtResolver<TParent>
+}
+
+export interface ReadHistoryToArticleResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ReadHistoryToReadAtResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
 export interface GQLUserStatusTypeResolver<TParent = any> {
@@ -2327,7 +2363,7 @@ export interface MutationToSendRegisterCodeResolver<
 }
 
 export interface MutationToUserRegisterArgs {
-  input?: GQLUserRegisterInput
+  input: GQLUserRegisterInput
 }
 export interface MutationToUserRegisterResolver<TParent = any, TResult = any> {
   (
@@ -2339,7 +2375,7 @@ export interface MutationToUserRegisterResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToUserLoginArgs {
-  input?: GQLUserLoginInput
+  input: GQLUserLoginInput
 }
 export interface MutationToUserLoginResolver<TParent = any, TResult = any> {
   (
@@ -2351,7 +2387,7 @@ export interface MutationToUserLoginResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToAddOAuthArgs {
-  input?: GQLAddOAuthInput
+  input: GQLAddOAuthInput
 }
 export interface MutationToAddOAuthResolver<TParent = any, TResult = any> {
   (
@@ -2363,7 +2399,7 @@ export interface MutationToAddOAuthResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToUpdateUserInfoArgs {
-  input?: GQLUpdateUserInfoInput
+  input: GQLUpdateUserInfoInput
 }
 export interface MutationToUpdateUserInfoResolver<
   TParent = any,
@@ -2378,7 +2414,7 @@ export interface MutationToUpdateUserInfoResolver<
 }
 
 export interface MutationToUpdateNotificationSettingArgs {
-  input?: GQLUpdateNotificationSettingInput
+  input: GQLUpdateNotificationSettingInput
 }
 export interface MutationToUpdateNotificationSettingResolver<
   TParent = any,
@@ -2393,7 +2429,7 @@ export interface MutationToUpdateNotificationSettingResolver<
 }
 
 export interface MutationToFollowUserArgs {
-  input?: GQLFollowUserInput
+  input: GQLFollowUserInput
 }
 export interface MutationToFollowUserResolver<TParent = any, TResult = any> {
   (
@@ -2405,7 +2441,7 @@ export interface MutationToFollowUserResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToUnfollowUserArgs {
-  input?: GQLUnfollowUserInput
+  input: GQLUnfollowUserInput
 }
 export interface MutationToUnfollowUserResolver<TParent = any, TResult = any> {
   (
@@ -2417,7 +2453,7 @@ export interface MutationToUnfollowUserResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToImportArticlesArgs {
-  input?: GQLImportArticlesInput
+  input: GQLImportArticlesInput
 }
 export interface MutationToImportArticlesResolver<
   TParent = any,

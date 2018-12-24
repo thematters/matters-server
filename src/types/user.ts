@@ -58,6 +58,7 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
+    followeeArticles(input: ListInput!): [Article!]!
     hottest(input: ListInput!): [Article!]!
     # In case you missed it
     icymi(input: ListInput!): [Article!]!
@@ -77,7 +78,7 @@ export default /* GraphQL */ `
     # URL for avatar
     avatar: URL
     email: Email!
-    mobile: String!
+    mobile: String
     # Use 500 for now, adaptive in the future
     readSpeed: Int!
   }
@@ -92,7 +93,7 @@ export default /* GraphQL */ `
   }
 
   type UserActivity {
-    history(input: ListInput!): [Article!]
+    history(input: ListInput!): [ReadHistory!]
     recentSearches(input: ListInput!): [String!]
     invited(input: ListInput!): [User!]
   }
@@ -132,6 +133,11 @@ export default /* GraphQL */ `
     # walletUpdate: Boolean!
     officialNotice: Boolean!
     reportFeedback: Boolean!
+  }
+
+  type ReadHistory {
+    article: Article!
+    readAt: DateTime!
   }
 
   type AuthResult {
