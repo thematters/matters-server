@@ -1,6 +1,9 @@
 import { Resolver } from 'definitions'
 
-const resolver: Resolver = ({ authorId }, _, { userService }) =>
-  userService.dataloader.load(authorId)
+const resolver: Resolver = (
+  { authorId },
+  _,
+  { dataSources: { userService } }
+) => userService.dataloader.load(authorId)
 
 export default resolver

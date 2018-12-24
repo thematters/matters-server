@@ -5,12 +5,14 @@ const resolver: Resolver = async (
   root: any,
   { input: { id } }: { input: { id: string } },
   {
-    articleService,
-    userService,
-    commentService,
-    draftService,
-    systemService,
-    tagService
+    dataSources: {
+      articleService,
+      userService,
+      commentService,
+      draftService,
+      systemService,
+      tagService
+    }
   }: Context
 ) => {
   const serviceMap = {

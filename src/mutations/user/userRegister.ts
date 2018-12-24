@@ -1,6 +1,10 @@
 import { Resolver } from 'definitions'
 
-const resolver: Resolver = async (root, { input }, { userService }) => {
+const resolver: Resolver = async (
+  root,
+  { input },
+  { dataSources: { userService } }
+) => {
   // TODO: check email
   // TODO: check username
   try {

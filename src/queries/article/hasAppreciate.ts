@@ -1,6 +1,10 @@
 import { Resolver } from 'definitions'
 
-const resolver: Resolver = ({ id }, _, { viewer, articleService }) => {
+const resolver: Resolver = (
+  { id },
+  _,
+  { viewer, dataSources: { articleService } }
+) => {
   if (!viewer) {
     return false
   }

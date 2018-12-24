@@ -3,7 +3,7 @@ import { Resolver } from 'definitions'
 const resolver: Resolver = async (
   { id },
   _,
-  { tagService, articleService }
+  { dataSources: { tagService, articleService } }
 ) => {
   const articleIds = await tagService.findArticleIds({ id })
   return articleService.dataloader.loadMany(articleIds)

@@ -5,7 +5,11 @@ const voteMap = {
   down_vote: 'down'
 }
 
-const resolver: Resolver = async ({ id }, _, { viewer, commentService }) => {
+const resolver: Resolver = async (
+  { id },
+  _,
+  { viewer, dataSources: { commentService } }
+) => {
   if (!viewer) {
     return null
   }
