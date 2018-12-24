@@ -245,7 +245,7 @@ describe('user query fields', () => {
     const { data } = await graphql(schema, query, {}, context)
     const status = data && data.viewer && data.viewer.status
     expect(status).toMatchObject({
-      articleCount: 2,
+      articleCount: 1,
       commentCount: 2,
       followerCount: 0,
       followeeCount: 1,

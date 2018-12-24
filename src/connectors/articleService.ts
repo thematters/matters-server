@@ -3,7 +3,7 @@ import DataLoader from 'dataloader'
 import { ItemData } from 'definitions'
 import { v4 } from 'uuid'
 
-import { BATCH_SIZE, USER_ACTION } from 'common/enums'
+import { BATCH_SIZE, USER_ACTION, PUBLISH_STATE } from 'common/enums'
 import { BaseService } from './baseService'
 
 export class ArticleService extends BaseService {
@@ -87,7 +87,7 @@ export class ArticleService extends BaseService {
   countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where({ authorId })
+      .where({ authorId, publishState: PUBLISH_STATE.published })
       .first()
     return parseInt(result.count, 10)
   }
@@ -135,14 +135,29 @@ export class ArticleService extends BaseService {
   /**
    *  Find articles by a given author id (user) in batches.
    */
-  findByAuthor = async (authorId: string, offset = 0, limit = BATCH_SIZE) =>
-    await this.knex
+  findByAuthor = async ({
+    id: authorId,
+    publishState,
+    offset = 0,
+    limit = BATCH_SIZE
+  }: {
+    id: string
+    publishState?: string
+    offset?: number
+    limit?: number
+  }) => {
+    let where: { [key: string]: string } = { authorId }
+    if (publishState) {
+      where.publishState = publishState
+    }
+    return await this.knex
       .select()
       .from(this.table)
-      .where({ authorId })
+      .where(where)
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+  }
 
   /**
    * Find articles by upstream id (article).

@@ -5,7 +5,7 @@ const resolver: Resolver = async (
   _: any,
   { articleService }: Context
 ) => {
-  const articles = await articleService.findByAuthor(id)
+  const articles = await articleService.findByAuthor({ id })
   const apprecitions = ((await Promise.all(
     articles.map(
       async ({ id }: { id: string }) =>
