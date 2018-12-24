@@ -28,12 +28,12 @@ test('findByAuthor', async () => {
 })
 
 test('findByUpstream', async () => {
-  const articles = await articleService.findByUpstream(2)
+  const articles = await articleService.findByUpstream('2', 0)
   expect(articles.length).toBe(2)
 })
 
 test('findAppreciations', async () => {
-  const appreciations = await articleService.findAppreciations(1)
+  const appreciations = await articleService.findAppreciations('1')
   expect(appreciations.length).toBe(4)
 })
 
@@ -43,11 +43,13 @@ test('findTagIds', async () => {
 })
 
 test('findSubscriptions', async () => {
-  const subs = await articleService.findSubscriptions(2)
+  const subs = await articleService.findSubscriptions('2')
   expect(subs.length).toEqual(2)
 })
 
 test('update', async () => {
-  const article = await articleService.update('1', { publishState: 'archived' })
+  const article = await articleService.baseUpdateById('1', {
+    publishState: 'archived'
+  })
   expect(article.publishState).toEqual('archived')
 })

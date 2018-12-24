@@ -1,78 +1,57 @@
 export default /* GraphQL */ `
-  extend type Query {
-    draft(uuid: UUID!): Draft
-    audioDraft(uuid: UUID!): AudioDraft
-  }
-
   extend type Mutation {
-    createOrEditAudioDraft(input: CreateOrEditAudioDraftInput): AudioDraft
-    createDraft(input: CreateDraftInput): Draft
-    deleteDraft(input: DeleteDraftInput): Boolean
-    editDraft(input: EditDraftInput): Draft
-    addDraftTag(input: AddDraftTagInput): Draft
-    deleteDraftTag(input: DeleteDraftTagInput): Boolean
+    # audio dtaft
+    putAudioDraft(input: PutAudioDraftInput!): AudioDraft!
+    deleteAudioDraft(input: DeleteAudioDraftInput!): Boolean
+    # draft
+    putDraft(input: PutDraftInput!): Draft!
+    deleteDraft(input: DeleteDraftInput!): Boolean
   }
 
   type Draft implements Node {
     id: ID!
     upstream: Article
     title: String
+    summary: String
     content: String!
     createdAt: DateTime!
     updatedAt: DateTime!
     tags: [String]
     cover: URL
-    abstract: String
   }
 
   type AudioDraft {
-    uuid: UUID!
-    authorId: Int!
+    id: ID!
+    authorId: ID!
     title: String
-    s3Path: String!
+    audio: URL!
+    length: Int!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
 
-  input CreateOrEditAudioDraftInput {
-    path: String!
+  input PutAudioDraftInput {
+    id: ID
+    audioAssetId: ID
     title: String
-    uuid: UUID
+    length: Int
   }
 
-  input CreateDraftInput {
-    upstreamUUID: UUID
+  input DeleteAudioDraftInput {
+    id: ID!
+  }
+
+  input PutDraftInput {
+    id: ID
+    upstreamId: ID
     title: String
     content: String
     tags: [String]
-    cover: URL
+    coverAssetId: ID
   }
 
   input DeleteDraftInput {
-    uuid: UUID
-  }
-
-  input EditDraftInput {
-    uuid: UUID
-    field: DraftField
-    value: String
-  }
-
-  input AddDraftTagInput {
-    uuid: UUID
-    tag: String
-  }
-
-  input DeleteDraftTagInput {
-    uuid: UUID
-    tag: String
-  }
-
-  enum DraftField {
-    upstream
-    title
-    cover
-    content
+    id: ID!
   }
 
 `

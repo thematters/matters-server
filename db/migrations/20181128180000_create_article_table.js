@@ -1,7 +1,10 @@
+const { baseDown } = require('../utils')
+
 const table = 'article'
 
-exports.up = function(knex, Promise) {
-  return knex.schema.createTable(table, function(t) {
+exports.up = async knex => {
+  await knex('entity_type').insert({ table })
+  await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
     t.uuid('uuid')
     t.bigInteger('author_id')
@@ -9,8 +12,8 @@ exports.up = function(knex, Promise) {
       .notNullable()
     t.bigInteger('upstream_id').unsigned()
     t.string('title').notNullable()
-    t.string('cover').notNullable()
-    t.string('abstract').notNullable()
+    t.bigInteger('cover').unsigned()
+    t.string('summary').notNullable()
     t.integer('word_count').notNullable()
     t.string('hash')
     t.text('content').notNullable()
@@ -32,6 +35,4 @@ exports.up = function(knex, Promise) {
   })
 }
 
-exports.down = function(knex, Promise) {
-  return knex.schema.dropTable(table)
-}
+exports.down = baseDown(table)

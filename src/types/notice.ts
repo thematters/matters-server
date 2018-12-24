@@ -1,66 +1,164 @@
 export default /* GraphQL */ `
+  extend type Mutation {
+    markAllNoticesAsRead: Boolean
+  }
+
   extend type User {
-    notices(input: NoticesInput): [Notice]!
-  }
-
-  input NodeEditedInput {
-    id: ID!
-  }
-
-  input NoticesInput {
-    offset: Int
-    limit: Int
-    hasRead: Boolean
+    notices(input: ListInput!): [Notice!]
   }
 
   interface Notice {
-    hasRead: Boolean
-    createdAt: DateTime
-    users: [User]
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
   }
 
-  type UserNotice implements Notice {
-    hasRead: Boolean
-    createdAt: DateTime
-    users: [User]
-    action: UserNoticeAction
-    target: User
+  type UserNewFollowerNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User!]
   }
 
-  enum UserNoticeAction {
-    follow
-    appreciate
-    subscribe
+  type UserDisabledNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    reason: UserDisabledReason
+  }
+  enum UserDisabledReason {
+    violation
   }
 
-  type ArticleNotice implements Notice {
-    hasRead: Boolean
-    createdAt: DateTime
-    users: [User]  
-    action: ArticleNoticeAction
-    target: Article  
+  type ArticlePublishedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    target: Article
   }
 
-  enum ArticleNoticeAction {
-    downstream
-    published
-    newChapter
+  type ArticleReportedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    target: Article
+    reason: ArticleReportedReason
+  }
+  enum ArticleReportedReason {
+    violation
   }
 
-  type CommentNotice implements Notice {
-    hasRead: Boolean 
-    createdAt: DateTime
-    users: [User]
-    action: CommentNoticeAction
+  type ArticleArchivedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    target: Article
+    reason: ArticleArchivedReason
+  }
+  enum ArticleArchivedReason {
+    violation
+  }
+
+  type ArticleNewDownstreamNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User!]
+    downstream: Article
+    target: Article
+  }
+
+  type ArticleNewAppreciationNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User]
+    target: Article
+    MAT: Int
+  }
+
+  type ArticleNewSubscriberNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User!]
+    target: Article
+  }
+
+  type ArticleNewCommentNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User!]
+    target: Article
+  }
+
+  type SubscribedArticleNewCommentNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User!]
+    target: Article
+  }
+
+  type CommentPinnedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
     target: Comment
   }
 
-  enum CommentNoticeAction {
-    reply
-    newOnArticle
-    newOnSubscribed
-    pin
-    vote
-    mention
+  type CommentReportedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    target: Comment
+    reason: CommentReportedReason
+  }
+  enum CommentReportedReason {
+    violation
+  }
+
+  type CommentArchivedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    target: Comment
+    reason: CommentArchivedReason
+  }
+  enum CommentArchivedReason {
+    violation
+  }
+
+  type CommentNewReplyNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User]
+    target: Comment
+  }
+
+  type CommentNewUpvoteNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User!]
+    target: Comment
+  }
+
+  type CommentMentionedYouNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actors: [User!]
+    target: Comment
+  }
+
+  type OfficialAnnouncementNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    message: String!
+    link: URL
   }
 `

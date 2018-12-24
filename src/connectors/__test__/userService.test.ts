@@ -11,7 +11,7 @@ const testUser = {
   description: 'test'
 }
 const { password, ...testUserWithoutPassword } = testUser
-let testUserId: number
+let testUserId: string
 let testUserUUID: string
 
 test('create', async () => {
@@ -60,17 +60,17 @@ test('login fail with incorrect password', async () => {
 })
 
 test('countFollowees', async () => {
-  expect(await userService.countFollowees(1)).toBe(1)
+  expect(await userService.countFollowees('1')).toBe(1)
   expect(await userService.countFollowees(testUserId)).toBe(0)
 })
 
 test('countFollowers', async () => {
-  expect(await userService.countFollowers(2)).toBe(2)
+  expect(await userService.countFollowers('2')).toBe(2)
   expect(await userService.countFollowers(testUserId)).toBe(0)
 })
 
 test('countSubscription', async () => {
-  expect(await userService.countSubscription(1)).toBe(3)
+  expect(await userService.countSubscription('1')).toBe(3)
   expect(await userService.countSubscription(testUserId)).toBe(0)
 })
 
@@ -85,20 +85,22 @@ test('findByUserName', async () => {
 })
 
 test('findNotifySetting', async () => {
-  expect(await userService.findNotifySetting(1)).toBeDefined()
+  expect(await userService.findNotifySetting('1')).toBeDefined()
   expect(await userService.findNotifySetting(testUserId)).toBeDefined()
 })
 
 test('findFollowees', async () => {
-  const user1Followees = await userService.findFollowees({ id: 1 })
+  const user1Followees = await userService.findFollowees({ userId: '1' })
   expect(user1Followees.length).toBe(1)
 
-  const testUserFollowees = await userService.findFollowees({ id: testUserId })
+  const testUserFollowees = await userService.findFollowees({
+    userId: testUserId
+  })
   expect(testUserFollowees.length).toBe(0)
 })
 
 test('findFollowers', async () => {
-  const user2Followers = await userService.findFollowers(2)
+  const user2Followers = await userService.findFollowers('2')
   expect(user2Followers.length).toBe(2)
 
   const testUserFollowers = await userService.findFollowers(testUserId)
@@ -106,7 +108,7 @@ test('findFollowers', async () => {
 })
 
 test('findSubscriptions', async () => {
-  const subs = await userService.findSubscriptions(1)
+  const subs = await userService.findSubscriptions('1')
   expect(subs.length).toBe(3)
 })
 
@@ -135,12 +137,12 @@ test('follow and unfollow', async () => {
   const count = await userService.countFollowers(targetId)
 
   // follow
-  await userService.follow(1, targetId)
+  await userService.follow('1', targetId)
   const countAfterFollow = await userService.countFollowers(targetId)
   expect(countAfterFollow).toEqual(count + 1)
 
   // unfollow
-  await userService.unfollow(1, targetId)
+  await userService.unfollow('1', targetId)
   const countAfterUnfollow = await userService.countFollowers(targetId)
   expect(countAfterUnfollow).toEqual(count)
 })

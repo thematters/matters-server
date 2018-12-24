@@ -4,12 +4,9 @@ import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
 //local
-import { ItemData, TableName } from 'definitions'
-import { environment } from 'common/environment'
+import { Item, ItemData, TableName } from 'definitions'
 import { aws, AWSService } from './aws'
 import { knex } from './db'
-
-export type Item = { id: number; [key: string]: any }
 
 export class BaseService {
   aws: InstanceType<typeof AWSService>
@@ -31,11 +28,11 @@ export class BaseService {
   /**
    * Find an item by a given id.
    */
-  baseFindById = async (id: number): Promise<any | null> => {
+  baseFindById = async (id: string, table?: TableName): Promise<any | null> => {
     const result = await this.knex
       .select()
-      .from(this.table)
-      .where('id', id)
+      .from(table || this.table)
+      .where({ id })
     if (result && result.length > 0) {
       return result[0]
     }
@@ -85,6 +82,15 @@ export class BaseService {
       .returning('*'))[0]
 
   /**
+   * Create a batch of items
+   */
+  baseBatchCreate = async (
+    dataItems: [ItemData],
+    table?: TableName
+  ): Promise<any> =>
+    await this.knex.batchInsert(table || this.table, dataItems).returning('*')
+
+  /**
    * Create or Update Item
    * https://github.com/ratson/knex-upsert/blob/master/index.js
    */
@@ -124,8 +130,8 @@ export class BaseService {
   /**
    * Update an item by a given id.
    */
-  updateById = async (
-    id: number,
+  baseUpdateById = async (
+    id: string,
     data: ItemData,
     table?: TableName
   ): Promise<any> =>
@@ -138,7 +144,7 @@ export class BaseService {
   /**
    * Update an item by a given UUID.
    */
-  updateByUUID = async (
+  baseUpdateByUUID = async (
     uuid: string,
     data: ItemData,
     table?: TableName
@@ -152,7 +158,7 @@ export class BaseService {
   /**
    * Delete an item by a given id.
    */
-  baseDelete = async (id: number, table?: TableName): Promise<any> =>
+  baseDelete = async (id: string, table?: TableName): Promise<any> =>
     await this.knex(table || this.table)
       .where({ id })
       .del()

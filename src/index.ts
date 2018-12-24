@@ -3,7 +3,7 @@ require('module-alias/register')
 // external
 import { ApolloServer } from 'apollo-server'
 // internal
-import { makeContext } from 'common/utils'
+import { makeContext, initSubscriptions } from 'common/utils'
 // local
 import schema from './schema'
 
@@ -23,10 +23,14 @@ const server = new ApolloServer({
   context: makeContext,
   engine: {
     apiKey: process.env['ENGINE_API_KEY']
-  }
+  },
+  subscriptions: initSubscriptions()
   // mocks
 })
 
-server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {
-  console.log(`🚀  Server ready at ${url}`)
-})
+server
+  .listen({ port: process.env.PORT || 4000 })
+  .then(({ url, subscriptionsUrl }) => {
+    console.log(`🚀 Server ready at ${url}`)
+    console.log(`🚀 Subscriptions ready at ${subscriptionsUrl}`)
+  })

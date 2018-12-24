@@ -1,9 +1,13 @@
 export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node
-    frequentSearch(key: String): [String]
-    search(key: String): [SearchResult]
+    frequentSearch(key: String): [String!]
+    search(input: SearchInput!): [SearchResult!]
     official: Official!
+  }
+
+  extend type Mutation {
+    singleFileUpload(input: SingleFileUploadInput!): Asset!
   }
 
   extend type Subscription {
@@ -14,7 +18,27 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  type SearchResult {
+    entity: Entity
+    match: String
+  }
+
+  type Official {
+    reportCategory: [String!]!
+  }
+
+  type Asset {
+    id: ID!
+    type: AssetType!
+    path: String!
+    createdAt: DateTime!
+  }
+
   input NodeInput {
+    id: ID!
+  }
+
+  input NodeEditedInput {
     id: ID!
   }
 
@@ -25,10 +49,17 @@ export default /* GraphQL */ `
     limit: Int
   }
 
+  input SingleFileUploadInput {
+    type: AssetType!
+    file: Upload!
+  }
+
   input ListInput {
     offset: Int
     limit: Int
   }
+
+  union Entity = User | Article | Tag
 
   enum SearchTypes {
     Article
@@ -36,14 +67,9 @@ export default /* GraphQL */ `
     Tag
   }
 
-  union Entity = User | Article | Tag
-
-  type SearchResult {
-    entity: Entity
-    match: String
-  }
-
-  type Official {
-    reportCategory: [String]!
+  enum AssetType {
+    avatar
+    cover
+    audioDraft
   }
 `

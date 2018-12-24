@@ -1,49 +1,66 @@
 export default /* GraphQL */ `
   extend type Mutation {
-    createOrEditComment(input: CreateOrEditCommentInput): Comment
-    pinComment(input: PinCommentInput): Comment
-    deleteComment(input: DeleteCommentInput): Boolean
+    putComment(input: PutCommentInput!): Comment!
+    pinComment(input: PinCommentInput!): Comment!
+    deleteComment(input: DeleteCommentInput!): Boolean
   }
 
   type Comment implements Node {
     id: ID!
-    uuid: UUID!
+    createdAt: DateTime!
     # Original article of this comment
     article: Article!
-    # content
     content: String
-    # Creation time of this comment
-    createdAt: DateTime!
     author: User!
-    achieved: Boolean!
+    archived: Boolean!
     upvotes: Int!
     downvotes: Int!
-    quotation: String
+    quote: Boolean!
     myVote: Vote
-    mentions: [User]
-    comments: [Comment]
+    mentions: [User!]
+    comments: [Comment!]
     parentComment: Comment
+  }
+
+  extend type Article {
+    commentCount: Int!
+    pinnedComments: [Comment!]
+    comments(input: CommentsInput!): [Comment!]
+  }
+
+  input PutCommentInput {
+    comment: CommentInput!
+    id: ID
   }
 
   input CommentInput {
     content: String!
     quotation: String
-    articleUUID: UUID!
-    parentUUID: UUID
-    mentions: [UUID]
+    articleId: ID!
+    parentId: ID
+    mentions: [ID!]
   }
 
-  input CreateOrEditCommentInput {
-    comment: CommentInput!
-    uuid: UUID
+  input CommentsInput {
+    offset: Int
+    limit: Int
+    author: ID
+    quote: Boolean
+    sort: CommentSort
+  }
+
+  enum CommentSort {
+    oldest
+    newest
+    upvotes
   }
 
   input PinCommentInput {
-    uuid: UUID
+    id: ID!
   }
 
   input DeleteCommentInput {
-    uuid: UUID
+    id: ID!
   }
 
   enum Vote {

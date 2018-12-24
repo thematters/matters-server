@@ -1,69 +1,38 @@
-import { BatchParams, Context } from 'definitions'
 import { toGlobalId } from 'common/utils'
+
+import userCommentedArticles from './user/commentedArticles'
+import articleCommentCount from './article/commentCount'
+import articlePinnedComments from './article/pinnedComments'
+import articleComments from './article/comments'
+import article from './article'
+import author from './author'
+import upvotes from './upvotes'
+import downvotes from './downvotes'
+import myVote from './myVote'
+import mentions from './mentions'
+import comments from './comments'
+import parentComment from './parentComment'
 
 export default {
   User: {
-    commentedArticles: async (
-      { id }: { id: number },
-      { input: { offset, limit } }: BatchParams,
-      { commentService, articleService }: Context
-    ) => {
-      const articleIds = await commentService.findByAuthorInBatch(
-        id,
-        offset,
-        limit
-      )
-      return articleService.baseFindByIds(articleIds)
-    }
+    commentedArticles: userCommentedArticles
   },
   Article: {
-    commentCount: (
-      { id }: { id: number },
-      _: any,
-      { commentService }: Context
-    ) => commentService.countByArticle(id),
-    pinnedComments: (
-      { id }: { id: number },
-      _: any,
-      { commentService }: Context
-    ) => commentService.findPinnedByArticle(id),
-    comments: (
-      { id }: { id: number },
-      { input: { offset, limit } }: BatchParams,
-      { commentService }: Context
-    ) => commentService.findByArticleInBatch(id, offset, limit)
+    commentCount: articleCommentCount,
+    pinnedComments: articlePinnedComments,
+    comments: articleComments
   },
   Comment: {
     id: ({ id }: { id: string }) => {
       return toGlobalId({ type: 'Comment', id })
     },
-    article: (
-      { articleId }: { articleId: string },
-      _: any,
-      { articleService }: Context
-    ) => articleService.idLoader.load(articleId),
-    author: (
-      { authorId }: { authorId: string },
-      _: any,
-      { userService }: Context
-    ) => userService.idLoader.load(authorId),
-    upvotes: ({ id }: { id: number }, _: any, { commentService }: Context) =>
-      commentService.countUpVote(id),
-    downvotes: ({ id }: { id: number }, _: any, { commentService }: Context) =>
-      commentService.countDownVote(id),
-    myVote: (parent: any, _: any, { userService }: Context) => 'up_vote',
-    mentions: (
-      { mentionedUserId }: { mentionedUserId: [string] },
-      _: any,
-      { userService }: Context
-    ) => userService.idLoader.loadMany(mentionedUserId),
-    comments: ({ id }: { id: number }, _: any, { commentService }: Context) =>
-      commentService.findByParent(id),
-    parentComment: (
-      { parentCommentId }: { parentCommentId: string },
-      _: any,
-      { commentService }: Context
-    ) =>
-      parentCommentId ? commentService.idLoader.load(parentCommentId) : null
+    article,
+    author,
+    upvotes,
+    downvotes,
+    myVote,
+    mentions,
+    comments,
+    parentComment
   }
 }

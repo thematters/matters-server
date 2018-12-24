@@ -1,7 +1,8 @@
 import DataLoader from 'dataloader'
-
 import { ItemData } from 'definitions'
-import { BATCH_SIZE, USER_ACTION } from 'common/enums'
+import { v4 } from 'uuid'
+
+import { BATCH_SIZE } from 'common/enums'
 import { BaseService } from './baseService'
 
 export class DraftService extends BaseService {
@@ -14,7 +15,7 @@ export class DraftService extends BaseService {
   /**
    * Count user's drafts by a given author id (user).
    */
-  countByAuthor = async (authorId: number): Promise<number> => {
+  countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where({ authorId })
@@ -23,20 +24,11 @@ export class DraftService extends BaseService {
   }
 
   /**
-   * Find user's drafts by a given author id (user).
-   */
-  findByAuthor = async (authorId: number): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ authorId })
-
-  /**
    *  Find drafts by a given author id (user) in batches.
    */
-  findByAuthorInBatch = async (
-    authorId: number,
-    offset: number,
+  findByAuthor = async (
+    authorId: string,
+    offset = 0,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
     await this.knex
@@ -50,27 +42,18 @@ export class DraftService extends BaseService {
   /**
    * Find audio draft by a given id.
    */
-  findAudioDraft = async (id: number): Promise<any[]> =>
+  findAudioDraft = async (id: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('audio_draft')
       .where({ id })
 
   /**
-   * Find audio drafts by a given author id (user).
-   */
-  findAudioDraftsByAuthor = async (authorId: number): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('audio_draft')
-      .where({ authorId })
-
-  /**
    * Find audio drafts by a given author id (user) in batches.
    */
-  findAudioDraftsByAuthorInBatch = async (
-    authorId: number,
-    offset: number,
+  findAudioDraftsByAuthor = async (
+    authorId: string,
+    offset = 0,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
     await this.knex

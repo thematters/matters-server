@@ -3,6 +3,9 @@ import { v4 } from 'uuid'
 
 import { BATCH_SIZE, USER_ACTION } from 'common/enums'
 import { BaseService } from './baseService'
+// import { OpsWorksCM } from 'aws-sdk'
+
+import { GQLCommentsInput, GQLCommentSort } from 'definitions/schema'
 
 export class CommentService extends BaseService {
   constructor() {
@@ -15,27 +18,63 @@ export class CommentService extends BaseService {
     authorId,
     articleId,
     parentCommentId,
-    mentionedUserId,
+    mentionedUserIds = [],
     content
   }: {
-    [key: string]: string
-  }) =>
-    await this.baseCreate({
+    [key: string]: any
+  }) => {
+    // create comment
+    const comemnt = await this.baseCreate({
       uuid: v4(),
       authorId,
       articleId,
       parentCommentId,
-      mentionedUserId,
       content
     })
+    // create mentions
+    const mentionsDataItems = mentionedUserIds.map((userId: string) => ({
+      commentId: comemnt.id,
+      userId
+    }))
+    await this.baseBatchCreate(mentionsDataItems, 'comment_mentioned_user')
+    return comemnt
+  }
+
+  update = async ({
+    id,
+    articleId,
+    parentCommentId,
+    mentionedUserIds = [],
+    content
+  }: {
+    [key: string]: any
+  }) => {
+    // update comment
+    const comemnt = await this.baseUpdateById(id, {
+      articleId,
+      parentCommentId,
+      content
+    })
+    // remove exists mentions
+    await this.knex('comment_mentioned_user')
+      .where({ commentId: id })
+      .del()
+    // re-create mentions
+    const mentionsDataItems = mentionedUserIds.map((userId: string) => ({
+      commentId: comemnt.id,
+      userId
+    }))
+    await this.baseBatchCreate(mentionsDataItems, 'comment_mentioned_user')
+    return comemnt
+  }
 
   /**
    * Count comments by a given author id (user).
    */
-  countByAuthor = async (authorId: number): Promise<number> => {
+  countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where('author_id', authorId)
+      .where({ authorId })
       .first()
     return parseInt(result.count, 10)
   }
@@ -43,10 +82,10 @@ export class CommentService extends BaseService {
   /**
    * Count comments by a given article id.
    */
-  countByArticle = async (articleId: number): Promise<number> => {
+  countByArticle = async (articleId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where('article_id', articleId)
+      .where({ articleId })
       .first()
     return parseInt(result.count, 10)
   }
@@ -54,7 +93,7 @@ export class CommentService extends BaseService {
   /**
    * Count comments by a given comment id.
    */
-  countByParent = async (commentId: number): Promise<number> => {
+  countByParent = async (commentId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where('parent_comment_id', commentId)
@@ -65,7 +104,7 @@ export class CommentService extends BaseService {
   /**
    * Count a comment's up votes by a given target id (comment).
    */
-  countUpVote = async (targetId: number): Promise<number> => {
+  countUpVote = async (targetId: string): Promise<number> => {
     const result = await this.knex('action_comment')
       .countDistinct('id')
       .where({
@@ -79,7 +118,7 @@ export class CommentService extends BaseService {
   /**
    * Count a comment's down votes by a given target id (comment).
    */
-  countDownVote = async (targetId: number): Promise<number> => {
+  countDownVote = async (targetId: string): Promise<number> => {
     const result = await this.knex('action_comment')
       .countDistinct('id')
       .where({
@@ -93,17 +132,17 @@ export class CommentService extends BaseService {
   /**
    * Find comments by a given author id (user).
    */
-  findByAuthor = async (authorId: number): Promise<any[]> =>
+  findByAuthor = async (authorId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
-      .where('author_id', authorId)
+      .where({ authorId })
 
   /**
    * Find comments by a given author id (user) in batches.
    */
   findByAuthorInBatch = async (
-    authorId: number,
+    authorId: string,
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> =>
@@ -118,9 +157,8 @@ export class CommentService extends BaseService {
   /**
    * Find articles ids by comment author id (user) in batches.
    */
-
   findArticleByAuthorInBatch = async (
-    authorId?: number,
+    authorId: string,
     offset = 0,
     limit = BATCH_SIZE
   ): Promise<string[]> =>
@@ -134,43 +172,70 @@ export class CommentService extends BaseService {
       .limit(limit)
 
   /**
-   * Find comments by a given article id.
-   */
-  findByArticle = async (articleId: number): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ articleId })
-
-  /**
    * Find comments by a given article id in batches.
    */
-  findByArticleInBatch = async (
-    articleId: number,
-    offset: number,
+  findByArticle = async ({
+    id,
+    author,
+    quote,
+    sort,
+    offset = 0,
     limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ articleId })
-      .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
+  }: GQLCommentsInput & { id: string }) => {
+    let where: { [key: string]: string | boolean } = { articleId: id }
+    if (author) {
+      where = { ...where, authorId: author }
+    }
+    if (quote) {
+      where = { ...where, quote }
+    }
+
+    const sortCreatedAt = (by: 'desc' | 'asc') =>
+      this.knex
+        .select()
+        .from(this.table)
+        .where(where)
+        .orderBy('created_at', by)
+        .offset(offset)
+        .limit(limit)
+
+    if (sort == 'upvotes') {
+      return this.knex('comment')
+        .select('comment.*')
+        .countDistinct('votes.user_id as upvotes')
+        .leftJoin(
+          this.knex
+            .select('target_id', 'user_id')
+            .from('action_comment')
+            .as('votes'),
+          'votes.target_id',
+          'comment.id'
+        )
+        .groupBy('comment.id')
+        .where(where)
+        .orderBy('upvotes', 'desc')
+    } else if (sort === 'oldest') {
+      return sortCreatedAt('asc')
+    } else if (sort === 'newest') {
+      return sortCreatedAt('desc')
+    } else {
+      return sortCreatedAt('desc')
+    }
+  }
 
   /**
    * Find pinned comments by a given article id.
    */
-  findPinnedByArticle = async (articleId: number): Promise<any[]> =>
+  findPinnedByArticle = async (articleId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
-      .where({ article_id: articleId, pinned: true })
+      .where({ articleId, pinned: true })
 
   /**
    * Find comments by a given comment id.
    */
-  findByParent = async (commentId: number): Promise<any[]> =>
+  findByParent = async (commentId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
@@ -179,25 +244,56 @@ export class CommentService extends BaseService {
   /**
    * Find a comment's up votes by a given target id (comment).
    */
-  findUpVotes = async (targetId: number): Promise<any[]> =>
+  findUpVotes = async (targetId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('action_comment')
       .where({
-        target_id: targetId,
+        targetId,
         action: USER_ACTION.upVote
       })
 
   /**
    * Find a comment's down votes by a given target id (comment).
    */
-  findDownVotes = async (targetId: number): Promise<any[]> => {
+  findDownVotes = async (targetId: string): Promise<any[]> => {
     return await this.knex
       .select()
       .from('action_comment')
       .where({
-        target_id: targetId,
+        targetId,
         action: USER_ACTION.downVote
+      })
+  }
+
+  /**
+   * Find a comment's vote by a given target id (comment).
+   */
+  findVotesByUserId = async ({
+    userId,
+    targetId
+  }: {
+    userId: string
+    targetId: string
+  }): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('action_comment')
+      .where({
+        userId,
+        targetId
+      })
+      .whereIn('action', [USER_ACTION.upVote, USER_ACTION.downVote])
+
+  /**
+   * Find a comment's mentioned users by a given comment id.
+   */
+  findMentionedUsers = async (commentId: string): Promise<any[]> => {
+    return await this.knex
+      .select()
+      .from('comment_mentioned_user')
+      .where({
+        commentId
       })
   }
 }

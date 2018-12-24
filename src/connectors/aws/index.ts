@@ -3,6 +3,7 @@ import * as AWS from 'aws-sdk'
 import { v4 } from 'uuid'
 //local
 import { S3Bucket, S3Folder } from 'definitions'
+import { LOCAL_S3_ENDPOINT } from 'common/enums'
 import { environment } from 'common/environment'
 
 export class AWSService {
@@ -10,10 +11,13 @@ export class AWSService {
 
   s3Bucket: S3Bucket
 
+  s3Endpoint: string
+
   constructor() {
     AWS.config.update(this.getAWSConfig())
     this.s3 = new AWS.S3()
     this.s3Bucket = this.getS3Bucket()
+    this.s3Endpoint = this.getS3Endpoint()
   }
 
   /**
@@ -24,7 +28,28 @@ export class AWSService {
     return {
       region: awsRegion || '',
       accessKeyId: awsAccessId || '',
-      secretAccessKey: awsAccessKey || ''
+      secretAccessKey: awsAccessKey || '',
+      ...(env === 'development'
+        ? { s3BucketEndpoint: true, endpoint: LOCAL_S3_ENDPOINT }
+        : {})
+    }
+  }
+
+  /**
+   * Get S3 endpoint. If AWS Cloud Front is enabled, the default S3 endpoint
+   * will be replaced.
+   */
+  getS3Endpoint = (): string => {
+    const { env, awsS3Endpoint, awsCloudFrontEndpoint } = environment
+    switch (env) {
+      case 'staging':
+      case 'production': {
+        return `https://${awsCloudFrontEndpoint ||
+          `${this.s3Bucket}.${awsS3Endpoint}`}`
+      }
+      default: {
+        return `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
+      }
     }
   }
 

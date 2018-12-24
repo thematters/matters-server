@@ -7,15 +7,22 @@ import {
   ArticleService,
   CommentService,
   DraftService,
+  SystemService,
   TagService,
   UserService
 } from 'connectors'
 
 export const makeContext = async ({
-  req
+  req,
+  connection
 }: {
   req: { headers?: { 'x-access-token'?: string } }
+  connection?: any
 }): Promise<Context> => {
+  if (connection) {
+    return connection.context
+  }
+
   const userService = new UserService()
 
   let viewer
@@ -35,6 +42,7 @@ export const makeContext = async ({
     articleService: new ArticleService(),
     commentService: new CommentService(),
     draftService: new DraftService(),
+    systemService: new SystemService(),
     tagService: new TagService()
   }
 }

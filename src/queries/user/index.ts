@@ -1,7 +1,22 @@
-// external
-import { sum } from 'lodash'
-import { BatchParams, Context } from 'definitions'
-import { toGlobalId, fromGlobalId } from 'common/utils'
+import { Context } from 'definitions'
+import { toGlobalId } from 'common/utils'
+
+import subscriptions from './subscriptions'
+import followers from './followers'
+import followees from './followees'
+import isFollower from './isFollower'
+import isFollowee from './isFollowee'
+import avatar from './avatar'
+import articleCount from './articleCount'
+import commentCount from './commentCount'
+import MAT from './MAT'
+import oauthType from './oauthType'
+import notification from './notification'
+import followerCount from './followerCount'
+import followeeCount from './followeeCount'
+import subscriptionCount from './subscriptionCount'
+import unreadNoticeCount from './unreadNoticeCount'
+import recommendation from './recommendation'
 
 export default {
   Query: {
@@ -12,102 +27,36 @@ export default {
       return toGlobalId({ type: 'User', id })
     },
     info: (root: any) => root,
-    user: (
-      root: any,
-      { input: { id } }: { input: { id: string } },
-      { userService }: Context
-    ) => {
-      const { id: dbID } = fromGlobalId(id)
-      return userService.idLoader.load(dbID)
-    },
-    // hasFollowed,
-    // drafts,
-    // audioDrafts,
-    subscriptions: async (
-      { id }: { id: number },
-      { input: { offset, limit } }: BatchParams,
-      { articleService, userService }: Context
-    ) => {
-      const actions = await userService.findSubscriptionsInBatch(
-        id,
-        offset,
-        limit
-      )
-      return articleService.idLoader.loadMany(
-        actions.map(({ targetId }) => targetId)
-      )
-    },
-    // quotations,
-
-    // activity,
-    followers: async (
-      { id }: { id: number },
-      { input: { offset, limit } }: BatchParams,
-      { userService }: Context
-    ) => {
-      const actions = await userService.findFollowersInBatch(id, offset, limit)
-      return userService.baseFindByIds(actions.map(({ userId }) => userId))
-    },
-    followees: async (
-      { id }: { id: number },
-      { input: { offset, limit } }: BatchParams,
-      { userService }: Context
-    ) => {
-      const actions = await userService.findFollowees({ id, offset, limit })
-
-      return userService.baseFindByIds(
-        actions.map(({ targetId }: { targetId: number }) => targetId)
-      )
-    },
-    notices: ({ id }: { id: number }, _: any, { userService }: Context) => null,
     settings: (root: any) => root,
-    status: (root: any) => root
+    status: (root: any) => root,
+    activity: (root: any) => root,
+    recommendation: (root: any) => root,
+    // hasFollowed,
+    subscriptions,
+    // quotations,
+    followers,
+    followees,
+    isFollower,
+    isFollowee
   },
-  Notice: {
-    __resolveType: () => 'UserNotice'
+  Recommendation: recommendation,
+  UserInfo: {
+    avatar
   },
   UserSettings: {
-    // language: ({ language }: { language: string }) => language,
-    oauthType: ({ id }: { id: number }, _: any, { userService }: Context) =>
-      userService.findOAuthTypes(id),
-    notification: ({ id }: { id: number }, _: any, { userService }: Context) =>
-      userService.findNotifySetting(id)
+    oauthType,
+    notification
   },
   UserStatus: {
-    articleCount: async (
-      { id }: { id: string },
-      _: any,
-      { articleService }: Context
-    ) => articleService.countByAuthor(id),
-    MAT: async (
-      { id }: { id: string },
-      _: any,
-      { articleService }: Context
-    ) => {
-      const articles = await articleService.findByAuthor(id)
-      const apprecations = await Promise.all(
-        articles.map(({ id }: { id: string }) =>
-          articleService.countAppreciation(id)
-        )
-      )
-      return sum(apprecations)
-    },
+    articleCount,
+    MAT,
     // viewCount,
     // draftCount,
-    commentCount: (
-      { id }: { id: number },
-      _: any,
-      { commentService }: Context
-    ) => commentService.countByAuthor(id),
+    commentCount,
     // quotationCount
-    followerCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
-      userService.countFollowers(id),
-    followeeCount: ({ id }: { id: number }, _: any, { userService }: Context) =>
-      userService.countFollowees(id),
-    subscriptionCount: (
-      { id }: { id: number },
-      _: any,
-      { userService }: Context
-    ) => userService.countSubscription(id)
+    followerCount,
+    followeeCount,
+    subscriptionCount,
+    unreadNoticeCount
   }
 }
