@@ -2,124 +2,125 @@ kind: pipeline
 name: default
 
 steps:
-- name: node modules
-  image: node:10.14
-  commands:
-  - npm install --no-progress --quiet --unsafe-perm >  npm-install.log
+  - name: node modules
+    image: node:10.14
+    commands:
+      - npm install --no-progress --quiet --unsafe-perm >  npm-install.log
 
-- name: tslint
-  image: node:10.14
-  commands:
-  - npm run tslint:production
-  - npm run format:check
+  - name: tslint
+    image: node:10.14
+    commands:
+      - npm run tslint:production
+      - npm run format:check
 
-- name: test
-  image: node:10.14
-  environment:
-    MATTERS_ENV: test
-    MATTERS_PG_HOST: db
-    MATTERS_PG_USER: postgres
-    MATTERS_PG_PASSWORD: postgres
-    MATTERS_PG_DATABASE: matters-test
-    MATTERS_JWT_SECRET: QsNmu9
-  commands:
-  - npx jest --forceExit --detectOpenHandles --coverage
+  - name: test
+    image: node:10.14
+    environment:
+      MATTERS_ENV: test
+      MATTERS_PG_HOST: db
+      MATTERS_PG_USER: postgres
+      MATTERS_PG_PASSWORD: postgres
+      MATTERS_PG_DATABASE: matters-test
+      MATTERS_JWT_SECRET: QsNmu9
+      MATTERS_ELASTICSEARCH_ENDPOINT: http://18.136.63.149:9200
+    commands:
+      - npx jest --forceExit --detectOpenHandles --coverage
 
-- name: build
-  image: node:10.14
-  commands:
-  - npm run build
+  - name: build
+    image: node:10.14
+    commands:
+      - npm run build
 
-- name: staging:db-rollback
-  image: jbergknoff/postgresql-client
-  environment:
-    PGHOST:
-      from_secret: STAGING_PG_HOST
-    PGUSER:
-      from_secret: STAGING_PG_USER
-    PGPASSWORD:
-      from_secret: STAGING_PG_PASSWORD 
-  commands:
-  - |
-    psql matters_stage <<SQL
-      DROP SCHEMA public CASCADE;
-      CREATE SCHEMA public;
-      GRANT ALL ON SCHEMA public TO public;
-      GRANT ALL ON SCHEMA public TO matters;
-    SQL
-  when:
-    branch:
-    - develop
-    - feature/beanstalk
-    event:
-    - push
+  - name: staging:db-rollback
+    image: jbergknoff/postgresql-client
+    environment:
+      PGHOST:
+        from_secret: STAGING_PG_HOST
+      PGUSER:
+        from_secret: STAGING_PG_USER
+      PGPASSWORD:
+        from_secret: STAGING_PG_PASSWORD
+    commands:
+      - |
+        psql matters_stage <<SQL
+          DROP SCHEMA public CASCADE;
+          CREATE SCHEMA public;
+          GRANT ALL ON SCHEMA public TO public;
+          GRANT ALL ON SCHEMA public TO matters;
+        SQL
+    when:
+      branch:
+        - develop
+        - feature/beanstalk
+      event:
+        - push
 
-- name: staging:db-migrate 
-  image: node:10.14
-  environment:
-    MATTERS_ENV: staging
-    MATTERS_PG_HOST:
-      from_secret: STAGING_PG_HOST
-    MATTERS_PG_DATABASE:
-      from_secret: STAGING_PG_DATABASE
-    MATTERS_PG_USER:
-      from_secret: STAGING_PG_USER
-    MATTERS_PG_PASSWORD:
-      from_secret: STAGING_PG_PASSWORD
-  commands:
-  - npm run db:migrate
-  - npm run db:seed
-  when:
-    branch:
-    - develop
-    - feature/beanstalk
-    event:
-    - push
+  - name: staging:db-migrate
+    image: node:10.14
+    environment:
+      MATTERS_ENV: staging
+      MATTERS_PG_HOST:
+        from_secret: STAGING_PG_HOST
+      MATTERS_PG_DATABASE:
+        from_secret: STAGING_PG_DATABASE
+      MATTERS_PG_USER:
+        from_secret: STAGING_PG_USER
+      MATTERS_PG_PASSWORD:
+        from_secret: STAGING_PG_PASSWORD
+    commands:
+      - npm run db:migrate
+      - npm run db:seed
+    when:
+      branch:
+        - develop
+        - feature/beanstalk
+      event:
+        - push
 
-- name: staging:docker
-  image: plugins/ecr
-  settings:
-    access_key:
-      from_secret: AWS_ACCESS_KEY_ID
-    secret_key:
-      from_secret: AWS_SECRET_ACCESS_KEY
-    region: ap-southeast-1
-    repo: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server
-    registry: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com
-    dockerfile: docker/Dockerfile
-    tags:
-    - staging
-  when:
-    branch:
-    - develop
-    - feature/beanstalk
-    event:
-    - push
+  - name: staging:docker
+    image: plugins/ecr
+    settings:
+      access_key:
+        from_secret: AWS_ACCESS_KEY_ID
+      secret_key:
+        from_secret: AWS_SECRET_ACCESS_KEY
+      region: ap-southeast-1
+      repo: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server
+      registry: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com
+      dockerfile: docker/Dockerfile
+      tags:
+        - staging
+    when:
+      branch:
+        - develop
+        - feature/beanstalk
+      event:
+        - push
 
-- name: staging:deploy
-  image: matters/awsebcli
-  environment:
-    AWS_ACCESS_KEY_ID:
-      from_secret: AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY:
-      from_secret: AWS_SECRET_ACCESS_KEY
-    AWS_DEFAULT_REGION: ap-southeast-1
-  commands:
-  - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-  - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-  - aws configure set aws_default_region $AWS_DEFAULT_REGION
-  - bash ./bin/eb-deploy.sh staging
-  when:
-    branch:
-    - develop
-    - feature/beanstalk
-    event:
-    - push
+  - name: staging:deploy
+    image: matters/awsebcli
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: AWS_ACCESS_KEY_ID
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: AWS_SECRET_ACCESS_KEY
+      AWS_DEFAULT_REGION: ap-southeast-1
+    commands:
+      - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+      - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+      - aws configure set aws_default_region $AWS_DEFAULT_REGION
+      - bash ./bin/eb-deploy.sh staging
+    when:
+      branch:
+        - develop
+        - feature/beanstalk
+      event:
+        - push
 
 services:
-- name: db
-  image: postgres:10-alpine
-  environment:
-    POSTGRES_DB: matters-test
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: postgres
+  - name: db
+    image: postgres:10-alpine
+    environment:
+      POSTGRES_DB: matters-test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
