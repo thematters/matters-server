@@ -11,7 +11,7 @@ export class CommentService extends BaseService {
   constructor() {
     super('comment')
     this.dataloader = new DataLoader(this.baseFindByIds)
-    this.uudataloader = new DataLoader(this.baseFindByUUIDs)
+    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
   create = async ({

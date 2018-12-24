@@ -19,7 +19,7 @@ export class BaseService {
 
   dataloader: DataLoader<string, Item>
 
-  uudataloader: DataLoader<string, Item>
+  uuidLoader: DataLoader<string, Item>
 
   table: TableName
 

@@ -10,7 +10,7 @@ export class ArticleService extends BaseService {
   constructor() {
     super('article')
     this.dataloader = new DataLoader(this.baseFindByIds)
-    this.uudataloader = new DataLoader(this.baseFindByUUIDs)
+    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
   /**
