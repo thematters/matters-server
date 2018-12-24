@@ -1,5 +1,6 @@
 require('newrelic')
 require('module-alias/register')
+require('dotenv').config()
 // external
 import { ApolloServer } from 'apollo-server'
 // internal
