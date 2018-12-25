@@ -27,7 +27,6 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
     input
   })
   const article = result && result.data && result.data.publishArticle
-
   return article
 }
 
@@ -105,6 +104,7 @@ test('create draft and publish', async () => {
     content: Math.random().toString()
   }
   const { id } = await createDraft(draft)
+  console.log({ draftId: id })
   const article = await publishArticle({ id })
   expect(article).toMatchObject(draft)
 })

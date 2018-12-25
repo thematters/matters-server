@@ -28,7 +28,6 @@ export const createDraft = async (draft: GQLPutDraftInput) => {
     input: draft
   })
   const putDraft = result && result.data && result.data.putDraft
-
   return putDraft
 }
 

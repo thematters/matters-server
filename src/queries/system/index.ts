@@ -21,41 +21,17 @@ export default {
       // TODO: get match text from ES
       // TODO: use dataService as a map
       const serviceMap = {
-        Article: articleService,
-        User: userService,
-        Comment: commentService,
-        Draft: draftService,
-        Tag: tagService
+        Article: articleService
+        // User: userService,
+        // Comment: commentService,
+        // Draft: draftService,
+        // Tag: tagService
       }
 
-      const indexToNode = (index: string) =>
-        index.charAt(0).toUpperCase() + index.substr(1)
-
-      const hits = await systemService.search(input)
-      let result: { node: any; match: string }[]
-      if (hits) {
-        try {
-          result = await Promise.all(
-            hits.map(async ({ _id, _index }) => {
-              const type = indexToNode(_index) as NodeTypes
-              const node = await serviceMap[type].dataloader.load(_id)
-              return {
-                node: {
-                  ...node,
-                  __type: type
-                },
-                match: input.key
-              }
-            })
-          )
-        } catch (err) {
-          throw err
-        }
-      } else {
-        result = []
+      if (input && input.type) {
+        const result = serviceMap[input.type].search(input)
+        return result
       }
-
-      return result
     }
   },
   Node: {

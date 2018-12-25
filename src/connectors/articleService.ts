@@ -1,6 +1,6 @@
 import * as cheerio from 'cheerio'
 import DataLoader from 'dataloader'
-import { ItemData } from 'definitions'
+import { ItemData, GQLSearchInput } from 'definitions'
 import { v4 } from 'uuid'
 
 import { BATCH_SIZE, USER_ACTION, PUBLISH_STATE } from 'common/enums'
@@ -63,7 +63,7 @@ export class ArticleService extends BaseService {
     return article
   }
 
-  addToSearch = ({
+  addToSearch = async ({
     id,
     title,
     summary,
@@ -71,18 +71,39 @@ export class ArticleService extends BaseService {
     tags
   }: {
     [key: string]: string
-  }) =>
-    this.es.index({
-      index: 'article',
-      id,
-      type: 'article',
-      body: {
-        title,
-        summary,
-        content,
-        tags
-      }
-    })
+  }) => {
+    try {
+      await this.es.index({
+        index: 'article',
+        id,
+        type: 'article',
+        body: {
+          title,
+          summary,
+          content,
+          tags
+        }
+      })
+    } catch (err) {
+      throw err
+    }
+  }
+
+  search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
+    // TODO: handle search across title and content
+    const body = bodybuilder()
+      .query('match', 'content', key)
+      .size(limit)
+      .build()
+    try {
+      const { hits } = await this.es.search({ index: this.table, body })
+      const ids = hits.hits.map(({ _id }) => _id)
+      const nodes = await this.dataloader.loadMany(ids)
+      return nodes.map(node => ({ node, match: key }))
+    } catch (err) {
+      throw err
+    }
+  }
 
   // TODO: rank hottest
   recommendHottest = ({ offset = 0, limit = 5 }) =>

@@ -76,7 +76,7 @@ describe('query nodes of different type', async () => {
 })
 
 describe('Search', async () => {
-  test('create draft, publish and search', async () => {
+  test.only('create draft, publish and search', async () => {
     const draft = {
       title: Math.random().toString(),
       content: (Math.random() * 100).toString(),

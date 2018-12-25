@@ -2,6 +2,7 @@ version: '3'
 
 services:
   app:
+    container_name: matters-api
     image: matters-server:latest
     build:
       context: ../
@@ -15,10 +16,12 @@ services:
       - db
       - redis
       - s3
+      - elasticsearch
     ports:
       - '4000:4000'
   db:
     image: postgres:10
+    container_name: matters-db
     environment:
       - POSTGRES_DB=matters-dev
     volumes:
@@ -27,6 +30,7 @@ services:
       - '5432:5432'
   redis:
     image: redis
+    container_name: matters-redis
     ports:
       - '6379:6379'
     restart: always
@@ -34,5 +38,23 @@ services:
     image: lphoward/fake-s3
     ports:
       - '4569:4569'
+  elasticsearch:
+    image: elasticsearch:6.5.4
+    container_name: matters-search
+    environment:
+      - discovery.type=single-node
+    ulimits:
+      nproc: 65535
+      memlock:
+        soft: -1
+        hard: -1
+    cap_add:
+      - ALL
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
 volumes:
   ? postgres_data
+  ? es_data

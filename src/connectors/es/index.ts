@@ -2,9 +2,10 @@ import elasticsearch from 'elasticsearch'
 import { environment } from 'common/environment'
 
 const indices = ['article', 'user']
+const { esHost: host, esPort: port } = environment
 
 export const es = new elasticsearch.Client({
-  hosts: [environment.elasticSearchEndpoint]
+  host: { host, port }
 })
 
 const esInit = async () => {
@@ -31,4 +32,4 @@ const esInit = async () => {
   }
 }
 
-// esInit()
+esInit()
