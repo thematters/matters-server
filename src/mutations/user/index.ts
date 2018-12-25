@@ -4,6 +4,7 @@ import updateUserInfo from './updateUserInfo'
 import updateNotificationSetting from './updateNotificationSetting'
 import followUser from './followUser'
 import unfollowUser from './unfollowUser'
+import clearReadHistory from './clearReadHistory'
 
 export default {
   Mutation: {
@@ -12,6 +13,7 @@ export default {
     updateUserInfo,
     updateNotificationSetting,
     followUser,
-    unfollowUser
+    unfollowUser,
+    clearReadHistory
   }
 }

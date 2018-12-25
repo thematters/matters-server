@@ -142,7 +142,7 @@ export interface GQLUserInfo {
    * URL for avatar
    */
   avatar?: GQLURL
-  email: GQLEmail
+  email?: GQLEmail
   mobile?: string
 
   /**
@@ -347,6 +347,7 @@ export interface GQLUserActivity {
 }
 
 export interface GQLReadHistory {
+  id: string
   article: GQLArticle
   readAt: GQLDateTime
 }
@@ -469,27 +470,28 @@ export interface GQLMutation {
   singleFileUpload: GQLAsset
 
   /**
+   * send verification code
+   */
+  sendVerificationCode?: boolean
+
+  /**
    * change or reset password
    */
-  sendResetPasswrodCode?: boolean
   confirmResetPassword?: boolean
 
   /**
    * change email
    */
-  sendChangeEmailCode?: boolean
   confirmChangeEmail?: boolean
 
   /**
    * verify email
    */
-  sendVerfiyEmailCode?: boolean
   confirmVerifyEmail?: boolean
 
   /**
    * register
    */
-  sendRegisterCode?: boolean
   userRegister: GQLAuthResult
 
   /**
@@ -618,17 +620,21 @@ export interface GQLAsset {
   createdAt: GQLDateTime
 }
 
-export interface GQLSendResetPasswrodCodeInput {
+export interface GQLSendVerificationCodeInput {
   email: GQLEmail
+  type: GQLVerificationCodeType
+}
+
+export enum GQLVerificationCodeType {
+  register = 'register',
+  email_reset = 'email_reset',
+  password_reset = 'password_reset',
+  email_verify = 'email_verify'
 }
 
 export interface GQLConfirmResetPasswordInput {
   password: string
   code: string
-}
-
-export interface GQLSendChangeEmailCodeInput {
-  email: GQLEmail
 }
 
 export interface GQLConfirmChangeEmailInput {
@@ -638,17 +644,9 @@ export interface GQLConfirmChangeEmailInput {
   newEmailCode: string
 }
 
-export interface GQLSendVerifyEmailCodeInput {
-  email: GQLEmail
-}
-
 export interface GQLConfirmVerifyEmailInput {
   email: GQLEmail
   code: string
-}
-
-export interface GQLSendRegisterCodeInput {
-  email: GQLEmail
 }
 
 export interface GQLUserRegisterInput {
@@ -676,7 +674,7 @@ export interface GQLAddOAuthInput {
 
 export interface GQLUpdateUserInfoInput {
   displayName?: string
-  avatar?: GQLURL
+  avatar?: string
   description?: string
   language?: GQLUserLanguage
 }
@@ -700,10 +698,8 @@ export interface GQLImportArticlesInput {
 }
 
 export interface GQLClearReadHistoryInput {
-  uuid?: GQLUUID
+  id: string
 }
-
-export type GQLUUID = any
 
 export interface GQLSubscription {
   _?: boolean
@@ -882,6 +878,8 @@ export interface GQLUserNewFollowerNotice extends GQLNotice {
   actors?: Array<GQLUser>
 }
 
+export type GQLUUID = any
+
 /*********************************
  *                               *
  *         TYPE RESOLVERS        *
@@ -924,7 +922,6 @@ export interface GQLResolver {
   Upload?: GraphQLScalarType
   Asset?: GQLAssetTypeResolver
   AuthResult?: GQLAuthResultTypeResolver
-  UUID?: GraphQLScalarType
   Subscription?: GQLSubscriptionTypeResolver
   ArticleArchivedNotice?: GQLArticleArchivedNoticeTypeResolver
   ArticleNewAppreciationNotice?: GQLArticleNewAppreciationNoticeTypeResolver
@@ -946,6 +943,7 @@ export interface GQLResolver {
   Time?: GraphQLScalarType
   UserDisabledNotice?: GQLUserDisabledNoticeTypeResolver
   UserNewFollowerNotice?: GQLUserNewFollowerNoticeTypeResolver
+  UUID?: GraphQLScalarType
 }
 export interface GQLQueryTypeResolver<TParent = any> {
   _?: QueryTo_Resolver<TParent>
@@ -1863,8 +1861,13 @@ export interface UserActivityToInvitedResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLReadHistoryTypeResolver<TParent = any> {
+  id?: ReadHistoryToIdResolver<TParent>
   article?: ReadHistoryToArticleResolver<TParent>
   readAt?: ReadHistoryToReadAtResolver<TParent>
+}
+
+export interface ReadHistoryToIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
 export interface ReadHistoryToArticleResolver<TParent = any, TResult = any> {
@@ -1993,13 +1996,10 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteDraft?: MutationToDeleteDraftResolver<TParent>
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
   singleFileUpload?: MutationToSingleFileUploadResolver<TParent>
-  sendResetPasswrodCode?: MutationToSendResetPasswrodCodeResolver<TParent>
+  sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmResetPassword?: MutationToConfirmResetPasswordResolver<TParent>
-  sendChangeEmailCode?: MutationToSendChangeEmailCodeResolver<TParent>
   confirmChangeEmail?: MutationToConfirmChangeEmailResolver<TParent>
-  sendVerfiyEmailCode?: MutationToSendVerfiyEmailCodeResolver<TParent>
   confirmVerifyEmail?: MutationToConfirmVerifyEmailResolver<TParent>
-  sendRegisterCode?: MutationToSendRegisterCodeResolver<TParent>
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
   addOAuth?: MutationToAddOAuthResolver<TParent>
@@ -2241,16 +2241,16 @@ export interface MutationToSingleFileUploadResolver<
   ): TResult
 }
 
-export interface MutationToSendResetPasswrodCodeArgs {
-  input: GQLSendResetPasswrodCodeInput
+export interface MutationToSendVerificationCodeArgs {
+  input: GQLSendVerificationCodeInput
 }
-export interface MutationToSendResetPasswrodCodeResolver<
+export interface MutationToSendVerificationCodeResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToSendResetPasswrodCodeArgs,
+    args: MutationToSendVerificationCodeArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult
@@ -2271,21 +2271,6 @@ export interface MutationToConfirmResetPasswordResolver<
   ): TResult
 }
 
-export interface MutationToSendChangeEmailCodeArgs {
-  input: GQLSendChangeEmailCodeInput
-}
-export interface MutationToSendChangeEmailCodeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToSendChangeEmailCodeArgs,
-    context: any,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface MutationToConfirmChangeEmailArgs {
   input: GQLConfirmChangeEmailInput
 }
@@ -2301,21 +2286,6 @@ export interface MutationToConfirmChangeEmailResolver<
   ): TResult
 }
 
-export interface MutationToSendVerfiyEmailCodeArgs {
-  input: GQLSendVerifyEmailCodeInput
-}
-export interface MutationToSendVerfiyEmailCodeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToSendVerfiyEmailCodeArgs,
-    context: any,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface MutationToConfirmVerifyEmailArgs {
   input: GQLConfirmVerifyEmailInput
 }
@@ -2326,21 +2296,6 @@ export interface MutationToConfirmVerifyEmailResolver<
   (
     parent: TParent,
     args: MutationToConfirmVerifyEmailArgs,
-    context: any,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToSendRegisterCodeArgs {
-  input: GQLSendRegisterCodeInput
-}
-export interface MutationToSendRegisterCodeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToSendRegisterCodeArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult
