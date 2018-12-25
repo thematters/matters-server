@@ -1,34 +1,67 @@
 // external
-import { graphql } from 'graphql'
 // internal
-import { makeContext, toGlobalId } from 'common/utils'
+import { toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
-import schema from '../../schema'
 // local
-import { authContext, delay } from './utils'
+import { delay, testClient } from './utils'
 import { createDraft } from './draft.test'
 import { publishArticle } from './article.test'
 
 afterAll(knex.destroy)
 
+const GET_USER = `
+  query($input: NodeInput!) {
+    node(input: $input) {
+      ... on User {
+        id
+        info {
+          email
+        }
+      }
+    }
+  }
+`
+const GET_ARTICLE = `
+  query($input: NodeInput!) {
+    node(input: $input) {
+      ... on Article {
+        id
+        title
+      }
+    }
+  }
+`
+const GET_COMMENT = `
+  query($input: NodeInput!) {
+    node(input: $input) {
+      ... on Comment {
+        id
+        content
+      }
+    }
+  }
+`
+const SEARCH = `
+  query($input: SearchInput!) {
+    search(input: $input) {
+      match
+      node {
+        ... on Article {
+          content
+        }
+      }
+    }
+  }
+`
+
 describe('query nodes of different type', async () => {
   test('query user node', async () => {
     const id = toGlobalId({ type: 'User', id: 1 })
-    const query = `
-      query($input: NodeInput!) {
-        node(input: $input) {
-          ... on User {
-            id
-            info {
-              email
-            }
-          }
-        }
-      }
-    `
-    const context = await makeContext({ req: {} })
-    const { data } = await graphql(schema, query, {}, context, {
-      input: { id }
+    const { query } = await testClient()
+    const { data } = await query({
+      query: GET_USER,
+      // @ts-ignore
+      variables: { input: { id } }
     })
     const node = data && data.node
     expect(node).toMatchObject({ id, info: { email: 'test1@matters.news' } })
@@ -36,19 +69,11 @@ describe('query nodes of different type', async () => {
 
   test('query article node', async () => {
     const id = toGlobalId({ type: 'Article', id: 1 })
-    const query = `
-      query($input: NodeInput!) {
-        node(input: $input) {
-          ... on Article {
-            id
-            title
-          }
-        }
-      }
-    `
-    const context = await makeContext({ req: {} })
-    const { data } = await graphql(schema, query, {}, context, {
-      input: { id }
+    const { query } = await testClient()
+    const { data } = await query({
+      query: GET_ARTICLE,
+      // @ts-ignore
+      variables: { input: { id } }
     })
     const node = data && data.node
     expect(node).toEqual({ id, title: 'test article 1' })
@@ -56,19 +81,11 @@ describe('query nodes of different type', async () => {
 
   test('query comment node', async () => {
     const id = toGlobalId({ type: 'Comment', id: 1 })
-    const query = `
-      query($input: NodeInput!) {
-        node(input: $input) {
-          ... on Comment {
-            id
-            content
-          }
-        }
-      }
-    `
-    const context = await makeContext({ req: {} })
-    const { data } = await graphql(schema, query, {}, context, {
-      input: { id }
+    const { query } = await testClient()
+    const { data } = await query({
+      query: GET_COMMENT,
+      // @ts-ignore
+      variables: { input: { id } }
     })
     const node = data && data.node
     expect(node).toEqual({ id, content: '<div>Test comment 1</div>' })
@@ -84,27 +101,18 @@ describe('Search', async () => {
     }
     const { id } = await createDraft(draft)
     await publishArticle({ id })
-
     await delay(2000)
 
-    const searchQuery = `
-      query($input: SearchInput!) {
-        search(input: $input) {
-          match
-          node {
-            ... on Article {
-              content
-            }
-          }
+    const { query } = await testClient()
+    const result = await query({
+      query: SEARCH,
+      // @ts-ignore
+      variables: {
+        input: {
+          key: draft.content,
+          type: 'Article',
+          limit: 1
         }
-      }
-  `
-    const context = await authContext()
-    const result = await graphql(schema, searchQuery, {}, context, {
-      input: {
-        key: draft.content,
-        type: 'Article',
-        limit: 1
       }
     })
 
