@@ -1,4 +1,3 @@
-// external
 // internal
 import { toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
