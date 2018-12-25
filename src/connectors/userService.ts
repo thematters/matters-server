@@ -303,6 +303,36 @@ export class UserService extends BaseService {
   }
 
   /**
+   * Find user's read history
+   */
+  findReadHistory = async (
+    userId: string,
+    offset: number,
+    limit = BATCH_SIZE
+  ): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('article_read')
+      .where({ userId, archived: false })
+      .orderBy('id', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+  /**
+   * Find user's read history by a given id (article_read)
+   */
+  findReadHistoryById = async (id: string, userId: string): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('article_read')
+      .where({
+        id,
+        userId,
+        archived: false
+      })
+      .first()
+
+  /**
    * Find an users' notices by a given user id in batches.
    */
   findNoticesInBatch = async (
