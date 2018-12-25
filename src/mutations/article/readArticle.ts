@@ -15,14 +15,7 @@ const resolver: Resolver = async (
     throw new Error('target article does not exists') // TODO
   }
 
-  const readRecords = await articleService.findReadByUserId(
-    article.id,
-    viewer.id
-  )
-
-  if (readRecords.length <= 0) {
-    articleService.read(article.id, viewer.id)
-  }
+  await articleService.read(article.id, viewer.id)
 
   return true
 }

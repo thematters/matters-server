@@ -134,6 +134,7 @@ export default /* GraphQL */ `
   }
 
   type ReadHistory {
+    id: ID!
     article: Article!
     readAt: DateTime!
   }
@@ -209,7 +210,7 @@ export default /* GraphQL */ `
   }
 
   input ClearReadHistoryInput {
-    uuid: UUID
+    id: ID!
   }
 
   enum VerificationCodeType {
