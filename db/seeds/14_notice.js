@@ -178,45 +178,44 @@ exports.seed = async knex => {
   /**
    * start seeding
    */
-  await Promise.all(
-    await notices.map(async (notice, index) => {
-      const id = index + 1
-      // create notice detail
-      await knex(table.notice_detail).insert({
-        notice_type: notice.notice_type,
-        message: notice.message,
-        data: notice.data
-      })
-      // create notice
-      const { id: notice_id } = (await knex(table.notice)
-        .insert({
-          uuid: v4(),
-          notice_detail_id: id,
-          recipient_id: notice.recipient_id
-        })
-        .returning('*'))[0]
-      // create notice actor
-      await Promise.all(
-        (notice.actors || []).map(async actor_id => {
-          await knex(table.notice_actor).insert({
-            notice_id,
-            actor_id
-          })
-        })
-      )
-      // craete notice entities
-      await Promise.all(
-        (notice.entities || []).map(
-          async ({ type, entity_type_id, entity_id }) => {
-            await knex(table.notice_entity).insert({
-              type,
-              entity_type_id,
-              entity_id,
-              notice_id
-            })
-          }
-        )
-      )
+  for (const [index, value] of notices.entries()) {
+    const id = index + 1
+    const notice = value
+    // create notice detail
+    await knex(table.notice_detail).insert({
+      notice_type: notice.notice_type,
+      message: notice.message,
+      data: notice.data
     })
-  )
+    // create notice
+    const { id: notice_id } = (await knex(table.notice)
+      .insert({
+        uuid: v4(),
+        notice_detail_id: id,
+        recipient_id: notice.recipient_id
+      })
+      .returning('*'))[0]
+    // create notice actor
+    await Promise.all(
+      (notice.actors || []).map(async actor_id => {
+        await knex(table.notice_actor).insert({
+          notice_id,
+          actor_id
+        })
+      })
+    )
+    // craete notice entities
+    await Promise.all(
+      (notice.entities || []).map(
+        async ({ type, entity_type_id, entity_id }) => {
+          await knex(table.notice_entity).insert({
+            type,
+            entity_type_id,
+            entity_id,
+            notice_id
+          })
+        }
+      )
+    )
+  }
 }

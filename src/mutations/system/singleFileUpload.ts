@@ -19,10 +19,10 @@ const resolver: Resolver = async (
     type,
     path: key
   }
-  const { uuid, path } = await systemService.baseCreate(asset, 'asset')
+  const newAsset = await systemService.baseCreate(asset, 'asset')
   return {
-    uuid,
-    path: `${systemService.aws.s3Endpoint}/${path}`
+    ...newAsset,
+    path: `${systemService.aws.s3Endpoint}/${newAsset.path}`
   }
 }
 

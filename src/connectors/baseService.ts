@@ -20,7 +20,7 @@ export class BaseService extends DataSource {
 
   dataloader: DataLoader<string, Item>
 
-  uudataloader: DataLoader<string, Item>
+  uuidLoader: DataLoader<string, Item>
 
   table: TableName
 
