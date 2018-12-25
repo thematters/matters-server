@@ -7,12 +7,11 @@ import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
 import { ItemData } from 'definitions'
 import { BaseService } from './baseService'
-import { TagService } from './tagService'
 
 export class UserService extends BaseService {
   constructor() {
     super('user')
-    this.idLoader = new DataLoader(this.baseFindByIds)
+    this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
@@ -50,7 +49,7 @@ export class UserService extends BaseService {
       passwordHash
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
-    return await this.idLoader.load(user.id)
+    return user
   }
 
   /**

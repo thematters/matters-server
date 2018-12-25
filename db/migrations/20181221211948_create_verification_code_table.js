@@ -10,10 +10,15 @@ exports.up = async knex => {
     t.timestamp('updated_at').defaultTo(knex.fn.now())
     t.timestamp('expired_at')
     t.string('code').notNullable()
-    t.enu('type', ['register', 'email_reset', 'password_reset', 'email_verify'])
-    t.enu('status', ['active', 'inactive', 'expired', 'used']).defaultTo(
-      'active'
-    )
+    t.enu('type', [
+      'register',
+      'email_reset',
+      'password_reset',
+      'email_verify'
+    ]).notNullable()
+    t.enu('status', ['active', 'inactive', 'expired', 'used'])
+      .notNullable()
+      .defaultTo('active')
     t.bigInteger('user_id')
     t.string('email')
 

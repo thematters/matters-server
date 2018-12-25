@@ -6,7 +6,7 @@ exports.up = async knex => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
-    t.uuid('uuid')
+    t.uuid('uuid').notNullable()
     t.bigInteger('author_id')
       .unsigned()
       .notNullable()
@@ -15,7 +15,8 @@ exports.up = async knex => {
     t.bigInteger('cover').unsigned()
     t.string('summary').notNullable()
     t.integer('word_count').notNullable()
-    t.string('hash')
+    t.string('data_hash')
+    t.string('media_hash')
     t.text('content').notNullable()
     t.enu('publish_state', [
       'archived',

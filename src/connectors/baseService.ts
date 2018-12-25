@@ -3,23 +3,28 @@ import _ from 'lodash'
 import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
+import { Client as ESClient } from 'elasticsearch'
 //local
 import { Item, ItemData, TableName } from 'definitions'
 import { aws, AWSService } from './aws'
 import { knex } from './db'
+import { es } from './es'
 
 export class BaseService {
+  es: ESClient
+
   aws: InstanceType<typeof AWSService>
 
   knex: Knex
 
-  idLoader: DataLoader<string, Item>
+  dataloader: DataLoader<string, Item>
 
   uuidLoader: DataLoader<string, Item>
 
   table: TableName
 
   constructor(table: TableName) {
+    this.es = es
     this.knex = knex
     this.table = table
     this.aws = aws
@@ -75,11 +80,12 @@ export class BaseService {
   /**
    * Create item
    */
-  baseCreate = async (data: ItemData, table?: TableName): Promise<any> =>
-    (await this.knex
+  baseCreate = async (data: ItemData, table?: TableName): Promise<any> => {
+    const [result] = await this.knex(table || this.table)
+      .returning('*')
       .insert(data)
-      .into(table || this.table)
-      .returning('*'))[0]
+    return result
+  }
 
   /**
    * Create a batch of items

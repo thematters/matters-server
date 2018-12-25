@@ -64,20 +64,12 @@ export enum GQLSearchTypes {
 }
 
 export interface GQLSearchResult {
-  entity?: GQLEntity
+  node?: GQLNode
   match?: string
 }
 
-export type GQLEntity = GQLUser | GQLArticle | GQLTag
-
-/** Use this to resolve union type Entity */
-export type GQLPossibleEntityTypeNames = 'User' | 'Article' | 'Tag'
-
-export interface GQLEntityNameMap {
-  Entity: GQLEntity
-  User: GQLUser
-  Article: GQLArticle
-  Tag: GQLTag
+export interface GQLOfficial {
+  reportCategory: Array<string>
 }
 
 export interface GQLUser extends GQLNode {
@@ -242,7 +234,8 @@ export interface GQLArticle extends GQLNode {
   summary: string
   tags?: Array<GQLTag>
   wordCount?: number
-  hash?: string
+  dataHash?: string
+  mediaHash?: string
   content: string
   gatewayUrls?: Array<GQLURL>
   upstream?: GQLArticle
@@ -445,10 +438,6 @@ export interface GQLNoticeNameMap {
   SubscribedArticleNewCommentNotice: GQLSubscribedArticleNewCommentNotice
   UserDisabledNotice: GQLUserDisabledNotice
   UserNewFollowerNotice: GQLUserNewFollowerNotice
-}
-
-export interface GQLOfficial {
-  reportCategory: Array<string>
 }
 
 export interface GQLMutation {
@@ -910,10 +899,7 @@ export interface GQLResolver {
   }
 
   SearchResult?: GQLSearchResultTypeResolver
-  Entity?: {
-    __resolveType: GQLEntityTypeResolver
-  }
-
+  Official?: GQLOfficialTypeResolver
   User?: GQLUserTypeResolver
   UserInfo?: GQLUserInfoTypeResolver
   DateTime?: GraphQLScalarType
@@ -934,7 +920,6 @@ export interface GQLResolver {
     __resolveType: GQLNoticeTypeResolver
   }
 
-  Official?: GQLOfficialTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
   Asset?: GQLAssetTypeResolver
@@ -1028,11 +1013,11 @@ export interface GQLNodeTypeResolver<TParent = any> {
     | 'Draft'
 }
 export interface GQLSearchResultTypeResolver<TParent = any> {
-  entity?: SearchResultToEntityResolver<TParent>
+  node?: SearchResultToNodeResolver<TParent>
   match?: SearchResultToMatchResolver<TParent>
 }
 
-export interface SearchResultToEntityResolver<TParent = any, TResult = any> {
+export interface SearchResultToNodeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -1040,12 +1025,17 @@ export interface SearchResultToMatchResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLEntityTypeResolver<TParent = any> {
-  (parent: TParent, context: any, info: GraphQLResolveInfo):
-    | 'User'
-    | 'Article'
-    | 'Tag'
+export interface GQLOfficialTypeResolver<TParent = any> {
+  reportCategory?: OfficialToReportCategoryResolver<TParent>
 }
+
+export interface OfficialToReportCategoryResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
 export interface GQLUserTypeResolver<TParent = any> {
   id?: UserToIdResolver<TParent>
   info?: UserToInfoResolver<TParent>
@@ -1466,7 +1456,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   summary?: ArticleToSummaryResolver<TParent>
   tags?: ArticleToTagsResolver<TParent>
   wordCount?: ArticleToWordCountResolver<TParent>
-  hash?: ArticleToHashResolver<TParent>
+  dataHash?: ArticleToDataHashResolver<TParent>
+  mediaHash?: ArticleToMediaHashResolver<TParent>
   content?: ArticleToContentResolver<TParent>
   gatewayUrls?: ArticleToGatewayUrlsResolver<TParent>
   upstream?: ArticleToUpstreamResolver<TParent>
@@ -1524,7 +1515,11 @@ export interface ArticleToWordCountResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface ArticleToHashResolver<TParent = any, TResult = any> {
+export interface ArticleToDataHashResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ArticleToMediaHashResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -1979,17 +1974,6 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'UserDisabledNotice'
     | 'UserNewFollowerNotice'
 }
-export interface GQLOfficialTypeResolver<TParent = any> {
-  reportCategory?: OfficialToReportCategoryResolver<TParent>
-}
-
-export interface OfficialToReportCategoryResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
 export interface GQLMutationTypeResolver<TParent = any> {
   _?: MutationTo_Resolver<TParent>
   publishArticle?: MutationToPublishArticleResolver<TParent>

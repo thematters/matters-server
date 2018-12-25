@@ -6,7 +6,7 @@ const resolver: Resolver = async (
   { userService, commentService }
 ) => {
   const mentionedUsers = await commentService.findMentionedUsers(id)
-  return userService.idLoader.loadMany(mentionedUsers.map(m => m.userId))
+  return userService.dataloader.loadMany(mentionedUsers.map(m => m.userId))
 }
 
 export default resolver

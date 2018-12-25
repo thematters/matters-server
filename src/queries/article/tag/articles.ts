@@ -6,7 +6,7 @@ const resolver: Resolver = async (
   { tagService, articleService }
 ) => {
   const articleIds = await tagService.findArticleIds({ id })
-  return articleService.idLoader.loadMany(articleIds)
+  return articleService.dataloader.loadMany(articleIds)
 }
 
 export default resolver

@@ -8,7 +8,6 @@ import author from './author'
 import cover from './cover'
 import summary from './summary'
 import tags from './tags'
-import content from './content'
 import upstream from './upstream'
 import downstreams from './downstreams'
 import MAT from './mat'
@@ -30,7 +29,6 @@ export default {
     cover,
     summary,
     tags,
-    content,
     gatewayUrls: () => [],
     upstream,
     downstreams,

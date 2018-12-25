@@ -40,3 +40,6 @@ export const authContext = async (user = testUser) => {
     req: { headers: { 'x-access-token': token } }
   })
 }
+
+export const delay = (ms: number) =>
+  new Promise(resolve => setTimeout(resolve, ms))

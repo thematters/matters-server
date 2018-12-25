@@ -9,6 +9,7 @@ export const environment = {
   awsAccessId: process.env['MATTERS_AWS_ACCESS_ID'],
   awsAccessKey: process.env['MATTERS_AWS_ACCESS_KEY'],
   awsS3Endpoint: process.env['MATTERS_AWS_S3_ENDPOINT'],
+  elasticSearchEndpoint: process.env['MATTERS_ELASTICSEARCH_ENDPOINT'],
   awsCloudFrontEndpoint: process.env['MATTERS_AWS_CLOUD_FRONT_ENDPOINT'],
   pgHost: process.env['MATTERS_PG_HOST'],
   pgUser: process.env['MATTERS_PG_USER'],

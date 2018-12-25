@@ -24,7 +24,8 @@ type Article implements Node {
   summary: String!
   tags: [Tag!]
   wordCount: Int
-  hash: String
+  dataHash: String
+  mediaHash: String
   content: String!
   gatewayUrls: [URL!]
   upstream: Article
@@ -287,8 +288,6 @@ type Draft implements Node {
 
 scalar Email
 
-union Entity = User | Article | Tag
-
 input FollowUserInput {
   id: ID!
 }
@@ -505,7 +504,7 @@ input SearchInput {
 }
 
 type SearchResult {
-  entity: Entity
+  node: Node
   match: String
 }
 

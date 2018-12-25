@@ -6,7 +6,7 @@ const resolver: Resolver = async (
   { commentService, articleService }: Context
 ) => {
   const comments = await commentService.findByAuthorInBatch(id, offset, limit)
-  return articleService.idLoader.loadMany(
+  return articleService.dataloader.loadMany(
     comments.map(({ articleId }: { articleId: string }) => articleId)
   )
 }
