@@ -11,6 +11,7 @@ import articleCount from './articleCount'
 import commentCount from './commentCount'
 import MAT from './MAT'
 import oauthType from './oauthType'
+import history from './history'
 import notification from './notification'
 import followerCount from './followerCount'
 import followeeCount from './followeeCount'
@@ -46,6 +47,9 @@ export default {
   UserSettings: {
     oauthType,
     notification
+  },
+  UserActivity: {
+    history
   },
   UserStatus: {
     articleCount,

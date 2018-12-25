@@ -6,6 +6,9 @@ exports.up = async knex => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
+    t.uuid('uuid')
+      .notNullable()
+      .unique()
     t.bigInteger('user_id').notNullable()
     t.bigInteger('article_id').notNullable()
     t.boolean('archived').defaultTo(false)

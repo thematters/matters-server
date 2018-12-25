@@ -143,7 +143,7 @@ type AuthResult {
 }
 
 input ClearReadHistoryInput {
-  uuid: UUID
+  id: ID!
 }
 
 type Comment implements Node {
@@ -328,20 +328,19 @@ type Mutation {
   markAllNoticesAsRead: Boolean
   singleFileUpload(input: SingleFileUploadInput!): Asset!
 
+  """send verification code"""
+  sendVerificationCode(input: SendVerificationCodeInput!): Boolean
+
   """change or reset password"""
-  sendResetPasswrodCode(input: SendResetPasswrodCodeInput!): Boolean
   confirmResetPassword(input: ConfirmResetPasswordInput!): Boolean
 
   """change email"""
-  sendChangeEmailCode(input: SendChangeEmailCodeInput!): Boolean
   confirmChangeEmail(input: ConfirmChangeEmailInput!): Boolean
 
   """verify email"""
-  sendVerfiyEmailCode(input: SendVerifyEmailCodeInput!): Boolean
   confirmVerifyEmail(input: ConfirmVerifyEmailInput!): Boolean
 
   """register"""
-  sendRegisterCode(input: SendRegisterCodeInput!): Boolean
   userRegister(input: UserRegisterInput!): AuthResult!
 
   """login"""
@@ -471,6 +470,7 @@ input ReadArticleInput {
 }
 
 type ReadHistory {
+  id: ID!
   article: Article!
   readAt: DateTime!
 }
@@ -514,20 +514,9 @@ enum SearchTypes {
   Tag
 }
 
-input SendChangeEmailCodeInput {
+input SendVerificationCodeInput {
   email: Email!
-}
-
-input SendRegisterCodeInput {
-  email: Email!
-}
-
-input SendResetPasswrodCodeInput {
-  email: Email!
-}
-
-input SendVerifyEmailCodeInput {
-  email: Email!
+  type: VerificationCodeType!
 }
 
 input SingleFileUploadInput {
@@ -576,7 +565,7 @@ input UpdateNotificationSettingInput {
 
 input UpdateUserInfoInput {
   displayName: String
-  avatar: URL
+  avatar: ID
   description: String
   language: UserLanguage
 }
@@ -650,7 +639,7 @@ type UserInfo {
 
   """URL for avatar"""
   avatar: URL
-  email: Email!
+  email: Email
   mobile: String
 
   """Use 500 for now, adaptive in the future"""
@@ -730,6 +719,13 @@ type UserStatus {
 }
 
 scalar UUID
+
+enum VerificationCodeType {
+  register
+  email_reset
+  password_reset
+  email_verify
+}
 
 enum Vote {
   up

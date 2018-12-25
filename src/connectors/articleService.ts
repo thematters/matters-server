@@ -323,21 +323,6 @@ export class ArticleService extends BaseService {
         action: USER_ACTION.rate
       })
 
-  /**
-   * Find article read records by articleId and user id
-   */
-  findReadByUserId = async (
-    articleId: string,
-    userId: string
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('article_read')
-      .where({
-        articleId,
-        userId
-      })
-
   isSubscribed = async ({
     userId,
     targetId
@@ -419,14 +404,26 @@ export class ArticleService extends BaseService {
   /**
    * User read an article
    */
-  read = async (articleId: string, userId: string): Promise<any[]> =>
-    await this.baseCreate(
+  read = async (articleId: string, userId: string): Promise<any[]> => {
+    const readHistory = await this.knex
+      .select()
+      .from('article_read')
+      .where({ articleId, userId, archived: false })
+      .first()
+
+    if (readHistory) {
+      return readHistory
+    }
+
+    return await this.baseCreate(
       {
-        userId,
-        articleId
+        uuid: v4(),
+        articleId,
+        userId
       },
       'article_read'
     )
+  }
 
   /**
    * User report an article
