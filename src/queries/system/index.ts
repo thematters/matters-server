@@ -29,7 +29,7 @@ export default {
       }
 
       if (input && input.type) {
-        const result = serviceMap[input.type].search(input)
+        const result = serviceMap['Article'].search(input)
         return result
       }
     }
