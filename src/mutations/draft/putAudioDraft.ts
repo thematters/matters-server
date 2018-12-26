@@ -4,7 +4,7 @@ import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,
-  { input: { id, audioAssetId, title, length } },
+  { input: { id: uuid, audioAssetId, title, length } },
   { viewer, dataSources: { draftService } }
 ) => {
   if (!viewer) {
@@ -12,23 +12,22 @@ const resolver: Resolver = async (
   }
 
   const data: ItemData = {
-    authorId: id ? undefined : viewer.id,
+    authorId: uuid ? undefined : viewer.id,
     title,
     audio: audioAssetId,
     length
   }
 
   // Update
-  if (id) {
-    const { id: dbId } = fromGlobalId(id)
-    const draft = await draftService.baseFindById(dbId, 'audio_draft')
+  if (uuid) {
+    const draft = await draftService.baseFindByUUID(uuid, 'audio_draft')
     if (!draft) {
       throw new Error('target audio draft does not exist')
     }
     if (draft.authorId !== viewer.id) {
       throw new Error('disallow to process')
     }
-    return await draftService.baseUpdateById(dbId, data, 'audio_draft')
+    return await draftService.baseUpdateByUUID(uuid, data, 'audio_draft')
   }
   // Create
   else {

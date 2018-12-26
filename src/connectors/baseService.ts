@@ -49,20 +49,23 @@ export class BaseService extends DataSource {
   /**
    * Find items by given ids.
    */
-  baseFindByIds = async (ids: string[]) =>
+  baseFindByIds = async (ids: string[], table?: TableName) =>
     await this.knex
       .select()
-      .from(this.table)
+      .from(table || this.table)
       .whereIn('id', ids)
 
   /**
    * Find an item by a given uuid.
    *
    */
-  baseFindByUUID = async (uuid: string): Promise<any | null> => {
+  baseFindByUUID = async (
+    uuid: string,
+    table?: TableName
+  ): Promise<any | null> => {
     const result = await this.knex
       .select()
-      .from(this.table)
+      .from(table || this.table)
       .where('uuid', uuid)
     if (result && result.length > 0) {
       return result[0]
@@ -73,10 +76,13 @@ export class BaseService extends DataSource {
   /**
    * Find items by given ids.
    */
-  baseFindByUUIDs = async (uuids: string[]): Promise<any[]> =>
+  baseFindByUUIDs = async (
+    uuids: string[],
+    table?: TableName
+  ): Promise<any[]> =>
     await this.knex
       .select()
-      .from(this.table)
+      .from(table || this.table)
       .whereIn('uuid', uuids)
 
   /**

@@ -33,23 +33,33 @@ export default {
         official_announcement: 'OfficialAnnouncementNotice'
       }
       return noticeTypeMap[type]
-    },
-    id: ({ id }: { id: string }) => {
-      return toGlobalId({ type: 'Notice', id })
     }
   },
+  UserNewFollowerNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid
+  },
+  UserDisabledNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid
+  },
+  ArticlePublishedNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid
+  },
   ArticleReportedNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid,
     reason: ({ data }: { data: any }) => data && data.reason
   },
   ArticleArchivedNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid,
     reason: ({ data }: { data: any }) => data && data.reason
   },
   ArticleNewDownstreamNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid,
     downstream: ({ entities }: { entities: any }) => {
       return entities['downstream']
     }
   },
   ArticleNewAppreciationNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid,
     MAT: (
       { actors, target }: { actors: any[]; target: any },
       _: any,
@@ -59,13 +69,37 @@ export default {
       return articleService.countAppreciationByUserIds(target.id, actorIds)
     }
   },
-  CommentArchivedNotice: {
-    reason: ({ data }: { data: any }) => data && data.reason
+  ArticleNewSubscriberNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid
+  },
+  ArticleNewCommentNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid
+  },
+  SubscribedArticleNewCommentNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid
+  },
+  CommentPinnedNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid
   },
   CommentReportedNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid,
     reason: ({ data }: { data: any }) => data && data.reason
   },
+  CommentArchivedNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid,
+    reason: ({ data }: { data: any }) => data && data.reason
+  },
+  CommentNewReplyNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid
+  },
+  CommentNewUpvoteNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid
+  },
+  CommentMentionedYouNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid
+  },
   OfficialAnnouncementNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid,
     link: ({ data }: { data: any }) => data && data.link
   }
 }

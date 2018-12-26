@@ -12,12 +12,12 @@ export default {
     audioDrafts
   },
   Draft: {
-    id: ({ id }: { id: string }) => {
-      return toGlobalId({ type: 'Draft', id })
-    },
+    id: ({ id }: { id: string }) => toGlobalId({ type: 'Draft', id }),
     cover
   },
   AudioDraft: {
+    id: ({ uuid }: { uuid: string }) => uuid,
+    authorId: ({ id }: { id: string }) => toGlobalId({ type: 'User', id }),
     audio
   }
 }

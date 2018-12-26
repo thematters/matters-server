@@ -23,9 +23,7 @@ export default {
     comments: articleComments
   },
   Comment: {
-    id: ({ id }: { id: string }) => {
-      return toGlobalId({ type: 'Comment', id })
-    },
+    id: ({ id }: { id: string }) => toGlobalId({ type: 'Comment', id }),
     article,
     author,
     upvotes,
