@@ -3,7 +3,7 @@ import { Resolver, BatchParams, Context } from 'definitions'
 const resolver: Resolver = async (
   { id }: { id: string },
   { input: { offset, limit } }: BatchParams,
-  { commentService, articleService }: Context
+  { dataSources: { commentService, articleService } }: Context
 ) => {
   const comments = await commentService.findByAuthorInBatch(id, offset, limit)
   return articleService.dataloader.loadMany(

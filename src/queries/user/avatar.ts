@@ -1,6 +1,10 @@
 import { Resolver } from 'definitions'
 
-const resolver: Resolver = async ({ avatar }, _, { systemService }) => {
+const resolver: Resolver = async (
+  { avatar },
+  _,
+  { dataSources: { systemService } }
+) => {
   return avatar ? systemService.findAssetUrl(avatar) : null
 }
 

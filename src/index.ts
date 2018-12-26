@@ -4,7 +4,16 @@ require('dotenv').config()
 // external
 import { ApolloServer } from 'apollo-server'
 // internal
+import { DataSources } from 'definitions'
 import { makeContext, initSubscriptions } from 'common/utils'
+import {
+  ArticleService,
+  CommentService,
+  DraftService,
+  SystemService,
+  TagService,
+  UserService
+} from 'connectors'
 // local
 import schema from './schema'
 
@@ -25,7 +34,15 @@ const server = new ApolloServer({
   engine: {
     apiKey: process.env['ENGINE_API_KEY']
   },
-  subscriptions: initSubscriptions()
+  subscriptions: initSubscriptions(),
+  dataSources: (): DataSources => ({
+    userService: new UserService(),
+    articleService: new ArticleService(),
+    commentService: new CommentService(),
+    draftService: new DraftService(),
+    systemService: new SystemService(),
+    tagService: new TagService()
+  })
   // mocks
 })
 

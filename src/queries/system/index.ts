@@ -9,12 +9,14 @@ export default {
       root: any,
       { input }: { input: GQLSearchInput },
       {
-        systemService,
-        articleService,
-        userService,
-        commentService,
-        draftService,
-        tagService
+        dataSources: {
+          systemService,
+          articleService,
+          userService,
+          commentService,
+          draftService,
+          tagService
+        }
       }: Context
     ) => {
       // TODO: better of mapping index to type name

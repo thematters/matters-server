@@ -53,7 +53,7 @@ export default {
     MAT: (
       { actors, target }: { actors: any[]; target: any },
       _: any,
-      { articleService }: Context
+      { dataSources: { articleService } }: Context
     ) => {
       const actorIds = actors.map(actor => actor.id)
       return articleService.countAppreciationByUserIds(target.id, actorIds)

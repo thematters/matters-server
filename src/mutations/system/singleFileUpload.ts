@@ -4,7 +4,7 @@ import { ItemData, Resolver } from 'definitions'
 const resolver: Resolver = async (
   root,
   { input: { type, file } },
-  { viewer, systemService }
+  { viewer, dataSources: { systemService } }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this')

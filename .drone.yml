@@ -24,7 +24,7 @@ steps:
       MATTERS_REDIS_HOST: redis
       MATTERS_REDIS_PORT: 6379
       MATTERS_JWT_SECRET: QsNmu9
-      MATTERS_ELASTICSEARCH_ENDPOINT: http://18.136.63.149:9200
+      MATTERS_ELASTICSEARCH_ENDPOINT: http://elasticsearch:9200
     commands:
       - npx jest --forceExit --detectOpenHandles --coverage
 
@@ -126,3 +126,9 @@ services:
       POSTGRES_DB: matters-test
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+  - name: redis
+    image: redis
+  - name: elasticsearch
+    image: elasticsearch:5-alpine
+    ports:
+      - 9200

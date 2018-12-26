@@ -4,7 +4,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: Resolver = (
   { id }: { id: string },
   { input }: ArticleToCommentsArgs,
-  { commentService }: Context
+  { dataSources: { commentService } }: Context
 ) => {
   const args = { ...input, id }
   if (input.author) {

@@ -1,4 +1,5 @@
 // external
+import { DataSource } from 'apollo-datasource'
 import _ from 'lodash'
 import assert from 'assert'
 import DataLoader from 'dataloader'
@@ -10,7 +11,7 @@ import { aws, AWSService } from './aws'
 import { knex } from './db'
 import { es } from './es'
 
-export class BaseService {
+export class BaseService extends DataSource {
   es: ESClient
 
   aws: InstanceType<typeof AWSService>
@@ -24,6 +25,7 @@ export class BaseService {
   table: TableName
 
   constructor(table: TableName) {
+    super()
     this.es = es
     this.knex = knex
     this.table = table

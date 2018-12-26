@@ -5,7 +5,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: Resolver = async (
   _,
   { input: { id, upstreamId, title, content, tags, coverAssetId } },
-  { viewer, draftService }
+  { viewer, dataSources: { draftService } }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this')

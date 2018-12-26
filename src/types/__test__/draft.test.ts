@@ -1,34 +1,35 @@
-// external
-import { graphql } from 'graphql'
 // local
 import { knex } from 'connectors/db'
-import schema from '../../schema'
-import { authContext } from './utils'
 import { GQLPutDraftInput } from 'definitions'
+import { testClient } from './utils'
 
 afterAll(knex.destroy)
 
-export const createDraft = async (draft: GQLPutDraftInput) => {
-  const mutation = `
-    mutation($input: PutDraftInput!) {
-      putDraft(input: $input) {
+const PUT_DRAFT = `
+  mutation($input: PutDraftInput!) {
+    putDraft(input: $input) {
+      id
+      upstream {
         id
-        upstream {
-          id
-        }
-        title
-        summary
-        content
-        createdAt
       }
+      title
+      summary
+      content
+      createdAt
     }
-  `
-  const context = await authContext()
-  const result = await graphql(schema, mutation, {}, context, {
-    input: draft
+  }
+`
+
+export const createDraft = async (draft: GQLPutDraftInput) => {
+  const { mutate } = await testClient({
+    isAuth: true
+  })
+  const result = await mutate({
+    mutation: PUT_DRAFT,
+    // @ts-ignore
+    variables: { input: draft }
   })
   const putDraft = result && result.data && result.data.putDraft
-
   return putDraft
 }
 

@@ -3,7 +3,7 @@ import { Resolver, BatchParams } from 'definitions'
 const resolver: Resolver = (
   { id },
   { input: { offset, limit } }: BatchParams,
-  { articleService }
+  { dataSources: { articleService } }
 ) => articleService.findByUpstream(id, offset, limit)
 
 export default resolver

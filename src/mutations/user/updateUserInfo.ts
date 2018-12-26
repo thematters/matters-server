@@ -1,6 +1,10 @@
 import { Resolver } from 'definitions'
 
-const resolver: Resolver = async (_, { input }, { viewer, userService }) => {
+const resolver: Resolver = async (
+  _,
+  { input },
+  { viewer, dataSources: { userService } }
+) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO
   }
