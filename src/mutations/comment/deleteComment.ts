@@ -5,7 +5,7 @@ import pubsub from 'common/pubsub'
 const resolver: Resolver = async (
   _,
   { input: { id } },
-  { viewer, commentService, articleService }
+  { viewer, dataSources: { commentService, articleService } }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO

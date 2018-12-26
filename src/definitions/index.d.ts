@@ -8,6 +8,7 @@ import {
   SystemService,
   TagService
 } from 'connectors'
+import { DataSource } from 'apollo-datasource'
 
 export * from './schema'
 
@@ -50,8 +51,15 @@ export type User = {
   updatedAt: string
 }
 
-export type Context = {
+export type Context = RequestContext & {
+  dataSources: DataSources
+}
+
+export type RequestContext = {
   viewer: User | undefined
+}
+
+export type DataSources = {
   articleService: InstanceType<typeof ArticleService>
   commentService: InstanceType<typeof CommentService>
   draftService: InstanceType<typeof DraftService>

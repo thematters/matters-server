@@ -3,7 +3,7 @@ import { Resolver, Context, NodeTypes, GQLSearchInput } from 'definitions'
 const resolver: Resolver = (
   root: any,
   { input }: { input: GQLSearchInput },
-  { articleService, userService, tagService }: Context
+  { dataSource: { articleService, userService, tagService } }: Context
 ) => {
   const serviceMap = {
     Article: articleService,

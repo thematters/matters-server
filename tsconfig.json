@@ -30,5 +30,5 @@
     "esModuleInterop": true,
     "strictPropertyInitialization": false
   },
-  "exclude": ["node_modules", "src/**/*.test.ts", "src/**/__test__/**/*.ts"]
+  "exclude": ["node_modules"]
 }

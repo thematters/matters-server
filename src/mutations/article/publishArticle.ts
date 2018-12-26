@@ -4,7 +4,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: Resolver = async (
   root,
   { input: { id } },
-  { viewer, articleService, draftService, tagService }
+  { viewer, dataSources: { articleService, draftService, tagService } }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO
