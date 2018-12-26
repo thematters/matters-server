@@ -1,4 +1,5 @@
 import elasticsearch from 'elasticsearch'
+import _ from 'lodash'
 
 import { environment } from 'common/environment'
 import { knex } from '../db'
@@ -25,28 +26,20 @@ class ElasticSearch {
   }) => {
     const exists = await this.client.indices.exists({ index })
     if (!exists) {
-      console.log(`Creating index ${index}`)
       await this.client.indices.create({ index })
-      console.log(`Done`)
     }
 
     try {
-      console.log('start adding', { items })
-      const body = items
-        .map(item => {
-          return [
-            { index: { _index: index, _type: index, _id: item.id } },
-            item
-          ]
-        })
-        .flat()
-
-      console.log(JSON.stringify(body))
+      const body = _.flattenDepth(
+        items.map(item => [
+          { index: { _index: index, _type: index, _id: item.id } },
+          item
+        ])
+      )
 
       const res = await this.client.bulk({
         body
       })
-      console.log({ res })
       return res
     } catch (err) {
       throw err

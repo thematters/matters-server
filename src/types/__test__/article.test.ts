@@ -98,13 +98,13 @@ test('query null upstream on article', async () => {
   expect(upstream).toBeNull()
 })
 
-test.only('create draft and publish', async () => {
+test('create draft and publish', async () => {
+  jest.setTimeout(10000)
   const draft = {
     title: Math.random().toString(),
     content: Math.random().toString()
   }
   const { id } = await createDraft(draft)
-  console.log({ draftId: id })
   const article = await publishArticle({ id })
   expect(article).toMatchObject(draft)
 })
