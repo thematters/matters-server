@@ -3,15 +3,15 @@ import { Resolver, BatchParams, Context } from 'definitions'
 const resolver: Resolver = async (
   { id }: { id: string },
   { input: { offset, limit } }: BatchParams,
-  { userService, articleService }: Context
+  { dataSources: { userService, articleService } }: Context
 ) => {
   const readHistory = await userService.findReadHistory(id, offset, limit)
 
   return Promise.all(
-    readHistory.map(async ({ id, articleId, createdAt }) => {
+    readHistory.map(async ({ uuid, articleId, createdAt }) => {
       const article = await articleService.dataloader.load(articleId)
       return {
-        id,
+        uuid,
         article,
         readAt: createdAt
       }

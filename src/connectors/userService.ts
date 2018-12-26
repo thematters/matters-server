@@ -319,14 +319,17 @@ export class UserService extends BaseService {
       .limit(limit)
 
   /**
-   * Find user's read history by a given id (article_read)
+   * Find user's read history by a given uuid (article_read)
    */
-  findReadHistoryById = async (id: string, userId: string): Promise<any[]> =>
+  findReadHistoryByUUID = async (
+    uuid: string,
+    userId: string
+  ): Promise<any[]> =>
     await this.knex
       .select()
       .from('article_read')
       .where({
-        id,
+        uuid,
         userId,
         archived: false
       })
@@ -343,6 +346,7 @@ export class UserService extends BaseService {
     const notices = await this.knex
       .select([
         'notice.id',
+        'notice.uuid',
         'notice.unread',
         'notice.updated_at',
         'notice_detail.notice_type',
@@ -401,6 +405,7 @@ export class UserService extends BaseService {
 
       return {
         id: notice.id,
+        uuid: notice.uuid,
         unread: notice.unread,
         createdAt: notice.updatedAt,
         type: notice.noticeType,

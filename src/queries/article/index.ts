@@ -41,9 +41,7 @@ export default {
     participantCount: () => 50 // TODO
   },
   Tag: {
-    id: ({ id }: { id: string }) => {
-      return toGlobalId({ type: 'Tag', id })
-    },
+    id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
     count: tagCount,
     articles: tagArticles
   }

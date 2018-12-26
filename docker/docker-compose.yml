@@ -15,6 +15,7 @@ services:
       - db
       - redis
       - s3
+      - elasticsearch
     ports:
       - '4000:4000'
   db:
