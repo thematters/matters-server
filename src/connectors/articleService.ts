@@ -92,29 +92,18 @@ export class ArticleService extends BaseService {
     tags
   }: {
     [key: string]: string
-  }) => {
-    console.log({
-      title,
-      content
+  }) =>
+    this.es.indexItems({
+      index: this.table,
+      items: [
+        {
+          id,
+          title,
+          content,
+          tags
+        }
+      ]
     })
-    try {
-      const res = await this.es.indexItems({
-        index: this.table,
-        items: [
-          {
-            id,
-            title,
-            content,
-            tags
-          }
-        ]
-      })
-      console.log({ res })
-      return res
-    } catch (err) {
-      throw err
-    }
-  }
 
   search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
     // TODO: handle search across title and content
@@ -124,6 +113,8 @@ export class ArticleService extends BaseService {
         fuzziness: 5,
         fields: ['title^10', 'content']
       })
+      .size(limit)
+      .from(offset)
       .build()
 
     try {
@@ -133,8 +124,9 @@ export class ArticleService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
-      const articles = await this.dataloader.loadMany(ids)
-      return articles.map(article => ({
+      // TODO: determine if id exsists and use dataloader
+      const articles = await this.baseFindByIds(ids)
+      return articles.map((article: { [key: string]: string }) => ({
         node: { ...article, __type: 'Article' },
         match: key
       }))

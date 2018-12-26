@@ -38,6 +38,7 @@ const resolver: Resolver = async (
   // TODO: trigger publication and tag creation with task queue
   await articleService.publish(article.id)
 
+  // handle tags
   let tags = tagList
   if (tags) {
     // create tag records, return tag record if already exists
@@ -57,7 +58,7 @@ const resolver: Resolver = async (
 
   // add to search
   await articleService.addToSearch({ ...article, tags })
-  console.log('done')
+
   return article
 }
 

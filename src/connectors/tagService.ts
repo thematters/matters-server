@@ -1,6 +1,9 @@
+// external
+import DataLoader from 'dataloader'
+// internal
+import { GQLSearchInput } from 'definitions'
 import { BaseService } from './baseService'
 import { BATCH_SIZE } from 'common/enums'
-import DataLoader from 'dataloader'
 
 export class TagService extends BaseService {
   constructor() {
@@ -20,6 +23,19 @@ export class TagService extends BaseService {
     return await this.baseCreate({
       content
     })
+  }
+
+  search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
+    const tags = await this.knex(this.table).where(
+      'content',
+      'like',
+      `%${key}%`
+    )
+
+    return tags.map((tag: { [key: string]: string }) => ({
+      node: { ...tag, __type: 'Tag' },
+      match: key
+    }))
   }
 
   createArticleTag = async ({
