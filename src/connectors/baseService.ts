@@ -11,7 +11,7 @@ import { knex } from './db'
 import { es } from './es'
 
 export class BaseService {
-  es: ESClient
+  es: typeof es
 
   aws: InstanceType<typeof AWSService>
 

@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio'
+import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { ItemData, GQLSearchInput } from 'definitions'
 import { v4 } from 'uuid'
@@ -11,6 +12,27 @@ export class ArticleService extends BaseService {
     super('article')
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+
+    this.init()
+  }
+
+  init = async () => {
+    const { count } = await this.es.client.count({
+      index: this.table
+    })
+
+    if (!count) {
+      const articles = await this.knex(this.table).select(
+        'content',
+        'title',
+        'id'
+      )
+
+      await this.es.indexItems({
+        index: this.table,
+        items: articles
+      })
+    }
   }
 
   /**
@@ -66,24 +88,29 @@ export class ArticleService extends BaseService {
   addToSearch = async ({
     id,
     title,
-    summary,
     content,
     tags
   }: {
     [key: string]: string
   }) => {
+    console.log({
+      title,
+      content
+    })
     try {
-      await this.es.index({
-        index: 'article',
-        id,
-        type: 'article',
-        body: {
-          title,
-          summary,
-          content,
-          tags
-        }
+      const res = await this.es.indexItems({
+        index: this.table,
+        items: [
+          {
+            id,
+            title,
+            content,
+            tags
+          }
+        ]
       })
+      console.log({ res })
+      return res
     } catch (err) {
       throw err
     }
@@ -92,14 +119,25 @@ export class ArticleService extends BaseService {
   search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
     // TODO: handle search across title and content
     const body = bodybuilder()
-      .query('match', 'content', key)
-      .size(limit)
+      .query('multi_match', {
+        query: key,
+        fuzziness: 5,
+        fields: ['title^10', 'content']
+      })
       .build()
+
     try {
-      const { hits } = await this.es.search({ index: this.table, body })
+      const { hits } = await this.es.client.search({
+        index: this.table,
+        type: this.table,
+        body
+      })
       const ids = hits.hits.map(({ _id }) => _id)
-      const nodes = await this.dataloader.loadMany(ids)
-      return nodes.map(node => ({ node, match: key }))
+      const articles = await this.dataloader.loadMany(ids)
+      return articles.map(article => ({
+        node: { ...article, __type: 'Article' },
+        match: key
+      }))
     } catch (err) {
       throw err
     }

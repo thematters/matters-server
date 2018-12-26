@@ -98,7 +98,7 @@ test('query null upstream on article', async () => {
   expect(upstream).toBeNull()
 })
 
-test('create draft and publish', async () => {
+test.only('create draft and publish', async () => {
   const draft = {
     title: Math.random().toString(),
     content: Math.random().toString()

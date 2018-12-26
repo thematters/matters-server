@@ -27,7 +27,7 @@ export default {
         // Draft: draftService,
         // Tag: tagService
       }
-
+      console.log('resolver')
       if (input && input.type) {
         const result = serviceMap['Article'].search(input)
         return result

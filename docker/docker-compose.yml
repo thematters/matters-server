@@ -40,6 +40,7 @@ services:
       - '4569:4569'
   elasticsearch:
     image: matters/elasticsearch:latest
+    container_name: matters-search
     command: elasticsearch -E network.host=0.0.0.0 -E discovery.zen.minimum_master_nodes=1
     environment:
       - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'

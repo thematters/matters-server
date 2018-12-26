@@ -18,7 +18,7 @@ const resolver: Resolver = async (
     cover,
     summary,
     content,
-    tags
+    tags: tagList
   } = await draftService.dataloader.load(draftDBId)
 
   if (authorId !== viewer.id) {
@@ -38,6 +38,7 @@ const resolver: Resolver = async (
   // TODO: trigger publication and tag creation with task queue
   await articleService.publish(article.id)
 
+  let tags = tagList
   if (tags) {
     // create tag records, return tag record if already exists
     const dbTags = ((await Promise.all(
@@ -50,10 +51,13 @@ const resolver: Resolver = async (
         tagService.createArticleTag({ tagId, articleId: article.id })
       )
     )
+  } else {
+    tags = []
   }
 
   // add to search
   await articleService.addToSearch({ ...article, tags })
+  console.log('done')
   return article
 }
 
