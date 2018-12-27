@@ -13,7 +13,6 @@ export default /* GraphQL */ `
     article: Article!
     content: String
     author: User!
-    archived: Boolean!
     upvotes: Int!
     downvotes: Int!
     quote: Boolean!
