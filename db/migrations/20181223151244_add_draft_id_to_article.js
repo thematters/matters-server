@@ -3,7 +3,7 @@ const column = 'draft_id'
 
 exports.up = async knex => {
   await knex.schema.table(table, function(t) {
-    t.integer(column).unsigned()
+    t.bigInteger(column).unsigned()
 
     t.foreign(column)
       .references('id')
