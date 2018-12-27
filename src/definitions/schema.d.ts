@@ -52,7 +52,7 @@ export interface GQLNodeNameMap {
 
 export interface GQLSearchInput {
   key: string
-  type?: GQLSearchTypes
+  type: GQLSearchTypes
   offset?: number
   limit?: number
 }

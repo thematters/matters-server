@@ -76,6 +76,7 @@ export type TableName =
   | 'article'
   | 'tag'
   | 'article_read'
+  | 'article_tag'
   | 'audio_draft'
   | 'comment'
   | 'comment_mentioned_user'

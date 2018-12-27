@@ -10,6 +10,7 @@ const resolver: Resolver = async (
     throw new Error('anonymous user cannot do this') // TODO
   }
 
+  // retrive data from draft
   const { id: draftDBId } = fromGlobalId(id)
   const {
     authorId,
@@ -18,13 +19,14 @@ const resolver: Resolver = async (
     cover,
     summary,
     content,
-    tags
+    tags: tagList
   } = await draftService.dataloader.load(draftDBId)
 
   if (authorId !== viewer.id) {
     throw new Error('draft does not exists') // TODO
   }
 
+  // creat pending article
   const article = await articleService.create({
     authorId,
     draftId: draftDBId,
@@ -35,21 +37,23 @@ const resolver: Resolver = async (
     content
   })
 
-  // TODO: trigger publication and tag creation with task queue
+  // TODO: timeout with task queue
   await articleService.publish(article.id)
 
+  // handle tags
+  let tags = tagList
   if (tags) {
     // create tag records, return tag record if already exists
     const dbTags = ((await Promise.all(
       tags.map((tag: string) => tagService.create({ content: tag }))
-    )) as unknown) as { id: string; content: string }[]
-
+    )) as unknown) as [{ id: string; content: string }]
     // create article_tag record
-    await Promise.all(
-      dbTags.map(({ id: tagId }: { id: string }) =>
-        tagService.createArticleTag({ tagId, articleId: article.id })
-      )
-    )
+    await tagService.createArticleTags({
+      articleId: article.id,
+      tagIds: dbTags.map(({ id }) => id)
+    })
+  } else {
+    tags = []
   }
 
   // add to search

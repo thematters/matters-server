@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio'
+import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
-import { ItemData } from 'definitions'
+import { ItemData, GQLSearchInput } from 'definitions'
 import { v4 } from 'uuid'
 
 import { BATCH_SIZE, USER_ACTION, PUBLISH_STATE } from 'common/enums'
@@ -11,6 +12,20 @@ export class ArticleService extends BaseService {
     super('article')
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+  }
+
+  // dump all data to es. Currently only used in test.
+  initSearch = async () => {
+    const articles = await this.knex(this.table).select(
+      'content',
+      'title',
+      'id'
+    )
+
+    return this.es.indexItems({
+      index: this.table,
+      items: articles
+    })
   }
 
   /**
@@ -63,26 +78,54 @@ export class ArticleService extends BaseService {
     return article
   }
 
-  addToSearch = ({
+  addToSearch = async ({
     id,
     title,
-    summary,
     content,
     tags
   }: {
     [key: string]: string
   }) =>
-    this.es.index({
-      index: 'article',
-      id,
-      type: 'article',
-      body: {
-        title,
-        summary,
-        content,
-        tags
-      }
+    this.es.indexItems({
+      index: this.table,
+      items: [
+        {
+          id,
+          title,
+          content,
+          tags
+        }
+      ]
     })
+
+  search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
+    const body = bodybuilder()
+      .query('multi_match', {
+        query: key,
+        fuzziness: 5,
+        fields: ['title^10', 'content']
+      })
+      .size(limit)
+      .from(offset)
+      .build()
+
+    try {
+      const { hits } = await this.es.client.search({
+        index: this.table,
+        type: this.table,
+        body
+      })
+      const ids = hits.hits.map(({ _id }) => _id)
+      // TODO: determine if id exsists and use dataloader
+      const articles = await this.baseFindByIds(ids)
+      return articles.map((article: { [key: string]: string }) => ({
+        node: { ...article, __type: 'Article' },
+        match: key
+      }))
+    } catch (err) {
+      throw err
+    }
+  }
 
   // TODO: rank hottest
   recommendHottest = ({ offset = 0, limit = 5 }) =>

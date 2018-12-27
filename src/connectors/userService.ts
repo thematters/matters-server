@@ -2,10 +2,12 @@ import DataLoader from 'dataloader'
 import { hash, compare } from 'bcrypt'
 import { v4 } from 'uuid'
 import jwt from 'jsonwebtoken'
+import bodybuilder from 'bodybuilder'
+import _ from 'lodash'
 
 import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
-import { ItemData } from 'definitions'
+import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 import { BaseService } from './baseService'
 
 export class UserService extends BaseService {
@@ -13,6 +15,21 @@ export class UserService extends BaseService {
     super('user')
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+  }
+
+  // dump all data to es. Currently only used in test.
+  initSearch = async () => {
+    const users = await this.knex(this.table).select(
+      'id',
+      'description',
+      'display_name',
+      'user_name'
+    )
+
+    return this.es.indexItems({
+      index: this.table,
+      items: users
+    })
   }
 
   /**
@@ -49,7 +66,78 @@ export class UserService extends BaseService {
       passwordHash
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
+
+    await this.addToSearch(user)
     return user
+  }
+
+  update = async (id: string, input: GQLUpdateUserInfoInput) => {
+    const user = await this.baseUpdateById(id, input)
+
+    const { description, displayName } = input
+    if (description || displayName) {
+      // remove null and undefined
+      const searchable = _.pickBy({ description, displayName }, _.identity)
+      await this.es.client.update({
+        index: this.table,
+        type: this.table,
+        id,
+        body: {
+          doc: searchable
+        }
+      })
+    }
+
+    return user
+  }
+
+  addToSearch = async ({
+    id,
+    userName,
+    displayName,
+    description
+  }: {
+    [key: string]: string
+  }) =>
+    this.es.indexItems({
+      index: this.table,
+      items: [
+        {
+          id,
+          userName,
+          displayName,
+          description
+        }
+      ]
+    })
+
+  search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
+    const body = bodybuilder()
+      .query('multi_match', {
+        query: key,
+        fuzziness: 5,
+        fields: ['description', 'displayName^2', 'userName^2']
+      })
+      .size(limit)
+      .from(offset)
+      .build()
+
+    try {
+      const { hits } = await this.es.client.search({
+        index: this.table,
+        type: this.table,
+        body
+      })
+      const ids = hits.hits.map(({ _id }) => _id)
+      // TODO: determine if id exsists and use dataloader
+      const users = await this.baseFindByIds(ids)
+      return users.map((user: { [key: string]: string }) => ({
+        node: { ...user, __type: 'User' },
+        match: key
+      }))
+    } catch (err) {
+      throw err
+    }
   }
 
   /**
@@ -137,7 +225,7 @@ export class UserService extends BaseService {
   findByEmail = async (
     email: string
   ): Promise<{ uuid: string; [key: string]: string }> =>
-    await this.knex
+    this.knex
       .select()
       .from(this.table)
       .where({ email })

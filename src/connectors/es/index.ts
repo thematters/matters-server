@@ -1,34 +1,50 @@
 import elasticsearch from 'elasticsearch'
+import _ from 'lodash'
+
 import { environment } from 'common/environment'
+import { knex } from '../db'
 
-const indices = ['article', 'user']
+const { esHost: host, esPort: port } = environment
 
-export const es = new elasticsearch.Client({
-  hosts: [environment.elasticSearchEndpoint]
-})
+class ElasticSearch {
+  client: elasticsearch.Client
 
-const esInit = async () => {
-  await es.ping(
-    {
-      requestTimeout: 30000
-    },
-    function(error) {
-      if (error) {
-        console.error('ElasticSearch cluster is down!')
-      } else {
-        console.log('ElasticSearch connected')
-      }
-    }
-  )
+  indices = ['article', 'user']
 
-  for (const index of indices) {
-    const exists = await es.indices.exists({ index })
+  constructor() {
+    this.client = new elasticsearch.Client({
+      host: { host, port }
+    })
+  }
+
+  indexItems = async ({
+    index,
+    items
+  }: {
+    index: string
+    items: { [key: string]: any; id: string }[]
+  }) => {
+    const exists = await this.client.indices.exists({ index })
     if (!exists) {
-      console.log(`Creating index ${index}`)
-      await es.indices.create({ index })
-      console.log(`Done`)
+      await this.client.indices.create({ index })
+    }
+
+    try {
+      const body = _.flattenDepth(
+        items.map(item => [
+          { index: { _index: index, _type: index, _id: item.id } },
+          item
+        ])
+      )
+
+      const res = await this.client.bulk({
+        body
+      })
+      return res
+    } catch (err) {
+      throw err
     }
   }
 }
 
-esInit()
+export const es = new ElasticSearch()
