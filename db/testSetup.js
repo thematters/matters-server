@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 // MATTERS_ENV must be 'test' in order to run test cases
 if (!['test', 'development'].includes(process.env['MATTERS_ENV']))
   throw new Error(

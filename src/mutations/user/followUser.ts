@@ -4,7 +4,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: Resolver = async (
   _,
   { input: { id } },
-  { viewer, dataSources: { userService } }
+  { viewer, dataSources: { userService, notificationService } }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO
@@ -17,6 +17,14 @@ const resolver: Resolver = async (
   }
 
   await userService.follow(viewer.id, user.id)
+
+  // trigger notificaiton
+  notificationService.trigger({
+    type: 'user_new_follower',
+    actors: [viewer.id],
+    recipientId: user.id
+  })
+
   return true
 }
 

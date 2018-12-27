@@ -6,7 +6,8 @@ import {
   CommentService,
   DraftService,
   SystemService,
-  TagService
+  TagService,
+  NotificationService
 } from 'connectors'
 import { DataSource } from 'apollo-datasource'
 
@@ -64,6 +65,7 @@ export type DataSources = {
   userService: InstanceType<typeof UserService>
   systemService: InstanceType<typeof SystemService>
   tagService: InstanceType<typeof TagService>
+  notificationService: InstanceType<typeof NotificationService>
 }
 
 export type TableName =
@@ -89,6 +91,7 @@ export type TableName =
   | 'notice'
   | 'notice_actor'
   | 'notice_entity'
+  | 'push_device'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'
@@ -135,3 +138,137 @@ export type NoticeType =
   | 'comment_mentioned_you'
   // official
   | 'official_announcement'
+
+export type PubSubType = 'article_updated'
+
+export type NoticeEntity = {
+  type: 'target' | 'downstream'
+  entityType: string
+  entity: any
+}
+
+export type NoticeUserNewFollowerParams = {
+  type: 'user_new_follower'
+  actors: [string]
+  recipientId: string
+}
+
+export type NoticeUserDisabledParams = {
+  type: 'user_disabled'
+  data: { reason: string }
+}
+
+export type NoticeArticlePublishedParams = {
+  type: 'article_published'
+  entities: [NoticeEntity]
+}
+
+export type NoticeArticleReportedParams = {
+  type: 'article_reported'
+  entities: [NoticeEntity]
+  data: { reason: string }
+}
+
+export type NoticeArticleArchivedParams = {
+  type: 'article_archived'
+  entities: [NoticeEntity]
+  data: { reason: string }
+}
+
+export type NoticeArticleNewDownstreamParams = {
+  type: 'article_new_downstream'
+  actors: [string]
+  entities: [NoticeEntity]
+  data: { reason: string }
+}
+
+export type NoticeArticleNewAppreciationParams = {
+  type: 'article_new_appreciation'
+  actors: [string]
+  entities: [NoticeEntity]
+}
+
+export type NoticeArticleNewSubscriberParams = {
+  type: 'article_new_subscriber'
+  actors: [string]
+  entities: [NoticeEntity]
+}
+
+export type NoticeArticleNewCommentParams = {
+  type: 'article_new_comment'
+  actors: [string]
+  entities: [NoticeEntity]
+}
+
+export type NoticeSubscribedArticleNewCommentParams = {
+  type: 'subscribed_article_new_comment'
+  actors: [string]
+  entities: [NoticeEntity]
+}
+
+export type NoticeCommentPinnedParams = {
+  type: 'comment_pinned'
+  entities: [NoticeEntity]
+}
+
+export type NoticeCommentReportedParams = {
+  type: 'comment_reported'
+  entities: [NoticeEntity]
+  data: { reason: string }
+}
+
+export type NoticeCommentArchivedParams = {
+  type: 'comment_archived'
+  entities: [NoticeEntity]
+  data: { reason: string }
+}
+
+export type NoticeCommentNewReplyParams = {
+  type: 'comment_new_reply'
+  actors: [string]
+  entities: [NoticeEntity]
+}
+
+export type NoticeCommentNewUpvoteParams = {
+  type: 'comment_new_upvote'
+  actors: [string]
+  entities: [NoticeEntity]
+}
+
+export type NoticeCommentMentionedYouParams = {
+  type: 'comment_mentioned_you'
+  actors: [string]
+  entities: [NoticeEntity]
+}
+
+export type NoticeOfficialAnnouncementParams = {
+  type: 'official_announcement'
+  message: string
+  data: { link: string }
+}
+
+export type PubSubArticleUpdatedParams = {
+  type: 'article_updated'
+  article: any
+}
+
+export type NotificationType = PubSubType | NoticeType
+export type NotificationPrarms =
+  | NoticeUserNewFollowerParams
+  | NoticeUserDisabledParams
+  | NoticeArticlePublishedParams
+  | NoticeArticleReportedParams
+  | NoticeArticleArchivedParams
+  | NoticeArticleNewDownstreamParams
+  | NoticeArticleNewAppreciationParams
+  | NoticeArticleNewSubscriberParams
+  | NoticeArticleNewCommentParams
+  | NoticeSubscribedArticleNewCommentParams
+  | NoticeCommentPinnedParams
+  | NoticeCommentReportedParams
+  | NoticeCommentArchivedParams
+  | NoticeCommentNewReplyParams
+  | NoticeCommentNewUpvoteParams
+  | NoticeCommentMentionedYouParams
+  | NoticeOfficialAnnouncementParams
+  | PubSubArticleUpdatedParams

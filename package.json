@@ -31,6 +31,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "@sendgrid/mail": "^6.3.1",
     "@types/base-64": "^0.1.2",
     "@types/elasticsearch": "^5.0.29",
     "apollo-server": "^2.2.0",
@@ -50,6 +51,7 @@
     "graphql-tools": "^4.0.3",
     "graphql-type-json": "^0.2.1",
     "graphql-upload": "^8.0.2",
+    "jpush-async": "^4.0.0-rc.1",
     "jsonwebtoken": "^8.4.0",
     "knex": "^0.15.2",
     "lodash": "^4.17.11",

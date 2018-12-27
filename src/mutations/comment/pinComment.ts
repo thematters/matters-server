@@ -1,11 +1,13 @@
 import { Resolver } from 'definitions'
-import { fromGlobalId, toGlobalId } from 'common/utils'
-import pubsub from 'common/pubsub'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,
   { input: { id } },
-  { viewer, dataSources: { commentService, articleService } }
+  {
+    viewer,
+    dataSources: { commentService, articleService, notificationService }
+  }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO
@@ -23,12 +25,12 @@ const resolver: Resolver = async (
     pinned: true
   })
 
-  try {
-    const article = await articleService.dataloader.load(articleId)
-    pubsub.publish(toGlobalId({ type: 'Article', id: articleId }), article)
-  } catch (e) {
-    //
-  }
+  // trigger notification
+  const article = await articleService.dataloader.load(articleId)
+  notificationService.trigger({
+    type: 'article_updated',
+    article
+  })
 
   return true
 }

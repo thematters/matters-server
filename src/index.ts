@@ -12,7 +12,8 @@ import {
   DraftService,
   SystemService,
   TagService,
-  UserService
+  UserService,
+  NotificationService
 } from 'connectors'
 // local
 import schema from './schema'
@@ -41,7 +42,8 @@ const server = new ApolloServer({
     commentService: new CommentService(),
     draftService: new DraftService(),
     systemService: new SystemService(),
-    tagService: new TagService()
+    tagService: new TagService(),
+    notificationService: new NotificationService()
   })
   // mocks
 })

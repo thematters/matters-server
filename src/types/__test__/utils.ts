@@ -9,7 +9,8 @@ import {
   DraftService,
   SystemService,
   TagService,
-  UserService
+  UserService,
+  NotificationService
 } from 'connectors'
 import { initSubscriptions } from 'common/utils'
 import schema from '../../schema'
@@ -59,7 +60,8 @@ export const testClient = async (
       commentService: new CommentService(),
       draftService: new DraftService(),
       systemService: new SystemService(),
-      tagService: new TagService()
+      tagService: new TagService(),
+      notificationService: new NotificationService()
     })
   })
 
