@@ -32,11 +32,20 @@ const UNFOLLOW_USER = `
     unfollowUser(input: $input)
   }
 `
-const UPDATE_USER_INFO = `
+const UPDATE_USER_INFO_DESCRIPTION = `
   mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
     updateUserInfo(input: $input) {
       info {
         description
+      }
+    }
+  }
+`
+const UPDATE_USER_INFO_AVATAR = `
+  mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
+    updateUserInfo(input: $input) {
+      info {
+        avatar
       }
     }
   }
@@ -381,6 +390,34 @@ describe('mutations on User object', () => {
     expect(
       followeesNew.filter(({ id }: { id: string }) => id === followeeId).length
     ).toEqual(0)
+  })
+
+  test('updateUserInfoDescription', async () => {
+    const description = 'foo bar'
+    const { mutate } = await testClient({
+      isAuth: true
+    })
+    const { data } = await mutate({
+      mutation: UPDATE_USER_INFO_DESCRIPTION,
+      // @ts-ignore
+      variables: { input: { description } }
+    })
+    const info = data && data.updateUserInfo && data.updateUserInfo.info
+    expect(info.description).toEqual(description)
+  })
+
+  test('updateUserInfoAvatar', async () => {
+    const avatarAssetUUID = '00000000-0000-0000-0000-000000000001'
+    const { mutate } = await testClient({
+      isAuth: true
+    })
+    const { data } = await mutate({
+      mutation: UPDATE_USER_INFO_AVATAR,
+      // @ts-ignore
+      variables: { input: { avatar: avatarAssetUUID } }
+    })
+    const { avatar } = data && data.updateUserInfo && data.updateUserInfo.info
+    expect(avatar).toEqual(expect.stringContaining('path/to/file.jpg'))
   })
 
   test('updateNotificationSetting', async () => {

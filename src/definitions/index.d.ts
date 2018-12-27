@@ -14,8 +14,6 @@ export * from './schema'
 
 export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
 
-export type ProtectedNodeTypes = 'Notice'
-
 export type Resolver = (
   parent: any,
   args: any,

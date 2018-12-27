@@ -10,5 +10,8 @@ export default {
   },
   Node: {
     __resolveType: ({ __type }: { __type: NodeTypes }) => __type
+  },
+  Asset: {
+    id: ({ uuid }: { uuid: string }) => uuid
   }
 }

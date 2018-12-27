@@ -24,9 +24,7 @@ export default {
     viewer: (root: any, _: any, { viewer }: Context) => viewer
   },
   User: {
-    id: ({ id }: { id: string }) => {
-      return toGlobalId({ type: 'User', id })
-    },
+    id: ({ id }: { id: string }) => toGlobalId({ type: 'User', id }),
     info: (root: any) => root,
     settings: (root: any) => root,
     status: (root: any) => root,
@@ -62,5 +60,8 @@ export default {
     followeeCount,
     subscriptionCount,
     unreadNoticeCount
+  },
+  ReadHistory: {
+    id: ({ uuid }: { uuid: string }) => uuid
   }
 }
