@@ -3,7 +3,7 @@ import { Resolver, BatchParams, Context } from 'definitions'
 const resolver: Resolver = async (
   { id }: { id: string },
   { input: { offset, limit } }: BatchParams,
-  { userService, articleService }: Context
+  { dataSources: { userService, articleService } }: Context
 ) => {
   const readHistory = await userService.findReadHistory(id, offset, limit)
 

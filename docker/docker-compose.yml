@@ -2,7 +2,7 @@ version: '3'
 
 services:
   app:
-    container_name: matters-api
+    container_name: api
     image: matters-server:latest
     build:
       context: ../
@@ -21,7 +21,7 @@ services:
       - '4000:4000'
   db:
     image: postgres:10
-    container_name: matters-db
+    container_name: db
     environment:
       - POSTGRES_DB=matters-dev
     volumes:
@@ -30,17 +30,18 @@ services:
       - '5432:5432'
   redis:
     image: redis
-    container_name: matters-redis
+    container_name: redis
     ports:
       - '6379:6379'
     restart: always
   s3:
+    container_name: s3
     image: lphoward/fake-s3
     ports:
       - '4569:4569'
   elasticsearch:
     image: matters/elasticsearch:latest
-    container_name: matters-search
+    container_name: elasticsearch
     command: elasticsearch -E network.host=0.0.0.0 -E discovery.zen.minimum_master_nodes=1
     environment:
       - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'
@@ -50,6 +51,7 @@ services:
       - '9200:9200'
       - '9300:9300'
   kibana:
+    container_name: kibana
     image: kibana:5.4
     ports:
       - '5601:5601'

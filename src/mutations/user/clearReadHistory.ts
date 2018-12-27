@@ -3,7 +3,7 @@ import { Resolver } from 'definitions'
 const resolver: Resolver = async (
   _,
   { input: { id } },
-  { viewer, userService }
+  { viewer, dataSources: { userService } }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO

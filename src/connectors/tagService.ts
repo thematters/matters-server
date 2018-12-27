@@ -1,7 +1,7 @@
 // external
 import DataLoader from 'dataloader'
 // internal
-import { GQLSearchInput } from 'definitions'
+import { GQLSearchInput, ItemData } from 'definitions'
 import { BaseService } from './baseService'
 import { BATCH_SIZE } from 'common/enums'
 
@@ -26,11 +26,10 @@ export class TagService extends BaseService {
   }
 
   search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
-    const tags = await this.knex(this.table).where(
-      'content',
-      'like',
-      `%${key}%`
-    )
+    const tags = await this.knex(this.table)
+      .where('content', 'like', `%${key}%`)
+      .limit(limit)
+      .offset(offset)
 
     return tags.map((tag: { [key: string]: string }) => ({
       node: { ...tag, __type: 'Tag' },
@@ -38,13 +37,17 @@ export class TagService extends BaseService {
     }))
   }
 
-  createArticleTag = async ({
+  createArticleTags = async ({
     articleId,
-    tagId
+    tagIds = []
   }: {
-    articleId: string
-    tagId: string
-  }) => this.knex('article_tag').insert({ articleId, tagId })
+    [key: string]: any
+  }) => {
+    const items = tagIds.map((tagId: string) => ({ articleId, tagId }))
+    return this.baseBatchCreate(items, 'article_tag')
+  }
+
+  // this.knex('article_tag').insert({ articleId, tagId })
 
   findByContent = async (content: string) =>
     this.knex(this.table)

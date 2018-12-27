@@ -12,28 +12,26 @@ export class ArticleService extends BaseService {
     super('article')
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
-
-    this.init()
   }
 
-  init = async () => {
-    const { count } = await this.es.client.count({
-      index: this.table
-    })
+  // init = async () => {
+  //   const { count } = await this.es.client.count({
+  //     index: this.table
+  //   })
 
-    if (!count) {
-      const articles = await this.knex(this.table).select(
-        'content',
-        'title',
-        'id'
-      )
+  //   if (!count) {
+  //     const articles = await this.knex(this.table).select(
+  //       'content',
+  //       'title',
+  //       'id'
+  //     )
 
-      await this.es.indexItems({
-        index: this.table,
-        items: articles
-      })
-    }
-  }
+  //     await this.es.indexItems({
+  //       index: this.table,
+  //       items: articles
+  //     })
+  //   }
+  // }
 
   /**
    * Create a new article item.
@@ -106,7 +104,6 @@ export class ArticleService extends BaseService {
     })
 
   search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
-    // TODO: handle search across title and content
     const body = bodybuilder()
       .query('multi_match', {
         query: key,

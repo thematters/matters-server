@@ -21,6 +21,7 @@ const USER_REGISTER = `
     }
   }
 `
+
 const FOLLOW_USER = `
   mutation FollowerUser($input: FollowUserInput!) {
     followUser(input: $input)
@@ -134,20 +135,47 @@ const GET_VIEWER_STATUS = `
   }
 `
 
+export const registerUser = async (user: { [key: string]: string }) => {
+  const { mutate } = await testClient()
+  return mutate({
+    mutation: USER_REGISTER,
+    // @ts-ignore
+    variables: { input: user }
+  })
+}
+
+export const updateUserInfo = async ({
+  email,
+  info
+}: {
+  email?: string
+  info: { [key: string]: string }
+}) => {
+  let _email = defaultTestUser.email
+  if (email) {
+    _email = email
+  }
+  const context = await getUserContext({ email: _email })
+  const { mutate } = await testClient({
+    context
+  })
+  return mutate({
+    mutation: UPDATE_USER_INFO,
+    // @ts-ignore
+    variables: { input: info }
+  })
+}
+
 describe('register and login functionarlities', () => {
   test('register user and retrieve info', async () => {
     const user = {
-      email: 'test9@matters.news',
+      email: `test-${Math.floor(Math.random() * 100)}@matters.news`,
       displayName: 'test user',
       password: '567',
       code: '123'
     }
-    const { mutate } = await testClient()
-    const result = await mutate({
-      mutation: USER_REGISTER,
-      // @ts-ignore
-      variables: { input: user }
-    })
+    const result = await registerUser(user)
+    console.log({ error: result.errors })
     expect(
       result.data &&
         result.data.userRegister &&
@@ -242,12 +270,13 @@ describe('user query fields', () => {
     const { query } = await testClient({
       isAuth: true
     })
-    const { data } = await query({
+    const res = await query({
       query: GET_VIEWER_SETTINGS
     })
+    const { data } = res
     const settings = data && data.viewer && data.viewer.settings
     expect(settings).toBeDefined()
-    expect(settings.notification.enable).toBeTruthy()
+    expect(settings.notification).toBeDefined()
   })
 
   test('retrive subscriptions', async () => {
@@ -352,20 +381,6 @@ describe('mutations on User object', () => {
     expect(
       followeesNew.filter(({ id }: { id: string }) => id === followeeId).length
     ).toEqual(0)
-  })
-
-  test('updateUserInfo', async () => {
-    const description = 'foo bar'
-    const { mutate } = await testClient({
-      isAuth: true
-    })
-    const { data } = await mutate({
-      mutation: UPDATE_USER_INFO,
-      // @ts-ignore
-      variables: { input: { description } }
-    })
-    const info = data && data.updateUserInfo && data.updateUserInfo.info
-    expect(info.description).toEqual(description)
   })
 
   test('updateNotificationSetting', async () => {

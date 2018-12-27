@@ -2,10 +2,12 @@ import DataLoader from 'dataloader'
 import { hash, compare } from 'bcrypt'
 import { v4 } from 'uuid'
 import jwt from 'jsonwebtoken'
+import bodybuilder from 'bodybuilder'
+import _ from 'lodash'
 
 import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
-import { ItemData, GQLSearchInput } from 'definitions'
+import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 import { BaseService } from './baseService'
 
 export class UserService extends BaseService {
@@ -54,6 +56,24 @@ export class UserService extends BaseService {
     return user
   }
 
+  update = async (id: string, input: GQLUpdateUserInfoInput) => {
+    const user = await this.baseUpdateById(id, input)
+
+    const { description, displayName } = input
+    // remove null and undefined
+    const searchable = _.pickBy({ description, displayName }, _.identity)
+    await this.es.client.update({
+      index: this.table,
+      type: this.table,
+      id,
+      body: {
+        doc: searchable
+      }
+    })
+
+    return user
+  }
+
   addToSearch = async ({
     id,
     userName,
@@ -75,12 +95,11 @@ export class UserService extends BaseService {
     })
 
   search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
-    // TODO: handle search across title and content
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
         fuzziness: 5,
-        fields: ['display_name^2', 'user_name^2', 'description']
+        fields: ['description'] //, 'display_name^2', 'user_name^2'
       })
       .size(limit)
       .from(offset)
@@ -189,7 +208,7 @@ export class UserService extends BaseService {
   findByEmail = async (
     email: string
   ): Promise<{ uuid: string; [key: string]: string }> =>
-    await this.knex
+    this.knex
       .select()
       .from(this.table)
       .where({ email })

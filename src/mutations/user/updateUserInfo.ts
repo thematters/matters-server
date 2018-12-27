@@ -9,7 +9,7 @@ const resolver: Resolver = async (
     throw new Error('anonymous user cannot do this') // TODO
   }
 
-  return await userService.baseUpdateById(viewer.id, input)
+  return await userService.update(viewer.id, input)
 }
 
 export default resolver

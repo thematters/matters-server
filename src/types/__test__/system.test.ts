@@ -2,10 +2,40 @@
 import { toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
 // local
-import { delay, testClient } from './utils'
+import { testClient, delay } from './utils'
 import { createDraft } from './draft.test'
 import { publishArticle } from './article.test'
+import { registerUser, updateUserInfo } from './user.test'
 
+const draft = {
+  title: Math.random().toString(),
+  content: (Math.random() * 100).toString(),
+  tags: [(Math.random() * 100).toString()]
+}
+
+const userDescription = `test-${Math.floor(Math.random() * 100)}`
+
+const user = {
+  email: `test-${Math.floor(Math.random() * 100)}@matters.news`,
+  displayName: 'test user',
+  password: '123',
+  code: '123'
+}
+
+beforeAll(async () => {
+  const { id } = await createDraft(draft)
+  try {
+    await publishArticle({ id })
+    await registerUser(user)
+    await updateUserInfo({
+      email: user.email,
+      info: { description: userDescription }
+    })
+    await delay(2000)
+  } catch (err) {
+    throw err
+  }
+})
 afterAll(knex.destroy)
 
 const GET_USER = `
@@ -46,7 +76,18 @@ const SEARCH = `
       match
       node {
         ... on Article {
+          title
           content
+        }
+        ... on Tag {
+          content
+        }
+        ... on User {
+          info {
+            userName
+            displayName
+            description
+          }
         }
       }
     }
@@ -92,23 +133,15 @@ describe('query nodes of different type', async () => {
 })
 
 describe('Search', async () => {
-  test('create draft, publish and search', async () => {
-    const draft = {
-      title: Math.random().toString(),
-      content: (Math.random() * 100).toString(),
-      tags: ['test', 'article']
-    }
-    const { id } = await createDraft(draft)
-    await publishArticle({ id })
-    await delay(2000)
-
+  test('search artcile', async () => {
     const { query } = await testClient()
+
     const result = await query({
       query: SEARCH,
       // @ts-ignore
       variables: {
         input: {
-          key: draft.content,
+          key: draft.title,
           type: 'Article',
           limit: 1
         }
@@ -117,6 +150,46 @@ describe('Search', async () => {
 
     const search = result && result.data && result.data.search
     const node = search && search[0] && search[0].node
-    expect(node.content).toBe(draft.content)
+    expect(node.title).toBe(draft.title)
+  })
+
+  test('search tag', async () => {
+    const { query } = await testClient()
+
+    const result = await query({
+      query: SEARCH,
+      // @ts-ignore
+      variables: {
+        input: {
+          key: draft.tags[0],
+          type: 'Tag',
+          limit: 1
+        }
+      }
+    })
+
+    const search = result && result.data && result.data.search
+    const node = search && search[0] && search[0].node
+    expect(node.content).toBe(draft.tags[0])
+  })
+
+  test('search user', async () => {
+    const { query } = await testClient()
+
+    const result = await query({
+      query: SEARCH,
+      // @ts-ignore
+      variables: {
+        input: {
+          key: userDescription,
+          type: 'User',
+          limit: 1
+        }
+      }
+    })
+
+    const search = result && result.data && result.data.search
+    const info = search && search[0] && search[0].node && search[0].node.info
+    expect(info.description).toBe(userDescription)
   })
 })
