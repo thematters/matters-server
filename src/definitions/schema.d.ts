@@ -269,7 +269,8 @@ export enum GQLPublishState {
   archived = 'archived',
   pending = 'pending',
   error = 'error',
-  published = 'published'
+  published = 'published',
+  banned = 'banned'
 }
 
 export interface GQLTag extends GQLNode {
@@ -281,6 +282,7 @@ export interface GQLTag extends GQLNode {
 
 export interface GQLComment extends GQLNode {
   id: string
+  status: GQLCommentStatus
   createdAt: GQLDateTime
 
   /**
@@ -289,7 +291,6 @@ export interface GQLComment extends GQLNode {
   article: GQLArticle
   content?: string
   author: GQLUser
-  archived: boolean
   upvotes: number
   downvotes: number
   quote: boolean
@@ -297,6 +298,12 @@ export interface GQLComment extends GQLNode {
   mentions?: Array<GQLUser>
   comments?: Array<GQLComment>
   parentComment?: GQLComment
+}
+
+export enum GQLCommentStatus {
+  active = 'active',
+  archived = 'archived',
+  banned = 'banned'
 }
 
 export enum GQLVote {
@@ -353,7 +360,7 @@ export interface GQLReadHistory {
 }
 
 export interface GQLUserStatus {
-  currGravity: number
+  state: GQLUserState
 
   /**
    * Total MAT left in wallet
@@ -392,6 +399,15 @@ export interface GQLUserStatus {
    * Number of unread notices
    */
   unreadNoticeCount: number
+}
+
+export enum GQLUserState {
+  inactive = 'inactive',
+  onboarding = 'onboarding',
+  active = 'active',
+  banned = 'banned',
+  frozen = 'frozen',
+  archived = 'archived'
 }
 
 export interface GQLNotice {
@@ -1663,11 +1679,11 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
 
 export interface GQLCommentTypeResolver<TParent = any> {
   id?: CommentToIdResolver<TParent>
+  status?: CommentToStatusResolver<TParent>
   createdAt?: CommentToCreatedAtResolver<TParent>
   article?: CommentToArticleResolver<TParent>
   content?: CommentToContentResolver<TParent>
   author?: CommentToAuthorResolver<TParent>
-  archived?: CommentToArchivedResolver<TParent>
   upvotes?: CommentToUpvotesResolver<TParent>
   downvotes?: CommentToDownvotesResolver<TParent>
   quote?: CommentToQuoteResolver<TParent>
@@ -1678,6 +1694,10 @@ export interface GQLCommentTypeResolver<TParent = any> {
 }
 
 export interface CommentToIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface CommentToStatusResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -1694,10 +1714,6 @@ export interface CommentToContentResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToAuthorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface CommentToArchivedResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -1879,7 +1895,7 @@ export interface ReadHistoryToReadAtResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLUserStatusTypeResolver<TParent = any> {
-  currGravity?: UserStatusToCurrGravityResolver<TParent>
+  state?: UserStatusToStateResolver<TParent>
   MAT?: UserStatusToMATResolver<TParent>
   articleCount?: UserStatusToArticleCountResolver<TParent>
   viewCount?: UserStatusToViewCountResolver<TParent>
@@ -1892,7 +1908,7 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
 }
 
-export interface UserStatusToCurrGravityResolver<TParent = any, TResult = any> {
+export interface UserStatusToStateResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 

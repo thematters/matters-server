@@ -148,13 +148,13 @@ input ClearReadHistoryInput {
 
 type Comment implements Node {
   id: ID!
+  status: CommentStatus!
   createdAt: DateTime!
 
   """Original article of this comment"""
   article: Article!
   content: String
   author: User!
-  archived: Boolean!
   upvotes: Int!
   downvotes: Int!
   quote: Boolean!
@@ -239,6 +239,12 @@ enum CommentSort {
   oldest
   newest
   upvotes
+}
+
+enum CommentStatus {
+  active
+  archived
+  banned
 }
 
 input ConfirmChangeEmailInput {
@@ -427,6 +433,7 @@ enum PublishState {
   pending
   error
   published
+  banned
 }
 
 input PutAudioDraftInput {
@@ -690,8 +697,17 @@ type UserSettings {
   notification: NotificationSetting!
 }
 
+enum UserState {
+  inactive
+  onboarding
+  active
+  banned
+  frozen
+  archived
+}
+
 type UserStatus {
-  currGravity: Int!
+  state: UserState!
 
   """Total MAT left in wallet"""
   MAT: Int!
