@@ -282,7 +282,7 @@ export interface GQLTag extends GQLNode {
 
 export interface GQLComment extends GQLNode {
   id: string
-  status: GQLCommentStatus
+  state: GQLCommentState
   createdAt: GQLDateTime
 
   /**
@@ -300,7 +300,7 @@ export interface GQLComment extends GQLNode {
   parentComment?: GQLComment
 }
 
-export enum GQLCommentStatus {
+export enum GQLCommentState {
   active = 'active',
   archived = 'archived',
   banned = 'banned'
@@ -1679,7 +1679,7 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
 
 export interface GQLCommentTypeResolver<TParent = any> {
   id?: CommentToIdResolver<TParent>
-  status?: CommentToStatusResolver<TParent>
+  state?: CommentToStateResolver<TParent>
   createdAt?: CommentToCreatedAtResolver<TParent>
   article?: CommentToArticleResolver<TParent>
   content?: CommentToContentResolver<TParent>
@@ -1697,7 +1697,7 @@ export interface CommentToIdResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface CommentToStatusResolver<TParent = any, TResult = any> {
+export interface CommentToStateResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 

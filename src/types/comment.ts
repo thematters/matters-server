@@ -7,7 +7,7 @@ export default /* GraphQL */ `
 
   type Comment implements Node {
     id: ID!
-    status: CommentStatus!
+    state: CommentState!
     createdAt: DateTime!
     # Original article of this comment
     article: Article!
@@ -68,7 +68,7 @@ export default /* GraphQL */ `
     down
   }
 
-  enum CommentStatus {
+  enum CommentState {
     active
     archived
     banned

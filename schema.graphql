@@ -148,7 +148,7 @@ input ClearReadHistoryInput {
 
 type Comment implements Node {
   id: ID!
-  status: CommentStatus!
+  state: CommentState!
   createdAt: DateTime!
 
   """Original article of this comment"""
@@ -241,7 +241,7 @@ enum CommentSort {
   upvotes
 }
 
-enum CommentStatus {
+enum CommentState {
   active
   archived
   banned
