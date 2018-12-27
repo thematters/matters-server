@@ -17,6 +17,21 @@ export class UserService extends BaseService {
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
+  // dump all data to es. Currently only used in test.
+  initSearch = async () => {
+    const users = await this.knex(this.table).select(
+      'id',
+      'description',
+      'display_name',
+      'user_name'
+    )
+
+    return this.es.indexItems({
+      index: this.table,
+      items: users
+    })
+  }
+
   /**
    * Create a new user.
    */
@@ -60,16 +75,18 @@ export class UserService extends BaseService {
     const user = await this.baseUpdateById(id, input)
 
     const { description, displayName } = input
-    // remove null and undefined
-    const searchable = _.pickBy({ description, displayName }, _.identity)
-    await this.es.client.update({
-      index: this.table,
-      type: this.table,
-      id,
-      body: {
-        doc: searchable
-      }
-    })
+    if (description || displayName) {
+      // remove null and undefined
+      const searchable = _.pickBy({ description, displayName }, _.identity)
+      await this.es.client.update({
+        index: this.table,
+        type: this.table,
+        id,
+        body: {
+          doc: searchable
+        }
+      })
+    }
 
     return user
   }
@@ -87,8 +104,8 @@ export class UserService extends BaseService {
       items: [
         {
           id,
-          user_name: userName,
-          display_name: displayName,
+          userName,
+          displayName,
           description
         }
       ]
@@ -99,7 +116,7 @@ export class UserService extends BaseService {
       .query('multi_match', {
         query: key,
         fuzziness: 5,
-        fields: ['description'] //, 'display_name^2', 'user_name^2'
+        fields: ['description', 'displayName^2', 'userName^2']
       })
       .size(limit)
       .from(offset)

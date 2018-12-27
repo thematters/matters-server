@@ -14,24 +14,19 @@ export class ArticleService extends BaseService {
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
-  // init = async () => {
-  //   const { count } = await this.es.client.count({
-  //     index: this.table
-  //   })
+  // dump all data to es. Currently only used in test.
+  initSearch = async () => {
+    const articles = await this.knex(this.table).select(
+      'content',
+      'title',
+      'id'
+    )
 
-  //   if (!count) {
-  //     const articles = await this.knex(this.table).select(
-  //       'content',
-  //       'title',
-  //       'id'
-  //     )
-
-  //     await this.es.indexItems({
-  //       index: this.table,
-  //       items: articles
-  //     })
-  //   }
-  // }
+    return this.es.indexItems({
+      index: this.table,
+      items: articles
+    })
+  }
 
   /**
    * Create a new article item.

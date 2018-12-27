@@ -1,8 +1,13 @@
 // local
 import { fromGlobalId, toGlobalId } from 'common/utils'
+import { UserService } from 'connectors'
 import { knex } from 'connectors/db'
 import { defaultTestUser, getUserContext, testClient } from './utils'
 
+beforeAll(async () => {
+  const userService = new UserService()
+  await userService.initSearch()
+})
 afterAll(knex.destroy)
 
 const USER_LOGIN = `
@@ -153,12 +158,12 @@ export const registerUser = async (user: { [key: string]: string }) => {
   })
 }
 
-export const updateUserInfo = async ({
+export const updateUserDescription = async ({
   email,
-  info
+  description
 }: {
   email?: string
-  info: { [key: string]: string }
+  description: string
 }) => {
   let _email = defaultTestUser.email
   if (email) {
@@ -169,9 +174,9 @@ export const updateUserInfo = async ({
     context
   })
   return mutate({
-    mutation: UPDATE_USER_INFO,
+    mutation: UPDATE_USER_INFO_DESCRIPTION,
     // @ts-ignore
-    variables: { input: info }
+    variables: { input: { description } }
   })
 }
 
@@ -184,7 +189,6 @@ describe('register and login functionarlities', () => {
       code: '123'
     }
     const result = await registerUser(user)
-    console.log({ error: result.errors })
     expect(
       result.data &&
         result.data.userRegister &&

@@ -20,7 +20,7 @@ const resolver: Resolver = async (
     input.avatar = asset.id
   }
 
-  return await userService.baseUpdateById(viewer.id, input)
+  return await userService.update(viewer.id, input)
 }
 
 export default resolver

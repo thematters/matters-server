@@ -5,7 +5,7 @@ import { knex } from 'connectors/db'
 import { testClient, delay } from './utils'
 import { createDraft } from './draft.test'
 import { publishArticle } from './article.test'
-import { registerUser, updateUserInfo } from './user.test'
+import { registerUser, updateUserDescription } from './user.test'
 
 const draft = {
   title: Math.random().toString(),
@@ -27,9 +27,9 @@ beforeAll(async () => {
   try {
     await publishArticle({ id })
     await registerUser(user)
-    await updateUserInfo({
+    await updateUserDescription({
       email: user.email,
-      info: { description: userDescription }
+      description: userDescription
     })
     await delay(2000)
   } catch (err) {
