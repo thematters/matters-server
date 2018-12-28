@@ -1,32 +1,33 @@
 import { v4 } from 'uuid'
+import { isEqual } from 'lodash'
 
-import { NoticeType } from 'definitions'
+import {
+  NoticeType,
+  NoticeEntity,
+  NoticeEntityType,
+  TableName
+} from 'definitions'
 import { BATCH_SIZE } from 'common/enums'
 import { BaseService } from '../baseService'
 
 export type NoticeUser = string
-export type NoticeEntity = {
-  type: 'target' | 'downstream'
-  entityType: string
-  entityId: string
-}
 export type NoticeMessage = string
 export type NoticeData = {
   url?: string
-  [key: string]: any
+  reason?: string
 }
 export type PutNoticeParams = {
   type: NoticeType
-  actors?: [NoticeUser?]
+  actorIds?: NoticeUser[]
   recipientId: NoticeUser
-  entities?: [NoticeEntity?]
-  message?: NoticeMessage
-  data?: NoticeData
+  entities?: NoticeEntity[]
+  message?: NoticeMessage | null
+  data?: NoticeData | null
 }
 
 class NoticeService extends BaseService {
   constructor() {
-    super('notice')
+    super('noop')
   }
 
   /**
@@ -34,9 +35,9 @@ class NoticeService extends BaseService {
    */
   create({
     type,
-    actors = [],
+    actorIds,
     recipientId,
-    entities = [],
+    entities,
     message,
     data
   }: PutNoticeParams) {
@@ -61,9 +62,48 @@ class NoticeService extends BaseService {
         .into('notice')
         .returning('*')
 
-      // create notice actors
+      // create notice actorIds
+      if (actorIds) {
+        await Promise.all(
+          actorIds.map(async actorId => {
+            await trx
+              .insert({
+                noticeId,
+                actorId
+              })
+              .into('notice_actor')
+          })
+        )
+      }
+
+      // craete notice entities
+      if (entities) {
+        await Promise.all(
+          entities.map(async ({ type, entityTable, entity }: NoticeEntity) => {
+            const { id: entityTypeId } = await trx
+              .select('id')
+              .from('entity_type')
+              .where({ table: entityTable })
+              .first()
+            await trx
+              .insert({
+                type,
+                entityTypeId,
+                entityId: entity.id,
+                noticeId
+              })
+              .into('notice_entity')
+          })
+        )
+      }
+    })
+  }
+
+  async addNoticeActors(noticeId: string, actorIds: NoticeUser[]) {
+    this.knex.transaction(async trx => {
+      // add actors
       await Promise.all(
-        actors.map(async actorId => {
+        actorIds.map(async actorId => {
           await trx
             .insert({
               noticeId,
@@ -73,19 +113,10 @@ class NoticeService extends BaseService {
         })
       )
 
-      // craete notice entities
-      await Promise.all(
-        entities.map(async ({ type, entityTypeId, entityId }: any) => {
-          await trx
-            .insert({
-              type,
-              entityTypeId,
-              entityId,
-              noticeId
-            })
-            .into('notice_entity')
-        })
-      )
+      // update notice
+      await trx('notice')
+        .where({ id: noticeId })
+        .update({ unread: true, updatedAt: new Date() })
     })
   }
 
@@ -93,15 +124,177 @@ class NoticeService extends BaseService {
    * Process new event to determine
    * whether to bundle with old notice or write new notice
    */
-  process(params: PutNoticeParams) {
-    // TODO: bundle
-    return this.create({ ...params })
+  async process(params: PutNoticeParams) {
+    const bundleableNotice = await this.getBundleableNotice(params)
+
+    if (bundleableNotice && params.actorIds) {
+      return this.addNoticeActors(bundleableNotice, params.actorIds)
+    }
+
+    return this.create(params)
   }
 
   /**
-   * Detetmine notice can be bundle
+   * Get a bundleable notice
+   *
    */
-  private canBundle() {}
+  async getBundleableNotice({
+    type,
+    actorIds,
+    recipientId,
+    entities,
+    message = null,
+    data = null
+  }: PutNoticeParams) {
+    // only notice with actors can be bundled
+    if (!actorIds || actorIds.length <= 0) {
+      return
+    }
+
+    // filter with type, unread, deleted, recipientId and message
+    const notices = await this.findNoticesWithDetail({
+      where: {
+        noticeType: type,
+        unread: true,
+        deleted: false,
+        recipientId,
+        message
+      }
+    })
+
+    for (const [index, notice] of notices.entries()) {
+      // compare notice data
+      if (!isEqual(notice.data, data)) {
+        return
+      }
+      const targetEntities = await this.findEntitiesByNoticeId(notice.id, false)
+      // Check if entities exist
+      const isTargetEntitiesExists = targetEntities && targetEntities.length > 0
+      const isSourceEntitiesExists = entities && entities.length > 0
+      if (!isTargetEntitiesExists || !isSourceEntitiesExists) {
+        return notice
+      }
+      if (
+        (isTargetEntitiesExists && !isSourceEntitiesExists) ||
+        (!isTargetEntitiesExists && isSourceEntitiesExists)
+      ) {
+        return
+      }
+
+      // compare notice entities
+      let targetEntitiesHashMap: any = {}
+      let sourceEntitiesHashMap: any = {}
+      targetEntities.forEach(({ type, table, entityId }) => {
+        const hash = `${type}:${table}:${entityId}`
+        targetEntitiesHashMap[hash] = true
+      })
+      ;(entities || []).forEach(({ type, entityTable, entity }) => {
+        const hash = `${type}:${entityTable}:${entity.id}`
+        sourceEntitiesHashMap[hash] = true
+      })
+      if (isEqual(targetEntitiesHashMap, sourceEntitiesHashMap)) {
+        return notice
+      }
+
+      return
+    }
+
+    return
+  }
+
+  /**
+   * Find notices with detail
+   */
+  findNoticesWithDetail({
+    where,
+    offset,
+    limit
+  }: {
+    where: { [key: string]: any }
+    offset?: number
+    limit?: number
+  }) {
+    let result = this.knex
+      .select([
+        'notice.id',
+        'notice.uuid',
+        'notice.unread',
+        'notice.deleted',
+        'notice.updated_at',
+        'notice_detail.notice_type',
+        'notice_detail.message',
+        'notice_detail.data'
+      ])
+      .from('notice')
+      .innerJoin(
+        'notice_detail',
+        'notice.notice_detail_id',
+        '=',
+        'notice_detail.id'
+      )
+      .where(where)
+      .orderBy('updated_at', 'desc')
+
+    if (offset) {
+      result = result.offset(offset)
+    }
+
+    if (limit) {
+      result = result.limit(limit)
+    }
+
+    return result
+  }
+
+  /**
+   * Find notice entities by a given notice id
+   */
+  async findEntitiesByNoticeId(
+    noticeId: string,
+    expand: boolean = true
+  ): Promise<{ type: NoticeEntityType; entityId: string; table: TableName }[]> {
+    const entities = await this.knex
+      .select([
+        'notice_entity.type',
+        'notice_entity.entity_id',
+        'entity_type.table'
+      ])
+      .from('notice_entity')
+      .innerJoin(
+        'entity_type',
+        'entity_type.id',
+        '=',
+        'notice_entity.entity_type_id'
+      )
+      .where({ noticeId })
+
+    if (expand) {
+      const _entities = {} as any
+      entities.forEach(async ({ type, entityId, table }: any) => {
+        const entity = await this.knex
+          .select()
+          .from(table)
+          .where({ id: entityId })
+          .first()
+
+        _entities[type] = entity
+      })
+      return _entities
+    }
+
+    return entities
+  }
+
+  /**
+   * Find notice actors by a given notice id
+   */
+  findActorsByNoticeId(noticeId: string) {
+    return this.knex
+      .select('user.*')
+      .from('notice_actor')
+      .innerJoin('user', 'notice_actor.actor_id', '=', 'user.id')
+      .where({ noticeId })
+  }
 
   /**
    * Find an users' notices by a given user id in batches.
@@ -111,79 +304,33 @@ class NoticeService extends BaseService {
     offset: number,
     limit = BATCH_SIZE
   ): Promise<any[]> {
-    const notices = await this.knex
-      .select([
-        'notice.id',
-        'notice.uuid',
-        'notice.unread',
-        'notice.updated_at',
-        'notice_detail.notice_type',
-        'notice_detail.message',
-        'notice_detail.data'
-      ])
-      .from('notice')
-      .where({ recipientId: userId, deleted: false })
-      .orderBy('updated_at', 'desc')
-      .offset(offset)
-      .limit(limit)
-      .innerJoin(
-        'notice_detail',
-        'notice.notice_detail_id',
-        '=',
-        'notice_detail.id'
-      )
+    const notices = await this.findNoticesWithDetail({
+      where: { recipientId: userId, deleted: false },
+      offset,
+      limit
+    })
 
     return notices.map(async (notice: any) => {
-      // notice entities
-      let target = null as any
-      const entities = {} as any
-      const _entities = await this.knex
-        .select([
-          'notice_entity.type',
-          'notice_entity.entity_id',
-          'entity_type.table'
-        ])
-        .from('notice_entity')
-        .where({ noticeId: notice.id })
-        .innerJoin(
-          'entity_type',
-          'entity_type.id',
-          '=',
-          'notice_entity.entity_type_id'
-        )
-      _entities.forEach(async ({ type, entityId, table }: any) => {
-        const entity = await this.knex
-          .select()
-          .from(table)
-          .where({ id: entityId })
-          .first()
-        if (type === 'target') {
-          target = entity
-        } else {
-          entities[type] = entity
-        }
-      })
-
-      // notice actors
-      const actors = await this.knex
-        .select('user.*')
-        .from('notice_actor')
-        .where({ noticeId: notice.id })
-        .innerJoin('user', 'notice_actor.actor_id', '=', 'user.id')
+      const entities = await this.findEntitiesByNoticeId(notice.id)
+      const actors = await this.findActorsByNoticeId(notice.id)
 
       return {
-        id: notice.id,
-        uuid: notice.uuid,
-        unread: notice.unread,
+        ...notice,
         createdAt: notice.updatedAt,
         type: notice.noticeType,
         actors,
-        target,
-        entities,
-        message: notice.message,
-        data: notice.data
+        entities
       }
     })
+  }
+
+  /**
+   * Mark all notices as read
+   */
+  markAllNoticesAsRead = async (userId: string): Promise<any> => {
+    await this.knex('notice')
+      .where({ recipientId: userId, unread: true })
+      .update({ unread: false })
   }
 }
 

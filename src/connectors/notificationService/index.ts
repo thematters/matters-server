@@ -23,7 +23,7 @@ export class NotificationService extends BaseService {
   }
 
   trigger(params: NotificationPrarms) {
-    switch (params.type) {
+    switch (params.event) {
       case 'article_updated':
         const nodeGlobalId = toGlobalId({
           type: 'Article',
@@ -32,10 +32,14 @@ export class NotificationService extends BaseService {
         this.pubsubService.publish(nodeGlobalId, params.article)
         break
       case 'user_new_follower':
-        this.noticeService.process(params)
+        this.noticeService.process({
+          type: params.event,
+          actorIds: [params.actorId],
+          recipientId: params.recipientId
+        })
         this.pushService.push({
           text: 'user_new_follower',
-          userIds: params.actors
+          userIds: [params.actorId]
         })
     }
   }

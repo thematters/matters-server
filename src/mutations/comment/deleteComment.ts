@@ -27,7 +27,7 @@ const resolver: Resolver = async (
   // trigger notificaiton
   const article = await articleService.dataloader.load(articleId)
   notificationService.trigger({
-    type: 'article_updated',
+    event: 'article_updated',
     article
   })
 

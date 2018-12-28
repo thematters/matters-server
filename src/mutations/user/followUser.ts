@@ -20,8 +20,8 @@ const resolver: Resolver = async (
 
   // trigger notificaiton
   notificationService.trigger({
-    type: 'user_new_follower',
-    actors: [viewer.id],
+    event: 'user_new_follower',
+    actorId: viewer.id,
     recipientId: user.id
   })
 

@@ -38,25 +38,7 @@ exports.seed = async knex => {
     {
       notice_type: 'article_published',
       entities: [
-        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
-      ],
-      recipient_id: '1'
-    },
-    // recipient_id (1)'s article (1) was reported due to violation
-    {
-      notice_type: 'article_reported',
-      data: { reason: 'violation' },
-      entities: [
-        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
-      ],
-      recipient_id: '1'
-    },
-    // recipient_id (1)'s article (1) was archived due to violation
-    {
-      notice_type: 'article_archived',
-      data: { reason: 'violation' },
-      entities: [
-        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
+        { type: 'target', entity_type_id: articleTypeId, entity_id: '1' }
       ],
       recipient_id: '1'
     },
@@ -65,8 +47,8 @@ exports.seed = async knex => {
       notice_type: 'article_new_downstream',
       actors: ['2'],
       entities: [
-        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 },
-        { type: 'downstream', entity_type_id: articleTypeId, entity_id: 2 }
+        { type: 'target', entity_type_id: articleTypeId, entity_id: '1' },
+        { type: 'downstream', entity_type_id: articleTypeId, entity_id: '2' }
       ],
       recipient_id: '1'
     },
@@ -75,7 +57,7 @@ exports.seed = async knex => {
       notice_type: 'article_new_appreciation',
       actors: ['2', '3'],
       entities: [
-        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
+        { type: 'target', entity_type_id: articleTypeId, entity_id: '1' }
       ],
       recipient_id: '1'
     },
@@ -84,7 +66,7 @@ exports.seed = async knex => {
       notice_type: 'article_new_subscriber',
       actors: ['2', '3'],
       entities: [
-        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
+        { type: 'target', entity_type_id: articleTypeId, entity_id: '1' }
       ],
       recipient_id: '1'
     },
@@ -93,7 +75,8 @@ exports.seed = async knex => {
       notice_type: 'article_new_comment',
       actors: ['3'],
       entities: [
-        { type: 'target', entity_type_id: articleTypeId, entity_id: 1 }
+        { type: 'target', entity_type_id: articleTypeId, entity_id: '1' },
+        { type: 'comment', entity_type_id: commentTypeId, entity_id: '1' }
       ],
       recipient_id: '1'
     },
@@ -102,7 +85,26 @@ exports.seed = async knex => {
       notice_type: 'subscribed_article_new_comment',
       actors: ['3'],
       entities: [
-        { type: 'target', entity_type_id: articleTypeId, entity_id: 2 }
+        { type: 'target', entity_type_id: articleTypeId, entity_id: '2' },
+        { type: 'comment', entity_type_id: commentTypeId, entity_id: '2' }
+      ],
+      recipient_id: '1'
+    },
+    // upstream (2) of article (4) was archived
+    {
+      notice_type: 'upstream_article_archived',
+      entities: [
+        { type: 'target', entity_type_id: articleTypeId, entity_id: '4' },
+        { type: 'upstream', entity_type_id: articleTypeId, entity_id: '1' }
+      ],
+      recipient_id: '1'
+    },
+    // downstream (2) of article (1) was archived
+    {
+      notice_type: 'downstream_article_archived',
+      entities: [
+        { type: 'target', entity_type_id: articleTypeId, entity_id: '1' },
+        { type: 'downstream', entity_type_id: articleTypeId, entity_id: '2' }
       ],
       recipient_id: '1'
     },
@@ -110,25 +112,7 @@ exports.seed = async knex => {
     {
       notice_type: 'comment_pinned',
       entities: [
-        { type: 'target', entity_type_id: commentTypeId, entity_id: 4 }
-      ],
-      recipient_id: '1'
-    },
-    // recipient_id (1)'s comment (4) was reported due to violation
-    {
-      notice_type: 'comment_reported',
-      data: { reason: 'violation' },
-      entities: [
-        { type: 'target', entity_type_id: commentTypeId, entity_id: 1 }
-      ],
-      recipient_id: '1'
-    },
-    // recipient_id (1)'s comment (4) was archived due to violation
-    {
-      notice_type: 'comment_archived',
-      data: { reason: 'violation' },
-      entities: [
-        { type: 'target', entity_type_id: commentTypeId, entity_id: 1 }
+        { type: 'target', entity_type_id: commentTypeId, entity_id: '4' }
       ],
       recipient_id: '1'
     },
@@ -137,7 +121,8 @@ exports.seed = async knex => {
       notice_type: 'comment_new_reply',
       actors: ['2'],
       entities: [
-        { type: 'target', entity_type_id: commentTypeId, entity_id: 1 }
+        { type: 'target', entity_type_id: commentTypeId, entity_id: '1' },
+        { type: 'reply', entity_type_id: commentTypeId, entity_id: '4' }
       ],
       recipient_id: '1'
     },
@@ -146,7 +131,7 @@ exports.seed = async knex => {
       notice_type: 'comment_new_upvote',
       actors: ['3'],
       entities: [
-        { type: 'target', entity_type_id: commentTypeId, entity_id: 1 }
+        { type: 'target', entity_type_id: commentTypeId, entity_id: '1' }
       ],
       recipient_id: '1'
     },
@@ -155,7 +140,7 @@ exports.seed = async knex => {
       notice_type: 'comment_mentioned_you',
       actors: ['2'],
       entities: [
-        { type: 'target', entity_type_id: commentTypeId, entity_id: 2 }
+        { type: 'target', entity_type_id: commentTypeId, entity_id: '2' }
       ],
       recipient_id: '1'
     },
@@ -178,9 +163,8 @@ exports.seed = async knex => {
   /**
    * start seeding
    */
-  for (const [index, value] of notices.entries()) {
+  for (const [index, notice] of notices.entries()) {
     const id = index + 1
-    const notice = value
     // create notice detail
     await knex(table.notice_detail).insert({
       notice_type: notice.notice_type,

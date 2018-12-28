@@ -4,9 +4,13 @@ import { environment } from 'common/environment'
 
 class PubSubService {
   engine: InstanceType<typeof RedisPubSub>
+  publish: any
+  asyncIterator: any
 
   constructor() {
     this.engine = this._initPubSubEngine()
+    this.publish = this.engine.publish
+    this.asyncIterator = this.engine.asyncIterator
   }
 
   /**
@@ -24,9 +28,6 @@ class PubSubService {
       }
     })
   }
-
-  publish = this.engine.publish
-  asyncIterator = this.engine.asyncIterator
 }
 
 export default PubSubService

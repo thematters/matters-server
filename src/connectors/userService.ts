@@ -336,15 +336,6 @@ export class UserService extends BaseService {
       .first()
 
   /**
-   * Mark all notices as read
-   */
-  markAllNoticesAsRead = async (userId: string): Promise<any> => {
-    await this.knex('notice')
-      .where({ recipientId: userId, unread: true })
-      .update({ unread: false })
-  }
-
-  /**
    * Update user_notify_setting by a given user id
    */
   updateNotifySetting = async (

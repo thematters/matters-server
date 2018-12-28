@@ -54,7 +54,7 @@ const resolver: Resolver = async (
 
   // trigger notification
   notificationService.trigger({
-    type: 'article_updated',
+    event: 'article_updated',
     article
   })
 
