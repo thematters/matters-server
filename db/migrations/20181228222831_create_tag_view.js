@@ -1,0 +1,49 @@
+const table = 'tag_view'
+
+exports.up = async knex =>
+  knex.raw(/*sql*/ `
+    create view ${table} as
+        select
+            tag.*,
+            recent_usage,
+            total_usage,
+            last_used
+        from
+            tag
+            left join
+            /* past 30 days usage */
+            (
+                select
+                    count(id) as recent_usage,
+                    tag_id
+                from
+                    article_tag
+                where
+                    created_at >= now() - interval '30 days'
+                group by
+                    tag_id) as a1 on tag.id = a1.tag_id
+            left join
+            /* total usage */
+            (
+                select
+                    count(id) as total_usage,
+                    tag_id
+                from
+                    article_tag
+                group by
+                    tag_id) as a2 on tag.id = a2.tag_id
+            left join
+            /* last usage */
+            (
+                select
+                    max(created_at) as last_used,
+                    tag_id
+                from
+                    article_tag
+                group by
+                    tag_id) as a3 on tag.id = a3.tag_id
+  `)
+
+exports.down = function(knex, Promise) {
+  return knex.raw(/*sql*/ `drop view ${table}`)
+}
