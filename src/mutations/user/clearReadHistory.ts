@@ -5,7 +5,7 @@ const resolver: Resolver = async (
   { input: { id: uuid } },
   { viewer, dataSources: { userService } }
 ) => {
-  if (!viewer) {
+  if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO
   }
 

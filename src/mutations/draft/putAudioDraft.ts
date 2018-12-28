@@ -7,7 +7,7 @@ const resolver: Resolver = async (
   { input: { id: uuid, audioAssetId, title, length } },
   { viewer, dataSources: { draftService } }
 ) => {
-  if (!viewer) {
+  if (!viewer.id) {
     throw new Error('anonymous user cannot do this')
   }
 

@@ -5,7 +5,7 @@ const resolver: Resolver = (
   _,
   { viewer, dataSources: { articleService } }
 ) => {
-  if (!viewer) {
+  if (!viewer.id) {
     return false
   }
 

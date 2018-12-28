@@ -54,7 +54,7 @@ export type Context = RequestContext & {
 }
 
 export type RequestContext = {
-  viewer: User | undefined
+  viewer: User | { id: null }
 }
 
 export type DataSources = {

@@ -16,7 +16,7 @@ export const makeContext = async ({
     return connection.context
   }
 
-  let viewer
+  let viewer = { id: null }
   try {
     const userService = new UserService()
     const token =
