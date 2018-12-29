@@ -148,6 +148,17 @@ const GET_VIEWER_STATUS = `
     }
   }
 `
+const GET_VIEWER_RECOMMENDATION = (list: string) => `
+query($input: ListInput!) {
+  viewer {
+    recommendation {
+      ${list}(input: $input) {
+        id
+      }
+    }
+  }
+}
+`
 
 export const registerUser = async (user: { [key: string]: string }) => {
   const { mutate } = await testClient()
@@ -441,21 +452,9 @@ describe('mutations on User object', () => {
   })
 })
 
-describe('user recommendations', () => {
+describe.only('user recommendations', () => {
   test('retrive articles from hottest, icymi and topics', async () => {
-    const lists = ['hottest', 'icymi', 'topics']
-    const GET_VIEWER_RECOMMENDATION = (list: string) => `
-      query($input: ListInput!) {
-        viewer {
-          recommendation {
-            ${list}(input: $input) {
-              id
-            }
-          }
-        }
-      }
-    `
-
+    const lists = ['hottest', 'icymi', 'topics', 'followeeArticles']
     for (const list of lists) {
       const { query: queryNew } = await testClient({
         isAuth: true
@@ -474,5 +473,43 @@ describe('user recommendations', () => {
 
       expect(fromGlobalId(article.id).type).toBe('Article')
     }
+  })
+
+  test('retrive tags from tags', async () => {
+    const { query: queryNew } = await testClient({
+      isAuth: true
+    })
+    const { data } = await queryNew({
+      query: GET_VIEWER_RECOMMENDATION('tags'),
+      // @ts-ignore
+      variables: { input: { limit: 1 } }
+    })
+    const tag =
+      data &&
+      data.viewer &&
+      data.viewer.recommendation &&
+      data.viewer.recommendation.tags &&
+      data.viewer.recommendation.tags[0]
+
+    expect(fromGlobalId(tag.id).type).toBe('Tag')
+  })
+
+  test('retrive users from authors', async () => {
+    const { query: queryNew } = await testClient({
+      isAuth: true
+    })
+    const { data } = await queryNew({
+      query: GET_VIEWER_RECOMMENDATION('authors'),
+      // @ts-ignore
+      variables: { input: { limit: 1 } }
+    })
+    const author =
+      data &&
+      data.viewer &&
+      data.viewer.recommendation &&
+      data.viewer.recommendation.authors &&
+      data.viewer.recommendation.authors[0]
+
+    expect(fromGlobalId(author.id).type).toBe('User')
   })
 })
