@@ -28,7 +28,13 @@ const resolver: Resolver = async (
   const article = await articleService.dataloader.load(articleId)
   notificationService.trigger({
     event: 'article_updated',
-    article
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'article',
+        entity: article
+      }
+    ]
   })
 
   return true

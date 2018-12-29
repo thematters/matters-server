@@ -54,99 +54,111 @@ export type NoticeUserDisabledParams = {
 export type NoticeArticlePublishedParams = {
   event: 'article_published'
   recipientId: string
-  target: NoticeEntity<'target', 'article'>
+  entities: [NoticeEntity<'target', 'article'>]
 }
 
 export type NoticeArticleNewDownstreamParams = {
   event: 'article_new_downstream'
   recipientId: string
   actorId: string
-  target: NoticeEntity<'target', 'article'>
-  downstream: NoticeEntity<'downstream', 'article'>
+  entities: [
+    NoticeEntity<'target', 'article'>,
+    NoticeEntity<'downstream', 'article'>
+  ]
 }
 
 export type NoticeArticleNewAppreciationParams = {
   event: 'article_new_appreciation'
   recipientId: string
   actorId: string
-  target: NoticeEntity<'target', 'article'>
+  entities: [NoticeEntity<'target', 'article'>]
 }
 
 export type NoticeArticleNewSubscriberParams = {
   event: 'article_new_subscriber'
   recipientId: string
   actorId: string
-  target: NoticeEntity<'target', 'article'>
+  entities: [NoticeEntity<'target', 'article'>]
 }
 
 export type NoticeArticleNewCommentParams = {
   event: 'article_new_comment'
   recipientId: string
   actorId: string
-  target: NoticeEntity<'target', 'article'>
-  comment: NoticeEntity<'comment', 'article'>
+  entities: [
+    NoticeEntity<'target', 'article'>,
+    NoticeEntity<'comment', 'comment'>
+  ]
 }
 
 export type NoticeSubscribedArticleNewCommentParams = {
   event: 'subscribed_article_new_comment'
   recipientId: string
   actorId: string
-  target: NoticeEntity<'target', 'article'>
-  comment: NoticeEntity<'comment', 'article'>
+  entities: [
+    NoticeEntity<'target', 'article'>,
+    NoticeEntity<'comment', 'comment'>
+  ]
 }
 
 export type NoticeUpstreamArticleArchivedParams = {
   event: 'upstream_article_archived'
   recipientId: string
-  target: NoticeEntity<'target', 'article'>
-  upstream: NoticeEntity<'upstream', 'article'>
+  entities: [
+    NoticeEntity<'target', 'article'>,
+    NoticeEntity<'upstream', 'article'>
+  ]
 }
 
 export type NoticeDownstreamArticleArchivedParams = {
   event: 'downstream_article_archived'
   recipientId: string
-  target: NoticeEntity<'target', 'article'>
-  downstream: NoticeEntity<'downstream', 'article'>
+  entities: [
+    NoticeEntity<'target', 'article'>,
+    NoticeEntity<'downstream', 'article'>
+  ]
 }
 
 export type NoticeCommentPinnedParams = {
   event: 'comment_pinned'
   recipientId: string
-  target: NoticeEntity<'target', 'comment'>
+  entities: [NoticeEntity<'target', 'comment'>]
 }
 
 export type NoticeCommentNewReplyParams = {
   event: 'comment_new_reply'
   recipientId: string
   actorId: string
-  target: NoticeEntity<'target', 'comment'>
-  reply: NoticeEntity<'reply', 'comment'>
+  entities: [
+    NoticeEntity<'target', 'comment'>,
+    NoticeEntity<'reply', 'comment'>
+  ]
 }
 
 export type NoticeCommentNewUpvoteParams = {
   event: 'comment_new_upvote'
   recipientId: string
   actorId: string
-  target: NoticeEntity<'target', 'comment'>
+  entities: [NoticeEntity<'target', 'comment'>]
 }
 
 export type NoticeCommentMentionedYouParams = {
   event: 'comment_mentioned_you'
   recipientId: string
   actorId: string
-  target: NoticeEntity<'target', 'comment'>
+  entities: [NoticeEntity<'target', 'comment'>]
 }
 
 export type NoticeOfficialAnnouncementParams = {
   event: 'official_announcement'
   recipientId: string
   message: string
-  data: { link: string }
+  data: { url: string }
 }
 
 export type PubSubArticleUpdatedParams = {
   event: 'article_updated'
-  article: any
+  entities: [NoticeEntity<'target', 'article'>]
 }
 
 export type NotificationType = PubSubType | NoticeType

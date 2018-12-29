@@ -21,15 +21,32 @@ const resolver: Resolver = async (
     throw new Error('viewer has no permission to do this') // TODO
   }
 
-  await commentService.baseUpdateById(dbId, {
+  const comment = await commentService.baseUpdateById(dbId, {
     pinned: true
   })
 
-  // trigger notification
+  // trigger notifications
   const article = await articleService.dataloader.load(articleId)
   notificationService.trigger({
     event: 'article_updated',
-    article
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'article',
+        entity: article
+      }
+    ]
+  })
+  notificationService.trigger({
+    event: 'comment_pinned',
+    recipientId: comment.authorId,
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'comment',
+        entity: comment
+      }
+    ]
   })
 
   return true

@@ -45,8 +45,9 @@ class PushService extends BaseService {
     } else if (topic) {
       _push = _push.setAudience(JPush.tags(topic))
     } else {
-      const deviceIds = await this.findPushDevicesByUserIds(userIds)
-      _push = _push.setAudience(JPush.registration_id(deviceIds))
+      const users = await this.baseFindByIds(userIds, 'user')
+      const aliasIds = users.map((user: any) => user.uuid)
+      _push = _push.setAudience(JPush.alias(aliasIds))
     }
 
     // TODO: extras
@@ -60,26 +61,6 @@ class PushService extends BaseService {
 
     // send
     _push.send()
-  }
-
-  /**
-   * Find a push device by a given user id
-   */
-  findPushDeviceByUserId(userId: string) {
-    return this.knex
-      .select()
-      .where({ userId })
-      .first()
-  }
-
-  /**
-   * Find push devices by given user ids
-   */
-  findPushDevicesByUserIds(userIds: [string]) {
-    return this.knex
-      .select()
-      .whereIn('userId', userIds)
-      .first()
   }
 }
 

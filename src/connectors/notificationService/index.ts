@@ -1,12 +1,11 @@
 //local
-import { NotificationPrarms } from 'definitions'
+import { NotificationPrarms, NoticeEntityType } from 'definitions'
 import { toGlobalId } from 'common/utils'
 import { BaseService } from 'connectors/baseService'
-import { environment } from 'common/environment'
 
 import MailService from './mail'
 import PushService from './push'
-import NoticeService from './notice'
+import NoticeService, { PutNoticeParams } from './notice'
 import PubSubService from './pubsub'
 
 export class NotificationService extends BaseService {
@@ -24,29 +23,95 @@ export class NotificationService extends BaseService {
   }
 
   private async __trigger(params: NotificationPrarms) {
+    let noticeParams: PutNoticeParams
+
     switch (params.event) {
       case 'article_updated':
-        const nodeGlobalId = toGlobalId({
-          type: 'Article',
-          id: params.article.id
-        })
-        this.pubsubService.publish(nodeGlobalId, params.article)
-        break
+        this.pubsubService.publish(
+          toGlobalId({
+            type: 'Article',
+            id: params.entities[0].entity.id
+          }),
+          params.entities[0]
+        )
+        return
       case 'user_new_follower':
-        const { created, bundled } = await this.noticeService.process({
+      case 'comment_new_upvote':
+        noticeParams = {
           type: params.event,
-          actorIds: [params.actorId],
-          recipientId: params.recipientId
-        })
-        if (!created && !bundled) {
-          break
+          recipientId: params.recipientId,
+          actorIds: [params.actorId]
         }
-        this.pushService.push({
-          text: 'user_new_follower',
-          userIds: [params.actorId]
-        })
         break
+      case 'user_disabled':
+        noticeParams = {
+          type: params.event,
+          recipientId: params.recipientId,
+          data: params.data
+        }
+        break
+      case 'article_published':
+      case 'comment_pinned':
+      case 'upstream_article_archived':
+      case 'downstream_article_archived':
+        noticeParams = {
+          type: params.event,
+          recipientId: params.recipientId,
+          entities: params.entities
+        }
+        break
+      case 'article_new_downstream':
+      case 'article_new_appreciation':
+      case 'article_new_subscriber':
+      case 'comment_mentioned_you':
+      case 'article_new_comment':
+      case 'subscribed_article_new_comment':
+      case 'comment_new_reply':
+        noticeParams = {
+          type: params.event,
+          recipientId: params.recipientId,
+          actorIds: [params.actorId],
+          entities: params.entities
+        }
+        break
+      case 'official_announcement':
+        noticeParams = {
+          type: params.event,
+          recipientId: params.recipientId,
+          message: params.message,
+          data: params.data
+        }
+        break
+      default:
+        return
     }
+
+    // Put Notice to DB
+    const { created, bundled } = await this.noticeService.process(noticeParams)
+
+    if (!created && !bundled) {
+      return
+    }
+
+    // GraphQl Subscription
+    const recipient = await this.baseFindById(noticeParams.recipientId, 'user')
+
+    this.pubsubService.publish(
+      toGlobalId({
+        type: 'User',
+        id: noticeParams.recipientId
+      }),
+      recipient
+    )
+
+    // Push Notification
+    this.pushService.push({
+      text: noticeParams.message || `[PUSH] ${params.event}`, // TODO
+      userIds: [noticeParams.recipientId]
+    })
+
+    // Send Email
+    this.mailService.send()
   }
 
   trigger(params: NotificationPrarms) {

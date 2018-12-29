@@ -4,7 +4,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: Resolver = async (
   root,
   { input: { id, amount } },
-  { viewer, dataSources: { articleService } }
+  { viewer, dataSources: { articleService, notificationService } }
 ) => {
   if (!viewer) {
     throw new Error('anonymous user cannot do this') // TODO
@@ -21,6 +21,20 @@ const resolver: Resolver = async (
   }
 
   await articleService.appreciate(article.id, viewer.id, amount, viewer.mat)
+
+  // trigger notifications
+  notificationService.trigger({
+    event: 'article_new_appreciation',
+    actorId: viewer.id,
+    recipientId: article.authorId,
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'article',
+        entity: article
+      }
+    ]
+  })
 
   return articleService.dataloader.load(article.id)
 }
