@@ -27,7 +27,7 @@ export class NotificationService extends BaseService {
 
     switch (params.event) {
       case 'article_updated':
-        this.pubsubService.publish(
+        this.pubsubService.engine.publish(
           toGlobalId({
             type: 'Article',
             id: params.entities[0].entity.id
@@ -93,10 +93,9 @@ export class NotificationService extends BaseService {
       return
     }
 
-    // GraphQl Subscription
+    // Publish a event due to the recipent has a new unread notice
     const recipient = await this.baseFindById(noticeParams.recipientId, 'user')
-
-    this.pubsubService.publish(
+    this.pubsubService.engine.publish(
       toGlobalId({
         type: 'User',
         id: noticeParams.recipientId

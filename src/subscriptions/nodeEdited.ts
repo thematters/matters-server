@@ -6,7 +6,6 @@ export default {
     nodeEdited: {
       resolve: (node: any, { input: { id } }: { input: { id: string } }) => {
         const { type } = fromGlobalId(id)
-        console.log(type, node)
         return { ...node, __type: type }
       },
       subscribe: (
@@ -14,7 +13,7 @@ export default {
         { input: { id } }: { input: { id: string } },
         { dataSources: { notificationService } }: Context
       ) => {
-        return notificationService.pubsubService.asyncIterator([id])
+        return notificationService.pubsubService.engine.asyncIterator([id])
       }
     }
   }

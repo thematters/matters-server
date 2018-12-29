@@ -11,6 +11,11 @@ const resolver: Resolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
+
+  if (viewer.id === dbId) {
+    throw new Error('cannot follow yourself')
+  }
+
   const user = await userService.dataloader.load(dbId)
   if (!user) {
     throw new Error('target user does not exists') // TODO

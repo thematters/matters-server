@@ -74,7 +74,7 @@ const resolver: Resolver = async (
       article.id
     )
     articleSubscribers.forEach(subscriber => {
-      if (subscriber.id == article.author) {
+      if (subscriber.id == article.authorId) {
         return
       }
       notificationService.trigger({
@@ -127,20 +127,21 @@ const resolver: Resolver = async (
       }
     ]
   })
-  data.mentionedUserIds.forEach((userId: string) => {
-    notificationService.trigger({
-      event: 'comment_mentioned_you',
-      actorId: viewer.id,
-      recipientId: userId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'comment',
-          entity: newComment
-        }
-      ]
+  data.mentionedUserIds &&
+    data.mentionedUserIds.forEach((userId: string) => {
+      notificationService.trigger({
+        event: 'comment_mentioned_you',
+        actorId: viewer.id,
+        recipientId: userId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'comment',
+            entity: newComment
+          }
+        ]
+      })
     })
-  })
 
   return newComment
 }
