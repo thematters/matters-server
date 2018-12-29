@@ -50,6 +50,7 @@ export default {
     history
   },
   UserStatus: {
+    state: ({ state }: { state: string }) => state,
     articleCount,
     MAT,
     // viewCount,

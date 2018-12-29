@@ -87,5 +87,6 @@ export default /* GraphQL */ `
     pending
     error
     published
+    banned
   }
 `

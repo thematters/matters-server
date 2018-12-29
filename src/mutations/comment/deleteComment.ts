@@ -19,7 +19,7 @@ const resolver: Resolver = async (
   }
 
   await commentService.baseUpdateById(dbId, {
-    archived: true
+    status: 'archived'
   })
 
   try {
