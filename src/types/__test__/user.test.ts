@@ -452,7 +452,7 @@ describe('mutations on User object', () => {
   })
 })
 
-describe.only('user recommendations', () => {
+describe('user recommendations', () => {
   test('retrive articles from hottest, icymi and topics', async () => {
     const lists = ['hottest', 'icymi', 'topics', 'followeeArticles']
     for (const list of lists) {
