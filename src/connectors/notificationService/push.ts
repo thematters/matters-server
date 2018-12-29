@@ -30,6 +30,10 @@ class PushService extends BaseService {
     broadcast?: boolean
     platform?: 'ios' | 'android'
   }) {
+    if (environment.env === 'test') {
+      return
+    }
+
     let _push = this.client.push()
 
     // platform

@@ -1,5 +1,4 @@
 import sgMail from '@sendgrid/mail'
-import { MailData } from '@sendgrid/helpers/classes/mail'
 
 import { environment } from 'common/environment'
 
@@ -13,6 +12,12 @@ class MailService {
   _setupSgMail() {
     sgMail.setApiKey(environment.sgKey as string)
     return sgMail
+  }
+
+  send() {
+    if (environment.env === 'test') {
+      return
+    }
   }
 }
 

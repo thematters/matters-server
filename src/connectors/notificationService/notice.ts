@@ -1,5 +1,5 @@
 import { v4 } from 'uuid'
-import { isEqual } from 'lodash'
+import { isEqual, difference } from 'lodash'
 
 import {
   NoticeType,
@@ -10,7 +10,7 @@ import {
 import { BATCH_SIZE } from 'common/enums'
 import { BaseService } from '../baseService'
 
-export type NoticeUser = string
+export type NoticeUserId = string
 export type NoticeMessage = string
 export type NoticeData = {
   url?: string
@@ -18,8 +18,8 @@ export type NoticeData = {
 }
 export type PutNoticeParams = {
   type: NoticeType
-  actorIds?: NoticeUser[]
-  recipientId: NoticeUser
+  actorIds?: NoticeUserId[]
+  recipientId: NoticeUserId
   entities?: NoticeEntity[]
   message?: NoticeMessage | null
   data?: NoticeData | null
@@ -40,7 +40,7 @@ class NoticeService extends BaseService {
     entities,
     message,
     data
-  }: PutNoticeParams) {
+  }: PutNoticeParams): void {
     this.knex.transaction(async trx => {
       // create notice detail
       const [{ id: noticeDetailId }] = await trx
@@ -99,7 +99,16 @@ class NoticeService extends BaseService {
     })
   }
 
-  async addNoticeActors(noticeId: string, actorIds: NoticeUser[]) {
+  /**
+   * Bundle with existing notice
+   */
+  async addNoticeActors({
+    noticeId,
+    actorIds
+  }: {
+    noticeId: string
+    actorIds: NoticeUserId[]
+  }): Promise<void> {
     this.knex.transaction(async trx => {
       // add actors
       await Promise.all(
@@ -124,21 +133,57 @@ class NoticeService extends BaseService {
    * Process new event to determine
    * whether to bundle with old notice or write new notice
    */
-  async process(params: PutNoticeParams) {
-    const bundleableNotice = await this.getBundleableNotice(params)
-
-    if (bundleableNotice && params.actorIds) {
-      return this.addNoticeActors(bundleableNotice, params.actorIds)
+  async process(
+    params: PutNoticeParams
+  ): Promise<{ created: boolean; bundled: boolean }> {
+    // create
+    const bundleableNoticeId = await this.getBundleableNoticeId(params)
+    if (!bundleableNoticeId) {
+      await this.create(params)
+      return { created: true, bundled: false }
     }
 
-    return this.create(params)
+    // do nothing
+    const bundleActorIds = await this.getBundleActorIds({
+      noticeId: bundleableNoticeId,
+      actorIds: params.actorIds || []
+    })
+
+    if (!bundleActorIds || bundleActorIds.length <= 0) {
+      return { created: false, bundled: false }
+    }
+
+    // bundle
+    await this.addNoticeActors({
+      noticeId: bundleableNoticeId,
+      actorIds: bundleActorIds
+    })
+    return { created: false, bundled: true }
+  }
+
+  async getBundleActorIds({
+    noticeId,
+    actorIds
+  }: {
+    noticeId: string
+    actorIds: NoticeUserId[]
+  }): Promise<NoticeUserId[]> {
+    const sourceActors = await this.knex
+      .select('actorId')
+      .where({ noticeId })
+      .whereIn('actorId', actorIds)
+      .from('notice_actor')
+    const sourceActorIds = sourceActors.map(
+      ({ actorId }: { actorId: NoticeUserId }) => actorId
+    )
+    return difference(actorIds, sourceActorIds)
   }
 
   /**
    * Get a bundleable notice
    *
    */
-  async getBundleableNotice({
+  async getBundleableNoticeId({
     type,
     actorIds,
     recipientId,
@@ -172,7 +217,7 @@ class NoticeService extends BaseService {
       const isTargetEntitiesExists = targetEntities && targetEntities.length > 0
       const isSourceEntitiesExists = entities && entities.length > 0
       if (!isTargetEntitiesExists || !isSourceEntitiesExists) {
-        return notice
+        return notice.id
       }
       if (
         (isTargetEntitiesExists && !isSourceEntitiesExists) ||
@@ -193,7 +238,7 @@ class NoticeService extends BaseService {
         sourceEntitiesHashMap[hash] = true
       })
       if (isEqual(targetEntitiesHashMap, sourceEntitiesHashMap)) {
-        return notice
+        return notice.id
       }
 
       return
@@ -294,6 +339,30 @@ class NoticeService extends BaseService {
       .from('notice_actor')
       .innerJoin('user', 'notice_actor.actor_id', '=', 'user.id')
       .where({ noticeId })
+  }
+
+  /**
+   * Find a notice by a given notice id
+   */
+  async findNoticeById(noticeId: string) {
+    const [notice] = await this.findNoticesWithDetail({
+      where: { noticeId }
+    })
+
+    if (!notice) {
+      return
+    }
+
+    const entities = await this.findEntitiesByNoticeId(notice.id)
+    const actors = await this.findActorsByNoticeId(notice.id)
+
+    return {
+      ...notice,
+      createdAt: notice.updatedAt,
+      type: notice.noticeType,
+      actors,
+      entities
+    }
   }
 
   /**

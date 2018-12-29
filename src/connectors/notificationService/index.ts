@@ -2,6 +2,7 @@
 import { NotificationPrarms } from 'definitions'
 import { toGlobalId } from 'common/utils'
 import { BaseService } from 'connectors/baseService'
+import { environment } from 'common/environment'
 
 import MailService from './mail'
 import PushService from './push'
@@ -22,7 +23,7 @@ export class NotificationService extends BaseService {
     this.pubsubService = new PubSubService()
   }
 
-  trigger(params: NotificationPrarms) {
+  private async __trigger(params: NotificationPrarms) {
     switch (params.event) {
       case 'article_updated':
         const nodeGlobalId = toGlobalId({
@@ -32,15 +33,27 @@ export class NotificationService extends BaseService {
         this.pubsubService.publish(nodeGlobalId, params.article)
         break
       case 'user_new_follower':
-        this.noticeService.process({
+        const { created, bundled } = await this.noticeService.process({
           type: params.event,
           actorIds: [params.actorId],
           recipientId: params.recipientId
         })
+        if (!created && !bundled) {
+          break
+        }
         this.pushService.push({
           text: 'user_new_follower',
           userIds: [params.actorId]
         })
+        break
+    }
+  }
+
+  trigger(params: NotificationPrarms) {
+    try {
+      this.__trigger(params)
+    } catch (e) {
+      console.error('[Notification:trigger]', e)
     }
   }
 }
