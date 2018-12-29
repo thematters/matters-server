@@ -7,21 +7,6 @@ export class SystemService extends BaseService {
     super('noop')
   }
 
-  search = async ({ key, type, limit = 10, offset = 0 }: GQLSearchInput) => {
-    // TODO: handle other types
-    if (type === 'Article') {
-      // TODO: handle search across title and content
-      const body = bodybuilder()
-        .query('match', 'content', key)
-        .size(limit)
-        .build()
-      const { hits } = await this.es.search({ index: 'article', body })
-      return hits.hits
-    }
-
-    //const result = this.es.search()
-  }
-
   /**
    * Find the url of an asset by a given id.
    */

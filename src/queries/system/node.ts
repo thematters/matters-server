@@ -10,7 +10,6 @@ const resolver: Resolver = async (
       userService,
       commentService,
       draftService,
-      systemService,
       tagService
     }
   }: Context

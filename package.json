@@ -64,6 +64,7 @@
     "validator": "^10.9.0"
   },
   "devDependencies": {
+    "@types/base-64": "^0.1.2",
     "@types/bcrypt": "^3.0.0",
     "@types/cheerio": "^0.22.6",
     "@types/elasticsearch": "^5.0.29",

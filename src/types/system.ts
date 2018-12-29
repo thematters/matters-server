@@ -44,7 +44,7 @@ export default /* GraphQL */ `
 
   input SearchInput {
     key: String!
-    type: SearchTypes
+    type: SearchTypes!
     offset: Int
     limit: Int
   }

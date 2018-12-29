@@ -97,7 +97,7 @@ export default /* GraphQL */ `
   }
 
   type UserStatus {
-    currGravity: Int!
+    state: UserState!
     # Total MAT left in wallet
     MAT: Int!
     # Number of articles published by user
@@ -238,5 +238,14 @@ export default /* GraphQL */ `
     facebook
     wechat
     google
+  }
+
+  enum UserState {
+    inactive
+    onboarding
+    active
+    banned
+    frozen
+    archived
   }
 `
