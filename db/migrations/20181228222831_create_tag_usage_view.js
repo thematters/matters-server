@@ -1,4 +1,4 @@
-const table = 'tag_view'
+const table = 'tag_usage_view'
 
 exports.up = async knex =>
   knex.raw(/*sql*/ `
@@ -7,7 +7,8 @@ exports.up = async knex =>
             tag.*,
             recent_usage,
             total_usage,
-            last_used
+            last_used,
+            coalesce(recent_usage, 0) * (last_used >= now() - interval '72 hours')::int * coalesce(boost, 1) as tag_score
         from
             tag
             left join
@@ -42,6 +43,14 @@ exports.up = async knex =>
                     article_tag
                 group by
                     tag_id) as a3 on tag.id = a3.tag_id
+            left join
+            /* boost */
+            (
+                select
+                    boost,
+                    tag_id
+                from
+                    tag_boost) as b on tag.id = b.tag_id
   `)
 
 exports.down = function(knex, Promise) {

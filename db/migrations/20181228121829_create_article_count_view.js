@@ -1,11 +1,14 @@
-const table = 'topic_article_view'
+const table = 'article_count_view'
 
 exports.up = async knex =>
   knex.raw(/*sql*/ `
     create view ${table} as
         select
             article.*,
-            (coalesce(comment_count, 0) * coalesce(recent_comment_count, 0) + coalesce(downstream_count, 0) * 10) * coalesce(boost, 1) as score
+            comment_count,
+            recent_comment_count
+            downstream_count,
+            (coalesce(comment_count, 0) * coalesce(recent_comment_count, 0) + coalesce(downstream_count, 0) * 10) * coalesce(boost, 1) as topic_score
         from
             article
             left join
@@ -27,7 +30,7 @@ exports.up = async knex =>
                 from
                     comment
                 where
-                    created_at >= now() - (72 * '1 HOUR'::interval)
+                    created_at >= now() -  interval '72 hours'
                 group by
                     article_id) as c2 on article.id = c2.article_id
             left join
@@ -39,7 +42,7 @@ exports.up = async knex =>
                 from
                     article
                 where
-                    created_at >= now() - (72 * '1 HOUR'::interval)
+                    created_at >= now() - interval '72 hours'
                 group by
                     upstream_id) as a on article.id = a.upstream_id
             left join

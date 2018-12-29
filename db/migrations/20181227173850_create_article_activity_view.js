@@ -1,4 +1,4 @@
-const table = 'hottest_article_view'
+const table = 'article_activity_view'
 
 exports.up = async knex =>
   knex.raw(/*sql*/ `
