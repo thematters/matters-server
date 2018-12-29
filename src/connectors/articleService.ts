@@ -127,82 +127,25 @@ export class ArticleService extends BaseService {
     }
   }
 
-  // TODO: rank hottest
-  recommendHottest = async ({ offset = 0, limit = 5 }) => {
-    const res = await this.knex(this.table)
-      .select(
-        'article.*',
-        this.knex.raw(
-          'GREATEST ( latest_comment, latest_downstream, latest_appreciation) as latest_activity'
-        )
-      )
-      .leftJoin(
-        // latest comment
-        this.knex('comment')
-          .max({ latest_comment: 'created_at' })
-          .column('article_id')
-          .groupBy('article_id')
-          .as('c'),
-        'article.id',
-        'c.article_id'
-      )
-      .leftJoin(
-        // latest downstream
-        this.knex('article')
-          .max({ latest_downstream: 'created_at' })
-          .column('upstream_id')
-          .groupBy('upstream_id')
-          .as('a'),
-        'article.id',
-        'a.upstream_id'
-      )
-      .leftJoin(
-        // latest appreciation
-        this.knex('appreciate')
-          .max({ latest_appreciation: 'created_at' })
-          .column('article_id')
-          .groupBy('article_id')
-          .as('m'),
-        'article.id',
-        'm.article_id'
-      )
-      .on('query-error', (err, obj) => {
-        console.log({ err, obj })
-      })
-      .on('query', obj => {
-        console.log({ obj })
-      })
-
-    console.log({ res })
-    return res
-  }
-
-  // TODO: get articles from hottest
-  followeeArticles = ({ offset = 0, limit = 5 }) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
-      .offset(offset)
+  recommendHottest = ({ offset = 0, limit = 5 }) =>
+    this.knex('article_activity_view')
+      .orderBy('latest_activity', 'desc null last')
       .limit(limit)
+      .offset(offset)
 
-  // TODO: rank icymi
   recommendIcymi = ({ offset = 0, limit = 5 }) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
+    this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_choice as c', 'c.article_id', 'article.id')
+      .orderBy('chose_at', 'desc')
       .offset(offset)
       .limit(limit)
 
-  // TODO: rank topics
   recommendTopics = ({ offset = 0, limit = 5 }) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
-      .offset(offset)
+    this.knex('article_count_view')
+      .orderBy('topic_score', 'desc')
       .limit(limit)
+      .offset(offset)
 
   /**
    * Count articles by a given authorId (user).

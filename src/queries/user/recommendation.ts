@@ -4,8 +4,8 @@ const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles: async (
     { id },
     { input },
-    { dataSources: { articleService } }: Context
-  ) => articleService.followeeArticles(input),
+    { dataSources: { userService } }: Context
+  ) => userService.followeeArticles(input),
   hottest: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
     articleService.recommendHottest(input),
   icymi: ({ id }, { input }, { dataSources: { articleService } }: Context) =>

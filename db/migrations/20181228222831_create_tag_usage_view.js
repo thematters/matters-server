@@ -1,21 +1,21 @@
-const table = 'tag_usage_view'
+const table = 'tag_count_view'
 
 exports.up = async knex =>
   knex.raw(/*sql*/ `
     create view ${table} as
         select
             tag.*,
-            recent_usage,
-            total_usage,
+            recent_count,
+            count,
             last_used,
-            coalesce(recent_usage, 0) * (last_used >= now() - interval '72 hours')::int * coalesce(boost, 1) as tag_score
+            coalesce(recent_count, 0) * (last_used >= now() - interval '72 hours')::int * coalesce(boost, 1) as tag_score
         from
             tag
             left join
             /* past 30 days usage */
             (
                 select
-                    count(id) as recent_usage,
+                    count(id) as recent_count,
                     tag_id
                 from
                     article_tag
@@ -27,7 +27,7 @@ exports.up = async knex =>
             /* total usage */
             (
                 select
-                    count(id) as total_usage,
+                    count(id) as count,
                     tag_id
                 from
                     article_tag

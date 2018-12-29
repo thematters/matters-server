@@ -197,6 +197,15 @@ export class UserService extends BaseService {
     return parseInt(result.count, 10)
   }
 
+  recommendAuthor = async ({ offset = 0, limit = 5 }) =>
+    this.knex('user_reader_view')
+      .select()
+      .orderBy('author_score', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+  followeeArticles = (input: any) => {}
+
   /**
    * Count an users' subscription by a given user id.
    */
