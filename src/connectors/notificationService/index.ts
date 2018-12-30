@@ -111,8 +111,6 @@ export class NotificationService extends BaseService {
       userId: noticeParams.recipientId
     })
 
-    console.log(canPush, canEmail)
-
     if (canPush) {
       notificationQueue.pushNotification({
         text: noticeParams.message || `[PUSH] ${params.event}`, // TODO

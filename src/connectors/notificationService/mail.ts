@@ -15,11 +15,11 @@ class MailService {
     return sgMail
   }
 
-  send = (params: MailData) => {
+  send = async (params: MailData) => {
     if (environment.env === 'test') {
       return
     }
-    console.log(params)
+    await this.mail.send(params)
   }
 }
 
