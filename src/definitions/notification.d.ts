@@ -30,7 +30,7 @@ export type NoticeEntityType =
   | 'comment'
   | 'reply'
 
-export type NoticeEntity<
+export type NotificationEntity<
   T extends NoticeEntityType = NoticeEntityType,
   K extends TableName = TableName
 > = {
@@ -54,7 +54,7 @@ export type NoticeUserDisabledParams = {
 export type NoticeArticlePublishedParams = {
   event: 'article_published'
   recipientId: string
-  entities: [NoticeEntity<'target', 'article'>]
+  entities: [NotificationEntity<'target', 'article'>]
 }
 
 export type NoticeArticleNewDownstreamParams = {
@@ -62,8 +62,8 @@ export type NoticeArticleNewDownstreamParams = {
   recipientId: string
   actorId: string
   entities: [
-    NoticeEntity<'target', 'article'>,
-    NoticeEntity<'downstream', 'article'>
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'downstream', 'article'>
   ]
 }
 
@@ -71,14 +71,14 @@ export type NoticeArticleNewAppreciationParams = {
   event: 'article_new_appreciation'
   recipientId: string
   actorId: string
-  entities: [NoticeEntity<'target', 'article'>]
+  entities: [NotificationEntity<'target', 'article'>]
 }
 
 export type NoticeArticleNewSubscriberParams = {
   event: 'article_new_subscriber'
   recipientId: string
   actorId: string
-  entities: [NoticeEntity<'target', 'article'>]
+  entities: [NotificationEntity<'target', 'article'>]
 }
 
 export type NoticeArticleNewCommentParams = {
@@ -86,8 +86,8 @@ export type NoticeArticleNewCommentParams = {
   recipientId: string
   actorId: string
   entities: [
-    NoticeEntity<'target', 'article'>,
-    NoticeEntity<'comment', 'comment'>
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'comment', 'comment'>
   ]
 }
 
@@ -96,8 +96,8 @@ export type NoticeSubscribedArticleNewCommentParams = {
   recipientId: string
   actorId: string
   entities: [
-    NoticeEntity<'target', 'article'>,
-    NoticeEntity<'comment', 'comment'>
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'comment', 'comment'>
   ]
 }
 
@@ -105,8 +105,8 @@ export type NoticeUpstreamArticleArchivedParams = {
   event: 'upstream_article_archived'
   recipientId: string
   entities: [
-    NoticeEntity<'target', 'article'>,
-    NoticeEntity<'upstream', 'article'>
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'upstream', 'article'>
   ]
 }
 
@@ -114,15 +114,15 @@ export type NoticeDownstreamArticleArchivedParams = {
   event: 'downstream_article_archived'
   recipientId: string
   entities: [
-    NoticeEntity<'target', 'article'>,
-    NoticeEntity<'downstream', 'article'>
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'downstream', 'article'>
   ]
 }
 
 export type NoticeCommentPinnedParams = {
   event: 'comment_pinned'
   recipientId: string
-  entities: [NoticeEntity<'target', 'comment'>]
+  entities: [NotificationEntity<'target', 'comment'>]
 }
 
 export type NoticeCommentNewReplyParams = {
@@ -130,8 +130,8 @@ export type NoticeCommentNewReplyParams = {
   recipientId: string
   actorId: string
   entities: [
-    NoticeEntity<'target', 'comment'>,
-    NoticeEntity<'reply', 'comment'>
+    NotificationEntity<'target', 'comment'>,
+    NotificationEntity<'reply', 'comment'>
   ]
 }
 
@@ -139,14 +139,14 @@ export type NoticeCommentNewUpvoteParams = {
   event: 'comment_new_upvote'
   recipientId: string
   actorId: string
-  entities: [NoticeEntity<'target', 'comment'>]
+  entities: [NotificationEntity<'target', 'comment'>]
 }
 
 export type NoticeCommentMentionedYouParams = {
   event: 'comment_mentioned_you'
   recipientId: string
   actorId: string
-  entities: [NoticeEntity<'target', 'comment'>]
+  entities: [NotificationEntity<'target', 'comment'>]
 }
 
 export type NoticeOfficialAnnouncementParams = {
@@ -158,7 +158,7 @@ export type NoticeOfficialAnnouncementParams = {
 
 export type PubSubArticleUpdatedParams = {
   event: 'article_updated'
-  entities: [NoticeEntity<'target', 'article'>]
+  entities: [NotificationEntity<'target', 'article'>]
 }
 
 export type NotificationType = PubSubType | NoticeType

@@ -4,6 +4,15 @@ import { JPushAsync, JPush } from 'jpush-async'
 import { environment } from 'common/environment'
 import { BaseService } from '../baseService'
 
+export type PushParams = {
+  title?: string
+  text: string
+  userIds: [string]
+  topic?: any
+  broadcast?: boolean
+  platform?: 'ios' | 'android'
+}
+
 class PushService extends BaseService {
   client: any
 
@@ -15,21 +24,14 @@ class PushService extends BaseService {
     )
   }
 
-  async push({
+  push = async ({
     title,
     text,
     userIds,
     topic,
     broadcast,
     platform
-  }: {
-    title?: string
-    text: string
-    userIds: [string]
-    topic?: any
-    broadcast?: boolean
-    platform?: 'ios' | 'android'
-  }) {
+  }: PushParams) => {
     if (environment.env === 'test') {
       return
     }
@@ -46,7 +48,7 @@ class PushService extends BaseService {
       _push = _push.setAudience(JPush.tags(topic))
     } else {
       const users = await this.baseFindByIds(userIds, 'user')
-      const aliasIds = users.map((user: any) => user.uuid)
+      const aliasIds = users.map((user: any) => user.uuid.replace(/-/g, '')) // TODO: TBC
       _push = _push.setAudience(JPush.alias(aliasIds))
     }
 
@@ -60,8 +62,8 @@ class PushService extends BaseService {
     )
 
     // send
-    _push.send()
+    await _push.send()
   }
 }
 
-export default PushService
+export const pushService = new PushService()

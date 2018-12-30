@@ -1,4 +1,5 @@
 import sgMail from '@sendgrid/mail'
+import { MailData } from '@sendgrid/helpers/classes/mail'
 
 import { environment } from 'common/environment'
 
@@ -9,16 +10,17 @@ class MailService {
     this.mail = this._setupSgMail()
   }
 
-  _setupSgMail() {
+  _setupSgMail = () => {
     sgMail.setApiKey(environment.sgKey as string)
     return sgMail
   }
 
-  send() {
+  send = (params: MailData) => {
     if (environment.env === 'test') {
       return
     }
+    console.log(params)
   }
 }
 
-export default MailService
+export const mailService = new MailService()

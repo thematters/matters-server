@@ -6,14 +6,7 @@ class PubSubService {
   engine: InstanceType<typeof RedisPubSub>
 
   constructor() {
-    this.engine = this._initPubSubEngine()
-  }
-
-  /**
-   * Create PubSub instance for GraphQL Subscriptions
-   */
-  _initPubSubEngine = () => {
-    return new RedisPubSub({
+    this.engine = new RedisPubSub({
       connection: {
         host: environment.pubSubHost as string,
         port: environment.pubSubPort as number,
@@ -26,4 +19,4 @@ class PubSubService {
   }
 }
 
-export default PubSubService
+export const pubsubService = new PubSubService()

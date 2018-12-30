@@ -1,25 +1,27 @@
 //local
-import { NotificationPrarms, NoticeEntityType } from 'definitions'
+import { NotificationType, NotificationPrarms } from 'definitions'
 import { toGlobalId } from 'common/utils'
+import { environment } from 'common/environment'
 import { BaseService } from 'connectors/baseService'
+import { notificationQueue } from 'connectors/queue'
 
-import MailService from './mail'
-import PushService from './push'
-import NoticeService, { PutNoticeParams } from './notice'
-import PubSubService from './pubsub'
+import { mailService } from './mail'
+import { pushService } from './push'
+import { noticeService, PutNoticeParams } from './notice'
+import { pubsubService } from './pubsub'
 
 export class NotificationService extends BaseService {
-  mailService: InstanceType<typeof MailService>
-  pushService: InstanceType<typeof PushService>
-  noticeService: InstanceType<typeof NoticeService>
-  pubsubService: InstanceType<typeof PubSubService>
+  mailService: typeof mailService
+  pushService: typeof pushService
+  noticeService: typeof noticeService
+  pubsubService: typeof pubsubService
 
   constructor() {
     super('noop')
-    this.mailService = new MailService()
-    this.pushService = new PushService()
-    this.noticeService = new NoticeService()
-    this.pubsubService = new PubSubService()
+    this.mailService = mailService
+    this.pushService = pushService
+    this.noticeService = noticeService
+    this.pubsubService = pubsubService
   }
 
   private async __trigger(params: NotificationPrarms) {
@@ -104,16 +106,73 @@ export class NotificationService extends BaseService {
     )
 
     // Push Notification
-    this.pushService.push({
-      text: noticeParams.message || `[PUSH] ${params.event}`, // TODO
-      userIds: [noticeParams.recipientId]
+    const { canPush, canEmail } = await this.checkUserNoifySetting({
+      event: params.event,
+      userId: noticeParams.recipientId
     })
 
+    console.log(canPush, canEmail)
+
+    if (canPush) {
+      notificationQueue.pushNotification({
+        text: noticeParams.message || `[PUSH] ${params.event}`, // TODO
+        userIds: [noticeParams.recipientId]
+      })
+    }
+
     // Send Email
-    this.mailService.send()
+    if (canEmail) {
+      notificationQueue.sendMail({
+        from: environment.emailName as string,
+        to: recipient.email,
+        text: noticeParams.message || `[EMAIL] ${params.event}`
+      })
+    }
   }
 
-  trigger(params: NotificationPrarms) {
+  checkUserNoifySetting = async ({
+    event,
+    userId
+  }: {
+    event: NotificationType
+    userId: string
+  }): Promise<{ canPush: boolean; canEmail: boolean }> => {
+    const setting = await this.knex
+      .select()
+      .where({ userId })
+      .from('user_notify_setting')
+      .first()
+
+    if (!setting || !setting.enable) {
+      return { canPush: false, canEmail: false }
+    }
+
+    const eventSettingMap: { [key in NotificationType]: boolean } = {
+      article_updated: false,
+      user_new_follower: setting.follow,
+      user_disabled: true,
+      article_published: true,
+      article_new_downstream: setting.downstream,
+      article_new_appreciation: setting.appreciation,
+      article_new_subscriber: setting.articleSubscription,
+      article_new_comment: setting.comment,
+      subscribed_article_new_comment: setting.commentSubscribed,
+      upstream_article_archived: setting.downstream,
+      downstream_article_archived: setting.downstream,
+      comment_pinned: setting.commentPinned,
+      comment_new_reply: setting.comment,
+      comment_new_upvote: setting.commentVoted,
+      comment_mentioned_you: setting.mention,
+      official_announcement: setting.officialNotice
+    }
+
+    return {
+      canPush: eventSettingMap[event],
+      canEmail: setting.email && eventSettingMap[event]
+    }
+  }
+
+  trigger = (params: NotificationPrarms) => {
     try {
       this.__trigger(params)
     } catch (e) {
