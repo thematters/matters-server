@@ -4,16 +4,18 @@ const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles: async (
     { id },
     { input },
-    { dataSources: { articleService } }: Context
-  ) => articleService.followeeArticles(input),
+    { dataSources: { userService } }: Context
+  ) => userService.followeeArticles({ id, ...input }),
   hottest: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
     articleService.recommendHottest(input),
   icymi: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
     articleService.recommendIcymi(input),
-  // tags(input: ListInput!): [Tag!]
+  tags: ({ id }, { input }, { dataSources: { tagService } }: Context) =>
+    tagService.recommendTags(input),
   topics: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
-    articleService.recommendTopics(input)
-  // authors(input: ListInput!): [User!]!
+    articleService.recommendTopics(input),
+  authors: ({ id }, { input }, { dataSources: { userService } }: Context) =>
+    userService.recommendAuthor(input)
 }
 
 export default resolvers

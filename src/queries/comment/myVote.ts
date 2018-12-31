@@ -10,7 +10,7 @@ const resolver: Resolver = async (
   _,
   { viewer, dataSources: { commentService } }
 ) => {
-  if (!viewer) {
+  if (!viewer.id) {
     return null
   }
 

@@ -7,7 +7,7 @@ const resolver: Resolver = async (
   { input: { id, upstreamId, title, content, tags, coverAssetId } },
   { viewer, dataSources: { draftService } }
 ) => {
-  if (!viewer) {
+  if (!viewer.id) {
     throw new Error('anonymous user cannot do this')
   }
 

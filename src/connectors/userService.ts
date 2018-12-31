@@ -7,7 +7,12 @@ import _ from 'lodash'
 
 import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
 import { environment } from 'common/environment'
-import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
+import {
+  ItemData,
+  GQLSearchInput,
+  GQLUpdateUserInfoInput,
+  GQLListInput
+} from 'definitions'
 import { BaseService } from './baseService'
 
 export class UserService extends BaseService {
@@ -196,6 +201,25 @@ export class UserService extends BaseService {
       .first()
     return parseInt(result.count, 10)
   }
+
+  recommendAuthor = async ({ offset = 0, limit = 5 }) =>
+    this.knex('user_reader_view')
+      .select()
+      .orderBy('author_score', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+  followeeArticles = async ({
+    id,
+    offset = 0,
+    limit = 5
+  }: GQLListInput & { id: string }) =>
+    this.knex('action_user as au')
+      .select('ar.*')
+      .join('article as ar', 'ar.author_id', 'au.target_id')
+      .where({ action: 'follow', userId: id })
+      .offset(offset)
+      .limit(limit)
 
   /**
    * Count an users' subscription by a given user id.

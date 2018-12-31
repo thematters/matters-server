@@ -127,41 +127,25 @@ export class ArticleService extends BaseService {
     }
   }
 
-  // TODO: rank hottest
   recommendHottest = ({ offset = 0, limit = 5 }) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
-      .offset(offset)
+    this.knex('article_activity_view')
+      .orderBy('latest_activity', 'desc null last')
       .limit(limit)
-
-  // TODO: get articles from hottest
-  followeeArticles = ({ offset = 0, limit = 5 }) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
       .offset(offset)
-      .limit(limit)
 
-  // TODO: rank icymi
   recommendIcymi = ({ offset = 0, limit = 5 }) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
+    this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_choice as c', 'c.article_id', 'article.id')
+      .orderBy('chose_at', 'desc')
       .offset(offset)
       .limit(limit)
 
-  // TODO: rank topics
   recommendTopics = ({ offset = 0, limit = 5 }) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
-      .offset(offset)
+    this.knex('article_count_view')
+      .orderBy('topic_score', 'desc')
       .limit(limit)
+      .offset(offset)
 
   /**
    * Count articles by a given authorId (user).
