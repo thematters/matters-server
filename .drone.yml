@@ -25,10 +25,12 @@ steps:
       MATTERS_QUEUE_HOST: redis
       MATTERS_CACHE_HOST: redis
       MATTERS_JWT_SECRET: QsNmu9
+      MATTERS_JPUSH_API_KEY: 8e60db0a78eb029fe1bd83d6
+      MATTERS_JPUSH_API_SECRET: 42dd6fb3e481a34eadbc5ee5
       MATTERS_ELASTICSEARCH_HOST: elasticsearch
       MATTERS_ELASTICSEARCH_PORT: 9200
     commands:
-      - npx jest --forceExit --detectOpenHandles --coverage
+      - npm run test
 
   - name: build
     image: node:10.14

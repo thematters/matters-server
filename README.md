@@ -15,9 +15,7 @@
 
 ## Run test cases on local dev
 
-- `npx jest`; or
-- `npx jest --coverage`; or
-- `npx jest --forceExit --detectOpenHandles --coverage`.
+- `npm run test`
 
 ## Start dev with docker-compose
 
@@ -30,7 +28,7 @@
 
 ## Run test cases with docker-compose
 
-- `docker-compose -f docker/docker-compose.yml run app npx jest`
+- `docker-compose -f docker/docker-compose.yml run app npm run test`
 
 ## Deploy to beanstalk staging environment
 

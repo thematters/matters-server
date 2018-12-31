@@ -47,7 +47,7 @@ describe('user notify setting', async () => {
     official_announcement: true
   }
   test('user receives notifications', async () => {
-    return Promise.all(
+    await Promise.all(
       noticeTypes.map(async type => {
         const {
           canPush,
@@ -65,7 +65,7 @@ describe('user notify setting', async () => {
     const notifySetting = await userService.findNotifySetting(recipientId)
     await userService.updateNotifySetting(notifySetting.id, { email: false })
     await userService.updateNotifySetting(notifySetting.id, { follow: false })
-    return Promise.all(
+    await Promise.all(
       noticeTypes.map(async type => {
         const {
           canPush,
@@ -160,7 +160,7 @@ describe('bundle notices', async () => {
     const noticeActors = await noticeService.findActors(noticeId)
     expect(noticeActors.length).toBe(2)
     await noticeService.addNoticeActors({ noticeId, actorIds: ['4'] })
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 1000))
     const notice2Actors = await noticeService.findActors(noticeId)
     expect(notice2Actors.length).toBe(3)
   })
