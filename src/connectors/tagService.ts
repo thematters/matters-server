@@ -47,18 +47,15 @@ export class TagService extends BaseService {
     return this.baseBatchCreate(items, 'article_tag')
   }
 
-  // this.knex('article_tag').insert({ articleId, tagId })
-
   findByContent = async (content: string) =>
     this.knex(this.table)
       .select()
       .where({ content })
 
   recommendTags = async ({ offset = 0, limit = 5 }) =>
-    await this.knex
+    await this.knex('tag_count_view')
       .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
+      .orderBy('tag_score', 'desc')
       .offset(offset)
       .limit(limit)
 

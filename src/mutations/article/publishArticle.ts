@@ -14,7 +14,7 @@ const resolver: Resolver = async (
     }
   }
 ) => {
-  if (!viewer) {
+  if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO
   }
 

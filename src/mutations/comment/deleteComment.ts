@@ -9,7 +9,7 @@ const resolver: Resolver = async (
     dataSources: { commentService, articleService, notificationService }
   }
 ) => {
-  if (!viewer) {
+  if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO
   }
 

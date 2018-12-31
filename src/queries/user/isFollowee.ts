@@ -5,7 +5,7 @@ const resolver: Resolver = async (
   _,
   { viewer, dataSources: { userService } }
 ) => {
-  if (!viewer) {
+  if (!viewer.id) {
     return false
   }
   return await userService.isFollowing({
