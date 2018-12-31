@@ -76,13 +76,19 @@ export class UserService extends BaseService {
     return user
   }
 
-  update = async (id: string, input: GQLUpdateUserInfoInput) => {
+  update = async (
+    id: string,
+    input: GQLUpdateUserInfoInput & { email: string }
+  ) => {
     const user = await this.baseUpdateById(id, input)
 
-    const { description, displayName } = input
-    if (description || displayName) {
+    const { description, displayName, email } = input
+    if (description || displayName || email) {
       // remove null and undefined
-      const searchable = _.pickBy({ description, displayName }, _.identity)
+      const searchable = _.pickBy(
+        { description, displayName, email },
+        _.identity
+      )
       await this.es.client.update({
         index: this.table,
         type: this.table,
@@ -99,6 +105,7 @@ export class UserService extends BaseService {
   addToSearch = async ({
     id,
     userName,
+    email,
     displayName,
     description
   }: {
@@ -110,6 +117,7 @@ export class UserService extends BaseService {
         {
           id,
           userName,
+          email,
           displayName,
           description
         }
@@ -121,7 +129,7 @@ export class UserService extends BaseService {
       .query('multi_match', {
         query: key,
         fuzziness: 5,
-        fields: ['description', 'displayName^2', 'userName^2']
+        fields: ['description', 'displayName^2', 'userName^2', 'email^5']
       })
       .size(limit)
       .from(offset)
