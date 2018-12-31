@@ -123,7 +123,8 @@ export class NotificationService extends BaseService {
       notificationQueue.sendMail({
         from: environment.emailName as string,
         to: recipient.email,
-        text: noticeParams.message || `[EMAIL] ${params.event}`
+        text: noticeParams.message || `[EMAIL] ${params.event}`,
+        subject: params.event
       })
     }
   }

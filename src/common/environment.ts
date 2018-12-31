@@ -29,3 +29,6 @@ export const environment = {
   emailName: process.env['MATTERS_EMAIL_NAME'],
   jwtSecret: process.env['MATTERS_JWT_SECRET'] || '_dev_jwt_secret_'
 }
+
+export const isDev = environment.env === 'development'
+export const isTest = environment.env === 'test'

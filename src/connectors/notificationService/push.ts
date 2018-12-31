@@ -1,7 +1,7 @@
 // @ts-ignore
 import { JPushAsync, JPush } from 'jpush-async'
 
-import { environment } from 'common/environment'
+import { environment, isTest, isDev } from 'common/environment'
 import { BaseService } from '../baseService'
 
 export type PushParams = {
@@ -32,7 +32,7 @@ class PushService extends BaseService {
     broadcast,
     platform
   }: PushParams) => {
-    if (environment.env === 'test') {
+    if (isTest || isDev) {
       return
     }
 

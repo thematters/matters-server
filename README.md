@@ -30,7 +30,7 @@
 
 ## Run test cases with docker-compose
 
-- `docker-compose -f docker/docker-compose.yml run -e app npx jest`
+- `docker-compose -f docker/docker-compose.yml run app npx jest`
 
 ## Deploy to beanstalk staging environment
 

@@ -1,7 +1,7 @@
 import sgMail from '@sendgrid/mail'
 import { MailData } from '@sendgrid/helpers/classes/mail'
 
-import { environment } from 'common/environment'
+import { environment, isDev, isTest } from 'common/environment'
 
 class MailService {
   mail: typeof sgMail
@@ -16,10 +16,18 @@ class MailService {
   }
 
   send = async (params: MailData) => {
-    if (environment.env === 'test') {
+    if (isTest) {
       return
     }
-    await this.mail.send(params)
+
+    await this.mail.send({
+      ...params,
+      mailSettings: {
+        sandboxMode: {
+          enable: isDev
+        }
+      }
+    })
   }
 }
 
