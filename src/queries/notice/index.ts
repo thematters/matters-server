@@ -66,7 +66,10 @@ export default {
       { dataSources: { articleService } }: Context
     ) => {
       const actorIds = actors.map(actor => actor.id)
-      return articleService.countAppreciationByUserIds(target.id, actorIds)
+      return articleService.countAppreciationByUserIds({
+        articleId: target.id,
+        userIds: actorIds
+      })
     }
   },
   ArticleNewSubscriberNotice: {

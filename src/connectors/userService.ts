@@ -304,14 +304,14 @@ export class UserService extends BaseService {
       .from('user_oauth')
       .where({ userId })
 
-  /**
-   * Find user's all appreciation by a given user id.
-   */
-  findAppreciationByUserId = async (userId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('appreciate')
-      .where({ userId })
+  // /**
+  //  * Find user's all appreciation by a given user id.
+  //  */
+  // findAppreciationByUserId = async (userId: string): Promise<any[]> =>
+  //   await this.knex
+  //     .select()
+  //     .from('appreciate')
+  //     .where({ userId })
 
   /**
    * Find user's followee list by a given user id.

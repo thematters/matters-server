@@ -7,20 +7,21 @@ exports.up = async knex =>
             "user".*,
             recent_appreciators,
             recent_reads,
-            coalesce(recent_appreciators, 0) * coalesce(recent_reads, 0) *  coalesce(boost, 1) as author_score
+            coalesce(recent_appreciators, 0) * coalesce(recent_reads, 0) * coalesce(boost, 1) as author_score
         from
             "user"
             left join
             /* past 6 month appreciators */
             (
                 select
-                    count(distinct user_id) as recent_appreciators,
+                    count(distinct sender_id) as recent_appreciators,
                     author_id
                 from
-                    appreciate as ap
-                    join article as ar on ap.article_id = ar.id
+                    transaction as ts
+                    join article as ar on ts.reference_id = ar.id
                 where
-                    ap.created_at >= now() - interval '6 months'
+                    ts.created_at >= now() - interval '6 months'
+                    and ts.purpose = 'appreciate'
                 group by
                     author_id) as a on a.author_id = "user".id
             left join
