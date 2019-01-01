@@ -5,13 +5,19 @@ const table = 'invitation'
 exports.up = async knex => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, t => {
-    // sender_id is not referenced to user_id since it can come from system
     t.bigIncrements('id').primary()
-    t.bigInteger('sender_id')
-    t.bigInteger('recipient_id')
-    t.enu('status', ['pending', 'activated'])
+    t.bigInteger('sender_id') // null for system
+    t.bigInteger('recipient_id') // null for unregistered user
+    t.enu('status', ['pending', 'activated']).notNullable()
     t.string('email').unique()
     t.timestamp('created_at').defaultTo(knex.fn.now())
+
+    t.foreign('sender_id')
+      .references('id')
+      .inTable('user')
+    t.foreign('recipient_id')
+      .references('id')
+      .inTable('user')
   })
 }
 
