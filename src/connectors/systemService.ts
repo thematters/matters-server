@@ -11,6 +11,12 @@ export class SystemService extends BaseService {
   findAssetByUUID = async (uuid: string) => this.baseFindByUUID(uuid, 'asset')
 
   /**
+   * Find assets by given uuids
+   */
+  findAssetByUUIDs = async (uuids: string[]) =>
+    this.baseFindByUUIDs(uuids, 'asset')
+
+  /**
    * Find the url of an asset by a given id.
    */
   findAssetUrl = async (id: string): Promise<string | null> => {
@@ -47,10 +53,10 @@ export class SystemService extends BaseService {
     category: string,
     description: string,
     contact: string,
-    assetIds: string[]
+    assetIds: string[] | undefined
   ): Promise<void> => {
     // create feedback
-    const { id: reportId } = await this.baseCreate(
+    const { id: feedbackId } = await this.baseCreate(
       {
         userId,
         category,
@@ -64,7 +70,7 @@ export class SystemService extends BaseService {
       return
     }
     const reportAssets = assetIds.map(assetId => ({
-      reportId,
+      feedbackId,
       assetId
     }))
     await this.baseBatchCreate(reportAssets, 'feedback_asset')

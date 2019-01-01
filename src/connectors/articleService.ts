@@ -460,7 +460,7 @@ export class ArticleService extends BaseService {
     userId: string,
     category: string,
     description: string,
-    assetIds: string[]
+    assetIds: string[] | undefined
   ): Promise<void> => {
     // create report
     const { id: reportId } = await this.baseCreate(

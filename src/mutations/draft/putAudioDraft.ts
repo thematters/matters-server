@@ -4,16 +4,17 @@ import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,
-  { input: { id: uuid, audioAssetId, title, length } },
+  { input: { id: uuid, audioAssetId: audioAssetUUID, title, length } },
   { viewer, dataSources: { draftService, systemService } }
 ) => {
   if (!viewer.id) {
     throw new Error('anonymous user cannot do this')
   }
 
-  if (audioAssetId) {
-    const asset = await systemService.findAssetByUUID(audioAssetId)
-    if (!asset) {
+  let audioAssetId
+  if (audioAssetUUID) {
+    const asset = await systemService.findAssetByUUID(audioAssetUUID)
+    if (!asset || asset.type !== 'audioDraft' || asset.authorId !== viewer.id) {
       throw new Error('Asset does not exists') // TODO
     }
     audioAssetId = asset.id

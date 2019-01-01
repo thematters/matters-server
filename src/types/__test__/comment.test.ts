@@ -111,7 +111,7 @@ describe('query comment list on article', async () => {
 })
 
 describe('Report comment', async () => {
-  test('authed user report a comment', async () => {
+  test('report a comment without asset', async () => {
     const { mutate } = await testClient({ isAuth: true })
     const result = await mutate({
       mutation: REPORT_COMMENT,
@@ -120,6 +120,22 @@ describe('Report comment', async () => {
         input: {
           id: COMMENT_ID,
           category: 'spam'
+        }
+      }
+    })
+    expect(result.data.reportComment).toBe(true)
+  })
+
+  test('report a comment with asset', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const result = await mutate({
+      mutation: REPORT_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: COMMENT_ID,
+          category: 'spam',
+          assetIds: ['00000000-0000-0000-0000-000000000011']
         }
       }
     })

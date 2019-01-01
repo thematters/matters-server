@@ -112,7 +112,7 @@ test('create draft and publish', async () => {
 })
 
 describe('Report article', async () => {
-  test('authed user report a article', async () => {
+  test('report a article without assets', async () => {
     const { mutate } = await testClient({ isAuth: true })
     const result = await mutate({
       mutation: REPORT_ARTICLE,
@@ -121,6 +121,22 @@ describe('Report article', async () => {
         input: {
           id: ARTICLE_ID,
           category: 'spam'
+        }
+      }
+    })
+    expect(result.data.reportArticle).toBe(true)
+  })
+
+  test('report a article with assets', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const result = await mutate({
+      mutation: REPORT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          category: 'spam',
+          assetIds: ['00000000-0000-0000-0000-000000000011']
         }
       }
     })

@@ -4,7 +4,16 @@ import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,
-  { input: { id, upstreamId, title, content, tags, coverAssetId } },
+  {
+    input: {
+      id,
+      upstreamId,
+      title,
+      content,
+      tags,
+      coverAssetId: coverAssetUUID
+    }
+  },
   { viewer, dataSources: { draftService, systemService } }
 ) => {
   if (!viewer.id) {
@@ -16,9 +25,10 @@ const resolver: Resolver = async (
     upstreamDBId = fromGlobalId(upstreamId).id
   }
 
-  if (coverAssetId) {
-    const asset = await systemService.findAssetByUUID(coverAssetId)
-    if (!asset) {
+  let coverAssetId
+  if (coverAssetUUID) {
+    const asset = await systemService.findAssetByUUID(coverAssetUUID)
+    if (!asset || asset.type !== 'cover' || asset.authorId !== viewer.id) {
       throw new Error('Asset does not exists') // TODO
     }
     coverAssetId = asset.id

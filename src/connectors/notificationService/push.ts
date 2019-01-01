@@ -24,6 +24,10 @@ class PushService extends BaseService {
     )
   }
 
+  private __getAlaisByUser(user: any) {
+    return user.uuid.replace(/-/g, '')
+  }
+
   push = async ({
     title,
     text,
@@ -48,7 +52,7 @@ class PushService extends BaseService {
       _push = _push.setAudience(JPush.tags(topic))
     } else {
       const users = await this.baseFindByIds(userIds, 'user')
-      const aliasIds = users.map((user: any) => user.uuid.replace(/-/g, '')) // TODO: TBC
+      const aliasIds = users.map((user: any) => this.__getAlaisByUser(user))
       _push = _push.setAudience(JPush.alias(aliasIds))
     }
 

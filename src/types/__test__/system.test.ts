@@ -200,7 +200,7 @@ describe('Search', async () => {
 })
 
 describe('Feedback', async () => {
-  test('authed user submit a feedback', async () => {
+  test('submit a feedback', async () => {
     const { mutate } = await testClient({ isAuth: true })
     const result = await mutate({
       mutation: FEEDBACK,
@@ -209,6 +209,22 @@ describe('Feedback', async () => {
         input: {
           category: 'product',
           description: 'authed description'
+        }
+      }
+    })
+    expect(result.data.feedback).toBe(true)
+  })
+
+  test('submit a feedback with assets', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const result = await mutate({
+      mutation: FEEDBACK,
+      // @ts-ignore
+      variables: {
+        input: {
+          category: 'product',
+          description: 'authed description',
+          assetIds: ['00000000-0000-0000-0000-000000000010']
         }
       }
     })
