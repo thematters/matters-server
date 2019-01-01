@@ -9,7 +9,6 @@ import isFollowee from './isFollowee'
 import avatar from './avatar'
 import articleCount from './articleCount'
 import commentCount from './commentCount'
-import MAT from './MAT'
 import oauthType from './oauthType'
 import history from './history'
 import notification from './notification'
@@ -51,8 +50,8 @@ export default {
   },
   UserStatus: {
     state: ({ state }: { state: string }) => state,
+    MAT: ({ mat }: { mat: number }) => mat,
     articleCount,
-    MAT,
     // viewCount,
     // draftCount,
     commentCount,

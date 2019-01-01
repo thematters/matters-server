@@ -170,6 +170,17 @@ export const registerUser = async (user: { [key: string]: string }) => {
   })
 }
 
+export const getViewerMAT = async () => {
+  const { query } = await testClient({ isAuth: true })
+  const { data } = await query({
+    query: GET_VIEWER_MAT,
+    // @ts-ignore
+    variables: { input: {} }
+  })
+  const { MAT } = data && data.viewer && data.viewer.status
+  return MAT
+}
+
 export const updateUserDescription = async ({
   email,
   description
@@ -278,17 +289,6 @@ describe('user query fields', () => {
     const articles = data && data.viewer && data.viewer.articles
     expect(articles.length).toEqual(1)
     expect(articles[0].id).toBeDefined()
-  })
-
-  test('retrive user MAT', async () => {
-    const { query } = await testClient({ isAuth: true })
-    const { data } = await query({
-      query: GET_VIEWER_MAT,
-      // @ts-ignore
-      variables: { input: {} }
-    })
-    const status = data && data.viewer && data.viewer.status
-    expect(status.MAT).toEqual(150)
   })
 
   test('retrive UserSettings', async () => {
