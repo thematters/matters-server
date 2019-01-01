@@ -148,13 +148,13 @@ input ClearReadHistoryInput {
 
 type Comment implements Node {
   id: ID!
+  state: CommentState!
   createdAt: DateTime!
 
   """Original article of this comment"""
   article: Article!
   content: String
   author: User!
-  archived: Boolean!
   upvotes: Int!
   downvotes: Int!
   quote: Boolean!
@@ -241,6 +241,12 @@ enum CommentSort {
   upvotes
 }
 
+enum CommentState {
+  active
+  archived
+  banned
+}
+
 input ConfirmChangeEmailInput {
   oldEmail: Email!
   oldEmailCode: String!
@@ -317,6 +323,7 @@ type Mutation {
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   deleteComment(input: DeleteCommentInput!): Boolean
+  voteComment(input: VoteComment!): Comment!
 
   """audio dtaft"""
   putAudioDraft(input: PutAudioDraftInput!): AudioDraft!
@@ -427,6 +434,7 @@ enum PublishState {
   pending
   error
   published
+  banned
 }
 
 input PutAudioDraftInput {
@@ -690,8 +698,17 @@ type UserSettings {
   notification: NotificationSetting!
 }
 
+enum UserState {
+  inactive
+  onboarding
+  active
+  banned
+  frozen
+  archived
+}
+
 type UserStatus {
-  currGravity: Int!
+  state: UserState!
 
   """Total MAT left in wallet"""
   MAT: Int!
@@ -730,4 +747,9 @@ enum VerificationCodeType {
 enum Vote {
   up
   down
+}
+
+input VoteComment {
+  vote: Vote!
+  commentId: ID!
 }

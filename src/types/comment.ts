@@ -3,6 +3,7 @@ export default /* GraphQL */ `
     putComment(input: PutCommentInput!): Comment!
     pinComment(input: PinCommentInput!): Comment!
     deleteComment(input: DeleteCommentInput!): Boolean
+    voteComment(input: VoteComment!): Comment!
   }
 
   type Comment implements Node {
@@ -31,6 +32,11 @@ export default /* GraphQL */ `
   input PutCommentInput {
     comment: CommentInput!
     id: ID
+  }
+
+  input VoteComment {
+    vote: Vote!
+    commentId: ID!
   }
 
   input CommentInput {

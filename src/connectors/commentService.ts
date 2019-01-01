@@ -5,7 +5,7 @@ import { BATCH_SIZE, USER_ACTION } from 'common/enums'
 import { BaseService } from './baseService'
 // import { OpsWorksCM } from 'aws-sdk'
 
-import { GQLCommentsInput, GQLCommentSort } from 'definitions/schema'
+import { GQLCommentsInput, GQLVoteComment } from 'definitions/schema'
 
 export class CommentService extends BaseService {
   constructor() {
@@ -66,6 +66,26 @@ export class CommentService extends BaseService {
     }))
     await this.baseBatchCreate(mentionsDataItems, 'comment_mentioned_user')
     return comemnt
+  }
+
+  vote = async ({
+    userId,
+    commentId,
+    vote
+  }: GQLVoteComment & { userId: string }) => {
+    const voted = await this.findVotesByUserId({ userId, commentId })
+    if (voted) {
+      throw Error('Can only vote once')
+    } else {
+      return this.baseCreate(
+        {
+          userId,
+          targetId: commentId,
+          action: `${vote}_vote`
+        },
+        'action_comment'
+      )
+    }
   }
 
   /**
@@ -271,10 +291,10 @@ export class CommentService extends BaseService {
    */
   findVotesByUserId = async ({
     userId,
-    targetId
+    commentId: targetId
   }: {
     userId: string
-    targetId: string
+    commentId: string
   }): Promise<any[]> =>
     await this.knex
       .select()
