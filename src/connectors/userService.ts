@@ -105,7 +105,6 @@ export class UserService extends BaseService {
   addToSearch = async ({
     id,
     userName,
-    email,
     displayName,
     description
   }: {
@@ -117,7 +116,6 @@ export class UserService extends BaseService {
         {
           id,
           userName,
-          email,
           displayName,
           description
         }
@@ -129,7 +127,7 @@ export class UserService extends BaseService {
       .query('multi_match', {
         query: key,
         fuzziness: 5,
-        fields: ['description', 'displayName^2', 'userName^2', 'email^5']
+        fields: ['description', 'displayName^2', 'userName^2']
       })
       .size(limit)
       .from(offset)
