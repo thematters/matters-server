@@ -42,6 +42,7 @@ export const testClient = async (
     context: {}
   }
 ) => {
+  console.log({ isAuth, context })
   let _context
   if (context) {
     _context = context

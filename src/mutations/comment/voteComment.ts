@@ -1,11 +1,11 @@
-import { MutationToVoteCommentResolver } from 'definitions'
+import { MutationToVoteCommentResolver, Context } from 'definitions'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import pubsub from 'common/pubsub'
 
 const resolver: MutationToVoteCommentResolver = async (
   _,
   { input: { commentId, vote } },
-  { viewer, dataSources: { commentService } }
+  { viewer, dataSources: { commentService } }: Context
 ) => {
   console.log({ viewer })
   if (!viewer.id) {
@@ -16,8 +16,8 @@ const resolver: MutationToVoteCommentResolver = async (
   const { id: dbId } = fromGlobalId(commentId)
 
   try {
-    await commentService.vote({ commentId: dbId, vote })
-    const comment = await commentService.loader.load(dbId)
+    await commentService.vote({ commentId: dbId, vote, userId: viewer.id })
+    const comment = await commentService.dataloader.load(dbId)
     pubsub.publish(commentId, comment)
     return comment
   } catch (err) {

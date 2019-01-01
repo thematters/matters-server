@@ -126,7 +126,7 @@ describe('query comment list on article', async () => {
 describe('mutations on comment', async () => {
   test.only('up vote a comment', async () => {
     const commentId = toGlobalId({ type: 'Comment', id: 2 })
-    const { query } = await testClient({ isAuth: false })
+    const { query } = await testClient({ isAuth: true })
 
     const { data } = await query({
       query: GET_COMMENT,
@@ -138,7 +138,7 @@ describe('mutations on comment', async () => {
 
     const upvotes = data && data.node.upvotes
 
-    const { query: queryUpdated } = await testClient({ isAuth: false })
+    const { query: queryUpdated } = await testClient({ isAuth: true })
     const result = await queryUpdated({
       query: VOTE_COMMENT,
       // @ts-ignore
