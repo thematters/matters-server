@@ -20,10 +20,8 @@ export const defaultTestUser = {
 }
 
 export const getUserContext = async ({ email }: { email: string }) => {
-  console.log({ email })
   const userService = new UserService()
   const user = await userService.findByEmail(email)
-  console.log({ user })
   return {
     viewer: user
   }
@@ -42,7 +40,6 @@ export const testClient = async (
     context: {}
   }
 ) => {
-  console.log({ isAuth, context })
   let _context
   if (context) {
     _context = context

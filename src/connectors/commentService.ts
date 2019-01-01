@@ -74,7 +74,7 @@ export class CommentService extends BaseService {
     vote
   }: GQLVoteComment & { userId: string }) => {
     const voted = await this.findVotesByUserId({ userId, commentId })
-    if (voted) {
+    if (voted.length > 0) {
       throw Error('Can only vote once')
     } else {
       return this.baseCreate(

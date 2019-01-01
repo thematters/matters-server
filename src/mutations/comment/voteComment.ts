@@ -7,12 +7,10 @@ const resolver: MutationToVoteCommentResolver = async (
   { input: { commentId, vote } },
   { viewer, dataSources: { commentService } }: Context
 ) => {
-  console.log({ viewer })
   if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO
   }
 
-  console.log({ commentId, vote })
   const { id: dbId } = fromGlobalId(commentId)
 
   try {
