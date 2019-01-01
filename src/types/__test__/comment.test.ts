@@ -30,6 +30,26 @@ const GET_ARTILCE_COMMENTS = `
   }
 `
 
+const VOTE_COMMENT = `
+  mutation($input: VoteComment!) {
+    voteComment(input: $input) {
+      upvotes
+      downvotes
+    }
+  }
+`
+
+const GET_COMMENT = `
+  query($input: NodeInput!) {
+    node(input: $input) {
+      ... on Comment {
+        upvotes
+        downvotes
+      }
+    }
+  }
+`
+
 describe('query comment list on article', async () => {
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: 'User', id: 2 })
@@ -100,5 +120,39 @@ describe('query comment list on article', async () => {
       ({ createdAt }: { createdAt: string }) => new Date(createdAt).getTime()
     )
     expect(isDesc(commentTimestamps)).toBe(true)
+  })
+})
+
+describe('mutations on comment', async () => {
+  test.only('up vote a comment', async () => {
+    const commentId = toGlobalId({ type: 'Comment', id: 2 })
+    const { query } = await testClient({ isAuth: false })
+
+    const { data } = await query({
+      query: GET_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: { id: commentId }
+      }
+    })
+
+    const upvotes = data && data.node.upvotes
+
+    const { query: queryUpdated } = await testClient({ isAuth: false })
+    const result = await queryUpdated({
+      query: VOTE_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: { commentId, vote: 'up' }
+      }
+    })
+
+    console.log({ err: result.errors })
+
+    const { dataUpdated } = result
+
+    const upvotesUpdated = dataUpdated && dataUpdated.voteComment.upvotes
+
+    expect(upvotesUpdated - upvotes).toBe(1)
   })
 })
