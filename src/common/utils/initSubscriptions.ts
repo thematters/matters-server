@@ -1,16 +1,25 @@
 import jwt from 'jsonwebtoken'
 
-import { RequestContext } from 'definitions'
+import { Context } from 'definitions'
 import { environment } from 'common/environment'
-import { UserService } from 'connectors'
+import {
+  ArticleService,
+  CommentService,
+  DraftService,
+  SystemService,
+  TagService,
+  UserService,
+  NotificationService
+} from 'connectors'
 
 export const initSubscriptions = (): { onConnect: any } => ({
   onConnect: async (connectionParams: {
     'x-access-token': string
-  }): Promise<RequestContext> => {
+  }): Promise<Context> => {
+    const userService = new UserService()
     let viewer
+
     try {
-      const userService = new UserService()
       const token = connectionParams['x-access-token']
       const decoded = jwt.verify(token, environment.jwtSecret) as {
         uuid: string
@@ -21,7 +30,16 @@ export const initSubscriptions = (): { onConnect: any } => ({
     }
 
     return {
-      viewer
+      viewer,
+      dataSources: {
+        userService,
+        articleService: new ArticleService(),
+        commentService: new CommentService(),
+        draftService: new DraftService(),
+        systemService: new SystemService(),
+        tagService: new TagService(),
+        notificationService: new NotificationService()
+      }
     }
   }
 })

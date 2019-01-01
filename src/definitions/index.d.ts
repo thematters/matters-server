@@ -6,11 +6,13 @@ import {
   CommentService,
   DraftService,
   SystemService,
-  TagService
+  TagService,
+  NotificationService
 } from 'connectors'
 import { DataSource } from 'apollo-datasource'
 
 export * from './schema'
+export * from './notification'
 
 export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
 
@@ -64,6 +66,7 @@ export type DataSources = {
   userService: InstanceType<typeof UserService>
   systemService: InstanceType<typeof SystemService>
   tagService: InstanceType<typeof TagService>
+  notificationService: InstanceType<typeof NotificationService>
 }
 
 export type TableName =
@@ -90,6 +93,7 @@ export type TableName =
   | 'notice'
   | 'notice_actor'
   | 'notice_entity'
+  | 'push_device'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'
@@ -113,26 +117,3 @@ export type S3Bucket =
 export type Item = { id: string; [key: string]: any }
 
 export type ItemData = { [key: string]: any }
-
-export type NoticeType =
-  // user
-  | 'user_new_follower'
-  | 'user_disabled'
-  // article
-  | 'article_published'
-  | 'article_reported'
-  | 'article_archived'
-  | 'article_new_downstream'
-  | 'article_new_appreciation'
-  | 'article_new_subscriber'
-  | 'article_new_comment'
-  | 'subscribed_article_new_comment'
-  // comment
-  | 'comment_pinned'
-  | 'comment_reported'
-  | 'comment_archived'
-  | 'comment_new_reply'
-  | 'comment_new_upvote'
-  | 'comment_mentioned_you'
-  // official
-  | 'official_announcement'

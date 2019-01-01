@@ -15,17 +15,15 @@ export default {
         user_disabled: 'UserDisabledNotice',
         // article
         article_published: 'ArticlePublishedNotice',
-        article_reported: 'ArticleReportedNotice',
-        article_archived: 'ArticleArchivedNotice',
         article_new_downstream: 'ArticleNewDownstreamNotice',
         article_new_appreciation: 'ArticleNewAppreciationNotice',
         article_new_subscriber: 'ArticleNewSubscriberNotice',
         article_new_comment: 'ArticleNewCommentNotice',
         subscribed_article_new_comment: 'SubscribedArticleNewCommentNotice',
+        upstream_article_archived: 'UpstreamArticleArchivedNotice',
+        downstream_article_archived: 'DownstreamArticleArchivedNotice',
         // comment
         comment_pinned: 'CommentPinnedNotice',
-        comment_reported: 'CommentReportedNotice',
-        comment_archived: 'CommentArchivedNotice',
         comment_new_reply: 'CommentNewReplyNotice',
         comment_new_upvote: 'CommentNewUpvoteNotice',
         comment_mentioned_you: 'CommentMentionedYouNotice',
@@ -42,24 +40,17 @@ export default {
     id: ({ uuid }: { uuid: string }) => uuid
   },
   ArticlePublishedNotice: {
-    id: ({ uuid }: { uuid: string }) => uuid
-  },
-  ArticleReportedNotice: {
     id: ({ uuid }: { uuid: string }) => uuid,
-    reason: ({ data }: { data: any }) => data && data.reason
-  },
-  ArticleArchivedNotice: {
-    id: ({ uuid }: { uuid: string }) => uuid,
-    reason: ({ data }: { data: any }) => data && data.reason
+    target: ({ entities }: { entities: any }) => entities['target']
   },
   ArticleNewDownstreamNotice: {
     id: ({ uuid }: { uuid: string }) => uuid,
-    downstream: ({ entities }: { entities: any }) => {
-      return entities['downstream']
-    }
+    target: ({ entities }: { entities: any }) => entities['target'],
+    downstream: ({ entities }: { entities: any }) => entities['downstream']
   },
   ArticleNewAppreciationNotice: {
     id: ({ uuid }: { uuid: string }) => uuid,
+    target: ({ entities }: { entities: any }) => entities['target'],
     MAT: (
       { actors, target }: { actors: any[]; target: any },
       _: any,
@@ -73,33 +64,45 @@ export default {
     }
   },
   ArticleNewSubscriberNotice: {
-    id: ({ uuid }: { uuid: string }) => uuid
+    id: ({ uuid }: { uuid: string }) => uuid,
+    target: ({ entities }: { entities: any }) => entities['target']
   },
   ArticleNewCommentNotice: {
-    id: ({ uuid }: { uuid: string }) => uuid
+    id: ({ uuid }: { uuid: string }) => uuid,
+    target: ({ entities }: { entities: any }) => entities['target'],
+    comment: ({ entities }: { entities: any }) => entities['comment']
   },
   SubscribedArticleNewCommentNotice: {
-    id: ({ uuid }: { uuid: string }) => uuid
+    id: ({ uuid }: { uuid: string }) => uuid,
+    target: ({ entities }: { entities: any }) => entities['target'],
+    comment: ({ entities }: { entities: any }) => entities['comment']
+  },
+  UpstreamArticleArchivedNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid,
+    target: ({ entities }: { entities: any }) => entities['target'],
+    upstream: ({ entities }: { entities: any }) => entities['upstream']
+  },
+  DownstreamArticleArchivedNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid,
+    target: ({ entities }: { entities: any }) => entities['target'],
+    downstream: ({ entities }: { entities: any }) => entities['downstream']
   },
   CommentPinnedNotice: {
-    id: ({ uuid }: { uuid: string }) => uuid
-  },
-  CommentReportedNotice: {
     id: ({ uuid }: { uuid: string }) => uuid,
-    reason: ({ data }: { data: any }) => data && data.reason
-  },
-  CommentArchivedNotice: {
-    id: ({ uuid }: { uuid: string }) => uuid,
-    reason: ({ data }: { data: any }) => data && data.reason
+    target: ({ entities }: { entities: any }) => entities['target']
   },
   CommentNewReplyNotice: {
-    id: ({ uuid }: { uuid: string }) => uuid
+    id: ({ uuid }: { uuid: string }) => uuid,
+    target: ({ entities }: { entities: any }) => entities['target'],
+    reply: ({ entities }: { entities: any }) => entities['reply']
   },
   CommentNewUpvoteNotice: {
-    id: ({ uuid }: { uuid: string }) => uuid
+    id: ({ uuid }: { uuid: string }) => uuid,
+    target: ({ entities }: { entities: any }) => entities['target']
   },
   CommentMentionedYouNotice: {
-    id: ({ uuid }: { uuid: string }) => uuid
+    id: ({ uuid }: { uuid: string }) => uuid,
+    target: ({ entities }: { entities: any }) => entities['target']
   },
   OfficialAnnouncementNotice: {
     id: ({ uuid }: { uuid: string }) => uuid,

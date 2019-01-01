@@ -17,8 +17,18 @@ export const environment = {
   pgPassword: process.env['MATTERS_PG_PASSWORD'],
   pgDatabase: process.env['MATTERS_PG_DATABASE'],
   ipfsAddress: process.env['MATTERS_IPFS_ADDRESS'],
-  sendgridKey: process.env['MATTERS_SENDGRID_KEY'],
+  pubSubHost: process.env['MATTERS_PUBSUB_HOST'],
+  pubSubPort: process.env['MATTERS_PUBSUB_PORT'] || 6379,
+  queueHost: process.env['MATTERS_QUEUE_HOST'],
+  queuePort: process.env['MATTERS_QUEUE_PORT'] || 6379,
+  cacheHost: process.env['MATTERS_CACHE_HOST'],
+  cachePort: process.env['MATTERS_CACHE_PORT'] || 6379,
+  sgKey: process.env['MATTERS_SENDGRID_API_KEY'],
+  jpushKey: process.env['MATTERS_JPUSH_API_KEY'],
+  jpushSecret: process.env['MATTERS_JPUSH_API_SECRET'],
   emailName: process.env['MATTERS_EMAIL_NAME'],
-  jwtSecret: process.env['MATTERS_JWT_SECRET'] || '_dev_jwt_secret_',
-  cloudinaryURL: 'https://res.cloudinary.com/domcnelhc'
+  jwtSecret: process.env['MATTERS_JWT_SECRET'] || '_dev_jwt_secret_'
 }
+
+export const isDev = environment.env === 'development'
+export const isTest = environment.env === 'test'

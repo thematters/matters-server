@@ -9,7 +9,7 @@ exports.up = async knex => {
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.string('notice_type').notNullable()
     t.text('message')
-    t.json('data')
+    t.jsonb('data')
   })
 }
 

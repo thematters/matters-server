@@ -323,7 +323,6 @@ type Mutation {
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   deleteComment(input: DeleteCommentInput!): Boolean
-  voteComment(input: VoteComment!): Comment!
 
   """audio dtaft"""
   putAudioDraft(input: PutAudioDraftInput!): AudioDraft!
@@ -747,9 +746,4 @@ enum VerificationCodeType {
 enum Vote {
   up
   down
-}
-
-input VoteComment {
-  vote: Vote!
-  commentId: ID!
 }
