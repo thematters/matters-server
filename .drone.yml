@@ -123,6 +123,13 @@ steps:
       event:
         - push
 
+  - name: slack
+    image: plugins/slack
+    settings:
+      webhook:
+        from_secret: slack_webhook
+      channel: tech
+
 services:
   - name: db
     image: postgres:10-alpine
