@@ -49,23 +49,11 @@ type Article implements Node {
   comments(input: CommentsInput!): [Comment!]
 }
 
-type ArticleArchivedNotice implements Notice {
-  id: ID!
-  unread: Boolean!
-  createdAt: DateTime!
-  target: Article
-  reason: ArticleArchivedReason
-}
-
-enum ArticleArchivedReason {
-  violation
-}
-
 type ArticleNewAppreciationNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  actors: [User]
+  actors: [User!]
   target: Article
   MAT: Int
 }
@@ -76,6 +64,7 @@ type ArticleNewCommentNotice implements Notice {
   createdAt: DateTime!
   actors: [User!]
   target: Article
+  comment: Comment
 }
 
 type ArticleNewDownstreamNotice implements Notice {
@@ -100,18 +89,6 @@ type ArticlePublishedNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   target: Article
-}
-
-type ArticleReportedNotice implements Notice {
-  id: ID!
-  unread: Boolean!
-  createdAt: DateTime!
-  target: Article
-  reason: ArticleReportedReason
-}
-
-enum ArticleReportedReason {
-  violation
 }
 
 type Asset {
@@ -148,13 +125,13 @@ input ClearReadHistoryInput {
 
 type Comment implements Node {
   id: ID!
+  state: CommentState!
   createdAt: DateTime!
 
   """Original article of this comment"""
   article: Article!
   content: String
   author: User!
-  archived: Boolean!
   upvotes: Int!
   downvotes: Int!
   quote: Boolean!
@@ -162,18 +139,6 @@ type Comment implements Node {
   mentions: [User!]
   comments: [Comment!]
   parentComment: Comment
-}
-
-type CommentArchivedNotice implements Notice {
-  id: ID!
-  unread: Boolean!
-  createdAt: DateTime!
-  target: Comment
-  reason: CommentArchivedReason
-}
-
-enum CommentArchivedReason {
-  violation
 }
 
 input CommentInput {
@@ -196,8 +161,9 @@ type CommentNewReplyNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  actors: [User]
+  actors: [User!]
   target: Comment
+  reply: Comment
 }
 
 type CommentNewUpvoteNotice implements Notice {
@@ -215,18 +181,6 @@ type CommentPinnedNotice implements Notice {
   target: Comment
 }
 
-type CommentReportedNotice implements Notice {
-  id: ID!
-  unread: Boolean!
-  createdAt: DateTime!
-  target: Comment
-  reason: CommentReportedReason
-}
-
-enum CommentReportedReason {
-  violation
-}
-
 input CommentsInput {
   offset: Int
   limit: Int
@@ -239,6 +193,12 @@ enum CommentSort {
   oldest
   newest
   upvotes
+}
+
+enum CommentState {
+  active
+  archived
+  banned
 }
 
 input ConfirmChangeEmailInput {
@@ -272,6 +232,14 @@ input DeleteCommentInput {
 
 input DeleteDraftInput {
   id: ID!
+}
+
+type DownstreamArticleArchivedNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  downstream: Article
+  target: Article
 }
 
 type Draft implements Node {
@@ -381,6 +349,7 @@ interface Notice {
 
 type NotificationSetting {
   enable: Boolean!
+  email: Boolean!
   mention: Boolean!
   follow: Boolean!
   comment: Boolean!
@@ -394,6 +363,22 @@ type NotificationSetting {
   """walletUpdate: Boolean!"""
   officialNotice: Boolean!
   reportFeedback: Boolean!
+}
+
+enum NotificationSettingEnum {
+  enable
+  email
+  mention
+  follow
+  comment
+  appreciation
+  articleSubscription
+  commentSubscribed
+  downstream
+  commentPinned
+  commentVoted
+  officialNotice
+  reportFeedback
 }
 
 enum OAuthType {
@@ -427,6 +412,7 @@ enum PublishState {
   pending
   error
   published
+  banned
 }
 
 input PutAudioDraftInput {
@@ -534,6 +520,7 @@ type SubscribedArticleNewCommentNotice implements Notice {
   createdAt: DateTime!
   actors: [User!]
   target: Article
+  comment: Comment
 }
 
 type Subscription {
@@ -559,7 +546,7 @@ input UnsubscribeArticleInput {
 }
 
 input UpdateNotificationSettingInput {
-  type: String!
+  type: NotificationSettingEnum!
   enabled: Boolean!
 }
 
@@ -571,6 +558,14 @@ input UpdateUserInfoInput {
 }
 
 scalar Upload
+
+type UpstreamArticleArchivedNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  upstream: Article
+  target: Article
+}
 
 scalar URL
 
@@ -690,8 +685,17 @@ type UserSettings {
   notification: NotificationSetting!
 }
 
+enum UserState {
+  inactive
+  onboarding
+  active
+  banned
+  frozen
+  archived
+}
+
 type UserStatus {
-  currGravity: Int!
+  state: UserState!
 
   """Total MAT left in wallet"""
   MAT: Int!

@@ -4,7 +4,15 @@ import { fromGlobalId } from 'common/utils'
 const resolver: Resolver = async (
   root,
   { input: { id } },
-  { viewer, dataSources: { articleService, draftService, tagService } }
+  {
+    viewer,
+    dataSources: {
+      articleService,
+      draftService,
+      tagService,
+      notificationService
+    }
+  }
 ) => {
   if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO
@@ -58,6 +66,39 @@ const resolver: Resolver = async (
 
   // add to search
   await articleService.addToSearch({ ...article, tags })
+
+  // trigger notifications
+  notificationService.trigger({
+    event: 'article_published',
+    recipientId: authorId,
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'article',
+        entity: article
+      }
+    ]
+  })
+  if (upstreamId) {
+    const upstream = await articleService.baseFindById(upstreamId)
+    notificationService.trigger({
+      event: 'article_new_downstream',
+      actorId: authorId,
+      recipientId: upstream.authorId,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'article',
+          entity: upstream
+        },
+        {
+          type: 'downstream',
+          entityTable: 'article',
+          entity: article
+        }
+      ]
+    })
+  }
 
   return article
 }

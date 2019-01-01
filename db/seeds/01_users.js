@@ -36,6 +36,13 @@ exports.seed = function(knex, Promise) {
           mobile: '999',
           password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS),
           language: 'en'
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000004',
+          user_name: 'test 4',
+          display_name: 'test 4',
+          email: 'test4@matters.news',
+          password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS)
         }
       ])
     })

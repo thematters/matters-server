@@ -37,28 +37,6 @@ export default /* GraphQL */ `
     target: Article
   }
 
-  type ArticleReportedNotice implements Notice {
-    id: ID!
-    unread: Boolean!
-    createdAt: DateTime!
-    target: Article
-    reason: ArticleReportedReason
-  }
-  enum ArticleReportedReason {
-    violation
-  }
-
-  type ArticleArchivedNotice implements Notice {
-    id: ID!
-    unread: Boolean!
-    createdAt: DateTime!
-    target: Article
-    reason: ArticleArchivedReason
-  }
-  enum ArticleArchivedReason {
-    violation
-  }
-
   type ArticleNewDownstreamNotice implements Notice {
     id: ID!
     unread: Boolean!
@@ -72,7 +50,7 @@ export default /* GraphQL */ `
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actors: [User]
+    actors: [User!]
     target: Article
     MAT: Int
   }
@@ -91,6 +69,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
     actors: [User!]
     target: Article
+    comment: Comment
   }
 
   type SubscribedArticleNewCommentNotice implements Notice {
@@ -98,6 +77,23 @@ export default /* GraphQL */ `
     unread: Boolean!
     createdAt: DateTime!
     actors: [User!]
+    target: Article
+    comment: Comment
+  }
+
+  type UpstreamArticleArchivedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    upstream: Article
+    target: Article
+  }
+
+  type DownstreamArticleArchivedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    downstream: Article
     target: Article
   }
 
@@ -108,34 +104,13 @@ export default /* GraphQL */ `
     target: Comment
   }
 
-  type CommentReportedNotice implements Notice {
-    id: ID!
-    unread: Boolean!
-    createdAt: DateTime!
-    target: Comment
-    reason: CommentReportedReason
-  }
-  enum CommentReportedReason {
-    violation
-  }
-
-  type CommentArchivedNotice implements Notice {
-    id: ID!
-    unread: Boolean!
-    createdAt: DateTime!
-    target: Comment
-    reason: CommentArchivedReason
-  }
-  enum CommentArchivedReason {
-    violation
-  }
-
   type CommentNewReplyNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actors: [User]
+    actors: [User!]
     target: Comment
+    reply: Comment
   }
 
   type CommentNewUpvoteNotice implements Notice {

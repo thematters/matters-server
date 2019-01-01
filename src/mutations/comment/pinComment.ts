@@ -1,11 +1,13 @@
 import { Resolver } from 'definitions'
-import { fromGlobalId, toGlobalId } from 'common/utils'
-import pubsub from 'common/pubsub'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,
   { input: { id } },
-  { viewer, dataSources: { commentService, articleService } }
+  {
+    viewer,
+    dataSources: { commentService, articleService, notificationService }
+  }
 ) => {
   if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO
@@ -19,16 +21,33 @@ const resolver: Resolver = async (
     throw new Error('viewer has no permission to do this') // TODO
   }
 
-  await commentService.baseUpdateById(dbId, {
+  const comment = await commentService.baseUpdateById(dbId, {
     pinned: true
   })
 
-  try {
-    const article = await articleService.dataloader.load(articleId)
-    pubsub.publish(toGlobalId({ type: 'Article', id: articleId }), article)
-  } catch (e) {
-    //
-  }
+  // trigger notifications
+  const article = await articleService.dataloader.load(articleId)
+  notificationService.trigger({
+    event: 'article_updated',
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'article',
+        entity: article
+      }
+    ]
+  })
+  notificationService.trigger({
+    event: 'comment_pinned',
+    recipientId: comment.authorId,
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'comment',
+        entity: comment
+      }
+    ]
+  })
 
   return true
 }
