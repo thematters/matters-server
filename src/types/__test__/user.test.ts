@@ -65,6 +65,7 @@ const UPDATE_NOTIFICARION_SETTINGS = `
 const GET_VIEWER_INFO = `
   query {
     viewer {
+      uuid
       info {
         email
         displayName

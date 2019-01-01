@@ -102,6 +102,8 @@ enum AssetType {
   avatar
   cover
   audioDraft
+  report
+  feedback
 }
 
 type AudioDraft {
@@ -132,6 +134,7 @@ type Comment implements Node {
   article: Article!
   content: String
   author: User!
+  pinned: Boolean!
   upvotes: Int!
   downvotes: Int!
   quote: Boolean!
@@ -256,6 +259,13 @@ type Draft implements Node {
 
 scalar Email
 
+input FeedbackInput {
+  category: String!
+  description: String
+  assetIds: [ID!]
+  contact: String
+}
+
 input FollowUserInput {
   id: ID!
 }
@@ -285,6 +295,7 @@ type Mutation {
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   deleteComment(input: DeleteCommentInput!): Boolean
+  reportComment(input: ReportCommentInput!): Boolean
 
   """audio dtaft"""
   putAudioDraft(input: PutAudioDraftInput!): AudioDraft!
@@ -295,6 +306,7 @@ type Mutation {
   deleteDraft(input: DeleteDraftInput!): Boolean
   markAllNoticesAsRead: Boolean
   singleFileUpload(input: SingleFileUploadInput!): Asset!
+  feedback(input: FeedbackInput!): Boolean
 
   """send verification code"""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -389,6 +401,7 @@ enum OAuthType {
 
 type Official {
   reportCategory: [String!]!
+  feedbackCategory: [String!]!
 }
 
 type OfficialAnnouncementNotice implements Notice {
@@ -480,6 +493,14 @@ input ReportArticleInput {
   id: ID!
   category: String!
   description: String
+  assetIds: [ID!]
+}
+
+input ReportCommentInput {
+  id: ID!
+  category: String!
+  description: String
+  assetIds: [ID!]
 }
 
 input SearchInput {
@@ -571,6 +592,7 @@ scalar URL
 
 type User implements Node {
   id: ID!
+  uuid: UUID!
   info: UserInfo!
   settings: UserSettings!
   recommendation: Recommendation!

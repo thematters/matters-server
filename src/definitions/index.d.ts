@@ -88,12 +88,15 @@ export type TableName =
   | 'user'
   | 'user_oauth'
   | 'user_notify_setting'
-  | 'report_article'
   | 'notice_detail'
   | 'notice'
   | 'notice_actor'
   | 'notice_entity'
   | 'push_device'
+  | 'report'
+  | 'report_asset'
+  | 'feedback'
+  | 'feedback_asset'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'

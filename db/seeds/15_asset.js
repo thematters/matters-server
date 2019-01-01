@@ -58,6 +58,18 @@ exports.seed = function(knex, Promise) {
           author_id: '3',
           type: 'audioDraft',
           path: 'path/to/file.mp3'
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000010',
+          author_id: '2',
+          type: 'feedback',
+          path: 'path/to/file.jpg'
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000011',
+          author_id: '3',
+          type: 'report',
+          path: 'path/to/file.jpg'
         }
       ])
     })

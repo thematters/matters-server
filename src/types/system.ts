@@ -8,6 +8,7 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     singleFileUpload(input: SingleFileUploadInput!): Asset!
+    feedback(input: FeedbackInput!): Boolean
   }
 
   extend type Subscription {
@@ -25,6 +26,7 @@ export default /* GraphQL */ `
 
   type Official {
     reportCategory: [String!]!
+    feedbackCategory: [String!]!
   }
 
   type Asset {
@@ -54,6 +56,13 @@ export default /* GraphQL */ `
     file: Upload!
   }
 
+  input FeedbackInput {
+    category: String!
+    description: String
+    assetIds: [ID!]
+    contact: String
+  }
+
   input ListInput {
     offset: Int
     limit: Int
@@ -69,5 +78,7 @@ export default /* GraphQL */ `
     avatar
     cover
     audioDraft
+    report
+    feedback
   }
 `

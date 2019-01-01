@@ -99,7 +99,7 @@ export class BaseService extends DataSource {
    * Create a batch of items
    */
   baseBatchCreate = async (
-    dataItems: [ItemData],
+    dataItems: ItemData[],
     table?: TableName
   ): Promise<any> =>
     await this.knex.batchInsert(table || this.table, dataItems).returning('*')

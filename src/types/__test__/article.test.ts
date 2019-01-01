@@ -4,10 +4,11 @@ import { knex } from 'connectors/db'
 import { GQLPublishArticleInput } from 'definitions'
 // local
 import { testClient } from './utils'
-import { createDraft } from './draft.test'
+import { putDraft } from './draft.test'
 
 afterAll(knex.destroy)
 
+const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
 const PUBLISH_ARTICLE = `
   mutation($input: PublishArticleInput!) {
     publishArticle(input: $input) {
@@ -40,6 +41,11 @@ const GET_ARTICLE_TAGS = `
         }
       }
     }
+  }
+`
+const REPORT_ARTICLE = `
+  mutation($input: ReportArticleInput!) {
+    reportArticle(input: $input)
   }
 `
 
@@ -100,7 +106,24 @@ test('create draft and publish', async () => {
     title: Math.random().toString(),
     content: Math.random().toString()
   }
-  const { id } = await createDraft(draft)
+  const { id } = await putDraft(draft)
   const article = await publishArticle({ id })
   expect(article).toMatchObject(draft)
+})
+
+describe('Report article', async () => {
+  test('authed user report a article', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const result = await mutate({
+      mutation: REPORT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          category: 'spam'
+        }
+      }
+    })
+    expect(result.data.reportArticle).toBe(true)
+  })
 })

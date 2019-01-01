@@ -4,20 +4,20 @@ import { fromGlobalId } from 'common/utils'
 const resolver: Resolver = async (
   root,
   { input: { id, category, description, assetIds } },
-  { viewer, dataSources: { articleService } }
+  { viewer, dataSources: { commentService } }
 ) => {
   if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.dataloader.load(dbId)
-  if (!article) {
-    throw new Error('target article does not exists') // TODO
+  const comment = await commentService.dataloader.load(dbId)
+  if (!comment) {
+    throw new Error('target comment does not exists') // TODO
   }
 
-  await articleService.report(
-    article.id,
+  await commentService.report(
+    comment.id,
     viewer.id,
     category,
     description,

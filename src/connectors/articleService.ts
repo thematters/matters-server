@@ -459,17 +459,29 @@ export class ArticleService extends BaseService {
     articleId: string,
     userId: string,
     category: string,
-    description: string
-  ): Promise<any[]> =>
-    await this.baseCreate(
+    description: string,
+    assetIds: string[]
+  ): Promise<void> => {
+    // create report
+    const { id: reportId } = await this.baseCreate(
       {
         userId,
         articleId,
         category,
         description
       },
-      'report_article'
+      'report'
     )
+    // create report assets
+    if (!assetIds || assetIds.length <= 0) {
+      return
+    }
+    const reportAssets = assetIds.map(assetId => ({
+      reportId,
+      assetId
+    }))
+    await this.baseBatchCreate(reportAssets, 'report_asset')
+  }
 
   // TODO
   getContentFromHash = (hash: string) => `
