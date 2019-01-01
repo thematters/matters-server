@@ -468,6 +468,7 @@ export interface GQLMutation {
   pinComment: GQLComment
   deleteComment?: boolean
   voteComment: GQLComment
+  unvoteComment: GQLComment
 
   /**
    * audio dtaft
@@ -590,9 +591,13 @@ export interface GQLDeleteCommentInput {
   id: string
 }
 
-export interface GQLVoteComment {
+export interface GQLVoteCommentInput {
   vote: GQLVote
-  commentId: string
+  id: string
+}
+
+export interface GQLUnvoteCommentInput {
+  id: string
 }
 
 export interface GQLPutAudioDraftInput {
@@ -2001,6 +2006,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   pinComment?: MutationToPinCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   voteComment?: MutationToVoteCommentResolver<TParent>
+  unvoteComment?: MutationToUnvoteCommentResolver<TParent>
   putAudioDraft?: MutationToPutAudioDraftResolver<TParent>
   deleteAudioDraft?: MutationToDeleteAudioDraftResolver<TParent>
   putDraft?: MutationToPutDraftResolver<TParent>
@@ -2180,12 +2186,24 @@ export interface MutationToDeleteCommentResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToVoteCommentArgs {
-  input: GQLVoteComment
+  input: GQLVoteCommentInput
 }
 export interface MutationToVoteCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToVoteCommentArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnvoteCommentArgs {
+  input: GQLUnvoteCommentInput
+}
+export interface MutationToUnvoteCommentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToUnvoteCommentArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult

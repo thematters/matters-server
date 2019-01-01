@@ -1,9 +1,9 @@
-import { MutationToVoteCommentResolver, Context } from 'definitions'
+import { Resolver, Context } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: MutationToVoteCommentResolver = async (
+const resolver: Resolver = async (
   _,
-  { input: { id, vote } },
+  { input: { id } },
   {
     viewer,
     dataSources: { articleService, commentService, notificationService }
@@ -20,23 +20,15 @@ const resolver: MutationToVoteCommentResolver = async (
     userId: viewer.id,
     commentId: dbId
   })
-  if (voted && voted.length > 0) {
-    throw new Error('Can only vote oncew')
+  if (!voted || voted.length <= 0) {
+    throw new Error('no voted before')
   }
 
-  await commentService.vote({ commentId: dbId, vote, userId: viewer.id })
+  await commentService.unvote({ commentId: dbId, userId: viewer.id })
   const comment = await commentService.dataloader.load(dbId)
   const article = await articleService.dataloader.load(comment.articleId)
 
   // trigger notifications
-  if (vote === 'up') {
-    notificationService.trigger({
-      event: 'comment_new_upvote',
-      recipientId: comment.authorId,
-      actorId: viewer.id,
-      entities: [{ type: 'target', entityTable: 'comment', entity: comment }]
-    })
-  }
   notificationService.trigger({
     event: 'article_updated',
     entities: [
