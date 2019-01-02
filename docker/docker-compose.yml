@@ -17,6 +17,7 @@ services:
       - redis
       - s3
       - elasticsearch
+      - ipfs
     ports:
       - '4000:4000'
   db:
@@ -39,6 +40,13 @@ services:
     image: lphoward/fake-s3
     ports:
       - '4569:4569'
+  ipfs:
+    container_name: ipfs
+    image: ipfs/go-ipfs:latest
+    ports:
+      - '8080:8080'
+      - '4001:4001'
+      - '5001:5001'
   elasticsearch:
     image: matters/elasticsearch:latest
     container_name: elasticsearch
