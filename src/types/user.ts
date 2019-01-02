@@ -139,7 +139,6 @@ export default /* GraphQL */ `
 
   type NotificationSetting {
     enable: Boolean!
-    email: Boolean!
     mention: Boolean!
     follow: Boolean!
     comment: Boolean!
@@ -215,7 +214,7 @@ export default /* GraphQL */ `
   }
 
   input UpdateNotificationSettingInput {
-    type: NotificationSettingEnum!
+    type: NotificationSettingType!
     enabled: Boolean!
   }
 
@@ -264,9 +263,8 @@ export default /* GraphQL */ `
     zh_hant
   }
 
-  enum NotificationSettingEnum {
+  enum NotificationSettingType {
     enable
-    email
     mention
     follow
     comment
