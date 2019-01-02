@@ -3,9 +3,8 @@ import { v4 } from 'uuid'
 
 import { BATCH_SIZE, USER_ACTION } from 'common/enums'
 import { BaseService } from './baseService'
-// import { OpsWorksCM } from 'aws-sdk'
 
-import { GQLCommentsInput, GQLCommentSort } from 'definitions/schema'
+import { GQLCommentsInput, GQLVote } from 'definitions/schema'
 
 export class CommentService extends BaseService {
   constructor() {
@@ -67,6 +66,38 @@ export class CommentService extends BaseService {
     await this.baseBatchCreate(mentionsDataItems, 'comment_mentioned_user')
     return comemnt
   }
+
+  vote = async ({
+    userId,
+    commentId,
+    vote
+  }: {
+    userId: string
+    commentId: string
+    vote: GQLVote
+  }) =>
+    this.baseCreate(
+      {
+        userId,
+        targetId: commentId,
+        action: `${vote}_vote`
+      },
+      'action_comment'
+    )
+
+  unvote = async ({
+    userId,
+    commentId
+  }: {
+    userId: string
+    commentId: string
+  }) =>
+    this.knex('action_comment')
+      .where({
+        userId,
+        targetId: commentId
+      })
+      .del()
 
   /**
    * Count comments by a given author id (user).
@@ -271,10 +302,10 @@ export class CommentService extends BaseService {
    */
   findVotesByUserId = async ({
     userId,
-    targetId
+    commentId: targetId
   }: {
     userId: string
-    targetId: string
+    commentId: string
   }): Promise<any[]> =>
     await this.knex
       .select()

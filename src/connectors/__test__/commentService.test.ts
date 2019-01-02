@@ -32,11 +32,6 @@ test('findByAuthor', async () => {
   expect(comments.length).toBe(2)
 })
 
-test('findByArticle', async () => {
-  const comments = await commentService.findByArticle({ id: '3' })
-  expect(comments.length).toBe(2)
-})
-
 test('findPinnedByArticle', async () => {
   const comments = await commentService.findPinnedByArticle('3')
   expect(comments.length).toBe(1)
@@ -45,19 +40,4 @@ test('findPinnedByArticle', async () => {
 test('findByParent', async () => {
   const comments = await commentService.findByParent('1')
   expect(comments.length).toBe(2)
-})
-
-test('findUpVotes', async () => {
-  const votes = await commentService.findUpVotes('1')
-  expect(votes.length).toBe(2)
-})
-
-test('findDownVotes', async () => {
-  const votes = await commentService.findDownVotes('3')
-  expect(votes.length).toBe(0)
-})
-
-test('findArticleByAuthorInBatch', async () => {
-  const articleIds = await commentService.findArticleByAuthorInBatch('1')
-  expect(articleIds).toMatchObject(['1', '3'])
 })

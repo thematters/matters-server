@@ -1,28 +1,23 @@
 const { baseDown } = require('../utils')
 
-const table = 'report_article'
+const table = 'invitation'
 
 exports.up = async knex => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
-    t.bigInteger('user_id')
-      .unsigned()
-      .notNullable()
-    t.bigInteger('article_id')
-      .unsigned()
-      .notNullable()
-    t.text('category').notNullable()
-    t.text('description').notNullable()
+    t.bigInteger('sender_id') // null for system
+    t.bigInteger('recipient_id') // null for unregistered user
+    t.enu('status', ['pending', 'activated']).notNullable()
+    t.string('email').unique()
     t.timestamp('created_at').defaultTo(knex.fn.now())
 
-    // Setup foreign key
-    t.foreign('user_id')
+    t.foreign('sender_id')
       .references('id')
       .inTable('user')
-    t.foreign('article_id')
+    t.foreign('recipient_id')
       .references('id')
-      .inTable('article')
+      .inTable('user')
   })
 }
 
