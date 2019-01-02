@@ -36,14 +36,7 @@ exports.up = async knex => {
     t.enu('role', ['user', 'admin'])
       .notNullable()
       .defaultTo('user')
-    t.enu('state', [
-      'inactive',
-      'onboarding',
-      'active',
-      'banned',
-      'frozen',
-      'archived'
-    ])
+    t.enu('state', ['onboarding', 'active', 'banned', 'frozen', 'archived'])
       .notNullable()
       .defaultTo('active')
     t.timestamp('created_at').defaultTo(knex.fn.now())

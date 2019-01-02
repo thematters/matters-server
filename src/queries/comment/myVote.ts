@@ -16,7 +16,7 @@ const resolver: Resolver = async (
 
   const votes = await commentService.findVotesByUserId({
     userId: viewer.id,
-    targetId: id
+    commentId: id
   })
   const action: 'up_vote' | 'down_vote' = votes[0] && votes[0].action
 

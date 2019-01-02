@@ -177,7 +177,7 @@ describe('appreciate article', async () => {
     expect(articleNewMAT).toBe(articleCurrentMAT + appreciate.amount)
   })
 
-  test('appreciate success', async () => {
+  test('appreciate failed', async () => {
     const viewerCurrentMAT = await getViewerMAT()
     const appreciate = { id: ARTICLE_ID, amount: viewerCurrentMAT + 1 }
     try {

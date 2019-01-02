@@ -37,6 +37,47 @@ const REPORT_COMMENT = `
   }
 `
 
+const VOTE_COMMENT = `
+  mutation($input: VoteCommentInput!) {
+    voteComment(input: $input) {
+      upvotes
+      downvotes
+    }
+  }
+`
+
+const UNVOTE_COMMENT = `
+  mutation($input: UnvoteCommentInput!) {
+    unvoteComment(input: $input) {
+      upvotes
+      downvotes
+    }
+  }
+`
+
+const GET_COMMENT = `
+  query($input: NodeInput!) {
+    node(input: $input) {
+      ... on Comment {
+        upvotes
+        downvotes
+      }
+    }
+  }
+`
+
+const getCommentUpvotes = async (commentId: string) => {
+  const { query } = await testClient()
+  const { data } = await query({
+    query: GET_COMMENT,
+    // @ts-ignore
+    variables: {
+      input: { id: commentId }
+    }
+  })
+  return data && data.node.upvotes
+}
+
 describe('query comment list on article', async () => {
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: 'User', id: 2 })
@@ -140,5 +181,37 @@ describe('Report comment', async () => {
       }
     })
     expect(result.data.reportComment).toBe(true)
+  })
+})
+
+describe('mutations on comment', async () => {
+  const commentId = toGlobalId({ type: 'Comment', id: 3 })
+
+  test('upvote a comment', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const upvotes = await getCommentUpvotes(commentId)
+    const { data } = await mutate({
+      mutation: VOTE_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: { id: commentId, vote: 'up' }
+      }
+    })
+    const upvotesUpdated = data && data.voteComment.upvotes
+    expect(upvotesUpdated).toBe(upvotes + 1)
+  })
+
+  test('unvote a comment', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const upvotes = await getCommentUpvotes(commentId)
+    const { data } = await mutate({
+      mutation: UNVOTE_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: { id: commentId }
+      }
+    })
+    const upvotesUpdated = data && data.unvoteComment.upvotes
+    expect(upvotesUpdated).toBe(upvotes - 1)
   })
 })

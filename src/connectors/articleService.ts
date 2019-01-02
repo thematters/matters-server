@@ -4,7 +4,12 @@ import DataLoader from 'dataloader'
 import { ItemData, GQLSearchInput } from 'definitions'
 import { v4 } from 'uuid'
 
-import { BATCH_SIZE, USER_ACTION, PUBLISH_STATE } from 'common/enums'
+import {
+  BATCH_SIZE,
+  USER_ACTION,
+  PUBLISH_STATE,
+  TRANSACTION_PURPOSE
+} from 'common/enums'
 import { BaseService } from './baseService'
 
 export class ArticleService extends BaseService {
@@ -164,8 +169,11 @@ export class ArticleService extends BaseService {
   countAppreciation = async (articleId: string): Promise<number> => {
     const result = await this.knex
       .select()
-      .from('appreciate')
-      .where({ articleId })
+      .from('transaction')
+      .where({
+        referenceId: articleId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
       .sum('amount')
       .first()
     return parseInt(result.sum || '0', 10)
@@ -174,15 +182,18 @@ export class ArticleService extends BaseService {
   /**
    * Count total appreciaton by a given article id and user ids.
    */
-  countAppreciationByUserIds = async (
-    articleId: string,
+  countAppreciationByUserIds = async ({
+    articleId: referenceId,
+    userIds
+  }: {
+    articleId: string
     userIds: string[]
-  ): Promise<number> => {
+  }): Promise<number> => {
     const result = await this.knex
       .select()
-      .from('appreciate')
-      .where({ articleId })
-      .whereIn('userId', userIds)
+      .from('transaction')
+      .where({ referenceId })
+      .whereIn('sender_Id', userIds)
       .sum('amount')
       .first()
     return parseInt(result.sum || '0', 10)
@@ -243,40 +254,30 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findAppreciations = async (articleId: string): Promise<any[]> =>
-    await this.knex
+  findAppreciations = async (referenceId: string): Promise<any[]> =>
+    await this.knex('transaction')
       .select()
-      .from('appreciate')
-      .where({ articleId })
+      .where({ referenceId })
 
   /**
-   * Find an article's appreciations by a given article id in batches.
+   * Find an article's appreciators by a given article id.
    */
-  findAppreciationsInBatch = async (
-    articleId: string,
+  findAppreciators = async ({
+    articleId,
     offset = 0,
     limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('appreciate')
-      .where({ articleId })
-      .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
-
-  /**
-   * Find an article's appreciators by a given article id in batches.
-   */
-  findAppreciatorsInBatch = async (
-    articleId: string,
-    offset = 0,
-    limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex('appreciate')
-      .distinct('user_id')
-      .select('id')
-      .where({ articleId })
+  }: {
+    articleId: string
+    offset?: number
+    limit?: number
+  }): Promise<any[]> =>
+    await this.knex('transaction')
+      .distinct('sender_id')
+      .select('sender_id')
+      .where({
+        referenceId: articleId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
@@ -365,16 +366,19 @@ export class ArticleService extends BaseService {
   }
 
   hasAppreciate = async ({
-    userId,
+    userId: senderId,
     articleId
   }: {
     userId: string
     articleId: string
   }): Promise<boolean> => {
-    const result = await this.knex
+    const result = await this.knex('transaction')
       .select()
-      .from('appreciate')
-      .where({ userId, articleId })
+      .where({
+        senderId,
+        referenceId: articleId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
     return result.length > 0
   }
 
@@ -407,24 +411,34 @@ export class ArticleService extends BaseService {
   /**
    * User appreciate an article
    */
-  appreciate = async (
-    articleId: string,
-    userId: string,
-    amount: number,
-    userMAT: number
-  ): Promise<any> =>
+  appreciate = async ({
+    articleId,
+    senderId,
+    senderMAT,
+    recipientId,
+    amount
+  }: {
+    articleId: string
+    senderId: string
+    senderMAT: number
+    recipientId: string
+    amount: number
+  }): Promise<any> =>
+    // TODO: remove mat from user and retrive from transaction table when needed
     this.knex.transaction(async trx => {
       await trx
-        .where('id', userId)
-        .update('mat', userMAT - amount)
+        .where('id', senderId)
+        .update('mat', senderMAT - amount)
         .into('user')
       await trx
         .insert({
-          userId,
-          articleId,
+          senderId,
+          recipientId,
+          referenceId: articleId,
+          purpose: TRANSACTION_PURPOSE.appreciate,
           amount
         })
-        .into('appreciate')
+        .into('transaction')
         .returning('*')
     })
 

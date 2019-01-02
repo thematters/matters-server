@@ -6,9 +6,13 @@ exports.up = async knex => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
-    t.bigInteger('user_id').notNullable()
+    t.bigInteger('user_id')
+      .unsigned()
+      .notNullable()
     t.enu('action', ['subscribe']).notNullable()
-    t.bigInteger('target_id').notNullable()
+    t.bigInteger('target_id')
+      .unsigned()
+      .notNullable()
     t.timestamp('updated_at').defaultTo(knex.fn.now())
     t.timestamp('created_at').defaultTo(knex.fn.now())
 

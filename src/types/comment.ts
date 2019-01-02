@@ -4,6 +4,8 @@ export default /* GraphQL */ `
     pinComment(input: PinCommentInput!): Comment!
     deleteComment(input: DeleteCommentInput!): Boolean
     reportComment(input: ReportCommentInput!): Boolean
+    voteComment(input: VoteCommentInput!): Comment!
+    unvoteComment(input: UnvoteCommentInput!): Comment!
   }
 
   type Comment implements Node {
@@ -70,6 +72,15 @@ export default /* GraphQL */ `
     category: String!
     description: String
     assetIds: [ID!]
+  }
+
+  input VoteCommentInput {
+    vote: Vote!
+    id: ID!
+  }
+
+  input UnvoteCommentInput {
+    id: ID!
   }
 
   enum Vote {

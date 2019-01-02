@@ -8,6 +8,13 @@ export const USER_ACTION = {
   finish: 'finish'
 }
 
+export const TRANSACTION_PURPOSE = {
+  appreciate: 'appreciate',
+  inivitationAccepted: 'inivitation-accepted',
+  joinByInivitation: 'join-by-inivitation',
+  joinByTask: 'join-by-task'
+}
+
 export const VOTE = {
   up: 'up',
   down: 'down'

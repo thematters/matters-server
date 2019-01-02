@@ -33,11 +33,12 @@ exports.up = async knex =>
             /* last appreciation activity */
                 select
                     max(created_at) as latest_appreciation,
-                    article_id
+                    reference_id
                 from
-                    appreciate
+                    transaction
+                where purpose = 'appreciate'
                 group by
-                    article_id) as m on article.id = m.article_id
+                    reference_id) as ts on article.id = ts.reference_id
     `)
 
 exports.down = function(knex, Promise) {

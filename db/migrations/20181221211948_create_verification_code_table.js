@@ -19,7 +19,7 @@ exports.up = async knex => {
     t.enu('status', ['active', 'inactive', 'expired', 'used'])
       .notNullable()
       .defaultTo('active')
-    t.bigInteger('user_id')
+    t.bigInteger('user_id').unsigned()
     t.string('email')
 
     // Setup foreign key
