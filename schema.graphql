@@ -265,6 +265,28 @@ input ImportArticlesInput {
   token: String
 }
 
+type Invitation {
+  user: User
+  email: String
+  accepted: Boolean!
+  createdAt: DateTime!
+}
+
+type InvitationStatus {
+  MAT: Int!
+
+  """invitation number left"""
+  left: Int!
+
+  """invitations sent"""
+  sent(input: ListInput!): [Invitation]!
+}
+
+input InviteInput {
+  id: ID
+  email: Email
+}
+
 scalar JSON
 
 input ListInput {
@@ -329,6 +351,7 @@ type Mutation {
   importArticles(input: ImportArticlesInput!): [Article]
   clearReadHistory(input: ClearReadHistoryInput): Boolean
   clearSearchHistory: Boolean
+  invite(input: InviteInput!): [Invitation]!
 }
 
 interface Node {
@@ -589,8 +612,8 @@ type User implements Node {
   """Comments posted by this user"""
   commentedArticles(input: ListInput!): [Article!]
 
-  """comments that citated this user's article"""
-  citedArticles(input: ListInput!): [Article!]
+  """comments that quoted this user's article"""
+  quotedArticles(input: ListInput!): [Article!]
   subscriptions(input: ListInput!): [Article!]
   activity: UserActivity!
 

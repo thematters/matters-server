@@ -91,9 +91,9 @@ export interface GQLUser extends GQLNode {
   commentedArticles?: Array<GQLArticle>
 
   /**
-   * comments that citated this user's article
+   * comments that quoted this user's article
    */
-  citedArticles?: Array<GQLArticle>
+  quotedArticles?: Array<GQLArticle>
   subscriptions?: Array<GQLArticle>
   activity: GQLUserActivity
 
@@ -533,6 +533,7 @@ export interface GQLMutation {
   importArticles?: Array<GQLArticle | null>
   clearReadHistory?: boolean
   clearSearchHistory?: boolean
+  invite: Array<GQLInvitation | null>
 }
 
 export interface GQLPublishArticleInput {
@@ -741,6 +742,18 @@ export interface GQLClearReadHistoryInput {
   id: string
 }
 
+export interface GQLInviteInput {
+  id?: string
+  email?: GQLEmail
+}
+
+export interface GQLInvitation {
+  user?: GQLUser
+  email?: string
+  accepted: boolean
+  createdAt: GQLDateTime
+}
+
 export interface GQLSubscription {
   _?: boolean
   nodeEdited: GQLNode
@@ -832,6 +845,20 @@ export interface GQLDownstreamArticleArchivedNotice extends GQLNotice {
   createdAt: GQLDateTime
   downstream?: GQLArticle
   target?: GQLArticle
+}
+
+export interface GQLInvitationStatus {
+  MAT: number
+
+  /**
+   * invitation number left
+   */
+  left: number
+
+  /**
+   * invitations sent
+   */
+  sent: Array<GQLInvitation | null>
 }
 
 export type GQLJSON = any
@@ -933,6 +960,7 @@ export interface GQLResolver {
   Upload?: GraphQLScalarType
   Asset?: GQLAssetTypeResolver
   AuthResult?: GQLAuthResultTypeResolver
+  Invitation?: GQLInvitationTypeResolver
   Subscription?: GQLSubscriptionTypeResolver
   ArticleNewAppreciationNotice?: GQLArticleNewAppreciationNoticeTypeResolver
   ArticleNewCommentNotice?: GQLArticleNewCommentNoticeTypeResolver
@@ -945,6 +973,7 @@ export interface GQLResolver {
   CommentPinnedNotice?: GQLCommentPinnedNoticeTypeResolver
   Date?: GraphQLScalarType
   DownstreamArticleArchivedNotice?: GQLDownstreamArticleArchivedNoticeTypeResolver
+  InvitationStatus?: GQLInvitationStatusTypeResolver
   JSON?: GraphQLScalarType
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
   SubscribedArticleNewCommentNotice?: GQLSubscribedArticleNewCommentNoticeTypeResolver
@@ -1052,7 +1081,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   drafts?: UserToDraftsResolver<TParent>
   audioDrafts?: UserToAudioDraftsResolver<TParent>
   commentedArticles?: UserToCommentedArticlesResolver<TParent>
-  citedArticles?: UserToCitedArticlesResolver<TParent>
+  quotedArticles?: UserToQuotedArticlesResolver<TParent>
   subscriptions?: UserToSubscriptionsResolver<TParent>
   activity?: UserToActivityResolver<TParent>
   followers?: UserToFollowersResolver<TParent>
@@ -1127,13 +1156,13 @@ export interface UserToCommentedArticlesResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface UserToCitedArticlesArgs {
+export interface UserToQuotedArticlesArgs {
   input: GQLListInput
 }
-export interface UserToCitedArticlesResolver<TParent = any, TResult = any> {
+export interface UserToQuotedArticlesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: UserToCitedArticlesArgs,
+    args: UserToQuotedArticlesArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult
@@ -2029,6 +2058,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   importArticles?: MutationToImportArticlesResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
+  invite?: MutationToInviteResolver<TParent>
 }
 
 export interface MutationTo_Resolver<TParent = any, TResult = any> {
@@ -2469,6 +2499,18 @@ export interface MutationToClearSearchHistoryResolver<
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
+export interface MutationToInviteArgs {
+  input: GQLInviteInput
+}
+export interface MutationToInviteResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToInviteArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLAssetTypeResolver<TParent = any> {
   id?: AssetToIdResolver<TParent>
   type?: AssetToTypeResolver<TParent>
@@ -2502,6 +2544,29 @@ export interface AuthResultToAuthResolver<TParent = any, TResult = any> {
 }
 
 export interface AuthResultToTokenResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLInvitationTypeResolver<TParent = any> {
+  user?: InvitationToUserResolver<TParent>
+  email?: InvitationToEmailResolver<TParent>
+  accepted?: InvitationToAcceptedResolver<TParent>
+  createdAt?: InvitationToCreatedAtResolver<TParent>
+}
+
+export interface InvitationToUserResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface InvitationToEmailResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface InvitationToAcceptedResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface InvitationToCreatedAtResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2987,6 +3052,32 @@ export interface DownstreamArticleArchivedNoticeToTargetResolver<
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLInvitationStatusTypeResolver<TParent = any> {
+  MAT?: InvitationStatusToMATResolver<TParent>
+  left?: InvitationStatusToLeftResolver<TParent>
+  sent?: InvitationStatusToSentResolver<TParent>
+}
+
+export interface InvitationStatusToMATResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface InvitationStatusToLeftResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface InvitationStatusToSentArgs {
+  input: GQLListInput
+}
+export interface InvitationStatusToSentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: InvitationStatusToSentArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLOfficialAnnouncementNoticeTypeResolver<TParent = any> {

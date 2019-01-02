@@ -27,6 +27,7 @@ export default /* GraphQL */ `
     importArticles(input: ImportArticlesInput!): [Article]
     clearReadHistory(input: ClearReadHistoryInput): Boolean
     clearSearchHistory: Boolean
+    invite(input: InviteInput!): [Invitation]!
   }
 
   type User implements Node {
@@ -40,8 +41,8 @@ export default /* GraphQL */ `
     audioDrafts(input: ListInput!): [AudioDraft!]
     # Comments posted by this user
     commentedArticles(input: ListInput!): [Article!]
-    # comments that citated this user's article
-    citedArticles(input: ListInput!): [Article!]
+    # comments that quoted this user's article
+    quotedArticles(input: ListInput!): [Article!]
     subscriptions(input: ListInput!): [Article!]
     activity: UserActivity!
     # Followers of this user
@@ -53,6 +54,22 @@ export default /* GraphQL */ `
     # Viewer is following this user
     isFollowee: Boolean!
     status: UserStatus!
+  }
+
+
+  type InvitationStatus {
+    MAT: Int!
+    # invitation number left
+    left: Int!
+    # invitations sent
+    sent(input: ListInput!): [Invitation]!
+  }
+
+  type Invitation {
+    user: User
+    email: String
+    accepted: Boolean!
+    createdAt: DateTime!
   }
 
   type Recommendation {
@@ -143,6 +160,11 @@ export default /* GraphQL */ `
   type AuthResult {
     auth: Boolean!
     token: String
+  }
+
+  input InviteInput {
+    id: ID
+    email: Email
   }
 
   input SendVerificationCodeInput {
