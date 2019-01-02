@@ -72,17 +72,23 @@ export class UserService extends BaseService {
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
 
-    await this.addToSearch(user)
+    this.addToSearch(user)
     return user
   }
 
-  update = async (id: string, input: GQLUpdateUserInfoInput) => {
+  update = async (
+    id: string,
+    input: GQLUpdateUserInfoInput & { email: string }
+  ) => {
     const user = await this.baseUpdateById(id, input)
 
-    const { description, displayName } = input
-    if (description || displayName) {
+    const { description, displayName, email } = input
+    if (description || displayName || email) {
       // remove null and undefined
-      const searchable = _.pickBy({ description, displayName }, _.identity)
+      const searchable = _.pickBy(
+        { description, displayName, email },
+        _.identity
+      )
       await this.es.client.update({
         index: this.table,
         type: this.table,
@@ -304,14 +310,14 @@ export class UserService extends BaseService {
       .from('user_oauth')
       .where({ userId })
 
-  /**
-   * Find user's all appreciation by a given user id.
-   */
-  findAppreciationByUserId = async (userId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('appreciate')
-      .where({ userId })
+  // /**
+  //  * Find user's all appreciation by a given user id.
+  //  */
+  // findAppreciationByUserId = async (userId: string): Promise<any[]> =>
+  //   await this.knex
+  //     .select()
+  //     .from('appreciate')
+  //     .where({ userId })
 
   /**
    * Find user's followee list by a given user id.

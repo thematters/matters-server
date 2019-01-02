@@ -65,7 +65,7 @@ const resolver: Resolver = async (
   }
 
   // add to search
-  await articleService.addToSearch({ ...article, tags })
+  articleService.addToSearch({ ...article, tags })
 
   // trigger notifications
   notificationService.trigger({

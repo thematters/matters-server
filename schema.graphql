@@ -285,6 +285,8 @@ type Mutation {
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   deleteComment(input: DeleteCommentInput!): Boolean
+  voteComment(input: VoteCommentInput!): Comment!
+  unvoteComment(input: UnvoteCommentInput!): Comment!
 
   """audio dtaft"""
   putAudioDraft(input: PutAudioDraftInput!): AudioDraft!
@@ -545,6 +547,10 @@ input UnsubscribeArticleInput {
   id: ID!
 }
 
+input UnvoteCommentInput {
+  id: ID!
+}
+
 input UpdateNotificationSettingInput {
   type: NotificationSettingEnum!
   enabled: Boolean!
@@ -734,4 +740,9 @@ enum VerificationCodeType {
 enum Vote {
   up
   down
+}
+
+input VoteCommentInput {
+  vote: Vote!
+  id: ID!
 }

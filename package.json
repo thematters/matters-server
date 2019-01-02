@@ -27,7 +27,7 @@
     "format": "prettier --single-quote --write \"{,!(node_modules|build)/**/}*.{js,jsx,ts,tsx,json}\"",
     "format:check": "npm run format -- --list-different",
     "gen": "npm run gen:graphql && npm run gen:ts",
-    "gen:graphql": "node build/common/utils/exportSchema.js",
+    "gen:graphql": "npm run build && node build/common/utils/exportSchema.js",
     "gen:ts": "graphql-schema-typescript generate-ts schema.graphql --output src/definitions/schema.d.ts"
   },
   "author": "",

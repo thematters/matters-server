@@ -11,7 +11,7 @@ exports.up = async knex => {
     t.text('device_id')
       .notNullable()
       .unique()
-    t.bigInteger('user_id') // anonymous
+    t.bigInteger('user_id').unsigned() // null for anonymous
     t.enu('provider', ['jpush', 'fcm'])
       .notNullable()
       .defaultTo('jpush')
