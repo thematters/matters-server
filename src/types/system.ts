@@ -4,6 +4,7 @@ export default /* GraphQL */ `
     frequentSearch(key: String): [String!]
     search(input: SearchInput!): [SearchResult!]
     official: Official!
+    releases(input: ReleasesInput!): [Release!]
   }
 
   extend type Mutation {
@@ -29,6 +30,19 @@ export default /* GraphQL */ `
     feedbackCategory: [String!]!
   }
 
+  type Release {
+    title: String
+    description: String
+    cover: URL
+    link: URL
+    platform: PlatformType!
+    channel: ChannelType!
+    version: String!
+    latest: Boolean!
+    forceUpdate: Boolean!
+    releasedAt: DateTime!
+  }
+
   type Asset {
     id: ID!
     type: AssetType!
@@ -47,6 +61,13 @@ export default /* GraphQL */ `
   input SearchInput {
     key: String!
     type: SearchTypes!
+    offset: Int
+    limit: Int
+  }
+
+  input ReleasesInput {
+    platform: PlatformType!
+    channel: ChannelType!
     offset: Int
     limit: Int
   }
@@ -80,5 +101,15 @@ export default /* GraphQL */ `
     audioDraft
     report
     feedback
+  }
+
+  enum PlatformType {
+    ios
+    android
+  }
+
+  enum ChannelType {
+    appStore
+    googlePlay
   }
 `

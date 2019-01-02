@@ -49,35 +49,26 @@ describe('user notify setting', async () => {
   test('user receives notifications', async () => {
     await Promise.all(
       noticeTypes.map(async type => {
-        const {
-          canPush,
-          canEmail
-        } = await notificationService.checkUserNoifySetting({
+        const { canPush } = await notificationService.checkUserNoifySetting({
           event: type,
           userId: recipientId
         })
         expect(canPush).toBe(defaultNoifySetting[type])
-        expect(canEmail).toBe(defaultNoifySetting[type])
       })
     )
   })
-  test('user disabled "email" and "user_new_follower"', async () => {
+  test('user disable "user_new_follower"', async () => {
     const notifySetting = await userService.findNotifySetting(recipientId)
-    await userService.updateNotifySetting(notifySetting.id, { email: false })
     await userService.updateNotifySetting(notifySetting.id, { follow: false })
     await Promise.all(
       noticeTypes.map(async type => {
-        const {
-          canPush,
-          canEmail
-        } = await notificationService.checkUserNoifySetting({
+        const { canPush } = await notificationService.checkUserNoifySetting({
           event: type,
           userId: recipientId
         })
         expect(canPush).toBe(
           type === 'user_new_follower' ? false : defaultNoifySetting[type]
         )
-        expect(canEmail).toBe(false)
       })
     )
   })

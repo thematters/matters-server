@@ -12,6 +12,7 @@ export default /* GraphQL */ `
 
   type Article implements Node {
     id: ID!
+    slug: String!
     createdAt: DateTime!
     publishState: PublishState!
     public: Boolean!

@@ -209,7 +209,7 @@ describe('register and login functionarlities', () => {
       email: `test-${Math.floor(Math.random() * 100)}@matters.news`,
       displayName: 'test user',
       password: '567',
-      code: '123'
+      codeId: '123'
     }
     const result = await registerUser(user)
     expect(
