@@ -126,8 +126,7 @@ steps:
   - name: slack
     image: plugins/slack
     settings:
-      webhook:
-        from_secret: SLACK_WEBHOOK
+      webhook: https://hooks.slack.com/services/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
       channel: log_github
     username: Drone CI
     when:
