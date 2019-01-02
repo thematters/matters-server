@@ -411,22 +411,30 @@ export class ArticleService extends BaseService {
   /**
    * User appreciate an article
    */
-  appreciate = async (
-    articleId: string,
-    userId: string,
-    amount: number,
-    userMAT: number
-  ): Promise<any> =>
+  appreciate = async ({
+    articleId,
+    senderId,
+    senderMAT,
+    recipientId,
+    amount
+  }: {
+    articleId: string
+    senderId: string
+    senderMAT: number
+    recipientId: string
+    amount: number
+  }): Promise<any> =>
     // TODO: remove mat from user and retrive from transaction table when needed
     this.knex.transaction(async trx => {
       await trx
-        .where('id', userId)
-        .update('mat', userMAT - amount)
+        .where('id', senderId)
+        .update('mat', senderMAT - amount)
         .into('user')
       await trx
         .insert({
-          senderId: userId,
-          reference: articleId,
+          senderId,
+          recipientId,
+          referenceId: articleId,
           purpose: TRANSACTION_PURPOSE.appreciate,
           amount
         })
@@ -465,17 +473,29 @@ export class ArticleService extends BaseService {
     articleId: string,
     userId: string,
     category: string,
-    description: string
-  ): Promise<any[]> =>
-    await this.baseCreate(
+    description: string,
+    assetIds: string[] | undefined
+  ): Promise<void> => {
+    // create report
+    const { id: reportId } = await this.baseCreate(
       {
         userId,
         articleId,
         category,
         description
       },
-      'report_article'
+      'report'
     )
+    // create report assets
+    if (!assetIds || assetIds.length <= 0) {
+      return
+    }
+    const reportAssets = assetIds.map(assetId => ({
+      reportId,
+      assetId
+    }))
+    await this.baseBatchCreate(reportAssets, 'report_asset')
+  }
 
   // TODO
   getContentFromHash = (hash: string) => `

@@ -3,6 +3,7 @@ export default /* GraphQL */ `
     putComment(input: PutCommentInput!): Comment!
     pinComment(input: PinCommentInput!): Comment!
     deleteComment(input: DeleteCommentInput!): Boolean
+    reportComment(input: ReportCommentInput!): Boolean
     voteComment(input: VoteCommentInput!): Comment!
     unvoteComment(input: UnvoteCommentInput!): Comment!
   }
@@ -15,6 +16,7 @@ export default /* GraphQL */ `
     article: Article!
     content: String
     author: User!
+    pinned: Boolean!
     upvotes: Int!
     downvotes: Int!
     quote: Boolean!
@@ -63,6 +65,13 @@ export default /* GraphQL */ `
 
   input DeleteCommentInput {
     id: ID!
+  }
+
+  input ReportCommentInput {
+    id: ID!
+    category: String!
+    description: String
+    assetIds: [ID!]
   }
 
   input VoteCommentInput {

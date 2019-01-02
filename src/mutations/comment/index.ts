@@ -1,6 +1,7 @@
 import putComment from './putComment'
 import pinComment from './pinComment'
 import deleteComment from './deleteComment'
+import reportComment from './reportComment'
 import voteComment from './voteComment'
 import unvoteComment from './unvoteComment'
 
@@ -9,6 +10,7 @@ export default {
     putComment,
     pinComment,
     deleteComment,
+    reportComment,
     voteComment,
     unvoteComment
   }

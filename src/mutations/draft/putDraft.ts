@@ -4,11 +4,20 @@ import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,
-  { input: { id, upstreamId, title, content, tags, coverAssetId } },
-  { viewer, dataSources: { draftService } }
+  {
+    input: {
+      id,
+      upstreamId,
+      title,
+      content,
+      tags,
+      coverAssetId: coverAssetUUID
+    }
+  },
+  { viewer, dataSources: { draftService, systemService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this')
+    throw new Error('anonymous user cannot do this') // TODO
   }
 
   let upstreamDBId
@@ -16,8 +25,16 @@ const resolver: Resolver = async (
     upstreamDBId = fromGlobalId(upstreamId).id
   }
 
-  // TODO: Extract summary from html string
-  const summary = content ? '' : undefined
+  let coverAssetId
+  if (coverAssetUUID) {
+    const asset = await systemService.findAssetByUUID(coverAssetUUID)
+    if (!asset || asset.type !== 'cover' || asset.authorId !== viewer.id) {
+      throw new Error('Asset does not exists') // TODO
+    }
+    coverAssetId = asset.id
+  }
+
+  const summary = content ? '' : undefined // TODO: Extract summary from html string
   const data: ItemData = {
     authorId: id ? undefined : viewer.id,
     upstreamId: upstreamDBId,

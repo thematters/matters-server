@@ -20,7 +20,13 @@ const resolver: Resolver = async (
     throw new Error('target article does not exists') // TODO
   }
 
-  await articleService.appreciate(article.id, viewer.id, amount, viewer.mat)
+  await articleService.appreciate({
+    articleId: article.id,
+    senderId: viewer.id,
+    senderMAT: viewer.mat,
+    recipientId: article.authorId,
+    amount
+  })
 
   // trigger notifications
   notificationService.trigger({

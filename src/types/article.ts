@@ -67,6 +67,7 @@ export default /* GraphQL */ `
     id: ID!
     category: String!
     description: String
+    assetIds: [ID!]
   }
 
   input AppreciateArticleInput {

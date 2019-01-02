@@ -1,19 +1,12 @@
 import { Resolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   root,
-  { input: { id, category, description, assetIds: assetUUIDs } },
-  { viewer, dataSources: { articleService, systemService } }
+  { input: { category, description, contact, assetIds: assetUUIDs } },
+  { viewer, dataSources: { systemService } }
 ) => {
   if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO
-  }
-
-  const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.dataloader.load(dbId)
-  if (!article) {
-    throw new Error('target article does not exists') // TODO
   }
 
   let assetIds
@@ -25,11 +18,11 @@ const resolver: Resolver = async (
     assetIds = assets.map(asset => asset.id)
   }
 
-  await articleService.report(
-    article.id,
+  await systemService.feedback(
     viewer.id,
     category,
     description,
+    contact,
     assetIds
   )
 

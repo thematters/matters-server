@@ -10,8 +10,8 @@ const resolver: Resolver = async (
   }
 
   if (input.avatar) {
-    const assetUUID = input.avatar
-    const asset = await systemService.baseFindByUUID(assetUUID, 'asset')
+    const avatarAssetUUID = input.avatar
+    const asset = await systemService.findAssetByUUID(avatarAssetUUID)
 
     if (!asset || asset.type !== 'avatar' || asset.authorId !== viewer.id) {
       throw new Error('avatar asset does not exists') // TODO

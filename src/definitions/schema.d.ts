@@ -70,10 +70,12 @@ export interface GQLSearchResult {
 
 export interface GQLOfficial {
   reportCategory: Array<string>
+  feedbackCategory: Array<string>
 }
 
 export interface GQLUser extends GQLNode {
   id: string
+  uuid: GQLUUID
   info: GQLUserInfo
   settings: GQLUserSettings
   recommendation: GQLRecommendation
@@ -119,6 +121,8 @@ export interface GQLUser extends GQLNode {
   status: GQLUserStatus
   notices?: Array<GQLNotice>
 }
+
+export type GQLUUID = any
 
 export interface GQLUserInfo {
   createdAt: GQLDateTime
@@ -292,6 +296,7 @@ export interface GQLComment extends GQLNode {
   article: GQLArticle
   content?: string
   author: GQLUser
+  pinned: boolean
   upvotes: number
   downvotes: number
   quote: boolean
@@ -467,6 +472,7 @@ export interface GQLMutation {
   putComment: GQLComment
   pinComment: GQLComment
   deleteComment?: boolean
+  reportComment?: boolean
   voteComment: GQLComment
   unvoteComment: GQLComment
 
@@ -483,6 +489,7 @@ export interface GQLMutation {
   deleteDraft?: boolean
   markAllNoticesAsRead?: boolean
   singleFileUpload: GQLAsset
+  feedback?: boolean
 
   /**
    * send verification code
@@ -556,6 +563,7 @@ export interface GQLReportArticleInput {
   id: string
   category: string
   description?: string
+  assetIds?: Array<string>
 }
 
 export interface GQLAppreciateArticleInput {
@@ -590,6 +598,13 @@ export interface GQLPinCommentInput {
 
 export interface GQLDeleteCommentInput {
   id: string
+}
+
+export interface GQLReportCommentInput {
+  id: string
+  category: string
+  description?: string
+  assetIds?: Array<string>
 }
 
 export interface GQLVoteCommentInput {
@@ -633,7 +648,9 @@ export interface GQLSingleFileUploadInput {
 export enum GQLAssetType {
   avatar = 'avatar',
   cover = 'cover',
-  audioDraft = 'audioDraft'
+  audioDraft = 'audioDraft',
+  report = 'report',
+  feedback = 'feedback'
 }
 
 export type GQLUpload = any
@@ -643,6 +660,13 @@ export interface GQLAsset {
   type: GQLAssetType
   path: string
   createdAt: GQLDateTime
+}
+
+export interface GQLFeedbackInput {
+  category: string
+  description?: string
+  assetIds?: Array<string>
+  contact?: string
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -916,8 +940,6 @@ export interface GQLUserNewFollowerNotice extends GQLNotice {
   actors?: Array<GQLUser>
 }
 
-export type GQLUUID = any
-
 /*********************************
  *                               *
  *         TYPE RESOLVERS        *
@@ -937,6 +959,7 @@ export interface GQLResolver {
   SearchResult?: GQLSearchResultTypeResolver
   Official?: GQLOfficialTypeResolver
   User?: GQLUserTypeResolver
+  UUID?: GraphQLScalarType
   UserInfo?: GQLUserInfoTypeResolver
   DateTime?: GraphQLScalarType
   URL?: GraphQLScalarType
@@ -981,7 +1004,6 @@ export interface GQLResolver {
   UpstreamArticleArchivedNotice?: GQLUpstreamArticleArchivedNoticeTypeResolver
   UserDisabledNotice?: GQLUserDisabledNoticeTypeResolver
   UserNewFollowerNotice?: GQLUserNewFollowerNoticeTypeResolver
-  UUID?: GraphQLScalarType
 }
 export interface GQLQueryTypeResolver<TParent = any> {
   _?: QueryTo_Resolver<TParent>
@@ -1063,6 +1085,7 @@ export interface SearchResultToMatchResolver<TParent = any, TResult = any> {
 
 export interface GQLOfficialTypeResolver<TParent = any> {
   reportCategory?: OfficialToReportCategoryResolver<TParent>
+  feedbackCategory?: OfficialToFeedbackCategoryResolver<TParent>
 }
 
 export interface OfficialToReportCategoryResolver<
@@ -1072,8 +1095,16 @@ export interface OfficialToReportCategoryResolver<
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
+export interface OfficialToFeedbackCategoryResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
 export interface GQLUserTypeResolver<TParent = any> {
   id?: UserToIdResolver<TParent>
+  uuid?: UserToUuidResolver<TParent>
   info?: UserToInfoResolver<TParent>
   settings?: UserToSettingsResolver<TParent>
   recommendation?: UserToRecommendationResolver<TParent>
@@ -1093,6 +1124,10 @@ export interface GQLUserTypeResolver<TParent = any> {
 }
 
 export interface UserToIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface UserToUuidResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -1714,6 +1749,7 @@ export interface GQLCommentTypeResolver<TParent = any> {
   article?: CommentToArticleResolver<TParent>
   content?: CommentToContentResolver<TParent>
   author?: CommentToAuthorResolver<TParent>
+  pinned?: CommentToPinnedResolver<TParent>
   upvotes?: CommentToUpvotesResolver<TParent>
   downvotes?: CommentToDownvotesResolver<TParent>
   quote?: CommentToQuoteResolver<TParent>
@@ -1744,6 +1780,10 @@ export interface CommentToContentResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToAuthorResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface CommentToPinnedResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2034,6 +2074,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   putComment?: MutationToPutCommentResolver<TParent>
   pinComment?: MutationToPinCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
+  reportComment?: MutationToReportCommentResolver<TParent>
   voteComment?: MutationToVoteCommentResolver<TParent>
   unvoteComment?: MutationToUnvoteCommentResolver<TParent>
   putAudioDraft?: MutationToPutAudioDraftResolver<TParent>
@@ -2042,6 +2083,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteDraft?: MutationToDeleteDraftResolver<TParent>
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
   singleFileUpload?: MutationToSingleFileUploadResolver<TParent>
+  feedback?: MutationToFeedbackResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmResetPassword?: MutationToConfirmResetPasswordResolver<TParent>
   confirmChangeEmail?: MutationToConfirmChangeEmailResolver<TParent>
@@ -2215,6 +2257,18 @@ export interface MutationToDeleteCommentResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface MutationToReportCommentArgs {
+  input: GQLReportCommentInput
+}
+export interface MutationToReportCommentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToReportCommentArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface MutationToVoteCommentArgs {
   input: GQLVoteCommentInput
 }
@@ -2307,6 +2361,18 @@ export interface MutationToSingleFileUploadResolver<
   (
     parent: TParent,
     args: MutationToSingleFileUploadArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToFeedbackArgs {
+  input: GQLFeedbackInput
+}
+export interface MutationToFeedbackResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToFeedbackArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult

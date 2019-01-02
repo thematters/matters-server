@@ -15,6 +15,7 @@ exports.seed = function(knex, Promise) {
           description: 'test user 1 description',
           email: 'test1@matters.news',
           mobile: '999',
+          mat: 99,
           password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS)
         },
         {
@@ -24,6 +25,7 @@ exports.seed = function(knex, Promise) {
           description: 'test user 2 description',
           email: 'test2@matters.news',
           mobile: '999',
+          mat: 20,
           password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS),
           language: 'zh_hans'
         },
@@ -34,6 +36,7 @@ exports.seed = function(knex, Promise) {
           description: 'test user 3 description',
           email: 'test3@matters.news',
           mobile: '999',
+          mat: 9,
           password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS),
           language: 'en'
         },

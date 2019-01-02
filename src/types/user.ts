@@ -32,6 +32,7 @@ export default /* GraphQL */ `
 
   type User implements Node {
     id: ID!
+    uuid: UUID!
     info: UserInfo!
     settings: UserSettings!
     recommendation: Recommendation!

@@ -3,7 +3,7 @@ import { toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
 // local
 import { testClient, delay } from './utils'
-import { createDraft } from './draft.test'
+import { putDraft } from './draft.test'
 import { publishArticle } from './article.test'
 import { registerUser, updateUserDescription } from './user.test'
 
@@ -23,7 +23,7 @@ const user = {
 }
 
 beforeAll(async () => {
-  const { id } = await createDraft(draft)
+  const { id } = await putDraft(draft)
   try {
     await publishArticle({ id })
     await registerUser(user)
@@ -91,6 +91,11 @@ const SEARCH = `
         }
       }
     }
+  }
+`
+const FEEDBACK = `
+  mutation($input: FeedbackInput!) {
+    feedback(input: $input)
   }
 `
 
@@ -191,5 +196,38 @@ describe('Search', async () => {
     const search = result && result.data && result.data.search
     const info = search && search[0] && search[0].node && search[0].node.info
     expect(info.description).toBe(userDescription)
+  })
+})
+
+describe('Feedback', async () => {
+  test('submit a feedback', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const result = await mutate({
+      mutation: FEEDBACK,
+      // @ts-ignore
+      variables: {
+        input: {
+          category: 'product',
+          description: 'authed description'
+        }
+      }
+    })
+    expect(result.data.feedback).toBe(true)
+  })
+
+  test('submit a feedback with assets', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const result = await mutate({
+      mutation: FEEDBACK,
+      // @ts-ignore
+      variables: {
+        input: {
+          category: 'product',
+          description: 'authed description',
+          assetIds: ['00000000-0000-0000-0000-000000000010']
+        }
+      }
+    })
+    expect(result.data.feedback).toBe(true)
   })
 })

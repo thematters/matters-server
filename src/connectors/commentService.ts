@@ -327,4 +327,35 @@ export class CommentService extends BaseService {
         commentId
       })
   }
+
+  /**
+   * User report an comment
+   */
+  report = async (
+    commentId: string,
+    userId: string,
+    category: string,
+    description: string,
+    assetIds: string[] | undefined
+  ): Promise<void> => {
+    // create report
+    const { id: reportId } = await this.baseCreate(
+      {
+        userId,
+        commentId,
+        category,
+        description
+      },
+      'report'
+    )
+    // create report assets
+    if (!assetIds || assetIds.length <= 0) {
+      return
+    }
+    const reportAssets = assetIds.map(assetId => ({
+      reportId,
+      assetId
+    }))
+    await this.baseBatchCreate(reportAssets, 'report_asset')
+  }
 }
