@@ -3,6 +3,7 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { ItemData, GQLSearchInput } from 'definitions'
 import { v4 } from 'uuid'
+import Queue from 'bull'
 
 import {
   BATCH_SIZE,

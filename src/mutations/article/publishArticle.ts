@@ -1,5 +1,8 @@
+import Queue from 'bull'
+
 import { Resolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { queueSharedOpts } from 'connectors/queue/utils'
 
 const resolver: Resolver = async (
   root,
@@ -20,16 +23,8 @@ const resolver: Resolver = async (
 
   // retrive data from draft
   const { id: draftDBId } = fromGlobalId(id)
-  const {
-    authorId,
-    upstreamId,
-    title,
-    cover,
-    summary,
-    content,
-    tags: tagList
-  } = await draftService.dataloader.load(draftDBId)
-
+  const draft = await draftService.dataloader.load(draftDBId)
+  const { authorId, upstreamId, title, cover, summary, content } = draft
   if (authorId !== viewer.id) {
     throw new Error('draft does not exists') // TODO
   }
@@ -44,63 +39,82 @@ const resolver: Resolver = async (
     summary,
     content
   })
+  console.log('logged')
+  // create queue per publication
+  const publishQueue = new Queue(`publish_${article.id}`)
 
-  // TODO: timeout with task queue
-  await articleService.publish(article.id)
+  // add job to queue
+  await publishQueue.add(
+    {
+      article,
+      draft
+    },
+    { ...queueSharedOpts, delay: 1000 }
+  )
 
-  // TODO: archive draft
+  publishQueue.process(async (job, done) => {
+    try {
+      const { draft, article: articlePending } = job.data
 
-  // handle tags
-  let tags = tagList
-  if (tags) {
-    // create tag records, return tag record if already exists
-    const dbTags = ((await Promise.all(
-      tags.map((tag: string) => tagService.create({ content: tag }))
-    )) as unknown) as [{ id: string; content: string }]
-    // create article_tag record
-    await tagService.createArticleTags({
-      articleId: article.id,
-      tagIds: dbTags.map(({ id }) => id)
-    })
-  } else {
-    tags = []
-  }
+      const article = await articleService.publish(articlePending.id)
+      await draftService.baseUpdateById(draft.id, { archived: true })
 
-  // add to search
-  articleService.addToSearch({ ...article, tags })
-
-  // trigger notifications
-  notificationService.trigger({
-    event: 'article_published',
-    recipientId: authorId,
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'article',
-        entity: article
+      // handle tags
+      let tags = draft.tag
+      if (tags && tags.length > 0) {
+        // create tag records, return tag record if already exists
+        const dbTags = ((await Promise.all(
+          tags.map((tag: string) => tagService.create({ content: tag }))
+        )) as unknown) as [{ id: string; content: string }]
+        // create article_tag record
+        await tagService.createArticleTags({
+          articleId: article.id,
+          tagIds: dbTags.map(({ id }) => id)
+        })
+      } else {
+        tags = []
       }
-    ]
+
+      // add to search
+      articleService.addToSearch({ ...article, tags })
+      // trigger notifications
+      notificationService.trigger({
+        event: 'article_published',
+        recipientId: article.authorId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'article',
+            entity: article
+          }
+        ]
+      })
+      if (article.upstreamId) {
+        const upstream = await articleService.baseFindById(upstreamId)
+        notificationService.trigger({
+          event: 'article_new_downstream',
+          actorId: article.authorId,
+          recipientId: upstream.authorId,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'article',
+              entity: upstream
+            },
+            {
+              type: 'downstream',
+              entityTable: 'article',
+              entity: article
+            }
+          ]
+        })
+      }
+
+      done()
+    } catch (err) {
+      throw err
+    }
   })
-  if (upstreamId) {
-    const upstream = await articleService.baseFindById(upstreamId)
-    notificationService.trigger({
-      event: 'article_new_downstream',
-      actorId: authorId,
-      recipientId: upstream.authorId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'article',
-          entity: upstream
-        },
-        {
-          type: 'downstream',
-          entityTable: 'article',
-          entity: article
-        }
-      ]
-    })
-  }
 
   return article
 }
