@@ -48,6 +48,8 @@ const resolver: Resolver = async (
   // TODO: timeout with task queue
   await articleService.publish(article.id)
 
+  // TODO: archive draft
+
   // handle tags
   let tags = tagList
   if (tags) {

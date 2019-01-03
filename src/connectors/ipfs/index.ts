@@ -8,33 +8,40 @@ import { environment } from 'common/environment'
 
 const { ipfsAddress, domain } = environment
 
-class IPFS {
+export class IPFS {
   client: ipfsCmds
 
   constructor() {
     this.client = ipfsClient(ipfsAddress || '')
   }
 
+  // fetch data and return buffer
   getDataAsFile = async (
     url: string,
     path: string,
-    mutateOrigin: () => void
+    mutateOrigin?: () => void
   ) => {
     try {
       const fullUrl =
         url.indexOf('://') >= 0 ? url : urlResolve(domain || '', url)
       const { data } = await axios.get(fullUrl, { responseType: 'arraybuffer' })
-      mutateOrigin()
+
+      if (mutateOrigin) {
+        mutateOrigin()
+      }
+
       return { path, content: Buffer.from(data, 'binary') }
     } catch (err) {
       console.log(`Fetching data for ${url} failed`)
+      return
     }
   }
 
+  // add html string and related assets
   addHTML = async (html: string) => {
     const prefix = 'article'
-    // TODO: parse html and get data for http urls
 
+    // get image assets
     let assetsPromises: Array<
       Promise<{ path: string; content: Buffer } | undefined>
     > = []
@@ -43,7 +50,6 @@ class IPFS {
     $('img').each((index, image) => {
       const imageSrc = $(image).attr('src')
       // check if it's data url
-      // TODO: check other src format
       if (!imageSrc.startsWith('data:')) {
         // assuming it's http url
         const imagePath = `${index}.${imageSrc.split('.').slice(-1)[0]}`
@@ -53,18 +59,19 @@ class IPFS {
         )
       }
     })
-
     const assets = await Promise.all(assetsPromises)
 
+    // bundle html
     const htmlBundle = [
       {
         path: `${prefix}/index.html`,
         content: Buffer.from(html)
-      }
-      // ...assets.filter(asset => asset)
+      },
+      ...assets.filter(asset => asset)
     ]
     const result = await this.client.files.add(htmlBundle, { pin: true })
 
+    // filter out the hash for the bundle
     const [{ hash }] = result.filter(
       ({ path }: { path: string }) => path === prefix
     )

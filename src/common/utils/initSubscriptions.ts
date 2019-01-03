@@ -20,7 +20,6 @@ export const initSubscriptions = (): { onConnect: any } => ({
     webSocket: any,
     context: any
   ): Promise<Context> => {
-    console.log({ connectionParams, webSocket, context })
     const userService = new UserService()
     let viewer
 

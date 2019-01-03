@@ -2,7 +2,6 @@ import Redis from 'ioredis'
 
 import { environment } from 'common/environment'
 
-console.log(environment)
 export const queueSharedOpts = {
   // Reusing Redis Connections
   createClient() {

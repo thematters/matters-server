@@ -10,11 +10,16 @@ import {
   PUBLISH_STATE,
   TRANSACTION_PURPOSE
 } from 'common/enums'
+import { ipfs } from 'connectors/ipfs'
 import { BaseService } from './baseService'
+import { UserService } from './userService'
 
 export class ArticleService extends BaseService {
+  ipfs: typeof ipfs
+
   constructor() {
     super('article')
+    this.ipfs = ipfs
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
@@ -65,9 +70,55 @@ export class ArticleService extends BaseService {
 
   // publish an article to IPFS, add to search, and mark draft as read
   publish = async (id: string) => {
-    // TODO: publish to IPFS and get hashes
-    const dataHash = 'some-test-hash'
-    const mediaHash = 'some-test-hash'
+    const userService = new UserService()
+    // get article data
+    const articlePending = await this.baseFindById(id)
+
+    // add content to ipfs
+    const dataHash = await this.ipfs.addHTML(articlePending.html)
+
+    // add meta data to ipfs
+    const { userName: name, discription } = await userService.baseFindById(
+      articlePending.authorId
+    )
+
+    const now = new Date()
+    let mediaObj: { [key: string]: any } = {
+      content: {
+        html: {
+          // ipld link
+          '/': dataHash
+        }
+      },
+      author: {
+        name,
+        discription
+      },
+      publishedAt: now.toISOString()
+    }
+
+    // add cover to ipfs
+    const coverData = await this.ipfs.getDataAsFile(articlePending.cover, '/')
+    if (coverData && coverData.content) {
+      const [{ hash }] = await this.ipfs.client.files.add(coverData.content, {
+        pin: true
+      })
+      mediaObj.cover = { '/': hash }
+    }
+
+    // add upstream
+    if (articlePending.upstreamId) {
+      const upstream = await this.baseFindById(articlePending.upstreamId)
+      mediaObj.upstream = { '/': upstream.mediaHash }
+    }
+
+    // get media hash
+    const [{ hash: mediaHash }] = await this.ipfs.client.files.add(
+      Buffer.from(JSON.stringify(mediaObj)),
+      {
+        pin: true
+      }
+    )
 
     // edit db record
     const [article] = await this.knex(this.table)
