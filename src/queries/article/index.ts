@@ -1,5 +1,6 @@
 import { toGlobalId } from 'common/utils'
 
+import rootArticle from './rootArticle'
 import userArticles from './user/articles'
 import userMAT from './user/mat'
 import tagCount from './tag/count'
@@ -17,6 +18,9 @@ import hasAppreciate from './hasAppreciate'
 import appreciators from './appreciators'
 
 export default {
+  Query: {
+    article: rootArticle
+  },
   User: {
     articles: userArticles
   },

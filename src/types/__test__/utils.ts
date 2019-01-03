@@ -19,6 +19,10 @@ export const defaultTestUser = {
   email: 'test1@matters.news',
   password: '123'
 }
+export const adminUser = {
+  email: 'admin1@matters.news',
+  password: '123'
+}
 
 export const getUserContext = async ({ email }: { email: string }) => {
   const userService = new UserService()
@@ -36,8 +40,13 @@ export const delay = (ms: number) =>
   new Promise(resolve => setTimeout(resolve, ms))
 
 export const testClient = async (
-  { isAuth, context }: { isAuth?: boolean; context?: any } = {
+  {
+    isAuth,
+    isAdmin,
+    context
+  }: { isAuth?: boolean; isAdmin?: boolean; context?: any } = {
     isAuth: false,
+    isAdmin: false,
     context: {}
   }
 ) => {
@@ -45,7 +54,9 @@ export const testClient = async (
   if (context) {
     _context = context
   } else if (isAuth) {
-    _context = await getUserContext({ email: defaultTestUser.email })
+    _context = await getUserContext({
+      email: isAdmin ? adminUser.email : defaultTestUser.email
+    })
   } else {
     _context = defaultContext
   }

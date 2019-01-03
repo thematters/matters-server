@@ -1,6 +1,7 @@
 export default /* GraphQL */ `
   extend type Query {
     viewer: User
+    user(input: UserInput!): User
   }
 
   extend type Mutation {
@@ -28,7 +29,7 @@ export default /* GraphQL */ `
     importArticles(input: ImportArticlesInput!): [Article]
     clearReadHistory(input: ClearReadHistoryInput): Boolean
     clearSearchHistory: Boolean
-    invite(input: InviteInput!): [Invitation]!
+    invite(input: InviteInput!): Boolean
   }
 
   type User implements Node {
@@ -64,7 +65,7 @@ export default /* GraphQL */ `
     # invitation number left
     left: Int!
     # invitations sent
-    sent(input: ListInput!): [Invitation]!
+    sent(input: ListInput!): [Invitation!]
   }
 
   type Invitation {
@@ -112,7 +113,6 @@ export default /* GraphQL */ `
   type UserActivity {
     history(input: ListInput!): [ReadHistory!]
     recentSearches(input: ListInput!): [String!]
-    invited(input: ListInput!): [User!]
   }
 
   type UserStatus {
@@ -162,6 +162,10 @@ export default /* GraphQL */ `
   type AuthResult {
     auth: Boolean!
     token: String
+  }
+
+  input UserInput {
+    userName: String!
   }
 
   input InviteInput {

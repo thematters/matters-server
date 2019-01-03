@@ -1,6 +1,8 @@
 import { Context } from 'definitions'
 import { toGlobalId } from 'common/utils'
+import { MAT } from 'common/enums'
 
+import rootUser from './rootUser'
 import subscriptions from './subscriptions'
 import followers from './followers'
 import followees from './followees'
@@ -17,10 +19,15 @@ import followeeCount from './followeeCount'
 import subscriptionCount from './subscriptionCount'
 import unreadNoticeCount from './unreadNoticeCount'
 import recommendation from './recommendation'
+import invitationLeft from './invitationLeft'
+import invitationSent from './invitationSent'
+import invitationRecipient from './invitationRecipient'
+import invitationAccepted from './invitationAccepted'
 
 export default {
   Query: {
-    viewer: (root: any, _: any, { viewer }: Context) => viewer
+    viewer: (root: any, _: any, { viewer }: Context) => viewer,
+    user: rootUser
   },
   User: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'User', id }),
@@ -51,6 +58,7 @@ export default {
   UserStatus: {
     state: ({ state }: { state: string }) => state,
     MAT: ({ mat }: { mat: number }) => mat,
+    invitation: (parent: any) => parent,
     articleCount,
     // viewCount,
     // draftCount,
@@ -63,5 +71,14 @@ export default {
   },
   ReadHistory: {
     id: ({ uuid }: { uuid: string }) => uuid
+  },
+  InvitationStatus: {
+    MAT: () => MAT.joinByInvitation,
+    left: invitationLeft,
+    sent: invitationSent
+  },
+  Invitation: {
+    user: invitationRecipient,
+    accepted: invitationAccepted
   }
 }

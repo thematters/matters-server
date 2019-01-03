@@ -1,4 +1,8 @@
 export default /* GraphQL */ `
+  extend type Query {
+    article(input: ArticleInput!): Article
+  }
+
   extend type Mutation {
     publishArticle(input: PublishArticleInput!): Article!
     archiveArticle(input: ArchiveArticleInput!): Article!
@@ -46,6 +50,10 @@ export default /* GraphQL */ `
     content: String!
     count: Int!
     articles(input: ListInput!): [Article!]
+  }
+
+  input ArticleInput {
+    mediaHash: String!
   }
 
   input PublishArticleInput {
