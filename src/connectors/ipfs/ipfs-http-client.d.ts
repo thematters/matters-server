@@ -1,5 +1,7 @@
 declare module 'ipfs-http-client' {
-  function IpfsApi(multiaddress: string): ipfsCmds
+  function IpfsApi(
+    address: string | { host: string; port: string; protocol: string }
+  ): IPFS.FilesAPI
 
   export = IpfsApi
 }

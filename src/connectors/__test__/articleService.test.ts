@@ -5,6 +5,22 @@ afterAll(knex.destroy)
 
 const articleService = new ArticleService()
 
+test('publish', async () => {
+  const articlePending = await articleService.create({
+    authorId: 1,
+    title: 'test',
+    cover: 1,
+    summary: 'test-summary',
+    content: '<div>test-html-string</div>',
+    draftId: '1'
+  })
+
+  const articlePublished = await articleService.publish(articlePending.id)
+  expect(articlePublished.mediaHash).toBeDefined()
+  expect(articlePublished.dataHash).toBeDefined()
+  expect(articlePublished.publishState).toBe('published')
+})
+
 test('countByAuthor', async () => {
   const count = await articleService.countByAuthor('1')
   expect(count).toBeDefined()

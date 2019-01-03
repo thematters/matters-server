@@ -75,7 +75,7 @@ export class ArticleService extends BaseService {
     const articlePending = await this.baseFindById(id)
 
     // add content to ipfs
-    const dataHash = await this.ipfs.addHTML(articlePending.html)
+    const dataHash = await this.ipfs.addHTML(articlePending.content)
 
     // add meta data to ipfs
     const { userName: name, discription } = await userService.baseFindById(
@@ -86,7 +86,6 @@ export class ArticleService extends BaseService {
     let mediaObj: { [key: string]: any } = {
       content: {
         html: {
-          // ipld link
           '/': dataHash
         }
       },
@@ -100,7 +99,7 @@ export class ArticleService extends BaseService {
     // add cover to ipfs
     const coverData = await this.ipfs.getDataAsFile(articlePending.cover, '/')
     if (coverData && coverData.content) {
-      const [{ hash }] = await this.ipfs.client.files.add(coverData.content, {
+      const [{ hash }] = await this.ipfs.client.add(coverData.content, {
         pin: true
       })
       mediaObj.cover = { '/': hash }
@@ -113,7 +112,7 @@ export class ArticleService extends BaseService {
     }
 
     // get media hash
-    const [{ hash: mediaHash }] = await this.ipfs.client.files.add(
+    const [{ hash: mediaHash }] = await this.ipfs.client.add(
       Buffer.from(JSON.stringify(mediaObj)),
       {
         pin: true

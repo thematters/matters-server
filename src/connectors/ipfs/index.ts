@@ -6,13 +6,17 @@ import { resolve as urlResolve } from 'url'
 import ipfsClient = require('ipfs-http-client')
 import { environment } from 'common/environment'
 
-const { ipfsAddress, domain } = environment
+const { ipfsHost, ipfsPort, domain } = environment
 
 export class IPFS {
-  client: ipfsCmds
+  client: IPFS.FilesAPI
 
   constructor() {
-    this.client = ipfsClient(ipfsAddress || '')
+    this.client = ipfsClient({
+      host: ipfsHost || '',
+      port: ipfsPort,
+      protocol: 'http'
+    })
   }
 
   // fetch data and return buffer
@@ -69,7 +73,7 @@ export class IPFS {
       },
       ...assets.filter(asset => asset)
     ]
-    const result = await this.client.files.add(htmlBundle, { pin: true })
+    const result = await this.client.add(htmlBundle, { pin: true })
 
     // filter out the hash for the bundle
     const [{ hash }] = result.filter(
