@@ -306,14 +306,14 @@ input ListInput {
 
 type Mutation {
   _: Boolean
-  publishArticle(input: PublishArticleInput!): Article!
+  publishArticle(input: PublishArticleInput!): Draft!
   archiveArticle(input: ArchiveArticleInput!): Article!
   subscribeArticle(input: SubscribeArticleInput!): Boolean
   unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean
   reportArticle(input: ReportArticleInput!): Boolean
   appreciateArticle(input: AppreciateArticleInput!): Article!
   readArticle(input: ReadArticleInput!): Boolean
-  recallPublication(input: RecallPublicationInput!): Draft!
+  recallPublish(input: RecallPublishInput!): Draft!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   deleteComment(input: DeleteCommentInput!): Boolean
@@ -451,6 +451,7 @@ enum PublishState {
   error
   published
   banned
+  recalled
 }
 
 input PutAudioDraftInput {
@@ -499,7 +500,7 @@ type ReadHistory {
   readAt: DateTime!
 }
 
-input RecallPublicationInput {
+input RecallPublishInput {
   id: ID!
 }
 

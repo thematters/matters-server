@@ -9,7 +9,7 @@ import { environment } from 'common/environment'
 const { ipfsHost, ipfsPort, domain } = environment
 
 export class IPFS {
-  client: IPFS.FilesAPI
+  client: IPFS.FilesAPI & ipfsCmds
 
   constructor() {
     this.client = ipfsClient({

@@ -1,13 +1,13 @@
 export default /* GraphQL */ `
   extend type Mutation {
-    publishArticle(input: PublishArticleInput!): Article!
+    publishArticle(input: PublishArticleInput!): Draft!
     archiveArticle(input: ArchiveArticleInput!): Article!
     subscribeArticle(input: SubscribeArticleInput!): Boolean
     unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean
     reportArticle(input: ReportArticleInput!): Boolean
     appreciateArticle(input: AppreciateArticleInput!): Article!
     readArticle(input: ReadArticleInput!): Boolean
-    recallPublication(input: RecallPublicationInput!): Draft!
+    recallPublish(input: RecallPublishInput!): Draft!
   }
 
   type Article implements Node {
@@ -79,7 +79,7 @@ export default /* GraphQL */ `
     id: ID!
   }
 
-  input RecallPublicationInput {
+  input RecallPublishInput {
     id: ID!
   }
 
@@ -89,5 +89,6 @@ export default /* GraphQL */ `
     error
     published
     banned
+    recalled
   }
 `

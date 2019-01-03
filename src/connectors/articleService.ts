@@ -3,7 +3,6 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { ItemData, GQLSearchInput } from 'definitions'
 import { v4 } from 'uuid'
-import Queue from 'bull'
 
 import {
   BATCH_SIZE,
@@ -70,17 +69,25 @@ export class ArticleService extends BaseService {
   }
 
   // publish an article to IPFS, add to search, and mark draft as read
-  publish = async (id: string) => {
+  publish = async ({
+    authorId,
+    draftId,
+    upstreamId,
+    title,
+    cover,
+    summary,
+    content
+  }: {
+    [key: string]: string
+  }) => {
     const userService = new UserService()
-    // get article data
-    const articlePending = await this.baseFindById(id)
 
     // add content to ipfs
-    const dataHash = await this.ipfs.addHTML(articlePending.content)
+    const dataHash = await this.ipfs.addHTML(content)
 
     // add meta data to ipfs
     const { userName: name, discription } = await userService.baseFindById(
-      articlePending.authorId
+      authorId
     )
 
     const now = new Date()
@@ -92,13 +99,14 @@ export class ArticleService extends BaseService {
       },
       author: {
         name,
-        discription
+        discription: discription || ''
       },
       publishedAt: now.toISOString()
     }
 
     // add cover to ipfs
-    const coverData = await this.ipfs.getDataAsFile(articlePending.cover, '/')
+    // TODO: check data type for cover
+    const coverData = await this.ipfs.getDataAsFile(cover, '/')
     if (coverData && coverData.content) {
       const [{ hash }] = await this.ipfs.client.add(coverData.content, {
         pin: true
@@ -107,8 +115,8 @@ export class ArticleService extends BaseService {
     }
 
     // add upstream
-    if (articlePending.upstreamId) {
-      const upstream = await this.baseFindById(articlePending.upstreamId)
+    if (upstreamId) {
+      const upstream = await this.baseFindById(upstreamId)
       mediaObj.upstream = { '/': upstream.mediaHash }
     }
 
@@ -120,16 +128,30 @@ export class ArticleService extends BaseService {
       }
     )
 
+    // TODO: add media object as IPLD instead of string
+    // related discussion: https://github.com/ipld/ipld/issues/19
+    // const result = await this.ipfs.client.dag.put(mediaObj, {
+    //   format: 'dag-cbor',
+    //   hashAlg: 'sha2-256'
+    // })
+    // const multihash = this.ipfs.client.types.multihash.toB58String(
+    //   result.multihash
+    // )
+
     // edit db record
-    const [article] = await this.knex(this.table)
-      .returning('*')
-      .where({ id })
-      .update({
-        dataHash,
-        mediaHash,
-        publishState: PUBLISH_STATE.published,
-        updatedAt: this.knex.fn.now()
-      })
+
+    const article = await this.create({
+      authorId,
+      draftId,
+      upstreamId,
+      title,
+      cover,
+      summary,
+      content,
+      dataHash,
+      mediaHash,
+      publishState: PUBLISH_STATE.published
+    })
 
     return article
   }

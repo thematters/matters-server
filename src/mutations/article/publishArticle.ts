@@ -2,6 +2,7 @@ import Queue from 'bull'
 
 import { Resolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { PUBLISH_STATE } from 'common/enums'
 import { queueSharedOpts } from 'connectors/queue/utils'
 
 const resolver: Resolver = async (
@@ -24,43 +25,47 @@ const resolver: Resolver = async (
   // retrive data from draft
   const { id: draftDBId } = fromGlobalId(id)
   const draft = await draftService.dataloader.load(draftDBId)
-  const { authorId, upstreamId, title, cover, summary, content } = draft
-  if (authorId !== viewer.id) {
+  // const { authorId, upstreamId, title, cover, summary, content, tags } = draft
+  if (draft.authorId !== viewer.id || draft.archived) {
     throw new Error('draft does not exists') // TODO
   }
 
-  // creat pending article
-  const article = await articleService.create({
-    authorId,
-    draftId: draftDBId,
-    upstreamId,
-    title,
-    cover,
-    summary,
-    content
+  // create queue per publication and start pending state
+  const publishQueue = new Queue(`publish_${draftDBId}`, queueSharedOpts)
+  const draftPending = await draftService.baseUpdateById(draft.id, {
+    archived: true,
+    publishState: PUBLISH_STATE.published
   })
-  console.log('logged')
-  // create queue per publication
-  const publishQueue = new Queue(`publish_${article.id}`)
 
   // add job to queue
   await publishQueue.add(
     {
-      article,
-      draft
+      draftId: draftDBId
     },
-    { ...queueSharedOpts, delay: 1000 }
+    { delay: 1000 * 60 * 2 + 2000 } // wait for 2 minutes + 2 sec buffer
   )
 
   publishQueue.process(async (job, done) => {
-    try {
-      const { draft, article: articlePending } = job.data
+    const { draftId } = job.data
+    const draft = await draftService.baseFindById(draftId)
+    if (draft.publishState === PUBLISH_STATE.recalled) {
+      console.log('Publishcation has been recalled, aborting.')
+      done()
+      return
+    }
 
-      const article = await articleService.publish(articlePending.id)
-      await draftService.baseUpdateById(draft.id, { archived: true })
+    try {
+      const article = await articleService.publish({
+        ...draft,
+        draftId: draft.id
+      })
+      await draftService.baseUpdateById(draft.id, {
+        archived: true,
+        publishState: PUBLISH_STATE.published
+      })
 
       // handle tags
-      let tags = draft.tag
+      let tags = draft.tags
       if (tags && tags.length > 0) {
         // create tag records, return tag record if already exists
         const dbTags = ((await Promise.all(
@@ -90,7 +95,7 @@ const resolver: Resolver = async (
         ]
       })
       if (article.upstreamId) {
-        const upstream = await articleService.baseFindById(upstreamId)
+        const upstream = await articleService.baseFindById(article.upstreamId)
         notificationService.trigger({
           event: 'article_new_downstream',
           actorId: article.authorId,
@@ -116,7 +121,7 @@ const resolver: Resolver = async (
     }
   })
 
-  return article
+  return draftPending
 }
 
 export default resolver

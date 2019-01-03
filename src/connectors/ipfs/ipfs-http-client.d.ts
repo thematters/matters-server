@@ -1,7 +1,7 @@
 declare module 'ipfs-http-client' {
   function IpfsApi(
     address: string | { host: string; port: string; protocol: string }
-  ): IPFS.FilesAPI
+  ): ipfsCmds & IPFS.FilesAPI
 
   export = IpfsApi
 }
@@ -36,6 +36,7 @@ declare interface ipfsCmds {
   block: any
   object: IPFS.ObjectAPI
   dag: IPFS.DagAPI
+  pin: any
   libp2p: any
   swarm: IPFS.SwarmAPI
   files: IPFS.FilesAPI
@@ -68,7 +69,7 @@ declare namespace IPFS {
     buffer: Uint8Array
   }
 
-  export type Multihash = string
+  export type Multihash = any
   export type CID = any
 
   export interface Types {
