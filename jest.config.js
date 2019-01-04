@@ -13,5 +13,7 @@ module.exports = {
     '^queries(.*)$': '<rootDir>/src/queries$1'
   },
   globalSetup: '<rootDir>/db/testSetup.js',
-  globalTeardown: '<rootDir>/db/testTeardown.js'
+  globalTeardown: '<rootDir>/db/testTeardown.js',
+  coverageDirectory: './coverage/',
+  collectCoverage: true
 }

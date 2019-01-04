@@ -7,7 +7,7 @@ import { queueSharedOpts } from 'connectors/queue/utils'
 
 const resolver: Resolver = async (
   root,
-  { input: { id } },
+  { input: { id, delay } },
   {
     viewer,
     dataSources: {
@@ -42,7 +42,7 @@ const resolver: Resolver = async (
     {
       draftId: draftDBId
     },
-    { delay: 1000 * 60 * 2 + 2000 } // wait for 2 minutes + 2 sec buffer
+    { delay: delay || 1000 * 60 * 2 + 2000 } // wait for 2 minutes + 2 sec buffer
   )
 
   publishQueue.process(async (job, done) => {
@@ -83,7 +83,7 @@ const resolver: Resolver = async (
       }
 
       // add to search
-      articleService.addToSearch({ ...article, tags })
+      await articleService.addToSearch({ ...article, tags })
       // trigger notifications
       notificationService.trigger({
         event: 'article_published',

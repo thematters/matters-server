@@ -16,6 +16,7 @@ steps:
   - name: test
     image: node:10.14
     environment:
+      CODECOV_TOKEN: de5ab681-0837-4a24-b614-0a29225a7e4c
       MATTERS_ENV: test
       MATTERS_PG_HOST: db
       MATTERS_PG_USER: postgres

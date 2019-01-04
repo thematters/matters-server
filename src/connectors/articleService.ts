@@ -163,8 +163,8 @@ export class ArticleService extends BaseService {
     tags
   }: {
     [key: string]: string
-  }) =>
-    this.es.indexItems({
+  }) => {
+    const result = await this.es.indexItems({
       index: this.table,
       items: [
         {
@@ -175,6 +175,8 @@ export class ArticleService extends BaseService {
         }
       ]
     })
+    return result
+  }
 
   search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
     const body = bodybuilder()

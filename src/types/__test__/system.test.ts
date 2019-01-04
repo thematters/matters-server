@@ -25,7 +25,7 @@ const user = {
 beforeAll(async () => {
   const { id } = await putDraft(draft)
   try {
-    await publishArticle({ id })
+    await publishArticle({ id, delay: 0 })
     await registerUser(user)
     await updateUserDescription({
       email: user.email,

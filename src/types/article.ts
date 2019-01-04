@@ -49,6 +49,7 @@ export default /* GraphQL */ `
 
   input PublishArticleInput {
     id: ID!
+    delay: Int
   }
 
   input ArchiveArticleInput {

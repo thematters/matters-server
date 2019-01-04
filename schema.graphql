@@ -444,6 +444,7 @@ input PinCommentInput {
 
 input PublishArticleInput {
   id: ID!
+  delay: Int
 }
 
 enum PublishState {
