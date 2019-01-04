@@ -49,11 +49,10 @@ const resolver: Resolver = async (
     const { draftId } = job.data
     const draft = await draftService.baseFindById(draftId)
     if (draft.publishState === PUBLISH_STATE.recalled) {
-      console.log('Publishcation has been recalled, aborting.')
+      console.log('Publication has been recalled, aborting.')
       done()
       return
     }
-
     try {
       // publish
       const article = await articleService.publish({

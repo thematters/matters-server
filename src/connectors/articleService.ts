@@ -164,12 +164,6 @@ export class ArticleService extends BaseService {
   }: {
     [key: string]: string
   }) => {
-    console.log('add to search', {
-      id,
-      title,
-      content,
-      tags
-    })
     const result = await this.es.indexItems({
       index: this.table,
       items: [
@@ -201,7 +195,6 @@ export class ArticleService extends BaseService {
         type: this.table,
         body
       })
-      console.log({ hits: hits.hits })
       const ids = hits.hits.map(({ _id }) => _id)
       // TODO: determine if id exsists and use dataloader
       const articles = await this.baseFindByIds(ids)

@@ -25,6 +25,9 @@ export class IPFS {
     path: string,
     mutateOrigin?: () => void
   ) => {
+    if (!url) {
+      return
+    }
     try {
       const fullUrl =
         url.indexOf('://') >= 0 ? url : urlResolve(domain || '', url)
