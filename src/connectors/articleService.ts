@@ -422,12 +422,14 @@ export class ArticleService extends BaseService {
    * User appreciate an article
    */
   appreciate = async ({
+    uuid,
     articleId,
     senderId,
     senderMAT,
     recipientId,
     amount
   }: {
+    uuid: string
     articleId: string
     senderId: string
     senderMAT: number
@@ -442,6 +444,7 @@ export class ArticleService extends BaseService {
         .into('user')
       await trx
         .insert({
+          uuid,
           senderId,
           recipientId,
           referenceId: articleId,
