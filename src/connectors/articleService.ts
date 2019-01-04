@@ -41,30 +41,13 @@ export class ArticleService extends BaseService {
   /**
    * Create a new article item.
    */
-  create = async ({
-    authorId,
-    upstreamId,
-    title,
-    cover,
-    summary,
-    content,
-    draftId,
-    publishState = PUBLISH_STATE.pending
-  }: ItemData) => {
+  create = async (articleData: ItemData & { content: string }) => {
     // craete article
     const article = await this.baseCreate({
       uuid: v4(),
-      authorId,
-      upstreamId,
-      title,
-      cover,
-      summary,
-      draftId,
-      content,
-      publishState,
-      wordCount: this.countWords(content)
+      wordCount: this.countWords(articleData.content),
+      ...articleData
     })
-    // TODO: create tags
     return article
   }
 
@@ -130,13 +113,13 @@ export class ArticleService extends BaseService {
 
     // TODO: add media object as IPLD instead of string
     // related discussion: https://github.com/ipld/ipld/issues/19
-    // const result = await this.ipfs.client.dag.put(mediaObj, {
-    //   format: 'dag-cbor',
+    // const cid = await this.ipfs.client.dag.put(mediaObj, {
+    //   format: 'dag-pb',
+    //   inputenc: 'json',
+    //   pin: true,
     //   hashAlg: 'sha2-256'
     // })
-    // const multihash = this.ipfs.client.types.multihash.toB58String(
-    //   result.multihash
-    // )
+    // const mediaHash = cid.toBaseEncodedString()
 
     // edit db record
 

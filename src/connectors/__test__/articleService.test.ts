@@ -5,7 +5,7 @@ afterAll(knex.destroy)
 
 const articleService = new ArticleService()
 
-test('publish', async () => {
+test.only('publish', async () => {
   const articlePublished = await articleService.publish({
     authorId: '1',
     title: 'test',
