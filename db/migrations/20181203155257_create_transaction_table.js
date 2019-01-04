@@ -6,6 +6,7 @@ exports.up = async knex => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
+    t.uuid('uuid').notNullable()
     t.bigInteger('sender_id').unsigned()
     t.bigInteger('recipient_id')
       .unsigned()

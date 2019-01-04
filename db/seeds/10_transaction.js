@@ -7,12 +7,48 @@ exports.seed = function(knex, Promise) {
     .then(function() {
       // Inserts seed entries
       return knex(table).insert([
-        { sender_id: 1, amount: 10, reference_id: 1, recipient_id: 1 },
-        { sender_id: 1, amount: 10, reference_id: 1, recipient_id: 1 },
-        { sender_id: 2, amount: 30, reference_id: 1, recipient_id: 1 },
-        { sender_id: 2, amount: 10, reference_id: 2, recipient_id: 2 },
-        { sender_id: 3, amount: 50, reference_id: 3, recipient_id: 3 },
-        { sender_id: 3, amount: 100, reference_id: 1, recipient_id: 1 }
+        {
+          uuid: '00000000-0000-0000-0000-000000000001',
+          sender_id: 1,
+          amount: 10,
+          reference_id: 1,
+          recipient_id: 1
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000002',
+          sender_id: 1,
+          amount: 10,
+          reference_id: 1,
+          recipient_id: 1
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000003',
+          sender_id: 2,
+          amount: 30,
+          reference_id: 1,
+          recipient_id: 1
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000004',
+          sender_id: 2,
+          amount: 10,
+          reference_id: 2,
+          recipient_id: 2
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000005',
+          sender_id: 3,
+          amount: 50,
+          reference_id: 3,
+          recipient_id: 3
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000006',
+          sender_id: 3,
+          amount: 100,
+          reference_id: 1,
+          recipient_id: 1
+        }
       ])
     })
 }

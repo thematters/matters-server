@@ -25,6 +25,7 @@ exports.up = async knex => {
       'banned',
       'archived'
     ]).notNullable()
+    t.boolean('public').defaultTo(false)
     t.boolean('live').defaultTo(false)
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
