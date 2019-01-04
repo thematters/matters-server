@@ -1,11 +1,13 @@
 export default /* GraphQL */ `
   extend type Query {
     viewer: User
+    user(input: UserInput!): User
   }
 
   extend type Mutation {
-    # send verification code
+    # send/confirm verification code
     sendVerificationCode(input: SendVerificationCodeInput!): Boolean
+    confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
     # change or reset password
     confirmResetPassword(input: ConfirmResetPasswordInput!): Boolean
     # change email
@@ -27,7 +29,7 @@ export default /* GraphQL */ `
     importArticles(input: ImportArticlesInput!): [Article]
     clearReadHistory(input: ClearReadHistoryInput): Boolean
     clearSearchHistory: Boolean
-    invite(input: InviteInput!): [Invitation]!
+    invite(input: InviteInput!): Boolean
   }
 
   type User implements Node {
@@ -63,7 +65,7 @@ export default /* GraphQL */ `
     # invitation number left
     left: Int!
     # invitations sent
-    sent(input: ListInput!): [Invitation]!
+    sent(input: ListInput!): [Invitation!]
   }
 
   type Invitation {
@@ -111,13 +113,13 @@ export default /* GraphQL */ `
   type UserActivity {
     history(input: ListInput!): [ReadHistory!]
     recentSearches(input: ListInput!): [String!]
-    invited(input: ListInput!): [User!]
   }
 
   type UserStatus {
     state: UserState!
     # Total MAT left in wallet
     MAT: Int!
+    invitation: InvitationStatus!
     # Number of articles published by user
     articleCount: Int!
     # Number of views on articles
@@ -137,7 +139,6 @@ export default /* GraphQL */ `
 
   type NotificationSetting {
     enable: Boolean!
-    email: Boolean!
     mention: Boolean!
     follow: Boolean!
     comment: Boolean!
@@ -163,6 +164,10 @@ export default /* GraphQL */ `
     token: String
   }
 
+  input UserInput {
+    userName: String!
+  }
+
   input InviteInput {
     id: ID
     email: Email
@@ -173,28 +178,32 @@ export default /* GraphQL */ `
     type: VerificationCodeType!
   }
 
+  input ConfirmVerificationCodeInput {
+    code: String!
+  }
+
   input ConfirmResetPasswordInput {
     password: String!
-    code: String!
+    codeId: ID!
   }
 
   input ConfirmChangeEmailInput {
     oldEmail: Email!
-    oldEmailCode: String!
+    oldEmailCodeId: ID!
     newEmail: Email!
-    newEmailCode: String!
+    newEmailCodeId: ID!
   }
 
   input ConfirmVerifyEmailInput {
     email: Email!
-    code: String!
+    codeId: ID!
   }
 
   input UserRegisterInput {
     email: Email!
     displayName: String!
     password: String!
-    code: String!
+    codeId: ID!
   }
 
   input UserLoginInput {
@@ -209,7 +218,7 @@ export default /* GraphQL */ `
   }
 
   input UpdateNotificationSettingInput {
-    type: NotificationSettingEnum!
+    type: NotificationSettingType!
     enabled: Boolean!
   }
 
@@ -258,9 +267,8 @@ export default /* GraphQL */ `
     zh_hant
   }
 
-  enum NotificationSettingEnum {
+  enum NotificationSettingType {
     enable
-    email
     mention
     follow
     comment

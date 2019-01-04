@@ -12,9 +12,6 @@ exports.up = async knex => {
     t.boolean('enable')
       .notNullable()
       .defaultTo(true)
-    t.boolean('email')
-      .notNullable()
-      .defaultTo(true)
     t.boolean('mention')
       .notNullable()
       .defaultTo(true)
@@ -50,7 +47,7 @@ exports.up = async knex => {
       .defaultTo(true)
     t.boolean('report_feedback')
       .notNullable()
-      .defaultTo(true)
+      .defaultTo(false)
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 

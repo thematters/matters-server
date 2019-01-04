@@ -106,7 +106,7 @@ export class NotificationService extends BaseService {
     )
 
     // Push Notification
-    const { canPush, canEmail } = await this.checkUserNoifySetting({
+    const { canPush } = await this.checkUserNoifySetting({
       event: params.event,
       userId: noticeParams.recipientId
     })
@@ -117,16 +117,6 @@ export class NotificationService extends BaseService {
         userIds: [noticeParams.recipientId]
       })
     }
-
-    // Send Email
-    if (canEmail) {
-      notificationQueue.sendMail({
-        from: environment.emailName as string,
-        to: recipient.email,
-        text: noticeParams.message || `[EMAIL] ${params.event}`,
-        subject: params.event
-      })
-    }
   }
 
   checkUserNoifySetting = async ({
@@ -135,7 +125,7 @@ export class NotificationService extends BaseService {
   }: {
     event: NotificationType
     userId: string
-  }): Promise<{ canPush: boolean; canEmail: boolean }> => {
+  }): Promise<{ canPush: boolean }> => {
     const setting = await this.knex
       .select()
       .where({ userId })
@@ -143,7 +133,7 @@ export class NotificationService extends BaseService {
       .first()
 
     if (!setting || !setting.enable) {
-      return { canPush: false, canEmail: false }
+      return { canPush: false }
     }
 
     const eventSettingMap: { [key in NotificationType]: boolean } = {
@@ -166,8 +156,7 @@ export class NotificationService extends BaseService {
     }
 
     return {
-      canPush: eventSettingMap[event],
-      canEmail: setting.email && eventSettingMap[event]
+      canPush: eventSettingMap[event]
     }
   }
 

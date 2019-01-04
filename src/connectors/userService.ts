@@ -5,7 +5,13 @@ import jwt from 'jsonwebtoken'
 import bodybuilder from 'bodybuilder'
 import _ from 'lodash'
 
-import { BATCH_SIZE, BCRYPT_ROUNDS, USER_ACTION } from 'common/enums'
+import {
+  BATCH_SIZE,
+  BCRYPT_ROUNDS,
+  USER_ACTION,
+  TRANSACTION_PURPOSE,
+  MAT
+} from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ItemData,
@@ -68,11 +74,18 @@ export class UserService extends BaseService {
       displayName,
       description,
       avatar,
-      passwordHash
+      passwordHash,
+      state: 'onboarding'
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
+    await this.activateInvitedEmailUser({
+      userId: user.id,
+      userMAT: user.mat,
+      email
+    })
 
     this.addToSearch(user)
+
     return user
   }
 
@@ -310,14 +323,15 @@ export class UserService extends BaseService {
       .from('user_oauth')
       .where({ userId })
 
-  // /**
-  //  * Find user's all appreciation by a given user id.
-  //  */
-  // findAppreciationByUserId = async (userId: string): Promise<any[]> =>
-  //   await this.knex
-  //     .select()
-  //     .from('appreciate')
-  //     .where({ userId })
+  /**
+   * Find user's all transactions by a given user id.
+   */
+  findTransactionsByUserId = async (userId: string): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('transaction')
+      .where({ recipientId: userId })
+      .orderBy('id', 'desc')
 
   /**
    * Find user's followee list by a given user id.
@@ -488,4 +502,168 @@ export class UserService extends BaseService {
         action: USER_ACTION.follow
       })
       .del()
+
+  /**
+   * Find invitation by email
+   */
+  findInvitationByEmail = async (email: string) =>
+    await this.knex
+      .select()
+      .from('invitation')
+      .where({ email })
+      .first()
+
+  /**
+   * Find invitations
+   */
+  findInvitations = async ({
+    userId,
+    offset = 0,
+    limit = BATCH_SIZE
+  }: {
+    userId: string
+    offset?: number
+    limit?: number
+  }): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('invitation')
+      .where({ senderId: userId })
+      .orderBy('id', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+  /**
+   * Activate user
+   */
+  activate = async ({
+    senderId,
+    senderMAT,
+    recipientId,
+    recipientMAT
+  }: {
+    senderId?: string
+    senderMAT?: number
+    recipientId: string
+    recipientMAT: number
+  }): Promise<any> => {
+    this.knex.transaction(async trx => {
+      // set recipient's state to "active"
+      await trx
+        .where({ id: recipientId })
+        .update({ state: 'active' })
+        .into(this.table)
+        .returning('*')
+      // add invitation record
+      const { id: invitationId } = await trx
+        .insert({ senderId, recipientId, status: 'activated' })
+        .into('invitation')
+        .returning('*')
+      // update MAT
+      await trx
+        .where({ id: recipientId })
+        .update('mat', recipientMAT + MAT.joinByInvitation)
+        .into('user')
+      if (senderId && senderMAT) {
+        await trx
+          .where({ id: senderId })
+          .update('mat', senderMAT + MAT.invitationAccepted)
+          .into('user')
+      }
+      // add transaction record
+      await trx
+        .insert({
+          senderId,
+          recipientId,
+          referenceId: invitationId,
+          purpose: TRANSACTION_PURPOSE.joinByInvitation,
+          amount: MAT.joinByInvitation
+        })
+        .into('transaction')
+        .returning('*')
+      await trx
+        .insert({
+          recipientId: senderId,
+          referenceId: invitationId,
+          purpose: TRANSACTION_PURPOSE.invitationAccepted,
+          amount: MAT.invitationAccepted
+        })
+        .into('transaction')
+        .returning('*')
+    })
+  }
+
+  /**
+   * Invite email
+   */
+  invite = async ({
+    senderId,
+    email
+  }: {
+    senderId?: string
+    email: string
+  }): Promise<any> =>
+    await this.baseCreate({ senderId, email, status: 'pending' }, 'invitation')
+
+  /**
+   * Activate new user of invited email
+   */
+  activateInvitedEmailUser = async ({
+    userId,
+    userMAT,
+    email
+  }: {
+    userId: string
+    userMAT: number
+    email: string
+  }) => {
+    try {
+      const invitation = await this.findInvitationByEmail(email)
+
+      if (!invitation) {
+        return
+      }
+
+      const sender = await this.dataloader.load(invitation.senderId)
+      this.knex.transaction(async trx => {
+        // set recipient's state to "active"
+        await trx
+          .where({ id: userId })
+          .update({ state: 'active' })
+          .into(this.table)
+          .returning('*')
+        // update MAT
+        await trx
+          .where({ id: userId })
+          .update('mat', userMAT + MAT.joinByInvitation)
+          .into('user')
+        await trx
+          .where({ id: sender.id })
+          .update('mat', sender.mat + MAT.invitationAccepted)
+          .into('user')
+        // add transaction record
+        await trx
+          .insert({
+            senderId: sender.id,
+            recipientId: userId,
+            referenceId: invitation.id,
+            purpose: TRANSACTION_PURPOSE.joinByInvitation,
+            amount: MAT.joinByInvitation
+          })
+          .into('transaction')
+          .returning('*')
+        await trx
+          .insert({
+            recipientId: sender.id,
+            referenceId: invitation.id,
+            purpose: TRANSACTION_PURPOSE.invitationAccepted,
+            amount: MAT.invitationAccepted
+          })
+          .into('transaction')
+          .returning('*')
+      })
+    } catch (e) {
+      console.error('[activateInvitedEmailUser]', e)
+    }
+  }
 }
