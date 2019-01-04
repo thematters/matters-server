@@ -46,7 +46,7 @@ export type User = {
   language: string
   oauthType: any
   role: string
-  status: string
+  state: string
   createdAt: string
   updatedAt: string
 }
@@ -97,6 +97,7 @@ export type TableName =
   | 'report_asset'
   | 'feedback'
   | 'feedback_asset'
+  | 'invitation'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'

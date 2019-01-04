@@ -14,8 +14,8 @@ exports.up = async knex => {
     t.integer('amount').notNullable()
     t.enu('purpose', [
       'appreciate',
-      'inivitation-accepted',
-      'join-by-inivitation',
+      'invitation-accepted',
+      'join-by-invitation',
       'join-by-task'
     ])
       .notNullable()

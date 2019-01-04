@@ -5,6 +5,7 @@ import updateNotificationSetting from './updateNotificationSetting'
 import followUser from './followUser'
 import unfollowUser from './unfollowUser'
 import clearReadHistory from './clearReadHistory'
+import invite from './invite'
 
 export default {
   Mutation: {
@@ -14,6 +15,7 @@ export default {
     updateNotificationSetting,
     followUser,
     unfollowUser,
-    clearReadHistory
+    clearReadHistory,
+    invite
   }
 }
