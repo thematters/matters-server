@@ -154,8 +154,8 @@ describe.only('Search', async () => {
     })
 
     const search = result && result.data && result.data.search
-    const node = search && search[0] && search[0].node
-    expect(node.title).toBe(draft.title)
+    const title = search && search[0] && search[0].node && search[0].node.title
+    expect(title).toBe(draft.title)
   })
 
   test('search tag', async () => {
@@ -174,8 +174,9 @@ describe.only('Search', async () => {
     })
 
     const search = result && result.data && result.data.search
-    const node = search && search[0] && search[0].node
-    expect(node.content).toBe(draft.tags[0])
+    const content =
+      search && search[0] && search[0].node && search[0].node.content
+    expect(content).toBe(draft.tags[0])
   })
 
   test('search user', async () => {
