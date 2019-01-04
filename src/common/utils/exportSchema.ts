@@ -6,7 +6,10 @@ import fs from 'fs'
 import typeDefs from 'types'
 
 const schemaObj = makeExecutableSchema({
-  typeDefs
+  typeDefs,
+  resolverValidationOptions: {
+    requireResolversForResolveType: false
+  }
 })
 
 const schemaString = printSchema(schemaObj)
