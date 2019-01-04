@@ -255,6 +255,7 @@ type Draft implements Node {
   updatedAt: DateTime!
   tags: [String]
   cover: URL
+  publishState: PublishState!
 }
 
 scalar Email
