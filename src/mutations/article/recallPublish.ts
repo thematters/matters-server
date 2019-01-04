@@ -7,15 +7,17 @@ const resolver: MutationToRecallPublishResolver = async (
   { input: { id } },
   { viewer, dataSources: { draftService } }
 ) => {
+  console.log({ id })
   if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO
   }
   const { id: dbId } = fromGlobalId(id)
+  console.log({ dbId })
   const draft = await draftService.baseUpdateById(dbId, {
     archived: true,
     publishState: PUBLISH_STATE.recalled
   })
-
+  console.log({ draft })
   return draft
 }
 

@@ -34,7 +34,7 @@ const resolver: Resolver = async (
   const publishQueue = new Queue(`publish_${draftDBId}`, queueSharedOpts)
   const draftPending = await draftService.baseUpdateById(draft.id, {
     archived: true,
-    publishState: PUBLISH_STATE.published
+    publishState: PUBLISH_STATE.pending
   })
 
   // add job to queue
@@ -55,10 +55,12 @@ const resolver: Resolver = async (
     }
 
     try {
+      // publish
       const article = await articleService.publish({
         ...draft,
         draftId: draft.id
       })
+      // mark draft as published
       await draftService.baseUpdateById(draft.id, {
         archived: true,
         publishState: PUBLISH_STATE.published

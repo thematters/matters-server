@@ -1,5 +1,6 @@
 // internal
 import { toGlobalId } from 'common/utils'
+import { PUBLISH_STATE } from 'common/enums'
 import { knex } from 'connectors/db'
 import {
   GQLNodeInput,
@@ -18,12 +19,21 @@ const PUBLISH_ARTICLE = `
   mutation($input: PublishArticleInput!) {
     publishArticle(input: $input) {
       id
+      publishState
       title
       content
       createdAt
     }
   }
 `
+const RECALL_PUBLISH = `
+  mutation($input: RecallPublishInput!) {
+    recallPublish(input: $input) {
+      publishState
+    }
+  }
+`
+
 const GET_ARTICLE_UPSTREAM = `
   query($input: NodeInput!) {
     node(input: $input) {
@@ -152,16 +162,28 @@ describe('query tag and upstream on article', async () => {
   })
 })
 
-describe('publish article', async () => {
-  test('create draft and publish', async () => {
+describe.only('publish article', async () => {
+  test('create draft, publish and recall', async () => {
     jest.setTimeout(10000)
     const draft = {
       title: Math.random().toString(),
       content: Math.random().toString()
     }
     const { id } = await putDraft(draft)
-    const article = await publishArticle({ id })
-    expect(article).toMatchObject(draft)
+    const { publishState } = await publishArticle({ id })
+    expect(publishState).toBe(PUBLISH_STATE.pending)
+
+    const { mutate } = await testClient({
+      isAuth: true
+    })
+    const result = await mutate({
+      mutation: RECALL_PUBLISH,
+      // @ts-ignore
+      variables: { input: { id } }
+    })
+    console.log({ error: JSON.stringify(result.errors) })
+    const draftRecalled = result && result.data && result.data.recallPublish
+    expect(draftRecalled.publishState).toBe(PUBLISH_STATE.recalled)
   })
 })
 

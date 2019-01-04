@@ -5,6 +5,7 @@ import unsubscribeArticle from './unsubscribeArticle'
 import reportArticle from './reportArticle'
 import appreciateArticle from './appreciateArticle'
 import readArticle from './readArticle'
+import recallPublish from './recallPublish'
 
 export default {
   Mutation: {
@@ -14,6 +15,7 @@ export default {
     unsubscribeArticle,
     reportArticle,
     appreciateArticle,
-    readArticle
+    readArticle,
+    recallPublish
   }
 }
