@@ -596,7 +596,7 @@ describe('invitation', async () => {
 
     // check user state
     const user = await userService.findByEmail(unregisterEmail)
-    expect(user.state).toBe('active')
+    expect(user.state).toBe('onboarding')
 
     // check transactions
     const senderTxs = await userService.findTransactionsByUserId(
