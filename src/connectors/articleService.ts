@@ -164,6 +164,12 @@ export class ArticleService extends BaseService {
   }: {
     [key: string]: string
   }) => {
+    console.log('add to search', {
+      id,
+      title,
+      content,
+      tags
+    })
     const result = await this.es.indexItems({
       index: this.table,
       items: [
