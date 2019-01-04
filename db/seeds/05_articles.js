@@ -12,7 +12,8 @@ exports.seed = function(knex, Promise) {
           title: 'test article 1',
           summary: 'Some text',
           word_count: '1000',
-          data_hash: 'some-ipfs-hash',
+          data_hash: 'some-ipfs-data-hash-1',
+          media_hash: 'some-ipfs-media-hash-1',
           content: '<div>some html string</div>',
           publish_state: 'published'
         },
@@ -24,8 +25,8 @@ exports.seed = function(knex, Promise) {
           title: 'test article 2',
           summary: 'Some text',
           word_count: '1000',
-          data_hash: 'some-ipfs-hash',
-          media_hash: 'some-ipfs-hash',
+          data_hash: 'some-ipfs-data-hash-2',
+          media_hash: 'some-ipfs-media-hash-2',
           content: '<div>some html string</div>',
           publish_state: 'published'
         },
@@ -37,8 +38,8 @@ exports.seed = function(knex, Promise) {
           title: 'test article 3',
           summary: 'Some text',
           word_count: '1000',
-          data_hash: 'some-ipfs-hash',
-          media_hash: 'some-ipfs-hash',
+          data_hash: 'some-ipfs-data-hash-3',
+          media_hash: 'some-ipfs-media-hash-3',
           content: '<div>some html string</div>',
           publish_state: 'published'
         },
@@ -49,8 +50,8 @@ exports.seed = function(knex, Promise) {
           title: 'test article 4',
           summary: 'Some text',
           word_count: '1000',
-          data_hash: 'some-ipfs-hash',
-          media_hash: 'some-ipfs-hash',
+          data_hash: 'some-ipfs-data-hash-4',
+          media_hash: 'some-ipfs-media-hash-4',
           content: '<div>some html string</div>',
           publish_state: 'published'
         }

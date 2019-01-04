@@ -1,3 +1,4 @@
+import _ from 'lodash'
 // internal
 import { toGlobalId } from 'common/utils'
 import { PUBLISH_STATE } from 'common/enums'
@@ -34,6 +35,13 @@ const RECALL_PUBLISH = `
   }
 `
 
+const GET_ARTICLE_BY_MEDIA_HASH = `
+  query ($input: ArticleInput!) {
+    article(input: $input) {
+      mediaHash
+    }
+  }
+`
 const GET_ARTICLE_UPSTREAM = `
   query($input: NodeInput!) {
     node(input: $input) {
@@ -121,6 +129,19 @@ export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
   const article = result && result.data && result.data.appreciateArticle
   return article
 }
+
+describe('query article', async () => {
+  test('query article by mediaHash', async () => {
+    const mediaHash = 'some-ipfs-media-hash-1'
+    const { query } = await testClient()
+    const { data } = await query({
+      query: GET_ARTICLE_BY_MEDIA_HASH,
+      // @ts-ignore
+      variables: { input: { mediaHash } }
+    })
+    expect(_.get(data, 'article.mediaHash')).toBe(mediaHash)
+  })
+})
 
 describe('query tag and upstream on article', async () => {
   test('query tag on article', async () => {

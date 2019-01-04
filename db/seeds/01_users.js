@@ -15,7 +15,7 @@ exports.seed = function(knex, Promise) {
           description: 'test user 1 description',
           email: 'test1@matters.news',
           mobile: '999',
-          mat: 99,
+          mat: 1000,
           password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS)
         },
         {
@@ -45,6 +45,14 @@ exports.seed = function(knex, Promise) {
           user_name: 'test 4',
           display_name: 'test 4',
           email: 'test4@matters.news',
+          password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS)
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000005',
+          user_name: 'admin 1',
+          display_name: 'admin 1',
+          email: 'admin1@matters.news',
+          role: 'admin',
           password_hash: bcrypt.hashSync('123', BCRYPT_ROUNDS)
         }
       ])

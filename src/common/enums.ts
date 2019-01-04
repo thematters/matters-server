@@ -10,8 +10,8 @@ export const USER_ACTION = {
 
 export const TRANSACTION_PURPOSE = {
   appreciate: 'appreciate',
-  inivitationAccepted: 'inivitation-accepted',
-  joinByInivitation: 'join-by-inivitation',
+  invitationAccepted: 'invitation-accepted',
+  joinByInvitation: 'join-by-invitation',
   joinByTask: 'join-by-task'
 }
 
@@ -35,3 +35,10 @@ export const BCRYPT_ROUNDS = 12
 export const BATCH_SIZE = 10
 
 export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
+
+export const MAT = {
+  invitationCalculate: 20,
+  invitationAccepted: 5,
+  joinByInvitation: 5,
+  joinByTask: 10
+}

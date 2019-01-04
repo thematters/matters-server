@@ -19,7 +19,7 @@ const user = {
   email: `test-${Math.floor(Math.random() * 100)}@matters.news`,
   displayName: 'test user',
   password: '123',
-  code: '123'
+  codeId: '123'
 }
 
 beforeAll(async () => {

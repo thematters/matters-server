@@ -12,6 +12,8 @@ exports.up = async knex => {
     t.string('email').unique()
     t.timestamp('created_at').defaultTo(knex.fn.now())
 
+    t.unique(['sender_id', 'recipient_id', 'email'])
+
     t.foreign('sender_id')
       .references('id')
       .inTable('user')

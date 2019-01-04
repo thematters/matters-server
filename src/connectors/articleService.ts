@@ -312,6 +312,16 @@ export class ArticleService extends BaseService {
   }
 
   /**
+   * Find article by media hash
+   */
+  findByMediaHash = async (mediaHash: string) =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .where({ mediaHash })
+      .first()
+
+  /**
    * Find articles by upstream id (article).
    */
   findByUpstream = async (
