@@ -137,8 +137,8 @@ describe('query nodes of different type', async () => {
   })
 })
 
-describe('Search', async () => {
-  test('search artcile', async () => {
+describe.only('Search', async () => {
+  test('search article', async () => {
     const { query } = await testClient()
 
     const result = await query({

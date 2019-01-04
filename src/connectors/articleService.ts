@@ -195,6 +195,7 @@ export class ArticleService extends BaseService {
         type: this.table,
         body
       })
+      console.log({ hits: hits.hits })
       const ids = hits.hits.map(({ _id }) => _id)
       // TODO: determine if id exsists and use dataloader
       const articles = await this.baseFindByIds(ids)
