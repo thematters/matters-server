@@ -29,6 +29,8 @@ steps:
       MATTERS_JPUSH_API_SECRET: 42dd6fb3e481a34eadbc5ee5
       MATTERS_ELASTICSEARCH_HOST: elasticsearch
       MATTERS_ELASTICSEARCH_PORT: 9200
+      MATTERS_IPFS_HOST: ipfs
+      MATTERS_IPFS_PORT: 5001
     commands:
       - npm run test
 
@@ -145,3 +147,7 @@ services:
     image: elasticsearch:5-alpine
     ports:
       - 9200
+  - name: ipfs
+    image: ipfs/go-ipfs:latest
+    ports:
+      - 5001
