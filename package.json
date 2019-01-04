@@ -20,7 +20,7 @@
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
     "test:connectors": "jest src/connectors --forceExit --detectOpenHandles --coverage",
     "test:types": "jest src/types --forceExit --detectOpenHandles --coverage",
-    "test": "jest",
+    "test": "jest --forceExit",
     "tslint:dev": "tslint --force -c tslint.json 'src/**/*.ts{,x}' -e '**/node_modules/**/*'",
     "tslint:watch:dev": "chokidar 'src/**/*.ts{,x}' -c 'npm run tslint:dev'",
     "tslint:production": "node_modules/.bin/tslint -t verbose -c tslint.json 'src/**/*.ts{,x}' -e '**/node_modules/**/*'",

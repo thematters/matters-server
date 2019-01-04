@@ -162,7 +162,7 @@ describe('query tag and upstream on article', async () => {
   })
 })
 
-describe.only('publish article', async () => {
+describe('publish article', async () => {
   test('create draft, publish and recall', async () => {
     jest.setTimeout(10000)
     const draft = {
@@ -181,7 +181,6 @@ describe.only('publish article', async () => {
       // @ts-ignore
       variables: { input: { id } }
     })
-    console.log({ error: JSON.stringify(result.errors) })
     const draftRecalled = result && result.data && result.data.recallPublish
     expect(draftRecalled.publishState).toBe(PUBLISH_STATE.recalled)
   })
