@@ -16,7 +16,7 @@ const schemaString = printSchema(schemaObj)
 
 fs.writeFile('schema.graphql', schemaString, function(err) {
   if (err) {
-    console.log(err)
+    console.error(err)
   } else {
     console.log('Successfully printed schema.')
   }
