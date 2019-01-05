@@ -1,10 +1,11 @@
-import { GQLMATTypeResolver, Context } from 'definitions'
+import { GQLMATTypeResolver, Context, GQLTransactionPurpose } from 'definitions'
 
 const resolver: GQLMATTypeResolver = {
   total: ({ id }, _, { dataSources: { userService } }: Context) =>
     userService.totalMAT(id),
-  history: ({ id }, { input }, { dataSources: { userService } }: Context) =>
+  history: ({ id }, { input }, { dataSources: { userService } }: Context) => {
     userService.transactionHistory({ id, ...input })
+  }
 }
 
 export default resolver

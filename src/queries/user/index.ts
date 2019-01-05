@@ -23,7 +23,7 @@ import invitationLeft from './invitationLeft'
 import invitationSent from './invitationSent'
 import invitationRecipient from './invitationRecipient'
 import invitationAccepted from './invitationAccepted'
-import MAT from './mat.ts'
+import MAT from './mat'
 
 export default {
   Query: {

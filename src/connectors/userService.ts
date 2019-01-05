@@ -10,7 +10,7 @@ import {
   BCRYPT_ROUNDS,
   USER_ACTION,
   TRANSACTION_PURPOSE,
-  MAT
+  MAT_UNIT
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -228,8 +228,7 @@ export class UserService extends BaseService {
       .orderBy('createdAt', 'desc')
       .limit(limit)
       .offset(offset)
-
-    return parseInt(result[0].total, 10)
+    return result
   }
 
   /**
@@ -598,12 +597,12 @@ export class UserService extends BaseService {
       // update MAT
       await trx
         .where({ id: recipientId })
-        .update('mat', recipientMAT + MAT.joinByInvitation)
+        .update('mat', recipientMAT + MAT_UNIT.joinByInvitation)
         .into('user')
       if (senderId && senderMAT) {
         await trx
           .where({ id: senderId })
-          .update('mat', senderMAT + MAT.invitationAccepted)
+          .update('mat', senderMAT + MAT_UNIT.invitationAccepted)
           .into('user')
       }
       // add transaction record
@@ -613,7 +612,7 @@ export class UserService extends BaseService {
           recipientId,
           referenceId: invitationId,
           purpose: TRANSACTION_PURPOSE.joinByInvitation,
-          amount: MAT.joinByInvitation
+          amount: MAT_UNIT.joinByInvitation
         })
         .into('transaction')
         .returning('*')
@@ -622,7 +621,7 @@ export class UserService extends BaseService {
           recipientId: senderId,
           referenceId: invitationId,
           purpose: TRANSACTION_PURPOSE.invitationAccepted,
-          amount: MAT.invitationAccepted
+          amount: MAT_UNIT.invitationAccepted
         })
         .into('transaction')
         .returning('*')
@@ -671,11 +670,11 @@ export class UserService extends BaseService {
         // update MAT
         await trx
           .where({ id: userId })
-          .update('mat', userMAT + MAT.joinByInvitation)
+          .update('mat', userMAT + MAT_UNIT.joinByInvitation)
           .into('user')
         await trx
           .where({ id: sender.id })
-          .update('mat', sender.mat + MAT.invitationAccepted)
+          .update('mat', sender.mat + MAT_UNIT.invitationAccepted)
           .into('user')
         // add transaction record
         await trx
@@ -684,7 +683,7 @@ export class UserService extends BaseService {
             recipientId: userId,
             referenceId: invitation.id,
             purpose: TRANSACTION_PURPOSE.joinByInvitation,
-            amount: MAT.joinByInvitation
+            amount: MAT_UNIT.joinByInvitation
           })
           .into('transaction')
           .returning('*')
@@ -693,7 +692,7 @@ export class UserService extends BaseService {
             recipientId: sender.id,
             referenceId: invitation.id,
             purpose: TRANSACTION_PURPOSE.invitationAccepted,
-            amount: MAT.invitationAccepted
+            amount: MAT_UNIT.invitationAccepted
           })
           .into('transaction')
           .returning('*')
