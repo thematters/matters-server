@@ -58,15 +58,15 @@ class NoticeService extends BaseService {
   /**
    * Create a notice item
    */
-  create({
+  async create({
     type,
     actorIds,
     recipientId,
     entities,
     message,
     data
-  }: PutNoticeParams): void {
-    this.knex.transaction(async trx => {
+  }: PutNoticeParams): Promise<void> {
+    await this.knex.transaction(async trx => {
       // create notice detail
       const [{ id: noticeDetailId }] = await trx
         .insert({
@@ -136,7 +136,7 @@ class NoticeService extends BaseService {
     noticeId: string
     actorIds: NoticeUserId[]
   }): Promise<void> {
-    this.knex.transaction(async trx => {
+    await this.knex.transaction(async trx => {
       // add actors
       await Promise.all(
         actorIds.map(async actorId => {

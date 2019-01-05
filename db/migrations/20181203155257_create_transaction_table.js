@@ -24,6 +24,9 @@ exports.up = async knex => {
     t.timestamp('created_at').defaultTo(knex.fn.now())
 
     // Setup foreign key
+    t.foreign('sender_id')
+      .references('id')
+      .inTable('user')
     t.foreign('recipient_id')
       .references('id')
       .inTable('user')

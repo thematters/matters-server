@@ -495,7 +495,7 @@ export class ArticleService extends BaseService {
     amount: number
   }): Promise<any> =>
     // TODO: remove mat from user and retrive from transaction table when needed
-    this.knex.transaction(async trx => {
+    await this.knex.transaction(async trx => {
       await trx
         .where('id', senderId)
         .update('mat', senderMAT - amount)
