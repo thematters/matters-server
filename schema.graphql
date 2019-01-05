@@ -634,12 +634,12 @@ scalar Time
 
 type Transaction {
   delta: Int!
-  type: TransactionType!
+  purpose: TransactionPurpose!
   reference: Node
   createdAt: DateTime!
 }
 
-enum TransactionType {
+enum TransactionPurpose {
   appreciate
   invitationAccepted
   joinByInvitation

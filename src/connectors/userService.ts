@@ -216,12 +216,18 @@ export class UserService extends BaseService {
   /**
    * Get user's transaction history
    */
-  transactionHistory = async (userId: string) => {
+  transactionHistory = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    id
+  }: GQLListInput & { id: string }) => {
     const result = await this.knex('transaction_delta_view')
       .where({
-        userId
+        userId: id
       })
       .orderBy('createdAt', 'desc')
+      .limit(limit)
+      .offset(offset)
 
     return parseInt(result[0].total, 10)
   }

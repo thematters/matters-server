@@ -36,7 +36,7 @@ export const BATCH_SIZE = 10
 
 export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
 
-export const MAT = {
+export const MAT_UNIT = {
   invitationCalculate: 20,
   invitationAccepted: 5,
   joinByInvitation: 5,

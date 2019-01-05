@@ -359,12 +359,12 @@ export interface GQLMAT {
 
 export interface GQLTransaction {
   delta: number
-  type: GQLTransactionType
+  purpose: GQLTransactionPurpose
   reference?: GQLNode
   createdAt: GQLDateTime
 }
 
-export enum GQLTransactionType {
+export enum GQLTransactionPurpose {
   appreciate = 'appreciate',
   invitationAccepted = 'invitationAccepted',
   joinByInvitation = 'joinByInvitation',
@@ -2064,7 +2064,7 @@ export interface MATToHistoryResolver<TParent = any, TResult = any> {
 
 export interface GQLTransactionTypeResolver<TParent = any> {
   delta?: TransactionToDeltaResolver<TParent>
-  type?: TransactionToTypeResolver<TParent>
+  purpose?: TransactionToPurposeResolver<TParent>
   reference?: TransactionToReferenceResolver<TParent>
   createdAt?: TransactionToCreatedAtResolver<TParent>
 }
@@ -2073,7 +2073,7 @@ export interface TransactionToDeltaResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface TransactionToTypeResolver<TParent = any, TResult = any> {
+export interface TransactionToPurposeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 

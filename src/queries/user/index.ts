@@ -1,6 +1,6 @@
 import { Context } from 'definitions'
 import { toGlobalId } from 'common/utils'
-import { MAT } from 'common/enums'
+import { MAT_UNIT } from 'common/enums'
 
 import rootUser from './rootUser'
 import subscriptions from './subscriptions'
@@ -23,6 +23,7 @@ import invitationLeft from './invitationLeft'
 import invitationSent from './invitationSent'
 import invitationRecipient from './invitationRecipient'
 import invitationAccepted from './invitationAccepted'
+import MAT from './mat.ts'
 
 export default {
   Query: {
@@ -55,10 +56,11 @@ export default {
   UserActivity: {
     history
   },
+  MAT,
   UserStatus: {
     state: ({ state }: { state: string }) => state,
-    MAT: ({ mat }: { mat: number }) => mat,
-    invitation: (parent: any) => parent,
+    MAT: (root: any) => root,
+    invitation: (root: any) => root,
     articleCount,
     // viewCount,
     // draftCount,
@@ -73,7 +75,7 @@ export default {
     id: ({ uuid }: { uuid: string }) => uuid
   },
   InvitationStatus: {
-    MAT: () => MAT.joinByInvitation,
+    MAT: () => MAT_UNIT.joinByInvitation,
     left: invitationLeft,
     sent: invitationSent
   },

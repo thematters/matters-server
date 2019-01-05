@@ -144,7 +144,7 @@ export default /* GraphQL */ `
 
   type Transaction {
     delta: Int!
-    type: TransactionType!
+    purpose: TransactionPurpose!
     reference: Node
     createdAt: DateTime!
   }
@@ -309,7 +309,7 @@ export default /* GraphQL */ `
     archived
   }
 
-  enum TransactionType {
+  enum TransactionPurpose {
     appreciate
     invitationAccepted
     joinByInvitation
