@@ -18,6 +18,7 @@ export default /* GraphQL */ `
     updatedAt: DateTime!
     tags: [String]
     cover: URL
+    publishState: PublishState!
   }
 
   type AudioDraft {

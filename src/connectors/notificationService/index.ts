@@ -1,7 +1,6 @@
 //local
 import { NotificationType, NotificationPrarms } from 'definitions'
 import { toGlobalId } from 'common/utils'
-import { environment } from 'common/environment'
 import { BaseService } from 'connectors/baseService'
 import { notificationQueue } from 'connectors/queue'
 

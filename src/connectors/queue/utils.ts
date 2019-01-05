@@ -21,6 +21,8 @@ export const PRIORITY = {
 }
 
 export const JOB = {
+  // publication job
+  publish: 'publish',
   // notification jobs
   sendMail: 'sendMail',
   pushNotification: 'pushNotification',

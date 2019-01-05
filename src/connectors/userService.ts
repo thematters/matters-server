@@ -84,7 +84,7 @@ export class UserService extends BaseService {
       email
     })
 
-    this.addToSearch(user)
+    await this.addToSearch(user)
 
     return user
   }
@@ -102,7 +102,8 @@ export class UserService extends BaseService {
         { description, displayName, email },
         _.identity
       )
-      await this.es.client.update({
+
+      const esRes = await this.es.client.update({
         index: this.table,
         type: this.table,
         id,
@@ -122,8 +123,8 @@ export class UserService extends BaseService {
     description
   }: {
     [key: string]: string
-  }) =>
-    this.es.indexItems({
+  }) => {
+    const result = await this.es.indexItems({
       index: this.table,
       items: [
         {
@@ -135,12 +136,15 @@ export class UserService extends BaseService {
       ]
     })
 
+    return result
+  }
+
   search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
         fuzziness: 5,
-        fields: ['description', 'displayName^2', 'userName^2']
+        fields: ['description', 'displayName', 'userName']
       })
       .size(limit)
       .from(offset)
