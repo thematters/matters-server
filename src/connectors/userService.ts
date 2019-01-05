@@ -204,14 +204,26 @@ export class UserService extends BaseService {
    * Get user's total MAT
    */
   totalMAT = async (userId: string) => {
-    const result = await this.knex('action_user')
-      .countDistinct('id')
+    const result = await this.knex('transaction_delta_view')
       .where({
-        userId,
-        action: USER_ACTION.follow
+        userId
       })
-      .first()
-    return parseInt(result.count, 10)
+      .sum('delta as total')
+
+    return parseInt(result[0].total, 10)
+  }
+
+  /**
+   * Get user's transaction history
+   */
+  transactionHistory = async (userId: string) => {
+    const result = await this.knex('transaction_delta_view')
+      .where({
+        userId
+      })
+      .orderBy('createdAt', 'desc')
+
+    return parseInt(result[0].total, 10)
   }
 
   /**

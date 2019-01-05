@@ -139,7 +139,7 @@ export default /* GraphQL */ `
 
   type MAT {
     total: Int!
-    history: [Transaction]!
+    history(input: ListInput): [Transaction]!
   }
 
   type Transaction {

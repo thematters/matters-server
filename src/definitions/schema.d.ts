@@ -2050,8 +2050,16 @@ export interface MATToTotalResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
+export interface MATToHistoryArgs {
+  input?: GQLListInput
+}
 export interface MATToHistoryResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: MATToHistoryArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLTransactionTypeResolver<TParent = any> {

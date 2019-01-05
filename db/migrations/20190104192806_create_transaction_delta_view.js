@@ -1,4 +1,4 @@
-const table = 'transcation_delta_view'
+const table = 'transaction_delta_view'
 
 exports.up = async knex =>
   knex.raw(/*sql*/ `
