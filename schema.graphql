@@ -319,6 +319,11 @@ input ListInput {
   limit: Int
 }
 
+type MAT {
+  total: Int!
+  history: [Transaction]!
+}
+
 type Mutation {
   _: Boolean
   publishArticle(input: PublishArticleInput!): Draft!
@@ -627,6 +632,20 @@ type Tag implements Node {
 
 scalar Time
 
+type Transaction {
+  delta: Int!
+  type: TransactionType!
+  reference: Node
+  createdAt: DateTime!
+}
+
+enum TransactionType {
+  appreciate
+  invitationAccepted
+  joinByInvitation
+  joinByTask
+}
+
 input UnfollowUserInput {
   id: ID!
 }
@@ -796,7 +815,7 @@ type UserStatus {
   state: UserState!
 
   """Total MAT left in wallet"""
-  MAT: Int!
+  MAT: MAT!
   invitation: InvitationStatus!
 
   """Number of articles published by user"""

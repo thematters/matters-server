@@ -306,7 +306,7 @@ export interface GQLUserStatus {
   /**
    * Total MAT left in wallet
    */
-  MAT: number
+  MAT: GQLMAT
   invitation: GQLInvitationStatus
 
   /**
@@ -350,6 +350,25 @@ export enum GQLUserState {
   banned = 'banned',
   frozen = 'frozen',
   archived = 'archived'
+}
+
+export interface GQLMAT {
+  total: number
+  history: Array<GQLTransaction | null>
+}
+
+export interface GQLTransaction {
+  delta: number
+  type: GQLTransactionType
+  reference?: GQLNode
+  createdAt: GQLDateTime
+}
+
+export enum GQLTransactionType {
+  appreciate = 'appreciate',
+  invitationAccepted = 'invitationAccepted',
+  joinByInvitation = 'joinByInvitation',
+  joinByTask = 'joinByTask'
 }
 
 export interface GQLInvitationStatus {
@@ -1020,6 +1039,8 @@ export interface GQLResolver {
   UserActivity?: GQLUserActivityTypeResolver
   ReadHistory?: GQLReadHistoryTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
+  MAT?: GQLMATTypeResolver
+  Transaction?: GQLTransactionTypeResolver
   InvitationStatus?: GQLInvitationStatusTypeResolver
   Invitation?: GQLInvitationTypeResolver
   Notice?: {
@@ -2017,6 +2038,42 @@ export interface UserStatusToUnreadNoticeCountResolver<
   TParent = any,
   TResult = any
 > {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLMATTypeResolver<TParent = any> {
+  total?: MATToTotalResolver<TParent>
+  history?: MATToHistoryResolver<TParent>
+}
+
+export interface MATToTotalResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface MATToHistoryResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLTransactionTypeResolver<TParent = any> {
+  delta?: TransactionToDeltaResolver<TParent>
+  type?: TransactionToTypeResolver<TParent>
+  reference?: TransactionToReferenceResolver<TParent>
+  createdAt?: TransactionToCreatedAtResolver<TParent>
+}
+
+export interface TransactionToDeltaResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface TransactionToTypeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface TransactionToReferenceResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface TransactionToCreatedAtResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 

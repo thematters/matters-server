@@ -201,6 +201,20 @@ export class UserService extends BaseService {
   }
 
   /**
+   * Get user's total MAT
+   */
+  totalMAT = async (userId: string) => {
+    const result = await this.knex('action_user')
+      .countDistinct('id')
+      .where({
+        userId,
+        action: USER_ACTION.follow
+      })
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  /**
    * Count user's following list by a given user id.
    */
   countFollowees = async (userId: string): Promise<number> => {

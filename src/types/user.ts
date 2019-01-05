@@ -118,7 +118,7 @@ export default /* GraphQL */ `
   type UserStatus {
     state: UserState!
     # Total MAT left in wallet
-    MAT: Int!
+    MAT: MAT!
     invitation: InvitationStatus!
     # Number of articles published by user
     articleCount: Int!
@@ -135,6 +135,18 @@ export default /* GraphQL */ `
     followerCount: Int!
     # Number of unread notices
     unreadNoticeCount: Int!
+  }
+
+  type MAT {
+    total: Int!
+    history: [Transaction]!
+  }
+
+  type Transaction {
+    delta: Int!
+    type: TransactionType!
+    reference: Node
+    createdAt: DateTime!
   }
 
   type NotificationSetting {
@@ -295,5 +307,12 @@ export default /* GraphQL */ `
     banned
     frozen
     archived
+  }
+
+  enum TransactionType {
+    appreciate
+    invitationAccepted
+    joinByInvitation
+    joinByTask
   }
 `
