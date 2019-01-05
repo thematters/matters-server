@@ -38,7 +38,7 @@ class ScheduleQueue {
     this.q.add(JOB.publishPendingArticles, null, {
       priority: PRIORITY.HIGH,
       repeat: {
-        every: 1000 * 60 * 20 // every 20 mins
+        every: 1000 * 60 * 60 // every 20 mins
       }
       // removeOnComplete: true
     })

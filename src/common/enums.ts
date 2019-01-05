@@ -21,10 +21,13 @@ export const VOTE = {
 }
 
 export const PUBLISH_STATE = {
-  archived: 'archived',
+  draft: 'draft',
   pending: 'pending',
+  recalled: 'recalled',
+  archived: 'archived',
   error: 'error',
-  published: 'published'
+  published: 'published',
+  banned: 'banned'
 }
 
 export const BCRYPT_ROUNDS = 12

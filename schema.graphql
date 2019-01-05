@@ -15,6 +15,7 @@ input ArchiveArticleInput {
 
 type Article implements Node {
   id: ID!
+  slug: String!
   createdAt: DateTime!
   publishState: PublishState!
   public: Boolean!
@@ -47,6 +48,10 @@ type Article implements Node {
   commentCount: Int!
   pinnedComments: [Comment!]
   comments(input: CommentsInput!): [Comment!]
+}
+
+input ArticleInput {
+  mediaHash: String!
 }
 
 type ArticleNewAppreciationNotice implements Notice {
@@ -119,6 +124,11 @@ type AudioDraft {
 type AuthResult {
   auth: Boolean!
   token: String
+}
+
+enum ChannelType {
+  appStore
+  googlePlay
 }
 
 input ClearReadHistoryInput {
@@ -206,19 +216,23 @@ enum CommentState {
 
 input ConfirmChangeEmailInput {
   oldEmail: Email!
-  oldEmailCode: String!
+  oldEmailCodeId: ID!
   newEmail: Email!
-  newEmailCode: String!
+  newEmailCodeId: ID!
 }
 
 input ConfirmResetPasswordInput {
   password: String!
+  codeId: ID!
+}
+
+input ConfirmVerificationCodeInput {
   code: String!
 }
 
 input ConfirmVerifyEmailInput {
   email: Email!
-  code: String!
+  codeId: ID!
 }
 
 scalar Date
@@ -255,6 +269,7 @@ type Draft implements Node {
   updatedAt: DateTime!
   tags: [String]
   cover: URL
+  publishState: PublishState!
 }
 
 scalar Email
@@ -289,7 +304,7 @@ type InvitationStatus {
   left: Int!
 
   """invitations sent"""
-  sent(input: ListInput!): [Invitation]!
+  sent(input: ListInput!): [Invitation!]
 }
 
 input InviteInput {
@@ -306,14 +321,14 @@ input ListInput {
 
 type Mutation {
   _: Boolean
-  publishArticle(input: PublishArticleInput!): Article!
+  publishArticle(input: PublishArticleInput!): Draft!
   archiveArticle(input: ArchiveArticleInput!): Article!
   subscribeArticle(input: SubscribeArticleInput!): Boolean
   unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean
   reportArticle(input: ReportArticleInput!): Boolean
   appreciateArticle(input: AppreciateArticleInput!): Article!
   readArticle(input: ReadArticleInput!): Boolean
-  recallPublication(input: RecallPublicationInput!): Draft!
+  recallPublish(input: RecallPublishInput!): Draft!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   deleteComment(input: DeleteCommentInput!): Boolean
@@ -332,8 +347,9 @@ type Mutation {
   singleFileUpload(input: SingleFileUploadInput!): Asset!
   feedback(input: FeedbackInput!): Boolean
 
-  """send verification code"""
+  """send/confirm verification code"""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
+  confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
   """change or reset password"""
   confirmResetPassword(input: ConfirmResetPasswordInput!): Boolean
@@ -363,7 +379,7 @@ type Mutation {
   importArticles(input: ImportArticlesInput!): [Article]
   clearReadHistory(input: ClearReadHistoryInput): Boolean
   clearSearchHistory: Boolean
-  invite(input: InviteInput!): [Invitation]!
+  invite(input: InviteInput!): Boolean
 }
 
 interface Node {
@@ -386,7 +402,6 @@ interface Notice {
 
 type NotificationSetting {
   enable: Boolean!
-  email: Boolean!
   mention: Boolean!
   follow: Boolean!
   comment: Boolean!
@@ -402,9 +417,8 @@ type NotificationSetting {
   reportFeedback: Boolean!
 }
 
-enum NotificationSettingEnum {
+enum NotificationSettingType {
   enable
-  email
   mention
   follow
   comment
@@ -441,8 +455,14 @@ input PinCommentInput {
   id: ID!
 }
 
+enum PlatformType {
+  ios
+  android
+}
+
 input PublishArticleInput {
   id: ID!
+  delay: Int
 }
 
 enum PublishState {
@@ -451,6 +471,7 @@ enum PublishState {
   error
   published
   banned
+  recalled
 }
 
 input PutAudioDraftInput {
@@ -482,11 +503,14 @@ Ref: apollographql/graphql-tools#293
 """
 type Query {
   _: Boolean
+  article(input: ArticleInput!): Article
   node(input: NodeInput!): Node
   frequentSearch(key: String): [String!]
   search(input: SearchInput!): [SearchResult!]
   official: Official!
+  releases(input: ReleasesInput!): [Release!]
   viewer: User
+  user(input: UserInput!): User
 }
 
 input ReadArticleInput {
@@ -499,7 +523,7 @@ type ReadHistory {
   readAt: DateTime!
 }
 
-input RecallPublicationInput {
+input RecallPublishInput {
   id: ID!
 }
 
@@ -512,6 +536,26 @@ type Recommendation {
   tags(input: ListInput!): [Tag!]!
   topics(input: ListInput!): [Article!]!
   authors(input: ListInput!): [User!]!
+}
+
+type Release {
+  title: String
+  description: String
+  cover: URL
+  link: URL
+  platform: PlatformType!
+  channel: ChannelType!
+  version: String!
+  latest: Boolean!
+  forceUpdate: Boolean!
+  releasedAt: DateTime!
+}
+
+input ReleasesInput {
+  platform: PlatformType!
+  channel: ChannelType!
+  offset: Int
+  limit: Int
 }
 
 input ReportArticleInput {
@@ -596,7 +640,7 @@ input UnvoteCommentInput {
 }
 
 input UpdateNotificationSettingInput {
-  type: NotificationSettingEnum!
+  type: NotificationSettingType!
   enabled: Boolean!
 }
 
@@ -657,7 +701,6 @@ type User implements Node {
 type UserActivity {
   history(input: ListInput!): [ReadHistory!]
   recentSearches(input: ListInput!): [String!]
-  invited(input: ListInput!): [User!]
 }
 
 type UserDisabledNotice implements Notice {
@@ -700,6 +743,10 @@ enum UserInfoFields {
   mobile
 }
 
+input UserInput {
+  userName: String!
+}
+
 enum UserLanguage {
   en
   zh_hans
@@ -722,7 +769,7 @@ input UserRegisterInput {
   email: Email!
   displayName: String!
   password: String!
-  code: String!
+  codeId: ID!
 }
 
 type UserSettings {
@@ -750,6 +797,7 @@ type UserStatus {
 
   """Total MAT left in wallet"""
   MAT: Int!
+  invitation: InvitationStatus!
 
   """Number of articles published by user"""
   articleCount: Int!

@@ -13,9 +13,13 @@ import {
 } from 'connectors'
 
 export const initSubscriptions = (): { onConnect: any } => ({
-  onConnect: async (connectionParams: {
-    'x-access-token': string
-  }): Promise<Context> => {
+  onConnect: async (
+    connectionParams: {
+      'x-access-token': string
+    },
+    webSocket: any,
+    context: any
+  ): Promise<Context> => {
     const userService = new UserService()
     let viewer
 

@@ -59,7 +59,11 @@ const resolver: Resolver = async (
   }
   // Create
   else {
-    return await draftService.baseCreate({ uuid: v4(), ...data }, 'draft')
+    const draft = await draftService.baseCreate(
+      { uuid: v4(), ...data },
+      'draft'
+    )
+    return draft
   }
 }
 

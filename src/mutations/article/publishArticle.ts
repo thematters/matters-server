@@ -1,18 +1,14 @@
 import { Resolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { PUBLISH_STATE } from 'common/enums'
+
+import { publicationQueue } from 'connectors/queue'
+import { PRIORITY, JOB } from 'connectors/queue/utils'
 
 const resolver: Resolver = async (
-  root,
-  { input: { id } },
-  {
-    viewer,
-    dataSources: {
-      articleService,
-      draftService,
-      tagService,
-      notificationService
-    }
-  }
+  _,
+  { input: { id, delay } },
+  { viewer, dataSources: { draftService } }
 ) => {
   if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO
@@ -20,87 +16,27 @@ const resolver: Resolver = async (
 
   // retrive data from draft
   const { id: draftDBId } = fromGlobalId(id)
-  const {
-    authorId,
-    upstreamId,
-    title,
-    cover,
-    summary,
-    content,
-    tags: tagList
-  } = await draftService.dataloader.load(draftDBId)
-
-  if (authorId !== viewer.id) {
+  const draft = await draftService.dataloader.load(draftDBId)
+  if (draft.authorId !== viewer.id || draft.archived) {
     throw new Error('draft does not exists') // TODO
   }
 
-  // creat pending article
-  const article = await articleService.create({
-    authorId,
-    draftId: draftDBId,
-    upstreamId,
-    title,
-    cover,
-    summary,
-    content
+  const draftPending = await draftService.baseUpdateById(draft.id, {
+    publishState: PUBLISH_STATE.pending
   })
 
-  // TODO: timeout with task queue
-  await articleService.publish(article.id)
+  // add job to queue
+  await publicationQueue.q.add(
+    JOB.publish,
+    { draftId: draftDBId },
+    {
+      repeat: { limit: 1, every: delay | (1000 * 60 * 2 + 2000) },
+      priority: PRIORITY.CRITICAL
+    } // wait for 2 minutes + 2 sec buffer
+  )
+  console.log(`Publication queue for draft ${draftDBId} added.`)
 
-  // handle tags
-  let tags = tagList
-  if (tags) {
-    // create tag records, return tag record if already exists
-    const dbTags = ((await Promise.all(
-      tags.map((tag: string) => tagService.create({ content: tag }))
-    )) as unknown) as [{ id: string; content: string }]
-    // create article_tag record
-    await tagService.createArticleTags({
-      articleId: article.id,
-      tagIds: dbTags.map(({ id }) => id)
-    })
-  } else {
-    tags = []
-  }
-
-  // add to search
-  articleService.addToSearch({ ...article, tags })
-
-  // trigger notifications
-  notificationService.trigger({
-    event: 'article_published',
-    recipientId: authorId,
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'article',
-        entity: article
-      }
-    ]
-  })
-  if (upstreamId) {
-    const upstream = await articleService.baseFindById(upstreamId)
-    notificationService.trigger({
-      event: 'article_new_downstream',
-      actorId: authorId,
-      recipientId: upstream.authorId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'article',
-          entity: upstream
-        },
-        {
-          type: 'downstream',
-          entityTable: 'article',
-          entity: article
-        }
-      ]
-    })
-  }
-
-  return article
+  return draftPending
 }
 
 export default resolver

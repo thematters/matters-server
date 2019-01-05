@@ -18,13 +18,7 @@ exports.up = async knex => {
     t.string('data_hash')
     t.string('media_hash')
     t.text('content').notNullable()
-    t.enu('publish_state', [
-      'pending',
-      'error',
-      'published',
-      'banned',
-      'archived'
-    ]).notNullable()
+    t.enu('publish_state', ['published', 'banned', 'archived']).notNullable()
     t.boolean('public').defaultTo(false)
     t.boolean('live').defaultTo(false)
     t.timestamp('created_at').defaultTo(knex.fn.now())

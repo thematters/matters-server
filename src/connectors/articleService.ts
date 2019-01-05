@@ -10,11 +10,16 @@ import {
   PUBLISH_STATE,
   TRANSACTION_PURPOSE
 } from 'common/enums'
+import { ipfs } from 'connectors/ipfs'
 import { BaseService } from './baseService'
+import { UserService } from './userService'
 
 export class ArticleService extends BaseService {
+  ipfs: typeof ipfs
+
   constructor() {
     super('article')
+    this.ipfs = ipfs
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
@@ -36,49 +41,100 @@ export class ArticleService extends BaseService {
   /**
    * Create a new article item.
    */
-  create = async ({
-    authorId,
-    upstreamId,
-    title,
-    cover,
-    summary,
-    content,
-    draftId,
-    publishState = PUBLISH_STATE.pending
-  }: ItemData) => {
+  create = async (articleData: ItemData & { content: string }) => {
     // craete article
     const article = await this.baseCreate({
       uuid: v4(),
-      authorId,
-      upstreamId,
-      title,
-      cover,
-      summary,
-      draftId,
-      content,
-      publishState,
-      wordCount: this.countWords(content)
+      wordCount: this.countWords(articleData.content),
+      ...articleData
     })
-    // TODO: create tags
     return article
   }
 
   // publish an article to IPFS, add to search, and mark draft as read
-  publish = async (id: string) => {
-    // TODO: publish to IPFS and get hashes
-    const dataHash = 'some-test-hash'
-    const mediaHash = 'some-test-hash'
+  publish = async ({
+    authorId,
+    draftId,
+    upstreamId,
+    title,
+    cover,
+    summary,
+    content
+  }: {
+    [key: string]: string
+  }) => {
+    const userService = new UserService()
+
+    // add content to ipfs
+    const dataHash = await this.ipfs.addHTML(content)
+
+    // add meta data to ipfs
+    const { userName: name, discription } = await userService.baseFindById(
+      authorId
+    )
+
+    const now = new Date()
+    let mediaObj: { [key: string]: any } = {
+      content: {
+        html: {
+          '/': dataHash
+        }
+      },
+      author: {
+        name,
+        discription: discription || ''
+      },
+      publishedAt: now.toISOString()
+    }
+
+    // add cover to ipfs
+    // TODO: check data type for cover
+    const coverData = await this.ipfs.getDataAsFile(cover, '/')
+    if (coverData && coverData.content) {
+      const [{ hash }] = await this.ipfs.client.add(coverData.content, {
+        pin: true
+      })
+      mediaObj.cover = { '/': hash }
+    }
+
+    // add upstream
+    if (upstreamId) {
+      const upstream = await this.baseFindById(upstreamId)
+      mediaObj.upstream = { '/': upstream.mediaHash }
+    }
+
+    // get media hash
+    const [{ hash: mediaHash }] = await this.ipfs.client.add(
+      Buffer.from(JSON.stringify(mediaObj)),
+      {
+        pin: true
+      }
+    )
+
+    // TODO: add media object as IPLD instead of string
+    // related discussion: https://github.com/ipld/ipld/issues/19
+    // const cid = await this.ipfs.client.dag.put(mediaObj, {
+    //   format: 'dag-pb',
+    //   inputenc: 'json',
+    //   pin: true,
+    //   hashAlg: 'sha2-256'
+    // })
+    // const mediaHash = cid.toBaseEncodedString()
 
     // edit db record
-    const [article] = await this.knex(this.table)
-      .returning('*')
-      .where({ id })
-      .update({
-        dataHash,
-        mediaHash,
-        publishState: PUBLISH_STATE.published,
-        updatedAt: this.knex.fn.now()
-      })
+
+    const article = await this.create({
+      authorId,
+      draftId,
+      upstreamId,
+      title,
+      cover,
+      summary,
+      content,
+      dataHash,
+      mediaHash,
+      publishState: PUBLISH_STATE.published
+    })
 
     return article
   }
@@ -90,8 +146,8 @@ export class ArticleService extends BaseService {
     tags
   }: {
     [key: string]: string
-  }) =>
-    this.es.indexItems({
+  }) => {
+    const result = await this.es.indexItems({
       index: this.table,
       items: [
         {
@@ -102,6 +158,8 @@ export class ArticleService extends BaseService {
         }
       ]
     })
+    return result
+  }
 
   search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
     const body = bodybuilder()
