@@ -209,11 +209,11 @@ describe('publish article', async () => {
 
 describe('appreciate article', async () => {
   test('appreciate success', async () => {
-    const viewerCurrentMAT = await getViewerMAT()
+    const { total: viewerCurrentMAT } = await getViewerMAT()
     const articleCurrentMAT = await getArticleMAT({ id: ARTICLE_ID })
     const appreciate = { id: ARTICLE_ID, amount: 1 }
     await appreciateArticle(appreciate)
-    const viewerNewMAT = await getViewerMAT()
+    const { total: viewerNewMAT } = await getViewerMAT()
     const articleNewMAT = await getArticleMAT({ id: ARTICLE_ID })
     expect(viewerNewMAT).toBe(viewerCurrentMAT - appreciate.amount)
     expect(articleNewMAT).toBe(articleCurrentMAT + appreciate.amount)
