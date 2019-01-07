@@ -85,6 +85,7 @@ export type GQLPossibleNodeTypeNames =
   | 'User'
   | 'Tag'
   | 'Draft'
+  | 'Invitation'
   | 'Comment'
 
 export interface GQLNodeNameMap {
@@ -93,6 +94,7 @@ export interface GQLNodeNameMap {
   User: GQLUser
   Tag: GQLTag
   Draft: GQLDraft
+  Invitation: GQLInvitation
   Comment: GQLComment
 }
 
@@ -385,7 +387,8 @@ export interface GQLInvitationStatus {
   sent?: Array<GQLInvitation>
 }
 
-export interface GQLInvitation {
+export interface GQLInvitation extends GQLNode {
+  id: string
   user?: GQLUser
   email?: string
   accepted: boolean
@@ -1369,6 +1372,7 @@ export interface GQLNodeTypeResolver<TParent = any> {
     | 'User'
     | 'Tag'
     | 'Draft'
+    | 'Invitation'
     | 'Comment'
 }
 export interface GQLUserTypeResolver<TParent = any> {
@@ -2112,10 +2116,15 @@ export interface InvitationStatusToSentResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLInvitationTypeResolver<TParent = any> {
+  id?: InvitationToIdResolver<TParent>
   user?: InvitationToUserResolver<TParent>
   email?: InvitationToEmailResolver<TParent>
   accepted?: InvitationToAcceptedResolver<TParent>
   createdAt?: InvitationToCreatedAtResolver<TParent>
+}
+
+export interface InvitationToIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
 export interface InvitationToUserResolver<TParent = any, TResult = any> {

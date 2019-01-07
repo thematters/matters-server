@@ -74,6 +74,33 @@ const GET_USER_BY_USERNAME = `
     }
   }
 `
+
+const GET_VIEWER_MAT = `
+  query {
+    viewer {
+      status {
+        MAT {
+          total
+        }
+      }
+    }
+  }
+`
+
+const GET_VIEWER_MAT_HISOTRY = `
+  query {
+    viewer {
+      status {
+        MAT {
+          history {
+            delta
+          }
+        }
+      }
+    }
+  }
+`
+
 const GET_VIEWER_INFO = `
   query {
     viewer {
@@ -95,15 +122,6 @@ const GET_VIEW_ARTICLES = `
     viewer {
       articles(input: $input) {
         id
-      }
-    }
-  }
-`
-const GET_VIEWER_MAT = `
-  query {
-    viewer {
-      status {
-        MAT
       }
     }
   }
@@ -210,13 +228,28 @@ export const registerUser = async (user: { [key: string]: string }) => {
 
 export const getViewerMAT = async () => {
   const { query } = await testClient({ isAuth: true })
-  const { data } = await query({
+  const result = await query({
     query: GET_VIEWER_MAT,
     // @ts-ignore
     variables: { input: {} }
   })
-  const { MAT } = data && data.viewer && data.viewer.status
-  return MAT
+  const { data } = result
+  const { total } =
+    data && data.viewer && data.viewer.status && data.viewer.status.MAT
+  return total
+}
+
+export const getViewerMATHistory = async () => {
+  const { query } = await testClient({ isAuth: true })
+  const result = await query({
+    query: GET_VIEWER_MAT_HISOTRY,
+    // @ts-ignore
+    variables: { input: {} }
+  })
+  const { data } = result
+  const { history } =
+    data && data.viewer && data.viewer.status && data.viewer.status.MAT
+  return history
 }
 
 export const getUserInvitation = async (isAdmin = false) => {
@@ -309,6 +342,19 @@ describe('register and login functionarlities', () => {
     })
     const info = _.get(data, 'viewer.info')
     expect(info.email).toEqual(defaultTestUser.email)
+  })
+})
+
+describe('user mat', async () => {
+  test('total', async () => {
+    const mat = await getViewerMAT()
+    expect(typeof mat).toBe('number')
+  })
+
+  test('history', async () => {
+    const history = await getViewerMATHistory()
+    const trx = history && history[0]
+    expect(typeof trx.delta).toBe('number')
   })
 })
 

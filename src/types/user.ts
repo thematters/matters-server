@@ -68,7 +68,8 @@ export default /* GraphQL */ `
     sent(input: ListInput!): [Invitation!]
   }
 
-  type Invitation {
+  type Invitation implements Node  {
+    id: ID!
     user: User
     email: String
     accepted: Boolean!

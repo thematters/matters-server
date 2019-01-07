@@ -290,7 +290,8 @@ input ImportArticlesInput {
   token: String
 }
 
-type Invitation {
+type Invitation implements Node {
+  id: ID!
   user: User
   email: String
   accepted: Boolean!
