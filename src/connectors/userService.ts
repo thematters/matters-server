@@ -582,7 +582,7 @@ export class UserService extends BaseService {
     recipientId: string
     recipientMAT: number
   }): Promise<any> => {
-    this.knex.transaction(async trx => {
+    await this.knex.transaction(async trx => {
       // set recipient's state to "active"
       await trx
         .where({ id: recipientId })
@@ -608,6 +608,7 @@ export class UserService extends BaseService {
       // add transaction record
       await trx
         .insert({
+          uuid: v4(),
           senderId,
           recipientId,
           referenceId: invitationId,
@@ -618,6 +619,7 @@ export class UserService extends BaseService {
         .returning('*')
       await trx
         .insert({
+          uuid: v4(),
           recipientId: senderId,
           referenceId: invitationId,
           purpose: TRANSACTION_PURPOSE.invitationAccepted,
@@ -659,8 +661,9 @@ export class UserService extends BaseService {
         return
       }
 
-      const sender = await this.dataloader.load(invitation.senderId)
-      this.knex.transaction(async trx => {
+      const sender =
+        invitation.senderId && (await this.dataloader.load(invitation.senderId))
+      await this.knex.transaction(async trx => {
         // set recipient's state to "active"
         await trx
           .where({ id: userId })
@@ -672,14 +675,11 @@ export class UserService extends BaseService {
           .where({ id: userId })
           .update('mat', userMAT + MAT_UNIT.joinByInvitation)
           .into('user')
-        await trx
-          .where({ id: sender.id })
-          .update('mat', sender.mat + MAT_UNIT.invitationAccepted)
-          .into('user')
         // add transaction record
         await trx
           .insert({
-            senderId: sender.id,
+            uuid: v4(),
+            senderId: sender ? sender.id : null,
             recipientId: userId,
             referenceId: invitation.id,
             purpose: TRANSACTION_PURPOSE.joinByInvitation,
@@ -687,15 +687,18 @@ export class UserService extends BaseService {
           })
           .into('transaction')
           .returning('*')
-        await trx
-          .insert({
-            recipientId: sender.id,
-            referenceId: invitation.id,
-            purpose: TRANSACTION_PURPOSE.invitationAccepted,
-            amount: MAT_UNIT.invitationAccepted
-          })
-          .into('transaction')
-          .returning('*')
+        if (sender) {
+          await trx
+            .insert({
+              uuid: v4(),
+              recipientId: sender.id,
+              referenceId: invitation.id,
+              purpose: TRANSACTION_PURPOSE.invitationAccepted,
+              amount: MAT_UNIT.invitationAccepted
+            })
+            .into('transaction')
+            .returning('*')
+        }
       })
     } catch (e) {
       console.error('[activateInvitedEmailUser]', e)
