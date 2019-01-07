@@ -1,4 +1,5 @@
 import { Resolver } from 'definitions'
+import { v4 } from 'uuid'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
@@ -21,6 +22,7 @@ const resolver: Resolver = async (
   }
 
   await articleService.appreciate({
+    uuid: v4(),
     articleId: article.id,
     senderId: viewer.id,
     senderMAT: viewer.mat,

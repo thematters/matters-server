@@ -480,12 +480,14 @@ export class ArticleService extends BaseService {
    * User appreciate an article
    */
   appreciate = async ({
+    uuid,
     articleId,
     senderId,
     senderMAT,
     recipientId,
     amount
   }: {
+    uuid: string
     articleId: string
     senderId: string
     senderMAT: number
@@ -493,13 +495,14 @@ export class ArticleService extends BaseService {
     amount: number
   }): Promise<any> =>
     // TODO: remove mat from user and retrive from transaction table when needed
-    this.knex.transaction(async trx => {
+    await this.knex.transaction(async trx => {
       await trx
         .where('id', senderId)
         .update('mat', senderMAT - amount)
         .into('user')
       await trx
         .insert({
+          uuid,
           senderId,
           recipientId,
           referenceId: articleId,
