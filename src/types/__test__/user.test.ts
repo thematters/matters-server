@@ -1,7 +1,7 @@
 import _ from 'lodash'
 // local
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { MAT, TRANSACTION_PURPOSE } from 'common/enums'
+import { MAT_UNIT, TRANSACTION_PURPOSE } from 'common/enums'
 import { UserService } from 'connectors'
 import { knex } from 'connectors/db'
 import { defaultTestUser, getUserContext, testClient } from './utils'
@@ -547,7 +547,7 @@ describe('invitation', async () => {
   test('invitation mat', async () => {
     const data = await getUserInvitation()
     expect(_.get(data, 'viewer.status.invitation.MAT')).toBe(
-      MAT.joinByInvitation
+      MAT_UNIT.joinByInvitation
     )
   })
 
@@ -603,9 +603,9 @@ describe('invitation', async () => {
       fromGlobalId(_.get(newInvitationData, 'viewer.id')).id
     )
     const recipientTxs = await userService.findTransactionsByUserId(user.id)
-    expect(senderTxs[0].amount).toBe(MAT.invitationAccepted)
+    expect(senderTxs[0].amount).toBe(MAT_UNIT.invitationAccepted)
     expect(senderTxs[0].purpose).toBe(TRANSACTION_PURPOSE.invitationAccepted)
-    expect(recipientTxs[0].amount).toBe(MAT.joinByInvitation)
+    expect(recipientTxs[0].amount).toBe(MAT_UNIT.joinByInvitation)
     expect(recipientTxs[0].purpose).toBe(TRANSACTION_PURPOSE.joinByInvitation)
   })
 
