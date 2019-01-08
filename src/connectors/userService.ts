@@ -10,7 +10,7 @@ import {
   BCRYPT_ROUNDS,
   USER_ACTION,
   TRANSACTION_PURPOSE,
-  MAT
+  MAT_UNIT
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -20,6 +20,7 @@ import {
   GQLListInput
 } from 'definitions'
 import { BaseService } from './baseService'
+import { stringList } from 'aws-sdk/clients/datapipeline'
 
 export class UserService extends BaseService {
   constructor() {
@@ -80,7 +81,6 @@ export class UserService extends BaseService {
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
     await this.activateInvitedEmailUser({
       userId: user.id,
-      userMAT: user.mat,
       email
     })
 
@@ -198,6 +198,37 @@ export class UserService extends BaseService {
       auth: true,
       token
     }
+  }
+
+  /**
+   * Get user's total MAT
+   */
+  totalMAT = async (userId: string) => {
+    const result = await this.knex('transaction_delta_view')
+      .where({
+        userId
+      })
+      .sum('delta as total')
+
+    return parseInt(result[0].total || 0, 10)
+  }
+
+  /**
+   * Get user's transaction history
+   */
+  transactionHistory = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    id
+  }: GQLListInput & { id: string }) => {
+    const result = await this.knex('transaction_delta_view')
+      .where({
+        userId: id
+      })
+      .orderBy('createdAt', 'desc')
+      .limit(limit)
+      .offset(offset)
+    return result
   }
 
   /**
@@ -400,19 +431,6 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Find an user's rates by a given target id (user).
-   */
-  // findRateByTargetId = async (targetId: string): Promise<any[]> => {
-  //   return await this.knex
-  //     .select()
-  //     .from('action_user')
-  //     .where({
-  //       target_id: targetId,
-  //       action: USER_ACTION.rate
-  //     })
-  // }
-
-  /**
    * Find an users' subscription by a given user id.
    */
   findSubscriptions = async (userId: string): Promise<any[]> =>
@@ -538,18 +556,36 @@ export class UserService extends BaseService {
       .limit(limit)
 
   /**
+   * count invitations
+   */
+  countInvitation = async (userId: string) => {
+    const result = await this.knex('invitation')
+      .select()
+      .count('id')
+      .where({ senderId: userId })
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  /**
+   * Find invitation by id
+   */
+  findInvitation = async (id: string) => {
+    const result = await this.knex('invitation')
+      .select()
+      .where({ id })
+      .first()
+    return result
+  }
+  /**
    * Activate user
    */
   activate = async ({
     senderId,
-    senderMAT,
-    recipientId,
-    recipientMAT
+    recipientId
   }: {
     senderId?: string
-    senderMAT?: number
     recipientId: string
-    recipientMAT: number
   }): Promise<any> => {
     await this.knex.transaction(async trx => {
       // set recipient's state to "active"
@@ -563,26 +599,14 @@ export class UserService extends BaseService {
         .insert({ senderId, recipientId, status: 'activated' })
         .into('invitation')
         .returning('*')
-      // update MAT
-      await trx
-        .where({ id: recipientId })
-        .update('mat', recipientMAT + MAT.joinByInvitation)
-        .into('user')
-      if (senderId && senderMAT) {
-        await trx
-          .where({ id: senderId })
-          .update('mat', senderMAT + MAT.invitationAccepted)
-          .into('user')
-      }
       // add transaction record
       await trx
         .insert({
           uuid: v4(),
-          senderId,
           recipientId,
           referenceId: invitationId,
           purpose: TRANSACTION_PURPOSE.joinByInvitation,
-          amount: MAT.joinByInvitation
+          amount: MAT_UNIT.joinByInvitation
         })
         .into('transaction')
         .returning('*')
@@ -592,7 +616,7 @@ export class UserService extends BaseService {
           recipientId: senderId,
           referenceId: invitationId,
           purpose: TRANSACTION_PURPOSE.invitationAccepted,
-          amount: MAT.invitationAccepted
+          amount: MAT_UNIT.invitationAccepted
         })
         .into('transaction')
         .returning('*')
@@ -616,11 +640,9 @@ export class UserService extends BaseService {
    */
   activateInvitedEmailUser = async ({
     userId,
-    userMAT,
     email
   }: {
     userId: string
-    userMAT: number
     email: string
   }) => {
     try {
@@ -639,26 +661,14 @@ export class UserService extends BaseService {
           .update({ state: 'active' })
           .into(this.table)
           .returning('*')
-        // update MAT
-        await trx
-          .where({ id: userId })
-          .update('mat', userMAT + MAT.joinByInvitation)
-          .into('user')
-        if (sender && sender.mat) {
-          await trx
-            .where({ id: sender.id })
-            .update('mat', sender.mat + MAT.invitationAccepted)
-            .into('user')
-        }
         // add transaction record
         await trx
           .insert({
             uuid: v4(),
-            senderId: sender ? sender.id : null,
             recipientId: userId,
             referenceId: invitation.id,
             purpose: TRANSACTION_PURPOSE.joinByInvitation,
-            amount: MAT.joinByInvitation
+            amount: MAT_UNIT.joinByInvitation
           })
           .into('transaction')
           .returning('*')
@@ -669,7 +679,7 @@ export class UserService extends BaseService {
               recipientId: sender.id,
               referenceId: invitation.id,
               purpose: TRANSACTION_PURPOSE.invitationAccepted,
-              amount: MAT.invitationAccepted
+              amount: MAT_UNIT.invitationAccepted
             })
             .into('transaction')
             .returning('*')

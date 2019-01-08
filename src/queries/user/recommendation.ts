@@ -8,6 +8,8 @@ const resolvers: GQLRecommendationTypeResolver = {
   ) => userService.followeeArticles({ id, ...input }),
   hottest: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
     articleService.recommendHottest(input),
+  newest: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
+    articleService.recommendNewest(input),
   icymi: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
     articleService.recommendIcymi(input),
   tags: ({ id }, { input }, { dataSources: { tagService } }: Context) =>

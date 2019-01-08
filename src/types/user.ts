@@ -68,7 +68,8 @@ export default /* GraphQL */ `
     sent(input: ListInput!): [Invitation!]
   }
 
-  type Invitation {
+  type Invitation implements Node  {
+    id: ID!
     user: User
     email: String
     accepted: Boolean!
@@ -77,6 +78,7 @@ export default /* GraphQL */ `
 
   type Recommendation {
     followeeArticles(input: ListInput!): [Article!]!
+    newest(input: ListInput!): [Article!]!
     hottest(input: ListInput!): [Article!]!
     # In case you missed it
     icymi(input: ListInput!): [Article!]!
@@ -118,7 +120,7 @@ export default /* GraphQL */ `
   type UserStatus {
     state: UserState!
     # Total MAT left in wallet
-    MAT: Int!
+    MAT: MAT!
     invitation: InvitationStatus!
     # Number of articles published by user
     articleCount: Int!
@@ -135,6 +137,18 @@ export default /* GraphQL */ `
     followerCount: Int!
     # Number of unread notices
     unreadNoticeCount: Int!
+  }
+
+  type MAT {
+    total: Int!
+    history(input: ListInput): [Transaction]!
+  }
+
+  type Transaction {
+    delta: Int!
+    purpose: TransactionPurpose!
+    reference: Node
+    createdAt: DateTime!
   }
 
   type NotificationSetting {
@@ -295,5 +309,12 @@ export default /* GraphQL */ `
     banned
     frozen
     archived
+  }
+
+  enum TransactionPurpose {
+    appreciate
+    invitationAccepted
+    joinByInvitation
+    joinByTask
   }
 `
