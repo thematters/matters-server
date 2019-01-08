@@ -194,7 +194,7 @@ describe('Report comment', async () => {
 describe('mutations on comment', async () => {
   const commentId = toGlobalId({ type: 'Comment', id: 3 })
 
-  test('upvote/downvote/unvote a comment', async () => {
+  test('upvote a comment', async () => {
     const { mutate } = await testClient({ isAuth: true })
     const { upvotes, downvotes } = await getCommentVotes(commentId)
 
@@ -207,8 +207,11 @@ describe('mutations on comment', async () => {
       }
     })
     expect(_get(data, 'voteComment.upvotes')).toBe(upvotes + 1)
+  })
 
-    // downvote
+  test('downvote a comment', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const { upvotes, downvotes } = await getCommentVotes(commentId)
     const { data: downvoteData } = await mutate({
       mutation: VOTE_COMMENT,
       // @ts-ignore
@@ -216,10 +219,13 @@ describe('mutations on comment', async () => {
         input: { id: commentId, vote: 'down' }
       }
     })
-    expect(_get(downvoteData, 'voteComment.upvotes')).toBe(upvotes)
+    expect(_get(downvoteData, 'voteComment.upvotes')).toBe(upvotes - 1)
     expect(_get(downvoteData, 'voteComment.downvotes')).toBe(downvotes + 1)
+  })
 
-    // unvote
+  test('unvote a comment', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const { upvotes, downvotes } = await getCommentVotes(commentId)
     const { data: unvoteData } = await mutate({
       mutation: UNVOTE_COMMENT,
       // @ts-ignore
@@ -228,7 +234,7 @@ describe('mutations on comment', async () => {
       }
     })
     expect(_get(unvoteData, 'unvoteComment.upvotes')).toBe(upvotes)
-    expect(_get(unvoteData, 'unvoteComment.downvotes')).toBe(downvotes)
+    expect(_get(unvoteData, 'unvoteComment.downvotes')).toBe(downvotes - 1)
   })
 
   test('delete comment', async () => {

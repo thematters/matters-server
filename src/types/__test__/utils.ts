@@ -50,7 +50,7 @@ export const testClient = async (
     context: {}
   }
 ) => {
-  let _context
+  let _context: any
   if (context) {
     _context = context
   } else if (isAuth) {
@@ -63,7 +63,7 @@ export const testClient = async (
 
   const server = new ApolloServer({
     schema,
-    context: _context,
+    context: (): any => _context,
     subscriptions: initSubscriptions(),
     dataSources: (): DataSources => ({
       userService: new UserService(),

@@ -280,10 +280,8 @@ describe('report article', async () => {
 })
 
 describe('toggle article state', async () => {
-  test('toggle article live', async () => {
+  test('enable article live', async () => {
     const { mutate } = await testClient({ isAuth: true, isAdmin: true })
-
-    // enable
     const result = await mutate({
       mutation: TOGGLE_ARTICLE_LIVE,
       // @ts-ignore
@@ -295,9 +293,11 @@ describe('toggle article state', async () => {
       }
     })
     expect(result.data.toggleArticleLive.live).toBe(true)
+  })
 
-    // disable
-    const disableResult = await mutate({
+  test('disable article live', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
+    const result = await mutate({
       mutation: TOGGLE_ARTICLE_LIVE,
       // @ts-ignore
       variables: {
@@ -307,13 +307,11 @@ describe('toggle article state', async () => {
         }
       }
     })
-    expect(disableResult.data.toggleArticleLive.live).toBe(false)
+    expect(result.data.toggleArticleLive.live).toBe(false)
   })
 
-  test('toggle article public', async () => {
+  test('enable article public', async () => {
     const { mutate } = await testClient({ isAuth: true, isAdmin: true })
-
-    // enable
     const { data } = await mutate({
       mutation: TOGGLE_ARTICLE_PUBLIC,
       // @ts-ignore
@@ -325,9 +323,11 @@ describe('toggle article state', async () => {
       }
     })
     expect(data.toggleArticlePublic.public).toBe(true)
+  })
 
-    // disable
-    const { data: disableData } = await mutate({
+  test('disable article public', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
+    const { data } = await mutate({
       mutation: TOGGLE_ARTICLE_PUBLIC,
       // @ts-ignore
       variables: {
@@ -337,6 +337,6 @@ describe('toggle article state', async () => {
         }
       }
     })
-    expect(disableData.toggleArticlePublic.public).toBe(false)
+    expect(data.toggleArticlePublic.public).toBe(false)
   })
 })
