@@ -87,6 +87,20 @@ const REPORT_ARTICLE = `
     reportArticle(input: $input)
   }
 `
+const TOGGLE_ARTICLE_LIVE = `
+  mutation($input: ToggleArticleLiveInput!) {
+    toggleArticleLive(input: $input) {
+      live
+    }
+  }
+`
+const TOGGLE_ARTICLE_PUBLIC = `
+  mutation($input: ToggleArticlePublicInput!) {
+    toggleArticlePublic(input: $input) {
+      public
+    }
+  }
+`
 
 export const publishArticle = async (input: GQLPublishArticleInput) => {
   const { mutate } = await testClient({
@@ -262,5 +276,67 @@ describe('report article', async () => {
       }
     })
     expect(result.data.reportArticle).toBe(true)
+  })
+})
+
+describe('toggle article state', async () => {
+  test('toggle article live', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
+
+    // enable
+    const result = await mutate({
+      mutation: TOGGLE_ARTICLE_LIVE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: true
+        }
+      }
+    })
+    expect(result.data.toggleArticleLive.live).toBe(true)
+
+    // disable
+    const disableResult = await mutate({
+      mutation: TOGGLE_ARTICLE_LIVE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: false
+        }
+      }
+    })
+    expect(disableResult.data.toggleArticleLive.live).toBe(false)
+  })
+
+  test('toggle article public', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
+
+    // enable
+    const { data } = await mutate({
+      mutation: TOGGLE_ARTICLE_PUBLIC,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: true
+        }
+      }
+    })
+    expect(data.toggleArticlePublic.public).toBe(true)
+
+    // disable
+    const { data: disableData } = await mutate({
+      mutation: TOGGLE_ARTICLE_PUBLIC,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: false
+        }
+      }
+    })
+    expect(disableData.toggleArticlePublic.public).toBe(false)
   })
 })

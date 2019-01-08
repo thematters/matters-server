@@ -268,6 +268,32 @@ export class ArticleService extends BaseService {
       .filter(s => s !== '').length
 
   /**
+   * Find articles
+   */
+  find = async ({
+    where,
+    offset = 0,
+    limit = BATCH_SIZE
+  }: {
+    where?: { [key: string]: any }
+    offset?: number
+    limit?: number
+  }) => {
+    let qs = this.knex
+      .select()
+      .from(this.table)
+      .orderBy('id', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+    if (where) {
+      qs = qs.where(where)
+    }
+
+    return await qs
+  }
+
+  /**
    *  Find articles by a given author id (user) in batches.
    */
   findByAuthor = async ({

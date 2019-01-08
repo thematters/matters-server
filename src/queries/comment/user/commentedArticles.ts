@@ -1,3 +1,5 @@
+import { uniq } from 'lodash'
+
 import { Resolver, BatchParams, Context } from 'definitions'
 
 const resolver: Resolver = async (
@@ -6,9 +8,10 @@ const resolver: Resolver = async (
   { dataSources: { commentService, articleService } }: Context
 ) => {
   const comments = await commentService.findByAuthorInBatch(id, offset, limit)
-  return articleService.dataloader.loadMany(
+  const articleIds = uniq(
     comments.map(({ articleId }: { articleId: string }) => articleId)
   )
+  return articleService.dataloader.loadMany(articleIds)
 }
 
 export default resolver
