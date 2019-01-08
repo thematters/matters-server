@@ -14,13 +14,7 @@ import { DataSource } from 'apollo-datasource'
 export * from './schema'
 export * from './notification'
 
-export type NodeTypes =
-  | 'Article'
-  | 'User'
-  | 'Comment'
-  | 'Draft'
-  | 'Tag'
-  | 'Invitation'
+export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
 
 export type Resolver = (
   parent: any,
