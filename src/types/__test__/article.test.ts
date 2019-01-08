@@ -16,6 +16,13 @@ import { getViewerMAT } from './user.test'
 afterAll(knex.destroy)
 
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
+const GET_ARTICLES = `
+  query ($input: ArticlesInput!) {
+    articles(input: $input) {
+      id
+    }
+  }
+`
 const PUBLISH_ARTICLE = `
   mutation($input: PublishArticleInput!) {
     publishArticle(input: $input) {
@@ -145,6 +152,16 @@ export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
 }
 
 describe('query article', async () => {
+  test('query articles', async () => {
+    const { query } = await testClient({ isAuth: true, isAdmin: true })
+    const { data } = await query({
+      query: GET_ARTICLES,
+      // @ts-ignore
+      variables: { input: {} }
+    })
+    expect(data.articles.length).toBeGreaterThan(1)
+  })
+
   test('query article by mediaHash', async () => {
     const mediaHash = 'some-ipfs-media-hash-1'
     const { query } = await testClient()
