@@ -80,7 +80,6 @@ export class UserService extends BaseService {
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
     await this.activateInvitedEmailUser({
       userId: user.id,
-      userMAT: user.mat,
       email
     })
 
@@ -210,7 +209,7 @@ export class UserService extends BaseService {
       })
       .sum('delta as total')
 
-    return parseInt(result[0].total, 10)
+    return parseInt(result[0].total || 0, 10)
   }
 
   /**
@@ -573,14 +572,10 @@ export class UserService extends BaseService {
    */
   activate = async ({
     senderId,
-    senderMAT,
-    recipientId,
-    recipientMAT
+    recipientId
   }: {
     senderId?: string
-    senderMAT?: number
     recipientId: string
-    recipientMAT: number
   }): Promise<any> => {
     await this.knex.transaction(async trx => {
       // set recipient's state to "active"
@@ -594,17 +589,6 @@ export class UserService extends BaseService {
         .insert({ senderId, recipientId, status: 'activated' })
         .into('invitation')
         .returning('*')
-      // update MAT
-      await trx
-        .where({ id: recipientId })
-        .update('mat', recipientMAT + MAT_UNIT.joinByInvitation)
-        .into('user')
-      if (senderId && senderMAT) {
-        await trx
-          .where({ id: senderId })
-          .update('mat', senderMAT + MAT_UNIT.invitationAccepted)
-          .into('user')
-      }
       // add transaction record
       await trx
         .insert({
@@ -647,11 +631,9 @@ export class UserService extends BaseService {
    */
   activateInvitedEmailUser = async ({
     userId,
-    userMAT,
     email
   }: {
     userId: string
-    userMAT: number
     email: string
   }) => {
     try {
@@ -670,11 +652,6 @@ export class UserService extends BaseService {
           .update({ state: 'active' })
           .into(this.table)
           .returning('*')
-        // update MAT
-        await trx
-          .where({ id: userId })
-          .update('mat', userMAT + MAT_UNIT.joinByInvitation)
-          .into('user')
         // add transaction record
         await trx
           .insert({

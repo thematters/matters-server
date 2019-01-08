@@ -13,6 +13,7 @@ import {
 import { ipfs } from 'connectors/ipfs'
 import { BaseService } from './baseService'
 import { UserService } from './userService'
+import { knex } from './db'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
@@ -493,25 +494,20 @@ export class ArticleService extends BaseService {
     senderMAT: number
     recipientId: string
     amount: number
-  }): Promise<any> =>
-    // TODO: remove mat from user and retrive from transaction table when needed
-    await this.knex.transaction(async trx => {
-      await trx
-        .where('id', senderId)
-        .update('mat', senderMAT - amount)
-        .into('user')
-      await trx
-        .insert({
-          uuid,
-          senderId,
-          recipientId,
-          referenceId: articleId,
-          purpose: TRANSACTION_PURPOSE.appreciate,
-          amount
-        })
-        .into('transaction')
-        .returning('*')
-    })
+  }): Promise<any> => {
+    const result = await knex('transaction')
+      .insert({
+        uuid,
+        senderId,
+        recipientId,
+        referenceId: articleId,
+        purpose: TRANSACTION_PURPOSE.appreciate,
+        amount
+      })
+      .into('transaction')
+      .returning('*')
+    return result
+  }
 
   /**
    * User read an article

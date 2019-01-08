@@ -257,9 +257,10 @@ export const getUserInvitation = async (isAdmin = false) => {
     isAuth: true,
     isAdmin
   })
-  const { data } = await query({
+  const result = await query({
     query: GET_USER_INVITATION
   })
+  const { data } = result
   return data
 }
 
