@@ -237,7 +237,7 @@ describe('mutations on comment', async () => {
       mutation: DELETE_COMMENT,
       // @ts-ignore
       variables: {
-        input: { id: commentId }
+        input: { id: toGlobalId({ type: 'Comment', id: 1 }) }
       }
     })
     expect(_get(data, 'deleteComment')).toBe(true)
