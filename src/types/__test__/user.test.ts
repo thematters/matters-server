@@ -551,8 +551,8 @@ describe('mutations on User object', () => {
 })
 
 describe('user recommendations', () => {
-  test('retrive articles from hottest, icymi and topics', async () => {
-    const lists = ['hottest', 'icymi', 'topics', 'followeeArticles']
+  test('retrive articles from hottest, icymi, topics, followeeArticles and newest', async () => {
+    const lists = ['hottest', 'icymi', 'topics', 'followeeArticles', 'newest']
     for (const list of lists) {
       const { query: queryNew } = await testClient({
         isAuth: true
