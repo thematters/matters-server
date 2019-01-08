@@ -19,7 +19,7 @@
     "start": "node build/index.js",
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
     "test:connectors": "jest src/connectors --forceExit",
-    "test:types": "jest src/types --forceExit",
+    "test:types": "jest src/types/__test__/user.test.ts --detectOpenHandles",
     "test": "npm run test:connectors && npm run test:types && codecov",
     "tslint:dev": "tslint --force -c tslint.json 'src/**/*.ts{,x}' -e '**/node_modules/**/*'",
     "tslint:watch:dev": "chokidar 'src/**/*.ts{,x}' -c 'npm run tslint:dev'",

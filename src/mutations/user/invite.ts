@@ -37,9 +37,7 @@ const resolver: Resolver = async (
     }
     await userService.activate({
       senderId: isAdmin ? undefined : viewer.id,
-      senderMAT: isAdmin ? undefined : viewer.mat,
-      recipientId: recipient.id,
-      recipientMAT: recipient.mat
+      recipientId: recipient.id
     })
   } else {
     const user = await userService.findByEmail(email)

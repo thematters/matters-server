@@ -20,6 +20,7 @@ import {
   GQLListInput
 } from 'definitions'
 import { BaseService } from './baseService'
+import { stringList } from 'aws-sdk/clients/datapipeline'
 
 export class UserService extends BaseService {
   constructor() {
@@ -567,6 +568,17 @@ export class UserService extends BaseService {
       .offset(offset)
       .limit(limit)
 
+  /**
+   * Find invitation by id
+   */
+  findInvitation = async (id: string) => {
+    const result = await this.knex
+      .select()
+      .from('invitation')
+      .where({ id })
+      .first()
+    return result
+  }
   /**
    * Activate user
    */

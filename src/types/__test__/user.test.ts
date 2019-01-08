@@ -94,6 +94,9 @@ const GET_VIEWER_MAT_HISOTRY = `
         MAT {
           history {
             delta
+            reference {
+              id
+            }
           }
         }
       }
@@ -356,6 +359,12 @@ describe('user mat', async () => {
     const history = await getViewerMATHistory()
     const trx = history && history[0]
     expect(typeof trx.delta).toBe('number')
+  })
+
+  test('history reference', async () => {
+    const history = await getViewerMATHistory()
+    const reference = history && history[0] && history[0].reference
+    expect(['Article', 'Invitation']).toContain(fromGlobalId(reference.id).type)
   })
 })
 

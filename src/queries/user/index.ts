@@ -23,7 +23,7 @@ import invitationLeft from './invitationLeft'
 import invitationSent from './invitationSent'
 import invitationRecipient from './invitationRecipient'
 import invitationAccepted from './invitationAccepted'
-import MAT from './mat'
+import { MAT, Transaction } from './transaction'
 
 export default {
   Query: {
@@ -57,6 +57,7 @@ export default {
     history
   },
   MAT,
+  Transaction,
   UserStatus: {
     state: ({ state }: { state: string }) => state,
     MAT: (root: any) => root,
