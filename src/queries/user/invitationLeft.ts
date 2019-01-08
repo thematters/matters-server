@@ -1,13 +1,16 @@
 import { Resolver } from 'definitions'
-import { MAT } from 'common/enums'
 
 const resolver: Resolver = async (
-  { id, mat },
+  { id },
   _,
   { viewer, dataSources: { userService } }
 ) => {
-  const invited = await userService.findInvitations({ userId: id })
-  return Math.max(Math.floor(mat / MAT.invitationCalculate) - invited.length, 0)
+  if (viewer.id !== id) {
+    throw Error('Not authorized')
+  }
+  const invitionCount = await userService.countInvitation(id)
+  const mat = await userService.totalMAT(id)
+  return Math.max(Math.floor(Math.log(mat)) - invitionCount, 0)
 }
 
 export default resolver

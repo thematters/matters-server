@@ -1,7 +1,7 @@
 import _ from 'lodash'
 // local
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { MAT, TRANSACTION_PURPOSE } from 'common/enums'
+import { MAT_UNIT, TRANSACTION_PURPOSE } from 'common/enums'
 import { UserService } from 'connectors'
 import { knex } from 'connectors/db'
 import { defaultTestUser, getUserContext, testClient } from './utils'
@@ -74,6 +74,36 @@ const GET_USER_BY_USERNAME = `
     }
   }
 `
+
+const GET_VIEWER_MAT = `
+  query {
+    viewer {
+      status {
+        MAT {
+          total
+        }
+      }
+    }
+  }
+`
+
+const GET_VIEWER_MAT_HISOTRY = `
+  query {
+    viewer {
+      status {
+        MAT {
+          history {
+            delta
+            reference {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 const GET_VIEWER_INFO = `
   query {
     viewer {
@@ -95,15 +125,6 @@ const GET_VIEW_ARTICLES = `
     viewer {
       articles(input: $input) {
         id
-      }
-    }
-  }
-`
-const GET_VIEWER_MAT = `
-  query {
-    viewer {
-      status {
-        MAT
       }
     }
   }
@@ -210,13 +231,28 @@ export const registerUser = async (user: { [key: string]: string }) => {
 
 export const getViewerMAT = async () => {
   const { query } = await testClient({ isAuth: true })
-  const { data } = await query({
+  const result = await query({
     query: GET_VIEWER_MAT,
     // @ts-ignore
     variables: { input: {} }
   })
-  const { MAT } = data && data.viewer && data.viewer.status
-  return MAT
+  const { data } = result
+  const { total } =
+    data && data.viewer && data.viewer.status && data.viewer.status.MAT
+  return total
+}
+
+export const getViewerMATHistory = async () => {
+  const { query } = await testClient({ isAuth: true })
+  const result = await query({
+    query: GET_VIEWER_MAT_HISOTRY,
+    // @ts-ignore
+    variables: { input: {} }
+  })
+  const { data } = result
+  const { history } =
+    data && data.viewer && data.viewer.status && data.viewer.status.MAT
+  return history
 }
 
 export const getUserInvitation = async (isAdmin = false) => {
@@ -224,9 +260,10 @@ export const getUserInvitation = async (isAdmin = false) => {
     isAuth: true,
     isAdmin
   })
-  const { data } = await query({
+  const result = await query({
     query: GET_USER_INVITATION
   })
+  const { data } = result
   return data
 }
 
@@ -309,6 +346,25 @@ describe('register and login functionarlities', () => {
     })
     const info = _.get(data, 'viewer.info')
     expect(info.email).toEqual(defaultTestUser.email)
+  })
+})
+
+describe('user mat', async () => {
+  test('total', async () => {
+    const mat = await getViewerMAT()
+    expect(typeof mat).toBe('number')
+  })
+
+  test('history', async () => {
+    const history = await getViewerMATHistory()
+    const trx = history && history[0]
+    expect(typeof trx.delta).toBe('number')
+  })
+
+  test('history reference', async () => {
+    const history = await getViewerMATHistory()
+    const reference = history && history[0] && history[0].reference
+    expect(['Article', 'Invitation']).toContain(fromGlobalId(reference.id).type)
   })
 })
 
@@ -495,8 +551,8 @@ describe('mutations on User object', () => {
 })
 
 describe('user recommendations', () => {
-  test('retrive articles from hottest, icymi and topics', async () => {
-    const lists = ['hottest', 'icymi', 'topics', 'followeeArticles']
+  test('retrive articles from hottest, icymi, topics, followeeArticles and newest', async () => {
+    const lists = ['hottest', 'icymi', 'topics', 'followeeArticles', 'newest']
     for (const list of lists) {
       const { query: queryNew } = await testClient({
         isAuth: true
@@ -547,7 +603,7 @@ describe('invitation', async () => {
   test('invitation mat', async () => {
     const data = await getUserInvitation()
     expect(_.get(data, 'viewer.status.invitation.MAT')).toBe(
-      MAT.joinByInvitation
+      MAT_UNIT.joinByInvitation
     )
   })
 
@@ -579,7 +635,7 @@ describe('invitation', async () => {
     // retrieve user's invitations
     const newInvitationData = await getUserInvitation()
     expect(_.get(newInvitationData, 'viewer.status.invitation.left')).toBe(
-      left - 1
+      Math.max(left - 1, 0)
     )
     expect(
       _.get(newInvitationData, 'viewer.status.invitation.sent.0.email')
@@ -603,9 +659,9 @@ describe('invitation', async () => {
       fromGlobalId(_.get(newInvitationData, 'viewer.id')).id
     )
     const recipientTxs = await userService.findTransactionsByUserId(user.id)
-    expect(senderTxs[0].amount).toBe(MAT.invitationAccepted)
+    expect(senderTxs[0].amount).toBe(MAT_UNIT.invitationAccepted)
     expect(senderTxs[0].purpose).toBe(TRANSACTION_PURPOSE.invitationAccepted)
-    expect(recipientTxs[0].amount).toBe(MAT.joinByInvitation)
+    expect(recipientTxs[0].amount).toBe(MAT_UNIT.joinByInvitation)
     expect(recipientTxs[0].purpose).toBe(TRANSACTION_PURPOSE.joinByInvitation)
   })
 

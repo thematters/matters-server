@@ -297,7 +297,8 @@ input ImportArticlesInput {
   token: String
 }
 
-type Invitation {
+type Invitation implements Node {
+  id: ID!
   user: User
   email: String
   accepted: Boolean!
@@ -324,6 +325,11 @@ scalar JSON
 input ListInput {
   offset: Int
   limit: Int
+}
+
+type MAT {
+  total: Int!
+  history(input: ListInput): [Transaction]!
 }
 
 type Mutation {
@@ -539,6 +545,7 @@ input RecallPublishInput {
 
 type Recommendation {
   followeeArticles(input: ListInput!): [Article!]!
+  newest(input: ListInput!): [Article!]!
   hottest(input: ListInput!): [Article!]!
 
   """In case you missed it"""
@@ -645,6 +652,20 @@ input ToggleArticleLiveInput {
 input ToggleArticlePublicInput {
   id: ID!
   enabled: Boolean!
+}
+
+type Transaction {
+  delta: Int!
+  purpose: TransactionPurpose!
+  reference: Node
+  createdAt: DateTime!
+}
+
+enum TransactionPurpose {
+  appreciate
+  invitationAccepted
+  joinByInvitation
+  joinByTask
 }
 
 input UnfollowUserInput {
@@ -805,7 +826,7 @@ type UserStatus {
   state: UserState!
 
   """Total MAT left in wallet"""
-  MAT: Int!
+  MAT: MAT!
   invitation: InvitationStatus!
 
   """Number of articles published by user"""

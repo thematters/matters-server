@@ -87,6 +87,7 @@ export type GQLPossibleNodeTypeNames =
   | 'User'
   | 'Tag'
   | 'Draft'
+  | 'Invitation'
   | 'Comment'
 
 export interface GQLNodeNameMap {
@@ -95,6 +96,7 @@ export interface GQLNodeNameMap {
   User: GQLUser
   Tag: GQLTag
   Draft: GQLDraft
+  Invitation: GQLInvitation
   Comment: GQLComment
 }
 
@@ -245,6 +247,7 @@ export interface GQLNotificationSetting {
 
 export interface GQLRecommendation {
   followeeArticles: Array<GQLArticle>
+  newest: Array<GQLArticle>
   hottest: Array<GQLArticle>
 
   /**
@@ -308,7 +311,7 @@ export interface GQLUserStatus {
   /**
    * Total MAT left in wallet
    */
-  MAT: number
+  MAT: GQLMAT
   invitation: GQLInvitationStatus
 
   /**
@@ -354,6 +357,25 @@ export enum GQLUserState {
   archived = 'archived'
 }
 
+export interface GQLMAT {
+  total: number
+  history: Array<GQLTransaction | null>
+}
+
+export interface GQLTransaction {
+  delta: number
+  purpose: GQLTransactionPurpose
+  reference?: GQLNode
+  createdAt: GQLDateTime
+}
+
+export enum GQLTransactionPurpose {
+  appreciate = 'appreciate',
+  invitationAccepted = 'invitationAccepted',
+  joinByInvitation = 'joinByInvitation',
+  joinByTask = 'joinByTask'
+}
+
 export interface GQLInvitationStatus {
   MAT: number
 
@@ -368,7 +390,8 @@ export interface GQLInvitationStatus {
   sent?: Array<GQLInvitation>
 }
 
-export interface GQLInvitation {
+export interface GQLInvitation extends GQLNode {
+  id: string
   user?: GQLUser
   email?: string
   accepted: boolean
@@ -1027,6 +1050,8 @@ export interface GQLResolver {
   UserActivity?: GQLUserActivityTypeResolver
   ReadHistory?: GQLReadHistoryTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
+  MAT?: GQLMATTypeResolver
+  Transaction?: GQLTransactionTypeResolver
   InvitationStatus?: GQLInvitationStatusTypeResolver
   Invitation?: GQLInvitationTypeResolver
   Notice?: {
@@ -1372,6 +1397,7 @@ export interface GQLNodeTypeResolver<TParent = any> {
     | 'User'
     | 'Tag'
     | 'Draft'
+    | 'Invitation'
     | 'Comment'
 }
 export interface GQLUserTypeResolver<TParent = any> {
@@ -1706,6 +1732,7 @@ export interface NotificationSettingToReportFeedbackResolver<
 
 export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
+  newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
@@ -1723,6 +1750,18 @@ export interface RecommendationToFolloweeArticlesResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeArticlesArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToNewestArgs {
+  input: GQLListInput
+}
+export interface RecommendationToNewestResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: RecommendationToNewestArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult
@@ -2044,6 +2083,50 @@ export interface UserStatusToUnreadNoticeCountResolver<
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
+export interface GQLMATTypeResolver<TParent = any> {
+  total?: MATToTotalResolver<TParent>
+  history?: MATToHistoryResolver<TParent>
+}
+
+export interface MATToTotalResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface MATToHistoryArgs {
+  input?: GQLListInput
+}
+export interface MATToHistoryResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MATToHistoryArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTransactionTypeResolver<TParent = any> {
+  delta?: TransactionToDeltaResolver<TParent>
+  purpose?: TransactionToPurposeResolver<TParent>
+  reference?: TransactionToReferenceResolver<TParent>
+  createdAt?: TransactionToCreatedAtResolver<TParent>
+}
+
+export interface TransactionToDeltaResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface TransactionToPurposeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface TransactionToReferenceResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface TransactionToCreatedAtResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
 export interface GQLInvitationStatusTypeResolver<TParent = any> {
   MAT?: InvitationStatusToMATResolver<TParent>
   left?: InvitationStatusToLeftResolver<TParent>
@@ -2071,10 +2154,15 @@ export interface InvitationStatusToSentResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLInvitationTypeResolver<TParent = any> {
+  id?: InvitationToIdResolver<TParent>
   user?: InvitationToUserResolver<TParent>
   email?: InvitationToEmailResolver<TParent>
   accepted?: InvitationToAcceptedResolver<TParent>
   createdAt?: InvitationToCreatedAtResolver<TParent>
+}
+
+export interface InvitationToIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
 export interface InvitationToUserResolver<TParent = any, TResult = any> {

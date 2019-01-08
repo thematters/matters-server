@@ -1,6 +1,6 @@
 import { Resolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
-import { MAT } from 'common/enums'
+import { MAT_UNIT } from 'common/enums'
 
 const resolver: Resolver = async (
   _,
@@ -19,7 +19,7 @@ const resolver: Resolver = async (
   if (!isAdmin) {
     const invited = await userService.findInvitations({ userId: viewer.id })
     const invitationLeft =
-      Math.floor(viewer.mat / MAT.invitationCalculate) - invited.length
+      Math.floor(viewer.mat / MAT_UNIT.invitationCalculate) - invited.length
 
     if (viewer.state !== 'active' || invitationLeft <= 0) {
       throw new Error('unable to invite') // TODO
@@ -37,9 +37,7 @@ const resolver: Resolver = async (
     }
     await userService.activate({
       senderId: isAdmin ? undefined : viewer.id,
-      senderMAT: isAdmin ? undefined : viewer.mat,
-      recipientId: recipient.id,
-      recipientMAT: recipient.mat
+      recipientId: recipient.id
     })
   } else {
     const user = await userService.findByEmail(email)

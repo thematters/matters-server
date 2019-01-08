@@ -197,6 +197,12 @@ export class ArticleService extends BaseService {
       .limit(limit)
       .offset(offset)
 
+  recommendNewest = ({ offset = 0, limit = 5 }) =>
+    this.knex(this.table)
+      .orderBy('created_at', 'desc')
+      .limit(limit)
+      .offset(offset)
+
   recommendIcymi = ({ offset = 0, limit = 5 }) =>
     this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
@@ -421,30 +427,18 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's subscriber by a given targetId (article) and user id.
    */
-  findSubscriptionByUserId = async (
-    targetId: string,
-    userId: string
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_article')
-      .where({
-        targetId,
-        userId,
-        action: USER_ACTION.subscribe
-      })
-
-  /**
-   * Find an article's rates by a given targetId (article).
-   */
-  findRateByTargetId = async (targetId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_user')
-      .where({
-        targetId,
-        action: USER_ACTION.rate
-      })
+  // findSubscriptionByUserId = async (
+  //   targetId: string,
+  //   userId: string
+  // ): Promise<any[]> =>
+  //   await this.knex
+  //     .select()
+  //     .from('action_article')
+  //     .where({
+  //       targetId,
+  //       userId,
+  //       action: USER_ACTION.subscribe
+  //     })
 
   isSubscribed = async ({
     userId,
@@ -520,25 +514,20 @@ export class ArticleService extends BaseService {
     senderMAT: number
     recipientId: string
     amount: number
-  }): Promise<any> =>
-    // TODO: remove mat from user and retrive from transaction table when needed
-    await this.knex.transaction(async trx => {
-      await trx
-        .where('id', senderId)
-        .update('mat', senderMAT - amount)
-        .into('user')
-      await trx
-        .insert({
-          uuid,
-          senderId,
-          recipientId,
-          referenceId: articleId,
-          purpose: TRANSACTION_PURPOSE.appreciate,
-          amount
-        })
-        .into('transaction')
-        .returning('*')
-    })
+  }): Promise<any> => {
+    const result = await this.knex('transaction')
+      .insert({
+        uuid,
+        senderId,
+        recipientId,
+        referenceId: articleId,
+        purpose: TRANSACTION_PURPOSE.appreciate,
+        amount
+      })
+      .into('transaction')
+      .returning('*')
+    return result
+  }
 
   /**
    * User read an article
