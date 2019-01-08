@@ -119,31 +119,26 @@ export interface GQLUser extends GQLNode {
   /**
    * Articles written by this user
    */
-  articles?: Array<GQLArticle>
-  drafts?: Array<GQLDraft>
-  audioDrafts?: Array<GQLAudioDraft>
+  articles: GQLArticleAuthoredConnection
+  drafts: GQLDraftAuthoredConnection
+  audiodrafts: GQLAudiodraftAuthoredConnection
 
   /**
    * Comments posted by this user
    */
-  commentedArticles?: Array<GQLArticle>
-
-  /**
-   * comments that quoted this user's article
-   */
-  quotedArticles?: Array<GQLArticle>
-  subscriptions?: Array<GQLArticle>
+  commentedArticles: GQLArticleCommentedConnection
+  subscriptions: GQLArticleSubcriptionConnection
   activity: GQLUserActivity
 
   /**
    * Followers of this user
    */
-  followers?: Array<GQLUser>
+  followers: GQLUserFollowerConnection
 
   /**
    * Users that this user follows
    */
-  followees?: Array<GQLUser>
+  followees: GQLUserFolloweeConnection
 
   /**
    * This user is following viewer
@@ -257,7 +252,12 @@ export interface GQLRecommendation {
   authors: Array<GQLUser>
 }
 
-export interface GQLListInput {
+/**
+ * TODO: remove offset and limit
+ */
+export interface GQLConnectionArgs {
+  after?: string
+  first?: number
   offset?: number
   limit?: number
 }
@@ -267,6 +267,32 @@ export interface GQLTag extends GQLNode {
   content: string
   count: number
   articles?: Array<GQLArticle>
+}
+
+export interface GQLArticleAuthoredConnection {
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLArticleAuthoredEdge | null>
+}
+
+export interface GQLPageInfo {
+  startCursor?: string
+  endCursor?: string
+  hasNextPage: boolean
+}
+
+export interface GQLArticleAuthoredEdge {
+  cursor: string
+  node?: GQLArticle
+}
+
+export interface GQLDraftAuthoredConnection {
+  pageInfo: GQLPageInfo
+  edges: Array<GQLDraftAuthoredEdge | null>
+}
+
+export interface GQLDraftAuthoredEdge {
+  cursor: string
+  node: GQLDraft
 }
 
 export interface GQLDraft extends GQLNode {
@@ -282,14 +308,29 @@ export interface GQLDraft extends GQLNode {
   publishState: GQLPublishState
 }
 
-export interface GQLAudioDraft {
-  id: string
-  authorId: string
-  title?: string
-  audio: GQLURL
-  length: number
-  createdAt: GQLDateTime
-  updatedAt: GQLDateTime
+export interface GQLAudiodraftAuthoredConnection {
+  pageInfo: GQLPageInfo
+  edges: Array<GQLDraftAuthoredEdge | null>
+}
+
+export interface GQLArticleCommentedConnection {
+  pageInfo: GQLPageInfo
+  edges: Array<GQLArticleCommentedEdge | null>
+}
+
+export interface GQLArticleCommentedEdge {
+  cursor: string
+  node: GQLArticle
+}
+
+export interface GQLArticleSubcriptionConnection {
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLArticleSubcriptionEdge | null>
+}
+
+export interface GQLArticleSubcriptionEdge {
+  cursor: string
+  node: GQLArticle
 }
 
 export interface GQLUserActivity {
@@ -301,6 +342,26 @@ export interface GQLReadHistory {
   id: string
   article: GQLArticle
   readAt: GQLDateTime
+}
+
+export interface GQLUserFollowerConnection {
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLUserFollowerEdge | null>
+}
+
+export interface GQLUserFollowerEdge {
+  cursor: string
+  node: GQLUser
+}
+
+export interface GQLUserFolloweeConnection {
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLUserFolloweeEdge | null>
+}
+
+export interface GQLUserFolloweeEdge {
+  cursor: string
+  node: GQLUser
 }
 
 export interface GQLUserStatus {
@@ -566,8 +627,8 @@ export interface GQLMutation {
   /**
    * audio dtaft
    */
-  putAudioDraft: GQLAudioDraft
-  deleteAudioDraft?: boolean
+  putAudiodraft: GQLAudiodraft
+  deleteAudiodraft?: boolean
 
   /**
    * draft
@@ -624,8 +685,8 @@ export interface GQLMutation {
 
   /**
    * misc
-   * importArticles(input: ImportArticlesInput!): [Article]
    */
+  importArticles?: Array<GQLArticle | null>
   clearReadHistory?: boolean
   clearSearchHistory?: boolean
   invite?: boolean
@@ -705,14 +766,24 @@ export interface GQLUnvoteCommentInput {
   id: string
 }
 
-export interface GQLPutAudioDraftInput {
+export interface GQLPutAudiodraftInput {
   id?: string
   audioAssetId?: string
   title?: string
   length?: number
 }
 
-export interface GQLDeleteAudioDraftInput {
+export interface GQLAudiodraft {
+  id: string
+  authorId: string
+  title?: string
+  audio: GQLURL
+  length: number
+  createdAt: GQLDateTime
+  updatedAt: GQLDateTime
+}
+
+export interface GQLDeleteAudiodraftInput {
   id: string
 }
 
@@ -737,7 +808,7 @@ export interface GQLSingleFileUploadInput {
 export enum GQLAssetType {
   avatar = 'avatar',
   cover = 'cover',
-  audioDraft = 'audioDraft',
+  Audiodraft = 'Audiodraft',
   report = 'report',
   feedback = 'feedback'
 }
@@ -849,6 +920,11 @@ export interface GQLUnfollowUserInput {
   id: string
 }
 
+export interface GQLImportArticlesInput {
+  platform?: string
+  token?: string
+}
+
 export interface GQLClearReadHistoryInput {
   id: string
 }
@@ -909,6 +985,11 @@ export interface GQLArticlePublishedNotice extends GQLNotice {
   target?: GQLArticle
 }
 
+export interface GQLAudiodraftAuthoredEdge {
+  cursor: string
+  node: GQLAudiodraft
+}
+
 export interface GQLCommentMentionedYouNotice extends GQLNotice {
   id: string
   unread: boolean
@@ -949,11 +1030,6 @@ export interface GQLDownstreamArticleArchivedNotice extends GQLNotice {
   createdAt: GQLDateTime
   downstream?: GQLArticle
   target?: GQLArticle
-}
-
-export interface GQLImportArticlesInput {
-  platform?: string
-  token?: string
 }
 
 export type GQLJSON = any
@@ -1038,10 +1114,23 @@ export interface GQLResolver {
   NotificationSetting?: GQLNotificationSettingTypeResolver
   Recommendation?: GQLRecommendationTypeResolver
   Tag?: GQLTagTypeResolver
+  ArticleAuthoredConnection?: GQLArticleAuthoredConnectionTypeResolver
+  PageInfo?: GQLPageInfoTypeResolver
+  ArticleAuthoredEdge?: GQLArticleAuthoredEdgeTypeResolver
+  DraftAuthoredConnection?: GQLDraftAuthoredConnectionTypeResolver
+  DraftAuthoredEdge?: GQLDraftAuthoredEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
-  AudioDraft?: GQLAudioDraftTypeResolver
+  AudiodraftAuthoredConnection?: GQLAudiodraftAuthoredConnectionTypeResolver
+  ArticleCommentedConnection?: GQLArticleCommentedConnectionTypeResolver
+  ArticleCommentedEdge?: GQLArticleCommentedEdgeTypeResolver
+  ArticleSubcriptionConnection?: GQLArticleSubcriptionConnectionTypeResolver
+  ArticleSubcriptionEdge?: GQLArticleSubcriptionEdgeTypeResolver
   UserActivity?: GQLUserActivityTypeResolver
   ReadHistory?: GQLReadHistoryTypeResolver
+  UserFollowerConnection?: GQLUserFollowerConnectionTypeResolver
+  UserFollowerEdge?: GQLUserFollowerEdgeTypeResolver
+  UserFolloweeConnection?: GQLUserFolloweeConnectionTypeResolver
+  UserFolloweeEdge?: GQLUserFolloweeEdgeTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
   MAT?: GQLMATTypeResolver
   Transaction?: GQLTransactionTypeResolver
@@ -1056,6 +1145,7 @@ export interface GQLResolver {
   Official?: GQLOfficialTypeResolver
   Release?: GQLReleaseTypeResolver
   Mutation?: GQLMutationTypeResolver
+  Audiodraft?: GQLAudiodraftTypeResolver
   Upload?: GraphQLScalarType
   Asset?: GQLAssetTypeResolver
   AuthResult?: GQLAuthResultTypeResolver
@@ -1065,6 +1155,7 @@ export interface GQLResolver {
   ArticleNewDownstreamNotice?: GQLArticleNewDownstreamNoticeTypeResolver
   ArticleNewSubscriberNotice?: GQLArticleNewSubscriberNoticeTypeResolver
   ArticlePublishedNotice?: GQLArticlePublishedNoticeTypeResolver
+  AudiodraftAuthoredEdge?: GQLAudiodraftAuthoredEdgeTypeResolver
   CommentMentionedYouNotice?: GQLCommentMentionedYouNoticeTypeResolver
   CommentNewReplyNotice?: GQLCommentNewReplyNoticeTypeResolver
   CommentNewUpvoteNotice?: GQLCommentNewUpvoteNoticeTypeResolver
@@ -1271,7 +1362,7 @@ export interface ArticleToUpstreamResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToDownstreamsArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface ArticleToDownstreamsResolver<TParent = any, TResult = any> {
   (
@@ -1283,7 +1374,7 @@ export interface ArticleToDownstreamsResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToRelatedArticlesArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface ArticleToRelatedArticlesResolver<
   TParent = any,
@@ -1309,7 +1400,7 @@ export interface ArticleToParticipantCountResolver<
 }
 
 export interface ArticleToSubscribersArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface ArticleToSubscribersResolver<TParent = any, TResult = any> {
   (
@@ -1321,7 +1412,7 @@ export interface ArticleToSubscribersResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToAppreciatorsArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface ArticleToAppreciatorsResolver<TParent = any, TResult = any> {
   (
@@ -1384,9 +1475,8 @@ export interface GQLUserTypeResolver<TParent = any> {
   recommendation?: UserToRecommendationResolver<TParent>
   articles?: UserToArticlesResolver<TParent>
   drafts?: UserToDraftsResolver<TParent>
-  audioDrafts?: UserToAudioDraftsResolver<TParent>
+  audiodrafts?: UserToAudiodraftsResolver<TParent>
   commentedArticles?: UserToCommentedArticlesResolver<TParent>
-  quotedArticles?: UserToQuotedArticlesResolver<TParent>
   subscriptions?: UserToSubscriptionsResolver<TParent>
   activity?: UserToActivityResolver<TParent>
   followers?: UserToFollowersResolver<TParent>
@@ -1418,7 +1508,7 @@ export interface UserToRecommendationResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToArticlesArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface UserToArticlesResolver<TParent = any, TResult = any> {
   (
@@ -1430,7 +1520,7 @@ export interface UserToArticlesResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToDraftsArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface UserToDraftsResolver<TParent = any, TResult = any> {
   (
@@ -1441,20 +1531,20 @@ export interface UserToDraftsResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface UserToAudioDraftsArgs {
-  input: GQLListInput
+export interface UserToAudiodraftsArgs {
+  input: GQLConnectionArgs
 }
-export interface UserToAudioDraftsResolver<TParent = any, TResult = any> {
+export interface UserToAudiodraftsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: UserToAudioDraftsArgs,
+    args: UserToAudiodraftsArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface UserToCommentedArticlesArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface UserToCommentedArticlesResolver<TParent = any, TResult = any> {
   (
@@ -1465,20 +1555,8 @@ export interface UserToCommentedArticlesResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface UserToQuotedArticlesArgs {
-  input: GQLListInput
-}
-export interface UserToQuotedArticlesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToQuotedArticlesArgs,
-    context: any,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface UserToSubscriptionsArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface UserToSubscriptionsResolver<TParent = any, TResult = any> {
   (
@@ -1494,7 +1572,7 @@ export interface UserToActivityResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToFollowersArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface UserToFollowersResolver<TParent = any, TResult = any> {
   (
@@ -1506,7 +1584,7 @@ export interface UserToFollowersResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToFolloweesArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface UserToFolloweesResolver<TParent = any, TResult = any> {
   (
@@ -1530,7 +1608,7 @@ export interface UserToStatusResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToNoticesArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface UserToNoticesResolver<TParent = any, TResult = any> {
   (
@@ -1717,7 +1795,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
 }
 
 export interface RecommendationToFolloweeArticlesArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToFolloweeArticlesResolver<
   TParent = any,
@@ -1732,7 +1810,7 @@ export interface RecommendationToFolloweeArticlesResolver<
 }
 
 export interface RecommendationToNewestArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToNewestResolver<TParent = any, TResult = any> {
   (
@@ -1744,7 +1822,7 @@ export interface RecommendationToNewestResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToHottestArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToHottestResolver<TParent = any, TResult = any> {
   (
@@ -1756,7 +1834,7 @@ export interface RecommendationToHottestResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToIcymiArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
   (
@@ -1768,7 +1846,7 @@ export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToTagsArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
   (
@@ -1780,7 +1858,7 @@ export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToTopicsArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
   (
@@ -1792,7 +1870,7 @@ export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToAuthorsArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (
@@ -1823,7 +1901,7 @@ export interface TagToCountResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToArticlesArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface TagToArticlesResolver<TParent = any, TResult = any> {
   (
@@ -1832,6 +1910,97 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
     context: any,
     info: GraphQLResolveInfo
   ): TResult
+}
+
+export interface GQLArticleAuthoredConnectionTypeResolver<TParent = any> {
+  pageInfo?: ArticleAuthoredConnectionToPageInfoResolver<TParent>
+  edges?: ArticleAuthoredConnectionToEdgesResolver<TParent>
+}
+
+export interface ArticleAuthoredConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ArticleAuthoredConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLPageInfoTypeResolver<TParent = any> {
+  startCursor?: PageInfoToStartCursorResolver<TParent>
+  endCursor?: PageInfoToEndCursorResolver<TParent>
+  hasNextPage?: PageInfoToHasNextPageResolver<TParent>
+}
+
+export interface PageInfoToStartCursorResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface PageInfoToEndCursorResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface PageInfoToHasNextPageResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLArticleAuthoredEdgeTypeResolver<TParent = any> {
+  cursor?: ArticleAuthoredEdgeToCursorResolver<TParent>
+  node?: ArticleAuthoredEdgeToNodeResolver<TParent>
+}
+
+export interface ArticleAuthoredEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ArticleAuthoredEdgeToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLDraftAuthoredConnectionTypeResolver<TParent = any> {
+  pageInfo?: DraftAuthoredConnectionToPageInfoResolver<TParent>
+  edges?: DraftAuthoredConnectionToEdgesResolver<TParent>
+}
+
+export interface DraftAuthoredConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface DraftAuthoredConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLDraftAuthoredEdgeTypeResolver<TParent = any> {
+  cursor?: DraftAuthoredEdgeToCursorResolver<TParent>
+  node?: DraftAuthoredEdgeToNodeResolver<TParent>
+}
+
+export interface DraftAuthoredEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface DraftAuthoredEdgeToNodeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
 export interface GQLDraftTypeResolver<TParent = any> {
@@ -1887,41 +2056,98 @@ export interface DraftToPublishStateResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLAudioDraftTypeResolver<TParent = any> {
-  id?: AudioDraftToIdResolver<TParent>
-  authorId?: AudioDraftToAuthorIdResolver<TParent>
-  title?: AudioDraftToTitleResolver<TParent>
-  audio?: AudioDraftToAudioResolver<TParent>
-  length?: AudioDraftToLengthResolver<TParent>
-  createdAt?: AudioDraftToCreatedAtResolver<TParent>
-  updatedAt?: AudioDraftToUpdatedAtResolver<TParent>
+export interface GQLAudiodraftAuthoredConnectionTypeResolver<TParent = any> {
+  pageInfo?: AudiodraftAuthoredConnectionToPageInfoResolver<TParent>
+  edges?: AudiodraftAuthoredConnectionToEdgesResolver<TParent>
 }
 
-export interface AudioDraftToIdResolver<TParent = any, TResult = any> {
+export interface AudiodraftAuthoredConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface AudioDraftToAuthorIdResolver<TParent = any, TResult = any> {
+export interface AudiodraftAuthoredConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface AudioDraftToTitleResolver<TParent = any, TResult = any> {
+export interface GQLArticleCommentedConnectionTypeResolver<TParent = any> {
+  pageInfo?: ArticleCommentedConnectionToPageInfoResolver<TParent>
+  edges?: ArticleCommentedConnectionToEdgesResolver<TParent>
+}
+
+export interface ArticleCommentedConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface AudioDraftToAudioResolver<TParent = any, TResult = any> {
+export interface ArticleCommentedConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface AudioDraftToLengthResolver<TParent = any, TResult = any> {
+export interface GQLArticleCommentedEdgeTypeResolver<TParent = any> {
+  cursor?: ArticleCommentedEdgeToCursorResolver<TParent>
+  node?: ArticleCommentedEdgeToNodeResolver<TParent>
+}
+
+export interface ArticleCommentedEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface AudioDraftToCreatedAtResolver<TParent = any, TResult = any> {
+export interface ArticleCommentedEdgeToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface AudioDraftToUpdatedAtResolver<TParent = any, TResult = any> {
+export interface GQLArticleSubcriptionConnectionTypeResolver<TParent = any> {
+  pageInfo?: ArticleSubcriptionConnectionToPageInfoResolver<TParent>
+  edges?: ArticleSubcriptionConnectionToEdgesResolver<TParent>
+}
+
+export interface ArticleSubcriptionConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ArticleSubcriptionConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLArticleSubcriptionEdgeTypeResolver<TParent = any> {
+  cursor?: ArticleSubcriptionEdgeToCursorResolver<TParent>
+  node?: ArticleSubcriptionEdgeToNodeResolver<TParent>
+}
+
+export interface ArticleSubcriptionEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ArticleSubcriptionEdgeToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -1931,7 +2157,7 @@ export interface GQLUserActivityTypeResolver<TParent = any> {
 }
 
 export interface UserActivityToHistoryArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface UserActivityToHistoryResolver<TParent = any, TResult = any> {
   (
@@ -1943,7 +2169,7 @@ export interface UserActivityToHistoryResolver<TParent = any, TResult = any> {
 }
 
 export interface UserActivityToRecentSearchesArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface UserActivityToRecentSearchesResolver<
   TParent = any,
@@ -1972,6 +2198,76 @@ export interface ReadHistoryToArticleResolver<TParent = any, TResult = any> {
 }
 
 export interface ReadHistoryToReadAtResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLUserFollowerConnectionTypeResolver<TParent = any> {
+  pageInfo?: UserFollowerConnectionToPageInfoResolver<TParent>
+  edges?: UserFollowerConnectionToEdgesResolver<TParent>
+}
+
+export interface UserFollowerConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface UserFollowerConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLUserFollowerEdgeTypeResolver<TParent = any> {
+  cursor?: UserFollowerEdgeToCursorResolver<TParent>
+  node?: UserFollowerEdgeToNodeResolver<TParent>
+}
+
+export interface UserFollowerEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface UserFollowerEdgeToNodeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLUserFolloweeConnectionTypeResolver<TParent = any> {
+  pageInfo?: UserFolloweeConnectionToPageInfoResolver<TParent>
+  edges?: UserFolloweeConnectionToEdgesResolver<TParent>
+}
+
+export interface UserFolloweeConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface UserFolloweeConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLUserFolloweeEdgeTypeResolver<TParent = any> {
+  cursor?: UserFolloweeEdgeToCursorResolver<TParent>
+  node?: UserFolloweeEdgeToNodeResolver<TParent>
+}
+
+export interface UserFolloweeEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface UserFolloweeEdgeToNodeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2069,7 +2365,7 @@ export interface MATToTotalResolver<TParent = any, TResult = any> {
 }
 
 export interface MATToHistoryArgs {
-  input?: GQLListInput
+  input?: GQLConnectionArgs
 }
 export interface MATToHistoryResolver<TParent = any, TResult = any> {
   (
@@ -2118,7 +2414,7 @@ export interface InvitationStatusToLeftResolver<TParent = any, TResult = any> {
 }
 
 export interface InvitationStatusToSentArgs {
-  input: GQLListInput
+  input: GQLConnectionArgs
 }
 export interface InvitationStatusToSentResolver<TParent = any, TResult = any> {
   (
@@ -2349,8 +2645,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   reportComment?: MutationToReportCommentResolver<TParent>
   voteComment?: MutationToVoteCommentResolver<TParent>
   unvoteComment?: MutationToUnvoteCommentResolver<TParent>
-  putAudioDraft?: MutationToPutAudioDraftResolver<TParent>
-  deleteAudioDraft?: MutationToDeleteAudioDraftResolver<TParent>
+  putAudiodraft?: MutationToPutAudiodraftResolver<TParent>
+  deleteAudiodraft?: MutationToDeleteAudiodraftResolver<TParent>
   putDraft?: MutationToPutDraftResolver<TParent>
   deleteDraft?: MutationToDeleteDraftResolver<TParent>
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
@@ -2370,6 +2666,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   >
   followUser?: MutationToFollowUserResolver<TParent>
   unfollowUser?: MutationToUnfollowUserResolver<TParent>
+  importArticles?: MutationToImportArticlesResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   invite?: MutationToInviteResolver<TParent>
@@ -2562,28 +2859,28 @@ export interface MutationToUnvoteCommentResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToPutAudioDraftArgs {
-  input: GQLPutAudioDraftInput
+export interface MutationToPutAudiodraftArgs {
+  input: GQLPutAudiodraftInput
 }
-export interface MutationToPutAudioDraftResolver<TParent = any, TResult = any> {
+export interface MutationToPutAudiodraftResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: MutationToPutAudioDraftArgs,
+    args: MutationToPutAudiodraftArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult
 }
 
-export interface MutationToDeleteAudioDraftArgs {
-  input: GQLDeleteAudioDraftInput
+export interface MutationToDeleteAudiodraftArgs {
+  input: GQLDeleteAudiodraftInput
 }
-export interface MutationToDeleteAudioDraftResolver<
+export interface MutationToDeleteAudiodraftResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToDeleteAudioDraftArgs,
+    args: MutationToDeleteAudiodraftArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult
@@ -2812,6 +3109,21 @@ export interface MutationToUnfollowUserResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface MutationToImportArticlesArgs {
+  input: GQLImportArticlesInput
+}
+export interface MutationToImportArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToImportArticlesArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface MutationToClearReadHistoryArgs {
   input?: GQLClearReadHistoryInput
 }
@@ -2844,6 +3156,44 @@ export interface MutationToInviteResolver<TParent = any, TResult = any> {
     context: any,
     info: GraphQLResolveInfo
   ): TResult
+}
+
+export interface GQLAudiodraftTypeResolver<TParent = any> {
+  id?: AudiodraftToIdResolver<TParent>
+  authorId?: AudiodraftToAuthorIdResolver<TParent>
+  title?: AudiodraftToTitleResolver<TParent>
+  audio?: AudiodraftToAudioResolver<TParent>
+  length?: AudiodraftToLengthResolver<TParent>
+  createdAt?: AudiodraftToCreatedAtResolver<TParent>
+  updatedAt?: AudiodraftToUpdatedAtResolver<TParent>
+}
+
+export interface AudiodraftToIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface AudiodraftToAuthorIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface AudiodraftToTitleResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface AudiodraftToAudioResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface AudiodraftToLengthResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface AudiodraftToCreatedAtResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface AudiodraftToUpdatedAtResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
 export interface GQLAssetTypeResolver<TParent = any> {
@@ -3148,6 +3498,25 @@ export interface ArticlePublishedNoticeToCreatedAtResolver<
 }
 
 export interface ArticlePublishedNoticeToTargetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLAudiodraftAuthoredEdgeTypeResolver<TParent = any> {
+  cursor?: AudiodraftAuthoredEdgeToCursorResolver<TParent>
+  node?: AudiodraftAuthoredEdgeToNodeResolver<TParent>
+}
+
+export interface AudiodraftAuthoredEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface AudiodraftAuthoredEdgeToNodeResolver<
   TParent = any,
   TResult = any
 > {

@@ -1,12 +1,17 @@
-import { Resolver, BatchParams, Context } from 'definitions'
+import { Context, UserToFollowersResolver } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = async (
+const resolver: UserToFollowersResolver = async (
   { id }: { id: string },
-  { input: { offset, limit } }: BatchParams,
+  { input },
   { dataSources: { userService } }: Context
 ) => {
-  const actions = await userService.findFollowersInBatch(id, offset, limit)
-  return userService.dataloader.loadMany(actions.map(({ userId }) => userId))
+  const actions = await userService.findFollowers(id)
+
+  return connectionFromPromisedArray(
+    userService.dataloader.loadMany(actions.map(({ userId }) => userId)),
+    input
+  )
 }
 
 export default resolver

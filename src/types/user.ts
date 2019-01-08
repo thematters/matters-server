@@ -26,7 +26,7 @@ export default /* GraphQL */ `
     followUser(input: FollowUserInput!): Boolean
     unfollowUser(input: UnfollowUserInput!): Boolean
     # misc
-    # importArticles(input: ImportArticlesInput!): [Article]
+    importArticles(input: ImportArticlesInput!): [Article]
     clearReadHistory(input: ClearReadHistoryInput): Boolean
     clearSearchHistory: Boolean
     invite(input: InviteInput!): Boolean
@@ -41,7 +41,7 @@ export default /* GraphQL */ `
     # Articles written by this user
     articles(input: ConnectionArgs!): ArticleAuthoredConnection!
     drafts(input: ConnectionArgs!): DraftAuthoredConnection!
-    Audiodrafts(input: ConnectionArgs!): AudiodraftAuthoredConnection!
+    audiodrafts(input: ConnectionArgs!): AudiodraftAuthoredConnection!
     # Comments posted by this user
     commentedArticles(input: ConnectionArgs!): ArticleCommentedConnection!
     subscriptions(input: ConnectionArgs!): ArticleSubcriptionConnection!
@@ -59,11 +59,11 @@ export default /* GraphQL */ `
 
   type UserFollowerConnection {
     pageInfo: PageInfo!
-    edges: [UserFollowersEdge]
+    edges: [UserFollowerEdge]
   }
 
   type UserFollowerEdge {
-    cursor: ID!
+    cursor: String!
     node: User!
   }
 
@@ -73,7 +73,7 @@ export default /* GraphQL */ `
   }
 
   type UserFolloweeEdge {
-    cursor: ID!
+    cursor: String!
     node: User!
   }
 
@@ -83,7 +83,7 @@ export default /* GraphQL */ `
   }
 
   type ArticleSubcriptionEdge {
-    cursor: ID!
+    cursor: String!
     node: Article!
   }
 
@@ -93,7 +93,7 @@ export default /* GraphQL */ `
   }
 
   type ArticleCommentedEdge {
-    cursor: ID!
+    cursor: String!
     node: Article!
   }
 
@@ -103,7 +103,7 @@ export default /* GraphQL */ `
   }
 
   type ArticleAuthoredEdge {
-    cursor: ID!
+    cursor: String!
     node: Article
   }  
 
@@ -113,7 +113,7 @@ export default /* GraphQL */ `
   }
 
   type DraftAuthoredEdge {
-    cursor: ID!
+    cursor: String!
     node: Draft!
   }  
 
@@ -123,7 +123,7 @@ export default /* GraphQL */ `
   }
 
   type AudiodraftAuthoredEdge {
-    cursor: ID!
+    cursor: String!
     node: Audiodraft!
   } 
 

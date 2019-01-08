@@ -21,8 +21,8 @@ export default /* GraphQL */ `
   }
 
   type PageInfo {
-    startCursor: ID!
-    endCursor: ID!
+    startCursor: String
+    endCursor: String
     hasNextPage: Boolean!
   }
 
@@ -90,9 +90,12 @@ export default /* GraphQL */ `
     contact: String
   }
 
+  # TODO: remove offset and limit 
   input ConnectionArgs {
     after: ID
     first: Int
+    offset: Int
+    limit: Int
   }
 
   enum SearchTypes {

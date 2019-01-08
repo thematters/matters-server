@@ -17,7 +17,7 @@ import {
   ItemData,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
-  GQLListInput
+  GQLConnectionArgs
 } from 'definitions'
 import { BaseService } from './baseService'
 import { stringList } from 'aws-sdk/clients/datapipeline'
@@ -220,7 +220,7 @@ export class UserService extends BaseService {
     limit = BATCH_SIZE,
     offset = 0,
     id
-  }: GQLListInput & { id: string }) => {
+  }: GQLConnectionArgs & { id: string }) => {
     const result = await this.knex('transaction_delta_view')
       .where({
         userId: id
@@ -267,7 +267,7 @@ export class UserService extends BaseService {
     id,
     offset = 0,
     limit = 5
-  }: GQLListInput & { id: string }) =>
+  }: GQLConnectionArgs & { id: string }) =>
     this.knex('action_user as au')
       .select('ar.*')
       .join('article as ar', 'ar.author_id', 'au.target_id')
@@ -371,47 +371,22 @@ export class UserService extends BaseService {
   /**
    * Find user's followee list by a given user id.
    */
-  findFollowees = async ({
-    userId,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    userId: string
-    offset?: number
-    limit?: number
-  }) =>
+  findFollowees = async (userId: string) =>
     this.knex
       .select()
       .from('action_user')
       .where({ userId, action: USER_ACTION.follow })
-      .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
+      .orderBy('created_at', 'desc')
 
   /**
-   * Find user's follower list by a given taget id (user).
+   * Find user's follower list by a given taget id (user) in batches.
    */
   findFollowers = async (targetId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('action_user')
       .where({ targetId, action: USER_ACTION.follow })
-
-  /**
-   * Find user's follower list by a given taget id (user) in batches.
-   */
-  findFollowersInBatch = async (
-    targetId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_user')
-      .where({ targetId, action: USER_ACTION.follow })
-      .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
+      .orderBy('created_at', 'desc')
 
   /**
    * Is user following target
