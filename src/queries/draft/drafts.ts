@@ -1,9 +1,10 @@
-import { Resolver, BatchParams, Context } from 'definitions'
+import { Context, UserToDraftsResolver } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = (
+const resolver: UserToDraftsResolver = (
   { id }: { id: string },
-  { input: { offset, limit } }: BatchParams,
+  { input },
   { dataSources: { draftService } }: Context
-) => draftService.findByAuthor(id, offset, limit)
+) => connectionFromPromisedArray(draftService.findByAuthor(id), input)
 
 export default resolver

@@ -1,9 +1,11 @@
-import { Resolver, BatchParams, Context } from 'definitions'
+import { Context, UserToAudiodraftsResolver } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = (
+const resolver: UserToAudiodraftsResolver = (
   { id }: { id: string },
-  { input: { offset, limit } }: BatchParams,
+  { input },
   { dataSources: { draftService } }: Context
-) => draftService.findAudiodraftsByAuthor(id, offset, limit)
+) =>
+  connectionFromPromisedArray(draftService.findAudiodraftsByAuthor(id), input)
 
 export default resolver

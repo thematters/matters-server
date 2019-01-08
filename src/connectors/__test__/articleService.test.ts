@@ -37,7 +37,7 @@ test('countWords', async () => {
 })
 
 test('findByAuthor', async () => {
-  const articles = await articleService.findByAuthor({ id: '1' })
+  const articles = await articleService.findByAuthor('1')
   expect(articles.length).toBeDefined()
 })
 

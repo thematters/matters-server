@@ -276,29 +276,12 @@ export class ArticleService extends BaseService {
   /**
    *  Find articles by a given author id (user) in batches.
    */
-  findByAuthor = async ({
-    id: authorId,
-    publishState,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    id: string
-    publishState?: string
-    offset?: number
-    limit?: number
-  }) => {
-    let where: { [key: string]: string } = { authorId }
-    if (publishState) {
-      where.publishState = publishState
-    }
-    return await this.knex
+  findByAuthor = async (authorId: String) =>
+    await this.knex
       .select()
       .from(this.table)
-      .where(where)
-      .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
-  }
+      .where({ authorId })
+      .orderBy('created_at', 'desc')
 
   /**
    * Find article by media hash

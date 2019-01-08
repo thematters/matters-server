@@ -1,9 +1,12 @@
-import { Resolver, BatchParams, Context } from 'definitions'
+import { Context, UserToArticlesResolver } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = (
+const resolver: UserToArticlesResolver = (
   { id }: { id: string },
-  { input: { offset, limit } }: BatchParams,
+  { input },
   { dataSources: { articleService } }: Context
-) => articleService.findByAuthor({ id, offset, limit })
+) => {
+  return connectionFromPromisedArray(articleService.findByAuthor(id), input)
+}
 
 export default resolver
