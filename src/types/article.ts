@@ -31,13 +31,13 @@ export default /* GraphQL */ `
     content: String!
     gatewayUrls: [URL!]
     upstream: Article
-    downstreams(input: ListInput!): [Article!]
-    relatedArticles(input: ListInput!): [Article!]
+    downstreams(input: ConnectionArgs!): [Article!]
+    relatedArticles(input: ConnectionArgs!): [Article!]
     # MAT recieved for this article
     MAT: Int!
     participantCount: Int!
-    subscribers(input: ListInput!): [User!]
-    appreciators(input: ListInput!): [User!]
+    subscribers(input: ConnectionArgs!): [User!]
+    appreciators(input: ConnectionArgs!): [User!]
     appreciatorCount: Int!
     # Viewer has subscribed
     subscribed: Boolean!
@@ -49,7 +49,7 @@ export default /* GraphQL */ `
     id: ID!
     content: String!
     count: Int!
-    articles(input: ListInput!): [Article!]
+    articles(input: ConnectionArgs!): [Article!]
   }
 
   input ArticleInput {

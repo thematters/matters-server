@@ -1,6 +1,6 @@
 // local
 import { knex } from 'connectors/db'
-import { GQLPutDraftInput, GQLPutAudioDraftInput } from 'definitions'
+import { GQLPutDraftInput, GQLPutAudiodraftInput } from 'definitions'
 import { testClient } from './utils'
 
 afterAll(knex.destroy)
@@ -21,8 +21,8 @@ const PUT_DRAFT = `
   }
 `
 const PUT_AUDIO_DRAFT = `
-  mutation($input: PutAudioDraftInput!) {
-    putAudioDraft(input: $input) {
+  mutation($input: PutAudiodraftInput!) {
+    putAudiodraft(input: $input) {
       id
       authorId
       title
@@ -45,17 +45,17 @@ export const putDraft = async (draft: GQLPutDraftInput) => {
   return putDraft
 }
 
-export const putAudioDraft = async (audioDraft: GQLPutAudioDraftInput) => {
+export const putAudiodraft = async (Audiodraft: GQLPutAudiodraftInput) => {
   const { mutate } = await testClient({
     isAuth: true
   })
   const result = await mutate({
     mutation: PUT_AUDIO_DRAFT,
     // @ts-ignore
-    variables: { input: audioDraft }
+    variables: { input: Audiodraft }
   })
-  const putAudioDraft = result && result.data && result.data.putAudioDraft
-  return putAudioDraft
+  const putAudiodraft = result && result.data && result.data.putAudiodraft
+  return putAudiodraft
 }
 
 describe('draft', async () => {
@@ -91,24 +91,24 @@ describe('draft', async () => {
 describe('audio draft', async () => {
   test('create and edit new audio draft', async () => {
     // create
-    const audioDraft = {
+    const Audiodraft = {
       title: 'audio draft',
       audioAssetId: '00000000-0000-0000-0000-000000000007',
       length: 30
     }
-    const audioDraftCreated = await putAudioDraft(audioDraft)
-    expect(audioDraftCreated).toMatchObject({
-      title: audioDraft.title,
-      length: audioDraft.length
+    const AudiodraftCreated = await putAudiodraft(Audiodraft)
+    expect(AudiodraftCreated).toMatchObject({
+      title: Audiodraft.title,
+      length: Audiodraft.length
     })
-    expect(audioDraftCreated.audio).toBeTruthy()
+    expect(AudiodraftCreated.audio).toBeTruthy()
 
     // edit
-    const editAudioDraft = {
-      id: audioDraftCreated.id,
+    const editAudiodraft = {
+      id: AudiodraftCreated.id,
       title: 'edited title'
     }
-    const audioDraftEdited = await putAudioDraft(editAudioDraft)
-    expect(audioDraftEdited.title).toBe(editAudioDraft.title)
+    const AudiodraftEdited = await putAudiodraft(editAudiodraft)
+    expect(AudiodraftEdited.title).toBe(editAudiodraft.title)
   })
 })

@@ -381,8 +381,10 @@ type Mutation {
   followUser(input: FollowUserInput!): Boolean
   unfollowUser(input: UnfollowUserInput!): Boolean
 
-  """misc"""
+  """
+  misc
   importArticles(input: ImportArticlesInput!): [Article]
+  """
   clearReadHistory(input: ClearReadHistoryInput): Boolean
   clearSearchHistory: Boolean
   invite(input: InviteInput!): Boolean

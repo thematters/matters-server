@@ -624,8 +624,8 @@ export interface GQLMutation {
 
   /**
    * misc
+   * importArticles(input: ImportArticlesInput!): [Article]
    */
-  importArticles?: Array<GQLArticle | null>
   clearReadHistory?: boolean
   clearSearchHistory?: boolean
   invite?: boolean
@@ -849,11 +849,6 @@ export interface GQLUnfollowUserInput {
   id: string
 }
 
-export interface GQLImportArticlesInput {
-  platform?: string
-  token?: string
-}
-
 export interface GQLClearReadHistoryInput {
   id: string
 }
@@ -954,6 +949,11 @@ export interface GQLDownstreamArticleArchivedNotice extends GQLNotice {
   createdAt: GQLDateTime
   downstream?: GQLArticle
   target?: GQLArticle
+}
+
+export interface GQLImportArticlesInput {
+  platform?: string
+  token?: string
 }
 
 export type GQLJSON = any
@@ -2370,7 +2370,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   >
   followUser?: MutationToFollowUserResolver<TParent>
   unfollowUser?: MutationToUnfollowUserResolver<TParent>
-  importArticles?: MutationToImportArticlesResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   invite?: MutationToInviteResolver<TParent>
@@ -2808,21 +2807,6 @@ export interface MutationToUnfollowUserResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUnfollowUserArgs,
-    context: any,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToImportArticlesArgs {
-  input: GQLImportArticlesInput
-}
-export interface MutationToImportArticlesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToImportArticlesArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult

@@ -36,13 +36,13 @@ test('findByAuthor', async () => {
   expect(drafts[0]).toEqual(expect.objectContaining(draftValidation))
 })
 
-test('findAudioDraft', async () => {
-  const audios = await service.findAudioDraft('1')
+test('findAudiodraft', async () => {
+  const audios = await service.findAudiodraft('1')
   expect(audios.length).toBe(1)
   expect(audios[0]).toEqual(expect.objectContaining(audioValidation))
 })
 
-test('findAudioDraftsByAuthor', async () => {
-  const audios = await service.findAudioDraftsByAuthor('1', 0)
+test('findAudiodraftsByAuthor', async () => {
+  const audios = await service.findAudiodraftsByAuthor('1', 0)
   expect(audios[0]).toEqual(expect.objectContaining(audioValidation))
 })

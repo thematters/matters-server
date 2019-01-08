@@ -1,12 +1,12 @@
-import putAudioDraft from './putAudioDraft'
-import deleteAudioDraft from './deleteAudioDraft'
+import putAudiodraft from './putAudiodraft'
+import deleteAudiodraft from './deleteAudiodraft'
 import putDraft from './putDraft'
 import deleteDraft from './deleteDraft'
 
 export default {
   Mutation: {
-    putAudioDraft,
-    deleteAudioDraft,
+    putAudiodraft,
+    deleteAudiodraft,
     putDraft,
     deleteDraft
   }

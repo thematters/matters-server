@@ -121,7 +121,7 @@ const GET_VIEWER_INFO = `
   }
 `
 const GET_VIEW_ARTICLES = `
-  query ($input: ListInput!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       articles(input: $input) {
         id
@@ -164,7 +164,7 @@ const GET_USER_INVITATION = `
   }
 `
 const GET_VIEWER_SUBSCRIPTIONS = `
-  query ($input: ListInput!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       subscriptions(input: $input) {
         id
@@ -173,7 +173,7 @@ const GET_VIEWER_SUBSCRIPTIONS = `
   }
 `
 const GET_VIEWER_FOLLOWERS = `
-  query ($input: ListInput!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       followers(input: $input) {
         id
@@ -182,7 +182,7 @@ const GET_VIEWER_FOLLOWERS = `
   }
 `
 const GET_VIEWER_FOLLOWEES = `
-  query ($input: ListInput!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       followees(input: $input) {
         id
@@ -204,7 +204,7 @@ const GET_VIEWER_STATUS = `
   }
 `
 const GET_VIEWER_RECOMMENDATION = (list: string) => `
-query($input: ListInput!) {
+query($input: ConnectionArgs!) {
   viewer {
     recommendation {
       ${list}(input: $input) {

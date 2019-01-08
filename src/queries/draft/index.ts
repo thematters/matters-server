@@ -15,7 +15,7 @@ export default {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Draft', id }),
     cover
   },
-  AudioDraft: {
+  Audiodraft: {
     id: ({ uuid }: { uuid: string }) => uuid,
     authorId: ({ id }: { id: string }) => toGlobalId({ type: 'User', id }),
     audio

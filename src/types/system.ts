@@ -20,6 +20,12 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  type PageInfo {
+    startCursor: ID!
+    endCursor: ID!
+    hasNextPage: Boolean!
+  }
+
   type SearchResult {
     node: Node
     match: String
@@ -84,9 +90,9 @@ export default /* GraphQL */ `
     contact: String
   }
 
-  input ListInput {
-    offset: Int
-    limit: Int
+  input ConnectionArgs {
+    after: ID
+    first: Int
   }
 
   enum SearchTypes {
@@ -98,7 +104,7 @@ export default /* GraphQL */ `
   enum AssetType {
     avatar
     cover
-    audioDraft
+    Audiodraft
     report
     feedback
   }

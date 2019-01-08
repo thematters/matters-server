@@ -4,7 +4,7 @@ export default /* GraphQL */ `
   }
 
   extend type User {
-    notices(input: ListInput!): [Notice!]
+    notices(input: ConnectionArgs!): [Notice!]
   }
 
   interface Notice {
