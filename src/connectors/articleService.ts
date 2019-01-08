@@ -3,6 +3,7 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { ItemData, GQLSearchInput } from 'definitions'
 import { v4 } from 'uuid'
+import slugify from '@sindresorhus/slugify'
 
 import {
   BATCH_SIZE,
@@ -128,7 +129,7 @@ export class ArticleService extends BaseService {
       draftId,
       upstreamId,
       title,
-      cover,
+      slug: slugify(title),
       summary,
       content,
       dataHash,
