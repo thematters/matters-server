@@ -21,7 +21,7 @@ const resolver: Resolver = async (
   }
 
   await commentService.baseUpdateById(dbId, {
-    status: 'archived'
+    state: 'archived'
   })
 
   // trigger notificaiton

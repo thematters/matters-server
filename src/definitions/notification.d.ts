@@ -3,7 +3,6 @@ import { TableName } from './'
 export type NoticeType =
   // user
   | 'user_new_follower'
-  | 'user_disabled'
   // article
   | 'article_published'
   | 'article_new_downstream'
@@ -43,12 +42,6 @@ export type NoticeUserNewFollowerParams = {
   event: 'user_new_follower'
   recipientId: string
   actorId: string
-}
-
-export type NoticeUserDisabledParams = {
-  event: 'user_disabled'
-  recipientId: string
-  data: { reason: string }
 }
 
 export type NoticeArticlePublishedParams = {
@@ -164,7 +157,6 @@ export type PubSubArticleUpdatedParams = {
 export type NotificationType = PubSubType | NoticeType
 export type NotificationPrarms =
   | NoticeUserNewFollowerParams
-  | NoticeUserDisabledParams
   | NoticeArticlePublishedParams
   | NoticeArticleNewDownstreamParams
   | NoticeArticleNewAppreciationParams

@@ -28,12 +28,6 @@ exports.seed = async knex => {
       actors: ['2', '3'],
       recipient_id: '1'
     },
-    // recipient_id (1) was disabled due to violation
-    {
-      notice_type: 'user_disabled',
-      data: { reason: 'violation' },
-      recipient_id: '1'
-    },
     // recipient_id (1) 's article (1) was published
     {
       notice_type: 'article_published',
@@ -151,12 +145,49 @@ exports.seed = async knex => {
       message: 'Click to update the latest version of Matters!',
       data: { link: 'https://matters.news/download/' }
     },
-    // Official Announcement - Report Feedback
+    // Official Announcement - User Banned
     {
       notice_type: 'official_announcement',
       recipient_id: '1',
       message:
+        '因為違反社區規則，Matters 決定將您禁言 7 天，期間無法發佈文章、評論和讚賞'
+    },
+    // Official Announcement - User Frozen
+    {
+      notice_type: 'official_announcement',
+      recipient_id: '1',
+      message:
+        '因為違反社區規則，Matters 決定將您的賬戶凍結，無法在站上進行互動'
+    },
+    // Official Announcement - Article Violation
+    {
+      notice_type: 'official_announcement',
+      recipient_id: '1',
+      data: { link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1' },
+      message:
+        '因為違反社區規則，Matters 決定將您的文章《改革開放四十週年大會看點》隱藏'
+    },
+    {
+      notice_type: 'official_announcement',
+      recipient_id: '1',
+      data: { link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1' },
+      message:
+        '因為未違反社區規則， Matters 對您的文章《改革開放四十週年大會看點》將不做任何處理'
+    },
+    // Official Announcement - Article Report Feedback
+    {
+      notice_type: 'official_announcement',
+      recipient_id: '1',
+      data: { link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1' },
+      message:
         '你舉報的文章《改革開放四十週年大會看點》已被刪除！感謝你對 Matters 的支持！'
+    },
+    {
+      notice_type: 'official_announcement',
+      recipient_id: '1',
+      data: { link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1' },
+      message:
+        '您舉報的文章《改革開放四十週年大會看點》經查並未違反社區規則，將不做處理'
     }
   ]
 

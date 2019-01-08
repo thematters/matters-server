@@ -21,7 +21,10 @@ const resolver: MutationToVoteCommentResolver = async (
     commentId: dbId
   })
   if (voted && voted.length > 0) {
-    throw new Error('Can only vote oncew')
+    await commentService.removeVotesByUserId({
+      userId: viewer.id,
+      commentId: dbId
+    })
   }
 
   await commentService.vote({ commentId: dbId, vote, userId: viewer.id })

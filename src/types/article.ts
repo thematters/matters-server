@@ -1,6 +1,7 @@
 export default /* GraphQL */ `
   extend type Query {
     article(input: ArticleInput!): Article
+    articles(input: ArticlesInput!): [Article!]
   }
 
   extend type Mutation {
@@ -12,6 +13,8 @@ export default /* GraphQL */ `
     appreciateArticle(input: AppreciateArticleInput!): Article!
     readArticle(input: ReadArticleInput!): Boolean
     recallPublish(input: RecallPublishInput!): Draft!
+    toggleArticleLive(input: ToggleArticleLiveInput!): Article!
+    toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
   }
 
   type Article implements Node {
@@ -20,6 +23,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
     publishState: PublishState!
     public: Boolean!
+    live: Boolean!
     author: User!
     title: String!
     cover: URL
@@ -54,6 +58,12 @@ export default /* GraphQL */ `
 
   input ArticleInput {
     mediaHash: String!
+  }
+
+  input ArticlesInput {
+    public: Boolean
+    offset: Int
+    limit: Int
   }
 
   input PublishArticleInput {
@@ -91,6 +101,16 @@ export default /* GraphQL */ `
 
   input RecallPublishInput {
     id: ID!
+  }
+
+  input ToggleArticleLiveInput {
+    id: ID!
+    enabled: Boolean!
+  }
+
+  input ToggleArticlePublicInput {
+    id: ID!
+    enabled: Boolean!
   }
 
   enum PublishState {
