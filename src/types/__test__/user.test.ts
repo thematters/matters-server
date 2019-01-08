@@ -249,7 +249,6 @@ export const getViewerMATHistory = async () => {
     // @ts-ignore
     variables: { input: {} }
   })
-  console.log({ error: result.errors })
   const { data } = result
   const { history } =
     data && data.viewer && data.viewer.status && data.viewer.status.MAT

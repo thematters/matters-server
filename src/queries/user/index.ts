@@ -81,6 +81,7 @@ export default {
     sent: invitationSent
   },
   Invitation: {
+    id: ({ id }: { id: string }) => toGlobalId({ type: 'Invitation', id }),
     user: invitationRecipient,
     accepted: invitationAccepted
   }
