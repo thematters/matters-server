@@ -556,12 +556,23 @@ export class UserService extends BaseService {
       .limit(limit)
 
   /**
+   * count invitations
+   */
+  countInvitation = async (userId: string) => {
+    const result = await this.knex('invitation')
+      .select()
+      .count('id')
+      .where({ senderId: userId })
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  /**
    * Find invitation by id
    */
   findInvitation = async (id: string) => {
-    const result = await this.knex
+    const result = await this.knex('invitation')
       .select()
-      .from('invitation')
       .where({ id })
       .first()
     return result
@@ -592,7 +603,6 @@ export class UserService extends BaseService {
       await trx
         .insert({
           uuid: v4(),
-          senderId,
           recipientId,
           referenceId: invitationId,
           purpose: TRANSACTION_PURPOSE.joinByInvitation,
@@ -655,7 +665,6 @@ export class UserService extends BaseService {
         await trx
           .insert({
             uuid: v4(),
-            senderId: sender ? sender.id : null,
             recipientId: userId,
             referenceId: invitation.id,
             purpose: TRANSACTION_PURPOSE.joinByInvitation,

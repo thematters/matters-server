@@ -38,7 +38,7 @@ export const Transaction: GQLTransactionTypeResolver = {
         )
       case TRANSACTION_PURPOSE.invitationAccepted:
       case TRANSACTION_PURPOSE.joinByInvitation:
-        const invitation = await userService.findInvitation(trx.reference_id)
+        const invitation = await userService.findInvitation(trx.referenceId)
         return { ...invitation, __type: 'Invitation' }
     }
   }

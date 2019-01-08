@@ -8,10 +8,9 @@ const resolver: Resolver = async (
   if (viewer.id !== id) {
     throw Error('Not authorized')
   }
-  const invited = await userService.findInvitations({ userId: id })
+  const invitionCount = await userService.countInvitation(id)
   const mat = await userService.totalMAT(id)
-  console.log({ invited, mat })
-  return Math.max(Math.floor(Math.log(mat)) - invited.length, 0)
+  return Math.max(Math.floor(Math.log(mat)) - invitionCount, 0)
 }
 
 export default resolver

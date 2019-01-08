@@ -18,7 +18,7 @@ import followerCount from './followerCount'
 import followeeCount from './followeeCount'
 import subscriptionCount from './subscriptionCount'
 import unreadNoticeCount from './unreadNoticeCount'
-import recommendation from './recommendation'
+import Recommendation from './recommendation'
 import invitationLeft from './invitationLeft'
 import invitationSent from './invitationSent'
 import invitationRecipient from './invitationRecipient'
@@ -45,7 +45,7 @@ export default {
     isFollower,
     isFollowee
   },
-  Recommendation: recommendation,
+  Recommendation,
   UserInfo: {
     avatar
   },
