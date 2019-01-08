@@ -19,6 +19,7 @@ import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql'
 export interface GQLQuery {
   _?: boolean
   article?: GQLArticle
+  articles?: Array<GQLArticle>
   node?: GQLNode
   frequentSearch?: Array<string>
   search?: Array<GQLSearchResult>
@@ -38,6 +39,7 @@ export interface GQLArticle extends GQLNode {
   createdAt: GQLDateTime
   publishState: GQLPublishState
   public: boolean
+  live: boolean
   author: GQLUser
   title: string
   cover?: GQLURL
@@ -478,7 +480,6 @@ export type GQLPossibleNoticeTypeNames =
   | 'OfficialAnnouncementNotice'
   | 'SubscribedArticleNewCommentNotice'
   | 'UpstreamArticleArchivedNotice'
-  | 'UserDisabledNotice'
   | 'UserNewFollowerNotice'
 
 export interface GQLNoticeNameMap {
@@ -496,7 +497,6 @@ export interface GQLNoticeNameMap {
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
   SubscribedArticleNewCommentNotice: GQLSubscribedArticleNewCommentNotice
   UpstreamArticleArchivedNotice: GQLUpstreamArticleArchivedNotice
-  UserDisabledNotice: GQLUserDisabledNotice
   UserNewFollowerNotice: GQLUserNewFollowerNotice
 }
 
@@ -544,6 +544,12 @@ export enum GQLCommentSort {
   oldest = 'oldest',
   newest = 'newest',
   upvotes = 'upvotes'
+}
+
+export interface GQLArticlesInput {
+  public?: boolean
+  offset?: number
+  limit?: number
 }
 
 export interface GQLNodeInput {
@@ -617,6 +623,8 @@ export interface GQLMutation {
   appreciateArticle: GQLArticle
   readArticle?: boolean
   recallPublish: GQLDraft
+  toggleArticleLive: GQLArticle
+  toggleArticlePublic: GQLArticle
   putComment: GQLComment
   pinComment: GQLComment
   deleteComment?: boolean
@@ -727,6 +735,16 @@ export interface GQLReadArticleInput {
 
 export interface GQLRecallPublishInput {
   id: string
+}
+
+export interface GQLToggleArticleLiveInput {
+  id: string
+  enabled: boolean
+}
+
+export interface GQLToggleArticlePublicInput {
+  id: string
+  enabled: boolean
 }
 
 export interface GQLPutCommentInput {
@@ -1061,17 +1079,6 @@ export interface GQLUpstreamArticleArchivedNotice extends GQLNotice {
   target?: GQLArticle
 }
 
-export interface GQLUserDisabledNotice extends GQLNotice {
-  id: string
-  unread: boolean
-  createdAt: GQLDateTime
-  reason?: GQLUserDisabledReason
-}
-
-export enum GQLUserDisabledReason {
-  violation = 'violation'
-}
-
 export enum GQLUserInfoFields {
   displayName = 'displayName',
   avatar = 'avatar',
@@ -1167,12 +1174,12 @@ export interface GQLResolver {
   SubscribedArticleNewCommentNotice?: GQLSubscribedArticleNewCommentNoticeTypeResolver
   Time?: GraphQLScalarType
   UpstreamArticleArchivedNotice?: GQLUpstreamArticleArchivedNoticeTypeResolver
-  UserDisabledNotice?: GQLUserDisabledNoticeTypeResolver
   UserNewFollowerNotice?: GQLUserNewFollowerNoticeTypeResolver
 }
 export interface GQLQueryTypeResolver<TParent = any> {
   _?: QueryTo_Resolver<TParent>
   article?: QueryToArticleResolver<TParent>
+  articles?: QueryToArticlesResolver<TParent>
   node?: QueryToNodeResolver<TParent>
   frequentSearch?: QueryToFrequentSearchResolver<TParent>
   search?: QueryToSearchResolver<TParent>
@@ -1193,6 +1200,18 @@ export interface QueryToArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToArticleArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface QueryToArticlesArgs {
+  input: GQLArticlesInput
+}
+export interface QueryToArticlesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: QueryToArticlesArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult
@@ -1272,6 +1291,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   createdAt?: ArticleToCreatedAtResolver<TParent>
   publishState?: ArticleToPublishStateResolver<TParent>
   public?: ArticleToPublicResolver<TParent>
+  live?: ArticleToLiveResolver<TParent>
   author?: ArticleToAuthorResolver<TParent>
   title?: ArticleToTitleResolver<TParent>
   cover?: ArticleToCoverResolver<TParent>
@@ -1314,6 +1334,10 @@ export interface ArticleToPublishStateResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToPublicResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ArticleToLiveResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2468,7 +2492,6 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'OfficialAnnouncementNotice'
     | 'SubscribedArticleNewCommentNotice'
     | 'UpstreamArticleArchivedNotice'
-    | 'UserDisabledNotice'
     | 'UserNewFollowerNotice'
 }
 export interface GQLCommentTypeResolver<TParent = any> {
@@ -2639,6 +2662,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
   recallPublish?: MutationToRecallPublishResolver<TParent>
+  toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
+  toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   pinComment?: MutationToPinCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
@@ -2782,6 +2807,36 @@ export interface MutationToRecallPublishResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToRecallPublishArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleArticleLiveArgs {
+  input: GQLToggleArticleLiveInput
+}
+export interface MutationToToggleArticleLiveResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleArticleLiveArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleArticlePublicArgs {
+  input: GQLToggleArticlePublicInput
+}
+export interface MutationToToggleArticlePublicResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleArticlePublicArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult
@@ -3868,38 +3923,6 @@ export interface UpstreamArticleArchivedNoticeToUpstreamResolver<
 }
 
 export interface UpstreamArticleArchivedNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLUserDisabledNoticeTypeResolver<TParent = any> {
-  id?: UserDisabledNoticeToIdResolver<TParent>
-  unread?: UserDisabledNoticeToUnreadResolver<TParent>
-  createdAt?: UserDisabledNoticeToCreatedAtResolver<TParent>
-  reason?: UserDisabledNoticeToReasonResolver<TParent>
-}
-
-export interface UserDisabledNoticeToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserDisabledNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserDisabledNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserDisabledNoticeToReasonResolver<
   TParent = any,
   TResult = any
 > {

@@ -16,6 +16,13 @@ import { getViewerMAT } from './user.test'
 afterAll(knex.destroy)
 
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 2 })
+const GET_ARTICLES = `
+  query ($input: ArticlesInput!) {
+    articles(input: $input) {
+      id
+    }
+  }
+`
 const PUBLISH_ARTICLE = `
   mutation($input: PublishArticleInput!) {
     publishArticle(input: $input) {
@@ -87,6 +94,20 @@ const REPORT_ARTICLE = `
     reportArticle(input: $input)
   }
 `
+const TOGGLE_ARTICLE_LIVE = `
+  mutation($input: ToggleArticleLiveInput!) {
+    toggleArticleLive(input: $input) {
+      live
+    }
+  }
+`
+const TOGGLE_ARTICLE_PUBLIC = `
+  mutation($input: ToggleArticlePublicInput!) {
+    toggleArticlePublic(input: $input) {
+      public
+    }
+  }
+`
 
 export const publishArticle = async (input: GQLPublishArticleInput) => {
   const { mutate } = await testClient({
@@ -131,6 +152,16 @@ export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
 }
 
 describe('query article', async () => {
+  test('query articles', async () => {
+    const { query } = await testClient({ isAuth: true, isAdmin: true })
+    const { data } = await query({
+      query: GET_ARTICLES,
+      // @ts-ignore
+      variables: { input: {} }
+    })
+    expect(data.articles.length).toBeGreaterThan(1)
+  })
+
   test('query article by mediaHash', async () => {
     const mediaHash = 'some-ipfs-media-hash-1'
     const { query } = await testClient()
@@ -262,5 +293,67 @@ describe('report article', async () => {
       }
     })
     expect(result.data.reportArticle).toBe(true)
+  })
+})
+
+describe('toggle article state', async () => {
+  test('enable article live', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
+    const result = await mutate({
+      mutation: TOGGLE_ARTICLE_LIVE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: true
+        }
+      }
+    })
+    expect(result.data.toggleArticleLive.live).toBe(true)
+  })
+
+  test('disable article live', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
+    const result = await mutate({
+      mutation: TOGGLE_ARTICLE_LIVE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: false
+        }
+      }
+    })
+    expect(result.data.toggleArticleLive.live).toBe(false)
+  })
+
+  test('enable article public', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
+    const { data } = await mutate({
+      mutation: TOGGLE_ARTICLE_PUBLIC,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: true
+        }
+      }
+    })
+    expect(data.toggleArticlePublic.public).toBe(true)
+  })
+
+  test('disable article public', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
+    const { data } = await mutate({
+      mutation: TOGGLE_ARTICLE_PUBLIC,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: false
+        }
+      }
+    })
+    expect(data.toggleArticlePublic.public).toBe(false)
   })
 })

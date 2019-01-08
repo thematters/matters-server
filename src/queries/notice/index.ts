@@ -12,7 +12,6 @@ export default {
       const noticeTypeMap = {
         // user
         user_new_follower: 'UserNewFollowerNotice',
-        user_disabled: 'UserDisabledNotice',
         // article
         article_published: 'ArticlePublishedNotice',
         article_new_downstream: 'ArticleNewDownstreamNotice',
@@ -34,9 +33,6 @@ export default {
     }
   },
   UserNewFollowerNotice: {
-    id: ({ uuid }: { uuid: string }) => uuid
-  },
-  UserDisabledNotice: {
     id: ({ uuid }: { uuid: string }) => uuid
   },
   ArticlePublishedNotice: {

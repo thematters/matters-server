@@ -20,16 +20,6 @@ export default /* GraphQL */ `
     actors: [User!]
   }
 
-  type UserDisabledNotice implements Notice {
-    id: ID!
-    unread: Boolean!
-    createdAt: DateTime!
-    reason: UserDisabledReason
-  }
-  enum UserDisabledReason {
-    violation
-  }
-
   type ArticlePublishedNotice implements Notice {
     id: ID!
     unread: Boolean!

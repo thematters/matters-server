@@ -13,7 +13,6 @@ const recipientId = '1'
 describe('user notify setting', async () => {
   const noticeTypes: NotificationType[] = [
     'user_new_follower',
-    'user_disabled',
     'article_published',
     'article_new_downstream',
     'article_new_appreciation',
@@ -31,7 +30,6 @@ describe('user notify setting', async () => {
   const defaultNoifySetting: { [key in NotificationType]: boolean } = {
     article_updated: false,
     user_new_follower: true,
-    user_disabled: true,
     article_published: true,
     article_new_downstream: true,
     article_new_appreciation: true,
@@ -102,14 +100,6 @@ describe('bundle notices', async () => {
   })
 
   test('unbundleable', async () => {
-    // notice without actors and entities
-    const userDisabledNoticeId = await noticeService.getBundleableNoticeId({
-      type: 'user_disabled',
-      recipientId,
-      data: { reason: 'violation' }
-    })
-    expect(userDisabledNoticeId).toBeUndefined()
-
     // notice without actors
     const articleNewDownstreamNoticeId = await noticeService.getBundleableNoticeId(
       {

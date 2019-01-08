@@ -45,7 +45,7 @@ export type User = {
   mat: number
   language: string
   oauthType: any
-  role: string
+  role: 'admin' | 'user'
   state: string
   createdAt: string
   updatedAt: string

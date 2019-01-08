@@ -408,27 +408,12 @@ export class UserService extends BaseService {
   /**
    * Find an users' subscription by a given user id.
    */
-  findSubscriptions = async (userId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_article')
-      .where({ userId, action: USER_ACTION.subscribe })
-
-  /**
-   * Find an users' subscription by a given user id in batches.
-   */
-  findSubscriptionsInBatch = async (
-    userId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ): Promise<any[]> => {
+  findSubscriptions = async (userId: string): Promise<any[]> => {
     return await this.knex
       .select()
       .from('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
-      .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
+      .orderBy('created_at', 'desc')
   }
 
   /**

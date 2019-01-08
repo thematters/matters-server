@@ -1,3 +1,4 @@
+import _get from 'lodash/get'
 // local
 import { toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
@@ -55,6 +56,12 @@ const UNVOTE_COMMENT = `
   }
 `
 
+const DELETE_COMMENT = `
+  mutation($input: DeleteCommentInput!) {
+    deleteComment(input: $input)
+  }
+`
+
 const GET_COMMENT = `
   query($input: NodeInput!) {
     node(input: $input) {
@@ -66,7 +73,7 @@ const GET_COMMENT = `
   }
 `
 
-const getCommentUpvotes = async (commentId: string) => {
+const getCommentVotes = async (commentId: string) => {
   const { query } = await testClient()
   const { data } = await query({
     query: GET_COMMENT,
@@ -75,7 +82,7 @@ const getCommentUpvotes = async (commentId: string) => {
       input: { id: commentId }
     }
   })
-  return data && data.node.upvotes
+  return data && data.node
 }
 
 describe('query comment list on article', async () => {
@@ -189,7 +196,9 @@ describe('mutations on comment', async () => {
 
   test('upvote a comment', async () => {
     const { mutate } = await testClient({ isAuth: true })
-    const upvotes = await getCommentUpvotes(commentId)
+    const { upvotes, downvotes } = await getCommentVotes(commentId)
+
+    // upvote
     const { data } = await mutate({
       mutation: VOTE_COMMENT,
       // @ts-ignore
@@ -197,21 +206,46 @@ describe('mutations on comment', async () => {
         input: { id: commentId, vote: 'up' }
       }
     })
-    const upvotesUpdated = data && data.voteComment.upvotes
-    expect(upvotesUpdated).toBe(upvotes + 1)
+    expect(_get(data, 'voteComment.upvotes')).toBe(upvotes + 1)
+  })
+
+  test('downvote a comment', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const { upvotes, downvotes } = await getCommentVotes(commentId)
+    const { data: downvoteData } = await mutate({
+      mutation: VOTE_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: { id: commentId, vote: 'down' }
+      }
+    })
+    expect(_get(downvoteData, 'voteComment.upvotes')).toBe(upvotes - 1)
+    expect(_get(downvoteData, 'voteComment.downvotes')).toBe(downvotes + 1)
   })
 
   test('unvote a comment', async () => {
     const { mutate } = await testClient({ isAuth: true })
-    const upvotes = await getCommentUpvotes(commentId)
-    const { data } = await mutate({
+    const { upvotes, downvotes } = await getCommentVotes(commentId)
+    const { data: unvoteData } = await mutate({
       mutation: UNVOTE_COMMENT,
       // @ts-ignore
       variables: {
         input: { id: commentId }
       }
     })
-    const upvotesUpdated = data && data.unvoteComment.upvotes
-    expect(upvotesUpdated).toBe(upvotes - 1)
+    expect(_get(unvoteData, 'unvoteComment.upvotes')).toBe(upvotes)
+    expect(_get(unvoteData, 'unvoteComment.downvotes')).toBe(downvotes - 1)
+  })
+
+  test('delete comment', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const { data } = await mutate({
+      mutation: DELETE_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: { id: toGlobalId({ type: 'Comment', id: 1 }) }
+      }
+    })
+    expect(_get(data, 'deleteComment')).toBe(true)
   })
 })

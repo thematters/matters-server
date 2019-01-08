@@ -5,11 +5,7 @@ const resolver: Resolver = async (
   { input: { offset, limit } }: BatchParams,
   { dataSources: { articleService, userService } }: Context
 ) => {
-  const actions = await articleService.findSubscriptionsInBatch(
-    id,
-    offset,
-    limit
-  )
+  const actions = await articleService.findSubscriptions(id)
   return userService.dataloader.loadMany(actions.map(({ userId }) => userId))
 }
 

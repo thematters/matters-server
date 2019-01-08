@@ -3,6 +3,7 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { ItemData, GQLSearchInput } from 'definitions'
 import { v4 } from 'uuid'
+import slugify from '@matters/slugify'
 
 import {
   BATCH_SIZE,
@@ -128,7 +129,7 @@ export class ArticleService extends BaseService {
       draftId,
       upstreamId,
       title,
-      cover,
+      slug: slugify(title),
       summary,
       content,
       dataHash,
@@ -274,6 +275,32 @@ export class ArticleService extends BaseService {
       .filter(s => s !== '').length
 
   /**
+   * Find articles
+   */
+  find = async ({
+    where,
+    offset = 0,
+    limit = BATCH_SIZE
+  }: {
+    where?: { [key: string]: any }
+    offset?: number
+    limit?: number
+  }) => {
+    let qs = this.knex
+      .select()
+      .from(this.table)
+      .orderBy('id', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+    if (where) {
+      qs = qs.where(where)
+    }
+
+    return await qs
+  }
+
+  /**
    *  Find articles by a given author id (user) in batches.
    */
   findByAuthor = async (authorId: String) =>
@@ -363,22 +390,7 @@ export class ArticleService extends BaseService {
       .select()
       .from('action_article')
       .where({ targetId, action: USER_ACTION.subscribe })
-
-  /**
-   * Find an article's subscribers by a given targetId (article) in batches.
-   */
-  findSubscriptionsInBatch = async (
-    targetId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_article')
-      .where({ targetId, action: USER_ACTION.subscribe })
-      .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
+      .orderBy('created_at', 'desc')
 
   /**
    * Find an article's subscriber by a given targetId (article) and user id.

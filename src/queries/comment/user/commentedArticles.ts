@@ -1,13 +1,19 @@
-import { Resolver, BatchParams, Context } from 'definitions'
+import { uniq } from 'lodash'
+import { connectionFromPromisedArray } from 'graphql-relay'
+import { Context, UserToCommentedArticlesResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: UserToCommentedArticlesResolver = async (
   { id }: { id: string },
-  { input: { offset, limit } }: BatchParams,
+  { input },
   { dataSources: { commentService, articleService } }: Context
 ) => {
-  const comments = await commentService.findByAuthorInBatch(id, offset, limit)
-  return articleService.dataloader.loadMany(
+  const comments = await commentService.findByAuthor(id)
+  const articleIds = uniq(
     comments.map(({ articleId }: { articleId: string }) => articleId)
+  )
+  return connectionFromPromisedArray(
+    articleService.dataloader.loadMany(articleIds),
+    input
   )
 }
 

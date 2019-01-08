@@ -161,29 +161,14 @@ export class CommentService extends BaseService {
   }
 
   /**
-   * Find comments by a given author id (user).
+   * Find comments by a given author id (user) in batches.
    */
   findByAuthor = async (authorId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
       .where({ authorId })
-
-  /**
-   * Find comments by a given author id (user) in batches.
-   */
-  findByAuthorInBatch = async (
-    authorId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ authorId })
-      .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
+      .orderBy('created_at', 'desc')
 
   /**
    * Find articles ids by comment author id (user) in batches.
@@ -298,7 +283,7 @@ export class CommentService extends BaseService {
   }
 
   /**
-   * Find a comment's vote by a given target id (comment).
+   * Find a comment's votes by a given target id (comment).
    */
   findVotesByUserId = async ({
     userId,
@@ -315,6 +300,26 @@ export class CommentService extends BaseService {
         targetId
       })
       .whereIn('action', [USER_ACTION.upVote, USER_ACTION.downVote])
+
+  /**
+   * Remove a comment's votes a given target id (comment).
+   */
+  removeVotesByUserId = async ({
+    userId,
+    commentId: targetId
+  }: {
+    userId: string
+    commentId: string
+  }): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('action_comment')
+      .where({
+        userId,
+        targetId
+      })
+      .whereIn('action', [USER_ACTION.upVote, USER_ACTION.downVote])
+      .del()
 
   /**
    * Find a comment's mentioned users by a given comment id.

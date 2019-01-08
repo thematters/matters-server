@@ -19,6 +19,7 @@ type Article implements Node {
   createdAt: DateTime!
   publishState: PublishState!
   public: Boolean!
+  live: Boolean!
   author: User!
   title: String!
   cover: URL
@@ -114,6 +115,12 @@ type ArticlePublishedNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   target: Article
+}
+
+input ArticlesInput {
+  public: Boolean
+  offset: Int
+  limit: Int
 }
 
 type ArticleSubcriptionConnection {
@@ -388,6 +395,8 @@ type Mutation {
   appreciateArticle(input: AppreciateArticleInput!): Article!
   readArticle(input: ReadArticleInput!): Boolean
   recallPublish(input: RecallPublishInput!): Draft!
+  toggleArticleLive(input: ToggleArticleLiveInput!): Article!
+  toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   deleteComment(input: DeleteCommentInput!): Boolean
@@ -569,6 +578,7 @@ Ref: apollographql/graphql-tools#293
 type Query {
   _: Boolean
   article(input: ArticleInput!): Article
+  articles(input: ArticlesInput!): [Article!]
   node(input: NodeInput!): Node
   frequentSearch(key: String): [String!]
   search(input: SearchInput!): [SearchResult!]
@@ -693,6 +703,16 @@ type Tag implements Node {
 
 scalar Time
 
+input ToggleArticleLiveInput {
+  id: ID!
+  enabled: Boolean!
+}
+
+input ToggleArticlePublicInput {
+  id: ID!
+  enabled: Boolean!
+}
+
 type Transaction {
   delta: Int!
   purpose: TransactionPurpose!
@@ -778,17 +798,6 @@ type User implements Node {
 type UserActivity {
   history(input: ConnectionArgs!): [ReadHistory!]
   recentSearches(input: ConnectionArgs!): [String!]
-}
-
-type UserDisabledNotice implements Notice {
-  id: ID!
-  unread: Boolean!
-  createdAt: DateTime!
-  reason: UserDisabledReason
-}
-
-enum UserDisabledReason {
-  violation
 }
 
 type UserFolloweeConnection {

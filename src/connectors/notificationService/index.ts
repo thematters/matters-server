@@ -44,13 +44,6 @@ export class NotificationService extends BaseService {
           actorIds: [params.actorId]
         }
         break
-      case 'user_disabled':
-        noticeParams = {
-          type: params.event,
-          recipientId: params.recipientId,
-          data: params.data
-        }
-        break
       case 'article_published':
       case 'comment_pinned':
       case 'upstream_article_archived':
@@ -138,7 +131,6 @@ export class NotificationService extends BaseService {
     const eventSettingMap: { [key in NotificationType]: boolean } = {
       article_updated: false,
       user_new_follower: setting.follow,
-      user_disabled: true,
       article_published: true,
       article_new_downstream: setting.downstream,
       article_new_appreciation: setting.appreciation,
