@@ -31,8 +31,8 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "@matters/slugify": "^0.7.3",
     "@sendgrid/mail": "^6.3.1",
-    "@sindresorhus/slugify": "^0.7.0",
     "apollo-server": "^2.2.0",
     "aws-sdk": "^2.374.0",
     "axios": "^0.18.0",
@@ -80,7 +80,6 @@
     "@types/knex": "^0.15.1",
     "@types/lodash": "^4.14.117",
     "@types/newrelic": "^3.4.0",
-    "@types/sindresorhus__slugify": "^0.6.0",
     "@types/uuid": "^3.4.3",
     "@types/validator": "^9.4.3",
     "@types/ws": "^6.0.1",
