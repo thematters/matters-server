@@ -13,7 +13,6 @@ import {
 import { ipfs } from 'connectors/ipfs'
 import { BaseService } from './baseService'
 import { UserService } from './userService'
-import { knex } from './db'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
@@ -489,7 +488,7 @@ export class ArticleService extends BaseService {
     recipientId: string
     amount: number
   }): Promise<any> => {
-    const result = await knex('transaction')
+    const result = await this.knex('transaction')
       .insert({
         uuid,
         senderId,

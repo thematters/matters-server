@@ -10,6 +10,7 @@ const resolver: Resolver = async (
   }
   const invited = await userService.findInvitations({ userId: id })
   const mat = await userService.totalMAT(id)
+  console.log({ invited, mat })
   return Math.max(Math.floor(Math.log(mat)) - invited.length, 0)
 }
 

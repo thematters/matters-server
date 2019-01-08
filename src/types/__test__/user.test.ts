@@ -635,7 +635,7 @@ describe('invitation', async () => {
     // retrieve user's invitations
     const newInvitationData = await getUserInvitation()
     expect(_.get(newInvitationData, 'viewer.status.invitation.left')).toBe(
-      left - 1
+      Math.max(left - 1, 0)
     )
     expect(
       _.get(newInvitationData, 'viewer.status.invitation.sent.0.email')
