@@ -535,6 +535,7 @@ input RecallPublishInput {
 
 type Recommendation {
   followeeArticles(input: ListInput!): [Article!]!
+  newest(input: ListInput!): [Article!]!
   hottest(input: ListInput!): [Article!]!
 
   """In case you missed it"""

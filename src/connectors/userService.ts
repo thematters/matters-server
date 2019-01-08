@@ -431,19 +431,6 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Find an user's rates by a given target id (user).
-   */
-  // findRateByTargetId = async (targetId: string): Promise<any[]> => {
-  //   return await this.knex
-  //     .select()
-  //     .from('action_user')
-  //     .where({
-  //       target_id: targetId,
-  //       action: USER_ACTION.rate
-  //     })
-  // }
-
-  /**
    * Find an users' subscription by a given user id.
    */
   findSubscriptions = async (userId: string): Promise<any[]> =>

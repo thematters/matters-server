@@ -245,6 +245,7 @@ export interface GQLNotificationSetting {
 
 export interface GQLRecommendation {
   followeeArticles: Array<GQLArticle>
+  newest: Array<GQLArticle>
   hottest: Array<GQLArticle>
 
   /**
@@ -1707,6 +1708,7 @@ export interface NotificationSettingToReportFeedbackResolver<
 
 export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
+  newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
@@ -1724,6 +1726,18 @@ export interface RecommendationToFolloweeArticlesResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeArticlesArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToNewestArgs {
+  input: GQLListInput
+}
+export interface RecommendationToNewestResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: RecommendationToNewestArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult

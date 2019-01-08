@@ -78,6 +78,7 @@ export default /* GraphQL */ `
 
   type Recommendation {
     followeeArticles(input: ListInput!): [Article!]!
+    newest(input: ListInput!): [Article!]!
     hottest(input: ListInput!): [Article!]!
     # In case you missed it
     icymi(input: ListInput!): [Article!]!

@@ -16,12 +16,12 @@ const resolver: Resolver = async (
     throw new Error('target article does not exists') // TODO
   }
 
-  const subscriptions = await articleService.findSubscriptionByUserId(
-    article.id,
-    viewer.id
-  )
+  const subscribed = await articleService.isSubscribed({
+    targetId: article.id,
+    userId: viewer.id
+  })
 
-  if (subscriptions.length <= 0) {
+  if (!subscribed) {
     throw new Error('subscription does not exists') // TODO
   }
 

@@ -197,6 +197,12 @@ export class ArticleService extends BaseService {
       .limit(limit)
       .offset(offset)
 
+  recommendNewest = ({ offset = 0, limit = 5 }) =>
+    this.knex(this.table)
+      .orderBy('created_at', 'desc')
+      .limit(limit)
+      .offset(offset)
+
   recommendIcymi = ({ offset = 0, limit = 5 }) =>
     this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
@@ -395,30 +401,18 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's subscriber by a given targetId (article) and user id.
    */
-  findSubscriptionByUserId = async (
-    targetId: string,
-    userId: string
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_article')
-      .where({
-        targetId,
-        userId,
-        action: USER_ACTION.subscribe
-      })
-
-  /**
-   * Find an article's rates by a given targetId (article).
-   */
-  findRateByTargetId = async (targetId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_user')
-      .where({
-        targetId,
-        action: USER_ACTION.rate
-      })
+  // findSubscriptionByUserId = async (
+  //   targetId: string,
+  //   userId: string
+  // ): Promise<any[]> =>
+  //   await this.knex
+  //     .select()
+  //     .from('action_article')
+  //     .where({
+  //       targetId,
+  //       userId,
+  //       action: USER_ACTION.subscribe
+  //     })
 
   isSubscribed = async ({
     userId,
