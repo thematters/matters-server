@@ -22,14 +22,34 @@ export default /* GraphQL */ `
     quote: Boolean!
     myVote: Vote
     mentions: [User!]
-    comments: [Comment!]
+    comments(input: ConnectionArgs!): CommentChildConnection!
     parentComment: Comment
   }
 
   extend type Article {
     commentCount: Int!
     pinnedComments: [Comment!]
-    comments(input: CommentsInput!): [Comment!]
+    comments(input: CommentsInput!): CommentArticleConnection!
+  }
+
+  type CommentChildConnection {
+    pageInfo: PageInfo!
+    edges: [CommentChildEdge!]
+  }
+
+  type CommentChildEdge {
+    cursor: String!
+    node: Comment!
+  }
+
+  type CommentArticleConnection {
+    pageInfo: PageInfo!
+    edges: [CommentArticleEdge!]
+  }
+
+  type CommentArticleEdge {
+    cursor: String!
+    node: Comment!
   }
 
   input PutCommentInput {
@@ -46,11 +66,13 @@ export default /* GraphQL */ `
   }
 
   input CommentsInput {
-    offset: Int
-    limit: Int
     author: ID
     quote: Boolean
     sort: CommentSort
+    before: String
+    after: String
+    first: Int
+    last: Int
   }
 
   enum CommentSort {

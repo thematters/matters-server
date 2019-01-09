@@ -1,7 +1,8 @@
 import { isNil } from 'lodash'
-import { Resolver } from 'definitions'
 
-const resolver: Resolver = async (
+import { QueryToArticlesResolver } from 'definitions'
+
+const resolver: QueryToArticlesResolver = async (
   root,
   { input: { public: isPublic, offset, limit } },
   { viewer, dataSources: { articleService } }

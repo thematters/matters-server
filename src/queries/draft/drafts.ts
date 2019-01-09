@@ -1,10 +1,11 @@
-import { Context, UserToDraftsResolver } from 'definitions'
 import { connectionFromPromisedArray } from 'graphql-relay'
 
+import { UserToDraftsResolver } from 'definitions'
+
 const resolver: UserToDraftsResolver = (
-  { id }: { id: string },
+  { id },
   { input },
-  { dataSources: { draftService } }: Context
+  { dataSources: { draftService } }
 ) => connectionFromPromisedArray(draftService.findByAuthor(id), input)
 
 export default resolver

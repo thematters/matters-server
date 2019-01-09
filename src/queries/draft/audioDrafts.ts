@@ -1,10 +1,11 @@
-import { Context, UserToAudiodraftsResolver } from 'definitions'
 import { connectionFromPromisedArray } from 'graphql-relay'
 
+import { UserToAudiodraftsResolver } from 'definitions'
+
 const resolver: UserToAudiodraftsResolver = (
-  { id }: { id: string },
+  { id },
   { input },
-  { dataSources: { draftService } }: Context
+  { dataSources: { draftService } }
 ) =>
   connectionFromPromisedArray(draftService.findAudiodraftsByAuthor(id), input)
 

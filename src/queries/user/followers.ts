@@ -1,15 +1,18 @@
-import { Context, UserToFollowersResolver } from 'definitions'
 import { connectionFromPromisedArray } from 'graphql-relay'
 
+import { UserToFollowersResolver } from 'definitions'
+
 const resolver: UserToFollowersResolver = async (
-  { id }: { id: string },
+  { id },
   { input },
-  { dataSources: { userService } }: Context
+  { dataSources: { userService } }
 ) => {
   const actions = await userService.findFollowers(id)
 
   return connectionFromPromisedArray(
-    userService.dataloader.loadMany(actions.map(({ userId }) => userId)),
+    userService.dataloader.loadMany(
+      actions.map(({ userId }: { userId: string }) => userId)
+    ),
     input
   )
 }

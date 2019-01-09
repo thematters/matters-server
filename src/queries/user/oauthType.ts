@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { UserSettingsToOauthTypeResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: UserSettingsToOauthTypeResolver = async (
   { id },
   _,
   { dataSources: { userService } }

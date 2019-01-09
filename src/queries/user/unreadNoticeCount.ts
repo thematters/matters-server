@@ -1,6 +1,9 @@
-import { Resolver } from 'definitions'
+import { UserStatusToUnreadNoticeCountResolver } from 'definitions'
 
-const resolver: Resolver = ({ id }, _, { dataSources: { userService } }) =>
-  userService.countUnreadNotice(id)
+const resolver: UserStatusToUnreadNoticeCountResolver = (
+  { id },
+  _,
+  { dataSources: { userService } }
+) => userService.countUnreadNotice(id)
 
 export default resolver

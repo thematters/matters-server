@@ -1,4 +1,3 @@
-import { Context } from 'definitions'
 import { toGlobalId } from 'common/utils'
 
 import drafts from './drafts'

@@ -31,14 +31,14 @@ type Article implements Node {
   content: String!
   gatewayUrls: [URL!]
   upstream: Article
-  downstreams(input: ConnectionArgs!): [Article!]
-  relatedArticles(input: ConnectionArgs!): [Article!]
+  downstreams(input: ConnectionArgs!): ArticleDownstreamConnection!
+  relatedArticles(input: ConnectionArgs!): ArticleRelatedConnection!
 
   """MAT recieved for this article"""
   MAT: Int!
   participantCount: Int!
-  subscribers(input: ConnectionArgs!): [User!]
-  appreciators(input: ConnectionArgs!): [User!]
+  subscribers(input: ConnectionArgs!): UserSubscribeConnection!
+  appreciators(input: ConnectionArgs!): UserAppreciateConnection!
   appreciatorCount: Int!
 
   """Viewer has subscribed"""
@@ -48,7 +48,7 @@ type Article implements Node {
   hasAppreciate: Boolean!
   commentCount: Int!
   pinnedComments: [Comment!]
-  comments(input: CommentsInput!): [Comment!]
+  comments(input: CommentsInput!): CommentArticleConnection!
 }
 
 type ArticleAuthoredConnection {
@@ -67,6 +67,16 @@ type ArticleCommentedConnection {
 }
 
 type ArticleCommentedEdge {
+  cursor: String!
+  node: Article!
+}
+
+type ArticleDownstreamConnection {
+  pageInfo: PageInfo!
+  edges: [ArticleDownstreamEdge!]
+}
+
+type ArticleDownstreamEdge {
   cursor: String!
   node: Article!
 }
@@ -117,6 +127,26 @@ type ArticlePublishedNotice implements Notice {
   target: Article
 }
 
+type ArticleRecommendedConnection {
+  pageInfo: PageInfo!
+  edges: [ArticleRecommendedEdge]!
+}
+
+type ArticleRecommendedEdge {
+  cursor: String!
+  node: Article!
+}
+
+type ArticleRelatedConnection {
+  pageInfo: PageInfo!
+  edges: [ArticleRelatedEdge!]
+}
+
+type ArticleRelatedEdge {
+  cursor: String!
+  node: Article!
+}
+
 input ArticlesInput {
   public: Boolean
   offset: Int
@@ -133,6 +163,16 @@ type ArticleSubcriptionEdge {
   node: Article!
 }
 
+type ArticleTagConnection {
+  pageInfo: PageInfo!
+  edges: [ArticleTagEdge!]
+}
+
+type ArticleTagEdge {
+  cursor: String!
+  node: Article!
+}
+
 type Asset {
   id: ID!
   type: AssetType!
@@ -143,7 +183,7 @@ type Asset {
 enum AssetType {
   avatar
   cover
-  Audiodraft
+  audiodraft
   report
   feedback
 }
@@ -160,7 +200,7 @@ type Audiodraft {
 
 type AudiodraftAuthoredConnection {
   pageInfo: PageInfo!
-  edges: [DraftAuthoredEdge]!
+  edges: [AudiodraftAuthoredEdge]!
 }
 
 type AudiodraftAuthoredEdge {
@@ -197,8 +237,28 @@ type Comment implements Node {
   quote: Boolean!
   myVote: Vote
   mentions: [User!]
-  comments: [Comment!]
+  comments(input: ConnectionArgs!): CommentChildConnection!
   parentComment: Comment
+}
+
+type CommentArticleConnection {
+  pageInfo: PageInfo!
+  edges: [CommentArticleEdge!]
+}
+
+type CommentArticleEdge {
+  cursor: String!
+  node: Comment!
+}
+
+type CommentChildConnection {
+  pageInfo: PageInfo!
+  edges: [CommentChildEdge!]
+}
+
+type CommentChildEdge {
+  cursor: String!
+  node: Comment!
 }
 
 input CommentInput {
@@ -242,11 +302,13 @@ type CommentPinnedNotice implements Notice {
 }
 
 input CommentsInput {
-  offset: Int
-  limit: Int
   author: ID
   quote: Boolean
   sort: CommentSort
+  before: String
+  after: String
+  first: Int
+  last: Int
 }
 
 enum CommentSort {
@@ -282,12 +344,11 @@ input ConfirmVerifyEmailInput {
   codeId: ID!
 }
 
-"""TODO: remove offset and limit """
 input ConnectionArgs {
-  after: ID
+  before: String
+  after: String
   first: Int
-  offset: Int
-  limit: Int
+  last: Int
 }
 
 scalar Date
@@ -363,6 +424,16 @@ type Invitation implements Node {
   createdAt: DateTime!
 }
 
+type InvitationSentConnection {
+  pageInfo: PageInfo!
+  edges: [InvitationSentEdge]!
+}
+
+type InvitationSentEdge {
+  cursor: String!
+  node: Invitation!
+}
+
 type InvitationStatus {
   MAT: Int!
 
@@ -370,7 +441,7 @@ type InvitationStatus {
   left: Int!
 
   """invitations sent"""
-  sent(input: ConnectionArgs!): [Invitation!]
+  sent(input: ConnectionArgs!): InvitationSentConnection!
 }
 
 input InviteInput {
@@ -382,7 +453,7 @@ scalar JSON
 
 type MAT {
   total: Int!
-  history(input: ConnectionArgs): [Transaction]!
+  history(input: ConnectionArgs!): TransactionHistoryConnection!
 }
 
 type Mutation {
@@ -468,6 +539,16 @@ interface Notice {
   createdAt: DateTime!
 }
 
+type NoticeConnection {
+  pageInfo: PageInfo!
+  edges: [NoticeEdge!]
+}
+
+type NoticeEdge {
+  cursor: String!
+  node: Notice!
+}
+
 type NotificationSetting {
   enable: Boolean!
   mention: Boolean!
@@ -523,6 +604,7 @@ type PageInfo {
   startCursor: String
   endCursor: String
   hasNextPage: Boolean!
+  totalCount: Int!
 }
 
 input PinCommentInput {
@@ -598,20 +680,40 @@ type ReadHistory {
   readAt: DateTime!
 }
 
+type ReadHistoryConnection {
+  pageInfo: PageInfo!
+  edges: [ReadHistoryEdge]!
+}
+
+type ReadHistoryEdge {
+  cursor: String!
+  node: ReadHistory!
+}
+
 input RecallPublishInput {
   id: ID!
 }
 
+type RecentSearchConnection {
+  pageInfo: PageInfo!
+  edges: [RecentSearchEdge]!
+}
+
+type RecentSearchEdge {
+  cursor: String!
+  node: String!
+}
+
 type Recommendation {
-  followeeArticles(input: ConnectionArgs!): [Article!]!
-  newest(input: ConnectionArgs!): [Article!]!
-  hottest(input: ConnectionArgs!): [Article!]!
+  followeeArticles(input: ConnectionArgs!): ArticleRecommendedConnection!
+  newest(input: ConnectionArgs!): ArticleRecommendedConnection!
+  hottest(input: ConnectionArgs!): ArticleRecommendedConnection!
 
   """In case you missed it"""
-  icymi(input: ConnectionArgs!): [Article!]!
-  tags(input: ConnectionArgs!): [Tag!]!
-  topics(input: ConnectionArgs!): [Article!]!
-  authors(input: ConnectionArgs!): [User!]!
+  icymi(input: ConnectionArgs!): ArticleRecommendedConnection!
+  tags(input: ConnectionArgs!): TagRecommendedConnection!
+  topics(input: ConnectionArgs!): ArticleRecommendedConnection!
+  authors(input: ConnectionArgs!): UserRecommendedConnection!
 }
 
 type Release {
@@ -698,7 +800,17 @@ type Tag implements Node {
   id: ID!
   content: String!
   count: Int!
-  articles(input: ConnectionArgs!): [Article!]
+  articles(input: ConnectionArgs!): ArticleTagConnection!
+}
+
+type TagRecommendedConnection {
+  pageInfo: PageInfo!
+  edges: [TagRecommendedEdge]!
+}
+
+type TagRecommendedEdge {
+  cursor: String!
+  node: Tag!
 }
 
 scalar Time
@@ -718,6 +830,16 @@ type Transaction {
   purpose: TransactionPurpose!
   reference: Node
   createdAt: DateTime!
+}
+
+type TransactionHistoryConnection {
+  pageInfo: PageInfo!
+  edges: [TransactionHistoryEdge]!
+}
+
+type TransactionHistoryEdge {
+  cursor: String!
+  node: Transaction!
 }
 
 enum TransactionPurpose {
@@ -792,12 +914,22 @@ type User implements Node {
   """Viewer is following this user"""
   isFollowee: Boolean!
   status: UserStatus!
-  notices(input: ConnectionArgs!): [Notice!]
+  notices(input: ConnectionArgs!): NoticeConnection!
 }
 
 type UserActivity {
-  history(input: ConnectionArgs!): [ReadHistory!]
-  recentSearches(input: ConnectionArgs!): [String!]
+  history(input: ConnectionArgs!): ReadHistoryConnection!
+  recentSearches(input: ConnectionArgs!): RecentSearchConnection!
+}
+
+type UserAppreciateConnection {
+  pageInfo: PageInfo!
+  edges: [UserAppreciateEdge!]
+}
+
+type UserAppreciateEdge {
+  cursor: String!
+  node: User!
 }
 
 type UserFolloweeConnection {
@@ -871,6 +1003,16 @@ type UserNewFollowerNotice implements Notice {
   actors: [User!]
 }
 
+type UserRecommendedConnection {
+  pageInfo: PageInfo!
+  edges: [UserRecommendedEdge]!
+}
+
+type UserRecommendedEdge {
+  cursor: String!
+  node: User!
+}
+
 input UserRegisterInput {
   email: Email!
   displayName: String!
@@ -925,6 +1067,16 @@ type UserStatus {
 
   """Number of unread notices"""
   unreadNoticeCount: Int!
+}
+
+type UserSubscribeConnection {
+  pageInfo: PageInfo!
+  edges: [UserSubscribeEdge!]
+}
+
+type UserSubscribeEdge {
+  cursor: String!
+  node: User!
 }
 
 scalar UUID

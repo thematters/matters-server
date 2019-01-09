@@ -1,9 +1,9 @@
-import { Resolver, Context } from 'definitions'
+import { ArticleToMATResolver } from 'definitions'
 
-const resolver: Resolver = async (
-  { id }: { id: string },
+const resolver: ArticleToMATResolver = async (
+  { id },
   _: any,
-  { dataSources: { articleService } }: Context
+  { dataSources: { articleService } }
 ) => {
   return await articleService.countAppreciation(id)
 }

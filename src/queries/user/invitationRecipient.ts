@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { InvitationToUserResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: InvitationToUserResolver = async (
   { recipientId },
   _,
   { viewer, dataSources: { userService } }

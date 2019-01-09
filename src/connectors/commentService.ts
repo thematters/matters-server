@@ -188,15 +188,13 @@ export class CommentService extends BaseService {
       .limit(limit)
 
   /**
-   * Find comments by a given article id in batches.
+   * Find comments by a given article id.
    */
   findByArticle = async ({
     id,
     author,
     quote,
-    sort,
-    offset = 0,
-    limit = BATCH_SIZE
+    sort
   }: GQLCommentsInput & { id: string }) => {
     let where: { [key: string]: string | boolean } = { articleId: id }
     if (author) {
@@ -212,8 +210,6 @@ export class CommentService extends BaseService {
         .from(this.table)
         .where(where)
         .orderBy('created_at', by)
-        .offset(offset)
-        .limit(limit)
 
     if (sort == 'upvotes') {
       return this.knex('comment')

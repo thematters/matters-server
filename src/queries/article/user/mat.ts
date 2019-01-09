@@ -1,9 +1,9 @@
-import { Resolver, Context } from 'definitions'
+import { UserStatusToMATResolver } from 'definitions'
 
-const resolver: Resolver = async (
-  { id }: { id: string },
+const resolver: UserStatusToMATResolver = async (
+  { id },
   _: any,
-  { dataSources: { articleService } }: Context
+  { dataSources: { articleService } }
 ) => {
   const articles = await articleService.findByAuthor(id)
   const apprecitions = ((await Promise.all(

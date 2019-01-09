@@ -1,11 +1,12 @@
 import { uniq } from 'lodash'
 import { connectionFromPromisedArray } from 'graphql-relay'
-import { Context, UserToCommentedArticlesResolver } from 'definitions'
+
+import { UserToCommentedArticlesResolver } from 'definitions'
 
 const resolver: UserToCommentedArticlesResolver = async (
-  { id }: { id: string },
+  { id },
   { input },
-  { dataSources: { commentService, articleService } }: Context
+  { dataSources: { commentService, articleService } }
 ) => {
   const comments = await commentService.findByAuthor(id)
   const articleIds = uniq(

@@ -1,9 +1,9 @@
-import { Resolver, Context, NodeTypes, GQLSearchInput } from 'definitions'
+import { QueryToSearchResolver } from 'definitions'
 
-const resolver: Resolver = (
-  root: any,
-  { input }: { input: GQLSearchInput },
-  { dataSources: { articleService, userService, tagService } }: Context
+const resolver: QueryToSearchResolver = (
+  root,
+  { input },
+  { dataSources: { articleService, userService, tagService } }
 ) => {
   const serviceMap = {
     Article: articleService,

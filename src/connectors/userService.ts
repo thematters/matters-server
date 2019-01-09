@@ -216,18 +216,12 @@ export class UserService extends BaseService {
   /**
    * Get user's transaction history
    */
-  transactionHistory = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-    id
-  }: GQLConnectionArgs & { id: string }) => {
+  transactionHistory = async (userId: string) => {
     const result = await this.knex('transaction_delta_view')
       .where({
-        userId: id
+        userId
       })
       .orderBy('createdAt', 'desc')
-      .limit(limit)
-      .offset(offset)
     return result
   }
 
@@ -263,17 +257,11 @@ export class UserService extends BaseService {
       .offset(offset)
       .limit(limit)
 
-  followeeArticles = async ({
-    id,
-    offset = 0,
-    limit = 5
-  }: GQLConnectionArgs & { id: string }) =>
+  followeeArticles = async (userId: string) =>
     this.knex('action_user as au')
       .select('ar.*')
       .join('article as ar', 'ar.author_id', 'au.target_id')
-      .where({ action: 'follow', userId: id })
-      .offset(offset)
-      .limit(limit)
+      .where({ action: 'follow', userId })
 
   /**
    * Count an users' subscription by a given user id.
@@ -419,18 +407,12 @@ export class UserService extends BaseService {
   /**
    * Find user's read history
    */
-  findReadHistory = async (
-    userId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ): Promise<any[]> =>
+  findReadHistory = async (userId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('article_read')
       .where({ userId, archived: false })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
   /**
    * Find user's read history by a given uuid (article_read)
@@ -498,22 +480,12 @@ export class UserService extends BaseService {
   /**
    * Find invitations
    */
-  findInvitations = async ({
-    userId,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    userId: string
-    offset?: number
-    limit?: number
-  }): Promise<any[]> =>
+  findInvitations = async (userId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('invitation')
       .where({ senderId: userId })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
   /**
    * count invitations

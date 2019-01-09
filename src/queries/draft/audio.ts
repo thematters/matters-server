@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { AudiodraftToAudioResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: AudiodraftToAudioResolver = async (
   { audio },
   _,
   { dataSources: { systemService } }

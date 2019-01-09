@@ -1,21 +1,16 @@
-import {
-  GQLMATTypeResolver,
-  Context,
-  GQLTransactionTypeResolver
-} from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
+
+import { GQLMATTypeResolver, GQLTransactionTypeResolver } from 'definitions'
 import { TRANSACTION_PURPOSE } from 'common/enums'
 
 export const MAT: GQLMATTypeResolver = {
-  total: ({ id }, _, { dataSources: { userService } }: Context) =>
+  total: ({ id }, _, { dataSources: { userService } }) =>
     userService.totalMAT(id),
-  history: async (
-    { id },
-    { input },
-    { dataSources: { userService } }: Context
-  ) => {
-    const history = await userService.transactionHistory({ id, ...input })
-
-    return history
+  history: async ({ id }, { input }, { dataSources: { userService } }) => {
+    return connectionFromPromisedArray(
+      userService.transactionHistory(id),
+      input
+    )
   }
 }
 
@@ -26,16 +21,12 @@ export const Transaction: GQLTransactionTypeResolver = {
   reference: async (
     trx,
     _,
-    { dataSources: { userService, articleService } }: Context
+    { dataSources: { userService, articleService } }
   ) => {
     switch (trx.purpose) {
       case TRANSACTION_PURPOSE.appreciate:
-        return articleService.dataloader.load(trx.referenceId).then(
-          data => ({ ...data, __type: 'Article' }),
-          err => {
-            throw err
-          }
-        )
+        const article = await articleService.dataloader.load(trx.referenceId)
+        return { ...article, __type: 'Article' }
       case TRANSACTION_PURPOSE.invitationAccepted:
       case TRANSACTION_PURPOSE.joinByInvitation:
         const invitation = await userService.findInvitation(trx.referenceId)

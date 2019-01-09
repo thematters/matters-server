@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { CommentToUpvotesResolver } from 'definitions'
 
-const resolver: Resolver = (
+const resolver: CommentToUpvotesResolver = (
   { id, upvotes },
   _,
   { dataSources: { commentService } }

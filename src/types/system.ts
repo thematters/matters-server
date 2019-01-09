@@ -24,6 +24,7 @@ export default /* GraphQL */ `
     startCursor: String
     endCursor: String
     hasNextPage: Boolean!
+    totalCount: Int!
   }
 
   type SearchResult {
@@ -90,12 +91,11 @@ export default /* GraphQL */ `
     contact: String
   }
 
-  # TODO: remove offset and limit 
   input ConnectionArgs {
-    after: ID
+    before: String
+    after: String
     first: Int
-    offset: Int
-    limit: Int
+    last: Int
   }
 
   enum SearchTypes {
@@ -107,7 +107,7 @@ export default /* GraphQL */ `
   enum AssetType {
     avatar
     cover
-    Audiodraft
+    audiodraft
     report
     feedback
   }

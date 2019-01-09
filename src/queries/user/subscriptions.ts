@@ -1,14 +1,17 @@
 import { connectionFromPromisedArray } from 'graphql-relay'
-import { Context, UserToSubscriptionsResolver } from 'definitions'
+
+import { UserToSubscriptionsResolver } from 'definitions'
 
 const resolver: UserToSubscriptionsResolver = async (
   { id }: { id: string },
   { input },
-  { dataSources: { articleService, userService } }: Context
+  { dataSources: { articleService, userService } }
 ) => {
   const actions = await userService.findSubscriptions(id)
   return connectionFromPromisedArray(
-    articleService.dataloader.loadMany(actions.map(({ targetId }) => targetId)),
+    articleService.dataloader.loadMany(
+      actions.map(({ targetId }: { targetId: string }) => targetId)
+    ),
     input
   )
 }

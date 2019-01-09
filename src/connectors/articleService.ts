@@ -323,17 +323,11 @@ export class ArticleService extends BaseService {
   /**
    * Find articles by upstream id (article).
    */
-  findByUpstream = async (
-    upstreamId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ) =>
+  findByUpstream = async (upstreamId: string) =>
     await this.knex
       .select()
       .from(this.table)
       .where({ upstreamId })
-      .offset(offset)
-      .limit(limit)
 
   /**
    * Find an article's appreciations by a given articleId.
@@ -346,25 +340,15 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciators by a given article id.
    */
-  findAppreciators = async ({
-    articleId,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    articleId: string
-    offset?: number
-    limit?: number
-  }): Promise<any[]> =>
+  findAppreciators = async (articleId: string): Promise<any[]> =>
     await this.knex('transaction')
-      .distinct('sender_id')
+      .distinct('sender_id', 'id')
       .select('sender_id')
       .where({
         referenceId: articleId,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
   /**
    * Find tages by a given article id.

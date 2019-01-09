@@ -70,21 +70,11 @@ export class TagService extends BaseService {
     return parseInt(result.count, 10)
   }
 
-  findArticleIds = async ({
-    id: tagId,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    id: string
-    offset?: number
-    limit?: number
-  }) => {
+  findArticleIds = async (tagId: string) => {
     const result = await this.knex
       .select('article_id')
       .from('article_tag')
       .where({ tagId })
-      .offset(offset)
-      .limit(limit)
 
     return result.map(({ articleId }: { articleId: string }) => articleId)
   }

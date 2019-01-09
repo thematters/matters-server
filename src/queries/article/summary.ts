@@ -1,6 +1,9 @@
-import { Resolver } from 'definitions'
+import { ArticleToSummaryResolver } from 'definitions'
 
-const resolver: Resolver = ({ hash }, _, { dataSources: { articleService } }) =>
-  articleService.getContentFromHash(hash).slice(0, 30)
+const resolver: ArticleToSummaryResolver = (
+  { hash },
+  _,
+  { dataSources: { articleService } }
+) => articleService.getContentFromHash(hash).slice(0, 30)
 
 export default resolver

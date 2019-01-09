@@ -1,10 +1,11 @@
-import { Context, UserToArticlesResolver } from 'definitions'
 import { connectionFromPromisedArray } from 'graphql-relay'
 
+import { UserToArticlesResolver } from 'definitions'
+
 const resolver: UserToArticlesResolver = (
-  { id }: { id: string },
+  { id },
   { input },
-  { dataSources: { articleService } }: Context
+  { dataSources: { articleService } }
 ) => {
   return connectionFromPromisedArray(articleService.findByAuthor(id), input)
 }

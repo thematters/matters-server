@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { UserStatusToArticleCountResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: UserStatusToArticleCountResolver = async (
   { id },
   _,
   { dataSources: { articleService } }

@@ -57,6 +57,125 @@ export default /* GraphQL */ `
     status: UserStatus!
   }
 
+  type InvitationStatus {
+    MAT: Int!
+    # invitation number left
+    left: Int!
+    # invitations sent
+    sent(input: ConnectionArgs!): InvitationSentConnection!
+  }
+
+  type Invitation implements Node  {
+    id: ID!
+    user: User
+    email: String
+    accepted: Boolean!
+    createdAt: DateTime!
+  }
+
+  type Recommendation {
+    followeeArticles(input: ConnectionArgs!): ArticleRecommendedConnection!
+    newest(input: ConnectionArgs!): ArticleRecommendedConnection!
+    hottest(input: ConnectionArgs!): ArticleRecommendedConnection!
+    # In case you missed it
+    icymi(input: ConnectionArgs!): ArticleRecommendedConnection!
+    tags(input: ConnectionArgs!): TagRecommendedConnection!
+    topics(input: ConnectionArgs!): ArticleRecommendedConnection!
+    authors(input: ConnectionArgs!): UserRecommendedConnection!
+  }
+
+  type UserInfo {
+    createdAt: DateTime!
+    # Unique user name
+    userName: String!
+    # Display name on profile
+    displayName: String!
+    # User desciption
+    description: String
+    # URL for avatar
+    avatar: URL
+    email: Email
+    mobile: String
+    # Use 500 for now, adaptive in the future
+    readSpeed: Int!
+  }
+
+  type UserSettings {
+    # User language setting
+    language: UserLanguage!
+    # Thrid party accounts binded for the user
+    oauthType: [OAuthType!]!
+    # Notification settings
+    notification: NotificationSetting!
+  }
+
+  type UserActivity {
+    history(input: ConnectionArgs!): ReadHistoryConnection!
+    recentSearches(input: ConnectionArgs!): RecentSearchConnection!
+  }
+
+  type UserStatus {
+    state: UserState!
+    # Total MAT left in wallet
+    MAT: MAT!
+    invitation: InvitationStatus!
+    # Number of articles published by user
+    articleCount: Int!
+    # Number of views on articles
+    viewCount: Int!
+    draftCount: Int!
+    # Number of comments posted by user
+    commentCount: Int!
+    quotationCount: Int!
+    subscriptionCount: Int!
+    # Number of user that this user follows
+    followeeCount: Int!
+    # Number of user that follows this user
+    followerCount: Int!
+    # Number of unread notices
+    unreadNoticeCount: Int!
+  }
+
+  type MAT {
+    total: Int!
+    history(input: ConnectionArgs!): TransactionHistoryConnection!
+  }
+
+  type Transaction {
+    delta: Int!
+    purpose: TransactionPurpose!
+    reference: Node
+    createdAt: DateTime!
+  }
+
+  type NotificationSetting {
+    enable: Boolean!
+    mention: Boolean!
+    follow: Boolean!
+    comment: Boolean!
+    appreciation: Boolean!
+    articleSubscription: Boolean!
+    commentSubscribed: Boolean!
+    downstream: Boolean!
+    commentPinned: Boolean!
+    commentVoted: Boolean!
+    # walletUpdate: Boolean!
+    officialNotice: Boolean!
+    reportFeedback: Boolean!
+  }
+
+  type ReadHistory {
+    id: ID!
+    article: Article!
+    readAt: DateTime!
+  }
+
+  type AuthResult {
+    auth: Boolean!
+    token: String
+  }
+
+
   type UserFollowerConnection {
     pageInfo: PageInfo!
     edges: [UserFollowerEdge]
@@ -105,7 +224,7 @@ export default /* GraphQL */ `
   type ArticleAuthoredEdge {
     cursor: String!
     node: Article
-  }  
+  }
 
   type DraftAuthoredConnection {
     pageInfo: PageInfo!
@@ -115,134 +234,86 @@ export default /* GraphQL */ `
   type DraftAuthoredEdge {
     cursor: String!
     node: Draft!
-  }  
+  }
 
   type AudiodraftAuthoredConnection {
     pageInfo: PageInfo!
-    edges: [DraftAuthoredEdge]!
+    edges: [AudiodraftAuthoredEdge]!
   }
 
   type AudiodraftAuthoredEdge {
     cursor: String!
     node: Audiodraft!
-  } 
-
-  type InvitationStatus {
-    MAT: Int!
-    # invitation number left
-    left: Int!
-    # invitations sent
-    sent(input: ConnectionArgs!): [Invitation!]
   }
 
-  type Invitation implements Node  {
-    id: ID!
-    user: User
-    email: String
-    accepted: Boolean!
-    createdAt: DateTime!
+  type InvitationSentConnection {
+    pageInfo: PageInfo!
+    edges: [InvitationSentEdge]!
   }
 
-  type Recommendation {
-    followeeArticles(input: ConnectionArgs!): [Article!]!
-    newest(input: ConnectionArgs!): [Article!]!
-    hottest(input: ConnectionArgs!): [Article!]!
-    # In case you missed it
-    icymi(input: ConnectionArgs!): [Article!]!
-    tags(input: ConnectionArgs!): [Tag!]!
-    topics(input: ConnectionArgs!): [Article!]!
-    authors(input: ConnectionArgs!): [User!]!
+  type InvitationSentEdge {
+    cursor: String!
+    node: Invitation!
   }
 
-  type UserInfo {
-    createdAt: DateTime!
-    # Unique user name
-    userName: String!
-    # Display name on profile
-    displayName: String!
-    # User desciption
-    description: String
-    # URL for avatar
-    avatar: URL
-    email: Email
-    mobile: String
-    # Use 500 for now, adaptive in the future
-    readSpeed: Int!
+  type ArticleRecommendedConnection {
+    pageInfo: PageInfo!
+    edges: [ArticleRecommendedEdge]!
   }
 
-  type UserSettings {
-    # User language setting
-    language: UserLanguage!
-    # Thrid party accounts binded for the user
-    oauthType: [OAuthType!]!
-    # Notification settings
-    notification: NotificationSetting!
+  type ArticleRecommendedEdge {
+    cursor: String!
+    node: Article!
   }
 
-  type UserActivity {
-    history(input: ConnectionArgs!): [ReadHistory!]
-    recentSearches(input: ConnectionArgs!): [String!]
+  type TagRecommendedConnection {
+    pageInfo: PageInfo!
+    edges: [TagRecommendedEdge]!
   }
 
-  type UserStatus {
-    state: UserState!
-    # Total MAT left in wallet
-    MAT: MAT!
-    invitation: InvitationStatus!
-    # Number of articles published by user
-    articleCount: Int!
-    # Number of views on articles
-    viewCount: Int!
-    draftCount: Int!
-    # Number of comments posted by user
-    commentCount: Int!
-    quotationCount: Int!
-    subscriptionCount: Int!
-    # Number of user that this user follows
-    followeeCount: Int!
-    # Number of user that follows this user
-    followerCount: Int!
-    # Number of unread notices
-    unreadNoticeCount: Int!
+  type TagRecommendedEdge {
+    cursor: String!
+    node: Tag!
   }
 
-  type MAT {
-    total: Int!
-    history(input: ConnectionArgs): [Transaction]!
+  type UserRecommendedConnection {
+    pageInfo: PageInfo!
+    edges: [UserRecommendedEdge]!
   }
 
-  type Transaction {
-    delta: Int!
-    purpose: TransactionPurpose!
-    reference: Node
-    createdAt: DateTime!
+  type UserRecommendedEdge {
+    cursor: String!
+    node: User!
   }
 
-  type NotificationSetting {
-    enable: Boolean!
-    mention: Boolean!
-    follow: Boolean!
-    comment: Boolean!
-    appreciation: Boolean!
-    articleSubscription: Boolean!
-    commentSubscribed: Boolean!
-    downstream: Boolean!
-    commentPinned: Boolean!
-    commentVoted: Boolean!
-    # walletUpdate: Boolean!
-    officialNotice: Boolean!
-    reportFeedback: Boolean!
+  type ReadHistoryConnection {
+    pageInfo: PageInfo!
+    edges: [ReadHistoryEdge]!
   }
 
-  type ReadHistory {
-    id: ID!
-    article: Article!
-    readAt: DateTime!
+  type ReadHistoryEdge {
+    cursor: String!
+    node: ReadHistory!
   }
 
-  type AuthResult {
-    auth: Boolean!
-    token: String
+  type RecentSearchConnection {
+    pageInfo: PageInfo!
+    edges: [RecentSearchEdge]!
+  }
+
+  type RecentSearchEdge {
+    cursor: String!
+    node: String!
+  }
+
+  type TransactionHistoryConnection {
+    pageInfo: PageInfo!
+    edges: [TransactionHistoryEdge]!
+  }
+
+  type TransactionHistoryEdge {
+    cursor: String!
+    node: Transaction!
   }
 
   input UserInput {

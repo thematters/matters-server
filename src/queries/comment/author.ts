@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { CommentToAuthorResolver } from 'definitions'
 
-const resolver: Resolver = (
+const resolver: CommentToAuthorResolver = (
   { authorId },
   _,
   { dataSources: { userService } }

@@ -35,13 +35,13 @@ export default /* GraphQL */ `
     content: String!
     gatewayUrls: [URL!]
     upstream: Article
-    downstreams(input: ConnectionArgs!): [Article!]
-    relatedArticles(input: ConnectionArgs!): [Article!]
+    downstreams(input: ConnectionArgs!): ArticleDownstreamConnection!
+    relatedArticles(input: ConnectionArgs!): ArticleRelatedConnection!
     # MAT recieved for this article
     MAT: Int!
     participantCount: Int!
-    subscribers(input: ConnectionArgs!): [User!]
-    appreciators(input: ConnectionArgs!): [User!]
+    subscribers(input: ConnectionArgs!): UserSubscribeConnection!
+    appreciators(input: ConnectionArgs!): UserAppreciateConnection!
     appreciatorCount: Int!
     # Viewer has subscribed
     subscribed: Boolean!
@@ -53,7 +53,57 @@ export default /* GraphQL */ `
     id: ID!
     content: String!
     count: Int!
-    articles(input: ConnectionArgs!): [Article!]
+    articles(input: ConnectionArgs!): ArticleTagConnection!
+  }
+
+  type ArticleDownstreamConnection {
+    pageInfo: PageInfo!
+    edges: [ArticleDownstreamEdge!]
+  }
+
+  type ArticleDownstreamEdge {
+    cursor: String!
+    node: Article!
+  }
+
+  type ArticleRelatedConnection {
+    pageInfo: PageInfo!
+    edges: [ArticleRelatedEdge!]
+  }
+
+  type ArticleRelatedEdge {
+    cursor: String!
+    node: Article!
+  }
+
+  type UserSubscribeConnection {
+    pageInfo: PageInfo!
+    edges: [UserSubscribeEdge!]
+  }
+
+  type UserSubscribeEdge {
+    cursor: String!
+    node: User!
+  }
+
+  type UserAppreciateConnection {
+    pageInfo: PageInfo!
+    edges: [UserAppreciateEdge!]
+  }
+
+  type UserAppreciateEdge {
+    cursor: String!
+    node: User!
+  }
+
+  type ArticleTagConnection {
+    pageInfo: PageInfo!
+    edges: [ArticleTagEdge!]
+  }
+
+  type ArticleTagEdge {
+    cursor: String!
+    node: Article!
   }
 
   input ArticleInput {

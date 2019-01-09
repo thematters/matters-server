@@ -42,7 +42,7 @@ test('findByAuthor', async () => {
 })
 
 test('findByUpstream', async () => {
-  const articles = await articleService.findByUpstream('2', 0)
+  const articles = await articleService.findByUpstream('2')
   expect(articles.length).toBe(2)
 })
 
