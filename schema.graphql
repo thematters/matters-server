@@ -329,7 +329,7 @@ input ListInput {
 
 type MAT {
   total: Int!
-  history(input: ListInput): [Transaction]!
+  history(input: ListInput!): [Transaction]!
 }
 
 type Mutation {

@@ -48,10 +48,11 @@ export default {
     id: ({ uuid }: { uuid: string }) => uuid,
     target: ({ entities }: { entities: any }) => entities['target'],
     MAT: (
-      { actors, target }: { actors: any[]; target: any },
+      { actors, entities }: { actors: any[]; entities: any },
       _: any,
       { dataSources: { articleService } }: Context
     ) => {
+      const target = entities['target']
       const actorIds = actors.map(actor => actor.id)
       return articleService.countAppreciationByUserIds({
         articleId: target.id,

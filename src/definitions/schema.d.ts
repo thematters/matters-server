@@ -2093,7 +2093,7 @@ export interface MATToTotalResolver<TParent = any, TResult = any> {
 }
 
 export interface MATToHistoryArgs {
-  input?: GQLListInput
+  input: GQLListInput
 }
 export interface MATToHistoryResolver<TParent = any, TResult = any> {
   (
