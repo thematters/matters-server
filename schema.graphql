@@ -133,6 +133,13 @@ type AuthResult {
   token: String
 }
 
+type Category {
+  id: ID!
+  en: String!
+  zh_hans: String!
+  zh_hant: String!
+}
+
 enum ChannelType {
   appStore
   googlePlay
@@ -275,7 +282,7 @@ type Draft implements Node {
   content: String!
   createdAt: DateTime!
   updatedAt: DateTime!
-  tags: [String]
+  tags: [String!]
   cover: URL
   publishState: PublishState!
 }
@@ -330,7 +337,7 @@ input ListInput {
 
 type MAT {
   total: Int!
-  history(input: ListInput!): [Transaction]!
+  history(input: ListInput!): [Transaction!]
 }
 
 type Mutation {
@@ -381,9 +388,11 @@ type Mutation {
 
   """login"""
   userLogin(input: UserLoginInput!): AuthResult!
-  addOAuth(input: AddOAuthInput!): Boolean
 
-  """update info/ setting"""
+  """
+  addOAuth(input: AddOAuthInput!): Boolean
+  update info/ setting
+  """
   updateUserInfo(input: UpdateUserInfoInput!): User!
   updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
 
@@ -391,8 +400,10 @@ type Mutation {
   followUser(input: FollowUserInput!): Boolean
   unfollowUser(input: UnfollowUserInput!): Boolean
 
-  """misc"""
-  importArticles(input: ImportArticlesInput!): [Article]
+  """
+  misc
+  importArticles(input: ImportArticlesInput!): [Article!]
+  """
   clearReadHistory(input: ClearReadHistoryInput): Boolean
   clearSearchHistory: Boolean
   invite(input: InviteInput!): Boolean
@@ -455,8 +466,9 @@ enum OAuthType {
 }
 
 type Official {
-  reportCategory: [String!]!
-  feedbackCategory: [String!]!
+  reportCategory: [Category!]!
+  feedbackCategory: [Category!]!
+  releases(input: ReleasesInput!): [Release!]
 }
 
 type OfficialAnnouncementNotice implements Notice {
@@ -525,7 +537,6 @@ type Query {
   frequentSearch(key: String): [String!]
   search(input: SearchInput!): [SearchResult!]
   official: Official!
-  releases(input: ReleasesInput!): [Release!]
   viewer: User
   user(input: UserInput!): User
 }
@@ -545,15 +556,15 @@ input RecallPublishInput {
 }
 
 type Recommendation {
-  followeeArticles(input: ListInput!): [Article!]!
-  newest(input: ListInput!): [Article!]!
-  hottest(input: ListInput!): [Article!]!
+  followeeArticles(input: ListInput!): [Article!]
+  newest(input: ListInput!): [Article!]
+  hottest(input: ListInput!): [Article!]
 
   """In case you missed it"""
-  icymi(input: ListInput!): [Article!]!
-  tags(input: ListInput!): [Tag!]!
-  topics(input: ListInput!): [Article!]!
-  authors(input: ListInput!): [User!]!
+  icymi(input: ListInput!): [Article!]
+  tags(input: ListInput!): [Tag!]
+  topics(input: ListInput!): [Article!]
+  authors(input: ListInput!): [User!]
 }
 
 type Release {
@@ -807,10 +818,11 @@ type UserSettings {
   """User language setting"""
   language: UserLanguage!
 
-  """Thrid party accounts binded for the user"""
-  oauthType: [OAuthType!]!
-
-  """Notification settings"""
+  """
+  Thrid party accounts binded for the user
+  oauthType: [OAuthType!]
+  Notification settings
+  """
   notification: NotificationSetting!
 }
 

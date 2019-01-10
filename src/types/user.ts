@@ -18,7 +18,7 @@ export default /* GraphQL */ `
     userRegister(input: UserRegisterInput!): AuthResult!
     # login
     userLogin(input: UserLoginInput!): AuthResult!
-    addOAuth(input: AddOAuthInput!): Boolean
+    # addOAuth(input: AddOAuthInput!): Boolean
     # update info/ setting
     updateUserInfo(input: UpdateUserInfoInput!): User!
     updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
@@ -26,7 +26,7 @@ export default /* GraphQL */ `
     followUser(input: FollowUserInput!): Boolean
     unfollowUser(input: UnfollowUserInput!): Boolean
     # misc
-    importArticles(input: ImportArticlesInput!): [Article]
+    # importArticles(input: ImportArticlesInput!): [Article!]
     clearReadHistory(input: ClearReadHistoryInput): Boolean
     clearSearchHistory: Boolean
     invite(input: InviteInput!): Boolean
@@ -77,14 +77,14 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
-    followeeArticles(input: ListInput!): [Article!]!
-    newest(input: ListInput!): [Article!]!
-    hottest(input: ListInput!): [Article!]!
+    followeeArticles(input: ListInput!): [Article!]
+    newest(input: ListInput!): [Article!]
+    hottest(input: ListInput!): [Article!]
     # In case you missed it
-    icymi(input: ListInput!): [Article!]!
-    tags(input: ListInput!): [Tag!]!
-    topics(input: ListInput!): [Article!]!
-    authors(input: ListInput!): [User!]!
+    icymi(input: ListInput!): [Article!]
+    tags(input: ListInput!): [Tag!]
+    topics(input: ListInput!): [Article!]
+    authors(input: ListInput!): [User!]
   }
 
   type UserInfo {
@@ -107,7 +107,7 @@ export default /* GraphQL */ `
     # User language setting
     language: UserLanguage!
     # Thrid party accounts binded for the user
-    oauthType: [OAuthType!]!
+    # oauthType: [OAuthType!]
     # Notification settings
     notification: NotificationSetting!
   }
@@ -141,7 +141,7 @@ export default /* GraphQL */ `
 
   type MAT {
     total: Int!
-    history(input: ListInput!): [Transaction]!
+    history(input: ListInput!): [Transaction!]
   }
 
   type Transaction {

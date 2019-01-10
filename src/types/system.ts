@@ -4,7 +4,6 @@ export default /* GraphQL */ `
     frequentSearch(key: String): [String!]
     search(input: SearchInput!): [SearchResult!]
     official: Official!
-    releases(input: ReleasesInput!): [Release!]
   }
 
   extend type Mutation {
@@ -26,8 +25,16 @@ export default /* GraphQL */ `
   }
 
   type Official {
-    reportCategory: [String!]!
-    feedbackCategory: [String!]!
+    reportCategory: [Category!]!
+    feedbackCategory: [Category!]!
+    releases(input: ReleasesInput!): [Release!]
+  }
+
+  type Category {
+    id: ID!
+    en: String!
+    zh_hans: String!
+    zh_hant: String!
   }
 
   type Release {

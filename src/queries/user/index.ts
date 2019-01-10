@@ -11,7 +11,7 @@ import isFollowee from './isFollowee'
 import avatar from './avatar'
 import articleCount from './articleCount'
 import commentCount from './commentCount'
-import oauthType from './oauthType'
+// import oauthType from './oauthType'
 import history from './history'
 import notification from './notification'
 import followerCount from './followerCount'
@@ -50,7 +50,7 @@ export default {
     avatar
   },
   UserSettings: {
-    oauthType,
+    // oauthType,
     notification
   },
   UserActivity: {
@@ -59,7 +59,6 @@ export default {
   MAT,
   Transaction,
   UserStatus: {
-    state: ({ state }: { state: string }) => state,
     MAT: (root: any) => root,
     invitation: (root: any) => root,
     articleCount,

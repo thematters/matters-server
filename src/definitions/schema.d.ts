@@ -24,7 +24,6 @@ export interface GQLQuery {
   frequentSearch?: Array<string>
   search?: Array<GQLSearchResult>
   official: GQLOfficial
-  releases?: Array<GQLRelease>
   viewer?: GQLUser
   user?: GQLUser
 }
@@ -205,10 +204,7 @@ export interface GQLUserSettings {
 
   /**
    * Thrid party accounts binded for the user
-   */
-  oauthType: Array<GQLOAuthType>
-
-  /**
+   * oauthType: [OAuthType!]
    * Notification settings
    */
   notification: GQLNotificationSetting
@@ -218,12 +214,6 @@ export enum GQLUserLanguage {
   en = 'en',
   zh_hans = 'zh_hans',
   zh_hant = 'zh_hant'
-}
-
-export enum GQLOAuthType {
-  facebook = 'facebook',
-  wechat = 'wechat',
-  google = 'google'
 }
 
 export interface GQLNotificationSetting {
@@ -246,17 +236,17 @@ export interface GQLNotificationSetting {
 }
 
 export interface GQLRecommendation {
-  followeeArticles: Array<GQLArticle>
-  newest: Array<GQLArticle>
-  hottest: Array<GQLArticle>
+  followeeArticles?: Array<GQLArticle>
+  newest?: Array<GQLArticle>
+  hottest?: Array<GQLArticle>
 
   /**
    * In case you missed it
    */
-  icymi: Array<GQLArticle>
-  tags: Array<GQLTag>
-  topics: Array<GQLArticle>
-  authors: Array<GQLUser>
+  icymi?: Array<GQLArticle>
+  tags?: Array<GQLTag>
+  topics?: Array<GQLArticle>
+  authors?: Array<GQLUser>
 }
 
 export interface GQLListInput {
@@ -279,7 +269,7 @@ export interface GQLDraft extends GQLNode {
   content: string
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
-  tags?: Array<string | null>
+  tags?: Array<string>
   cover?: GQLURL
   publishState: GQLPublishState
 }
@@ -359,7 +349,7 @@ export enum GQLUserState {
 
 export interface GQLMAT {
   total: number
-  history: Array<GQLTransaction | null>
+  history?: Array<GQLTransaction>
 }
 
 export interface GQLTransaction {
@@ -515,8 +505,16 @@ export interface GQLSearchResult {
 }
 
 export interface GQLOfficial {
-  reportCategory: Array<string>
-  feedbackCategory: Array<string>
+  reportCategory: Array<GQLCategory>
+  feedbackCategory: Array<GQLCategory>
+  releases?: Array<GQLRelease>
+}
+
+export interface GQLCategory {
+  id: string
+  en: string
+  zh_hans: string
+  zh_hant: string
 }
 
 export interface GQLReleasesInput {
@@ -617,9 +615,9 @@ export interface GQLMutation {
    * login
    */
   userLogin: GQLAuthResult
-  addOAuth?: boolean
 
   /**
+   * addOAuth(input: AddOAuthInput!): Boolean
    * update info/ setting
    */
   updateUserInfo: GQLUser
@@ -633,8 +631,8 @@ export interface GQLMutation {
 
   /**
    * misc
+   * importArticles(input: ImportArticlesInput!): [Article!]
    */
-  importArticles?: Array<GQLArticle | null>
   clearReadHistory?: boolean
   clearSearchHistory?: boolean
   invite?: boolean
@@ -827,12 +825,6 @@ export interface GQLUserLoginInput {
   password: string
 }
 
-export interface GQLAddOAuthInput {
-  name: string
-  id: string
-  type?: GQLOAuthType
-}
-
 export interface GQLUpdateUserInfoInput {
   displayName?: string
   avatar?: string
@@ -868,11 +860,6 @@ export interface GQLUnfollowUserInput {
   id: string
 }
 
-export interface GQLImportArticlesInput {
-  platform?: string
-  token?: string
-}
-
 export interface GQLClearReadHistoryInput {
   id: string
 }
@@ -889,6 +876,18 @@ export interface GQLSubscription {
 
 export interface GQLNodeEditedInput {
   id: string
+}
+
+export interface GQLAddOAuthInput {
+  name: string
+  id: string
+  type?: GQLOAuthType
+}
+
+export enum GQLOAuthType {
+  facebook = 'facebook',
+  wechat = 'wechat',
+  google = 'google'
 }
 
 export interface GQLArticleNewAppreciationNotice extends GQLNotice {
@@ -973,6 +972,11 @@ export interface GQLDownstreamArticleArchivedNotice extends GQLNotice {
   createdAt: GQLDateTime
   downstream?: GQLArticle
   target?: GQLArticle
+}
+
+export interface GQLImportArticlesInput {
+  platform?: string
+  token?: string
 }
 
 export type GQLJSON = any
@@ -1062,6 +1066,7 @@ export interface GQLResolver {
   Comment?: GQLCommentTypeResolver
   SearchResult?: GQLSearchResultTypeResolver
   Official?: GQLOfficialTypeResolver
+  Category?: GQLCategoryTypeResolver
   Release?: GQLReleaseTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
@@ -1094,7 +1099,6 @@ export interface GQLQueryTypeResolver<TParent = any> {
   frequentSearch?: QueryToFrequentSearchResolver<TParent>
   search?: QueryToSearchResolver<TParent>
   official?: QueryToOfficialResolver<TParent>
-  releases?: QueryToReleasesResolver<TParent>
   viewer?: QueryToViewerResolver<TParent>
   user?: QueryToUserResolver<TParent>
 }
@@ -1165,18 +1169,6 @@ export interface QueryToSearchResolver<TParent = any, TResult = any> {
 
 export interface QueryToOfficialResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface QueryToReleasesArgs {
-  input: GQLReleasesInput
-}
-export interface QueryToReleasesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: QueryToReleasesArgs,
-    context: any,
-    info: GraphQLResolveInfo
-  ): TResult
 }
 
 export interface QueryToViewerResolver<TParent = any, TResult = any> {
@@ -1611,15 +1603,10 @@ export interface UserInfoToReadSpeedResolver<TParent = any, TResult = any> {
 
 export interface GQLUserSettingsTypeResolver<TParent = any> {
   language?: UserSettingsToLanguageResolver<TParent>
-  oauthType?: UserSettingsToOauthTypeResolver<TParent>
   notification?: UserSettingsToNotificationResolver<TParent>
 }
 
 export interface UserSettingsToLanguageResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserSettingsToOauthTypeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2288,6 +2275,7 @@ export interface SearchResultToMatchResolver<TParent = any, TResult = any> {
 export interface GQLOfficialTypeResolver<TParent = any> {
   reportCategory?: OfficialToReportCategoryResolver<TParent>
   feedbackCategory?: OfficialToFeedbackCategoryResolver<TParent>
+  releases?: OfficialToReleasesResolver<TParent>
 }
 
 export interface OfficialToReportCategoryResolver<
@@ -2301,6 +2289,41 @@ export interface OfficialToFeedbackCategoryResolver<
   TParent = any,
   TResult = any
 > {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface OfficialToReleasesArgs {
+  input: GQLReleasesInput
+}
+export interface OfficialToReleasesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OfficialToReleasesArgs,
+    context: any,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCategoryTypeResolver<TParent = any> {
+  id?: CategoryToIdResolver<TParent>
+  en?: CategoryToEnResolver<TParent>
+  zh_hans?: CategoryToZh_hansResolver<TParent>
+  zh_hant?: CategoryToZh_hantResolver<TParent>
+}
+
+export interface CategoryToIdResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface CategoryToEnResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface CategoryToZh_hansResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface CategoryToZh_hantResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2389,14 +2412,12 @@ export interface GQLMutationTypeResolver<TParent = any> {
   confirmVerifyEmail?: MutationToConfirmVerifyEmailResolver<TParent>
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
-  addOAuth?: MutationToAddOAuthResolver<TParent>
   updateUserInfo?: MutationToUpdateUserInfoResolver<TParent>
   updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<
     TParent
   >
   followUser?: MutationToFollowUserResolver<TParent>
   unfollowUser?: MutationToUnfollowUserResolver<TParent>
-  importArticles?: MutationToImportArticlesResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   invite?: MutationToInviteResolver<TParent>
@@ -2803,18 +2824,6 @@ export interface MutationToUserLoginResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToAddOAuthArgs {
-  input: GQLAddOAuthInput
-}
-export interface MutationToAddOAuthResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToAddOAuthArgs,
-    context: any,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface MutationToUpdateUserInfoArgs {
   input: GQLUpdateUserInfoInput
 }
@@ -2864,21 +2873,6 @@ export interface MutationToUnfollowUserResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUnfollowUserArgs,
-    context: any,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToImportArticlesArgs {
-  input: GQLImportArticlesInput
-}
-export interface MutationToImportArticlesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToImportArticlesArgs,
     context: any,
     info: GraphQLResolveInfo
   ): TResult
