@@ -16,7 +16,7 @@ export default /* GraphQL */ `
     content: String!
     createdAt: DateTime!
     updatedAt: DateTime!
-    tags: [String]
+    tags: [String!]
     cover: URL
     publishState: PublishState!
   }

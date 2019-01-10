@@ -132,7 +132,7 @@ describe('query nodes of different type', async () => {
       variables: { input: { id } }
     })
     const node = data && data.node
-    expect(node).toEqual({ id, content: '<div>Test comment 1</div>' })
+    expect(node.id).toBe(id)
   })
 })
 

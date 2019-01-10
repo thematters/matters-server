@@ -18,7 +18,7 @@ export default /* GraphQL */ `
     userRegister(input: UserRegisterInput!): AuthResult!
     # login
     userLogin(input: UserLoginInput!): AuthResult!
-    addOAuth(input: AddOAuthInput!): Boolean
+    # addOAuth(input: AddOAuthInput!): Boolean
     # update info/ setting
     updateUserInfo(input: UpdateUserInfoInput!): User!
     updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
@@ -26,7 +26,7 @@ export default /* GraphQL */ `
     followUser(input: FollowUserInput!): Boolean
     unfollowUser(input: UnfollowUserInput!): Boolean
     # misc
-    importArticles(input: ImportArticlesInput!): [Article]
+    # importArticles(input: ImportArticlesInput!): [Article!]
     clearReadHistory(input: ClearReadHistoryInput): Boolean
     clearSearchHistory: Boolean
     invite(input: InviteInput!): Boolean
@@ -88,6 +88,8 @@ export default /* GraphQL */ `
     createdAt: DateTime!
     # Unique user name
     userName: String!
+    # Is user name editable
+    userNameEditable: Boolean!
     # Display name on profile
     displayName: String!
     # User desciption
@@ -98,13 +100,14 @@ export default /* GraphQL */ `
     mobile: String
     # Use 500 for now, adaptive in the future
     readSpeed: Int!
+    badges: [Badge!]
   }
 
   type UserSettings {
     # User language setting
     language: UserLanguage!
     # Thrid party accounts binded for the user
-    oauthType: [OAuthType!]!
+    # oauthType: [OAuthType!]
     # Notification settings
     notification: NotificationSetting!
   }
@@ -168,6 +171,10 @@ export default /* GraphQL */ `
     id: ID!
     article: Article!
     readAt: DateTime!
+  }
+
+  type Badge {
+    type: BadgeType!
   }
 
   type AuthResult {
@@ -272,11 +279,11 @@ export default /* GraphQL */ `
     password: String!
   }
 
-  input AddOAuthInput {
-    name: String!
-    id: String!
-    type: OAuthType
-  }
+  # input AddOAuthInput {
+  #   name: String!
+  #   id: String!
+  #   type: OAuthType
+  # }
 
   input UpdateNotificationSettingInput {
     type: NotificationSettingType!
@@ -285,6 +292,7 @@ export default /* GraphQL */ `
 
   input UpdateUserInfoInput {
     displayName: String
+    userName: String
     avatar: ID
     description: String
     language: UserLanguage
@@ -305,6 +313,10 @@ export default /* GraphQL */ `
 
   input ClearReadHistoryInput {
     id: ID!
+  }
+
+  enum BadgeType {
+    seed
   }
 
   enum VerificationCodeType {
@@ -343,11 +355,11 @@ export default /* GraphQL */ `
     reportFeedback
   }
 
-  enum OAuthType {
-    facebook
-    wechat
-    google
-  }
+  # enum OAuthType {
+  #   facebook
+  #   wechat
+  #   google
+  # }
 
   enum UserState {
     inactive

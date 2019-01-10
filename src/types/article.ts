@@ -40,13 +40,17 @@ export default /* GraphQL */ `
     # MAT recieved for this article
     MAT: Int!
     participantCount: Int!
+    participants: UserConnection!
     subscribers(input: ConnectionArgs!): UserConnection!
     appreciators(input: ConnectionArgs!): UserConnection!
     appreciatorCount: Int!
-    # Viewer has subscribed
-    subscribed: Boolean!
+    # limit the nuhmber of appreciate per user
+    appreciateLimit: Int!
+    appreciateLeft: Int!
     # Viewer has appreciate
     hasAppreciate: Boolean!
+    # Viewer has subscribed
+    subscribed: Boolean!
   }
 
   type Tag implements Node {
@@ -108,11 +112,12 @@ export default /* GraphQL */ `
     category: String!
     description: String
     assetIds: [ID!]
+    contact: String
   }
 
   input AppreciateArticleInput {
     id: ID!
-    amount: Int
+    amount: Int!
   }
 
   input ReadArticleInput {

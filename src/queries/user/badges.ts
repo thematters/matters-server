@@ -4,6 +4,6 @@ const resolver: UserSettingsToOauthTypeResolver = async (
   { id },
   _,
   { dataSources: { userService } }
-) => userService.findOAuthTypes(id)
+) => userService.findBadges(id)
 
 export default resolver

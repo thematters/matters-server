@@ -9,9 +9,11 @@ import followees from './followees'
 import isFollower from './isFollower'
 import isFollowee from './isFollowee'
 import avatar from './avatar'
+import badges from './badges'
+import userNameEditable from './userNameEditable'
 import articleCount from './articleCount'
 import commentCount from './commentCount'
-import oauthType from './oauthType'
+// import oauthType from './oauthType'
 import history from './history'
 import notification from './notification'
 import followerCount from './followerCount'
@@ -47,10 +49,12 @@ export default {
   },
   Recommendation,
   UserInfo: {
-    avatar
+    avatar,
+    badges,
+    userNameEditable
   },
   UserSettings: {
-    oauthType,
+    // oauthType,
     notification
   },
   UserActivity: {
@@ -59,7 +63,6 @@ export default {
   MAT,
   Transaction,
   UserStatus: {
-    state: ({ state }: { state: string }) => state,
     MAT: (root: any) => root,
     invitation: (root: any) => root,
     articleCount,

@@ -89,17 +89,20 @@ export class UserService extends BaseService {
     return user
   }
 
+  /**
+   * Upadte user info
+   */
   update = async (
     id: string,
     input: GQLUpdateUserInfoInput & { email: string }
   ) => {
     const user = await this.baseUpdateById(id, input)
 
-    const { description, displayName, email } = input
-    if (description || displayName || email) {
+    const { description, displayName, userName, email } = input
+    if (description || displayName || userName || email) {
       // remove null and undefined
       const searchable = _.pickBy(
-        { description, displayName, email },
+        { description, displayName, userName, email },
         _.identity
       )
 
@@ -115,6 +118,27 @@ export class UserService extends BaseService {
 
     return user
   }
+
+  /**
+   * Check is username editable
+   */
+  isUserNameEditable = async (userId: string) => {
+    const history = await this.knex('username_edit_history')
+      .select()
+      .where({ userId })
+    return history.length <= 0
+  }
+
+  /**
+   * Add user name edit history
+   */
+  addUserNameEditHistory = async ({
+    userId,
+    previous
+  }: {
+    userId: string
+    previous: string
+  }) => await this.baseCreate({ userId, previous }, 'username_edit_history')
 
   addToSearch = async ({
     id,
@@ -317,33 +341,42 @@ export class UserService extends BaseService {
       .first()
 
   /**
-   * Find user's OAuth accounts by a given user id.
+   * Find user's badges
    */
-  findOAuth = async (userId: string): Promise<any> =>
+  findBadges = async (userId: string): Promise<any[]> =>
     await this.knex
       .select()
-      .from('user_oauth')
-      .where('user_id', userId)
-      .first()
+      .from('user_badge')
+      .where({ userId })
+
+  /**
+   * Find user's OAuth accounts by a given user id.
+   */
+  // findOAuth = async (userId: string): Promise<any> =>
+  //   await this.knex
+  //     .select()
+  //     .from('user_oauth')
+  //     .where('user_id', userId)
+  //     .first()
 
   /**
    * Find user's OAuth accounts by a given user id and type.
    */
-  findOAuthByType = async (userId: string, type: string): Promise<any> =>
-    await this.knex
-      .select()
-      .from('user_oauth')
-      .where({ userId, type })
-      .first()
+  // findOAuthByType = async (userId: string, type: string): Promise<any> =>
+  //   await this.knex
+  //     .select()
+  //     .from('user_oauth')
+  //     .where({ userId, type })
+  //     .first()
 
   /**
    * Find user's all OAuth types by a given user id.
    */
-  findOAuthTypes = async (userId: string): Promise<any[]> =>
-    await this.knex
-      .select('type')
-      .from('user_oauth')
-      .where({ userId })
+  // findOAuthTypes = async (userId: string): Promise<any[]> =>
+  //   await this.knex
+  //     .select('type')
+  //     .from('user_oauth')
+  //     .where({ userId })
 
   /**
    * Find user's all transactions by a given user id.

@@ -28,6 +28,8 @@ export default /* GraphQL */ `
 
   extend type Article {
     commentCount: Int!
+    pinCommentLimit: Int!
+    pinCommentLeft: Int!
     pinnedComments: [Comment!]
     comments(input: CommentsInput!): CommentConnection!
   }
@@ -61,6 +63,7 @@ export default /* GraphQL */ `
     sort: CommentSort
     after: String
     first: Int
+    parent: Boolean
   }
 
   enum CommentSort {
@@ -82,6 +85,7 @@ export default /* GraphQL */ `
     category: String!
     description: String
     assetIds: [ID!]
+    contact: String
   }
 
   input VoteCommentInput {
