@@ -2,9 +2,9 @@ export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node
     frequentSearch(key: String): [String!]
-    search(input: SearchInput!): [SearchResult!]
+    search(input: SearchInput!): SearchResultConnection!
     official: Official!
-    releases(input: ReleasesInput!): [Release!]
+    releases(input: ReleasesInput!): ReleaseConnection!
   }
 
   extend type Mutation {
@@ -24,7 +24,6 @@ export default /* GraphQL */ `
     startCursor: String
     endCursor: String
     hasNextPage: Boolean!
-    totalCount: Int!
   }
 
   type SearchResult {
@@ -57,6 +56,26 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
+  type SearchResultConnection {
+    pageInfo: PageInfo!
+    edges: [SearchResultEdge!]
+  }
+
+  type SearchResultEdge {
+    cursor: String!
+    node: SearchResult!
+  }
+
+  type ReleaseConnection {
+    pageInfo: PageInfo!
+    edges: [ReleaseEdge!]
+  }
+
+  type ReleaseEdge {
+    cursor: String!
+    node: Release!
+  }
+
   input NodeInput {
     id: ID!
   }
@@ -68,15 +87,15 @@ export default /* GraphQL */ `
   input SearchInput {
     key: String!
     type: SearchTypes!
-    offset: Int
-    limit: Int
+    after: String
+    first: Int
   }
 
   input ReleasesInput {
     platform: PlatformType!
     channel: ChannelType!
-    offset: Int
-    limit: Int
+    after: String
+    first: Int
   }
 
   input SingleFileUploadInput {
@@ -92,10 +111,8 @@ export default /* GraphQL */ `
   }
 
   input ConnectionArgs {
-    before: String
     after: String
     first: Int
-    last: Int
   }
 
   enum SearchTypes {

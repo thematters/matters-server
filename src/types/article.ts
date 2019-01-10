@@ -1,7 +1,7 @@
 export default /* GraphQL */ `
   extend type Query {
     article(input: ArticleInput!): Article
-    articles(input: ArticlesInput!): [Article!]
+    articles(input: ArticlesInput!): ArticleConnection!
   }
 
   extend type Mutation {
@@ -35,13 +35,13 @@ export default /* GraphQL */ `
     content: String!
     gatewayUrls: [URL!]
     upstream: Article
-    downstreams(input: ConnectionArgs!): ArticleDownstreamConnection!
-    relatedArticles(input: ConnectionArgs!): ArticleRelatedConnection!
+    downstreams(input: ConnectionArgs!): ArticleConnection!
+    relatedArticles(input: ConnectionArgs!): ArticleConnection!
     # MAT recieved for this article
     MAT: Int!
     participantCount: Int!
-    subscribers(input: ConnectionArgs!): UserSubscribeConnection!
-    appreciators(input: ConnectionArgs!): UserAppreciateConnection!
+    subscribers(input: ConnectionArgs!): UserConnection!
+    appreciators(input: ConnectionArgs!): UserConnection!
     appreciatorCount: Int!
     # Viewer has subscribed
     subscribed: Boolean!
@@ -53,57 +53,27 @@ export default /* GraphQL */ `
     id: ID!
     content: String!
     count: Int!
-    articles(input: ConnectionArgs!): ArticleTagConnection!
+    articles(input: ConnectionArgs!): ArticleConnection!
   }
 
-  type ArticleDownstreamConnection {
+  type ArticleConnection {
     pageInfo: PageInfo!
-    edges: [ArticleDownstreamEdge!]
+    edges: [ArticleEdge!]
   }
 
-  type ArticleDownstreamEdge {
+  type ArticleEdge {
     cursor: String!
     node: Article!
   }
 
-  type ArticleRelatedConnection {
+  type TagConnection {
     pageInfo: PageInfo!
-    edges: [ArticleRelatedEdge!]
+    edges: [TagEdge]!
   }
 
-  type ArticleRelatedEdge {
+  type TagEdge {
     cursor: String!
-    node: Article!
-  }
-
-  type UserSubscribeConnection {
-    pageInfo: PageInfo!
-    edges: [UserSubscribeEdge!]
-  }
-
-  type UserSubscribeEdge {
-    cursor: String!
-    node: User!
-  }
-
-  type UserAppreciateConnection {
-    pageInfo: PageInfo!
-    edges: [UserAppreciateEdge!]
-  }
-
-  type UserAppreciateEdge {
-    cursor: String!
-    node: User!
-  }
-
-  type ArticleTagConnection {
-    pageInfo: PageInfo!
-    edges: [ArticleTagEdge!]
-  }
-
-  type ArticleTagEdge {
-    cursor: String!
-    node: Article!
+    node: Tag!
   }
 
   input ArticleInput {
@@ -112,8 +82,8 @@ export default /* GraphQL */ `
 
   input ArticlesInput {
     public: Boolean
-    offset: Int
-    limit: Int
+    after: String
+    first: Int
   }
 
   input PublishArticleInput {

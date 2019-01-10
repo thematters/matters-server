@@ -31,14 +31,14 @@ type Article implements Node {
   content: String!
   gatewayUrls: [URL!]
   upstream: Article
-  downstreams(input: ConnectionArgs!): ArticleDownstreamConnection!
-  relatedArticles(input: ConnectionArgs!): ArticleRelatedConnection!
+  downstreams(input: ConnectionArgs!): ArticleConnection!
+  relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
   """MAT recieved for this article"""
   MAT: Int!
   participantCount: Int!
-  subscribers(input: ConnectionArgs!): UserSubscribeConnection!
-  appreciators(input: ConnectionArgs!): UserAppreciateConnection!
+  subscribers(input: ConnectionArgs!): UserConnection!
+  appreciators(input: ConnectionArgs!): UserConnection!
   appreciatorCount: Int!
 
   """Viewer has subscribed"""
@@ -48,35 +48,15 @@ type Article implements Node {
   hasAppreciate: Boolean!
   commentCount: Int!
   pinnedComments: [Comment!]
-  comments(input: CommentsInput!): CommentArticleConnection!
+  comments(input: CommentsInput!): CommentConnection!
 }
 
-type ArticleAuthoredConnection {
+type ArticleConnection {
   pageInfo: PageInfo!
-  edges: [ArticleAuthoredEdge]
+  edges: [ArticleEdge!]
 }
 
-type ArticleAuthoredEdge {
-  cursor: String!
-  node: Article
-}
-
-type ArticleCommentedConnection {
-  pageInfo: PageInfo!
-  edges: [ArticleCommentedEdge]!
-}
-
-type ArticleCommentedEdge {
-  cursor: String!
-  node: Article!
-}
-
-type ArticleDownstreamConnection {
-  pageInfo: PageInfo!
-  edges: [ArticleDownstreamEdge!]
-}
-
-type ArticleDownstreamEdge {
+type ArticleEdge {
   cursor: String!
   node: Article!
 }
@@ -127,50 +107,10 @@ type ArticlePublishedNotice implements Notice {
   target: Article
 }
 
-type ArticleRecommendedConnection {
-  pageInfo: PageInfo!
-  edges: [ArticleRecommendedEdge]!
-}
-
-type ArticleRecommendedEdge {
-  cursor: String!
-  node: Article!
-}
-
-type ArticleRelatedConnection {
-  pageInfo: PageInfo!
-  edges: [ArticleRelatedEdge!]
-}
-
-type ArticleRelatedEdge {
-  cursor: String!
-  node: Article!
-}
-
 input ArticlesInput {
   public: Boolean
-  offset: Int
-  limit: Int
-}
-
-type ArticleSubcriptionConnection {
-  pageInfo: PageInfo!
-  edges: [ArticleSubcriptionEdge]
-}
-
-type ArticleSubcriptionEdge {
-  cursor: String!
-  node: Article!
-}
-
-type ArticleTagConnection {
-  pageInfo: PageInfo!
-  edges: [ArticleTagEdge!]
-}
-
-type ArticleTagEdge {
-  cursor: String!
-  node: Article!
+  after: String
+  first: Int
 }
 
 type Asset {
@@ -198,12 +138,12 @@ type Audiodraft {
   updatedAt: DateTime!
 }
 
-type AudiodraftAuthoredConnection {
+type AudiodraftConnection {
   pageInfo: PageInfo!
-  edges: [AudiodraftAuthoredEdge]!
+  edges: [AudiodraftEdge]!
 }
 
-type AudiodraftAuthoredEdge {
+type AudiodraftEdge {
   cursor: String!
   node: Audiodraft!
 }
@@ -237,26 +177,16 @@ type Comment implements Node {
   quote: Boolean!
   myVote: Vote
   mentions: [User!]
-  comments(input: ConnectionArgs!): CommentChildConnection!
+  comments(input: ConnectionArgs!): CommentConnection!
   parentComment: Comment
 }
 
-type CommentArticleConnection {
+type CommentConnection {
   pageInfo: PageInfo!
-  edges: [CommentArticleEdge!]
+  edges: [CommentEdge!]
 }
 
-type CommentArticleEdge {
-  cursor: String!
-  node: Comment!
-}
-
-type CommentChildConnection {
-  pageInfo: PageInfo!
-  edges: [CommentChildEdge!]
-}
-
-type CommentChildEdge {
+type CommentEdge {
   cursor: String!
   node: Comment!
 }
@@ -305,10 +235,8 @@ input CommentsInput {
   author: ID
   quote: Boolean
   sort: CommentSort
-  before: String
   after: String
   first: Int
-  last: Int
 }
 
 enum CommentSort {
@@ -345,10 +273,8 @@ input ConfirmVerifyEmailInput {
 }
 
 input ConnectionArgs {
-  before: String
   after: String
   first: Int
-  last: Int
 }
 
 scalar Date
@@ -388,12 +314,12 @@ type Draft implements Node {
   publishState: PublishState!
 }
 
-type DraftAuthoredConnection {
+type DraftConnection {
   pageInfo: PageInfo!
-  edges: [DraftAuthoredEdge]!
+  edges: [DraftEdge]!
 }
 
-type DraftAuthoredEdge {
+type DraftEdge {
   cursor: String!
   node: Draft!
 }
@@ -424,12 +350,12 @@ type Invitation implements Node {
   createdAt: DateTime!
 }
 
-type InvitationSentConnection {
+type InvitationConnection {
   pageInfo: PageInfo!
-  edges: [InvitationSentEdge]!
+  edges: [InvitationEdge]!
 }
 
-type InvitationSentEdge {
+type InvitationEdge {
   cursor: String!
   node: Invitation!
 }
@@ -441,7 +367,7 @@ type InvitationStatus {
   left: Int!
 
   """invitations sent"""
-  sent(input: ConnectionArgs!): InvitationSentConnection!
+  sent(input: ConnectionArgs!): InvitationConnection!
 }
 
 input InviteInput {
@@ -453,7 +379,7 @@ scalar JSON
 
 type MAT {
   total: Int!
-  history(input: ConnectionArgs!): TransactionHistoryConnection!
+  history(input: ConnectionArgs!): TransactionConnection!
 }
 
 type Mutation {
@@ -604,7 +530,6 @@ type PageInfo {
   startCursor: String
   endCursor: String
   hasNextPage: Boolean!
-  totalCount: Int!
 }
 
 input PinCommentInput {
@@ -660,12 +585,12 @@ Ref: apollographql/graphql-tools#293
 type Query {
   _: Boolean
   article(input: ArticleInput!): Article
-  articles(input: ArticlesInput!): [Article!]
+  articles(input: ArticlesInput!): ArticleConnection!
   node(input: NodeInput!): Node
   frequentSearch(key: String): [String!]
-  search(input: SearchInput!): [SearchResult!]
+  search(input: SearchInput!): SearchResultConnection!
   official: Official!
-  releases(input: ReleasesInput!): [Release!]
+  releases(input: ReleasesInput!): ReleaseConnection!
   viewer: User
   user(input: UserInput!): User
 }
@@ -705,15 +630,15 @@ type RecentSearchEdge {
 }
 
 type Recommendation {
-  followeeArticles(input: ConnectionArgs!): ArticleRecommendedConnection!
-  newest(input: ConnectionArgs!): ArticleRecommendedConnection!
-  hottest(input: ConnectionArgs!): ArticleRecommendedConnection!
+  followeeArticles(input: ConnectionArgs!): ArticleConnection!
+  newest(input: ConnectionArgs!): ArticleConnection!
+  hottest(input: ConnectionArgs!): ArticleConnection!
 
   """In case you missed it"""
-  icymi(input: ConnectionArgs!): ArticleRecommendedConnection!
-  tags(input: ConnectionArgs!): TagRecommendedConnection!
-  topics(input: ConnectionArgs!): ArticleRecommendedConnection!
-  authors(input: ConnectionArgs!): UserRecommendedConnection!
+  icymi(input: ConnectionArgs!): ArticleConnection!
+  tags(input: ConnectionArgs!): TagConnection!
+  topics(input: ConnectionArgs!): ArticleConnection!
+  authors(input: ConnectionArgs!): UserConnection!
 }
 
 type Release {
@@ -729,11 +654,21 @@ type Release {
   releasedAt: DateTime!
 }
 
+type ReleaseConnection {
+  pageInfo: PageInfo!
+  edges: [ReleaseEdge!]
+}
+
+type ReleaseEdge {
+  cursor: String!
+  node: Release!
+}
+
 input ReleasesInput {
   platform: PlatformType!
   channel: ChannelType!
-  offset: Int
-  limit: Int
+  after: String
+  first: Int
 }
 
 input ReportArticleInput {
@@ -753,13 +688,23 @@ input ReportCommentInput {
 input SearchInput {
   key: String!
   type: SearchTypes!
-  offset: Int
-  limit: Int
+  after: String
+  first: Int
 }
 
 type SearchResult {
   node: Node
   match: String
+}
+
+type SearchResultConnection {
+  pageInfo: PageInfo!
+  edges: [SearchResultEdge!]
+}
+
+type SearchResultEdge {
+  cursor: String!
+  node: SearchResult!
 }
 
 enum SearchTypes {
@@ -800,15 +745,15 @@ type Tag implements Node {
   id: ID!
   content: String!
   count: Int!
-  articles(input: ConnectionArgs!): ArticleTagConnection!
+  articles(input: ConnectionArgs!): ArticleConnection!
 }
 
-type TagRecommendedConnection {
+type TagConnection {
   pageInfo: PageInfo!
-  edges: [TagRecommendedEdge]!
+  edges: [TagEdge]!
 }
 
-type TagRecommendedEdge {
+type TagEdge {
   cursor: String!
   node: Tag!
 }
@@ -832,12 +777,12 @@ type Transaction {
   createdAt: DateTime!
 }
 
-type TransactionHistoryConnection {
+type TransactionConnection {
   pageInfo: PageInfo!
-  edges: [TransactionHistoryEdge]!
+  edges: [TransactionEdge]!
 }
 
-type TransactionHistoryEdge {
+type TransactionEdge {
   cursor: String!
   node: Transaction!
 }
@@ -893,20 +838,20 @@ type User implements Node {
   recommendation: Recommendation!
 
   """Articles written by this user"""
-  articles(input: ConnectionArgs!): ArticleAuthoredConnection!
-  drafts(input: ConnectionArgs!): DraftAuthoredConnection!
-  audiodrafts(input: ConnectionArgs!): AudiodraftAuthoredConnection!
+  articles(input: ConnectionArgs!): ArticleConnection!
+  drafts(input: ConnectionArgs!): DraftConnection!
+  audiodrafts(input: ConnectionArgs!): AudiodraftConnection!
 
   """Comments posted by this user"""
-  commentedArticles(input: ConnectionArgs!): ArticleCommentedConnection!
-  subscriptions(input: ConnectionArgs!): ArticleSubcriptionConnection!
+  commentedArticles(input: ConnectionArgs!): ArticleConnection!
+  subscriptions(input: ConnectionArgs!): ArticleConnection!
   activity: UserActivity!
 
   """Followers of this user"""
-  followers(input: ConnectionArgs!): UserFollowerConnection!
+  followers(input: ConnectionArgs!): UserConnection!
 
   """Users that this user follows"""
-  followees(input: ConnectionArgs!): UserFolloweeConnection!
+  followees(input: ConnectionArgs!): UserConnection!
 
   """This user is following viewer"""
   isFollower: Boolean!
@@ -922,32 +867,12 @@ type UserActivity {
   recentSearches(input: ConnectionArgs!): RecentSearchConnection!
 }
 
-type UserAppreciateConnection {
+type UserConnection {
   pageInfo: PageInfo!
-  edges: [UserAppreciateEdge!]
+  edges: [UserEdge]
 }
 
-type UserAppreciateEdge {
-  cursor: String!
-  node: User!
-}
-
-type UserFolloweeConnection {
-  pageInfo: PageInfo!
-  edges: [UserFolloweeEdge]
-}
-
-type UserFolloweeEdge {
-  cursor: String!
-  node: User!
-}
-
-type UserFollowerConnection {
-  pageInfo: PageInfo!
-  edges: [UserFollowerEdge]
-}
-
-type UserFollowerEdge {
+type UserEdge {
   cursor: String!
   node: User!
 }
@@ -1001,16 +926,6 @@ type UserNewFollowerNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-}
-
-type UserRecommendedConnection {
-  pageInfo: PageInfo!
-  edges: [UserRecommendedEdge]!
-}
-
-type UserRecommendedEdge {
-  cursor: String!
-  node: User!
 }
 
 input UserRegisterInput {
@@ -1067,16 +982,6 @@ type UserStatus {
 
   """Number of unread notices"""
   unreadNoticeCount: Int!
-}
-
-type UserSubscribeConnection {
-  pageInfo: PageInfo!
-  edges: [UserSubscribeEdge!]
-}
-
-type UserSubscribeEdge {
-  cursor: String!
-  node: User!
 }
 
 scalar UUID

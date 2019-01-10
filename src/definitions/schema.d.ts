@@ -19,12 +19,12 @@ import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql'
 export interface GQLQuery {
   _?: boolean
   article?: GQLArticle
-  articles?: Array<GQLArticle>
+  articles: GQLArticleConnection
   node?: GQLNode
   frequentSearch?: Array<string>
-  search?: Array<GQLSearchResult>
+  search: GQLSearchResultConnection
   official: GQLOfficial
-  releases?: Array<GQLRelease>
+  releases: GQLReleaseConnection
   viewer?: GQLUser
   user?: GQLUser
 }
@@ -51,16 +51,16 @@ export interface GQLArticle extends GQLNode {
   content: string
   gatewayUrls?: Array<GQLURL>
   upstream?: GQLArticle
-  downstreams: GQLArticleDownstreamConnection
-  relatedArticles: GQLArticleRelatedConnection
+  downstreams: GQLArticleConnection
+  relatedArticles: GQLArticleConnection
 
   /**
    * MAT recieved for this article
    */
   MAT: number
   participantCount: number
-  subscribers: GQLUserSubscribeConnection
-  appreciators: GQLUserAppreciateConnection
+  subscribers: GQLUserConnection
+  appreciators: GQLUserConnection
   appreciatorCount: number
 
   /**
@@ -74,7 +74,7 @@ export interface GQLArticle extends GQLNode {
   hasAppreciate: boolean
   commentCount: number
   pinnedComments?: Array<GQLComment>
-  comments: GQLCommentArticleConnection
+  comments: GQLCommentConnection
 }
 
 export interface GQLNode {
@@ -121,26 +121,26 @@ export interface GQLUser extends GQLNode {
   /**
    * Articles written by this user
    */
-  articles: GQLArticleAuthoredConnection
-  drafts: GQLDraftAuthoredConnection
-  audiodrafts: GQLAudiodraftAuthoredConnection
+  articles: GQLArticleConnection
+  drafts: GQLDraftConnection
+  audiodrafts: GQLAudiodraftConnection
 
   /**
    * Comments posted by this user
    */
-  commentedArticles: GQLArticleCommentedConnection
-  subscriptions: GQLArticleSubcriptionConnection
+  commentedArticles: GQLArticleConnection
+  subscriptions: GQLArticleConnection
   activity: GQLUserActivity
 
   /**
    * Followers of this user
    */
-  followers: GQLUserFollowerConnection
+  followers: GQLUserConnection
 
   /**
    * Users that this user follows
    */
-  followees: GQLUserFolloweeConnection
+  followees: GQLUserConnection
 
   /**
    * This user is following viewer
@@ -241,49 +241,46 @@ export interface GQLNotificationSetting {
 }
 
 export interface GQLRecommendation {
-  followeeArticles: GQLArticleRecommendedConnection
-  newest: GQLArticleRecommendedConnection
-  hottest: GQLArticleRecommendedConnection
+  followeeArticles: GQLArticleConnection
+  newest: GQLArticleConnection
+  hottest: GQLArticleConnection
 
   /**
    * In case you missed it
    */
-  icymi: GQLArticleRecommendedConnection
-  tags: GQLTagRecommendedConnection
-  topics: GQLArticleRecommendedConnection
-  authors: GQLUserRecommendedConnection
+  icymi: GQLArticleConnection
+  tags: GQLTagConnection
+  topics: GQLArticleConnection
+  authors: GQLUserConnection
 }
 
 export interface GQLConnectionArgs {
-  before?: string
   after?: string
   first?: number
-  last?: number
 }
 
-export interface GQLArticleRecommendedConnection {
+export interface GQLArticleConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLArticleRecommendedEdge | null>
+  edges?: Array<GQLArticleEdge>
 }
 
 export interface GQLPageInfo {
   startCursor?: string
   endCursor?: string
   hasNextPage: boolean
-  totalCount: number
 }
 
-export interface GQLArticleRecommendedEdge {
+export interface GQLArticleEdge {
   cursor: string
   node: GQLArticle
 }
 
-export interface GQLTagRecommendedConnection {
+export interface GQLTagConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLTagRecommendedEdge | null>
+  edges: Array<GQLTagEdge | null>
 }
 
-export interface GQLTagRecommendedEdge {
+export interface GQLTagEdge {
   cursor: string
   node: GQLTag
 }
@@ -292,45 +289,25 @@ export interface GQLTag extends GQLNode {
   id: string
   content: string
   count: number
-  articles: GQLArticleTagConnection
+  articles: GQLArticleConnection
 }
 
-export interface GQLArticleTagConnection {
+export interface GQLUserConnection {
   pageInfo: GQLPageInfo
-  edges?: Array<GQLArticleTagEdge>
+  edges?: Array<GQLUserEdge | null>
 }
 
-export interface GQLArticleTagEdge {
-  cursor: string
-  node: GQLArticle
-}
-
-export interface GQLUserRecommendedConnection {
-  pageInfo: GQLPageInfo
-  edges: Array<GQLUserRecommendedEdge | null>
-}
-
-export interface GQLUserRecommendedEdge {
+export interface GQLUserEdge {
   cursor: string
   node: GQLUser
 }
 
-export interface GQLArticleAuthoredConnection {
+export interface GQLDraftConnection {
   pageInfo: GQLPageInfo
-  edges?: Array<GQLArticleAuthoredEdge | null>
+  edges: Array<GQLDraftEdge | null>
 }
 
-export interface GQLArticleAuthoredEdge {
-  cursor: string
-  node?: GQLArticle
-}
-
-export interface GQLDraftAuthoredConnection {
-  pageInfo: GQLPageInfo
-  edges: Array<GQLDraftAuthoredEdge | null>
-}
-
-export interface GQLDraftAuthoredEdge {
+export interface GQLDraftEdge {
   cursor: string
   node: GQLDraft
 }
@@ -348,12 +325,12 @@ export interface GQLDraft extends GQLNode {
   publishState: GQLPublishState
 }
 
-export interface GQLAudiodraftAuthoredConnection {
+export interface GQLAudiodraftConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLAudiodraftAuthoredEdge | null>
+  edges: Array<GQLAudiodraftEdge | null>
 }
 
-export interface GQLAudiodraftAuthoredEdge {
+export interface GQLAudiodraftEdge {
   cursor: string
   node: GQLAudiodraft
 }
@@ -366,26 +343,6 @@ export interface GQLAudiodraft {
   length: number
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
-}
-
-export interface GQLArticleCommentedConnection {
-  pageInfo: GQLPageInfo
-  edges: Array<GQLArticleCommentedEdge | null>
-}
-
-export interface GQLArticleCommentedEdge {
-  cursor: string
-  node: GQLArticle
-}
-
-export interface GQLArticleSubcriptionConnection {
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLArticleSubcriptionEdge | null>
-}
-
-export interface GQLArticleSubcriptionEdge {
-  cursor: string
-  node: GQLArticle
 }
 
 export interface GQLUserActivity {
@@ -417,26 +374,6 @@ export interface GQLRecentSearchConnection {
 export interface GQLRecentSearchEdge {
   cursor: string
   node: string
-}
-
-export interface GQLUserFollowerConnection {
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLUserFollowerEdge | null>
-}
-
-export interface GQLUserFollowerEdge {
-  cursor: string
-  node: GQLUser
-}
-
-export interface GQLUserFolloweeConnection {
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLUserFolloweeEdge | null>
-}
-
-export interface GQLUserFolloweeEdge {
-  cursor: string
-  node: GQLUser
 }
 
 export interface GQLUserStatus {
@@ -493,15 +430,15 @@ export enum GQLUserState {
 
 export interface GQLMAT {
   total: number
-  history: GQLTransactionHistoryConnection
+  history: GQLTransactionConnection
 }
 
-export interface GQLTransactionHistoryConnection {
+export interface GQLTransactionConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLTransactionHistoryEdge | null>
+  edges: Array<GQLTransactionEdge | null>
 }
 
-export interface GQLTransactionHistoryEdge {
+export interface GQLTransactionEdge {
   cursor: string
   node: GQLTransaction
 }
@@ -531,15 +468,15 @@ export interface GQLInvitationStatus {
   /**
    * invitations sent
    */
-  sent: GQLInvitationSentConnection
+  sent: GQLInvitationConnection
 }
 
-export interface GQLInvitationSentConnection {
+export interface GQLInvitationConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLInvitationSentEdge | null>
+  edges: Array<GQLInvitationEdge | null>
 }
 
-export interface GQLInvitationSentEdge {
+export interface GQLInvitationEdge {
   cursor: string
   node: GQLInvitation
 }
@@ -603,46 +540,6 @@ export interface GQLNoticeNameMap {
   UserNewFollowerNotice: GQLUserNewFollowerNotice
 }
 
-export interface GQLArticleDownstreamConnection {
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLArticleDownstreamEdge>
-}
-
-export interface GQLArticleDownstreamEdge {
-  cursor: string
-  node: GQLArticle
-}
-
-export interface GQLArticleRelatedConnection {
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLArticleRelatedEdge>
-}
-
-export interface GQLArticleRelatedEdge {
-  cursor: string
-  node: GQLArticle
-}
-
-export interface GQLUserSubscribeConnection {
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLUserSubscribeEdge>
-}
-
-export interface GQLUserSubscribeEdge {
-  cursor: string
-  node: GQLUser
-}
-
-export interface GQLUserAppreciateConnection {
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLUserAppreciateEdge>
-}
-
-export interface GQLUserAppreciateEdge {
-  cursor: string
-  node: GQLUser
-}
-
 export interface GQLComment extends GQLNode {
   id: string
   state: GQLCommentState
@@ -660,7 +557,7 @@ export interface GQLComment extends GQLNode {
   quote: boolean
   myVote?: GQLVote
   mentions?: Array<GQLUser>
-  comments: GQLCommentChildConnection
+  comments: GQLCommentConnection
   parentComment?: GQLComment
 }
 
@@ -675,12 +572,12 @@ export enum GQLVote {
   down = 'down'
 }
 
-export interface GQLCommentChildConnection {
+export interface GQLCommentConnection {
   pageInfo: GQLPageInfo
-  edges?: Array<GQLCommentChildEdge>
+  edges?: Array<GQLCommentEdge>
 }
 
-export interface GQLCommentChildEdge {
+export interface GQLCommentEdge {
   cursor: string
   node: GQLComment
 }
@@ -689,10 +586,8 @@ export interface GQLCommentsInput {
   author?: string
   quote?: boolean
   sort?: GQLCommentSort
-  before?: string
   after?: string
   first?: number
-  last?: number
 }
 
 export enum GQLCommentSort {
@@ -701,20 +596,10 @@ export enum GQLCommentSort {
   upvotes = 'upvotes'
 }
 
-export interface GQLCommentArticleConnection {
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLCommentArticleEdge>
-}
-
-export interface GQLCommentArticleEdge {
-  cursor: string
-  node: GQLComment
-}
-
 export interface GQLArticlesInput {
   public?: boolean
-  offset?: number
-  limit?: number
+  after?: string
+  first?: number
 }
 
 export interface GQLNodeInput {
@@ -724,14 +609,24 @@ export interface GQLNodeInput {
 export interface GQLSearchInput {
   key: string
   type: GQLSearchTypes
-  offset?: number
-  limit?: number
+  after?: string
+  first?: number
 }
 
 export enum GQLSearchTypes {
   Article = 'Article',
   User = 'User',
   Tag = 'Tag'
+}
+
+export interface GQLSearchResultConnection {
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLSearchResultEdge>
+}
+
+export interface GQLSearchResultEdge {
+  cursor: string
+  node: GQLSearchResult
 }
 
 export interface GQLSearchResult {
@@ -747,8 +642,8 @@ export interface GQLOfficial {
 export interface GQLReleasesInput {
   platform: GQLPlatformType
   channel: GQLChannelType
-  offset?: number
-  limit?: number
+  after?: string
+  first?: number
 }
 
 export enum GQLPlatformType {
@@ -759,6 +654,16 @@ export enum GQLPlatformType {
 export enum GQLChannelType {
   appStore = 'appStore',
   googlePlay = 'googlePlay'
+}
+
+export interface GQLReleaseConnection {
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLReleaseEdge>
+}
+
+export interface GQLReleaseEdge {
+  cursor: string
+  node: GQLRelease
 }
 
 export interface GQLRelease {
@@ -1270,46 +1175,34 @@ export interface GQLResolver {
   UserSettings?: GQLUserSettingsTypeResolver
   NotificationSetting?: GQLNotificationSettingTypeResolver
   Recommendation?: GQLRecommendationTypeResolver
-  ArticleRecommendedConnection?: GQLArticleRecommendedConnectionTypeResolver
+  ArticleConnection?: GQLArticleConnectionTypeResolver
   PageInfo?: GQLPageInfoTypeResolver
-  ArticleRecommendedEdge?: GQLArticleRecommendedEdgeTypeResolver
-  TagRecommendedConnection?: GQLTagRecommendedConnectionTypeResolver
-  TagRecommendedEdge?: GQLTagRecommendedEdgeTypeResolver
+  ArticleEdge?: GQLArticleEdgeTypeResolver
+  TagConnection?: GQLTagConnectionTypeResolver
+  TagEdge?: GQLTagEdgeTypeResolver
   Tag?: GQLTagTypeResolver
-  ArticleTagConnection?: GQLArticleTagConnectionTypeResolver
-  ArticleTagEdge?: GQLArticleTagEdgeTypeResolver
-  UserRecommendedConnection?: GQLUserRecommendedConnectionTypeResolver
-  UserRecommendedEdge?: GQLUserRecommendedEdgeTypeResolver
-  ArticleAuthoredConnection?: GQLArticleAuthoredConnectionTypeResolver
-  ArticleAuthoredEdge?: GQLArticleAuthoredEdgeTypeResolver
-  DraftAuthoredConnection?: GQLDraftAuthoredConnectionTypeResolver
-  DraftAuthoredEdge?: GQLDraftAuthoredEdgeTypeResolver
+  UserConnection?: GQLUserConnectionTypeResolver
+  UserEdge?: GQLUserEdgeTypeResolver
+  DraftConnection?: GQLDraftConnectionTypeResolver
+  DraftEdge?: GQLDraftEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
-  AudiodraftAuthoredConnection?: GQLAudiodraftAuthoredConnectionTypeResolver
-  AudiodraftAuthoredEdge?: GQLAudiodraftAuthoredEdgeTypeResolver
+  AudiodraftConnection?: GQLAudiodraftConnectionTypeResolver
+  AudiodraftEdge?: GQLAudiodraftEdgeTypeResolver
   Audiodraft?: GQLAudiodraftTypeResolver
-  ArticleCommentedConnection?: GQLArticleCommentedConnectionTypeResolver
-  ArticleCommentedEdge?: GQLArticleCommentedEdgeTypeResolver
-  ArticleSubcriptionConnection?: GQLArticleSubcriptionConnectionTypeResolver
-  ArticleSubcriptionEdge?: GQLArticleSubcriptionEdgeTypeResolver
   UserActivity?: GQLUserActivityTypeResolver
   ReadHistoryConnection?: GQLReadHistoryConnectionTypeResolver
   ReadHistoryEdge?: GQLReadHistoryEdgeTypeResolver
   ReadHistory?: GQLReadHistoryTypeResolver
   RecentSearchConnection?: GQLRecentSearchConnectionTypeResolver
   RecentSearchEdge?: GQLRecentSearchEdgeTypeResolver
-  UserFollowerConnection?: GQLUserFollowerConnectionTypeResolver
-  UserFollowerEdge?: GQLUserFollowerEdgeTypeResolver
-  UserFolloweeConnection?: GQLUserFolloweeConnectionTypeResolver
-  UserFolloweeEdge?: GQLUserFolloweeEdgeTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
   MAT?: GQLMATTypeResolver
-  TransactionHistoryConnection?: GQLTransactionHistoryConnectionTypeResolver
-  TransactionHistoryEdge?: GQLTransactionHistoryEdgeTypeResolver
+  TransactionConnection?: GQLTransactionConnectionTypeResolver
+  TransactionEdge?: GQLTransactionEdgeTypeResolver
   Transaction?: GQLTransactionTypeResolver
   InvitationStatus?: GQLInvitationStatusTypeResolver
-  InvitationSentConnection?: GQLInvitationSentConnectionTypeResolver
-  InvitationSentEdge?: GQLInvitationSentEdgeTypeResolver
+  InvitationConnection?: GQLInvitationConnectionTypeResolver
+  InvitationEdge?: GQLInvitationEdgeTypeResolver
   Invitation?: GQLInvitationTypeResolver
   NoticeConnection?: GQLNoticeConnectionTypeResolver
   NoticeEdge?: GQLNoticeEdgeTypeResolver
@@ -1317,21 +1210,15 @@ export interface GQLResolver {
     __resolveType: GQLNoticeTypeResolver
   }
 
-  ArticleDownstreamConnection?: GQLArticleDownstreamConnectionTypeResolver
-  ArticleDownstreamEdge?: GQLArticleDownstreamEdgeTypeResolver
-  ArticleRelatedConnection?: GQLArticleRelatedConnectionTypeResolver
-  ArticleRelatedEdge?: GQLArticleRelatedEdgeTypeResolver
-  UserSubscribeConnection?: GQLUserSubscribeConnectionTypeResolver
-  UserSubscribeEdge?: GQLUserSubscribeEdgeTypeResolver
-  UserAppreciateConnection?: GQLUserAppreciateConnectionTypeResolver
-  UserAppreciateEdge?: GQLUserAppreciateEdgeTypeResolver
   Comment?: GQLCommentTypeResolver
-  CommentChildConnection?: GQLCommentChildConnectionTypeResolver
-  CommentChildEdge?: GQLCommentChildEdgeTypeResolver
-  CommentArticleConnection?: GQLCommentArticleConnectionTypeResolver
-  CommentArticleEdge?: GQLCommentArticleEdgeTypeResolver
+  CommentConnection?: GQLCommentConnectionTypeResolver
+  CommentEdge?: GQLCommentEdgeTypeResolver
+  SearchResultConnection?: GQLSearchResultConnectionTypeResolver
+  SearchResultEdge?: GQLSearchResultEdgeTypeResolver
   SearchResult?: GQLSearchResultTypeResolver
   Official?: GQLOfficialTypeResolver
+  ReleaseConnection?: GQLReleaseConnectionTypeResolver
+  ReleaseEdge?: GQLReleaseEdgeTypeResolver
   Release?: GQLReleaseTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
@@ -2085,19 +1972,19 @@ export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLArticleRecommendedConnectionTypeResolver<TParent = any> {
-  pageInfo?: ArticleRecommendedConnectionToPageInfoResolver<TParent>
-  edges?: ArticleRecommendedConnectionToEdgesResolver<TParent>
+export interface GQLArticleConnectionTypeResolver<TParent = any> {
+  pageInfo?: ArticleConnectionToPageInfoResolver<TParent>
+  edges?: ArticleConnectionToEdgesResolver<TParent>
 }
 
-export interface ArticleRecommendedConnectionToPageInfoResolver<
+export interface ArticleConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface ArticleRecommendedConnectionToEdgesResolver<
+export interface ArticleConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
@@ -2108,7 +1995,6 @@ export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
   endCursor?: PageInfoToEndCursorResolver<TParent>
   hasNextPage?: PageInfoToHasNextPageResolver<TParent>
-  totalCount?: PageInfoToTotalCountResolver<TParent>
 }
 
 export interface PageInfoToStartCursorResolver<TParent = any, TResult = any> {
@@ -2123,64 +2009,42 @@ export interface PageInfoToHasNextPageResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface PageInfoToTotalCountResolver<TParent = any, TResult = any> {
+export interface GQLArticleEdgeTypeResolver<TParent = any> {
+  cursor?: ArticleEdgeToCursorResolver<TParent>
+  node?: ArticleEdgeToNodeResolver<TParent>
+}
+
+export interface ArticleEdgeToCursorResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLArticleRecommendedEdgeTypeResolver<TParent = any> {
-  cursor?: ArticleRecommendedEdgeToCursorResolver<TParent>
-  node?: ArticleRecommendedEdgeToNodeResolver<TParent>
-}
-
-export interface ArticleRecommendedEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface ArticleEdgeToNodeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface ArticleRecommendedEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface GQLTagConnectionTypeResolver<TParent = any> {
+  pageInfo?: TagConnectionToPageInfoResolver<TParent>
+  edges?: TagConnectionToEdgesResolver<TParent>
+}
+
+export interface TagConnectionToPageInfoResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLTagRecommendedConnectionTypeResolver<TParent = any> {
-  pageInfo?: TagRecommendedConnectionToPageInfoResolver<TParent>
-  edges?: TagRecommendedConnectionToEdgesResolver<TParent>
-}
-
-export interface TagRecommendedConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface TagConnectionToEdgesResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface TagRecommendedConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface GQLTagEdgeTypeResolver<TParent = any> {
+  cursor?: TagEdgeToCursorResolver<TParent>
+  node?: TagEdgeToNodeResolver<TParent>
+}
+
+export interface TagEdgeToCursorResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLTagRecommendedEdgeTypeResolver<TParent = any> {
-  cursor?: TagRecommendedEdgeToCursorResolver<TParent>
-  node?: TagRecommendedEdgeToNodeResolver<TParent>
-}
-
-export interface TagRecommendedEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface TagRecommendedEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface TagEdgeToNodeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2215,146 +2079,61 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLArticleTagConnectionTypeResolver<TParent = any> {
-  pageInfo?: ArticleTagConnectionToPageInfoResolver<TParent>
-  edges?: ArticleTagConnectionToEdgesResolver<TParent>
+export interface GQLUserConnectionTypeResolver<TParent = any> {
+  pageInfo?: UserConnectionToPageInfoResolver<TParent>
+  edges?: UserConnectionToEdgesResolver<TParent>
 }
 
-export interface ArticleTagConnectionToPageInfoResolver<
+export interface UserConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface ArticleTagConnectionToEdgesResolver<
+export interface UserConnectionToEdgesResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLUserEdgeTypeResolver<TParent = any> {
+  cursor?: UserEdgeToCursorResolver<TParent>
+  node?: UserEdgeToNodeResolver<TParent>
+}
+
+export interface UserEdgeToCursorResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface UserEdgeToNodeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLDraftConnectionTypeResolver<TParent = any> {
+  pageInfo?: DraftConnectionToPageInfoResolver<TParent>
+  edges?: DraftConnectionToEdgesResolver<TParent>
+}
+
+export interface DraftConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLArticleTagEdgeTypeResolver<TParent = any> {
-  cursor?: ArticleTagEdgeToCursorResolver<TParent>
-  node?: ArticleTagEdgeToNodeResolver<TParent>
-}
-
-export interface ArticleTagEdgeToCursorResolver<TParent = any, TResult = any> {
+export interface DraftConnectionToEdgesResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface ArticleTagEdgeToNodeResolver<TParent = any, TResult = any> {
+export interface GQLDraftEdgeTypeResolver<TParent = any> {
+  cursor?: DraftEdgeToCursorResolver<TParent>
+  node?: DraftEdgeToNodeResolver<TParent>
+}
+
+export interface DraftEdgeToCursorResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLUserRecommendedConnectionTypeResolver<TParent = any> {
-  pageInfo?: UserRecommendedConnectionToPageInfoResolver<TParent>
-  edges?: UserRecommendedConnectionToEdgesResolver<TParent>
-}
-
-export interface UserRecommendedConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserRecommendedConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLUserRecommendedEdgeTypeResolver<TParent = any> {
-  cursor?: UserRecommendedEdgeToCursorResolver<TParent>
-  node?: UserRecommendedEdgeToNodeResolver<TParent>
-}
-
-export interface UserRecommendedEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserRecommendedEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLArticleAuthoredConnectionTypeResolver<TParent = any> {
-  pageInfo?: ArticleAuthoredConnectionToPageInfoResolver<TParent>
-  edges?: ArticleAuthoredConnectionToEdgesResolver<TParent>
-}
-
-export interface ArticleAuthoredConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface ArticleAuthoredConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLArticleAuthoredEdgeTypeResolver<TParent = any> {
-  cursor?: ArticleAuthoredEdgeToCursorResolver<TParent>
-  node?: ArticleAuthoredEdgeToNodeResolver<TParent>
-}
-
-export interface ArticleAuthoredEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface ArticleAuthoredEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLDraftAuthoredConnectionTypeResolver<TParent = any> {
-  pageInfo?: DraftAuthoredConnectionToPageInfoResolver<TParent>
-  edges?: DraftAuthoredConnectionToEdgesResolver<TParent>
-}
-
-export interface DraftAuthoredConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface DraftAuthoredConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLDraftAuthoredEdgeTypeResolver<TParent = any> {
-  cursor?: DraftAuthoredEdgeToCursorResolver<TParent>
-  node?: DraftAuthoredEdgeToNodeResolver<TParent>
-}
-
-export interface DraftAuthoredEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface DraftAuthoredEdgeToNodeResolver<TParent = any, TResult = any> {
+export interface DraftEdgeToNodeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2411,41 +2190,35 @@ export interface DraftToPublishStateResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLAudiodraftAuthoredConnectionTypeResolver<TParent = any> {
-  pageInfo?: AudiodraftAuthoredConnectionToPageInfoResolver<TParent>
-  edges?: AudiodraftAuthoredConnectionToEdgesResolver<TParent>
+export interface GQLAudiodraftConnectionTypeResolver<TParent = any> {
+  pageInfo?: AudiodraftConnectionToPageInfoResolver<TParent>
+  edges?: AudiodraftConnectionToEdgesResolver<TParent>
 }
 
-export interface AudiodraftAuthoredConnectionToPageInfoResolver<
+export interface AudiodraftConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface AudiodraftAuthoredConnectionToEdgesResolver<
+export interface AudiodraftConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLAudiodraftAuthoredEdgeTypeResolver<TParent = any> {
-  cursor?: AudiodraftAuthoredEdgeToCursorResolver<TParent>
-  node?: AudiodraftAuthoredEdgeToNodeResolver<TParent>
+export interface GQLAudiodraftEdgeTypeResolver<TParent = any> {
+  cursor?: AudiodraftEdgeToCursorResolver<TParent>
+  node?: AudiodraftEdgeToNodeResolver<TParent>
 }
 
-export interface AudiodraftAuthoredEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface AudiodraftEdgeToCursorResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface AudiodraftAuthoredEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface AudiodraftEdgeToNodeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2484,82 +2257,6 @@ export interface AudiodraftToCreatedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface AudiodraftToUpdatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLArticleCommentedConnectionTypeResolver<TParent = any> {
-  pageInfo?: ArticleCommentedConnectionToPageInfoResolver<TParent>
-  edges?: ArticleCommentedConnectionToEdgesResolver<TParent>
-}
-
-export interface ArticleCommentedConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface ArticleCommentedConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLArticleCommentedEdgeTypeResolver<TParent = any> {
-  cursor?: ArticleCommentedEdgeToCursorResolver<TParent>
-  node?: ArticleCommentedEdgeToNodeResolver<TParent>
-}
-
-export interface ArticleCommentedEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface ArticleCommentedEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLArticleSubcriptionConnectionTypeResolver<TParent = any> {
-  pageInfo?: ArticleSubcriptionConnectionToPageInfoResolver<TParent>
-  edges?: ArticleSubcriptionConnectionToEdgesResolver<TParent>
-}
-
-export interface ArticleSubcriptionConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface ArticleSubcriptionConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLArticleSubcriptionEdgeTypeResolver<TParent = any> {
-  cursor?: ArticleSubcriptionEdgeToCursorResolver<TParent>
-  node?: ArticleSubcriptionEdgeToNodeResolver<TParent>
-}
-
-export interface ArticleSubcriptionEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface ArticleSubcriptionEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2680,76 +2377,6 @@ export interface RecentSearchEdgeToNodeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLUserFollowerConnectionTypeResolver<TParent = any> {
-  pageInfo?: UserFollowerConnectionToPageInfoResolver<TParent>
-  edges?: UserFollowerConnectionToEdgesResolver<TParent>
-}
-
-export interface UserFollowerConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserFollowerConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLUserFollowerEdgeTypeResolver<TParent = any> {
-  cursor?: UserFollowerEdgeToCursorResolver<TParent>
-  node?: UserFollowerEdgeToNodeResolver<TParent>
-}
-
-export interface UserFollowerEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserFollowerEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLUserFolloweeConnectionTypeResolver<TParent = any> {
-  pageInfo?: UserFolloweeConnectionToPageInfoResolver<TParent>
-  edges?: UserFolloweeConnectionToEdgesResolver<TParent>
-}
-
-export interface UserFolloweeConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserFolloweeConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLUserFolloweeEdgeTypeResolver<TParent = any> {
-  cursor?: UserFolloweeEdgeToCursorResolver<TParent>
-  node?: UserFolloweeEdgeToNodeResolver<TParent>
-}
-
-export interface UserFolloweeEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserFolloweeEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
 export interface GQLUserStatusTypeResolver<TParent = any> {
   state?: UserStatusToStateResolver<TParent>
   MAT?: UserStatusToMATResolver<TParent>
@@ -2855,41 +2482,35 @@ export interface MATToHistoryResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLTransactionHistoryConnectionTypeResolver<TParent = any> {
-  pageInfo?: TransactionHistoryConnectionToPageInfoResolver<TParent>
-  edges?: TransactionHistoryConnectionToEdgesResolver<TParent>
+export interface GQLTransactionConnectionTypeResolver<TParent = any> {
+  pageInfo?: TransactionConnectionToPageInfoResolver<TParent>
+  edges?: TransactionConnectionToEdgesResolver<TParent>
 }
 
-export interface TransactionHistoryConnectionToPageInfoResolver<
+export interface TransactionConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface TransactionHistoryConnectionToEdgesResolver<
+export interface TransactionConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLTransactionHistoryEdgeTypeResolver<TParent = any> {
-  cursor?: TransactionHistoryEdgeToCursorResolver<TParent>
-  node?: TransactionHistoryEdgeToNodeResolver<TParent>
+export interface GQLTransactionEdgeTypeResolver<TParent = any> {
+  cursor?: TransactionEdgeToCursorResolver<TParent>
+  node?: TransactionEdgeToNodeResolver<TParent>
 }
 
-export interface TransactionHistoryEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface TransactionEdgeToCursorResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface TransactionHistoryEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2942,41 +2563,35 @@ export interface InvitationStatusToSentResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLInvitationSentConnectionTypeResolver<TParent = any> {
-  pageInfo?: InvitationSentConnectionToPageInfoResolver<TParent>
-  edges?: InvitationSentConnectionToEdgesResolver<TParent>
+export interface GQLInvitationConnectionTypeResolver<TParent = any> {
+  pageInfo?: InvitationConnectionToPageInfoResolver<TParent>
+  edges?: InvitationConnectionToEdgesResolver<TParent>
 }
 
-export interface InvitationSentConnectionToPageInfoResolver<
+export interface InvitationConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface InvitationSentConnectionToEdgesResolver<
+export interface InvitationConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLInvitationSentEdgeTypeResolver<TParent = any> {
-  cursor?: InvitationSentEdgeToCursorResolver<TParent>
-  node?: InvitationSentEdgeToNodeResolver<TParent>
+export interface GQLInvitationEdgeTypeResolver<TParent = any> {
+  cursor?: InvitationEdgeToCursorResolver<TParent>
+  node?: InvitationEdgeToNodeResolver<TParent>
 }
 
-export interface InvitationSentEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface InvitationEdgeToCursorResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface InvitationSentEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface InvitationEdgeToNodeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -3054,155 +2669,6 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'UpstreamArticleArchivedNotice'
     | 'UserNewFollowerNotice'
 }
-export interface GQLArticleDownstreamConnectionTypeResolver<TParent = any> {
-  pageInfo?: ArticleDownstreamConnectionToPageInfoResolver<TParent>
-  edges?: ArticleDownstreamConnectionToEdgesResolver<TParent>
-}
-
-export interface ArticleDownstreamConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface ArticleDownstreamConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLArticleDownstreamEdgeTypeResolver<TParent = any> {
-  cursor?: ArticleDownstreamEdgeToCursorResolver<TParent>
-  node?: ArticleDownstreamEdgeToNodeResolver<TParent>
-}
-
-export interface ArticleDownstreamEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface ArticleDownstreamEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLArticleRelatedConnectionTypeResolver<TParent = any> {
-  pageInfo?: ArticleRelatedConnectionToPageInfoResolver<TParent>
-  edges?: ArticleRelatedConnectionToEdgesResolver<TParent>
-}
-
-export interface ArticleRelatedConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface ArticleRelatedConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLArticleRelatedEdgeTypeResolver<TParent = any> {
-  cursor?: ArticleRelatedEdgeToCursorResolver<TParent>
-  node?: ArticleRelatedEdgeToNodeResolver<TParent>
-}
-
-export interface ArticleRelatedEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface ArticleRelatedEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLUserSubscribeConnectionTypeResolver<TParent = any> {
-  pageInfo?: UserSubscribeConnectionToPageInfoResolver<TParent>
-  edges?: UserSubscribeConnectionToEdgesResolver<TParent>
-}
-
-export interface UserSubscribeConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserSubscribeConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLUserSubscribeEdgeTypeResolver<TParent = any> {
-  cursor?: UserSubscribeEdgeToCursorResolver<TParent>
-  node?: UserSubscribeEdgeToNodeResolver<TParent>
-}
-
-export interface UserSubscribeEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserSubscribeEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLUserAppreciateConnectionTypeResolver<TParent = any> {
-  pageInfo?: UserAppreciateConnectionToPageInfoResolver<TParent>
-  edges?: UserAppreciateConnectionToEdgesResolver<TParent>
-}
-
-export interface UserAppreciateConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserAppreciateConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLUserAppreciateEdgeTypeResolver<TParent = any> {
-  cursor?: UserAppreciateEdgeToCursorResolver<TParent>
-  node?: UserAppreciateEdgeToNodeResolver<TParent>
-}
-
-export interface UserAppreciateEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface UserAppreciateEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
 export interface GQLCommentTypeResolver<TParent = any> {
   id?: CommentToIdResolver<TParent>
   state?: CommentToStateResolver<TParent>
@@ -3284,76 +2750,70 @@ export interface CommentToParentCommentResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLCommentChildConnectionTypeResolver<TParent = any> {
-  pageInfo?: CommentChildConnectionToPageInfoResolver<TParent>
-  edges?: CommentChildConnectionToEdgesResolver<TParent>
+export interface GQLCommentConnectionTypeResolver<TParent = any> {
+  pageInfo?: CommentConnectionToPageInfoResolver<TParent>
+  edges?: CommentConnectionToEdgesResolver<TParent>
 }
 
-export interface CommentChildConnectionToPageInfoResolver<
+export interface CommentConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface CommentChildConnectionToEdgesResolver<
+export interface CommentConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLCommentChildEdgeTypeResolver<TParent = any> {
-  cursor?: CommentChildEdgeToCursorResolver<TParent>
-  node?: CommentChildEdgeToNodeResolver<TParent>
+export interface GQLCommentEdgeTypeResolver<TParent = any> {
+  cursor?: CommentEdgeToCursorResolver<TParent>
+  node?: CommentEdgeToNodeResolver<TParent>
 }
 
-export interface CommentChildEdgeToCursorResolver<
+export interface CommentEdgeToCursorResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface CommentEdgeToNodeResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLSearchResultConnectionTypeResolver<TParent = any> {
+  pageInfo?: SearchResultConnectionToPageInfoResolver<TParent>
+  edges?: SearchResultConnectionToEdgesResolver<TParent>
+}
+
+export interface SearchResultConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface CommentChildEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface GQLCommentArticleConnectionTypeResolver<TParent = any> {
-  pageInfo?: CommentArticleConnectionToPageInfoResolver<TParent>
-  edges?: CommentArticleConnectionToEdgesResolver<TParent>
-}
-
-export interface CommentArticleConnectionToPageInfoResolver<
+export interface SearchResultConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface CommentArticleConnectionToEdgesResolver<
+export interface GQLSearchResultEdgeTypeResolver<TParent = any> {
+  cursor?: SearchResultEdgeToCursorResolver<TParent>
+  node?: SearchResultEdgeToNodeResolver<TParent>
+}
+
+export interface SearchResultEdgeToCursorResolver<
   TParent = any,
   TResult = any
 > {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface GQLCommentArticleEdgeTypeResolver<TParent = any> {
-  cursor?: CommentArticleEdgeToCursorResolver<TParent>
-  node?: CommentArticleEdgeToNodeResolver<TParent>
-}
-
-export interface CommentArticleEdgeToCursorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface CommentArticleEdgeToNodeResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface SearchResultEdgeToNodeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -3386,6 +2846,38 @@ export interface OfficialToFeedbackCategoryResolver<
   TParent = any,
   TResult = any
 > {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLReleaseConnectionTypeResolver<TParent = any> {
+  pageInfo?: ReleaseConnectionToPageInfoResolver<TParent>
+  edges?: ReleaseConnectionToEdgesResolver<TParent>
+}
+
+export interface ReleaseConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ReleaseConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLReleaseEdgeTypeResolver<TParent = any> {
+  cursor?: ReleaseEdgeToCursorResolver<TParent>
+  node?: ReleaseEdgeToNodeResolver<TParent>
+}
+
+export interface ReleaseEdgeToCursorResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ReleaseEdgeToNodeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 

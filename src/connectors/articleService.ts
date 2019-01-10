@@ -162,15 +162,14 @@ export class ArticleService extends BaseService {
     return result
   }
 
-  search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
+  search = async ({ key }: GQLSearchInput) => {
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
         fuzziness: 5,
         fields: ['title^10', 'content']
       })
-      .size(limit)
-      .from(offset)
+      .size(100)
       .build()
 
     try {
@@ -277,21 +276,11 @@ export class ArticleService extends BaseService {
   /**
    * Find articles
    */
-  find = async ({
-    where,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    where?: { [key: string]: any }
-    offset?: number
-    limit?: number
-  }) => {
+  find = async ({ where }: { where?: { [key: string]: any } }) => {
     let qs = this.knex
       .select()
       .from(this.table)
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
     if (where) {
       qs = qs.where(where)

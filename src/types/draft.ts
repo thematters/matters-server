@@ -31,6 +31,26 @@ export default /* GraphQL */ `
     updatedAt: DateTime!
   }
 
+  type DraftConnection {
+    pageInfo: PageInfo!
+    edges: [DraftEdge]!
+  }
+
+  type DraftEdge {
+    cursor: String!
+    node: Draft!
+  }
+
+  type AudiodraftConnection {
+    pageInfo: PageInfo!
+    edges: [AudiodraftEdge]!
+  }
+
+  type AudiodraftEdge {
+    cursor: String!
+    node: Audiodraft!
+  }
+
   input PutAudiodraftInput {
     id: ID
     audioAssetId: ID

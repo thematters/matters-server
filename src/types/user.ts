@@ -39,17 +39,17 @@ export default /* GraphQL */ `
     settings: UserSettings!
     recommendation: Recommendation!
     # Articles written by this user
-    articles(input: ConnectionArgs!): ArticleAuthoredConnection!
-    drafts(input: ConnectionArgs!): DraftAuthoredConnection!
-    audiodrafts(input: ConnectionArgs!): AudiodraftAuthoredConnection!
+    articles(input: ConnectionArgs!): ArticleConnection!
+    drafts(input: ConnectionArgs!): DraftConnection!
+    audiodrafts(input: ConnectionArgs!): AudiodraftConnection!
     # Comments posted by this user
-    commentedArticles(input: ConnectionArgs!): ArticleCommentedConnection!
-    subscriptions(input: ConnectionArgs!): ArticleSubcriptionConnection!
+    commentedArticles(input: ConnectionArgs!): ArticleConnection!
+    subscriptions(input: ConnectionArgs!): ArticleConnection!
     activity: UserActivity!
     # Followers of this user
-    followers(input: ConnectionArgs!): UserFollowerConnection!
+    followers(input: ConnectionArgs!): UserConnection!
     # Users that this user follows
-    followees(input: ConnectionArgs!): UserFolloweeConnection!
+    followees(input: ConnectionArgs!): UserConnection!
     # This user is following viewer
     isFollower: Boolean!
     # Viewer is following this user
@@ -62,7 +62,7 @@ export default /* GraphQL */ `
     # invitation number left
     left: Int!
     # invitations sent
-    sent(input: ConnectionArgs!): InvitationSentConnection!
+    sent(input: ConnectionArgs!): InvitationConnection!
   }
 
   type Invitation implements Node  {
@@ -74,14 +74,14 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
-    followeeArticles(input: ConnectionArgs!): ArticleRecommendedConnection!
-    newest(input: ConnectionArgs!): ArticleRecommendedConnection!
-    hottest(input: ConnectionArgs!): ArticleRecommendedConnection!
+    followeeArticles(input: ConnectionArgs!): ArticleConnection!
+    newest(input: ConnectionArgs!): ArticleConnection!
+    hottest(input: ConnectionArgs!): ArticleConnection!
     # In case you missed it
-    icymi(input: ConnectionArgs!): ArticleRecommendedConnection!
-    tags(input: ConnectionArgs!): TagRecommendedConnection!
-    topics(input: ConnectionArgs!): ArticleRecommendedConnection!
-    authors(input: ConnectionArgs!): UserRecommendedConnection!
+    icymi(input: ConnectionArgs!): ArticleConnection!
+    tags(input: ConnectionArgs!): TagConnection!
+    topics(input: ConnectionArgs!): ArticleConnection!
+    authors(input: ConnectionArgs!): UserConnection!
   }
 
   type UserInfo {
@@ -138,7 +138,7 @@ export default /* GraphQL */ `
 
   type MAT {
     total: Int!
-    history(input: ConnectionArgs!): TransactionHistoryConnection!
+    history(input: ConnectionArgs!): TransactionConnection!
   }
 
   type Transaction {
@@ -175,115 +175,24 @@ export default /* GraphQL */ `
     token: String
   }
 
-
-  type UserFollowerConnection {
+  type UserConnection {
     pageInfo: PageInfo!
-    edges: [UserFollowerEdge]
+    edges: [UserEdge]
   }
 
-  type UserFollowerEdge {
+  type UserEdge {
     cursor: String!
     node: User!
   }
 
-  type UserFolloweeConnection {
+  type InvitationConnection {
     pageInfo: PageInfo!
-    edges: [UserFolloweeEdge]
+    edges: [InvitationEdge]!
   }
 
-  type UserFolloweeEdge {
-    cursor: String!
-    node: User!
-  }
-
-  type ArticleSubcriptionConnection {
-    pageInfo: PageInfo!
-    edges: [ArticleSubcriptionEdge]
-  }
-
-  type ArticleSubcriptionEdge {
-    cursor: String!
-    node: Article!
-  }
-
-  type ArticleCommentedConnection {
-    pageInfo: PageInfo!
-    edges: [ArticleCommentedEdge]!
-  }
-
-  type ArticleCommentedEdge {
-    cursor: String!
-    node: Article!
-  }
-
-  type ArticleAuthoredConnection {
-    pageInfo: PageInfo!
-    edges: [ArticleAuthoredEdge]
-  }
-
-  type ArticleAuthoredEdge {
-    cursor: String!
-    node: Article
-  }
-
-  type DraftAuthoredConnection {
-    pageInfo: PageInfo!
-    edges: [DraftAuthoredEdge]!
-  }
-
-  type DraftAuthoredEdge {
-    cursor: String!
-    node: Draft!
-  }
-
-  type AudiodraftAuthoredConnection {
-    pageInfo: PageInfo!
-    edges: [AudiodraftAuthoredEdge]!
-  }
-
-  type AudiodraftAuthoredEdge {
-    cursor: String!
-    node: Audiodraft!
-  }
-
-  type InvitationSentConnection {
-    pageInfo: PageInfo!
-    edges: [InvitationSentEdge]!
-  }
-
-  type InvitationSentEdge {
+  type InvitationEdge {
     cursor: String!
     node: Invitation!
-  }
-
-  type ArticleRecommendedConnection {
-    pageInfo: PageInfo!
-    edges: [ArticleRecommendedEdge]!
-  }
-
-  type ArticleRecommendedEdge {
-    cursor: String!
-    node: Article!
-  }
-
-  type TagRecommendedConnection {
-    pageInfo: PageInfo!
-    edges: [TagRecommendedEdge]!
-  }
-
-  type TagRecommendedEdge {
-    cursor: String!
-    node: Tag!
-  }
-
-  type UserRecommendedConnection {
-    pageInfo: PageInfo!
-    edges: [UserRecommendedEdge]!
-  }
-
-  type UserRecommendedEdge {
-    cursor: String!
-    node: User!
   }
 
   type ReadHistoryConnection {
@@ -306,12 +215,12 @@ export default /* GraphQL */ `
     node: String!
   }
 
-  type TransactionHistoryConnection {
+  type TransactionConnection {
     pageInfo: PageInfo!
-    edges: [TransactionHistoryEdge]!
+    edges: [TransactionEdge]!
   }
 
-  type TransactionHistoryEdge {
+  type TransactionEdge {
     cursor: String!
     node: Transaction!
   }

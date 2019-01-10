@@ -1,3 +1,5 @@
+import { connectionFromPromisedArray } from 'graphql-relay'
+
 import { QueryToSearchResolver } from 'definitions'
 
 const resolver: QueryToSearchResolver = (
@@ -10,7 +12,10 @@ const resolver: QueryToSearchResolver = (
     User: userService,
     Tag: tagService
   }
-  return serviceMap[input.type].search(input)
+  return connectionFromPromisedArray(
+    serviceMap[input.type].search(input),
+    input
+  )
 }
 
 export default resolver

@@ -25,11 +25,10 @@ export class TagService extends BaseService {
     })
   }
 
-  search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
+  search = async ({ key }: GQLSearchInput) => {
     const tags = await this.knex(this.table)
       .where('content', 'like', `%${key}%`)
-      .limit(limit)
-      .offset(offset)
+      .limit(100)
 
     return tags.map((tag: { [key: string]: string }) => ({
       node: { ...tag, __type: 'Tag' },

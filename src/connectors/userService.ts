@@ -139,15 +139,14 @@ export class UserService extends BaseService {
     return result
   }
 
-  search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
+  search = async ({ key }: GQLSearchInput) => {
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
         fuzziness: 5,
         fields: ['description', 'displayName', 'userName']
       })
-      .size(limit)
-      .from(offset)
+      .size(100)
       .build()
 
     try {
