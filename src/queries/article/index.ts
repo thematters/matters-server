@@ -16,6 +16,7 @@ import MAT from './mat'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import hasAppreciate from './hasAppreciate'
+import participants from './participants'
 import appreciators from './appreciators'
 
 export default {
@@ -44,6 +45,7 @@ export default {
     subscribers,
     appreciators,
     hasAppreciate,
+    participants, // TODO
     participantCount: () => 50 // TODO
   },
   Tag: {

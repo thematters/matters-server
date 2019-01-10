@@ -40,6 +40,7 @@ export default /* GraphQL */ `
     # MAT recieved for this article
     MAT: Int!
     participantCount: Int!
+    participants: [User!]
     subscribers(input: ListInput!): [User!]
     appreciators(input: ListInput!): [User!]
     appreciatorCount: Int!

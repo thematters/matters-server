@@ -37,6 +37,7 @@ type Article implements Node {
   """MAT recieved for this article"""
   MAT: Int!
   participantCount: Int!
+  participants: [User!]
   subscribers(input: ListInput!): [User!]
   appreciators(input: ListInput!): [User!]
   appreciatorCount: Int!
@@ -60,8 +61,8 @@ type ArticleNewAppreciationNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Article
-  MAT: Int
+  target: Article!
+  MAT: Int!
 }
 
 type ArticleNewCommentNotice implements Notice {
@@ -69,8 +70,8 @@ type ArticleNewCommentNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Article
-  comment: Comment
+  target: Article!
+  comment: Comment!
 }
 
 type ArticleNewDownstreamNotice implements Notice {
@@ -78,8 +79,8 @@ type ArticleNewDownstreamNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  downstream: Article
-  target: Article
+  downstream: Article!
+  target: Article!
 }
 
 type ArticleNewSubscriberNotice implements Notice {
@@ -87,14 +88,14 @@ type ArticleNewSubscriberNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Article
+  target: Article!
 }
 
 type ArticlePublishedNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  target: Article
+  target: Article!
 }
 
 input ArticlesInput {
@@ -180,8 +181,8 @@ type CommentMentionedYouNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  actors: [User!]
-  target: Comment
+  actor: User!
+  target: Comment!
 }
 
 type CommentNewReplyNotice implements Notice {
@@ -189,8 +190,8 @@ type CommentNewReplyNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Comment
-  reply: Comment
+  target: Comment!
+  reply: Comment!
 }
 
 type CommentNewUpvoteNotice implements Notice {
@@ -198,14 +199,15 @@ type CommentNewUpvoteNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Comment
+  target: Comment!
 }
 
 type CommentPinnedNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  target: Comment
+  actor: User!
+  target: Comment!
 }
 
 input CommentsInput {
@@ -270,8 +272,8 @@ type DownstreamArticleArchivedNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  downstream: Article
-  target: Article
+  downstream: Article!
+  target: Article!
 }
 
 type Draft implements Node {
@@ -290,7 +292,7 @@ type Draft implements Node {
 scalar Email
 
 input FeedbackInput {
-  category: String!
+  category: ID!
   description: String
   assetIds: [ID!]
   contact: String
@@ -469,6 +471,8 @@ type Official {
   reportCategory: [Category!]!
   feedbackCategory: [Category!]!
   releases(input: ReleasesInput!): [Release!]
+  links: OfficialLinks!
+  placements: Placements!
 }
 
 type OfficialAnnouncementNotice implements Notice {
@@ -479,8 +483,31 @@ type OfficialAnnouncementNotice implements Notice {
   link: URL
 }
 
+type OfficialLinks {
+  beginnerGuide: URL!
+  userGuide: URL!
+  about: URL!
+  faq: URL!
+  tos: URL!
+}
+
 input PinCommentInput {
   id: ID!
+}
+
+type Placements {
+  webAsideTop: PlacementUnit!
+  appSplash: PlacementUnit!
+  appInStreamTop: PlacementUnit!
+  appInStreamMiddle: PlacementUnit!
+  appInStreamBottom: PlacementUnit!
+  appInvitationTop: PlacementUnit!
+}
+
+type PlacementUnit {
+  image: URL!
+  link: URL!
+  adLabel: Boolean!
 }
 
 enum PlatformType {
@@ -592,6 +619,7 @@ input ReportArticleInput {
   category: String!
   description: String
   assetIds: [ID!]
+  contact: String
 }
 
 input ReportCommentInput {
@@ -599,6 +627,7 @@ input ReportCommentInput {
   category: String!
   description: String
   assetIds: [ID!]
+  contact: String
 }
 
 input SearchInput {
@@ -638,8 +667,8 @@ type SubscribedArticleNewCommentNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Article
-  comment: Comment
+  target: Article!
+  comment: Comment!
 }
 
 type Subscription {
@@ -710,8 +739,8 @@ type UpstreamArticleArchivedNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  upstream: Article
-  target: Article
+  upstream: Article!
+  target: Article!
 }
 
 scalar URL

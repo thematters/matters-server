@@ -86,6 +86,14 @@ export default {
   },
   CommentPinnedNotice: {
     id: ({ uuid }: { uuid: string }) => uuid,
+    actor: (
+      { entities }: { entities: any },
+      _: any,
+      { dataSources: { userService } }: Context
+    ) => {
+      const target = entities['target']
+      return userService.dataloader.load(target.authorId)
+    },
     target: ({ entities }: { entities: any }) => entities['target']
   },
   CommentNewReplyNotice: {
@@ -99,6 +107,7 @@ export default {
   },
   CommentMentionedYouNotice: {
     id: ({ uuid }: { uuid: string }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
     target: ({ entities }: { entities: any }) => entities['target']
   },
   OfficialAnnouncementNotice: {

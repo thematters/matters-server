@@ -29,6 +29,7 @@ export default /* GraphQL */ `
     feedbackCategory: [Category!]!
     releases(input: ReleasesInput!): [Release!]
     links: OfficialLinks!
+    placements: Placements!
   }
 
   type Category {
@@ -52,11 +53,26 @@ export default /* GraphQL */ `
   }
 
   type OfficialLinks {
-    beginnerGuide: String!
-    userGuide: String!
-    about: String!
-    faq: String!
-    tos: String!
+    beginnerGuide: URL!
+    userGuide: URL!
+    about: URL!
+    faq: URL!
+    tos: URL!
+  }
+
+  type Placements {
+    webAsideTop: PlacementUnit!
+    appSplash: PlacementUnit!
+    appInStreamTop: PlacementUnit!
+    appInStreamMiddle: PlacementUnit!
+    appInStreamBottom: PlacementUnit!
+    appInvitationTop: PlacementUnit!
+  }
+
+  type PlacementUnit {
+    image: URL!
+    link: URL!
+    adLabel: Boolean!
   }
 
   type Asset {
