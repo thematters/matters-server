@@ -21,6 +21,13 @@ const resolver: Resolver = async (
     throw new Error('viewer has no permission to do this') // TODO
   }
 
+  const pinLeft = await commentService.pinLeftByArticle(articleId)
+  if (pinLeft <= 0) {
+    throw new Error('reach pin limit') // TODO
+  }
+
+  // TODO: check pinned before
+
   const comment = await commentService.baseUpdateById(dbId, {
     pinned: true
   })
@@ -49,7 +56,7 @@ const resolver: Resolver = async (
     ]
   })
 
-  return true
+  return comment
 }
 
 export default resolver

@@ -1,7 +1,11 @@
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 
-import { BATCH_SIZE, USER_ACTION } from 'common/enums'
+import {
+  BATCH_SIZE,
+  USER_ACTION,
+  ARTICLE_PIN_COMMENT_LIMIT
+} from 'common/enums'
 import { BaseService } from './baseService'
 
 import { GQLCommentsInput, GQLVote } from 'definitions/schema'
@@ -272,6 +276,11 @@ export class CommentService extends BaseService {
       .select()
       .from(this.table)
       .where({ articleId, pinned: true })
+
+  pinLeftByArticle = async (articleId: string): Promise<number> => {
+    const pinned = await this.findPinnedByArticle(articleId)
+    return Math.max(ARTICLE_PIN_COMMENT_LIMIT - pinned.length, 0)
+  }
 
   /**
    * Find comments by a given comment id.

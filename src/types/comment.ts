@@ -28,6 +28,8 @@ export default /* GraphQL */ `
 
   extend type Article {
     commentCount: Int!
+    pinCommentLimit: Int!
+    pinCommentLeft: Int!
     pinnedComments: [Comment!]
     comments(input: CommentsInput!): [Comment!]
   }

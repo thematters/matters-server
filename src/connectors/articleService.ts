@@ -1,9 +1,11 @@
 import * as cheerio from 'cheerio'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
-import { ItemData, GQLSearchInput } from 'definitions'
 import { v4 } from 'uuid'
 import slugify from '@matters/slugify'
+
+import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
+import { ItemData, GQLSearchInput } from 'definitions'
 
 import {
   BATCH_SIZE,
@@ -367,24 +369,6 @@ export class ArticleService extends BaseService {
       })
 
   /**
-   * Find an article's appreciations by a given articleId and userId.
-   */
-  findAppreciationsByUser = async ({
-    articleId,
-    userId
-  }: {
-    articleId: string
-    userId: string
-  }): Promise<any[]> =>
-    await this.knex('transaction')
-      .select()
-      .where({
-        senderId: userId,
-        referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate
-      })
-
-  /**
    * Find an article's appreciators by a given article id.
    */
   findAppreciators = async ({
@@ -406,6 +390,23 @@ export class ArticleService extends BaseService {
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+
+  appreciateLeftByUser = async ({
+    articleId,
+    userId
+  }: {
+    articleId: string
+    userId: string
+  }): Promise<number> => {
+    const appreciations = await this.knex('transaction')
+      .select()
+      .where({
+        senderId: userId,
+        referenceId: articleId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
+    return Math.max(ARTICLE_APPRECIATE_LIMIT - appreciations.length, 0)
+  }
 
   /**
    * Find tages by a given article id.

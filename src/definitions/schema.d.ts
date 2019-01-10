@@ -79,6 +79,8 @@ export interface GQLArticle extends GQLNode {
    */
   subscribed: boolean
   commentCount: number
+  pinCommentLimit: number
+  pinCommentLeft: number
   pinnedComments?: Array<GQLComment>
   comments?: Array<GQLComment>
 }
@@ -1250,6 +1252,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>
   subscribed?: ArticleToSubscribedResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
+  pinCommentLimit?: ArticleToPinCommentLimitResolver<TParent>
+  pinCommentLeft?: ArticleToPinCommentLeftResolver<TParent>
   pinnedComments?: ArticleToPinnedCommentsResolver<TParent>
   comments?: ArticleToCommentsResolver<TParent>
 }
@@ -1415,6 +1419,17 @@ export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToCommentCountResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ArticleToPinCommentLimitResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ArticleToPinCommentLeftResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 

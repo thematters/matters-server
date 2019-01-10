@@ -46,6 +46,8 @@ type Article implements Node {
   """Viewer has subscribed"""
   subscribed: Boolean!
   commentCount: Int!
+  pinCommentLimit: Int!
+  pinCommentLeft: Int!
   pinnedComments: [Comment!]
   comments(input: CommentsInput!): [Comment!]
 }

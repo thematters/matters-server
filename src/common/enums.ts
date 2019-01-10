@@ -44,3 +44,4 @@ export const MAT_UNIT = {
 }
 
 export const ARTICLE_APPRECIATE_LIMIT = 5
+export const ARTICLE_PIN_COMMENT_LIMIT = 3

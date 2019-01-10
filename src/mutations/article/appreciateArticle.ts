@@ -21,6 +21,14 @@ const resolver: Resolver = async (
     throw new Error('target article does not exists') // TODO
   }
 
+  const appreciateLeft = await articleService.appreciateLeftByUser({
+    articleId: dbId,
+    userId: viewer.id
+  })
+  if (appreciateLeft <= 0) {
+    throw new Error('too many times to appreciate ') // TODO
+  }
+
   await articleService.appreciate({
     uuid: v4(),
     articleId: article.id,
