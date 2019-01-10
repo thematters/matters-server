@@ -213,7 +213,7 @@ export class CommentService extends BaseService {
     parent,
     offset = 0,
     limit = BATCH_SIZE
-  }: GQLCommentsInput & { id: string; parent: boolean }) => {
+  }: GQLCommentsInput & { id: string }) => {
     let where: { [key: string]: string | boolean } = { articleId: id }
     if (author) {
       where = { ...where, authorId: author }

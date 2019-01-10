@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _get from 'lodash/get'
 // local
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { MAT_UNIT, TRANSACTION_PURPOSE } from 'common/enums'
@@ -88,11 +88,11 @@ const GET_VIEWER_MAT = `
 `
 
 const GET_VIEWER_MAT_HISOTRY = `
-  query {
+  query ($input: ListInput!) {
     viewer {
       status {
         MAT {
-          history {
+          history(input: $input) {
             delta
             reference {
               id
@@ -250,9 +250,7 @@ export const getViewerMATHistory = async () => {
     variables: { input: {} }
   })
   const { data } = result
-  const { history } =
-    data && data.viewer && data.viewer.status && data.viewer.status.MAT
-  return history
+  return _get(data, 'viewer.status.MAT.history')
 }
 
 export const getUserInvitation = async (isAdmin = false) => {
@@ -298,7 +296,7 @@ describe('register and login functionarlities', () => {
       codeId: '123'
     }
     const { data: registerData } = await registerUser(user)
-    expect(_.get(registerData, 'userRegister.token')).toBeTruthy()
+    expect(_get(registerData, 'userRegister.token')).toBeTruthy()
 
     const context = await getUserContext({ email: user.email })
     const { query } = await testClient({
@@ -307,7 +305,7 @@ describe('register and login functionarlities', () => {
     const newUserResult = await query({
       query: GET_VIEWER_INFO
     })
-    const info = _.get(newUserResult, 'data.viewer.info')
+    const info = _get(newUserResult, 'data.viewer.info')
     expect(info.displayName).toBe(user.displayName)
     expect(info.email).toBe(user.email)
   })
@@ -321,7 +319,7 @@ describe('register and login functionarlities', () => {
       // @ts-ignore
       variables: { input: { email, password } }
     })
-    expect(_.get(result, 'data.userLogin.auth')).toBe(false)
+    expect(_get(result, 'data.userLogin.auth')).toBe(false)
   })
 
   test('auth success when password is correct', async () => {
@@ -334,7 +332,7 @@ describe('register and login functionarlities', () => {
       // @ts-ignore
       variables: { input: { email, password } }
     })
-    expect(_.get(result, 'data.userLogin.auth')).toBe(true)
+    expect(_get(result, 'data.userLogin.auth')).toBe(true)
   })
 
   test('retrive user info after login', async () => {
@@ -344,7 +342,7 @@ describe('register and login functionarlities', () => {
     const { data } = await query({
       query: GET_VIEWER_INFO
     })
-    const info = _.get(data, 'viewer.info')
+    const info = _get(data, 'viewer.info')
     expect(info.email).toEqual(defaultTestUser.email)
   })
 })
@@ -377,7 +375,7 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: { userName } }
     })
-    expect(_.get(data, 'user.info.userName')).toBe(userName)
+    expect(_get(data, 'user.info.userName')).toBe(userName)
   })
   test('retrive user articles', async () => {
     const { query } = await testClient({
@@ -388,7 +386,7 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: { limit: 1 } }
     })
-    const articles = _.get(data, 'viewer.articles')
+    const articles = _get(data, 'viewer.articles')
     expect(articles.length).toEqual(1)
     expect(articles[0].id).toBeDefined()
   })
@@ -401,7 +399,7 @@ describe('user query fields', () => {
       query: GET_VIEWER_SETTINGS
     })
     const { data } = res
-    const settings = _.get(data, 'viewer.settings')
+    const settings = _get(data, 'viewer.settings')
     expect(settings).toBeDefined()
     expect(settings.notification).toBeDefined()
   })
@@ -415,7 +413,7 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const subscriptions = _.get(data, 'viewer.subscriptions')
+    const subscriptions = _get(data, 'viewer.subscriptions')
     expect(subscriptions.length).toEqual(3)
   })
 
@@ -428,7 +426,7 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followers = _.get(data, 'viewer.followers')
+    const followers = _get(data, 'viewer.followers')
     expect(followers.length).toEqual(0)
   })
 
@@ -441,7 +439,7 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followees = _.get(data, 'viewer.followees')
+    const followees = _get(data, 'viewer.followees')
     expect(followees.length).toEqual(1)
   })
 
@@ -452,7 +450,7 @@ describe('user query fields', () => {
     const { data } = await query({
       query: GET_VIEWER_STATUS
     })
-    const status = _.get(data, 'viewer.status')
+    const status = _get(data, 'viewer.status')
     expect(status).toBeDefined()
   })
 })
@@ -479,8 +477,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followees =
-      followeeData && followeeData.viewer && followeeData.viewer.followees
+    const followees = _get(followeeData, 'viewer.followees')
     expect(followees.map(({ id }: { id: string }) => id)).toContain(followeeId)
 
     // unfollow
@@ -499,10 +496,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followeesNew =
-      followeeDataNew &&
-      followeeDataNew.viewer &&
-      followeeDataNew.viewer.followees
+    const followeesNew = _get(followeeDataNew, 'viewer.followees')
     expect(
       followeesNew.filter(({ id }: { id: string }) => id === followeeId).length
     ).toEqual(0)
@@ -518,7 +512,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: { description } }
     })
-    const info = data && data.updateUserInfo && data.updateUserInfo.info
+    const info = _get(data, 'updateUserInfo.info')
     expect(info.description).toEqual(description)
   })
 
@@ -532,7 +526,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: { avatar: avatarAssetUUID } }
     })
-    const { avatar } = data && data.updateUserInfo && data.updateUserInfo.info
+    const { avatar } = _get(data, 'updateUserInfo.info')
     expect(avatar).toEqual(expect.stringContaining('path/to/file.jpg'))
   })
 
@@ -545,7 +539,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: { type: 'enable', enabled: false } }
     })
-    const enable = _.get(data, 'updateNotificationSetting.enable')
+    const enable = _get(data, 'updateNotificationSetting.enable')
     expect(enable).toBe(false)
   })
 })
@@ -581,7 +575,7 @@ describe('user recommendations', () => {
       // @ts-ignore
       variables: { input: { limit: 1 } }
     })
-    const tag = _.get(data, 'viewer.recommendation.tags.0')
+    const tag = _get(data, 'viewer.recommendation.tags.0')
     expect(fromGlobalId(tag.id).type).toBe('Tag')
   })
 
@@ -594,7 +588,7 @@ describe('user recommendations', () => {
       // @ts-ignore
       variables: { input: { limit: 1 } }
     })
-    const author = _.get(data, 'viewer.recommendation.authors.0')
+    const author = _get(data, 'viewer.recommendation.authors.0')
     expect(fromGlobalId(author.id).type).toBe('User')
   })
 })
@@ -602,7 +596,7 @@ describe('user recommendations', () => {
 describe('invitation', async () => {
   test('invitation mat', async () => {
     const data = await getUserInvitation()
-    expect(_.get(data, 'viewer.status.invitation.MAT')).toBe(
+    expect(_get(data, 'viewer.status.invitation.MAT')).toBe(
       MAT_UNIT.joinByInvitation
     )
   })
@@ -612,7 +606,7 @@ describe('invitation', async () => {
       Math.random() * 100
     )}@matters.news`
     const invitationData = await getUserInvitation()
-    const left = _.get(invitationData, 'viewer.status.invitation.left')
+    const left = _get(invitationData, 'viewer.status.invitation.left')
     const { mutate } = await testClient({
       isAuth: true
     })
@@ -634,11 +628,11 @@ describe('invitation', async () => {
 
     // retrieve user's invitations
     const newInvitationData = await getUserInvitation()
-    expect(_.get(newInvitationData, 'viewer.status.invitation.left')).toBe(
+    expect(_get(newInvitationData, 'viewer.status.invitation.left')).toBe(
       Math.max(left - 1, 0)
     )
     expect(
-      _.get(newInvitationData, 'viewer.status.invitation.sent.0.email')
+      _get(newInvitationData, 'viewer.status.invitation.sent.0.email')
     ).toBe(unregisterEmail)
 
     // register user
@@ -648,7 +642,7 @@ describe('invitation', async () => {
       password: '567',
       codeId: '123'
     })
-    expect(_.get(registerData, 'userRegister.token')).toBeTruthy()
+    expect(_get(registerData, 'userRegister.token')).toBeTruthy()
 
     // check user state
     const user = await userService.findByEmail(unregisterEmail)
@@ -656,7 +650,7 @@ describe('invitation', async () => {
 
     // check transactions
     const senderTxs = await userService.findTransactionsByUserId(
-      fromGlobalId(_.get(newInvitationData, 'viewer.id')).id
+      fromGlobalId(_get(newInvitationData, 'viewer.id')).id
     )
     const recipientTxs = await userService.findTransactionsByUserId(user.id)
     expect(senderTxs[0].amount).toBe(MAT_UNIT.invitationAccepted)
@@ -667,7 +661,7 @@ describe('invitation', async () => {
 
   test('admin is not limit on invitations', async () => {
     const invitationData = await getUserInvitation(true)
-    const left = _.get(invitationData, 'viewer.status.invitation.left')
+    const left = _get(invitationData, 'viewer.status.invitation.left')
     expect(left).toBeLessThanOrEqual(0)
 
     const { mutate } = await testClient({
