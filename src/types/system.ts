@@ -28,6 +28,7 @@ export default /* GraphQL */ `
     reportCategory: [Category!]!
     feedbackCategory: [Category!]!
     releases(input: ReleasesInput!): [Release!]
+    links: OfficialLinks!
   }
 
   type Category {
@@ -48,6 +49,14 @@ export default /* GraphQL */ `
     latest: Boolean!
     forceUpdate: Boolean!
     releasedAt: DateTime!
+  }
+
+  type OfficialLinks {
+    beginnerGuide: String!
+    userGuide: String!
+    about: String!
+    faq: String!
+    tos: String!
   }
 
   type Asset {

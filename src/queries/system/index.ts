@@ -2,7 +2,7 @@ import { GQLPossibleNodeTypeNames } from 'definitions'
 
 import node from './node'
 import search from './search'
-import { reportCategory, feedbackCategory, releases } from './official'
+import { reportCategory, feedbackCategory, releases, links } from './official'
 
 export default {
   Query: {
@@ -19,6 +19,7 @@ export default {
   Official: {
     reportCategory,
     feedbackCategory,
-    releases
+    releases,
+    links
   }
 }
