@@ -11,6 +11,7 @@ exports.up = async knex => {
     t.bigInteger('comment_id')
     t.string('category').notNullable()
     t.text('description')
+    t.string('contact')
     t.timestamp('created_at').defaultTo(knex.fn.now())
 
     // Setup foreign key

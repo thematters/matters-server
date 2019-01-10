@@ -85,7 +85,7 @@ export default /* GraphQL */ `
   }
 
   input FeedbackInput {
-    category: String!
+    category: ID!
     description: String
     assetIds: [ID!]
     contact: String

@@ -363,20 +363,29 @@ export class CommentService extends BaseService {
   /**
    * User report an comment
    */
-  report = async (
-    commentId: string,
-    userId: string,
-    category: string,
-    description: string,
-    assetIds: string[] | undefined
-  ): Promise<void> => {
+  report = async ({
+    commentId,
+    userId,
+    category,
+    description,
+    contact,
+    assetIds
+  }: {
+    commentId: string
+    userId?: string | null
+    category: string
+    description?: string
+    contact?: string
+    assetIds?: string[]
+  }): Promise<void> => {
     // create report
     const { id: reportId } = await this.baseCreate(
       {
         userId,
         commentId,
         category,
-        description
+        description,
+        contact
       },
       'report'
     )

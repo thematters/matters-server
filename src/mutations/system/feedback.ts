@@ -5,8 +5,8 @@ const resolver: Resolver = async (
   { input: { category, description, contact, assetIds: assetUUIDs } },
   { viewer, dataSources: { systemService } }
 ) => {
-  if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+  if (!viewer.id && !contact) {
+    throw new Error('"contact" is required with anonymous user') // TODO
   }
 
   let assetIds
@@ -18,13 +18,13 @@ const resolver: Resolver = async (
     assetIds = assets.map(asset => asset.id)
   }
 
-  await systemService.feedback(
-    viewer.id,
+  await systemService.feedback({
+    userId: viewer.id,
     category,
     description,
     contact,
     assetIds
-  )
+  })
 
   return true
 }

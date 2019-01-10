@@ -559,20 +559,29 @@ export class ArticleService extends BaseService {
   /**
    * User report an article
    */
-  report = async (
-    articleId: string,
-    userId: string,
-    category: string,
-    description: string,
-    assetIds: string[] | undefined
-  ): Promise<void> => {
+  report = async ({
+    articleId,
+    userId,
+    category,
+    description,
+    contact,
+    assetIds
+  }: {
+    articleId?: string
+    userId?: string | null
+    category: string
+    description?: string
+    contact?: string
+    assetIds?: string[]
+  }): Promise<void> => {
     // create report
     const { id: reportId } = await this.baseCreate(
       {
         userId,
         articleId,
         category,
-        description
+        description,
+        contact
       },
       'report'
     )
