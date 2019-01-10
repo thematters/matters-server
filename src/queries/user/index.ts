@@ -9,6 +9,7 @@ import followees from './followees'
 import isFollower from './isFollower'
 import isFollowee from './isFollowee'
 import avatar from './avatar'
+import userNameEditable from './userNameEditable'
 import articleCount from './articleCount'
 import commentCount from './commentCount'
 // import oauthType from './oauthType'
@@ -47,7 +48,8 @@ export default {
   },
   Recommendation,
   UserInfo: {
-    avatar
+    avatar,
+    userNameEditable
   },
   UserSettings: {
     // oauthType,

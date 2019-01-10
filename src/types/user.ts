@@ -91,6 +91,8 @@ export default /* GraphQL */ `
     createdAt: DateTime!
     # Unique user name
     userName: String!
+    # Is user name editable
+    userNameEditable: Boolean!
     # Display name on profile
     displayName: String!
     # User desciption
@@ -238,6 +240,7 @@ export default /* GraphQL */ `
 
   input UpdateUserInfoInput {
     displayName: String
+    userName: String
     avatar: ID
     description: String
     language: UserLanguage

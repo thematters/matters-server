@@ -20,7 +20,26 @@ const resolver: Resolver = async (
     input.avatar = asset.id
   }
 
-  return await userService.update(viewer.id, input)
+  // check user name is editable
+  if (input.userName) {
+    const isUserNameEditable = await userService.isUserNameEditable(viewer.id)
+    if (!isUserNameEditable) {
+      throw new Error('userName is not allow to edit') // TODO
+    }
+  }
+
+  // update user info
+  const user = await userService.update(viewer.id, input)
+
+  // add user name edit history
+  if (input.userName) {
+    await userService.addUserNameEditHistory({
+      userId: viewer.id,
+      previous: viewer.userName
+    })
+  }
+
+  return user
 }
 
 export default resolver

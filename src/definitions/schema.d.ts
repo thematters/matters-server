@@ -171,6 +171,11 @@ export interface GQLUserInfo {
   userName: string
 
   /**
+   * Is user name editable
+   */
+  userNameEditable: boolean
+
+  /**
    * Display name on profile
    */
   displayName: string
@@ -855,6 +860,7 @@ export interface GQLUserLoginInput {
 
 export interface GQLUpdateUserInfoInput {
   displayName?: string
+  userName?: string
   avatar?: string
   description?: string
   language?: GQLUserLanguage
@@ -1586,6 +1592,7 @@ export interface UserToNoticesResolver<TParent = any, TResult = any> {
 export interface GQLUserInfoTypeResolver<TParent = any> {
   createdAt?: UserInfoToCreatedAtResolver<TParent>
   userName?: UserInfoToUserNameResolver<TParent>
+  userNameEditable?: UserInfoToUserNameEditableResolver<TParent>
   displayName?: UserInfoToDisplayNameResolver<TParent>
   description?: UserInfoToDescriptionResolver<TParent>
   avatar?: UserInfoToAvatarResolver<TParent>
@@ -1599,6 +1606,13 @@ export interface UserInfoToCreatedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToUserNameResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface UserInfoToUserNameEditableResolver<
+  TParent = any,
+  TResult = any
+> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 

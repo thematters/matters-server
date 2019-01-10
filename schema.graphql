@@ -716,6 +716,7 @@ input UpdateNotificationSettingInput {
 
 input UpdateUserInfoInput {
   displayName: String
+  userName: String
   avatar: ID
   description: String
   language: UserLanguage
@@ -778,6 +779,9 @@ type UserInfo {
 
   """Unique user name"""
   userName: String!
+
+  """Is user name editable"""
+  userNameEditable: Boolean!
 
   """Display name on profile"""
   displayName: String!
