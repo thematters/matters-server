@@ -134,6 +134,14 @@ type AuthResult {
   token: String
 }
 
+type Badge {
+  type: BadgeType!
+}
+
+enum BadgeType {
+  seed
+}
+
 type Category {
   id: ID!
   en: String!
@@ -802,6 +810,7 @@ type UserInfo {
 
   """Use 500 for now, adaptive in the future"""
   readSpeed: Int!
+  badges: [Badge!]
 }
 
 enum UserInfoFields {

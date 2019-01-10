@@ -103,6 +103,7 @@ export default /* GraphQL */ `
     mobile: String
     # Use 500 for now, adaptive in the future
     readSpeed: Int!
+    badges: [Badge!]
   }
 
   type UserSettings {
@@ -173,6 +174,10 @@ export default /* GraphQL */ `
     id: ID!
     article: Article!
     readAt: DateTime!
+  }
+
+  type Badge {
+    type: BadgeType!
   }
 
   type AuthResult {
@@ -261,6 +266,10 @@ export default /* GraphQL */ `
 
   input ClearReadHistoryInput {
     id: ID!
+  }
+
+  enum BadgeType {
+    seed
   }
 
   enum VerificationCodeType {

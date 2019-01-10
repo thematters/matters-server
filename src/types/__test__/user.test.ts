@@ -213,10 +213,21 @@ query($input: ListInput!) {
   }
 }
 `
+const GET_VIEWER_BADGES = `
+  query {
+    viewer {
+      info {
+        badges {
+          type
+        }
+      }
+    }
+  }
+`
 const INVITE = `
-mutation Invite($input: InviteInput!) {
-  invite(input: $input)
-}
+  mutation Invite($input: InviteInput!) {
+    invite(input: $input)
+  }
 `
 
 export const registerUser = async (user: { [key: string]: string }) => {
@@ -589,6 +600,20 @@ describe('user recommendations', () => {
     })
     const author = _get(data, 'viewer.recommendation.authors.0')
     expect(fromGlobalId(author.id).type).toBe('User')
+  })
+})
+
+describe('badges', async () => {
+  test('get user badges', async () => {
+    const { query } = await testClient({
+      isAuth: true
+    })
+    const { data } = await query({
+      query: GET_VIEWER_BADGES,
+      // @ts-ignore
+      variables: {}
+    })
+    expect(_get(data, 'viewer.info.badges.0.type')).toBe('seed')
   })
 })
 

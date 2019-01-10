@@ -204,11 +204,20 @@ export interface GQLUserInfo {
    * Use 500 for now, adaptive in the future
    */
   readSpeed: number
+  badges?: Array<GQLBadge>
 }
 
 export type GQLURL = any
 
 export type GQLEmail = any
+
+export interface GQLBadge {
+  type: GQLBadgeType
+}
+
+export enum GQLBadgeType {
+  seed = 'seed'
+}
 
 export interface GQLUserSettings {
   /**
@@ -1077,6 +1086,7 @@ export interface GQLResolver {
   UserInfo?: GQLUserInfoTypeResolver
   URL?: GraphQLScalarType
   Email?: GraphQLScalarType
+  Badge?: GQLBadgeTypeResolver
   UserSettings?: GQLUserSettingsTypeResolver
   NotificationSetting?: GQLNotificationSettingTypeResolver
   Recommendation?: GQLRecommendationTypeResolver
@@ -1633,6 +1643,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   email?: UserInfoToEmailResolver<TParent>
   mobile?: UserInfoToMobileResolver<TParent>
   readSpeed?: UserInfoToReadSpeedResolver<TParent>
+  badges?: UserInfoToBadgesResolver<TParent>
 }
 
 export interface UserInfoToCreatedAtResolver<TParent = any, TResult = any> {
@@ -1671,6 +1682,18 @@ export interface UserInfoToMobileResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToReadSpeedResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface UserInfoToBadgesResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface GQLBadgeTypeResolver<TParent = any> {
+  type?: BadgeToTypeResolver<TParent>
+}
+
+export interface BadgeToTypeResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 

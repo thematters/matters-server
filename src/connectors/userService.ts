@@ -354,24 +354,33 @@ export class UserService extends BaseService {
       .first()
 
   /**
-   * Find user's OAuth accounts by a given user id.
+   * Find user's badges
    */
-  findOAuth = async (userId: string): Promise<any> =>
+  findBadges = async (userId: string): Promise<any[]> =>
     await this.knex
       .select()
-      .from('user_oauth')
-      .where('user_id', userId)
-      .first()
+      .from('user_badge')
+      .where({ userId })
+
+  /**
+   * Find user's OAuth accounts by a given user id.
+   */
+  // findOAuth = async (userId: string): Promise<any> =>
+  //   await this.knex
+  //     .select()
+  //     .from('user_oauth')
+  //     .where('user_id', userId)
+  //     .first()
 
   /**
    * Find user's OAuth accounts by a given user id and type.
    */
-  findOAuthByType = async (userId: string, type: string): Promise<any> =>
-    await this.knex
-      .select()
-      .from('user_oauth')
-      .where({ userId, type })
-      .first()
+  // findOAuthByType = async (userId: string, type: string): Promise<any> =>
+  //   await this.knex
+  //     .select()
+  //     .from('user_oauth')
+  //     .where({ userId, type })
+  //     .first()
 
   /**
    * Find user's all OAuth types by a given user id.

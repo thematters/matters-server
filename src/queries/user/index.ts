@@ -9,6 +9,7 @@ import followees from './followees'
 import isFollower from './isFollower'
 import isFollowee from './isFollowee'
 import avatar from './avatar'
+import badges from './badges'
 import userNameEditable from './userNameEditable'
 import articleCount from './articleCount'
 import commentCount from './commentCount'
@@ -49,6 +50,7 @@ export default {
   Recommendation,
   UserInfo: {
     avatar,
+    badges,
     userNameEditable
   },
   UserSettings: {
