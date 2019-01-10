@@ -64,14 +64,20 @@ export interface GQLArticle extends GQLNode {
   appreciatorCount: number
 
   /**
-   * Viewer has subscribed
+   * limit the nuhmber of appreciate per user
    */
-  subscribed: boolean
+  appreciateLimit: number
+  appreciateLeft: number
 
   /**
    * Viewer has appreciate
    */
   hasAppreciate: boolean
+
+  /**
+   * Viewer has subscribed
+   */
+  subscribed: boolean
   commentCount: number
   pinnedComments?: Array<GQLComment>
   comments?: Array<GQLComment>
@@ -696,7 +702,7 @@ export interface GQLReportArticleInput {
 
 export interface GQLAppreciateArticleInput {
   id: string
-  amount?: number
+  amount: number
 }
 
 export interface GQLReadArticleInput {
@@ -1239,8 +1245,10 @@ export interface GQLArticleTypeResolver<TParent = any> {
   subscribers?: ArticleToSubscribersResolver<TParent>
   appreciators?: ArticleToAppreciatorsResolver<TParent>
   appreciatorCount?: ArticleToAppreciatorCountResolver<TParent>
-  subscribed?: ArticleToSubscribedResolver<TParent>
+  appreciateLimit?: ArticleToAppreciateLimitResolver<TParent>
+  appreciateLeft?: ArticleToAppreciateLeftResolver<TParent>
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>
+  subscribed?: ArticleToSubscribedResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
   pinnedComments?: ArticleToPinnedCommentsResolver<TParent>
   comments?: ArticleToCommentsResolver<TParent>
@@ -1387,11 +1395,22 @@ export interface ArticleToAppreciatorCountResolver<
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
+export interface ArticleToAppreciateLimitResolver<
+  TParent = any,
+  TResult = any
+> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ArticleToAppreciateLeftResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
 export interface ArticleToHasAppreciateResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 

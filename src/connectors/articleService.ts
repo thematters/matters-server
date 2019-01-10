@@ -361,7 +361,28 @@ export class ArticleService extends BaseService {
   findAppreciations = async (referenceId: string): Promise<any[]> =>
     await this.knex('transaction')
       .select()
-      .where({ referenceId })
+      .where({
+        referenceId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
+
+  /**
+   * Find an article's appreciations by a given articleId and userId.
+   */
+  findAppreciationsByUser = async ({
+    articleId,
+    userId
+  }: {
+    articleId: string
+    userId: string
+  }): Promise<any[]> =>
+    await this.knex('transaction')
+      .select()
+      .where({
+        senderId: userId,
+        referenceId: articleId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
 
   /**
    * Find an article's appreciators by a given article id.

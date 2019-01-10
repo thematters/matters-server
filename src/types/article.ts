@@ -44,10 +44,13 @@ export default /* GraphQL */ `
     subscribers(input: ListInput!): [User!]
     appreciators(input: ListInput!): [User!]
     appreciatorCount: Int!
-    # Viewer has subscribed
-    subscribed: Boolean!
+    # limit the nuhmber of appreciate per user
+    appreciateLimit: Int!
+    appreciateLeft: Int!
     # Viewer has appreciate
     hasAppreciate: Boolean!
+    # Viewer has subscribed
+    subscribed: Boolean!
   }
 
   type Tag implements Node {
@@ -94,7 +97,7 @@ export default /* GraphQL */ `
 
   input AppreciateArticleInput {
     id: ID!
-    amount: Int
+    amount: Int!
   }
 
   input ReadArticleInput {
