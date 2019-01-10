@@ -477,6 +477,7 @@ export interface GQLCommentsInput {
   author?: string
   quote?: boolean
   sort?: GQLCommentSort
+  parent?: boolean
 }
 
 export enum GQLCommentSort {

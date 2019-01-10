@@ -51,6 +51,7 @@ export default /* GraphQL */ `
     author: ID
     quote: Boolean
     sort: CommentSort
+    parent: Boolean
   }
 
   enum CommentSort {

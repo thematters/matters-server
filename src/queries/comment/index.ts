@@ -5,6 +5,7 @@ import articleCommentCount from './article/commentCount'
 import articlePinnedComments from './article/pinnedComments'
 import articleComments from './article/comments'
 import article from './article'
+import content from './content'
 import author from './author'
 import upvotes from './upvotes'
 import downvotes from './downvotes'
@@ -25,6 +26,7 @@ export default {
   Comment: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Comment', id }),
     article,
+    content,
     author,
     upvotes,
     downvotes,
