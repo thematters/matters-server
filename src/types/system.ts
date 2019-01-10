@@ -4,7 +4,6 @@ export default /* GraphQL */ `
     frequentSearch(key: String): [String!]
     search(input: SearchInput!): [SearchResult!]
     official: Official!
-    releases(input: ReleasesInput!): [Release!]
   }
 
   extend type Mutation {
@@ -26,8 +25,18 @@ export default /* GraphQL */ `
   }
 
   type Official {
-    reportCategory: [String!]!
-    feedbackCategory: [String!]!
+    reportCategory: [Category!]!
+    feedbackCategory: [Category!]!
+    releases(input: ReleasesInput!): [Release!]
+    links: OfficialLinks!
+    placements: Placements!
+  }
+
+  type Category {
+    id: ID!
+    en: String!
+    zh_hans: String!
+    zh_hant: String!
   }
 
   type Release {
@@ -41,6 +50,29 @@ export default /* GraphQL */ `
     latest: Boolean!
     forceUpdate: Boolean!
     releasedAt: DateTime!
+  }
+
+  type OfficialLinks {
+    beginnerGuide: URL!
+    userGuide: URL!
+    about: URL!
+    faq: URL!
+    tos: URL!
+  }
+
+  type Placements {
+    webAsideTop: PlacementUnit!
+    appSplash: PlacementUnit!
+    appInStreamTop: PlacementUnit!
+    appInStreamMiddle: PlacementUnit!
+    appInStreamBottom: PlacementUnit!
+    appInvitationTop: PlacementUnit!
+  }
+
+  type PlacementUnit {
+    image: URL!
+    link: URL!
+    adLabel: Boolean!
   }
 
   type Asset {
@@ -78,7 +110,7 @@ export default /* GraphQL */ `
   }
 
   input FeedbackInput {
-    category: String!
+    category: ID!
     description: String
     assetIds: [ID!]
     contact: String

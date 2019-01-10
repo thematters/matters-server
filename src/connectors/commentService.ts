@@ -1,7 +1,11 @@
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 
-import { BATCH_SIZE, USER_ACTION } from 'common/enums'
+import {
+  BATCH_SIZE,
+  USER_ACTION,
+  ARTICLE_PIN_COMMENT_LIMIT
+} from 'common/enums'
 import { BaseService } from './baseService'
 
 import { GQLCommentsInput, GQLVote } from 'definitions/schema'
@@ -116,7 +120,7 @@ export class CommentService extends BaseService {
   countByArticle = async (articleId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where({ articleId })
+      .where({ articleId, state: 'active' })
       .first()
     return parseInt(result.count, 10)
   }
@@ -210,6 +214,7 @@ export class CommentService extends BaseService {
     author,
     quote,
     sort,
+    parent,
     offset = 0,
     limit = BATCH_SIZE
   }: GQLCommentsInput & { id: string }) => {
@@ -221,6 +226,7 @@ export class CommentService extends BaseService {
       where = { ...where, quote }
     }
 
+    let query = null
     const sortCreatedAt = (by: 'desc' | 'asc') =>
       this.knex
         .select()
@@ -231,7 +237,7 @@ export class CommentService extends BaseService {
         .limit(limit)
 
     if (sort == 'upvotes') {
-      return this.knex('comment')
+      query = this.knex('comment')
         .select('comment.*')
         .countDistinct('votes.user_id as upvotes')
         .leftJoin(
@@ -246,12 +252,20 @@ export class CommentService extends BaseService {
         .where(where)
         .orderBy('upvotes', 'desc')
     } else if (sort === 'oldest') {
-      return sortCreatedAt('asc')
+      query = sortCreatedAt('asc')
     } else if (sort === 'newest') {
-      return sortCreatedAt('desc')
+      query = sortCreatedAt('desc')
     } else {
-      return sortCreatedAt('desc')
+      query = sortCreatedAt('desc')
     }
+
+    if (parent === true) {
+      query = query.whereNull('parent_comment_id')
+    } else if (parent === false) {
+      query = query.whereNotNull('parent_comment_id')
+    }
+
+    return query
   }
 
   /**
@@ -263,6 +277,11 @@ export class CommentService extends BaseService {
       .from(this.table)
       .where({ articleId, pinned: true })
 
+  pinLeftByArticle = async (articleId: string): Promise<number> => {
+    const pinned = await this.findPinnedByArticle(articleId)
+    return Math.max(ARTICLE_PIN_COMMENT_LIMIT - pinned.length, 0)
+  }
+
   /**
    * Find comments by a given comment id.
    */
@@ -270,7 +289,9 @@ export class CommentService extends BaseService {
     await this.knex
       .select()
       .from(this.table)
-      .where('parent_comment_id', commentId)
+      .where({
+        parentCommentId: commentId
+      })
 
   /**
    * Find a comment's up votes by a given target id (comment).
@@ -351,20 +372,29 @@ export class CommentService extends BaseService {
   /**
    * User report an comment
    */
-  report = async (
-    commentId: string,
-    userId: string,
-    category: string,
-    description: string,
-    assetIds: string[] | undefined
-  ): Promise<void> => {
+  report = async ({
+    commentId,
+    userId,
+    category,
+    description,
+    contact,
+    assetIds
+  }: {
+    commentId: string
+    userId?: string | null
+    category: string
+    description?: string
+    contact?: string
+    assetIds?: string[]
+  }): Promise<void> => {
     // create report
     const { id: reportId } = await this.baseCreate(
       {
         userId,
         commentId,
         category,
-        description
+        description,
+        contact
       },
       'report'
     )

@@ -1,4 +1,5 @@
 import { toGlobalId } from 'common/utils'
+import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
 
 import rootArticle from './rootArticle'
 import rootArticles from './rootArticles'
@@ -16,6 +17,8 @@ import MAT from './mat'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import hasAppreciate from './hasAppreciate'
+import appreciateLeft from './appreciateLeft'
+import participants from './participants'
 import appreciators from './appreciators'
 
 export default {
@@ -44,6 +47,9 @@ export default {
     subscribers,
     appreciators,
     hasAppreciate,
+    appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
+    appreciateLeft,
+    participants, // TODO
     participantCount: () => 50 // TODO
   },
   Tag: {

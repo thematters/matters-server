@@ -1,12 +1,6 @@
-input AddOAuthInput {
-  name: String!
-  id: String!
-  type: OAuthType
-}
-
 input AppreciateArticleInput {
   id: ID!
-  amount: Int
+  amount: Int!
 }
 
 input ArchiveArticleInput {
@@ -37,16 +31,23 @@ type Article implements Node {
   """MAT recieved for this article"""
   MAT: Int!
   participantCount: Int!
+  participants: [User!]
   subscribers(input: ListInput!): [User!]
   appreciators(input: ListInput!): [User!]
   appreciatorCount: Int!
 
-  """Viewer has subscribed"""
-  subscribed: Boolean!
+  """limit the nuhmber of appreciate per user"""
+  appreciateLimit: Int!
+  appreciateLeft: Int!
 
   """Viewer has appreciate"""
   hasAppreciate: Boolean!
+
+  """Viewer has subscribed"""
+  subscribed: Boolean!
   commentCount: Int!
+  pinCommentLimit: Int!
+  pinCommentLeft: Int!
   pinnedComments: [Comment!]
   comments(input: CommentsInput!): [Comment!]
 }
@@ -60,8 +61,8 @@ type ArticleNewAppreciationNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Article
-  MAT: Int
+  target: Article!
+  MAT: Int!
 }
 
 type ArticleNewCommentNotice implements Notice {
@@ -69,8 +70,8 @@ type ArticleNewCommentNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Article
-  comment: Comment
+  target: Article!
+  comment: Comment!
 }
 
 type ArticleNewDownstreamNotice implements Notice {
@@ -78,8 +79,8 @@ type ArticleNewDownstreamNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  downstream: Article
-  target: Article
+  downstream: Article!
+  target: Article!
 }
 
 type ArticleNewSubscriberNotice implements Notice {
@@ -87,14 +88,14 @@ type ArticleNewSubscriberNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Article
+  target: Article!
 }
 
 type ArticlePublishedNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  target: Article
+  target: Article!
 }
 
 input ArticlesInput {
@@ -131,6 +132,21 @@ type AudioDraft {
 type AuthResult {
   auth: Boolean!
   token: String
+}
+
+type Badge {
+  type: BadgeType!
+}
+
+enum BadgeType {
+  seed
+}
+
+type Category {
+  id: ID!
+  en: String!
+  zh_hans: String!
+  zh_hant: String!
 }
 
 enum ChannelType {
@@ -173,8 +189,8 @@ type CommentMentionedYouNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  actors: [User!]
-  target: Comment
+  actor: User!
+  target: Comment!
 }
 
 type CommentNewReplyNotice implements Notice {
@@ -182,8 +198,8 @@ type CommentNewReplyNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Comment
-  reply: Comment
+  target: Comment!
+  reply: Comment!
 }
 
 type CommentNewUpvoteNotice implements Notice {
@@ -191,14 +207,15 @@ type CommentNewUpvoteNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Comment
+  target: Comment!
 }
 
 type CommentPinnedNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  target: Comment
+  actor: User!
+  target: Comment!
 }
 
 input CommentsInput {
@@ -207,6 +224,7 @@ input CommentsInput {
   author: ID
   quote: Boolean
   sort: CommentSort
+  parent: Boolean
 }
 
 enum CommentSort {
@@ -262,8 +280,8 @@ type DownstreamArticleArchivedNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  downstream: Article
-  target: Article
+  downstream: Article!
+  target: Article!
 }
 
 type Draft implements Node {
@@ -274,7 +292,7 @@ type Draft implements Node {
   content: String!
   createdAt: DateTime!
   updatedAt: DateTime!
-  tags: [String]
+  tags: [String!]
   cover: URL
   publishState: PublishState!
 }
@@ -282,7 +300,7 @@ type Draft implements Node {
 scalar Email
 
 input FeedbackInput {
-  category: String!
+  category: ID!
   description: String
   assetIds: [ID!]
   contact: String
@@ -329,7 +347,7 @@ input ListInput {
 
 type MAT {
   total: Int!
-  history(input: ListInput): [Transaction]!
+  history(input: ListInput!): [Transaction!]
 }
 
 type Mutation {
@@ -380,9 +398,11 @@ type Mutation {
 
   """login"""
   userLogin(input: UserLoginInput!): AuthResult!
-  addOAuth(input: AddOAuthInput!): Boolean
 
-  """update info/ setting"""
+  """
+  addOAuth(input: AddOAuthInput!): Boolean
+  update info/ setting
+  """
   updateUserInfo(input: UpdateUserInfoInput!): User!
   updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
 
@@ -390,8 +410,10 @@ type Mutation {
   followUser(input: FollowUserInput!): Boolean
   unfollowUser(input: UnfollowUserInput!): Boolean
 
-  """misc"""
-  importArticles(input: ImportArticlesInput!): [Article]
+  """
+  misc
+  importArticles(input: ImportArticlesInput!): [Article!]
+  """
   clearReadHistory(input: ClearReadHistoryInput): Boolean
   clearSearchHistory: Boolean
   invite(input: InviteInput!): Boolean
@@ -447,15 +469,12 @@ enum NotificationSettingType {
   reportFeedback
 }
 
-enum OAuthType {
-  facebook
-  wechat
-  google
-}
-
 type Official {
-  reportCategory: [String!]!
-  feedbackCategory: [String!]!
+  reportCategory: [Category!]!
+  feedbackCategory: [Category!]!
+  releases(input: ReleasesInput!): [Release!]
+  links: OfficialLinks!
+  placements: Placements!
 }
 
 type OfficialAnnouncementNotice implements Notice {
@@ -466,8 +485,31 @@ type OfficialAnnouncementNotice implements Notice {
   link: URL
 }
 
+type OfficialLinks {
+  beginnerGuide: URL!
+  userGuide: URL!
+  about: URL!
+  faq: URL!
+  tos: URL!
+}
+
 input PinCommentInput {
   id: ID!
+}
+
+type Placements {
+  webAsideTop: PlacementUnit!
+  appSplash: PlacementUnit!
+  appInStreamTop: PlacementUnit!
+  appInStreamMiddle: PlacementUnit!
+  appInStreamBottom: PlacementUnit!
+  appInvitationTop: PlacementUnit!
+}
+
+type PlacementUnit {
+  image: URL!
+  link: URL!
+  adLabel: Boolean!
 }
 
 enum PlatformType {
@@ -524,7 +566,6 @@ type Query {
   frequentSearch(key: String): [String!]
   search(input: SearchInput!): [SearchResult!]
   official: Official!
-  releases(input: ReleasesInput!): [Release!]
   viewer: User
   user(input: UserInput!): User
 }
@@ -544,15 +585,15 @@ input RecallPublishInput {
 }
 
 type Recommendation {
-  followeeArticles(input: ListInput!): [Article!]!
-  newest(input: ListInput!): [Article!]!
-  hottest(input: ListInput!): [Article!]!
+  followeeArticles(input: ListInput!): [Article!]
+  newest(input: ListInput!): [Article!]
+  hottest(input: ListInput!): [Article!]
 
   """In case you missed it"""
-  icymi(input: ListInput!): [Article!]!
-  tags(input: ListInput!): [Tag!]!
-  topics(input: ListInput!): [Article!]!
-  authors(input: ListInput!): [User!]!
+  icymi(input: ListInput!): [Article!]
+  tags(input: ListInput!): [Tag!]
+  topics(input: ListInput!): [Article!]
+  authors(input: ListInput!): [User!]
 }
 
 type Release {
@@ -580,6 +621,7 @@ input ReportArticleInput {
   category: String!
   description: String
   assetIds: [ID!]
+  contact: String
 }
 
 input ReportCommentInput {
@@ -587,6 +629,7 @@ input ReportCommentInput {
   category: String!
   description: String
   assetIds: [ID!]
+  contact: String
 }
 
 input SearchInput {
@@ -626,8 +669,8 @@ type SubscribedArticleNewCommentNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
-  target: Article
-  comment: Comment
+  target: Article!
+  comment: Comment!
 }
 
 type Subscription {
@@ -687,6 +730,7 @@ input UpdateNotificationSettingInput {
 
 input UpdateUserInfoInput {
   displayName: String
+  userName: String
   avatar: ID
   description: String
   language: UserLanguage
@@ -698,8 +742,8 @@ type UpstreamArticleArchivedNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  upstream: Article
-  target: Article
+  upstream: Article!
+  target: Article!
 }
 
 scalar URL
@@ -750,6 +794,9 @@ type UserInfo {
   """Unique user name"""
   userName: String!
 
+  """Is user name editable"""
+  userNameEditable: Boolean!
+
   """Display name on profile"""
   displayName: String!
 
@@ -763,6 +810,7 @@ type UserInfo {
 
   """Use 500 for now, adaptive in the future"""
   readSpeed: Int!
+  badges: [Badge!]
 }
 
 enum UserInfoFields {
@@ -806,10 +854,11 @@ type UserSettings {
   """User language setting"""
   language: UserLanguage!
 
-  """Thrid party accounts binded for the user"""
-  oauthType: [OAuthType!]!
-
-  """Notification settings"""
+  """
+  Thrid party accounts binded for the user
+  oauthType: [OAuthType!]
+  Notification settings
+  """
   notification: NotificationSetting!
 }
 

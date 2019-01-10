@@ -3,11 +3,11 @@ import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   root,
-  { input: { id, category, description, assetIds: assetUUIDs } },
+  { input: { id, category, description, contact, assetIds: assetUUIDs } },
   { viewer, dataSources: { commentService, systemService } }
 ) => {
-  if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+  if (!viewer.id && !contact) {
+    throw new Error('"contact" is required with anonymous user') // TODO
   }
 
   const { id: dbId } = fromGlobalId(id)
@@ -25,13 +25,14 @@ const resolver: Resolver = async (
     assetIds = assets.map(asset => asset.id)
   }
 
-  await commentService.report(
-    comment.id,
-    viewer.id,
+  await commentService.report({
+    commentId: comment.id,
+    userId: viewer.id,
     category,
     description,
+    contact,
     assetIds
-  )
+  })
 
   return true
 }

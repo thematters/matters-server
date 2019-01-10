@@ -48,13 +48,19 @@ export class SystemService extends BaseService {
   /**
    * User submit a feeback
    */
-  feedback = async (
-    userId: string,
-    category: string,
-    description: string,
-    contact: string,
-    assetIds: string[] | undefined
-  ): Promise<void> => {
+  feedback = async ({
+    userId,
+    category,
+    description,
+    contact,
+    assetIds
+  }: {
+    userId?: string | null
+    category: string
+    description?: string
+    contact?: string
+    assetIds?: string[]
+  }): Promise<void> => {
     // create feedback
     const { id: feedbackId } = await this.baseCreate(
       {

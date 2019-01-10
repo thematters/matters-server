@@ -44,7 +44,7 @@ export type User = {
   currGravity: number
   mat: number
   language: string
-  oauthType: any
+  // oauthType: any
   role: 'admin' | 'user'
   state: string
   createdAt: string
@@ -88,6 +88,7 @@ export type TableName =
   | 'user'
   | 'user_oauth'
   | 'user_notify_setting'
+  | 'username_edit_history'
   | 'notice_detail'
   | 'notice'
   | 'notice_actor'

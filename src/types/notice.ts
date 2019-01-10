@@ -24,7 +24,7 @@ export default /* GraphQL */ `
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    target: Article
+    target: Article!
   }
 
   type ArticleNewDownstreamNotice implements Notice {
@@ -32,8 +32,8 @@ export default /* GraphQL */ `
     unread: Boolean!
     createdAt: DateTime!
     actors: [User!]
-    downstream: Article
-    target: Article
+    downstream: Article!
+    target: Article!
   }
 
   type ArticleNewAppreciationNotice implements Notice {
@@ -41,8 +41,8 @@ export default /* GraphQL */ `
     unread: Boolean!
     createdAt: DateTime!
     actors: [User!]
-    target: Article
-    MAT: Int
+    target: Article!
+    MAT: Int!
   }
 
   type ArticleNewSubscriberNotice implements Notice {
@@ -50,7 +50,7 @@ export default /* GraphQL */ `
     unread: Boolean!
     createdAt: DateTime!
     actors: [User!]
-    target: Article
+    target: Article!
   }
 
   type ArticleNewCommentNotice implements Notice {
@@ -58,8 +58,8 @@ export default /* GraphQL */ `
     unread: Boolean!
     createdAt: DateTime!
     actors: [User!]
-    target: Article
-    comment: Comment
+    target: Article!
+    comment: Comment!
   }
 
   type SubscribedArticleNewCommentNotice implements Notice {
@@ -67,31 +67,32 @@ export default /* GraphQL */ `
     unread: Boolean!
     createdAt: DateTime!
     actors: [User!]
-    target: Article
-    comment: Comment
+    target: Article!
+    comment: Comment!
   }
 
   type UpstreamArticleArchivedNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    upstream: Article
-    target: Article
+    upstream: Article!
+    target: Article!
   }
 
   type DownstreamArticleArchivedNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    downstream: Article
-    target: Article
+    downstream: Article!
+    target: Article!
   }
 
   type CommentPinnedNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    target: Comment
+    actor: User!
+    target: Comment!
   }
 
   type CommentNewReplyNotice implements Notice {
@@ -99,8 +100,8 @@ export default /* GraphQL */ `
     unread: Boolean!
     createdAt: DateTime!
     actors: [User!]
-    target: Comment
-    reply: Comment
+    target: Comment!
+    reply: Comment!
   }
 
   type CommentNewUpvoteNotice implements Notice {
@@ -108,15 +109,15 @@ export default /* GraphQL */ `
     unread: Boolean!
     createdAt: DateTime!
     actors: [User!]
-    target: Comment
+    target: Comment!
   }
 
   type CommentMentionedYouNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actors: [User!]
-    target: Comment
+    actor: User!
+    target: Comment!
   }
 
   type OfficialAnnouncementNotice implements Notice {

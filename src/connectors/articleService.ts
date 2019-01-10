@@ -1,9 +1,11 @@
 import * as cheerio from 'cheerio'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
-import { ItemData, GQLSearchInput } from 'definitions'
 import { v4 } from 'uuid'
 import slugify from '@matters/slugify'
+
+import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
+import { ItemData, GQLSearchInput } from 'definitions'
 
 import {
   BATCH_SIZE,
@@ -248,7 +250,7 @@ export class ArticleService extends BaseService {
    * Count total appreciaton by a given article id and user ids.
    */
   countAppreciationByUserIds = async ({
-    articleId: referenceId,
+    articleId,
     userIds
   }: {
     articleId: string
@@ -257,8 +259,11 @@ export class ArticleService extends BaseService {
     const result = await this.knex
       .select()
       .from('transaction')
-      .where({ referenceId })
-      .whereIn('sender_Id', userIds)
+      .where({
+        referenceId: articleId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
+      .whereIn('senderId', userIds)
       .sum('amount')
       .first()
     return parseInt(result.sum || '0', 10)
@@ -358,7 +363,10 @@ export class ArticleService extends BaseService {
   findAppreciations = async (referenceId: string): Promise<any[]> =>
     await this.knex('transaction')
       .select()
-      .where({ referenceId })
+      .where({
+        referenceId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
 
   /**
    * Find an article's appreciators by a given article id.
@@ -382,6 +390,23 @@ export class ArticleService extends BaseService {
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+
+  appreciateLeftByUser = async ({
+    articleId,
+    userId
+  }: {
+    articleId: string
+    userId: string
+  }): Promise<number> => {
+    const appreciations = await this.knex('transaction')
+      .select()
+      .where({
+        senderId: userId,
+        referenceId: articleId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
+    return Math.max(ARTICLE_APPRECIATE_LIMIT - appreciations.length, 0)
+  }
 
   /**
    * Find tages by a given article id.
@@ -556,20 +581,29 @@ export class ArticleService extends BaseService {
   /**
    * User report an article
    */
-  report = async (
-    articleId: string,
-    userId: string,
-    category: string,
-    description: string,
-    assetIds: string[] | undefined
-  ): Promise<void> => {
+  report = async ({
+    articleId,
+    userId,
+    category,
+    description,
+    contact,
+    assetIds
+  }: {
+    articleId?: string
+    userId?: string | null
+    category: string
+    description?: string
+    contact?: string
+    assetIds?: string[]
+  }): Promise<void> => {
     // create report
     const { id: reportId } = await this.baseCreate(
       {
         userId,
         articleId,
         category,
-        description
+        description,
+        contact
       },
       'report'
     )

@@ -1,10 +1,13 @@
 import { toGlobalId } from 'common/utils'
+import { ARTICLE_PIN_COMMENT_LIMIT } from 'common/enums'
 
 import userCommentedArticles from './user/commentedArticles'
 import articleCommentCount from './article/commentCount'
 import articlePinnedComments from './article/pinnedComments'
+import pinCommentLeft from './article/pinCommentLeft'
 import articleComments from './article/comments'
 import article from './article'
+import content from './content'
 import author from './author'
 import upvotes from './upvotes'
 import downvotes from './downvotes'
@@ -19,12 +22,15 @@ export default {
   },
   Article: {
     commentCount: articleCommentCount,
+    pinCommentLimit: () => ARTICLE_PIN_COMMENT_LIMIT,
+    pinCommentLeft,
     pinnedComments: articlePinnedComments,
     comments: articleComments
   },
   Comment: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Comment', id }),
     article,
+    content,
     author,
     upvotes,
     downvotes,

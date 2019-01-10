@@ -4,6 +4,6 @@ const resolver: Resolver = async (
   { id },
   _,
   { dataSources: { userService } }
-) => userService.findOAuthTypes(id)
+) => userService.findBadges(id)
 
 export default resolver
