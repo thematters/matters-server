@@ -33,7 +33,6 @@ export default /* GraphQL */ `
     dataHash: String
     mediaHash: String
     content: String!
-    gatewayUrls: [URL!]
     upstream: Article
     downstreams(input: ConnectionArgs!): ArticleConnection!
     relatedArticles(input: ConnectionArgs!): ArticleConnection!

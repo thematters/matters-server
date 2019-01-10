@@ -36,6 +36,7 @@ export default /* GraphQL */ `
     releases(input: ReleasesInput!): [Release!]
     links: OfficialLinks!
     placements: Placements!
+    gatewayUrls: [URL!]
   }
 
   type Category {

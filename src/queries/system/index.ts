@@ -7,7 +7,8 @@ import {
   feedbackCategory,
   releases,
   links,
-  placements
+  placements,
+  gatewayUrls
 } from './official'
 
 export default {
@@ -27,6 +28,7 @@ export default {
     feedbackCategory,
     releases, // TODO
     links, // TODO
-    placements // TODO
+    placements, // TODO
+    gatewayUrls
   }
 }
