@@ -225,11 +225,11 @@ export default /* GraphQL */ `
     password: String!
   }
 
-  input AddOAuthInput {
-    name: String!
-    id: String!
-    type: OAuthType
-  }
+  # input AddOAuthInput {
+  #   name: String!
+  #   id: String!
+  #   type: OAuthType
+  # }
 
   input UpdateNotificationSettingInput {
     type: NotificationSettingType!
@@ -296,11 +296,11 @@ export default /* GraphQL */ `
     reportFeedback
   }
 
-  enum OAuthType {
-    facebook
-    wechat
-    google
-  }
+  # enum OAuthType {
+  #   facebook
+  #   wechat
+  #   google
+  # }
 
   enum UserState {
     inactive

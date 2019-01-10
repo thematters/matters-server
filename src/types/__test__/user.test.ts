@@ -134,7 +134,6 @@ const GET_VIEWER_SETTINGS = `
     viewer {
       settings {
         language
-        oauthType
         notification {
           enable
         }

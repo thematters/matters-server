@@ -44,7 +44,7 @@ export type User = {
   currGravity: number
   mat: number
   language: string
-  oauthType: any
+  // oauthType: any
   role: 'admin' | 'user'
   state: string
   createdAt: string

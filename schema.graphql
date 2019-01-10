@@ -1,9 +1,3 @@
-input AddOAuthInput {
-  name: String!
-  id: String!
-  type: OAuthType
-}
-
 input AppreciateArticleInput {
   id: ID!
   amount: Int
@@ -459,12 +453,6 @@ enum NotificationSettingType {
   commentVoted
   officialNotice
   reportFeedback
-}
-
-enum OAuthType {
-  facebook
-  wechat
-  google
 }
 
 type Official {

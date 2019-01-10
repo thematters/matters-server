@@ -352,11 +352,11 @@ export class UserService extends BaseService {
   /**
    * Find user's all OAuth types by a given user id.
    */
-  findOAuthTypes = async (userId: string): Promise<any[]> =>
-    await this.knex
-      .select('type')
-      .from('user_oauth')
-      .where({ userId })
+  // findOAuthTypes = async (userId: string): Promise<any[]> =>
+  //   await this.knex
+  //     .select('type')
+  //     .from('user_oauth')
+  //     .where({ userId })
 
   /**
    * Find user's all transactions by a given user id.

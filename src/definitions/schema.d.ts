@@ -906,18 +906,6 @@ export interface GQLNodeEditedInput {
   id: string
 }
 
-export interface GQLAddOAuthInput {
-  name: string
-  id: string
-  type?: GQLOAuthType
-}
-
-export enum GQLOAuthType {
-  facebook = 'facebook',
-  wechat = 'wechat',
-  google = 'google'
-}
-
 export interface GQLArticleNewAppreciationNotice extends GQLNotice {
   id: string
   unread: boolean
