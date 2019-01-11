@@ -1,4 +1,5 @@
 //local
+import logger from 'common/logger'
 import { NotificationType, NotificationPrarms } from 'definitions'
 import { toGlobalId } from 'common/utils'
 import { BaseService } from 'connectors/baseService'
@@ -155,7 +156,7 @@ export class NotificationService extends BaseService {
     try {
       this.__trigger(params)
     } catch (e) {
-      console.error('[Notification:trigger]', e)
+      logger.error('[Notification:trigger]', e)
     }
   }
 }

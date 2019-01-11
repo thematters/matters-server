@@ -2,7 +2,7 @@ import elasticsearch from 'elasticsearch'
 import _ from 'lodash'
 
 import { environment } from 'common/environment'
-import { knex } from '../db'
+import logger from 'common/logger'
 
 const { esHost: host, esPort: port } = environment
 
@@ -22,9 +22,9 @@ class ElasticSearch {
     for (const index of this.indices) {
       const exists = await this.client.indices.exists({ index })
       if (!exists) {
-        console.log(`Creating index ${index}`)
+        logger.info(`Creating index ${index}`)
         await this.client.indices.create({ index })
-        console.log(`Done`)
+        logger.info(`Done`)
       }
     }
   }
@@ -36,7 +36,7 @@ class ElasticSearch {
       })
 
       await this.init()
-      console.log('All search indices are cleared')
+      logger.info('All search indices are cleared')
     } catch (err) {
       throw err
     }

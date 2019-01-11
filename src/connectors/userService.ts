@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import bodybuilder from 'bodybuilder'
 import _ from 'lodash'
 
+import logger from 'common/logger'
 import {
   BCRYPT_ROUNDS,
   USER_ACTION,
@@ -186,7 +187,7 @@ export class UserService extends BaseService {
     const user = await this.findByEmail(email)
 
     if (!user) {
-      console.log('Cannot find user with email, login failed.')
+      logger.info('Cannot find user with email, login failed.')
       return {
         auth: false
       }
@@ -194,7 +195,7 @@ export class UserService extends BaseService {
 
     const auth = await compare(password, user.passwordHash)
     if (!auth) {
-      console.log('Password incorrect, login failed.')
+      logger.info('Password incorrect, login failed.')
       return {
         auth: false
       }
@@ -204,7 +205,7 @@ export class UserService extends BaseService {
       expiresIn: 86400 * 90 // expires in 24 * 90 hours
     })
 
-    console.log(`User logged in with uuid ${user.uuid}.`)
+    logger.info(`User logged in with uuid ${user.uuid}.`)
     return {
       auth: true,
       token
@@ -638,7 +639,7 @@ export class UserService extends BaseService {
         }
       })
     } catch (e) {
-      console.error('[activateInvitedEmailUser]', e)
+      logger.error('[activateInvitedEmailUser]', e)
     }
   }
 }

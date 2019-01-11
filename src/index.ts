@@ -4,6 +4,7 @@ require('dotenv').config()
 // external
 import { ApolloServer } from 'apollo-server'
 // internal
+import logger from 'common/logger'
 import { DataSources } from 'definitions'
 import { makeContext, initSubscriptions } from 'common/utils'
 import {
@@ -51,6 +52,6 @@ const server = new ApolloServer({
 server
   .listen({ port: process.env.PORT || 4000 })
   .then(({ url, subscriptionsUrl }) => {
-    console.log(`🚀 Server ready at ${url}`)
-    console.log(`🚀 Subscriptions ready at ${subscriptionsUrl}`)
+    logger.info(`🚀 Server ready at ${url}`)
+    logger.info(`🚀 Subscriptions ready at ${subscriptionsUrl}`)
   })
