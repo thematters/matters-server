@@ -1,7 +1,7 @@
 import { v4 } from 'uuid'
-import { ItemData, Resolver } from 'definitions'
+import { ItemData, MutationToPutAudiodraftResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: MutationToPutAudiodraftResolver = async (
   _,
   { input: { id: uuid, audioAssetId: audioAssetUUID, title, length } },
   { viewer, dataSources: { draftService, systemService } }

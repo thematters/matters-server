@@ -3,11 +3,11 @@ import { NotificationService } from '../notificationService'
 import { UserService } from '../userService'
 
 import { knex } from 'connectors/db'
-import { queueSharedOpts } from 'connectors/queue/utils'
+import { sharedQueueOpts } from 'connectors/queue/utils'
 
 afterAll(async () => {
   await knex.destroy()
-  const redisClient = queueSharedOpts.createClient()
+  const redisClient = sharedQueueOpts.createClient()
   // TODO: still have asynchronous operations running
   redisClient.disconnect()
 })
@@ -58,7 +58,7 @@ describe('user notify setting', async () => {
   test('user receives notifications', async () => {
     await Promise.all(
       noticeTypes.map(async type => {
-        const { canPush } = await notificationService.checkUserNoifySetting({
+        const { canPush } = await notificationService.checkUserNotifySetting({
           event: type,
           userId: recipientId
         })
@@ -71,7 +71,7 @@ describe('user notify setting', async () => {
     await userService.updateNotifySetting(notifySetting.id, { follow: false })
     await Promise.all(
       noticeTypes.map(async type => {
-        const { canPush } = await notificationService.checkUserNoifySetting({
+        const { canPush } = await notificationService.checkUserNotifySetting({
           event: type,
           userId: recipientId
         })

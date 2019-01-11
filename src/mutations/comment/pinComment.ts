@@ -1,7 +1,7 @@
-import { Resolver } from 'definitions'
+import { MutationToPinCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToPinCommentResolver = async (
   _,
   { input: { id } },
   {

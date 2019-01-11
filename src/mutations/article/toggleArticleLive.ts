@@ -1,7 +1,7 @@
-import { Resolver } from 'definitions'
+import { MutationToToggleArticleLiveResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToToggleArticleLiveResolver = async (
   root,
   { input: { id, enabled } },
   { viewer, dataSources: { articleService } }

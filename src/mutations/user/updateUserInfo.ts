@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { MutationToUpdateUserInfoResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: MutationToUpdateUserInfoResolver = async (
   _,
   { input },
   { viewer, dataSources: { userService, systemService } }

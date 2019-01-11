@@ -1,7 +1,9 @@
-import { Context } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { SubscriptionToNodeEditedResolver } from 'definitions'
 
-export default {
+const resolver: {
+  Subscription: { nodeEdited: SubscriptionToNodeEditedResolver }
+} = {
   Subscription: {
     nodeEdited: {
       resolve: (node: any, { input: { id } }: { input: { id: string } }) => {
@@ -11,10 +13,12 @@ export default {
       subscribe: (
         _: any,
         { input: { id } }: { input: { id: string } },
-        { dataSources: { notificationService } }: Context
+        { dataSources: { notificationService } }
       ) => {
         return notificationService.pubsubService.engine.asyncIterator([id])
       }
     }
   }
 }
+
+export default resolver

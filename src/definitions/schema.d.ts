@@ -1,3 +1,4 @@
+import { Context } from './index'
 /* tslint:disable */
 import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql'
 /**
@@ -36,7 +37,7 @@ export interface GQLArticle extends GQLNode {
   id: string
   slug: string
   createdAt: GQLDateTime
-  publishState: GQLPublishState
+  state: GQLArticleState
   public: boolean
   live: boolean
   author: GQLUser
@@ -109,13 +110,10 @@ export interface GQLNodeNameMap {
 
 export type GQLDateTime = any
 
-export enum GQLPublishState {
+export enum GQLArticleState {
+  active = 'active',
   archived = 'archived',
-  pending = 'pending',
-  error = 'error',
-  published = 'published',
-  banned = 'banned',
-  recalled = 'recalled'
+  banned = 'banned'
 }
 
 export interface GQLUser extends GQLNode {
@@ -330,11 +328,19 @@ export interface GQLDraft extends GQLNode {
   title?: string
   summary?: string
   content: string
+  scheduledAt?: GQLDateTime
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
   tags?: Array<string>
   cover?: GQLURL
   publishState: GQLPublishState
+}
+
+export enum GQLPublishState {
+  unpublished = 'unpublished',
+  pending = 'pending',
+  error = 'error',
+  published = 'published'
 }
 
 export interface GQLAudiodraftConnection {
@@ -658,9 +664,7 @@ export interface GQLOfficial {
 
 export interface GQLCategory {
   id: string
-  en: string
-  zh_hans: string
-  zh_hant: string
+  name: string
 }
 
 export interface GQLReleasesInput {
@@ -980,8 +984,10 @@ export interface GQLConfirmVerifyEmailInput {
 
 export interface GQLUserRegisterInput {
   email: GQLEmail
+  userName?: string
   displayName: string
   password: string
+  description?: string
   codeId: string
 }
 
@@ -1293,7 +1299,12 @@ export interface GQLQueryTypeResolver<TParent = any> {
 }
 
 export interface QueryTo_Resolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface QueryToArticleArgs {
@@ -1303,7 +1314,7 @@ export interface QueryToArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToArticleArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1315,7 +1326,7 @@ export interface QueryToArticlesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToArticlesArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1327,7 +1338,7 @@ export interface QueryToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToNodeArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1339,7 +1350,7 @@ export interface QueryToFrequentSearchResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToFrequentSearchArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1351,17 +1362,27 @@ export interface QueryToSearchResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToSearchArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface QueryToOfficialResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface QueryToViewerResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface QueryToUserArgs {
@@ -1371,7 +1392,7 @@ export interface QueryToUserResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToUserArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1380,7 +1401,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   id?: ArticleToIdResolver<TParent>
   slug?: ArticleToSlugResolver<TParent>
   createdAt?: ArticleToCreatedAtResolver<TParent>
-  publishState?: ArticleToPublishStateResolver<TParent>
+  state?: ArticleToStateResolver<TParent>
   public?: ArticleToPublicResolver<TParent>
   live?: ArticleToLiveResolver<TParent>
   author?: ArticleToAuthorResolver<TParent>
@@ -1413,67 +1434,147 @@ export interface GQLArticleTypeResolver<TParent = any> {
 }
 
 export interface ArticleToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToSlugResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToCreatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
-export interface ArticleToPublishStateResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+export interface ArticleToStateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToPublicResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToLiveResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToAuthorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToTitleResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToCoverResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToSummaryResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToTagsResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToWordCountResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToDataHashResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToMediaHashResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToContentResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToUpstreamResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToDownstreamsArgs {
@@ -1483,7 +1584,7 @@ export interface ArticleToDownstreamsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: ArticleToDownstreamsArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1498,24 +1599,39 @@ export interface ArticleToRelatedArticlesResolver<
   (
     parent: TParent,
     args: ArticleToRelatedArticlesArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface ArticleToMATResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToParticipantCountResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToParticipantsResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToSubscribersArgs {
@@ -1525,7 +1641,7 @@ export interface ArticleToSubscribersResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: ArticleToSubscribersArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1537,7 +1653,7 @@ export interface ArticleToAppreciatorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: ArticleToAppreciatorsArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1546,45 +1662,90 @@ export interface ArticleToAppreciatorCountResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToAppreciateLimitResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToAppreciateLeftResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToHasAppreciateResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToCommentCountResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToPinCommentLimitResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToPinCommentLeftResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToPinnedCommentsResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleToCommentsArgs {
@@ -1594,13 +1755,13 @@ export interface ArticleToCommentsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: ArticleToCommentsArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface GQLNodeTypeResolver<TParent = any> {
-  (parent: TParent, context: any, info: GraphQLResolveInfo):
+  (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'Article'
     | 'User'
     | 'Tag'
@@ -1629,23 +1790,48 @@ export interface GQLUserTypeResolver<TParent = any> {
 }
 
 export interface UserToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserToUuidResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserToInfoResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserToSettingsResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserToRecommendationResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserToArticlesArgs {
@@ -1655,7 +1841,7 @@ export interface UserToArticlesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToArticlesArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1667,7 +1853,7 @@ export interface UserToDraftsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToDraftsArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1679,7 +1865,7 @@ export interface UserToAudiodraftsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToAudiodraftsArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1691,7 +1877,7 @@ export interface UserToCommentedArticlesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToCommentedArticlesArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1703,13 +1889,18 @@ export interface UserToSubscriptionsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToSubscriptionsArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface UserToActivityResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserToFollowersArgs {
@@ -1719,7 +1910,7 @@ export interface UserToFollowersResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToFollowersArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1731,21 +1922,36 @@ export interface UserToFolloweesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToFolloweesArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface UserToIsFollowerResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserToIsFolloweeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserToStatusResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserToNoticesArgs {
@@ -1755,7 +1961,7 @@ export interface UserToNoticesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToNoticesArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1774,46 +1980,96 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
 }
 
 export interface UserInfoToCreatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserInfoToUserNameResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserInfoToUserNameEditableResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserInfoToDisplayNameResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserInfoToDescriptionResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserInfoToAvatarResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserInfoToEmailResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserInfoToMobileResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserInfoToReadSpeedResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserInfoToBadgesResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLBadgeTypeResolver<TParent = any> {
@@ -1821,7 +2077,12 @@ export interface GQLBadgeTypeResolver<TParent = any> {
 }
 
 export interface BadgeToTypeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLUserSettingsTypeResolver<TParent = any> {
@@ -1830,14 +2091,24 @@ export interface GQLUserSettingsTypeResolver<TParent = any> {
 }
 
 export interface UserSettingsToLanguageResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserSettingsToNotificationResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLNotificationSettingTypeResolver<TParent = any> {
@@ -1861,84 +2132,144 @@ export interface NotificationSettingToEnableResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NotificationSettingToMentionResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NotificationSettingToFollowResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NotificationSettingToCommentResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NotificationSettingToAppreciationResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NotificationSettingToArticleSubscriptionResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NotificationSettingToCommentSubscribedResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NotificationSettingToDownstreamResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NotificationSettingToCommentPinnedResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NotificationSettingToCommentVotedResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NotificationSettingToOfficialNoticeResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NotificationSettingToReportFeedbackResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLRecommendationTypeResolver<TParent = any> {
@@ -1961,7 +2292,7 @@ export interface RecommendationToFolloweeArticlesResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeArticlesArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1973,7 +2304,7 @@ export interface RecommendationToNewestResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToNewestArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1985,7 +2316,7 @@ export interface RecommendationToHottestResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToHottestArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -1997,7 +2328,7 @@ export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToIcymiArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -2009,7 +2340,7 @@ export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToTagsArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -2021,7 +2352,7 @@ export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToTopicsArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -2033,7 +2364,7 @@ export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToAuthorsArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -2047,14 +2378,24 @@ export interface ArticleConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLPageInfoTypeResolver<TParent = any> {
@@ -2064,15 +2405,30 @@ export interface GQLPageInfoTypeResolver<TParent = any> {
 }
 
 export interface PageInfoToStartCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface PageInfoToEndCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface PageInfoToHasNextPageResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLArticleEdgeTypeResolver<TParent = any> {
@@ -2081,11 +2437,21 @@ export interface GQLArticleEdgeTypeResolver<TParent = any> {
 }
 
 export interface ArticleEdgeToCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLTagConnectionTypeResolver<TParent = any> {
@@ -2094,11 +2460,21 @@ export interface GQLTagConnectionTypeResolver<TParent = any> {
 }
 
 export interface TagConnectionToPageInfoResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TagConnectionToEdgesResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLTagEdgeTypeResolver<TParent = any> {
@@ -2107,11 +2483,21 @@ export interface GQLTagEdgeTypeResolver<TParent = any> {
 }
 
 export interface TagEdgeToCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TagEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLTagTypeResolver<TParent = any> {
@@ -2122,15 +2508,30 @@ export interface GQLTagTypeResolver<TParent = any> {
 }
 
 export interface TagToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TagToContentResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TagToCountResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TagToArticlesArgs {
@@ -2140,7 +2541,7 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: TagToArticlesArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -2154,11 +2555,21 @@ export interface UserConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserConnectionToEdgesResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLUserEdgeTypeResolver<TParent = any> {
@@ -2167,11 +2578,21 @@ export interface GQLUserEdgeTypeResolver<TParent = any> {
 }
 
 export interface UserEdgeToCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLDraftConnectionTypeResolver<TParent = any> {
@@ -2183,11 +2604,21 @@ export interface DraftConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftConnectionToEdgesResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLDraftEdgeTypeResolver<TParent = any> {
@@ -2196,11 +2627,21 @@ export interface GQLDraftEdgeTypeResolver<TParent = any> {
 }
 
 export interface DraftEdgeToCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLDraftTypeResolver<TParent = any> {
@@ -2209,6 +2650,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   title?: DraftToTitleResolver<TParent>
   summary?: DraftToSummaryResolver<TParent>
   content?: DraftToContentResolver<TParent>
+  scheduledAt?: DraftToScheduledAtResolver<TParent>
   createdAt?: DraftToCreatedAtResolver<TParent>
   updatedAt?: DraftToUpdatedAtResolver<TParent>
   tags?: DraftToTagsResolver<TParent>
@@ -2217,43 +2659,102 @@ export interface GQLDraftTypeResolver<TParent = any> {
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftToUpstreamResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftToTitleResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftToSummaryResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftToContentResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToScheduledAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftToCreatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftToUpdatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftToTagsResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftToCoverResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftToPublishStateResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLAudiodraftConnectionTypeResolver<TParent = any> {
@@ -2265,14 +2766,24 @@ export interface AudiodraftConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AudiodraftConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLAudiodraftEdgeTypeResolver<TParent = any> {
@@ -2281,11 +2792,21 @@ export interface GQLAudiodraftEdgeTypeResolver<TParent = any> {
 }
 
 export interface AudiodraftEdgeToCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AudiodraftEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLAudiodraftTypeResolver<TParent = any> {
@@ -2299,31 +2820,66 @@ export interface GQLAudiodraftTypeResolver<TParent = any> {
 }
 
 export interface AudiodraftToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AudiodraftToAuthorIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AudiodraftToTitleResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AudiodraftToAudioResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AudiodraftToLengthResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AudiodraftToCreatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AudiodraftToUpdatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLUserActivityTypeResolver<TParent = any> {
@@ -2338,7 +2894,7 @@ export interface UserActivityToHistoryResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserActivityToHistoryArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -2353,7 +2909,7 @@ export interface UserActivityToRecentSearchesResolver<
   (
     parent: TParent,
     args: UserActivityToRecentSearchesArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -2367,14 +2923,24 @@ export interface ReadHistoryConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReadHistoryConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLReadHistoryEdgeTypeResolver<TParent = any> {
@@ -2383,11 +2949,21 @@ export interface GQLReadHistoryEdgeTypeResolver<TParent = any> {
 }
 
 export interface ReadHistoryEdgeToCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReadHistoryEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLReadHistoryTypeResolver<TParent = any> {
@@ -2397,15 +2973,30 @@ export interface GQLReadHistoryTypeResolver<TParent = any> {
 }
 
 export interface ReadHistoryToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReadHistoryToArticleResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReadHistoryToReadAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLRecentSearchConnectionTypeResolver<TParent = any> {
@@ -2417,14 +3008,24 @@ export interface RecentSearchConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface RecentSearchConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLRecentSearchEdgeTypeResolver<TParent = any> {
@@ -2436,11 +3037,21 @@ export interface RecentSearchEdgeToCursorResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface RecentSearchEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLUserStatusTypeResolver<TParent = any> {
@@ -2459,72 +3070,132 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
 }
 
 export interface UserStatusToStateResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserStatusToMATResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserStatusToInvitationResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserStatusToArticleCountResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserStatusToViewCountResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserStatusToDraftCountResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserStatusToCommentCountResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserStatusToQuotationCountResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserStatusToSubscriptionCountResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserStatusToFolloweeCountResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserStatusToFollowerCountResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserStatusToUnreadNoticeCountResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLMATTypeResolver<TParent = any> {
@@ -2533,7 +3204,12 @@ export interface GQLMATTypeResolver<TParent = any> {
 }
 
 export interface MATToTotalResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface MATToHistoryArgs {
@@ -2543,7 +3219,7 @@ export interface MATToHistoryResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MATToHistoryArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -2557,14 +3233,24 @@ export interface TransactionConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TransactionConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLTransactionEdgeTypeResolver<TParent = any> {
@@ -2573,11 +3259,21 @@ export interface GQLTransactionEdgeTypeResolver<TParent = any> {
 }
 
 export interface TransactionEdgeToCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLTransactionTypeResolver<TParent = any> {
@@ -2588,19 +3284,39 @@ export interface GQLTransactionTypeResolver<TParent = any> {
 }
 
 export interface TransactionToDeltaResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TransactionToPurposeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TransactionToReferenceResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TransactionToCreatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLInvitationStatusTypeResolver<TParent = any> {
@@ -2610,11 +3326,21 @@ export interface GQLInvitationStatusTypeResolver<TParent = any> {
 }
 
 export interface InvitationStatusToMATResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface InvitationStatusToLeftResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface InvitationStatusToSentArgs {
@@ -2624,7 +3350,7 @@ export interface InvitationStatusToSentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: InvitationStatusToSentArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -2638,14 +3364,24 @@ export interface InvitationConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface InvitationConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLInvitationEdgeTypeResolver<TParent = any> {
@@ -2654,11 +3390,21 @@ export interface GQLInvitationEdgeTypeResolver<TParent = any> {
 }
 
 export interface InvitationEdgeToCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface InvitationEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLInvitationTypeResolver<TParent = any> {
@@ -2670,23 +3416,48 @@ export interface GQLInvitationTypeResolver<TParent = any> {
 }
 
 export interface InvitationToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface InvitationToUserResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface InvitationToEmailResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface InvitationToAcceptedResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface InvitationToCreatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLNoticeConnectionTypeResolver<TParent = any> {
@@ -2698,11 +3469,21 @@ export interface NoticeConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NoticeConnectionToEdgesResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLNoticeEdgeTypeResolver<TParent = any> {
@@ -2711,15 +3492,25 @@ export interface GQLNoticeEdgeTypeResolver<TParent = any> {
 }
 
 export interface NoticeEdgeToCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NoticeEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLNoticeTypeResolver<TParent = any> {
-  (parent: TParent, context: any, info: GraphQLResolveInfo):
+  (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'ArticleNewAppreciationNotice'
     | 'ArticleNewCommentNotice'
     | 'ArticleNewDownstreamNotice'
@@ -2753,51 +3544,111 @@ export interface GQLCommentTypeResolver<TParent = any> {
 }
 
 export interface CommentToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToStateResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToCreatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToArticleResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToContentResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToAuthorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToPinnedResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToUpvotesResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToDownvotesResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToQuoteResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToMyVoteResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToMentionsResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentToCommentsArgs {
@@ -2807,13 +3658,18 @@ export interface CommentToCommentsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: CommentToCommentsArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface CommentToParentCommentResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLCommentConnectionTypeResolver<TParent = any> {
@@ -2825,14 +3681,24 @@ export interface CommentConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLCommentEdgeTypeResolver<TParent = any> {
@@ -2841,11 +3707,21 @@ export interface GQLCommentEdgeTypeResolver<TParent = any> {
 }
 
 export interface CommentEdgeToCursorResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLSearchResultConnectionTypeResolver<TParent = any> {
@@ -2857,14 +3733,24 @@ export interface SearchResultConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface SearchResultConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLSearchResultEdgeTypeResolver<TParent = any> {
@@ -2876,11 +3762,21 @@ export interface SearchResultEdgeToCursorResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface SearchResultEdgeToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLSearchResultTypeResolver<TParent = any> {
@@ -2889,11 +3785,21 @@ export interface GQLSearchResultTypeResolver<TParent = any> {
 }
 
 export interface SearchResultToNodeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface SearchResultToMatchResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLOfficialTypeResolver<TParent = any> {
@@ -2909,14 +3815,24 @@ export interface OfficialToReportCategoryResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialToFeedbackCategoryResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialToReleasesArgs {
@@ -2926,44 +3842,59 @@ export interface OfficialToReleasesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OfficialToReleasesArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface OfficialToLinksResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialToPlacementsResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialToGatewayUrlsResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLCategoryTypeResolver<TParent = any> {
   id?: CategoryToIdResolver<TParent>
-  en?: CategoryToEnResolver<TParent>
-  zh_hans?: CategoryToZh_hansResolver<TParent>
-  zh_hant?: CategoryToZh_hantResolver<TParent>
+  name?: CategoryToNameResolver<TParent>
 }
 
 export interface CategoryToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
-export interface CategoryToEnResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface CategoryToZh_hansResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface CategoryToZh_hantResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+export interface CategoryToNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLReleaseTypeResolver<TParent = any> {
@@ -2980,43 +3911,93 @@ export interface GQLReleaseTypeResolver<TParent = any> {
 }
 
 export interface ReleaseToTitleResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReleaseToDescriptionResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReleaseToCoverResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReleaseToLinkResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReleaseToPlatformResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReleaseToChannelResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReleaseToVersionResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReleaseToLatestResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReleaseToForceUpdateResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReleaseToReleasedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLOfficialLinksTypeResolver<TParent = any> {
@@ -3031,26 +4012,51 @@ export interface OfficialLinksToBeginnerGuideResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialLinksToUserGuideResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialLinksToAboutResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialLinksToFaqResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialLinksToTosResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLPlacementsTypeResolver<TParent = any> {
@@ -3063,39 +4069,69 @@ export interface GQLPlacementsTypeResolver<TParent = any> {
 }
 
 export interface PlacementsToWebAsideTopResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface PlacementsToAppSplashResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface PlacementsToAppInStreamTopResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface PlacementsToAppInStreamMiddleResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface PlacementsToAppInStreamBottomResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface PlacementsToAppInvitationTopResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLPlacementUnitTypeResolver<TParent = any> {
@@ -3105,15 +4141,30 @@ export interface GQLPlacementUnitTypeResolver<TParent = any> {
 }
 
 export interface PlacementUnitToImageResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface PlacementUnitToLinkResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface PlacementUnitToAdLabelResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLMutationTypeResolver<TParent = any> {
@@ -3160,7 +4211,12 @@ export interface GQLMutationTypeResolver<TParent = any> {
 }
 
 export interface MutationTo_Resolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface MutationToPublishArticleArgs {
@@ -3173,7 +4229,7 @@ export interface MutationToPublishArticleResolver<
   (
     parent: TParent,
     args: MutationToPublishArticleArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3188,7 +4244,7 @@ export interface MutationToArchiveArticleResolver<
   (
     parent: TParent,
     args: MutationToArchiveArticleArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3203,7 +4259,7 @@ export interface MutationToSubscribeArticleResolver<
   (
     parent: TParent,
     args: MutationToSubscribeArticleArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3218,7 +4274,7 @@ export interface MutationToUnsubscribeArticleResolver<
   (
     parent: TParent,
     args: MutationToUnsubscribeArticleArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3230,7 +4286,7 @@ export interface MutationToReportArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToReportArticleArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3245,7 +4301,7 @@ export interface MutationToAppreciateArticleResolver<
   (
     parent: TParent,
     args: MutationToAppreciateArticleArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3257,7 +4313,7 @@ export interface MutationToReadArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToReadArticleArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3269,7 +4325,7 @@ export interface MutationToRecallPublishResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToRecallPublishArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3284,7 +4340,7 @@ export interface MutationToToggleArticleLiveResolver<
   (
     parent: TParent,
     args: MutationToToggleArticleLiveArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3299,7 +4355,7 @@ export interface MutationToToggleArticlePublicResolver<
   (
     parent: TParent,
     args: MutationToToggleArticlePublicArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3311,7 +4367,7 @@ export interface MutationToPutCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutCommentArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3323,7 +4379,7 @@ export interface MutationToPinCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPinCommentArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3335,7 +4391,7 @@ export interface MutationToDeleteCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToDeleteCommentArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3347,7 +4403,7 @@ export interface MutationToReportCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToReportCommentArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3359,7 +4415,7 @@ export interface MutationToVoteCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToVoteCommentArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3371,7 +4427,7 @@ export interface MutationToUnvoteCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUnvoteCommentArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3383,7 +4439,7 @@ export interface MutationToPutAudiodraftResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutAudiodraftArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3398,7 +4454,7 @@ export interface MutationToDeleteAudiodraftResolver<
   (
     parent: TParent,
     args: MutationToDeleteAudiodraftArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3410,7 +4466,7 @@ export interface MutationToPutDraftResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutDraftArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3422,7 +4478,7 @@ export interface MutationToDeleteDraftResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToDeleteDraftArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3431,7 +4487,12 @@ export interface MutationToMarkAllNoticesAsReadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface MutationToSingleFileUploadArgs {
@@ -3444,7 +4505,7 @@ export interface MutationToSingleFileUploadResolver<
   (
     parent: TParent,
     args: MutationToSingleFileUploadArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3456,7 +4517,7 @@ export interface MutationToFeedbackResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToFeedbackArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3471,7 +4532,7 @@ export interface MutationToSendVerificationCodeResolver<
   (
     parent: TParent,
     args: MutationToSendVerificationCodeArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3486,7 +4547,7 @@ export interface MutationToConfirmVerificationCodeResolver<
   (
     parent: TParent,
     args: MutationToConfirmVerificationCodeArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3501,7 +4562,7 @@ export interface MutationToConfirmResetPasswordResolver<
   (
     parent: TParent,
     args: MutationToConfirmResetPasswordArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3516,7 +4577,7 @@ export interface MutationToConfirmChangeEmailResolver<
   (
     parent: TParent,
     args: MutationToConfirmChangeEmailArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3531,7 +4592,7 @@ export interface MutationToConfirmVerifyEmailResolver<
   (
     parent: TParent,
     args: MutationToConfirmVerifyEmailArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3543,7 +4604,7 @@ export interface MutationToUserRegisterResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUserRegisterArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3555,7 +4616,7 @@ export interface MutationToUserLoginResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUserLoginArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3570,7 +4631,7 @@ export interface MutationToUpdateUserInfoResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserInfoArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3585,7 +4646,7 @@ export interface MutationToUpdateNotificationSettingResolver<
   (
     parent: TParent,
     args: MutationToUpdateNotificationSettingArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3597,7 +4658,7 @@ export interface MutationToFollowUserResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToFollowUserArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3609,13 +4670,13 @@ export interface MutationToUnfollowUserResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUnfollowUserArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface MutationToClearReadHistoryArgs {
-  input?: GQLClearReadHistoryInput
+  input: GQLClearReadHistoryInput
 }
 export interface MutationToClearReadHistoryResolver<
   TParent = any,
@@ -3624,7 +4685,7 @@ export interface MutationToClearReadHistoryResolver<
   (
     parent: TParent,
     args: MutationToClearReadHistoryArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3633,7 +4694,12 @@ export interface MutationToClearSearchHistoryResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface MutationToInviteArgs {
@@ -3643,7 +4709,7 @@ export interface MutationToInviteResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToInviteArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
@@ -3656,19 +4722,39 @@ export interface GQLAssetTypeResolver<TParent = any> {
 }
 
 export interface AssetToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AssetToTypeResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AssetToPathResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AssetToCreatedAtResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLAuthResultTypeResolver<TParent = any> {
@@ -3677,11 +4763,21 @@ export interface GQLAuthResultTypeResolver<TParent = any> {
 }
 
 export interface AuthResultToAuthResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AuthResultToTokenResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLSubscriptionTypeResolver<TParent = any> {
@@ -3693,13 +4789,13 @@ export interface SubscriptionTo_Resolver<TParent = any, TResult = any> {
   resolve?: (
     parent: TParent,
     args: {},
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ) => TResult
   subscribe: (
     parent: TParent,
     args: {},
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ) => AsyncIterator<TResult>
 }
@@ -3714,13 +4810,13 @@ export interface SubscriptionToNodeEditedResolver<
   resolve?: (
     parent: TParent,
     args: SubscriptionToNodeEditedArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ) => TResult
   subscribe: (
     parent: TParent,
     args: SubscriptionToNodeEditedArgs,
-    context: any,
+    context: Context,
     info: GraphQLResolveInfo
   ) => AsyncIterator<TResult>
 }
@@ -3738,42 +4834,72 @@ export interface ArticleNewAppreciationNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewAppreciationNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewAppreciationNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewAppreciationNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewAppreciationNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewAppreciationNoticeToMATResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLArticleNewCommentNoticeTypeResolver<TParent = any> {
@@ -3789,42 +4915,72 @@ export interface ArticleNewCommentNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewCommentNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewCommentNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewCommentNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewCommentNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewCommentNoticeToCommentResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLArticleNewDownstreamNoticeTypeResolver<TParent = any> {
@@ -3840,42 +4996,72 @@ export interface ArticleNewDownstreamNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewDownstreamNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewDownstreamNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewDownstreamNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewDownstreamNoticeToDownstreamResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewDownstreamNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLArticleNewSubscriberNoticeTypeResolver<TParent = any> {
@@ -3890,35 +5076,60 @@ export interface ArticleNewSubscriberNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewSubscriberNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewSubscriberNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewSubscriberNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleNewSubscriberNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLArticlePublishedNoticeTypeResolver<TParent = any> {
@@ -3932,28 +5143,48 @@ export interface ArticlePublishedNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticlePublishedNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticlePublishedNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticlePublishedNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLCommentMentionedYouNoticeTypeResolver<TParent = any> {
@@ -3968,35 +5199,60 @@ export interface CommentMentionedYouNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentMentionedYouNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentMentionedYouNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentMentionedYouNoticeToActorResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentMentionedYouNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLCommentNewReplyNoticeTypeResolver<TParent = any> {
@@ -4012,42 +5268,72 @@ export interface CommentNewReplyNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentNewReplyNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentNewReplyNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentNewReplyNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentNewReplyNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentNewReplyNoticeToReplyResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLCommentNewUpvoteNoticeTypeResolver<TParent = any> {
@@ -4062,35 +5348,60 @@ export interface CommentNewUpvoteNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentNewUpvoteNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentNewUpvoteNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentNewUpvoteNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentNewUpvoteNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLCommentPinnedNoticeTypeResolver<TParent = any> {
@@ -4102,35 +5413,60 @@ export interface GQLCommentPinnedNoticeTypeResolver<TParent = any> {
 }
 
 export interface CommentPinnedNoticeToIdResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentPinnedNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentPinnedNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentPinnedNoticeToActorResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentPinnedNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLDownstreamArticleArchivedNoticeTypeResolver<TParent = any> {
@@ -4145,35 +5481,60 @@ export interface DownstreamArticleArchivedNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DownstreamArticleArchivedNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DownstreamArticleArchivedNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DownstreamArticleArchivedNoticeToDownstreamResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DownstreamArticleArchivedNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLOfficialAnnouncementNoticeTypeResolver<TParent = any> {
@@ -4188,35 +5549,60 @@ export interface OfficialAnnouncementNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialAnnouncementNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialAnnouncementNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialAnnouncementNoticeToMessageResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface OfficialAnnouncementNoticeToLinkResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLSubscribedArticleNewCommentNoticeTypeResolver<
@@ -4234,42 +5620,72 @@ export interface SubscribedArticleNewCommentNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface SubscribedArticleNewCommentNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface SubscribedArticleNewCommentNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface SubscribedArticleNewCommentNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface SubscribedArticleNewCommentNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface SubscribedArticleNewCommentNoticeToCommentResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLUpstreamArticleArchivedNoticeTypeResolver<TParent = any> {
@@ -4284,35 +5700,60 @@ export interface UpstreamArticleArchivedNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UpstreamArticleArchivedNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UpstreamArticleArchivedNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UpstreamArticleArchivedNoticeToUpstreamResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UpstreamArticleArchivedNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLUserNewFollowerNoticeTypeResolver<TParent = any> {
@@ -4326,26 +5767,46 @@ export interface UserNewFollowerNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserNewFollowerNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserNewFollowerNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserNewFollowerNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }

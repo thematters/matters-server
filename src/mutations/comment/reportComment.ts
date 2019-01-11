@@ -1,7 +1,7 @@
-import { Resolver } from 'definitions'
+import { MutationToReportCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToReportCommentResolver = async (
   root,
   { input: { id, category, description, contact, assetIds: assetUUIDs } },
   { viewer, dataSources: { commentService, systemService } }
@@ -22,7 +22,7 @@ const resolver: Resolver = async (
     if (!assets || assets.length <= 0) {
       throw new Error('Asset does not exists') // TODO
     }
-    assetIds = assets.map(asset => asset.id)
+    assetIds = assets.map((asset: any) => asset.id)
   }
 
   await commentService.report({

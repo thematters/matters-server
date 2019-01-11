@@ -1,4 +1,4 @@
-import { Resolver, MutationToRecallPublishResolver } from 'definitions'
+import { MutationToRecallPublishResolver } from 'definitions'
 import { PUBLISH_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
 
@@ -10,12 +10,23 @@ const resolver: MutationToRecallPublishResolver = async (
   if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO
   }
-  const { id: dbId } = fromGlobalId(id)
-  const draft = await draftService.baseUpdateById(dbId, {
+  const { id: draftDBId } = fromGlobalId(id)
+  const draft = await draftService.dataloader.load(draftDBId)
+
+  if (
+    draft.authorId !== viewer.id ||
+    draft.archived ||
+    draft.publishState === PUBLISH_STATE.published
+  ) {
+    throw new Error('draft does not exists') // TODO
+  }
+
+  const draftRecalled = await draftService.baseUpdateById(draftDBId, {
     archived: true,
-    publishState: PUBLISH_STATE.recalled
+    publishState: PUBLISH_STATE.unpublished
   })
-  return draft
+
+  return draftRecalled
 }
 
 export default resolver

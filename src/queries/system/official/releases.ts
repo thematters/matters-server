@@ -1,6 +1,9 @@
-import { Resolver } from 'definitions'
+import { OfficialToReleasesResolver } from 'definitions'
 
-export const releases: Resolver = (_, { input: { platform, channel } }) => {
+export const releases: OfficialToReleasesResolver = (
+  _,
+  { input: { platform, channel } }
+) => {
   return [
     {
       title: 'title',

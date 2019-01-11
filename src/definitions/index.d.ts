@@ -1,5 +1,3 @@
-import { GraphQLResolveInfo } from 'graphql'
-
 import {
   UserService,
   ArticleService,
@@ -15,19 +13,6 @@ export * from './schema'
 export * from './notification'
 
 export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
-
-export type Resolver = (
-  parent: any,
-  args: any,
-  context: Context,
-  info: GraphQLResolveInfo
-) => any
-
-export interface ResolverMap {
-  [key: string]: {
-    [key: string]: Resolver
-  }
-}
 
 export type User = {
   id: string
@@ -111,8 +96,6 @@ export interface BatchParams {
     [key: string]: any
   }
 }
-
-export type S3Folder = 'avatar' | 'audioDraft' | 'draft'
 
 export type S3Bucket =
   | 'matters-server-dev'

@@ -1,8 +1,5 @@
 import DataLoader from 'dataloader'
-import { ItemData } from 'definitions'
-import { v4 } from 'uuid'
 
-import { BATCH_SIZE } from 'common/enums'
 import { BaseService } from './baseService'
 
 export class DraftService extends BaseService {
@@ -24,14 +21,25 @@ export class DraftService extends BaseService {
   }
 
   /**
-   *  Find drafts by a given author id (user) in batches.
+   *  Find drafts by a given author id (user).
    */
   findByAuthor = async (authorId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
-      .where({ authorId })
+      .where({ authorId, archived: false })
       .orderBy('updated_at', 'desc')
+
+  /**
+   * Find drafts by publish state
+   */
+  findByPublishState = async (publishState: string) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({
+        publishState
+      })
 
   /**
    * Find audio draft by a given id.
@@ -43,7 +51,7 @@ export class DraftService extends BaseService {
       .where({ id })
 
   /**
-   * Find audio drafts by a given author id (user) in batches.
+   * Find audio drafts by a given author id (user).
    */
   findAudiodraftsByAuthor = async (authorId: string): Promise<any[]> =>
     await this.knex

@@ -1,8 +1,8 @@
-import { Resolver } from 'definitions'
+import { MutationToInviteResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 import { MAT_UNIT } from 'common/enums'
 
-const resolver: Resolver = async (
+const resolver: MutationToInviteResolver = async (
   _,
   { input: { id, email } },
   { viewer, dataSources: { userService } }

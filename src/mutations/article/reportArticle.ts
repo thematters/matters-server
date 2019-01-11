@@ -1,7 +1,7 @@
-import { Resolver } from 'definitions'
+import { MutationToReportArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToReportArticleResolver = async (
   root,
   { input: { id, category, description, contact, assetIds: assetUUIDs } },
   { viewer, dataSources: { articleService, systemService } }
@@ -22,7 +22,7 @@ const resolver: Resolver = async (
     if (!assets || assets.length <= 0) {
       throw new Error('Asset does not exists') // TODO
     }
-    assetIds = assets.map(asset => asset.id)
+    assetIds = assets.map((asset: any) => asset.id)
   }
 
   await articleService.report({

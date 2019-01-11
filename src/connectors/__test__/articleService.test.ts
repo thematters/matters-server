@@ -16,7 +16,7 @@ test('publish', async () => {
   })
   expect(articlePublished.mediaHash).toBeDefined()
   expect(articlePublished.dataHash).toBeDefined()
-  expect(articlePublished.publishState).toBe('published')
+  expect(articlePublished.state).toBe('active')
 })
 
 test('countByAuthor', async () => {
@@ -63,7 +63,7 @@ test('findSubscriptions', async () => {
 
 test('update', async () => {
   const article = await articleService.baseUpdateById('1', {
-    publishState: 'archived'
+    state: 'archived'
   })
-  expect(article.publishState).toEqual('archived')
+  expect(article.state).toEqual('archived')
 })

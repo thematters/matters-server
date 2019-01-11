@@ -4,15 +4,10 @@ import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 import slugify from '@matters/slugify'
 
-import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
+import { ARTICLE_APPRECIATE_LIMIT, ARTICLE_STATE } from 'common/enums'
 import { ItemData, GQLSearchInput } from 'definitions'
 
-import {
-  BATCH_SIZE,
-  USER_ACTION,
-  PUBLISH_STATE,
-  TRANSACTION_PURPOSE
-} from 'common/enums'
+import { USER_ACTION, TRANSACTION_PURPOSE } from 'common/enums'
 import { ipfs } from 'connectors/ipfs'
 import { BaseService } from './baseService'
 import { UserService } from './userService'
@@ -54,10 +49,9 @@ export class ArticleService extends BaseService {
     return article
   }
 
-  // publish an article to IPFS, add to search, and mark draft as read
+  // publish an article to IPFS
   publish = async ({
     authorId,
-    draftId,
     upstreamId,
     title,
     cover,
@@ -72,7 +66,7 @@ export class ArticleService extends BaseService {
     const dataHash = await this.ipfs.addHTML(content)
 
     // add meta data to ipfs
-    const { userName: name, description } = await userService.baseFindById(
+    const { userName: name, description } = await userService.dataloader.load(
       authorId
     )
 
@@ -102,7 +96,7 @@ export class ArticleService extends BaseService {
 
     // add upstream
     if (upstreamId) {
-      const upstream = await this.baseFindById(upstreamId)
+      const upstream = await this.dataloader.load(upstreamId)
       mediaObj.upstream = { '/': upstream.mediaHash }
     }
 
@@ -128,7 +122,6 @@ export class ArticleService extends BaseService {
 
     const article = await this.create({
       authorId,
-      draftId,
       upstreamId,
       title,
       slug: slugify(title),
@@ -136,7 +129,7 @@ export class ArticleService extends BaseService {
       content,
       dataHash,
       mediaHash,
-      publishState: PUBLISH_STATE.published
+      state: ARTICLE_STATE.active
     })
 
     return article
@@ -182,7 +175,7 @@ export class ArticleService extends BaseService {
       })
       const ids = hits.hits.map(({ _id }) => _id)
       // TODO: determine if id exsists and use dataloader
-      const articles = await this.baseFindByIds(ids)
+      const articles = await this.dataloader.loadMany(ids)
       return articles.map((article: { [key: string]: string }) => ({
         node: { ...article, __type: 'Article' },
         match: key
@@ -224,7 +217,7 @@ export class ArticleService extends BaseService {
   countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where({ authorId, publishState: PUBLISH_STATE.published })
+      .where({ authorId, state: ARTICLE_STATE.active })
       .first()
     return parseInt(result.count, 10)
   }
@@ -295,9 +288,9 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   *  Find articles by a given author id (user) in batches.
+   *  Find articles by a given author id (user).
    */
-  findByAuthor = async (authorId: String) =>
+  findByAuthor = async (authorId: string) =>
     await this.knex
       .select()
       .from(this.table)

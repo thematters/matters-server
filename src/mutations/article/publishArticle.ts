@@ -1,11 +1,10 @@
-import { Resolver } from 'definitions'
+import { MutationToPublishArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
-import { PUBLISH_STATE } from 'common/enums'
+import { PUBLISH_STATE, PUBLISH_ARTICLE_DELAY } from 'common/enums'
 
 import { publicationQueue } from 'connectors/queue'
-import { PRIORITY, JOB } from 'connectors/queue/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToPublishArticleResolver = async (
   _,
   { input: { id, delay } },
   { viewer, dataSources: { draftService } }
@@ -17,24 +16,27 @@ const resolver: Resolver = async (
   // retrive data from draft
   const { id: draftDBId } = fromGlobalId(id)
   const draft = await draftService.dataloader.load(draftDBId)
-  if (draft.authorId !== viewer.id || draft.archived) {
+
+  if (
+    draft.authorId !== viewer.id ||
+    draft.archived ||
+    draft.publishState === PUBLISH_STATE.published
+  ) {
     throw new Error('draft does not exists') // TODO
   }
 
+  if (draft.publishState === PUBLISH_STATE.pending) {
+    return draft
+  }
+
+  const scheduledAt = new Date(Date.now() + (delay || PUBLISH_ARTICLE_DELAY))
   const draftPending = await draftService.baseUpdateById(draft.id, {
-    publishState: PUBLISH_STATE.pending
+    publishState: PUBLISH_STATE.pending,
+    scheduledAt
   })
 
   // add job to queue
-  await publicationQueue.q.add(
-    JOB.publish,
-    { draftId: draftDBId },
-    {
-      repeat: { limit: 1, every: delay | (1000 * 60 * 2 + 2000) },
-      priority: PRIORITY.CRITICAL
-    } // wait for 2 minutes + 2 sec buffer
-  )
-  console.log(`Publication queue for draft ${draftDBId} added.`)
+  publicationQueue.publishArticle({ draftId: draftDBId, delay })
 
   return draftPending
 }

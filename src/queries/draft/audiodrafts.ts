@@ -1,8 +1,8 @@
 import { connectionFromPromisedArray } from 'graphql-relay'
 
-import { Resolver } from 'definitions'
+import { UserToAudiodraftsResolver } from 'definitions'
 
-const resolver: Resolver = (
+const resolver: UserToAudiodraftsResolver = (
   { id },
   { input },
   { dataSources: { draftService } }

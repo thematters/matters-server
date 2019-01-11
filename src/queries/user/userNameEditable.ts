@@ -1,6 +1,9 @@
-import { Resolver } from 'definitions'
+import { UserInfoToUserNameEditableResolver } from 'definitions'
 
-const resolver: Resolver = ({ id }, _, { dataSources: { userService } }) =>
-  userService.isUserNameEditable(id)
+const resolver: UserInfoToUserNameEditableResolver = (
+  { id },
+  _,
+  { dataSources: { userService } }
+) => userService.isUserNameEditable(id)
 
 export default resolver

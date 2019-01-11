@@ -1,7 +1,7 @@
 import { v4 } from 'uuid'
-import { ItemData, Resolver } from 'definitions'
+import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: MutationToSingleFileUploadResolver = async (
   root,
   { input: { type, file } },
   { viewer, dataSources: { systemService } }

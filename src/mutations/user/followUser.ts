@@ -1,7 +1,7 @@
-import { Resolver } from 'definitions'
+import { MutationToFollowUserResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToFollowUserResolver = async (
   _,
   { input: { id } },
   { viewer, dataSources: { userService, notificationService } }

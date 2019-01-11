@@ -1,7 +1,7 @@
-import { Resolver } from 'definitions'
+import { MutationToDeleteDraftResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToDeleteDraftResolver = async (
   _,
   { input: { id } },
   { viewer, dataSources: { draftService } }

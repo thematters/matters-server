@@ -238,7 +238,7 @@ describe('publish article', async () => {
       variables: { input: { id } }
     })
     const draftRecalled = result && result.data && result.data.recallPublish
-    expect(draftRecalled.publishState).toBe(PUBLISH_STATE.recalled)
+    expect(draftRecalled.publishState).toBe(PUBLISH_STATE.unpublished)
   })
 })
 

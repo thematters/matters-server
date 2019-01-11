@@ -21,7 +21,7 @@ export default /* GraphQL */ `
     id: ID!
     slug: String!
     createdAt: DateTime!
-    publishState: PublishState!
+    state: ArticleState!
     public: Boolean!
     live: Boolean!
     author: User!
@@ -137,12 +137,10 @@ export default /* GraphQL */ `
     enabled: Boolean!
   }
 
-  enum PublishState {
+
+  enum ArticleState {
+    active
     archived
-    pending
-    error
-    published
     banned
-    recalled
   }
 `

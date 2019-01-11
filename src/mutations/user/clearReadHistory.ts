@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { MutationToClearReadHistoryResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: MutationToClearReadHistoryResolver = async (
   _,
   { input: { id: uuid } },
   { viewer, dataSources: { userService } }

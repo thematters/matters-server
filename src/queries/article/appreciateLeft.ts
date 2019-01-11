@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { ArticleToAppreciateLeftResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: ArticleToAppreciateLeftResolver = async (
   { id },
   _,
   { viewer, dataSources: { articleService } }

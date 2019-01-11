@@ -14,6 +14,7 @@ export default /* GraphQL */ `
     title: String
     summary: String
     content: String!
+    scheduledAt: DateTime
     createdAt: DateTime!
     updatedAt: DateTime!
     tags: [String!]
@@ -75,4 +76,10 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  enum PublishState {
+    unpublished
+    pending
+    error
+    published
+  }
 `

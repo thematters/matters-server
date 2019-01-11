@@ -18,16 +18,11 @@ exports.up = async knex => {
     t.string('summary').notNullable()
     t.text('content').notNullable()
     t.boolean('archived').defaultTo(false)
-    t.enu('publish_state', [
-      'draft',
-      'pending',
-      'recalled',
-      'error',
-      'published'
-    ])
+    t.enu('publish_state', ['unpublished', 'pending', 'published', 'error'])
       .notNullable()
-      .defaultTo('draft')
+      .defaultTo('unpublished')
     t.specificType('tags', 'text ARRAY')
+    t.timestamp('scheduled_at')
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 

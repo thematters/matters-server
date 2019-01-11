@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { MutationToDeleteAudiodraftResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: MutationToDeleteAudiodraftResolver = async (
   _,
   { input: { id: uuid } },
   { viewer, dataSources: { draftService } }

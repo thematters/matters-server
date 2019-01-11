@@ -1,7 +1,7 @@
-import { Resolver } from 'definitions'
+import { MutationToPutCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToPutCommentResolver = async (
   _,
   { input: { comment, id } },
   {
@@ -73,7 +73,7 @@ const resolver: Resolver = async (
     const articleSubscribers = await articleService.findSubscriptions(
       article.id
     )
-    articleSubscribers.forEach(subscriber => {
+    articleSubscribers.forEach((subscriber: any) => {
       if (subscriber.id == article.authorId) {
         return
       }

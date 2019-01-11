@@ -1,11 +1,7 @@
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 
-import {
-  BATCH_SIZE,
-  USER_ACTION,
-  ARTICLE_PIN_COMMENT_LIMIT
-} from 'common/enums'
+import { USER_ACTION, ARTICLE_PIN_COMMENT_LIMIT } from 'common/enums'
 import { BaseService } from './baseService'
 
 import { GQLCommentsInput, GQLVote } from 'definitions/schema'
@@ -165,7 +161,7 @@ export class CommentService extends BaseService {
   }
 
   /**
-   * Find comments by a given author id (user) in batches.
+   * Find comments by a given author id (user).
    */
   findByAuthor = async (authorId: string): Promise<any[]> =>
     await this.knex
@@ -173,23 +169,6 @@ export class CommentService extends BaseService {
       .from(this.table)
       .where({ authorId })
       .orderBy('id', 'desc')
-
-  /**
-   * Find articles ids by comment author id (user) in batches.
-   */
-  findArticleByAuthorInBatch = async (
-    authorId: string,
-    offset = 0,
-    limit = BATCH_SIZE
-  ): Promise<string[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ authorId })
-      .distinct()
-      .pluck('article_id')
-      .offset(offset)
-      .limit(limit)
 
   /**
    * Find comments by a given article id.
