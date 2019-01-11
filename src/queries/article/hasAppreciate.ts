@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { ArticleToHasAppreciateResolver } from 'definitions'
 
-const resolver: Resolver = (
+const resolver: ArticleToHasAppreciateResolver = (
   { id },
   _,
   { viewer, dataSources: { articleService } }

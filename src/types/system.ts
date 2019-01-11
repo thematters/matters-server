@@ -2,7 +2,7 @@ export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node
     frequentSearch(key: String): [String!]
-    search(input: SearchInput!): [SearchResult!]
+    search(input: SearchInput!): SearchResultConnection!
     official: Official!
   }
 
@@ -19,6 +19,12 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  type PageInfo {
+    startCursor: String
+    endCursor: String
+    hasNextPage: Boolean!
+  }
+
   type SearchResult {
     node: Node
     match: String
@@ -30,6 +36,7 @@ export default /* GraphQL */ `
     releases(input: ReleasesInput!): [Release!]
     links: OfficialLinks!
     placements: Placements!
+    gatewayUrls: [URL!]
   }
 
   type Category {
@@ -80,6 +87,16 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
+  type SearchResultConnection {
+    pageInfo: PageInfo!
+    edges: [SearchResultEdge!]
+  }
+
+  type SearchResultEdge {
+    cursor: String!
+    node: SearchResult!
+  }
+
   input NodeInput {
     id: ID!
   }
@@ -91,15 +108,14 @@ export default /* GraphQL */ `
   input SearchInput {
     key: String!
     type: SearchTypes!
-    offset: Int
-    limit: Int
+    after: String
+    first: Int
   }
 
   input ReleasesInput {
     platform: PlatformType!
     channel: ChannelType!
-    offset: Int
-    limit: Int
+    first: Int
   }
 
   input SingleFileUploadInput {
@@ -114,9 +130,9 @@ export default /* GraphQL */ `
     contact: String
   }
 
-  input ListInput {
-    offset: Int
-    limit: Int
+  input ConnectionArgs {
+    after: String
+    first: Int
   }
 
   enum SearchTypes {
@@ -128,7 +144,7 @@ export default /* GraphQL */ `
   enum AssetType {
     avatar
     cover
-    audioDraft
+    audiodraft
     report
     feedback
   }

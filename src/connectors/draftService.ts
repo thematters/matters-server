@@ -26,18 +26,12 @@ export class DraftService extends BaseService {
   /**
    *  Find drafts by a given author id (user) in batches.
    */
-  findByAuthor = async (
-    authorId: string,
-    offset = 0,
-    limit = BATCH_SIZE
-  ): Promise<any[]> =>
+  findByAuthor = async (authorId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
       .where({ authorId, archived: false })
-      .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
+      .orderBy('updated_at', 'desc')
 
   /**
    * Find drafts by publish state
@@ -53,7 +47,7 @@ export class DraftService extends BaseService {
   /**
    * Find audio draft by a given id.
    */
-  findAudioDraft = async (id: string): Promise<any[]> =>
+  findAudiodraft = async (id: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('audio_draft')
@@ -62,16 +56,10 @@ export class DraftService extends BaseService {
   /**
    * Find audio drafts by a given author id (user) in batches.
    */
-  findAudioDraftsByAuthor = async (
-    authorId: string,
-    offset = 0,
-    limit = BATCH_SIZE
-  ): Promise<any[]> =>
+  findAudiodraftsByAuthor = async (authorId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('audio_draft')
       .where({ authorId })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 }

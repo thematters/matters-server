@@ -8,7 +8,9 @@ exports.seed = function(knex, Promise) {
       // Inserts seed entries
       return knex(table).insert([
         { user_id: 1, action: 'follow', target_id: 2 },
-        { user_id: 3, action: 'follow', target_id: 2 }
+        { user_id: 3, action: 'follow', target_id: 2 },
+        { user_id: 3, action: 'follow', target_id: 1 },
+        { user_id: 2, action: 'follow', target_id: 1 }
       ])
     })
 }

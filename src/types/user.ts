@@ -39,19 +39,17 @@ export default /* GraphQL */ `
     settings: UserSettings!
     recommendation: Recommendation!
     # Articles written by this user
-    articles(input: ListInput!): [Article!]
-    drafts(input: ListInput!): [Draft!]
-    audioDrafts(input: ListInput!): [AudioDraft!]
+    articles(input: ConnectionArgs!): ArticleConnection!
+    drafts(input: ConnectionArgs!): DraftConnection!
+    audiodrafts(input: ConnectionArgs!): AudiodraftConnection!
     # Comments posted by this user
-    commentedArticles(input: ListInput!): [Article!]
-    # comments that quoted this user's article
-    quotedArticles(input: ListInput!): [Article!]
-    subscriptions(input: ListInput!): [Article!]
+    commentedArticles(input: ConnectionArgs!): ArticleConnection!
+    subscriptions(input: ConnectionArgs!): ArticleConnection!
     activity: UserActivity!
     # Followers of this user
-    followers(input: ListInput!): [User!]
+    followers(input: ConnectionArgs!): UserConnection!
     # Users that this user follows
-    followees(input: ListInput!): [User!]
+    followees(input: ConnectionArgs!): UserConnection!
     # This user is following viewer
     isFollower: Boolean!
     # Viewer is following this user
@@ -59,13 +57,12 @@ export default /* GraphQL */ `
     status: UserStatus!
   }
 
-
   type InvitationStatus {
     MAT: Int!
     # invitation number left
     left: Int!
     # invitations sent
-    sent(input: ListInput!): [Invitation!]
+    sent(input: ConnectionArgs!): InvitationConnection!
   }
 
   type Invitation implements Node  {
@@ -77,14 +74,14 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
-    followeeArticles(input: ListInput!): [Article!]
-    newest(input: ListInput!): [Article!]
-    hottest(input: ListInput!): [Article!]
+    followeeArticles(input: ConnectionArgs!): ArticleConnection!
+    newest(input: ConnectionArgs!): ArticleConnection!
+    hottest(input: ConnectionArgs!): ArticleConnection!
     # In case you missed it
-    icymi(input: ListInput!): [Article!]
-    tags(input: ListInput!): [Tag!]
-    topics(input: ListInput!): [Article!]
-    authors(input: ListInput!): [User!]
+    icymi(input: ConnectionArgs!): ArticleConnection!
+    tags(input: ConnectionArgs!): TagConnection!
+    topics(input: ConnectionArgs!): ArticleConnection!
+    authors(input: ConnectionArgs!): UserConnection!
   }
 
   type UserInfo {
@@ -116,8 +113,8 @@ export default /* GraphQL */ `
   }
 
   type UserActivity {
-    history(input: ListInput!): [ReadHistory!]
-    recentSearches(input: ListInput!): [String!]
+    history(input: ConnectionArgs!): ReadHistoryConnection!
+    recentSearches(input: ConnectionArgs!): RecentSearchConnection!
   }
 
   type UserStatus {
@@ -144,7 +141,7 @@ export default /* GraphQL */ `
 
   type MAT {
     total: Int!
-    history(input: ListInput!): [Transaction!]
+    history(input: ConnectionArgs!): TransactionConnection!
   }
 
   type Transaction {
@@ -183,6 +180,56 @@ export default /* GraphQL */ `
   type AuthResult {
     auth: Boolean!
     token: String
+  }
+
+  type UserConnection {
+    pageInfo: PageInfo!
+    edges: [UserEdge]
+  }
+
+  type UserEdge {
+    cursor: String!
+    node: User!
+  }
+
+  type InvitationConnection {
+    pageInfo: PageInfo!
+    edges: [InvitationEdge]!
+  }
+
+  type InvitationEdge {
+    cursor: String!
+    node: Invitation!
+  }
+
+  type ReadHistoryConnection {
+    pageInfo: PageInfo!
+    edges: [ReadHistoryEdge]!
+  }
+
+  type ReadHistoryEdge {
+    cursor: String!
+    node: ReadHistory!
+  }
+
+  type RecentSearchConnection {
+    pageInfo: PageInfo!
+    edges: [RecentSearchEdge]!
+  }
+
+  type RecentSearchEdge {
+    cursor: String!
+    node: String!
+  }
+
+  type TransactionConnection {
+    pageInfo: PageInfo!
+    edges: [TransactionEdge]!
+  }
+
+  type TransactionEdge {
+    cursor: String!
+    node: Transaction!
   }
 
   input UserInput {

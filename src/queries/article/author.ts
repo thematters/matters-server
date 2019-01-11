@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { ArticleToAuthorResolver } from 'definitions'
 
-const resolver: Resolver = (
+const resolver: ArticleToAuthorResolver = (
   { authorId },
   _,
   { dataSources: { userService } }

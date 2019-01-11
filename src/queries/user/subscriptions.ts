@@ -1,13 +1,18 @@
-import { Resolver, BatchParams, Context } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = async (
+import { UserToSubscriptionsResolver } from 'definitions'
+
+const resolver: UserToSubscriptionsResolver = async (
   { id }: { id: string },
-  { input: { offset, limit } }: BatchParams,
-  { dataSources: { articleService, userService } }: Context
+  { input },
+  { dataSources: { articleService, userService } }
 ) => {
-  const actions = await userService.findSubscriptionsInBatch(id, offset, limit)
-  return articleService.dataloader.loadMany(
-    actions.map(({ targetId }) => targetId)
+  const actions = await userService.findSubscriptions(id)
+  return connectionFromPromisedArray(
+    articleService.dataloader.loadMany(
+      actions.map(({ targetId }: { targetId: string }) => targetId)
+    ),
+    input
   )
 }
 

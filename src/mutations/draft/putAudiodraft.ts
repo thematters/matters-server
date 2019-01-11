@@ -1,6 +1,5 @@
 import { v4 } from 'uuid'
 import { ItemData, Resolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
   _,

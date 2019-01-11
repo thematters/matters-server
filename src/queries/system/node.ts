@@ -1,9 +1,9 @@
-import { Resolver, Context, NodeTypes } from 'definitions'
+import { QueryToNodeResolver, Context, NodeTypes } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
-  root: any,
-  { input: { id } }: { input: { id: string } },
+const resolver: QueryToNodeResolver = async (
+  root,
+  { input: { id } },
   {
     dataSources: {
       articleService,

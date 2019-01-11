@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { UserStatusToCommentCountResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: UserStatusToCommentCountResolver = async (
   { id },
   _,
   { dataSources: { commentService } }

@@ -1,9 +1,15 @@
-import { Resolver, BatchParams, Context } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
+import { UserToNoticesResolver } from 'definitions'
 
-const resolver: Resolver = async (
-  { id }: { id: string },
-  { input: { offset, limit } }: BatchParams,
-  { dataSources: { notificationService } }: Context
-) => await notificationService.noticeService.findByUserId(id, offset, limit)
+const resolver: UserToNoticesResolver = (
+  { id },
+  { input },
+  { dataSources: { notificationService } }
+) => {
+  return connectionFromPromisedArray(
+    notificationService.noticeService.findByUser(id),
+    input
+  )
+}
 
 export default resolver

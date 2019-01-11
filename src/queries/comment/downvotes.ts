@@ -1,6 +1,9 @@
-import { Resolver } from 'definitions'
+import { CommentToDownvotesResolver } from 'definitions'
 
-const resolver: Resolver = ({ id }, _, { dataSources: { commentService } }) =>
-  commentService.countDownVote(id)
+const resolver: CommentToDownvotesResolver = (
+  { id },
+  _,
+  { dataSources: { commentService } }
+) => commentService.countDownVote(id)
 
 export default resolver

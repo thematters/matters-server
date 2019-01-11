@@ -1,7 +1,7 @@
 export default /* GraphQL */ `
   extend type Query {
     article(input: ArticleInput!): Article
-    articles(input: ArticlesInput!): [Article!]
+    articles(input: ArticlesInput!): ArticleConnection!
   }
 
   extend type Mutation {
@@ -33,16 +33,15 @@ export default /* GraphQL */ `
     dataHash: String
     mediaHash: String
     content: String!
-    gatewayUrls: [URL!]
     upstream: Article
-    downstreams(input: ListInput!): [Article!]
-    relatedArticles(input: ListInput!): [Article!]
+    downstreams(input: ConnectionArgs!): ArticleConnection!
+    relatedArticles(input: ConnectionArgs!): ArticleConnection!
     # MAT recieved for this article
     MAT: Int!
     participantCount: Int!
-    participants: [User!]
-    subscribers(input: ListInput!): [User!]
-    appreciators(input: ListInput!): [User!]
+    participants: UserConnection!
+    subscribers(input: ConnectionArgs!): UserConnection!
+    appreciators(input: ConnectionArgs!): UserConnection!
     appreciatorCount: Int!
     # limit the nuhmber of appreciate per user
     appreciateLimit: Int!
@@ -57,7 +56,27 @@ export default /* GraphQL */ `
     id: ID!
     content: String!
     count: Int!
-    articles(input: ListInput!): [Article!]
+    articles(input: ConnectionArgs!): ArticleConnection!
+  }
+
+  type ArticleConnection {
+    pageInfo: PageInfo!
+    edges: [ArticleEdge!]
+  }
+
+  type ArticleEdge {
+    cursor: String!
+    node: Article!
+  }
+
+  type TagConnection {
+    pageInfo: PageInfo!
+    edges: [TagEdge]!
+  }
+
+  type TagEdge {
+    cursor: String!
+    node: Tag!
   }
 
   input ArticleInput {
@@ -66,8 +85,8 @@ export default /* GraphQL */ `
 
   input ArticlesInput {
     public: Boolean
-    offset: Int
-    limit: Int
+    after: String
+    first: Int
   }
 
   input PublishArticleInput {

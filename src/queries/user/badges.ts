@@ -1,9 +1,9 @@
-import { Resolver } from 'definitions'
+import { UserInfoToBadgesResolver, Context } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: UserInfoToBadgesResolver = async (
   { id },
   _,
-  { dataSources: { userService } }
+  { dataSources: { userService } }: Context
 ) => userService.findBadges(id)
 
 export default resolver

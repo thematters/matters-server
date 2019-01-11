@@ -1,16 +1,13 @@
-import { Resolver, BatchParams, Context } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = async (
-  { id }: { id: string },
-  { input: { offset, limit } }: BatchParams,
-  { dataSources: { userService } }: Context
+import { InvitationStatusToSentResolver } from 'definitions'
+
+const resolver: InvitationStatusToSentResolver = async (
+  { id },
+  { input },
+  { dataSources: { userService } }
 ) => {
-  const invitations = await userService.findInvitations({
-    userId: id,
-    offset,
-    limit
-  })
-  return invitations
+  return connectionFromPromisedArray(userService.findInvitations(id), input)
 }
 
 export default resolver

@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { UserToIsFollowerResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: UserToIsFollowerResolver = async (
   { id },
   _,
   { viewer, dataSources: { userService } }

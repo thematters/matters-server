@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { UserStatusToSubscriptionCountResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: UserStatusToSubscriptionCountResolver = async (
   { id },
   _,
   { dataSources: { userService } }

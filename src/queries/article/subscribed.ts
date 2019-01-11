@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { ArticleToSubscribedResolver } from 'definitions'
 
-const resolver: Resolver = (
+const resolver: ArticleToSubscribedResolver = (
   { id },
   _,
   { viewer, dataSources: { articleService } }

@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { InvitationStatusToLeftResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: InvitationStatusToLeftResolver = async (
   { id },
   _,
   { viewer, dataSources: { userService } }

@@ -1,6 +1,13 @@
-import { Resolver } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = ({ id }, _, { dataSources: { commentService } }) =>
-  commentService.findByParent(id)
+import { CommentToCommentsResolver } from 'definitions'
+
+const resolver: CommentToCommentsResolver = (
+  { id },
+  { input },
+  { dataSources: { commentService } }
+) => {
+  return connectionFromPromisedArray(commentService.findByParent(id), input)
+}
 
 export default resolver

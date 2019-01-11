@@ -1,12 +1,14 @@
-import { Resolver } from 'definitions'
+import { CommentToMentionsResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: CommentToMentionsResolver = async (
   { id },
   _,
   { dataSources: { userService, commentService } }
 ) => {
   const mentionedUsers = await commentService.findMentionedUsers(id)
-  return userService.dataloader.loadMany(mentionedUsers.map(m => m.userId))
+  return userService.dataloader.loadMany(
+    mentionedUsers.map(({ userId }: { userId: string }) => userId)
+  )
 }
 
 export default resolver

@@ -4,13 +4,23 @@ export default /* GraphQL */ `
   }
 
   extend type User {
-    notices(input: ListInput!): [Notice!]
+    notices(input: ConnectionArgs!): NoticeConnection!
   }
 
   interface Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
+  }
+
+  type NoticeConnection {
+    pageInfo: PageInfo!
+    edges: [NoticeEdge!]
+  }
+
+  type NoticeEdge {
+    cursor: String!
+    node: Notice!
   }
 
   type UserNewFollowerNotice implements Notice {

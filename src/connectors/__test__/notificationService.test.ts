@@ -2,6 +2,16 @@ import { NotificationType } from 'definitions'
 import { NotificationService } from '../notificationService'
 import { UserService } from '../userService'
 
+import { knex } from 'connectors/db'
+import { queueSharedOpts } from 'connectors/queue/utils'
+
+afterAll(async () => {
+  await knex.destroy()
+  const redisClient = queueSharedOpts.createClient()
+  // TODO: still have asynchronous operations running
+  redisClient.disconnect()
+})
+
 const notificationService = new NotificationService()
 const userService = new UserService()
 const { noticeService } = notificationService
@@ -44,6 +54,7 @@ describe('user notify setting', async () => {
     comment_mentioned_you: true,
     official_announcement: true
   }
+
   test('user receives notifications', async () => {
     await Promise.all(
       noticeTypes.map(async type => {
@@ -87,7 +98,7 @@ describe('find notice', async () => {
     expect(notice.id).toBe('1')
   })
   test('find many notices', async () => {
-    const notices = await noticeService.findByUserId(recipientId, 0)
+    const notices = await noticeService.findByUser(recipientId)
     expect(notices.length).toBeGreaterThan(5)
   })
 })

@@ -1,23 +1,26 @@
+import { connectionFromPromisedArray } from 'graphql-relay'
 import { GQLRecommendationTypeResolver, Context } from 'definitions'
+
+// TODO: use connectionFromPromisedArray to avoid overloading server
 
 const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles: async (
     { id },
     { input },
     { dataSources: { userService } }: Context
-  ) => userService.followeeArticles({ id, ...input }),
+  ) => connectionFromPromisedArray(userService.followeeArticles(id), input),
   hottest: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
-    articleService.recommendHottest(input),
+    connectionFromPromisedArray(articleService.recommendHottest(), input),
   newest: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
-    articleService.recommendNewest(input),
+    connectionFromPromisedArray(articleService.recommendNewest(), input),
   icymi: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
-    articleService.recommendIcymi(input),
-  tags: ({ id }, { input }, { dataSources: { tagService } }: Context) =>
-    tagService.recommendTags(input),
+    connectionFromPromisedArray(articleService.recommendIcymi(), input),
+  tags: ({ id }, { input }, { dataSources: { tagService } }) =>
+    connectionFromPromisedArray(tagService.recommendTags(input), input),
   topics: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
-    articleService.recommendTopics(input),
+    connectionFromPromisedArray(articleService.recommendTopics(), input),
   authors: ({ id }, { input }, { dataSources: { userService } }: Context) =>
-    userService.recommendAuthor(input)
+    connectionFromPromisedArray(userService.recommendAuthor(), input)
 }
 
 export default resolvers

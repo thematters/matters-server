@@ -1,5 +1,4 @@
 import { Context, NoticeType } from 'definitions'
-import { toGlobalId } from 'common/utils'
 
 import notices from './notices'
 

@@ -23,7 +23,7 @@ const resolver: Resolver = async (
   })
 
   // trigger notifications
-  const downstreams = await articleService.findByUpstream(article.id, 0) // TODO: Limit
+  const downstreams = await articleService.findByUpstream(article.id) // TODO: Limit
   downstreams.map((downstream: any) => {
     notificationService.trigger({
       event: 'upstream_article_archived',

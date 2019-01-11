@@ -413,15 +413,9 @@ class NoticeService extends BaseService {
   /**
    * Find an users' notices by a given user id in batches.
    */
-  findByUserId = async (
-    userId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ): Promise<Notice[]> => {
+  findByUser = async (userId: string): Promise<Notice[]> => {
     const notices = await this.findDetail({
-      where: { recipientId: userId, deleted: false },
-      offset,
-      limit
+      where: { recipientId: userId, deleted: false }
     })
 
     return Promise.all(
