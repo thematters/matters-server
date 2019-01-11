@@ -173,12 +173,7 @@ export class UserService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
-      // TODO: determine if id exsists and use dataloader
-      const users = await this.dataloader.loadMany(ids)
-      return users.map((user: { [key: string]: string }) => ({
-        ...user,
-        __type: 'User'
-      }))
+      return this.dataloader.loadMany(ids)
     } catch (err) {
       throw err
     }

@@ -1,6 +1,6 @@
 import { connectionFromPromisedArray } from 'graphql-relay'
 
-import { QueryToSearchResolver } from 'definitions'
+import { QueryToSearchResolver, GQLNode } from 'definitions'
 
 const resolver: QueryToSearchResolver = (
   root,
@@ -13,7 +13,11 @@ const resolver: QueryToSearchResolver = (
     Tag: tagService
   }
   return connectionFromPromisedArray(
-    serviceMap[input.type].search(input),
+    serviceMap[input.type]
+      .search(input)
+      .then(nodes =>
+        nodes.map((node: GQLNode) => ({ ...node, __type: input.type }))
+      ),
     input
   )
 }

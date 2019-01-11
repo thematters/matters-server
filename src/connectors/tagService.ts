@@ -24,16 +24,10 @@ export class TagService extends BaseService {
     })
   }
 
-  search = async ({ key }: GQLSearchInput) => {
-    const tags = await this.knex(this.table)
+  search = async ({ key }: GQLSearchInput) =>
+    await this.knex(this.table)
       .where('content', 'like', `%${key}%`)
       .limit(100)
-
-    return tags.map((tag: { [key: string]: string }) => ({
-      ...tag,
-      __type: 'Tag'
-    }))
-  }
 
   createArticleTags = async ({
     articleId,

@@ -179,12 +179,7 @@ export class ArticleService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
-      // TODO: determine if id exsists and use dataloader
-      const articles = await this.dataloader.loadMany(ids)
-      return articles.map((article: { [key: string]: string }) => ({
-        ...article,
-        __type: 'Article'
-      }))
+      return this.dataloader.loadMany(ids)
     } catch (err) {
       throw err
     }
