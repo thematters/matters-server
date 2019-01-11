@@ -294,7 +294,7 @@ export class ArticleService extends BaseService {
     await this.knex
       .select()
       .from(this.table)
-      .where(authorId)
+      .where({ authorId })
       .orderBy('id', 'desc')
 
   /**

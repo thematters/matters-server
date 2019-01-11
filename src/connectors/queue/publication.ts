@@ -8,6 +8,7 @@ import {
   QUEUE_CONCURRENCY,
   PUBLISH_ARTICLE_DELAY
 } from 'common/enums'
+import { isTest } from 'common/environment'
 import {
   DraftService,
   ArticleService,
@@ -39,6 +40,10 @@ class PublicationQueue {
    * Cusumers
    */
   private addConsumers = () => {
+    if (isTest) {
+      return
+    }
+
     this.q.process(
       QUEUE_JOB.publishArticle,
       QUEUE_CONCURRENCY.publishArticle,
