@@ -1,5 +1,9 @@
 import { DraftService } from '../draftService'
 
+import { knex } from 'connectors/db'
+
+afterAll(knex.destroy)
+
 const draftValidation = {
   id: expect.any(String),
   uuid: expect.any(String),
@@ -43,6 +47,6 @@ test('findAudiodraft', async () => {
 })
 
 test('findAudiodraftsByAuthor', async () => {
-  const audios = await service.findAudiodraftsByAuthor('1', 0)
+  const audios = await service.findAudiodraftsByAuthor('1')
   expect(audios[0]).toEqual(expect.objectContaining(audioValidation))
 })

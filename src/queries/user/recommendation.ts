@@ -1,25 +1,26 @@
 import { connectionFromPromisedArray } from 'graphql-relay'
+import { GQLRecommendationTypeResolver, Context } from 'definitions'
 
-import { GQLRecommendationTypeResolver } from 'definitions'
+// TODO: use connectionFromPromisedArray to avoid overloading server
 
 const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles: async (
     { id },
     { input },
-    { dataSources: { userService } }
-  ) => connectionFromPromisedArray(userService.followeeArticles({ id }), input),
-  hottest: ({ id }, { input }, { dataSources: { articleService } }) =>
+    { dataSources: { userService } }: Context
+  ) => connectionFromPromisedArray(userService.followeeArticles(id), input),
+  hottest: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
     connectionFromPromisedArray(articleService.recommendHottest(), input),
-  newest: ({ id }, { input }, { dataSources: { articleService } }) =>
+  newest: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
     connectionFromPromisedArray(articleService.recommendNewest(), input),
-  icymi: ({ id }, { input }, { dataSources: { articleService } }) =>
+  icymi: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
     connectionFromPromisedArray(articleService.recommendIcymi(), input),
   tags: ({ id }, { input }, { dataSources: { tagService } }) =>
     connectionFromPromisedArray(tagService.recommendTags(input), input),
-  topics: ({ id }, { input }, { dataSources: { articleService } }) =>
-    connectionFromPromisedArray(articleService.recommendTopics(input), input),
-  authors: ({ id }, { input }, { dataSources: { userService } }) =>
-    connectionFromPromisedArray(userService.recommendAuthor(input), input)
+  topics: ({ id }, { input }, { dataSources: { articleService } }: Context) =>
+    connectionFromPromisedArray(articleService.recommendTopics(), input),
+  authors: ({ id }, { input }, { dataSources: { userService } }: Context) =>
+    connectionFromPromisedArray(userService.recommendAuthor(), input)
 }
 
 export default resolvers

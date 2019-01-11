@@ -31,7 +31,7 @@ export class DraftService extends BaseService {
       .select()
       .from(this.table)
       .where({ authorId })
-      .orderBy('created_at', 'desc')
+      .orderBy('updated_at', 'desc')
 
   /**
    * Find audio draft by a given id.
@@ -50,5 +50,5 @@ export class DraftService extends BaseService {
       .select()
       .from('audio_draft')
       .where({ authorId })
-      .orderBy('created_at', 'desc')
+      .orderBy('id', 'desc')
 }
