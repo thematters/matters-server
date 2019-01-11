@@ -287,6 +287,7 @@ export interface GQLDraft extends GQLNode {
   title?: string
   summary?: string
   content: string
+  scheduledAt?: GQLDateTime
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
   tags?: Array<string>
@@ -1950,6 +1951,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   title?: DraftToTitleResolver<TParent>
   summary?: DraftToSummaryResolver<TParent>
   content?: DraftToContentResolver<TParent>
+  scheduledAt?: DraftToScheduledAtResolver<TParent>
   createdAt?: DraftToCreatedAtResolver<TParent>
   updatedAt?: DraftToUpdatedAtResolver<TParent>
   tags?: DraftToTagsResolver<TParent>
@@ -1974,6 +1976,10 @@ export interface DraftToSummaryResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToContentResolver<TParent = any, TResult = any> {
+  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
+}
+
+export interface DraftToScheduledAtResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 

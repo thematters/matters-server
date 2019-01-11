@@ -1,6 +1,6 @@
 import { Resolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
-import { PUBLISH_STATE } from 'common/enums'
+import { PUBLISH_STATE, PUBLISH_ARTICLE_DELAY } from 'common/enums'
 
 import { publicationQueue } from 'connectors/queue'
 
@@ -29,8 +29,10 @@ const resolver: Resolver = async (
     return draft
   }
 
+  const scheduledAt = new Date(Date.now() + (delay || PUBLISH_ARTICLE_DELAY))
   const draftPending = await draftService.baseUpdateById(draft.id, {
-    publishState: PUBLISH_STATE.pending
+    publishState: PUBLISH_STATE.pending,
+    scheduledAt
   })
 
   // add job to queue

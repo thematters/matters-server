@@ -34,7 +34,7 @@ export class DraftService extends BaseService {
     await this.knex
       .select()
       .from(this.table)
-      .where({ authorId })
+      .where({ authorId, archived: false })
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)

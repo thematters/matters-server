@@ -27,7 +27,7 @@ export const ARTICLE_STATE = {
 }
 
 export const PUBLISH_STATE = {
-  draft: 'draft',
+  unpublished: 'unpublished',
   pending: 'pending',
   error: 'error',
   published: 'published'
