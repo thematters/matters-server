@@ -30,8 +30,8 @@ export class TagService extends BaseService {
       .limit(100)
 
     return tags.map((tag: { [key: string]: string }) => ({
-      node: { ...tag, __type: 'Tag' },
-      match: key
+      ...tag,
+      __type: 'Tag'
     }))
   }
 

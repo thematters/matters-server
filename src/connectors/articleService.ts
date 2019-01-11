@@ -32,7 +32,12 @@ export class ArticleService extends BaseService {
 
     return this.es.indexItems({
       index: this.table,
-      items: articles
+      items: articles.map(
+        (article: { content: string; title: string; id: string }) => ({
+          ...article,
+          content: this.stripHtml(article.content)
+        })
+      )
     })
   }
 
@@ -149,7 +154,7 @@ export class ArticleService extends BaseService {
         {
           id,
           title,
-          content,
+          content: this.stripHtml(content),
           tags
         }
       ]
@@ -177,8 +182,8 @@ export class ArticleService extends BaseService {
       // TODO: determine if id exsists and use dataloader
       const articles = await this.dataloader.loadMany(ids)
       return articles.map((article: { [key: string]: string }) => ({
-        node: { ...article, __type: 'Article' },
-        match: key
+        ...article,
+        __type: 'Article'
       }))
     } catch (err) {
       throw err
@@ -261,13 +266,13 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
+  stripHtml = (html: string) => html.replace(/(<([^>]+)>)/gi, '')
+
   /**
    * Counts words witin in html content.
    */
   countWords = (html: string) =>
-    cheerio
-      .load(html)('body')
-      .text()
+    this.stripHtml(html)
       .split(' ')
       .filter(s => s !== '').length
 

@@ -645,12 +645,7 @@ export interface GQLSearchResultConnection {
 
 export interface GQLSearchResultEdge {
   cursor: string
-  node: GQLSearchResult
-}
-
-export interface GQLSearchResult {
-  node?: GQLNode
-  match?: string
+  node: GQLNode
 }
 
 export interface GQLOfficial {
@@ -1256,7 +1251,6 @@ export interface GQLResolver {
   CommentEdge?: GQLCommentEdgeTypeResolver
   SearchResultConnection?: GQLSearchResultConnectionTypeResolver
   SearchResultEdge?: GQLSearchResultEdgeTypeResolver
-  SearchResult?: GQLSearchResultTypeResolver
   Official?: GQLOfficialTypeResolver
   Category?: GQLCategoryTypeResolver
   Release?: GQLReleaseTypeResolver
@@ -3771,29 +3765,6 @@ export interface SearchResultEdgeToCursorResolver<
 }
 
 export interface SearchResultEdgeToNodeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLSearchResultTypeResolver<TParent = any> {
-  node?: SearchResultToNodeResolver<TParent>
-  match?: SearchResultToMatchResolver<TParent>
-}
-
-export interface SearchResultToNodeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface SearchResultToMatchResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

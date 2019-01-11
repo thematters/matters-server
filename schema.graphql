@@ -727,11 +727,6 @@ input SearchInput {
   first: Int
 }
 
-type SearchResult {
-  node: Node
-  match: String
-}
-
 type SearchResultConnection {
   pageInfo: PageInfo!
   edges: [SearchResultEdge!]
@@ -739,7 +734,7 @@ type SearchResultConnection {
 
 type SearchResultEdge {
   cursor: String!
-  node: SearchResult!
+  node: Node!
 }
 
 enum SearchTypes {

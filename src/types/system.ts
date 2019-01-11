@@ -25,11 +25,6 @@ export default /* GraphQL */ `
     hasNextPage: Boolean!
   }
 
-  type SearchResult {
-    node: Node
-    match: String
-  }
-
   type Official {
     reportCategory: [Category!]!
     feedbackCategory: [Category!]!
@@ -94,7 +89,7 @@ export default /* GraphQL */ `
 
   type SearchResultEdge {
     cursor: String!
-    node: SearchResult!
+    node: Node!
   }
 
   input NodeInput {

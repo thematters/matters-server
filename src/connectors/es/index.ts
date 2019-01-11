@@ -29,6 +29,19 @@ class ElasticSearch {
     }
   }
 
+  clear = async () => {
+    try {
+      await this.client.indices.delete({
+        index: '_all'
+      })
+
+      await this.init()
+      console.log('All search indices are cleared')
+    } catch (err) {
+      throw err
+    }
+  }
+
   indexItems = async ({
     index,
     items

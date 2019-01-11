@@ -176,8 +176,8 @@ export class UserService extends BaseService {
       // TODO: determine if id exsists and use dataloader
       const users = await this.dataloader.loadMany(ids)
       return users.map((user: { [key: string]: string }) => ({
-        node: { ...user, __type: 'User' },
-        match: key
+        ...user,
+        __type: 'User'
       }))
     } catch (err) {
       throw err
