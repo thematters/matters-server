@@ -1,9 +1,9 @@
-import { UserSettingsToOauthTypeResolver } from 'definitions'
+import { UserInfoToBadgesResolver, Context } from 'definitions'
 
-const resolver: UserSettingsToOauthTypeResolver = async (
+const resolver: UserInfoToBadgesResolver = async (
   { id },
   _,
-  { dataSources: { userService } }
+  { dataSources: { userService } }: Context
 ) => userService.findBadges(id)
 
 export default resolver

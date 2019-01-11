@@ -72,7 +72,7 @@ export class ArticleService extends BaseService {
     const dataHash = await this.ipfs.addHTML(content)
 
     // add meta data to ipfs
-    const { userName: name, discription } = await userService.baseFindById(
+    const { userName: name, description } = await userService.baseFindById(
       authorId
     )
 
@@ -85,7 +85,7 @@ export class ArticleService extends BaseService {
       },
       author: {
         name,
-        discription: discription || ''
+        description: description || ''
       },
       publishedAt: now.toISOString()
     }
