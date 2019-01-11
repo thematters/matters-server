@@ -201,7 +201,7 @@ export class ArticleService extends BaseService {
   // .offset(offset)
 
   recommendNewest = async () =>
-    await this.knex(this.table).orderBy('created_at', 'desc')
+    await this.knex(this.table).orderBy('id', 'desc')
   // .limit(limit)
   // .offset(offset)
 
@@ -302,7 +302,7 @@ export class ArticleService extends BaseService {
       .select()
       .from(this.table)
       .where({ authorId })
-      .orderBy('created_at', 'desc')
+      .orderBy('id', 'desc')
 
   /**
    * Find article by media hash
@@ -388,7 +388,7 @@ export class ArticleService extends BaseService {
       .select()
       .from('action_article')
       .where({ targetId, action: USER_ACTION.subscribe })
-      .orderBy('created_at', 'desc')
+      .orderBy('id', 'desc')
 
   /**
    * Find an article's subscriber by a given targetId (article) and user id.

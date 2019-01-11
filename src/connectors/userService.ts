@@ -396,7 +396,7 @@ export class UserService extends BaseService {
       .select()
       .from('action_user')
       .where({ userId, action: USER_ACTION.follow })
-      .orderBy('created_at', 'desc')
+      .orderBy('id', 'desc')
 
   /**
    * Find user's follower list by a given taget id (user) in batches.
@@ -406,7 +406,7 @@ export class UserService extends BaseService {
       .select()
       .from('action_user')
       .where({ targetId, action: USER_ACTION.follow })
-      .orderBy('created_at', 'desc')
+      .orderBy('id', 'desc')
 
   /**
    * Is user following target
@@ -433,7 +433,7 @@ export class UserService extends BaseService {
       .select()
       .from('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
-      .orderBy('created_at', 'desc')
+      .orderBy('id', 'desc')
   }
 
   /**

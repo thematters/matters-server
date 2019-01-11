@@ -172,7 +172,7 @@ export class CommentService extends BaseService {
       .select()
       .from(this.table)
       .where({ authorId })
-      .orderBy('created_at', 'desc')
+      .orderBy('id', 'desc')
 
   /**
    * Find articles ids by comment author id (user) in batches.
