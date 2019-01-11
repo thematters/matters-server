@@ -57,7 +57,7 @@ export default /* GraphQL */ `
   }
 
   enum PublishState {
-    draft
+    unpublished
     pending
     error
     published
