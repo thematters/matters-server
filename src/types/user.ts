@@ -27,7 +27,7 @@ export default /* GraphQL */ `
     unfollowUser(input: UnfollowUserInput!): Boolean
     # misc
     # importArticles(input: ImportArticlesInput!): [Article!]
-    clearReadHistory(input: ClearReadHistoryInput): Boolean
+    clearReadHistory(input: ClearReadHistoryInput!): Boolean
     clearSearchHistory: Boolean
     invite(input: InviteInput!): Boolean
   }
@@ -269,8 +269,10 @@ export default /* GraphQL */ `
 
   input UserRegisterInput {
     email: Email!
+    userName: String
     displayName: String!
     password: String!
+    description: String
     codeId: ID!
   }
 

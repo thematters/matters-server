@@ -9,7 +9,6 @@ import {
   NoticeEntityType,
   TableName
 } from 'definitions'
-import { BATCH_SIZE } from 'common/enums'
 import { BaseService } from '../baseService'
 
 export type NoticeUserId = string
@@ -411,7 +410,7 @@ class NoticeService extends BaseService {
   }
 
   /**
-   * Find an users' notices by a given user id in batches.
+   * Find an users' notices by a given user id.
    */
   findByUser = async (userId: string): Promise<Notice[]> => {
     const notices = await this.findDetail({

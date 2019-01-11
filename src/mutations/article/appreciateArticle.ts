@@ -1,8 +1,8 @@
-import { Resolver } from 'definitions'
+import { MutationToAppreciateArticleResolver } from 'definitions'
 import { v4 } from 'uuid'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToAppreciateArticleResolver = async (
   root,
   { input: { id, amount } },
   { viewer, dataSources: { articleService, notificationService } }

@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { MutationToFeedbackResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: MutationToFeedbackResolver = async (
   root,
   { input: { category, description, contact, assetIds: assetUUIDs } },
   { viewer, dataSources: { systemService } }
@@ -15,7 +15,7 @@ const resolver: Resolver = async (
     if (!assets || assets.length <= 0) {
       throw new Error('Asset does not exists') // TODO
     }
-    assetIds = assets.map(asset => asset.id)
+    assetIds = assets.map((asset: any) => asset.id)
   }
 
   await systemService.feedback({

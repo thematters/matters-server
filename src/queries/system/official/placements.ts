@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { OfficialToPlacementsResolver } from 'definitions'
 
-export const placements: Resolver = () => {
+export const placements: OfficialToPlacementsResolver = () => {
   return {
     webAsideTop: {
       image: 'https://via.placeholder.com/640x320',

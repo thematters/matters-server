@@ -3,7 +3,6 @@ import DataLoader from 'dataloader'
 // internal
 import { GQLSearchInput, ItemData } from 'definitions'
 import { BaseService } from './baseService'
-import { BATCH_SIZE } from 'common/enums'
 
 export class TagService extends BaseService {
   constructor() {
@@ -51,12 +50,10 @@ export class TagService extends BaseService {
       .select()
       .where({ content })
 
-  recommendTags = async ({ offset = 0, limit = 5 }) =>
+  recommendTags = async () =>
     await this.knex('tag_count_view')
       .select()
       .orderBy('tag_score', 'desc')
-      .offset(offset)
-      .limit(limit)
 
   /**
    * Count tags by a given tag text.

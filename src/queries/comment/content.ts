@@ -1,6 +1,10 @@
-import { Resolver } from 'definitions'
+import { CommentToContentResolver } from 'definitions'
 
-const resolver: Resolver = ({ content, state }, _, { viewer }) => {
+const resolver: CommentToContentResolver = (
+  { content, state },
+  _,
+  { viewer }
+) => {
   const isActive = state === 'active'
   const isAdmin = viewer && viewer.id && viewer.role === 'admin'
 

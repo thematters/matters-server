@@ -1,8 +1,8 @@
-import { Resolver } from 'definitions'
+import { MutationToArchiveArticleResolver } from 'definitions'
 import { ARTICLE_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToArchiveArticleResolver = async (
   _,
   { input: { id } },
   { viewer, dataSources: { articleService, notificationService } }

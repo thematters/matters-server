@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { MutationToUserRegisterResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: MutationToUserRegisterResolver = async (
   root,
   { input },
   { dataSources: { userService } }

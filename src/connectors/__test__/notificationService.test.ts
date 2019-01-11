@@ -3,11 +3,11 @@ import { NotificationService } from '../notificationService'
 import { UserService } from '../userService'
 
 import { knex } from 'connectors/db'
-import { queueSharedOpts } from 'connectors/queue/utils'
+import { sharedQueueOpts } from 'connectors/queue/utils'
 
 afterAll(async () => {
   await knex.destroy()
-  const redisClient = queueSharedOpts.createClient()
+  const redisClient = sharedQueueOpts.createClient()
   // TODO: still have asynchronous operations running
   redisClient.disconnect()
 })

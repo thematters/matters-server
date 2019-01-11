@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { MutationToUserLoginResolver } from 'definitions'
 
-const resolver: Resolver = (
+const resolver: MutationToUserLoginResolver = (
   root,
   { input },
   { dataSources: { userService } }

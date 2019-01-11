@@ -1,10 +1,10 @@
-import { Resolver } from 'definitions'
+import { MutationToPublishArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 import { PUBLISH_STATE, PUBLISH_ARTICLE_DELAY } from 'common/enums'
 
 import { publicationQueue } from 'connectors/queue'
 
-const resolver: Resolver = async (
+const resolver: MutationToPublishArticleResolver = async (
   _,
   { input: { id, delay } },
   { viewer, dataSources: { draftService } }

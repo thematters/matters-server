@@ -1,4 +1,4 @@
-import { Resolver } from 'definitions'
+import { OfficialToFeedbackCategoryResolver } from 'definitions'
 
 const FEEDBACK_CATEGORIES = [
   {
@@ -15,4 +15,5 @@ const FEEDBACK_CATEGORIES = [
   }
 ]
 
-export const feedbackCategory: Resolver = () => FEEDBACK_CATEGORIES
+export const feedbackCategory: OfficialToFeedbackCategoryResolver = () =>
+  FEEDBACK_CATEGORIES

@@ -7,12 +7,7 @@ import slugify from '@matters/slugify'
 import { ARTICLE_APPRECIATE_LIMIT, ARTICLE_STATE } from 'common/enums'
 import { ItemData, GQLSearchInput } from 'definitions'
 
-import {
-  BATCH_SIZE,
-  USER_ACTION,
-  PUBLISH_STATE,
-  TRANSACTION_PURPOSE
-} from 'common/enums'
+import { USER_ACTION, TRANSACTION_PURPOSE } from 'common/enums'
 import { ipfs } from 'connectors/ipfs'
 import { BaseService } from './baseService'
 import { UserService } from './userService'
@@ -293,25 +288,14 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   *  Find articles by a given author id (user) in batches.
+   *  Find articles by a given author id (user).
    */
-  findByAuthor = async ({
-    authorId,
-    state
-  }: {
-    authorId: string
-    state?: string
-  }) => {
-    let where: { [key: string]: string } = { authorId }
-    if (state) {
-      where.state = state
-    }
+  findByAuthor = async (authorId: string) =>
     await this.knex
       .select()
       .from(this.table)
-      .where(where)
+      .where(authorId)
       .orderBy('id', 'desc')
-  }
 
   /**
    * Find article by media hash

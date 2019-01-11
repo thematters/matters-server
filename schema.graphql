@@ -468,7 +468,7 @@ type Mutation {
   misc
   importArticles(input: ImportArticlesInput!): [Article!]
   """
-  clearReadHistory(input: ClearReadHistoryInput): Boolean
+  clearReadHistory(input: ClearReadHistoryInput!): Boolean
   clearSearchHistory: Boolean
   invite(input: InviteInput!): Boolean
 }
@@ -970,8 +970,10 @@ type UserNewFollowerNotice implements Notice {
 
 input UserRegisterInput {
   email: Email!
+  userName: String
   displayName: String!
   password: String!
+  description: String
   codeId: ID!
 }
 

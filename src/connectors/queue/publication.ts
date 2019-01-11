@@ -141,7 +141,7 @@ class PublicationQueue {
     delay = PUBLISH_ARTICLE_DELAY
   }: {
     draftId: string
-    delay: number
+    delay?: number
   }) => {
     return this.q.add(
       QUEUE_JOB.publishArticle,

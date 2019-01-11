@@ -1,13 +1,13 @@
-import { Resolver, Context } from 'definitions'
+import { MutationToUnvoteCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToUnvoteCommentResolver = async (
   _,
   { input: { id } },
   {
     viewer,
     dataSources: { articleService, commentService, notificationService }
-  }: Context
+  }
 ) => {
   if (!viewer.id) {
     throw new Error('anonymous user cannot do this') // TODO

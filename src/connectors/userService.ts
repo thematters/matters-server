@@ -6,7 +6,6 @@ import bodybuilder from 'bodybuilder'
 import _ from 'lodash'
 
 import {
-  BATCH_SIZE,
   BCRYPT_ROUNDS,
   USER_ACTION,
   TRANSACTION_PURPOSE,
@@ -17,10 +16,9 @@ import {
   ItemData,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
-  GQLConnectionArgs
+  GQLUserRegisterInput
 } from 'definitions'
 import { BaseService } from './baseService'
-import { stringList } from 'aws-sdk/clients/datapipeline'
 
 export class UserService extends BaseService {
   constructor() {
@@ -53,9 +51,7 @@ export class UserService extends BaseService {
     displayName,
     description,
     password
-  }: {
-    [key: string]: string
-  }) => {
+  }: GQLUserRegisterInput) => {
     // TODO: do code validation here
 
     // TODO: better default unique user name
@@ -92,17 +88,14 @@ export class UserService extends BaseService {
   /**
    * Upadte user info
    */
-  update = async (
-    id: string,
-    input: GQLUpdateUserInfoInput & { email: string }
-  ) => {
+  update = async (id: string, input: GQLUpdateUserInfoInput) => {
     const user = await this.baseUpdateById(id, input)
 
-    const { description, displayName, userName, email } = input
-    if (description || displayName || userName || email) {
+    const { description, displayName, userName } = input
+    if (description || displayName || userName) {
       // remove null and undefined
       const searchable = _.pickBy(
-        { description, displayName, userName, email },
+        { description, displayName, userName },
         _.identity
       )
 
@@ -399,7 +392,7 @@ export class UserService extends BaseService {
       .orderBy('id', 'desc')
 
   /**
-   * Find user's follower list by a given taget id (user) in batches.
+   * Find user's follower list by a given taget id (user).
    */
   findFollowers = async (targetId: string): Promise<any[]> =>
     await this.knex

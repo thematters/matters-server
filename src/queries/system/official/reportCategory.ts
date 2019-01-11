@@ -1,4 +1,4 @@
-import { Resolver } from 'definitions'
+import { OfficialToReportCategoryResolver } from 'definitions'
 
 const REPORT_CATEGORIES = [
   {
@@ -35,4 +35,5 @@ const REPORT_CATEGORIES = [
   }
 ]
 
-export const reportCategory: Resolver = () => REPORT_CATEGORIES
+export const reportCategory: OfficialToReportCategoryResolver = () =>
+  REPORT_CATEGORIES

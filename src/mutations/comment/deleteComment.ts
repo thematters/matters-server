@@ -1,7 +1,7 @@
-import { Resolver } from 'definitions'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+import { MutationToDeleteCommentResolver } from 'definitions'
+import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = async (
+const resolver: MutationToDeleteCommentResolver = async (
   _,
   { input: { id } },
   {

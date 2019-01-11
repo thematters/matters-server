@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { MutationToMarkAllNoticesAsReadResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: MutationToMarkAllNoticesAsReadResolver = async (
   root,
   _,
   { viewer, dataSources: { notificationService } }

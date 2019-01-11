@@ -2,7 +2,7 @@
 import * as AWS from 'aws-sdk'
 import { v4 } from 'uuid'
 //local
-import { S3Bucket, S3Folder } from 'definitions'
+import { S3Bucket, GQLAssetType } from 'definitions'
 import { LOCAL_S3_ENDPOINT } from 'common/enums'
 import { environment } from 'common/environment'
 
@@ -74,7 +74,7 @@ export class AWSService {
   /**
    * Upload file to AWS S3.
    */
-  baseUploadFile = async (folder: S3Folder, file: any): Promise<string> => {
+  baseUploadFile = async (folder: GQLAssetType, file: any): Promise<string> => {
     const { stream, filename, mimetype, encoding } = file
     const key = `${folder}/${v4()}/${filename}`
     const result = await this.s3

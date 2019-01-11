@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { OfficialToLinksResolver } from 'definitions'
 
-export const links: Resolver = () => {
+export const links: OfficialToLinksResolver = () => {
   return {
     beginnerGuide: 'https://matters.news',
     userGuide: 'https://matters.news',
