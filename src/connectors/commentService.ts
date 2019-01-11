@@ -165,29 +165,14 @@ export class CommentService extends BaseService {
   }
 
   /**
-   * Find comments by a given author id (user).
+   * Find comments by a given author id (user) in batches.
    */
   findByAuthor = async (authorId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from(this.table)
       .where({ authorId })
-
-  /**
-   * Find comments by a given author id (user) in batches.
-   */
-  findByAuthorInBatch = async (
-    authorId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ authorId })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
   /**
    * Find articles ids by comment author id (user) in batches.
@@ -207,16 +192,14 @@ export class CommentService extends BaseService {
       .limit(limit)
 
   /**
-   * Find comments by a given article id in batches.
+   * Find comments by a given article id.
    */
   findByArticle = async ({
     id,
     author,
     quote,
     sort,
-    parent,
-    offset = 0,
-    limit = BATCH_SIZE
+    parent
   }: GQLCommentsInput & { id: string }) => {
     let where: { [key: string]: string | boolean } = { articleId: id }
     if (author) {
@@ -233,8 +216,6 @@ export class CommentService extends BaseService {
         .from(this.table)
         .where(where)
         .orderBy('created_at', by)
-        .offset(offset)
-        .limit(limit)
 
     if (sort == 'upvotes') {
       query = this.knex('comment')

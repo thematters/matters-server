@@ -1,9 +1,13 @@
-import { Resolver, BatchParams } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = (
+import { ArticleToDownstreamsResolver } from 'definitions'
+
+const resolver: ArticleToDownstreamsResolver = (
   { id },
-  { input: { offset, limit } }: BatchParams,
+  { input },
   { dataSources: { articleService } }
-) => articleService.findByUpstream(id, offset, limit)
+) => {
+  return connectionFromPromisedArray(articleService.findByUpstream(id), input)
+}
 
 export default resolver

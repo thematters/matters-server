@@ -17,7 +17,7 @@ const resolver: Resolver = async (
 
   const isAdmin = viewer.role === 'admin'
   if (!isAdmin) {
-    const invited = await userService.findInvitations({ userId: viewer.id })
+    const invited = await userService.findInvitations(viewer.id)
     const invitationLeft =
       Math.floor(viewer.mat / MAT_UNIT.invitationCalculate) - invited.length
 

@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { ArticleToCoverResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: ArticleToCoverResolver = async (
   { cover },
   _,
   { dataSources: { systemService } }

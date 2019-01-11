@@ -11,7 +11,7 @@ test('countArticles', async () => {
 })
 
 test('findArticleIds', async () => {
-  const articleIds = await tagService.findArticleIds({ id: '2' })
+  const articleIds = await tagService.findArticleIds('2')
   expect(articleIds).toBeDefined()
 })
 

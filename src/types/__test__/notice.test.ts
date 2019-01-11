@@ -1,3 +1,4 @@
+import _get from 'lodash/get'
 // local
 import { toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
@@ -10,11 +11,15 @@ const GET_NOTICES = `
   query($nodeInput: NodeInput!) {
     node(input: $nodeInput) {
       ... on User {
-        notices(input:{ limit: 100 }) {
-          id
-          __typename
-          createdAt
-          unread
+        notices(input:{ first: 100 }) {
+          edges {
+            node {
+              id
+              __typename
+              createdAt
+              unread
+            }
+          }
         }
       }
     }
@@ -30,6 +35,6 @@ test('query notices', async () => {
       nodeInput: { id: USER_ID }
     }
   })
-  const notices = data && data.node && data.node.notices
+  const notices = _get(data, 'node.notices.edges')
   expect(notices.length).toBeGreaterThan(0)
 })

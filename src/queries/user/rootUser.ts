@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { QueryToUserResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: QueryToUserResolver = async (
   root,
   { input: { userName } },
   { viewer, dataSources: { userService } }

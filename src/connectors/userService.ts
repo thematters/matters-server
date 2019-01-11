@@ -17,7 +17,7 @@ import {
   ItemData,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
-  GQLListInput
+  GQLConnectionArgs
 } from 'definitions'
 import { BaseService } from './baseService'
 import { stringList } from 'aws-sdk/clients/datapipeline'
@@ -163,15 +163,14 @@ export class UserService extends BaseService {
     return result
   }
 
-  search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
+  search = async ({ key }: GQLSearchInput) => {
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
         fuzziness: 5,
         fields: ['description', 'displayName', 'userName']
       })
-      .size(limit)
-      .from(offset)
+      .size(100)
       .build()
 
     try {
@@ -240,18 +239,12 @@ export class UserService extends BaseService {
   /**
    * Get user's transaction history
    */
-  transactionHistory = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-    id
-  }: GQLListInput & { id: string }) => {
+  transactionHistory = async (userId: string) => {
     const result = await this.knex('transaction_delta_view')
       .where({
-        userId: id
+        userId
       })
       .orderBy('createdAt', 'desc')
-      .limit(limit)
-      .offset(offset)
     return result
   }
 
@@ -280,24 +273,18 @@ export class UserService extends BaseService {
     return parseInt(result.count, 10)
   }
 
-  recommendAuthor = async ({ offset = 0, limit = 5 }) =>
+  recommendAuthor = async () =>
     this.knex('user_reader_view')
       .select()
       .orderBy('author_score', 'desc')
-      .offset(offset)
-      .limit(limit)
+  // .offset(offset)
+  // .limit(limit)
 
-  followeeArticles = async ({
-    id,
-    offset = 0,
-    limit = 5
-  }: GQLListInput & { id: string }) =>
+  followeeArticles = async (userId: string) =>
     this.knex('action_user as au')
       .select('ar.*')
       .join('article as ar', 'ar.author_id', 'au.target_id')
-      .where({ action: 'follow', userId: id })
-      .offset(offset)
-      .limit(limit)
+      .where({ action: 'follow', userId })
 
   /**
    * Count an users' subscription by a given user id.
@@ -404,47 +391,22 @@ export class UserService extends BaseService {
   /**
    * Find user's followee list by a given user id.
    */
-  findFollowees = async ({
-    userId,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    userId: string
-    offset?: number
-    limit?: number
-  }) =>
+  findFollowees = async (userId: string) =>
     this.knex
       .select()
       .from('action_user')
       .where({ userId, action: USER_ACTION.follow })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
   /**
-   * Find user's follower list by a given taget id (user).
+   * Find user's follower list by a given taget id (user) in batches.
    */
   findFollowers = async (targetId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('action_user')
       .where({ targetId, action: USER_ACTION.follow })
-
-  /**
-   * Find user's follower list by a given taget id (user) in batches.
-   */
-  findFollowersInBatch = async (
-    targetId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_user')
-      .where({ targetId, action: USER_ACTION.follow })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
   /**
    * Is user following target
@@ -466,44 +428,23 @@ export class UserService extends BaseService {
   /**
    * Find an users' subscription by a given user id.
    */
-  findSubscriptions = async (userId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_article')
-      .where({ userId, action: USER_ACTION.subscribe })
-
-  /**
-   * Find an users' subscription by a given user id in batches.
-   */
-  findSubscriptionsInBatch = async (
-    userId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ): Promise<any[]> => {
+  findSubscriptions = async (userId: string): Promise<any[]> => {
     return await this.knex
       .select()
       .from('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
   }
 
   /**
    * Find user's read history
    */
-  findReadHistory = async (
-    userId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ): Promise<any[]> =>
+  findReadHistory = async (userId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('article_read')
       .where({ userId, archived: false })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
   /**
    * Find user's read history by a given uuid (article_read)
@@ -571,22 +512,12 @@ export class UserService extends BaseService {
   /**
    * Find invitations
    */
-  findInvitations = async ({
-    userId,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    userId: string
-    offset?: number
-    limit?: number
-  }): Promise<any[]> =>
+  findInvitations = async (userId: string): Promise<any[]> =>
     await this.knex
       .select()
       .from('invitation')
       .where({ senderId: userId })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
   /**
    * count invitations

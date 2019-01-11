@@ -72,7 +72,7 @@ export class ArticleService extends BaseService {
     const dataHash = await this.ipfs.addHTML(content)
 
     // add meta data to ipfs
-    const { userName: name, discription } = await userService.baseFindById(
+    const { userName: name, description } = await userService.baseFindById(
       authorId
     )
 
@@ -85,7 +85,7 @@ export class ArticleService extends BaseService {
       },
       author: {
         name,
-        discription: discription || ''
+        description: description || ''
       },
       publishedAt: now.toISOString()
     }
@@ -164,15 +164,14 @@ export class ArticleService extends BaseService {
     return result
   }
 
-  search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
+  search = async ({ key }: GQLSearchInput) => {
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
         fuzziness: 5,
         fields: ['title^10', 'content']
       })
-      .size(limit)
-      .from(offset)
+      .size(100)
       .build()
 
     try {
@@ -193,31 +192,31 @@ export class ArticleService extends BaseService {
     }
   }
 
-  recommendHottest = ({ offset = 0, limit = 5 }) =>
-    this.knex('article_activity_view')
-      .orderBy('latest_activity', 'desc null last')
-      .limit(limit)
-      .offset(offset)
+  recommendHottest = async () =>
+    await this.knex('article_activity_view').orderBy(
+      'latest_activity',
+      'desc null last'
+    )
+  // .limit(limit)
+  // .offset(offset)
 
-  recommendNewest = ({ offset = 0, limit = 5 }) =>
-    this.knex(this.table)
-      .orderBy('created_at', 'desc')
-      .limit(limit)
-      .offset(offset)
+  recommendNewest = async () =>
+    await this.knex(this.table).orderBy('id', 'desc')
+  // .limit(limit)
+  // .offset(offset)
 
-  recommendIcymi = ({ offset = 0, limit = 5 }) =>
-    this.knex('article')
+  recommendIcymi = async () =>
+    await this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
       .join('matters_choice as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
-      .offset(offset)
-      .limit(limit)
+  // .offset(offset)
+  // .limit(limit)
 
-  recommendTopics = ({ offset = 0, limit = 5 }) =>
-    this.knex('article_count_view')
-      .orderBy('topic_score', 'desc')
-      .limit(limit)
-      .offset(offset)
+  recommendTopics = async () =>
+    await this.knex('article_count_view').orderBy('topic_score', 'desc')
+  // .limit(limit)
+  // .offset(offset)
 
   /**
    * Count articles by a given authorId (user).
@@ -282,21 +281,11 @@ export class ArticleService extends BaseService {
   /**
    * Find articles
    */
-  find = async ({
-    where,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    where?: { [key: string]: any }
-    offset?: number
-    limit?: number
-  }) => {
+  find = async ({ where }: { where?: { [key: string]: any } }) => {
     let qs = this.knex
       .select()
       .from(this.table)
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
     if (where) {
       qs = qs.where(where)
@@ -308,29 +297,12 @@ export class ArticleService extends BaseService {
   /**
    *  Find articles by a given author id (user) in batches.
    */
-  findByAuthor = async ({
-    id: authorId,
-    publishState,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    id: string
-    publishState?: string
-    offset?: number
-    limit?: number
-  }) => {
-    let where: { [key: string]: string } = { authorId }
-    if (publishState) {
-      where.publishState = publishState
-    }
-    return await this.knex
+  findByAuthor = async (authorId: String) =>
+    await this.knex
       .select()
       .from(this.table)
-      .where(where)
+      .where({ authorId })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
-  }
 
   /**
    * Find article by media hash
@@ -345,17 +317,11 @@ export class ArticleService extends BaseService {
   /**
    * Find articles by upstream id (article).
    */
-  findByUpstream = async (
-    upstreamId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ) =>
+  findByUpstream = async (upstreamId: string) =>
     await this.knex
       .select()
       .from(this.table)
       .where({ upstreamId })
-      .offset(offset)
-      .limit(limit)
 
   /**
    * Find an article's appreciations by a given articleId.
@@ -371,25 +337,15 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciators by a given article id.
    */
-  findAppreciators = async ({
-    articleId,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    articleId: string
-    offset?: number
-    limit?: number
-  }): Promise<any[]> =>
+  findAppreciators = async (articleId: string): Promise<any[]> =>
     await this.knex('transaction')
-      .distinct('sender_id')
+      .distinct('sender_id', 'id')
       .select('sender_id')
       .where({
         referenceId: articleId,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
   appreciateLeftByUser = async ({
     articleId,
@@ -432,22 +388,7 @@ export class ArticleService extends BaseService {
       .select()
       .from('action_article')
       .where({ targetId, action: USER_ACTION.subscribe })
-
-  /**
-   * Find an article's subscribers by a given targetId (article) in batches.
-   */
-  findSubscriptionsInBatch = async (
-    targetId: string,
-    offset: number,
-    limit = BATCH_SIZE
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_article')
-      .where({ targetId, action: USER_ACTION.subscribe })
       .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
 
   /**
    * Find an article's subscriber by a given targetId (article) and user id.

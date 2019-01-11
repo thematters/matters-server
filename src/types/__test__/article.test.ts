@@ -19,7 +19,11 @@ const ARTICLE_ID = toGlobalId({ type: 'Article', id: 2 })
 const GET_ARTICLES = `
   query ($input: ArticlesInput!) {
     articles(input: $input) {
-      id
+      edges {
+        node {
+          id
+        }
+      }
     }
   }
 `
@@ -159,7 +163,7 @@ describe('query article', async () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    expect(data.articles.length).toBeGreaterThan(1)
+    expect(data.articles.edges.length).toBeGreaterThan(1)
   })
 
   test('query article by mediaHash', async () => {

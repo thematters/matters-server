@@ -1,6 +1,9 @@
-import { Resolver } from 'definitions'
+import { ArticleToCommentCountResolver } from 'definitions'
 
-const resolver: Resolver = ({ id }, _, { dataSources: { commentService } }) =>
-  commentService.countByArticle(id)
+const resolver: ArticleToCommentCountResolver = (
+  { id },
+  _,
+  { dataSources: { commentService } }
+) => commentService.countByArticle(id)
 
 export default resolver

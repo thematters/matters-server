@@ -20,12 +20,16 @@ const GET_ARTILCE_COMMENTS = `
       ... on Article {
         id
         comments(input: $commentsInput) {
-          quote
-          upvotes
-          pinned
-          createdAt
-          author {
-            id
+          edges {
+            node {
+              quote
+              upvotes
+              pinned
+              createdAt
+              author {
+                id
+              }
+            }
           }
         }
       }
@@ -97,9 +101,9 @@ describe('query comment list on article', async () => {
         commentsInput: { author: authorId }
       }
     })
-    const comments = data && data.node && data.node.comments
+    const comments = _get(data, 'node.comments.edges')
     for (const comment of comments) {
-      expect(comment.author.id).toBe(authorId)
+      expect(comment.node.author.id).toBe(authorId)
     }
   })
 
@@ -114,9 +118,10 @@ describe('query comment list on article', async () => {
       }
     })
 
-    const comments = data && data.node && data.node.comments
+    const comments = _get(data, 'node.comments.edges')
+
     for (const comment of comments) {
-      expect(comment.quote).toBe(true)
+      expect(comment.node.quote).toBe(true)
     }
   })
 
@@ -131,10 +136,10 @@ describe('query comment list on article', async () => {
       }
     })
 
-    const comments = data && data.node && data.node.comments
+    const comments = _get(data, 'node.comments.edges')
 
     const commentVotes = comments.map(
-      ({ upvotes }: { upvotes: number }) => upvotes
+      ({ node: { upvotes } }: { node: { upvotes: number } }) => upvotes
     )
     expect(isDesc(commentVotes)).toBe(true)
   })
@@ -149,10 +154,11 @@ describe('query comment list on article', async () => {
         commentsInput: { sort: 'newest' }
       }
     })
-    const comments = data && data.node && data.node.comments
+    const comments = _get(data, 'node.comments.edges')
 
     const commentTimestamps = comments.map(
-      ({ createdAt }: { createdAt: string }) => new Date(createdAt).getTime()
+      ({ node: { createdAt } }: { node: { createdAt: string } }) =>
+        new Date(createdAt).getTime()
     )
     expect(isDesc(commentTimestamps)).toBe(true)
   })

@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { CommentToParentCommentResolver } from 'definitions'
 
-const resolver: Resolver = (
+const resolver: CommentToParentCommentResolver = (
   { parentCommentId },
   _,
   { dataSources: { commentService } }

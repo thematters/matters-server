@@ -38,7 +38,6 @@ export default {
     cover,
     summary,
     tags,
-    gatewayUrls: () => [],
     upstream,
     downstreams,
     relatedArticles: () => [],

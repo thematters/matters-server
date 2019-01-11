@@ -1,12 +1,16 @@
-import { Resolver } from 'definitions'
+import { TagToArticlesResolver } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = async (
+const resolver: TagToArticlesResolver = async (
   { id },
-  _,
+  { input },
   { dataSources: { tagService, articleService } }
 ) => {
-  const articleIds = await tagService.findArticleIds({ id })
-  return articleService.dataloader.loadMany(articleIds)
+  const articleIds = await tagService.findArticleIds(id)
+  return connectionFromPromisedArray(
+    articleService.dataloader.loadMany(articleIds),
+    input
+  )
 }
 
 export default resolver

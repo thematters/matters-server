@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { ArticleToUpstreamResolver } from 'definitions'
 
-const resolver: Resolver = (
+const resolver: ArticleToUpstreamResolver = (
   { upstreamId },
   _,
   { dataSources: { articleService } }

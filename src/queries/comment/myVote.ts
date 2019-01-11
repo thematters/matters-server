@@ -1,11 +1,11 @@
-import { Resolver } from 'definitions'
+import { CommentToMyVoteResolver } from 'definitions'
 
 const voteMap = {
   up_vote: 'up',
   down_vote: 'down'
 }
 
-const resolver: Resolver = async (
+const resolver: CommentToMyVoteResolver = async (
   { id },
   _,
   { viewer, dataSources: { commentService } }

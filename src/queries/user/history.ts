@@ -1,14 +1,16 @@
-import { Resolver, BatchParams, Context } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = async (
-  { id }: { id: string },
-  { input: { offset, limit } }: BatchParams,
-  { dataSources: { userService, articleService } }: Context
+import { UserActivityToHistoryResolver } from 'definitions'
+
+const resolver: UserActivityToHistoryResolver = async (
+  { id },
+  { input },
+  { dataSources: { userService, articleService } }
 ) => {
-  const readHistory = await userService.findReadHistory(id, offset, limit)
+  const readHistory = await userService.findReadHistory(id)
 
-  return Promise.all(
-    readHistory.map(async ({ uuid, articleId, createdAt }) => {
+  const history = Promise.all(
+    readHistory.map(async ({ uuid, articleId, createdAt }: any) => {
       const article = await articleService.dataloader.load(articleId)
       return {
         uuid,
@@ -17,6 +19,8 @@ const resolver: Resolver = async (
       }
     })
   )
+
+  return connectionFromPromisedArray(history, input)
 }
 
 export default resolver

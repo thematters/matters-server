@@ -1,8 +1,8 @@
 export default /* GraphQL */ `
   extend type Mutation {
     # audio dtaft
-    putAudioDraft(input: PutAudioDraftInput!): AudioDraft!
-    deleteAudioDraft(input: DeleteAudioDraftInput!): Boolean
+    putAudiodraft(input: PutAudiodraftInput!): Audiodraft!
+    deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean
     # draft
     putDraft(input: PutDraftInput!): Draft!
     deleteDraft(input: DeleteDraftInput!): Boolean
@@ -21,7 +21,7 @@ export default /* GraphQL */ `
     publishState: PublishState!
   }
 
-  type AudioDraft {
+  type Audiodraft {
     id: ID!
     authorId: ID!
     title: String
@@ -31,14 +31,34 @@ export default /* GraphQL */ `
     updatedAt: DateTime!
   }
 
-  input PutAudioDraftInput {
+  type DraftConnection {
+    pageInfo: PageInfo!
+    edges: [DraftEdge]!
+  }
+
+  type DraftEdge {
+    cursor: String!
+    node: Draft!
+  }
+
+  type AudiodraftConnection {
+    pageInfo: PageInfo!
+    edges: [AudiodraftEdge]!
+  }
+
+  type AudiodraftEdge {
+    cursor: String!
+    node: Audiodraft!
+  }
+
+  input PutAudiodraftInput {
     id: ID
     audioAssetId: ID
     title: String
     length: Int
   }
 
-  input DeleteAudioDraftInput {
+  input DeleteAudiodraftInput {
     id: ID!
   }
 

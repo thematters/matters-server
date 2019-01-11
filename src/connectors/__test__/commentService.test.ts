@@ -1,4 +1,7 @@
 import { CommentService } from '../commentService'
+import { knex } from 'connectors/db'
+
+afterAll(knex.destroy)
 
 const commentService = new CommentService()
 

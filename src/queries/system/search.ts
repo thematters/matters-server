@@ -1,16 +1,21 @@
-import { Resolver, Context, NodeTypes, GQLSearchInput } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = (
-  root: any,
-  { input }: { input: GQLSearchInput },
-  { dataSources: { articleService, userService, tagService } }: Context
+import { QueryToSearchResolver } from 'definitions'
+
+const resolver: QueryToSearchResolver = (
+  root,
+  { input },
+  { dataSources: { articleService, userService, tagService } }
 ) => {
   const serviceMap = {
     Article: articleService,
     User: userService,
     Tag: tagService
   }
-  return serviceMap[input.type].search(input)
+  return connectionFromPromisedArray(
+    serviceMap[input.type].search(input),
+    input
+  )
 }
 
 export default resolver

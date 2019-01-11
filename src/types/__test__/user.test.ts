@@ -88,14 +88,18 @@ const GET_VIEWER_MAT = `
 `
 
 const GET_VIEWER_MAT_HISOTRY = `
-  query ($input: ListInput!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       status {
         MAT {
           history(input: $input) {
-            delta
-            reference {
-              id
+            edges {
+              node {
+                delta
+                reference {
+                  id
+                }
+              }
             }
           }
         }
@@ -121,10 +125,14 @@ const GET_VIEWER_INFO = `
   }
 `
 const GET_VIEW_ARTICLES = `
-  query ($input: ListInput!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       articles(input: $input) {
-        id
+        edges {
+          node {
+            id
+          }
+        }
       }
     }
   }
@@ -150,12 +158,16 @@ const GET_USER_INVITATION = `
           MAT
           left
           sent(input:{}) {
-            email
-            user {
-              id
+            edges {
+              node {
+                email
+                user {
+                  id
+                }
+                accepted
+                createdAt
+              }
             }
-            accepted
-            createdAt
           }
         }
       }
@@ -163,28 +175,40 @@ const GET_USER_INVITATION = `
   }
 `
 const GET_VIEWER_SUBSCRIPTIONS = `
-  query ($input: ListInput!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       subscriptions(input: $input) {
-        id
+        edges {
+          node {
+            id
+          }
+        }
       }
     }
   }
 `
 const GET_VIEWER_FOLLOWERS = `
-  query ($input: ListInput!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       followers(input: $input) {
-        id
+        edges {
+          node {
+            id
+          }
+        }
       }
     }
   }
 `
 const GET_VIEWER_FOLLOWEES = `
-  query ($input: ListInput!) {
+  query ($input: ConnectionArgs!) {
     viewer {
       followees(input: $input) {
-        id
+        edges {
+          node {
+            id
+          }
+        }
       }
     }
   }
@@ -203,11 +227,15 @@ const GET_VIEWER_STATUS = `
   }
 `
 const GET_VIEWER_RECOMMENDATION = (list: string) => `
-query($input: ListInput!) {
+query($input: ConnectionArgs!) {
   viewer {
     recommendation {
       ${list}(input: $input) {
-        id
+        edges {
+          node {
+            id
+          }
+        }
       }
     }
   }
@@ -260,7 +288,7 @@ export const getViewerMATHistory = async () => {
     variables: { input: {} }
   })
   const { data } = result
-  return _get(data, 'viewer.status.MAT.history')
+  return _get(data, 'viewer.status.MAT.history.edges')
 }
 
 export const getUserInvitation = async (isAdmin = false) => {
@@ -365,13 +393,14 @@ describe('user mat', async () => {
 
   test('history', async () => {
     const history = await getViewerMATHistory()
-    const trx = history && history[0]
+    const trx = history && history[0] && history[0].node
     expect(typeof trx.delta).toBe('number')
   })
 
   test('history reference', async () => {
     const history = await getViewerMATHistory()
-    const reference = history && history[0] && history[0].reference
+    const reference =
+      history && history[0] && history[0].node && history[0].node.reference
     expect(['Article', 'Invitation']).toContain(fromGlobalId(reference.id).type)
   })
 })
@@ -391,14 +420,15 @@ describe('user query fields', () => {
     const { query } = await testClient({
       isAuth: true
     })
-    const { data } = await query({
+    const result = await query({
       query: GET_VIEW_ARTICLES,
       // @ts-ignore
-      variables: { input: { limit: 1 } }
+      variables: { input: { first: 1 } }
     })
-    const articles = _get(data, 'viewer.articles')
-    expect(articles.length).toEqual(1)
-    expect(articles[0].id).toBeDefined()
+    const { data } = result
+    const articles = _get(data, 'viewer.articles.edges')
+    expect(articles.length).toBeDefined()
+    expect(articles[0].node.id).toBeDefined()
   })
 
   test('retrive UserSettings', async () => {
@@ -423,8 +453,8 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const subscriptions = _get(data, 'viewer.subscriptions')
-    expect(subscriptions.length).toEqual(3)
+    const subscriptions = _get(data, 'viewer.subscriptions.edges')
+    expect(subscriptions.length).toBeTruthy()
   })
 
   test('retrive followers', async () => {
@@ -436,8 +466,8 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followers = _get(data, 'viewer.followers')
-    expect(followers.length).toEqual(0)
+    const followers = _get(data, 'viewer.followers.edges')
+    expect(followers).toBeDefined()
   })
 
   test('retrive followees', async () => {
@@ -449,8 +479,8 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followees = _get(data, 'viewer.followees')
-    expect(followees.length).toEqual(1)
+    const followees = _get(data, 'viewer.followees.edges')
+    expect(followees.length).toBeTruthy()
   })
 
   test('retrive UserStatus', async () => {
@@ -487,8 +517,10 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followees = _get(followeeData, 'viewer.followees')
-    expect(followees.map(({ id }: { id: string }) => id)).toContain(followeeId)
+    const followees = _get(followeeData, 'viewer.followees.edges')
+    expect(
+      followees.map(({ node: { id } }: { node: { id: string } }) => id)
+    ).toContain(followeeId)
 
     // unfollow
     const { mutate: mutateNew } = await testClient({ isAuth: true })
@@ -506,7 +538,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followeesNew = _get(followeeDataNew, 'viewer.followees')
+    const followeesNew = _get(followeeDataNew, 'viewer.followees.edges')
     expect(
       followeesNew.filter(({ id }: { id: string }) => id === followeeId).length
     ).toEqual(0)
@@ -561,17 +593,13 @@ describe('user recommendations', () => {
       const { query: queryNew } = await testClient({
         isAuth: true
       })
-      const { data } = await queryNew({
+      const result = await queryNew({
         query: GET_VIEWER_RECOMMENDATION(list),
         // @ts-ignore
-        variables: { input: { limit: 1 } }
+        variables: { input: { first: 1 } }
       })
-      const article =
-        data &&
-        data.viewer &&
-        data.viewer.recommendation &&
-        data.viewer.recommendation[list] &&
-        data.viewer.recommendation[list][0]
+      const { data } = result
+      const article = _get(data, `viewer.recommendation.${list}.edges.0.node`)
       expect(fromGlobalId(article.id).type).toBe('Article')
     }
   })
@@ -583,9 +611,9 @@ describe('user recommendations', () => {
     const { data } = await queryNew({
       query: GET_VIEWER_RECOMMENDATION('tags'),
       // @ts-ignore
-      variables: { input: { limit: 1 } }
+      variables: { input: { first: 1 } }
     })
-    const tag = _get(data, 'viewer.recommendation.tags.0')
+    const tag = _get(data, 'viewer.recommendation.tags.edges.0.node')
     expect(fromGlobalId(tag.id).type).toBe('Tag')
   })
 
@@ -593,12 +621,13 @@ describe('user recommendations', () => {
     const { query: queryNew } = await testClient({
       isAuth: true
     })
-    const { data } = await queryNew({
+    const result = await queryNew({
       query: GET_VIEWER_RECOMMENDATION('authors'),
       // @ts-ignore
-      variables: { input: { limit: 1 } }
+      variables: { input: { first: 1 } }
     })
-    const author = _get(data, 'viewer.recommendation.authors.0')
+    const { data } = result
+    const author = _get(data, 'viewer.recommendation.authors.edges.0.node')
     expect(fromGlobalId(author.id).type).toBe('User')
   })
 })
@@ -656,7 +685,10 @@ describe('invitation', async () => {
       Math.max(left - 1, 0)
     )
     expect(
-      _get(newInvitationData, 'viewer.status.invitation.sent.0.email')
+      _get(
+        newInvitationData,
+        'viewer.status.invitation.sent.edges.0.node.email'
+      )
     ).toBe(unregisterEmail)
 
     // register user

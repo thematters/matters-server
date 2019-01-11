@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { TagToCountResolver } from 'definitions'
 
-const resolver: Resolver = (
+const resolver: TagToCountResolver = (
   { id, count },
   _,
   { dataSources: { tagService } }

@@ -1,9 +1,11 @@
 import { isNil } from 'lodash'
-import { Resolver } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
 
-const resolver: Resolver = async (
+import { QueryToArticlesResolver } from 'definitions'
+
+const resolver: QueryToArticlesResolver = async (
   root,
-  { input: { public: isPublic, offset, limit } },
+  { input: { public: isPublic, ...connectionArgs } },
   { viewer, dataSources: { articleService } }
 ) => {
   if (!viewer.id) {
@@ -19,11 +21,12 @@ const resolver: Resolver = async (
     where = { public: isPublic }
   }
 
-  return articleService.find({
-    where,
-    offset,
-    limit
-  })
+  return connectionFromPromisedArray(
+    articleService.find({
+      where
+    }),
+    connectionArgs
+  )
 }
 
 export default resolver

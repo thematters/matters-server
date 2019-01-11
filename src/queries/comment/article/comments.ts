@@ -1,18 +1,22 @@
-import { Resolver, Context, ArticleToCommentsArgs } from 'definitions'
+import { connectionFromPromisedArray } from 'graphql-relay'
+
+import { ArticleToCommentsResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: Resolver = (
-  { id }: { id: string },
-  { input }: ArticleToCommentsArgs,
-  { dataSources: { commentService } }: Context
+const resolver: ArticleToCommentsResolver = (
+  { id },
+  { input: { author, quote, sort, ...connectionArgs } },
+  { dataSources: { commentService } }
 ) => {
-  const args = { ...input, id }
-  if (input.author) {
-    const { id: authorId } = fromGlobalId(input.author)
-    args.author = authorId
+  if (author) {
+    const { id: authorId } = fromGlobalId(author)
+    author = authorId
   }
 
-  return commentService.findByArticle(args)
+  return connectionFromPromisedArray(
+    commentService.findByArticle({ id, author, quote, sort }),
+    connectionArgs
+  )
 }
 
 export default resolver

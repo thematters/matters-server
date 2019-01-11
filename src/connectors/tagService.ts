@@ -25,11 +25,10 @@ export class TagService extends BaseService {
     })
   }
 
-  search = async ({ key, limit = 10, offset = 0 }: GQLSearchInput) => {
+  search = async ({ key }: GQLSearchInput) => {
     const tags = await this.knex(this.table)
       .where('content', 'like', `%${key}%`)
-      .limit(limit)
-      .offset(offset)
+      .limit(100)
 
     return tags.map((tag: { [key: string]: string }) => ({
       node: { ...tag, __type: 'Tag' },
@@ -70,21 +69,11 @@ export class TagService extends BaseService {
     return parseInt(result.count, 10)
   }
 
-  findArticleIds = async ({
-    id: tagId,
-    offset = 0,
-    limit = BATCH_SIZE
-  }: {
-    id: string
-    offset?: number
-    limit?: number
-  }) => {
+  findArticleIds = async (tagId: string) => {
     const result = await this.knex
       .select('article_id')
       .from('article_tag')
       .where({ tagId })
-      .offset(offset)
-      .limit(limit)
 
     return result.map(({ articleId }: { articleId: string }) => articleId)
   }

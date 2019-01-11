@@ -22,7 +22,7 @@ export default /* GraphQL */ `
     quote: Boolean!
     myVote: Vote
     mentions: [User!]
-    comments: [Comment!]
+    comments(input: ConnectionArgs!): CommentConnection!
     parentComment: Comment
   }
 
@@ -31,7 +31,17 @@ export default /* GraphQL */ `
     pinCommentLimit: Int!
     pinCommentLeft: Int!
     pinnedComments: [Comment!]
-    comments(input: CommentsInput!): [Comment!]
+    comments(input: CommentsInput!): CommentConnection!
+  }
+
+  type CommentConnection {
+    pageInfo: PageInfo!
+    edges: [CommentEdge!]
+  }
+
+  type CommentEdge {
+    cursor: String!
+    node: Comment!
   }
 
   input PutCommentInput {
@@ -48,11 +58,11 @@ export default /* GraphQL */ `
   }
 
   input CommentsInput {
-    offset: Int
-    limit: Int
     author: ID
     quote: Boolean
     sort: CommentSort
+    after: String
+    first: Int
     parent: Boolean
   }
 

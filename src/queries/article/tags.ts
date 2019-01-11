@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { ArticleToTagsResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: ArticleToTagsResolver = async (
   { id },
   _,
   { dataSources: { articleService, tagService } }

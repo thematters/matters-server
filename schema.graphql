@@ -23,17 +23,16 @@ type Article implements Node {
   dataHash: String
   mediaHash: String
   content: String!
-  gatewayUrls: [URL!]
   upstream: Article
-  downstreams(input: ListInput!): [Article!]
-  relatedArticles(input: ListInput!): [Article!]
+  downstreams(input: ConnectionArgs!): ArticleConnection!
+  relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
   """MAT recieved for this article"""
   MAT: Int!
   participantCount: Int!
-  participants: [User!]
-  subscribers(input: ListInput!): [User!]
-  appreciators(input: ListInput!): [User!]
+  participants: UserConnection!
+  subscribers(input: ConnectionArgs!): UserConnection!
+  appreciators(input: ConnectionArgs!): UserConnection!
   appreciatorCount: Int!
 
   """limit the nuhmber of appreciate per user"""
@@ -49,7 +48,17 @@ type Article implements Node {
   pinCommentLimit: Int!
   pinCommentLeft: Int!
   pinnedComments: [Comment!]
-  comments(input: CommentsInput!): [Comment!]
+  comments(input: CommentsInput!): CommentConnection!
+}
+
+type ArticleConnection {
+  pageInfo: PageInfo!
+  edges: [ArticleEdge!]
+}
+
+type ArticleEdge {
+  cursor: String!
+  node: Article!
 }
 
 input ArticleInput {
@@ -100,8 +109,8 @@ type ArticlePublishedNotice implements Notice {
 
 input ArticlesInput {
   public: Boolean
-  offset: Int
-  limit: Int
+  after: String
+  first: Int
 }
 
 type Asset {
@@ -114,12 +123,12 @@ type Asset {
 enum AssetType {
   avatar
   cover
-  audioDraft
+  audiodraft
   report
   feedback
 }
 
-type AudioDraft {
+type Audiodraft {
   id: ID!
   authorId: ID!
   title: String
@@ -127,6 +136,16 @@ type AudioDraft {
   length: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+type AudiodraftConnection {
+  pageInfo: PageInfo!
+  edges: [AudiodraftEdge]!
+}
+
+type AudiodraftEdge {
+  cursor: String!
+  node: Audiodraft!
 }
 
 type AuthResult {
@@ -173,8 +192,18 @@ type Comment implements Node {
   quote: Boolean!
   myVote: Vote
   mentions: [User!]
-  comments: [Comment!]
+  comments(input: ConnectionArgs!): CommentConnection!
   parentComment: Comment
+}
+
+type CommentConnection {
+  pageInfo: PageInfo!
+  edges: [CommentEdge!]
+}
+
+type CommentEdge {
+  cursor: String!
+  node: Comment!
 }
 
 input CommentInput {
@@ -219,11 +248,11 @@ type CommentPinnedNotice implements Notice {
 }
 
 input CommentsInput {
-  offset: Int
-  limit: Int
   author: ID
   quote: Boolean
   sort: CommentSort
+  after: String
+  first: Int
   parent: Boolean
 }
 
@@ -260,11 +289,16 @@ input ConfirmVerifyEmailInput {
   codeId: ID!
 }
 
+input ConnectionArgs {
+  after: String
+  first: Int
+}
+
 scalar Date
 
 scalar DateTime
 
-input DeleteAudioDraftInput {
+input DeleteAudiodraftInput {
   id: ID!
 }
 
@@ -297,6 +331,16 @@ type Draft implements Node {
   publishState: PublishState!
 }
 
+type DraftConnection {
+  pageInfo: PageInfo!
+  edges: [DraftEdge]!
+}
+
+type DraftEdge {
+  cursor: String!
+  node: Draft!
+}
+
 scalar Email
 
 input FeedbackInput {
@@ -323,6 +367,16 @@ type Invitation implements Node {
   createdAt: DateTime!
 }
 
+type InvitationConnection {
+  pageInfo: PageInfo!
+  edges: [InvitationEdge]!
+}
+
+type InvitationEdge {
+  cursor: String!
+  node: Invitation!
+}
+
 type InvitationStatus {
   MAT: Int!
 
@@ -330,7 +384,7 @@ type InvitationStatus {
   left: Int!
 
   """invitations sent"""
-  sent(input: ListInput!): [Invitation!]
+  sent(input: ConnectionArgs!): InvitationConnection!
 }
 
 input InviteInput {
@@ -340,14 +394,9 @@ input InviteInput {
 
 scalar JSON
 
-input ListInput {
-  offset: Int
-  limit: Int
-}
-
 type MAT {
   total: Int!
-  history(input: ListInput!): [Transaction!]
+  history(input: ConnectionArgs!): TransactionConnection!
 }
 
 type Mutation {
@@ -370,8 +419,8 @@ type Mutation {
   unvoteComment(input: UnvoteCommentInput!): Comment!
 
   """audio dtaft"""
-  putAudioDraft(input: PutAudioDraftInput!): AudioDraft!
-  deleteAudioDraft(input: DeleteAudioDraftInput!): Boolean
+  putAudiodraft(input: PutAudiodraftInput!): Audiodraft!
+  deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean
 
   """draft"""
   putDraft(input: PutDraftInput!): Draft!
@@ -437,6 +486,16 @@ interface Notice {
   createdAt: DateTime!
 }
 
+type NoticeConnection {
+  pageInfo: PageInfo!
+  edges: [NoticeEdge!]
+}
+
+type NoticeEdge {
+  cursor: String!
+  node: Notice!
+}
+
 type NotificationSetting {
   enable: Boolean!
   mention: Boolean!
@@ -475,6 +534,7 @@ type Official {
   releases(input: ReleasesInput!): [Release!]
   links: OfficialLinks!
   placements: Placements!
+  gatewayUrls: [URL!]
 }
 
 type OfficialAnnouncementNotice implements Notice {
@@ -491,6 +551,12 @@ type OfficialLinks {
   about: URL!
   faq: URL!
   tos: URL!
+}
+
+type PageInfo {
+  startCursor: String
+  endCursor: String
+  hasNextPage: Boolean!
 }
 
 input PinCommentInput {
@@ -531,7 +597,7 @@ enum PublishState {
   recalled
 }
 
-input PutAudioDraftInput {
+input PutAudiodraftInput {
   id: ID
   audioAssetId: ID
   title: String
@@ -561,10 +627,10 @@ Ref: apollographql/graphql-tools#293
 type Query {
   _: Boolean
   article(input: ArticleInput!): Article
-  articles(input: ArticlesInput!): [Article!]
+  articles(input: ArticlesInput!): ArticleConnection!
   node(input: NodeInput!): Node
   frequentSearch(key: String): [String!]
-  search(input: SearchInput!): [SearchResult!]
+  search(input: SearchInput!): SearchResultConnection!
   official: Official!
   viewer: User
   user(input: UserInput!): User
@@ -580,20 +646,40 @@ type ReadHistory {
   readAt: DateTime!
 }
 
+type ReadHistoryConnection {
+  pageInfo: PageInfo!
+  edges: [ReadHistoryEdge]!
+}
+
+type ReadHistoryEdge {
+  cursor: String!
+  node: ReadHistory!
+}
+
 input RecallPublishInput {
   id: ID!
 }
 
+type RecentSearchConnection {
+  pageInfo: PageInfo!
+  edges: [RecentSearchEdge]!
+}
+
+type RecentSearchEdge {
+  cursor: String!
+  node: String!
+}
+
 type Recommendation {
-  followeeArticles(input: ListInput!): [Article!]
-  newest(input: ListInput!): [Article!]
-  hottest(input: ListInput!): [Article!]
+  followeeArticles(input: ConnectionArgs!): ArticleConnection!
+  newest(input: ConnectionArgs!): ArticleConnection!
+  hottest(input: ConnectionArgs!): ArticleConnection!
 
   """In case you missed it"""
-  icymi(input: ListInput!): [Article!]
-  tags(input: ListInput!): [Tag!]
-  topics(input: ListInput!): [Article!]
-  authors(input: ListInput!): [User!]
+  icymi(input: ConnectionArgs!): ArticleConnection!
+  tags(input: ConnectionArgs!): TagConnection!
+  topics(input: ConnectionArgs!): ArticleConnection!
+  authors(input: ConnectionArgs!): UserConnection!
 }
 
 type Release {
@@ -612,8 +698,7 @@ type Release {
 input ReleasesInput {
   platform: PlatformType!
   channel: ChannelType!
-  offset: Int
-  limit: Int
+  first: Int
 }
 
 input ReportArticleInput {
@@ -635,13 +720,23 @@ input ReportCommentInput {
 input SearchInput {
   key: String!
   type: SearchTypes!
-  offset: Int
-  limit: Int
+  after: String
+  first: Int
 }
 
 type SearchResult {
   node: Node
   match: String
+}
+
+type SearchResultConnection {
+  pageInfo: PageInfo!
+  edges: [SearchResultEdge!]
+}
+
+type SearchResultEdge {
+  cursor: String!
+  node: SearchResult!
 }
 
 enum SearchTypes {
@@ -682,7 +777,17 @@ type Tag implements Node {
   id: ID!
   content: String!
   count: Int!
-  articles(input: ListInput!): [Article!]
+  articles(input: ConnectionArgs!): ArticleConnection!
+}
+
+type TagConnection {
+  pageInfo: PageInfo!
+  edges: [TagEdge]!
+}
+
+type TagEdge {
+  cursor: String!
+  node: Tag!
 }
 
 scalar Time
@@ -702,6 +807,16 @@ type Transaction {
   purpose: TransactionPurpose!
   reference: Node
   createdAt: DateTime!
+}
+
+type TransactionConnection {
+  pageInfo: PageInfo!
+  edges: [TransactionEdge]!
+}
+
+type TransactionEdge {
+  cursor: String!
+  node: Transaction!
 }
 
 enum TransactionPurpose {
@@ -756,23 +871,20 @@ type User implements Node {
   recommendation: Recommendation!
 
   """Articles written by this user"""
-  articles(input: ListInput!): [Article!]
-  drafts(input: ListInput!): [Draft!]
-  audioDrafts(input: ListInput!): [AudioDraft!]
+  articles(input: ConnectionArgs!): ArticleConnection!
+  drafts(input: ConnectionArgs!): DraftConnection!
+  audiodrafts(input: ConnectionArgs!): AudiodraftConnection!
 
   """Comments posted by this user"""
-  commentedArticles(input: ListInput!): [Article!]
-
-  """comments that quoted this user's article"""
-  quotedArticles(input: ListInput!): [Article!]
-  subscriptions(input: ListInput!): [Article!]
+  commentedArticles(input: ConnectionArgs!): ArticleConnection!
+  subscriptions(input: ConnectionArgs!): ArticleConnection!
   activity: UserActivity!
 
   """Followers of this user"""
-  followers(input: ListInput!): [User!]
+  followers(input: ConnectionArgs!): UserConnection!
 
   """Users that this user follows"""
-  followees(input: ListInput!): [User!]
+  followees(input: ConnectionArgs!): UserConnection!
 
   """This user is following viewer"""
   isFollower: Boolean!
@@ -780,12 +892,22 @@ type User implements Node {
   """Viewer is following this user"""
   isFollowee: Boolean!
   status: UserStatus!
-  notices(input: ListInput!): [Notice!]
+  notices(input: ConnectionArgs!): NoticeConnection!
 }
 
 type UserActivity {
-  history(input: ListInput!): [ReadHistory!]
-  recentSearches(input: ListInput!): [String!]
+  history(input: ConnectionArgs!): ReadHistoryConnection!
+  recentSearches(input: ConnectionArgs!): RecentSearchConnection!
+}
+
+type UserConnection {
+  pageInfo: PageInfo!
+  edges: [UserEdge]
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
 }
 
 type UserInfo {

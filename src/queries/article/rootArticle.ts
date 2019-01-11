@@ -1,6 +1,6 @@
-import { Resolver } from 'definitions'
+import { QueryToArticleResolver } from 'definitions'
 
-const resolver: Resolver = async (
+const resolver: QueryToArticleResolver = async (
   root,
   { input: { mediaHash } },
   { viewer, dataSources: { articleService } }
