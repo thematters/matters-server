@@ -40,6 +40,17 @@ export class DraftService extends BaseService {
       .limit(limit)
 
   /**
+   * Find drafts by publish state
+   */
+  findByPublishState = async (publishState: string) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({
+        publishState
+      })
+
+  /**
    * Find audio draft by a given id.
    */
   findAudioDraft = async (id: string): Promise<any[]> =>

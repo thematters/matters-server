@@ -55,4 +55,10 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  enum PublishState {
+    draft
+    pending
+    error
+    published
+  }
 `

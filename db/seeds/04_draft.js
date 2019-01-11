@@ -10,7 +10,8 @@ exports.seed = function(knex, Promise) {
           author_id: '1',
           title: 'test draft 1',
           summary: 'Some text of sumamry',
-          content: '<div>some html string</div>'
+          content: '<div>some html string</div>',
+          tags: ['tag1', 'tag2']
         },
         {
           uuid: '00000000-0000-0000-0000-000000000002',

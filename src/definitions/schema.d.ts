@@ -36,7 +36,7 @@ export interface GQLArticle extends GQLNode {
   id: string
   slug: string
   createdAt: GQLDateTime
-  publishState: GQLPublishState
+  state: GQLArticleState
   public: boolean
   live: boolean
   author: GQLUser
@@ -110,13 +110,10 @@ export interface GQLNodeNameMap {
 
 export type GQLDateTime = any
 
-export enum GQLPublishState {
+export enum GQLArticleState {
+  active = 'active',
   archived = 'archived',
-  pending = 'pending',
-  error = 'error',
-  published = 'published',
-  banned = 'banned',
-  recalled = 'recalled'
+  banned = 'banned'
 }
 
 export interface GQLUser extends GQLNode {
@@ -295,6 +292,13 @@ export interface GQLDraft extends GQLNode {
   tags?: Array<string>
   cover?: GQLURL
   publishState: GQLPublishState
+}
+
+export enum GQLPublishState {
+  draft = 'draft',
+  pending = 'pending',
+  error = 'error',
+  published = 'published'
 }
 
 export interface GQLAudioDraft {
@@ -537,9 +541,7 @@ export interface GQLOfficial {
 
 export interface GQLCategory {
   id: string
-  en: string
-  zh_hans: string
-  zh_hant: string
+  name: string
 }
 
 export interface GQLReleasesInput {
@@ -1235,7 +1237,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   id?: ArticleToIdResolver<TParent>
   slug?: ArticleToSlugResolver<TParent>
   createdAt?: ArticleToCreatedAtResolver<TParent>
-  publishState?: ArticleToPublishStateResolver<TParent>
+  state?: ArticleToStateResolver<TParent>
   public?: ArticleToPublicResolver<TParent>
   live?: ArticleToLiveResolver<TParent>
   author?: ArticleToAuthorResolver<TParent>
@@ -1280,7 +1282,7 @@ export interface ArticleToCreatedAtResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface ArticleToPublishStateResolver<TParent = any, TResult = any> {
+export interface ArticleToStateResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
@@ -2412,24 +2414,14 @@ export interface OfficialToPlacementsResolver<TParent = any, TResult = any> {
 
 export interface GQLCategoryTypeResolver<TParent = any> {
   id?: CategoryToIdResolver<TParent>
-  en?: CategoryToEnResolver<TParent>
-  zh_hans?: CategoryToZh_hansResolver<TParent>
-  zh_hant?: CategoryToZh_hantResolver<TParent>
+  name?: CategoryToNameResolver<TParent>
 }
 
 export interface CategoryToIdResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 
-export interface CategoryToEnResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface CategoryToZh_hansResolver<TParent = any, TResult = any> {
-  (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
-}
-
-export interface CategoryToZh_hantResolver<TParent = any, TResult = any> {
+export interface CategoryToNameResolver<TParent = any, TResult = any> {
   (parent: TParent, args: {}, context: any, info: GraphQLResolveInfo): TResult
 }
 

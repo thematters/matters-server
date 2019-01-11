@@ -1,5 +1,5 @@
 import { Resolver } from 'definitions'
-import { PUBLISH_STATE } from 'common/enums'
+import { ARTICLE_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: Resolver = async (
@@ -19,7 +19,7 @@ const resolver: Resolver = async (
   }
 
   const article = await articleService.baseUpdateById(dbId, {
-    publishState: PUBLISH_STATE.archived
+    state: ARTICLE_STATE.archived
   })
 
   // trigger notifications
@@ -42,9 +42,8 @@ const resolver: Resolver = async (
       ]
     })
   })
-
   if (article.upstreamId) {
-    const upstream = await articleService.baseFindById(article.upstreamId)
+    const upstream = await articleService.dataloader.load(article.upstreamId)
     notificationService.trigger({
       event: 'downstream_article_archived',
       recipientId: upstream.authorId,

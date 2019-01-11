@@ -34,9 +34,7 @@ export default /* GraphQL */ `
 
   type Category {
     id: ID!
-    en: String!
-    zh_hans: String!
-    zh_hant: String!
+    name: String!
   }
 
   type Release {

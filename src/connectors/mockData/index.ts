@@ -51,7 +51,7 @@ const createTestArticle = (id: string) => ({
   downstreamIds: randomIds(5, testSize.article, id),
   timestamp: new Date().toISOString(),
   pinnedCommentIds: randomIds(3, testSize.comment),
-  publishState: 'published'
+  state: 'active'
 })
 
 export const tables: { [key: string]: any } = {

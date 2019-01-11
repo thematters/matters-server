@@ -2,7 +2,6 @@
 import { NotificationType, NotificationPrarms } from 'definitions'
 import { toGlobalId } from 'common/utils'
 import { BaseService } from 'connectors/baseService'
-import { notificationQueue } from 'connectors/queue'
 
 import { mailService } from './mail'
 import { pushService } from './push'
@@ -25,6 +24,7 @@ export class NotificationService extends BaseService {
 
   private async __trigger(params: NotificationPrarms) {
     let noticeParams: PutNoticeParams
+    const { notificationQueue } = require('connectors/queue')
 
     switch (params.event) {
       case 'article_updated':
@@ -98,7 +98,7 @@ export class NotificationService extends BaseService {
     )
 
     // Push Notification
-    const { canPush } = await this.checkUserNoifySetting({
+    const { canPush } = await this.checkUserNotifySetting({
       event: params.event,
       userId: noticeParams.recipientId
     })
@@ -111,7 +111,7 @@ export class NotificationService extends BaseService {
     }
   }
 
-  checkUserNoifySetting = async ({
+  checkUserNotifySetting = async ({
     event,
     userId
   }: {

@@ -11,7 +11,7 @@ type Article implements Node {
   id: ID!
   slug: String!
   createdAt: DateTime!
-  publishState: PublishState!
+  state: ArticleState!
   public: Boolean!
   live: Boolean!
   author: User!
@@ -104,6 +104,12 @@ input ArticlesInput {
   limit: Int
 }
 
+enum ArticleState {
+  active
+  archived
+  banned
+}
+
 type Asset {
   id: ID!
   type: AssetType!
@@ -144,9 +150,7 @@ enum BadgeType {
 
 type Category {
   id: ID!
-  en: String!
-  zh_hans: String!
-  zh_hant: String!
+  name: String!
 }
 
 enum ChannelType {
@@ -523,12 +527,10 @@ input PublishArticleInput {
 }
 
 enum PublishState {
-  archived
+  draft
   pending
   error
   published
-  banned
-  recalled
 }
 
 input PutAudioDraftInput {
