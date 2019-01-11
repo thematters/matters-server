@@ -1,4 +1,3 @@
-import * as cheerio from 'cheerio'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
@@ -82,6 +81,7 @@ export class ArticleService extends BaseService {
           '/': dataHash
         }
       },
+      summary,
       author: {
         name,
         description: description || ''
@@ -106,25 +106,21 @@ export class ArticleService extends BaseService {
     }
 
     // get media hash
-    const [{ hash: mediaHash }] = await this.ipfs.client.add(
-      Buffer.from(JSON.stringify(mediaObj)),
-      {
-        pin: true
-      }
-    )
+    // const [{ hash: mediaHash }] = await this.ipfs.client.add(
+    //   Buffer.from(JSON.stringify(mediaObj)),
+    //   {
+    //     pin: true
+    //   }
+    // )
 
-    // TODO: add media object as IPLD instead of string
-    // related discussion: https://github.com/ipld/ipld/issues/19
-    // const cid = await this.ipfs.client.dag.put(mediaObj, {
-    //   format: 'dag-pb',
-    //   inputenc: 'json',
-    //   pin: true,
-    //   hashAlg: 'sha2-256'
-    // })
-    // const mediaHash = cid.toBaseEncodedString()
+    const cid = await this.ipfs.client.dag.put(mediaObj, {
+      format: 'dag-cbor',
+      pin: true,
+      hashAlg: 'sha2-256'
+    })
+    const mediaHash = cid.toBaseEncodedString()
 
     // edit db record
-
     const article = await this.create({
       authorId,
       upstreamId,
