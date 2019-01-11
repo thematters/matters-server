@@ -15,6 +15,18 @@ class ElasticSearch {
     this.client = new elasticsearch.Client({
       host: { host, port }
     })
+    this.init()
+  }
+
+  init = async () => {
+    for (const index of this.indices) {
+      const exists = await this.client.indices.exists({ index })
+      if (!exists) {
+        console.log(`Creating index ${index}`)
+        await this.client.indices.create({ index })
+        console.log(`Done`)
+      }
+    }
   }
 
   indexItems = async ({
