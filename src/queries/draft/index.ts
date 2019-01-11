@@ -1,7 +1,7 @@
 import { toGlobalId } from 'common/utils'
 
 import drafts from './drafts'
-import audiodrafts from './audiodrafts'
+import audiodrafts from './audiodrafts1'
 import cover from './cover'
 import audio from './audio'
 
