@@ -1,3 +1,8 @@
+import sendVerificationCode from './sendVerificationCode'
+import confirmVerificationCode from './confirmVerificationCode'
+import resetPassword from './resetPassword'
+import changeEmail from './changeEmail'
+import verifyEmail from './verifyEmail'
 import userRegister from './userRegister'
 import userLogin from './userLogin'
 import updateUserInfo from './updateUserInfo'
@@ -9,6 +14,11 @@ import invite from './invite'
 
 export default {
   Mutation: {
+    sendVerificationCode,
+    confirmVerificationCode,
+    resetPassword,
+    changeEmail,
+    verifyEmail,
     userRegister,
     userLogin,
     updateUserInfo,

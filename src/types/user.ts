@@ -9,11 +9,11 @@ export default /* GraphQL */ `
     sendVerificationCode(input: SendVerificationCodeInput!): Boolean
     confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
     # change or reset password
-    confirmResetPassword(input: ConfirmResetPasswordInput!): Boolean
+    resetPassword(input: ResetPasswordInput!): Boolean
     # change email
-    confirmChangeEmail(input: ConfirmChangeEmailInput!): Boolean
+    changeEmail(input: ChangeEmailInput!): Boolean
     # verify email
-    confirmVerifyEmail(input: ConfirmVerifyEmailInput!): Boolean
+    verifyEmail(input: VerifyEmailInput!): Boolean
     # register
     userRegister(input: UserRegisterInput!): AuthResult!
     # login
@@ -248,23 +248,24 @@ export default /* GraphQL */ `
   }
 
   input ConfirmVerificationCodeInput {
+    email: Email!
+    type: VerificationCodeType!
     code: String!
   }
 
-  input ConfirmResetPasswordInput {
+  input ResetPasswordInput {
     password: String!
     codeId: ID!
   }
 
-  input ConfirmChangeEmailInput {
+  input ChangeEmailInput {
     oldEmail: Email!
     oldEmailCodeId: ID!
     newEmail: Email!
     newEmailCodeId: ID!
   }
 
-  input ConfirmVerifyEmailInput {
-    email: Email!
+  input VerifyEmailInput {
     codeId: ID!
   }
 

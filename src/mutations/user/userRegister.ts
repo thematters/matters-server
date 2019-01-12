@@ -5,14 +5,29 @@ const resolver: MutationToUserRegisterResolver = async (
   { input },
   { dataSources: { userService } }
 ) => {
-  // TODO: check email
-  // TODO: check username
-  try {
-    await userService.create(input)
-    return userService.login(input)
-  } catch (err) {
-    throw err
+  // check verification code
+  const [code] = await userService.findVerificationCodes({
+    where: {
+      uuid: input.codeId,
+      email: input.email,
+      type: 'register',
+      status: 'verified'
+    }
+  })
+  if (!code) {
+    throw new Error('code does not exists')
   }
+
+  // check email
+  const user = await userService.findByEmail(input.email)
+  if (user) {
+    throw new Error('email address has already been registered')
+  }
+
+  // TODO: check username
+
+  await userService.create(input)
+  return userService.login(input)
 }
 
 export default resolver

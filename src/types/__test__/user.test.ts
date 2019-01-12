@@ -1,7 +1,11 @@
 import _get from 'lodash/get'
 // local
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { MAT_UNIT, TRANSACTION_PURPOSE } from 'common/enums'
+import {
+  MAT_UNIT,
+  TRANSACTION_PURPOSE,
+  VERIFICATION_CODE_STATUS
+} from 'common/enums'
 import { UserService } from 'connectors'
 import { knex } from 'connectors/db'
 import { defaultTestUser, getUserContext, testClient } from './utils'
@@ -257,6 +261,16 @@ const INVITE = `
     invite(input: $input)
   }
 `
+const SEND_VERIFICATION_CODE = `
+  mutation SendVerificationCode($input: SendVerificationCodeInput!) {
+    sendVerificationCode(input: $input)
+  }
+`
+const CONFIRM_VERIFICATION_CODE = `
+  mutation ConfirmVerificationCode($input: ConfirmVerificationCodeInput!) {
+    confirmVerificationCode(input: $input)
+  }
+`
 
 export const registerUser = async (user: { [key: string]: string }) => {
   const { mutate } = await testClient()
@@ -327,14 +341,23 @@ export const updateUserDescription = async ({
 
 describe('register and login functionarlities', () => {
   test('register user and retrieve info', async () => {
+    const email = `test-${Math.floor(Math.random() * 100)}@matters.news`
+    const code = await userService.createVerificationCode({
+      type: 'register',
+      email
+    })
+    await userService.markVerificationCodeAs({
+      codeId: code.id,
+      status: 'verified'
+    })
     const user = {
-      email: `test-${Math.floor(Math.random() * 100)}@matters.news`,
+      email,
       displayName: 'test user',
       password: '567',
-      codeId: '123'
+      codeId: code.uuid
     }
-    const { data: registerData } = await registerUser(user)
-    expect(_get(registerData, 'userRegister.token')).toBeTruthy()
+    const registerResult = await registerUser(user)
+    expect(_get(registerResult, 'data.userRegister.token')).toBeTruthy()
 
     const context = await getUserContext({ email: user.email })
     const { query } = await testClient({
@@ -692,13 +715,21 @@ describe('invitation', async () => {
     ).toBe(unregisterEmail)
 
     // register user
-    const { data: registerData } = await registerUser({
+    const code = await userService.createVerificationCode({
+      type: 'register',
+      email: unregisterEmail
+    })
+    await userService.markVerificationCodeAs({
+      codeId: code.id,
+      status: 'verified'
+    })
+    const registerResult = await registerUser({
       email: unregisterEmail,
       displayName: 'new test user',
       password: '567',
-      codeId: '123'
+      codeId: code.uuid
     })
-    expect(_get(registerData, 'userRegister.token')).toBeTruthy()
+    expect(_get(registerResult, 'data.userRegister.token')).toBeTruthy()
 
     // check user state
     const user = await userService.findByEmail(unregisterEmail)
@@ -741,5 +772,35 @@ describe('invitation', async () => {
     }
 
     expect(invitedData.invite).toBe(true)
+  })
+})
+
+describe('verification code', async () => {
+  const email = `verification-${Math.floor(Math.random() * 100)}@test.com`
+  const type = 'register'
+
+  test('send verification code', async () => {
+    // send
+    const { mutate } = await testClient()
+    const result = await mutate({
+      mutation: SEND_VERIFICATION_CODE,
+      // @ts-ignore
+      variables: { input: { type, email } }
+    })
+    expect(result.data.sendVerificationCode).toBe(true)
+
+    const [code] = await userService.findVerificationCodes({ email })
+    expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
+
+    // confirm
+    const { mutate: confirmMutate } = await testClient()
+    const confirmedResult = await confirmMutate({
+      mutation: CONFIRM_VERIFICATION_CODE,
+      // @ts-ignore
+      variables: { input: { type, email, code: code.code } }
+    })
+    expect(confirmedResult.data.confirmVerificationCode).toBe(code.uuid)
+    const [confirmedCode] = await userService.findVerificationCodes({ email })
+    expect(confirmedCode.status).toBe(VERIFICATION_CODE_STATUS.verified)
   })
 })

@@ -32,10 +32,6 @@ export const getUserContext = async ({ email }: { email: string }) => {
   }
 }
 
-export const defaultContext = {
-  viewer: undefined
-}
-
 export const delay = (ms: number) =>
   new Promise(resolve => setTimeout(resolve, ms))
 
@@ -47,24 +43,23 @@ export const testClient = async (
   }: { isAuth?: boolean; isAdmin?: boolean; context?: any } = {
     isAuth: false,
     isAdmin: false,
-    context: {}
+    context: null
   }
 ) => {
   let _context: any
   if (context) {
-    _context = context
+    _context = { viewer: { id: null }, ...context }
   } else if (isAuth) {
     _context = await getUserContext({
       email: isAdmin ? adminUser.email : defaultTestUser.email
     })
   } else {
-    _context = defaultContext
+    _context = { viewer: { id: null } }
   }
 
   const server = new ApolloServer({
     schema,
-    context: (): any => _context,
-    subscriptions: initSubscriptions(),
+    context: () => _context,
     dataSources: (): DataSources => ({
       userService: new UserService(),
       articleService: new ArticleService(),

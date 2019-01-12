@@ -49,6 +49,26 @@ export const MAT_UNIT = {
 export const ARTICLE_APPRECIATE_LIMIT = 5
 export const ARTICLE_PIN_COMMENT_LIMIT = 3
 
+export const VERIFICATION_CODE_EXIPRED_AFTER = 1000 * 60 // 60s
+export const VERIFICATION_CODE_STATUS = {
+  active: 'active',
+  inactive: 'inactive',
+  verified: 'verified',
+  expired: 'expired',
+  used: 'used'
+}
+export const VERIFICATION_CODE_TYPES = {
+  register: 'register',
+  email_reset: 'email_reset',
+  password_reset: 'password_reset',
+  email_verify: 'email_verify'
+}
+
+export const VERIFICATION_CODE_PROTECTED_TYPES = ['email_reset', 'email_verify']
+
+/**
+ * Queue
+ */
 export const QUEUE_PRIORITY = {
   LOW: 20,
   NORMAL: 15,
