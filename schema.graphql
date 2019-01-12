@@ -173,6 +173,13 @@ type Category {
   name: String!
 }
 
+input ChangeEmailInput {
+  oldEmail: Email!
+  oldEmailCodeId: ID!
+  newEmail: Email!
+  newEmailCodeId: ID!
+}
+
 enum ChannelType {
   appStore
   googlePlay
@@ -273,27 +280,10 @@ enum CommentState {
   banned
 }
 
-input ConfirmChangeEmailInput {
-  oldEmail: Email!
-  oldEmailCodeId: ID!
-  newEmail: Email!
-  newEmailCodeId: ID!
-}
-
-input ConfirmResetPasswordInput {
-  password: String!
-  codeId: ID!
-}
-
 input ConfirmVerificationCodeInput {
   email: Email!
   type: VerificationCodeType!
   code: String!
-}
-
-input ConfirmVerifyEmailInput {
-  email: Email!
-  codeId: ID!
 }
 
 input ConnectionArgs {
@@ -442,13 +432,13 @@ type Mutation {
   confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
   """change or reset password"""
-  confirmResetPassword(input: ConfirmResetPasswordInput!): Boolean
+  resetPassword(input: ResetPasswordInput!): Boolean
 
   """change email"""
-  confirmChangeEmail(input: ConfirmChangeEmailInput!): Boolean
+  changeEmail(input: ChangeEmailInput!): Boolean
 
   """verify email"""
-  confirmVerifyEmail(input: ConfirmVerifyEmailInput!): Boolean
+  verifyEmail(input: VerifyEmailInput!): Boolean
 
   """register"""
   userRegister(input: UserRegisterInput!): AuthResult!
@@ -721,6 +711,11 @@ input ReportCommentInput {
   description: String
   assetIds: [ID!]
   contact: String
+}
+
+input ResetPasswordInput {
+  password: String!
+  codeId: ID!
 }
 
 input SearchInput {
@@ -1038,6 +1033,10 @@ enum VerificationCodeType {
   email_reset
   password_reset
   email_verify
+}
+
+input VerifyEmailInput {
+  codeId: ID!
 }
 
 enum Vote {

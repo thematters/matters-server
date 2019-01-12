@@ -767,17 +767,17 @@ export interface GQLMutation {
   /**
    * change or reset password
    */
-  confirmResetPassword?: boolean
+  resetPassword?: boolean
 
   /**
    * change email
    */
-  confirmChangeEmail?: boolean
+  changeEmail?: boolean
 
   /**
    * verify email
    */
-  confirmVerifyEmail?: boolean
+  verifyEmail?: boolean
 
   /**
    * register
@@ -969,20 +969,19 @@ export interface GQLConfirmVerificationCodeInput {
   code: string
 }
 
-export interface GQLConfirmResetPasswordInput {
+export interface GQLResetPasswordInput {
   password: string
   codeId: string
 }
 
-export interface GQLConfirmChangeEmailInput {
+export interface GQLChangeEmailInput {
   oldEmail: GQLEmail
   oldEmailCodeId: string
   newEmail: GQLEmail
   newEmailCodeId: string
 }
 
-export interface GQLConfirmVerifyEmailInput {
-  email: GQLEmail
+export interface GQLVerifyEmailInput {
   codeId: string
 }
 
@@ -4208,9 +4207,9 @@ export interface GQLMutationTypeResolver<TParent = any> {
   feedback?: MutationToFeedbackResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
-  confirmResetPassword?: MutationToConfirmResetPasswordResolver<TParent>
-  confirmChangeEmail?: MutationToConfirmChangeEmailResolver<TParent>
-  confirmVerifyEmail?: MutationToConfirmVerifyEmailResolver<TParent>
+  resetPassword?: MutationToResetPasswordResolver<TParent>
+  changeEmail?: MutationToChangeEmailResolver<TParent>
+  verifyEmail?: MutationToVerifyEmailResolver<TParent>
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
   updateUserInfo?: MutationToUpdateUserInfoResolver<TParent>
@@ -4566,46 +4565,37 @@ export interface MutationToConfirmVerificationCodeResolver<
   ): TResult
 }
 
-export interface MutationToConfirmResetPasswordArgs {
-  input: GQLConfirmResetPasswordInput
+export interface MutationToResetPasswordArgs {
+  input: GQLResetPasswordInput
 }
-export interface MutationToConfirmResetPasswordResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface MutationToResetPasswordResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: MutationToConfirmResetPasswordArgs,
+    args: MutationToResetPasswordArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
-export interface MutationToConfirmChangeEmailArgs {
-  input: GQLConfirmChangeEmailInput
+export interface MutationToChangeEmailArgs {
+  input: GQLChangeEmailInput
 }
-export interface MutationToConfirmChangeEmailResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface MutationToChangeEmailResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: MutationToConfirmChangeEmailArgs,
+    args: MutationToChangeEmailArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
-export interface MutationToConfirmVerifyEmailArgs {
-  input: GQLConfirmVerifyEmailInput
+export interface MutationToVerifyEmailArgs {
+  input: GQLVerifyEmailInput
 }
-export interface MutationToConfirmVerifyEmailResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface MutationToVerifyEmailResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: MutationToConfirmVerifyEmailArgs,
+    args: MutationToVerifyEmailArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -18,8 +18,7 @@ import {
   ItemData,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
-  GQLUserRegisterInput,
-  GQLConfirmVerificationCodeInput
+  GQLUserRegisterInput
 } from 'definitions'
 import { BaseService } from './baseService'
 
@@ -721,7 +720,7 @@ export class UserService extends BaseService {
     return await qs
   }
 
-  markVerificationCodeAs = async ({
+  markVerificationCodeAs = ({
     codeId,
     status
   }: {
@@ -736,6 +735,6 @@ export class UserService extends BaseService {
       data = { ...data, verifiedAt: new Date() }
     }
 
-    this.baseUpdateById(codeId, data, 'verification_code')
+    return this.baseUpdateById(codeId, data, 'verification_code')
   }
 }

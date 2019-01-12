@@ -1,6 +1,6 @@
-import { MutationToConfirmChangeEmailResolver } from 'definitions'
+import { MutationToChangeEmailResolver } from 'definitions'
 
-const resolver: MutationToConfirmChangeEmailResolver = async (
+const resolver: MutationToChangeEmailResolver = async (
   _,
   { input: { oldEmail, oldEmailCodeId, newEmail, newEmailCodeId } },
   { viewer, dataSources: { userService } }

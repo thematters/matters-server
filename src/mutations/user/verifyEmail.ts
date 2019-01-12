@@ -1,6 +1,6 @@
-import { MutationToConfirmVerifyEmailResolver } from 'definitions'
+import { MutationToVerifyEmailResolver } from 'definitions'
 
-const resolver: MutationToConfirmVerifyEmailResolver = async (
+const resolver: MutationToVerifyEmailResolver = async (
   _,
   { input: { codeId: uuid } },
   { viewer, dataSources: { userService } }

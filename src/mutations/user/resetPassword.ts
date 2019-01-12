@@ -1,6 +1,6 @@
-import { MutationToConfirmResetPasswordResolver } from 'definitions'
+import { MutationToResetPasswordResolver } from 'definitions'
 
-const resolver: MutationToConfirmResetPasswordResolver = async (
+const resolver: MutationToResetPasswordResolver = async (
   _,
   { input: { password, codeId: uuid } },
   { viewer, dataSources: { userService } }
