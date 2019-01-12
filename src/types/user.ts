@@ -248,6 +248,8 @@ export default /* GraphQL */ `
   }
 
   input ConfirmVerificationCodeInput {
+    email: Email!
+    type: VerificationCodeType!
     code: String!
   }
 
@@ -264,7 +266,6 @@ export default /* GraphQL */ `
   }
 
   input ConfirmVerifyEmailInput {
-    email: Email!
     codeId: ID!
   }
 

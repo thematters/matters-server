@@ -286,6 +286,8 @@ input ConfirmResetPasswordInput {
 }
 
 input ConfirmVerificationCodeInput {
+  email: Email!
+  type: VerificationCodeType!
   code: String!
 }
 

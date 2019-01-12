@@ -5,8 +5,17 @@ const resolver: MutationToUserRegisterResolver = async (
   { input },
   { dataSources: { userService } }
 ) => {
+  // check verification code
+  const [code] = await userService.findVerificationCodes({
+    where: { uuid: input.codeId, status: 'active' }
+  })
+  if (!code) {
+    throw new Error('code does not exists')
+  }
+
   // TODO: check email
   // TODO: check username
+
   try {
     await userService.create(input)
     return userService.login(input)

@@ -964,6 +964,8 @@ export enum GQLVerificationCodeType {
 }
 
 export interface GQLConfirmVerificationCodeInput {
+  email: GQLEmail
+  type: GQLVerificationCodeType
   code: string
 }
 

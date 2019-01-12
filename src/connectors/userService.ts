@@ -9,14 +9,17 @@ import {
   BCRYPT_ROUNDS,
   USER_ACTION,
   TRANSACTION_PURPOSE,
-  MAT_UNIT
+  MAT_UNIT,
+  VERIFICATION_CODE_EXIPRED_AFTER,
+  VERIFICATION_CODE_STATUS
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ItemData,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
-  GQLUserRegisterInput
+  GQLUserRegisterInput,
+  GQLConfirmVerificationCodeInput
 } from 'definitions'
 import { BaseService } from './baseService'
 
@@ -89,27 +92,46 @@ export class UserService extends BaseService {
   /**
    * Upadte user info
    */
-  update = async (id: string, input: GQLUpdateUserInfoInput) => {
+  update = async (
+    id: string,
+    input: GQLUpdateUserInfoInput & { email?: string; emailVerified?: boolean }
+  ) => {
     const user = await this.baseUpdateById(id, input)
 
     const { description, displayName, userName } = input
-    if (description || displayName || userName) {
-      // remove null and undefined
-      const searchable = _.pickBy(
-        { description, displayName, userName },
-        _.identity
-      )
-
-      const esRes = await this.es.client.update({
-        index: this.table,
-        type: this.table,
-        id,
-        body: {
-          doc: searchable
-        }
-      })
+    if (!description && !displayName && !userName) {
+      return user
     }
 
+    // remove null and undefined
+    const searchable = _.pickBy(
+      { description, displayName, userName },
+      _.identity
+    )
+
+    await this.es.client.update({
+      index: this.table,
+      type: this.table,
+      id,
+      body: {
+        doc: searchable
+      }
+    })
+
+    return user
+  }
+
+  changePassword = async ({
+    userId,
+    password
+  }: {
+    userId: string
+    password: string
+  }) => {
+    const passwordHash = await hash(password, BCRYPT_ROUNDS)
+    const user = await this.baseUpdateById(userId, {
+      passwordHash
+    })
     return user
   }
 
@@ -493,6 +515,11 @@ export class UserService extends BaseService {
       })
       .del()
 
+  /*********************************
+   *                               *
+   *           Invitation          *
+   *                               *
+   *********************************/
   /**
    * Find invitation by email
    */
@@ -646,5 +673,69 @@ export class UserService extends BaseService {
     } catch (e) {
       console.error('[activateInvitedEmailUser]', e)
     }
+  }
+
+  /*********************************
+   *                               *
+   *         Verification          *
+   *                               *
+   *********************************/
+  createVerificationCode = ({
+    userId,
+    email,
+    type
+  }: {
+    userId?: string | null
+    email: string
+    type: string
+  }) =>
+    this.baseCreate(
+      {
+        uuid: v4(),
+        userId,
+        email,
+        type,
+        code: _.random(100000, 999999),
+        expiredAt: new Date(Date.now() + VERIFICATION_CODE_EXIPRED_AFTER)
+      },
+      'verification_code'
+    )
+
+  findVerificationCodes = async ({
+    where
+  }: {
+    where?: {
+      status: keyof typeof VERIFICATION_CODE_STATUS
+      [key: string]: any
+    }
+  }) => {
+    let qs = this.knex
+      .select()
+      .from('verification_code')
+      .orderBy('id', 'desc')
+
+    if (where) {
+      qs = qs.where(where)
+    }
+
+    return await qs
+  }
+
+  markVerificationCodeAs = async ({
+    codeId,
+    status
+  }: {
+    codeId: string
+    status: keyof typeof VERIFICATION_CODE_STATUS
+  }) => {
+    let data: any = { status }
+
+    if (status === VERIFICATION_CODE_STATUS.used) {
+      data = { ...data, usedAt: new Date() }
+    } else if (status === VERIFICATION_CODE_STATUS.verified) {
+      data = { ...data, verifiedAt: new Date() }
+    }
+
+    this.baseUpdateById(codeId, data, 'verification_code')
   }
 }
