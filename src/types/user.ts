@@ -97,6 +97,7 @@ export default /* GraphQL */ `
     # URL for avatar
     avatar: URL
     email: Email
+    emailVerified: Boolean
     mobile: String
     # Use 500 for now, adaptive in the future
     readSpeed: Int!
