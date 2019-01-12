@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 
 import { Context } from 'definitions'
+import logger from 'common/logger'
 import { environment } from 'common/environment'
 import {
   ArticleService,
@@ -30,7 +31,7 @@ export const initSubscriptions = (): { onConnect: any } => ({
       }
       viewer = await userService.baseFindByUUID(decoded.uuid)
     } catch (err) {
-      console.log('[API] User is not logged in, viewing as guest')
+      logger.info('[API] User is not logged in, viewing as guest')
     }
 
     return {

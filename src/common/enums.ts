@@ -64,7 +64,8 @@ export const QUEUE_JOB = {
   sendMail: 'sendMail',
   pushNotification: 'pushNotification',
   // repeat jobs
-  publishPendingDrafts: 'publishPendingDrafts'
+  publishPendingDrafts: 'publishPendingDrafts',
+  initializeSearch: 'initializeSearch'
 }
 
 export const QUEUE_NAME = {

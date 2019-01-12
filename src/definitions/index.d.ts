@@ -84,6 +84,7 @@ export type TableName =
   | 'feedback'
   | 'feedback_asset'
   | 'invitation'
+  | 'search_history'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'

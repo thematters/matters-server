@@ -2,6 +2,7 @@ import { GQLPossibleNodeTypeNames } from 'definitions'
 
 import node from './node'
 import search from './search'
+import frequentSearch from './frequentSearch'
 import {
   reportCategory,
   feedbackCategory,
@@ -15,6 +16,7 @@ export default {
   Query: {
     node,
     search,
+    frequentSearch,
     official: () => true
   },
   Node: {

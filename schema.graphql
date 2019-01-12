@@ -9,6 +9,7 @@ input ArchiveArticleInput {
 
 type Article implements Node {
   id: ID!
+  topicScore: Int
   slug: String!
   createdAt: DateTime!
   state: ArticleState!
@@ -360,6 +361,11 @@ input FollowUserInput {
   id: ID!
 }
 
+input FrequentSearchInput {
+  key: String
+  first: Int
+}
+
 input ImportArticlesInput {
   platform: String
   token: String
@@ -633,7 +639,7 @@ type Query {
   article(input: ArticleInput!): Article
   articles(input: ArticlesInput!): ArticleConnection!
   node(input: NodeInput!): Node
-  frequentSearch(key: String): [String!]
+  frequentSearch(input: FrequentSearchInput!): [String!]
   search(input: SearchInput!): SearchResultConnection!
   official: Official!
   viewer: User
@@ -728,11 +734,6 @@ input SearchInput {
   first: Int
 }
 
-type SearchResult {
-  node: Node
-  match: String
-}
-
 type SearchResultConnection {
   pageInfo: PageInfo!
   edges: [SearchResultEdge!]
@@ -740,7 +741,7 @@ type SearchResultConnection {
 
 type SearchResultEdge {
   cursor: String!
-  node: SearchResult!
+  node: Node!
 }
 
 enum SearchTypes {

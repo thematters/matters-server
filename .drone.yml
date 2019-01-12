@@ -40,30 +40,6 @@ steps:
     commands:
       - npm run build
 
-  - name: staging:db-rollback
-    image: jbergknoff/postgresql-client
-    environment:
-      PGHOST:
-        from_secret: STAGING_PG_HOST
-      PGUSER:
-        from_secret: STAGING_PG_USER
-      PGPASSWORD:
-        from_secret: STAGING_PG_PASSWORD
-    commands:
-      - |
-        psql matters_stage <<SQL
-          DROP SCHEMA public CASCADE;
-          CREATE SCHEMA public;
-          GRANT ALL ON SCHEMA public TO public;
-          GRANT ALL ON SCHEMA public TO matters;
-        SQL
-    when:
-      branch:
-        - develop
-        - feature/beanstalk
-      event:
-        - push
-
   - name: staging:db-migrate
     image: node:10.14
     environment:
@@ -78,7 +54,6 @@ steps:
         from_secret: STAGING_PG_PASSWORD
     commands:
       - npm run db:migrate
-      - npm run db:seed
     when:
       branch:
         - develop

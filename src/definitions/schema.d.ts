@@ -35,6 +35,7 @@ export interface GQLArticleInput {
 
 export interface GQLArticle extends GQLNode {
   id: string
+  topicScore?: number
   slug: string
   createdAt: GQLDateTime
   state: GQLArticleState
@@ -626,6 +627,11 @@ export interface GQLNodeInput {
   id: string
 }
 
+export interface GQLFrequentSearchInput {
+  key?: string
+  first?: number
+}
+
 export interface GQLSearchInput {
   key: string
   type: GQLSearchTypes
@@ -646,12 +652,7 @@ export interface GQLSearchResultConnection {
 
 export interface GQLSearchResultEdge {
   cursor: string
-  node: GQLSearchResult
-}
-
-export interface GQLSearchResult {
-  node?: GQLNode
-  match?: string
+  node: GQLNode
 }
 
 export interface GQLOfficial {
@@ -1258,7 +1259,6 @@ export interface GQLResolver {
   CommentEdge?: GQLCommentEdgeTypeResolver
   SearchResultConnection?: GQLSearchResultConnectionTypeResolver
   SearchResultEdge?: GQLSearchResultEdgeTypeResolver
-  SearchResult?: GQLSearchResultTypeResolver
   Official?: GQLOfficialTypeResolver
   Category?: GQLCategoryTypeResolver
   Release?: GQLReleaseTypeResolver
@@ -1346,7 +1346,7 @@ export interface QueryToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface QueryToFrequentSearchArgs {
-  key?: string
+  input: GQLFrequentSearchInput
 }
 export interface QueryToFrequentSearchResolver<TParent = any, TResult = any> {
   (
@@ -1401,6 +1401,7 @@ export interface QueryToUserResolver<TParent = any, TResult = any> {
 
 export interface GQLArticleTypeResolver<TParent = any> {
   id?: ArticleToIdResolver<TParent>
+  topicScore?: ArticleToTopicScoreResolver<TParent>
   slug?: ArticleToSlugResolver<TParent>
   createdAt?: ArticleToCreatedAtResolver<TParent>
   state?: ArticleToStateResolver<TParent>
@@ -1436,6 +1437,15 @@ export interface GQLArticleTypeResolver<TParent = any> {
 }
 
 export interface ArticleToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToTopicScoreResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -3783,29 +3793,6 @@ export interface SearchResultEdgeToCursorResolver<
 }
 
 export interface SearchResultEdgeToNodeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLSearchResultTypeResolver<TParent = any> {
-  node?: SearchResultToNodeResolver<TParent>
-  match?: SearchResultToMatchResolver<TParent>
-}
-
-export interface SearchResultToNodeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface SearchResultToMatchResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

@@ -14,7 +14,7 @@ import userNameEditable from './userNameEditable'
 import articleCount from './articleCount'
 import commentCount from './commentCount'
 // import oauthType from './oauthType'
-import history from './history'
+import UserActivity from './userActivity'
 import notification from './notification'
 import followerCount from './followerCount'
 import followeeCount from './followeeCount'
@@ -57,9 +57,7 @@ export default {
     // oauthType,
     notification
   },
-  UserActivity: {
-    history
-  },
+  UserActivity,
   MAT,
   Transaction,
   UserStatus: {

@@ -3,6 +3,8 @@ require('module-alias/register')
 import { printSchema } from 'graphql'
 import { makeExecutableSchema } from 'graphql-tools'
 import fs from 'fs'
+
+import logger from 'common/logger'
 import typeDefs from 'types'
 
 const schemaObj = makeExecutableSchema({
@@ -16,8 +18,8 @@ const schemaString = printSchema(schemaObj)
 
 fs.writeFile('schema.graphql', schemaString, function(err) {
   if (err) {
-    console.error(err)
+    logger.error(err)
   } else {
-    console.log('Successfully printed schema.')
+    logger.info('Successfully printed schema.')
   }
 })

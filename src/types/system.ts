@@ -1,7 +1,7 @@
 export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node
-    frequentSearch(key: String): [String!]
+    frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection!
     official: Official!
   }
@@ -23,11 +23,6 @@ export default /* GraphQL */ `
     startCursor: String
     endCursor: String
     hasNextPage: Boolean!
-  }
-
-  type SearchResult {
-    node: Node
-    match: String
   }
 
   type Official {
@@ -94,11 +89,16 @@ export default /* GraphQL */ `
 
   type SearchResultEdge {
     cursor: String!
-    node: SearchResult!
+    node: Node!
   }
 
   input NodeInput {
     id: ID!
+  }
+
+  input FrequentSearchInput {
+    key: String
+    first: Int
   }
 
   input NodeEditedInput {
