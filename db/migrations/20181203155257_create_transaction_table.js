@@ -16,7 +16,9 @@ exports.up = async knex => {
       'appreciate',
       'invitation-accepted',
       'join-by-invitation',
-      'join-by-task'
+      'join-by-task',
+      'first-post',
+      'system-subsidy'
     ])
       .notNullable()
       .defaultTo('appreciate')

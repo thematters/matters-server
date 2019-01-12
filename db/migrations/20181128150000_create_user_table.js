@@ -18,6 +18,7 @@ exports.up = async knex => {
     t.string('email')
       .notNullable()
       .unique()
+    t.boolean('email_verified').defaultTo(false)
     t.string('mobile')
     t.text('password_hash').notNullable()
     t.integer('read_speed').defaultTo(500)

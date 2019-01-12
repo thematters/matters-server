@@ -190,6 +190,7 @@ export interface GQLUserInfo {
    */
   avatar?: GQLURL
   email?: GQLEmail
+  emailVerified?: boolean
   mobile?: string
 
   /**
@@ -930,7 +931,8 @@ export enum GQLAssetType {
   cover = 'cover',
   audiodraft = 'audiodraft',
   report = 'report',
-  feedback = 'feedback'
+  feedback = 'feedback',
+  embed = 'embed'
 }
 
 export type GQLUpload = any
@@ -1974,6 +1976,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   description?: UserInfoToDescriptionResolver<TParent>
   avatar?: UserInfoToAvatarResolver<TParent>
   email?: UserInfoToEmailResolver<TParent>
+  emailVerified?: UserInfoToEmailVerifiedResolver<TParent>
   mobile?: UserInfoToMobileResolver<TParent>
   readSpeed?: UserInfoToReadSpeedResolver<TParent>
   badges?: UserInfoToBadgesResolver<TParent>
@@ -2037,6 +2040,15 @@ export interface UserInfoToAvatarResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToEmailResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToEmailVerifiedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

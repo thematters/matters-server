@@ -67,6 +67,7 @@ export class UserService extends BaseService {
     const user = await this.baseCreate({
       uuid,
       email,
+      emailVerified: true,
       userName,
       displayName,
       description,

@@ -147,6 +147,7 @@ export default /* GraphQL */ `
     audiodraft
     report
     feedback
+    embed
   }
 
   enum PlatformType {
