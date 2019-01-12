@@ -15,11 +15,8 @@ class ElasticSearch {
     this.client = new elasticsearch.Client({
       host: { host, port }
     })
-    if (env === 'development' || env === 'test') {
-      this.clear()
-    } else {
-      this.init()
-    }
+
+    this.init()
   }
 
   init = async () => {

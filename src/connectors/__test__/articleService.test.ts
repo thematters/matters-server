@@ -3,10 +3,10 @@ import { knex } from 'connectors/db'
 
 const articleService = new ArticleService()
 
-beforeAll(async () => {
-  await articleService.es.clear()
-  await articleService.initSearch()
-})
+// beforeAll(async () => {
+//   await articleService.es.clear()
+//   await articleService.initSearch()
+// })
 afterAll(knex.destroy)
 
 test('publish', async () => {
