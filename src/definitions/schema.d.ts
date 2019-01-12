@@ -628,7 +628,7 @@ export interface GQLNodeInput {
 
 export interface GQLFrequentSearchInput {
   key?: string
-  limit?: number
+  first?: number
 }
 
 export interface GQLSearchInput {

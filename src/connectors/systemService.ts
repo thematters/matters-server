@@ -8,10 +8,10 @@ export class SystemService extends BaseService {
 
   frequentSearch = async ({
     key = '',
-    limit = 5
+    first = 5
   }: {
     key?: string
-    limit?: number
+    first?: number
   }) => {
     const result = await this.knex('search_history')
       .select('search_key')
@@ -19,7 +19,7 @@ export class SystemService extends BaseService {
       .where('search_key', 'like', `%${key}%`)
       .groupBy('search_key')
       .orderBy('count', 'desc')
-      .limit(limit)
+      .limit(first)
 
     return result.map(({ searchKey }: { searchKey: string }) => searchKey)
   }

@@ -362,7 +362,7 @@ input FollowUserInput {
 
 input FrequentSearchInput {
   key: String
-  limit: Int
+  first: Int
 }
 
 input ImportArticlesInput {

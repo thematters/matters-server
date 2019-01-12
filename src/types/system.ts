@@ -98,7 +98,7 @@ export default /* GraphQL */ `
 
   input FrequentSearchInput {
     key: String
-    limit: Int
+    first: Int
   }
 
   input NodeEditedInput {
