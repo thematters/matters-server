@@ -1,6 +1,7 @@
 // external
 import jwt from 'jsonwebtoken'
 // internal
+import logger from 'common/logger'
 import { RequestContext } from 'definitions'
 import { environment } from 'common/environment'
 import { UserService } from 'connectors'
@@ -26,7 +27,7 @@ export const makeContext = async ({
     const decoded = jwt.verify(token, environment.jwtSecret) as { uuid: string }
     viewer = await userService.baseFindByUUID(decoded.uuid)
   } catch (err) {
-    console.log('[Subscriptions] User is not logged in, viewing as guest')
+    logger.info('[Subscriptions] User is not logged in, viewing as guest')
   }
 
   return {

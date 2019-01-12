@@ -19,6 +19,7 @@ export default /* GraphQL */ `
 
   type Article implements Node {
     id: ID!
+    topicScore: Int
     slug: String!
     createdAt: DateTime!
     state: ArticleState!

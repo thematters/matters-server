@@ -1,9 +1,11 @@
 ///<reference path="./ipfs-http-client.d.ts" />
 // import { cmd } from './ipfs-http-client'
 import * as cheerio from 'cheerio'
+import ipfsClient = require('ipfs-http-client')
 import axios from 'axios'
 import { resolve as urlResolve } from 'url'
-import ipfsClient = require('ipfs-http-client')
+
+import logger from 'common/logger'
 import { environment } from 'common/environment'
 
 const { ipfsHost, ipfsPort, domain } = environment
@@ -39,7 +41,7 @@ export class IPFS {
 
       return { path, content: Buffer.from(data, 'binary') }
     } catch (err) {
-      console.log(`Fetching data for ${url} failed`)
+      logger.info(`Fetching data for ${url} failed`)
       return
     }
   }

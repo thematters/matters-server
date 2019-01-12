@@ -1,3 +1,4 @@
+import _get from 'lodash/get'
 // internal
 import { toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
@@ -72,20 +73,22 @@ const GET_COMMENT = `
 const SEARCH = `
   query($input: SearchInput!) {
     search(input: $input) {
-      match
-      node {
-        ... on Article {
-          title
-          content
-        }
-        ... on Tag {
-          content
-        }
-        ... on User {
-          info {
-            userName
-            displayName
-            description
+      edges {
+        node {
+          id
+          ... on Article {
+            title
+            content
+          }
+          ... on Tag {
+            content
+          }
+          ... on User {
+            info {
+              userName
+              displayName
+              description
+            }
           }
         }
       }
@@ -148,13 +151,12 @@ describe.skip('Search', async () => {
         input: {
           key: draft.title,
           type: 'Article',
-          limit: 1
+          first: 1
         }
       }
     })
 
-    const search = result && result.data && result.data.search
-    const title = search && search[0] && search[0].node && search[0].node.title
+    const title = _get(result, 'data.search.edges.0.node.title')
     expect(title).toBe(draft.title)
   })
 
@@ -168,14 +170,12 @@ describe.skip('Search', async () => {
         input: {
           key: draft.tags[0],
           type: 'Tag',
-          limit: 1
+          first: 1
         }
       }
     })
 
-    const search = result && result.data && result.data.search
-    const content =
-      search && search[0] && search[0].node && search[0].node.content
+    const content = _get(result, 'data.search.edges.0.node.content')
     expect(content).toBe(draft.tags[0])
   })
 
@@ -190,18 +190,14 @@ describe.skip('Search', async () => {
         input: {
           key: userDescription,
           type: 'User',
-          limit: 1
+          first: 1
         }
       }
     })
-
-    const search = result && result.data && result.data.search
-    const description =
-      search &&
-      search[0] &&
-      search[0].node &&
-      search[0].node.info &&
-      search[0].node.info.description
+    const description = _get(
+      result,
+      'data.search.edges.0.node.info.description'
+    )
     expect(description).toBe(userDescription)
   })
 })

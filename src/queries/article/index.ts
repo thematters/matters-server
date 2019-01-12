@@ -34,6 +34,8 @@ export default {
   },
   Article: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
+    topicScore: ({ topicScore }: { topicScore: number }) =>
+      topicScore ? Math.round(topicScore) : null,
     author,
     cover,
     summary,

@@ -7,18 +7,23 @@ import {
   QUEUE_NAME,
   PUBLISH_STATE
 } from 'common/enums'
-import { DraftService } from 'connectors/draftService'
+import { DraftService, UserService, ArticleService } from 'connectors'
 // local
 import { createQueue } from './utils'
 
 class ScheduleQueue {
   q: InstanceType<typeof Queue>
   draftService: InstanceType<typeof DraftService>
+  userService: InstanceType<typeof UserService>
+  articleService: InstanceType<typeof ArticleService>
 
   private queueName = QUEUE_NAME.schedule
 
   constructor() {
     this.draftService = new DraftService()
+    this.userService = new UserService()
+    this.articleService = new ArticleService()
+
     this.q = createQueue(this.queueName)
     this.addConsumers()
     this.addRepeatJobs()
@@ -49,6 +54,19 @@ class ScheduleQueue {
         done(e)
       }
     })
+
+    this.q.process(QUEUE_JOB.initializeSearch, async (job, done) => {
+      try {
+        await this.articleService.es.clear()
+        const articleRes = await this.articleService.initSearch()
+        job.progress(50)
+        const userRes = await this.userService.initSearch()
+        job.progress(100)
+        done(null, { articleRes, userRes })
+      } catch (e) {
+        done(e)
+      }
+    })
   }
 
   /**
@@ -59,6 +77,14 @@ class ScheduleQueue {
       priority: QUEUE_PRIORITY.HIGH,
       repeat: {
         every: 1000 * 60 * 20 // every 20 mins
+      }
+      // removeOnComplete: true
+    })
+
+    this.q.add(QUEUE_JOB.initializeSearch, null, {
+      priority: QUEUE_PRIORITY.CRITICAL,
+      repeat: {
+        every: 1000 * 60 * 60 * 24 // every 24 hours TODO: set time with least usage
       }
       // removeOnComplete: true
     })

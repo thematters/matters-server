@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import bodybuilder from 'bodybuilder'
 import _ from 'lodash'
 
+import logger from 'common/logger'
 import {
   BCRYPT_ROUNDS,
   USER_ACTION,
@@ -145,6 +146,16 @@ export class UserService extends BaseService {
     return history.length <= 0
   }
 
+  recentSearches = async (userId: string) => {
+    const result = await this.knex('search_history')
+      .select('search_key')
+      .where({ userId })
+      .max('created_at as search_at')
+      .groupBy('search_key')
+      .orderBy('search_at', 'desc')
+    return result.map(({ searchKey }: { searchKey: string }) => searchKey)
+  }
+
   /**
    * Add user name edit history
    */
@@ -196,12 +207,7 @@ export class UserService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
-      // TODO: determine if id exsists and use dataloader
-      const users = await this.dataloader.loadMany(ids)
-      return users.map((user: { [key: string]: string }) => ({
-        node: { ...user, __type: 'User' },
-        match: key
-      }))
+      return this.dataloader.loadMany(ids)
     } catch (err) {
       throw err
     }
@@ -214,7 +220,7 @@ export class UserService extends BaseService {
     const user = await this.findByEmail(email)
 
     if (!user) {
-      console.log('Cannot find user with email, login failed.')
+      logger.info('Cannot find user with email, login failed.')
       return {
         auth: false
       }
@@ -222,7 +228,7 @@ export class UserService extends BaseService {
 
     const auth = await compare(password, user.passwordHash)
     if (!auth) {
-      console.log('Password incorrect, login failed.')
+      logger.info('Password incorrect, login failed.')
       return {
         auth: false
       }
@@ -232,7 +238,7 @@ export class UserService extends BaseService {
       expiresIn: 86400 * 90 // expires in 24 * 90 hours
     })
 
-    console.log(`User logged in with uuid ${user.uuid}.`)
+    logger.info(`User logged in with uuid ${user.uuid}.`)
     return {
       auth: true,
       token
@@ -671,7 +677,7 @@ export class UserService extends BaseService {
         }
       })
     } catch (e) {
-      console.error('[activateInvitedEmailUser]', e)
+      logger.error('[activateInvitedEmailUser]', e)
     }
   }
 

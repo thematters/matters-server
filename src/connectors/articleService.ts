@@ -1,4 +1,3 @@
-import * as cheerio from 'cheerio'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
@@ -32,7 +31,12 @@ export class ArticleService extends BaseService {
 
     return this.es.indexItems({
       index: this.table,
-      items: articles
+      items: articles.map(
+        (article: { content: string; title: string; id: string }) => ({
+          ...article,
+          content: this.stripHtml(article.content)
+        })
+      )
     })
   }
 
@@ -77,6 +81,7 @@ export class ArticleService extends BaseService {
           '/': dataHash
         }
       },
+      summary,
       author: {
         name,
         description: description || ''
@@ -101,25 +106,21 @@ export class ArticleService extends BaseService {
     }
 
     // get media hash
-    const [{ hash: mediaHash }] = await this.ipfs.client.add(
-      Buffer.from(JSON.stringify(mediaObj)),
-      {
-        pin: true
-      }
-    )
+    // const [{ hash: mediaHash }] = await this.ipfs.client.add(
+    //   Buffer.from(JSON.stringify(mediaObj)),
+    //   {
+    //     pin: true
+    //   }
+    // )
 
-    // TODO: add media object as IPLD instead of string
-    // related discussion: https://github.com/ipld/ipld/issues/19
-    // const cid = await this.ipfs.client.dag.put(mediaObj, {
-    //   format: 'dag-pb',
-    //   inputenc: 'json',
-    //   pin: true,
-    //   hashAlg: 'sha2-256'
-    // })
-    // const mediaHash = cid.toBaseEncodedString()
+    const cid = await this.ipfs.client.dag.put(mediaObj, {
+      format: 'dag-cbor',
+      pin: true,
+      hashAlg: 'sha2-256'
+    })
+    const mediaHash = cid.toBaseEncodedString()
 
     // edit db record
-
     const article = await this.create({
       authorId,
       upstreamId,
@@ -149,7 +150,7 @@ export class ArticleService extends BaseService {
         {
           id,
           title,
-          content,
+          content: this.stripHtml(content),
           tags
         }
       ]
@@ -174,12 +175,7 @@ export class ArticleService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
-      // TODO: determine if id exsists and use dataloader
-      const articles = await this.dataloader.loadMany(ids)
-      return articles.map((article: { [key: string]: string }) => ({
-        node: { ...article, __type: 'Article' },
-        match: key
-      }))
+      return this.dataloader.loadMany(ids)
     } catch (err) {
       throw err
     }
@@ -261,13 +257,13 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
+  stripHtml = (html: string) => html.replace(/(<([^>]+)>)/gi, '')
+
   /**
    * Counts words witin in html content.
    */
   countWords = (html: string) =>
-    cheerio
-      .load(html)('body')
-      .text()
+    this.stripHtml(html)
       .split(' ')
       .filter(s => s !== '').length
 

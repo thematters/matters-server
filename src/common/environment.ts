@@ -28,7 +28,8 @@ export const environment = {
   jpushKey: process.env['MATTERS_JPUSH_API_KEY'],
   jpushSecret: process.env['MATTERS_JPUSH_API_SECRET'],
   emailName: process.env['MATTERS_EMAIL_NAME'],
-  jwtSecret: process.env['MATTERS_JWT_SECRET'] || '_dev_jwt_secret_'
+  jwtSecret: process.env['MATTERS_JWT_SECRET'] || '_dev_jwt_secret_',
+  apiKey: process.env['MATTERS_APOLLO_API_KEY']
 }
 
 export const isDev = environment.env === 'development'

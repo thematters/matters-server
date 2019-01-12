@@ -3,6 +3,8 @@ require('module-alias/register')
 import fs from 'fs'
 import { generateTypeScriptTypes } from 'graphql-schema-typescript'
 
+import logger from 'common/logger'
+
 const schema = fs.readFileSync('schema.graphql', { encoding: 'utf8' })
 
 generateTypeScriptTypes(schema, 'src/definitions/schema.d.ts', {
@@ -10,10 +12,10 @@ generateTypeScriptTypes(schema, 'src/definitions/schema.d.ts', {
   importStatements: ["import { Context } from './index'"]
 })
   .then(() => {
-    console.log('DONE')
+    logger.info('DONE')
     process.exit(0)
   })
   .catch(err => {
-    console.error(err)
+    logger.error(err)
     process.exit(1)
   })
