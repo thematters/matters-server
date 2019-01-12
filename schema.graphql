@@ -132,6 +132,7 @@ enum AssetType {
   audiodraft
   report
   feedback
+  embed
 }
 
 type Audiodraft {
