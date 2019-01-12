@@ -1,6 +1,7 @@
 import { MutationToSendVerificationCodeResolver } from 'definitions'
 import { VERIFICATION_CODE_PROTECTED_TYPES } from 'common/enums'
 import { notificationQueue } from 'connectors/queue'
+import { environment } from 'common/environment'
 
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,
@@ -22,9 +23,13 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     type
   })
 
-  // send email
-  console.log(code)
-  // notificationQueue.sendMail()
+  // TODO: send email
+  notificationQueue.sendMail({
+    from: environment.emailName as string,
+    to: email,
+    html: `Your verification code is <strong>${code}</strong>`,
+    subject: `Your verification code is ${code}`
+  })
 
   return true
 }
