@@ -4,7 +4,7 @@ import _ from 'lodash'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 
-const { esHost: host, esPort: port } = environment
+const { esHost: host, esPort: port, env } = environment
 
 class ElasticSearch {
   client: elasticsearch.Client
@@ -15,7 +15,11 @@ class ElasticSearch {
     this.client = new elasticsearch.Client({
       host: { host, port }
     })
-    this.init()
+    if (env === 'development' || env === 'test') {
+      this.clear()
+    } else {
+      this.init()
+    }
   }
 
   init = async () => {

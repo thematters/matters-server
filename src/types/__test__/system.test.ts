@@ -198,9 +198,6 @@ describe.skip('Search', async () => {
       result,
       'data.search.edges.0.node.info.description'
     )
-    console.log({
-      error: result.errors
-    })
     expect(description).toBe(userDescription)
   })
 })

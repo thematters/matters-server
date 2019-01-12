@@ -1,6 +1,10 @@
 import { ArticleService } from '../articleService'
 import { knex } from 'connectors/db'
 
+beforeAll(async () => {
+  await this.articleService.es.clear()
+  await this.articleService.initSearch()
+})
 afterAll(knex.destroy)
 
 const articleService = new ArticleService()

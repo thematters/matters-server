@@ -123,6 +123,16 @@ export class UserService extends BaseService {
     return history.length <= 0
   }
 
+  recentSearches = async (userId: string) => {
+    const result = await this.knex('search_history')
+      .select('search_key')
+      .where({ userId })
+      .max('created_at as search_at')
+      .groupBy('search_key')
+      .orderBy('search_at', 'desc')
+    return result.map(({ searchKey }: { searchKey: string }) => searchKey)
+  }
+
   /**
    * Add user name edit history
    */
