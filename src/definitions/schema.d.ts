@@ -35,6 +35,7 @@ export interface GQLArticleInput {
 
 export interface GQLArticle extends GQLNode {
   id: string
+  topicScore?: number
   slug: string
   createdAt: GQLDateTime
   state: GQLArticleState
@@ -1393,6 +1394,7 @@ export interface QueryToUserResolver<TParent = any, TResult = any> {
 
 export interface GQLArticleTypeResolver<TParent = any> {
   id?: ArticleToIdResolver<TParent>
+  topicScore?: ArticleToTopicScoreResolver<TParent>
   slug?: ArticleToSlugResolver<TParent>
   createdAt?: ArticleToCreatedAtResolver<TParent>
   state?: ArticleToStateResolver<TParent>
@@ -1428,6 +1430,15 @@ export interface GQLArticleTypeResolver<TParent = any> {
 }
 
 export interface ArticleToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToTopicScoreResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
