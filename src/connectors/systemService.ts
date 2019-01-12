@@ -1,8 +1,27 @@
 import { BaseService } from './baseService'
+import logger from 'common/logger'
 
 export class SystemService extends BaseService {
   constructor() {
     super('noop')
+  }
+
+  frequentSearch = async ({
+    key = '',
+    limit = 5
+  }: {
+    key?: string
+    limit?: number
+  }) => {
+    const result = await this.knex('search_history')
+      .select('search_key')
+      .count('id')
+      .where('search_key', 'like', `%${key}%`)
+      .groupBy('search_key')
+      .orderBy('count', 'desc')
+      .limit(limit)
+
+    return result.map(({ searchKey }: { searchKey: string }) => searchKey)
   }
 
   /**

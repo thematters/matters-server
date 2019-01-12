@@ -360,6 +360,11 @@ input FollowUserInput {
   id: ID!
 }
 
+input FrequentSearchInput {
+  key: String
+  limit: Int
+}
+
 input ImportArticlesInput {
   platform: String
   token: String
@@ -633,7 +638,7 @@ type Query {
   article(input: ArticleInput!): Article
   articles(input: ArticlesInput!): ArticleConnection!
   node(input: NodeInput!): Node
-  frequentSearch(key: String): [String!]
+  frequentSearch(input: FrequentSearchInput!): [String!]
   search(input: SearchInput!): SearchResultConnection!
   official: Official!
   viewer: User

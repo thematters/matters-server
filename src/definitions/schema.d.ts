@@ -626,6 +626,11 @@ export interface GQLNodeInput {
   id: string
 }
 
+export interface GQLFrequentSearchInput {
+  key?: string
+  limit?: number
+}
+
 export interface GQLSearchInput {
   key: string
   type: GQLSearchTypes
@@ -1339,7 +1344,7 @@ export interface QueryToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface QueryToFrequentSearchArgs {
-  key?: string
+  input: GQLFrequentSearchInput
 }
 export interface QueryToFrequentSearchResolver<TParent = any, TResult = any> {
   (

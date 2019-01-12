@@ -3,10 +3,18 @@ import { connectionFromPromisedArray } from 'graphql-relay'
 import { QueryToSearchResolver, GQLNode } from 'definitions'
 
 const resolver: QueryToSearchResolver = (
-  root,
+  _,
   { input },
-  { dataSources: { articleService, userService, tagService } }
+  {
+    dataSources: { systemService, articleService, userService, tagService },
+    viewer
+  }
 ) => {
+  systemService.baseCreate(
+    { userId: viewer.id, searchKey: input.key },
+    'search_history'
+  )
+
   const serviceMap = {
     Article: articleService,
     User: userService,

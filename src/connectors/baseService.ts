@@ -10,6 +10,7 @@ import { Item, ItemData, TableName } from 'definitions'
 import { aws, AWSService } from './aws'
 import { knex } from './db'
 import { es } from './es'
+import logger from 'common/logger'
 
 export class BaseService extends DataSource {
   es: typeof es
@@ -89,10 +90,16 @@ export class BaseService extends DataSource {
    * Create item
    */
   baseCreate = async (data: ItemData, table?: TableName): Promise<any> => {
-    const [result] = await this.knex(table || this.table)
-      .returning('*')
-      .insert(data)
-    return result
+    try {
+      const [result] = await this.knex(table || this.table)
+        .returning('*')
+        .insert(data)
+      logger.info(`Inserted id ${result.id} to ${table}`)
+      return result
+    } catch (err) {
+      logger.error(err)
+      throw err
+    }
   }
 
   /**

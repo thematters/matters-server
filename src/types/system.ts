@@ -1,7 +1,7 @@
 export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node
-    frequentSearch(key: String): [String!]
+    frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection!
     official: Official!
   }
@@ -94,6 +94,11 @@ export default /* GraphQL */ `
 
   input NodeInput {
     id: ID!
+  }
+
+  input FrequentSearchInput {
+    key: String
+    limit: Int
   }
 
   input NodeEditedInput {
