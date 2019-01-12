@@ -11,7 +11,7 @@ const resolver: QueryToSearchResolver = (
   }
 ) => {
   systemService.baseCreate(
-    { userId: viewer.id, searchKey: input.key },
+    { userId: viewer ? viewer.id : null, searchKey: input.key },
     'search_history'
   )
 

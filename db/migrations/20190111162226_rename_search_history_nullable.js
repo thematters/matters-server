@@ -9,11 +9,5 @@ exports.up = async knex => {
 }
 
 exports.down = async knex => {
-  await knex.schema.alterTable('search_history', table => {
-    table
-      .bigInteger('user_id')
-      .notNullable()
-      .alter()
-  })
   await knex.schema.renameTable('search_history', 'serach_history')
 }

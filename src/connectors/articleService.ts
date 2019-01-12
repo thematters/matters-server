@@ -175,6 +175,7 @@ export class ArticleService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
+      console.log({ ids })
       return this.dataloader.loadMany(ids)
     } catch (err) {
       throw err
