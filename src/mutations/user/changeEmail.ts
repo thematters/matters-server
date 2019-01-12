@@ -8,14 +8,16 @@ const resolver: MutationToChangeEmailResolver = async (
   const [oldCode] = await userService.findVerificationCodes({
     where: {
       uuid: oldEmailCodeId,
-      email: oldEmailCodeId,
+      email: oldEmail,
+      type: 'email_reset',
       status: 'verified'
     }
   })
   const [newCode] = await userService.findVerificationCodes({
     where: {
       uuid: newEmailCodeId,
-      email: newEmailCodeId,
+      email: newEmail,
+      type: 'email_reset',
       status: 'verified'
     }
   })
@@ -32,7 +34,7 @@ const resolver: MutationToChangeEmailResolver = async (
   }
 
   // update email
-  await userService.update(user.id, { email: newEmail })
+  await userService.update(user.id, { email: newCode.email })
 
   // mark code status as used
   await userService.markVerificationCodeAs({

@@ -6,7 +6,11 @@ const resolver: MutationToVerifyEmailResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   const [code] = await userService.findVerificationCodes({
-    where: { uuid, status: 'verified' }
+    where: {
+      uuid,
+      type: 'email_verify',
+      status: 'verified'
+    }
   })
 
   // check code

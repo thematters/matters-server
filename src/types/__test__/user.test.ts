@@ -788,15 +788,13 @@ describe('verification code', async () => {
       variables: { input: { type, email } }
     })
     expect(result.data.sendVerificationCode).toBe(true)
-  })
 
-  test('confirm verification code', async () => {
     const [code] = await userService.findVerificationCodes({ email })
     expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
 
     // confirm
-    const { mutate } = await testClient()
-    const confirmedResult = await mutate({
+    const { mutate: confirmMutate } = await testClient()
+    const confirmedResult = await confirmMutate({
       mutation: CONFIRM_VERIFICATION_CODE,
       // @ts-ignore
       variables: { input: { type, email, code: code.code } }

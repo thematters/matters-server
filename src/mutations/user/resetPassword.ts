@@ -6,7 +6,11 @@ const resolver: MutationToResetPasswordResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   const [code] = await userService.findVerificationCodes({
-    where: { uuid, status: 'verified' }
+    where: {
+      uuid,
+      type: 'password_reset',
+      status: 'verified'
+    }
   })
 
   // check code

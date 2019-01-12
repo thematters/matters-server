@@ -11,7 +11,8 @@ import {
   TRANSACTION_PURPOSE,
   MAT_UNIT,
   VERIFICATION_CODE_EXIPRED_AFTER,
-  VERIFICATION_CODE_STATUS
+  VERIFICATION_CODE_STATUS,
+  VERIFICATION_CODE_TYPES
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -704,7 +705,8 @@ export class UserService extends BaseService {
     where
   }: {
     where?: {
-      status: keyof typeof VERIFICATION_CODE_STATUS
+      type?: keyof typeof VERIFICATION_CODE_TYPES
+      status?: keyof typeof VERIFICATION_CODE_STATUS
       [key: string]: any
     }
   }) => {

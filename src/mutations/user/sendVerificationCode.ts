@@ -12,10 +12,6 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     throw new Error(`anonymous user cannot send verification code of ${type}`) // TODO
   }
 
-  // if (viewer.email && ) {
-
-  // }
-
   // insert record
   const { code } = await userService.createVerificationCode({
     userId: viewer.id,
@@ -27,8 +23,8 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   notificationQueue.sendMail({
     from: environment.emailName as string,
     to: email,
-    html: `Your verification code is <strong>${code}</strong>`,
-    subject: `Your verification code is ${code}`
+    html: `Your verification code for ${type} is <strong>${code}</strong>`,
+    subject: `${code}`
   })
 
   return true

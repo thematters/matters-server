@@ -57,6 +57,13 @@ export const VERIFICATION_CODE_STATUS = {
   expired: 'expired',
   used: 'used'
 }
+export const VERIFICATION_CODE_TYPES = {
+  register: 'register',
+  email_reset: 'email_reset',
+  password_reset: 'password_reset',
+  email_verify: 'email_verify'
+}
+
 export const VERIFICATION_CODE_PROTECTED_TYPES = ['email_reset', 'email_verify']
 
 /**
