@@ -16,16 +16,14 @@ if [[ $1 == 'prod' ]]
 then
     echo "Deploying to production environment..."
     cat $TEMPLATE | sed "s/{{IMAGE_TAG}}/$IMAGE_TAG_PRODUCTION/" > $OUT_CONFIG
-    printf 'n' | eb init $APP_PRODUCTION --region $REGION_PRODUCTION
-    eb use $ENV_PRODUCTION
-    eb deploy
+    printf '\n\n' | eb init $APP_PRODUCTION --region $REGION_PRODUCTION
+    eb deploy $ENV_PRODUCTION
 elif [[ $1 == 'staging' ]]
 then
     echo "Deploying to staging environment..."
     cat $TEMPLATE | sed "s/{{IMAGE_TAG}}/$IMAGE_TAG_STAGING/" > $OUT_CONFIG
-    printf 'n' | eb init $APP_STAGING --region $REGION_STAGING
-    eb use $ENV_STAGING
-    eb deploy
+    printf '\n\n' | eb init $APP_STAGING --region $REGION_STAGING
+    eb deploy $ENV_STAGING
 else
     echo "Usage: bin/eb-deploy.sh [prod|staging]"
 fi
