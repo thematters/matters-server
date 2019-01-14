@@ -27,6 +27,13 @@ const resolver: MutationToUserRegisterResolver = async (
   // TODO: check username
 
   await userService.create(input)
+
+  // mark code status as used
+  await userService.markVerificationCodeAs({
+    codeId: code.id,
+    status: 'used'
+  })
+
   return userService.login(input)
 }
 

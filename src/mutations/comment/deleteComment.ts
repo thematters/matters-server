@@ -1,5 +1,6 @@
 import { MutationToDeleteCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { COMMENT_STATE } from 'common/enums'
 
 const resolver: MutationToDeleteCommentResolver = async (
   _,
@@ -21,7 +22,7 @@ const resolver: MutationToDeleteCommentResolver = async (
   }
 
   await commentService.baseUpdateById(dbId, {
-    state: 'archived'
+    state: COMMENT_STATE.archived
   })
 
   // trigger notificaiton

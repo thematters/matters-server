@@ -20,6 +20,21 @@ export const VOTE = {
   down: 'down'
 }
 
+export const COMMENT_STATE = {
+  active: 'active',
+  archived: 'archived',
+  banned: 'banned'
+}
+
+export const USER_STATE = {
+  inactive: 'inactive',
+  onboarding: 'onboarding',
+  active: 'active',
+  banned: 'banned',
+  frozen: 'frozen',
+  archived: 'archived'
+}
+
 export const ARTICLE_STATE = {
   active: 'active',
   archived: 'archived',
@@ -31,6 +46,11 @@ export const PUBLISH_STATE = {
   pending: 'pending',
   error: 'error',
   published: 'published'
+}
+
+export const INVITATION_STATUS = {
+  pending: 'pending',
+  activated: 'activated'
 }
 
 export const BCRYPT_ROUNDS = 12

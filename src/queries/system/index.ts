@@ -11,13 +11,15 @@ import {
   placements,
   gatewayUrls
 } from './official'
+import { users, articles, rootOSS } from './oss'
 
 export default {
   Query: {
     node,
     search,
     frequentSearch,
-    official: () => true
+    official: () => true,
+    oss: rootOSS
   },
   Node: {
     __resolveType: ({ __type }: { __type: GQLPossibleNodeTypeNames }) => __type
@@ -32,5 +34,9 @@ export default {
     links, // TODO
     placements, // TODO
     gatewayUrls
+  },
+  OSS: {
+    users,
+    articles
   }
 }

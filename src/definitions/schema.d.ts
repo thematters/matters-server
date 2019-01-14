@@ -20,11 +20,11 @@ import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql'
 export interface GQLQuery {
   _?: boolean
   article?: GQLArticle
-  articles: GQLArticleConnection
   node?: GQLNode
   frequentSearch?: Array<string>
   search: GQLSearchResultConnection
   official: GQLOfficial
+  oss: GQLOSS
   viewer?: GQLUser
   user?: GQLUser
 }
@@ -289,7 +289,7 @@ export interface GQLArticleEdge {
 
 export interface GQLTagConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLTagEdge | null>
+  edges?: Array<GQLTagEdge>
 }
 
 export interface GQLTagEdge {
@@ -316,7 +316,7 @@ export interface GQLUserEdge {
 
 export interface GQLDraftConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLDraftEdge | null>
+  edges?: Array<GQLDraftEdge>
 }
 
 export interface GQLDraftEdge {
@@ -347,7 +347,7 @@ export enum GQLPublishState {
 
 export interface GQLAudiodraftConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLAudiodraftEdge | null>
+  edges?: Array<GQLAudiodraftEdge>
 }
 
 export interface GQLAudiodraftEdge {
@@ -372,7 +372,7 @@ export interface GQLUserActivity {
 
 export interface GQLReadHistoryConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLReadHistoryEdge | null>
+  edges?: Array<GQLReadHistoryEdge>
 }
 
 export interface GQLReadHistoryEdge {
@@ -388,7 +388,7 @@ export interface GQLReadHistory {
 
 export interface GQLRecentSearchConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLRecentSearchEdge | null>
+  edges?: Array<GQLRecentSearchEdge>
 }
 
 export interface GQLRecentSearchEdge {
@@ -455,7 +455,7 @@ export interface GQLMAT {
 
 export interface GQLTransactionConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLTransactionEdge | null>
+  edges?: Array<GQLTransactionEdge>
 }
 
 export interface GQLTransactionEdge {
@@ -493,7 +493,7 @@ export interface GQLInvitationStatus {
 
 export interface GQLInvitationConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLInvitationEdge | null>
+  edges?: Array<GQLInvitationEdge>
 }
 
 export interface GQLInvitationEdge {
@@ -617,12 +617,6 @@ export enum GQLCommentSort {
   upvotes = 'upvotes'
 }
 
-export interface GQLArticlesInput {
-  public?: boolean
-  after?: string
-  first?: number
-}
-
 export interface GQLNodeInput {
   id: string
 }
@@ -719,6 +713,22 @@ export interface GQLPlacementUnit {
   image: GQLURL
   link: GQLURL
   adLabel: boolean
+}
+
+export interface GQLOSS {
+  users: GQLUserConnection
+  articles: GQLArticleConnection
+}
+
+export interface GQLUsersInput {
+  after?: string
+  first?: number
+}
+
+export interface GQLArticlesInput {
+  public?: boolean
+  after?: string
+  first?: number
 }
 
 export interface GQLUserInput {
@@ -832,7 +842,7 @@ export interface GQLUnsubscribeArticleInput {
 export interface GQLReportArticleInput {
   id: string
   category: string
-  description?: string
+  description: string
   assetIds?: Array<string>
   contact?: string
 }
@@ -884,7 +894,7 @@ export interface GQLDeleteCommentInput {
 export interface GQLReportCommentInput {
   id: string
   category: string
-  description?: string
+  description: string
   assetIds?: Array<string>
   contact?: string
 }
@@ -1266,6 +1276,7 @@ export interface GQLResolver {
   OfficialLinks?: GQLOfficialLinksTypeResolver
   Placements?: GQLPlacementsTypeResolver
   PlacementUnit?: GQLPlacementUnitTypeResolver
+  OSS?: GQLOSSTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
   Asset?: GQLAssetTypeResolver
@@ -1292,11 +1303,11 @@ export interface GQLResolver {
 export interface GQLQueryTypeResolver<TParent = any> {
   _?: QueryTo_Resolver<TParent>
   article?: QueryToArticleResolver<TParent>
-  articles?: QueryToArticlesResolver<TParent>
   node?: QueryToNodeResolver<TParent>
   frequentSearch?: QueryToFrequentSearchResolver<TParent>
   search?: QueryToSearchResolver<TParent>
   official?: QueryToOfficialResolver<TParent>
+  oss?: QueryToOssResolver<TParent>
   viewer?: QueryToViewerResolver<TParent>
   user?: QueryToUserResolver<TParent>
 }
@@ -1317,18 +1328,6 @@ export interface QueryToArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToArticleArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface QueryToArticlesArgs {
-  input: GQLArticlesInput
-}
-export interface QueryToArticlesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: QueryToArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -1371,6 +1370,15 @@ export interface QueryToSearchResolver<TParent = any, TResult = any> {
 }
 
 export interface QueryToOfficialResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface QueryToOssResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4162,6 +4170,35 @@ export interface PlacementUnitToAdLabelResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLOSSTypeResolver<TParent = any> {
+  users?: OSSToUsersResolver<TParent>
+  articles?: OSSToArticlesResolver<TParent>
+}
+
+export interface OSSToUsersArgs {
+  input: GQLUsersInput
+}
+export interface OSSToUsersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToUsersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToArticlesArgs {
+  input: GQLArticlesInput
+}
+export interface OSSToArticlesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

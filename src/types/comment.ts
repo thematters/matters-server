@@ -82,8 +82,8 @@ export default /* GraphQL */ `
 
   input ReportCommentInput {
     id: ID!
-    category: String!
-    description: String
+    category: ID!
+    description: String!
     assetIds: [ID!]
     contact: String
   }

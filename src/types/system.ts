@@ -4,6 +4,7 @@ export default /* GraphQL */ `
     frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection!
     official: Official!
+    oss: OSS!
   }
 
   extend type Mutation {
@@ -32,6 +33,11 @@ export default /* GraphQL */ `
     links: OfficialLinks!
     placements: Placements!
     gatewayUrls: [URL!]
+  }
+
+  type OSS {
+    users(input: UsersInput!): UserConnection!
+    articles(input: ArticlesInput!): ArticleConnection!
   }
 
   type Category {
@@ -73,6 +79,17 @@ export default /* GraphQL */ `
     image: URL!
     link: URL!
     adLabel: Boolean!
+  }
+
+  input UsersInput {
+    after: String
+    first: Int
+  }
+
+  input ArticlesInput {
+    public: Boolean
+    after: String
+    first: Int
   }
 
   type Asset {
