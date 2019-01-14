@@ -26,7 +26,9 @@ const checkGateway = async (
 
   const testUrl = `${gatewayUrl}${hash}#x-ipfs-companion-no-redirect`
   try {
-    const { status } = await axios.get(testUrl)
+    const { status } = await axios.get(testUrl, {
+      timeout: 2000
+    })
     if (status === 200) {
       __CACHE_CHECKED_GATEWAYS[gatewayUrl] = true
       return true
