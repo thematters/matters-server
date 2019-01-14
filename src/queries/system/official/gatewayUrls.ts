@@ -5,26 +5,12 @@ const PUBLIC_GATEWAYS: string[] = [
   'https://ipfs.io/ipfs/',
   'https://gateway.ipfs.io/ipfs/',
   'https://ipfs.infura.io/ipfs/',
-  'https://rx14.co.uk/ipfs/',
-  'https://xmine128.tk/ipfs/',
-  'https://upload.global/ipfs/',
-  'https://ipfs.jes.xxx/ipfs/',
-  'https://catalunya.network/ipfs/',
-  'https://siderus.io/ipfs/',
-  'https://www.eternum.io/ipfs/',
-  'https://hardbin.com/ipfs/',
-  'https://ipfs.macholibre.org/ipfs/',
-  'https://ipfs.works/ipfs/',
-  'https://ipfs.work/ipfs/',
   'https://ipfs.wa.hle.rs/ipfs/',
-  'https://api.wisdom.sh/ipfs/',
-  'https://gateway.blocksec.com/ipfs/',
-  'https://ipfs.renehsz.com/ipfs/',
-  'https://cloudflare-ipfs.com/ipfs/',
-  'https://ipns.co/',
-  'https://ipfs.netw0rk.io/ipfs/',
   'https://gateway.swedneck.xyz/ipfs/',
-  'http://10.139.105.114:8080/ipfs/'
+  'https://hardbin.com/ipfs/',
+  'https://ipfs.jes.xxx/ipfs/',
+  'https://ipfs.renehsz.com/ipfs/',
+  'https://cloudflare-ipfs.com/ipfs/'
 ]
 
 const __CACHE_CHECKED_GATEWAYS: { [key in string]: boolean } = {}
