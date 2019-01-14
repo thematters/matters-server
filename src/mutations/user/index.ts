@@ -10,6 +10,7 @@ import updateNotificationSetting from './updateNotificationSetting'
 import followUser from './followUser'
 import unfollowUser from './unfollowUser'
 import clearReadHistory from './clearReadHistory'
+import clearSearchHistory from './clearSearchHistory'
 import invite from './invite'
 
 export default {
@@ -26,6 +27,7 @@ export default {
     followUser,
     unfollowUser,
     clearReadHistory,
+    clearSearchHistory,
     invite
   }
 }

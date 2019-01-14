@@ -148,15 +148,25 @@ export class UserService extends BaseService {
     return history.length <= 0
   }
 
+  /*********************************
+   *                               *
+   *        Search History         *
+   *                               *
+   *********************************/
   recentSearches = async (userId: string) => {
     const result = await this.knex('search_history')
       .select('search_key')
-      .where({ userId })
+      .where({ userId, archived: false })
       .max('created_at as search_at')
       .groupBy('search_key')
       .orderBy('search_at', 'desc')
     return result.map(({ searchKey }: { searchKey: string }) => searchKey)
   }
+
+  clearSearches = (userId: string) =>
+    this.knex('search_history')
+      .where({ userId, archived: false })
+      .update({ archived: true })
 
   /**
    * Add user name edit history
