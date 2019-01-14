@@ -2,7 +2,6 @@ import { toGlobalId } from 'common/utils'
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
 
 import rootArticle from './rootArticle'
-import rootArticles from './rootArticles'
 import userArticles from './user/articles'
 import userMAT from './user/mat'
 import tagCount from './tag/count'
@@ -23,8 +22,7 @@ import appreciators from './appreciators'
 
 export default {
   Query: {
-    article: rootArticle,
-    articles: rootArticles
+    article: rootArticle
   },
   User: {
     articles: userArticles

@@ -34,7 +34,7 @@ export default /* GraphQL */ `
 
   type DraftConnection {
     pageInfo: PageInfo!
-    edges: [DraftEdge]!
+    edges: [DraftEdge!]
   }
 
   type DraftEdge {
@@ -44,7 +44,7 @@ export default /* GraphQL */ `
 
   type AudiodraftConnection {
     pageInfo: PageInfo!
-    edges: [AudiodraftEdge]!
+    edges: [AudiodraftEdge!]
   }
 
   type AudiodraftEdge {

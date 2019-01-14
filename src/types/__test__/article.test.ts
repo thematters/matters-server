@@ -18,10 +18,12 @@ afterAll(knex.destroy)
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 2 })
 const GET_ARTICLES = `
   query ($input: ArticlesInput!) {
-    articles(input: $input) {
-      edges {
-        node {
-          id
+    oss {
+      articles(input: $input) {
+        edges {
+          node {
+            id
+          }
         }
       }
     }
@@ -158,12 +160,13 @@ export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
 describe('query article', async () => {
   test('query articles', async () => {
     const { query } = await testClient({ isAuth: true, isAdmin: true })
-    const { data } = await query({
+    const result = await query({
       query: GET_ARTICLES,
       // @ts-ignore
       variables: { input: {} }
     })
-    expect(data.articles.edges.length).toBeGreaterThan(1)
+    console.log(result)
+    expect(result.data.oss.articles.edges.length).toBeGreaterThan(1)
   })
 
   test('query article by mediaHash', async () => {
@@ -276,7 +279,8 @@ describe('report article', async () => {
       variables: {
         input: {
           id: ARTICLE_ID,
-          category: 'spam'
+          category: 'spam',
+          description: 'desc'
         }
       }
     })
@@ -292,6 +296,7 @@ describe('report article', async () => {
         input: {
           id: ARTICLE_ID,
           category: 'spam',
+          description: 'desc',
           assetIds: ['00000000-0000-0000-0000-000000000011']
         }
       }

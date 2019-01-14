@@ -32,5 +32,6 @@ export const environment = {
   apiKey: process.env['MATTERS_APOLLO_API_KEY']
 }
 
-export const isDev = environment.env === 'development'
-export const isTest = environment.env === 'test'
+export const isDev = environment.env.includes('dev')
+export const isTest = environment.env.includes('test')
+export const isProd = environment.env.includes('prod')

@@ -148,7 +148,7 @@ type Audiodraft {
 
 type AudiodraftConnection {
   pageInfo: PageInfo!
-  edges: [AudiodraftEdge]!
+  edges: [AudiodraftEdge!]
 }
 
 type AudiodraftEdge {
@@ -332,7 +332,7 @@ type Draft implements Node {
 
 type DraftConnection {
   pageInfo: PageInfo!
-  edges: [DraftEdge]!
+  edges: [DraftEdge!]
 }
 
 type DraftEdge {
@@ -373,7 +373,7 @@ type Invitation implements Node {
 
 type InvitationConnection {
   pageInfo: PageInfo!
-  edges: [InvitationEdge]!
+  edges: [InvitationEdge!]
 }
 
 type InvitationEdge {
@@ -417,6 +417,7 @@ type Mutation {
   toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
+  unpinComment(input: UnpinCommentInput!): Comment!
   deleteComment(input: DeleteCommentInput!): Boolean
   reportComment(input: ReportCommentInput!): Boolean
   voteComment(input: VoteCommentInput!): Comment!
@@ -557,6 +558,11 @@ type OfficialLinks {
   tos: URL!
 }
 
+type OSS {
+  users(input: UsersInput!): UserConnection!
+  articles(input: ArticlesInput!): ArticleConnection!
+}
+
 type PageInfo {
   startCursor: String
   endCursor: String
@@ -629,11 +635,11 @@ Ref: apollographql/graphql-tools#293
 type Query {
   _: Boolean
   article(input: ArticleInput!): Article
-  articles(input: ArticlesInput!): ArticleConnection!
   node(input: NodeInput!): Node
   frequentSearch(input: FrequentSearchInput!): [String!]
   search(input: SearchInput!): SearchResultConnection!
   official: Official!
+  oss: OSS!
   viewer: User
   user(input: UserInput!): User
 }
@@ -650,7 +656,7 @@ type ReadHistory {
 
 type ReadHistoryConnection {
   pageInfo: PageInfo!
-  edges: [ReadHistoryEdge]!
+  edges: [ReadHistoryEdge!]
 }
 
 type ReadHistoryEdge {
@@ -664,7 +670,7 @@ input RecallPublishInput {
 
 type RecentSearchConnection {
   pageInfo: PageInfo!
-  edges: [RecentSearchEdge]!
+  edges: [RecentSearchEdge!]
 }
 
 type RecentSearchEdge {
@@ -705,16 +711,16 @@ input ReleasesInput {
 
 input ReportArticleInput {
   id: ID!
-  category: String!
-  description: String
+  category: ID!
+  description: String!
   assetIds: [ID!]
   contact: String
 }
 
 input ReportCommentInput {
   id: ID!
-  category: String!
-  description: String
+  category: ID!
+  description: String!
   assetIds: [ID!]
   contact: String
 }
@@ -784,7 +790,7 @@ type Tag implements Node {
 
 type TagConnection {
   pageInfo: PageInfo!
-  edges: [TagEdge]!
+  edges: [TagEdge!]
 }
 
 type TagEdge {
@@ -813,7 +819,7 @@ type Transaction {
 
 type TransactionConnection {
   pageInfo: PageInfo!
-  edges: [TransactionEdge]!
+  edges: [TransactionEdge!]
 }
 
 type TransactionEdge {
@@ -829,6 +835,10 @@ enum TransactionPurpose {
 }
 
 input UnfollowUserInput {
+  id: ID!
+}
+
+input UnpinCommentInput {
   id: ID!
 }
 
@@ -989,10 +999,14 @@ type UserSettings {
   notification: NotificationSetting!
 }
 
+input UsersInput {
+  after: String
+  first: Int
+}
+
 enum UserState {
-  inactive
-  onboarding
   active
+  onboarding
   banned
   frozen
   archived

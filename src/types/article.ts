@@ -1,7 +1,6 @@
 export default /* GraphQL */ `
   extend type Query {
     article(input: ArticleInput!): Article
-    articles(input: ArticlesInput!): ArticleConnection!
   }
 
   extend type Mutation {
@@ -72,7 +71,7 @@ export default /* GraphQL */ `
 
   type TagConnection {
     pageInfo: PageInfo!
-    edges: [TagEdge]!
+    edges: [TagEdge!]
   }
 
   type TagEdge {
@@ -82,12 +81,6 @@ export default /* GraphQL */ `
 
   input ArticleInput {
     mediaHash: String!
-  }
-
-  input ArticlesInput {
-    public: Boolean
-    after: String
-    first: Int
   }
 
   input PublishArticleInput {
@@ -109,8 +102,8 @@ export default /* GraphQL */ `
 
   input ReportArticleInput {
     id: ID!
-    category: String!
-    description: String
+    category: ID!
+    description: String!
     assetIds: [ID!]
     contact: String
   }

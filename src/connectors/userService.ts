@@ -13,7 +13,9 @@ import {
   MAT_UNIT,
   VERIFICATION_CODE_EXIPRED_AFTER,
   VERIFICATION_CODE_STATUS,
-  VERIFICATION_CODE_TYPES
+  VERIFICATION_CODE_TYPES,
+  USER_STATE,
+  INVITATION_STATUS
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -77,7 +79,7 @@ export class UserService extends BaseService {
       description,
       avatar,
       passwordHash,
-      state: 'onboarding'
+      state: USER_STATE.onboarding
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
     await this.activateInvitedEmailUser({
@@ -146,15 +148,25 @@ export class UserService extends BaseService {
     return history.length <= 0
   }
 
+  /*********************************
+   *                               *
+   *        Search History         *
+   *                               *
+   *********************************/
   recentSearches = async (userId: string) => {
     const result = await this.knex('search_history')
       .select('search_key')
-      .where({ userId })
+      .where({ userId, archived: false })
       .max('created_at as search_at')
       .groupBy('search_key')
       .orderBy('search_at', 'desc')
     return result.map(({ searchKey }: { searchKey: string }) => searchKey)
   }
+
+  clearSearches = (userId: string) =>
+    this.knex('search_history')
+      .where({ userId, archived: false })
+      .update({ archived: true })
 
   /**
    * Add user name edit history
@@ -254,8 +266,7 @@ export class UserService extends BaseService {
         userId
       })
       .sum('delta as total')
-
-    return parseInt(result[0].total || 0, 10)
+    return Math.max(parseInt(result[0].total || 0, 10), 0)
   }
 
   /**
@@ -328,6 +339,22 @@ export class UserService extends BaseService {
       .where({ recipientId: userId, unread: true, deleted: false })
       .first()
     return parseInt(result.count, 10)
+  }
+
+  /**
+   * Find users
+   */
+  find = async ({ where }: { where?: { [key: string]: any } }) => {
+    let qs = this.knex
+      .select()
+      .from(this.table)
+      .orderBy('id', 'desc')
+
+    if (where) {
+      qs = qs.where(where)
+    }
+
+    return await qs
   }
 
   /**
@@ -582,12 +609,12 @@ export class UserService extends BaseService {
       // set recipient's state to "active"
       await trx
         .where({ id: recipientId })
-        .update({ state: 'active' })
+        .update({ state: USER_STATE.active })
         .into(this.table)
         .returning('*')
       // add invitation record
       const { id: invitationId } = await trx
-        .insert({ senderId, recipientId, status: 'activated' })
+        .insert({ senderId, recipientId, status: INVITATION_STATUS.activated })
         .into('invitation')
         .returning('*')
       // add transaction record
@@ -624,7 +651,10 @@ export class UserService extends BaseService {
     senderId?: string
     email: string
   }): Promise<any> =>
-    await this.baseCreate({ senderId, email, status: 'pending' }, 'invitation')
+    await this.baseCreate(
+      { senderId, email, status: INVITATION_STATUS.pending },
+      'invitation'
+    )
 
   /**
    * Activate new user of invited email
@@ -649,7 +679,7 @@ export class UserService extends BaseService {
         // set recipient's state to "active"
         await trx
           .where({ id: userId })
-          .update({ state: 'active' })
+          .update({ state: USER_STATE.active })
           .into(this.table)
           .returning('*')
         // add transaction record
@@ -676,6 +706,13 @@ export class UserService extends BaseService {
             .returning('*')
         }
       })
+
+      // update "recipientId" of invitation
+      await this.baseUpdateById(
+        invitation.id,
+        { recipientId: userId },
+        'invitation'
+      )
     } catch (e) {
       logger.error('[activateInvitedEmailUser]', e)
     }

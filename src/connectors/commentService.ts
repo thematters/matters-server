@@ -1,7 +1,11 @@
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 
-import { USER_ACTION, ARTICLE_PIN_COMMENT_LIMIT } from 'common/enums'
+import {
+  USER_ACTION,
+  ARTICLE_PIN_COMMENT_LIMIT,
+  COMMENT_STATE
+} from 'common/enums'
 import { BaseService } from './baseService'
 
 import { GQLCommentsInput, GQLVote } from 'definitions/schema'
@@ -116,7 +120,7 @@ export class CommentService extends BaseService {
   countByArticle = async (articleId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .countDistinct('id')
-      .where({ articleId, state: 'active' })
+      .where({ articleId, state: COMMENT_STATE.active })
       .first()
     return parseInt(result.count, 10)
   }
