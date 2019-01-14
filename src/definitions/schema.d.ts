@@ -748,6 +748,7 @@ export interface GQLMutation {
   toggleArticlePublic: GQLArticle
   putComment: GQLComment
   pinComment: GQLComment
+  unpinComment: GQLComment
   deleteComment?: boolean
   reportComment?: boolean
   voteComment: GQLComment
@@ -883,6 +884,10 @@ export interface GQLCommentInput {
 }
 
 export interface GQLPinCommentInput {
+  id: string
+}
+
+export interface GQLUnpinCommentInput {
   id: string
 }
 
@@ -4217,6 +4222,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   pinComment?: MutationToPinCommentResolver<TParent>
+  unpinComment?: MutationToUnpinCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   reportComment?: MutationToReportCommentResolver<TParent>
   voteComment?: MutationToVoteCommentResolver<TParent>
@@ -4415,6 +4421,18 @@ export interface MutationToPinCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPinCommentArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnpinCommentArgs {
+  input: GQLUnpinCommentInput
+}
+export interface MutationToUnpinCommentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToUnpinCommentArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

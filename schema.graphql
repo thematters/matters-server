@@ -417,6 +417,7 @@ type Mutation {
   toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
+  unpinComment(input: UnpinCommentInput!): Comment!
   deleteComment(input: DeleteCommentInput!): Boolean
   reportComment(input: ReportCommentInput!): Boolean
   voteComment(input: VoteCommentInput!): Comment!
@@ -834,6 +835,10 @@ enum TransactionPurpose {
 }
 
 input UnfollowUserInput {
+  id: ID!
+}
+
+input UnpinCommentInput {
   id: ID!
 }
 

@@ -14,26 +14,28 @@ const resolver: MutationToPinCommentResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const { articleId } = await commentService.dataloader.load(dbId)
-  const { authorId } = await articleService.dataloader.load(articleId)
+  const comment = await commentService.dataloader.load(dbId)
+  const article = await articleService.dataloader.load(comment.articleId)
 
-  if (authorId !== viewer.id) {
+  if (article.authorId !== viewer.id) {
     throw new Error('viewer has no permission to do this') // TODO
   }
 
-  const pinLeft = await commentService.pinLeftByArticle(articleId)
+  const pinLeft = await commentService.pinLeftByArticle(comment.articleId)
   if (pinLeft <= 0) {
     throw new Error('reach pin limit') // TODO
   }
 
-  // TODO: check pinned before
+  // check is pinned before
+  if (comment.pinned) {
+    return comment
+  }
 
-  const comment = await commentService.baseUpdateById(dbId, {
+  const pinnedComment = await commentService.baseUpdateById(dbId, {
     pinned: true
   })
 
   // trigger notifications
-  const article = await articleService.dataloader.load(articleId)
   notificationService.trigger({
     event: 'article_updated',
     entities: [
@@ -56,7 +58,7 @@ const resolver: MutationToPinCommentResolver = async (
     ]
   })
 
-  return comment
+  return pinnedComment
 }
 
 export default resolver

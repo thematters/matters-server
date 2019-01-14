@@ -2,6 +2,7 @@ export default /* GraphQL */ `
   extend type Mutation {
     putComment(input: PutCommentInput!): Comment!
     pinComment(input: PinCommentInput!): Comment!
+    unpinComment(input: UnpinCommentInput!): Comment!
     deleteComment(input: DeleteCommentInput!): Boolean
     reportComment(input: ReportCommentInput!): Boolean
     voteComment(input: VoteCommentInput!): Comment!
@@ -73,6 +74,10 @@ export default /* GraphQL */ `
   }
 
   input PinCommentInput {
+    id: ID!
+  }
+
+  input UnpinCommentInput {
     id: ID!
   }
 
