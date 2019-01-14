@@ -173,7 +173,8 @@ describe('Report comment', async () => {
       variables: {
         input: {
           id: COMMENT_ID,
-          category: 'spam'
+          category: 'spam',
+          description: 'desc'
         }
       }
     })
@@ -189,6 +190,7 @@ describe('Report comment', async () => {
         input: {
           id: COMMENT_ID,
           category: 'spam',
+          description: 'desc',
           assetIds: ['00000000-0000-0000-0000-000000000011']
         }
       }
