@@ -1000,9 +1000,8 @@ input UsersInput {
 }
 
 enum UserState {
-  inactive
-  onboarding
   active
+  onboarding
   banned
   frozen
   archived

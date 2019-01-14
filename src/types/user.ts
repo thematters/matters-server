@@ -366,9 +366,8 @@ export default /* GraphQL */ `
   # }
 
   enum UserState {
-    inactive
-    onboarding
     active
+    onboarding
     banned
     frozen
     archived

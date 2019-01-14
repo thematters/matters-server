@@ -440,9 +440,8 @@ export interface GQLUserStatus {
 }
 
 export enum GQLUserState {
-  inactive = 'inactive',
-  onboarding = 'onboarding',
   active = 'active',
+  onboarding = 'onboarding',
   banned = 'banned',
   frozen = 'frozen',
   archived = 'archived'
