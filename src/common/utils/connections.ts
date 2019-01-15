@@ -1,4 +1,5 @@
 import * as base64 from 'base-64'
+import { connectionFromArraySlice } from 'graphql-relay'
 
 export type ConnectionCursor = string
 
@@ -10,9 +11,8 @@ export type ConnectionArguments = {
 }
 
 export type ConnectionHelpers = {
-  mapToCursor: (value: any, index: number) => ConnectionCursor
+  offset: number
   totalCount: number
-  cursorToOffset?: typeof cursorToOffset
 }
 
 export type Connection<T> = {
@@ -27,10 +27,10 @@ export type Edge<T> = {
 }
 
 export type PageInfo = {
-  startCursor: ConnectionCursor
-  endCursor: ConnectionCursor
-  hasPreviousPage: boolean
-  hasNextPage: boolean
+  startCursor?: ConnectionCursor | null
+  endCursor?: ConnectionCursor | null
+  hasPreviousPage?: boolean | null
+  hasNextPage?: boolean | null
 }
 
 type ArraySliceMetaInfo = {
@@ -46,90 +46,25 @@ export const cursorToOffset = (
   return cursor ? parseInt(base64.decode(cursor).split(':')[1], 10) : -1
 }
 
-export const offsetToCursor = (offset: number): ConnectionCursor => {
-  return base64.encode(`${PREFIX}:${offset}`)
+export const cursorToIndex = (cursor: ConnectionCursor | undefined): number => {
+  return cursor ? parseInt(base64.decode(cursor).split(':')[1], 10) : -1
 }
 
-export function getOffsetWithDefault(
-  cursor: ConnectionCursor | undefined,
-  defaultOffset: number
-): number {
-  if (typeof cursor !== 'string') {
-    return defaultOffset
-  }
-  const offset = cursorToOffset(cursor)
-  return isNaN(offset) ? defaultOffset : offset
-}
-
-export function connectionFromArraySlice<T>(
-  arraySlice: Array<T>,
-  args: ConnectionArguments,
-  meta: ArraySliceMetaInfo
-): Connection<T> {
-  const { after, before, first, last } = args
-  const { sliceStart, arrayLength } = meta
-  const sliceEnd = sliceStart + arraySlice.length
-  const beforeOffset = getOffsetWithDefault(before, arrayLength)
-  const afterOffset = getOffsetWithDefault(after, -1)
-
-  let startOffset = Math.max(sliceStart - 1, afterOffset, -1) + 1
-  let endOffset = Math.min(sliceEnd, beforeOffset, arrayLength)
-
-  if (typeof first === 'number') {
-    if (first < 0) {
-      throw new Error('Argument "first" must be a non-negative integer')
-    }
-
-    endOffset = Math.min(endOffset, startOffset + first)
-  }
-
-  if (typeof last === 'number') {
-    if (last < 0) {
-      throw new Error('Argument "last" must be a non-negative integer')
-    }
-
-    startOffset = Math.max(startOffset, endOffset - last)
-  }
-
-  // If supplied slice is too large, trim it down before mapping over it.
-  const slice = arraySlice.slice(
-    Math.max(startOffset - sliceStart, 0),
-    arraySlice.length - (sliceEnd - endOffset)
-  )
-
-  const edges = slice.map((value, index) => ({
-    cursor: offsetToCursor(startOffset + index),
-    node: value
-  }))
-
-  const firstEdge = edges[0]
-  const lastEdge = edges[edges.length - 1]
-  const lowerBound = after ? afterOffset + 1 : 0
-  const upperBound = before ? beforeOffset : arrayLength
-
-  return {
-    edges,
-    pageInfo: {
-      startCursor: firstEdge ? firstEdge.cursor : '',
-      endCursor: lastEdge ? lastEdge.cursor : '',
-      hasPreviousPage:
-        typeof last === 'number' ? startOffset > lowerBound : false,
-      hasNextPage: typeof first === 'number' ? endOffset < upperBound : false
-    }
-  }
+export const indexToCursor = (index: number): ConnectionCursor => {
+  return base64.encode(`${PREFIX}:${index}`)
 }
 
 export function connectionFromArray<T>(
   data: Array<T>,
   args: ConnectionArguments,
-  helpers?: ConnectionHelpers
+  totalCount?: number
 ): Connection<T> {
-  if (helpers) {
+  if (totalCount) {
     const { after } = args
-    const _cursorToOffset = helpers.cursorToOffset || cursorToOffset
-    const { mapToCursor, totalCount } = helpers
+    const offset = cursorToIndex(after) + 1
+
     const edges = data.map((value, index) => ({
-      cursor: mapToCursor(value, index),
+      cursor: indexToCursor(index + offset),
       node: value
     }))
 
@@ -142,9 +77,9 @@ export function connectionFromArray<T>(
       pageInfo: {
         startCursor: firstEdge ? firstEdge.cursor : '',
         endCursor: lastEdge ? lastEdge.cursor : '',
-        hasPreviousPage: after ? _cursorToOffset(after) > 0 : false,
+        hasPreviousPage: after ? cursorToIndex(after) >= 0 : false,
         hasNextPage: lastEdge
-          ? _cursorToOffset(lastEdge.cursor) < totalCount
+          ? cursorToIndex(lastEdge.cursor) < totalCount
           : false
       }
     }
@@ -159,7 +94,7 @@ export function connectionFromArray<T>(
 export function connectionFromPromisedArray<T>(
   dataPromise: Promise<Array<T>>,
   args: ConnectionArguments,
-  helpers?: ConnectionHelpers
+  totalCount?: number
 ): Promise<Connection<T>> {
-  return dataPromise.then(data => connectionFromArray(data, args, helpers))
+  return dataPromise.then(data => connectionFromArray(data, args, totalCount))
 }

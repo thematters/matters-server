@@ -71,6 +71,7 @@ export default /* GraphQL */ `
   }
 
   type TagConnection {
+    totalCount: Int
     pageInfo: PageInfo!
     edges: [TagEdge!]
   }

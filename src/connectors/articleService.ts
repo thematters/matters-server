@@ -3,7 +3,11 @@ import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 import slugify from '@matters/slugify'
 
-import { ARTICLE_APPRECIATE_LIMIT, ARTICLE_STATE } from 'common/enums'
+import {
+  ARTICLE_APPRECIATE_LIMIT,
+  ARTICLE_STATE,
+  BATCH_SIZE
+} from 'common/enums'
 import { ItemData, GQLSearchInput } from 'definitions'
 
 import { USER_ACTION, TRANSACTION_PURPOSE } from 'common/enums'
@@ -181,31 +185,67 @@ export class ArticleService extends BaseService {
     }
   }
 
-  recommendHottest = async () =>
-    await this.knex('article_activity_view').orderBy(
-      'latest_activity',
-      'desc null last'
-    )
-  // .limit(limit)
-  // .offset(offset)
+  recommendHottest = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {}
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+  }) =>
+    await this.knex('article_activity_view')
+      .where(where)
+      .orderBy('latest_activity', 'desc null last')
+      .limit(limit)
+      .offset(offset)
 
-  recommendNewest = async () =>
-    await this.knex(this.table).orderBy('id', 'desc')
-  // .limit(limit)
-  // .offset(offset)
+  recommendNewest = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {}
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+  }) =>
+    await this.knex(this.table)
+      .orderBy('id', 'desc')
+      .where(where)
+      .limit(limit)
+      .offset(offset)
 
-  recommendIcymi = async () =>
+  recommendIcymi = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {}
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+  }) =>
     await this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
       .join('matters_choice as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
-  // .offset(offset)
-  // .limit(limit)
+      .where(where)
+      .offset(offset)
+      .limit(limit)
 
-  recommendTopics = async () =>
-    await this.knex('article_count_view').orderBy('topic_score', 'desc')
-  // .limit(limit)
-  // .offset(offset)
+  recommendTopics = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {}
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+  }) =>
+    await this.knex('article_count_view')
+      .orderBy('topic_score', 'desc')
+      .where(where)
+      .limit(limit)
+      .offset(offset)
 
   /**
    * Count articles by a given authorId (user).

@@ -289,6 +289,7 @@ export interface GQLArticleEdge {
 }
 
 export interface GQLTagConnection {
+  totalCount?: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLTagEdge>
 }
@@ -306,6 +307,7 @@ export interface GQLTag extends GQLNode {
 }
 
 export interface GQLUserConnection {
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLUserEdge | null>
 }
@@ -2504,8 +2506,21 @@ export interface ArticleEdgeToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLTagConnectionTypeResolver<TParent = any> {
+  totalCount?: TagConnectionToTotalCountResolver<TParent>
   pageInfo?: TagConnectionToPageInfoResolver<TParent>
   edges?: TagConnectionToEdgesResolver<TParent>
+}
+
+export interface TagConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TagConnectionToPageInfoResolver<TParent = any, TResult = any> {
@@ -2596,8 +2611,21 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLUserConnectionTypeResolver<TParent = any> {
+  totalCount?: UserConnectionToTotalCountResolver<TParent>
   pageInfo?: UserConnectionToPageInfoResolver<TParent>
   edges?: UserConnectionToEdgesResolver<TParent>
+}
+
+export interface UserConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserConnectionToPageInfoResolver<

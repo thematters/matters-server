@@ -790,6 +790,7 @@ type Tag implements Node {
 }
 
 type TagConnection {
+  totalCount: Int
   pageInfo: PageInfo!
   edges: [TagEdge!]
 }
@@ -914,6 +915,7 @@ type UserActivity {
 }
 
 type UserConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [UserEdge]
 }
