@@ -60,6 +60,7 @@ export default /* GraphQL */ `
   }
 
   type ArticleConnection {
+    totalCount: Int
     pageInfo: PageInfo!
     edges: [ArticleEdge!]
   }

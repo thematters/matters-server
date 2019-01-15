@@ -9,7 +9,14 @@ export type ConnectionArguments = {
   last?: number
 }
 
+export type ConnectionHelpers = {
+  mapToCursor: (value: any, index: number) => ConnectionCursor
+  totalCount: number
+  cursorToOffset?: typeof cursorToOffset
+}
+
 export type Connection<T> = {
+  totalCount?: number
   edges: Array<Edge<T>>
   pageInfo: PageInfo
 }
@@ -31,18 +38,20 @@ type ArraySliceMetaInfo = {
   arrayLength: number
 }
 
-const PREFIX = 'arrayconnection:'
+const PREFIX = 'arrayconnection'
 
-export function cursorToOffset(cursor: ConnectionCursor): number {
-  return parseInt(base64.decode(cursor).substring(PREFIX.length), 10)
+export const cursorToOffset = (
+  cursor: ConnectionCursor | undefined
+): number => {
+  return cursor ? parseInt(base64.decode(cursor).split(':')[1], 10) : -1
 }
 
-export function offsetToCursor(offset: number): ConnectionCursor {
-  return base64.encode(PREFIX + offset)
+export const offsetToCursor = (offset: number): ConnectionCursor => {
+  return base64.encode(`${PREFIX}:${offset}`)
 }
 
 export function getOffsetWithDefault(
-  cursor: ConnectionCursor,
+  cursor: ConnectionCursor | undefined,
   defaultOffset: number
 ): number {
   if (typeof cursor !== 'string') {
@@ -60,8 +69,8 @@ export function connectionFromArraySlice<T>(
   const { after, before, first, last } = args
   const { sliceStart, arrayLength } = meta
   const sliceEnd = sliceStart + arraySlice.length
-  const beforeOffset = getOffsetWithDefault(before || '', arrayLength)
-  const afterOffset = getOffsetWithDefault(after || '', -1)
+  const beforeOffset = getOffsetWithDefault(before, arrayLength)
+  const afterOffset = getOffsetWithDefault(after, -1)
 
   let startOffset = Math.max(sliceStart - 1, afterOffset, -1) + 1
   let endOffset = Math.min(sliceEnd, beforeOffset, arrayLength)
@@ -112,8 +121,35 @@ export function connectionFromArraySlice<T>(
 
 export function connectionFromArray<T>(
   data: Array<T>,
-  args: ConnectionArguments
+  args: ConnectionArguments,
+  helpers?: ConnectionHelpers
 ): Connection<T> {
+  if (helpers) {
+    const { after } = args
+    const _cursorToOffset = helpers.cursorToOffset || cursorToOffset
+    const { mapToCursor, totalCount } = helpers
+    const edges = data.map((value, index) => ({
+      cursor: mapToCursor(value, index),
+      node: value
+    }))
+
+    const firstEdge = edges[0]
+    const lastEdge = edges[edges.length - 1]
+
+    return {
+      edges,
+      totalCount,
+      pageInfo: {
+        startCursor: firstEdge ? firstEdge.cursor : '',
+        endCursor: lastEdge ? lastEdge.cursor : '',
+        hasPreviousPage: after ? _cursorToOffset(after) > 0 : false,
+        hasNextPage: lastEdge
+          ? _cursorToOffset(lastEdge.cursor) < totalCount
+          : false
+      }
+    }
+  }
+
   return connectionFromArraySlice(data, args, {
     sliceStart: 0,
     arrayLength: data.length
@@ -122,7 +158,8 @@ export function connectionFromArray<T>(
 
 export function connectionFromPromisedArray<T>(
   dataPromise: Promise<Array<T>>,
-  args: ConnectionArguments
+  args: ConnectionArguments,
+  helpers?: ConnectionHelpers
 ): Promise<Connection<T>> {
-  return dataPromise.then(data => connectionFromArray(data, args))
+  return dataPromise.then(data => connectionFromArray(data, args, helpers))
 }

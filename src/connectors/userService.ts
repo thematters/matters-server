@@ -15,7 +15,8 @@ import {
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPES,
   USER_STATE,
-  INVITATION_STATUS
+  INVITATION_STATUS,
+  BATCH_SIZE
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -313,11 +314,31 @@ export class UserService extends BaseService {
   // .offset(offset)
   // .limit(limit)
 
-  followeeArticles = async (userId: string) =>
-    this.knex('action_user as au')
+  followeeArticles = async ({
+    userId,
+    offset = 0,
+    limit = BATCH_SIZE
+  }: {
+    userId: string
+    offset?: number
+    limit?: number
+  }) =>
+    await this.knex('action_user as au')
       .select('ar.*')
       .join('article as ar', 'ar.author_id', 'au.target_id')
       .where({ action: 'follow', userId })
+      .offset(offset)
+      .limit(limit)
+
+  countFolloweeArticles = async (userId: string) => {
+    const result = await this.knex('action_user as au')
+      .countDistinct('ar.id')
+      .join('article as ar', 'ar.author_id', 'au.target_id')
+      .where({ action: 'follow', userId })
+      .first()
+    console.log({ result })
+    return parseInt(result.count, 10)
+  }
 
   /**
    * Count an users' subscription by a given user id.
