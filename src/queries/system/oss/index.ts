@@ -2,6 +2,7 @@ import { Context } from 'definitions'
 
 export * from './users'
 export * from './articles'
+export * from './tags'
 
 export const rootOSS = (_: any, __: any, { viewer }: Context) => {
   if (!viewer.id) {

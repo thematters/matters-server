@@ -11,7 +11,7 @@ import {
   placements,
   gatewayUrls
 } from './official'
-import { users, articles, rootOSS } from './oss'
+import { rootOSS, users, articles, tags } from './oss'
 
 export default {
   Query: {
@@ -37,6 +37,7 @@ export default {
   },
   OSS: {
     users,
-    articles
+    articles,
+    tags
   }
 }
