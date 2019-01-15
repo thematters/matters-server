@@ -50,11 +50,12 @@ export class BaseService extends DataSource {
   /**
    * Find items by given ids.
    */
-  baseFindByIds = async (ids: string[], table?: TableName) =>
-    await this.knex
+  baseFindByIds = (ids: string[], table?: TableName) =>
+    this.knex
       .select()
       .from(table || this.table)
       .whereIn('id', ids)
+      .then(rows => ids.map(id => rows.find((r: any) => r.id === id)))
 
   /**
    * Find an item by a given uuid.
@@ -68,9 +69,11 @@ export class BaseService extends DataSource {
       .select()
       .from(table || this.table)
       .where('uuid', uuid)
+
     if (result && result.length > 0) {
       return result[0]
     }
+
     return null
   }
 
@@ -85,6 +88,7 @@ export class BaseService extends DataSource {
       .select()
       .from(table || this.table)
       .whereIn('uuid', uuids)
+      .then(rows => uuids.map(uuid => rows.find((r: any) => r.uuid === uuid)))
 
   /**
    * Create item
