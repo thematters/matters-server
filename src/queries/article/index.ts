@@ -8,7 +8,6 @@ import tagCount from './tag/count'
 import tagArticles from './tag/articles'
 import author from './author'
 import cover from './cover'
-import summary from './summary'
 import tags from './tags'
 import upstream from './upstream'
 import downstreams from './downstreams'
@@ -36,7 +35,6 @@ export default {
       topicScore ? Math.round(topicScore) : null,
     author,
     cover,
-    summary,
     tags,
     upstream,
     downstreams,

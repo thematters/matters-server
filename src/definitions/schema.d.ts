@@ -302,6 +302,7 @@ export interface GQLTag extends GQLNode {
   content: string
   count: number
   articles: GQLArticleConnection
+  createdAt: GQLDateTime
 }
 
 export interface GQLUserConnection {
@@ -717,6 +718,7 @@ export interface GQLPlacementUnit {
 export interface GQLOSS {
   users: GQLUserConnection
   articles: GQLArticleConnection
+  tags: GQLTagConnection
 }
 
 export interface GQLUsersInput {
@@ -2540,6 +2542,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   content?: TagToContentResolver<TParent>
   count?: TagToCountResolver<TParent>
   articles?: TagToArticlesResolver<TParent>
+  createdAt?: TagToCreatedAtResolver<TParent>
 }
 
 export interface TagToIdResolver<TParent = any, TResult = any> {
@@ -2576,6 +2579,15 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: TagToArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -4182,6 +4194,7 @@ export interface PlacementUnitToAdLabelResolver<TParent = any, TResult = any> {
 export interface GQLOSSTypeResolver<TParent = any> {
   users?: OSSToUsersResolver<TParent>
   articles?: OSSToArticlesResolver<TParent>
+  tags?: OSSToTagsResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -4203,6 +4216,18 @@ export interface OSSToArticlesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

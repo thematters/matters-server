@@ -38,6 +38,7 @@ export default /* GraphQL */ `
   type OSS {
     users(input: UsersInput!): UserConnection!
     articles(input: ArticlesInput!): ArticleConnection!
+    tags(input: ConnectionArgs!): TagConnection!
   }
 
   type Category {
