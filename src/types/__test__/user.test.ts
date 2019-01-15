@@ -726,7 +726,7 @@ describe('invitation', async () => {
     const registerResult = await registerUser({
       email: unregisterEmail,
       displayName: 'new test user',
-      password: '567',
+      password: '12345678',
       codeId: code.uuid
     })
     expect(_get(registerResult, 'data.userRegister.token')).toBeTruthy()
