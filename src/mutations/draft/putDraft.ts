@@ -28,7 +28,7 @@ const resolver: MutationToPutDraftResolver = async (
   let coverAssetId
   if (coverAssetUUID) {
     const asset = await systemService.findAssetByUUID(coverAssetUUID)
-    if (!asset || asset.type !== 'cover' || asset.authorId !== viewer.id) {
+    if (!asset || asset.type !== 'embed' || asset.authorId !== viewer.id) {
       throw new Error('Asset does not exists') // TODO
     }
     coverAssetId = asset.id
