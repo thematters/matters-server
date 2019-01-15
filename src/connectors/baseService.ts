@@ -50,12 +50,16 @@ export class BaseService extends DataSource {
   /**
    * Find items by given ids.
    */
-  baseFindByIds = (ids: string[], table?: TableName) =>
-    this.knex
+  baseFindByIds = async (ids: string[], table?: TableName) => {
+    let rows = await this.knex
       .select()
       .from(table || this.table)
       .whereIn('id', ids)
-      .then(rows => ids.map(id => rows.find((r: any) => r.id === id)))
+
+    rows = ids.map(id => rows.find((r: any) => r.id === id))
+
+    return rows
+  }
 
   /**
    * Find an item by a given uuid.
@@ -83,12 +87,16 @@ export class BaseService extends DataSource {
   baseFindByUUIDs = async (
     uuids: string[],
     table?: TableName
-  ): Promise<any[]> =>
-    await this.knex
+  ): Promise<any[]> => {
+    let rows = await this.knex
       .select()
       .from(table || this.table)
       .whereIn('uuid', uuids)
-      .then(rows => uuids.map(uuid => rows.find((r: any) => r.uuid === uuid)))
+
+    rows = uuids.map(uuid => rows.find((r: any) => r.uuid === uuid))
+
+    return rows
+  }
 
   /**
    * Create item
