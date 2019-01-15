@@ -44,25 +44,49 @@ export class SystemService extends BaseService {
   }
 
   /**
-   * Find assets by a given author id (user).
+   * Find assets by a given report id
    */
-  findAssetsByAuthorId = async (authorId: string): Promise<any[]> =>
-    await this.knex
+  findAssetsByReportId = async (reportId: string) => {
+    const reportAssets = await this.knex('report_asset')
       .select()
-      .from('asset')
-      .where({ authorId })
+      .where({ reportId })
+    const assets = await this.baseFindByIds(
+      reportAssets.map(({ assetId }: { assetId: string }) => assetId),
+      'asset'
+    )
+    return assets.map(
+      ({ path }: { path: string }) =>
+        path ? `${this.aws.s3Endpoint}/${path}` : null
+    )
+  }
 
-  /**
-   * Find assets by a given author id (user) and type.
-   */
-  findAssetsByAuthorIdAndType = async (
-    authorId: string,
-    type: string
-  ): Promise<any[]> =>
-    await this.knex
+  findReportById = async (reportId: string) =>
+    this.knex('report')
       .select()
-      .from('asset')
-      .where({ authorId, type })
+      .where({ id: reportId })
+      .first()
+
+  findReports = async ({
+    comment,
+    article
+  }: {
+    comment: boolean
+    article: boolean
+  }) => {
+    let qs = this.knex('report')
+      .select()
+      .orderBy('id', 'desc')
+
+    if (comment) {
+      qs = qs.whereNotNull('comment_id')
+    }
+
+    if (article) {
+      qs = qs.orWhereNotNull('article_id')
+    }
+
+    return qs
+  }
 
   /**
    * User submit a feeback

@@ -9,14 +9,16 @@ exports.seed = async knex => {
     // article
     {
       user_id: '3',
-      category: 'spam',
-      article_id: '1'
+      category: '1',
+      article_id: '1',
+      description: 'description'
     },
     // comment
     {
       user_id: '3',
-      category: 'spam',
-      comment_id: '1'
+      category: '2',
+      comment_id: '1',
+      description: 'description'
     }
   ])
 

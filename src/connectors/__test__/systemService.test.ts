@@ -22,18 +22,6 @@ test('findAssetUrl', async () => {
   expect(url).toEqual(expect.any(String))
 })
 
-test('findAssetsByAuthorId', async () => {
-  const assets = await service.findAssetsByAuthorId('1')
-  expect(assets.length).toBe(3)
-  expect(assets[0]).toEqual(expect.objectContaining(assetValidation))
-})
-
-test('findAssetsByAuthorIdAndType', async () => {
-  const assets = await service.findAssetsByAuthorIdAndType('1', 'avatar')
-  expect(assets.length).toBe(1)
-  expect(assets[0]).toEqual(expect.objectContaining(assetValidation))
-})
-
 test('create and delete asset', async () => {
   const data = {
     uuid: v4(),
