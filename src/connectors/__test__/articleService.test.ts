@@ -33,13 +33,6 @@ test('countAppreciation', async () => {
   expect(appreciation).toBeDefined()
 })
 
-test('countWords', async () => {
-  const count = await articleService.countWords(
-    '<html><body>hello world</body></html>'
-  )
-  expect(count).toBe(2)
-})
-
 test('findByAuthor', async () => {
   const articles = await articleService.findByAuthor('1')
   expect(articles.length).toBeDefined()

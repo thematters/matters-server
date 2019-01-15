@@ -3,11 +3,16 @@ import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 import slugify from '@matters/slugify'
 
-import { ARTICLE_APPRECIATE_LIMIT, ARTICLE_STATE } from 'common/enums'
+import {
+  ARTICLE_APPRECIATE_LIMIT,
+  ARTICLE_STATE,
+  USER_ACTION,
+  TRANSACTION_PURPOSE
+} from 'common/enums'
 import { ItemData, GQLSearchInput } from 'definitions'
-
-import { USER_ACTION, TRANSACTION_PURPOSE } from 'common/enums'
 import { ipfs } from 'connectors/ipfs'
+import { stripHtml, countWords } from 'common/utils'
+
 import { BaseService } from './baseService'
 import { UserService } from './userService'
 
@@ -34,7 +39,7 @@ export class ArticleService extends BaseService {
       items: articles.map(
         (article: { content: string; title: string; id: string }) => ({
           ...article,
-          content: this.stripHtml(article.content)
+          content: stripHtml(article.content)
         })
       )
     })
@@ -47,7 +52,7 @@ export class ArticleService extends BaseService {
     // craete article
     const article = await this.baseCreate({
       uuid: v4(),
-      wordCount: this.countWords(articleData.content),
+      wordCount: countWords(articleData.content),
       ...articleData
     })
     return article
@@ -150,7 +155,7 @@ export class ArticleService extends BaseService {
         {
           id,
           title,
-          content: this.stripHtml(content),
+          content: stripHtml(content),
           tags
         }
       ]
@@ -256,16 +261,6 @@ export class ArticleService extends BaseService {
       .first()
     return parseInt(result.sum || '0', 10)
   }
-
-  stripHtml = (html: string) => html.replace(/(<([^>]+)>)/gi, '')
-
-  /**
-   * Counts words witin in html content.
-   */
-  countWords = (html: string) =>
-    this.stripHtml(html)
-      .split(' ')
-      .filter(s => s !== '').length
 
   /**
    * Find articles
@@ -547,15 +542,4 @@ export class ArticleService extends BaseService {
     }))
     await this.baseBatchCreate(reportAssets, 'report_asset')
   }
-
-  // TODO
-  getContentFromHash = (hash: string) => `
-    <html>
-      <head>
-        <title></title>
-      </head>
-      <body>
-        <p></p>
-      </body>
-    </html>`
 }
