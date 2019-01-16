@@ -26,7 +26,7 @@ exports.seed = function(knex, Promise) {
         {
           uuid: '00000000-0000-0000-0000-000000000004',
           author_id: '1',
-          type: 'cover',
+          type: 'embed',
           path: 'path/to/file.jpg'
         },
         {

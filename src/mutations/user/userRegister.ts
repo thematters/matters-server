@@ -1,15 +1,26 @@
 import { MutationToUserRegisterResolver } from 'definitions'
+import {
+  isValidEmail,
+  isValidUserName,
+  isValidDisplayName,
+  isValidPassword
+} from 'common/utils'
 
 const resolver: MutationToUserRegisterResolver = async (
   root,
   { input },
   { dataSources: { userService } }
 ) => {
+  const { email, userName, displayName, password, codeId } = input
+  if (!email) {
+    throw new Error('invalid email address format')
+  }
+
   // check verification code
   const [code] = await userService.findVerificationCodes({
     where: {
-      uuid: input.codeId,
-      email: input.email,
+      uuid: codeId,
+      email,
       type: 'register',
       status: 'verified'
     }
@@ -19,13 +30,19 @@ const resolver: MutationToUserRegisterResolver = async (
   }
 
   // check email
-  const user = await userService.findByEmail(input.email)
+  const user = await userService.findByEmail(email)
   if (user) {
     throw new Error('email address has already been registered')
   }
-
-  // TODO: check username
-
+  if (userName && !isValidUserName(userName)) {
+    throw new Error('invalid user name')
+  }
+  if (!isValidDisplayName(displayName)) {
+    throw new Error('invalid user display name')
+  }
+  if (!isValidPassword(password)) {
+    throw new Error('invalid user password')
+  }
   await userService.create(input)
 
   // mark code status as used
