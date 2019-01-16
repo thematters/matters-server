@@ -299,7 +299,6 @@ export const getViewerMATHistory = async () => {
     // @ts-ignore
     variables: { input: {} }
   })
-  console.log({ error: result.errors, result })
   const { data } = result
   return _get(data, 'viewer.status.MAT.history.edges')
 }

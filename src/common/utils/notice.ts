@@ -66,7 +66,7 @@ export const filterMissingFieldNotices = (notices: Notice[]): Notice[] => {
     if (messageRequired[noticeType] && _.isEmpty(notice.message)) {
       return false
     }
-    console.log(notice)
+
     return true
   })
 }
