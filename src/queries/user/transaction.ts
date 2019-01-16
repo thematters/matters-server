@@ -10,9 +10,8 @@ export const MAT: GQLMATTypeResolver = {
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await userService.countTransaction(id)
-
     return connectionFromPromisedArray(
-      userService.transactionHistory({ id, offset, limit: first }),
+      userService.findTransactionHistory({ id, offset, limit: first }),
       input,
       totalCount
     )

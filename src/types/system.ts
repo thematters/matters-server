@@ -92,6 +92,7 @@ export default /* GraphQL */ `
   }
 
   type SearchResultConnection {
+    totalCount: Int!
     pageInfo: PageInfo!
     edges: [SearchResultEdge!]
   }
@@ -102,6 +103,7 @@ export default /* GraphQL */ `
   }
 
   type ReportConnection {
+    totalCount: Int!
     pageInfo: PageInfo!
     edges: [ReportEdge!]
   }

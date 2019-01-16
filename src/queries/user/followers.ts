@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 
 import { UserToFollowersResolver } from 'definitions'
 
@@ -7,13 +7,21 @@ const resolver: UserToFollowersResolver = async (
   { input },
   { dataSources: { userService } }
 ) => {
-  const actions = await userService.findFollowers(id)
+  const { first, after } = input
+  const offset = cursorToIndex(after) + 1
+  const totalCount = await userService.countFollowers(id)
+  const actions = await userService.findFollowers({
+    targetId: id,
+    offset,
+    limit: first
+  })
 
   return connectionFromPromisedArray(
     userService.dataloader.loadMany(
       actions.map(({ userId }: { userId: string }) => userId)
     ),
-    input
+    input,
+    totalCount
   )
 }
 

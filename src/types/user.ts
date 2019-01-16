@@ -184,9 +184,9 @@ export default /* GraphQL */ `
   }
 
   type UserConnection {
-    totalCount: Int
+    totalCount: Int!
     pageInfo: PageInfo!
-    edges: [UserEdge]
+    edges: [UserEdge!]
   }
 
   type UserEdge {
@@ -195,6 +195,7 @@ export default /* GraphQL */ `
   }
 
   type InvitationConnection {
+    totalCount: Int!
     pageInfo: PageInfo!
     edges: [InvitationEdge!]
   }
@@ -205,6 +206,7 @@ export default /* GraphQL */ `
   }
 
   type ReadHistoryConnection {
+    totalCount: Int!
     pageInfo: PageInfo!
     edges: [ReadHistoryEdge!]
   }
@@ -215,6 +217,7 @@ export default /* GraphQL */ `
   }
 
   type RecentSearchConnection {
+    totalCount: Int!
     pageInfo: PageInfo!
     edges: [RecentSearchEdge!]
   }
@@ -225,6 +228,7 @@ export default /* GraphQL */ `
   }
 
   type TransactionConnection {
+    totalCount: Int!
     pageInfo: PageInfo!
     edges: [TransactionEdge!]
   }

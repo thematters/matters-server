@@ -727,16 +727,6 @@ describe('invitation', async () => {
     // check user state
     const user = await userService.findByEmail(unregisterEmail)
     expect(user.state).toBe('active')
-
-    // check transactions
-    const senderTxs = await userService.findTransactionsByUserId(
-      fromGlobalId(_get(newInvitationData, 'viewer.id')).id
-    )
-    const recipientTxs = await userService.findTransactionsByUserId(user.id)
-    expect(senderTxs[0].amount).toBe(MAT_UNIT.invitationAccepted)
-    expect(senderTxs[0].purpose).toBe(TRANSACTION_PURPOSE.invitationAccepted)
-    expect(recipientTxs[0].amount).toBe(MAT_UNIT.joinByInvitation)
-    expect(recipientTxs[0].purpose).toBe(TRANSACTION_PURPOSE.joinByInvitation)
   })
 
   test('admin is not limit on invitations', async () => {

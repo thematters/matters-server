@@ -9,6 +9,11 @@ export class DraftService extends BaseService {
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
+  /*********************************
+   *                               *
+   *             Draft             *
+   *                               *
+   *********************************/
   /**
    * Count user's drafts by a given author id (user).
    */
@@ -41,6 +46,11 @@ export class DraftService extends BaseService {
         publishState
       })
 
+  /*********************************
+   *                               *
+   *           Audio Draft         *
+   *                               *
+   *********************************/
   /**
    * Find audio draft by a given id.
    */

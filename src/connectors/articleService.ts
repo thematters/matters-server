@@ -27,25 +27,6 @@ export class ArticleService extends BaseService {
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
-  // dump all data to es. Currently only used in test.
-  initSearch = async () => {
-    const articles = await this.knex(this.table).select(
-      'content',
-      'title',
-      'id'
-    )
-
-    return this.es.indexItems({
-      index: this.table,
-      items: articles.map(
-        (article: { content: string; title: string; id: string }) => ({
-          ...article,
-          content: stripHtml(article.content)
-        })
-      )
-    })
-  }
-
   /**
    * Create a new article item.
    */
@@ -59,7 +40,9 @@ export class ArticleService extends BaseService {
     return article
   }
 
-  // publish an article to IPFS
+  /**
+   * Publish an article to IPFS
+   */
   publish = async ({
     authorId,
     upstreamId,
@@ -142,6 +125,88 @@ export class ArticleService extends BaseService {
     return article
   }
 
+  /**
+   * Find articles
+   */
+  find = async ({ where }: { where?: { [key: string]: any } }) => {
+    let qs = this.knex
+      .select()
+      .from(this.table)
+      .orderBy('id', 'desc')
+
+    if (where) {
+      qs = qs.where(where)
+    }
+
+    return await qs
+  }
+
+  /**
+   *  Find articles by a given author id (user).
+   */
+  findByAuthor = async (authorId: string) =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .where({ authorId })
+      .orderBy('id', 'desc')
+
+  /**
+   * Find article by media hash
+   */
+  findByMediaHash = async (mediaHash: string) =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .where({ mediaHash })
+      .first()
+
+  /**
+   * Find articles by upstream id (article).
+   */
+  findByUpstream = async (upstreamId: string) =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .where({ upstreamId })
+
+  /**
+   * Count articles by a given authorId (user).
+   */
+  countByAuthor = async (authorId: string): Promise<number> => {
+    const result = await this.knex(this.table)
+      .countDistinct('id')
+      .where({ authorId, state: ARTICLE_STATE.active })
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  /*********************************
+   *                               *
+   *           Search              *
+   *                               *
+   *********************************/
+  /**
+   * Dump all data to ES (Currently only used in test)
+   */
+  initSearch = async () => {
+    const articles = await this.knex(this.table).select(
+      'content',
+      'title',
+      'id'
+    )
+
+    return this.es.indexItems({
+      index: this.table,
+      items: articles.map(
+        (article: { content: string; title: string; id: string }) => ({
+          ...article,
+          content: stripHtml(article.content)
+        })
+      )
+    })
+  }
+
   addToSearch = async ({
     id,
     title,
@@ -187,6 +252,11 @@ export class ArticleService extends BaseService {
     }
   }
 
+  /*********************************
+   *                               *
+   *           Recommand           *
+   *                               *
+   *********************************/
   recommendHottest = async ({
     limit = BATCH_SIZE,
     offset = 0,
@@ -249,19 +319,13 @@ export class ArticleService extends BaseService {
       .limit(limit)
       .offset(offset)
 
+  /*********************************
+   *                               *
+   *          Appreciaton          *
+   *                               *
+   *********************************/
   /**
-   * Count articles by a given authorId (user).
-   */
-  countByAuthor = async (authorId: string): Promise<number> => {
-    const result = await this.knex(this.table)
-      .countDistinct('id')
-      .where({ authorId, state: ARTICLE_STATE.active })
-      .first()
-    return parseInt(result.count, 10)
-  }
-
-  /**
-   * sum total appreciaton by a given article id.
+   * Sum total appreciaton by a given article id.
    */
   totalAppreciation = async (articleId: string): Promise<number> => {
     const result = await this.knex
@@ -299,50 +363,16 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
-  /**
-   * Find articles
-   */
-  find = async ({ where }: { where?: { [key: string]: any } }) => {
-    let qs = this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
-
-    if (where) {
-      qs = qs.where(where)
-    }
-
-    return await qs
-  }
-
-  /**
-   *  Find articles by a given author id (user).
-   */
-  findByAuthor = async (authorId: string) =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ authorId })
-      .orderBy('id', 'desc')
-
-  /**
-   * Find article by media hash
-   */
-  findByMediaHash = async (mediaHash: string) =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ mediaHash })
+  countAppreciators = async (id: string) => {
+    const result = await this.knex('transaction')
+      .countDistinct('sender_id')
+      .where({
+        referenceId: id,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
       .first()
-
-  /**
-   * Find articles by upstream id (article).
-   */
-  findByUpstream = async (upstreamId: string) =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ upstreamId })
+    return parseInt(result.count || 0, 10)
+  }
 
   /**
    * Find an article's appreciations by a given articleId.
@@ -378,17 +408,6 @@ export class ArticleService extends BaseService {
       .limit(limit)
       .offset(offset)
 
-  countAppreciators = async (id: string) => {
-    const result = await this.knex('transaction')
-      .countDistinct('sender_id')
-      .where({
-        referenceId: id,
-        purpose: TRANSACTION_PURPOSE.appreciate
-      })
-      .first()
-    return parseInt(result.count || 0, 10)
-  }
-
   appreciateLeftByUser = async ({
     articleId,
     userId
@@ -406,6 +425,60 @@ export class ArticleService extends BaseService {
     return Math.max(ARTICLE_APPRECIATE_LIMIT - appreciations.length, 0)
   }
 
+  hasAppreciate = async ({
+    userId: senderId,
+    articleId
+  }: {
+    userId: string
+    articleId: string
+  }): Promise<boolean> => {
+    const result = await this.knex('transaction')
+      .select()
+      .where({
+        senderId,
+        referenceId: articleId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
+    return result.length > 0
+  }
+
+  /**
+   * User appreciate an article
+   */
+  appreciate = async ({
+    uuid,
+    articleId,
+    senderId,
+    senderMAT,
+    recipientId,
+    amount
+  }: {
+    uuid: string
+    articleId: string
+    senderId: string
+    senderMAT: number
+    recipientId: string
+    amount: number
+  }): Promise<any> => {
+    const result = await this.knex('transaction')
+      .insert({
+        uuid,
+        senderId,
+        recipientId,
+        referenceId: articleId,
+        purpose: TRANSACTION_PURPOSE.appreciate,
+        amount
+      })
+      .into('transaction')
+      .returning('*')
+    return result
+  }
+
+  /*********************************
+   *                               *
+   *              Tag              *
+   *                               *
+   *********************************/
   /**
    * Find tages by a given article id.
    */
@@ -422,6 +495,11 @@ export class ArticleService extends BaseService {
     return result.map(({ tagId }: { tagId: string }) => tagId)
   }
 
+  /*********************************
+   *                               *
+   *          Subscription         *
+   *                               *
+   *********************************/
   /**
    * Find an article's subscribers by a given targetId (article).
    */
@@ -467,23 +545,6 @@ export class ArticleService extends BaseService {
     return result.length > 0
   }
 
-  hasAppreciate = async ({
-    userId: senderId,
-    articleId
-  }: {
-    userId: string
-    articleId: string
-  }): Promise<boolean> => {
-    const result = await this.knex('transaction')
-      .select()
-      .where({
-        senderId,
-        referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate
-      })
-    return result.length > 0
-  }
-
   /**
    * User subscribe an article
    */
@@ -510,38 +571,11 @@ export class ArticleService extends BaseService {
       })
       .del()
 
-  /**
-   * User appreciate an article
-   */
-  appreciate = async ({
-    uuid,
-    articleId,
-    senderId,
-    senderMAT,
-    recipientId,
-    amount
-  }: {
-    uuid: string
-    articleId: string
-    senderId: string
-    senderMAT: number
-    recipientId: string
-    amount: number
-  }): Promise<any> => {
-    const result = await this.knex('transaction')
-      .insert({
-        uuid,
-        senderId,
-        recipientId,
-        referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate,
-        amount
-      })
-      .into('transaction')
-      .returning('*')
-    return result
-  }
-
+  /*********************************
+   *                               *
+   *         Read History          *
+   *                               *
+   *********************************/
   /**
    * User read an article
    */
@@ -566,6 +600,11 @@ export class ArticleService extends BaseService {
     )
   }
 
+  /*********************************
+   *                               *
+   *             Report            *
+   *                               *
+   *********************************/
   /**
    * User report an article
    */
