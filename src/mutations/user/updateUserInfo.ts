@@ -41,7 +41,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   }
 
   // check user display name
-  if (input.displayName){
+  if (input.displayName) {
     if (!isValidDisplayName(input.displayName)) {
       throw new UserInputError('invalid user display name')
     }
