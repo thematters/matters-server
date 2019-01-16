@@ -44,11 +44,11 @@ class ElasticSearch {
       throw err
     }
   }
-  
+
   /**
    * break many items into smaller chunks, then bulk index each chunk
    */
-  indexManyItems = async({
+  indexManyItems = async ({
     index,
     items
   }: {
@@ -75,13 +75,7 @@ class ElasticSearch {
     return indexItemsByChunk(chunks)
   }
 
-  indexItems = async ({
-    index,
-    items
-  }: {
-    index: string
-    items: Item[]
-  }) => {
+  indexItems = async ({ index, items }: { index: string; items: Item[] }) => {
     const exists = await this.client.indices.exists({ index })
     if (!exists) {
       await this.client.indices.create({ index })
