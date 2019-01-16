@@ -6,6 +6,8 @@ import logger from 'common/logger'
 
 const { esHost: host, esPort: port, env } = environment
 
+type Item = { [key: string]: any; id: string }
+
 class ElasticSearch {
   client: elasticsearch.Client
 
@@ -42,13 +44,43 @@ class ElasticSearch {
       throw err
     }
   }
+  
+  /**
+   * break many items into smaller chunks, then bulk index each chunk
+   */
+  indexManyItems = async({
+    index,
+    items
+  }: {
+    index: string
+    items: Item[]
+  }) => {
+    // break items into chunks
+    const size = 10
+    let chunks: Item[][] = []
+    while (items.length) {
+      chunks.push(items.splice(0, size))
+    }
+
+    // index items by chunks
+    const indexItemsByChunk = async (chunks: Item[][]) => {
+      for (let i = 0; i < chunks.length; i++) {
+        await this.indexItems({
+          index: index,
+          items: chunks[i]
+        })
+        logger.info(`Indexed ${chunks[i].length} items into ${index}.`)
+      }
+    }
+    return indexItemsByChunk(chunks)
+  }
 
   indexItems = async ({
     index,
     items
   }: {
     index: string
-    items: { [key: string]: any; id: string }[]
+    items: Item[]
   }) => {
     const exists = await this.client.indices.exists({ index })
     if (!exists) {

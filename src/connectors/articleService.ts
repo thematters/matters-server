@@ -29,7 +29,7 @@ export class ArticleService extends BaseService {
       'id'
     )
 
-    return this.es.indexItems({
+    return this.es.indexManyItems({
       index: this.table,
       items: articles.map(
         (article: { content: string; title: string; id: string }) => ({
