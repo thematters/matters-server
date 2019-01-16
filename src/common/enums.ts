@@ -86,6 +86,56 @@ export const VERIFICATION_CODE_TYPES = {
 
 export const VERIFICATION_CODE_PROTECTED_TYPES = ['email_reset', 'email_verify']
 
+export const REPORT_CATEGORIES = [
+  {
+    id: '1',
+    name: '侵權、抄襲'
+  },
+  {
+    id: '2',
+    name: '攻擊、侮辱、誹謗、恐嚇他人'
+  },
+  {
+    id: '3',
+    name: '鼓吹歧視、仇恨'
+  },
+  {
+    id: '4',
+    name: '誤導、欺詐、侵犯隱私'
+  },
+  {
+    id: '5',
+    name: '色情、暴力、教唆犯罪或鼓勵自我傷害'
+  },
+  {
+    id: '6',
+    name: '假新聞、不實消息、垃圾訊息'
+  },
+  {
+    id: '7',
+    name: '冒用他人身份'
+  },
+  {
+    id: '8',
+    name: '其他（請填寫原因）'
+  }
+]
+
+export const FEEDBACK_CATEGORIES = [
+  {
+    id: '1',
+    name: '操作異常'
+  },
+  {
+    id: '2',
+    name: '功能建議'
+  },
+  {
+    id: '3',
+    name: '其他'
+  }
+]
+
 /**
  * Queue
  */
@@ -119,3 +169,28 @@ export const QUEUE_CONCURRENCY = {
 }
 
 export const PUBLISH_ARTICLE_DELAY = 1000 * 60 * 2
+
+export const INVALID_NAMES = [
+  'administrator',
+  'administrators',
+  'admin',
+  'admins',
+  'team',
+  'teams',
+  'matters',
+  'member',
+  'members',
+  'user',
+  'users',
+  'matty',
+  'matties',
+  '團隊',
+  '团队',
+  '管理員',
+  '管理员',
+  'mattersadmin',
+  'matters團隊',
+  'matters团队',
+  'matters管理員',
+  'matters管理员'
+]
