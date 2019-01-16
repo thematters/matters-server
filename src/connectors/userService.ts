@@ -113,14 +113,18 @@ export class UserService extends BaseService {
       _.identity
     )
 
-    await this.es.client.update({
-      index: this.table,
-      type: this.table,
-      id,
-      body: {
-        doc: searchable
-      }
-    })
+    try {
+      await this.es.client.update({
+        index: this.table,
+        type: this.table,
+        id,
+        body: {
+          doc: searchable
+        }
+      })
+    } catch (e) {
+      logger.error(e)
+    }
 
     return user
   }
