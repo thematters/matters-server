@@ -56,7 +56,7 @@ class ElasticSearch {
     items: Item[]
   }) => {
     // break items into chunks
-    const size = 10
+    const size = 100
     let chunks: Item[][] = []
     while (items.length) {
       chunks.push(items.splice(0, size))
