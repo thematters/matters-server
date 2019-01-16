@@ -6,7 +6,7 @@ export * from './articles'
 
 export const rootOSS = (_: any, __: any, { viewer }: Context) => {
   if (!viewer.id) {
-    throw new AuthenticationError('anonymous user cannot do this')
+    throw new AuthenticationError('visitor has no permission')
   }
 
   if (viewer.role !== 'admin') {

@@ -7,7 +7,7 @@ const resolver: InvitationStatusToLeftResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('anonymous user cannot do this')
+    throw new AuthenticationError('visitor has no permission')
   }
 
   if (viewer.id !== id && viewer.role !== 'admin') {

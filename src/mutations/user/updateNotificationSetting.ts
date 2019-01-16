@@ -7,7 +7,7 @@ const resolver: MutationToUpdateNotificationSettingResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   const notifySetting = await userService.findNotifySetting(viewer.id)

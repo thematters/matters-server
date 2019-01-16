@@ -11,7 +11,7 @@ const resolver: MutationToVoteCommentResolver = async (
   }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)

@@ -1,3 +1,4 @@
+import { UserInputError } from 'apollo-server'
 import { MutationToFeedbackResolver } from 'definitions'
 
 const resolver: MutationToFeedbackResolver = async (
@@ -6,14 +7,14 @@ const resolver: MutationToFeedbackResolver = async (
   { viewer, dataSources: { systemService } }
 ) => {
   if (!viewer.id && !contact) {
-    throw new Error('"contact" is required with anonymous user') // TODO
+    throw new UserInputError('"contact" is required with visitor')
   }
 
   let assetIds
   if (assetUUIDs) {
     const assets = await systemService.findAssetByUUIDs(assetUUIDs)
     if (!assets || assets.length <= 0) {
-      throw new Error('Asset does not exists') // TODO
+      throw new UserInputError('Asset does not exists')
     }
     assetIds = assets.map((asset: any) => asset.id)
   }

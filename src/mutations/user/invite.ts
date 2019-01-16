@@ -1,4 +1,8 @@
-import { AuthenticationError } from 'apollo-server'
+import {
+  AuthenticationError,
+  UserInputError,
+  ForbiddenError
+} from 'apollo-server'
 import { MutationToInviteResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 import { MAT_UNIT } from 'common/enums'
@@ -9,11 +13,11 @@ const resolver: MutationToInviteResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   if (!id && !email) {
-    throw new Error('id or email is required') // TODO
+    throw new UserInputError('id or email is required')
   }
 
   const isAdmin = viewer.role === 'admin'
@@ -23,7 +27,7 @@ const resolver: MutationToInviteResolver = async (
       Math.floor(viewer.mat / MAT_UNIT.invitationCalculate) - invited.length
 
     if (viewer.state !== 'active' || invitationLeft <= 0) {
-      throw new Error('unable to invite') // TODO
+      throw new ForbiddenError('unable to invite')
     }
   }
 
@@ -31,10 +35,10 @@ const resolver: MutationToInviteResolver = async (
     const { id: dbId } = fromGlobalId(id)
     const recipient = await userService.dataloader.load(dbId)
     if (!recipient) {
-      throw new Error('target user does not exists') // TODO
+      throw new UserInputError('target user does not exists')
     }
     if (recipient.state !== 'onboarding') {
-      throw new Error("target user' state is not onboarding")
+      throw new ForbiddenError("target user' state is not onboarding")
     }
     await userService.activate({
       senderId: isAdmin ? undefined : viewer.id,
@@ -43,7 +47,7 @@ const resolver: MutationToInviteResolver = async (
   } else {
     const user = await userService.findByEmail(email)
     if (user) {
-      throw new Error('email has been registered')
+      throw new ForbiddenError('email has been registered')
     }
     await userService.invite({
       senderId: isAdmin ? undefined : viewer.id,

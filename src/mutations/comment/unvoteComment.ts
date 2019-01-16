@@ -1,4 +1,4 @@
-import { AuthenticationError } from 'apollo-server'
+import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToUnvoteCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
@@ -11,7 +11,7 @@ const resolver: MutationToUnvoteCommentResolver = async (
   }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
@@ -22,7 +22,7 @@ const resolver: MutationToUnvoteCommentResolver = async (
     commentId: dbId
   })
   if (!voted || voted.length <= 0) {
-    throw new Error('no voted before')
+    throw new ForbiddenError('no vote before')
   }
 
   await commentService.unvote({ commentId: dbId, userId: viewer.id })

@@ -1,4 +1,5 @@
 import { MutationToUserRegisterResolver } from 'definitions'
+import { UserInputError, ForbiddenError } from 'apollo-server'
 
 const resolver: MutationToUserRegisterResolver = async (
   root,
@@ -15,13 +16,13 @@ const resolver: MutationToUserRegisterResolver = async (
     }
   })
   if (!code) {
-    throw new Error('code does not exists')
+    throw new UserInputError('code does not exists')
   }
 
   // check email
   const user = await userService.findByEmail(input.email)
   if (user) {
-    throw new Error('email address has already been registered')
+    throw new ForbiddenError('email address has already been registered')
   }
 
   // TODO: check username

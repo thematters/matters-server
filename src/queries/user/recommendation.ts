@@ -9,7 +9,7 @@ const resolvers: GQLRecommendationTypeResolver = {
     { dataSources: { userService } }
   ) => {
     if (!id) {
-      throw new AuthenticationError('anonymous user cannot do this')
+      throw new AuthenticationError('visitor has no permission')
     }
     const { first, after } = input
     const offset = cursorToIndex(after) + 1

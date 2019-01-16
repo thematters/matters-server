@@ -1,3 +1,4 @@
+import { ForbiddenError, UserInputError } from 'apollo-server'
 import { MutationToReportArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
@@ -7,20 +8,20 @@ const resolver: MutationToReportArticleResolver = async (
   { viewer, dataSources: { articleService, systemService } }
 ) => {
   if (!viewer.id && !contact) {
-    throw new Error('"contact" is required with anonymous user') // TODO
+    throw new UserInputError('"contact" is required with visitor')
   }
 
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
-    throw new Error('target article does not exists') // TODO
+    throw new ForbiddenError('target article does not exists')
   }
 
   let assetIds
   if (assetUUIDs) {
     const assets = await systemService.findAssetByUUIDs(assetUUIDs)
     if (!assets || assets.length <= 0) {
-      throw new Error('Asset does not exists') // TODO
+      throw new ForbiddenError('Asset does not exists')
     }
     assetIds = assets.map((asset: any) => asset.id)
   }

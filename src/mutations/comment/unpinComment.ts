@@ -1,4 +1,4 @@
-import { AuthenticationError } from 'apollo-server'
+import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToPinCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
@@ -11,7 +11,7 @@ const resolver: MutationToPinCommentResolver = async (
   }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
@@ -19,7 +19,7 @@ const resolver: MutationToPinCommentResolver = async (
   const { authorId } = await articleService.dataloader.load(articleId)
 
   if (authorId !== viewer.id) {
-    throw new Error('viewer has no permission to do this') // TODO
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const comment = await commentService.baseUpdateById(dbId, {

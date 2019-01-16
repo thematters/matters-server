@@ -1,4 +1,8 @@
-import { AuthenticationError } from 'apollo-server'
+import {
+  AuthenticationError,
+  UserInputError,
+  ForbiddenError
+} from 'apollo-server'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserInfoResolver = async (
@@ -7,7 +11,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   { viewer, dataSources: { userService, systemService } }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   if (input.avatar) {
@@ -15,7 +19,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     const asset = await systemService.findAssetByUUID(avatarAssetUUID)
 
     if (!asset || asset.type !== 'avatar' || asset.authorId !== viewer.id) {
-      throw new Error('avatar asset does not exists') // TODO
+      throw new UserInputError('avatar asset does not exists')
     }
 
     input.avatar = asset.id
@@ -25,7 +29,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   if (input.userName) {
     const isUserNameEditable = await userService.isUserNameEditable(viewer.id)
     if (!isUserNameEditable) {
-      throw new Error('userName is not allow to edit') // TODO
+      throw new ForbiddenError('userName is not allow to edit')
     }
   }
 

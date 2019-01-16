@@ -7,7 +7,7 @@ const resolver: MutationToMarkAllNoticesAsReadResolver = async (
   { viewer, dataSources: { notificationService } }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   await notificationService.noticeService.markAllNoticesAsRead(viewer.id)

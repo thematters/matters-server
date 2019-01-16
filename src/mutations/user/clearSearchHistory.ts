@@ -7,7 +7,7 @@ const resolver: MutationToClearSearchHistoryResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   await userService.clearSearches(viewer.id)

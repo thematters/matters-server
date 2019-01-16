@@ -1,4 +1,8 @@
-import { AuthenticationError } from 'apollo-server'
+import {
+  AuthenticationError,
+  UserInputError,
+  ForbiddenError
+} from 'apollo-server'
 import { v4 } from 'uuid'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
@@ -18,7 +22,7 @@ const resolver: MutationToPutDraftResolver = async (
   { viewer, dataSources: { draftService, systemService } }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   let upstreamDBId
@@ -30,7 +34,7 @@ const resolver: MutationToPutDraftResolver = async (
   if (coverAssetUUID) {
     const asset = await systemService.findAssetByUUID(coverAssetUUID)
     if (!asset || asset.type !== 'cover' || asset.authorId !== viewer.id) {
-      throw new Error('Asset does not exists') // TODO
+      throw new UserInputError('Asset does not exists')
     }
     coverAssetId = asset.id
   }
@@ -51,10 +55,10 @@ const resolver: MutationToPutDraftResolver = async (
     const { id: dbId } = fromGlobalId(id)
     const draft = await draftService.dataloader.load(dbId)
     if (!draft) {
-      throw new Error('target draft does not exist')
+      throw new UserInputError('target draft does not exist')
     }
     if (draft.authorId != viewer.id) {
-      throw new Error('disallow to process')
+      throw new ForbiddenError('viewer has no permission')
     }
     return await draftService.baseUpdateById(dbId, data, 'draft')
   }
