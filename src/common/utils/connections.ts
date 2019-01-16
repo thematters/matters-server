@@ -85,10 +85,13 @@ export function connectionFromArray<T>(
     }
   }
 
-  return connectionFromArraySlice(data, args, {
-    sliceStart: 0,
-    arrayLength: data.length
-  })
+  return {
+    ...connectionFromArraySlice(data, args, {
+      sliceStart: 0,
+      arrayLength: data.length
+    }),
+    totalCount: data.length
+  }
 }
 
 export function connectionFromPromisedArray<T>(

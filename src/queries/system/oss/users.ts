@@ -1,5 +1,5 @@
 import { isNil } from 'lodash'
-import { connectionFromPromisedArray } from 'graphql-relay'
+import { connectionFromPromisedArray } from 'common/utils'
 
 import { OSSToUsersResolver } from 'definitions'
 
