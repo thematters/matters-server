@@ -363,11 +363,11 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
-  countAppreciators = async (id: string) => {
+  countAppreciators = async (articleId: string) => {
     const result = await this.knex('transaction')
       .countDistinct('sender_id')
       .where({
-        referenceId: id,
+        referenceId: articleId,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
       .first()

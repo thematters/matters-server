@@ -326,9 +326,32 @@ export class CommentService extends BaseService {
       .from(this.table)
       .where({ articleId, pinned: true })
 
-  pinLeftByArticle = async (articleId: string): Promise<number> => {
-    const pinned = await this.findPinnedByArticle(articleId)
-    return Math.max(ARTICLE_PIN_COMMENT_LIMIT - pinned.length, 0)
+  countPinnedByArticle = async ({
+    articleId,
+    activeOnly
+  }: {
+    articleId: string
+    activeOnly?: boolean
+  }): Promise<number> => {
+    let qs = this.knex
+      .select()
+      .from(this.table)
+      .where({ articleId, pinned: true })
+
+    if (activeOnly) {
+      qs = qs.where({ state: COMMENT_STATE.active })
+    }
+
+    const result = await qs
+    return parseInt(result.count, 10)
+  }
+
+  pinLeftByArticle = async (articleId: string) => {
+    const pinnedCount = await this.countPinnedByArticle({
+      articleId: articleId,
+      activeOnly: true
+    })
+    return Math.max(ARTICLE_PIN_COMMENT_LIMIT - pinnedCount, 0)
   }
 
   /*********************************
