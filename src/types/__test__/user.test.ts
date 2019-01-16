@@ -423,7 +423,7 @@ describe('user mat', async () => {
 
 describe('user query fields', () => {
   test('get user by username', async () => {
-    const userName = 'test 1'
+    const userName = 'test1'
     const { query } = await testClient()
     const { data } = await query({
       query: GET_USER_BY_USERNAME,
