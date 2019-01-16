@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { InvitationStatusToLeftResolver } from 'definitions'
 
 const resolver: InvitationStatusToLeftResolver = async (
@@ -6,7 +7,7 @@ const resolver: InvitationStatusToLeftResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   if (viewer.id !== id && viewer.role !== 'admin') {

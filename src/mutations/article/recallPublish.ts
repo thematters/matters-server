@@ -1,3 +1,4 @@
+import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToRecallPublishResolver } from 'definitions'
 import { PUBLISH_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
@@ -8,7 +9,7 @@ const resolver: MutationToRecallPublishResolver = async (
   { viewer, dataSources: { draftService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
   const { id: draftDBId } = fromGlobalId(id)
   const draft = await draftService.dataloader.load(draftDBId)
@@ -18,7 +19,7 @@ const resolver: MutationToRecallPublishResolver = async (
     draft.archived ||
     draft.publishState === PUBLISH_STATE.published
   ) {
-    throw new Error('draft does not exists') // TODO
+    throw new ForbiddenError('draft does not exists')
   }
 
   const draftRecalled = await draftService.baseUpdateById(draftDBId, {

@@ -272,6 +272,7 @@ export interface GQLConnectionArgs {
 }
 
 export interface GQLArticleConnection {
+  totalCount?: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLArticleEdge>
 }
@@ -288,6 +289,7 @@ export interface GQLArticleEdge {
 }
 
 export interface GQLTagConnection {
+  totalCount?: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLTagEdge>
 }
@@ -306,6 +308,7 @@ export interface GQLTag extends GQLNode {
 }
 
 export interface GQLUserConnection {
+  totalCount?: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLUserEdge | null>
 }
@@ -466,7 +469,7 @@ export interface GQLTransactionEdge {
 export interface GQLTransaction {
   delta: number
   purpose: GQLTransactionPurpose
-  reference?: GQLNode
+  content: string
   createdAt: GQLDateTime
 }
 
@@ -2445,8 +2448,21 @@ export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLArticleConnectionTypeResolver<TParent = any> {
+  totalCount?: ArticleConnectionToTotalCountResolver<TParent>
   pageInfo?: ArticleConnectionToPageInfoResolver<TParent>
   edges?: ArticleConnectionToEdgesResolver<TParent>
+}
+
+export interface ArticleConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleConnectionToPageInfoResolver<
@@ -2530,8 +2546,21 @@ export interface ArticleEdgeToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLTagConnectionTypeResolver<TParent = any> {
+  totalCount?: TagConnectionToTotalCountResolver<TParent>
   pageInfo?: TagConnectionToPageInfoResolver<TParent>
   edges?: TagConnectionToEdgesResolver<TParent>
+}
+
+export interface TagConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TagConnectionToPageInfoResolver<TParent = any, TResult = any> {
@@ -2632,8 +2661,21 @@ export interface TagToCreatedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLUserConnectionTypeResolver<TParent = any> {
+  totalCount?: UserConnectionToTotalCountResolver<TParent>
   pageInfo?: UserConnectionToPageInfoResolver<TParent>
   edges?: UserConnectionToEdgesResolver<TParent>
+}
+
+export interface UserConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserConnectionToPageInfoResolver<
@@ -3364,7 +3406,7 @@ export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
 export interface GQLTransactionTypeResolver<TParent = any> {
   delta?: TransactionToDeltaResolver<TParent>
   purpose?: TransactionToPurposeResolver<TParent>
-  reference?: TransactionToReferenceResolver<TParent>
+  content?: TransactionToContentResolver<TParent>
   createdAt?: TransactionToCreatedAtResolver<TParent>
 }
 
@@ -3386,7 +3428,7 @@ export interface TransactionToPurposeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface TransactionToReferenceResolver<TParent = any, TResult = any> {
+export interface TransactionToContentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

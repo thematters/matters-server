@@ -1,3 +1,4 @@
+import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToUnsubscribeArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
@@ -7,13 +8,13 @@ const resolver: MutationToUnsubscribeArticleResolver = async (
   { viewer, dataSources: { articleService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
-    throw new Error('target article does not exists') // TODO
+    throw new ForbiddenError('target article does not exists')
   }
 
   const subscribed = await articleService.isSubscribed({
@@ -22,7 +23,7 @@ const resolver: MutationToUnsubscribeArticleResolver = async (
   })
 
   if (!subscribed) {
-    throw new Error('subscription does not exists') // TODO
+    throw new ForbiddenError('subscription does not exists')
   }
 
   articleService.unsubscribe(article.id, viewer.id)

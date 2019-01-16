@@ -61,6 +61,7 @@ export default /* GraphQL */ `
   }
 
   type ArticleConnection {
+    totalCount: Int
     pageInfo: PageInfo!
     edges: [ArticleEdge!]
   }
@@ -71,6 +72,7 @@ export default /* GraphQL */ `
   }
 
   type TagConnection {
+    totalCount: Int
     pageInfo: PageInfo!
     edges: [TagEdge!]
   }

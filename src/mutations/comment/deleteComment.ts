@@ -1,3 +1,4 @@
+import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToDeleteCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 import { COMMENT_STATE } from 'common/enums'
@@ -11,14 +12,14 @@ const resolver: MutationToDeleteCommentResolver = async (
   }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
   const { authorId, articleId } = await commentService.dataloader.load(dbId)
 
   if (authorId !== viewer.id) {
-    throw new Error('viewer has no permission to do this') // TODO
+    throw new ForbiddenError('viewer has no permission')
   }
 
   await commentService.baseUpdateById(dbId, {

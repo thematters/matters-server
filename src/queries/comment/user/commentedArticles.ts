@@ -1,5 +1,5 @@
 import { uniq } from 'lodash'
-import { connectionFromPromisedArray } from 'graphql-relay'
+import { connectionFromPromisedArray } from 'common/utils'
 
 import { UserToCommentedArticlesResolver } from 'definitions'
 

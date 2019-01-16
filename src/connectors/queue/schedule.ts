@@ -84,7 +84,7 @@ class ScheduleQueue {
     this.q.add(QUEUE_JOB.initializeSearch, null, {
       priority: QUEUE_PRIORITY.CRITICAL,
       repeat: {
-        every: 1000 * 60 * 60 * 24 // every 24 hours TODO: set time with least usage
+        every: 1000 * 60 * 60 // every 1 hour TODO: set time with least usage
       }
       // removeOnComplete: true
     })

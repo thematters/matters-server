@@ -148,7 +148,7 @@ export default /* GraphQL */ `
   type Transaction {
     delta: Int!
     purpose: TransactionPurpose!
-    reference: Node
+    content: String!
     createdAt: DateTime!
   }
 
@@ -184,6 +184,7 @@ export default /* GraphQL */ `
   }
 
   type UserConnection {
+    totalCount: Int
     pageInfo: PageInfo!
     edges: [UserEdge]
   }

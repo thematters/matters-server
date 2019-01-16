@@ -33,6 +33,14 @@ export class BaseService extends DataSource {
     this.aws = aws
   }
 
+  baseCount = async () => {
+    const result = await this.knex(this.table)
+      .count()
+      .first()
+
+    return parseInt(result.count, 10)
+  }
+
   /**
    * Find an item by a given id.
    */

@@ -5,7 +5,7 @@ const resolver: TagToCountResolver = (
   _,
   { dataSources: { tagService } }
 ) => {
-  return count || tagService.countArticles({ id })
+  return count || tagService.countArticles(id)
 }
 
 export default resolver

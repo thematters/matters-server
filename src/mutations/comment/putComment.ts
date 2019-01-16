@@ -1,3 +1,4 @@
+import { AuthenticationError, UserInputError } from 'apollo-server'
 import { MutationToPutCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
@@ -10,7 +11,7 @@ const resolver: MutationToPutCommentResolver = async (
   }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   const { content, quotation, articleId, parentId, mentions } = comment
@@ -22,7 +23,7 @@ const resolver: MutationToPutCommentResolver = async (
   const { id: authorDbId } = fromGlobalId(articleId)
   const article = await articleService.dataloader.load(authorDbId)
   if (!article) {
-    throw new Error('target article does not exists') // TODO
+    throw new UserInputError('target article does not exists')
   }
   data.articleId = article.id
 
@@ -31,7 +32,7 @@ const resolver: MutationToPutCommentResolver = async (
     const { id: parentDbId } = fromGlobalId(parentId)
     parentComment = await commentService.dataloader.load(parentDbId)
     if (!parentComment) {
-      throw new Error('target parentComment does not exists') // TODO
+      throw new UserInputError('target parentComment does not exists')
     }
     data.parentCommentId = parentComment.id
   }
@@ -70,9 +71,9 @@ const resolver: MutationToPutCommentResolver = async (
         }
       ]
     })
-    const articleSubscribers = await articleService.findSubscriptions(
-      article.id
-    )
+    const articleSubscribers = await articleService.findSubscriptions({
+      id: article.id
+    })
     articleSubscribers.forEach((subscriber: any) => {
       if (subscriber.id == article.authorId) {
         return

@@ -1,3 +1,4 @@
+import { AuthenticationError, UserInputError } from 'apollo-server'
 import { MutationToClearReadHistoryResolver } from 'definitions'
 
 const resolver: MutationToClearReadHistoryResolver = async (
@@ -6,12 +7,12 @@ const resolver: MutationToClearReadHistoryResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   const readHistory = await userService.findReadHistoryByUUID(uuid, viewer.id)
   if (!readHistory) {
-    throw new Error('readHistory does not exists') // TODO
+    throw new UserInputError('readHistory does not exists')
   }
 
   await userService.baseUpdateByUUID(uuid, { archived: true }, 'article_read')
