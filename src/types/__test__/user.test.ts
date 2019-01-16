@@ -356,6 +356,7 @@ describe('register and login functionarlities', () => {
       codeId: code.uuid
     }
     const registerResult = await registerUser(user)
+
     expect(_get(registerResult, 'data.userRegister.token')).toBeTruthy()
 
     const context = await getUserContext({ email: user.email })
