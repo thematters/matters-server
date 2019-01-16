@@ -40,11 +40,11 @@ const resolver: MutationToUserRegisterResolver = async (
   }
   // check display name
   if (!isValidDisplayName(displayName)) {
-    throw new Error('invalid user display name')
+    throw new UserInputError('invalid user display name')
   }
   // check password
   if (!isValidPassword(password)) {
-    throw new Error('invalid user password')
+    throw new UserInputError('invalid user password')
   }
 
   // Programatically generate user name

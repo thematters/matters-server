@@ -4,6 +4,7 @@ import {
   ForbiddenError
 } from 'apollo-server'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
+import { isValidUserName, isValidDisplayName } from 'common/utils'
 
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
@@ -31,6 +32,14 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     if (!isUserNameEditable) {
       throw new ForbiddenError('userName is not allow to edit')
     }
+    if (!isValidUserName(input.userName)) {
+      throw new UserInputError('invalid user name')
+    }
+  }
+
+  // check user display name
+  if (input.displayName && !isValidDisplayName(displayName)) {
+    throw new UserInputError('invalid user display name')
   }
 
   // update user info
