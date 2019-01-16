@@ -9,7 +9,7 @@ const resolver: UserStatusToMATResolver = async (
   const apprecitions = ((await Promise.all(
     articles.map(
       async ({ id }: { id: string }) =>
-        await articleService.countAppreciation(id)
+        await articleService.totalAppreciation(id)
     )
   )) as unknown) as number[]
   return apprecitions.reduce((a: number, b: number): number => a + b, 0)

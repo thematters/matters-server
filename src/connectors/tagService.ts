@@ -3,6 +3,7 @@ import DataLoader from 'dataloader'
 // internal
 import { GQLSearchInput, ItemData } from 'definitions'
 import { BaseService } from './baseService'
+import { BATCH_SIZE } from 'common/enums'
 
 export class TagService extends BaseService {
   constructor() {
@@ -57,27 +58,45 @@ export class TagService extends BaseService {
       .select()
       .where({ content })
 
-  recommendTags = async () =>
+  recommendTags = async ({
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    limit?: number
+    offset?: number
+  }) =>
     await this.knex('tag_count_view')
       .select()
       .orderBy('tag_score', 'desc')
+      .limit(limit)
+      .offset(offset)
 
   /**
    * Count tags by a given tag text.
    */
-  countArticles = async ({ id: tagId }: { id: string }): Promise<number> => {
+  countArticles = async (id: string) => {
     const result = await this.knex('article_tag')
       .countDistinct('article_id')
-      .where({ tagId })
+      .where({ tagId: id })
       .first()
     return parseInt(result.count, 10)
   }
 
-  findArticleIds = async (tagId: string) => {
+  findArticleIds = async ({
+    id: tagId,
+    offset = 0,
+    limit = BATCH_SIZE
+  }: {
+    id: string
+    offset?: number
+    limit?: number
+  }) => {
     const result = await this.knex
       .select('article_id')
       .from('article_tag')
       .where({ tagId })
+      .limit(limit)
+      .offset(offset)
 
     return result.map(({ articleId }: { articleId: string }) => articleId)
   }

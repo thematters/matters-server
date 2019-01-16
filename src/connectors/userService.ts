@@ -15,7 +15,8 @@ import {
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPES,
   USER_STATE,
-  INVITATION_STATUS
+  INVITATION_STATUS,
+  BATCH_SIZE
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -112,14 +113,18 @@ export class UserService extends BaseService {
       _.identity
     )
 
-    await this.es.client.update({
-      index: this.table,
-      type: this.table,
-      id,
-      body: {
-        doc: searchable
-      }
-    })
+    try {
+      await this.es.client.update({
+        index: this.table,
+        type: this.table,
+        id,
+        body: {
+          doc: searchable
+        }
+      })
+    } catch (e) {
+      logger.error(e)
+    }
 
     return user
   }
@@ -272,13 +277,31 @@ export class UserService extends BaseService {
   /**
    * Get user's transaction history
    */
-  transactionHistory = async (userId: string) => {
-    const result = await this.knex('transaction_delta_view')
+  transactionHistory = async ({
+    id: userId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    id: string
+    limit?: number
+    offset?: number
+  }) =>
+    await this.knex('transaction_delta_view')
       .where({
         userId
       })
-      .orderBy('createdAt', 'desc')
-    return result
+      .orderBy('created_at', 'desc')
+      .limit(limit)
+      .offset(offset)
+
+  countTransaction = async (id: string) => {
+    const result = await this.knex('transaction_delta_view')
+      .where({
+        userId: id
+      })
+      .count()
+      .first()
+    return parseInt(result.count || 0, 10)
   }
 
   /**
@@ -292,7 +315,7 @@ export class UserService extends BaseService {
         action: USER_ACTION.follow
       })
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result.count || 0, 10)
   }
 
   /**
@@ -303,21 +326,47 @@ export class UserService extends BaseService {
       .countDistinct('id')
       .where({ targetId, action: USER_ACTION.follow })
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result.count || 0, 10)
   }
 
-  recommendAuthor = async () =>
+  recommendAuthor = async ({
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    limit?: number
+    offset?: number
+  }) =>
     this.knex('user_reader_view')
       .select()
       .orderBy('author_score', 'desc')
-  // .offset(offset)
-  // .limit(limit)
+      .offset(offset)
+      .limit(limit)
 
-  followeeArticles = async (userId: string) =>
-    this.knex('action_user as au')
+  followeeArticles = async ({
+    userId,
+    offset = 0,
+    limit = BATCH_SIZE
+  }: {
+    userId: string
+    offset?: number
+    limit?: number
+  }) =>
+    await this.knex('action_user as au')
       .select('ar.*')
       .join('article as ar', 'ar.author_id', 'au.target_id')
       .where({ action: 'follow', userId })
+      .offset(offset)
+      .limit(limit)
+
+  countFolloweeArticles = async (userId: string) => {
+    const result = await this.knex('action_user as au')
+      .countDistinct('ar.id')
+      .join('article as ar', 'ar.author_id', 'au.target_id')
+      .where({ action: 'follow', userId })
+      .first()
+
+    return parseInt(result.count, 10)
+  }
 
   /**
    * Count an users' subscription by a given user id.

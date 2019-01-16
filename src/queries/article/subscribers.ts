@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray } from 'graphql-relay'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 
 import { ArticleToSubscribersResolver } from 'definitions'
 
@@ -7,12 +7,23 @@ const resolver: ArticleToSubscribersResolver = async (
   { input },
   { dataSources: { articleService, userService } }
 ) => {
-  const actions = await articleService.findSubscriptions(id)
+  const { first, after } = input
+  const offset = cursorToIndex(after) + 1
+
+  const actions = await articleService.findSubscriptions({
+    id,
+    offset,
+    limit: first
+  })
+
+  const totalCount = await articleService.countSubscriptions(id)
+
   return connectionFromPromisedArray(
     userService.dataloader.loadMany(
       actions.map(({ userId }: { userId: string }) => userId)
     ),
-    input
+    input,
+    totalCount
   )
 }
 

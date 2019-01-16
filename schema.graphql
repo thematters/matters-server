@@ -53,6 +53,7 @@ type Article implements Node {
 }
 
 type ArticleConnection {
+  totalCount: Int
   pageInfo: PageInfo!
   edges: [ArticleEdge!]
 }
@@ -826,6 +827,7 @@ type Tag implements Node {
 }
 
 type TagConnection {
+  totalCount: Int
   pageInfo: PageInfo!
   edges: [TagEdge!]
 }
@@ -850,7 +852,7 @@ input ToggleArticlePublicInput {
 type Transaction {
   delta: Int!
   purpose: TransactionPurpose!
-  reference: Node
+  content: String!
   createdAt: DateTime!
 }
 
@@ -950,6 +952,7 @@ type UserActivity {
 }
 
 type UserConnection {
+  totalCount: Int
   pageInfo: PageInfo!
   edges: [UserEdge]
 }

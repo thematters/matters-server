@@ -2,6 +2,7 @@ import { MutationToSendVerificationCodeResolver } from 'definitions'
 import { VERIFICATION_CODE_PROTECTED_TYPES } from 'common/enums'
 import { notificationQueue } from 'connectors/queue'
 import { environment } from 'common/environment'
+import { AuthenticationError } from 'apollo-server'
 
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,
@@ -9,7 +10,9 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   if (!viewer.id && VERIFICATION_CODE_PROTECTED_TYPES.includes(type)) {
-    throw new Error(`anonymous user cannot send verification code of ${type}`) // TODO
+    throw new AuthenticationError(
+      `visitor cannot send verification code of ${type}`
+    )
   }
 
   // insert record

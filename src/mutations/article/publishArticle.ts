@@ -1,3 +1,4 @@
+import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToPublishArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 import { PUBLISH_STATE, PUBLISH_ARTICLE_DELAY } from 'common/enums'
@@ -10,7 +11,7 @@ const resolver: MutationToPublishArticleResolver = async (
   { viewer, dataSources: { draftService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   // retrive data from draft
@@ -22,7 +23,7 @@ const resolver: MutationToPublishArticleResolver = async (
     draft.archived ||
     draft.publishState === PUBLISH_STATE.published
   ) {
-    throw new Error('draft does not exists') // TODO
+    throw new ForbiddenError('draft does not exists')
   }
 
   if (draft.publishState === PUBLISH_STATE.pending) {

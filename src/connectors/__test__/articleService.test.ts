@@ -28,8 +28,8 @@ test('countByAuthor', async () => {
   expect(count).toBeDefined()
 })
 
-test('countAppreciation', async () => {
-  const appreciation = await articleService.countAppreciation('1')
+test('totalAppreciation', async () => {
+  const appreciation = await articleService.totalAppreciation('1')
   expect(appreciation).toBeDefined()
 })
 
@@ -54,7 +54,7 @@ test('findTagIds', async () => {
 })
 
 test('findSubscriptions', async () => {
-  const subs = await articleService.findSubscriptions('2')
+  const subs = await articleService.findSubscriptions({ id: '2' })
   expect(subs.length).toEqual(2)
 })
 

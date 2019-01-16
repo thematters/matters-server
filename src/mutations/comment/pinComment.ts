@@ -1,3 +1,4 @@
+import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToPinCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
@@ -10,7 +11,7 @@ const resolver: MutationToPinCommentResolver = async (
   }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
@@ -18,12 +19,12 @@ const resolver: MutationToPinCommentResolver = async (
   const article = await articleService.dataloader.load(comment.articleId)
 
   if (article.authorId !== viewer.id) {
-    throw new Error('viewer has no permission to do this') // TODO
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const pinLeft = await commentService.pinLeftByArticle(comment.articleId)
   if (pinLeft <= 0) {
-    throw new Error('reach pin limit') // TODO
+    throw new ForbiddenError('reach pin limit')
   }
 
   // check is pinned before

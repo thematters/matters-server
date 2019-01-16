@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { Context } from 'definitions'
 
 export * from './users'
@@ -8,11 +9,11 @@ export * from './report'
 
 export const rootOSS = (_: any, __: any, { viewer }: Context) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   if (viewer.role !== 'admin') {
-    throw new Error('only admin can do this') // TODO
+    throw new AuthenticationError('only admin can do this')
   }
 
   return true

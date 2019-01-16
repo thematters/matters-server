@@ -5,7 +5,7 @@ require('dotenv').config()
 import { ApolloServer } from 'apollo-server'
 // internal
 import logger from 'common/logger'
-import { environment } from 'common/environment'
+import { environment, isProd } from 'common/environment'
 import { DataSources } from 'definitions'
 import { makeContext, initSubscriptions } from 'common/utils'
 import {
@@ -46,7 +46,8 @@ const server = new ApolloServer({
     systemService: new SystemService(),
     tagService: new TagService(),
     notificationService: new NotificationService()
-  })
+  }),
+  debug: !isProd
   // mocks
 })
 

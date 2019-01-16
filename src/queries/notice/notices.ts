@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray } from 'graphql-relay'
+import { connectionFromPromisedArray } from 'common/utils'
 import { UserToNoticesResolver } from 'definitions'
 
 const resolver: UserToNoticesResolver = (

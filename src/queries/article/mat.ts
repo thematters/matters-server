@@ -5,7 +5,7 @@ const resolver: ArticleToMATResolver = async (
   _: any,
   { dataSources: { articleService } }
 ) => {
-  return await articleService.countAppreciation(id)
+  return await articleService.totalAppreciation(id)
 }
 
 export default resolver

@@ -100,9 +100,7 @@ const GET_VIEWER_MAT_HISOTRY = `
             edges {
               node {
                 delta
-                reference {
-                  id
-                }
+                content
               }
             }
           }
@@ -301,6 +299,7 @@ export const getViewerMATHistory = async () => {
     // @ts-ignore
     variables: { input: {} }
   })
+  console.log({ error: result.errors, result })
   const { data } = result
   return _get(data, 'viewer.status.MAT.history.edges')
 }
@@ -357,6 +356,7 @@ describe('register and login functionarlities', () => {
       codeId: code.uuid
     }
     const registerResult = await registerUser(user)
+
     expect(_get(registerResult, 'data.userRegister.token')).toBeTruthy()
 
     const context = await getUserContext({ email: user.email })
@@ -418,13 +418,6 @@ describe('user mat', async () => {
     const history = await getViewerMATHistory()
     const trx = history && history[0] && history[0].node
     expect(typeof trx.delta).toBe('number')
-  })
-
-  test('history reference', async () => {
-    const history = await getViewerMATHistory()
-    const reference =
-      history && history[0] && history[0].node && history[0].node.reference
-    expect(['Article', 'Invitation']).toContain(fromGlobalId(reference.id).type)
   })
 })
 
@@ -679,7 +672,7 @@ describe('invitation', async () => {
 
   test('invite email', async () => {
     const unregisterEmail = `test-new-${Math.floor(
-      Math.random() * 100
+      Math.random() * 10000
     )}@matters.news`
     const invitationData = await getUserInvitation()
     const left = _get(invitationData, 'viewer.status.invitation.left')
