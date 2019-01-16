@@ -1,3 +1,4 @@
+import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToArchiveArticleResolver } from 'definitions'
 import { ARTICLE_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
@@ -8,14 +9,14 @@ const resolver: MutationToArchiveArticleResolver = async (
   { viewer, dataSources: { articleService, notificationService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
   const { authorId } = await articleService.dataloader.load(dbId)
 
   if (authorId !== viewer.id) {
-    throw new Error('viewer has no permission to do this') // TODO
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const article = await articleService.baseUpdateById(dbId, {
@@ -23,7 +24,7 @@ const resolver: MutationToArchiveArticleResolver = async (
   })
 
   // trigger notifications
-  const downstreams = await articleService.findByUpstream(article.id) // TODO: Limit
+  const downstreams = await articleService.findByUpstream(article.id)
   downstreams.map((downstream: any) => {
     notificationService.trigger({
       event: 'upstream_article_archived',

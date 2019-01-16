@@ -18,8 +18,8 @@ const userDescription = `test-${Math.floor(Math.random() * 100)}`
 
 const user = {
   email: `test-${Math.floor(Math.random() * 100)}@matters.news`,
-  displayName: 'test user',
-  password: '123',
+  displayName: 'testUser',
+  password: '12345678',
   codeId: '123'
 }
 

@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { InvitationStatusToLeftResolver } from 'definitions'
 
 const resolver: InvitationStatusToLeftResolver = async (
@@ -5,9 +6,14 @@ const resolver: InvitationStatusToLeftResolver = async (
   _,
   { viewer, dataSources: { userService } }
 ) => {
-  if (viewer.id !== id) {
+  if (!viewer.id) {
+    throw new AuthenticationError('visitor has no permission')
+  }
+
+  if (viewer.id !== id && viewer.role !== 'admin') {
     throw Error('Not authorized')
   }
+
   const invitionCount = await userService.countInvitation(id)
   const mat = await userService.totalMAT(id)
   return Math.max(Math.floor(Math.log(mat)) - invitionCount, 0)

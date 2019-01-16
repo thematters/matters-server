@@ -20,11 +20,11 @@ import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql'
 export interface GQLQuery {
   _?: boolean
   article?: GQLArticle
-  articles: GQLArticleConnection
   node?: GQLNode
   frequentSearch?: Array<string>
   search: GQLSearchResultConnection
   official: GQLOfficial
+  oss: GQLOSS
   viewer?: GQLUser
   user?: GQLUser
 }
@@ -272,6 +272,7 @@ export interface GQLConnectionArgs {
 }
 
 export interface GQLArticleConnection {
+  totalCount?: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLArticleEdge>
 }
@@ -288,8 +289,9 @@ export interface GQLArticleEdge {
 }
 
 export interface GQLTagConnection {
+  totalCount?: number
   pageInfo: GQLPageInfo
-  edges: Array<GQLTagEdge | null>
+  edges?: Array<GQLTagEdge>
 }
 
 export interface GQLTagEdge {
@@ -302,9 +304,11 @@ export interface GQLTag extends GQLNode {
   content: string
   count: number
   articles: GQLArticleConnection
+  createdAt: GQLDateTime
 }
 
 export interface GQLUserConnection {
+  totalCount?: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLUserEdge | null>
 }
@@ -316,7 +320,7 @@ export interface GQLUserEdge {
 
 export interface GQLDraftConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLDraftEdge | null>
+  edges?: Array<GQLDraftEdge>
 }
 
 export interface GQLDraftEdge {
@@ -347,7 +351,7 @@ export enum GQLPublishState {
 
 export interface GQLAudiodraftConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLAudiodraftEdge | null>
+  edges?: Array<GQLAudiodraftEdge>
 }
 
 export interface GQLAudiodraftEdge {
@@ -372,7 +376,7 @@ export interface GQLUserActivity {
 
 export interface GQLReadHistoryConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLReadHistoryEdge | null>
+  edges?: Array<GQLReadHistoryEdge>
 }
 
 export interface GQLReadHistoryEdge {
@@ -388,7 +392,7 @@ export interface GQLReadHistory {
 
 export interface GQLRecentSearchConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLRecentSearchEdge | null>
+  edges?: Array<GQLRecentSearchEdge>
 }
 
 export interface GQLRecentSearchEdge {
@@ -440,9 +444,8 @@ export interface GQLUserStatus {
 }
 
 export enum GQLUserState {
-  inactive = 'inactive',
-  onboarding = 'onboarding',
   active = 'active',
+  onboarding = 'onboarding',
   banned = 'banned',
   frozen = 'frozen',
   archived = 'archived'
@@ -455,7 +458,7 @@ export interface GQLMAT {
 
 export interface GQLTransactionConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLTransactionEdge | null>
+  edges?: Array<GQLTransactionEdge>
 }
 
 export interface GQLTransactionEdge {
@@ -466,7 +469,7 @@ export interface GQLTransactionEdge {
 export interface GQLTransaction {
   delta: number
   purpose: GQLTransactionPurpose
-  reference?: GQLNode
+  content: string
   createdAt: GQLDateTime
 }
 
@@ -493,7 +496,7 @@ export interface GQLInvitationStatus {
 
 export interface GQLInvitationConnection {
   pageInfo: GQLPageInfo
-  edges: Array<GQLInvitationEdge | null>
+  edges?: Array<GQLInvitationEdge>
 }
 
 export interface GQLInvitationEdge {
@@ -617,12 +620,6 @@ export enum GQLCommentSort {
   upvotes = 'upvotes'
 }
 
-export interface GQLArticlesInput {
-  public?: boolean
-  after?: string
-  first?: number
-}
-
 export interface GQLNodeInput {
   id: string
 }
@@ -721,6 +718,58 @@ export interface GQLPlacementUnit {
   adLabel: boolean
 }
 
+export interface GQLOSS {
+  users: GQLUserConnection
+  articles: GQLArticleConnection
+  tags: GQLTagConnection
+  reports: GQLReportConnection
+  report: GQLReport
+}
+
+export interface GQLUsersInput {
+  after?: string
+  first?: number
+}
+
+export interface GQLArticlesInput {
+  public?: boolean
+  after?: string
+  first?: number
+}
+
+export interface GQLReportsInput {
+  article: boolean
+  comment: boolean
+  after?: string
+  first?: number
+}
+
+export interface GQLReportConnection {
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLReportEdge>
+}
+
+export interface GQLReportEdge {
+  cursor: string
+  node: GQLReport
+}
+
+export interface GQLReport {
+  id: string
+  user?: GQLUser
+  article?: GQLArticle
+  comment?: GQLComment
+  category: string
+  description: string
+  assets?: Array<GQLURL>
+  contact?: string
+  createdAt: GQLDateTime
+}
+
+export interface GQLReportInput {
+  id: string
+}
+
 export interface GQLUserInput {
   userName: string
 }
@@ -739,6 +788,7 @@ export interface GQLMutation {
   toggleArticlePublic: GQLArticle
   putComment: GQLComment
   pinComment: GQLComment
+  unpinComment: GQLComment
   deleteComment?: boolean
   reportComment?: boolean
   voteComment: GQLComment
@@ -832,7 +882,7 @@ export interface GQLUnsubscribeArticleInput {
 export interface GQLReportArticleInput {
   id: string
   category: string
-  description?: string
+  description: string
   assetIds?: Array<string>
   contact?: string
 }
@@ -877,6 +927,10 @@ export interface GQLPinCommentInput {
   id: string
 }
 
+export interface GQLUnpinCommentInput {
+  id: string
+}
+
 export interface GQLDeleteCommentInput {
   id: string
 }
@@ -884,7 +938,7 @@ export interface GQLDeleteCommentInput {
 export interface GQLReportCommentInput {
   id: string
   category: string
-  description?: string
+  description: string
   assetIds?: Array<string>
   contact?: string
 }
@@ -1266,6 +1320,10 @@ export interface GQLResolver {
   OfficialLinks?: GQLOfficialLinksTypeResolver
   Placements?: GQLPlacementsTypeResolver
   PlacementUnit?: GQLPlacementUnitTypeResolver
+  OSS?: GQLOSSTypeResolver
+  ReportConnection?: GQLReportConnectionTypeResolver
+  ReportEdge?: GQLReportEdgeTypeResolver
+  Report?: GQLReportTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
   Asset?: GQLAssetTypeResolver
@@ -1292,11 +1350,11 @@ export interface GQLResolver {
 export interface GQLQueryTypeResolver<TParent = any> {
   _?: QueryTo_Resolver<TParent>
   article?: QueryToArticleResolver<TParent>
-  articles?: QueryToArticlesResolver<TParent>
   node?: QueryToNodeResolver<TParent>
   frequentSearch?: QueryToFrequentSearchResolver<TParent>
   search?: QueryToSearchResolver<TParent>
   official?: QueryToOfficialResolver<TParent>
+  oss?: QueryToOssResolver<TParent>
   viewer?: QueryToViewerResolver<TParent>
   user?: QueryToUserResolver<TParent>
 }
@@ -1317,18 +1375,6 @@ export interface QueryToArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToArticleArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface QueryToArticlesArgs {
-  input: GQLArticlesInput
-}
-export interface QueryToArticlesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: QueryToArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -1371,6 +1417,15 @@ export interface QueryToSearchResolver<TParent = any, TResult = any> {
 }
 
 export interface QueryToOfficialResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface QueryToOssResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -2393,8 +2448,21 @@ export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLArticleConnectionTypeResolver<TParent = any> {
+  totalCount?: ArticleConnectionToTotalCountResolver<TParent>
   pageInfo?: ArticleConnectionToPageInfoResolver<TParent>
   edges?: ArticleConnectionToEdgesResolver<TParent>
+}
+
+export interface ArticleConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ArticleConnectionToPageInfoResolver<
@@ -2478,8 +2546,21 @@ export interface ArticleEdgeToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLTagConnectionTypeResolver<TParent = any> {
+  totalCount?: TagConnectionToTotalCountResolver<TParent>
   pageInfo?: TagConnectionToPageInfoResolver<TParent>
   edges?: TagConnectionToEdgesResolver<TParent>
+}
+
+export interface TagConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TagConnectionToPageInfoResolver<TParent = any, TResult = any> {
@@ -2528,6 +2609,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   content?: TagToContentResolver<TParent>
   count?: TagToCountResolver<TParent>
   articles?: TagToArticlesResolver<TParent>
+  createdAt?: TagToCreatedAtResolver<TParent>
 }
 
 export interface TagToIdResolver<TParent = any, TResult = any> {
@@ -2569,9 +2651,31 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface TagToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLUserConnectionTypeResolver<TParent = any> {
+  totalCount?: UserConnectionToTotalCountResolver<TParent>
   pageInfo?: UserConnectionToPageInfoResolver<TParent>
   edges?: UserConnectionToEdgesResolver<TParent>
+}
+
+export interface UserConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface UserConnectionToPageInfoResolver<
@@ -3302,7 +3406,7 @@ export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
 export interface GQLTransactionTypeResolver<TParent = any> {
   delta?: TransactionToDeltaResolver<TParent>
   purpose?: TransactionToPurposeResolver<TParent>
-  reference?: TransactionToReferenceResolver<TParent>
+  content?: TransactionToContentResolver<TParent>
   createdAt?: TransactionToCreatedAtResolver<TParent>
 }
 
@@ -3324,7 +3428,7 @@ export interface TransactionToPurposeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface TransactionToReferenceResolver<TParent = any, TResult = any> {
+export interface TransactionToContentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4167,6 +4271,216 @@ export interface PlacementUnitToAdLabelResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface GQLOSSTypeResolver<TParent = any> {
+  users?: OSSToUsersResolver<TParent>
+  articles?: OSSToArticlesResolver<TParent>
+  tags?: OSSToTagsResolver<TParent>
+  reports?: OSSToReportsResolver<TParent>
+  report?: OSSToReportResolver<TParent>
+}
+
+export interface OSSToUsersArgs {
+  input: GQLUsersInput
+}
+export interface OSSToUsersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToUsersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToArticlesArgs {
+  input: GQLArticlesInput
+}
+export interface OSSToArticlesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToReportsArgs {
+  input: GQLReportsInput
+}
+export interface OSSToReportsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToReportsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToReportArgs {
+  input: GQLReportInput
+}
+export interface OSSToReportResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToReportArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLReportConnectionTypeResolver<TParent = any> {
+  pageInfo?: ReportConnectionToPageInfoResolver<TParent>
+  edges?: ReportConnectionToEdgesResolver<TParent>
+}
+
+export interface ReportConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ReportConnectionToEdgesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLReportEdgeTypeResolver<TParent = any> {
+  cursor?: ReportEdgeToCursorResolver<TParent>
+  node?: ReportEdgeToNodeResolver<TParent>
+}
+
+export interface ReportEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ReportEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLReportTypeResolver<TParent = any> {
+  id?: ReportToIdResolver<TParent>
+  user?: ReportToUserResolver<TParent>
+  article?: ReportToArticleResolver<TParent>
+  comment?: ReportToCommentResolver<TParent>
+  category?: ReportToCategoryResolver<TParent>
+  description?: ReportToDescriptionResolver<TParent>
+  assets?: ReportToAssetsResolver<TParent>
+  contact?: ReportToContactResolver<TParent>
+  createdAt?: ReportToCreatedAtResolver<TParent>
+}
+
+export interface ReportToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ReportToUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ReportToArticleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ReportToCommentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ReportToCategoryResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ReportToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ReportToAssetsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ReportToContactResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ReportToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLMutationTypeResolver<TParent = any> {
   _?: MutationTo_Resolver<TParent>
   publishArticle?: MutationToPublishArticleResolver<TParent>
@@ -4181,6 +4495,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   pinComment?: MutationToPinCommentResolver<TParent>
+  unpinComment?: MutationToUnpinCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   reportComment?: MutationToReportCommentResolver<TParent>
   voteComment?: MutationToVoteCommentResolver<TParent>
@@ -4379,6 +4694,18 @@ export interface MutationToPinCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPinCommentArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnpinCommentArgs {
+  input: GQLUnpinCommentInput
+}
+export interface MutationToUnpinCommentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToUnpinCommentArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

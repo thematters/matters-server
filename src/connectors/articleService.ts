@@ -3,11 +3,17 @@ import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 import slugify from '@matters/slugify'
 
-import { ARTICLE_APPRECIATE_LIMIT, ARTICLE_STATE } from 'common/enums'
+import {
+  ARTICLE_APPRECIATE_LIMIT,
+  ARTICLE_STATE,
+  BATCH_SIZE,
+  USER_ACTION,
+  TRANSACTION_PURPOSE
+} from 'common/enums'
 import { ItemData, GQLSearchInput } from 'definitions'
-
-import { USER_ACTION, TRANSACTION_PURPOSE } from 'common/enums'
 import { ipfs } from 'connectors/ipfs'
+import { stripHtml, countWords } from 'common/utils'
+
 import { BaseService } from './baseService'
 import { UserService } from './userService'
 
@@ -34,7 +40,7 @@ export class ArticleService extends BaseService {
       items: articles.map(
         (article: { content: string; title: string; id: string }) => ({
           ...article,
-          content: this.stripHtml(article.content)
+          content: stripHtml(article.content)
         })
       )
     })
@@ -47,7 +53,7 @@ export class ArticleService extends BaseService {
     // craete article
     const article = await this.baseCreate({
       uuid: v4(),
-      wordCount: this.countWords(articleData.content),
+      wordCount: countWords(articleData.content),
       ...articleData
     })
     return article
@@ -150,7 +156,7 @@ export class ArticleService extends BaseService {
         {
           id,
           title,
-          content: this.stripHtml(content),
+          content: stripHtml(content),
           tags
         }
       ]
@@ -181,31 +187,67 @@ export class ArticleService extends BaseService {
     }
   }
 
-  recommendHottest = async () =>
-    await this.knex('article_activity_view').orderBy(
-      'latest_activity',
-      'desc null last'
-    )
-  // .limit(limit)
-  // .offset(offset)
+  recommendHottest = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {}
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+  }) =>
+    await this.knex('article_activity_view')
+      .where(where)
+      .orderBy('latest_activity', 'desc null last')
+      .limit(limit)
+      .offset(offset)
 
-  recommendNewest = async () =>
-    await this.knex(this.table).orderBy('id', 'desc')
-  // .limit(limit)
-  // .offset(offset)
+  recommendNewest = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {}
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+  }) =>
+    await this.knex(this.table)
+      .orderBy('id', 'desc')
+      .where(where)
+      .limit(limit)
+      .offset(offset)
 
-  recommendIcymi = async () =>
+  recommendIcymi = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {}
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+  }) =>
     await this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
       .join('matters_choice as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
-  // .offset(offset)
-  // .limit(limit)
+      .where(where)
+      .offset(offset)
+      .limit(limit)
 
-  recommendTopics = async () =>
-    await this.knex('article_count_view').orderBy('topic_score', 'desc')
-  // .limit(limit)
-  // .offset(offset)
+  recommendTopics = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {}
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+  }) =>
+    await this.knex('article_count_view')
+      .orderBy('topic_score', 'desc')
+      .where(where)
+      .limit(limit)
+      .offset(offset)
 
   /**
    * Count articles by a given authorId (user).
@@ -219,9 +261,9 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Count total appreciaton by a given article id.
+   * sum total appreciaton by a given article id.
    */
-  countAppreciation = async (articleId: string): Promise<number> => {
+  totalAppreciation = async (articleId: string): Promise<number> => {
     const result = await this.knex
       .select()
       .from('transaction')
@@ -256,16 +298,6 @@ export class ArticleService extends BaseService {
       .first()
     return parseInt(result.sum || '0', 10)
   }
-
-  stripHtml = (html: string) => html.replace(/(<([^>]+)>)/gi, '')
-
-  /**
-   * Counts words witin in html content.
-   */
-  countWords = (html: string) =>
-    this.stripHtml(html)
-      .split(' ')
-      .filter(s => s !== '').length
 
   /**
    * Find articles
@@ -326,15 +358,36 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciators by a given article id.
    */
-  findAppreciators = async (articleId: string): Promise<any[]> =>
+  findAppreciators = async ({
+    id,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    id: string
+    limit?: number
+    offset?: number
+  }) =>
     await this.knex('transaction')
       .distinct('sender_id', 'id')
       .select('sender_id')
       .where({
-        referenceId: articleId,
+        referenceId: id,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
       .orderBy('id', 'desc')
+      .limit(limit)
+      .offset(offset)
+
+  countAppreciators = async (id: string) => {
+    const result = await this.knex('transaction')
+      .countDistinct('sender_id')
+      .where({
+        referenceId: id,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
+      .first()
+    return parseInt(result.count || 0, 10)
+  }
 
   appreciateLeftByUser = async ({
     articleId,
@@ -372,28 +425,33 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's subscribers by a given targetId (article).
    */
-  findSubscriptions = async (targetId: string): Promise<any[]> =>
-    await this.knex
+  findSubscriptions = async ({
+    id: targetId,
+    limit,
+    offset = 0
+  }: {
+    id: string
+    limit?: number
+    offset?: number
+  }) => {
+    const query = this.knex
       .select()
       .from('action_article')
       .where({ targetId, action: USER_ACTION.subscribe })
       .orderBy('id', 'desc')
+      .offset(offset)
 
-  /**
-   * Find an article's subscriber by a given targetId (article) and user id.
-   */
-  // findSubscriptionByUserId = async (
-  //   targetId: string,
-  //   userId: string
-  // ): Promise<any[]> =>
-  //   await this.knex
-  //     .select()
-  //     .from('action_article')
-  //     .where({
-  //       targetId,
-  //       userId,
-  //       action: USER_ACTION.subscribe
-  //     })
+    return limit ? await query.limit(limit) : await query
+  }
+
+  countSubscriptions = async (id: string) => {
+    const result = await this.knex('action_article')
+      .countDistinct('user_id')
+      .where({ targetId: id, action: USER_ACTION.subscribe })
+      .first()
+
+    return parseInt(result.count || '0', 10)
+  }
 
   isSubscribed = async ({
     userId,
@@ -547,15 +605,4 @@ export class ArticleService extends BaseService {
     }))
     await this.baseBatchCreate(reportAssets, 'report_asset')
   }
-
-  // TODO
-  getContentFromHash = (hash: string) => `
-    <html>
-      <head>
-        <title></title>
-      </head>
-      <body>
-        <p></p>
-      </body>
-    </html>`
 }

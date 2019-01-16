@@ -2,14 +2,12 @@ import { toGlobalId } from 'common/utils'
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
 
 import rootArticle from './rootArticle'
-import rootArticles from './rootArticles'
 import userArticles from './user/articles'
 import userMAT from './user/mat'
 import tagCount from './tag/count'
 import tagArticles from './tag/articles'
 import author from './author'
 import cover from './cover'
-import summary from './summary'
 import tags from './tags'
 import upstream from './upstream'
 import downstreams from './downstreams'
@@ -23,8 +21,7 @@ import appreciators from './appreciators'
 
 export default {
   Query: {
-    article: rootArticle,
-    articles: rootArticles
+    article: rootArticle
   },
   User: {
     articles: userArticles
@@ -38,7 +35,6 @@ export default {
       topicScore ? Math.round(topicScore) : null,
     author,
     cover,
-    summary,
     tags,
     upstream,
     downstreams,

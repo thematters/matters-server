@@ -148,7 +148,7 @@ export default /* GraphQL */ `
   type Transaction {
     delta: Int!
     purpose: TransactionPurpose!
-    reference: Node
+    content: String!
     createdAt: DateTime!
   }
 
@@ -184,6 +184,7 @@ export default /* GraphQL */ `
   }
 
   type UserConnection {
+    totalCount: Int
     pageInfo: PageInfo!
     edges: [UserEdge]
   }
@@ -195,7 +196,7 @@ export default /* GraphQL */ `
 
   type InvitationConnection {
     pageInfo: PageInfo!
-    edges: [InvitationEdge]!
+    edges: [InvitationEdge!]
   }
 
   type InvitationEdge {
@@ -205,7 +206,7 @@ export default /* GraphQL */ `
 
   type ReadHistoryConnection {
     pageInfo: PageInfo!
-    edges: [ReadHistoryEdge]!
+    edges: [ReadHistoryEdge!]
   }
 
   type ReadHistoryEdge {
@@ -215,7 +216,7 @@ export default /* GraphQL */ `
 
   type RecentSearchConnection {
     pageInfo: PageInfo!
-    edges: [RecentSearchEdge]!
+    edges: [RecentSearchEdge!]
   }
 
   type RecentSearchEdge {
@@ -225,7 +226,7 @@ export default /* GraphQL */ `
 
   type TransactionConnection {
     pageInfo: PageInfo!
-    edges: [TransactionEdge]!
+    edges: [TransactionEdge!]
   }
 
   type TransactionEdge {
@@ -366,9 +367,8 @@ export default /* GraphQL */ `
   # }
 
   enum UserState {
-    inactive
-    onboarding
     active
+    onboarding
     banned
     frozen
     archived

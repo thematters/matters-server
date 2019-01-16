@@ -1,11 +1,11 @@
-import { connectionFromPromisedArray } from 'graphql-relay'
+import { connectionFromPromisedArray } from 'common/utils'
 
 import { ArticleToCommentsResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: ArticleToCommentsResolver = (
   { id },
-  { input: { author, quote, sort, ...connectionArgs } },
+  { input: { author, quote, sort, parent, ...connectionArgs } },
   { dataSources: { commentService } }
 ) => {
   if (author) {
@@ -14,7 +14,7 @@ const resolver: ArticleToCommentsResolver = (
   }
 
   return connectionFromPromisedArray(
-    commentService.findByArticle({ id, author, quote, sort }),
+    commentService.findByArticle({ id, author, quote, sort, parent }),
     connectionArgs
   )
 }

@@ -1,3 +1,4 @@
+import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToPinCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
@@ -10,30 +11,32 @@ const resolver: MutationToPinCommentResolver = async (
   }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('visitor has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const { articleId } = await commentService.dataloader.load(dbId)
-  const { authorId } = await articleService.dataloader.load(articleId)
+  const comment = await commentService.dataloader.load(dbId)
+  const article = await articleService.dataloader.load(comment.articleId)
 
-  if (authorId !== viewer.id) {
-    throw new Error('viewer has no permission to do this') // TODO
+  if (article.authorId !== viewer.id) {
+    throw new ForbiddenError('viewer has no permission')
   }
 
-  const pinLeft = await commentService.pinLeftByArticle(articleId)
+  const pinLeft = await commentService.pinLeftByArticle(comment.articleId)
   if (pinLeft <= 0) {
-    throw new Error('reach pin limit') // TODO
+    throw new ForbiddenError('reach pin limit')
   }
 
-  // TODO: check pinned before
+  // check is pinned before
+  if (comment.pinned) {
+    return comment
+  }
 
-  const comment = await commentService.baseUpdateById(dbId, {
+  const pinnedComment = await commentService.baseUpdateById(dbId, {
     pinned: true
   })
 
   // trigger notifications
-  const article = await articleService.dataloader.load(articleId)
   notificationService.trigger({
     event: 'article_updated',
     entities: [
@@ -56,7 +59,7 @@ const resolver: MutationToPinCommentResolver = async (
     ]
   })
 
-  return comment
+  return pinnedComment
 }
 
 export default resolver

@@ -4,6 +4,7 @@ export default /* GraphQL */ `
     frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection!
     official: Official!
+    oss: OSS!
   }
 
   extend type Mutation {
@@ -32,6 +33,14 @@ export default /* GraphQL */ `
     links: OfficialLinks!
     placements: Placements!
     gatewayUrls: [URL!]
+  }
+
+  type OSS {
+    users(input: UsersInput!): UserConnection!
+    articles(input: ArticlesInput!): ArticleConnection!
+    tags(input: ConnectionArgs!): TagConnection!
+    reports(input: ReportsInput!): ReportConnection!
+    report(input: ReportInput!): Report!
   }
 
   type Category {
@@ -92,7 +101,51 @@ export default /* GraphQL */ `
     node: Node!
   }
 
+  type ReportConnection {
+    pageInfo: PageInfo!
+    edges: [ReportEdge!]
+  }
+
+  type Report {
+    id: ID!
+    user: User
+    article: Article
+    comment: Comment
+    category: String!
+    description: String!
+    assets: [URL!]
+    contact: String
+    createdAt: DateTime!
+  }
+
+  type ReportEdge {
+    cursor: String!
+    node: Report!
+  }
+
   input NodeInput {
+    id: ID!
+  }
+
+  input UsersInput {
+    after: String
+    first: Int
+  }
+
+  input ArticlesInput {
+    public: Boolean
+    after: String
+    first: Int
+  }
+
+  input ReportsInput {
+    article: Boolean!
+    comment: Boolean!
+    after: String
+    first: Int
+  }
+
+  input ReportInput {
     id: ID!
   }
 

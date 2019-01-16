@@ -44,7 +44,8 @@ exports.seed = function(knex, Promise) {
           data_hash: 'some-ipfs-data-hash-3',
           media_hash: 'some-ipfs-media-hash-3',
           content: '<div>some html string</div>',
-          state: 'active'
+          state: 'active',
+          public: true
         },
         {
           uuid: '00000000-0000-0000-0000-000000000004',
@@ -57,7 +58,8 @@ exports.seed = function(knex, Promise) {
           data_hash: 'some-ipfs-data-hash-4',
           media_hash: 'some-ipfs-media-hash-4',
           content: '<div>some html string</div>',
-          state: 'active'
+          state: 'active',
+          public: true
         }
       ])
     })
