@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { v4 } from 'uuid'
 import { ItemData, MutationToPutAudiodraftResolver } from 'definitions'
 
@@ -7,7 +8,7 @@ const resolver: MutationToPutAudiodraftResolver = async (
   { viewer, dataSources: { draftService, systemService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this')
+    throw new AuthenticationError('anonymous user cannot do this')
   }
 
   let audioAssetId

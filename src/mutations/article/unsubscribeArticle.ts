@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { MutationToUnsubscribeArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
@@ -7,7 +8,7 @@ const resolver: MutationToUnsubscribeArticleResolver = async (
   { viewer, dataSources: { articleService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('anonymous user cannot do this') // TODO
   }
 
   const { id: dbId } = fromGlobalId(id)

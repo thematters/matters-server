@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { MutationToUpdateNotificationSettingResolver } from 'definitions'
 
 const resolver: MutationToUpdateNotificationSettingResolver = async (
@@ -6,7 +7,7 @@ const resolver: MutationToUpdateNotificationSettingResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('anonymous user cannot do this') // TODO
   }
 
   const notifySetting = await userService.findNotifySetting(viewer.id)

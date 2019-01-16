@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { MutationToArchiveArticleResolver } from 'definitions'
 import { ARTICLE_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
@@ -8,7 +9,7 @@ const resolver: MutationToArchiveArticleResolver = async (
   { viewer, dataSources: { articleService, notificationService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('anonymous user cannot do this') // TODO
   }
 
   const { id: dbId } = fromGlobalId(id)

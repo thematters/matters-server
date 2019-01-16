@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserInfoResolver = async (
@@ -6,7 +7,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   { viewer, dataSources: { userService, systemService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('anonymous user cannot do this') // TODO
   }
 
   if (input.avatar) {

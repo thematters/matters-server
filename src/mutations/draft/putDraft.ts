@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { v4 } from 'uuid'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
@@ -17,7 +18,7 @@ const resolver: MutationToPutDraftResolver = async (
   { viewer, dataSources: { draftService, systemService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('anonymous user cannot do this') // TODO
   }
 
   let upstreamDBId

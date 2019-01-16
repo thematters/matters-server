@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { MutationToDeleteDraftResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
@@ -7,7 +8,7 @@ const resolver: MutationToDeleteDraftResolver = async (
   { viewer, dataSources: { draftService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this')
+    throw new AuthenticationError('anonymous user cannot do this')
   }
 
   const { id: dbId } = fromGlobalId(id)

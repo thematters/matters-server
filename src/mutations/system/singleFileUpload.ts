@@ -1,4 +1,5 @@
 import { v4 } from 'uuid'
+import { AuthenticationError } from 'apollo-server'
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 
 const resolver: MutationToSingleFileUploadResolver = async (
@@ -7,7 +8,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
   { viewer, dataSources: { systemService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this')
+    throw new AuthenticationError('anonymous user cannot do this')
   }
 
   const data = await file

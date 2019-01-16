@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { MutationToPublishArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 import { PUBLISH_STATE, PUBLISH_ARTICLE_DELAY } from 'common/enums'
@@ -10,7 +11,7 @@ const resolver: MutationToPublishArticleResolver = async (
   { viewer, dataSources: { draftService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('anonymous user cannot do this') // TODO
   }
 
   // retrive data from draft

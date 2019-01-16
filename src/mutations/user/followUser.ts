@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { MutationToFollowUserResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
@@ -7,7 +8,7 @@ const resolver: MutationToFollowUserResolver = async (
   { viewer, dataSources: { userService, notificationService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('anonymous user cannot do this') // TODO
   }
 
   const { id: dbId } = fromGlobalId(id)

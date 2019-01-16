@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 import { v4 } from 'uuid'
 import { fromGlobalId } from 'common/utils'
@@ -8,7 +9,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
   { viewer, dataSources: { articleService, notificationService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this') // TODO
+    throw new AuthenticationError('anonymous user cannot do this') // TODO
   }
 
   if (viewer.mat < amount) {

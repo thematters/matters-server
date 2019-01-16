@@ -1,3 +1,4 @@
+import { AuthenticationError } from 'apollo-server'
 import { MutationToDeleteAudiodraftResolver } from 'definitions'
 
 const resolver: MutationToDeleteAudiodraftResolver = async (
@@ -6,7 +7,7 @@ const resolver: MutationToDeleteAudiodraftResolver = async (
   { viewer, dataSources: { draftService } }
 ) => {
   if (!viewer.id) {
-    throw new Error('anonymous user cannot do this')
+    throw new AuthenticationError('anonymous user cannot do this')
   }
 
   const audioDraft = await draftService.baseFindByUUID(uuid, 'audio_draft')
