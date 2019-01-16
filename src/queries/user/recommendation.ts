@@ -2,8 +2,6 @@ import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { AuthenticationError } from 'apollo-server'
 import { GQLRecommendationTypeResolver } from 'definitions'
 
-// TODO: use connectionFromPromisedArray to avoid overloading server
-
 const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles: async (
     { id }: { id: string },

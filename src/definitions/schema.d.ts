@@ -307,7 +307,7 @@ export interface GQLTag extends GQLNode {
 }
 
 export interface GQLUserConnection {
-  totalCount: number
+  totalCount?: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLUserEdge | null>
 }
@@ -468,7 +468,7 @@ export interface GQLTransactionEdge {
 export interface GQLTransaction {
   delta: number
   purpose: GQLTransactionPurpose
-  reference?: GQLNode
+  content: string
   createdAt: GQLDateTime
 }
 
@@ -3356,7 +3356,7 @@ export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
 export interface GQLTransactionTypeResolver<TParent = any> {
   delta?: TransactionToDeltaResolver<TParent>
   purpose?: TransactionToPurposeResolver<TParent>
-  reference?: TransactionToReferenceResolver<TParent>
+  content?: TransactionToContentResolver<TParent>
   createdAt?: TransactionToCreatedAtResolver<TParent>
 }
 
@@ -3378,7 +3378,7 @@ export interface TransactionToPurposeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface TransactionToReferenceResolver<TParent = any, TResult = any> {
+export interface TransactionToContentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

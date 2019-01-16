@@ -61,19 +61,29 @@ export class TagService extends BaseService {
   /**
    * Count tags by a given tag text.
    */
-  countArticles = async ({ id: tagId }: { id: string }): Promise<number> => {
+  countArticles = async (id: string) => {
     const result = await this.knex('article_tag')
       .countDistinct('article_id')
-      .where({ tagId })
+      .where({ tagId: id })
       .first()
     return parseInt(result.count, 10)
   }
 
-  findArticleIds = async (tagId: string) => {
+  findArticleIds = async ({
+    id: tagId,
+    offset = 0,
+    limit = BATCH_SIZE
+  }: {
+    id: string
+    offset?: number
+    limit?: number
+  }) => {
     const result = await this.knex
       .select('article_id')
       .from('article_tag')
       .where({ tagId })
+      .limit(limit)
+      .offset(offset)
 
     return result.map(({ articleId }: { articleId: string }) => articleId)
   }

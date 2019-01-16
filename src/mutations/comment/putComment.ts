@@ -70,9 +70,9 @@ const resolver: MutationToPutCommentResolver = async (
         }
       ]
     })
-    const articleSubscribers = await articleService.findSubscriptions(
-      article.id
-    )
+    const articleSubscribers = await articleService.findSubscriptions({
+      id: article.id
+    })
     articleSubscribers.forEach((subscriber: any) => {
       if (subscriber.id == article.authorId) {
         return

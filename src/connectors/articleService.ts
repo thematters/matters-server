@@ -259,9 +259,9 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Count total appreciaton by a given article id.
+   * sum total appreciaton by a given article id.
    */
-  countAppreciation = async (articleId: string): Promise<number> => {
+  totalAppreciation = async (articleId: string): Promise<number> => {
     const result = await this.knex
       .select()
       .from('transaction')
@@ -366,15 +366,36 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciators by a given article id.
    */
-  findAppreciators = async (articleId: string): Promise<any[]> =>
+  findAppreciators = async ({
+    id,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    id: string
+    limit?: number
+    offset?: number
+  }) =>
     await this.knex('transaction')
       .distinct('sender_id', 'id')
       .select('sender_id')
       .where({
-        referenceId: articleId,
+        referenceId: id,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
       .orderBy('id', 'desc')
+      .limit(limit)
+      .offset(offset)
+
+  countAppreciators = async (id: string) => {
+    const result = await this.knex('transaction')
+      .countDistinct('sender_id')
+      .where({
+        referenceId: id,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
+      .first()
+    return parseInt(result.count || 0, 10)
+  }
 
   appreciateLeftByUser = async ({
     articleId,
@@ -412,28 +433,33 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's subscribers by a given targetId (article).
    */
-  findSubscriptions = async (targetId: string): Promise<any[]> =>
-    await this.knex
+  findSubscriptions = async ({
+    id: targetId,
+    limit,
+    offset = 0
+  }: {
+    id: string
+    limit?: number
+    offset?: number
+  }) => {
+    const query = this.knex
       .select()
       .from('action_article')
       .where({ targetId, action: USER_ACTION.subscribe })
       .orderBy('id', 'desc')
+      .offset(offset)
 
-  /**
-   * Find an article's subscriber by a given targetId (article) and user id.
-   */
-  // findSubscriptionByUserId = async (
-  //   targetId: string,
-  //   userId: string
-  // ): Promise<any[]> =>
-  //   await this.knex
-  //     .select()
-  //     .from('action_article')
-  //     .where({
-  //       targetId,
-  //       userId,
-  //       action: USER_ACTION.subscribe
-  //     })
+    return limit ? await query.limit(limit) : await query
+  }
+
+  countSubscriptions = async (id: string) => {
+    const result = await this.knex('action_article')
+      .countDistinct('user_id')
+      .where({ targetId: id, action: USER_ACTION.subscribe })
+      .first()
+
+    return parseInt(result.count || '0', 10)
+  }
 
   isSubscribed = async ({
     userId,

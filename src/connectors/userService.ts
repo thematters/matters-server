@@ -273,13 +273,31 @@ export class UserService extends BaseService {
   /**
    * Get user's transaction history
    */
-  transactionHistory = async (userId: string) => {
-    const result = await this.knex('transaction_delta_view')
+  transactionHistory = async ({
+    id: userId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    id: string
+    limit?: number
+    offset?: number
+  }) =>
+    await this.knex('transaction_delta_view')
       .where({
         userId
       })
-      .orderBy('createdAt', 'desc')
-    return result
+      .orderBy('id', 'desc')
+      .limit(limit)
+      .offset(offset)
+
+  countTransaction = async (id: string) => {
+    const result = await this.knex('transaction_delta_view')
+      .where({
+        userId: id
+      })
+      .count()
+      .first()
+    return parseInt(result.count || 0, 10)
   }
 
   /**
@@ -293,7 +311,7 @@ export class UserService extends BaseService {
         action: USER_ACTION.follow
       })
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result.count || 0, 10)
   }
 
   /**
@@ -304,7 +322,7 @@ export class UserService extends BaseService {
       .countDistinct('id')
       .where({ targetId, action: USER_ACTION.follow })
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result.count || 0, 10)
   }
 
   recommendAuthor = async ({

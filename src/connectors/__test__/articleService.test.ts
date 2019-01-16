@@ -28,8 +28,8 @@ test('countByAuthor', async () => {
   expect(count).toBeDefined()
 })
 
-test('countAppreciation', async () => {
-  const appreciation = await articleService.countAppreciation('1')
+test('totalAppreciation', async () => {
+  const appreciation = await articleService.totalAppreciation('1')
   expect(appreciation).toBeDefined()
 })
 

@@ -79,7 +79,7 @@ export function connectionFromArray<T>(
         endCursor: lastEdge ? lastEdge.cursor : '',
         hasPreviousPage: after ? cursorToIndex(after) >= 0 : false,
         hasNextPage: lastEdge
-          ? cursorToIndex(lastEdge.cursor) < totalCount
+          ? cursorToIndex(lastEdge.cursor) + 1 < totalCount
           : false
       }
     }

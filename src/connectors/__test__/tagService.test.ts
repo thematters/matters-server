@@ -6,7 +6,7 @@ afterAll(knex.destroy)
 const tagService = new TagService()
 
 test('countArticles', async () => {
-  const count = await tagService.countArticles({ id: '2' })
+  const count = await tagService.countArticles('2')
   expect(count).toBeDefined()
 })
 
