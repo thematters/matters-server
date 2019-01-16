@@ -1,9 +1,11 @@
 import { MutationToUserRegisterResolver } from 'definitions'
+import { random } from 'lodash'
 import {
   isValidEmail,
   isValidUserName,
   isValidDisplayName,
-  isValidPassword
+  isValidPassword,
+  makeUserName
 } from 'common/utils'
 
 const resolver: MutationToUserRegisterResolver = async (
@@ -11,8 +13,9 @@ const resolver: MutationToUserRegisterResolver = async (
   { input },
   { dataSources: { userService } }
 ) => {
-  const { email, userName, displayName, password, codeId } = input
-  if (!email) {
+  const { email: rawEmail, userName, displayName, password, codeId } = input
+  const email = rawEmail ? rawEmail.toLowerCase() : null
+  if (!isValidEmail(email)) {
     throw new Error('invalid email address format')
   }
 
@@ -34,16 +37,31 @@ const resolver: MutationToUserRegisterResolver = async (
   if (user) {
     throw new Error('email address has already been registered')
   }
-  if (userName && !isValidUserName(userName)) {
-    throw new Error('invalid user name')
-  }
+  // check display name
   if (!isValidDisplayName(displayName)) {
     throw new Error('invalid user display name')
   }
+  // check password
   if (!isValidPassword(password)) {
     throw new Error('invalid user password')
   }
-  await userService.create(input)
+
+  // Programatically generate user name
+  let retries = 0
+  let mainName = makeUserName(email)
+  let newUserName = mainName
+  while (
+    !isValidUserName(newUserName) ||
+    (await userService.countUserNames(newUserName)) > 0
+  ) {
+    if (retries >= 50) {
+      throw new Error('cannot generate user name')
+    }
+    newUserName = `${mainName}${random(1, 999)}`
+    retries += 1
+  }
+
+  await userService.create({ ...input, email, userName: newUserName })
 
   // mark code status as used
   await userService.markVerificationCodeAs({

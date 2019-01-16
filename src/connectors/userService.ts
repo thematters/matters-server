@@ -342,6 +342,17 @@ export class UserService extends BaseService {
   }
 
   /**
+   * Count same user names by a given user name.
+   */
+  countUserNames = async (userName: string): Promise<number> => {
+    const result = await this.knex(this.table)
+      .countDistinct('id')
+      .where({ userName })
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  /**
    * Find users
    */
   find = async ({ where }: { where?: { [key: string]: any } }) => {
