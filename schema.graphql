@@ -562,6 +562,7 @@ type OfficialLinks {
 type OSS {
   users(input: UsersInput!): UserConnection!
   articles(input: ArticlesInput!): ArticleConnection!
+  tags(input: ConnectionArgs!): TagConnection!
 }
 
 type PageInfo {
@@ -787,6 +788,7 @@ type Tag implements Node {
   content: String!
   count: Int!
   articles(input: ConnectionArgs!): ArticleConnection!
+  createdAt: DateTime!
 }
 
 type TagConnection {

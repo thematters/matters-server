@@ -57,6 +57,7 @@ export default /* GraphQL */ `
     content: String!
     count: Int!
     articles(input: ConnectionArgs!): ArticleConnection!
+    createdAt: DateTime!
   }
 
   type ArticleConnection {

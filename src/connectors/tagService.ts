@@ -40,6 +40,19 @@ export class TagService extends BaseService {
     return this.baseBatchCreate(items, 'article_tag')
   }
 
+  find = async ({ where }: { where?: { [key: string]: any } }) => {
+    let qs = this.knex
+      .select()
+      .from(this.table)
+      .orderBy('id', 'desc')
+
+    if (where) {
+      qs = qs.where(where)
+    }
+
+    return await qs
+  }
+
   findByContent = async (content: string) =>
     this.knex(this.table)
       .select()
