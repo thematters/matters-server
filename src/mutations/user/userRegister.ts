@@ -55,7 +55,7 @@ const resolver: MutationToUserRegisterResolver = async (
     !isValidUserName(newUserName) ||
     (await userService.countUserNames(newUserName)) > 0
   ) {
-    if (retries >= 50) {
+    if (retries >= 20) {
       throw new Error('cannot generate user name')
     }
     newUserName = `${mainName}${random(1, 999)}`
