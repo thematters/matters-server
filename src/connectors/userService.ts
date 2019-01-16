@@ -480,7 +480,7 @@ export class UserService extends BaseService {
 
   /*********************************
    *                               *
-   *             Notice            *
+   *         Notify Setting        *
    *                               *
    *********************************/
   findNotifySetting = async (userId: string): Promise<any | null> =>
@@ -495,14 +495,6 @@ export class UserService extends BaseService {
     data: ItemData
   ): Promise<any | null> =>
     await this.baseUpdateById(id, data, 'user_notify_setting')
-
-  countUnreadNotice = async (userId: string): Promise<number> => {
-    const result = await this.knex('notice')
-      .countDistinct('id')
-      .where({ recipientId: userId, unread: true, deleted: false })
-      .first()
-    return parseInt(result.count, 10)
-  }
 
   findBadges = async (userId: string): Promise<any[]> =>
     await this.knex

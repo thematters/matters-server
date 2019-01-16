@@ -3,7 +3,7 @@ import { UserStatusToUnreadNoticeCountResolver } from 'definitions'
 const resolver: UserStatusToUnreadNoticeCountResolver = (
   { id },
   _,
-  { dataSources: { userService } }
-) => userService.countUnreadNotice(id)
+  { dataSources: { notificationService } }
+) => notificationService.noticeService.countUnreadNotice(id)
 
 export default resolver

@@ -10,6 +10,7 @@ import {
   TableName
 } from 'definitions'
 import { BaseService } from '../baseService'
+import { BATCH_SIZE } from 'common/enums'
 
 export type NoticeUserId = string
 export type NoticeEntity = {
@@ -409,12 +410,24 @@ class NoticeService extends BaseService {
     )
   }
 
-  /**
-   * Find an users' notices by a given user id.
-   */
-  findByUser = async (userId: string): Promise<Notice[]> => {
+  /*********************************
+   *                               *
+   *           By User             *
+   *                               *
+   *********************************/
+  findByUser = async ({
+    userId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    userId: string
+    limit?: number
+    offset?: number
+  }): Promise<Notice[]> => {
     const notices = await this.findDetail({
-      where: { recipientId: userId, deleted: false }
+      where: { recipientId: userId, unread: true, deleted: false },
+      offset,
+      limit
     })
 
     return Promise.all(
@@ -435,13 +448,17 @@ class NoticeService extends BaseService {
     )
   }
 
-  /**
-   * Mark all notices as read
-   */
-  markAllNoticesAsRead = async (userId: string): Promise<any> => {
-    await this.knex('notice')
+  markAllNoticesAsRead = async (userId: string): Promise<any> =>
+    this.knex('notice')
       .where({ recipientId: userId, unread: true })
       .update({ unread: false })
+
+  countUnreadNotice = async (userId: string): Promise<number> => {
+    const result = await this.knex('notice')
+      .countDistinct('id')
+      .where({ recipientId: userId, unread: true, deleted: false })
+      .first()
+    return parseInt(result.count, 10)
   }
 }
 

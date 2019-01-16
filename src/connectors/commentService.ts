@@ -176,8 +176,6 @@ export class CommentService extends BaseService {
 
     if (parent === true) {
       query = query.whereNull('parent_comment_id')
-    } else if (parent === false) {
-      query = query.whereNotNull('parent_comment_id')
     }
 
     return query
