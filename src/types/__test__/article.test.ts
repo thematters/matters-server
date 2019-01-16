@@ -165,7 +165,6 @@ describe('query article', async () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    console.log(result)
     expect(result.data.oss.articles.edges.length).toBeGreaterThan(1)
   })
 

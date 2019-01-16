@@ -61,7 +61,7 @@ test('findTagIds', async () => {
 })
 
 test('findSubscriptions', async () => {
-  const subs = await articleService.findSubscriptions('2')
+  const subs = await articleService.findSubscriptions({ id: '2' })
   expect(subs.length).toEqual(2)
 })
 

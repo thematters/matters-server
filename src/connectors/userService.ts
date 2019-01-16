@@ -286,7 +286,7 @@ export class UserService extends BaseService {
       .where({
         userId
       })
-      .orderBy('id', 'desc')
+      .orderBy('created_at', 'desc')
       .limit(limit)
       .offset(offset)
 

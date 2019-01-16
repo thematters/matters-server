@@ -11,6 +11,6 @@ test('totalMAT', async () => {
 })
 
 test('transactionHistory', async () => {
-  const history = await userService.transactionHistory('1')
+  const history = await userService.transactionHistory({ id: '1' })
   expect(history.length).toBeTruthy()
 })
