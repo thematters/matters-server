@@ -672,7 +672,7 @@ describe('invitation', async () => {
 
   test('invite email', async () => {
     const unregisterEmail = `test-new-${Math.floor(
-      Math.random() * 100
+      Math.random() * 10000
     )}@matters.news`
     const invitationData = await getUserInvitation()
     const left = _get(invitationData, 'viewer.status.invitation.left')
