@@ -403,10 +403,9 @@ export class UserService extends BaseService {
 
   countFolloweeArticles = async (userId: string) => {
     const result = await this.knex('action_user as au')
-      .countDistinct('ar.id')
       .join('article as ar', 'ar.author_id', 'au.target_id')
       .where({ action: 'follow', userId })
-      .count()
+      .countDistinct('ar.id')
       .first()
     return parseInt(result.count, 10)
   }
