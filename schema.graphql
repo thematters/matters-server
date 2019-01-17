@@ -53,7 +53,7 @@ type Article implements Node {
 }
 
 type ArticleConnection {
-  totalCount: Int
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [ArticleEdge!]
 }
@@ -148,6 +148,7 @@ type Audiodraft {
 }
 
 type AudiodraftConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [AudiodraftEdge!]
 }
@@ -214,6 +215,7 @@ type Comment implements Node {
 }
 
 type CommentConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [CommentEdge!]
 }
@@ -337,6 +339,7 @@ type Draft implements Node {
 }
 
 type DraftConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [DraftEdge!]
 }
@@ -378,6 +381,7 @@ type Invitation implements Node {
 }
 
 type InvitationConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [InvitationEdge!]
 }
@@ -498,6 +502,7 @@ interface Notice {
 }
 
 type NoticeConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [NoticeEdge!]
 }
@@ -664,6 +669,7 @@ type ReadHistory {
 }
 
 type ReadHistoryConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [ReadHistoryEdge!]
 }
@@ -678,6 +684,7 @@ input RecallPublishInput {
 }
 
 type RecentSearchConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [RecentSearchEdge!]
 }
@@ -747,6 +754,7 @@ input ReportCommentInput {
 }
 
 type ReportConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [ReportEdge!]
 }
@@ -780,6 +788,7 @@ input SearchInput {
 }
 
 type SearchResultConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [SearchResultEdge!]
 }
@@ -832,7 +841,7 @@ type Tag implements Node {
 }
 
 type TagConnection {
-  totalCount: Int
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [TagEdge!]
 }
@@ -862,6 +871,7 @@ type Transaction {
 }
 
 type TransactionConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [TransactionEdge!]
 }
@@ -957,9 +967,9 @@ type UserActivity {
 }
 
 type UserConnection {
-  totalCount: Int
+  totalCount: Int!
   pageInfo: PageInfo!
-  edges: [UserEdge]
+  edges: [UserEdge!]
 }
 
 type UserEdge {

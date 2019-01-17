@@ -1,15 +1,29 @@
-import { connectionFromPromisedArray } from 'common/utils'
+import {
+  connectionFromArray,
+  cursorToIndex,
+  filterMissingFieldNotices
+} from 'common/utils'
 import { UserToNoticesResolver } from 'definitions'
 
-const resolver: UserToNoticesResolver = (
+const resolver: UserToNoticesResolver = async (
   { id },
   { input },
   { dataSources: { notificationService } }
 ) => {
-  return connectionFromPromisedArray(
-    notificationService.noticeService.findByUser(id),
-    input
+  const { first, after } = input
+  const offset = cursorToIndex(after) + 1
+  const totalCount = await notificationService.noticeService.countUnreadNotice(
+    id
   )
+
+  let notices = await notificationService.noticeService.findByUser({
+    userId: id,
+    offset,
+    limit: first
+  })
+  notices = filterMissingFieldNotices(notices)
+
+  return connectionFromArray(notices, input, totalCount)
 }
 
 export default resolver

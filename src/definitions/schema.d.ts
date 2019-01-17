@@ -272,7 +272,7 @@ export interface GQLConnectionArgs {
 }
 
 export interface GQLArticleConnection {
-  totalCount?: number
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLArticleEdge>
 }
@@ -289,7 +289,7 @@ export interface GQLArticleEdge {
 }
 
 export interface GQLTagConnection {
-  totalCount?: number
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLTagEdge>
 }
@@ -308,9 +308,9 @@ export interface GQLTag extends GQLNode {
 }
 
 export interface GQLUserConnection {
-  totalCount?: number
+  totalCount: number
   pageInfo: GQLPageInfo
-  edges?: Array<GQLUserEdge | null>
+  edges?: Array<GQLUserEdge>
 }
 
 export interface GQLUserEdge {
@@ -319,6 +319,7 @@ export interface GQLUserEdge {
 }
 
 export interface GQLDraftConnection {
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLDraftEdge>
 }
@@ -350,6 +351,7 @@ export enum GQLPublishState {
 }
 
 export interface GQLAudiodraftConnection {
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLAudiodraftEdge>
 }
@@ -375,6 +377,7 @@ export interface GQLUserActivity {
 }
 
 export interface GQLReadHistoryConnection {
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLReadHistoryEdge>
 }
@@ -391,6 +394,7 @@ export interface GQLReadHistory {
 }
 
 export interface GQLRecentSearchConnection {
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLRecentSearchEdge>
 }
@@ -457,6 +461,7 @@ export interface GQLMAT {
 }
 
 export interface GQLTransactionConnection {
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLTransactionEdge>
 }
@@ -495,6 +500,7 @@ export interface GQLInvitationStatus {
 }
 
 export interface GQLInvitationConnection {
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLInvitationEdge>
 }
@@ -513,6 +519,7 @@ export interface GQLInvitation extends GQLNode {
 }
 
 export interface GQLNoticeConnection {
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLNoticeEdge>
 }
@@ -599,6 +606,7 @@ export enum GQLVote {
 }
 
 export interface GQLCommentConnection {
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLCommentEdge>
 }
@@ -645,6 +653,7 @@ export enum GQLSearchTypes {
 }
 
 export interface GQLSearchResultConnection {
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLSearchResultEdge>
 }
@@ -747,6 +756,7 @@ export interface GQLReportsInput {
 }
 
 export interface GQLReportConnection {
+  totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLReportEdge>
 }
@@ -2729,8 +2739,21 @@ export interface UserEdgeToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLDraftConnectionTypeResolver<TParent = any> {
+  totalCount?: DraftConnectionToTotalCountResolver<TParent>
   pageInfo?: DraftConnectionToPageInfoResolver<TParent>
   edges?: DraftConnectionToEdgesResolver<TParent>
+}
+
+export interface DraftConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface DraftConnectionToPageInfoResolver<
@@ -2891,8 +2914,21 @@ export interface DraftToPublishStateResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLAudiodraftConnectionTypeResolver<TParent = any> {
+  totalCount?: AudiodraftConnectionToTotalCountResolver<TParent>
   pageInfo?: AudiodraftConnectionToPageInfoResolver<TParent>
   edges?: AudiodraftConnectionToEdgesResolver<TParent>
+}
+
+export interface AudiodraftConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface AudiodraftConnectionToPageInfoResolver<
@@ -3048,8 +3084,21 @@ export interface UserActivityToRecentSearchesResolver<
 }
 
 export interface GQLReadHistoryConnectionTypeResolver<TParent = any> {
+  totalCount?: ReadHistoryConnectionToTotalCountResolver<TParent>
   pageInfo?: ReadHistoryConnectionToPageInfoResolver<TParent>
   edges?: ReadHistoryConnectionToEdgesResolver<TParent>
+}
+
+export interface ReadHistoryConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReadHistoryConnectionToPageInfoResolver<
@@ -3133,8 +3182,21 @@ export interface ReadHistoryToReadAtResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLRecentSearchConnectionTypeResolver<TParent = any> {
+  totalCount?: RecentSearchConnectionToTotalCountResolver<TParent>
   pageInfo?: RecentSearchConnectionToPageInfoResolver<TParent>
   edges?: RecentSearchConnectionToEdgesResolver<TParent>
+}
+
+export interface RecentSearchConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface RecentSearchConnectionToPageInfoResolver<
@@ -3358,8 +3420,21 @@ export interface MATToHistoryResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLTransactionConnectionTypeResolver<TParent = any> {
+  totalCount?: TransactionConnectionToTotalCountResolver<TParent>
   pageInfo?: TransactionConnectionToPageInfoResolver<TParent>
   edges?: TransactionConnectionToEdgesResolver<TParent>
+}
+
+export interface TransactionConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface TransactionConnectionToPageInfoResolver<
@@ -3489,8 +3564,21 @@ export interface InvitationStatusToSentResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLInvitationConnectionTypeResolver<TParent = any> {
+  totalCount?: InvitationConnectionToTotalCountResolver<TParent>
   pageInfo?: InvitationConnectionToPageInfoResolver<TParent>
   edges?: InvitationConnectionToEdgesResolver<TParent>
+}
+
+export interface InvitationConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface InvitationConnectionToPageInfoResolver<
@@ -3594,8 +3682,21 @@ export interface InvitationToCreatedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLNoticeConnectionTypeResolver<TParent = any> {
+  totalCount?: NoticeConnectionToTotalCountResolver<TParent>
   pageInfo?: NoticeConnectionToPageInfoResolver<TParent>
   edges?: NoticeConnectionToEdgesResolver<TParent>
+}
+
+export interface NoticeConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface NoticeConnectionToPageInfoResolver<
@@ -3839,8 +3940,21 @@ export interface CommentToReplyToResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLCommentConnectionTypeResolver<TParent = any> {
+  totalCount?: CommentConnectionToTotalCountResolver<TParent>
   pageInfo?: CommentConnectionToPageInfoResolver<TParent>
   edges?: CommentConnectionToEdgesResolver<TParent>
+}
+
+export interface CommentConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface CommentConnectionToPageInfoResolver<
@@ -3891,8 +4005,21 @@ export interface CommentEdgeToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLSearchResultConnectionTypeResolver<TParent = any> {
+  totalCount?: SearchResultConnectionToTotalCountResolver<TParent>
   pageInfo?: SearchResultConnectionToPageInfoResolver<TParent>
   edges?: SearchResultConnectionToEdgesResolver<TParent>
+}
+
+export interface SearchResultConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface SearchResultConnectionToPageInfoResolver<
@@ -4379,8 +4506,21 @@ export interface OSSToReportResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLReportConnectionTypeResolver<TParent = any> {
+  totalCount?: ReportConnectionToTotalCountResolver<TParent>
   pageInfo?: ReportConnectionToPageInfoResolver<TParent>
   edges?: ReportConnectionToEdgesResolver<TParent>
+}
+
+export interface ReportConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface ReportConnectionToPageInfoResolver<

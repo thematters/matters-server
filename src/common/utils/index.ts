@@ -3,6 +3,7 @@ export * from './globalId'
 export * from './initSubscriptions'
 export * from './connections'
 export * from './validator'
+export * from './notice'
 
 export const stripHtml = (html: string) => html.replace(/(<([^>]+)>)/gi, '')
 

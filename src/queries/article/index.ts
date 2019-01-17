@@ -15,6 +15,7 @@ import MAT from './mat'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import hasAppreciate from './hasAppreciate'
+import appreciatorCount from './appreciatorCount'
 import appreciateLeft from './appreciateLeft'
 import participants from './participants'
 import appreciators from './appreciators'
@@ -45,6 +46,7 @@ export default {
     subscribers,
     appreciators,
     hasAppreciate,
+    appreciatorCount,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
     appreciateLeft,
     participants, // TODO
