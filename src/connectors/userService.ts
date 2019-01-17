@@ -476,6 +476,32 @@ export class UserService extends BaseService {
       .offset(offset)
       .limit(limit)
 
+  findBoost = async (userId: string) => {
+    const userBoost = await this.knex('user_boost')
+      .select()
+      .where({ userId })
+      .first()
+
+    if (!userBoost) {
+      return 1
+    }
+
+    return userBoost.boost
+  }
+
+  findScore = async (userId: string) => {
+    const author = await this.knex('user_reader_view')
+      .select()
+      .where({ id: userId })
+      .first()
+
+    if (!author) {
+      return 1
+    }
+
+    return author.authorScore
+  }
+
   /*********************************
    *                               *
    *         Notify Setting        *

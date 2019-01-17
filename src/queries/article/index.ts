@@ -20,6 +20,8 @@ import appreciateLeft from './appreciateLeft'
 import participants from './participants'
 import appreciators from './appreciators'
 import relatedArticles from './relatedArticles'
+import * as articleOSS from './oss'
+import * as tagOSS from './tag/oss'
 
 export default {
   Query: {
@@ -50,11 +52,25 @@ export default {
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
     appreciateLeft,
     participants, // TODO
-    participantCount: () => 50 // TODO
+    participantCount: () => 50, // TODO
+    oss: articleOSS.rootOSS
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
     count: tagCount,
-    articles: tagArticles
+    articles: tagArticles,
+    oss: tagOSS.rootOSS
+  },
+  ArticleOSS: {
+    boost: articleOSS.boost,
+    score: articleOSS.score,
+    inRecommendToday: articleOSS.inRecommendToday,
+    inRecommendIcymi: articleOSS.inRecommendIcymi,
+    inRecommendHottest: articleOSS.inRecommendHottest,
+    inRecommendNewset: articleOSS.inRecommendNewset
+  },
+  TagOSS: {
+    boost: tagOSS.boost,
+    score: tagOSS.score
   }
 }

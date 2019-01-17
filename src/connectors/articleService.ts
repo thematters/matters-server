@@ -265,7 +265,7 @@ export class ArticleService extends BaseService {
     offset?: number
     where?: { [key: string]: any }
   }) =>
-    await this.knex('article_activity_view')
+    this.knex('article_activity_view')
       .where(where)
       .orderBy('latest_activity', 'desc null last')
       .limit(limit)
@@ -280,7 +280,7 @@ export class ArticleService extends BaseService {
     offset?: number
     where?: { [key: string]: any }
   }) =>
-    await this.knex(this.table)
+    this.knex(this.table)
       .orderBy('id', 'desc')
       .where(where)
       .limit(limit)
@@ -302,7 +302,7 @@ export class ArticleService extends BaseService {
     offset?: number
     where?: { [key: string]: any }
   }) =>
-    await this.knex('article')
+    this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
       .join('matters_choice as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
@@ -319,11 +319,60 @@ export class ArticleService extends BaseService {
     offset?: number
     where?: { [key: string]: any }
   }) =>
-    await this.knex('article_count_view')
+    this.knex('article_count_view')
       .orderBy('topic_score', 'desc')
       .where(where)
       .limit(limit)
       .offset(offset)
+
+  findRecommendToday = async (articleId: string) =>
+    this.knex('article_count_view')
+      .where({ id: articleId })
+      .first()
+
+  findRecommendIcymi = async (articleId: string) =>
+    this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_choice as c', 'c.article_id', 'article.id')
+      .orderBy('chose_at', 'desc')
+      .where({ articleId })
+      .first()
+
+  findRecommendHottest = async (articleId: string) =>
+    this.knex('article_activity_view')
+      .where({ id: articleId })
+      .orderBy('latest_activity', 'desc null last')
+
+  findRecommendNewset = async (articleId: string) =>
+    this.knex(this.table)
+      .orderBy('id', 'desc')
+      .where({ articleId })
+
+  findBoost = async (articleId: string) => {
+    const articleBoost = await this.knex('article_boost')
+      .select()
+      .where({ articleId })
+      .first()
+
+    if (!articleBoost) {
+      return 1
+    }
+
+    return articleBoost.boost
+  }
+
+  findScore = async (articleId: string) => {
+    const article = await this.knex('article_count_view')
+      .select()
+      .where({ id: articleId })
+      .first()
+
+    if (!article) {
+      return 1
+    }
+
+    return article.topicScore
+  }
 
   /*********************************
    *                               *

@@ -50,6 +50,8 @@ export default /* GraphQL */ `
     hasAppreciate: Boolean!
     # Viewer has subscribed
     subscribed: Boolean!
+    # OSS
+    oss: ArticleOSS!
   }
 
   type Tag implements Node {
@@ -58,6 +60,22 @@ export default /* GraphQL */ `
     count: Int!
     articles(input: ConnectionArgs!): ArticleConnection!
     createdAt: DateTime!
+    # OSS
+    oss: TagOSS!
+  }
+
+  type ArticleOSS {
+    boost: Float!
+    score: Float!
+    inRecommendToday: Boolean!
+    inRecommendIcymi: Boolean!
+    inRecommendHottest: Boolean!
+    inRecommendNewset: Boolean!
+  }
+
+  type TagOSS {
+    boost: Float!
+    score: Float!
   }
 
   type ArticleConnection {

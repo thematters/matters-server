@@ -58,6 +58,8 @@ export default /* GraphQL */ `
     # Viewer is following this user
     isFollowee: Boolean!
     status: UserStatus!
+    # OSS
+    oss: UserOSS!
   }
 
   type InvitationStatus {
@@ -143,6 +145,11 @@ export default /* GraphQL */ `
     followerCount: Int!
     # Number of unread notices
     unreadNoticeCount: Int!
+  }
+
+  type UserOSS {
+    boost: Float!
+    score: Float!
   }
 
   type MAT {
