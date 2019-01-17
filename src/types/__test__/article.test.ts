@@ -119,7 +119,7 @@ const TOGGLE_ARTICLE_PUBLIC = `
 `
 
 const GET_RELATED_ARTICLES = `
-  query ($input: NodeInput!) {
+  query ($input: ArticleInput!) {
     article(input: $input) {
       relatedArticles(input: {}) {
         edges {
@@ -197,12 +197,13 @@ describe('query article', async () => {
 
   test('query related articles', async () => {
     const { query } = await testClient()
-    const { data } = await query({
+    const result = await query({
       query: GET_RELATED_ARTICLES,
       // @ts-ignore
       variables: { input: { mediaHash } }
     })
-    expect(_.get(data, 'article.relatedArticles.edges')).toBeDefined()
+    console.log({ error: result.errors })
+    expect(_.get(result, 'data.article.relatedArticles.edges')).toBeDefined()
   })
 })
 

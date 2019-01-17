@@ -14,7 +14,11 @@ const resolver: MutationToPutCommentResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  const { content, quotation, articleId, parentId, mentions } = comment
+  const { content, articleId, parentId, mentions, quotationStart, quotationEnd, quotationContent } = comment
+
+  // check quotation input
+  if 
+
   const data: any = {
     content,
     authorId: viewer.id

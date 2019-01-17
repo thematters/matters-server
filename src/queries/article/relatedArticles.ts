@@ -11,6 +11,10 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
   // TODO: use vector score from ElasticSearch
   let recommendations: string[] = []
+
+  const addRec = (rec: string[], extra: string[]) =>
+    without(uniq(rec.concat(extra)), id)
+
   const tagIds = await articleService.findTagIds({ id })
 
   for (const tagId of tagIds) {
@@ -22,12 +26,12 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       id: tagId,
       limit: recommendationSize - recommendations.length
     })
-    recommendations = without(uniq(recommendations.concat(articleIds)), id)
+    recommendations = addRec(recommendations, articleIds)
   }
 
   if (recommendations.length >= recommendationSize) {
     let articleIds = await articleService.findByAuthor(authorId)
-    recommendations = without(uniq(recommendations.concat(articleIds)), id)
+    recommendations = addRec(recommendations, articleIds)
   }
 
   return connectionFromPromisedArray(

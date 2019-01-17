@@ -25,6 +25,10 @@ export default /* GraphQL */ `
     mentions: [User!]
     comments(input: ConnectionArgs!): CommentConnection!
     parentComment: Comment
+    quotationStart: Int
+    quotationEnd: Int
+    quotationContent: String
+    replyTo: User
   }
 
   extend type Article {
@@ -52,11 +56,15 @@ export default /* GraphQL */ `
 
   input CommentInput {
     content: String!
-    quotation: String
+    quotationStart: Int
+    quotationEnd: Int
+    quotationContent: String
+    replyTo: ID
     articleId: ID!
     parentId: ID
     mentions: [ID!]
   }
+
 
   input CommentsInput {
     author: ID
