@@ -122,6 +122,7 @@ export class CommentService extends BaseService {
         parentCommentId: commentId,
         state: COMMENT_STATE.active
       })
+      .orderBy('created_at', 'desc')
 
   /**
    * Find comments by a given article id.
