@@ -2,7 +2,7 @@
 TEMPLATE="docker/Dockerrun.aws.json.example"
 OUT_CONFIG="Dockerrun.aws.json"
 
-APP_DEVELOP="matters-develop"
+APP_DEVELOP="matters-stage"
 ENV_DEVELOP="matters-server-develop"
 REGION_DEVELOP="ap-southeast-1"
 IMAGE_TAG_DEVELOP="develop"
