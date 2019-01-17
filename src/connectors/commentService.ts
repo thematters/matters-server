@@ -188,16 +188,12 @@ export class CommentService extends BaseService {
   findByArticle = async ({
     id,
     author,
-    quote,
     sort,
     parent
   }: GQLCommentsInput & { id: string }) => {
     let where: { [key: string]: string | boolean } = { articleId: id }
     if (author) {
       where = { ...where, authorId: author }
-    }
-    if (quote) {
-      where = { ...where, quote }
     }
 
     let query = null
