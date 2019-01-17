@@ -385,7 +385,7 @@ describe('register and login functionarlities', () => {
 
   test('auth success when password is correct', async () => {
     const email = 'test1@matters.news'
-    const password = '123'
+    const password = '12345678'
 
     const { mutate } = await testClient()
     const result = await mutate({
