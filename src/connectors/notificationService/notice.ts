@@ -425,7 +425,7 @@ class NoticeService extends BaseService {
     offset?: number
   }): Promise<Notice[]> => {
     const notices = await this.findDetail({
-      where: { recipientId: userId, unread: true, deleted: false },
+      where: { recipientId: userId, deleted: false },
       offset,
       limit
     })
@@ -455,7 +455,6 @@ class NoticeService extends BaseService {
 
   countUnreadNotice = async (userId: string): Promise<number> => {
     const result = await this.knex('notice')
-      .countDistinct('id')
       .where({ recipientId: userId, unread: true, deleted: false })
       .first()
     return parseInt(result.count, 10)

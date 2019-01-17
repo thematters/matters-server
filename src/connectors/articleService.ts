@@ -175,7 +175,6 @@ export class ArticleService extends BaseService {
    */
   countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
-      .countDistinct('id')
       .where({ authorId, state: ARTICLE_STATE.active })
       .first()
     return parseInt(result.count, 10)

@@ -368,7 +368,6 @@ export class UserService extends BaseService {
 
   countFollowees = async (userId: string): Promise<number> => {
     const result = await this.knex('action_user')
-      .countDistinct('id')
       .where({
         userId,
         action: USER_ACTION.follow
@@ -379,7 +378,6 @@ export class UserService extends BaseService {
 
   countFollowers = async (targetId: string): Promise<number> => {
     const result = await this.knex('action_user')
-      .countDistinct('id')
       .where({ targetId, action: USER_ACTION.follow })
       .first()
     return parseInt(result.count || 0, 10)
@@ -509,7 +507,6 @@ export class UserService extends BaseService {
    *********************************/
   countSubscription = async (userId: string) => {
     const result = await this.knex('action_article')
-      .countDistinct('id')
       .where({ userId, action: USER_ACTION.subscribe })
       .first()
     return parseInt(result.count, 10)
@@ -539,7 +536,6 @@ export class UserService extends BaseService {
    *********************************/
   countReadHistory = async (userId: string) => {
     const result = await this.knex('article_read')
-      .countDistinct('id')
       .where({ userId, archived: false })
       .first()
     return parseInt(result.count, 10)
