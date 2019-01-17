@@ -130,7 +130,8 @@ export class CommentService extends BaseService {
       .select()
       .from(this.table)
       .where({
-        parentCommentId: commentId
+        parentCommentId: commentId,
+        state: COMMENT_STATE.active
       })
 
   /**
