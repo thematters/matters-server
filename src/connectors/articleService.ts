@@ -206,6 +206,7 @@ export class ArticleService extends BaseService {
       )
     })
   }
+
   addToSearch = async ({
     id,
     title,

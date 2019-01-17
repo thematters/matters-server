@@ -84,7 +84,7 @@ export class CommentService extends BaseService {
    */
   countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
-      .where({ authorId })
+      .where({ authorId, state: COMMENT_STATE.active })
       .count()
       .first()
     return parseInt(result.count, 10)
@@ -96,17 +96,6 @@ export class CommentService extends BaseService {
   countByArticle = async (articleId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .where({ articleId, state: COMMENT_STATE.active })
-      .count()
-      .first()
-    return parseInt(result.count, 10)
-  }
-
-  /**
-   * Count comments by a given comment id.
-   */
-  countByParent = async (commentId: string): Promise<number> => {
-    const result = await this.knex(this.table)
-      .where('parent_comment_id', commentId)
       .count()
       .first()
     return parseInt(result.count, 10)
@@ -144,9 +133,6 @@ export class CommentService extends BaseService {
     parent
   }: GQLCommentsInput & { id: string }) => {
     let where: { [key: string]: string | boolean } = { articleId: id }
-    if (author) {
-      where = { ...where, authorId: author }
-    }
 
     let query = null
     const sortCreatedAt = (by: 'desc' | 'asc') =>
@@ -179,7 +165,11 @@ export class CommentService extends BaseService {
       query = sortCreatedAt('desc')
     }
 
-    if (parent === true) {
+    if (author) {
+      where = { ...where, authorId: author, state: COMMENT_STATE.active }
+    }
+
+    if (parent) {
       query = query.whereNull('parent_comment_id')
     }
 
