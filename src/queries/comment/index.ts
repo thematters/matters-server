@@ -15,6 +15,7 @@ import myVote from './myVote'
 import mentions from './mentions'
 import comments from './comments'
 import parentComment from './parentComment'
+import replyTo from './replyTo'
 
 export default {
   User: {
@@ -29,6 +30,7 @@ export default {
   },
   Comment: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Comment', id }),
+    replyTo,
     article,
     content,
     author,

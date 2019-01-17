@@ -15,7 +15,10 @@ import { getViewerMAT } from './user.test'
 
 afterAll(knex.destroy)
 
+const mediaHash = 'some-ipfs-media-hash-1'
+
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 2 })
+
 const GET_ARTICLES = `
   query ($input: ArticlesInput!) {
     oss {
@@ -115,6 +118,20 @@ const TOGGLE_ARTICLE_PUBLIC = `
   }
 `
 
+const GET_RELATED_ARTICLES = `
+  query ($input: ArticleInput!) {
+    article(input: $input) {
+      relatedArticles(input: {}) {
+        edges {
+          node {
+            title
+          }
+        }
+      }
+    }
+  }
+`
+
 export const publishArticle = async (input: GQLPublishArticleInput) => {
   const { mutate } = await testClient({
     isAuth: true
@@ -169,7 +186,6 @@ describe('query article', async () => {
   })
 
   test('query article by mediaHash', async () => {
-    const mediaHash = 'some-ipfs-media-hash-1'
     const { query } = await testClient()
     const { data } = await query({
       query: GET_ARTICLE_BY_MEDIA_HASH,
@@ -177,6 +193,17 @@ describe('query article', async () => {
       variables: { input: { mediaHash } }
     })
     expect(_.get(data, 'article.mediaHash')).toBe(mediaHash)
+  })
+
+  test('query related articles', async () => {
+    const { query } = await testClient()
+    const result = await query({
+      query: GET_RELATED_ARTICLES,
+      // @ts-ignore
+      variables: { input: { mediaHash } }
+    })
+    console.log({ error: result.errors })
+    expect(_.get(result, 'data.article.relatedArticles.edges')).toBeDefined()
   })
 })
 

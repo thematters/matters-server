@@ -22,7 +22,11 @@ export class CommentService extends BaseService {
     articleId,
     parentCommentId,
     mentionedUserIds = [],
-    content
+    content,
+    quotationStart,
+    quotationEnd,
+    quotationContent,
+    replyTo
   }: {
     [key: string]: any
   }) => {
@@ -32,7 +36,11 @@ export class CommentService extends BaseService {
       authorId,
       articleId,
       parentCommentId,
-      content
+      content,
+      quotationStart,
+      quotationEnd,
+      quotationContent,
+      replyTo
     })
     // create mentions
     const mentionsDataItems = mentionedUserIds.map((userId: string) => ({
@@ -131,16 +139,12 @@ export class CommentService extends BaseService {
   findByArticle = async ({
     id,
     author,
-    quote,
     sort,
     parent
   }: GQLCommentsInput & { id: string }) => {
     let where: { [key: string]: string | boolean } = { articleId: id }
     if (author) {
       where = { ...where, authorId: author }
-    }
-    if (quote) {
-      where = { ...where, quote }
     }
 
     let query = null

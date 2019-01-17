@@ -1,4 +1,4 @@
-import * as base64 from 'base-64'
+import { Base64 } from 'js-base64'
 import { connectionFromArraySlice } from 'graphql-relay'
 
 export type ConnectionCursor = string
@@ -43,15 +43,15 @@ const PREFIX = 'arrayconnection'
 export const cursorToOffset = (
   cursor: ConnectionCursor | undefined
 ): number => {
-  return cursor ? parseInt(base64.decode(cursor).split(':')[1], 10) : -1
+  return cursor ? parseInt(Base64.decode(cursor).split(':')[1], 10) : -1
 }
 
 export const cursorToIndex = (cursor: ConnectionCursor | undefined): number => {
-  return cursor ? parseInt(base64.decode(cursor).split(':')[1], 10) : -1
+  return cursor ? parseInt(Base64.decode(cursor).split(':')[1], 10) : -1
 }
 
 export const indexToCursor = (index: number): ConnectionCursor => {
-  return base64.encode(`${PREFIX}:${index}`)
+  return Base64.encodeURI(`${PREFIX}:${index}`)
 }
 
 export function connectionFromArray<T>(
@@ -85,11 +85,13 @@ export function connectionFromArray<T>(
     }
   }
 
+  const connections = connectionFromArraySlice(data, args, {
+    sliceStart: 0,
+    arrayLength: data.length
+  })
+
   return {
-    ...connectionFromArraySlice(data, args, {
-      sliceStart: 0,
-      arrayLength: data.length
-    }),
+    ...connections,
     totalCount: data.length
   }
 }
