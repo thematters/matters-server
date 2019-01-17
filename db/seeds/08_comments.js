@@ -9,7 +9,9 @@ exports.seed = function(knex, Promise) {
           uuid: '00000000-0000-0000-0000-000000000011',
           author_id: 1,
           article_id: 1,
-          quote: true,
+          quotation_start: 1,
+          quotation_end: 10,
+          quotation_content: 'some quotation',
           content: '<div>Test comment 1</div>'
         },
         {
@@ -37,7 +39,8 @@ exports.seed = function(knex, Promise) {
           parent_comment_id: 1,
           author_id: 2,
           article_id: 1,
-          content: '<div>Test comment 4</div>'
+          content: '<div>Test comment 4</div>',
+          reply_to: 1
         }
       ])
     })

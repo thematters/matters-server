@@ -16,6 +16,7 @@ exports.up = async knex => {
 
 exports.down = async knex => {
   await knex.schema.table(table, function(t) {
+    t.boolean('quote')
     t.dropColumn('quotation_start')
     t.dropColumn('quotation_end')
     t.dropColumn('quotation_content')

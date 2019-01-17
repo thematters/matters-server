@@ -22,7 +22,11 @@ export class CommentService extends BaseService {
     articleId,
     parentCommentId,
     mentionedUserIds = [],
-    content
+    content,
+    quotationStart,
+    quotationEnd,
+    quotationContent,
+    replyTo
   }: {
     [key: string]: any
   }) => {
@@ -32,7 +36,11 @@ export class CommentService extends BaseService {
       authorId,
       articleId,
       parentCommentId,
-      content
+      content,
+      quotationStart,
+      quotationEnd,
+      quotationContent,
+      replyTo
     })
     // create mentions
     const mentionsDataItems = mentionedUserIds.map((userId: string) => ({
