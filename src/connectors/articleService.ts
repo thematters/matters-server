@@ -286,12 +286,22 @@ export class ArticleService extends BaseService {
       .limit(limit)
       .offset(offset)
 
-  recommendToday = async () =>
+  recommendToday = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {}
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+  }) =>
     this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
       .join('matters_today as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
-      .first()
+      .where(where)
+      .offset(offset)
+      .limit(limit)
 
   recommendIcymi = async ({
     limit = BATCH_SIZE,
@@ -325,9 +335,14 @@ export class ArticleService extends BaseService {
       .limit(limit)
       .offset(offset)
 
+  /**
+   * Find One
+   */
   findRecommendToday = async (articleId: string) =>
-    this.knex('article_count_view')
-      .where({ id: articleId })
+    this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_today as c', 'c.article_id', 'article.id')
+      .where({ articleId })
       .first()
 
   findRecommendIcymi = async (articleId: string) =>
@@ -341,12 +356,42 @@ export class ArticleService extends BaseService {
   findRecommendHottest = async (articleId: string) =>
     this.knex('article_activity_view')
       .where({ id: articleId })
-      .orderBy('latest_activity', 'desc null last')
+      .first()
 
   findRecommendNewset = async (articleId: string) =>
     this.knex(this.table)
-      .orderBy('id', 'desc')
-      .where({ articleId })
+      .where({ id: articleId })
+      .first()
+
+  findRecommendTopic = async (articleId: string) =>
+    this.knex('article_count_view')
+      .where({ id: articleId })
+      .first()
+
+  /**
+   * Count
+   */
+  countRecommendToday = async (where: { [key: string]: any } = {}) => {
+    const result = await this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_today as c', 'c.article_id', 'article.id')
+      .where(where)
+      .groupBy('article.id', 'c.updated_at')
+      .count()
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  countRecommendIcymi = async (where: { [key: string]: any } = {}) => {
+    const result = await this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_choice as c', 'c.article_id', 'article.id')
+      .where(where)
+      .groupBy('article.id', 'c.updated_at')
+      .count()
+      .first()
+    return parseInt(result.count, 10)
+  }
 
   findBoost = async (articleId: string) => {
     const articleBoost = await this.knex('article_boost')

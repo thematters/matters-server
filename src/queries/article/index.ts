@@ -67,7 +67,8 @@ export default {
     inRecommendToday: articleOSS.inRecommendToday,
     inRecommendIcymi: articleOSS.inRecommendIcymi,
     inRecommendHottest: articleOSS.inRecommendHottest,
-    inRecommendNewset: articleOSS.inRecommendNewset
+    inRecommendNewset: articleOSS.inRecommendNewset,
+    inRecommendTopic: articleOSS.inRecommendTopic
   },
   TagOSS: {
     boost: tagOSS.boost,

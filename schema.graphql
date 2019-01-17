@@ -112,6 +112,7 @@ type ArticleOSS {
   inRecommendIcymi: Boolean!
   inRecommendHottest: Boolean!
   inRecommendNewset: Boolean!
+  inRecommendTopic: Boolean!
 }
 
 type ArticlePublishedNotice implements Notice {

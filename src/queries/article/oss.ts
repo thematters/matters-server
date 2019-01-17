@@ -7,7 +7,8 @@ import {
   ArticleOSSToInRecommendHottestResolver,
   ArticleOSSToInRecommendNewsetResolver,
   ArticleOSSToInRecommendTodayResolver,
-  ArticleOSSToInRecommendIcymiResolver
+  ArticleOSSToInRecommendIcymiResolver,
+  articeosstorecommArticleOSSToInRecommendTopicResolver
 } from 'definitions'
 
 export const rootOSS: ArticleToOssResolver = (
@@ -42,22 +43,28 @@ export const inRecommendToday: ArticleOSSToInRecommendTodayResolver = async (
   { id },
   _,
   { dataSources: { articleService } }
-) => !!articleService.findRecommendToday(id)
+) => !!(await articleService.findRecommendToday(id))
 
 export const inRecommendIcymi: ArticleOSSToInRecommendIcymiResolver = async (
   { id },
   _,
   { dataSources: { articleService } }
-) => !!articleService.findRecommendIcymi(id)
+) => !!(await articleService.findRecommendIcymi(id))
 
 export const inRecommendHottest: ArticleOSSToInRecommendHottestResolver = async (
   { id },
   _,
   { dataSources: { articleService } }
-) => !!articleService.findRecommendHottest(id)
+) => !!(await articleService.findRecommendHottest(id))
 
 export const inRecommendNewset: ArticleOSSToInRecommendNewsetResolver = async (
   { id },
   _,
   { dataSources: { articleService } }
-) => !!articleService.findRecommendNewset(id)
+) => !!(await articleService.findRecommendNewset(id))
+
+export const inRecommendTopic: ArticleOSSToInRecommendTopicResolver = async (
+  { id },
+  _,
+  { dataSources: { articleService } }
+) => !!(await articleService.findRecommendTopic(id))

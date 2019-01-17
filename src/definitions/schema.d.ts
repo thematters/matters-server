@@ -607,6 +607,7 @@ export interface GQLArticleOSS {
   inRecommendIcymi: boolean
   inRecommendHottest: boolean
   inRecommendNewset: boolean
+  inRecommendTopic: boolean
 }
 
 export interface GQLComment extends GQLNode {
@@ -3905,6 +3906,7 @@ export interface GQLArticleOSSTypeResolver<TParent = any> {
   inRecommendIcymi?: ArticleOSSToInRecommendIcymiResolver<TParent>
   inRecommendHottest?: ArticleOSSToInRecommendHottestResolver<TParent>
   inRecommendNewset?: ArticleOSSToInRecommendNewsetResolver<TParent>
+  inRecommendTopic?: ArticleOSSToInRecommendTopicResolver<TParent>
 }
 
 export interface ArticleOSSToBoostResolver<TParent = any, TResult = any> {
@@ -3962,6 +3964,18 @@ export interface ArticleOSSToInRecommendHottestResolver<
 }
 
 export interface ArticleOSSToInRecommendNewsetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleOSSToInRecommendTopicResolver<
   TParent = any,
   TResult = any
 > {
