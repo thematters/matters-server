@@ -589,11 +589,14 @@ export interface GQLComment extends GQLNode {
   pinned: boolean
   upvotes: number
   downvotes: number
-  quote: boolean
   myVote?: GQLVote
   mentions?: Array<GQLUser>
   comments: GQLCommentConnection
   parentComment?: GQLComment
+  quotationStart?: number
+  quotationEnd?: number
+  quotationContent?: string
+  replyTo?: GQLUser
 }
 
 export enum GQLCommentState {
@@ -620,7 +623,6 @@ export interface GQLCommentEdge {
 
 export interface GQLCommentsInput {
   author?: string
-  quote?: boolean
   sort?: GQLCommentSort
   after?: string
   first?: number
@@ -937,7 +939,10 @@ export interface GQLPutCommentInput {
 
 export interface GQLCommentInput {
   content: string
-  quotation?: string
+  quotationStart?: number
+  quotationEnd?: number
+  quotationContent?: string
+  replyTo?: string
   articleId: string
   parentId?: string
   mentions?: Array<string>
@@ -3789,11 +3794,14 @@ export interface GQLCommentTypeResolver<TParent = any> {
   pinned?: CommentToPinnedResolver<TParent>
   upvotes?: CommentToUpvotesResolver<TParent>
   downvotes?: CommentToDownvotesResolver<TParent>
-  quote?: CommentToQuoteResolver<TParent>
   myVote?: CommentToMyVoteResolver<TParent>
   mentions?: CommentToMentionsResolver<TParent>
   comments?: CommentToCommentsResolver<TParent>
   parentComment?: CommentToParentCommentResolver<TParent>
+  quotationStart?: CommentToQuotationStartResolver<TParent>
+  quotationEnd?: CommentToQuotationEndResolver<TParent>
+  quotationContent?: CommentToQuotationContentResolver<TParent>
+  replyTo?: CommentToReplyToResolver<TParent>
 }
 
 export interface CommentToIdResolver<TParent = any, TResult = any> {
@@ -3877,15 +3885,6 @@ export interface CommentToDownvotesResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface CommentToQuoteResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface CommentToMyVoteResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -3917,6 +3916,45 @@ export interface CommentToCommentsResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToParentCommentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToQuotationStartResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToQuotationEndResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToQuotationContentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToReplyToResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

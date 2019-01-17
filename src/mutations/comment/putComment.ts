@@ -14,12 +14,39 @@ const resolver: MutationToPutCommentResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  const { content, quotation, articleId, parentId, mentions } = comment
-  const data: any = {
+  const {
+    content,
+    articleId,
+    parentId,
+    mentions,
+    quotationStart,
+    quotationEnd,
+    quotationContent,
+    replyTo
+  } = comment
+
+  let data: any = {
     content,
     authorId: viewer.id
   }
 
+  // check quotation input
+  if (quotationStart || quotationEnd || quotationContent) {
+    if (!(quotationStart && quotationEnd && quotationContent)) {
+      throw new UserInputError(
+        `Quotation needs fields "quotationStart, quotationEnd, quotationContent"`
+      )
+    } else {
+      data = {
+        ...data,
+        quotationStart,
+        quotationEnd,
+        quotationContent
+      }
+    }
+  }
+
+  // check target article
   const { id: authorDbId } = fromGlobalId(articleId)
   const article = await articleService.dataloader.load(authorDbId)
   if (!article) {
@@ -27,6 +54,7 @@ const resolver: MutationToPutCommentResolver = async (
   }
   data.articleId = article.id
 
+  // check parentComment
   let parentComment: any
   if (parentId) {
     const { id: parentDbId } = fromGlobalId(parentId)
@@ -37,6 +65,12 @@ const resolver: MutationToPutCommentResolver = async (
     data.parentCommentId = parentComment.id
   }
 
+  // check reply to
+  if (replyTo) {
+    data.replyTo = fromGlobalId(replyTo).id
+  }
+
+  // check mentions
   if (mentions) {
     data.mentionedUserIds = mentions.map(
       (userId: string) => fromGlobalId(userId).id
