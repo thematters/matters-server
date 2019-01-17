@@ -129,20 +129,20 @@ export default /* GraphQL */ `
     MAT: MAT!
     invitation: InvitationStatus!
     # Number of articles published by user
-    articleCount: Int!
+    articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
     # Number of views on articles
-    viewCount: Int!
+    viewCount: Int! @deprecated(reason: "Use \`User.drafts.totalCount\`.")
     draftCount: Int!
     # Number of comments posted by user
     commentCount: Int!
-    quotationCount: Int!
-    subscriptionCount: Int!
+    quotationCount: Int! @deprecated(reason: "not used")
+    subscriptionCount: Int! @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
     # Number of user that this user follows
-    followeeCount: Int!
+    followeeCount: Int! @deprecated(reason: "Use \`User.followees.totalCount\`.")
     # Number of user that follows this user
-    followerCount: Int!
+    followerCount: Int! @deprecated(reason: "Use \`User.followers.totalCount\`.")
     # Number of unread notices
-    unreadNoticeCount: Int!
+    unreadNoticeCount: Int! 
   }
 
   type MAT {
