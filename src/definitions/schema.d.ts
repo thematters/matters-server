@@ -258,6 +258,11 @@ export interface GQLRecommendation {
   hottest: GQLArticleConnection
 
   /**
+   * Matters Today
+   */
+  today: GQLArticle
+
+  /**
    * In case you missed it
    */
   icymi: GQLArticleConnection
@@ -584,11 +589,14 @@ export interface GQLComment extends GQLNode {
   pinned: boolean
   upvotes: number
   downvotes: number
-  quote: boolean
   myVote?: GQLVote
   mentions?: Array<GQLUser>
   comments: GQLCommentConnection
   parentComment?: GQLComment
+  quotationStart?: number
+  quotationEnd?: number
+  quotationContent?: string
+  replyTo?: GQLUser
 }
 
 export enum GQLCommentState {
@@ -615,7 +623,6 @@ export interface GQLCommentEdge {
 
 export interface GQLCommentsInput {
   author?: string
-  quote?: boolean
   sort?: GQLCommentSort
   after?: string
   first?: number
@@ -870,6 +877,11 @@ export interface GQLMutation {
   clearReadHistory?: boolean
   clearSearchHistory?: boolean
   invite?: boolean
+
+  /**
+   * !!! update state: REMOVE IN PRODUTION !!!
+   */
+  updateUserState__: GQLUser
 }
 
 export interface GQLPublishArticleInput {
@@ -927,7 +939,10 @@ export interface GQLPutCommentInput {
 
 export interface GQLCommentInput {
   content: string
-  quotation?: string
+  quotationStart?: number
+  quotationEnd?: number
+  quotationContent?: string
+  replyTo?: string
   articleId: string
   parentId?: string
   mentions?: Array<string>
@@ -1112,6 +1127,11 @@ export interface GQLClearReadHistoryInput {
 export interface GQLInviteInput {
   id?: string
   email?: GQLEmail
+}
+
+export interface GQLUpdateUserStateInput {
+  id: string
+  state: GQLUserState
 }
 
 export interface GQLSubscription {
@@ -2364,6 +2384,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
+  today?: RecommendationToTodayResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
@@ -2404,6 +2425,15 @@ export interface RecommendationToHottestResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToHottestArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToTodayResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -3764,11 +3794,14 @@ export interface GQLCommentTypeResolver<TParent = any> {
   pinned?: CommentToPinnedResolver<TParent>
   upvotes?: CommentToUpvotesResolver<TParent>
   downvotes?: CommentToDownvotesResolver<TParent>
-  quote?: CommentToQuoteResolver<TParent>
   myVote?: CommentToMyVoteResolver<TParent>
   mentions?: CommentToMentionsResolver<TParent>
   comments?: CommentToCommentsResolver<TParent>
   parentComment?: CommentToParentCommentResolver<TParent>
+  quotationStart?: CommentToQuotationStartResolver<TParent>
+  quotationEnd?: CommentToQuotationEndResolver<TParent>
+  quotationContent?: CommentToQuotationContentResolver<TParent>
+  replyTo?: CommentToReplyToResolver<TParent>
 }
 
 export interface CommentToIdResolver<TParent = any, TResult = any> {
@@ -3852,15 +3885,6 @@ export interface CommentToDownvotesResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface CommentToQuoteResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface CommentToMyVoteResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -3892,6 +3916,45 @@ export interface CommentToCommentsResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToParentCommentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToQuotationStartResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToQuotationEndResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToQuotationContentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToReplyToResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4663,6 +4726,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   invite?: MutationToInviteResolver<TParent>
+  updateUserState__?: MutationToUpdateUserState__Resolver<TParent>
 }
 
 export interface MutationTo_Resolver<TParent = any, TResult = any> {
@@ -5167,6 +5231,21 @@ export interface MutationToInviteResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToInviteArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateUserState__Args {
+  input: GQLUpdateUserStateInput
+}
+export interface MutationToUpdateUserState__Resolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateUserState__Args,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

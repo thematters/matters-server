@@ -14,6 +14,8 @@ const isDesc = (ints: number[]) =>
 
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
 const COMMENT_ID = toGlobalId({ type: 'Comment', id: 1 })
+const USER_ID = toGlobalId({ type: 'User', id: 2 })
+
 const GET_ARTILCE_COMMENTS = `
   query($nodeInput: NodeInput!, $commentsInput: CommentsInput!) {
     node(input: $nodeInput) {
@@ -22,7 +24,6 @@ const GET_ARTILCE_COMMENTS = `
         comments(input: $commentsInput) {
           edges {
             node {
-              quote
               upvotes
               pinned
               createdAt
@@ -77,6 +78,16 @@ const GET_COMMENT = `
   }
 `
 
+const PUT_COMMENT = `
+  mutation($input: PutCommentInput!) {
+    putComment(input: $input) {
+      replyTo {
+        id
+      }
+    }
+  }
+`
+
 const getCommentVotes = async (commentId: string) => {
   const { query } = await testClient()
   const { data } = await query({
@@ -93,7 +104,7 @@ describe('query comment list on article', async () => {
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: 'User', id: 2 })
     const { query } = await testClient()
-    const { data } = await query({
+    const result = await query({
       query: GET_ARTILCE_COMMENTS,
       // @ts-ignore
       variables: {
@@ -101,27 +112,9 @@ describe('query comment list on article', async () => {
         commentsInput: { author: authorId }
       }
     })
-    const comments = _get(data, 'node.comments.edges')
+    const comments = _get(result, 'data.node.comments.edges')
     for (const comment of comments) {
       expect(comment.node.author.id).toBe(authorId)
-    }
-  })
-
-  test('query quoted comments', async () => {
-    const { query } = await testClient()
-    const { data } = await query({
-      query: GET_ARTILCE_COMMENTS,
-      // @ts-ignore
-      variables: {
-        nodeInput: { id: ARTICLE_ID },
-        commentsInput: { quote: true }
-      }
-    })
-
-    const comments = _get(data, 'node.comments.edges')
-
-    for (const comment of comments) {
-      expect(comment.node.quote).toBe(true)
     }
   })
 
@@ -201,6 +194,27 @@ describe('Report comment', async () => {
 
 describe('mutations on comment', async () => {
   const commentId = toGlobalId({ type: 'Comment', id: 3 })
+
+  test('create a comment', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+
+    const result = await mutate({
+      mutation: PUT_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: {
+          comment: {
+            content: 'test',
+            replyTo: USER_ID,
+            articleId: ARTICLE_ID,
+            mentions: [USER_ID]
+          }
+        }
+      }
+    })
+
+    expect(_get(result, 'data.putComment.replyTo.id')).toBe(USER_ID)
+  })
 
   test('upvote a comment', async () => {
     const { mutate } = await testClient({ isAuth: true })

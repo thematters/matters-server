@@ -1,4 +1,4 @@
-import * as base64 from 'base-64'
+import { Base64 } from 'js-base64'
 
 export const toGlobalId = ({
   type,
@@ -6,9 +6,9 @@ export const toGlobalId = ({
 }: {
   type: string
   id: number | string
-}) => base64.encode(`${type}:${id}`)
+}) => Base64.encodeURI(`${type}:${id}`)
 
 export const fromGlobalId = (globalId: string) => {
-  const [type, id] = base64.decode(globalId).split(':')
+  const [type, id] = Base64.decode(globalId).split(':')
   return { type, id }
 }

@@ -19,6 +19,7 @@ import appreciatorCount from './appreciatorCount'
 import appreciateLeft from './appreciateLeft'
 import participants from './participants'
 import appreciators from './appreciators'
+import relatedArticles from './relatedArticles'
 
 export default {
   Query: {
@@ -39,7 +40,7 @@ export default {
     tags,
     upstream,
     downstreams,
-    relatedArticles: () => [],
+    relatedArticles,
     MAT,
     subscribed,
     subscribers,

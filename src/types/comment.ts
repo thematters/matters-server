@@ -20,11 +20,14 @@ export default /* GraphQL */ `
     pinned: Boolean!
     upvotes: Int!
     downvotes: Int!
-    quote: Boolean!
     myVote: Vote
     mentions: [User!]
     comments(input: ConnectionArgs!): CommentConnection!
     parentComment: Comment
+    quotationStart: Int
+    quotationEnd: Int
+    quotationContent: String
+    replyTo: User
   }
 
   extend type Article {
@@ -53,15 +56,18 @@ export default /* GraphQL */ `
 
   input CommentInput {
     content: String!
-    quotation: String
+    quotationStart: Int
+    quotationEnd: Int
+    quotationContent: String
+    replyTo: ID
     articleId: ID!
     parentId: ID
     mentions: [ID!]
   }
 
+
   input CommentsInput {
     author: ID
-    quote: Boolean
     sort: CommentSort
     after: String
     first: Int
