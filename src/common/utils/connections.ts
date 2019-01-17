@@ -85,11 +85,13 @@ export function connectionFromArray<T>(
     }
   }
 
+  const connections = connectionFromArraySlice(data, args, {
+    sliceStart: 0,
+    arrayLength: data.length
+  })
+
   return {
-    ...connectionFromArraySlice(data, args, {
-      sliceStart: 0,
-      arrayLength: data.length
-    }),
+    ...connections,
     totalCount: data.length
   }
 }
