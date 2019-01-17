@@ -57,7 +57,8 @@ export class UserService extends BaseService {
     userName,
     displayName,
     description,
-    password
+    password,
+    state
   }: GQLUserRegisterInput) => {
     // TODO: do code validation here
 
@@ -80,7 +81,8 @@ export class UserService extends BaseService {
       description,
       avatar,
       passwordHash,
-      state: USER_STATE.onboarding
+      state:
+        environment.env === 'stage' && state ? state : USER_STATE.onboarding // TODO: remove before production
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
     await this.activateInvitedEmailUser({

@@ -277,6 +277,7 @@ export default /* GraphQL */ `
     password: String!
     description: String
     codeId: ID!
+    state: String # TODO: remove before production
   }
 
   input UserLoginInput {

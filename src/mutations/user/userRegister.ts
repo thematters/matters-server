@@ -44,6 +44,7 @@ const resolver: MutationToUserRegisterResolver = async (
   if (!isValidPassword(password)) {
     throw new Error('invalid user password')
   }
+
   await userService.create(input)
 
   // mark code status as used

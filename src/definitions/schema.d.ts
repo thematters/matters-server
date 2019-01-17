@@ -1054,6 +1054,7 @@ export interface GQLUserRegisterInput {
   password: string
   description?: string
   codeId: string
+  state?: string
 }
 
 export interface GQLAuthResult {
