@@ -337,7 +337,7 @@ export class UserService extends BaseService {
       })
       .count()
       .first()
-    return parseInt(result.count || 0, 10)
+    return parseInt(result.count, 10)
   }
 
   /*********************************
@@ -372,15 +372,17 @@ export class UserService extends BaseService {
         userId,
         action: USER_ACTION.follow
       })
+      .count()
       .first()
-    return parseInt(result.count || 0, 10)
+    return parseInt(result.count, 10)
   }
 
   countFollowers = async (targetId: string): Promise<number> => {
     const result = await this.knex('action_user')
       .where({ targetId, action: USER_ACTION.follow })
+      .count()
       .first()
-    return parseInt(result.count || 0, 10)
+    return parseInt(result.count, 10)
   }
 
   followeeArticles = async ({
@@ -404,8 +406,8 @@ export class UserService extends BaseService {
       .countDistinct('ar.id')
       .join('article as ar', 'ar.author_id', 'au.target_id')
       .where({ action: 'follow', userId })
+      .count()
       .first()
-
     return parseInt(result.count, 10)
   }
 
@@ -508,6 +510,7 @@ export class UserService extends BaseService {
   countSubscription = async (userId: string) => {
     const result = await this.knex('action_article')
       .where({ userId, action: USER_ACTION.subscribe })
+      .count()
       .first()
     return parseInt(result.count, 10)
   }
@@ -537,6 +540,7 @@ export class UserService extends BaseService {
   countReadHistory = async (userId: string) => {
     const result = await this.knex('article_read')
       .where({ userId, archived: false })
+      .count()
       .first()
     return parseInt(result.count, 10)
   }
@@ -603,8 +607,8 @@ export class UserService extends BaseService {
   countInvitation = async (userId: string) => {
     const result = await this.knex('invitation')
       .select()
-      .count('id')
       .where({ senderId: userId })
+      .count()
       .first()
     return parseInt(result.count, 10)
   }

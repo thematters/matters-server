@@ -20,6 +20,7 @@ export class DraftService extends BaseService {
   countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .where({ authorId })
+      .count()
       .first()
     return parseInt(result.count, 10)
   }

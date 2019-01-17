@@ -77,6 +77,7 @@ export class CommentService extends BaseService {
   countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .where({ authorId })
+      .count()
       .first()
     return parseInt(result.count, 10)
   }
@@ -87,6 +88,7 @@ export class CommentService extends BaseService {
   countByArticle = async (articleId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .where({ articleId, state: COMMENT_STATE.active })
+      .count()
       .first()
     return parseInt(result.count, 10)
   }
@@ -97,6 +99,7 @@ export class CommentService extends BaseService {
   countByParent = async (commentId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .where('parent_comment_id', commentId)
+      .count()
       .first()
     return parseInt(result.count, 10)
   }
@@ -224,6 +227,7 @@ export class CommentService extends BaseService {
         targetId,
         action: USER_ACTION.upVote
       })
+      .count()
       .first()
     return parseInt(result.count, 10)
   }
@@ -237,6 +241,7 @@ export class CommentService extends BaseService {
         target_id: targetId,
         action: USER_ACTION.downVote
       })
+      .count()
       .first()
     return parseInt(result.count, 10)
   }

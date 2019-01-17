@@ -176,6 +176,7 @@ export class ArticleService extends BaseService {
   countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .where({ authorId, state: ARTICLE_STATE.active })
+      .count()
       .first()
     return parseInt(result.count, 10)
   }
@@ -370,13 +371,13 @@ export class ArticleService extends BaseService {
 
   countAppreciators = async (articleId: string) => {
     const result = await this.knex('transaction')
-      .countDistinct('sender_id')
       .where({
         referenceId: articleId,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
+      .countDistinct('sender_id')
       .first()
-    return parseInt(result.count || 0, 10)
+    return parseInt(result.count, 10)
   }
 
   /**
@@ -529,11 +530,10 @@ export class ArticleService extends BaseService {
 
   countSubscriptions = async (id: string) => {
     const result = await this.knex('action_article')
-      .countDistinct('user_id')
       .where({ targetId: id, action: USER_ACTION.subscribe })
+      .countDistinct('user_id')
       .first()
-
-    return parseInt(result.count || '0', 10)
+    return parseInt(result.count, 10)
   }
 
   isSubscribed = async ({

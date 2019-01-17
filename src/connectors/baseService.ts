@@ -37,7 +37,6 @@ export class BaseService extends DataSource {
     const result = await this.knex(this.table)
       .count()
       .first()
-
     return parseInt(result.count, 10)
   }
 

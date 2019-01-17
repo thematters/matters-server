@@ -456,6 +456,7 @@ class NoticeService extends BaseService {
   countUnreadNotice = async (userId: string): Promise<number> => {
     const result = await this.knex('notice')
       .where({ recipientId: userId, unread: true, deleted: false })
+      .count()
       .first()
     return parseInt(result.count, 10)
   }
