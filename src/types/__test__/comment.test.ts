@@ -14,6 +14,8 @@ const isDesc = (ints: number[]) =>
 
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
 const COMMENT_ID = toGlobalId({ type: 'Comment', id: 1 })
+const USER_ID = toGlobalId({ type: 'User', id: 2 })
+
 const GET_ARTILCE_COMMENTS = `
   query($nodeInput: NodeInput!, $commentsInput: CommentsInput!) {
     node(input: $nodeInput) {
@@ -72,6 +74,16 @@ const GET_COMMENT = `
       ... on Comment {
         upvotes
         downvotes
+      }
+    }
+  }
+`
+
+const PUT_COMMENT = `
+  mutation($input: PutCommentInput!) {
+    putComment(input: $input) {
+      replyTo {
+        id
       }
     }
   }
@@ -201,6 +213,27 @@ describe('Report comment', async () => {
 
 describe('mutations on comment', async () => {
   const commentId = toGlobalId({ type: 'Comment', id: 3 })
+
+  test('create a comment', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+
+    const result = await mutate({
+      mutation: PUT_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: {
+          comment: {
+            content: 'test',
+            replyTo: USER_ID,
+            articleId: ARTICLE_ID,
+            mentions: [USER_ID]
+          }
+        }
+      }
+    })
+
+    expect(_get(result, 'data.putComment.replyTo.id')).toBe(USER_ID)
+  })
 
   test('upvote a comment', async () => {
     const { mutate } = await testClient({ isAuth: true })
