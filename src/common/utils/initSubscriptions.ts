@@ -1,8 +1,4 @@
-import jwt from 'jsonwebtoken'
-
 import { Context } from 'definitions'
-import logger from 'common/logger'
-import { environment } from 'common/environment'
 import {
   ArticleService,
   CommentService,
@@ -12,32 +8,24 @@ import {
   UserService,
   NotificationService
 } from 'connectors'
+import { getViewerFromHeaders } from './getViewerFromHeaders'
 
 export const initSubscriptions = (): { onConnect: any } => ({
   onConnect: async (
     connectionParams: {
-      'x-access-token': string
+      'x-access-token'?: string
+      'Accept-Language'?: string
+      'x-real-ip'?: string
     },
     webSocket: any,
     context: any
   ): Promise<Context> => {
-    const userService = new UserService()
-    let viewer
-
-    try {
-      const token = connectionParams['x-access-token']
-      const decoded = jwt.verify(token, environment.jwtSecret) as {
-        uuid: string
-      }
-      viewer = await userService.baseFindByUUID(decoded.uuid)
-    } catch (err) {
-      logger.info('[API] User is not logged in, viewing as guest')
-    }
+    const viewer = await getViewerFromHeaders(connectionParams)
 
     return {
       viewer,
       dataSources: {
-        userService,
+        userService: new UserService(),
         articleService: new ArticleService(),
         commentService: new CommentService(),
         draftService: new DraftService(),
