@@ -235,7 +235,7 @@ export class UserService extends BaseService {
       'user_name'
     )
 
-    return this.es.indexItems({
+    return this.es.indexManyItems({
       index: this.table,
       items: users
     })
