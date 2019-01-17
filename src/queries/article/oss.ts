@@ -8,7 +8,7 @@ import {
   ArticleOSSToInRecommendNewsetResolver,
   ArticleOSSToInRecommendTodayResolver,
   ArticleOSSToInRecommendIcymiResolver,
-  articeosstorecommArticleOSSToInRecommendTopicResolver
+  ArticleOSSToInRecommendTopicResolver
 } from 'definitions'
 
 export const rootOSS: ArticleToOssResolver = (
