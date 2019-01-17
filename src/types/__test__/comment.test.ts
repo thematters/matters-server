@@ -112,9 +112,7 @@ describe('query comment list on article', async () => {
         commentsInput: { author: authorId }
       }
     })
-    console.log(result)
     const comments = _get(result, 'data.node.comments.edges')
-    console.log(comments)
     for (const comment of comments) {
       expect(comment.node.author.id).toBe(authorId)
     }
