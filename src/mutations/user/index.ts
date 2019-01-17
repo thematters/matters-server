@@ -13,6 +13,8 @@ import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import invite from './invite'
 
+import updateUserState__ from './updateUserState__'
+
 export default {
   Mutation: {
     sendVerificationCode,
@@ -28,6 +30,8 @@ export default {
     unfollowUser,
     clearReadHistory,
     clearSearchHistory,
-    invite
+    invite,
+
+    updateUserState__
   }
 }

@@ -110,10 +110,7 @@ export class UserService extends BaseService {
     }
   }
 
-  /**
-   * Upadte user info
-   */
-  update = async (
+  updateInfo = async (
     id: string,
     input: GQLUpdateUserInfoInput & { email?: string; emailVerified?: boolean }
   ) => {
@@ -145,6 +142,9 @@ export class UserService extends BaseService {
 
     return user
   }
+
+  updateState = async ({ userId, state }: { userId: string; state: string }) =>
+    await this.baseUpdateById(userId, { state })
 
   changePassword = async ({
     userId,

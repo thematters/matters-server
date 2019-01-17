@@ -285,6 +285,13 @@ export class ArticleService extends BaseService {
       .limit(limit)
       .offset(offset)
 
+  recommendToday = async () =>
+    this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_today as c', 'c.article_id', 'article.id')
+      .orderBy('chose_at', 'desc')
+      .first()
+
   recommendIcymi = async ({
     limit = BATCH_SIZE,
     offset = 0,

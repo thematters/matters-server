@@ -35,7 +35,7 @@ const resolver: MutationToChangeEmailResolver = async (
   }
 
   // update email
-  await userService.update(user.id, { email: newCode.email })
+  await userService.updateInfo(user.id, { email: newCode.email })
 
   // mark code status as used
   await userService.markVerificationCodeAs({

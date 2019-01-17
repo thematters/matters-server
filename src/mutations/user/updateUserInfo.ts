@@ -34,7 +34,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   }
 
   // update user info
-  const user = await userService.update(viewer.id, input)
+  const user = await userService.updateInfo(viewer.id, input)
 
   // add user name edit history
   if (input.userName) {
