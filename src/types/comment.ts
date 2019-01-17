@@ -36,6 +36,7 @@ export default /* GraphQL */ `
   }
 
   type CommentConnection {
+    totalCount: Int!
     pageInfo: PageInfo!
     edges: [CommentEdge!]
   }

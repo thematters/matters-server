@@ -25,21 +25,6 @@ export class TagService extends BaseService {
     })
   }
 
-  search = async ({ key }: GQLSearchInput) =>
-    await this.knex(this.table)
-      .where('content', 'like', `%${key}%`)
-      .limit(100)
-
-  createArticleTags = async ({
-    articleId,
-    tagIds = []
-  }: {
-    [key: string]: any
-  }) => {
-    const items = tagIds.map((tagId: string) => ({ articleId, tagId }))
-    return this.baseBatchCreate(items, 'article_tag')
-  }
-
   find = async ({ where }: { where?: { [key: string]: any } }) => {
     let qs = this.knex
       .select()
@@ -58,6 +43,21 @@ export class TagService extends BaseService {
       .select()
       .where({ content })
 
+  /*********************************
+   *                               *
+   *           Search              *
+   *                               *
+   *********************************/
+  search = async ({ key }: GQLSearchInput) =>
+    await this.knex(this.table)
+      .where('content', 'like', `%${key}%`)
+      .limit(100)
+
+  /*********************************
+   *                               *
+   *           Recommand           *
+   *                               *
+   *********************************/
   recommendTags = async ({
     limit = BATCH_SIZE,
     offset = 0
@@ -70,6 +70,21 @@ export class TagService extends BaseService {
       .orderBy('tag_score', 'desc')
       .limit(limit)
       .offset(offset)
+
+  /*********************************
+   *                               *
+   *            Article            *
+   *                               *
+   *********************************/
+  createArticleTags = async ({
+    articleId,
+    tagIds = []
+  }: {
+    [key: string]: any
+  }) => {
+    const items = tagIds.map((tagId: string) => ({ articleId, tagId }))
+    return this.baseBatchCreate(items, 'article_tag')
+  }
 
   /**
    * Count tags by a given tag text.

@@ -6,6 +6,11 @@ export class SystemService extends BaseService {
     super('noop')
   }
 
+  /*********************************
+   *                               *
+   *           Search              *
+   *                               *
+   *********************************/
   frequentSearch = async ({
     key = '',
     first = 5
@@ -24,6 +29,11 @@ export class SystemService extends BaseService {
     return result.map(({ searchKey }: { searchKey: string }) => searchKey)
   }
 
+  /*********************************
+   *                               *
+   *              Asset            *
+   *                               *
+   *********************************/
   /**
    * Find asset by a given uuid
    */
@@ -60,6 +70,11 @@ export class SystemService extends BaseService {
     )
   }
 
+  /*********************************
+   *                               *
+   *             Report            *
+   *                               *
+   *********************************/
   findReportById = async (reportId: string) =>
     this.knex('report')
       .select()
@@ -88,9 +103,11 @@ export class SystemService extends BaseService {
     return qs
   }
 
-  /**
-   * User submit a feeback
-   */
+  /*********************************
+   *                               *
+   *             Feedback          *
+   *                               *
+   *********************************/
   feedback = async ({
     userId,
     category,

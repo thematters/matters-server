@@ -98,7 +98,7 @@ describe('find notice', async () => {
     expect(notice.id).toBe('1')
   })
   test('find many notices', async () => {
-    const notices = await noticeService.findByUser(recipientId)
+    const notices = await noticeService.findByUser({ userId: recipientId })
     expect(notices.length).toBeGreaterThan(5)
   })
 })

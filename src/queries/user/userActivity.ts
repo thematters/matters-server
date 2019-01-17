@@ -1,4 +1,4 @@
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 
 import { GQLUserActivityTypeResolver } from 'definitions'
 
@@ -8,27 +8,40 @@ const resolver: GQLUserActivityTypeResolver = {
     { input },
     { dataSources: { userService, articleService } }
   ) => {
-    const readHistory = await userService.findReadHistory(id)
+    const { first, after } = input
+    const offset = cursorToIndex(after) + 1
+    const totalCount = await userService.countReadHistory(id)
+    const readHistory = await userService.findReadHistory({
+      userId: id,
+      offset,
+      limit: first
+    })
 
-    const history = Promise.all(
-      readHistory.map(async ({ uuid, articleId, createdAt }: any) => {
-        const article = await articleService.dataloader.load(articleId)
-        return {
-          uuid,
-          article,
-          readAt: createdAt
-        }
-      })
+    return connectionFromPromisedArray(
+      Promise.all(
+        readHistory.map(async ({ uuid, articleId, createdAt }: any) => {
+          const article = await articleService.dataloader.load(articleId)
+          return {
+            uuid,
+            article,
+            readAt: createdAt
+          }
+        })
+      ),
+      input,
+      totalCount
     )
-
-    return connectionFromPromisedArray(history, input)
   },
+
   recentSearches: async (
     { id },
     { input },
     { dataSources: { userService } }
   ) => {
-    return connectionFromPromisedArray(userService.recentSearches(id), input)
+    return connectionFromPromisedArray(
+      userService.findRecentSearches(id),
+      input
+    )
   }
 }
 
