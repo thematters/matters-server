@@ -1,6 +1,13 @@
+import * as fs from 'fs'
+import * as path from 'path'
 import { createLogger, format, transports } from 'winston'
 
 import { isProd } from 'common/environment'
+
+const logPath = 'logs'
+
+// create logs dir if it does not exist
+!fs.existsSync(logPath) && fs.mkdirSync(logPath) 
 
 const logger = createLogger({
   level: 'info',
@@ -15,8 +22,8 @@ const logger = createLogger({
     format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
   ),
   transports: [
-    new transports.File({ filename: 'error.log', level: 'error' }),
-    new transports.File({ filename: 'combined.log' })
+    new transports.File({ filename: path.join(logPath, 'error.log'), level: 'error' }),
+    new transports.File({ filename: path.join(logPath, 'combined.log') })
   ]
 })
 
