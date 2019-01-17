@@ -14,6 +14,7 @@ export default /* GraphQL */ `
   }
 
   type NoticeConnection {
+    totalCount: Int!
     pageInfo: PageInfo!
     edges: [NoticeEdge!]
   }

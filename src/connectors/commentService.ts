@@ -71,38 +71,6 @@ export class CommentService extends BaseService {
     return comemnt
   }
 
-  vote = async ({
-    userId,
-    commentId,
-    vote
-  }: {
-    userId: string
-    commentId: string
-    vote: GQLVote
-  }) =>
-    this.baseCreate(
-      {
-        userId,
-        targetId: commentId,
-        action: `${vote}_vote`
-      },
-      'action_comment'
-    )
-
-  unvote = async ({
-    userId,
-    commentId
-  }: {
-    userId: string
-    commentId: string
-  }) =>
-    this.knex('action_comment')
-      .where({
-        userId,
-        targetId: commentId
-      })
-      .del()
-
   /**
    * Count comments by a given author id (user).
    */
@@ -137,34 +105,6 @@ export class CommentService extends BaseService {
   }
 
   /**
-   * Count a comment's up votes by a given target id (comment).
-   */
-  countUpVote = async (targetId: string): Promise<number> => {
-    const result = await this.knex('action_comment')
-      .countDistinct('id')
-      .where({
-        targetId,
-        action: USER_ACTION.upVote
-      })
-      .first()
-    return parseInt(result.count, 10)
-  }
-
-  /**
-   * Count a comment's down votes by a given target id (comment).
-   */
-  countDownVote = async (targetId: string): Promise<number> => {
-    const result = await this.knex('action_comment')
-      .countDistinct('id')
-      .where({
-        target_id: targetId,
-        action: USER_ACTION.downVote
-      })
-      .first()
-    return parseInt(result.count, 10)
-  }
-
-  /**
    * Find comments by a given author id (user).
    */
   findByAuthor = async (authorId: string): Promise<any[]> =>
@@ -173,6 +113,17 @@ export class CommentService extends BaseService {
       .from(this.table)
       .where({ authorId })
       .orderBy('id', 'desc')
+
+  /**
+   * Find comments by a given comment id.
+   */
+  findByParent = async (commentId: string): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .where({
+        parentCommentId: commentId
+      })
 
   /**
    * Find comments by a given article id.
@@ -225,37 +176,75 @@ export class CommentService extends BaseService {
 
     if (parent === true) {
       query = query.whereNull('parent_comment_id')
-    } else if (parent === false) {
-      query = query.whereNotNull('parent_comment_id')
     }
 
     return query
   }
 
-  /**
-   * Find pinned comments by a given article id.
-   */
-  findPinnedByArticle = async (articleId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ articleId, pinned: true })
+  /*********************************
+   *                               *
+   *              Vote             *
+   *                               *
+   *********************************/
+  vote = async ({
+    userId,
+    commentId,
+    vote
+  }: {
+    userId: string
+    commentId: string
+    vote: GQLVote
+  }) =>
+    this.baseCreate(
+      {
+        userId,
+        targetId: commentId,
+        action: `${vote}_vote`
+      },
+      'action_comment'
+    )
 
-  pinLeftByArticle = async (articleId: string): Promise<number> => {
-    const pinned = await this.findPinnedByArticle(articleId)
-    return Math.max(ARTICLE_PIN_COMMENT_LIMIT - pinned.length, 0)
+  unvote = async ({
+    userId,
+    commentId
+  }: {
+    userId: string
+    commentId: string
+  }) =>
+    this.knex('action_comment')
+      .where({
+        userId,
+        targetId: commentId
+      })
+      .del()
+
+  /**
+   * Count a comment's up votes by a given target id (comment).
+   */
+  countUpVote = async (targetId: string): Promise<number> => {
+    const result = await this.knex('action_comment')
+      .countDistinct('id')
+      .where({
+        targetId,
+        action: USER_ACTION.upVote
+      })
+      .first()
+    return parseInt(result.count, 10)
   }
 
   /**
-   * Find comments by a given comment id.
+   * Count a comment's down votes by a given target id (comment).
    */
-  findByParent = async (commentId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
+  countDownVote = async (targetId: string): Promise<number> => {
+    const result = await this.knex('action_comment')
+      .countDistinct('id')
       .where({
-        parentCommentId: commentId
+        target_id: targetId,
+        action: USER_ACTION.downVote
       })
+      .first()
+    return parseInt(result.count, 10)
+  }
 
   /**
    * Find a comment's up votes by a given target id (comment).
@@ -321,6 +310,53 @@ export class CommentService extends BaseService {
       .whereIn('action', [USER_ACTION.upVote, USER_ACTION.downVote])
       .del()
 
+  /*********************************
+   *                               *
+   *              Pin              *
+   *                               *
+   *********************************/
+  /**
+   * Find pinned comments by a given article id.
+   */
+  findPinnedByArticle = async (articleId: string): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from(this.table)
+      .where({ articleId, pinned: true })
+
+  countPinnedByArticle = async ({
+    articleId,
+    activeOnly
+  }: {
+    articleId: string
+    activeOnly?: boolean
+  }): Promise<number> => {
+    let qs = this.knex
+      .select()
+      .from(this.table)
+      .where({ articleId, pinned: true })
+
+    if (activeOnly) {
+      qs = qs.where({ state: COMMENT_STATE.active })
+    }
+
+    const result = await qs
+    return parseInt(result.count, 10)
+  }
+
+  pinLeftByArticle = async (articleId: string) => {
+    const pinnedCount = await this.countPinnedByArticle({
+      articleId: articleId,
+      activeOnly: true
+    })
+    return Math.max(ARTICLE_PIN_COMMENT_LIMIT - pinnedCount, 0)
+  }
+
+  /*********************************
+   *                               *
+   *            Mention            *
+   *                               *
+   *********************************/
   /**
    * Find a comment's mentioned users by a given comment id.
    */
@@ -333,6 +369,11 @@ export class CommentService extends BaseService {
       })
   }
 
+  /*********************************
+   *                               *
+   *             Report            *
+   *                               *
+   *********************************/
   /**
    * User report an comment
    */
