@@ -4,7 +4,7 @@ import {
   ForbiddenError
 } from 'apollo-server'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
-import { isEmpty } from 'lodash'
+import { isEmpty, has } from 'lodash'
 import { isValidUserName, isValidDisplayName } from 'common/utils'
 
 const resolver: MutationToUpdateUserInfoResolver = async (
@@ -16,7 +16,10 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  const updateParams: { [key: string]: any } = {}
+  const updateParams: { [key: string]: any } = {
+    ...(has(input, 'description') ? { description: input.description } : {}),
+    ...(has(input, 'language') ? { language: input.language } : {})
+  }
 
   // check avatar
   if (input.avatar) {
