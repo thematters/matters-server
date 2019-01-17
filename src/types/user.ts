@@ -30,6 +30,9 @@ export default /* GraphQL */ `
     clearReadHistory(input: ClearReadHistoryInput!): Boolean
     clearSearchHistory: Boolean
     invite(input: InviteInput!): Boolean
+
+    # !!! update state: REMOVE IN PRODUTION !!!
+    updateUserState__(input: UpdateUserStateInput!): User!
   }
 
   type User implements Node {
@@ -77,6 +80,8 @@ export default /* GraphQL */ `
     followeeArticles(input: ConnectionArgs!): ArticleConnection!
     newest(input: ConnectionArgs!): ArticleConnection!
     hottest(input: ConnectionArgs!): ArticleConnection!
+    # Matters Today
+    today: Article!
     # In case you missed it
     icymi(input: ConnectionArgs!): ArticleConnection!
     tags(input: ConnectionArgs!): TagConnection!
@@ -305,6 +310,11 @@ export default /* GraphQL */ `
     avatar: ID
     description: String
     language: UserLanguage
+  }
+
+  input UpdateUserStateInput {
+    id: ID!
+    state: UserState!
   }
 
   input FollowUserInput {

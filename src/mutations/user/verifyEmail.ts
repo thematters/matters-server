@@ -26,7 +26,7 @@ const resolver: MutationToVerifyEmailResolver = async (
   }
 
   // change password
-  await userService.update(user.id, { emailVerified: true })
+  await userService.updateInfo(user.id, { emailVerified: true })
 
   // mark code status as used
   await userService.markVerificationCodeAs({

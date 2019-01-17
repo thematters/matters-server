@@ -48,6 +48,8 @@ const resolvers: GQLRecommendationTypeResolver = {
       totalCount
     )
   },
+  today: async (_, __, { dataSources: { articleService } }) =>
+    articleService.recommendToday(),
   icymi: async ({ id }, { input }, { dataSources: { articleService } }) => {
     const { first, after } = input
     const offset = cursorToIndex(after) + 1

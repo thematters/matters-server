@@ -258,6 +258,11 @@ export interface GQLRecommendation {
   hottest: GQLArticleConnection
 
   /**
+   * Matters Today
+   */
+  today: GQLArticle
+
+  /**
    * In case you missed it
    */
   icymi: GQLArticleConnection
@@ -872,6 +877,11 @@ export interface GQLMutation {
   clearReadHistory?: boolean
   clearSearchHistory?: boolean
   invite?: boolean
+
+  /**
+   * !!! update state: REMOVE IN PRODUTION !!!
+   */
+  updateUserState__: GQLUser
 }
 
 export interface GQLPublishArticleInput {
@@ -1117,6 +1127,11 @@ export interface GQLClearReadHistoryInput {
 export interface GQLInviteInput {
   id?: string
   email?: GQLEmail
+}
+
+export interface GQLUpdateUserStateInput {
+  id: string
+  state: GQLUserState
 }
 
 export interface GQLSubscription {
@@ -2369,6 +2384,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
+  today?: RecommendationToTodayResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
@@ -2409,6 +2425,15 @@ export interface RecommendationToHottestResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToHottestArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToTodayResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -4701,6 +4726,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   invite?: MutationToInviteResolver<TParent>
+  updateUserState__?: MutationToUpdateUserState__Resolver<TParent>
 }
 
 export interface MutationTo_Resolver<TParent = any, TResult = any> {
@@ -5205,6 +5231,21 @@ export interface MutationToInviteResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToInviteArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateUserState__Args {
+  input: GQLUpdateUserStateInput
+}
+export interface MutationToUpdateUserState__Resolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateUserState__Args,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
