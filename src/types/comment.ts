@@ -20,7 +20,6 @@ export default /* GraphQL */ `
     pinned: Boolean!
     upvotes: Int!
     downvotes: Int!
-    quote: Boolean!
     myVote: Vote
     mentions: [User!]
     comments(input: ConnectionArgs!): CommentConnection!
@@ -68,7 +67,6 @@ export default /* GraphQL */ `
 
   input CommentsInput {
     author: ID
-    quote: Boolean
     sort: CommentSort
     after: String
     first: Int

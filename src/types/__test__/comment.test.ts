@@ -24,7 +24,6 @@ const GET_ARTILCE_COMMENTS = `
         comments(input: $commentsInput) {
           edges {
             node {
-              quote
               upvotes
               pinned
               createdAt
@@ -105,7 +104,7 @@ describe('query comment list on article', async () => {
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: 'User', id: 2 })
     const { query } = await testClient()
-    const { data } = await query({
+    const result = await query({
       query: GET_ARTILCE_COMMENTS,
       // @ts-ignore
       variables: {
@@ -113,27 +112,11 @@ describe('query comment list on article', async () => {
         commentsInput: { author: authorId }
       }
     })
-    const comments = _get(data, 'node.comments.edges')
+    console.log(result)
+    const comments = _get(result, 'data.node.comments.edges')
+    console.log(comments)
     for (const comment of comments) {
       expect(comment.node.author.id).toBe(authorId)
-    }
-  })
-
-  test('query quoted comments', async () => {
-    const { query } = await testClient()
-    const { data } = await query({
-      query: GET_ARTILCE_COMMENTS,
-      // @ts-ignore
-      variables: {
-        nodeInput: { id: ARTICLE_ID },
-        commentsInput: { quote: true }
-      }
-    })
-
-    const comments = _get(data, 'node.comments.edges')
-
-    for (const comment of comments) {
-      expect(comment.node.quote).toBe(true)
     }
   })
 

@@ -203,7 +203,6 @@ type Comment implements Node {
   pinned: Boolean!
   upvotes: Int!
   downvotes: Int!
-  quote: Boolean!
   myVote: Vote
   mentions: [User!]
   comments(input: ConnectionArgs!): CommentConnection!
@@ -270,7 +269,6 @@ type CommentPinnedNotice implements Notice {
 
 input CommentsInput {
   author: ID
-  quote: Boolean
   sort: CommentSort
   after: String
   first: Int
