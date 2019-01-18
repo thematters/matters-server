@@ -218,6 +218,17 @@ export class UserService extends BaseService {
     previous: string
   }) => await this.baseCreate({ userId, previous }, 'username_edit_history')
 
+  /**
+   * Count same user names by a given user name.
+   */
+  countUserNames = async (userName: string): Promise<number> => {
+    const result = await this.knex(this.table)
+      .countDistinct('id')
+      .where({ userName })
+      .first()
+    return parseInt(result.count, 10)
+  }
+
   /*********************************
    *                               *
    *           Search              *
