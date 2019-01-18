@@ -15,3 +15,12 @@ exports.baseDown = table => async knex => {
 
   await knex.schema.dropTable(table)
 }
+
+exports.alterEnumString = (table, column, enums) => {
+  const constraints = `${table}_${column}_check`
+  const enumValues = enums.join("'::text, '")
+  return [
+    `ALTER TABLE ${table} DROP CONSTRAINT IF EXISTS ${constraints};`,
+    `ALTER TABLE ${table} ADD CONSTRAINT ${constraints} CHECK (${column} = ANY (ARRAY['${enumValues}'::text]));`
+  ].join('\n')
+}
