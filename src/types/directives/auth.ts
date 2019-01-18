@@ -29,7 +29,9 @@ export class AuthDirective extends SchemaDirectiveVisitor {
 
   ensureFieldsWrapped(objectType: EnhancedObject) {
     // Mark the GraphQLObjectType object to avoid re-wrapping:
-    if (objectType._authFieldsWrapped) return
+    if (objectType._authFieldsWrapped) {
+      return
+    }
     objectType._authFieldsWrapped = true
 
     const fields: { [key: string]: EnhancedField } = objectType.getFields()
