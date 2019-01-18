@@ -23,13 +23,13 @@ export default /* GraphQL */ `
     updateUserInfo(input: UpdateUserInfoInput!): User!
     updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
     # follow/unfollow
-    followUser(input: FollowUserInput!): Boolean
-    unfollowUser(input: UnfollowUserInput!): Boolean
+    followUser(input: FollowUserInput!): Boolean @auth(requires: user)
+    unfollowUser(input: UnfollowUserInput!): Boolean @auth(requires: user)
     # misc
     # importArticles(input: ImportArticlesInput!): [Article!]
     clearReadHistory(input: ClearReadHistoryInput!): Boolean
     clearSearchHistory: Boolean
-    invite(input: InviteInput!): Boolean
+    invite(input: InviteInput!): Boolean @auth(requires: user)
 
     # !!! update state: REMOVE IN PRODUTION !!!
     updateUserState__(input: UpdateUserStateInput!): User!
@@ -58,6 +58,8 @@ export default /* GraphQL */ `
     # Viewer is following this user
     isFollowee: Boolean!
     status: UserStatus!
+    # OSS
+    oss: UserOSS!
   }
 
   type InvitationStatus {
@@ -86,7 +88,18 @@ export default /* GraphQL */ `
     icymi(input: ConnectionArgs!): ArticleConnection!
     tags(input: ConnectionArgs!): TagConnection!
     topics(input: ConnectionArgs!): ArticleConnection!
-    authors(input: ConnectionArgs!): UserConnection!
+    authors(input: AuthorsInput!): UserConnection!
+  }
+
+  input AuthorsInput {
+    after: String
+    first: Int
+    filter: AuthorsFilter
+  }
+
+  input AuthorsFilter {
+    random: Boolean
+    followed: Boolean
   }
 
   type UserInfo {
@@ -129,20 +142,25 @@ export default /* GraphQL */ `
     MAT: MAT!
     invitation: InvitationStatus!
     # Number of articles published by user
-    articleCount: Int!
+    articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
     # Number of views on articles
-    viewCount: Int!
+    viewCount: Int! @deprecated(reason: "Use \`User.drafts.totalCount\`.")
     draftCount: Int!
     # Number of comments posted by user
     commentCount: Int!
-    quotationCount: Int!
-    subscriptionCount: Int!
+    quotationCount: Int! @deprecated(reason: "not used")
+    subscriptionCount: Int! @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
     # Number of user that this user follows
-    followeeCount: Int!
+    followeeCount: Int! @deprecated(reason: "Use \`User.followees.totalCount\`.")
     # Number of user that follows this user
-    followerCount: Int!
+    followerCount: Int! @deprecated(reason: "Use \`User.followers.totalCount\`.")
     # Number of unread notices
-    unreadNoticeCount: Int!
+    unreadNoticeCount: Int! 
+  }
+
+  type UserOSS {
+    boost: Float!
+    score: Float!
   }
 
   type MAT {
@@ -174,7 +192,6 @@ export default /* GraphQL */ `
   }
 
   type ReadHistory {
-    id: ID!
     article: Article!
     readAt: DateTime!
   }

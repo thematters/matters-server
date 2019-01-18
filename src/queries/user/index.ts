@@ -26,6 +26,7 @@ import invitationSent from './invitationSent'
 import invitationRecipient from './invitationRecipient'
 import invitationAccepted from './invitationAccepted'
 import { MAT, Transaction } from './transaction'
+import { rootOSS, boost, score } from './oss'
 
 export default {
   Query: {
@@ -39,6 +40,7 @@ export default {
     status: (root: any) => root,
     activity: (root: any) => root,
     recommendation: (root: any) => root,
+    oss: rootOSS,
     // hasFollowed,
     subscriptions,
     // quotations,
@@ -73,9 +75,6 @@ export default {
     subscriptionCount,
     unreadNoticeCount
   },
-  ReadHistory: {
-    id: ({ uuid }: { uuid: string }) => uuid
-  },
   InvitationStatus: {
     MAT: () => MAT_UNIT.joinByInvitation,
     left: invitationLeft,
@@ -85,5 +84,9 @@ export default {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Invitation', id }),
     user: invitationRecipient,
     accepted: invitationAccepted
+  },
+  UserOSS: {
+    boost,
+    score
   }
 }

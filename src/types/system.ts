@@ -35,12 +35,13 @@ export default /* GraphQL */ `
     gatewayUrls: [URL!]
   }
 
-  type OSS {
+  type OSS @auth(requires: admin) {
     users(input: UsersInput!): UserConnection!
     articles(input: ArticlesInput!): ArticleConnection!
     tags(input: ConnectionArgs!): TagConnection!
     reports(input: ReportsInput!): ReportConnection!
     report(input: ReportInput!): Report!
+    today(input: ConnectionArgs!): ArticleConnection!
   }
 
   type Category {
@@ -214,4 +215,18 @@ export default /* GraphQL */ `
     appStore
     googlePlay
   }
+
+  enum Role {
+    vistor
+    user
+    admin
+  } 
+
+  directive @deprecated(
+    reason: String = "No longer supported"
+  ) on FIELD_DEFINITION | ENUM_VALUE
+
+  directive @auth(
+    requires: Role = user,
+  ) on OBJECT | FIELD_DEFINITION
 `

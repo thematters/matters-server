@@ -19,12 +19,11 @@ const resolver: GQLUserActivityTypeResolver = {
 
     return connectionFromPromisedArray(
       Promise.all(
-        readHistory.map(async ({ uuid, articleId, createdAt }: any) => {
+        readHistory.map(async ({ articleId, readAt }: any) => {
           const article = await articleService.dataloader.load(articleId)
           return {
-            uuid,
             article,
-            readAt: createdAt
+            readAt
           }
         })
       ),

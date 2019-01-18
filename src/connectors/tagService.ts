@@ -71,6 +71,32 @@ export class TagService extends BaseService {
       .limit(limit)
       .offset(offset)
 
+  findBoost = async (tagId: string) => {
+    const tagBoost = await this.knex('tag_boost')
+      .select()
+      .where({ tagId })
+      .first()
+
+    if (!tagBoost) {
+      return 1
+    }
+
+    return tagBoost.boost
+  }
+
+  findScore = async (tagId: string) => {
+    const tag = await this.knex('tag_count_view')
+      .select()
+      .where({ id: tagId })
+      .first()
+
+    if (!tag) {
+      return 1
+    }
+
+    return tag.tagScore
+  }
+
   /*********************************
    *                               *
    *            Article            *

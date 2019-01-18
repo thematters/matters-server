@@ -218,6 +218,17 @@ export class UserService extends BaseService {
     previous: string
   }) => await this.baseCreate({ userId, previous }, 'username_edit_history')
 
+  /**
+   * Count same user names by a given user name.
+   */
+  countUserNames = async (userName: string): Promise<number> => {
+    const result = await this.knex(this.table)
+      .countDistinct('id')
+      .where({ userName })
+      .first()
+    return parseInt(result.count, 10)
+  }
+
   /*********************************
    *                               *
    *           Search              *
@@ -465,16 +476,45 @@ export class UserService extends BaseService {
    *********************************/
   recommendAuthor = async ({
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
+    notIn = []
   }: {
     limit?: number
     offset?: number
+    notIn?: string[]
   }) =>
-    this.knex('user_reader_view')
+    await this.knex('user_reader_view')
       .select()
       .orderBy('author_score', 'desc')
       .offset(offset)
       .limit(limit)
+      .whereNotIn('id', notIn)
+
+  findBoost = async (userId: string) => {
+    const userBoost = await this.knex('user_boost')
+      .select()
+      .where({ userId })
+      .first()
+
+    if (!userBoost) {
+      return 1
+    }
+
+    return userBoost.boost
+  }
+
+  findScore = async (userId: string) => {
+    const author = await this.knex('user_reader_view')
+      .select()
+      .where({ id: userId })
+      .first()
+
+    if (!author) {
+      return 1
+    }
+
+    return author.authorScore
+  }
 
   /*********************************
    *                               *
@@ -538,9 +578,9 @@ export class UserService extends BaseService {
   countReadHistory = async (userId: string) => {
     const result = await this.knex('article_read')
       .where({ userId, archived: false })
-      .count()
+      .countDistinct('articleId')
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result.count || 0, 10)
   }
 
   findReadHistory = async ({
@@ -553,12 +593,25 @@ export class UserService extends BaseService {
     offset?: number
   }) =>
     this.knex
-      .select()
+      .select('article_id')
+      .min('created_at as read_at')
       .from('article_read')
       .where({ userId, archived: false })
-      .orderBy('id', 'desc')
+      .groupBy('article_id')
+      .orderBy('read_at', 'desc')
       .limit(limit)
       .offset(offset)
+
+  clearReadHistory = async ({
+    articleId,
+    userId
+  }: {
+    articleId: string
+    userId: string | null
+  }) =>
+    await this.knex('article_read')
+      .update({ archived: true })
+      .where({ articleId, userId })
 
   findReadHistoryByUUID = async (
     uuid: string,

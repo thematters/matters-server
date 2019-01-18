@@ -38,11 +38,11 @@ export default /* GraphQL */ `
     relatedArticles(input: ConnectionArgs!): ArticleConnection!
     # MAT recieved for this article
     MAT: Int!
-    participantCount: Int!
-    participants: UserConnection!
+    participantCount: Int! @deprecated(reason: "not used")
+    participants: UserConnection! @deprecated(reason: "not used")
     subscribers(input: ConnectionArgs!): UserConnection!
     appreciators(input: ConnectionArgs!): UserConnection!
-    appreciatorCount: Int!
+    appreciatorCount: Int! @deprecated(reason: "Use \`appreciators.totalCount\`.")
     # limit the nuhmber of appreciate per user
     appreciateLimit: Int!
     appreciateLeft: Int!
@@ -50,14 +50,33 @@ export default /* GraphQL */ `
     hasAppreciate: Boolean!
     # Viewer has subscribed
     subscribed: Boolean!
+    # OSS
+    oss: ArticleOSS!
   }
 
   type Tag implements Node {
     id: ID!
     content: String!
-    count: Int!
+    count: Int! @deprecated(reason: "Use \`articles.totalCount\`.")
     articles(input: ConnectionArgs!): ArticleConnection!
     createdAt: DateTime!
+    # OSS
+    oss: TagOSS!
+  }
+
+  type ArticleOSS {
+    boost: Float!
+    score: Float!
+    inRecommendToday: Boolean!
+    inRecommendIcymi: Boolean!
+    inRecommendHottest: Boolean!
+    inRecommendNewset: Boolean!
+    inRecommendTopic: Boolean!
+  }
+
+  type TagOSS {
+    boost: Float!
+    score: Float!
   }
 
   type ArticleConnection {

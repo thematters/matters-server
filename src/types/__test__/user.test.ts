@@ -243,6 +243,23 @@ query($input: ConnectionArgs!) {
   }
 }
 `
+
+const GET_AUTHOR_RECOMMENDATION = (list: string) => `
+query($input: AuthorsInput!) {
+  viewer {
+    recommendation {
+      ${list}(input: $input) {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+}
+`
+
 const GET_VIEWER_BADGES = `
   query {
     viewer {
@@ -384,7 +401,7 @@ describe('register and login functionarlities', () => {
 
   test('auth success when password is correct', async () => {
     const email = 'test1@matters.news'
-    const password = '123'
+    const password = '12345678'
 
     const { mutate } = await testClient()
     const result = await mutate({
@@ -422,7 +439,7 @@ describe('user mat', async () => {
 
 describe('user query fields', () => {
   test('get user by username', async () => {
-    const userName = 'test 1'
+    const userName = 'test1'
     const { query } = await testClient()
     const { data } = await query({
       query: GET_USER_BY_USERNAME,
@@ -632,15 +649,16 @@ describe('user recommendations', () => {
     expect(fromGlobalId(tag.id).type).toBe('Tag')
   })
 
-  test('retrive users from authors', async () => {
+  test.only('retrive users from authors', async () => {
     const { query: queryNew } = await testClient({
       isAuth: true
     })
     const result = await queryNew({
-      query: GET_VIEWER_RECOMMENDATION('authors'),
+      query: GET_AUTHOR_RECOMMENDATION('authors'),
       // @ts-ignore
       variables: { input: { first: 1 } }
     })
+    console.log(result)
     const { data } = result
     const author = _get(data, 'viewer.recommendation.authors.edges.0.node')
     expect(fromGlobalId(author.id).type).toBe('User')
