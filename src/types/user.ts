@@ -20,16 +20,16 @@ export default /* GraphQL */ `
     userLogin(input: UserLoginInput!): AuthResult!
     # addOAuth(input: AddOAuthInput!): Boolean
     # update info/ setting
-    updateUserInfo(input: UpdateUserInfoInput!): User!
-    updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
+    updateUserInfo(input: UpdateUserInfoInput!): User!  @authenticate
+    updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting @authenticate
     # follow/unfollow
-    followUser(input: FollowUserInput!): Boolean @auth(requires: user)
-    unfollowUser(input: UnfollowUserInput!): Boolean @auth(requires: user)
+    followUser(input: FollowUserInput!): Boolean @authenticate
+    unfollowUser(input: UnfollowUserInput!): Boolean @authenticate
     # misc
     # importArticles(input: ImportArticlesInput!): [Article!]
-    clearReadHistory(input: ClearReadHistoryInput!): Boolean
-    clearSearchHistory: Boolean
-    invite(input: InviteInput!): Boolean @auth(requires: user)
+    clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
+    clearSearchHistory: Boolean  @authenticate
+    invite(input: InviteInput!): Boolean @authenticate
 
     # !!! update state: REMOVE IN PRODUTION !!!
     updateUserState__(input: UpdateUserStateInput!): User!

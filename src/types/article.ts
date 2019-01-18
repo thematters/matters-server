@@ -4,16 +4,16 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    publishArticle(input: PublishArticleInput!): Draft!
-    archiveArticle(input: ArchiveArticleInput!): Article!
-    subscribeArticle(input: SubscribeArticleInput!): Boolean
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean
-    reportArticle(input: ReportArticleInput!): Boolean
-    appreciateArticle(input: AppreciateArticleInput!): Article!
-    readArticle(input: ReadArticleInput!): Boolean
-    recallPublish(input: RecallPublishInput!): Draft!
-    toggleArticleLive(input: ToggleArticleLiveInput!): Article!
-    toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
+    publishArticle(input: PublishArticleInput!): Draft! @authenticate
+    archiveArticle(input: ArchiveArticleInput!): Article! @authenticate
+    subscribeArticle(input: SubscribeArticleInput!): Boolean @authenticate
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean @authenticate
+    reportArticle(input: ReportArticleInput!): Boolean @authenticate
+    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate
+    readArticle(input: ReadArticleInput!): Boolean @authenticate
+    recallPublish(input: RecallPublishInput!): Draft! @authenticate
+    toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authenticate
+    toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @authenticate
   }
 
   type Article implements Node {
@@ -51,7 +51,7 @@ export default /* GraphQL */ `
     # Viewer has subscribed
     subscribed: Boolean!
     # OSS
-    oss: ArticleOSS!
+    oss: ArticleOSS! @authorize
   }
 
   type Tag implements Node {
@@ -61,10 +61,10 @@ export default /* GraphQL */ `
     articles(input: ConnectionArgs!): ArticleConnection!
     createdAt: DateTime!
     # OSS
-    oss: TagOSS!
+    oss: TagOSS! @authorize
   }
 
-  type ArticleOSS {
+  type ArticleOSS @authorize {
     boost: Float!
     score: Float!
     inRecommendToday: Boolean!
@@ -74,7 +74,7 @@ export default /* GraphQL */ `
     inRecommendTopic: Boolean!
   }
 
-  type TagOSS {
+  type TagOSS @authorize {
     boost: Float!
     score: Float!
   }

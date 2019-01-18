@@ -4,11 +4,11 @@ export default /* GraphQL */ `
     frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection!
     official: Official!
-    oss: OSS!
+    oss: OSS! @authorize
   }
 
   extend type Mutation {
-    singleFileUpload(input: SingleFileUploadInput!): Asset!
+    singleFileUpload(input: SingleFileUploadInput!): Asset!  @authenticate
     feedback(input: FeedbackInput!): Boolean
   }
 
@@ -35,7 +35,7 @@ export default /* GraphQL */ `
     gatewayUrls: [URL!]
   }
 
-  type OSS @auth(requires: admin) {
+  type OSS @authorize {
     users(input: UsersInput!): UserConnection!
     articles(input: ArticlesInput!): ArticleConnection!
     tags(input: ConnectionArgs!): TagConnection!
@@ -226,7 +226,12 @@ export default /* GraphQL */ `
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ENUM_VALUE
 
-  directive @auth(
+  directive @authenticate(
     requires: Role = user,
   ) on OBJECT | FIELD_DEFINITION
+
+  directive @authorize(
+    requires: Role = admin,
+  ) on OBJECT | FIELD_DEFINITION
+
 `

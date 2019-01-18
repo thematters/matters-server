@@ -1,4 +1,6 @@
-directive @auth(requires: Role = user) on OBJECT | FIELD_DEFINITION
+directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION
+
+directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
 
 input AppreciateArticleInput {
   id: ID!
