@@ -145,11 +145,11 @@ export default /* GraphQL */ `
     # Number of articles published by user
     articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
     # Number of views on articles
-    viewCount: Int! @deprecated(reason: "Use \`User.drafts.totalCount\`.")
-    draftCount: Int!
+    viewCount: Int!
+    draftCount: Int! @deprecated(reason: "Use \`User.drafts.totalCount\`.")
     # Number of comments posted by user
     commentCount: Int!
-    quotationCount: Int! @deprecated(reason: "not used")
+    # quotationCount: Int! @deprecated(reason: "not used")
     subscriptionCount: Int! @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
     # Number of user that this user follows
     followeeCount: Int! @deprecated(reason: "Use \`User.followees.totalCount\`.")

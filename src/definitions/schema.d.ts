@@ -481,9 +481,13 @@ export interface GQLUserStatus {
 
   /**
    * Number of views on articles
-   * @deprecated Use `User.drafts.totalCount`.
    */
   viewCount: number
+
+  /**
+   *
+   * @deprecated Use `User.drafts.totalCount`.
+   */
   draftCount: number
 
   /**
@@ -492,13 +496,7 @@ export interface GQLUserStatus {
   commentCount: number
 
   /**
-   *
-   * @deprecated not used
-   */
-  quotationCount: number
-
-  /**
-   *
+   * quotationCount: Int! @deprecated(reason: "not used")
    * @deprecated Use `User.subscriptions.totalCount`.
    */
   subscriptionCount: number
@@ -3505,7 +3503,6 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   viewCount?: UserStatusToViewCountResolver<TParent>
   draftCount?: UserStatusToDraftCountResolver<TParent>
   commentCount?: UserStatusToCommentCountResolver<TParent>
-  quotationCount?: UserStatusToQuotationCountResolver<TParent>
   subscriptionCount?: UserStatusToSubscriptionCountResolver<TParent>
   followeeCount?: UserStatusToFolloweeCountResolver<TParent>
   followerCount?: UserStatusToFollowerCountResolver<TParent>
@@ -3570,18 +3567,6 @@ export interface UserStatusToDraftCountResolver<TParent = any, TResult = any> {
 }
 
 export interface UserStatusToCommentCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserStatusToQuotationCountResolver<
   TParent = any,
   TResult = any
 > {
