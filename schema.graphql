@@ -213,7 +213,7 @@ type Comment implements Node {
   quotationStart: Int
   quotationEnd: Int
   quotationContent: String
-  replyTo: User
+  replyTo: Comment
 }
 
 type CommentConnection {

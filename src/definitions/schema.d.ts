@@ -629,7 +629,7 @@ export interface GQLComment extends GQLNode {
   quotationStart?: number
   quotationEnd?: number
   quotationContent?: string
-  replyTo?: GQLUser
+  replyTo?: GQLComment
 }
 
 export enum GQLCommentState {
