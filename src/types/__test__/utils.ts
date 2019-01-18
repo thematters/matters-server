@@ -12,7 +12,7 @@ import {
   UserService,
   NotificationService
 } from 'connectors'
-import { initSubscriptions } from 'common/utils'
+import { initSubscriptions, roleAccess } from 'common/utils'
 import schema from '../../schema'
 
 export const defaultTestUser = {
@@ -46,15 +46,26 @@ export const testClient = async (
     context: null
   }
 ) => {
-  let _context: any
+  let _context: any = {}
   if (context) {
-    _context = { viewer: { id: null }, ...context }
+    _context = context
   } else if (isAuth) {
     _context = await getUserContext({
       email: isAdmin ? adminUser.email : defaultTestUser.email
     })
-  } else {
-    _context = { viewer: { id: null } }
+  }
+
+  const viewer = (_context && _context.viewer) || { id: null }
+
+  if (!viewer.role) {
+    viewer.role = isAdmin ? 'admin' : isAuth ? 'user' : 'visitor'
+  }
+
+  _context.viewer = {
+    ...viewer,
+    hasRole: (requires: string) =>
+      roleAccess.findIndex(role => role === viewer.role) >=
+      roleAccess.findIndex(role => role === requires)
   }
 
   const server = new ApolloServer({

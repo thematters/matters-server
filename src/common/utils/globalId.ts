@@ -1,4 +1,5 @@
 import { Base64 } from 'js-base64'
+import { UserInputError } from 'apollo-server'
 
 export const toGlobalId = ({
   type,
@@ -10,5 +11,9 @@ export const toGlobalId = ({
 
 export const fromGlobalId = (globalId: string) => {
   const [type, id] = Base64.decode(globalId).split(':')
+
+  if (!id) {
+    throw new UserInputError('invalid globalId')
+  }
   return { type, id }
 }

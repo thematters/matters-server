@@ -1,5 +1,6 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { ApolloError } from 'apollo-server'
 
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { GQLMATTypeResolver, GQLTransactionTypeResolver } from 'definitions'
 import { TRANSACTION_PURPOSE } from 'common/enums'
 
@@ -26,6 +27,12 @@ export const Transaction: GQLTransactionTypeResolver = {
     switch (trx.purpose) {
       case TRANSACTION_PURPOSE.appreciate:
         const article = await articleService.dataloader.load(trx.referenceId)
+        if (!article) {
+          throw new ApolloError(
+            'apprecated article cannot be found',
+            'ARTICLE_NOT_FOUND'
+          )
+        }
         return article.title
       case TRANSACTION_PURPOSE.invitationAccepted:
         return '新用戶註冊激活' // TODO: i18n

@@ -75,9 +75,6 @@ export default {
     subscriptionCount,
     unreadNoticeCount
   },
-  ReadHistory: {
-    id: ({ uuid }: { uuid: string }) => uuid
-  },
   InvitationStatus: {
     MAT: () => MAT_UNIT.joinByInvitation,
     left: invitationLeft,

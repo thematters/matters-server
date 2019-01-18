@@ -3,7 +3,7 @@ import { CommentToReplyToResolver } from 'definitions'
 const resolver: CommentToReplyToResolver = (
   { replyTo },
   _,
-  { dataSources: { userService } }
-) => (replyTo ? userService.dataloader.load(replyTo) : null)
+  { dataSources: { commentService } }
+) => (replyTo ? commentService.dataloader.load(replyTo) : null)
 
 export default resolver
