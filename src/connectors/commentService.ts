@@ -143,6 +143,10 @@ export class CommentService extends BaseService {
         .where(where)
         .orderBy('created_at', by)
 
+    if (author) {
+      where = { ...where, authorId: author, state: COMMENT_STATE.active }
+    }
+
     if (sort == 'upvotes') {
       query = this.knex('comment')
         .select('comment.*')
@@ -164,10 +168,6 @@ export class CommentService extends BaseService {
       query = sortCreatedAt('desc')
     } else {
       query = sortCreatedAt('desc')
-    }
-
-    if (author) {
-      where = { ...where, authorId: author, state: COMMENT_STATE.active }
     }
 
     if (parent) {
