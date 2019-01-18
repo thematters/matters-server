@@ -41,6 +41,7 @@ export default /* GraphQL */ `
     tags(input: ConnectionArgs!): TagConnection!
     reports(input: ReportsInput!): ReportConnection!
     report(input: ReportInput!): Report!
+    today(input: ConnectionArgs!): ArticleConnection!
   }
 
   type Category {

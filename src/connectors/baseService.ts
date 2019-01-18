@@ -33,8 +33,9 @@ export class BaseService extends DataSource {
     this.aws = aws
   }
 
-  baseCount = async () => {
+  baseCount = async (where: { [key: string]: any } = {}) => {
     const result = await this.knex(this.table)
+      .where(where)
       .count()
       .first()
     return parseInt(result.count, 10)
