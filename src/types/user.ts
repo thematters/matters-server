@@ -86,7 +86,7 @@ export default /* GraphQL */ `
     icymi(input: ConnectionArgs!): ArticleConnection!
     tags(input: ConnectionArgs!): TagConnection!
     topics(input: ConnectionArgs!): ArticleConnection!
-    authors(input: ConnectionArgs!): UserConnection!
+    authors(input: AuthorsInput!): UserConnection!
   }
 
   input AuthorsInput {

@@ -465,16 +465,19 @@ export class UserService extends BaseService {
    *********************************/
   recommendAuthor = async ({
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
+    notIn = []
   }: {
     limit?: number
     offset?: number
+    notIn?: string[]
   }) =>
-    this.knex('user_reader_view')
+    await this.knex('user_reader_view')
       .select()
       .orderBy('author_score', 'desc')
       .offset(offset)
       .limit(limit)
+      .whereNotIn('id', notIn)
 
   /*********************************
    *                               *

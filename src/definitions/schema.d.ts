@@ -332,6 +332,17 @@ export interface GQLTag extends GQLNode {
   createdAt: GQLDateTime
 }
 
+export interface GQLAuthorsInput {
+  after?: string
+  first?: number
+  filter?: GQLAuthorsFilter
+}
+
+export interface GQLAuthorsFilter {
+  random?: boolean
+  followed?: boolean
+}
+
 export interface GQLUserConnection {
   totalCount: number
   pageInfo: GQLPageInfo
@@ -1216,17 +1227,6 @@ export interface GQLArticlePublishedNotice extends GQLNotice {
   unread: boolean
   createdAt: GQLDateTime
   target: GQLArticle
-}
-
-export interface GQLAuthorsFilter {
-  random?: boolean
-  followed?: boolean
-}
-
-export interface GQLAuthorsInput {
-  after?: string
-  first?: number
-  filter?: GQLAuthorsFilter
 }
 
 export interface GQLCommentMentionedYouNotice extends GQLNotice {
@@ -2526,7 +2526,7 @@ export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToAuthorsArgs {
-  input: GQLConnectionArgs
+  input: GQLAuthorsInput
 }
 export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (
