@@ -111,14 +111,14 @@ const resolvers: GQLRecommendationTypeResolver = {
     const { first, after, filter } = input
 
     let notIn = []
-    if (filter && typeof filter.followed === typeof true) {
+    if (filter && filter.followed) {
       notIn = await userService.findFollowees({ userId: id, limit: 999 }) // TODO: move this logic to db layer
     }
 
     if (filter && filter.random) {
       const authors = await userService.recommendAuthor({
         limit: 50,
-        notIn
+        notIn: notIn.map(({ targetId }: any) => targetId)
       })
 
       return connectionFromArray(sampleSize(authors, randomDraw), input)

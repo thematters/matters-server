@@ -587,7 +587,7 @@ export class UserService extends BaseService {
   countReadHistory = async (userId: string) => {
     const result = await this.knex('article_read')
       .where({ userId, archived: false })
-      .countDistinct('articleId')
+      .countDistinct('article_id')
       .first()
     return parseInt(result.count || 0, 10)
   }
