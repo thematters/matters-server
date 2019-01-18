@@ -160,6 +160,17 @@ type AudiodraftEdge {
   node: Audiodraft!
 }
 
+input AuthorsFilter {
+  random: Boolean
+  followed: Boolean
+}
+
+input AuthorsInput {
+  after: String
+  first: Int
+  filter: AuthorsFilter
+}
+
 type AuthResult {
   auth: Boolean!
   token: String

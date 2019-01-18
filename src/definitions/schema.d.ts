@@ -1218,6 +1218,17 @@ export interface GQLArticlePublishedNotice extends GQLNotice {
   target: GQLArticle
 }
 
+export interface GQLAuthorsFilter {
+  random?: boolean
+  followed?: boolean
+}
+
+export interface GQLAuthorsInput {
+  after?: string
+  first?: number
+  filter?: GQLAuthorsFilter
+}
+
 export interface GQLCommentMentionedYouNotice extends GQLNotice {
   id: string
   unread: boolean

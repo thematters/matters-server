@@ -89,6 +89,17 @@ export default /* GraphQL */ `
     authors(input: ConnectionArgs!): UserConnection!
   }
 
+  input AuthorsInput {
+    after: String
+    first: Int
+    filter: AuthorsFilter
+  }
+
+  input AuthorsFilter {
+    random: Boolean
+    followed: Boolean
+  }
+
   type UserInfo {
     createdAt: DateTime!
     # Unique user name
