@@ -1,6 +1,7 @@
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { GraphQLObjectType, defaultFieldResolver, GraphQLField } from 'graphql'
-import { ApolloError } from 'apollo-server'
+import { AuthenticationError } from 'apollo-server'
+import { Context } from 'definitions'
 
 type EnhancedObject = GraphQLObjectType & {
   _requiredAuthRole?: string
@@ -46,12 +47,11 @@ export class AuthDirective extends SchemaDirectiveVisitor {
           return resolve.apply(this, args)
         }
 
-        const { viewer } = args[2]
+        const context: Context = args[2]
 
-        if (!viewer || !viewer.hasRole(requiredRole)) {
-          throw new ApolloError(
-            `role ${viewer.role} is not authorized`,
-            'UNAUTHORIZED'
+        if (!context.viewer.hasRole(requiredRole)) {
+          throw new AuthenticationError(
+            `role ${context.viewer.role} is not authorized`
           )
         }
 

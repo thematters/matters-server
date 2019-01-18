@@ -34,7 +34,7 @@ export const getViewerFromHeaders = async (headers: {
   }
 
   viewer.hasRole = (requires: string) =>
-    roleAccess.findIndex(role => role === viewer.role) >
+    roleAccess.findIndex(role => role === viewer.role) >=
     roleAccess.findIndex(role => role === requires)
 
   return viewer

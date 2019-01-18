@@ -23,13 +23,13 @@ export default /* GraphQL */ `
     updateUserInfo(input: UpdateUserInfoInput!): User!
     updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
     # follow/unfollow
-    followUser(input: FollowUserInput!): Boolean
-    unfollowUser(input: UnfollowUserInput!): Boolean
+    followUser(input: FollowUserInput!): Boolean @auth(requires: user)
+    unfollowUser(input: UnfollowUserInput!): Boolean @auth(requires: user)
     # misc
     # importArticles(input: ImportArticlesInput!): [Article!]
     clearReadHistory(input: ClearReadHistoryInput!): Boolean
     clearSearchHistory: Boolean
-    invite(input: InviteInput!): Boolean
+    invite(input: InviteInput!): Boolean @auth(requires: user)
 
     # !!! update state: REMOVE IN PRODUTION !!!
     updateUserState__(input: UpdateUserStateInput!): User!

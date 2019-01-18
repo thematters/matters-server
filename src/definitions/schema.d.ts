@@ -1277,6 +1277,12 @@ export interface GQLOfficialAnnouncementNotice extends GQLNotice {
   link?: GQLURL
 }
 
+export enum GQLRole {
+  vistor = 'vistor',
+  user = 'user',
+  admin = 'admin'
+}
+
 export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
   id: string
   unread: boolean

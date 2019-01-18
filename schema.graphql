@@ -1,3 +1,5 @@
+directive @auth(requires: Role = user) on OBJECT | FIELD_DEFINITION
+
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
@@ -784,6 +786,12 @@ input ReportsInput {
 input ResetPasswordInput {
   password: String!
   codeId: ID!
+}
+
+enum Role {
+  vistor
+  user
+  admin
 }
 
 input SearchInput {
