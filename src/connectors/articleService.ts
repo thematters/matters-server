@@ -690,6 +690,7 @@ export class ArticleService extends BaseService {
   }): Promise<any[]> =>
     await this.baseCreate(
       {
+        uuid: v4(),
         articleId,
         userId,
         ip
