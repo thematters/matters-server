@@ -75,7 +75,7 @@ export const MAT_UNIT = {
 export const ARTICLE_APPRECIATE_LIMIT = 5
 export const ARTICLE_PIN_COMMENT_LIMIT = 3
 
-export const VERIFICATION_CODE_EXIPRED_AFTER = 1000 * 60 // 60s
+export const VERIFICATION_CODE_EXIPRED_AFTER = 1000 * 60 * 5 // 5 mins
 export const VERIFICATION_CODE_STATUS = {
   active: 'active',
   inactive: 'inactive',
