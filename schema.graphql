@@ -106,8 +106,8 @@ type ArticleNewSubscriberNotice implements Notice {
 }
 
 type ArticleOSS {
-  boost: Float!
-  score: Float!
+  boost: NonNegativeFloat!
+  score: NonNegativeFloat!
   inRecommendToday: Boolean!
   inRecommendIcymi: Boolean!
   inRecommendHottest: Boolean!
@@ -436,8 +436,12 @@ type Mutation {
   appreciateArticle(input: AppreciateArticleInput!): Article!
   readArticle(input: ReadArticleInput!): Boolean
   recallPublish(input: RecallPublishInput!): Draft!
+
+  """OSS"""
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
   toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
+  setArticleBoost(input: SetArticleBoostInput!): Article!
+  setTagBoost(input: SetTagBoostInput!): Tag!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   unpinComment(input: UnpinCommentInput!): Comment!
@@ -495,9 +499,16 @@ type Mutation {
   clearSearchHistory: Boolean
   invite(input: InviteInput!): Boolean
 
+  """OSS"""
+  setUserBoost(input: SetUserBoostInput!): User!
+
   """!!! update state: REMOVE IN PRODUTION !!!"""
   updateUserState__(input: UpdateUserStateInput!): User!
 }
+
+scalar NegativeFloat
+
+scalar NegativeInt
 
 interface Node {
   id: ID!
@@ -510,6 +521,14 @@ input NodeEditedInput {
 input NodeInput {
   id: ID!
 }
+
+scalar NonNegativeFloat
+
+scalar NonNegativeInt
+
+scalar NonPositiveFloat
+
+scalar NonPositiveInt
 
 interface Notice {
   id: ID!
@@ -623,6 +642,10 @@ enum PlatformType {
   ios
   android
 }
+
+scalar PositiveFloat
+
+scalar PositiveInt
 
 input PublishArticleInput {
   id: ID!
@@ -829,6 +852,21 @@ input SendVerificationCodeInput {
   type: VerificationCodeType!
 }
 
+input SetArticleBoostInput {
+  id: ID!
+  boost: NonNegativeFloat!
+}
+
+input SetTagBoostInput {
+  id: ID!
+  boost: NonNegativeFloat!
+}
+
+input SetUserBoostInput {
+  id: ID!
+  boost: NonNegativeFloat!
+}
+
 input SingleFileUploadInput {
   type: AssetType!
   file: Upload!
@@ -875,8 +913,8 @@ type TagEdge {
 }
 
 type TagOSS {
-  boost: Float!
-  score: Float!
+  boost: NonNegativeFloat!
+  score: NonNegativeFloat!
 }
 
 scalar Time
@@ -1070,8 +1108,8 @@ type UserNewFollowerNotice implements Notice {
 }
 
 type UserOSS {
-  boost: Float!
-  score: Float!
+  boost: NonNegativeFloat!
+  score: NonNegativeFloat!
 }
 
 input UserRegisterInput {

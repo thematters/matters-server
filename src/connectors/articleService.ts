@@ -407,6 +407,19 @@ export class ArticleService extends BaseService {
     return articleBoost.boost
   }
 
+  setBoost = async ({
+    articleId,
+    boost
+  }: {
+    articleId: string
+    boost: number
+  }) =>
+    this.knex('article_boost')
+      .select()
+      .where({ articleId })
+      .update({ boost })
+      .returning('*')
+
   findScore = async (articleId: string) => {
     const article = await this.knex('article_count_view')
       .select()

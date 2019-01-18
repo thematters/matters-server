@@ -328,9 +328,11 @@ export interface GQLTag extends GQLNode {
 }
 
 export interface GQLTagOSS {
-  boost: number
-  score: number
+  boost: GQLNonNegativeFloat
+  score: GQLNonNegativeFloat
 }
+
+export type GQLNonNegativeFloat = any
 
 export interface GQLUserConnection {
   totalCount: number
@@ -544,8 +546,8 @@ export interface GQLInvitation extends GQLNode {
 }
 
 export interface GQLUserOSS {
-  boost: number
-  score: number
+  boost: GQLNonNegativeFloat
+  score: GQLNonNegativeFloat
 }
 
 export interface GQLNoticeConnection {
@@ -601,8 +603,8 @@ export interface GQLNoticeNameMap {
 }
 
 export interface GQLArticleOSS {
-  boost: number
-  score: number
+  boost: GQLNonNegativeFloat
+  score: GQLNonNegativeFloat
   inRecommendToday: boolean
   inRecommendIcymi: boolean
   inRecommendHottest: boolean
@@ -837,8 +839,14 @@ export interface GQLMutation {
   appreciateArticle: GQLArticle
   readArticle?: boolean
   recallPublish: GQLDraft
+
+  /**
+   * OSS
+   */
   toggleArticleLive: GQLArticle
   toggleArticlePublic: GQLArticle
+  setArticleBoost: GQLArticle
+  setTagBoost: GQLTag
   putComment: GQLComment
   pinComment: GQLComment
   unpinComment: GQLComment
@@ -915,6 +923,11 @@ export interface GQLMutation {
   invite?: boolean
 
   /**
+   * OSS
+   */
+  setUserBoost: GQLUser
+
+  /**
    * !!! update state: REMOVE IN PRODUTION !!!
    */
   updateUserState__: GQLUser
@@ -966,6 +979,16 @@ export interface GQLToggleArticleLiveInput {
 export interface GQLToggleArticlePublicInput {
   id: string
   enabled: boolean
+}
+
+export interface GQLSetArticleBoostInput {
+  id: string
+  boost: GQLNonNegativeFloat
+}
+
+export interface GQLSetTagBoostInput {
+  id: string
+  boost: GQLNonNegativeFloat
 }
 
 export interface GQLPutCommentInput {
@@ -1165,6 +1188,11 @@ export interface GQLInviteInput {
   email?: GQLEmail
 }
 
+export interface GQLSetUserBoostInput {
+  id: string
+  boost: GQLNonNegativeFloat
+}
+
 export interface GQLUpdateUserStateInput {
   id: string
   state: GQLUserState
@@ -1271,6 +1299,16 @@ export interface GQLImportArticlesInput {
 
 export type GQLJSON = any
 
+export type GQLNegativeFloat = any
+
+export type GQLNegativeInt = any
+
+export type GQLNonNegativeInt = any
+
+export type GQLNonPositiveFloat = any
+
+export type GQLNonPositiveInt = any
+
 export interface GQLOfficialAnnouncementNotice extends GQLNotice {
   id: string
   unread: boolean
@@ -1278,6 +1316,10 @@ export interface GQLOfficialAnnouncementNotice extends GQLNotice {
   message: string
   link?: GQLURL
 }
+
+export type GQLPositiveFloat = any
+
+export type GQLPositiveInt = any
 
 export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
   id: string
@@ -1347,6 +1389,7 @@ export interface GQLResolver {
   TagEdge?: GQLTagEdgeTypeResolver
   Tag?: GQLTagTypeResolver
   TagOSS?: GQLTagOSSTypeResolver
+  NonNegativeFloat?: GraphQLScalarType
   UserConnection?: GQLUserConnectionTypeResolver
   UserEdge?: GQLUserEdgeTypeResolver
   DraftConnection?: GQLDraftConnectionTypeResolver
@@ -1410,7 +1453,14 @@ export interface GQLResolver {
   Date?: GraphQLScalarType
   DownstreamArticleArchivedNotice?: GQLDownstreamArticleArchivedNoticeTypeResolver
   JSON?: GraphQLScalarType
+  NegativeFloat?: GraphQLScalarType
+  NegativeInt?: GraphQLScalarType
+  NonNegativeInt?: GraphQLScalarType
+  NonPositiveFloat?: GraphQLScalarType
+  NonPositiveInt?: GraphQLScalarType
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
+  PositiveFloat?: GraphQLScalarType
+  PositiveInt?: GraphQLScalarType
   SubscribedArticleNewCommentNotice?: GQLSubscribedArticleNewCommentNoticeTypeResolver
   Time?: GraphQLScalarType
   UpstreamArticleArchivedNotice?: GQLUpstreamArticleArchivedNoticeTypeResolver
@@ -4912,6 +4962,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   recallPublish?: MutationToRecallPublishResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
+  setArticleBoost?: MutationToSetArticleBoostResolver<TParent>
+  setTagBoost?: MutationToSetTagBoostResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   pinComment?: MutationToPinCommentResolver<TParent>
   unpinComment?: MutationToUnpinCommentResolver<TParent>
@@ -4942,6 +4994,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   invite?: MutationToInviteResolver<TParent>
+  setUserBoost?: MutationToSetUserBoostResolver<TParent>
   updateUserState__?: MutationToUpdateUserState__Resolver<TParent>
 }
 
@@ -5090,6 +5143,33 @@ export interface MutationToToggleArticlePublicResolver<
   (
     parent: TParent,
     args: MutationToToggleArticlePublicArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSetArticleBoostArgs {
+  input: GQLSetArticleBoostInput
+}
+export interface MutationToSetArticleBoostResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToSetArticleBoostArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSetTagBoostArgs {
+  input: GQLSetTagBoostInput
+}
+export interface MutationToSetTagBoostResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToSetTagBoostArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5447,6 +5527,18 @@ export interface MutationToInviteResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToInviteArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSetUserBoostArgs {
+  input: GQLSetUserBoostInput
+}
+export interface MutationToSetUserBoostResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToSetUserBoostArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

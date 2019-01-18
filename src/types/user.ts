@@ -31,6 +31,9 @@ export default /* GraphQL */ `
     clearSearchHistory: Boolean
     invite(input: InviteInput!): Boolean
 
+    # OSS
+    setUserBoost(input: SetUserBoostInput!): User!
+
     # !!! update state: REMOVE IN PRODUTION !!!
     updateUserState__(input: UpdateUserStateInput!): User!
   }
@@ -148,8 +151,8 @@ export default /* GraphQL */ `
   }
 
   type UserOSS {
-    boost: Float!
-    score: Float!
+    boost: NonNegativeFloat!
+    score: NonNegativeFloat!
   }
 
   type MAT {
@@ -257,6 +260,11 @@ export default /* GraphQL */ `
   input InviteInput {
     id: ID
     email: Email
+  }
+
+  input SetUserBoostInput {
+    id: ID!
+    boost: NonNegativeFloat!
   }
 
   input SendVerificationCodeInput {

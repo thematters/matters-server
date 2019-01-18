@@ -7,4 +7,12 @@ export default /* GraphQL */ `
   scalar UUID
   scalar Email
   scalar URL
+  scalar NonPositiveInt
+  scalar PositiveInt
+  scalar NonNegativeInt
+  scalar NegativeInt
+  scalar NonPositiveFloat
+  scalar PositiveFloat
+  scalar NonNegativeFloat
+  scalar NegativeFloat
 `

@@ -12,8 +12,11 @@ export default /* GraphQL */ `
     appreciateArticle(input: AppreciateArticleInput!): Article!
     readArticle(input: ReadArticleInput!): Boolean
     recallPublish(input: RecallPublishInput!): Draft!
+    # OSS
     toggleArticleLive(input: ToggleArticleLiveInput!): Article!
     toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
+    setArticleBoost(input: SetArticleBoostInput!): Article!
+    setTagBoost(input: SetTagBoostInput!): Tag!
   }
 
   type Article implements Node {
@@ -65,8 +68,8 @@ export default /* GraphQL */ `
   }
 
   type ArticleOSS {
-    boost: Float!
-    score: Float!
+    boost: NonNegativeFloat!
+    score: NonNegativeFloat!
     inRecommendToday: Boolean!
     inRecommendIcymi: Boolean!
     inRecommendHottest: Boolean!
@@ -75,8 +78,8 @@ export default /* GraphQL */ `
   }
 
   type TagOSS {
-    boost: Float!
-    score: Float!
+    boost: NonNegativeFloat!
+    score: NonNegativeFloat!
   }
 
   type ArticleConnection {
@@ -153,6 +156,15 @@ export default /* GraphQL */ `
     enabled: Boolean!
   }
 
+  input SetArticleBoostInput {
+    id: ID!
+    boost: NonNegativeFloat!
+  }
+
+  input SetTagBoostInput {
+    id: ID!
+    boost: NonNegativeFloat!
+  }
 
   enum ArticleState {
     active
