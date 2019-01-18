@@ -79,6 +79,11 @@ export interface GQLArticle extends GQLNode {
    * Viewer has subscribed
    */
   subscribed: boolean
+
+  /**
+   * OSS
+   */
+  oss: GQLArticleOSS
   commentCount: number
   pinCommentLimit: number
   pinCommentLeft: number
@@ -158,6 +163,11 @@ export interface GQLUser extends GQLNode {
    */
   isFollowee: boolean
   status: GQLUserStatus
+
+  /**
+   * OSS
+   */
+  oss: GQLUserOSS
   notices: GQLNoticeConnection
 }
 
@@ -310,6 +320,16 @@ export interface GQLTag extends GQLNode {
   count: number
   articles: GQLArticleConnection
   createdAt: GQLDateTime
+
+  /**
+   * OSS
+   */
+  oss: GQLTagOSS
+}
+
+export interface GQLTagOSS {
+  boost: number
+  score: number
 }
 
 export interface GQLUserConnection {
@@ -523,6 +543,11 @@ export interface GQLInvitation extends GQLNode {
   createdAt: GQLDateTime
 }
 
+export interface GQLUserOSS {
+  boost: number
+  score: number
+}
+
 export interface GQLNoticeConnection {
   totalCount: number
   pageInfo: GQLPageInfo
@@ -573,6 +598,16 @@ export interface GQLNoticeNameMap {
   SubscribedArticleNewCommentNotice: GQLSubscribedArticleNewCommentNotice
   UpstreamArticleArchivedNotice: GQLUpstreamArticleArchivedNotice
   UserNewFollowerNotice: GQLUserNewFollowerNotice
+}
+
+export interface GQLArticleOSS {
+  boost: number
+  score: number
+  inRecommendToday: boolean
+  inRecommendIcymi: boolean
+  inRecommendHottest: boolean
+  inRecommendNewset: boolean
+  inRecommendTopic: boolean
 }
 
 export interface GQLComment extends GQLNode {
@@ -740,6 +775,7 @@ export interface GQLOSS {
   tags: GQLTagConnection
   reports: GQLReportConnection
   report: GQLReport
+  today: GQLArticleConnection
 }
 
 export interface GQLUsersInput {
@@ -1310,6 +1346,7 @@ export interface GQLResolver {
   TagConnection?: GQLTagConnectionTypeResolver
   TagEdge?: GQLTagEdgeTypeResolver
   Tag?: GQLTagTypeResolver
+  TagOSS?: GQLTagOSSTypeResolver
   UserConnection?: GQLUserConnectionTypeResolver
   UserEdge?: GQLUserEdgeTypeResolver
   DraftConnection?: GQLDraftConnectionTypeResolver
@@ -1333,12 +1370,14 @@ export interface GQLResolver {
   InvitationConnection?: GQLInvitationConnectionTypeResolver
   InvitationEdge?: GQLInvitationEdgeTypeResolver
   Invitation?: GQLInvitationTypeResolver
+  UserOSS?: GQLUserOSSTypeResolver
   NoticeConnection?: GQLNoticeConnectionTypeResolver
   NoticeEdge?: GQLNoticeEdgeTypeResolver
   Notice?: {
     __resolveType: GQLNoticeTypeResolver
   }
 
+  ArticleOSS?: GQLArticleOSSTypeResolver
   Comment?: GQLCommentTypeResolver
   CommentConnection?: GQLCommentConnectionTypeResolver
   CommentEdge?: GQLCommentEdgeTypeResolver
@@ -1515,6 +1554,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   appreciateLeft?: ArticleToAppreciateLeftResolver<TParent>
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>
   subscribed?: ArticleToSubscribedResolver<TParent>
+  oss?: ArticleToOssResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
   pinCommentLimit?: ArticleToPinCommentLimitResolver<TParent>
   pinCommentLeft?: ArticleToPinCommentLeftResolver<TParent>
@@ -1807,6 +1847,15 @@ export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface ArticleToOssResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface ArticleToCommentCountResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -1884,6 +1933,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   isFollower?: UserToIsFollowerResolver<TParent>
   isFollowee?: UserToIsFolloweeResolver<TParent>
   status?: UserToStatusResolver<TParent>
+  oss?: UserToOssResolver<TParent>
   notices?: UserToNoticesResolver<TParent>
 }
 
@@ -2044,6 +2094,15 @@ export interface UserToIsFolloweeResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToStatusResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToOssResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -2650,6 +2709,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   count?: TagToCountResolver<TParent>
   articles?: TagToArticlesResolver<TParent>
   createdAt?: TagToCreatedAtResolver<TParent>
+  oss?: TagToOssResolver<TParent>
 }
 
 export interface TagToIdResolver<TParent = any, TResult = any> {
@@ -2692,6 +2752,38 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToOssResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagOSSTypeResolver<TParent = any> {
+  boost?: TagOSSToBoostResolver<TParent>
+  score?: TagOSSToScoreResolver<TParent>
+}
+
+export interface TagOSSToBoostResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagOSSToScoreResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -3705,6 +3797,29 @@ export interface InvitationToCreatedAtResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface GQLUserOSSTypeResolver<TParent = any> {
+  boost?: UserOSSToBoostResolver<TParent>
+  score?: UserOSSToScoreResolver<TParent>
+}
+
+export interface UserOSSToBoostResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserOSSToScoreResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLNoticeConnectionTypeResolver<TParent = any> {
   totalCount?: NoticeConnectionToTotalCountResolver<TParent>
   pageInfo?: NoticeConnectionToPageInfoResolver<TParent>
@@ -3784,6 +3899,94 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'UpstreamArticleArchivedNotice'
     | 'UserNewFollowerNotice'
 }
+export interface GQLArticleOSSTypeResolver<TParent = any> {
+  boost?: ArticleOSSToBoostResolver<TParent>
+  score?: ArticleOSSToScoreResolver<TParent>
+  inRecommendToday?: ArticleOSSToInRecommendTodayResolver<TParent>
+  inRecommendIcymi?: ArticleOSSToInRecommendIcymiResolver<TParent>
+  inRecommendHottest?: ArticleOSSToInRecommendHottestResolver<TParent>
+  inRecommendNewset?: ArticleOSSToInRecommendNewsetResolver<TParent>
+  inRecommendTopic?: ArticleOSSToInRecommendTopicResolver<TParent>
+}
+
+export interface ArticleOSSToBoostResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleOSSToScoreResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleOSSToInRecommendTodayResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleOSSToInRecommendIcymiResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleOSSToInRecommendHottestResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleOSSToInRecommendNewsetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleOSSToInRecommendTopicResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLCommentTypeResolver<TParent = any> {
   id?: CommentToIdResolver<TParent>
   state?: CommentToStateResolver<TParent>
@@ -4467,6 +4670,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   tags?: OSSToTagsResolver<TParent>
   reports?: OSSToReportsResolver<TParent>
   report?: OSSToReportResolver<TParent>
+  today?: OSSToTodayResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -4524,6 +4728,18 @@ export interface OSSToReportResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToReportArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToTodayArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToTodayResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToTodayArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

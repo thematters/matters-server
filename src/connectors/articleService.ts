@@ -206,6 +206,7 @@ export class ArticleService extends BaseService {
       )
     })
   }
+
   addToSearch = async ({
     id,
     title,
@@ -265,7 +266,7 @@ export class ArticleService extends BaseService {
     offset?: number
     where?: { [key: string]: any }
   }) =>
-    await this.knex('article_activity_view')
+    this.knex('article_activity_view')
       .where(where)
       .orderBy('latest_activity', 'desc null last')
       .limit(limit)
@@ -280,18 +281,28 @@ export class ArticleService extends BaseService {
     offset?: number
     where?: { [key: string]: any }
   }) =>
-    await this.knex(this.table)
+    this.knex(this.table)
       .orderBy('id', 'desc')
       .where(where)
       .limit(limit)
       .offset(offset)
 
-  recommendToday = async () =>
+  recommendToday = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {}
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+  }) =>
     this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
       .join('matters_today as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
-      .first()
+      .where(where)
+      .offset(offset)
+      .limit(limit)
 
   recommendIcymi = async ({
     limit = BATCH_SIZE,
@@ -302,7 +313,7 @@ export class ArticleService extends BaseService {
     offset?: number
     where?: { [key: string]: any }
   }) =>
-    await this.knex('article')
+    this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
       .join('matters_choice as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
@@ -319,11 +330,95 @@ export class ArticleService extends BaseService {
     offset?: number
     where?: { [key: string]: any }
   }) =>
-    await this.knex('article_count_view')
+    this.knex('article_count_view')
       .orderBy('topic_score', 'desc')
       .where(where)
       .limit(limit)
       .offset(offset)
+
+  /**
+   * Find One
+   */
+  findRecommendToday = async (articleId: string) =>
+    this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_today as c', 'c.article_id', 'article.id')
+      .where({ articleId })
+      .first()
+
+  findRecommendIcymi = async (articleId: string) =>
+    this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_choice as c', 'c.article_id', 'article.id')
+      .orderBy('chose_at', 'desc')
+      .where({ articleId })
+      .first()
+
+  findRecommendHottest = async (articleId: string) =>
+    this.knex('article_activity_view')
+      .where({ id: articleId })
+      .first()
+
+  findRecommendNewset = async (articleId: string) =>
+    this.knex(this.table)
+      .where({ id: articleId })
+      .first()
+
+  findRecommendTopic = async (articleId: string) =>
+    this.knex('article_count_view')
+      .where({ id: articleId })
+      .first()
+
+  /**
+   * Count
+   */
+  countRecommendToday = async (where: { [key: string]: any } = {}) => {
+    const result = await this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_today as c', 'c.article_id', 'article.id')
+      .where(where)
+      .groupBy('article.id', 'c.updated_at')
+      .count()
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  countRecommendIcymi = async (where: { [key: string]: any } = {}) => {
+    const result = await this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_choice as c', 'c.article_id', 'article.id')
+      .where(where)
+      .groupBy('article.id', 'c.updated_at')
+      .count()
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  findBoost = async (articleId: string) => {
+    const articleBoost = await this.knex('article_boost')
+      .select()
+      .where({ articleId })
+      .first()
+
+    if (!articleBoost) {
+      return 1
+    }
+
+    return articleBoost.boost
+  }
+
+  findScore = async (articleId: string) => {
+    const article = await this.knex('article_count_view')
+      .select()
+      .where({ id: articleId })
+      .first()
+
+    if (!article) {
+      return 1
+    }
+
+    return article.topicScore
+  }
 
   /*********************************
    *                               *

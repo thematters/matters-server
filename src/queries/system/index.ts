@@ -11,7 +11,7 @@ import {
   placements,
   gatewayUrls
 } from './official'
-import { rootOSS, users, articles, tags, reports, report } from './oss'
+import { rootOSS, users, articles, tags, reports, report, today } from './oss'
 import Report from './report'
 
 export default {
@@ -41,7 +41,8 @@ export default {
     articles,
     tags,
     reports,
-    report
+    report,
+    today
   },
   Report
 }
