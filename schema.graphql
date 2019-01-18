@@ -47,6 +47,9 @@ type Article implements Node {
 
   """Viewer has subscribed"""
   subscribed: Boolean!
+
+  """OSS"""
+  oss: ArticleOSS!
   commentCount: Int!
   pinCommentLimit: Int!
   pinCommentLeft: Int!
@@ -102,6 +105,16 @@ type ArticleNewSubscriberNotice implements Notice {
   createdAt: DateTime!
   actors: [User!]
   target: Article!
+}
+
+type ArticleOSS {
+  boost: Float!
+  score: Float!
+  inRecommendToday: Boolean!
+  inRecommendIcymi: Boolean!
+  inRecommendHottest: Boolean!
+  inRecommendNewset: Boolean!
+  inRecommendTopic: Boolean!
 }
 
 type ArticlePublishedNotice implements Notice {
@@ -591,6 +604,7 @@ type OSS {
   tags(input: ConnectionArgs!): TagConnection!
   reports(input: ReportsInput!): ReportConnection!
   report(input: ReportInput!): Report!
+  today(input: ConnectionArgs!): ArticleConnection!
 }
 
 type PageInfo {
@@ -862,6 +876,9 @@ type Tag implements Node {
   count: Int! @deprecated(reason: "Use `articles.totalCount`.")
   articles(input: ConnectionArgs!): ArticleConnection!
   createdAt: DateTime!
+
+  """OSS"""
+  oss: TagOSS!
 }
 
 type TagConnection {
@@ -873,6 +890,11 @@ type TagConnection {
 type TagEdge {
   cursor: String!
   node: Tag!
+}
+
+type TagOSS {
+  boost: Float!
+  score: Float!
 }
 
 scalar Time
@@ -987,6 +1009,9 @@ type User implements Node {
   """Viewer is following this user"""
   isFollowee: Boolean!
   status: UserStatus!
+
+  """OSS"""
+  oss: UserOSS!
   notices(input: ConnectionArgs!): NoticeConnection!
 }
 
@@ -1060,6 +1085,11 @@ type UserNewFollowerNotice implements Notice {
   unread: Boolean!
   createdAt: DateTime!
   actors: [User!]
+}
+
+type UserOSS {
+  boost: Float!
+  score: Float!
 }
 
 input UserRegisterInput {

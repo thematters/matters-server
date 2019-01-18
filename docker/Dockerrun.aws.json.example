@@ -39,13 +39,9 @@
       "ContainerDirectory": "/var/app/tslint.json"
     },
     {
-      "HostDirectory": "/var/log",
-      "ContainerDirectory": "/var/app/logs"
-    },
-    {
       "HostDirectory": "/tmp/.ebextensions",
       "ContainerDirectory": "/var/app/.ebextensions"
     }
   ],
-  "Logging": "/var/log/nginx"
+  "Logging": "/var/app/logs"
 }

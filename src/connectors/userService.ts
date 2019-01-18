@@ -218,6 +218,17 @@ export class UserService extends BaseService {
     previous: string
   }) => await this.baseCreate({ userId, previous }, 'username_edit_history')
 
+  /**
+   * Count same user names by a given user name.
+   */
+  countUserNames = async (userName: string): Promise<number> => {
+    const result = await this.knex(this.table)
+      .countDistinct('id')
+      .where({ userName })
+      .first()
+    return parseInt(result.count, 10)
+  }
+
   /*********************************
    *                               *
    *           Search              *
@@ -478,6 +489,32 @@ export class UserService extends BaseService {
       .offset(offset)
       .limit(limit)
       .whereNotIn('id', notIn)
+
+  findBoost = async (userId: string) => {
+    const userBoost = await this.knex('user_boost')
+      .select()
+      .where({ userId })
+      .first()
+
+    if (!userBoost) {
+      return 1
+    }
+
+    return userBoost.boost
+  }
+
+  findScore = async (userId: string) => {
+    const author = await this.knex('user_reader_view')
+      .select()
+      .where({ id: userId })
+      .first()
+
+    if (!author) {
+      return 1
+    }
+
+    return author.authorScore
+  }
 
   /*********************************
    *                               *

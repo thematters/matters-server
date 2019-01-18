@@ -26,44 +26,52 @@ const resolvers: GQLRecommendationTypeResolver = {
     )
   },
   hottest: async ({ id }, { input }, { dataSources: { articleService } }) => {
+    const where = id ? {} : { public: true }
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
-    const totalCount = await articleService.baseCount()
+    const totalCount = await articleService.baseCount(where)
     return connectionFromPromisedArray(
       articleService.recommendHottest({
         offset,
         limit: first,
-        where: id ? {} : { public: true }
+        where
       }),
       input,
       totalCount
     )
   },
   newest: async ({ id }, { input }, { dataSources: { articleService } }) => {
+    const where = id ? {} : { public: true }
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
-    const totalCount = await articleService.baseCount()
+    const totalCount = await articleService.baseCount(where)
     return connectionFromPromisedArray(
       articleService.recommendNewest({
         offset,
         limit: first,
-        where: id ? {} : { public: true }
+        where
       }),
       input,
       totalCount
     )
   },
-  today: async (_, __, { dataSources: { articleService } }) =>
-    articleService.recommendToday(),
+  today: async (_, __, { dataSources: { articleService } }) => {
+    const [article] = await articleService.recommendToday({
+      offset: 0,
+      limit: 1
+    })
+    return article
+  },
   icymi: async ({ id }, { input }, { dataSources: { articleService } }) => {
+    const where = id ? {} : { public: true }
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
-    const totalCount = await articleService.baseCount()
+    const totalCount = await articleService.countRecommendIcymi(where)
     return connectionFromPromisedArray(
       articleService.recommendIcymi({
         offset,
         limit: first,
-        where: id ? {} : { public: true }
+        where
       }),
       input,
       totalCount
@@ -71,13 +79,14 @@ const resolvers: GQLRecommendationTypeResolver = {
   },
   topics: async ({ id }, { input }, { dataSources: { articleService } }) => {
     const { first, after } = input
+    const where = id ? {} : { public: true }
     const offset = cursorToIndex(after) + 1
-    const totalCount = await articleService.baseCount()
+    const totalCount = await articleService.baseCount(where)
     return connectionFromPromisedArray(
       articleService.recommendTopics({
         offset,
         limit: first,
-        where: id ? {} : { public: true }
+        where
       }),
       input,
       totalCount

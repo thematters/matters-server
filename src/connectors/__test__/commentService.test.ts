@@ -15,11 +15,6 @@ test('countByArticle', async () => {
   expect(count).toBe(2)
 })
 
-test('countByParent', async () => {
-  const count = await commentService.countByParent('1')
-  expect(count).toBe(2)
-})
-
 test('countUpVote', async () => {
   const count = await commentService.countUpVote('1')
   expect(count).toBe(2)
