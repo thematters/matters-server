@@ -53,6 +53,7 @@ export default /* GraphQL */ `
     subscribed: Boolean!
     # OSS
     oss: ArticleOSS! @auth(requires: admin)
+    remark: String @auth(requires: admin)
   }
 
   type Tag implements Node {
@@ -63,6 +64,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
     # OSS
     oss: TagOSS! @auth(requires: admin)
+    remark: String @auth(requires: admin)
   }
 
   type ArticleOSS {

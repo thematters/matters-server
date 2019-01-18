@@ -28,6 +28,7 @@ export default /* GraphQL */ `
     quotationEnd: Int
     quotationContent: String
     replyTo: Comment
+    remark: String @auth(requires: admin)
   }
 
   extend type Article {

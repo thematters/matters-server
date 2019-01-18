@@ -11,7 +11,7 @@ export default /* GraphQL */ `
     singleFileUpload(input: SingleFileUploadInput!): Asset!
     feedback(input: FeedbackInput!): Boolean
     setBoost(input: SetBoostInput!): Node! @auth(requires: admin)
-    # putRemark(input: PutRemarkInput!): Node! @auth(requires: admin)
+    putRemark(input: PutRemarkInput!): String @auth(requires: admin)
   }
 
   extend type Subscription {
@@ -121,6 +121,7 @@ export default /* GraphQL */ `
     assets: [URL!]
     contact: String
     createdAt: DateTime!
+    remark: String @auth(requires: admin)
   }
 
   type ReportEdge {
@@ -194,6 +195,12 @@ export default /* GraphQL */ `
     type: BoostTypes!
   }
 
+  input PutRemarkInput {
+    id: ID!
+    remark: String!
+    type: RemarkTypes!
+  }
+
   input ConnectionArgs {
     after: String
     first: Int
@@ -209,6 +216,15 @@ export default /* GraphQL */ `
     Article
     User
     Tag
+  }
+
+  enum RemarkTypes {
+    Article
+    User
+    Tag
+    Comment
+    Report
+    Feedback
   }
 
   enum AssetType {

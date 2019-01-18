@@ -99,6 +99,7 @@ export interface GQLArticle extends GQLNode {
    * OSS
    */
   oss: GQLArticleOSS
+  remark?: string
   commentCount: number
   pinCommentLimit: number
   pinCommentLeft: number
@@ -183,6 +184,7 @@ export interface GQLUser extends GQLNode {
    * OSS
    */
   oss: GQLUserOSS
+  remark?: string
   notices: GQLNoticeConnection
 }
 
@@ -345,6 +347,7 @@ export interface GQLTag extends GQLNode {
    * OSS
    */
   oss: GQLTagOSS
+  remark?: string
 }
 
 export interface GQLTagOSS {
@@ -678,6 +681,7 @@ export interface GQLComment extends GQLNode {
   quotationEnd?: number
   quotationContent?: string
   replyTo?: GQLComment
+  remark?: string
 }
 
 export enum GQLCommentState {
@@ -863,6 +867,7 @@ export interface GQLReport {
   assets?: Array<GQLURL>
   contact?: string
   createdAt: GQLDateTime
+  remark?: string
 }
 
 export interface GQLReportInput {
@@ -912,6 +917,7 @@ export interface GQLMutation {
   singleFileUpload: GQLAsset
   feedback?: boolean
   setBoost: GQLNode
+  putRemark?: string
 
   /**
    * send/confirm verification code
@@ -1128,6 +1134,21 @@ export enum GQLBoostTypes {
   Article = 'Article',
   User = 'User',
   Tag = 'Tag'
+}
+
+export interface GQLPutRemarkInput {
+  id: string
+  remark: string
+  type: GQLRemarkTypes
+}
+
+export enum GQLRemarkTypes {
+  Article = 'Article',
+  User = 'User',
+  Tag = 'Tag',
+  Comment = 'Comment',
+  Report = 'Report',
+  Feedback = 'Feedback'
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -1646,6 +1667,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>
   subscribed?: ArticleToSubscribedResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
+  remark?: ArticleToRemarkResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
   pinCommentLimit?: ArticleToPinCommentLimitResolver<TParent>
   pinCommentLeft?: ArticleToPinCommentLeftResolver<TParent>
@@ -1947,6 +1969,15 @@ export interface ArticleToOssResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface ArticleToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface ArticleToCommentCountResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -2025,6 +2056,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   isFollowee?: UserToIsFolloweeResolver<TParent>
   status?: UserToStatusResolver<TParent>
   oss?: UserToOssResolver<TParent>
+  remark?: UserToRemarkResolver<TParent>
   notices?: UserToNoticesResolver<TParent>
 }
 
@@ -2194,6 +2226,15 @@ export interface UserToStatusResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToOssResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToRemarkResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -2801,6 +2842,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   articles?: TagToArticlesResolver<TParent>
   createdAt?: TagToCreatedAtResolver<TParent>
   oss?: TagToOssResolver<TParent>
+  remark?: TagToRemarkResolver<TParent>
 }
 
 export interface TagToIdResolver<TParent = any, TResult = any> {
@@ -2852,6 +2894,15 @@ export interface TagToCreatedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToOssResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToRemarkResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4086,6 +4137,7 @@ export interface GQLCommentTypeResolver<TParent = any> {
   quotationEnd?: CommentToQuotationEndResolver<TParent>
   quotationContent?: CommentToQuotationContentResolver<TParent>
   replyTo?: CommentToReplyToResolver<TParent>
+  remark?: CommentToRemarkResolver<TParent>
 }
 
 export interface CommentToIdResolver<TParent = any, TResult = any> {
@@ -4239,6 +4291,15 @@ export interface CommentToQuotationContentResolver<
 }
 
 export interface CommentToReplyToResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToRemarkResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4898,6 +4959,7 @@ export interface GQLReportTypeResolver<TParent = any> {
   assets?: ReportToAssetsResolver<TParent>
   contact?: ReportToContactResolver<TParent>
   createdAt?: ReportToCreatedAtResolver<TParent>
+  remark?: ReportToRemarkResolver<TParent>
 }
 
 export interface ReportToIdResolver<TParent = any, TResult = any> {
@@ -4981,6 +5043,15 @@ export interface ReportToCreatedAtResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface ReportToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLMutationTypeResolver<TParent = any> {
   _?: MutationTo_Resolver<TParent>
   publishArticle?: MutationToPublishArticleResolver<TParent>
@@ -5008,6 +5079,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   singleFileUpload?: MutationToSingleFileUploadResolver<TParent>
   feedback?: MutationToFeedbackResolver<TParent>
   setBoost?: MutationToSetBoostResolver<TParent>
+  putRemark?: MutationToPutRemarkResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -5358,6 +5430,18 @@ export interface MutationToSetBoostResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToSetBoostArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutRemarkArgs {
+  input: GQLPutRemarkInput
+}
+export interface MutationToPutRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPutRemarkArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

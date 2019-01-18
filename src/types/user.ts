@@ -60,6 +60,7 @@ export default /* GraphQL */ `
     status: UserStatus!
     # OSS
     oss: UserOSS! @auth(requires: admin)
+    remark: String @auth(requires: admin)
   }
 
   type InvitationStatus {
