@@ -7,16 +7,17 @@ const resolver: MutationToReadArticleResolver = async (
   { input: { id } },
   { viewer, dataSources: { articleService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
     throw new ForbiddenError('target article does not exists')
   }
 
-  await articleService.read(article.id, viewer.id)
+  await articleService.read({
+    articleId: article.id,
+    userId: viewer.id,
+    ip: viewer.ip
+  })
 
   return true
 }

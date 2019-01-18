@@ -14,7 +14,6 @@ const isDesc = (ints: number[]) =>
 
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
 const COMMENT_ID = toGlobalId({ type: 'Comment', id: 1 })
-const USER_ID = toGlobalId({ type: 'User', id: 2 })
 
 const GET_ARTILCE_COMMENTS = `
   query($nodeInput: NodeInput!, $commentsInput: CommentsInput!) {
@@ -205,15 +204,14 @@ describe('mutations on comment', async () => {
         input: {
           comment: {
             content: 'test',
-            replyTo: USER_ID,
-            articleId: ARTICLE_ID,
-            mentions: [USER_ID]
+            replyTo: COMMENT_ID,
+            articleId: ARTICLE_ID
           }
         }
       }
     })
 
-    expect(_get(result, 'data.putComment.replyTo.id')).toBe(USER_ID)
+    expect(_get(result, 'data.putComment.replyTo.id')).toBe(COMMENT_ID)
   })
 
   test('upvote a comment', async () => {

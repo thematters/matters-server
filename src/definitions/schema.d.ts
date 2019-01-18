@@ -58,10 +58,25 @@ export interface GQLArticle extends GQLNode {
    * MAT recieved for this article
    */
   MAT: number
+
+  /**
+   *
+   * @deprecated not used
+   */
   participantCount: number
+
+  /**
+   *
+   * @deprecated not used
+   */
   participants: GQLUserConnection
   subscribers: GQLUserConnection
   appreciators: GQLUserConnection
+
+  /**
+   *
+   * @deprecated Use `appreciators.totalCount`.
+   */
   appreciatorCount: number
 
   /**
@@ -317,6 +332,11 @@ export interface GQLTagEdge {
 export interface GQLTag extends GQLNode {
   id: string
   content: string
+
+  /**
+   *
+   * @deprecated Use `articles.totalCount`.
+   */
   count: number
   articles: GQLArticleConnection
   createdAt: GQLDateTime
@@ -333,6 +353,17 @@ export interface GQLTagOSS {
 }
 
 export type GQLNonNegativeFloat = any
+
+export interface GQLAuthorsInput {
+  after?: string
+  first?: number
+  filter?: GQLAuthorsFilter
+}
+
+export interface GQLAuthorsFilter {
+  random?: boolean
+  followed?: boolean
+}
 
 export interface GQLUserConnection {
   totalCount: number
@@ -415,7 +446,6 @@ export interface GQLReadHistoryEdge {
 }
 
 export interface GQLReadHistory {
-  id: string
   article: GQLArticle
   readAt: GQLDateTime
 }
@@ -442,11 +472,13 @@ export interface GQLUserStatus {
 
   /**
    * Number of articles published by user
+   * @deprecated Use `User.articles.totalCount`.
    */
   articleCount: number
 
   /**
    * Number of views on articles
+   * @deprecated Use `User.drafts.totalCount`.
    */
   viewCount: number
   draftCount: number
@@ -455,16 +487,28 @@ export interface GQLUserStatus {
    * Number of comments posted by user
    */
   commentCount: number
+
+  /**
+   *
+   * @deprecated not used
+   */
   quotationCount: number
+
+  /**
+   *
+   * @deprecated Use `User.subscriptions.totalCount`.
+   */
   subscriptionCount: number
 
   /**
    * Number of user that this user follows
+   * @deprecated Use `User.followees.totalCount`.
    */
   followeeCount: number
 
   /**
    * Number of user that follows this user
+   * @deprecated Use `User.followers.totalCount`.
    */
   followerCount: number
 
@@ -633,7 +677,7 @@ export interface GQLComment extends GQLNode {
   quotationStart?: number
   quotationEnd?: number
   quotationContent?: string
-  replyTo?: GQLUser
+  replyTo?: GQLComment
 }
 
 export enum GQLCommentState {
@@ -1320,6 +1364,12 @@ export interface GQLOfficialAnnouncementNotice extends GQLNotice {
 export type GQLPositiveFloat = any
 
 export type GQLPositiveInt = any
+
+export enum GQLRole {
+  vistor = 'vistor',
+  user = 'user',
+  admin = 'admin'
+}
 
 export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
   id: string
@@ -2585,7 +2635,7 @@ export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToAuthorsArgs {
-  input: GQLConnectionArgs
+  input: GQLAuthorsInput
 }
 export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (
@@ -3315,18 +3365,8 @@ export interface ReadHistoryEdgeToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLReadHistoryTypeResolver<TParent = any> {
-  id?: ReadHistoryToIdResolver<TParent>
   article?: ReadHistoryToArticleResolver<TParent>
   readAt?: ReadHistoryToReadAtResolver<TParent>
-}
-
-export interface ReadHistoryToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
 }
 
 export interface ReadHistoryToArticleResolver<TParent = any, TResult = any> {

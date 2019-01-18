@@ -1,3 +1,5 @@
+directive @auth(requires: Role = user) on OBJECT | FIELD_DEFINITION
+
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
@@ -30,11 +32,11 @@ type Article implements Node {
 
   """MAT recieved for this article"""
   MAT: Int!
-  participantCount: Int!
-  participants: UserConnection!
+  participantCount: Int! @deprecated(reason: "not used")
+  participants: UserConnection! @deprecated(reason: "not used")
   subscribers(input: ConnectionArgs!): UserConnection!
   appreciators(input: ConnectionArgs!): UserConnection!
-  appreciatorCount: Int!
+  appreciatorCount: Int! @deprecated(reason: "Use `appreciators.totalCount`.")
 
   """limit the nuhmber of appreciate per user"""
   appreciateLimit: Int!
@@ -171,6 +173,17 @@ type AudiodraftEdge {
   node: Audiodraft!
 }
 
+input AuthorsFilter {
+  random: Boolean
+  followed: Boolean
+}
+
+input AuthorsInput {
+  after: String
+  first: Int
+  filter: AuthorsFilter
+}
+
 type AuthResult {
   auth: Boolean!
   token: String
@@ -224,7 +237,7 @@ type Comment implements Node {
   quotationStart: Int
   quotationEnd: Int
   quotationContent: String
-  replyTo: User
+  replyTo: Comment
 }
 
 type CommentConnection {
@@ -703,7 +716,6 @@ input ReadArticleInput {
 }
 
 type ReadHistory {
-  id: ID!
   article: Article!
   readAt: DateTime!
 }
@@ -746,7 +758,7 @@ type Recommendation {
   icymi(input: ConnectionArgs!): ArticleConnection!
   tags(input: ConnectionArgs!): TagConnection!
   topics(input: ConnectionArgs!): ArticleConnection!
-  authors(input: ConnectionArgs!): UserConnection!
+  authors(input: AuthorsInput!): UserConnection!
 }
 
 type Release {
@@ -823,6 +835,12 @@ input ResetPasswordInput {
   codeId: ID!
 }
 
+enum Role {
+  vistor
+  user
+  admin
+}
+
 input SearchInput {
   key: String!
   type: SearchTypes!
@@ -893,7 +911,7 @@ type Subscription {
 type Tag implements Node {
   id: ID!
   content: String!
-  count: Int!
+  count: Int! @deprecated(reason: "Use `articles.totalCount`.")
   articles(input: ConnectionArgs!): ArticleConnection!
   createdAt: DateTime!
 
@@ -1154,22 +1172,22 @@ type UserStatus {
   invitation: InvitationStatus!
 
   """Number of articles published by user"""
-  articleCount: Int!
+  articleCount: Int! @deprecated(reason: "Use `User.articles.totalCount`.")
 
   """Number of views on articles"""
-  viewCount: Int!
+  viewCount: Int! @deprecated(reason: "Use `User.drafts.totalCount`.")
   draftCount: Int!
 
   """Number of comments posted by user"""
   commentCount: Int!
-  quotationCount: Int!
-  subscriptionCount: Int!
+  quotationCount: Int! @deprecated(reason: "not used")
+  subscriptionCount: Int! @deprecated(reason: "Use `User.subscriptions.totalCount`.")
 
   """Number of user that this user follows"""
-  followeeCount: Int!
+  followeeCount: Int! @deprecated(reason: "Use `User.followees.totalCount`.")
 
   """Number of user that follows this user"""
-  followerCount: Int!
+  followerCount: Int! @deprecated(reason: "Use `User.followers.totalCount`.")
 
   """Number of unread notices"""
   unreadNoticeCount: Int!

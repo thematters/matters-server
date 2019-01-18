@@ -27,7 +27,7 @@ export default /* GraphQL */ `
     quotationStart: Int
     quotationEnd: Int
     quotationContent: String
-    replyTo: User
+    replyTo: Comment
   }
 
   extend type Article {
