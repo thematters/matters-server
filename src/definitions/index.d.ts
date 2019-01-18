@@ -40,8 +40,15 @@ export type Context = RequestContext & {
   dataSources: DataSources
 }
 
+export type Viewer = (User | { id: null }) & {
+  hasRole: (role: string) => boolean
+  ip?: string
+  role: string
+  language: string
+}
+
 export type RequestContext = {
-  viewer: User | { id: null }
+  viewer: Viewer
 }
 
 export type DataSources = {
