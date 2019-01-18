@@ -413,12 +413,21 @@ export class ArticleService extends BaseService {
   }: {
     articleId: string
     boost: number
-  }) =>
-    this.knex('article_boost')
+  }) => {
+    const boostedArticle = await this.knex('article_boost')
       .select()
       .where({ articleId })
+      .first()
+
+    if (!boostedArticle) {
+      return this.baseCreate({ articleId, boost }, 'article_boost')
+    }
+
+    return (await this.knex('article_boost')
+      .where({ articleId })
       .update({ boost })
-      .returning('*')
+      .returning('*'))[0]
+  }
 
   findScore = async (articleId: string) => {
     const article = await this.knex('article_count_view')

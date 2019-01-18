@@ -86,6 +86,9 @@ export type TableName =
   | 'invitation'
   | 'verification_code'
   | 'search_history'
+  | 'article_boost'
+  | 'tag_boost'
+  | 'user_boost'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'

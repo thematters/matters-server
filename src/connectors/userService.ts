@@ -500,12 +500,21 @@ export class UserService extends BaseService {
     return userBoost.boost
   }
 
-  setBoost = async ({ userId, boost }: { userId: string; boost: number }) =>
-    this.knex('user_boost')
+  setBoost = async ({ userId, boost }: { userId: string; boost: number }) => {
+    const boostedUser = await this.knex('user_boost')
       .select()
       .where({ userId })
+      .first()
+
+    if (!boostedUser) {
+      return this.baseCreate({ userId, boost }, 'user_boost')
+    }
+
+    return (await this.knex('user_boost')
+      .where({ userId })
       .update({ boost })
-      .returning('*')
+      .returning('*'))[0]
+  }
 
   findScore = async (userId: string) => {
     const author = await this.knex('user_reader_view')
