@@ -15,8 +15,6 @@ export default /* GraphQL */ `
     # OSS
     toggleArticleLive(input: ToggleArticleLiveInput!): Article!
     toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
-    setArticleBoost(input: SetArticleBoostInput!): Article!
-    setTagBoost(input: SetTagBoostInput!): Tag!
   }
 
   type Article implements Node {
@@ -54,7 +52,7 @@ export default /* GraphQL */ `
     # Viewer has subscribed
     subscribed: Boolean!
     # OSS
-    oss: ArticleOSS!
+    oss: ArticleOSS! @auth(requires: admin)
   }
 
   type Tag implements Node {
@@ -64,7 +62,7 @@ export default /* GraphQL */ `
     articles(input: ConnectionArgs!): ArticleConnection!
     createdAt: DateTime!
     # OSS
-    oss: TagOSS!
+    oss: TagOSS! @auth(requires: admin)
   }
 
   type ArticleOSS {
@@ -154,16 +152,6 @@ export default /* GraphQL */ `
   input ToggleArticlePublicInput {
     id: ID!
     enabled: Boolean!
-  }
-
-  input SetArticleBoostInput {
-    id: ID!
-    boost: NonNegativeFloat!
-  }
-
-  input SetTagBoostInput {
-    id: ID!
-    boost: NonNegativeFloat!
   }
 
   enum ArticleState {

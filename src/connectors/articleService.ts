@@ -407,27 +407,12 @@ export class ArticleService extends BaseService {
     return articleBoost.boost
   }
 
-  setBoost = async ({
-    articleId,
-    boost
-  }: {
-    articleId: string
-    boost: number
-  }) => {
-    const boostedArticle = await this.knex('article_boost')
-      .select()
-      .where({ articleId })
-      .first()
-
-    if (!boostedArticle) {
-      return this.baseCreate({ articleId, boost }, 'article_boost')
-    }
-
-    return (await this.knex('article_boost')
-      .where({ articleId })
-      .update({ boost })
-      .returning('*'))[0]
-  }
+  setBoost = async ({ id, boost }: { id: string; boost: number }) =>
+    this.baseUpdateOrCreate({
+      where: { articleId: id },
+      data: { articleId: id, boost },
+      table: 'article_boost'
+    })
 
   findScore = async (articleId: string) => {
     const article = await this.knex('article_count_view')

@@ -31,9 +31,6 @@ export default /* GraphQL */ `
     clearSearchHistory: Boolean
     invite(input: InviteInput!): Boolean @auth(requires: user)
 
-    # OSS
-    setUserBoost(input: SetUserBoostInput!): User!
-
     # !!! update state: REMOVE IN PRODUTION !!!
     updateUserState__(input: UpdateUserStateInput!): User!
   }
@@ -62,7 +59,7 @@ export default /* GraphQL */ `
     isFollowee: Boolean!
     status: UserStatus!
     # OSS
-    oss: UserOSS!
+    oss: UserOSS! @auth(requires: admin)
   }
 
   type InvitationStatus {
@@ -158,7 +155,7 @@ export default /* GraphQL */ `
     # Number of user that follows this user
     followerCount: Int! @deprecated(reason: "Use \`User.followers.totalCount\`.")
     # Number of unread notices
-    unreadNoticeCount: Int! 
+    unreadNoticeCount: Int!
   }
 
   type UserOSS {
@@ -270,11 +267,6 @@ export default /* GraphQL */ `
   input InviteInput {
     id: ID
     email: Email
-  }
-
-  input SetUserBoostInput {
-    id: ID!
-    boost: NonNegativeFloat!
   }
 
   input SendVerificationCodeInput {

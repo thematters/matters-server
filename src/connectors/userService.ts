@@ -355,16 +355,18 @@ export class UserService extends BaseService {
    *             Follow            *
    *                               *
    *********************************/
-  follow = async (userId: string, targetId: string): Promise<any[]> =>
-    await this.baseUpdateOrCreate(
-      {
-        userId,
-        targetId,
-        action: USER_ACTION.follow
-      },
-      ['userId', 'targetId', 'action'],
-      'action_user'
-    )
+  follow = async (userId: string, targetId: string): Promise<any[]> => {
+    const data = {
+      userId,
+      targetId,
+      action: USER_ACTION.follow
+    }
+    return await this.baseUpdateOrCreate({
+      where: data,
+      data,
+      table: 'action_user'
+    })
+  }
 
   unfollow = async (userId: string, targetId: string): Promise<any[]> =>
     await this.knex
@@ -503,21 +505,12 @@ export class UserService extends BaseService {
     return userBoost.boost
   }
 
-  setBoost = async ({ userId, boost }: { userId: string; boost: number }) => {
-    const boostedUser = await this.knex('user_boost')
-      .select()
-      .where({ userId })
-      .first()
-
-    if (!boostedUser) {
-      return this.baseCreate({ userId, boost }, 'user_boost')
-    }
-
-    return (await this.knex('user_boost')
-      .where({ userId })
-      .update({ boost })
-      .returning('*'))[0]
-  }
+  setBoost = async ({ id, boost }: { id: string; boost: number }) =>
+    this.baseUpdateOrCreate({
+      where: { userId: id },
+      data: { userId: id, boost },
+      table: 'user_boost'
+    })
 
   findScore = async (userId: string) => {
     const author = await this.knex('user_reader_view')

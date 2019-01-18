@@ -197,6 +197,12 @@ enum BadgeType {
   seed
 }
 
+enum BoostTypes {
+  Article
+  User
+  Tag
+}
+
 type Category {
   id: ID!
   name: String!
@@ -453,8 +459,6 @@ type Mutation {
   """OSS"""
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
   toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
-  setArticleBoost(input: SetArticleBoostInput!): Article!
-  setTagBoost(input: SetTagBoostInput!): Tag!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   unpinComment(input: UnpinCommentInput!): Comment!
@@ -473,6 +477,7 @@ type Mutation {
   markAllNoticesAsRead: Boolean
   singleFileUpload(input: SingleFileUploadInput!): Asset!
   feedback(input: FeedbackInput!): Boolean
+  setBoost(input: SetBoostInput!): Node!
 
   """send/confirm verification code"""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -511,9 +516,6 @@ type Mutation {
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
   clearSearchHistory: Boolean
   invite(input: InviteInput!): Boolean
-
-  """OSS"""
-  setUserBoost(input: SetUserBoostInput!): User!
 
   """!!! update state: REMOVE IN PRODUTION !!!"""
   updateUserState__(input: UpdateUserStateInput!): User!
@@ -870,19 +872,10 @@ input SendVerificationCodeInput {
   type: VerificationCodeType!
 }
 
-input SetArticleBoostInput {
+input SetBoostInput {
   id: ID!
   boost: NonNegativeFloat!
-}
-
-input SetTagBoostInput {
-  id: ID!
-  boost: NonNegativeFloat!
-}
-
-input SetUserBoostInput {
-  id: ID!
-  boost: NonNegativeFloat!
+  type: BoostTypes!
 }
 
 input SingleFileUploadInput {

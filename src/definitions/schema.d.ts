@@ -889,8 +889,6 @@ export interface GQLMutation {
    */
   toggleArticleLive: GQLArticle
   toggleArticlePublic: GQLArticle
-  setArticleBoost: GQLArticle
-  setTagBoost: GQLTag
   putComment: GQLComment
   pinComment: GQLComment
   unpinComment: GQLComment
@@ -913,6 +911,7 @@ export interface GQLMutation {
   markAllNoticesAsRead?: boolean
   singleFileUpload: GQLAsset
   feedback?: boolean
+  setBoost: GQLNode
 
   /**
    * send/confirm verification code
@@ -967,11 +966,6 @@ export interface GQLMutation {
   invite?: boolean
 
   /**
-   * OSS
-   */
-  setUserBoost: GQLUser
-
-  /**
    * !!! update state: REMOVE IN PRODUTION !!!
    */
   updateUserState__: GQLUser
@@ -1023,16 +1017,6 @@ export interface GQLToggleArticleLiveInput {
 export interface GQLToggleArticlePublicInput {
   id: string
   enabled: boolean
-}
-
-export interface GQLSetArticleBoostInput {
-  id: string
-  boost: GQLNonNegativeFloat
-}
-
-export interface GQLSetTagBoostInput {
-  id: string
-  boost: GQLNonNegativeFloat
 }
 
 export interface GQLPutCommentInput {
@@ -1134,6 +1118,18 @@ export interface GQLFeedbackInput {
   contact?: string
 }
 
+export interface GQLSetBoostInput {
+  id: string
+  boost: GQLNonNegativeFloat
+  type: GQLBoostTypes
+}
+
+export enum GQLBoostTypes {
+  Article = 'Article',
+  User = 'User',
+  Tag = 'Tag'
+}
+
 export interface GQLSendVerificationCodeInput {
   email: GQLEmail
   type: GQLVerificationCodeType
@@ -1230,11 +1226,6 @@ export interface GQLClearReadHistoryInput {
 export interface GQLInviteInput {
   id?: string
   email?: GQLEmail
-}
-
-export interface GQLSetUserBoostInput {
-  id: string
-  boost: GQLNonNegativeFloat
 }
 
 export interface GQLUpdateUserStateInput {
@@ -5002,8 +4993,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   recallPublish?: MutationToRecallPublishResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
-  setArticleBoost?: MutationToSetArticleBoostResolver<TParent>
-  setTagBoost?: MutationToSetTagBoostResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   pinComment?: MutationToPinCommentResolver<TParent>
   unpinComment?: MutationToUnpinCommentResolver<TParent>
@@ -5018,6 +5007,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
   singleFileUpload?: MutationToSingleFileUploadResolver<TParent>
   feedback?: MutationToFeedbackResolver<TParent>
+  setBoost?: MutationToSetBoostResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -5034,7 +5024,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   invite?: MutationToInviteResolver<TParent>
-  setUserBoost?: MutationToSetUserBoostResolver<TParent>
   updateUserState__?: MutationToUpdateUserState__Resolver<TParent>
 }
 
@@ -5183,33 +5172,6 @@ export interface MutationToToggleArticlePublicResolver<
   (
     parent: TParent,
     args: MutationToToggleArticlePublicArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToSetArticleBoostArgs {
-  input: GQLSetArticleBoostInput
-}
-export interface MutationToSetArticleBoostResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToSetArticleBoostArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToSetTagBoostArgs {
-  input: GQLSetTagBoostInput
-}
-export interface MutationToSetTagBoostResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToSetTagBoostArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5384,6 +5346,18 @@ export interface MutationToFeedbackResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToFeedbackArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSetBoostArgs {
+  input: GQLSetBoostInput
+}
+export interface MutationToSetBoostResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToSetBoostArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5567,18 +5541,6 @@ export interface MutationToInviteResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToInviteArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToSetUserBoostArgs {
-  input: GQLSetUserBoostInput
-}
-export interface MutationToSetUserBoostResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToSetUserBoostArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

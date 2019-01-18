@@ -12,7 +12,6 @@ import unfollowUser from './unfollowUser'
 import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import invite from './invite'
-import setUserBoost from './setUserBoost'
 
 import updateUserState__ from './updateUserState__'
 
@@ -32,7 +31,6 @@ export default {
     clearReadHistory,
     clearSearchHistory,
     invite,
-    setUserBoost,
 
     updateUserState__
   }

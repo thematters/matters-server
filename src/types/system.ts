@@ -4,12 +4,14 @@ export default /* GraphQL */ `
     frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection!
     official: Official!
-    oss: OSS!
+    oss: OSS! @auth(requires: admin)
   }
 
   extend type Mutation {
     singleFileUpload(input: SingleFileUploadInput!): Asset!
     feedback(input: FeedbackInput!): Boolean
+    setBoost(input: SetBoostInput!): Node! @auth(requires: admin)
+    # putRemark(input: PutRemarkInput!): Node! @auth(requires: admin)
   }
 
   extend type Subscription {
@@ -35,7 +37,7 @@ export default /* GraphQL */ `
     gatewayUrls: [URL!]
   }
 
-  type OSS @auth(requires: admin) {
+  type OSS {
     users(input: UsersInput!): UserConnection!
     articles(input: ArticlesInput!): ArticleConnection!
     tags(input: ConnectionArgs!): TagConnection!
@@ -186,12 +188,24 @@ export default /* GraphQL */ `
     contact: String
   }
 
+  input SetBoostInput {
+    id: ID!
+    boost: NonNegativeFloat!
+    type: BoostTypes!
+  }
+
   input ConnectionArgs {
     after: String
     first: Int
   }
 
   enum SearchTypes {
+    Article
+    User
+    Tag
+  }
+
+  enum BoostTypes {
     Article
     User
     Tag
@@ -220,7 +234,7 @@ export default /* GraphQL */ `
     vistor
     user
     admin
-  } 
+  }
 
   directive @deprecated(
     reason: String = "No longer supported"
