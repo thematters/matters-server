@@ -6,7 +6,7 @@ import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { Viewer } from 'definitions'
 
-const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
+export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 
 export const getViewerFromHeaders = async (headers: {
   'x-access-token'?: string
