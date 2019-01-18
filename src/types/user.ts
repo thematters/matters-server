@@ -43,12 +43,12 @@ export default /* GraphQL */ `
     recommendation: Recommendation!
     # Articles written by this user
     articles(input: ConnectionArgs!): ArticleConnection!
-    drafts(input: ConnectionArgs!): DraftConnection!
-    audiodrafts(input: ConnectionArgs!): AudiodraftConnection!
+    drafts(input: ConnectionArgs!): DraftConnection! @self
+    audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @self
     # Comments posted by this user
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
     subscriptions(input: ConnectionArgs!): ArticleConnection!
-    activity: UserActivity!
+    activity: UserActivity! @self
     # Followers of this user
     followers(input: ConnectionArgs!): UserConnection!
     # Users that this user follows
@@ -59,7 +59,7 @@ export default /* GraphQL */ `
     isFollowee: Boolean!
     status: UserStatus!
     # OSS
-    oss: UserOSS!
+    oss: UserOSS! @authorize
   }
 
   type InvitationStatus {
@@ -158,7 +158,7 @@ export default /* GraphQL */ `
     unreadNoticeCount: Int! 
   }
 
-  type UserOSS {
+  type UserOSS @authorize {
     boost: Float!
     score: Float!
   }

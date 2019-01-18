@@ -234,4 +234,5 @@ export default /* GraphQL */ `
     requires: Role = admin,
   ) on OBJECT | FIELD_DEFINITION
 
+  directive @self on FIELD_DEFINITION
 `

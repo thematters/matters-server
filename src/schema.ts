@@ -1,18 +1,24 @@
 import { makeExecutableSchema } from 'graphql-tools'
 import { merge } from 'lodash'
 
+import { ForbiddenError, AuthenticationError } from 'common/errors'
 import typeDefs from './types'
-import { DeprecatedDirective, authDirectiveFactory } from './types/directives'
 import queries from './queries'
 import mutations from './mutations'
 import subscriptions from './subscriptions'
+import {
+  DeprecatedDirective,
+  SelfDirective,
+  authDirectiveFactory
+} from './types/directives'
 
 const schema = makeExecutableSchema({
   typeDefs,
   schemaDirectives: {
     deprecated: DeprecatedDirective,
-    authenticate: authDirectiveFactory('UNAUTHENTICATED'),
-    authorize: authDirectiveFactory('FORBIDDEN')
+    authenticate: authDirectiveFactory(AuthenticationError),
+    authorize: authDirectiveFactory(ForbiddenError),
+    self: SelfDirective
   },
   resolvers: merge(queries, mutations, subscriptions)
 })

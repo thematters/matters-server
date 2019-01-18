@@ -2,6 +2,8 @@ directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION
 
 directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
 
+directive @self on FIELD_DEFINITION
+
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
