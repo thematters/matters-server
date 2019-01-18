@@ -538,9 +538,9 @@ export class UserService extends BaseService {
   countReadHistory = async (userId: string) => {
     const result = await this.knex('article_read')
       .where({ userId, archived: false })
-      .count()
+      .countDistinct('articleId')
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result.count || 0, 10)
   }
 
   findReadHistory = async ({
@@ -553,12 +553,25 @@ export class UserService extends BaseService {
     offset?: number
   }) =>
     this.knex
-      .select()
+      .select('article_id')
+      .min('created_at as read_at')
       .from('article_read')
       .where({ userId, archived: false })
-      .orderBy('id', 'desc')
+      .groupBy('article_id')
+      .orderBy('read_at', 'desc')
       .limit(limit)
       .offset(offset)
+
+  clearReadHistory = async ({
+    articleId,
+    userId
+  }: {
+    articleId: string
+    userId: string | null
+  }) =>
+    await this.knex('article_read')
+      .update({ archived: true })
+      .where({ articleId, userId })
 
   findReadHistoryByUUID = async (
     uuid: string,

@@ -10,11 +10,11 @@ const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 
 export const getViewerFromHeaders = async (headers: {
   'x-access-token'?: string
-  'Accept-Language'?: string
+  'accept-language'?: string
   'x-real-ip'?: string
 }): Promise<Viewer> => {
   const ip = headers['x-real-ip']
-  let language = headers['Accept-Language'] || 'zh-hant'
+  let language = headers['accept-language'] || 'zh-hant' // TODO: add parser
   let viewer: Viewer = {
     id: null,
     language,

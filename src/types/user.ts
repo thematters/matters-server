@@ -174,7 +174,6 @@ export default /* GraphQL */ `
   }
 
   type ReadHistory {
-    id: ID!
     article: Article!
     readAt: DateTime!
   }

@@ -413,7 +413,6 @@ export interface GQLReadHistoryEdge {
 }
 
 export interface GQLReadHistory {
-  id: string
   article: GQLArticle
   readAt: GQLDateTime
 }
@@ -3213,18 +3212,8 @@ export interface ReadHistoryEdgeToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLReadHistoryTypeResolver<TParent = any> {
-  id?: ReadHistoryToIdResolver<TParent>
   article?: ReadHistoryToArticleResolver<TParent>
   readAt?: ReadHistoryToReadAtResolver<TParent>
-}
-
-export interface ReadHistoryToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
 }
 
 export interface ReadHistoryToArticleResolver<TParent = any, TResult = any> {

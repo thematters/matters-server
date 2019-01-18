@@ -8,7 +8,7 @@ export const makeContext = async ({
   req: {
     headers?: {
       'x-access-token'?: string
-      'Accept-Language'?: string
+      'accept-language'?: string
       'x-real-ip'?: string
     }
   }

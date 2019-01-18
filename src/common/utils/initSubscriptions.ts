@@ -14,7 +14,7 @@ export const initSubscriptions = (): { onConnect: any } => ({
   onConnect: async (
     connectionParams: {
       'x-access-token'?: string
-      'Accept-Language'?: string
+      'accept-language'?: string
       'x-real-ip'?: string
     },
     webSocket: any,

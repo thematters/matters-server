@@ -584,26 +584,23 @@ export class ArticleService extends BaseService {
   /**
    * User read an article
    */
-  read = async (articleId: string, userId: string): Promise<any[]> => {
-    const readHistory = await this.knex
-      .select()
-      .from('article_read')
-      .where({ articleId, userId, archived: false })
-      .first()
-
-    if (readHistory) {
-      return readHistory
-    }
-
-    return await this.baseCreate(
+  read = async ({
+    articleId,
+    userId,
+    ip
+  }: {
+    articleId: string
+    userId?: string | null
+    ip?: string
+  }): Promise<any[]> =>
+    await this.baseCreate(
       {
-        uuid: v4(),
         articleId,
-        userId
+        userId,
+        ip
       },
       'article_read'
     )
-  }
 
   /*********************************
    *                               *

@@ -668,7 +668,6 @@ input ReadArticleInput {
 }
 
 type ReadHistory {
-  id: ID!
   article: Article!
   readAt: DateTime!
 }
