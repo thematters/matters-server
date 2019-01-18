@@ -1,6 +1,7 @@
 import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToToggleArticlePublicResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { USER_ROLE } from 'common/enums'
 
 const resolver: MutationToToggleArticlePublicResolver = async (
   root,
@@ -11,7 +12,7 @@ const resolver: MutationToToggleArticlePublicResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  if (viewer.role !== 'admin') {
+  if (viewer.role !== USER_ROLE.admin) {
     throw new AuthenticationError('only admin can do this')
   }
 

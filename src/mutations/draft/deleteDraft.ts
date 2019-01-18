@@ -17,14 +17,14 @@ const resolver: MutationToDeleteDraftResolver = async (
 
   const { id: dbId } = fromGlobalId(id)
   const draft = await draftService.dataloader.load(dbId)
-  if (!draft) {
+  if (!draft || draft.archived) {
     throw new UserInputError('target draft does not exist')
   }
   if (draft.authorId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')
   }
 
-  await draftService.baseDelete(dbId)
+  await draftService.archive(draft.id)
 
   return true
 }

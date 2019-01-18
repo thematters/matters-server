@@ -1,3 +1,9 @@
+export const USER_ROLE = {
+  admin: 'admin',
+  user: 'user',
+  visitor: 'visitor'
+}
+
 export const USER_ACTION = {
   appreciate: 'appreciate',
   follow: 'follow',
