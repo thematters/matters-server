@@ -505,9 +505,12 @@ export interface GQLTransaction {
 
 export enum GQLTransactionPurpose {
   appreciate = 'appreciate',
+  appreciateComment = 'appreciateComment',
   invitationAccepted = 'invitationAccepted',
   joinByInvitation = 'joinByInvitation',
-  joinByTask = 'joinByTask'
+  joinByTask = 'joinByTask',
+  firstPost = 'firstPost',
+  systemSubsidy = 'systemSubsidy'
 }
 
 export interface GQLInvitationStatus {

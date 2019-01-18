@@ -1,3 +1,4 @@
+import { camelCase, truncate } from 'lodash'
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 
 import { GQLMATTypeResolver, GQLTransactionTypeResolver } from 'definitions'
@@ -20,13 +21,15 @@ export const MAT: GQLMATTypeResolver = {
 
 export const Transaction: GQLTransactionTypeResolver = {
   delta: ({ delta }) => delta,
-  purpose: ({ purpose }) => purpose,
+  purpose: ({ purpose }) => camelCase(purpose),
   createdAt: ({ createdAt }) => createdAt,
   content: async (trx, _, { dataSources: { userService, articleService } }) => {
     switch (trx.purpose) {
       case TRANSACTION_PURPOSE.appreciate:
         const article = await articleService.dataloader.load(trx.referenceId)
         return article.title
+      case TRANSACTION_PURPOSE.appreciateComment:
+        return '評論' // TODO: i18n
       case TRANSACTION_PURPOSE.invitationAccepted:
         return '新用戶註冊激活' // TODO: i18n
       case TRANSACTION_PURPOSE.joinByInvitation:

@@ -397,8 +397,11 @@ export default /* GraphQL */ `
 
   enum TransactionPurpose {
     appreciate
+    appreciateComment
     invitationAccepted
     joinByInvitation
     joinByTask
+    firstPost
+    systemSubsidy
   }
 `

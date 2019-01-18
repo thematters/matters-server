@@ -10,9 +10,12 @@ export const USER_ACTION = {
 
 export const TRANSACTION_PURPOSE = {
   appreciate: 'appreciate',
+  appreciateComment: 'appreciate-comment',
   invitationAccepted: 'invitation-accepted',
   joinByInvitation: 'join-by-invitation',
-  joinByTask: 'join-by-task'
+  joinByTask: 'join-by-task',
+  firstPost: 'first-post',
+  systemSubsidy: 'system-subsidy'
 }
 
 export const VOTE = {
