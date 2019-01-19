@@ -12,6 +12,7 @@ import avatar from './avatar'
 import badges from './badges'
 import userNameEditable from './userNameEditable'
 import articleCount from './articleCount'
+import draftCount from './draftCount'
 import commentCount from './commentCount'
 // import oauthType from './oauthType'
 import UserActivity from './userActivity'
@@ -67,7 +68,7 @@ export default {
     invitation: (root: any) => root,
     articleCount,
     // viewCount,
-    // draftCount,
+    draftCount,
     commentCount,
     // quotationCount
     followerCount,

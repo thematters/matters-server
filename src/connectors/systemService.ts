@@ -141,4 +141,10 @@ export class SystemService extends BaseService {
     }))
     await this.baseBatchCreate(reportAssets, 'feedback_asset')
   }
+
+  /*********************************
+   *                               *
+   *             Feedback          *
+   *                               *
+   *********************************/
 }

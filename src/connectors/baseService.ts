@@ -133,39 +133,32 @@ export class BaseService extends DataSource {
 
   /**
    * Create or Update Item
-   * https://github.com/ratson/knex-upsert/blob/master/index.js
    */
-  baseUpdateOrCreate = (
-    data: ItemData,
-    key: string | string[],
-    table: TableName
-  ) => {
-    const keys = _.isString(key) ? [key] : key
-    keys.forEach(field =>
-      assert(_.has(data, field), `Key "${field}" is missing.`)
-    )
+  baseUpdateOrCreate = async ({
+    where,
+    data,
+    table
+  }: {
+    where: { [key: string]: string | boolean }
+    data: ItemData
+    table?: TableName
+  }) => {
+    const tableName = table || this.table
+    const item = await this.knex(tableName)
+      .select()
+      .where(where)
+      .first()
 
-    const updateFields = _.keys(_.omit(data, keys))
-    const insert = this.knex.table(table).insert(data)
-    const keyPlaceholders = new Array(keys.length).fill('??').join(',')
-
-    if (updateFields.length === 0) {
-      return this.knex
-        .raw(`? ON CONFLICT (${keyPlaceholders}) DO NOTHING RETURNING *`, [
-          insert,
-          ...keys
-        ])
-        .then(result => _.get(result, ['rows', 0]))
+    // create
+    if (!item) {
+      return this.baseCreate(data, tableName)
     }
 
-    const update = this.knex.queryBuilder().update(_.pick(data, updateFields))
-    return this.knex
-      .raw(`? ON CONFLICT (${keyPlaceholders}) DO ? RETURNING *`, [
-        insert,
-        ...keys,
-        update
-      ])
-      .then(result => _.get(result, ['rows', 0]))
+    // update
+    return (await this.knex(tableName)
+      .where(where)
+      .update(data)
+      .returning('*'))[0]
   }
 
   /**

@@ -11,7 +11,7 @@ import {
   placements,
   gatewayUrls
 } from './official'
-import { rootOSS, users, articles, tags, reports, report, today } from './oss'
+import { users, articles, tags, reports, report, today } from './oss'
 import Report from './report'
 
 export default {
@@ -20,7 +20,7 @@ export default {
     search,
     frequentSearch,
     official: () => true,
-    oss: rootOSS
+    oss: () => true
   },
   Node: {
     __resolveType: ({ __type }: { __type: GQLPossibleNodeTypeNames }) => __type

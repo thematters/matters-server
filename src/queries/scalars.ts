@@ -1,7 +1,19 @@
 import { GraphQLDate, GraphQLTime, GraphQLDateTime } from 'graphql-iso-date'
 import GraphQLJSON from 'graphql-type-json'
 import * as GraphQLUpload from 'graphql-upload'
-import { GraphQLEmail, GraphQLURL, GraphQLUUID } from 'graphql-custom-types'
+import { GraphQLUUID } from 'graphql-custom-types'
+import {
+  NonPositiveInt,
+  PositiveInt,
+  NonNegativeInt,
+  NegativeInt,
+  NonPositiveFloat,
+  PositiveFloat,
+  NonNegativeFloat,
+  NegativeFloat,
+  EmailAddress,
+  URL
+} from '@okgrow/graphql-scalars'
 
 export default {
   Date: GraphQLDate,
@@ -10,6 +22,14 @@ export default {
   JSON: GraphQLJSON,
   Upload: GraphQLUpload,
   UUID: GraphQLUUID,
-  Email: GraphQLEmail,
-  URL: GraphQLURL
+  Email: EmailAddress,
+  URL,
+  NonPositiveInt,
+  PositiveInt,
+  NonNegativeInt,
+  NegativeInt,
+  NonPositiveFloat,
+  PositiveFloat,
+  NonNegativeFloat,
+  NegativeFloat
 }
