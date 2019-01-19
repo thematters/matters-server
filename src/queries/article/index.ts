@@ -53,13 +53,13 @@ export default {
     appreciateLeft,
     participants, // TODO
     participantCount: () => 50, // TODO
-    oss: articleOSS.rootOSS
+    oss: (root: any) => root
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
     count: tagCount,
     articles: tagArticles,
-    oss: tagOSS.rootOSS
+    oss: (root: any) => root
   },
   ArticleOSS: {
     boost: articleOSS.boost,

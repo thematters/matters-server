@@ -10,6 +10,8 @@ export default /* GraphQL */ `
   extend type Mutation {
     singleFileUpload(input: SingleFileUploadInput!): Asset!  @authenticate
     feedback(input: FeedbackInput!): Boolean
+    setBoost(input: SetBoostInput!): Node! @authorize
+    putRemark(input: PutRemarkInput!): String @authorize
   }
 
   extend type Subscription {
@@ -119,6 +121,7 @@ export default /* GraphQL */ `
     assets: [URL!]
     contact: String
     createdAt: DateTime!
+    remark: String @authorize
   }
 
   type ReportEdge {
@@ -186,6 +189,18 @@ export default /* GraphQL */ `
     contact: String
   }
 
+  input SetBoostInput {
+    id: ID!
+    boost: NonNegativeFloat!
+    type: BoostTypes!
+  }
+
+  input PutRemarkInput {
+    id: ID!
+    remark: String!
+    type: RemarkTypes!
+  }
+
   input ConnectionArgs {
     after: String
     first: Int
@@ -195,6 +210,21 @@ export default /* GraphQL */ `
     Article
     User
     Tag
+  }
+
+  enum BoostTypes {
+    Article
+    User
+    Tag
+  }
+
+  enum RemarkTypes {
+    Article
+    User
+    Tag
+    Comment
+    Report
+    Feedback
   }
 
   enum AssetType {
@@ -220,7 +250,7 @@ export default /* GraphQL */ `
     vistor
     user
     admin
-  } 
+  }
 
   directive @deprecated(
     reason: String = "No longer supported"

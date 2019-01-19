@@ -1,26 +1,4 @@
-import { AuthenticationError } from 'apollo-server'
-import {
-  Context,
-  TagToOssResolver,
-  TagOSSToBoostResolver,
-  TagOSSToScoreResolver
-} from 'definitions'
-
-export const rootOSS: TagToOssResolver = (
-  root: any,
-  _: any,
-  { viewer }: Context
-) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
-  if (viewer.role !== 'admin') {
-    throw new AuthenticationError('only admin can do this')
-  }
-
-  return root
-}
+import { TagOSSToBoostResolver, TagOSSToScoreResolver } from 'definitions'
 
 export const boost: TagOSSToBoostResolver = (
   { id },

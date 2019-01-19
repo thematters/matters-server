@@ -8,12 +8,13 @@ export default /* GraphQL */ `
     archiveArticle(input: ArchiveArticleInput!): Article! @authenticate
     subscribeArticle(input: SubscribeArticleInput!): Boolean @authenticate
     unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean @authenticate
-    reportArticle(input: ReportArticleInput!): Boolean @authenticate
+    reportArticle(input: ReportArticleInput!): Boolean
     appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate
-    readArticle(input: ReadArticleInput!): Boolean @authenticate
+    readArticle(input: ReadArticleInput!): Boolean
     recallPublish(input: RecallPublishInput!): Draft! @authenticate
-    toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authenticate
-    toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @authenticate
+    # OSS
+    toggleArticleLive(input: ToggleArticleLiveInput!): Article!
+    toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
   }
 
   type Article implements Node {
@@ -52,6 +53,7 @@ export default /* GraphQL */ `
     subscribed: Boolean!
     # OSS
     oss: ArticleOSS! @authorize
+    remark: String @authorize
   }
 
   type Tag implements Node {
@@ -62,11 +64,12 @@ export default /* GraphQL */ `
     createdAt: DateTime!
     # OSS
     oss: TagOSS! @authorize
+    remark: String @authorize
   }
 
-  type ArticleOSS @authorize {
-    boost: Float!
-    score: Float!
+  type  ArticleOSS @authorize {
+    boost: NonNegativeFloat!
+    score: NonNegativeFloat!
     inRecommendToday: Boolean!
     inRecommendIcymi: Boolean!
     inRecommendHottest: Boolean!
@@ -75,8 +78,8 @@ export default /* GraphQL */ `
   }
 
   type TagOSS @authorize {
-    boost: Float!
-    score: Float!
+    boost: NonNegativeFloat!
+    score: NonNegativeFloat!
   }
 
   type ArticleConnection {
@@ -152,7 +155,6 @@ export default /* GraphQL */ `
     id: ID!
     enabled: Boolean!
   }
-
 
   enum ArticleState {
     active

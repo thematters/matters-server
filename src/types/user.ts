@@ -60,6 +60,7 @@ export default /* GraphQL */ `
     status: UserStatus!
     # OSS
     oss: UserOSS! @authorize
+    remark: String @authorize
   }
 
   type InvitationStatus {
@@ -144,23 +145,23 @@ export default /* GraphQL */ `
     # Number of articles published by user
     articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
     # Number of views on articles
-    viewCount: Int! @deprecated(reason: "Use \`User.drafts.totalCount\`.")
-    draftCount: Int!
+    viewCount: Int!
+    draftCount: Int! @deprecated(reason: "Use \`User.drafts.totalCount\`.")
     # Number of comments posted by user
     commentCount: Int!
-    quotationCount: Int! @deprecated(reason: "not used")
+    # quotationCount: Int! @deprecated(reason: "not used")
     subscriptionCount: Int! @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
     # Number of user that this user follows
     followeeCount: Int! @deprecated(reason: "Use \`User.followees.totalCount\`.")
     # Number of user that follows this user
     followerCount: Int! @deprecated(reason: "Use \`User.followers.totalCount\`.")
     # Number of unread notices
-    unreadNoticeCount: Int! 
+    unreadNoticeCount: Int!
   }
 
   type UserOSS @authorize {
-    boost: Float!
-    score: Float!
+    boost: NonNegativeFloat!
+    score: NonNegativeFloat!
   }
 
   type MAT {

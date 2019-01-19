@@ -54,6 +54,7 @@ type Article implements Node {
 
   """OSS"""
   oss: ArticleOSS!
+  remark: String
   commentCount: Int!
   pinCommentLimit: Int!
   pinCommentLeft: Int!
@@ -112,8 +113,8 @@ type ArticleNewSubscriberNotice implements Notice {
 }
 
 type ArticleOSS {
-  boost: Float!
-  score: Float!
+  boost: NonNegativeFloat!
+  score: NonNegativeFloat!
   inRecommendToday: Boolean!
   inRecommendIcymi: Boolean!
   inRecommendHottest: Boolean!
@@ -201,6 +202,12 @@ enum BadgeType {
   seed
 }
 
+enum BoostTypes {
+  Article
+  User
+  Tag
+}
+
 type Category {
   id: ID!
   name: String!
@@ -242,6 +249,7 @@ type Comment implements Node {
   quotationEnd: Int
   quotationContent: String
   replyTo: Comment
+  remark: String
 }
 
 type CommentConnection {
@@ -453,6 +461,8 @@ type Mutation {
   appreciateArticle(input: AppreciateArticleInput!): Article!
   readArticle(input: ReadArticleInput!): Boolean
   recallPublish(input: RecallPublishInput!): Draft!
+
+  """OSS"""
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
   toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
   putComment(input: PutCommentInput!): Comment!
@@ -473,6 +483,8 @@ type Mutation {
   markAllNoticesAsRead: Boolean
   singleFileUpload(input: SingleFileUploadInput!): Asset!
   feedback(input: FeedbackInput!): Boolean
+  setBoost(input: SetBoostInput!): Node!
+  putRemark(input: PutRemarkInput!): String
 
   """send/confirm verification code"""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -516,6 +528,10 @@ type Mutation {
   updateUserState__(input: UpdateUserStateInput!): User!
 }
 
+scalar NegativeFloat
+
+scalar NegativeInt
+
 interface Node {
   id: ID!
 }
@@ -527,6 +543,14 @@ input NodeEditedInput {
 input NodeInput {
   id: ID!
 }
+
+scalar NonNegativeFloat
+
+scalar NonNegativeInt
+
+scalar NonPositiveFloat
+
+scalar NonPositiveInt
 
 interface Notice {
   id: ID!
@@ -641,6 +665,10 @@ enum PlatformType {
   android
 }
 
+scalar PositiveFloat
+
+scalar PositiveInt
+
 input PublishArticleInput {
   id: ID!
   delay: Int
@@ -672,6 +700,12 @@ input PutDraftInput {
   content: String!
   tags: [String]
   coverAssetId: ID
+}
+
+input PutRemarkInput {
+  id: ID!
+  remark: String!
+  type: RemarkTypes!
 }
 
 """
@@ -761,6 +795,15 @@ input ReleasesInput {
   first: Int
 }
 
+enum RemarkTypes {
+  Article
+  User
+  Tag
+  Comment
+  Report
+  Feedback
+}
+
 type Report {
   id: ID!
   user: User
@@ -771,6 +814,7 @@ type Report {
   assets: [URL!]
   contact: String
   createdAt: DateTime!
+  remark: String
 }
 
 input ReportArticleInput {
@@ -851,6 +895,12 @@ input SendVerificationCodeInput {
   type: VerificationCodeType!
 }
 
+input SetBoostInput {
+  id: ID!
+  boost: NonNegativeFloat!
+  type: BoostTypes!
+}
+
 input SingleFileUploadInput {
   type: AssetType!
   file: Upload!
@@ -883,6 +933,7 @@ type Tag implements Node {
 
   """OSS"""
   oss: TagOSS!
+  remark: String
 }
 
 type TagConnection {
@@ -897,8 +948,8 @@ type TagEdge {
 }
 
 type TagOSS {
-  boost: Float!
-  score: Float!
+  boost: NonNegativeFloat!
+  score: NonNegativeFloat!
 }
 
 scalar Time
@@ -1019,6 +1070,7 @@ type User implements Node {
 
   """OSS"""
   oss: UserOSS!
+  remark: String
   notices(input: ConnectionArgs!): NoticeConnection!
 }
 
@@ -1095,8 +1147,8 @@ type UserNewFollowerNotice implements Notice {
 }
 
 type UserOSS {
-  boost: Float!
-  score: Float!
+  boost: NonNegativeFloat!
+  score: NonNegativeFloat!
 }
 
 input UserRegisterInput {
@@ -1144,12 +1196,13 @@ type UserStatus {
   articleCount: Int! @deprecated(reason: "Use `User.articles.totalCount`.")
 
   """Number of views on articles"""
-  viewCount: Int! @deprecated(reason: "Use `User.drafts.totalCount`.")
-  draftCount: Int!
+  viewCount: Int!
+  draftCount: Int! @deprecated(reason: "Use `User.drafts.totalCount`.")
 
   """Number of comments posted by user"""
   commentCount: Int!
-  quotationCount: Int! @deprecated(reason: "not used")
+
+  """quotationCount: Int! @deprecated(reason: "not used")"""
   subscriptionCount: Int! @deprecated(reason: "Use `User.subscriptions.totalCount`.")
 
   """Number of user that this user follows"""

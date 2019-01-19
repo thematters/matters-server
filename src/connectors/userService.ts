@@ -358,16 +358,18 @@ export class UserService extends BaseService {
    *             Follow            *
    *                               *
    *********************************/
-  follow = async (userId: string, targetId: string): Promise<any[]> =>
-    await this.baseUpdateOrCreate(
-      {
-        userId,
-        targetId,
-        action: USER_ACTION.follow
-      },
-      ['userId', 'targetId', 'action'],
-      'action_user'
-    )
+  follow = async (userId: string, targetId: string): Promise<any[]> => {
+    const data = {
+      userId,
+      targetId,
+      action: USER_ACTION.follow
+    }
+    return await this.baseUpdateOrCreate({
+      where: data,
+      data,
+      table: 'action_user'
+    })
+  }
 
   unfollow = async (userId: string, targetId: string): Promise<any[]> =>
     await this.knex
@@ -506,6 +508,13 @@ export class UserService extends BaseService {
     return userBoost.boost
   }
 
+  setBoost = async ({ id, boost }: { id: string; boost: number }) =>
+    this.baseUpdateOrCreate({
+      where: { userId: id },
+      data: { userId: id, boost },
+      table: 'user_boost'
+    })
+
   findScore = async (userId: string) => {
     const author = await this.knex('user_reader_view')
       .select()
@@ -581,7 +590,7 @@ export class UserService extends BaseService {
   countReadHistory = async (userId: string) => {
     const result = await this.knex('article_read')
       .where({ userId, archived: false })
-      .countDistinct('articleId')
+      .countDistinct('article_id')
       .first()
     return parseInt(result.count || 0, 10)
   }

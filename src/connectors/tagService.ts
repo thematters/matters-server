@@ -84,6 +84,13 @@ export class TagService extends BaseService {
     return tagBoost.boost
   }
 
+  setBoost = async ({ id, boost }: { id: string; boost: number }) =>
+    this.baseUpdateOrCreate({
+      where: { tagId: id },
+      data: { tagId: id, boost },
+      table: 'tag_boost'
+    })
+
   findScore = async (tagId: string) => {
     const tag = await this.knex('tag_count_view')
       .select()

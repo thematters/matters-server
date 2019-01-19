@@ -35,6 +35,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@matters/slugify": "^0.7.3",
+    "@okgrow/graphql-scalars": "^0.4.2",
     "@sendgrid/mail": "^6.3.1",
     "apollo-server": "^2.2.0",
     "aws-sdk": "^2.374.0",
