@@ -12,7 +12,8 @@ import {
   defaultTestUser,
   getUserContext,
   testClient,
-  registerUser
+  registerUser,
+  getViewerMAT
 } from './utils'
 
 let userService: any
