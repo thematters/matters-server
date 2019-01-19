@@ -22,7 +22,7 @@ const resolver: MutationToDeleteCommentResolver = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-  await commentService.baseUpdateById(dbId, {
+  await commentService.baseUpdate(dbId, {
     state: COMMENT_STATE.archived
   })
 

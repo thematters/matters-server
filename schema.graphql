@@ -349,6 +349,10 @@ input DeleteDraftInput {
   id: ID!
 }
 
+input DeleteTagsInput {
+  ids: [ID!]!
+}
+
 type DownstreamArticleArchivedNotice implements Notice {
   id: ID!
   unread: Boolean!
@@ -446,6 +450,11 @@ type MAT {
   history(input: ConnectionArgs!): TransactionConnection!
 }
 
+input MergeTagsInput {
+  ids: [ID!]!
+  content: String!
+}
+
 type Mutation {
   _: Boolean
   publishArticle(input: PublishArticleInput!): Draft!
@@ -461,6 +470,9 @@ type Mutation {
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
   toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
   toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article!
+  deleteTags(input: DeleteTagsInput!): Boolean
+  renameTag(input: RenameTagInput!): Tag!
+  mergeTags(input: MergeTagsInput!): Tag!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   unpinComment(input: UnpinCommentInput!): Comment!
@@ -805,6 +817,11 @@ enum RemarkTypes {
   Comment
   Report
   Feedback
+}
+
+input RenameTagInput {
+  id: ID!
+  content: String!
 }
 
 type Report {

@@ -895,6 +895,9 @@ export interface GQLMutation {
   toggleArticleLive: GQLArticle
   toggleArticlePublic: GQLArticle
   toggleArticleRecommend: GQLArticle
+  deleteTags?: boolean
+  renameTag: GQLTag
+  mergeTags: GQLTag
   putComment: GQLComment
   pinComment: GQLComment
   unpinComment: GQLComment
@@ -1037,6 +1040,20 @@ export enum GQLRecommendTypes {
   icymi = 'icymi',
   hottest = 'hottest',
   newest = 'newest'
+}
+
+export interface GQLDeleteTagsInput {
+  ids: Array<string>
+}
+
+export interface GQLRenameTagInput {
+  id: string
+  content: string
+}
+
+export interface GQLMergeTagsInput {
+  ids: Array<string>
+  content: string
 }
 
 export interface GQLPutCommentInput {
@@ -5053,6 +5070,9 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
+  deleteTags?: MutationToDeleteTagsResolver<TParent>
+  renameTag?: MutationToRenameTagResolver<TParent>
+  mergeTags?: MutationToMergeTagsResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   pinComment?: MutationToPinCommentResolver<TParent>
   unpinComment?: MutationToUnpinCommentResolver<TParent>
@@ -5248,6 +5268,42 @@ export interface MutationToToggleArticleRecommendResolver<
   (
     parent: TParent,
     args: MutationToToggleArticleRecommendArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToDeleteTagsArgs {
+  input: GQLDeleteTagsInput
+}
+export interface MutationToDeleteTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToDeleteTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToRenameTagArgs {
+  input: GQLRenameTagInput
+}
+export interface MutationToRenameTagResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToRenameTagArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToMergeTagsArgs {
+  input: GQLMergeTagsInput
+}
+export interface MutationToMergeTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToMergeTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -61,7 +61,7 @@ export class CommentService extends BaseService {
     [key: string]: any
   }) => {
     // update comment
-    const comemnt = await this.baseUpdateById(id, {
+    const comemnt = await this.baseUpdate(id, {
       articleId,
       parentCommentId,
       content

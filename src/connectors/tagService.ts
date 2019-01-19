@@ -1,7 +1,8 @@
 // external
 import DataLoader from 'dataloader'
+import _ from 'lodash'
 // internal
-import { GQLSearchInput, ItemData } from 'definitions'
+import { GQLSearchInput } from 'definitions'
 import { BaseService } from './baseService'
 import { BATCH_SIZE } from 'common/enums'
 
@@ -15,20 +16,17 @@ export class TagService extends BaseService {
     content
   }: {
     content: string
-  }): Promise<{ id: string; content: string }> => {
-    const [tag] = await this.findByContent(content)
-    if (tag) {
-      return tag
-    }
-    return await this.baseCreate({
-      content
+  }): Promise<{ id: string; content: string }> =>
+    this.baseFindOrCreate({
+      where: { content },
+      data: { content }
     })
-  }
 
   find = async ({ where }: { where?: { [key: string]: any } }) => {
     let qs = this.knex
       .select()
       .from(this.table)
+      .where({ deleted: false })
       .orderBy('id', 'desc')
 
     if (where) {
@@ -37,11 +35,6 @@ export class TagService extends BaseService {
 
     return await qs
   }
-
-  findByContent = async (content: string) =>
-    this.knex(this.table)
-      .select()
-      .where({ content })
 
   /*********************************
    *                               *
@@ -101,7 +94,7 @@ export class TagService extends BaseService {
       return 1
     }
 
-    return tag.tagScore
+    return tag.tagScore || 1
   }
 
   /*********************************
@@ -110,12 +103,21 @@ export class TagService extends BaseService {
    *                               *
    *********************************/
   createArticleTags = async ({
-    articleId,
-    tagIds = []
+    articleIds,
+    tagIds
   }: {
-    [key: string]: any
+    articleIds: string[]
+    tagIds: string[]
   }) => {
-    const items = tagIds.map((tagId: string) => ({ articleId, tagId }))
+    articleIds = _.uniq(articleIds)
+    tagIds = _.uniq(tagIds)
+
+    const items = _.flatten(
+      articleIds.map(articleId => {
+        return tagIds.map(tagId => ({ articleId, tagId }))
+      })
+    )
+    console.log('craeteitems', items)
     return this.baseBatchCreate(items, 'article_tag')
   }
 
@@ -130,6 +132,9 @@ export class TagService extends BaseService {
     return parseInt(result.count, 10)
   }
 
+  /**
+   * Find article ids by tag id with offset/limit
+   */
   findArticleIds = async ({
     id: tagId,
     offset = 0,
@@ -147,5 +152,60 @@ export class TagService extends BaseService {
       .offset(offset)
 
     return result.map(({ articleId }: { articleId: string }) => articleId)
+  }
+
+  /**
+   * Find article ids by tag ids
+   */
+  findArticleIdsByTagIds = async (tagIds: string[]) => {
+    const result = await this.knex
+      .select('article_id')
+      .from('article_tag')
+      .whereIn('tag_id', tagIds)
+      .groupBy('article_id')
+    return result.map(({ articleId }: { articleId: string }) => articleId)
+  }
+
+  /*********************************
+   *                               *
+   *              OSS              *
+   *                               *
+   *********************************/
+  deleteTags = async (tagIds: string[]) => {
+    // delete article tags
+    await this.knex('article_tag')
+      .whereIn('tag_id', tagIds)
+      .del()
+
+    // delete tags
+    await this.baseBatchUpdate(tagIds, { deleted: true })
+  }
+
+  renameTag = async ({ tagId, content }: { tagId: string; content: string }) =>
+    this.baseUpdate(tagId, { content })
+
+  mergeTags = async ({
+    tagIds,
+    content
+  }: {
+    tagIds: string[]
+    content: string
+  }) => {
+    // create new tag
+    const newTag = await this.create({ content })
+
+    // move article tags to new tag
+    const articleIds = await this.findArticleIdsByTagIds(tagIds)
+    await this.createArticleTags({ articleIds, tagIds: [newTag.id] })
+
+    // delete article tags
+    await this.knex('article_tag')
+      .whereIn('tag_id', tagIds)
+      .del()
+
+    // delete tags
+    await this.baseBatchUpdate(tagIds, { deleted: true })
+
+    return newTag
   }
 }

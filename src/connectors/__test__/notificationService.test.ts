@@ -176,7 +176,7 @@ describe('bundle notices', async () => {
     if (!noticeId) {
       throw new Error('expect notice is bundleable')
     }
-    await noticeService.baseUpdateById(noticeId, { unread: false }, 'notice')
+    await noticeService.baseUpdate(noticeId, { unread: false }, 'notice')
     const unbundleableNotice = await getBundleableUserNewFollowerNoticeId()
     expect(unbundleableNotice).toBeUndefined()
   })

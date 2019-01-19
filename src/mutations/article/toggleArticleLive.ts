@@ -13,7 +13,7 @@ const resolver: MutationToToggleArticleLiveResolver = async (
     throw new ForbiddenError('target article does not exists')
   }
 
-  const updatedArticle = await articleService.baseUpdateById(dbId, {
+  const updatedArticle = await articleService.baseUpdate(dbId, {
     live: enabled
   })
 

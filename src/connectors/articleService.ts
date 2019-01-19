@@ -521,7 +521,7 @@ export class ArticleService extends BaseService {
    * Find or Update recommendation
    */
   addRecommendToday = async (articleId: string) =>
-    this.baseUpdateOrCreate({
+    this.baseFindOrCreate({
       where: { articleId },
       data: { articleId },
       table: 'matters_today'
@@ -533,7 +533,7 @@ export class ArticleService extends BaseService {
       .del()
 
   addRecommendIcymi = async (articleId: string) =>
-    this.baseUpdateOrCreate({
+    this.baseFindOrCreate({
       where: { articleId },
       data: { articleId },
       table: 'matters_choice'

@@ -9,6 +9,9 @@ import recallPublish from './recallPublish'
 import toggleArticleLive from './toggleArticleLive'
 import toggleArticlePublic from './toggleArticlePublic'
 import toggleArticleRecommend from './toggleArticleRecommend'
+import deleteTags from './deleteTags'
+import renameTag from './renameTag'
+import mergeTags from './mergeTags'
 
 export default {
   Mutation: {
@@ -22,6 +25,9 @@ export default {
     recallPublish,
     toggleArticleLive,
     toggleArticlePublic,
-    toggleArticleRecommend
+    toggleArticleRecommend,
+    deleteTags,
+    renameTag,
+    mergeTags
   }
 }

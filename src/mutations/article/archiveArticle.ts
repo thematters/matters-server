@@ -19,7 +19,7 @@ const resolver: MutationToArchiveArticleResolver = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-  const article = await articleService.baseUpdateById(dbId, {
+  const article = await articleService.baseUpdate(dbId, {
     state: ARTICLE_STATE.archived
   })
 
