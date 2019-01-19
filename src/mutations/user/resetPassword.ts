@@ -1,5 +1,5 @@
 import { MutationToResetPasswordResolver } from 'definitions'
-import { UserInputError } from 'apollo-server'
+import { UserInputError, EmailNotFoundError } from 'common/errors'
 
 const resolver: MutationToResetPasswordResolver = async (
   _,
@@ -22,7 +22,7 @@ const resolver: MutationToResetPasswordResolver = async (
   // check email
   const user = await userService.findByEmail(code.email)
   if (!user) {
-    throw new UserInputError('target user does not exists')
+    throw new EmailNotFoundError('target user does not exists')
   }
 
   // change password

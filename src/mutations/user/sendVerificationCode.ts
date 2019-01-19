@@ -2,7 +2,7 @@ import { MutationToSendVerificationCodeResolver } from 'definitions'
 import { VERIFICATION_CODE_PROTECTED_TYPES } from 'common/enums'
 import { notificationQueue } from 'connectors/queue'
 import { environment } from 'common/environment'
-import { AuthenticationError } from 'apollo-server'
+import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,

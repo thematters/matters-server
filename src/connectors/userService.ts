@@ -19,12 +19,14 @@ import {
   BATCH_SIZE
 } from 'common/enums'
 import { environment } from 'common/environment'
+import { EmailNotFoundError, PasswordInvalidError } from 'common/errors'
 import {
   ItemData,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
   GQLUserRegisterInput
 } from 'definitions'
+
 import { BaseService } from './baseService'
 
 export class UserService extends BaseService {
@@ -84,18 +86,12 @@ export class UserService extends BaseService {
     const user = await this.findByEmail(email)
 
     if (!user) {
-      logger.info('Cannot find user with email, login failed.')
-      return {
-        auth: false
-      }
+      throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 
     const auth = await compare(password, user.passwordHash)
     if (!auth) {
-      logger.info('Password incorrect, login failed.')
-      return {
-        auth: false
-      }
+      throw new PasswordInvalidError('Password incorrect, login failed.')
     }
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
@@ -180,12 +176,17 @@ export class UserService extends BaseService {
    */
   findByEmail = async (
     email: string
-  ): Promise<{ uuid: string; [key: string]: string }> =>
-    this.knex
+  ): Promise<{ uuid: string; [key: string]: string }> => {
+    const result = await this.knex
       .select()
       .from(this.table)
       .where({ email })
       .first()
+    if (!result) {
+      throw new EmailNotFoundError(`Canoont find email ${email}`)
+    }
+    return result
+  }
 
   /**
    * Find users by a given user name.
