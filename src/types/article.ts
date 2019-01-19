@@ -12,6 +12,7 @@ export default /* GraphQL */ `
     appreciateArticle(input: AppreciateArticleInput!): Article!
     readArticle(input: ReadArticleInput!): Boolean
     recallPublish(input: RecallPublishInput!): Draft!
+    # OSS
     toggleArticleLive(input: ToggleArticleLiveInput!): Article!
     toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
   }
@@ -51,7 +52,8 @@ export default /* GraphQL */ `
     # Viewer has subscribed
     subscribed: Boolean!
     # OSS
-    oss: ArticleOSS!
+    oss: ArticleOSS! @auth(requires: admin)
+    remark: String @auth(requires: admin)
   }
 
   type Tag implements Node {
@@ -61,12 +63,13 @@ export default /* GraphQL */ `
     articles(input: ConnectionArgs!): ArticleConnection!
     createdAt: DateTime!
     # OSS
-    oss: TagOSS!
+    oss: TagOSS! @auth(requires: admin)
+    remark: String @auth(requires: admin)
   }
 
   type ArticleOSS {
-    boost: Float!
-    score: Float!
+    boost: NonNegativeFloat!
+    score: NonNegativeFloat!
     inRecommendToday: Boolean!
     inRecommendIcymi: Boolean!
     inRecommendHottest: Boolean!
@@ -75,8 +78,8 @@ export default /* GraphQL */ `
   }
 
   type TagOSS {
-    boost: Float!
-    score: Float!
+    boost: NonNegativeFloat!
+    score: NonNegativeFloat!
   }
 
   type ArticleConnection {
@@ -152,7 +155,6 @@ export default /* GraphQL */ `
     id: ID!
     enabled: Boolean!
   }
-
 
   enum ArticleState {
     active

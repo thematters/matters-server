@@ -374,10 +374,8 @@ export class ArticleService extends BaseService {
    */
   countRecommendToday = async (where: { [key: string]: any } = {}) => {
     const result = await this.knex('article')
-      .select('article.*', 'c.updated_at as chose_at')
       .join('matters_today as c', 'c.article_id', 'article.id')
       .where(where)
-      .groupBy('article.id', 'c.updated_at')
       .count()
       .first()
     return parseInt(result.count, 10)
@@ -385,10 +383,8 @@ export class ArticleService extends BaseService {
 
   countRecommendIcymi = async (where: { [key: string]: any } = {}) => {
     const result = await this.knex('article')
-      .select('article.*', 'c.updated_at as chose_at')
       .join('matters_choice as c', 'c.article_id', 'article.id')
       .where(where)
-      .groupBy('article.id', 'c.updated_at')
       .count()
       .first()
     return parseInt(result.count, 10)
@@ -406,6 +402,13 @@ export class ArticleService extends BaseService {
 
     return articleBoost.boost
   }
+
+  setBoost = async ({ id, boost }: { id: string; boost: number }) =>
+    this.baseUpdateOrCreate({
+      where: { articleId: id },
+      data: { articleId: id, boost },
+      table: 'article_boost'
+    })
 
   findScore = async (articleId: string) => {
     const article = await this.knex('article_count_view')
