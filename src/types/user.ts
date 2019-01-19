@@ -43,12 +43,12 @@ export default /* GraphQL */ `
     recommendation: Recommendation!
     # Articles written by this user
     articles(input: ConnectionArgs!): ArticleConnection!
-    drafts(input: ConnectionArgs!): DraftConnection! @self
-    audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @self
+    drafts(input: ConnectionArgs!): DraftConnection! @private
+    audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @private
     # Comments posted by this user
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
     subscriptions(input: ConnectionArgs!): ArticleConnection!
-    activity: UserActivity! @self
+    activity: UserActivity! @private
     # Followers of this user
     followers(input: ConnectionArgs!): UserConnection!
     # Users that this user follows
@@ -114,9 +114,9 @@ export default /* GraphQL */ `
     description: String
     # URL for avatar
     avatar: URL
-    email: Email
+    email: Email @private
     emailVerified: Boolean
-    mobile: String
+    mobile: String @private
     # Use 500 for now, adaptive in the future
     readSpeed: Int!
     badges: [Badge!]

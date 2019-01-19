@@ -182,9 +182,11 @@ export class UserService extends BaseService {
       .from(this.table)
       .where({ email })
       .first()
-    if (!result) {
-      throw new EmailNotFoundError(`Canoont find email ${email}`)
-    }
+
+    // if (!result) {
+    //   throw new EmailNotFoundError(`Cannot find email ${email}`)
+    // }
+
     return result
   }
 

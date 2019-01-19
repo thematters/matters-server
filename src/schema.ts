@@ -8,7 +8,7 @@ import mutations from './mutations'
 import subscriptions from './subscriptions'
 import {
   DeprecatedDirective,
-  SelfDirective,
+  PrivateDirective,
   authDirectiveFactory
 } from './types/directives'
 
@@ -18,7 +18,7 @@ const schema = makeExecutableSchema({
     deprecated: DeprecatedDirective,
     authenticate: authDirectiveFactory(AuthenticationError),
     authorize: authDirectiveFactory(ForbiddenError),
-    self: SelfDirective
+    private: PrivateDirective
   },
   resolvers: merge(queries, mutations, subscriptions)
 })
