@@ -277,7 +277,7 @@ export class UserService extends BaseService {
       .query('multi_match', {
         query: key,
         fuzziness: 5,
-        fields: ['description', 'displayName', 'userName']
+        fields: ['description', 'displayName^10', 'userName^5']
       })
       .size(100)
       .build()
