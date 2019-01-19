@@ -8,6 +8,7 @@ import readArticle from './readArticle'
 import recallPublish from './recallPublish'
 import toggleArticleLive from './toggleArticleLive'
 import toggleArticlePublic from './toggleArticlePublic'
+import toggleArticleRecommend from './toggleArticleRecommend'
 
 export default {
   Mutation: {
@@ -20,6 +21,7 @@ export default {
     readArticle,
     recallPublish,
     toggleArticleLive,
-    toggleArticlePublic
+    toggleArticlePublic,
+    toggleArticleRecommend
   }
 }

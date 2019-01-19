@@ -257,35 +257,75 @@ export class ArticleService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
+  /**
+   * Find Many
+   */
   recommendHottest = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    where = {}
+    where = {},
+    all = false
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-  }) =>
-    this.knex('article_activity_view')
-      .where(where)
+    all?: boolean
+  }) => {
+    console.log(where)
+    let qs = this.knex('article_activity_view as view')
+      .select('view.*', 'setting.in_hottest')
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'view.id',
+        'setting.article_id'
+      )
       .orderBy('latest_activity', 'desc null last')
+      .where(where)
       .limit(limit)
       .offset(offset)
+
+    if (!all) {
+      qs = qs.andWhere(function() {
+        this.where({ inHottest: true }).orWhereNull('in_hottest')
+      })
+    }
+
+    const result = await qs
+    return result
+  }
 
   recommendNewest = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    where = {}
+    where = {},
+    all = false
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-  }) =>
-    this.knex(this.table)
+    all?: boolean
+  }) => {
+    let qs = this.knex('article')
+      .select('article.*', 'setting.in_newest')
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'article.id',
+        'setting.article_id'
+      )
       .orderBy('id', 'desc')
       .where(where)
       .limit(limit)
       .offset(offset)
+
+    if (!all) {
+      qs = qs.andWhere(function() {
+        this.where({ inNewest: true }).orWhereNull('in_newest')
+      })
+    }
+
+    const result = await qs
+    return result
+  }
 
   recommendToday = async ({
     limit = BATCH_SIZE,
@@ -390,6 +430,60 @@ export class ArticleService extends BaseService {
     return parseInt(result.count, 10)
   }
 
+  countRecommendHottest = async ({
+    where = {},
+    all = false
+  }: {
+    where?: { [key: string]: any }
+    all?: boolean
+  }) => {
+    let qs = this.knex('article_activity_view as view')
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'view.id',
+        'setting.article_id'
+      )
+      .where(where)
+      .count()
+
+    if (!all) {
+      qs = qs.andWhere(function() {
+        this.where({ inHottest: true }).orWhereNull('in_hottest')
+      })
+    }
+    const result = await qs
+    return parseInt(result.count, 10)
+  }
+
+  countRecommendNewest = async ({
+    where = {},
+    all = false
+  }: {
+    where?: { [key: string]: any }
+    all?: boolean
+  }) => {
+    let qs = this.knex('article')
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'article.id',
+        'setting.article_id'
+      )
+      .where(where)
+      .count()
+
+    if (!all) {
+      qs = qs.andWhere(function() {
+        this.where({ inNewest: true }).orWhereNull('in_newest')
+      })
+    }
+
+    const result = await qs
+    return parseInt(result.count, 10)
+  }
+
+  /**
+   * Boost & Score
+   */
   findBoost = async (articleId: string) => {
     const articleBoost = await this.knex('article_boost')
       .select()
@@ -422,6 +516,59 @@ export class ArticleService extends BaseService {
 
     return article.topicScore
   }
+
+  /**
+   * Find or Update recommendation
+   */
+  addRecommendToday = async (articleId: string) =>
+    this.baseUpdateOrCreate({
+      where: { articleId },
+      data: { articleId },
+      table: 'matters_today'
+    })
+
+  removeRecommendToday = async (articleId: string) =>
+    this.knex('matters_today')
+      .where({ articleId })
+      .del()
+
+  addRecommendIcymi = async (articleId: string) =>
+    this.baseUpdateOrCreate({
+      where: { articleId },
+      data: { articleId },
+      table: 'matters_choice'
+    })
+
+  removeRecommendIcymi = async (articleId: string) =>
+    this.knex('matters_choice')
+      .where({ articleId })
+      .del()
+
+  findRecommendSetting = async (articleId: string) => {
+    const setting = await this.knex('article_recommend_setting')
+      .select()
+      .where({ articleId })
+      .first()
+
+    if (!setting) {
+      return { inHottest: true, inNewest: true }
+    }
+
+    return setting
+  }
+
+  updateRecommendSetting = async ({
+    articleId,
+    data
+  }: {
+    articleId: string
+    data: { [key in 'inHottest' | 'inNewest']?: boolean }
+  }) =>
+    this.baseUpdateOrCreate({
+      where: { articleId },
+      data: { ...data, articleId },
+      table: 'article_recommend_setting'
+    })
 
   /*********************************
    *                               *

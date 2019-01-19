@@ -13,8 +13,9 @@ export default /* GraphQL */ `
     readArticle(input: ReadArticleInput!): Boolean
     recallPublish(input: RecallPublishInput!): Draft!
     # OSS
-    toggleArticleLive(input: ToggleArticleLiveInput!): Article!
-    toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
+    toggleArticleLive(input: ToggleArticleLiveInput!): Article! @auth(requires: admin)
+    toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @auth(requires: admin)
+    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @auth(requires: admin)
   }
 
   type Article implements Node {
@@ -155,9 +156,22 @@ export default /* GraphQL */ `
     enabled: Boolean!
   }
 
+  input ToggleArticleRecommendInput {
+    id: ID!
+    enabled: Boolean!
+    type: RecommendTypes!
+  }
+
   enum ArticleState {
     active
     archived
     banned
+  }
+
+  enum RecommendTypes {
+    today
+    icymi
+    hottest
+    newest
   }
 `

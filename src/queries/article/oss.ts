@@ -32,11 +32,19 @@ export const inRecommendIcymi: ArticleOSSToInRecommendIcymiResolver = async (
 ) => !!(await articleService.findRecommendIcymi(id))
 
 export const inRecommendHottest: ArticleOSSToInRecommendHottestResolver = async (
-  { inHottest },
-  _
-) => inHottest
+  { id },
+  _,
+  { dataSources: { articleService } }
+) => {
+  const recommendSetting = await articleService.findRecommendSetting(id)
+  return recommendSetting.inHottest
+}
 
 export const inRecommendNewest: ArticleOSSToInRecommendNewestResolver = async (
-  { inNewest },
-  _
-) => inNewest
+  { id },
+  _,
+  { dataSources: { articleService } }
+) => {
+  const recommendSetting = await articleService.findRecommendSetting(id)
+  return recommendSetting.inNewest
+}

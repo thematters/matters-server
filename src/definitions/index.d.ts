@@ -96,6 +96,9 @@ export type TableName =
   | 'article_boost'
   | 'tag_boost'
   | 'user_boost'
+  | 'matters_today'
+  | 'matters_choice'
+  | 'article_recommend_setting'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'

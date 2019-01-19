@@ -1,21 +1,12 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
+import { ForbiddenError } from 'apollo-server'
 import { MutationToToggleArticleLiveResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
-import { USER_ROLE } from 'common/enums'
 
 const resolver: MutationToToggleArticleLiveResolver = async (
   root,
   { input: { id, enabled } },
   { viewer, dataSources: { articleService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
-  if (viewer.role !== USER_ROLE.admin) {
-    throw new AuthenticationError('only admin can do this')
-  }
-
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {

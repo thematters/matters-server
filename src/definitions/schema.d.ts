@@ -894,6 +894,7 @@ export interface GQLMutation {
    */
   toggleArticleLive: GQLArticle
   toggleArticlePublic: GQLArticle
+  toggleArticleRecommend: GQLArticle
   putComment: GQLComment
   pinComment: GQLComment
   unpinComment: GQLComment
@@ -1023,6 +1024,19 @@ export interface GQLToggleArticleLiveInput {
 export interface GQLToggleArticlePublicInput {
   id: string
   enabled: boolean
+}
+
+export interface GQLToggleArticleRecommendInput {
+  id: string
+  enabled: boolean
+  type: GQLRecommendTypes
+}
+
+export enum GQLRecommendTypes {
+  today = 'today',
+  icymi = 'icymi',
+  hottest = 'hottest',
+  newest = 'newest'
 }
 
 export interface GQLPutCommentInput {
@@ -5038,6 +5052,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   recallPublish?: MutationToRecallPublishResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
+  toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   pinComment?: MutationToPinCommentResolver<TParent>
   unpinComment?: MutationToUnpinCommentResolver<TParent>
@@ -5218,6 +5233,21 @@ export interface MutationToToggleArticlePublicResolver<
   (
     parent: TParent,
     args: MutationToToggleArticlePublicArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleArticleRecommendArgs {
+  input: GQLToggleArticleRecommendInput
+}
+export interface MutationToToggleArticleRecommendResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleArticleRecommendArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

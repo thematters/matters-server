@@ -460,6 +460,7 @@ type Mutation {
   """OSS"""
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
   toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
+  toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   unpinComment(input: UnpinCommentInput!): Comment!
@@ -771,6 +772,13 @@ type Recommendation {
   authors(input: AuthorsInput!): UserConnection!
 }
 
+enum RecommendTypes {
+  today
+  icymi
+  hottest
+  newest
+}
+
 type Release {
   title: String
   description: String
@@ -957,6 +965,12 @@ input ToggleArticleLiveInput {
 input ToggleArticlePublicInput {
   id: ID!
   enabled: Boolean!
+}
+
+input ToggleArticleRecommendInput {
+  id: ID!
+  enabled: Boolean!
+  type: RecommendTypes!
 }
 
 type Transaction {
