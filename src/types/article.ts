@@ -73,8 +73,7 @@ export default /* GraphQL */ `
     inRecommendToday: Boolean!
     inRecommendIcymi: Boolean!
     inRecommendHottest: Boolean!
-    inRecommendNewset: Boolean!
-    inRecommendTopic: Boolean!
+    inRecommendNewest: Boolean!
   }
 
   type TagOSS {

@@ -25,8 +25,19 @@ const resolvers: GQLRecommendationTypeResolver = {
       totalCount
     )
   },
-  hottest: async ({ id }, { input }, { dataSources: { articleService } }) => {
-    const where = id ? {} : { public: true }
+  hottest: async (
+    { id },
+    { input },
+    { viewer, dataSources: { articleService } }
+  ) => {
+    let where = {}
+    if (!id) {
+      where = { ...where, public: true }
+    }
+    if (!viewer.hasRole('admin')) {
+      where = { ...where, inNewest: true }
+    }
+
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.baseCount(where)
@@ -40,8 +51,19 @@ const resolvers: GQLRecommendationTypeResolver = {
       totalCount
     )
   },
-  newest: async ({ id }, { input }, { dataSources: { articleService } }) => {
-    const where = id ? {} : { public: true }
+  newest: async (
+    { id },
+    { input },
+    { viewer, dataSources: { articleService } }
+  ) => {
+    let where = {}
+    if (!id) {
+      where = { ...where, public: true }
+    }
+    if (!viewer.hasRole('admin')) {
+      where = { ...where, inNewest: true }
+    }
+
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.baseCount(where)

@@ -2,10 +2,9 @@ import {
   ArticleOSSToBoostResolver,
   ArticleOSSToScoreResolver,
   ArticleOSSToInRecommendHottestResolver,
-  ArticleOSSToInRecommendNewsetResolver,
+  ArticleOSSToInRecommendNewestResolver,
   ArticleOSSToInRecommendTodayResolver,
-  ArticleOSSToInRecommendIcymiResolver,
-  ArticleOSSToInRecommendTopicResolver
+  ArticleOSSToInRecommendIcymiResolver
 } from 'definitions'
 
 export const boost: ArticleOSSToBoostResolver = (
@@ -33,19 +32,11 @@ export const inRecommendIcymi: ArticleOSSToInRecommendIcymiResolver = async (
 ) => !!(await articleService.findRecommendIcymi(id))
 
 export const inRecommendHottest: ArticleOSSToInRecommendHottestResolver = async (
-  { id },
-  _,
-  { dataSources: { articleService } }
-) => !!(await articleService.findRecommendHottest(id))
+  { inHottest },
+  _
+) => inHottest
 
-export const inRecommendNewset: ArticleOSSToInRecommendNewsetResolver = async (
-  { id },
-  _,
-  { dataSources: { articleService } }
-) => !!(await articleService.findRecommendNewset(id))
-
-export const inRecommendTopic: ArticleOSSToInRecommendTopicResolver = async (
-  { id },
-  _,
-  { dataSources: { articleService } }
-) => !!(await articleService.findRecommendTopic(id))
+export const inRecommendNewest: ArticleOSSToInRecommendNewestResolver = async (
+  { inNewest },
+  _
+) => inNewest
