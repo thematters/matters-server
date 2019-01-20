@@ -9,9 +9,7 @@ import {
   GQLAppreciateArticleInput
 } from 'definitions'
 // local
-import { testClient } from './utils'
-import { putDraft } from './draft.test'
-import { getViewerMAT } from './user.test'
+import { testClient, publishArticle, putDraft, getViewerMAT } from './utils'
 
 afterAll(knex.destroy)
 
@@ -131,19 +129,6 @@ const GET_RELATED_ARTICLES = `
     }
   }
 `
-
-export const publishArticle = async (input: GQLPublishArticleInput) => {
-  const { mutate } = await testClient({
-    isAuth: true
-  })
-  const result = await mutate({
-    mutation: PUBLISH_ARTICLE,
-    // @ts-ignore
-    variables: { input }
-  })
-  const article = result && result.data && result.data.publishArticle
-  return article
-}
 
 export const getArticleMAT = async (input: GQLNodeInput) => {
   const { query } = await testClient()

@@ -1,4 +1,4 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
+import { AuthenticationError, ForbiddenError } from 'common/errors'
 import { MutationToPinCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 

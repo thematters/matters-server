@@ -1,4 +1,8 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
+import {
+  AuthenticationError,
+  ForbiddenError,
+  NotEnoughMatError
+} from 'common/errors'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 import { v4 } from 'uuid'
 import { fromGlobalId } from 'common/utils'
@@ -13,7 +17,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
   }
 
   if (viewer.mat < amount) {
-    throw new ForbiddenError('not enough MAT to appreciate')
+    throw new NotEnoughMatError('not enough MAT to appreciate')
   }
 
   const { id: dbId } = fromGlobalId(id)

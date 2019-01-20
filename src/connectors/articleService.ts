@@ -13,6 +13,7 @@ import {
 import { ItemData, GQLSearchInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
 import { stripHtml, countWords } from 'common/utils'
+import { ArticleNotFoundError } from 'common/errors'
 
 import { BaseService } from './baseService'
 import { UserService } from './userService'
@@ -23,8 +24,26 @@ export class ArticleService extends BaseService {
   constructor() {
     super('article')
     this.ipfs = ipfs
-    this.dataloader = new DataLoader(this.baseFindByIds)
-    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+
+    this.dataloader = new DataLoader(async (ids: string[]) => {
+      const result = await this.baseFindByIds(ids)
+
+      if (result.findIndex((item: any) => !item) >= 0) {
+        throw new ArticleNotFoundError('Cannot find article')
+      }
+
+      return result
+    })
+
+    this.uuidLoader = new DataLoader(async (uuids: string[]) => {
+      const result = await this.baseFindByUUIDs(uuids)
+
+      if (result.findIndex((item: any) => !item) >= 0) {
+        throw new ArticleNotFoundError('Cannot find article')
+      }
+
+      return result
+    })
   }
 
   /**

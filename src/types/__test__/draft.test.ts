@@ -1,7 +1,7 @@
 // local
 import { knex } from 'connectors/db'
-import { GQLPutDraftInput, GQLPutAudiodraftInput } from 'definitions'
-import { testClient } from './utils'
+import { GQLPutAudiodraftInput } from 'definitions'
+import { testClient, putDraft } from './utils'
 
 afterAll(knex.destroy)
 
@@ -31,19 +31,6 @@ const PUT_AUDIO_DRAFT = `
     }
   }
 `
-
-export const putDraft = async (draft: GQLPutDraftInput) => {
-  const { mutate } = await testClient({
-    isAuth: true
-  })
-  const result = await mutate({
-    mutation: PUT_DRAFT,
-    // @ts-ignore
-    variables: { input: draft }
-  })
-  const putDraft = result && result.data && result.data.putDraft
-  return putDraft
-}
 
 export const putAudiodraft = async (Audiodraft: GQLPutAudiodraftInput) => {
   const { mutate } = await testClient({

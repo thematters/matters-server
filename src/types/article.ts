@@ -4,22 +4,22 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    publishArticle(input: PublishArticleInput!): Draft!
-    archiveArticle(input: ArchiveArticleInput!): Article!
-    subscribeArticle(input: SubscribeArticleInput!): Boolean
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean
+    publishArticle(input: PublishArticleInput!): Draft! @authenticate
+    archiveArticle(input: ArchiveArticleInput!): Article! @authenticate
+    subscribeArticle(input: SubscribeArticleInput!): Boolean @authenticate
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean @authenticate
     reportArticle(input: ReportArticleInput!): Boolean
-    appreciateArticle(input: AppreciateArticleInput!): Article!
+    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate
     readArticle(input: ReadArticleInput!): Boolean
-    recallPublish(input: RecallPublishInput!): Draft!
+    recallPublish(input: RecallPublishInput!): Draft! @authenticate
     # OSS
-    toggleArticleLive(input: ToggleArticleLiveInput!): Article! @auth(requires: admin)
-    toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @auth(requires: admin)
-    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @auth(requires: admin)
-    updateArticleState(input: UpdateArticleStateInput!): Article! @auth(requires: admin)
-    deleteTags(input: DeleteTagsInput!): Boolean @auth(requires: admin)
-    renameTag(input: RenameTagInput!): Tag! @auth(requires: admin)
-    mergeTags(input: MergeTagsInput!): Tag! @auth(requires: admin)
+    toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authorize
+    toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @authorize
+    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @authorize
+    updateArticleState(input: UpdateArticleStateInput!): Article! @authorize
+    deleteTags(input: DeleteTagsInput!): Boolean @authorize
+    renameTag(input: RenameTagInput!): Tag! @authorize
+    mergeTags(input: MergeTagsInput!): Tag! @authorize
   }
 
   type Article implements Node {
@@ -57,8 +57,8 @@ export default /* GraphQL */ `
     # Viewer has subscribed
     subscribed: Boolean!
     # OSS
-    oss: ArticleOSS! @auth(requires: admin)
-    remark: String @auth(requires: admin)
+    oss: ArticleOSS! @authorize
+    remark: String @authorize
   }
 
   type Tag implements Node {
@@ -68,11 +68,11 @@ export default /* GraphQL */ `
     articles(input: ConnectionArgs!): ArticleConnection!
     createdAt: DateTime!
     # OSS
-    oss: TagOSS! @auth(requires: admin)
-    remark: String @auth(requires: admin)
+    oss: TagOSS! @authorize
+    remark: String @authorize
   }
 
-  type ArticleOSS {
+  type  ArticleOSS {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
     inRecommendToday: Boolean!

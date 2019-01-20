@@ -4,14 +4,14 @@ export default /* GraphQL */ `
     frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection!
     official: Official!
-    oss: OSS! @auth(requires: admin)
+    oss: OSS! @authorize
   }
 
   extend type Mutation {
-    singleFileUpload(input: SingleFileUploadInput!): Asset!
+    singleFileUpload(input: SingleFileUploadInput!): Asset!  @authenticate
     feedback(input: FeedbackInput!): Boolean
-    setBoost(input: SetBoostInput!): Node! @auth(requires: admin)
-    putRemark(input: PutRemarkInput!): String @auth(requires: admin)
+    setBoost(input: SetBoostInput!): Node! @authorize
+    putRemark(input: PutRemarkInput!): String @authorize
   }
 
   extend type Subscription {
@@ -121,7 +121,7 @@ export default /* GraphQL */ `
     assets: [URL!]
     contact: String
     createdAt: DateTime!
-    remark: String @auth(requires: admin)
+    remark: String @authorize
   }
 
   type ReportEdge {
@@ -256,7 +256,13 @@ export default /* GraphQL */ `
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ENUM_VALUE
 
-  directive @auth(
+  directive @authenticate(
     requires: Role = user,
   ) on OBJECT | FIELD_DEFINITION
+
+  directive @authorize(
+    requires: Role = admin,
+  ) on OBJECT | FIELD_DEFINITION
+
+  directive @private on FIELD_DEFINITION
 `

@@ -1,5 +1,6 @@
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
+import { uniq } from 'lodash'
 
 import {
   USER_ACTION,
@@ -7,14 +8,30 @@ import {
   COMMENT_STATE
 } from 'common/enums'
 import { BaseService } from './baseService'
+import { CommentNotFoundError } from 'common/errors'
 
 import { GQLCommentsInput, GQLVote } from 'definitions/schema'
 
 export class CommentService extends BaseService {
   constructor() {
     super('comment')
-    this.dataloader = new DataLoader(this.baseFindByIds)
-    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+    this.dataloader = new DataLoader(async (ids: string[]) => {
+      const result = await this.baseFindByIds(ids)
+
+      if (result.findIndex((item: any) => !item) >= 0) {
+        throw new CommentNotFoundError('Cannot find comment')
+      }
+      return result
+    })
+    this.uuidLoader = new DataLoader(async (uuids: string[]) => {
+      const result = await this.baseFindByUUIDs(uuids)
+
+      if (result.findIndex((item: any) => !item) >= 0) {
+        throw new CommentNotFoundError('Cannot find comment')
+      }
+
+      return result
+    })
   }
 
   create = async ({

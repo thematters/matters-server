@@ -1,12 +1,12 @@
 export default /* GraphQL */ `
   extend type Mutation {
-    putComment(input: PutCommentInput!): Comment!
-    pinComment(input: PinCommentInput!): Comment!
-    unpinComment(input: UnpinCommentInput!): Comment!
-    deleteComment(input: DeleteCommentInput!): Boolean
-    reportComment(input: ReportCommentInput!): Boolean
-    voteComment(input: VoteCommentInput!): Comment!
-    unvoteComment(input: UnvoteCommentInput!): Comment!
+    putComment(input: PutCommentInput!): Comment! @authenticate
+    pinComment(input: PinCommentInput!): Comment! @authenticate
+    unpinComment(input: UnpinCommentInput!): Comment! @authenticate
+    deleteComment(input: DeleteCommentInput!): Boolean @authenticate
+    reportComment(input: ReportCommentInput!): Boolean @authenticate
+    voteComment(input: VoteCommentInput!): Comment! @authenticate
+    unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate
   }
 
   type Comment implements Node {
@@ -28,7 +28,7 @@ export default /* GraphQL */ `
     quotationEnd: Int
     quotationContent: String
     replyTo: Comment
-    remark: String @auth(requires: admin)
+    remark: String @authorize
   }
 
   extend type Article {

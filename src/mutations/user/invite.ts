@@ -1,8 +1,9 @@
 import {
   AuthenticationError,
   UserInputError,
-  ForbiddenError
-} from 'apollo-server'
+  ForbiddenError,
+  EmailExistsError
+} from 'common/errors'
 import { MutationToInviteResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 import { MAT_UNIT } from 'common/enums'
@@ -47,7 +48,7 @@ const resolver: MutationToInviteResolver = async (
   } else {
     const user = await userService.findByEmail(email)
     if (user) {
-      throw new ForbiddenError('email has been registered')
+      throw new EmailExistsError('email has been registered')
     }
     await userService.invite({
       senderId: isAdmin ? undefined : viewer.id,
