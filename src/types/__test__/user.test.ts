@@ -8,7 +8,13 @@ import {
 } from 'common/enums'
 import { UserService } from 'connectors'
 import { knex } from 'connectors/db'
-import { defaultTestUser, getUserContext, testClient } from './utils'
+import {
+  defaultTestUser,
+  getUserContext,
+  testClient,
+  registerUser,
+  getViewerMAT
+} from './utils'
 
 let userService: any
 beforeAll(async () => {
@@ -74,18 +80,6 @@ const GET_USER_BY_USERNAME = `
     user(input: $input) {
       info {
         userName
-      }
-    }
-  }
-`
-
-const GET_VIEWER_MAT = `
-  query {
-    viewer {
-      status {
-        MAT {
-          total
-        }
       }
     }
   }
@@ -287,28 +281,6 @@ const CONFIRM_VERIFICATION_CODE = `
   }
 `
 
-export const registerUser = async (user: { [key: string]: string }) => {
-  const { mutate } = await testClient()
-  return mutate({
-    mutation: USER_REGISTER,
-    // @ts-ignore
-    variables: { input: user }
-  })
-}
-
-export const getViewerMAT = async () => {
-  const { query } = await testClient({ isAuth: true })
-  const result = await query({
-    query: GET_VIEWER_MAT,
-    // @ts-ignore
-    variables: { input: {} }
-  })
-  const { data } = result
-  const { total } =
-    data && data.viewer && data.viewer.status && data.viewer.status.MAT
-  return total
-}
-
 export const getViewerMATHistory = async () => {
   const { query } = await testClient({ isAuth: true })
   const result = await query({
@@ -330,28 +302,6 @@ export const getUserInvitation = async (isAdmin = false) => {
   })
   const { data } = result
   return data
-}
-
-export const updateUserDescription = async ({
-  email,
-  description
-}: {
-  email?: string
-  description: string
-}) => {
-  let _email = defaultTestUser.email
-  if (email) {
-    _email = email
-  }
-  const context = await getUserContext({ email: _email })
-  const { mutate } = await testClient({
-    context
-  })
-  return mutate({
-    mutation: UPDATE_USER_INFO_DESCRIPTION,
-    // @ts-ignore
-    variables: { input: { description } }
-  })
 }
 
 describe('register and login functionarlities', () => {
@@ -391,12 +341,16 @@ describe('register and login functionarlities', () => {
     const email = 'test1@matters.news'
     const password = 'wrongPassword'
     const { mutate } = await testClient()
+    let code
+
     const result = await mutate({
       mutation: USER_LOGIN,
       // @ts-ignore
       variables: { input: { email, password } }
     })
-    expect(_get(result, 'data.userLogin.auth')).toBe(false)
+    expect(_get(result, 'errors.0.extensions.code')).toBe(
+      'USER_PASSWORD_INVALID'
+    )
   })
 
   test('auth success when password is correct', async () => {
@@ -649,7 +603,7 @@ describe('user recommendations', () => {
     expect(fromGlobalId(tag.id).type).toBe('Tag')
   })
 
-  test.only('retrive users from authors', async () => {
+  test('retrive users from authors', async () => {
     const { query: queryNew } = await testClient({
       isAuth: true
     })
@@ -658,7 +612,6 @@ describe('user recommendations', () => {
       // @ts-ignore
       variables: { input: { first: 1 } }
     })
-    console.log(result)
     const { data } = result
     const author = _get(data, 'viewer.recommendation.authors.edges.0.node')
     expect(fromGlobalId(author.id).type).toBe('User')

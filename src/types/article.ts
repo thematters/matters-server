@@ -4,14 +4,14 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    publishArticle(input: PublishArticleInput!): Draft!
-    archiveArticle(input: ArchiveArticleInput!): Article!
-    subscribeArticle(input: SubscribeArticleInput!): Boolean
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean
+    publishArticle(input: PublishArticleInput!): Draft! @authenticate
+    archiveArticle(input: ArchiveArticleInput!): Article! @authenticate
+    subscribeArticle(input: SubscribeArticleInput!): Boolean @authenticate
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean @authenticate
     reportArticle(input: ReportArticleInput!): Boolean
-    appreciateArticle(input: AppreciateArticleInput!): Article!
+    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate
     readArticle(input: ReadArticleInput!): Boolean
-    recallPublish(input: RecallPublishInput!): Draft!
+    recallPublish(input: RecallPublishInput!): Draft! @authenticate
     # OSS
     toggleArticleLive(input: ToggleArticleLiveInput!): Article!
     toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
@@ -52,8 +52,8 @@ export default /* GraphQL */ `
     # Viewer has subscribed
     subscribed: Boolean!
     # OSS
-    oss: ArticleOSS! @auth(requires: admin)
-    remark: String @auth(requires: admin)
+    oss: ArticleOSS! @authorize
+    remark: String @authorize
   }
 
   type Tag implements Node {
@@ -63,11 +63,11 @@ export default /* GraphQL */ `
     articles(input: ConnectionArgs!): ArticleConnection!
     createdAt: DateTime!
     # OSS
-    oss: TagOSS! @auth(requires: admin)
-    remark: String @auth(requires: admin)
+    oss: TagOSS! @authorize
+    remark: String @authorize
   }
 
-  type ArticleOSS {
+  type  ArticleOSS @authorize {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
     inRecommendToday: Boolean!
@@ -77,7 +77,7 @@ export default /* GraphQL */ `
     inRecommendTopic: Boolean!
   }
 
-  type TagOSS {
+  type TagOSS @authorize {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
   }

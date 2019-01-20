@@ -1,5 +1,9 @@
 import { MutationToConfirmVerificationCodeResolver } from 'definitions'
-import { UserInputError } from 'apollo-server'
+import {
+  UserInputError,
+  CodeExpiredError,
+  CodeInvalidError
+} from 'common/errors'
 
 const resolver: MutationToConfirmVerificationCodeResolver = async (
   _,
@@ -11,7 +15,7 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
   })
 
   if (!code) {
-    throw new UserInputError('code does not exists')
+    throw new CodeInvalidError('code does not exists')
   }
 
   if (code.expiredAt < new Date()) {
@@ -20,7 +24,7 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
       codeId: code.id,
       status: 'expired'
     })
-    throw new UserInputError('code is exipred')
+    throw new CodeExpiredError('code is exipred')
   }
 
   // mark code status as verified

@@ -1,11 +1,11 @@
 export default /* GraphQL */ `
   extend type Mutation {
     # audio dtaft
-    putAudiodraft(input: PutAudiodraftInput!): Audiodraft!
-    deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean
+    putAudiodraft(input: PutAudiodraftInput!): Audiodraft! @authenticate
+    deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean @authenticate
     # draft
-    putDraft(input: PutDraftInput!): Draft!
-    deleteDraft(input: DeleteDraftInput!): Boolean
+    putDraft(input: PutDraftInput!): Draft! @authenticate
+    deleteDraft(input: DeleteDraftInput!): Boolean @authenticate
   }
 
   type Draft implements Node {

@@ -3,10 +3,14 @@ import _get from 'lodash/get'
 import { toGlobalId } from 'common/utils'
 import { knex } from 'connectors/db'
 // local
-import { testClient, delay } from './utils'
-import { putDraft } from './draft.test'
-import { publishArticle } from './article.test'
-import { registerUser, updateUserDescription } from './user.test'
+import {
+  testClient,
+  delay,
+  publishArticle,
+  putDraft,
+  registerUser,
+  updateUserDescription
+} from './utils'
 
 const draft = {
   title: `test-${Math.floor(Math.random() * 100)}`,
@@ -24,8 +28,8 @@ const user = {
 }
 
 beforeAll(async () => {
-  const { id } = await putDraft(draft)
   try {
+    const { id } = await putDraft(draft)
     await publishArticle({ id, delay: 0 })
     await registerUser(user)
     await updateUserDescription({
@@ -43,9 +47,6 @@ const GET_USER = `
     node(input: $input) {
       ... on User {
         id
-        info {
-          email
-        }
       }
     }
   }
@@ -105,13 +106,14 @@ describe('query nodes of different type', async () => {
   test('query user node', async () => {
     const id = toGlobalId({ type: 'User', id: 1 })
     const { query } = await testClient()
-    const { data } = await query({
+    const result = await query({
       query: GET_USER,
       // @ts-ignore
       variables: { input: { id } }
     })
+    const { data } = result
     const node = data && data.node
-    expect(node).toMatchObject({ id, info: { email: 'test1@matters.news' } })
+    expect(node).toMatchObject({ id })
   })
 
   test('query article node', async () => {

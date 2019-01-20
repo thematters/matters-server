@@ -20,16 +20,16 @@ export default /* GraphQL */ `
     userLogin(input: UserLoginInput!): AuthResult!
     # addOAuth(input: AddOAuthInput!): Boolean
     # update info/ setting
-    updateUserInfo(input: UpdateUserInfoInput!): User!
-    updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
+    updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
+    updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting @authenticate
     # follow/unfollow
-    followUser(input: FollowUserInput!): Boolean @auth(requires: user)
-    unfollowUser(input: UnfollowUserInput!): Boolean @auth(requires: user)
+    followUser(input: FollowUserInput!): Boolean @authenticate
+    unfollowUser(input: UnfollowUserInput!): Boolean @authenticate
     # misc
     # importArticles(input: ImportArticlesInput!): [Article!]
-    clearReadHistory(input: ClearReadHistoryInput!): Boolean
-    clearSearchHistory: Boolean
-    invite(input: InviteInput!): Boolean @auth(requires: user)
+    clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
+    clearSearchHistory: Boolean  @authenticate
+    invite(input: InviteInput!): Boolean @authenticate
 
     # !!! update state: REMOVE IN PRODUTION !!!
     updateUserState__(input: UpdateUserStateInput!): User!
@@ -43,12 +43,12 @@ export default /* GraphQL */ `
     recommendation: Recommendation!
     # Articles written by this user
     articles(input: ConnectionArgs!): ArticleConnection!
-    drafts(input: ConnectionArgs!): DraftConnection!
-    audiodrafts(input: ConnectionArgs!): AudiodraftConnection!
+    drafts(input: ConnectionArgs!): DraftConnection! @private
+    audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @private
     # Comments posted by this user
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
     subscriptions(input: ConnectionArgs!): ArticleConnection!
-    activity: UserActivity!
+    activity: UserActivity! @private
     # Followers of this user
     followers(input: ConnectionArgs!): UserConnection!
     # Users that this user follows
@@ -59,8 +59,8 @@ export default /* GraphQL */ `
     isFollowee: Boolean!
     status: UserStatus!
     # OSS
-    oss: UserOSS! @auth(requires: admin)
-    remark: String @auth(requires: admin)
+    oss: UserOSS! @authorize
+    remark: String @authorize
   }
 
   type InvitationStatus {
@@ -115,9 +115,9 @@ export default /* GraphQL */ `
     description: String
     # URL for avatar
     avatar: URL
-    email: Email
+    email: Email @private
     emailVerified: Boolean
-    mobile: String
+    mobile: String @private
     # Use 500 for now, adaptive in the future
     readSpeed: Int!
     badges: [Badge!]
@@ -159,7 +159,7 @@ export default /* GraphQL */ `
     unreadNoticeCount: Int!
   }
 
-  type UserOSS {
+  type UserOSS @authorize {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
   }
