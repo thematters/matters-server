@@ -13,7 +13,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
-  type NoticeConnection {
+  type NoticeConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [NoticeEdge!]

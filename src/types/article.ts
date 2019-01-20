@@ -86,7 +86,7 @@ export default /* GraphQL */ `
     score: NonNegativeFloat!
   }
 
-  type ArticleConnection {
+  type ArticleConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [ArticleEdge!]
@@ -97,7 +97,7 @@ export default /* GraphQL */ `
     node: Article!
   }
 
-  type TagConnection {
+  type TagConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [TagEdge!]

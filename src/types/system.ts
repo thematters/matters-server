@@ -28,6 +28,11 @@ export default /* GraphQL */ `
     hasNextPage: Boolean!
   }
 
+  interface Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+  }
+
   type Official {
     reportCategory: [Category!]!
     feedbackCategory: [Category!]!
@@ -94,7 +99,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
-  type SearchResultConnection {
+  type SearchResultConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [SearchResultEdge!]
@@ -105,7 +110,7 @@ export default /* GraphQL */ `
     node: Node!
   }
 
-  type ReportConnection {
+  type ReportConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [ReportEdge!]

@@ -303,10 +303,48 @@ export interface GQLConnectionArgs {
   first?: number
 }
 
-export interface GQLArticleConnection {
+export interface GQLArticleConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLArticleEdge>
+}
+
+export interface GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+}
+
+/** Use this to resolve interface type Connection */
+export type GQLPossibleConnectionTypeNames =
+  | 'ArticleConnection'
+  | 'TagConnection'
+  | 'UserConnection'
+  | 'DraftConnection'
+  | 'AudiodraftConnection'
+  | 'ReadHistoryConnection'
+  | 'RecentSearchConnection'
+  | 'TransactionConnection'
+  | 'InvitationConnection'
+  | 'NoticeConnection'
+  | 'CommentConnection'
+  | 'SearchResultConnection'
+  | 'ReportConnection'
+
+export interface GQLConnectionNameMap {
+  Connection: GQLConnection
+  ArticleConnection: GQLArticleConnection
+  TagConnection: GQLTagConnection
+  UserConnection: GQLUserConnection
+  DraftConnection: GQLDraftConnection
+  AudiodraftConnection: GQLAudiodraftConnection
+  ReadHistoryConnection: GQLReadHistoryConnection
+  RecentSearchConnection: GQLRecentSearchConnection
+  TransactionConnection: GQLTransactionConnection
+  InvitationConnection: GQLInvitationConnection
+  NoticeConnection: GQLNoticeConnection
+  CommentConnection: GQLCommentConnection
+  SearchResultConnection: GQLSearchResultConnection
+  ReportConnection: GQLReportConnection
 }
 
 export interface GQLPageInfo {
@@ -320,7 +358,7 @@ export interface GQLArticleEdge {
   node: GQLArticle
 }
 
-export interface GQLTagConnection {
+export interface GQLTagConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLTagEdge>
@@ -368,7 +406,7 @@ export interface GQLAuthorsFilter {
   followed?: boolean
 }
 
-export interface GQLUserConnection {
+export interface GQLUserConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLUserEdge>
@@ -379,7 +417,7 @@ export interface GQLUserEdge {
   node: GQLUser
 }
 
-export interface GQLDraftConnection {
+export interface GQLDraftConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLDraftEdge>
@@ -411,7 +449,7 @@ export enum GQLPublishState {
   published = 'published'
 }
 
-export interface GQLAudiodraftConnection {
+export interface GQLAudiodraftConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLAudiodraftEdge>
@@ -437,7 +475,7 @@ export interface GQLUserActivity {
   recentSearches: GQLRecentSearchConnection
 }
 
-export interface GQLReadHistoryConnection {
+export interface GQLReadHistoryConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLReadHistoryEdge>
@@ -453,7 +491,7 @@ export interface GQLReadHistory {
   readAt: GQLDateTime
 }
 
-export interface GQLRecentSearchConnection {
+export interface GQLRecentSearchConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLRecentSearchEdge>
@@ -532,7 +570,7 @@ export interface GQLMAT {
   history: GQLTransactionConnection
 }
 
-export interface GQLTransactionConnection {
+export interface GQLTransactionConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLTransactionEdge>
@@ -574,7 +612,7 @@ export interface GQLInvitationStatus {
   sent: GQLInvitationConnection
 }
 
-export interface GQLInvitationConnection {
+export interface GQLInvitationConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLInvitationEdge>
@@ -598,7 +636,7 @@ export interface GQLUserOSS {
   score: GQLNonNegativeFloat
 }
 
-export interface GQLNoticeConnection {
+export interface GQLNoticeConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLNoticeEdge>
@@ -695,7 +733,7 @@ export enum GQLVote {
   down = 'down'
 }
 
-export interface GQLCommentConnection {
+export interface GQLCommentConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLCommentEdge>
@@ -742,7 +780,7 @@ export enum GQLSearchTypes {
   Tag = 'Tag'
 }
 
-export interface GQLSearchResultConnection {
+export interface GQLSearchResultConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLSearchResultEdge>
@@ -846,7 +884,7 @@ export interface GQLReportsInput {
   first?: number
 }
 
-export interface GQLReportConnection {
+export interface GQLReportConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLReportEdge>
@@ -1482,6 +1520,10 @@ export interface GQLResolver {
   NotificationSetting?: GQLNotificationSettingTypeResolver
   Recommendation?: GQLRecommendationTypeResolver
   ArticleConnection?: GQLArticleConnectionTypeResolver
+  Connection?: {
+    __resolveType: GQLConnectionTypeResolver
+  }
+
   PageInfo?: GQLPageInfoTypeResolver
   ArticleEdge?: GQLArticleEdgeTypeResolver
   TagConnection?: GQLTagConnectionTypeResolver
@@ -2757,6 +2799,22 @@ export interface ArticleConnectionToEdgesResolver<
   ): TResult
 }
 
+export interface GQLConnectionTypeResolver<TParent = any> {
+  (parent: TParent, context: Context, info: GraphQLResolveInfo):
+    | 'ArticleConnection'
+    | 'TagConnection'
+    | 'UserConnection'
+    | 'DraftConnection'
+    | 'AudiodraftConnection'
+    | 'ReadHistoryConnection'
+    | 'RecentSearchConnection'
+    | 'TransactionConnection'
+    | 'InvitationConnection'
+    | 'NoticeConnection'
+    | 'CommentConnection'
+    | 'SearchResultConnection'
+    | 'ReportConnection'
+}
 export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
   endCursor?: PageInfoToEndCursorResolver<TParent>
