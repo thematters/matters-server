@@ -142,9 +142,6 @@ export class UserService extends BaseService {
     return user
   }
 
-  updateState = async ({ userId, state }: { userId: string; state: string }) =>
-    await this.baseUpdate(userId, { state })
-
   changePassword = async ({
     userId,
     password

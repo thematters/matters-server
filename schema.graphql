@@ -470,6 +470,7 @@ type Mutation {
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
   toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
   toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article!
+  updateArticleState(input: UpdateArticleStateInput!): Article!
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
@@ -1029,6 +1030,11 @@ input UnsubscribeArticleInput {
 
 input UnvoteCommentInput {
   id: ID!
+}
+
+input UpdateArticleStateInput {
+  id: ID!
+  state: ArticleState!
 }
 
 input UpdateNotificationSettingInput {

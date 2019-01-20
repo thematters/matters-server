@@ -9,6 +9,7 @@ import recallPublish from './recallPublish'
 import toggleArticleLive from './toggleArticleLive'
 import toggleArticlePublic from './toggleArticlePublic'
 import toggleArticleRecommend from './toggleArticleRecommend'
+import updateArticleState from './updateArticleState'
 import deleteTags from './deleteTags'
 import renameTag from './renameTag'
 import mergeTags from './mergeTags'
@@ -26,6 +27,7 @@ export default {
     toggleArticleLive,
     toggleArticlePublic,
     toggleArticleRecommend,
+    updateArticleState,
     deleteTags,
     renameTag,
     mergeTags

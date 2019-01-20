@@ -16,6 +16,7 @@ export default /* GraphQL */ `
     toggleArticleLive(input: ToggleArticleLiveInput!): Article! @auth(requires: admin)
     toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @auth(requires: admin)
     toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @auth(requires: admin)
+    updateArticleState(input: UpdateArticleStateInput!): Article! @auth(requires: admin)
     deleteTags(input: DeleteTagsInput!): Boolean @auth(requires: admin)
     renameTag(input: RenameTagInput!): Tag! @auth(requires: admin)
     mergeTags(input: MergeTagsInput!): Tag! @auth(requires: admin)
@@ -163,6 +164,11 @@ export default /* GraphQL */ `
     id: ID!
     enabled: Boolean!
     type: RecommendTypes!
+  }
+
+  input UpdateArticleStateInput {
+    id: ID!
+    state: ArticleState!
   }
 
   input DeleteTagsInput {

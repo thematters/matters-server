@@ -895,6 +895,7 @@ export interface GQLMutation {
   toggleArticleLive: GQLArticle
   toggleArticlePublic: GQLArticle
   toggleArticleRecommend: GQLArticle
+  updateArticleState: GQLArticle
   deleteTags?: boolean
   renameTag: GQLTag
   mergeTags: GQLTag
@@ -1039,6 +1040,11 @@ export enum GQLRecommendTypes {
   icymi = 'icymi',
   hottest = 'hottest',
   newest = 'newest'
+}
+
+export interface GQLUpdateArticleStateInput {
+  id: string
+  state: GQLArticleState
 }
 
 export interface GQLDeleteTagsInput {
@@ -5070,6 +5076,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
+  updateArticleState?: MutationToUpdateArticleStateResolver<TParent>
   deleteTags?: MutationToDeleteTagsResolver<TParent>
   renameTag?: MutationToRenameTagResolver<TParent>
   mergeTags?: MutationToMergeTagsResolver<TParent>
@@ -5268,6 +5275,21 @@ export interface MutationToToggleArticleRecommendResolver<
   (
     parent: TParent,
     args: MutationToToggleArticleRecommendArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateArticleStateArgs {
+  input: GQLUpdateArticleStateInput
+}
+export interface MutationToUpdateArticleStateResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateArticleStateArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
