@@ -1,10 +1,10 @@
 import { AuthenticationError } from 'apollo-server'
 
-import { MutationToUpdateUserState__Resolver } from 'definitions'
+import { MutationToUpdateUserStateResolver } from 'definitions'
 import { isProd } from 'common/environment'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: MutationToUpdateUserState__Resolver = async (
+const resolver: MutationToUpdateUserStateResolver = async (
   _,
   { input: { id, state } },
   { viewer, dataSources: { userService } }

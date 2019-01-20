@@ -968,7 +968,6 @@ export interface GQLMutation {
   unfollowUser?: boolean
 
   /**
-   * misc
    * importArticles(input: ImportArticlesInput!): [Article!]
    */
   clearReadHistory?: boolean
@@ -976,9 +975,9 @@ export interface GQLMutation {
   invite?: boolean
 
   /**
-   * !!! update state: REMOVE IN PRODUTION !!!
+   * OSS
    */
-  updateUserState__: GQLUser
+  updateUserState: GQLUser
 }
 
 export interface GQLPublishArticleInput {
@@ -1283,7 +1282,10 @@ export interface GQLInviteInput {
 export interface GQLUpdateUserStateInput {
   id: string
   state: GQLUserState
+  banDays?: GQLPositiveInt
 }
+
+export type GQLPositiveInt = any
 
 export interface GQLSubscription {
   _?: boolean
@@ -1405,8 +1407,6 @@ export interface GQLOfficialAnnouncementNotice extends GQLNotice {
 }
 
 export type GQLPositiveFloat = any
-
-export type GQLPositiveInt = any
 
 export enum GQLRole {
   vistor = 'vistor',
@@ -1533,6 +1533,7 @@ export interface GQLResolver {
   Upload?: GraphQLScalarType
   Asset?: GQLAssetTypeResolver
   AuthResult?: GQLAuthResultTypeResolver
+  PositiveInt?: GraphQLScalarType
   Subscription?: GQLSubscriptionTypeResolver
   ArticleNewAppreciationNotice?: GQLArticleNewAppreciationNoticeTypeResolver
   ArticleNewCommentNotice?: GQLArticleNewCommentNoticeTypeResolver
@@ -1553,7 +1554,6 @@ export interface GQLResolver {
   NonPositiveInt?: GraphQLScalarType
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
   PositiveFloat?: GraphQLScalarType
-  PositiveInt?: GraphQLScalarType
   SubscribedArticleNewCommentNotice?: GQLSubscribedArticleNewCommentNoticeTypeResolver
   Time?: GraphQLScalarType
   UpstreamArticleArchivedNotice?: GQLUpstreamArticleArchivedNoticeTypeResolver
@@ -5105,7 +5105,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   invite?: MutationToInviteResolver<TParent>
-  updateUserState__?: MutationToUpdateUserState__Resolver<TParent>
+  updateUserState?: MutationToUpdateUserStateResolver<TParent>
 }
 
 export interface MutationTo_Resolver<TParent = any, TResult = any> {
@@ -5690,16 +5690,16 @@ export interface MutationToInviteResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToUpdateUserState__Args {
+export interface MutationToUpdateUserStateArgs {
   input: GQLUpdateUserStateInput
 }
-export interface MutationToUpdateUserState__Resolver<
+export interface MutationToUpdateUserStateResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToUpdateUserState__Args,
+    args: MutationToUpdateUserStateArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

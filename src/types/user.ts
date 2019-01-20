@@ -25,14 +25,12 @@ export default /* GraphQL */ `
     # follow/unfollow
     followUser(input: FollowUserInput!): Boolean @auth(requires: user)
     unfollowUser(input: UnfollowUserInput!): Boolean @auth(requires: user)
-    # misc
     # importArticles(input: ImportArticlesInput!): [Article!]
     clearReadHistory(input: ClearReadHistoryInput!): Boolean
     clearSearchHistory: Boolean
     invite(input: InviteInput!): Boolean @auth(requires: user)
-
-    # !!! update state: REMOVE IN PRODUTION !!!
-    updateUserState__(input: UpdateUserStateInput!): User!
+    # OSS
+    updateUserState(input: UpdateUserStateInput!): User! @auth(requires: admin)
   }
 
   type User implements Node {
@@ -333,7 +331,9 @@ export default /* GraphQL */ `
   input UpdateUserStateInput {
     id: ID!
     state: UserState!
+    banDays: PositiveInt
   }
+
 
   input FollowUserInput {
     id: ID!

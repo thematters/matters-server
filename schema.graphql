@@ -524,16 +524,13 @@ type Mutation {
   followUser(input: FollowUserInput!): Boolean
   unfollowUser(input: UnfollowUserInput!): Boolean
 
-  """
-  misc
-  importArticles(input: ImportArticlesInput!): [Article!]
-  """
+  """importArticles(input: ImportArticlesInput!): [Article!]"""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
   clearSearchHistory: Boolean
   invite(input: InviteInput!): Boolean
 
-  """!!! update state: REMOVE IN PRODUTION !!!"""
-  updateUserState__(input: UpdateUserStateInput!): User!
+  """OSS"""
+  updateUserState(input: UpdateUserStateInput!): User!
 }
 
 scalar NegativeFloat
@@ -1050,6 +1047,7 @@ input UpdateUserInfoInput {
 input UpdateUserStateInput {
   id: ID!
   state: UserState!
+  banDays: PositiveInt
 }
 
 scalar Upload
