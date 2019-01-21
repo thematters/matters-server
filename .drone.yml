@@ -107,7 +107,7 @@ steps:
     image: node:10.14
     environment:
       MATTERS_ENV: staging
-      MATTERS_APOLLO_API_KEY: matters-stage:HLVj7CVFiTcNPfOShIs4tQ
+      MATTERS_APOLLO_API_KEY: MATTERS_APOLLO_API_KEY
       MATTERS_PG_HOST:
         from_secret: STAGING_PG_HOST
       MATTERS_PG_DATABASE:
