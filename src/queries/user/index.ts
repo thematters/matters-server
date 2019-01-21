@@ -54,7 +54,8 @@ export default {
   UserInfo: {
     avatar,
     badges,
-    userNameEditable
+    userNameEditable,
+    email: ({ email }: { email: string }) => email.replace(/#/g, '@')
   },
   UserSettings: {
     // oauthType,

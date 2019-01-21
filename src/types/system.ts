@@ -122,7 +122,7 @@ export default /* GraphQL */ `
     article: Article
     comment: Comment
     category: String!
-    description: String!
+    description: String
     assets: [URL!]
     contact: String
     createdAt: DateTime!
