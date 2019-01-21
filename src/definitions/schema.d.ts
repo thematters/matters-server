@@ -901,7 +901,7 @@ export interface GQLReport {
   article?: GQLArticle
   comment?: GQLComment
   category: string
-  description: string
+  description?: string
   assets?: Array<GQLURL>
   contact?: string
   createdAt: GQLDateTime
