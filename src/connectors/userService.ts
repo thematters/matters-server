@@ -153,22 +153,6 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Find users
-   */
-  find = async ({ where }: { where?: { [key: string]: any } }) => {
-    let qs = this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
-
-    if (where) {
-      qs = qs.where(where)
-    }
-
-    return await qs
-  }
-
-  /**
    * Find users by a given email.
    */
   findByEmail = async (

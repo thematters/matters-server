@@ -1,16 +1,15 @@
 // external
 import { DataSource } from 'apollo-datasource'
 import _ from 'lodash'
-import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
-import { Client as ESClient } from 'elasticsearch'
 //local
 import { Item, ItemData, TableName } from 'definitions'
 import { aws, AWSService } from './aws'
 import { knex } from './db'
 import { es } from './es'
 import logger from 'common/logger'
+import { BATCH_SIZE } from 'common/enums'
 
 export class BaseService extends DataSource {
   es: typeof es
@@ -33,11 +32,16 @@ export class BaseService extends DataSource {
     this.aws = aws
   }
 
-  baseCount = async (where: { [key: string]: any } = {}) => {
-    const result = await this.knex(this.table)
-      .where(where)
+  baseCount = async (where?: { [key: string]: any }, table?: TableName) => {
+    let qs = this.knex(table || this.table)
       .count()
       .first()
+
+    if (where) {
+      qs = qs.where(where)
+    }
+
+    const result = await qs
     return parseInt(result.count, 10)
   }
 
@@ -104,6 +108,38 @@ export class BaseService extends DataSource {
     rows = uuids.map(uuid => rows.find((r: any) => r.uuid === uuid))
 
     return rows
+  }
+
+  /**
+   * Find items by given "where", "offset" and "limit"
+   */
+  baseFind = async ({
+    where,
+    offset = 0,
+    limit = BATCH_SIZE,
+    table
+  }: {
+    where?: { [key: string]: any }
+    offset?: number
+    limit?: number
+    table?: TableName
+  }) => {
+    let qs = this.knex
+      .select()
+      .from(table || this.table)
+      .orderBy('id', 'desc')
+
+    if (where) {
+      qs = qs.where(where)
+    }
+    if (limit) {
+      qs = qs.limit(limit)
+    }
+    if (offset) {
+      qs = qs.offset(offset)
+    }
+
+    return qs
   }
 
   /**

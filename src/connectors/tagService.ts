@@ -22,20 +22,6 @@ export class TagService extends BaseService {
       data: { content }
     })
 
-  find = async ({ where }: { where?: { [key: string]: any } }) => {
-    let qs = this.knex
-      .select()
-      .from(this.table)
-      .where({ deleted: false })
-      .orderBy('id', 'desc')
-
-    if (where) {
-      qs = qs.where(where)
-    }
-
-    return await qs
-  }
-
   /*********************************
    *                               *
    *           Search              *
