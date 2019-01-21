@@ -45,6 +45,7 @@ steps:
     image: node:10.14
     environment:
       MATTERS_ENV: development
+      MATTERS_APOLLO_API_KEY: service:matters-stage:HLVj7CVFiTcNPfOShIs4tQ
       MATTERS_PG_HOST:
         from_secret: DEVELOP_PG_HOST
       MATTERS_PG_DATABASE:
@@ -55,6 +56,7 @@ steps:
         from_secret: DEVELOP_PG_PASSWORD
     commands:
       - npm run db:migrate
+      - npm run schema:push
     when:
       branch:
         - develop
