@@ -39,7 +39,7 @@ export default /* GraphQL */ `
     comments(input: CommentsInput!): CommentConnection!
   }
 
-  type CommentConnection {
+  type CommentConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [CommentEdge!]

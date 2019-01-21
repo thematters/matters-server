@@ -303,10 +303,48 @@ export interface GQLConnectionArgs {
   first?: number
 }
 
-export interface GQLArticleConnection {
+export interface GQLArticleConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLArticleEdge>
+}
+
+export interface GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+}
+
+/** Use this to resolve interface type Connection */
+export type GQLPossibleConnectionTypeNames =
+  | 'ArticleConnection'
+  | 'TagConnection'
+  | 'UserConnection'
+  | 'DraftConnection'
+  | 'AudiodraftConnection'
+  | 'ReadHistoryConnection'
+  | 'RecentSearchConnection'
+  | 'TransactionConnection'
+  | 'InvitationConnection'
+  | 'NoticeConnection'
+  | 'CommentConnection'
+  | 'SearchResultConnection'
+  | 'ReportConnection'
+
+export interface GQLConnectionNameMap {
+  Connection: GQLConnection
+  ArticleConnection: GQLArticleConnection
+  TagConnection: GQLTagConnection
+  UserConnection: GQLUserConnection
+  DraftConnection: GQLDraftConnection
+  AudiodraftConnection: GQLAudiodraftConnection
+  ReadHistoryConnection: GQLReadHistoryConnection
+  RecentSearchConnection: GQLRecentSearchConnection
+  TransactionConnection: GQLTransactionConnection
+  InvitationConnection: GQLInvitationConnection
+  NoticeConnection: GQLNoticeConnection
+  CommentConnection: GQLCommentConnection
+  SearchResultConnection: GQLSearchResultConnection
+  ReportConnection: GQLReportConnection
 }
 
 export interface GQLPageInfo {
@@ -320,7 +358,7 @@ export interface GQLArticleEdge {
   node: GQLArticle
 }
 
-export interface GQLTagConnection {
+export interface GQLTagConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLTagEdge>
@@ -368,7 +406,7 @@ export interface GQLAuthorsFilter {
   followed?: boolean
 }
 
-export interface GQLUserConnection {
+export interface GQLUserConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLUserEdge>
@@ -379,7 +417,7 @@ export interface GQLUserEdge {
   node: GQLUser
 }
 
-export interface GQLDraftConnection {
+export interface GQLDraftConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLDraftEdge>
@@ -411,7 +449,7 @@ export enum GQLPublishState {
   published = 'published'
 }
 
-export interface GQLAudiodraftConnection {
+export interface GQLAudiodraftConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLAudiodraftEdge>
@@ -437,7 +475,7 @@ export interface GQLUserActivity {
   recentSearches: GQLRecentSearchConnection
 }
 
-export interface GQLReadHistoryConnection {
+export interface GQLReadHistoryConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLReadHistoryEdge>
@@ -453,7 +491,7 @@ export interface GQLReadHistory {
   readAt: GQLDateTime
 }
 
-export interface GQLRecentSearchConnection {
+export interface GQLRecentSearchConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLRecentSearchEdge>
@@ -532,7 +570,7 @@ export interface GQLMAT {
   history: GQLTransactionConnection
 }
 
-export interface GQLTransactionConnection {
+export interface GQLTransactionConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLTransactionEdge>
@@ -574,7 +612,7 @@ export interface GQLInvitationStatus {
   sent: GQLInvitationConnection
 }
 
-export interface GQLInvitationConnection {
+export interface GQLInvitationConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLInvitationEdge>
@@ -598,7 +636,7 @@ export interface GQLUserOSS {
   score: GQLNonNegativeFloat
 }
 
-export interface GQLNoticeConnection {
+export interface GQLNoticeConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLNoticeEdge>
@@ -656,8 +694,7 @@ export interface GQLArticleOSS {
   inRecommendToday: boolean
   inRecommendIcymi: boolean
   inRecommendHottest: boolean
-  inRecommendNewset: boolean
-  inRecommendTopic: boolean
+  inRecommendNewest: boolean
 }
 
 export interface GQLComment extends GQLNode {
@@ -696,7 +733,7 @@ export enum GQLVote {
   down = 'down'
 }
 
-export interface GQLCommentConnection {
+export interface GQLCommentConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLCommentEdge>
@@ -743,7 +780,7 @@ export enum GQLSearchTypes {
   Tag = 'Tag'
 }
 
-export interface GQLSearchResultConnection {
+export interface GQLSearchResultConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLSearchResultEdge>
@@ -847,7 +884,7 @@ export interface GQLReportsInput {
   first?: number
 }
 
-export interface GQLReportConnection {
+export interface GQLReportConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLReportEdge>
@@ -895,6 +932,11 @@ export interface GQLMutation {
    */
   toggleArticleLive: GQLArticle
   toggleArticlePublic: GQLArticle
+  toggleArticleRecommend: GQLArticle
+  updateArticleState: GQLArticle
+  deleteTags?: boolean
+  renameTag: GQLTag
+  mergeTags: GQLTag
   putComment: GQLComment
   pinComment: GQLComment
   unpinComment: GQLComment
@@ -965,7 +1007,6 @@ export interface GQLMutation {
   unfollowUser?: boolean
 
   /**
-   * misc
    * importArticles(input: ImportArticlesInput!): [Article!]
    */
   clearReadHistory?: boolean
@@ -973,9 +1014,9 @@ export interface GQLMutation {
   invite?: boolean
 
   /**
-   * !!! update state: REMOVE IN PRODUTION !!!
+   * OSS
    */
-  updateUserState__: GQLUser
+  updateUserState: GQLUser
 }
 
 export interface GQLPublishArticleInput {
@@ -1024,6 +1065,38 @@ export interface GQLToggleArticleLiveInput {
 export interface GQLToggleArticlePublicInput {
   id: string
   enabled: boolean
+}
+
+export interface GQLToggleArticleRecommendInput {
+  id: string
+  enabled: boolean
+  type: GQLRecommendTypes
+}
+
+export enum GQLRecommendTypes {
+  today = 'today',
+  icymi = 'icymi',
+  hottest = 'hottest',
+  newest = 'newest'
+}
+
+export interface GQLUpdateArticleStateInput {
+  id: string
+  state: GQLArticleState
+}
+
+export interface GQLDeleteTagsInput {
+  ids: Array<string>
+}
+
+export interface GQLRenameTagInput {
+  id: string
+  content: string
+}
+
+export interface GQLMergeTagsInput {
+  ids: Array<string>
+  content: string
 }
 
 export interface GQLPutCommentInput {
@@ -1253,7 +1326,10 @@ export interface GQLInviteInput {
 export interface GQLUpdateUserStateInput {
   id: string
   state: GQLUserState
+  banDays?: GQLPositiveInt
 }
+
+export type GQLPositiveInt = any
 
 export interface GQLSubscription {
   _?: boolean
@@ -1376,8 +1452,6 @@ export interface GQLOfficialAnnouncementNotice extends GQLNotice {
 
 export type GQLPositiveFloat = any
 
-export type GQLPositiveInt = any
-
 export enum GQLRole {
   vistor = 'vistor',
   user = 'user',
@@ -1446,6 +1520,10 @@ export interface GQLResolver {
   NotificationSetting?: GQLNotificationSettingTypeResolver
   Recommendation?: GQLRecommendationTypeResolver
   ArticleConnection?: GQLArticleConnectionTypeResolver
+  Connection?: {
+    __resolveType: GQLConnectionTypeResolver
+  }
+
   PageInfo?: GQLPageInfoTypeResolver
   ArticleEdge?: GQLArticleEdgeTypeResolver
   TagConnection?: GQLTagConnectionTypeResolver
@@ -1503,6 +1581,7 @@ export interface GQLResolver {
   Upload?: GraphQLScalarType
   Asset?: GQLAssetTypeResolver
   AuthResult?: GQLAuthResultTypeResolver
+  PositiveInt?: GraphQLScalarType
   Subscription?: GQLSubscriptionTypeResolver
   ArticleNewAppreciationNotice?: GQLArticleNewAppreciationNoticeTypeResolver
   ArticleNewCommentNotice?: GQLArticleNewCommentNoticeTypeResolver
@@ -1523,7 +1602,6 @@ export interface GQLResolver {
   NonPositiveInt?: GraphQLScalarType
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
   PositiveFloat?: GraphQLScalarType
-  PositiveInt?: GraphQLScalarType
   SubscribedArticleNewCommentNotice?: GQLSubscribedArticleNewCommentNoticeTypeResolver
   Time?: GraphQLScalarType
   UpstreamArticleArchivedNotice?: GQLUpstreamArticleArchivedNoticeTypeResolver
@@ -2721,6 +2799,22 @@ export interface ArticleConnectionToEdgesResolver<
   ): TResult
 }
 
+export interface GQLConnectionTypeResolver<TParent = any> {
+  (parent: TParent, context: Context, info: GraphQLResolveInfo):
+    | 'ArticleConnection'
+    | 'TagConnection'
+    | 'UserConnection'
+    | 'DraftConnection'
+    | 'AudiodraftConnection'
+    | 'ReadHistoryConnection'
+    | 'RecentSearchConnection'
+    | 'TransactionConnection'
+    | 'InvitationConnection'
+    | 'NoticeConnection'
+    | 'CommentConnection'
+    | 'SearchResultConnection'
+    | 'ReportConnection'
+}
 export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
   endCursor?: PageInfoToEndCursorResolver<TParent>
@@ -4025,8 +4119,7 @@ export interface GQLArticleOSSTypeResolver<TParent = any> {
   inRecommendToday?: ArticleOSSToInRecommendTodayResolver<TParent>
   inRecommendIcymi?: ArticleOSSToInRecommendIcymiResolver<TParent>
   inRecommendHottest?: ArticleOSSToInRecommendHottestResolver<TParent>
-  inRecommendNewset?: ArticleOSSToInRecommendNewsetResolver<TParent>
-  inRecommendTopic?: ArticleOSSToInRecommendTopicResolver<TParent>
+  inRecommendNewest?: ArticleOSSToInRecommendNewestResolver<TParent>
 }
 
 export interface ArticleOSSToBoostResolver<TParent = any, TResult = any> {
@@ -4083,19 +4176,7 @@ export interface ArticleOSSToInRecommendHottestResolver<
   ): TResult
 }
 
-export interface ArticleOSSToInRecommendNewsetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleOSSToInRecommendTopicResolver<
+export interface ArticleOSSToInRecommendNewestResolver<
   TParent = any,
   TResult = any
 > {
@@ -5052,6 +5133,11 @@ export interface GQLMutationTypeResolver<TParent = any> {
   recallPublish?: MutationToRecallPublishResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
+  toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
+  updateArticleState?: MutationToUpdateArticleStateResolver<TParent>
+  deleteTags?: MutationToDeleteTagsResolver<TParent>
+  renameTag?: MutationToRenameTagResolver<TParent>
+  mergeTags?: MutationToMergeTagsResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   pinComment?: MutationToPinCommentResolver<TParent>
   unpinComment?: MutationToUnpinCommentResolver<TParent>
@@ -5084,7 +5170,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   invite?: MutationToInviteResolver<TParent>
-  updateUserState__?: MutationToUpdateUserState__Resolver<TParent>
+  updateUserState?: MutationToUpdateUserStateResolver<TParent>
 }
 
 export interface MutationTo_Resolver<TParent = any, TResult = any> {
@@ -5232,6 +5318,72 @@ export interface MutationToToggleArticlePublicResolver<
   (
     parent: TParent,
     args: MutationToToggleArticlePublicArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleArticleRecommendArgs {
+  input: GQLToggleArticleRecommendInput
+}
+export interface MutationToToggleArticleRecommendResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleArticleRecommendArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateArticleStateArgs {
+  input: GQLUpdateArticleStateInput
+}
+export interface MutationToUpdateArticleStateResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateArticleStateArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToDeleteTagsArgs {
+  input: GQLDeleteTagsInput
+}
+export interface MutationToDeleteTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToDeleteTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToRenameTagArgs {
+  input: GQLRenameTagInput
+}
+export interface MutationToRenameTagResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToRenameTagArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToMergeTagsArgs {
+  input: GQLMergeTagsInput
+}
+export interface MutationToMergeTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToMergeTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5618,16 +5770,16 @@ export interface MutationToInviteResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToUpdateUserState__Args {
+export interface MutationToUpdateUserStateArgs {
   input: GQLUpdateUserStateInput
 }
-export interface MutationToUpdateUserState__Resolver<
+export interface MutationToUpdateUserStateResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToUpdateUserState__Args,
+    args: MutationToUpdateUserStateArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -8,6 +8,11 @@ import readArticle from './readArticle'
 import recallPublish from './recallPublish'
 import toggleArticleLive from './toggleArticleLive'
 import toggleArticlePublic from './toggleArticlePublic'
+import toggleArticleRecommend from './toggleArticleRecommend'
+import updateArticleState from './updateArticleState'
+import deleteTags from './deleteTags'
+import renameTag from './renameTag'
+import mergeTags from './mergeTags'
 
 export default {
   Mutation: {
@@ -20,6 +25,11 @@ export default {
     readArticle,
     recallPublish,
     toggleArticleLive,
-    toggleArticlePublic
+    toggleArticlePublic,
+    toggleArticleRecommend,
+    updateArticleState,
+    deleteTags,
+    renameTag,
+    mergeTags
   }
 }

@@ -63,7 +63,7 @@ class PublicationQueue {
           job.progress(20)
 
           // mark draft as published
-          await this.draftService.baseUpdateById(draft.id, {
+          await this.draftService.baseUpdate(draft.id, {
             archived: true,
             publishState: PUBLISH_STATE.published
           })
@@ -80,7 +80,7 @@ class PublicationQueue {
             )) as unknown) as [{ id: string; content: string }]
             // create article_tag record
             await this.tagService.createArticleTags({
-              articleId: article.id,
+              articleIds: [article.id],
               tagIds: dbTags.map(({ id }) => id)
             })
           } else {

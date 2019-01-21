@@ -13,8 +13,13 @@ export default /* GraphQL */ `
     readArticle(input: ReadArticleInput!): Boolean
     recallPublish(input: RecallPublishInput!): Draft! @authenticate
     # OSS
-    toggleArticleLive(input: ToggleArticleLiveInput!): Article!
-    toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
+    toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authorize
+    toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @authorize
+    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @authorize
+    updateArticleState(input: UpdateArticleStateInput!): Article! @authorize
+    deleteTags(input: DeleteTagsInput!): Boolean @authorize
+    renameTag(input: RenameTagInput!): Tag! @authorize
+    mergeTags(input: MergeTagsInput!): Tag! @authorize
   }
 
   type Article implements Node {
@@ -67,22 +72,21 @@ export default /* GraphQL */ `
     remark: String @authorize
   }
 
-  type  ArticleOSS @authorize {
+  type  ArticleOSS {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
     inRecommendToday: Boolean!
     inRecommendIcymi: Boolean!
     inRecommendHottest: Boolean!
-    inRecommendNewset: Boolean!
-    inRecommendTopic: Boolean!
+    inRecommendNewest: Boolean!
   }
 
-  type TagOSS @authorize {
+  type TagOSS {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
   }
 
-  type ArticleConnection {
+  type ArticleConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [ArticleEdge!]
@@ -93,7 +97,7 @@ export default /* GraphQL */ `
     node: Article!
   }
 
-  type TagConnection {
+  type TagConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [TagEdge!]
@@ -156,9 +160,41 @@ export default /* GraphQL */ `
     enabled: Boolean!
   }
 
+  input ToggleArticleRecommendInput {
+    id: ID!
+    enabled: Boolean!
+    type: RecommendTypes!
+  }
+
+  input UpdateArticleStateInput {
+    id: ID!
+    state: ArticleState!
+  }
+
+  input DeleteTagsInput {
+    ids: [ID!]!
+  }
+
+  input RenameTagInput {
+    id: ID!
+    content: String!
+  }
+
+  input MergeTagsInput {
+    ids: [ID!]!
+    content: String!
+  }
+
   enum ArticleState {
     active
     archived
     banned
+  }
+
+  enum RecommendTypes {
+    today
+    icymi
+    hottest
+    newest
   }
 `

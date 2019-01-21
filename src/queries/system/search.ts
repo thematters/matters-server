@@ -10,10 +10,12 @@ const resolver: QueryToSearchResolver = (
     viewer
   }
 ) => {
-  systemService.baseCreate(
-    { userId: viewer ? viewer.id : null, searchKey: input.key },
-    'search_history'
-  )
+  if (input.type !== 'User') {
+    systemService.baseCreate(
+      { userId: viewer ? viewer.id : null, searchKey: input.key },
+      'search_history'
+    )
+  }
 
   const serviceMap = {
     Article: articleService,

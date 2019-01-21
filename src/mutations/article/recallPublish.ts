@@ -22,7 +22,7 @@ const resolver: MutationToRecallPublishResolver = async (
     throw new ForbiddenError('draft does not exists')
   }
 
-  const draftRecalled = await draftService.baseUpdateById(draftDBId, {
+  const draftRecalled = await draftService.baseUpdate(draftDBId, {
     archived: true,
     publishState: PUBLISH_STATE.unpublished
   })

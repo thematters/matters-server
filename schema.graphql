@@ -62,7 +62,7 @@ type Article implements Node {
   comments(input: CommentsInput!): CommentConnection!
 }
 
-type ArticleConnection {
+type ArticleConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [ArticleEdge!]
@@ -118,8 +118,7 @@ type ArticleOSS {
   inRecommendToday: Boolean!
   inRecommendIcymi: Boolean!
   inRecommendHottest: Boolean!
-  inRecommendNewset: Boolean!
-  inRecommendTopic: Boolean!
+  inRecommendNewest: Boolean!
 }
 
 type ArticlePublishedNotice implements Notice {
@@ -167,7 +166,7 @@ type Audiodraft {
   updatedAt: DateTime!
 }
 
-type AudiodraftConnection {
+type AudiodraftConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [AudiodraftEdge!]
@@ -252,7 +251,7 @@ type Comment implements Node {
   remark: String
 }
 
-type CommentConnection {
+type CommentConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [CommentEdge!]
@@ -333,6 +332,11 @@ input ConfirmVerificationCodeInput {
   code: String!
 }
 
+interface Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+}
+
 input ConnectionArgs {
   after: String
   first: Int
@@ -352,6 +356,10 @@ input DeleteCommentInput {
 
 input DeleteDraftInput {
   id: ID!
+}
+
+input DeleteTagsInput {
+  ids: [ID!]!
 }
 
 type DownstreamArticleArchivedNotice implements Notice {
@@ -376,7 +384,7 @@ type Draft implements Node {
   publishState: PublishState!
 }
 
-type DraftConnection {
+type DraftConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [DraftEdge!]
@@ -418,7 +426,7 @@ type Invitation implements Node {
   createdAt: DateTime!
 }
 
-type InvitationConnection {
+type InvitationConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [InvitationEdge!]
@@ -451,6 +459,11 @@ type MAT {
   history(input: ConnectionArgs!): TransactionConnection!
 }
 
+input MergeTagsInput {
+  ids: [ID!]!
+  content: String!
+}
+
 type Mutation {
   _: Boolean
   publishArticle(input: PublishArticleInput!): Draft!
@@ -465,6 +478,11 @@ type Mutation {
   """OSS"""
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
   toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
+  toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article!
+  updateArticleState(input: UpdateArticleStateInput!): Article!
+  deleteTags(input: DeleteTagsInput!): Boolean
+  renameTag(input: RenameTagInput!): Tag!
+  mergeTags(input: MergeTagsInput!): Tag!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   unpinComment(input: UnpinCommentInput!): Comment!
@@ -516,16 +534,13 @@ type Mutation {
   followUser(input: FollowUserInput!): Boolean
   unfollowUser(input: UnfollowUserInput!): Boolean
 
-  """
-  misc
-  importArticles(input: ImportArticlesInput!): [Article!]
-  """
+  """importArticles(input: ImportArticlesInput!): [Article!]"""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
   clearSearchHistory: Boolean
   invite(input: InviteInput!): Boolean
 
-  """!!! update state: REMOVE IN PRODUTION !!!"""
-  updateUserState__(input: UpdateUserStateInput!): User!
+  """OSS"""
+  updateUserState(input: UpdateUserStateInput!): User!
 }
 
 scalar NegativeFloat
@@ -558,7 +573,7 @@ interface Notice {
   createdAt: DateTime!
 }
 
-type NoticeConnection {
+type NoticeConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [NoticeEdge!]
@@ -735,7 +750,7 @@ type ReadHistory {
   readAt: DateTime!
 }
 
-type ReadHistoryConnection {
+type ReadHistoryConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [ReadHistoryEdge!]
@@ -750,7 +765,7 @@ input RecallPublishInput {
   id: ID!
 }
 
-type RecentSearchConnection {
+type RecentSearchConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [RecentSearchEdge!]
@@ -774,6 +789,13 @@ type Recommendation {
   tags(input: ConnectionArgs!): TagConnection!
   topics(input: ConnectionArgs!): ArticleConnection!
   authors(input: AuthorsInput!): UserConnection!
+}
+
+enum RecommendTypes {
+  today
+  icymi
+  hottest
+  newest
 }
 
 type Release {
@@ -802,6 +824,11 @@ enum RemarkTypes {
   Comment
   Report
   Feedback
+}
+
+input RenameTagInput {
+  id: ID!
+  content: String!
 }
 
 type Report {
@@ -833,7 +860,7 @@ input ReportCommentInput {
   contact: String
 }
 
-type ReportConnection {
+type ReportConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [ReportEdge!]
@@ -873,7 +900,7 @@ input SearchInput {
   first: Int
 }
 
-type SearchResultConnection {
+type SearchResultConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [SearchResultEdge!]
@@ -936,7 +963,7 @@ type Tag implements Node {
   remark: String
 }
 
-type TagConnection {
+type TagConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [TagEdge!]
@@ -964,6 +991,12 @@ input ToggleArticlePublicInput {
   enabled: Boolean!
 }
 
+input ToggleArticleRecommendInput {
+  id: ID!
+  enabled: Boolean!
+  type: RecommendTypes!
+}
+
 type Transaction {
   delta: Int!
   purpose: TransactionPurpose!
@@ -971,7 +1004,7 @@ type Transaction {
   createdAt: DateTime!
 }
 
-type TransactionConnection {
+type TransactionConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [TransactionEdge!]
@@ -1008,6 +1041,11 @@ input UnvoteCommentInput {
   id: ID!
 }
 
+input UpdateArticleStateInput {
+  id: ID!
+  state: ArticleState!
+}
+
 input UpdateNotificationSettingInput {
   type: NotificationSettingType!
   enabled: Boolean!
@@ -1024,6 +1062,7 @@ input UpdateUserInfoInput {
 input UpdateUserStateInput {
   id: ID!
   state: UserState!
+  banDays: PositiveInt
 }
 
 scalar Upload
@@ -1079,7 +1118,7 @@ type UserActivity {
   recentSearches(input: ConnectionArgs!): RecentSearchConnection!
 }
 
-type UserConnection {
+type UserConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [UserEdge!]

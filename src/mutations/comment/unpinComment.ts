@@ -22,7 +22,7 @@ const resolver: MutationToPinCommentResolver = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-  const comment = await commentService.baseUpdateById(dbId, {
+  const comment = await commentService.baseUpdate(dbId, {
     pinned: false
   })
 

@@ -13,7 +13,7 @@ import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import invite from './invite'
 
-import updateUserState__ from './updateUserState__'
+import updateUserState from './updateUserState'
 
 export default {
   Mutation: {
@@ -32,6 +32,6 @@ export default {
     clearSearchHistory,
     invite,
 
-    updateUserState__
+    updateUserState
   }
 }

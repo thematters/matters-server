@@ -162,9 +162,36 @@ export class BaseService extends DataSource {
   }
 
   /**
+   * Find or Create Item
+   */
+  baseFindOrCreate = async ({
+    where,
+    data,
+    table
+  }: {
+    where: { [key: string]: string | boolean }
+    data: ItemData
+    table?: TableName
+  }) => {
+    const tableName = table || this.table
+    const item = await this.knex(tableName)
+      .select()
+      .where(where)
+      .first()
+
+    // create
+    if (!item) {
+      return this.baseCreate(data, tableName)
+    }
+
+    // update
+    return item
+  }
+
+  /**
    * Update an item by a given id.
    */
-  baseUpdateById = async (
+  baseUpdate = async (
     id: string,
     data: ItemData,
     table?: TableName
@@ -174,6 +201,20 @@ export class BaseService extends DataSource {
       .update(data)
       .into(table || this.table)
       .returning('*'))[0]
+
+  /**
+   * Update a batch of items by given ids.
+   */
+  baseBatchUpdate = async (
+    ids: string[],
+    data: ItemData,
+    table?: TableName
+  ): Promise<any> =>
+    await this.knex
+      .whereIn('id', ids)
+      .update(data)
+      .into(table || this.table)
+      .returning('*')
 
   /**
    * Update an item by a given UUID.
@@ -195,5 +236,13 @@ export class BaseService extends DataSource {
   baseDelete = async (id: string, table?: TableName): Promise<any> =>
     await this.knex(table || this.table)
       .where({ id })
+      .del()
+
+  /**
+   * Delete a batch of items by  given ids.
+   */
+  baseBatchDelete = async (ids: string[], table?: TableName): Promise<any> =>
+    await this.knex(table || this.table)
+      .whereIn('id', ids)
       .del()
 }

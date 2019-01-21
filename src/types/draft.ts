@@ -32,7 +32,7 @@ export default /* GraphQL */ `
     updatedAt: DateTime!
   }
 
-  type DraftConnection {
+  type DraftConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [DraftEdge!]
@@ -43,7 +43,7 @@ export default /* GraphQL */ `
     node: Draft!
   }
 
-  type AudiodraftConnection {
+  type AudiodraftConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [AudiodraftEdge!]

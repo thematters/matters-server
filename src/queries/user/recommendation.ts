@@ -25,31 +25,67 @@ const resolvers: GQLRecommendationTypeResolver = {
       totalCount
     )
   },
-  hottest: async ({ id }, { input }, { dataSources: { articleService } }) => {
-    const where = id ? {} : { public: true }
+  hottest: async (
+    { id },
+    { input },
+    { viewer, dataSources: { articleService } }
+  ) => {
+    let where = {}
+    let all = false
+
+    if (!id) {
+      where = { ...where, public: true }
+    }
+
+    if (viewer.hasRole('admin')) {
+      all = true
+    }
+
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
-    const totalCount = await articleService.baseCount(where)
+    const totalCount = await articleService.countRecommendHottest({
+      where,
+      all
+    })
     return connectionFromPromisedArray(
       articleService.recommendHottest({
         offset,
         limit: first,
-        where
+        where,
+        all
       }),
       input,
       totalCount
     )
   },
-  newest: async ({ id }, { input }, { dataSources: { articleService } }) => {
-    const where = id ? {} : { public: true }
+  newest: async (
+    { id },
+    { input },
+    { viewer, dataSources: { articleService } }
+  ) => {
+    let where = {}
+    let all = false
+
+    if (!id) {
+      where = { ...where, public: true }
+    }
+
+    if (viewer.hasRole('admin')) {
+      all = true
+    }
+
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
-    const totalCount = await articleService.baseCount(where)
+    const totalCount = await articleService.countRecommendNewest({
+      where,
+      all
+    })
     return connectionFromPromisedArray(
       articleService.recommendNewest({
         offset,
         limit: first,
-        where
+        where,
+        all
       }),
       input,
       totalCount

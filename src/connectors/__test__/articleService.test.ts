@@ -59,7 +59,7 @@ test('findSubscriptions', async () => {
 })
 
 test('update', async () => {
-  const article = await articleService.baseUpdateById('1', {
+  const article = await articleService.baseUpdate('1', {
     state: 'archived'
   })
   expect(article.state).toEqual('archived')

@@ -109,7 +109,7 @@ export class UserService extends BaseService {
     id: string,
     input: GQLUpdateUserInfoInput & { email?: string; emailVerified?: boolean }
   ) => {
-    const user = await this.baseUpdateById(id, input)
+    const user = await this.baseUpdate(id, input)
 
     const { description, displayName, userName } = input
     if (!description && !displayName && !userName) {
@@ -138,9 +138,6 @@ export class UserService extends BaseService {
     return user
   }
 
-  updateState = async ({ userId, state }: { userId: string; state: string }) =>
-    await this.baseUpdateById(userId, { state })
-
   changePassword = async ({
     userId,
     password
@@ -149,7 +146,7 @@ export class UserService extends BaseService {
     password: string
   }) => {
     const passwordHash = await hash(password, BCRYPT_ROUNDS)
-    const user = await this.baseUpdateById(userId, {
+    const user = await this.baseUpdate(userId, {
       passwordHash
     })
     return user
@@ -364,7 +361,7 @@ export class UserService extends BaseService {
       targetId,
       action: USER_ACTION.follow
     }
-    return await this.baseUpdateOrCreate({
+    return await this.baseFindOrCreate({
       where: data,
       data,
       table: 'action_user'
@@ -544,7 +541,7 @@ export class UserService extends BaseService {
     id: string,
     data: ItemData
   ): Promise<any | null> =>
-    await this.baseUpdateById(id, data, 'user_notify_setting')
+    await this.baseUpdate(id, data, 'user_notify_setting')
 
   findBadges = async (userId: string): Promise<any[]> =>
     await this.knex
@@ -799,7 +796,7 @@ export class UserService extends BaseService {
       })
 
       // update "recipientId" of invitation
-      await this.baseUpdateById(
+      await this.baseUpdate(
         invitation.id,
         { recipientId: userId },
         'invitation'
@@ -871,6 +868,6 @@ export class UserService extends BaseService {
       data = { ...data, verifiedAt: new Date() }
     }
 
-    return this.baseUpdateById(codeId, data, 'verification_code')
+    return this.baseUpdate(codeId, data, 'verification_code')
   }
 }

@@ -25,14 +25,13 @@ export default /* GraphQL */ `
     # follow/unfollow
     followUser(input: FollowUserInput!): Boolean @authenticate
     unfollowUser(input: UnfollowUserInput!): Boolean @authenticate
-    # misc
     # importArticles(input: ImportArticlesInput!): [Article!]
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
     clearSearchHistory: Boolean  @authenticate
     invite(input: InviteInput!): Boolean @authenticate
 
-    # !!! update state: REMOVE IN PRODUTION !!!
-    updateUserState__(input: UpdateUserStateInput!): User!
+    # OSS
+    updateUserState(input: UpdateUserStateInput!): User! @authorize
   }
 
   type User implements Node {
@@ -159,7 +158,7 @@ export default /* GraphQL */ `
     unreadNoticeCount: Int!
   }
 
-  type UserOSS @authorize {
+  type UserOSS {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
   }
@@ -206,7 +205,7 @@ export default /* GraphQL */ `
     token: String
   }
 
-  type UserConnection {
+  type UserConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [UserEdge!]
@@ -217,7 +216,7 @@ export default /* GraphQL */ `
     node: User!
   }
 
-  type InvitationConnection {
+  type InvitationConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [InvitationEdge!]
@@ -228,7 +227,7 @@ export default /* GraphQL */ `
     node: Invitation!
   }
 
-  type ReadHistoryConnection {
+  type ReadHistoryConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [ReadHistoryEdge!]
@@ -239,7 +238,7 @@ export default /* GraphQL */ `
     node: ReadHistory!
   }
 
-  type RecentSearchConnection {
+  type RecentSearchConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [RecentSearchEdge!]
@@ -250,7 +249,7 @@ export default /* GraphQL */ `
     node: String!
   }
 
-  type TransactionConnection {
+  type TransactionConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [TransactionEdge!]
@@ -333,7 +332,9 @@ export default /* GraphQL */ `
   input UpdateUserStateInput {
     id: ID!
     state: UserState!
+    banDays: PositiveInt
   }
+
 
   input FollowUserInput {
     id: ID!
