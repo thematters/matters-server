@@ -131,7 +131,8 @@ export class SystemService extends BaseService {
       qs = qs.orWhereNotNull('article_id')
     }
 
-    return qs
+    const result = await qs
+    return parseInt(result.count, 10)
   }
 
   /*********************************
