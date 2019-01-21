@@ -45,7 +45,8 @@ steps:
     image: node:10.14
     environment:
       MATTERS_ENV: development
-      MATTERS_APOLLO_API_KEY: service:matters-stage:HLVj7CVFiTcNPfOShIs4tQ
+      MATTERS_APOLLO_API_KEY:
+        from_secret: APOLLO_API_KEY
       MATTERS_PG_HOST:
         from_secret: DEVELOP_PG_HOST
       MATTERS_PG_DATABASE:
