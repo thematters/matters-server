@@ -145,22 +145,6 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Find articles
-   */
-  find = async ({ where }: { where?: { [key: string]: any } }) => {
-    let qs = this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
-
-    if (where) {
-      qs = qs.where(where)
-    }
-
-    return await qs
-  }
-
-  /**
    *  Find articles by a given author id (user).
    */
   findByAuthor = async (authorId: string) =>

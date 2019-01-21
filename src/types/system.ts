@@ -43,7 +43,7 @@ export default /* GraphQL */ `
   }
 
   type OSS {
-    users(input: UsersInput!): UserConnection!
+    users(input: ConnectionArgs!): UserConnection!
     articles(input: ArticlesInput!): ArticleConnection!
     tags(input: ConnectionArgs!): TagConnection!
     reports(input: ReportsInput!): ReportConnection!
@@ -136,11 +136,6 @@ export default /* GraphQL */ `
 
   input NodeInput {
     id: ID!
-  }
-
-  input UsersInput {
-    after: String
-    first: Int
   }
 
   input ArticlesInput {

@@ -1,9 +1,24 @@
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 
 import { OSSToTagsResolver } from 'definitions'
 
-export const tags: OSSToTagsResolver = (
+export const tags: OSSToTagsResolver = async (
   root,
-  { input: { ...connectionArgs } },
+  { input },
   { viewer, dataSources: { tagService } }
-) => connectionFromPromisedArray(tagService.find({}), connectionArgs)
+) => {
+  const { first, after } = input
+  const where = { deleted: false }
+  const offset = cursorToIndex(after) + 1
+  const totalCount = await tagService.baseCount(where)
+
+  return connectionFromPromisedArray(
+    tagService.baseFind({
+      where,
+      offset,
+      limit: first
+    }),
+    input,
+    totalCount
+  )
+}
