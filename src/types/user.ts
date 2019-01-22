@@ -88,18 +88,19 @@ export default /* GraphQL */ `
     icymi(input: RecommendationInput!): ArticleConnection!
     tags(input: RecommendationInput!): TagConnection!
     topics(input: RecommendationInput!): ArticleConnection!
-    authors(input: RecommendationInput!): UserConnection!
+    authors(input: AuthorsInput!): UserConnection!
   }
 
   input RecommendationInput {
     after: String
     first: Int
-    oss: Boolean
+    oss: Boolean @authorize
   }
 
   input AuthorsInput {
     after: String
     first: Int
+    oss: Boolean @authorize
     filter: AuthorsFilter
   }
 

@@ -4,8 +4,8 @@ import {
   cursorToIndex,
   connectionFromArray
 } from 'common/utils'
-import { AuthenticationError } from 'apollo-server'
 import { GQLRecommendationTypeResolver } from 'definitions'
+import { ForbiddenError, AuthenticationError } from 'common/errors'
 
 const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles: async (
@@ -30,29 +30,31 @@ const resolvers: GQLRecommendationTypeResolver = {
     { input },
     { viewer, dataSources: { articleService } }
   ) => {
-    let where = {}
-    let all = false
+    const { oss = false } = input
 
-    if (!id) {
-      where = { ...where, public: true }
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
     }
 
-    if (viewer.hasRole('admin')) {
-      all = true
+    let where = {}
+    if (!id) {
+      where = { ...where, public: true }
     }
 
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.countRecommendHottest({
       where,
-      all
+      all: oss
     })
     return connectionFromPromisedArray(
       articleService.recommendHottest({
         offset,
         limit: first,
         where,
-        all
+        oss
       }),
       input,
       totalCount
@@ -63,29 +65,33 @@ const resolvers: GQLRecommendationTypeResolver = {
     { input },
     { viewer, dataSources: { articleService } }
   ) => {
+    const { oss = false } = input
+
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
+    }
+
     let where = {}
-    let all = false
 
     if (!id) {
       where = { ...where, public: true }
-    }
-
-    if (viewer.hasRole('admin')) {
-      all = true
     }
 
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.countRecommendNewest({
       where,
-      all
+      all: oss
     })
+
     return connectionFromPromisedArray(
       articleService.recommendNewest({
         offset,
         limit: first,
         where,
-        all
+        oss
       }),
       input,
       totalCount
@@ -113,7 +119,19 @@ const resolvers: GQLRecommendationTypeResolver = {
       totalCount
     )
   },
-  topics: async ({ id }, { input }, { dataSources: { articleService } }) => {
+  topics: async (
+    { id },
+    { input },
+    { dataSources: { articleService }, viewer }
+  ) => {
+    const { oss = false } = input
+
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
+    }
+
     const { first, after } = input
     const where = id ? {} : { public: true }
     const offset = cursorToIndex(after) + 1
@@ -122,26 +140,48 @@ const resolvers: GQLRecommendationTypeResolver = {
       articleService.recommendTopics({
         offset,
         limit: first,
-        where
+        where,
+        oss
       }),
       input,
       totalCount
     )
   },
-  tags: async ({ id }, { input }, { dataSources: { tagService } }) => {
+  tags: async ({ id }, { input }, { dataSources: { tagService }, viewer }) => {
+    const { oss = false } = input
+
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
+    }
+
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await tagService.baseCount()
     return connectionFromPromisedArray(
       tagService.recommendTags({
         offset,
-        limit: first
+        limit: first,
+        oss
       }),
       input,
       totalCount
     )
   },
-  authors: async ({ id }, { input }, { dataSources: { userService } }) => {
+  authors: async (
+    { id },
+    { input },
+    { dataSources: { userService }, viewer }
+  ) => {
+    const { oss = false } = input
+
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
+    }
+
     const randomDraw = 5
 
     const { first, after, filter } = input

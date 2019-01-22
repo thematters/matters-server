@@ -39,16 +39,20 @@ export class TagService extends BaseService {
    *********************************/
   recommendTags = async ({
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
+    oss = false
   }: {
     limit?: number
     offset?: number
-  }) =>
-    await this.knex('tag_count_materialized')
+    oss?: boolean
+  }) => {
+    const table = oss ? 'tag_count_view' : 'tag_count_materialized'
+    return await this.knex(table)
       .select()
       .orderBy('tag_score', 'desc')
       .limit(limit)
       .offset(offset)
+  }
 
   findBoost = async (tagId: string) => {
     const tagBoost = await this.knex('tag_boost')

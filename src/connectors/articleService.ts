@@ -267,14 +267,20 @@ export class ArticleService extends BaseService {
     limit = BATCH_SIZE,
     offset = 0,
     where = {},
-    all = false
+    oss = false
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-    all?: boolean
+    oss?: boolean
   }) => {
-    let qs = this.knex('article_activity_materialized as view')
+    // use view when oss for real time update
+    // use materialized in other cases
+    const table = oss
+      ? 'article_activity_view'
+      : 'article_activity_materialized'
+
+    let qs = this.knex(`${table} as view`)
       .select('view.*', 'setting.in_hottest')
       .leftJoin(
         'article_recommend_setting as setting',
@@ -286,7 +292,7 @@ export class ArticleService extends BaseService {
       .limit(limit)
       .offset(offset)
 
-    if (!all) {
+    if (!oss) {
       qs = qs.andWhere(function() {
         this.where({ inHottest: true }).orWhereNull('in_hottest')
       })
@@ -300,12 +306,12 @@ export class ArticleService extends BaseService {
     limit = BATCH_SIZE,
     offset = 0,
     where = {},
-    all = false
+    oss = false
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-    all?: boolean
+    oss?: boolean
   }) => {
     let qs = this.knex('article')
       .select('article.*', 'setting.in_newest')
@@ -319,7 +325,7 @@ export class ArticleService extends BaseService {
       .limit(limit)
       .offset(offset)
 
-    if (!all) {
+    if (!oss) {
       qs = qs.andWhere(function() {
         this.where({ inNewest: true }).orWhereNull('in_newest')
       })
@@ -366,17 +372,22 @@ export class ArticleService extends BaseService {
   recommendTopics = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    where = {}
+    where = {},
+    oss = false
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-  }) =>
-    this.knex('article_count_materialized')
+    oss?: boolean
+  }) => {
+    const table = oss ? 'article_count_view' : 'article_count_materialized'
+
+    return await this.knex(table)
       .orderBy('topic_score', 'desc')
       .where(where)
       .limit(limit)
       .offset(offset)
+  }
 
   /**
    * Find One

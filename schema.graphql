@@ -185,6 +185,7 @@ input AuthorsFilter {
 input AuthorsInput {
   after: String
   first: Int
+  oss: Boolean
   filter: AuthorsFilter
 }
 
@@ -788,7 +789,7 @@ type Recommendation {
   icymi(input: RecommendationInput!): ArticleConnection!
   tags(input: RecommendationInput!): TagConnection!
   topics(input: RecommendationInput!): ArticleConnection!
-  authors(input: RecommendationInput!): UserConnection!
+  authors(input: AuthorsInput!): UserConnection!
 }
 
 input RecommendationInput {
