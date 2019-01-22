@@ -469,7 +469,7 @@ export class UserService extends BaseService {
     offset?: number
     notIn?: string[]
   }) =>
-    await this.knex('user_reader_view')
+    await this.knex('user_reader_materialized')
       .select()
       .orderBy('author_score', 'desc')
       .offset(offset)
@@ -497,7 +497,7 @@ export class UserService extends BaseService {
     })
 
   findScore = async (userId: string) => {
-    const author = await this.knex('user_reader_view')
+    const author = await this.knex('user_reader_materialized')
       .select()
       .where({ id: userId })
       .first()

@@ -44,7 +44,7 @@ export class TagService extends BaseService {
     limit?: number
     offset?: number
   }) =>
-    await this.knex('tag_count_view')
+    await this.knex('tag_count_materialized')
       .select()
       .orderBy('tag_score', 'desc')
       .limit(limit)
@@ -71,7 +71,7 @@ export class TagService extends BaseService {
     })
 
   findScore = async (tagId: string) => {
-    const tag = await this.knex('tag_count_view')
+    const tag = await this.knex('tag_count_materialized')
       .select()
       .where({ id: tagId })
       .first()

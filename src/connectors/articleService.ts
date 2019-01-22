@@ -274,8 +274,7 @@ export class ArticleService extends BaseService {
     where?: { [key: string]: any }
     all?: boolean
   }) => {
-    console.log(where)
-    let qs = this.knex('article_activity_view as view')
+    let qs = this.knex('article_activity_materialized as view')
       .select('view.*', 'setting.in_hottest')
       .leftJoin(
         'article_recommend_setting as setting',
@@ -373,7 +372,7 @@ export class ArticleService extends BaseService {
     offset?: number
     where?: { [key: string]: any }
   }) =>
-    this.knex('article_count_view')
+    this.knex('article_count_materialized')
       .orderBy('topic_score', 'desc')
       .where(where)
       .limit(limit)
@@ -398,7 +397,7 @@ export class ArticleService extends BaseService {
       .first()
 
   findRecommendHottest = async (articleId: string) =>
-    this.knex('article_activity_view')
+    this.knex('article_activity_materialized')
       .where({ id: articleId })
       .first()
 
@@ -408,7 +407,7 @@ export class ArticleService extends BaseService {
       .first()
 
   findRecommendTopic = async (articleId: string) =>
-    this.knex('article_count_view')
+    this.knex('article_count_materialized')
       .where({ id: articleId })
       .first()
 
@@ -440,7 +439,7 @@ export class ArticleService extends BaseService {
     where?: { [key: string]: any }
     all?: boolean
   }) => {
-    let qs = this.knex('article_activity_view as view')
+    let qs = this.knex('article_activity_materialized as view')
       .leftJoin(
         'article_recommend_setting as setting',
         'view.id',
@@ -508,7 +507,7 @@ export class ArticleService extends BaseService {
     })
 
   findScore = async (articleId: string) => {
-    const article = await this.knex('article_count_view')
+    const article = await this.knex('article_count_materialized')
       .select()
       .where({ id: articleId })
       .first()
