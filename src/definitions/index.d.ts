@@ -100,6 +100,12 @@ export type TableName =
   | 'matters_choice'
   | 'article_recommend_setting'
 
+export type MaterializedView =
+  | 'article_count_materialized'
+  | 'tag_count_materialized'
+  | 'user_reader_materialized'
+  | 'article_activity_materialized'
+
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'
   baseUrl: string

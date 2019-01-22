@@ -141,6 +141,7 @@ export const putDraft = async (draft: GQLPutDraftInput) => {
     // @ts-ignore
     variables: { input: draft }
   })
+
   const putDraft = result && result.data && result.data.putDraft
   return putDraft
 }
