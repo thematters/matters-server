@@ -94,13 +94,13 @@ export default /* GraphQL */ `
   input RecommendationInput {
     after: String
     first: Int
-    oss: Boolean @authorize
+    oss: Boolean
   }
 
   input AuthorsInput {
     after: String
     first: Int
-    oss: Boolean @authorize
+    oss: Boolean
     filter: AuthorsFilter
   }
 

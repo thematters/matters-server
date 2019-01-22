@@ -28,6 +28,7 @@ import {
 } from 'definitions'
 
 import { BaseService } from './baseService'
+import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders'
 
 export class UserService extends BaseService {
   constructor() {
@@ -463,18 +464,24 @@ export class UserService extends BaseService {
   recommendAuthor = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    notIn = []
+    notIn = [],
+    oss = false
   }: {
     limit?: number
     offset?: number
     notIn?: string[]
-  }) =>
-    await this.knex('user_reader_materialized')
+    oss?: boolean
+  }) => {
+    const table = oss ? 'user_reader_view' : 'user_reader_materialized'
+    console.log({ notIn })
+    const result = await this.knex(table)
       .select()
       .orderBy('author_score', 'desc')
       .offset(offset)
       .limit(limit)
       .whereNotIn('id', notIn)
+    return result
+  }
 
   findBoost = async (userId: string) => {
     const userBoost = await this.knex('user_boost')
