@@ -187,7 +187,6 @@ describe('query article', async () => {
       // @ts-ignore
       variables: { input: { mediaHash } }
     })
-    console.log({ error: result.errors })
     expect(_.get(result, 'data.article.relatedArticles.edges')).toBeDefined()
   })
 })

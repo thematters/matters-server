@@ -471,7 +471,7 @@ export class UserService extends BaseService {
   }) =>
     await this.knex('user_reader_view')
       .select()
-      .orderBy('author_score', 'desc')
+      .orderByRaw('author_score DESC NULLS LAST')
       .offset(offset)
       .limit(limit)
       .whereNotIn('id', notIn)
@@ -501,12 +501,7 @@ export class UserService extends BaseService {
       .select()
       .where({ id: userId })
       .first()
-
-    if (!author) {
-      return 1
-    }
-
-    return author.authorScore
+    return author.authorScore || 0
   }
 
   /*********************************
