@@ -591,7 +591,6 @@ describe('user recommendations', () => {
         // @ts-ignore
         variables: { input: { first: 1 } }
       })
-      console.log(result)
       const { data } = result
       const article = _.get(data, `viewer.recommendation.${list}.edges.0.node`)
       expect(fromGlobalId(article.id).type).toBe('Article')

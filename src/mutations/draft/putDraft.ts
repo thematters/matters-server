@@ -9,7 +9,7 @@ import { ItemData, MutationToPutDraftResolver } from 'definitions'
 import { fromGlobalId, stripHtml } from 'common/utils'
 
 const resolver: MutationToPutDraftResolver = async (
-  _,
+  root,
   {
     input: {
       id,
