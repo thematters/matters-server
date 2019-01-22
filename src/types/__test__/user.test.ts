@@ -224,7 +224,7 @@ const GET_VIEWER_STATUS = `
   }
 `
 const GET_VIEWER_RECOMMENDATION = (list: string) => `
-query($input: RecommendationInput!) {
+query($input: ConnectionArgs!) {
   viewer {
     recommendation {
       ${list}(input: $input) {

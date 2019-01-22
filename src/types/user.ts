@@ -79,22 +79,16 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
-    followeeArticles(input: RecommendationInput!): ArticleConnection!
-    newest(input: RecommendationInput!): ArticleConnection!
-    hottest(input: RecommendationInput!): ArticleConnection!
+    followeeArticles(input: ConnectionArgs!): ArticleConnection!
+    newest(input: ConnectionArgs!): ArticleConnection!
+    hottest(input: ConnectionArgs!): ArticleConnection!
     # Matters Today
     today: Article!
     # In case you missed it
-    icymi(input: RecommendationInput!): ArticleConnection!
-    tags(input: RecommendationInput!): TagConnection!
-    topics(input: RecommendationInput!): ArticleConnection!
+    icymi(input: ConnectionArgs!): ArticleConnection!
+    tags(input: ConnectionArgs!): TagConnection!
+    topics(input: ConnectionArgs!): ArticleConnection!
     authors(input: AuthorsInput!): UserConnection!
-  }
-
-  input RecommendationInput {
-    after: String
-    first: Int
-    oss: Boolean
   }
 
   input AuthorsInput {
