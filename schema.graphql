@@ -778,17 +778,23 @@ type RecentSearchEdge {
 
 type Recommendation {
   followeeArticles(input: ConnectionArgs!): ArticleConnection!
-  newest(input: ConnectionArgs!): ArticleConnection!
-  hottest(input: ConnectionArgs!): ArticleConnection!
+  newest(input: RecommendationInput!): ArticleConnection!
+  hottest(input: RecommendationInput!): ArticleConnection!
 
   """Matters Today"""
   today: Article!
 
   """In case you missed it"""
-  icymi(input: ConnectionArgs!): ArticleConnection!
-  tags(input: ConnectionArgs!): TagConnection!
-  topics(input: ConnectionArgs!): ArticleConnection!
-  authors(input: AuthorsInput!): UserConnection!
+  icymi(input: RecommendationInput!): ArticleConnection!
+  tags(input: RecommendationInput!): TagConnection!
+  topics(input: RecommendationInput!): ArticleConnection!
+  authors(input: RecommendationInput!): UserConnection!
+}
+
+input RecommendationInput {
+  after: String
+  first: Int
+  oss: Boolean
 }
 
 enum RecommendTypes {

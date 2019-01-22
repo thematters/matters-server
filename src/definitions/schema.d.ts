@@ -358,6 +358,12 @@ export interface GQLArticleEdge {
   node: GQLArticle
 }
 
+export interface GQLRecommendationInput {
+  after?: string
+  first?: number
+  oss?: boolean
+}
+
 export interface GQLTagConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
@@ -394,17 +400,6 @@ export interface GQLTagOSS {
 }
 
 export type GQLNonNegativeFloat = any
-
-export interface GQLAuthorsInput {
-  after?: string
-  first?: number
-  filter?: GQLAuthorsFilter
-}
-
-export interface GQLAuthorsFilter {
-  random?: boolean
-  followed?: boolean
-}
 
 export interface GQLUserConnection extends GQLConnection {
   totalCount: number
@@ -1375,6 +1370,17 @@ export interface GQLArticlePublishedNotice extends GQLNotice {
   unread: boolean
   createdAt: GQLDateTime
   target: GQLArticle
+}
+
+export interface GQLAuthorsFilter {
+  random?: boolean
+  followed?: boolean
+}
+
+export interface GQLAuthorsInput {
+  after?: string
+  first?: number
+  filter?: GQLAuthorsFilter
 }
 
 export interface GQLCommentMentionedYouNotice extends GQLNotice {
@@ -2672,7 +2678,7 @@ export interface RecommendationToFolloweeArticlesResolver<
 }
 
 export interface RecommendationToNewestArgs {
-  input: GQLConnectionArgs
+  input: GQLRecommendationInput
 }
 export interface RecommendationToNewestResolver<TParent = any, TResult = any> {
   (
@@ -2684,7 +2690,7 @@ export interface RecommendationToNewestResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToHottestArgs {
-  input: GQLConnectionArgs
+  input: GQLRecommendationInput
 }
 export interface RecommendationToHottestResolver<TParent = any, TResult = any> {
   (
@@ -2705,7 +2711,7 @@ export interface RecommendationToTodayResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToIcymiArgs {
-  input: GQLConnectionArgs
+  input: GQLRecommendationInput
 }
 export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
   (
@@ -2717,7 +2723,7 @@ export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToTagsArgs {
-  input: GQLConnectionArgs
+  input: GQLRecommendationInput
 }
 export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
   (
@@ -2729,7 +2735,7 @@ export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToTopicsArgs {
-  input: GQLConnectionArgs
+  input: GQLRecommendationInput
 }
 export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
   (
@@ -2741,7 +2747,7 @@ export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToAuthorsArgs {
-  input: GQLAuthorsInput
+  input: GQLRecommendationInput
 }
 export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (
