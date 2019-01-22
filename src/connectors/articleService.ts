@@ -274,7 +274,6 @@ export class ArticleService extends BaseService {
     where?: { [key: string]: any }
     all?: boolean
   }) => {
-    console.log(where)
     let qs = this.knex('article_activity_view as view')
       .select('view.*', 'setting.in_hottest')
       .leftJoin(
@@ -282,7 +281,7 @@ export class ArticleService extends BaseService {
         'view.id',
         'setting.article_id'
       )
-      .orderBy('latest_activity', 'desc null last')
+      .orderBy('latest_activity DESC NULLS LAST')
       .where(where)
       .limit(limit)
       .offset(offset)
@@ -374,7 +373,7 @@ export class ArticleService extends BaseService {
     where?: { [key: string]: any }
   }) =>
     this.knex('article_count_view')
-      .orderBy('topic_score', 'desc')
+      .orderByRaw('topic_score DESC NULLS LAST')
       .where(where)
       .limit(limit)
       .offset(offset)
@@ -512,12 +511,7 @@ export class ArticleService extends BaseService {
       .select()
       .where({ id: articleId })
       .first()
-
-    if (!article) {
-      return 1
-    }
-
-    return article.topicScore
+    return article.topicScore || 0
   }
 
   /**
