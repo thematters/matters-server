@@ -69,7 +69,7 @@ export default /* GraphQL */ `
     id: ID
     upstreamId: ID
     title: String
-    content: String!
+    content: String
     tags: [String]
     coverAssetId: ID
   }

@@ -713,7 +713,7 @@ input PutDraftInput {
   id: ID
   upstreamId: ID
   title: String
-  content: String!
+  content: String
   tags: [String]
   coverAssetId: ID
 }

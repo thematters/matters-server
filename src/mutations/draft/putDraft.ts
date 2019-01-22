@@ -3,9 +3,10 @@ import {
   UserInputError,
   ForbiddenError
 } from 'apollo-server'
+import _ from 'lodash'
 import { v4 } from 'uuid'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, stripHtml } from 'common/utils'
 
 const resolver: MutationToPutDraftResolver = async (
   _,
@@ -34,21 +35,24 @@ const resolver: MutationToPutDraftResolver = async (
   if (coverAssetUUID) {
     const asset = await systemService.findAssetByUUID(coverAssetUUID)
     if (!asset || asset.type !== 'embed' || asset.authorId !== viewer.id) {
-      throw new UserInputError('Asset does not exists') // TODO
+      throw new UserInputError('Asset does not exists')
     }
     coverAssetId = asset.id
   }
 
-  const summary = content ? '' : undefined // TODO: Extract summary from html string
-  const data: ItemData = {
-    authorId: id ? undefined : viewer.id,
-    upstreamId: upstreamDBId,
-    title,
-    summary,
-    content,
-    tags,
-    cover: coverAssetId
-  }
+  const summary = content ? stripHtml(content).slice(0, 200) : undefined
+  const data: ItemData = _.pickBy(
+    {
+      authorId: id ? undefined : viewer.id,
+      upstreamId: upstreamDBId,
+      title,
+      summary,
+      content,
+      tags,
+      cover: coverAssetId
+    },
+    _.identity
+  )
 
   // Update
   if (id) {
