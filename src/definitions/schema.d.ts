@@ -298,7 +298,7 @@ export interface GQLRecommendation {
   authors: GQLUserConnection
 }
 
-export interface GQLRecommendationInput {
+export interface GQLConnectionArgs {
   after?: string
   first?: number
   oss?: boolean
@@ -387,11 +387,6 @@ export interface GQLTag extends GQLNode {
    */
   oss: GQLTagOSS
   remark?: string
-}
-
-export interface GQLConnectionArgs {
-  after?: string
-  first?: number
 }
 
 export interface GQLTagOSS {
@@ -2664,7 +2659,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
 }
 
 export interface RecommendationToFolloweeArticlesArgs {
-  input: GQLRecommendationInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToFolloweeArticlesResolver<
   TParent = any,
@@ -2679,7 +2674,7 @@ export interface RecommendationToFolloweeArticlesResolver<
 }
 
 export interface RecommendationToNewestArgs {
-  input: GQLRecommendationInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToNewestResolver<TParent = any, TResult = any> {
   (
@@ -2691,7 +2686,7 @@ export interface RecommendationToNewestResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToHottestArgs {
-  input: GQLRecommendationInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToHottestResolver<TParent = any, TResult = any> {
   (
@@ -2712,7 +2707,7 @@ export interface RecommendationToTodayResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToIcymiArgs {
-  input: GQLRecommendationInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
   (
@@ -2724,7 +2719,7 @@ export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToTagsArgs {
-  input: GQLRecommendationInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
   (
@@ -2736,7 +2731,7 @@ export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToTopicsArgs {
-  input: GQLRecommendationInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
   (
