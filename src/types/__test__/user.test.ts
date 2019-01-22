@@ -3,11 +3,11 @@ import _get from 'lodash/get'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import {
   MAT_UNIT,
-  TRANSACTION_PURPOSE,
+  MATERIALIZED_VIEW,
   VERIFICATION_CODE_STATUS
 } from 'common/enums'
 import { UserService } from 'connectors'
-import { knex } from 'connectors/db'
+import { knex, refreshView } from 'connectors/db'
 import {
   defaultTestUser,
   getUserContext,
@@ -574,6 +574,12 @@ describe('mutations on User object', () => {
 
 describe('user recommendations', () => {
   test('retrive articles from hottest, icymi, topics, followeeArticles and newest', async () => {
+    await Promise.all(
+      Object.keys(MATERIALIZED_VIEW).map(key =>
+        refreshView(MATERIALIZED_VIEW[key])
+      )
+    )
+
     const lists = ['hottest', 'icymi', 'topics', 'followeeArticles', 'newest']
     for (const list of lists) {
       const { query: queryNew } = await testClient({
