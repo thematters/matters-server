@@ -49,7 +49,7 @@ export class TagService extends BaseService {
     const table = oss ? 'tag_count_view' : 'tag_count_materialized'
     return await this.knex(table)
       .select()
-      .orderBy('tag_score', 'desc')
+      .orderByRaw('tag_score DESC NULLS LAST')
       .limit(limit)
       .offset(offset)
   }
@@ -79,12 +79,7 @@ export class TagService extends BaseService {
       .select()
       .where({ id: tagId })
       .first()
-
-    if (!tag) {
-      return 1
-    }
-
-    return tag.tagScore || 1
+    return tag.tagScore || 0
   }
 
   /*********************************
@@ -107,7 +102,6 @@ export class TagService extends BaseService {
         return tagIds.map(tagId => ({ articleId, tagId }))
       })
     )
-    console.log('craeteitems', items)
     return this.baseBatchCreate(items, 'article_tag')
   }
 

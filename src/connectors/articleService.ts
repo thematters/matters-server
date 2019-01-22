@@ -287,7 +287,7 @@ export class ArticleService extends BaseService {
         'view.id',
         'setting.article_id'
       )
-      .orderBy('latest_activity', 'desc null last')
+      .orderByRaw('latest_activity DESC NULLS LAST')
       .where(where)
       .limit(limit)
       .offset(offset)
@@ -378,12 +378,11 @@ export class ArticleService extends BaseService {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-    oss?: boolean
   }) => {
     const table = oss ? 'article_count_view' : 'article_count_materialized'
 
     return await this.knex(table)
-      .orderBy('topic_score', 'desc')
+      .orderByRaw('topic_score DESC NULLS LAST')
       .where(where)
       .limit(limit)
       .offset(offset)
@@ -522,12 +521,7 @@ export class ArticleService extends BaseService {
       .select()
       .where({ id: articleId })
       .first()
-
-    if (!article) {
-      return 1
-    }
-
-    return article.topicScore
+    return article.topicScore || 0
   }
 
   /**
