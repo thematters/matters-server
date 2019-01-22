@@ -298,9 +298,10 @@ export interface GQLRecommendation {
   authors: GQLUserConnection
 }
 
-export interface GQLConnectionArgs {
+export interface GQLRecommendationInput {
   after?: string
   first?: number
+  oss?: boolean
 }
 
 export interface GQLArticleConnection extends GQLConnection {
@@ -358,12 +359,6 @@ export interface GQLArticleEdge {
   node: GQLArticle
 }
 
-export interface GQLRecommendationInput {
-  after?: string
-  first?: number
-  oss?: boolean
-}
-
 export interface GQLTagConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
@@ -392,6 +387,11 @@ export interface GQLTag extends GQLNode {
    */
   oss: GQLTagOSS
   remark?: string
+}
+
+export interface GQLConnectionArgs {
+  after?: string
+  first?: number
 }
 
 export interface GQLTagOSS {
@@ -2664,7 +2664,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
 }
 
 export interface RecommendationToFolloweeArticlesArgs {
-  input: GQLConnectionArgs
+  input: GQLRecommendationInput
 }
 export interface RecommendationToFolloweeArticlesResolver<
   TParent = any,

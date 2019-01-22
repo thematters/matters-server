@@ -37,8 +37,6 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     )
   }
 
-  console.log(recommendations)
-
   return connectionFromPromisedArray(
     articleService.dataloader.loadMany(recommendations),
     input

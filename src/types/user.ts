@@ -79,7 +79,7 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
-    followeeArticles(input: ConnectionArgs!): ArticleConnection!
+    followeeArticles(input: RecommendationInput!): ArticleConnection!
     newest(input: RecommendationInput!): ArticleConnection!
     hottest(input: RecommendationInput!): ArticleConnection!
     # Matters Today

@@ -378,6 +378,7 @@ export class ArticleService extends BaseService {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
+    oss?: boolean
   }) => {
     const table = oss ? 'article_count_view' : 'article_count_materialized'
 

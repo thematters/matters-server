@@ -473,7 +473,6 @@ export class UserService extends BaseService {
     oss?: boolean
   }) => {
     const table = oss ? 'user_reader_view' : 'user_reader_materialized'
-    console.log({ notIn })
     const result = await this.knex(table)
       .select()
       .orderByRaw('author_score DESC NULLS LAST')
