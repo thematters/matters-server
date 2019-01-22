@@ -281,7 +281,7 @@ export class ArticleService extends BaseService {
         'view.id',
         'setting.article_id'
       )
-      .orderBy('latest_activity DESC NULLS LAST')
+      .orderByRaw('latest_activity DESC NULLS LAST')
       .where(where)
       .limit(limit)
       .offset(offset)
