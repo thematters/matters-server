@@ -30,9 +30,14 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   }
 
   if (recommendations.length >= recommendationSize) {
-    let articleIds = await articleService.findByAuthor(authorId)
-    recommendations = addRec(recommendations, articleIds)
+    let articles = await articleService.findByAuthor(authorId)
+    recommendations = addRec(
+      recommendations,
+      articles.map(({ id }: { id: string }) => id)
+    )
   }
+
+  console.log(recommendations)
 
   return connectionFromPromisedArray(
     articleService.dataloader.loadMany(recommendations),
