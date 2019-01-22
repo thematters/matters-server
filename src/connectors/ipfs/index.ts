@@ -7,6 +7,7 @@ import { resolve as urlResolve } from 'url'
 
 import logger from 'common/logger'
 import { environment } from 'common/environment'
+import ipfsTemplate from './templates/v2'
 
 const { ipfsHost, ipfsPort, domain } = environment
 
@@ -45,6 +46,8 @@ export class IPFS {
       return
     }
   }
+
+  makeHTML = ipfsTemplate
 
   // add html string and related assets
   addHTML = async (html: string) => {
