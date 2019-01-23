@@ -1,4 +1,8 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  connectionFromArray,
+  cursorToIndex
+} from 'common/utils'
 
 import { GQLUserActivityTypeResolver } from 'definitions'
 
@@ -37,6 +41,10 @@ const resolver: GQLUserActivityTypeResolver = {
     { input },
     { dataSources: { userService } }
   ) => {
+    // if (!id) {
+    //   return connectionFromArray([], input)
+    // }
+
     return connectionFromPromisedArray(
       userService.findRecentSearches(id),
       input

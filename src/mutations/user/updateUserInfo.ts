@@ -6,7 +6,8 @@ import {
   ForbiddenError,
   AssetNotFoundError,
   DisplayNameInvalidError,
-  UsernameInvalidError
+  UsernameInvalidError,
+  UserInputError
 } from 'common/errors'
 
 const resolver: MutationToUpdateUserInfoResolver = async (

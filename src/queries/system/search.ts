@@ -10,7 +10,7 @@ const resolver: QueryToSearchResolver = (
     viewer
   }
 ) => {
-  if (input.type !== 'User') {
+  if (input.type !== 'User' && input.key) {
     systemService.baseCreate(
       { userId: viewer ? viewer.id : null, searchKey: input.key },
       'search_history'

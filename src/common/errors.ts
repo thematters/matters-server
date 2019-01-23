@@ -238,14 +238,6 @@ export class UserFollowFailedError extends ApolloError {
   }
 }
 
-export class UserFollowFailedError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'USER_FOLLOW_FAILED')
-
-    Object.defineProperty(this, 'name', { value: 'UserFollowFailedError' })
-  }
-}
-
 export class UserInviteFailedError extends ApolloError {
   constructor(message: string) {
     super(message, 'USER_INVITE_FAILED')

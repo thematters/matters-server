@@ -275,6 +275,7 @@ export class UserService extends BaseService {
     const result = await this.knex('search_history')
       .select('search_key')
       .where({ userId, archived: false })
+      .whereNot({ searchKey: '' })
       .max('created_at as search_at')
       .groupBy('search_key')
       .orderBy('search_at', 'desc')
