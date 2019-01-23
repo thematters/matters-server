@@ -1018,6 +1018,7 @@ type TransactionEdge {
 enum TransactionPurpose {
   appreciate
   appreciateComment
+  appreciateSubsidy
   invitationAccepted
   joinByInvitation
   joinByTask
