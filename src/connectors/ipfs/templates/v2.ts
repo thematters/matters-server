@@ -10,8 +10,7 @@ type TemplateVars = {
 }
 
 const toDateString = (date: Date) => {
-  const d = new Date()
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
 }
 
 const style = /*html*/ `
@@ -61,14 +60,9 @@ const style = /*html*/ `
   h6 {
     font-size: 14px;
   }
-  a {
-    color: #9f8144;
-    border-bottom: 1px solid currentcolor;
-    text-decoration: none;
-    padding-bottom: 2px;
-  }
 
   header figure.byline {
+    font-size: 16px;
     margin: 0;
   }
   header figure.byline * + * {
@@ -76,6 +70,11 @@ const style = /*html*/ `
   }
   header figure.byline time {
     color: #b3b3b3;
+  }
+  header figure.byline [ref="source"]::before {
+    content: '';
+    border-left: 1px solid currentColor;
+    padding-left: 10px;
   }
 
   article > * {
@@ -112,7 +111,12 @@ const style = /*html*/ `
   article blockquote {
     margin-left: 20px;
     margin-right: 20px;
-    color: #9f8144;
+    color: #5F5F5F;
+  }
+  article a {
+    border-bottom: 1px solid currentcolor;
+    text-decoration: none;
+    padding-bottom: 2px;
   }
   article p {
     line-height: 2;
@@ -160,7 +164,10 @@ const template = ({
         <h1 class="title">${title}</h1>
         <figure class="byline">
           <a ref="author">${author.userName} (@${author.displayName})</a>
-          <time datetime="${publishedAt}">${toDateString(publishedAt)}</time>
+          <time datetime="${publishedAt.toISOString()}">${toDateString(
+  publishedAt
+)}</time>
+          <a ref="source">The Matters</a>
         </figure>
       </header>
       <article>
