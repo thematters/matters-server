@@ -515,7 +515,7 @@ export class ArticleService extends BaseService {
   setBoost = async ({ id, boost }: { id: string; boost: number }) =>
     this.baseUpdateOrCreate({
       where: { articleId: id },
-      data: { articleId: id, boost },
+      data: { articleId: id, boost, updatedAt: new Date() },
       table: 'article_boost'
     })
 
@@ -808,15 +808,18 @@ export class ArticleService extends BaseService {
   /**
    * User subscribe an article
    */
-  subscribe = async (targetId: string, userId: string): Promise<any[]> =>
-    await this.baseCreate(
-      {
-        targetId,
-        userId,
-        action: USER_ACTION.subscribe
-      },
-      'action_article'
-    )
+  subscribe = async (targetId: string, userId: string): Promise<any[]> => {
+    const data = {
+      targetId,
+      userId,
+      action: USER_ACTION.subscribe
+    }
+    return this.baseUpdateOrCreate({
+      where: data,
+      data: { updatedAt: new Date(), ...data },
+      table: 'action_article'
+    })
+  }
 
   /**
    * User unsubscribe an article

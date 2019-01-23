@@ -14,7 +14,8 @@ const resolver: MutationToToggleArticlePublicResolver = async (
   }
 
   const updatedArticle = await articleService.baseUpdate(dbId, {
-    public: enabled
+    public: enabled,
+    updatedAt: new Date()
   })
 
   return updatedArticle

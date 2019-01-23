@@ -1,5 +1,5 @@
 import { MutationToUpdateNotificationSettingResolver } from 'definitions'
-import { AuthenticationError } from 'common/errors'
+import { AuthenticationError, UserNotFoundError } from 'common/errors'
 
 const resolver: MutationToUpdateNotificationSettingResolver = async (
   _,

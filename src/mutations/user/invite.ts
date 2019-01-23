@@ -3,7 +3,8 @@ import {
   UserInputError,
   EmailExistsError,
   UserInviteFailedError,
-  UserInviteStateFailedError
+  UserInviteStateFailedError,
+  UserNotFoundError
 } from 'common/errors'
 import { MutationToInviteResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
@@ -22,7 +23,8 @@ const resolver: MutationToInviteResolver = async (
     throw new UserInputError('id or email is required')
   }
 
-  const isAdmin = viewer.role === 'admin'
+  // check sender
+  const isAdmin = viewer.hasRole('admin')
   if (!isAdmin) {
     const invited = await userService.findInvitations(viewer.id)
     const invitationLeft =
@@ -36,14 +38,16 @@ const resolver: MutationToInviteResolver = async (
   if (id) {
     const { id: dbId } = fromGlobalId(id)
     const recipient = await userService.dataloader.load(dbId)
+    // check recipient
     if (!recipient) {
-      throw new UserInputError('target user does not exists')
+      throw new UserNotFoundError('target user does not exists')
     }
     if (recipient.state !== 'onboarding') {
       throw new UserInviteStateFailedError(
-        "target user' state is not onboarding"
+        "target user's state is not onboarding"
       )
     }
+    // activate recipient
     await userService.activate({
       senderId: isAdmin ? undefined : viewer.id,
       recipientId: recipient.id
@@ -53,6 +57,7 @@ const resolver: MutationToInviteResolver = async (
     if (user) {
       throw new EmailExistsError('email has been registered')
     }
+    // invite email
     await userService.invite({
       senderId: isAdmin ? undefined : viewer.id,
       email

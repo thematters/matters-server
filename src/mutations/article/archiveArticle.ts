@@ -20,7 +20,8 @@ const resolver: MutationToArchiveArticleResolver = async (
   }
 
   const article = await articleService.baseUpdate(dbId, {
-    state: ARTICLE_STATE.archived
+    state: ARTICLE_STATE.archived,
+    updatedAt: new Date()
   })
 
   // trigger notifications

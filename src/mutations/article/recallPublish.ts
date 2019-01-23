@@ -1,7 +1,7 @@
 import { MutationToRecallPublishResolver } from 'definitions'
 import { PUBLISH_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
-import { ForbiddenError, DraftNotFoundError } from 'common/errors'
+import { AuthenticationError, DraftNotFoundError } from 'common/errors'
 
 const resolver: MutationToRecallPublishResolver = async (
   root,
@@ -9,7 +9,7 @@ const resolver: MutationToRecallPublishResolver = async (
   { viewer, dataSources: { draftService } }
 ) => {
   if (!viewer.id) {
-    throw new ForbiddenError('visitor has no permission')
+    throw new AuthenticationError('visitor has no permission')
   }
   const { id: draftDBId } = fromGlobalId(id)
   const draft = await draftService.dataloader.load(draftDBId)
@@ -24,7 +24,8 @@ const resolver: MutationToRecallPublishResolver = async (
 
   const draftRecalled = await draftService.baseUpdate(draftDBId, {
     archived: true,
-    publishState: PUBLISH_STATE.unpublished
+    publishState: PUBLISH_STATE.unpublished,
+    updatedAt: new Date()
   })
 
   return draftRecalled

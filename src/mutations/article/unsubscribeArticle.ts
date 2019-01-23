@@ -21,16 +21,7 @@ const resolver: MutationToUnsubscribeArticleResolver = async (
     throw new ArticleNotFoundError('target article does not exists')
   }
 
-  const subscribed = await articleService.isSubscribed({
-    targetId: article.id,
-    userId: viewer.id
-  })
-
-  if (!subscribed) {
-    throw new EntityNotFoundError('subscription does not exists')
-  }
-
-  articleService.unsubscribe(article.id, viewer.id)
+  await articleService.unsubscribe(article.id, viewer.id)
 
   return true
 }

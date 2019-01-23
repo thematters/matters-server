@@ -1,6 +1,6 @@
 import { MutationToDeleteAudiodraftResolver } from 'definitions'
 import {
-  DraftNotFoundError,
+  AudioDraftNotFoundError,
   ForbiddenError,
   AuthenticationError
 } from 'common/errors'
@@ -16,7 +16,7 @@ const resolver: MutationToDeleteAudiodraftResolver = async (
 
   const audioDraft = await draftService.baseFindByUUID(uuid, 'audio_draft')
   if (!audioDraft) {
-    throw new DraftNotFoundError('target draft does not exist')
+    throw new AudioDraftNotFoundError('target audio draft does not exist')
   }
   if (audioDraft.authroId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')

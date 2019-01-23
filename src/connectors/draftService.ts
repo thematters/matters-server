@@ -14,7 +14,8 @@ export class DraftService extends BaseService {
    *             Draft             *
    *                               *
    *********************************/
-  archive = async (id: string) => this.baseUpdate(id, { archived: true })
+  archive = async (id: string) =>
+    this.baseUpdate(id, { archived: true, updatedAt: new Date() })
 
   /**
    * Count user's drafts by a given author id (user).

@@ -108,7 +108,7 @@ export class UserService extends BaseService {
     id: string,
     input: GQLUpdateUserInfoInput & { email?: string; emailVerified?: boolean }
   ) => {
-    const user = await this.baseUpdate(id, input)
+    const user = await this.baseUpdate(id, { updatedAt: new Date(), ...input })
 
     const { description, displayName, userName } = input
     if (!description && !displayName && !userName) {
@@ -146,7 +146,8 @@ export class UserService extends BaseService {
   }) => {
     const passwordHash = await hash(password, BCRYPT_ROUNDS)
     const user = await this.baseUpdate(userId, {
-      passwordHash
+      passwordHash,
+      updatedAt: new Date()
     })
     return user
   }
@@ -339,9 +340,9 @@ export class UserService extends BaseService {
       targetId,
       action: USER_ACTION.follow
     }
-    return await this.baseFindOrCreate({
+    return await this.baseUpdateOrCreate({
       where: data,
-      data,
+      data: { updatedAt: new Date(), ...data },
       table: 'action_user'
     })
   }
@@ -491,7 +492,7 @@ export class UserService extends BaseService {
   setBoost = async ({ id, boost }: { id: string; boost: number }) =>
     this.baseUpdateOrCreate({
       where: { userId: id },
-      data: { userId: id, boost },
+      data: { userId: id, boost, updatedAt: new Date() },
       table: 'user_boost'
     })
 
@@ -519,7 +520,11 @@ export class UserService extends BaseService {
     id: string,
     data: ItemData
   ): Promise<any | null> =>
-    await this.baseUpdate(id, data, 'user_notify_setting')
+    await this.baseUpdate(
+      id,
+      { updatedAt: new Date(), ...data },
+      'user_notify_setting'
+    )
 
   findBadges = async (userId: string): Promise<any[]> =>
     await this.knex
@@ -597,22 +602,8 @@ export class UserService extends BaseService {
     userId: string | null
   }) =>
     await this.knex('article_read')
-      .update({ archived: true })
       .where({ articleId, userId })
-
-  findReadHistoryByUUID = async (
-    uuid: string,
-    userId: string
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('article_read')
-      .where({
-        uuid,
-        userId,
-        archived: false
-      })
-      .first()
+      .update({ archived: true })
 
   /*********************************
    *                               *
@@ -846,6 +837,10 @@ export class UserService extends BaseService {
       data = { ...data, verifiedAt: new Date() }
     }
 
-    return this.baseUpdate(codeId, data, 'verification_code')
+    return this.baseUpdate(
+      codeId,
+      { updatedAt: new Date(), ...data },
+      'verification_code'
+    )
   }
 }

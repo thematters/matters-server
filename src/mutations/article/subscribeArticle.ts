@@ -17,15 +17,6 @@ const resolver: MutationToSubscribeArticleResolver = async (
     throw new ArticleNotFoundError('target article does not exists')
   }
 
-  const subscribed = await articleService.isSubscribed({
-    targetId: article.id,
-    userId: viewer.id
-  })
-
-  if (subscribed) {
-    return true
-  }
-
   await articleService.subscribe(article.id, viewer.id)
 
   // trigger notifications

@@ -23,7 +23,8 @@ const resolver: MutationToPinCommentResolver = async (
   }
 
   const comment = await commentService.baseUpdate(dbId, {
-    pinned: false
+    pinned: false,
+    updatedAt: new Date()
   })
 
   return comment

@@ -6,6 +6,10 @@ const resolver: MutationToClearReadHistoryResolver = async (
   { input: { id } },
   { viewer, dataSources: { userService } }
 ) => {
+  if (!viewer.id) {
+    return true
+  }
+
   await userService.clearReadHistory({
     articleId: fromGlobalId(id).id,
     userId: viewer.id

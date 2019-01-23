@@ -23,7 +23,8 @@ const resolver: MutationToDeleteCommentResolver = async (
   }
 
   await commentService.baseUpdate(dbId, {
-    state: COMMENT_STATE.archived
+    state: COMMENT_STATE.archived,
+    updatedAt: new Date()
   })
 
   // trigger notificaiton

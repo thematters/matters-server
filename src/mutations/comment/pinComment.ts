@@ -37,7 +37,8 @@ const resolver: MutationToPinCommentResolver = async (
   }
 
   const pinnedComment = await commentService.baseUpdate(dbId, {
-    pinned: true
+    pinned: true,
+    updatedAt: new Date()
   })
 
   // trigger notifications

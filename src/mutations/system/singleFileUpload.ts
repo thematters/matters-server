@@ -8,9 +8,9 @@ const resolver: MutationToSingleFileUploadResolver = async (
   { input: { type, file } },
   { viewer, dataSources: { systemService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
+  // if (!viewer.id) {
+  //   throw new AuthenticationError('visitor has no permission')
+  // }
 
   const data = await file
   const { filename, mimetype, encoding } = data

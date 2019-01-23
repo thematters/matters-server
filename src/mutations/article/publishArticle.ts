@@ -33,7 +33,8 @@ const resolver: MutationToPublishArticleResolver = async (
   const scheduledAt = new Date(Date.now() + (delay || PUBLISH_ARTICLE_DELAY))
   const draftPending = await draftService.baseUpdate(draft.id, {
     publishState: PUBLISH_STATE.pending,
-    scheduledAt
+    scheduledAt,
+    updatedAt: new Date()
   })
 
   // add job to queue
