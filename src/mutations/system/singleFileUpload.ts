@@ -1,6 +1,7 @@
 import { v4 } from 'uuid'
-import { AuthenticationError } from 'apollo-server'
+
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
+import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToSingleFileUploadResolver = async (
   root,

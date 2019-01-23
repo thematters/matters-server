@@ -1,6 +1,6 @@
-import { ForbiddenError } from 'apollo-server'
 import { MutationToSetBoostResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { EntityNotFoundError } from 'common/errors'
 
 const resolver: MutationToSetBoostResolver = async (
   root,
@@ -16,7 +16,7 @@ const resolver: MutationToSetBoostResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const entity = await serviceMap[type].dataloader.load(dbId)
   if (!entity) {
-    throw new ForbiddenError(`target ${type} does not exists`)
+    throw new EntityNotFoundError(`target ${type} does not exists`)
   }
 
   await serviceMap[type].setBoost({ id: dbId, boost })

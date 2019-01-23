@@ -13,10 +13,11 @@ import {
 import { ItemData, GQLSearchInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
 import { stripHtml, countWords } from 'common/utils'
-import { ArticleNotFoundError } from 'common/errors'
+import { ArticleNotFoundError, ServerError } from 'common/errors'
 
 import { BaseService } from './baseService'
 import { UserService } from './userService'
+import logger from 'common/logger'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
@@ -251,7 +252,8 @@ export class ArticleService extends BaseService {
       const ids = hits.hits.map(({ _id }) => _id)
       return this.dataloader.loadMany(ids)
     } catch (err) {
-      throw err
+      logger.error(err)
+      throw new ServerError('search failed')
     }
   }
 

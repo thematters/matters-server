@@ -1,5 +1,5 @@
-import { AuthenticationError } from 'apollo-server'
 import { InvitationStatusToLeftResolver } from 'definitions'
+import { AuthenticationError } from 'common/errors'
 
 const resolver: InvitationStatusToLeftResolver = async (
   { id },

@@ -1,8 +1,9 @@
 import {
   AuthenticationError,
   UserInputError,
-  ForbiddenError,
-  EmailExistsError
+  EmailExistsError,
+  UserInviteFailedError,
+  UserInviteStateFailedError
 } from 'common/errors'
 import { MutationToInviteResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
@@ -28,7 +29,7 @@ const resolver: MutationToInviteResolver = async (
       Math.floor(viewer.mat / MAT_UNIT.invitationCalculate) - invited.length
 
     if (viewer.state !== 'active' || invitationLeft <= 0) {
-      throw new ForbiddenError('unable to invite')
+      throw new UserInviteFailedError('unable to invite')
     }
   }
 
@@ -39,7 +40,9 @@ const resolver: MutationToInviteResolver = async (
       throw new UserInputError('target user does not exists')
     }
     if (recipient.state !== 'onboarding') {
-      throw new ForbiddenError("target user' state is not onboarding")
+      throw new UserInviteStateFailedError(
+        "target user' state is not onboarding"
+      )
     }
     await userService.activate({
       senderId: isAdmin ? undefined : viewer.id,

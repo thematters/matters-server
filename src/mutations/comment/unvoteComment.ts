@@ -1,6 +1,6 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToUnvoteCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { AuthenticationError, CommentVoteNotFoundError } from 'common/errors'
 
 const resolver: MutationToUnvoteCommentResolver = async (
   _,
@@ -22,7 +22,7 @@ const resolver: MutationToUnvoteCommentResolver = async (
     commentId: dbId
   })
   if (!voted || voted.length <= 0) {
-    throw new ForbiddenError('no vote before')
+    throw new CommentVoteNotFoundError('no vote before')
   }
 
   await commentService.unvote({ commentId: dbId, userId: viewer.id })

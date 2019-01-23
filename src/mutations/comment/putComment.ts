@@ -1,6 +1,11 @@
-import { AuthenticationError, UserInputError } from 'apollo-server'
 import { MutationToPutCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import {
+  AuthenticationError,
+  UserInputError,
+  ArticleNotFoundError,
+  CommentNotFoundError
+} from 'common/errors'
 
 const resolver: MutationToPutCommentResolver = async (
   _,
@@ -50,7 +55,7 @@ const resolver: MutationToPutCommentResolver = async (
   const { id: authorDbId } = fromGlobalId(articleId)
   const article = await articleService.dataloader.load(authorDbId)
   if (!article) {
-    throw new UserInputError('target article does not exists')
+    throw new ArticleNotFoundError('target article does not exists')
   }
   data.articleId = article.id
 
@@ -60,7 +65,7 @@ const resolver: MutationToPutCommentResolver = async (
     const { id: parentDbId } = fromGlobalId(parentId)
     parentComment = await commentService.dataloader.load(parentDbId)
     if (!parentComment) {
-      throw new UserInputError('target parentComment does not exists')
+      throw new CommentNotFoundError('target parentComment does not exists')
     }
     data.parentCommentId = parentComment.id
   }

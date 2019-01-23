@@ -1,10 +1,11 @@
-import {
-  AuthenticationError,
-  UserInputError,
-  ForbiddenError
-} from 'apollo-server'
 import { v4 } from 'uuid'
 import { ItemData, MutationToPutAudiodraftResolver } from 'definitions'
+import {
+  AssetNotFoundError,
+  AuthenticationError,
+  ForbiddenError,
+  AudioDraftNotFoundError
+} from 'common/errors'
 
 const resolver: MutationToPutAudiodraftResolver = async (
   _,
@@ -19,7 +20,7 @@ const resolver: MutationToPutAudiodraftResolver = async (
   if (audioAssetUUID) {
     const asset = await systemService.findAssetByUUID(audioAssetUUID)
     if (!asset || asset.type !== 'audioDraft' || asset.authorId !== viewer.id) {
-      throw new UserInputError('Asset does not exists')
+      throw new AssetNotFoundError('Asset does not exists')
     }
     audioAssetId = asset.id
   }
@@ -35,7 +36,7 @@ const resolver: MutationToPutAudiodraftResolver = async (
   if (uuid) {
     const draft = await draftService.baseFindByUUID(uuid, 'audio_draft')
     if (!draft) {
-      throw new UserInputError('target audio draft does not exist')
+      throw new AudioDraftNotFoundError('target audio draft does not exist')
     }
     if (draft.authorId !== viewer.id) {
       throw new ForbiddenError('viewer has no permission')

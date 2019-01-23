@@ -1,6 +1,6 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToPinCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { ForbiddenError, AuthenticationError } from 'common/errors'
 
 const resolver: MutationToPinCommentResolver = async (
   _,

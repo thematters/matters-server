@@ -1,5 +1,5 @@
-import { AuthenticationError } from 'apollo-server'
 import { MutationToClearSearchHistoryResolver } from 'definitions'
+import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToClearSearchHistoryResolver = async (
   _,

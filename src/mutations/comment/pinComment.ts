@@ -1,6 +1,10 @@
-import { AuthenticationError, ForbiddenError } from 'common/errors'
 import { MutationToPinCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import {
+  AuthenticationError,
+  ForbiddenError,
+  ActionLimitExceededError
+} from 'common/errors'
 
 const resolver: MutationToPinCommentResolver = async (
   _,
@@ -24,7 +28,7 @@ const resolver: MutationToPinCommentResolver = async (
 
   const pinLeft = await commentService.pinLeftByArticle(comment.articleId)
   if (pinLeft <= 0) {
-    throw new ForbiddenError('reach pin limit')
+    throw new ActionLimitExceededError('reach pin limit')
   }
 
   // check is pinned before

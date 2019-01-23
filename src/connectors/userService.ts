@@ -19,13 +19,12 @@ import {
   BATCH_SIZE
 } from 'common/enums'
 import { environment } from 'common/environment'
-import { EmailNotFoundError, PasswordInvalidError } from 'common/errors'
 import {
-  ItemData,
-  GQLSearchInput,
-  GQLUpdateUserInfoInput,
-  GQLUserRegisterInput
-} from 'definitions'
+  EmailNotFoundError,
+  PasswordInvalidError,
+  ServerError
+} from 'common/errors'
+import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
 import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders'
@@ -46,14 +45,13 @@ export class UserService extends BaseService {
     displayName,
     description,
     password
-  }: GQLUserRegisterInput) => {
-    // TODO: do code validation here
-
-    // TODO: better default unique user name
-    if (!userName) {
-      userName = email
-    }
-
+  }: {
+    email: string
+    userName: string
+    displayName: string
+    description?: string
+    password: string
+  }) => {
     // TODO:
     const avatar = null
 
@@ -158,19 +156,12 @@ export class UserService extends BaseService {
    */
   findByEmail = async (
     email: string
-  ): Promise<{ uuid: string; [key: string]: string }> => {
-    const result = await this.knex
+  ): Promise<{ uuid: string; [key: string]: string }> =>
+    this.knex
       .select()
       .from(this.table)
       .where({ email })
       .first()
-
-    // if (!result) {
-    //   throw new EmailNotFoundError(`Cannot find email ${email}`)
-    // }
-
-    return result
-  }
 
   /**
    * Find users by a given user name.
@@ -275,7 +266,8 @@ export class UserService extends BaseService {
       const ids = hits.hits.map(({ _id }) => _id)
       return this.dataloader.loadMany(ids)
     } catch (err) {
-      throw err
+      logger.error(err)
+      throw new ServerError('search failed')
     }
   }
 

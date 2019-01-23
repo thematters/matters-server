@@ -1,9 +1,9 @@
-import {
-  AuthenticationError,
-  UserInputError,
-  ForbiddenError
-} from 'apollo-server'
 import { MutationToDeleteAudiodraftResolver } from 'definitions'
+import {
+  DraftNotFoundError,
+  ForbiddenError,
+  AuthenticationError
+} from 'common/errors'
 
 const resolver: MutationToDeleteAudiodraftResolver = async (
   _,
@@ -16,7 +16,7 @@ const resolver: MutationToDeleteAudiodraftResolver = async (
 
   const audioDraft = await draftService.baseFindByUUID(uuid, 'audio_draft')
   if (!audioDraft) {
-    throw new UserInputError('target draft does not exist')
+    throw new DraftNotFoundError('target draft does not exist')
   }
   if (audioDraft.authroId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')

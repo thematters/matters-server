@@ -1,4 +1,3 @@
-import { AuthenticationError, UserInputError } from 'apollo-server'
 import { MutationToClearReadHistoryResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 

@@ -1,6 +1,10 @@
-import { ForbiddenError, UserInputError } from 'apollo-server'
 import { MutationToReportArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import {
+  UserInputError,
+  ArticleNotFoundError,
+  AssetNotFoundError
+} from 'common/errors'
 
 const resolver: MutationToReportArticleResolver = async (
   root,
@@ -14,14 +18,14 @@ const resolver: MutationToReportArticleResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
-    throw new ForbiddenError('target article does not exists')
+    throw new ArticleNotFoundError('target article does not exists')
   }
 
   let assetIds
   if (assetUUIDs) {
     const assets = await systemService.findAssetByUUIDs(assetUUIDs)
     if (!assets || assets.length <= 0) {
-      throw new ForbiddenError('Asset does not exists')
+      throw new AssetNotFoundError('Asset does not exists')
     }
     assetIds = assets.map((asset: any) => asset.id)
   }

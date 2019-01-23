@@ -1,6 +1,10 @@
-import { AuthenticationError, UserInputError } from 'apollo-server'
 import { MutationToReportCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import {
+  UserInputError,
+  CommentNotFoundError,
+  AssetNotFoundError
+} from 'common/errors'
 
 const resolver: MutationToReportCommentResolver = async (
   root,
@@ -14,14 +18,14 @@ const resolver: MutationToReportCommentResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const comment = await commentService.dataloader.load(dbId)
   if (!comment) {
-    throw new UserInputError('target comment does not exists')
+    throw new CommentNotFoundError('target comment does not exists')
   }
 
   let assetIds
   if (assetUUIDs) {
     const assets = await systemService.findAssetByUUIDs(assetUUIDs)
     if (!assets || assets.length <= 0) {
-      throw new UserInputError('Asset does not exists')
+      throw new AssetNotFoundError('Asset does not exists')
     }
     assetIds = assets.map((asset: any) => asset.id)
   }

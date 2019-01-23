@@ -1,7 +1,7 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToArchiveArticleResolver } from 'definitions'
 import { ARTICLE_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
+import { ForbiddenError, AuthenticationError } from 'common/errors'
 
 const resolver: MutationToArchiveArticleResolver = async (
   _,

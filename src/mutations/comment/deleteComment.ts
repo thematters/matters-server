@@ -1,7 +1,7 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToDeleteCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 import { COMMENT_STATE } from 'common/enums'
+import { ForbiddenError, AuthenticationError } from 'common/errors'
 
 const resolver: MutationToDeleteCommentResolver = async (
   _,

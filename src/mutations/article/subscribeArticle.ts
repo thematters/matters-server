@@ -1,6 +1,6 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToSubscribeArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { ArticleNotFoundError, AuthenticationError } from 'common/errors'
 
 const resolver: MutationToSubscribeArticleResolver = async (
   root,
@@ -14,7 +14,7 @@ const resolver: MutationToSubscribeArticleResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
-    throw new ForbiddenError('target article does not exists')
+    throw new ArticleNotFoundError('target article does not exists')
   }
 
   const subscribed = await articleService.isSubscribed({
