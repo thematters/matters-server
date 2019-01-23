@@ -185,6 +185,7 @@ input AuthorsFilter {
 input AuthorsInput {
   after: String
   first: Int
+  oss: Boolean
   filter: AuthorsFilter
 }
 
@@ -340,6 +341,7 @@ interface Connection {
 input ConnectionArgs {
   after: String
   first: Int
+  oss: Boolean
 }
 
 scalar Date
@@ -712,7 +714,7 @@ input PutDraftInput {
   id: ID
   upstreamId: ID
   title: String
-  content: String!
+  content: String
   tags: [String]
   coverAssetId: ID
 }

@@ -204,6 +204,7 @@ export default /* GraphQL */ `
   input ConnectionArgs {
     after: String
     first: Int
+    oss: Boolean
   }
 
   enum SearchTypes {
