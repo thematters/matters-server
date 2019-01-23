@@ -458,6 +458,7 @@ export class ArticleService extends BaseService {
       )
       .where(where)
       .count()
+      .first()
 
     if (!all) {
       qs = qs.andWhere(function() {
