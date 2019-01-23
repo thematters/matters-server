@@ -1,12 +1,9 @@
-import {
-  AuthenticationError,
-  UserInputError,
-  ForbiddenError
-} from 'apollo-server'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
 import { isEmpty, has } from 'lodash'
 import { isValidUserName, isValidDisplayName } from 'common/utils'
 import {
+  AuthenticationError,
+  ForbiddenError,
   AssetNotFoundError,
   DisplayNameInvalidError,
   UsernameInvalidError
