@@ -420,7 +420,7 @@ input ImportArticlesInput {
   token: String
 }
 
-type Invitation implements Node {
+type Invitation {
   id: ID!
   user: User
   email: String

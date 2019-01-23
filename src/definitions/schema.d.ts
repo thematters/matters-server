@@ -117,7 +117,6 @@ export type GQLPossibleNodeTypeNames =
   | 'User'
   | 'Tag'
   | 'Draft'
-  | 'Invitation'
   | 'Comment'
 
 export interface GQLNodeNameMap {
@@ -126,7 +125,6 @@ export interface GQLNodeNameMap {
   User: GQLUser
   Tag: GQLTag
   Draft: GQLDraft
-  Invitation: GQLInvitation
   Comment: GQLComment
 }
 
@@ -625,7 +623,7 @@ export interface GQLInvitationEdge {
   node: GQLInvitation
 }
 
-export interface GQLInvitation extends GQLNode {
+export interface GQLInvitation {
   id: string
   user?: GQLUser
   email?: string
@@ -2111,7 +2109,6 @@ export interface GQLNodeTypeResolver<TParent = any> {
     | 'User'
     | 'Tag'
     | 'Draft'
-    | 'Invitation'
     | 'Comment'
 }
 export interface GQLUserTypeResolver<TParent = any> {

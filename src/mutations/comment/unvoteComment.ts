@@ -1,6 +1,6 @@
 import { MutationToUnvoteCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
-import { AuthenticationError, CommentVoteNotFoundError } from 'common/errors'
+import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToUnvoteCommentResolver = async (
   _,
