@@ -1,4 +1,7 @@
-import { GQLPossibleNodeTypeNames } from 'definitions'
+import {
+  GQLPossibleNodeTypeNames,
+  GQLPossibleConnectionTypeNames
+} from 'definitions'
 
 import node from './node'
 import search from './search'
@@ -24,6 +27,10 @@ export default {
   },
   Node: {
     __resolveType: ({ __type }: { __type: GQLPossibleNodeTypeNames }) => __type
+  },
+  Connection: {
+    __resolveType: ({ __type }: { __type: GQLPossibleConnectionTypeNames }) =>
+      __type
   },
   Asset: {
     id: ({ uuid }: { uuid: string }) => uuid

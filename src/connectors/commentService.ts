@@ -283,6 +283,26 @@ export class CommentService extends BaseService {
       })
       .whereIn('action', [USER_ACTION.upVote, USER_ACTION.downVote])
 
+  /**
+   * Remove a comment's votes a given target id (comment).
+   */
+  removeVotesByUserId = async ({
+    userId,
+    commentId: targetId
+  }: {
+    userId: string
+    commentId: string
+  }): Promise<any[]> =>
+    await this.knex
+      .select()
+      .from('action_comment')
+      .where({
+        userId,
+        targetId
+      })
+      .whereIn('action', [USER_ACTION.upVote, USER_ACTION.downVote])
+      .del()
+
   /*********************************
    *                               *
    *              Pin              *
