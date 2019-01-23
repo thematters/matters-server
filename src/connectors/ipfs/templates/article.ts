@@ -13,7 +13,9 @@ const toDateString = (date: Date) => {
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
 }
 
-const style = /*html*/ `
+const style =
+  // prettier-ignore
+  /*html*/ `
 
 <style>
   html, body {
@@ -30,37 +32,35 @@ const style = /*html*/ `
     margin: 40px auto;
     padding: 0 20px;
   }
-  hr {
-    height: 1px;
+  hr { height: 1px; }
+  h1, h2, h3, h4, h5, h6 { font-weight: 600; line-height: 1.4; }
+  h1 { font-size: 28px; }
+  h2 { font-size: 24px; }
+  h3 { font-size: 22px; }
+  h4 { font-size: 18px; }
+  h5 { font-size: 16px; }
+  h6 { font-size: 14px; }
+  li ul, li ol { margin: 0 20px; }
+  li { margin: 20px 0; }
+  ul { list-style-type: disc; }
+  ol { list-style-type: decimal; }
+  ol ol { list-style: upper-alpha; }
+  ol ol ol { list-style: lower-roman; }
+  ol ol ol ol { list-style: lower-alpha; }
+  img, video, audio {
+    display: block;
+    max-width: 100%;
+    margin: 0 auto;
   }
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-weight: 600;
-    line-height: 1.4;
-  }
-  h1 {
-    font-size: 28px;
-  }
-  h2 {
-    font-size: 24px;
-  }
-  h3 {
-    font-size: 22px;
-  }
-  h4 {
-    font-size: 18px;
-  }
-  h5 {
-    font-size: 16px;
-  }
-  h6 {
-    font-size: 14px;
+  blockquote {
+    margin-left: 20px;
+    margin-right: 20px;
+    color: #5F5F5F;
   }
 
+  header h1 {
+    font-size: 32px;
+  }
   header figure.byline {
     font-size: 16px;
     margin: 0;
@@ -81,38 +81,6 @@ const style = /*html*/ `
     margin-top: 32px;
     margin-bottom: 32px;
   }
-  article li ul,
-  article li ol {
-    margin: 0 20px;
-  }
-  article li {
-    margin: 20px 0;
-  }
-  article ul {
-    list-style-type: disc;
-  }
-  article ol {
-    list-style-type: decimal;
-  }
-  article ol ol {
-    list-style: upper-alpha;
-  }
-  article ol ol ol {
-    list-style: lower-roman;
-  }
-  article ol ol ol ol {
-    list-style: lower-alpha;
-  }
-  article img, article video, article audio {
-    display: block;
-    max-width: 100%;
-    margin: 0 auto;
-  }
-  article blockquote {
-    margin-left: 20px;
-    margin-right: 20px;
-    color: #5F5F5F;
-  }
   article a {
     border-bottom: 1px solid currentcolor;
     text-decoration: none;
@@ -120,9 +88,6 @@ const style = /*html*/ `
   }
   article p {
     line-height: 2;
-  }
-  .title {
-    font-size: 32px;
   }
   figure.summary {
 
@@ -144,7 +109,9 @@ const template = ({
   summary,
   content,
   publishedAt
-}: TemplateVars) => /*html*/ `
+}: TemplateVars) =>
+  // prettier-ignore
+  /*html*/ `
 
 <!DOCTYPE html>
 <html>
@@ -153,20 +120,20 @@ const template = ({
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${title}</title>
     <meta name="description" content="${summary}">
-    <meta property="article:author" content="${author.userName} (@${
-  author.displayName
-})">
+    <meta property="og:title" content="${author.displayName}: ${title}">
+    <meta property="og:description" content="${summary}">
+    <meta property="article:author" content="${author.userName} (@${author.displayName})">
+    <meta name="twitter:title" content="${author.displayName}: ${title}">
+    <meta name="twitter:description" content="${summary}">
     ${style}
   </head>
   <body>
     <main>
       <header>
-        <h1 class="title">${title}</h1>
+        <h1>${title}</h1>
         <figure class="byline">
           <a ref="author">${author.userName} (@${author.displayName})</a>
-          <time datetime="${publishedAt.toISOString()}">${toDateString(
-  publishedAt
-)}</time>
+          <time datetime="${publishedAt.toISOString()}">${toDateString(publishedAt)}</time>
           <a ref="source">The Matters</a>
         </figure>
       </header>
