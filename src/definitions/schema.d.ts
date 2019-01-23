@@ -301,6 +301,7 @@ export interface GQLRecommendation {
 export interface GQLConnectionArgs {
   after?: string
   first?: number
+  oss?: boolean
 }
 
 export interface GQLArticleConnection extends GQLConnection {
@@ -398,6 +399,7 @@ export type GQLNonNegativeFloat = any
 export interface GQLAuthorsInput {
   after?: string
   first?: number
+  oss?: boolean
   filter?: GQLAuthorsFilter
 }
 
@@ -867,11 +869,6 @@ export interface GQLOSS {
   today: GQLArticleConnection
 }
 
-export interface GQLUsersInput {
-  after?: string
-  first?: number
-}
-
 export interface GQLArticlesInput {
   public?: boolean
   after?: string
@@ -1160,7 +1157,7 @@ export interface GQLPutDraftInput {
   id?: string
   upstreamId?: string
   title?: string
-  content: string
+  content?: string
   tags?: Array<string | null>
   coverAssetId?: string
 }
@@ -4886,7 +4883,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
 }
 
 export interface OSSToUsersArgs {
-  input: GQLUsersInput
+  input: GQLConnectionArgs
 }
 export interface OSSToUsersResolver<TParent = any, TResult = any> {
   (

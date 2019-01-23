@@ -1,12 +1,22 @@
-import { isNil } from 'lodash'
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 
 import { OSSToUsersResolver } from 'definitions'
 
 export const users: OSSToUsersResolver = async (
   root,
-  { input: { ...connectionArgs } },
+  { input },
   { viewer, dataSources: { userService } }
 ) => {
-  return connectionFromPromisedArray(userService.find({}), connectionArgs)
+  const { first, after } = input
+  const offset = cursorToIndex(after) + 1
+  const totalCount = await userService.baseCount()
+
+  return connectionFromPromisedArray(
+    userService.baseFind({
+      offset,
+      limit: first
+    }),
+    input,
+    totalCount
+  )
 }

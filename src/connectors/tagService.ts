@@ -22,20 +22,6 @@ export class TagService extends BaseService {
       data: { content }
     })
 
-  find = async ({ where }: { where?: { [key: string]: any } }) => {
-    let qs = this.knex
-      .select()
-      .from(this.table)
-      .where({ deleted: false })
-      .orderBy('id', 'desc')
-
-    if (where) {
-      qs = qs.where(where)
-    }
-
-    return await qs
-  }
-
   /*********************************
    *                               *
    *           Search              *
@@ -53,16 +39,20 @@ export class TagService extends BaseService {
    *********************************/
   recommendTags = async ({
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
+    oss = false
   }: {
     limit?: number
     offset?: number
-  }) =>
-    await this.knex('tag_count_view')
+    oss?: boolean
+  }) => {
+    const table = oss ? 'tag_count_view' : 'tag_count_materialized'
+    return await this.knex(table)
       .select()
-      .orderBy('tag_score', 'desc')
+      .orderByRaw('tag_score DESC NULLS LAST')
       .limit(limit)
       .offset(offset)
+  }
 
   findBoost = async (tagId: string) => {
     const tagBoost = await this.knex('tag_boost')
@@ -85,16 +75,11 @@ export class TagService extends BaseService {
     })
 
   findScore = async (tagId: string) => {
-    const tag = await this.knex('tag_count_view')
+    const tag = await this.knex('tag_count_materialized')
       .select()
       .where({ id: tagId })
       .first()
-
-    if (!tag) {
-      return 1
-    }
-
-    return tag.tagScore || 1
+    return tag.tagScore || 0
   }
 
   /*********************************
@@ -117,7 +102,6 @@ export class TagService extends BaseService {
         return tagIds.map(tagId => ({ articleId, tagId }))
       })
     )
-    console.log('craeteitems', items)
     return this.baseBatchCreate(items, 'article_tag')
   }
 

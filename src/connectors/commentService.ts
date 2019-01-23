@@ -344,10 +344,10 @@ export class CommentService extends BaseService {
     articleId: string
     activeOnly?: boolean
   }): Promise<number> => {
-    let qs = this.knex
-      .select()
-      .from(this.table)
+    let qs = this.knex(this.table)
+      .count()
       .where({ articleId, pinned: true })
+      .first()
 
     if (activeOnly) {
       qs = qs.where({ state: COMMENT_STATE.active })

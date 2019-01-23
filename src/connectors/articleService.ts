@@ -145,22 +145,6 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Find articles
-   */
-  find = async ({ where }: { where?: { [key: string]: any } }) => {
-    let qs = this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
-
-    if (where) {
-      qs = qs.where(where)
-    }
-
-    return await qs
-  }
-
-  /**
    *  Find articles by a given author id (user).
    */
   findByAuthor = async (authorId: string) =>
@@ -283,27 +267,32 @@ export class ArticleService extends BaseService {
     limit = BATCH_SIZE,
     offset = 0,
     where = {},
-    all = false
+    oss = false
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-    all?: boolean
+    oss?: boolean
   }) => {
-    console.log(where)
-    let qs = this.knex('article_activity_view as view')
+    // use view when oss for real time update
+    // use materialized in other cases
+    const table = oss
+      ? 'article_activity_view'
+      : 'article_activity_materialized'
+
+    let qs = this.knex(`${table} as view`)
       .select('view.*', 'setting.in_hottest')
       .leftJoin(
         'article_recommend_setting as setting',
         'view.id',
         'setting.article_id'
       )
-      .orderBy('latest_activity', 'desc null last')
+      .orderByRaw('latest_activity DESC NULLS LAST')
       .where(where)
       .limit(limit)
       .offset(offset)
 
-    if (!all) {
+    if (!oss) {
       qs = qs.andWhere(function() {
         this.where({ inHottest: true }).orWhereNull('in_hottest')
       })
@@ -317,12 +306,12 @@ export class ArticleService extends BaseService {
     limit = BATCH_SIZE,
     offset = 0,
     where = {},
-    all = false
+    oss = false
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-    all?: boolean
+    oss?: boolean
   }) => {
     let qs = this.knex('article')
       .select('article.*', 'setting.in_newest')
@@ -336,7 +325,7 @@ export class ArticleService extends BaseService {
       .limit(limit)
       .offset(offset)
 
-    if (!all) {
+    if (!oss) {
       qs = qs.andWhere(function() {
         this.where({ inNewest: true }).orWhereNull('in_newest')
       })
@@ -383,17 +372,22 @@ export class ArticleService extends BaseService {
   recommendTopics = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    where = {}
+    where = {},
+    oss = false
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-  }) =>
-    this.knex('article_count_view')
-      .orderBy('topic_score', 'desc')
+    oss?: boolean
+  }) => {
+    const table = oss ? 'article_count_view' : 'article_count_materialized'
+
+    return await this.knex(table)
+      .orderByRaw('topic_score DESC NULLS LAST')
       .where(where)
       .limit(limit)
       .offset(offset)
+  }
 
   /**
    * Find One
@@ -414,7 +408,7 @@ export class ArticleService extends BaseService {
       .first()
 
   findRecommendHottest = async (articleId: string) =>
-    this.knex('article_activity_view')
+    this.knex('article_activity_materialized')
       .where({ id: articleId })
       .first()
 
@@ -424,7 +418,7 @@ export class ArticleService extends BaseService {
       .first()
 
   findRecommendTopic = async (articleId: string) =>
-    this.knex('article_count_view')
+    this.knex('article_count_materialized')
       .where({ id: articleId })
       .first()
 
@@ -456,7 +450,7 @@ export class ArticleService extends BaseService {
     where?: { [key: string]: any }
     all?: boolean
   }) => {
-    let qs = this.knex('article_activity_view as view')
+    let qs = this.knex('article_activity_materialized as view')
       .leftJoin(
         'article_recommend_setting as setting',
         'view.id',
@@ -524,16 +518,11 @@ export class ArticleService extends BaseService {
     })
 
   findScore = async (articleId: string) => {
-    const article = await this.knex('article_count_view')
+    const article = await this.knex('article_count_materialized')
       .select()
       .where({ id: articleId })
       .first()
-
-    if (!article) {
-      return 1
-    }
-
-    return article.topicScore
+    return article.topicScore || 0
   }
 
   /**

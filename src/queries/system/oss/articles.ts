@@ -1,5 +1,5 @@
 import { isNil } from 'lodash'
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 
 import { OSSToArticlesResolver } from 'definitions'
 
@@ -13,10 +13,17 @@ export const articles: OSSToArticlesResolver = async (
     where = { public: isPublic }
   }
 
+  const { first, after } = connectionArgs
+  const offset = cursorToIndex(after) + 1
+  const totalCount = await articleService.baseCount(where)
+
   return connectionFromPromisedArray(
-    articleService.find({
-      where
+    articleService.baseFind({
+      where,
+      offset,
+      limit: first
     }),
-    connectionArgs
+    connectionArgs,
+    totalCount
   )
 }

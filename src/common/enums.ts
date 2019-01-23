@@ -1,3 +1,10 @@
+export const MATERIALIZED_VIEW = {
+  articleCountMaterialized: 'article_count_materialized',
+  tagCountMaterialized: 'tag_count_materialized',
+  userReaderMaterialized: 'user_reader_materialized',
+  articleActivityMaterialized: 'article_activity_materialized'
+}
+
 export const USER_ROLE = {
   admin: 'admin',
   user: 'user',
@@ -165,7 +172,8 @@ export const QUEUE_JOB = {
   pushNotification: 'pushNotification',
   // repeat jobs
   publishPendingDrafts: 'publishPendingDrafts',
-  initializeSearch: 'initializeSearch'
+  initializeSearch: 'initializeSearch',
+  refreshView: 'refreshView'
 }
 
 export const QUEUE_NAME = {

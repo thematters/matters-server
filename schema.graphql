@@ -185,6 +185,7 @@ input AuthorsFilter {
 input AuthorsInput {
   after: String
   first: Int
+  oss: Boolean
   filter: AuthorsFilter
 }
 
@@ -340,6 +341,7 @@ interface Connection {
 input ConnectionArgs {
   after: String
   first: Int
+  oss: Boolean
 }
 
 scalar Date
@@ -642,7 +644,7 @@ type OfficialLinks {
 }
 
 type OSS {
-  users(input: UsersInput!): UserConnection!
+  users(input: ConnectionArgs!): UserConnection!
   articles(input: ArticlesInput!): ArticleConnection!
   tags(input: ConnectionArgs!): TagConnection!
   reports(input: ReportsInput!): ReportConnection!
@@ -712,7 +714,7 @@ input PutDraftInput {
   id: ID
   upstreamId: ID
   title: String
-  content: String!
+  content: String
   tags: [String]
   coverAssetId: ID
 }
@@ -1210,11 +1212,6 @@ type UserSettings {
   Notification settings
   """
   notification: NotificationSetting!
-}
-
-input UsersInput {
-  after: String
-  first: Int
 }
 
 enum UserState {

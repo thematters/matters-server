@@ -5,9 +5,13 @@ import {
   QUEUE_JOB,
   QUEUE_PRIORITY,
   QUEUE_NAME,
-  PUBLISH_STATE
+  PUBLISH_STATE,
+  MATERIALIZED_VIEW
 } from 'common/enums'
+import logger from 'common/logger'
+import { MaterializedView } from 'definitions'
 import { DraftService, UserService, ArticleService } from 'connectors'
+import { refreshView } from '../db'
 // local
 import { createQueue } from './utils'
 
@@ -35,6 +39,7 @@ class ScheduleQueue {
   private addConsumers = () => {
     const { publicationQueue } = require('./publication')
 
+    // publish pending drafs
     this.q.process(QUEUE_JOB.publishPendingDrafts, async (job, done) => {
       try {
         const drafts = await this.draftService.findByPublishState(
@@ -55,7 +60,9 @@ class ScheduleQueue {
       }
     })
 
+    // initialize search
     this.q.process(QUEUE_JOB.initializeSearch, async (job, done) => {
+      logger.info(`[schedule job] initializing search`)
       try {
         await this.articleService.es.clear()
         const articleRes = await this.articleService.initSearch()
@@ -64,15 +71,43 @@ class ScheduleQueue {
         job.progress(100)
         done(null, { articleRes, userRes })
       } catch (e) {
+        logger.error(
+          `[schedule job] error in initializing search: ${JSON.stringify(e)}`
+        )
         done(e)
       }
     })
+
+    // refresh view
+    this.q.process(
+      QUEUE_JOB.refreshView,
+      async (
+        job: { data: { view: MaterializedView }; [key: string]: any },
+        done
+      ) => {
+        const { view } = job.data
+        try {
+          logger.info(`[schedule job] refreshing view ${view}`)
+          await refreshView(view)
+          job.progress(100)
+          done(null)
+        } catch (e) {
+          logger.error(
+            `[schedule job] error in refreshing view ${view}: ${JSON.stringify(
+              e
+            )}`
+          )
+          done(e)
+        }
+      }
+    )
   }
 
   /**
    * Producers
    */
   addRepeatJobs = () => {
+    // publish pending draft every 20 minutes
     this.q.add(QUEUE_JOB.publishPendingDrafts, null, {
       priority: QUEUE_PRIORITY.HIGH,
       repeat: {
@@ -81,13 +116,53 @@ class ScheduleQueue {
       // removeOnComplete: true
     })
 
+    // initialize search every day at 4am
     this.q.add(QUEUE_JOB.initializeSearch, null, {
       priority: QUEUE_PRIORITY.CRITICAL,
-      repeat: {
-        every: 1000 * 60 * 60 // every 1 hour TODO: set time with least usage
-      }
-      // removeOnComplete: true
+      repeat: { cron: '0 4 * * *', tz: 'Asia/Hong_Kong' }
     })
+
+    // refresh articleActivityMaterialized every hour
+    this.q.add(
+      QUEUE_JOB.refreshView,
+      { view: MATERIALIZED_VIEW.articleActivityMaterialized },
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: 1000 * 60 * 60
+        }
+      }
+    )
+
+    // refresh articleCountMaterialized every day at 3am
+    this.q.add(
+      QUEUE_JOB.refreshView,
+      { view: MATERIALIZED_VIEW.articleCountMaterialized },
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
+
+    // refresh tagCountMaterialized every day at 3am
+    this.q.add(
+      QUEUE_JOB.refreshView,
+      { view: MATERIALIZED_VIEW.tagCountMaterialized },
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
+
+    // refresh userReaderMaterialized every day at 3am
+    this.q.add(
+      QUEUE_JOB.refreshView,
+      { view: MATERIALIZED_VIEW.userReaderMaterialized },
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
   }
 }
 

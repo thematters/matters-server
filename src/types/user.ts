@@ -94,6 +94,7 @@ export default /* GraphQL */ `
   input AuthorsInput {
     after: String
     first: Int
+    oss: Boolean
     filter: AuthorsFilter
   }
 
