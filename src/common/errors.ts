@@ -158,19 +158,6 @@ export class NotEnoughMatError extends ApolloError {
 
 /*********************************
  *                               *
- *           Comment             *
- *                               *
- *********************************/
-export class CommentVoteNotFoundError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'COMMENT_VOTE_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'CommentVoteNotFoundError' })
-  }
-}
-
-/*********************************
- *                               *
  *             User              *
  *                               *
  *********************************/

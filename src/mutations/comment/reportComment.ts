@@ -25,7 +25,8 @@ const resolver: MutationToReportCommentResolver = async (
   if (assetUUIDs) {
     const assets = await systemService.findAssetByUUIDs(assetUUIDs)
     if (!assets || assets.length <= 0) {
-      throw new AssetNotFoundError('Asset does not exists')
+      assetIds = []
+      // throw new AssetNotFoundError('Asset does not exists')
     }
     assetIds = assets.map((asset: any) => asset.id)
   }
