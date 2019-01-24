@@ -58,6 +58,9 @@ const style =
     color: #5F5F5F;
   }
 
+  header {
+    margin-bottom: 40px;
+  }
   header h1 {
     font-size: 32px;
   }
@@ -78,8 +81,8 @@ const style =
   }
 
   article > * {
-    margin-top: 32px;
-    margin-bottom: 32px;
+    margin-top: 20px;
+    margin-bottom: 24px;
   }
   article a {
     border-bottom: 1px solid currentcolor;
@@ -87,7 +90,7 @@ const style =
     padding-bottom: 2px;
   }
   article p {
-    line-height: 2;
+    line-height: 1.8;
   }
   figure.summary {
 
@@ -95,7 +98,8 @@ const style =
   figure.embed {
 
   }
-  figure.image figcaption {
+  figure figcaption {
+    margin-top: 5px;
     font-size: 16px;
     color: #b3b3b3;
   }
@@ -134,7 +138,7 @@ const template = ({
         <figure class="byline">
           <a ref="author">${author.userName} (@${author.displayName})</a>
           <time datetime="${publishedAt.toISOString()}">${toDateString(publishedAt)}</time>
-          <a ref="source">The Matters</a>
+          <a ref="source">from Matters</a>
         </figure>
       </header>
       <article>
