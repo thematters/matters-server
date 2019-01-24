@@ -138,7 +138,7 @@ const template = ({
         <figure class="byline">
           <a ref="author">${author.userName} (@${author.displayName})</a>
           <time datetime="${publishedAt.toISOString()}">${toDateString(publishedAt)}</time>
-          <a ref="source">Matters</a>
+          <a ref="source">from Matters</a>
         </figure>
       </header>
       <article>
