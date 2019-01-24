@@ -108,6 +108,7 @@ exports.seed = async knex => {
       entities: [
         { type: 'target', entity_type_id: commentTypeId, entity_id: '4' }
       ],
+      actors: ['3'],
       recipient_id: '1'
     },
     // recipient_id (1)'s comment (4) has a new reply by actor (2)

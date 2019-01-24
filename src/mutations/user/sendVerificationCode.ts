@@ -3,8 +3,6 @@ import {
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_CODE_TYPES
 } from 'common/enums'
-import { notificationQueue } from 'connectors/queue'
-import { environment } from 'common/environment'
 import {
   AuthenticationError,
   EmailExistsError,
@@ -14,7 +12,7 @@ import {
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,
   { input: { email, type } },
-  { viewer, dataSources: { userService } }
+  { viewer, dataSources: { userService, notificationService } }
 ) => {
   if (!viewer.id && VERIFICATION_CODE_PROTECTED_TYPES.includes(type)) {
     throw new AuthenticationError(
@@ -43,12 +41,11 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     type
   })
 
-  // TODO: send email
-  notificationQueue.sendMail({
-    from: environment.emailName as string,
+  // send verification email
+  notificationService.mail.sendVerificationCode({
     to: email,
-    html: `Your verification code for ${type} is <strong>${code}</strong>`,
-    subject: `${code}`
+    type,
+    code
   })
 
   return true

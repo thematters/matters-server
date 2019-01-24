@@ -16,6 +16,14 @@ exports.seed = function(knex, Promise) {
         {
           user_id: 3,
           enable: true
+        },
+        {
+          user_id: 4,
+          enable: true
+        },
+        {
+          user_id: 5,
+          enable: true
         }
       ])
     })

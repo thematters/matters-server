@@ -114,6 +114,7 @@ export type NoticeDownstreamArticleArchivedParams = {
 
 export type NoticeCommentPinnedParams = {
   event: 'comment_pinned'
+  actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'comment'>]
 }

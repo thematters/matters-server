@@ -440,7 +440,7 @@ type InvitationEdge {
 }
 
 type InvitationStatus {
-  MAT: Int!
+  reward: String!
 
   """invitation number left"""
   left: Int!

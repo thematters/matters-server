@@ -161,4 +161,4 @@ class PublicationQueue {
   }
 }
 
-export const publicationQueue = new PublicationQueue()
+export default new PublicationQueue()

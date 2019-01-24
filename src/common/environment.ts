@@ -27,7 +27,7 @@ export const environment = {
   sgKey: process.env['MATTERS_SENDGRID_API_KEY'],
   jpushKey: process.env['MATTERS_JPUSH_API_KEY'],
   jpushSecret: process.env['MATTERS_JPUSH_API_SECRET'],
-  emailName: process.env['MATTERS_EMAIL_NAME'],
+  emailFromAsk: process.env['MATTERS_EMAIL_FROM_ASK'],
   jwtSecret: process.env['MATTERS_JWT_SECRET'] || '_dev_jwt_secret_',
   apiKey: process.env['MATTERS_APOLLO_API_KEY']
 }

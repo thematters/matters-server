@@ -3,8 +3,8 @@ import Queue from 'bull'
 import { MailData } from '@sendgrid/helpers/classes/mail'
 // internal
 import { QUEUE_PRIORITY, QUEUE_JOB, QUEUE_NAME } from 'common/enums'
-import { mailService } from 'connectors/notificationService/mail'
-import { pushService, PushParams } from 'connectors/notificationService/push'
+import mailService from 'connectors/mail'
+import pushService, { PushParams } from 'connectors/push'
 // local
 import { createQueue } from './utils'
 
@@ -60,4 +60,4 @@ class NotificationQueue {
   }
 }
 
-export const notificationQueue = new NotificationQueue()
+export default new NotificationQueue()

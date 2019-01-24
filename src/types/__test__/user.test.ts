@@ -152,7 +152,7 @@ const GET_USER_INVITATION = `
       id
       status {
         invitation {
-          MAT
+          reward
           left
           sent(input:{}) {
             edges {
@@ -640,13 +640,6 @@ describe('badges', async () => {
 })
 
 describe('invitation', async () => {
-  test('invitation mat', async () => {
-    const data = await getUserInvitation()
-    expect(_.get(data, 'viewer.status.invitation.MAT')).toBe(
-      MAT_UNIT.joinByInvitation
-    )
-  })
-
   test('invite email', async () => {
     const unregisterEmail = `test-new-${Math.floor(
       Math.random() * 10000

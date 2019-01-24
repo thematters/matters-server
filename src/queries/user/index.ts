@@ -78,7 +78,10 @@ export default {
     unreadNoticeCount
   },
   InvitationStatus: {
-    MAT: () => MAT_UNIT.joinByInvitation,
+    reward: () =>
+      `帮助對方快速成为 Matters 会员，新会员激活后，你会获得 ${
+        MAT_UNIT.invitationAccepted
+      }MAT，对方將獲得 ${MAT_UNIT.joinByInvitation}MAT。`, // TODO: i18n
     left: invitationLeft,
     sent: invitationSent
   },

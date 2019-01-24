@@ -11,6 +11,12 @@ export const USER_ROLE = {
   visitor: 'visitor'
 }
 
+export const LANGUAGE = {
+  zh_hans: 'zh_hans',
+  zh_hant: 'zh_hant',
+  en: 'en'
+}
+
 export const USER_ACTION = {
   appreciate: 'appreciate',
   follow: 'follow',
@@ -187,6 +193,13 @@ export const QUEUE_CONCURRENCY = {
 }
 
 export const PUBLISH_ARTICLE_DELAY = 1000 * 60 * 2
+
+export const EMAIL_TEMPLATE_ID = {
+  verificationCode: 'd-df196f90da7743f6900906fc18487953',
+  registerSuccess: 'd-765b335a77d244438891a62f023b8c2e',
+  activationSuccess: 'd-b7658dd675eb443bbb06cd45692303e8',
+  invitationSuccess: 'd-daaa0da594034f509cfa01e5ecdb1f77'
+}
 
 export const INVALID_NAMES = [
   'administrator',

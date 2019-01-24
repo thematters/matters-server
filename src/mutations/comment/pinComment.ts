@@ -54,6 +54,7 @@ const resolver: MutationToPinCommentResolver = async (
   })
   notificationService.trigger({
     event: 'comment_pinned',
+    actorId: viewer.id,
     recipientId: comment.authorId,
     entities: [
       {
