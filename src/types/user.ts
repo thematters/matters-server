@@ -63,7 +63,7 @@ export default /* GraphQL */ `
   }
 
   type InvitationStatus {
-    MAT: Int!
+    reward: String!
     # invitation number left
     left: Int!
     # invitations sent

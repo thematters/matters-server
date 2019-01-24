@@ -600,7 +600,7 @@ export enum GQLTransactionPurpose {
 }
 
 export interface GQLInvitationStatus {
-  MAT: number
+  reward: string
 
   /**
    * invitation number left
@@ -3853,12 +3853,15 @@ export interface TransactionToCreatedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLInvitationStatusTypeResolver<TParent = any> {
-  MAT?: InvitationStatusToMATResolver<TParent>
+  reward?: InvitationStatusToRewardResolver<TParent>
   left?: InvitationStatusToLeftResolver<TParent>
   sent?: InvitationStatusToSentResolver<TParent>
 }
 
-export interface InvitationStatusToMATResolver<TParent = any, TResult = any> {
+export interface InvitationStatusToRewardResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
