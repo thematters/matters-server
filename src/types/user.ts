@@ -11,9 +11,9 @@ export default /* GraphQL */ `
     # change or reset password
     resetPassword(input: ResetPasswordInput!): Boolean
     # change email
-    changeEmail(input: ChangeEmailInput!): Boolean
+    changeEmail(input: ChangeEmailInput!): Boolean @authenticate
     # verify email
-    verifyEmail(input: VerifyEmailInput!): Boolean
+    verifyEmail(input: VerifyEmailInput!): Boolean @authenticate
     # register
     userRegister(input: UserRegisterInput!): AuthResult!
     # login
@@ -38,15 +38,15 @@ export default /* GraphQL */ `
     id: ID!
     uuid: UUID!
     info: UserInfo!
-    settings: UserSettings!
-    recommendation: Recommendation!
+    settings: UserSettings! @private
+    recommendation: Recommendation! @private
     # Articles written by this user
     articles(input: ConnectionArgs!): ArticleConnection!
     drafts(input: ConnectionArgs!): DraftConnection! @private
     audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @private
     # Comments posted by this user
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
-    subscriptions(input: ConnectionArgs!): ArticleConnection!
+    subscriptions(input: ConnectionArgs!): ArticleConnection! @private
     activity: UserActivity! @private
     # Followers of this user
     followers(input: ConnectionArgs!): UserConnection!
@@ -70,7 +70,7 @@ export default /* GraphQL */ `
     sent(input: ConnectionArgs!): InvitationConnection!
   }
 
-  type Invitation implements Node  {
+  type Invitation {
     id: ID!
     user: User
     email: String
@@ -140,23 +140,23 @@ export default /* GraphQL */ `
   type UserStatus {
     state: UserState!
     # Total MAT left in wallet
-    MAT: MAT!
-    invitation: InvitationStatus!
+    MAT: MAT! @private
+    invitation: InvitationStatus! @private
     # Number of articles published by user
     articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
     # Number of views on articles
-    viewCount: Int!
-    draftCount: Int! @deprecated(reason: "Use \`User.drafts.totalCount\`.")
+    viewCount: Int! @private
+    draftCount: Int! @private @deprecated(reason: "Use \`User.drafts.totalCount\`.")
     # Number of comments posted by user
     commentCount: Int!
     # quotationCount: Int! @deprecated(reason: "not used")
-    subscriptionCount: Int! @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
+    subscriptionCount: Int! @private @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
     # Number of user that this user follows
     followeeCount: Int! @deprecated(reason: "Use \`User.followees.totalCount\`.")
     # Number of user that follows this user
     followerCount: Int! @deprecated(reason: "Use \`User.followers.totalCount\`.")
     # Number of unread notices
-    unreadNoticeCount: Int!
+    unreadNoticeCount: Int! @private
   }
 
   type UserOSS {

@@ -1,7 +1,7 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToArchiveArticleResolver } from 'definitions'
 import { ARTICLE_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
+import { ForbiddenError, AuthenticationError } from 'common/errors'
 
 const resolver: MutationToArchiveArticleResolver = async (
   _,
@@ -20,7 +20,8 @@ const resolver: MutationToArchiveArticleResolver = async (
   }
 
   const article = await articleService.baseUpdate(dbId, {
-    state: ARTICLE_STATE.archived
+    state: ARTICLE_STATE.archived,
+    updatedAt: new Date()
   })
 
   // trigger notifications

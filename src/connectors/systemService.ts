@@ -23,6 +23,7 @@ export class SystemService extends BaseService {
       .select('search_key')
       .count('id')
       .where('search_key', 'like', `%${key}%`)
+      .whereNot({ searchKey: '' })
       .groupBy('search_key')
       .orderBy('count', 'desc')
       .limit(first)

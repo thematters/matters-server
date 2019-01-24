@@ -1,5 +1,5 @@
-import { AuthenticationError } from 'apollo-server'
 import { MutationToMarkAllNoticesAsReadResolver } from 'definitions'
+import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToMarkAllNoticesAsReadResolver = async (
   root,

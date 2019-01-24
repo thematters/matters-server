@@ -1,6 +1,6 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToPinCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { ForbiddenError, AuthenticationError } from 'common/errors'
 
 const resolver: MutationToPinCommentResolver = async (
   _,
@@ -23,7 +23,8 @@ const resolver: MutationToPinCommentResolver = async (
   }
 
   const comment = await commentService.baseUpdate(dbId, {
-    pinned: false
+    pinned: false,
+    updatedAt: new Date()
   })
 
   return comment

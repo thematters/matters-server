@@ -1,10 +1,10 @@
-import {
-  AuthenticationError,
-  UserInputError,
-  ForbiddenError
-} from 'apollo-server'
 import { MutationToDeleteDraftResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import {
+  DraftNotFoundError,
+  ForbiddenError,
+  AuthenticationError
+} from 'common/errors'
 
 const resolver: MutationToDeleteDraftResolver = async (
   _,
@@ -18,7 +18,7 @@ const resolver: MutationToDeleteDraftResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const draft = await draftService.dataloader.load(dbId)
   if (!draft || draft.archived) {
-    throw new UserInputError('target draft does not exist')
+    throw new DraftNotFoundError('target draft does not exist')
   }
   if (draft.authorId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')

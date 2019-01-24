@@ -1,7 +1,7 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToDeleteCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 import { COMMENT_STATE } from 'common/enums'
+import { ForbiddenError, AuthenticationError } from 'common/errors'
 
 const resolver: MutationToDeleteCommentResolver = async (
   _,
@@ -23,7 +23,8 @@ const resolver: MutationToDeleteCommentResolver = async (
   }
 
   await commentService.baseUpdate(dbId, {
-    state: COMMENT_STATE.archived
+    state: COMMENT_STATE.archived,
+    updatedAt: new Date()
   })
 
   // trigger notificaiton

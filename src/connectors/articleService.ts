@@ -13,10 +13,11 @@ import {
 import { ItemData, GQLSearchInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
 import { stripHtml, countWords } from 'common/utils'
-import { ArticleNotFoundError } from 'common/errors'
+import { ArticleNotFoundError, ServerError } from 'common/errors'
 
 import { BaseService } from './baseService'
 import { UserService } from './userService'
+import logger from 'common/logger'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
@@ -255,7 +256,8 @@ export class ArticleService extends BaseService {
       const ids = hits.hits.map(({ _id }) => _id)
       return this.dataloader.loadMany(ids)
     } catch (err) {
-      throw err
+      logger.error(err)
+      throw new ServerError('search failed')
     }
   }
 
@@ -519,7 +521,7 @@ export class ArticleService extends BaseService {
   setBoost = async ({ id, boost }: { id: string; boost: number }) =>
     this.baseUpdateOrCreate({
       where: { articleId: id },
-      data: { articleId: id, boost },
+      data: { articleId: id, boost, updatedAt: new Date() },
       table: 'article_boost'
     })
 
@@ -812,15 +814,18 @@ export class ArticleService extends BaseService {
   /**
    * User subscribe an article
    */
-  subscribe = async (targetId: string, userId: string): Promise<any[]> =>
-    await this.baseCreate(
-      {
-        targetId,
-        userId,
-        action: USER_ACTION.subscribe
-      },
-      'action_article'
-    )
+  subscribe = async (targetId: string, userId: string): Promise<any[]> => {
+    const data = {
+      targetId,
+      userId,
+      action: USER_ACTION.subscribe
+    }
+    return this.baseUpdateOrCreate({
+      where: data,
+      data: { updatedAt: new Date(), ...data },
+      table: 'action_article'
+    })
+  }
 
   /**
    * User unsubscribe an article

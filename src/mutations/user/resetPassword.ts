@@ -1,5 +1,5 @@
 import { MutationToResetPasswordResolver } from 'definitions'
-import { UserInputError, EmailNotFoundError } from 'common/errors'
+import { CodeInvalidError, UserNotFoundError } from 'common/errors'
 
 const resolver: MutationToResetPasswordResolver = async (
   _,
@@ -16,13 +16,13 @@ const resolver: MutationToResetPasswordResolver = async (
 
   // check code
   if (!code) {
-    throw new UserInputError('code does not exists')
+    throw new CodeInvalidError('code does not exists')
   }
 
   // check email
   const user = await userService.findByEmail(code.email)
   if (!user) {
-    throw new EmailNotFoundError('target user does not exists')
+    throw new UserNotFoundError('target user does not exists')
   }
 
   // change password

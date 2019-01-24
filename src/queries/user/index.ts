@@ -27,7 +27,7 @@ import invitationSent from './invitationSent'
 import invitationRecipient from './invitationRecipient'
 import invitationAccepted from './invitationAccepted'
 import { MAT, Transaction } from './transaction'
-import { rootOSS, boost, score } from './oss'
+import { boost, score } from './oss'
 
 export default {
   Query: {
@@ -41,7 +41,7 @@ export default {
     status: (root: any) => root,
     activity: (root: any) => root,
     recommendation: (root: any) => root,
-    oss: rootOSS,
+    oss: (root: any) => root,
     // hasFollowed,
     subscriptions,
     // quotations,

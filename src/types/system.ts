@@ -8,7 +8,7 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    singleFileUpload(input: SingleFileUploadInput!): Asset!  @authenticate
+    singleFileUpload(input: SingleFileUploadInput!): Asset!
     feedback(input: FeedbackInput!): Boolean
     setBoost(input: SetBoostInput!): Node! @authorize
     putRemark(input: PutRemarkInput!): String @authorize

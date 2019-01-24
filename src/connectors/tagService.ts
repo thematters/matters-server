@@ -70,7 +70,7 @@ export class TagService extends BaseService {
   setBoost = async ({ id, boost }: { id: string; boost: number }) =>
     this.baseUpdateOrCreate({
       where: { tagId: id },
-      data: { tagId: id, boost },
+      data: { tagId: id, boost, updatedAt: new Date() },
       table: 'tag_boost'
     })
 
@@ -166,7 +166,7 @@ export class TagService extends BaseService {
   }
 
   renameTag = async ({ tagId, content }: { tagId: string; content: string }) =>
-    this.baseUpdate(tagId, { content })
+    this.baseUpdate(tagId, { content, updatedAt: new Date() })
 
   mergeTags = async ({
     tagIds,

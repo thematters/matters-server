@@ -11,7 +11,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
   // TODO: banDays
   // TODO: trigger notification
 
-  return await userService.baseUpdate(dbId, { state })
+  return await userService.baseUpdate(dbId, { state, updatedAt: new Date() })
 }
 
 export default resolver
