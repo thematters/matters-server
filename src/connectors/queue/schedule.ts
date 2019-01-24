@@ -117,10 +117,11 @@ class ScheduleQueue {
     })
 
     // initialize search every day at 4am
-    this.q.add(QUEUE_JOB.initializeSearch, null, {
-      priority: QUEUE_PRIORITY.CRITICAL,
-      repeat: { cron: '0 4 * * *', tz: 'Asia/Hong_Kong' }
-    })
+    // moved to db pipeline
+    // this.q.add(QUEUE_JOB.initializeSearch, null, {
+    //   priority: QUEUE_PRIORITY.CRITICAL,
+    //   repeat: { cron: '0 4 * * *', tz: 'Asia/Hong_Kong' }
+    // })
 
     // refresh articleActivityMaterialized every hour
     this.q.add(

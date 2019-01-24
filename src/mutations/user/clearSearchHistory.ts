@@ -1,5 +1,5 @@
-import { AuthenticationError } from 'apollo-server'
 import { MutationToClearSearchHistoryResolver } from 'definitions'
+import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToClearSearchHistoryResolver = async (
   _,
@@ -7,7 +7,7 @@ const resolver: MutationToClearSearchHistoryResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
+    return true
   }
 
   await userService.clearSearches(viewer.id)

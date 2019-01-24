@@ -1,6 +1,6 @@
-import { ForbiddenError } from 'apollo-server'
 import { MutationToToggleArticleLiveResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { ArticleNotFoundError } from 'common/errors'
 
 const resolver: MutationToToggleArticleLiveResolver = async (
   root,
@@ -10,11 +10,12 @@ const resolver: MutationToToggleArticleLiveResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
-    throw new ForbiddenError('target article does not exists')
+    throw new ArticleNotFoundError('target article does not exists')
   }
 
   const updatedArticle = await articleService.baseUpdate(dbId, {
-    live: enabled
+    live: enabled,
+    updatedAt: new Date()
   })
 
   return updatedArticle

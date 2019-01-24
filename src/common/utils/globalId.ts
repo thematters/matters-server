@@ -1,5 +1,6 @@
 import { Base64 } from 'js-base64'
-import { UserInputError } from 'apollo-server'
+
+import { UserInputError } from 'common/errors'
 
 export const toGlobalId = ({
   type,

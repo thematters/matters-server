@@ -1,7 +1,8 @@
 import {
   AuthenticationError,
-  ForbiddenError,
-  NotEnoughMatError
+  NotEnoughMatError,
+  ArticleNotFoundError,
+  ActionLimitExceededError
 } from 'common/errors'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 import { v4 } from 'uuid'
@@ -23,7 +24,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
-    throw new ForbiddenError('target article does not exists')
+    throw new ArticleNotFoundError('target article does not exists')
   }
 
   const appreciateLeft = await articleService.appreciateLeftByUser({
@@ -31,7 +32,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     userId: viewer.id
   })
   if (appreciateLeft <= 0) {
-    throw new ForbiddenError('too many appreciations')
+    throw new ActionLimitExceededError('too many appreciations')
   }
 
   await articleService.appreciate({

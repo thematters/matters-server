@@ -1,6 +1,6 @@
-import { AuthenticationError } from 'apollo-server'
 import { MutationToVoteCommentResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToVoteCommentResolver = async (
   _,

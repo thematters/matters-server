@@ -1,15 +1,16 @@
 import { v4 } from 'uuid'
-import { AuthenticationError } from 'apollo-server'
+
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
+import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToSingleFileUploadResolver = async (
   root,
   { input: { type, file } },
   { viewer, dataSources: { systemService } }
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
+  // if (!viewer.id) {
+  //   throw new AuthenticationError('visitor has no permission')
+  // }
 
   const data = await file
   const { filename, mimetype, encoding } = data

@@ -19,13 +19,12 @@ import {
   BATCH_SIZE
 } from 'common/enums'
 import { environment } from 'common/environment'
-import { EmailNotFoundError, PasswordInvalidError } from 'common/errors'
 import {
-  ItemData,
-  GQLSearchInput,
-  GQLUpdateUserInfoInput,
-  GQLUserRegisterInput
-} from 'definitions'
+  EmailNotFoundError,
+  PasswordInvalidError,
+  ServerError
+} from 'common/errors'
+import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
 import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders'
@@ -46,14 +45,13 @@ export class UserService extends BaseService {
     displayName,
     description,
     password
-  }: GQLUserRegisterInput) => {
-    // TODO: do code validation here
-
-    // TODO: better default unique user name
-    if (!userName) {
-      userName = email
-    }
-
+  }: {
+    email: string
+    userName: string
+    displayName: string
+    description?: string
+    password: string
+  }) => {
     // TODO:
     const avatar = null
 
@@ -110,7 +108,7 @@ export class UserService extends BaseService {
     id: string,
     input: GQLUpdateUserInfoInput & { email?: string; emailVerified?: boolean }
   ) => {
-    const user = await this.baseUpdate(id, input)
+    const user = await this.baseUpdate(id, { updatedAt: new Date(), ...input })
 
     const { description, displayName, userName } = input
     if (!description && !displayName && !userName) {
@@ -148,7 +146,8 @@ export class UserService extends BaseService {
   }) => {
     const passwordHash = await hash(password, BCRYPT_ROUNDS)
     const user = await this.baseUpdate(userId, {
-      passwordHash
+      passwordHash,
+      updatedAt: new Date()
     })
     return user
   }
@@ -158,19 +157,12 @@ export class UserService extends BaseService {
    */
   findByEmail = async (
     email: string
-  ): Promise<{ uuid: string; [key: string]: string }> => {
-    const result = await this.knex
+  ): Promise<{ uuid: string; [key: string]: string }> =>
+    this.knex
       .select()
       .from(this.table)
       .where({ email })
       .first()
-
-    // if (!result) {
-    //   throw new EmailNotFoundError(`Cannot find email ${email}`)
-    // }
-
-    return result
-  }
 
   /**
    * Find users by a given user name.
@@ -275,7 +267,8 @@ export class UserService extends BaseService {
       const ids = hits.hits.map(({ _id }) => _id)
       return this.dataloader.loadMany(ids)
     } catch (err) {
-      throw err
+      logger.error(err)
+      throw new ServerError('search failed')
     }
   }
 
@@ -283,6 +276,7 @@ export class UserService extends BaseService {
     const result = await this.knex('search_history')
       .select('search_key')
       .where({ userId, archived: false })
+      .whereNot({ searchKey: '' })
       .max('created_at as search_at')
       .groupBy('search_key')
       .orderBy('search_at', 'desc')
@@ -346,9 +340,9 @@ export class UserService extends BaseService {
       targetId,
       action: USER_ACTION.follow
     }
-    return await this.baseFindOrCreate({
+    return await this.baseUpdateOrCreate({
       where: data,
-      data,
+      data: { updatedAt: new Date(), ...data },
       table: 'action_user'
     })
   }
@@ -498,7 +492,7 @@ export class UserService extends BaseService {
   setBoost = async ({ id, boost }: { id: string; boost: number }) =>
     this.baseUpdateOrCreate({
       where: { userId: id },
-      data: { userId: id, boost },
+      data: { userId: id, boost, updatedAt: new Date() },
       table: 'user_boost'
     })
 
@@ -526,7 +520,11 @@ export class UserService extends BaseService {
     id: string,
     data: ItemData
   ): Promise<any | null> =>
-    await this.baseUpdate(id, data, 'user_notify_setting')
+    await this.baseUpdate(
+      id,
+      { updatedAt: new Date(), ...data },
+      'user_notify_setting'
+    )
 
   findBadges = async (userId: string): Promise<any[]> =>
     await this.knex
@@ -604,22 +602,8 @@ export class UserService extends BaseService {
     userId: string | null
   }) =>
     await this.knex('article_read')
-      .update({ archived: true })
       .where({ articleId, userId })
-
-  findReadHistoryByUUID = async (
-    uuid: string,
-    userId: string
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('article_read')
-      .where({
-        uuid,
-        userId,
-        archived: false
-      })
-      .first()
+      .update({ archived: true })
 
   /*********************************
    *                               *
@@ -853,6 +837,10 @@ export class UserService extends BaseService {
       data = { ...data, verifiedAt: new Date() }
     }
 
-    return this.baseUpdate(codeId, data, 'verification_code')
+    return this.baseUpdate(
+      codeId,
+      { updatedAt: new Date(), ...data },
+      'verification_code'
+    )
   }
 }

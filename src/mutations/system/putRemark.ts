@@ -23,7 +23,11 @@ const resolver: MutationToPutRemarkResolver = async (
   }
   const table = tableMap[type]
 
-  const entity = await systemService.baseUpdate(dbId, { remark }, table)
+  const entity = await systemService.baseUpdate(
+    dbId,
+    { remark, updatedAt: new Date() },
+    table
+  )
 
   return entity.remark
 }

@@ -1,11 +1,14 @@
-import {
-  AuthenticationError,
-  UserInputError,
-  ForbiddenError
-} from 'apollo-server'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
 import { isEmpty, has } from 'lodash'
 import { isValidUserName, isValidDisplayName } from 'common/utils'
+import {
+  AuthenticationError,
+  ForbiddenError,
+  AssetNotFoundError,
+  DisplayNameInvalidError,
+  UsernameInvalidError,
+  UserInputError
+} from 'common/errors'
 
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
@@ -26,7 +29,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     const avatarAssetUUID = input.avatar
     const asset = await systemService.findAssetByUUID(avatarAssetUUID)
     if (!asset || asset.type !== 'avatar' || asset.authorId !== viewer.id) {
-      throw new UserInputError('avatar asset does not exists')
+      throw new AssetNotFoundError('avatar asset does not exists')
     }
     updateParams.avatar = asset.id
   }
@@ -38,7 +41,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       throw new ForbiddenError('userName is not allow to edit')
     }
     if (!isValidUserName(input.userName)) {
-      throw new UserInputError('invalid user name')
+      throw new UsernameInvalidError('invalid user name')
     }
     updateParams.userName = input.userName
   }
@@ -46,7 +49,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   // check user display name
   if (input.displayName) {
     if (!isValidDisplayName(input.displayName)) {
-      throw new UserInputError('invalid user display name')
+      throw new DisplayNameInvalidError('invalid user display name')
     }
     updateParams.displayName = input.displayName
   }

@@ -10,7 +10,7 @@ const resolver: MutationToUpdateArticleStateResolver = async (
 
   // TODO: trigger notification
 
-  return await articleService.baseUpdate(dbId, { state })
+  return await articleService.baseUpdate(dbId, { state, updatedAt: new Date() })
 }
 
 export default resolver

@@ -65,7 +65,8 @@ class PublicationQueue {
           // mark draft as published
           await this.draftService.baseUpdate(draft.id, {
             archived: true,
-            publishState: PUBLISH_STATE.published
+            publishState: PUBLISH_STATE.published,
+            updatedAt: new Date()
           })
           job.progress(40)
 

@@ -1,5 +1,5 @@
-import { UserInputError } from 'apollo-server'
 import { MutationToFeedbackResolver } from 'definitions'
+import { UserInputError, AssetNotFoundError } from 'common/errors'
 
 const resolver: MutationToFeedbackResolver = async (
   root,
@@ -14,7 +14,8 @@ const resolver: MutationToFeedbackResolver = async (
   if (assetUUIDs) {
     const assets = await systemService.findAssetByUUIDs(assetUUIDs)
     if (!assets || assets.length <= 0) {
-      throw new UserInputError('Asset does not exists')
+      assetIds = []
+      // throw new AssetNotFoundError('Asset does not exists')
     }
     assetIds = assets.map((asset: any) => asset.id)
   }

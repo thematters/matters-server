@@ -81,7 +81,8 @@ export class CommentService extends BaseService {
     const comemnt = await this.baseUpdate(id, {
       articleId,
       parentCommentId,
-      content
+      content,
+      updatedAt: new Date()
     })
     // remove exists mentions
     await this.knex('comment_mentioned_user')
@@ -207,15 +208,19 @@ export class CommentService extends BaseService {
     userId: string
     commentId: string
     vote: GQLVote
-  }) =>
-    this.baseCreate(
-      {
-        userId,
-        targetId: commentId,
-        action: `${vote}_vote`
-      },
-      'action_comment'
-    )
+  }) => {
+    const data = {
+      userId,
+      targetId: commentId,
+      action: `${vote}_vote`
+    }
+
+    return this.baseUpdateOrCreate({
+      where: data,
+      data: { updatedAt: new Date(), ...data },
+      table: 'action_comment'
+    })
+  }
 
   unvote = async ({
     userId,
@@ -257,31 +262,6 @@ export class CommentService extends BaseService {
       .count()
       .first()
     return parseInt(result.count, 10)
-  }
-
-  /**
-   * Find a comment's up votes by a given target id (comment).
-   */
-  findUpVotes = async (targetId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_comment')
-      .where({
-        targetId,
-        action: USER_ACTION.upVote
-      })
-
-  /**
-   * Find a comment's down votes by a given target id (comment).
-   */
-  findDownVotes = async (targetId: string): Promise<any[]> => {
-    return await this.knex
-      .select()
-      .from('action_comment')
-      .where({
-        targetId,
-        action: USER_ACTION.downVote
-      })
   }
 
   /**
