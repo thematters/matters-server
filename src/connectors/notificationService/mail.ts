@@ -40,7 +40,7 @@ class Mail {
       personalizations: [
         {
           to,
-          // @ts-ignore
+          // @ts-ignore https://github.com/sendgrid/sendgrid-nodejs/issues/729
           dynamic_template_data: {
             subject,
             code,
