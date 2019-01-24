@@ -95,7 +95,8 @@ const style =
   figure.embed {
 
   }
-  figure.image figcaption {
+  figure figcaption {
+    margin-top: 5px;
     font-size: 16px;
     color: #b3b3b3;
   }
