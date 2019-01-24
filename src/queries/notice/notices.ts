@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
   cursorToIndex,
-  filterMissingFieldNotices
+  filterMissingFieldNoticeEdges
 } from 'common/utils'
 import { UserToNoticesResolver } from 'definitions'
 
@@ -20,9 +20,14 @@ const resolver: UserToNoticesResolver = async (
     offset,
     limit: first
   })
-  notices = filterMissingFieldNotices(notices)
 
-  return connectionFromArray(notices, input, totalCount)
+  const result = connectionFromArray(notices, input, totalCount)
+  const edges = filterMissingFieldNoticeEdges(result.edges)
+
+  return {
+    ...result,
+    edges
+  }
 }
 
 export default resolver

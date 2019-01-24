@@ -152,7 +152,7 @@ const GET_USER_INVITATION = `
       id
       status {
         invitation {
-          MAT
+          reward
           left
           sent(input:{}) {
             edges {
