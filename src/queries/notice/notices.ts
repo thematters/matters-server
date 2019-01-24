@@ -12,10 +12,10 @@ const resolver: UserToNoticesResolver = async (
 ) => {
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await notificationService.noticeService.countNotice({
+  const totalCount = await notificationService.notice.countNotice({
     userId: id
   })
-  let notices = await notificationService.noticeService.findByUser({
+  let notices = await notificationService.notice.findByUser({
     userId: id,
     offset,
     limit: first

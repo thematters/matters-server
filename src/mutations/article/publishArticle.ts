@@ -2,7 +2,7 @@ import { MutationToPublishArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 import { PUBLISH_STATE, PUBLISH_ARTICLE_DELAY } from 'common/enums'
 
-import { publicationQueue } from 'connectors/queue'
+import publicationQueue from 'connectors/queue/publication'
 import { AuthenticationError, DraftNotFoundError } from 'common/errors'
 
 const resolver: MutationToPublishArticleResolver = async (

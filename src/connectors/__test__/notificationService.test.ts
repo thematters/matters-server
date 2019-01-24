@@ -58,8 +58,10 @@ describe('user notify setting', async () => {
   test('user receives notifications', async () => {
     await Promise.all(
       noticeTypes.map(async type => {
-        const { canPush } = await notificationService.checkUserNotifySetting({
-          event: type,
+        const {
+          canPush
+        } = await notificationService.push.checkUserNotifySetting({
+          noticeType: type,
           userId: recipientId
         })
         expect(canPush).toBe(defaultNoifySetting[type])
@@ -71,8 +73,10 @@ describe('user notify setting', async () => {
     await userService.updateNotifySetting(notifySetting.id, { follow: false })
     await Promise.all(
       noticeTypes.map(async type => {
-        const { canPush } = await notificationService.checkUserNotifySetting({
-          event: type,
+        const {
+          canPush
+        } = await notificationService.push.checkUserNotifySetting({
+          noticeType: type,
           userId: recipientId
         })
         expect(canPush).toBe(

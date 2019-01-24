@@ -15,7 +15,7 @@ const resolver: {
         { input: { id } }: { input: { id: string } },
         { dataSources: { notificationService } }
       ) => {
-        return notificationService.pubsubService.engine.asyncIterator([id])
+        return notificationService.pubsub.engine.asyncIterator([id])
       }
     }
   }

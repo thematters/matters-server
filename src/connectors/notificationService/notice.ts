@@ -34,7 +34,7 @@ export type NoticeDetail = {
   message?: NoticeMessage
   data?: NoticeData
 }
-export type Notice = NoticeDetail & {
+export type NoticeItem = NoticeDetail & {
   createdAt: Date
   type: NoticeType
   actors?: User[]
@@ -49,7 +49,7 @@ export type PutNoticeParams = {
   data?: NoticeData | null
 }
 
-class NoticeService extends BaseService {
+class Notice extends BaseService {
   constructor() {
     super('notice')
     this.dataloader = new DataLoader(this.findByIds)
@@ -387,7 +387,7 @@ class NoticeService extends BaseService {
   /**
    * Find notices by given ids.
    */
-  findByIds = async (ids: string[]): Promise<Notice[]> => {
+  findByIds = async (ids: string[]): Promise<NoticeItem[]> => {
     const notices = await this.findDetail({
       whereIn: ['notice.id', ids]
     })
@@ -423,7 +423,7 @@ class NoticeService extends BaseService {
     userId: string
     limit?: number
     offset?: number
-  }): Promise<Notice[]> => {
+  }): Promise<NoticeItem[]> => {
     const notices = await this.findDetail({
       where: { recipientId: userId, deleted: false },
       offset,
@@ -474,4 +474,4 @@ class NoticeService extends BaseService {
   }
 }
 
-export const noticeService = new NoticeService()
+export const notice = new Notice()

@@ -13,7 +13,7 @@ import { MAT_UNIT } from 'common/enums'
 const resolver: MutationToInviteResolver = async (
   _,
   { input: { id, email } },
-  { viewer, dataSources: { userService } }
+  { viewer, dataSources: { userService, notificationService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -52,6 +52,13 @@ const resolver: MutationToInviteResolver = async (
       senderId: isAdmin ? undefined : viewer.id,
       recipientId: recipient.id
     })
+
+    // send email
+    notificationService.mail.sendActivationSuccess({
+      to: email,
+      recipientDisplayName: recipient.displayName,
+      senderDisplayName: isAdmin ? 'Matty' : viewer.displayName
+    })
   } else {
     const user = await userService.findByEmail(email)
     if (user) {
@@ -61,6 +68,12 @@ const resolver: MutationToInviteResolver = async (
     await userService.invite({
       senderId: isAdmin ? undefined : viewer.id,
       email
+    })
+
+    // send email
+    notificationService.mail.sendInvitationSuccess({
+      to: email,
+      senderDisplayName: isAdmin ? 'Matty' : viewer.displayName
     })
   }
 

@@ -2,7 +2,7 @@ import { RedisPubSub } from 'graphql-redis-subscriptions'
 
 import { environment } from 'common/environment'
 
-class PubSubService {
+class PubSub {
   engine: InstanceType<typeof RedisPubSub>
 
   constructor() {
@@ -19,4 +19,4 @@ class PubSubService {
   }
 }
 
-export const pubsubService = new PubSubService()
+export const pubsub = new PubSub()

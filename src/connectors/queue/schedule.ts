@@ -167,4 +167,4 @@ class ScheduleQueue {
   }
 }
 
-export const scheduleQueue = new ScheduleQueue()
+export default new ScheduleQueue()

@@ -21,7 +21,7 @@ import {
 const resolver: MutationToUserRegisterResolver = async (
   root,
   { input },
-  { dataSources: { userService } }
+  { dataSources: { userService, notificationService } }
 ) => {
   const { email: rawEmail, userName, displayName, password, codeId } = input
   const email = rawEmail ? rawEmail.toLowerCase() : null
@@ -77,6 +77,12 @@ const resolver: MutationToUserRegisterResolver = async (
   await userService.markVerificationCodeAs({
     codeId: code.id,
     status: 'used'
+  })
+
+  // send email
+  notificationService.mail.sendRegisterSuccess({
+    to: email,
+    displayName
   })
 
   return userService.login(input)
