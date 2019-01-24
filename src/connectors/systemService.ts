@@ -51,8 +51,10 @@ export class SystemService extends BaseService {
    * Find the url of an asset by a given id.
    */
   findAssetUrl = async (id: string): Promise<string | null> => {
-    const { path } = await this.baseFindById(id, 'asset')
-    return path ? `${this.aws.s3Endpoint}/${path}` : null
+    const result = await this.baseFindById(id, 'asset')
+    return result && result.path
+      ? `${this.aws.s3Endpoint}/${result.path}`
+      : null
   }
 
   /**
