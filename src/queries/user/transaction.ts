@@ -4,6 +4,7 @@ import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { GQLMATTypeResolver, GQLTransactionTypeResolver } from 'definitions'
 import { TRANSACTION_PURPOSE } from 'common/enums'
 import { ForbiddenError, ArticleNotFoundError } from 'common/errors'
+import logger from 'common/logger'
 
 export const MAT: GQLMATTypeResolver = {
   total: ({ id }, _, { dataSources: { userService } }) =>
@@ -24,7 +25,11 @@ export const Transaction: GQLTransactionTypeResolver = {
   delta: ({ delta }) => delta,
   purpose: ({ purpose }) => camelCase(purpose),
   createdAt: ({ createdAt }) => createdAt,
-  content: async (trx, _, { dataSources: { userService, articleService } }) => {
+  content: async (
+    trx,
+    _,
+    { dataSources: { userService, articleService } }
+  ): Promise<string> => {
     switch (trx.purpose) {
       case TRANSACTION_PURPOSE.appreciate:
         const article = await articleService.dataloader.load(trx.referenceId)
@@ -33,6 +38,7 @@ export const Transaction: GQLTransactionTypeResolver = {
         }
         return article.title
       case TRANSACTION_PURPOSE.appreciateSubsidy:
+      case TRANSACTION_PURPOSE.systemSubsidy:
         return '系統補貼' // TODO: i18n
       case TRANSACTION_PURPOSE.appreciateComment:
         return '評論' // TODO: i18n
@@ -42,6 +48,9 @@ export const Transaction: GQLTransactionTypeResolver = {
         return '新用戶註冊激活' // TODO: i18n
       case TRANSACTION_PURPOSE.firstPost:
         return '新人首帖' // TODO: i18n
+      default:
+        logger.error(`transaction purpose ${trx.purpose} no match`)
+        return ''
     }
   }
 }
