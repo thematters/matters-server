@@ -74,16 +74,20 @@ export class ArticleService extends BaseService {
     [key: string]: string
   }) => {
     const userService = new UserService()
+    const author = await userService.dataloader.load(authorId)
+    const now = new Date()
 
     // add content to ipfs
-    const dataHash = await this.ipfs.addHTML(content)
+    const html = this.ipfs.makeHTML({
+      title,
+      author: { userName: author.userName, displayName: author.displayName },
+      summary,
+      content,
+      publishedAt: now
+    })
+    const dataHash = await this.ipfs.addHTML(html)
 
     // add meta data to ipfs
-    const { userName: name, description } = await userService.dataloader.load(
-      authorId
-    )
-
-    const now = new Date()
     let mediaObj: { [key: string]: any } = {
       content: {
         html: {
@@ -92,8 +96,8 @@ export class ArticleService extends BaseService {
       },
       summary,
       author: {
-        name,
-        description: description || ''
+        name: author.userName,
+        description: author.description || ''
       },
       publishedAt: now.toISOString()
     }
@@ -460,6 +464,7 @@ export class ArticleService extends BaseService {
       )
       .where(where)
       .count()
+      .first()
 
     if (!all) {
       qs = qs.andWhere(function() {
@@ -485,6 +490,7 @@ export class ArticleService extends BaseService {
       )
       .where(where)
       .count()
+      .first()
 
     if (!all) {
       qs = qs.andWhere(function() {

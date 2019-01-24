@@ -1,7 +1,7 @@
 import {
   connectionFromPromisedArray,
-  connectionFromArray,
-  cursorToIndex
+  cursorToIndex,
+  connectionFromArray
 } from 'common/utils'
 
 import { GQLUserActivityTypeResolver } from 'definitions'
@@ -12,6 +12,10 @@ const resolver: GQLUserActivityTypeResolver = {
     { input },
     { dataSources: { userService, articleService } }
   ) => {
+    if (!id) {
+      return connectionFromArray([], input)
+    }
+
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await userService.countReadHistory(id)
@@ -41,10 +45,9 @@ const resolver: GQLUserActivityTypeResolver = {
     { input },
     { dataSources: { userService } }
   ) => {
-    // if (!id) {
-    //   return connectionFromArray([], input)
-    // }
-
+    if (!id) {
+      return connectionFromArray([], input)
+    }
     return connectionFromPromisedArray(
       userService.findRecentSearches(id),
       input

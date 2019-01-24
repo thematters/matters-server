@@ -32,12 +32,16 @@ export const Transaction: GQLTransactionTypeResolver = {
           throw new ArticleNotFoundError('reference article not found')
         }
         return article.title
+      case TRANSACTION_PURPOSE.appreciateSubsidy:
+        return '系統補貼' // TODO: i18n
       case TRANSACTION_PURPOSE.appreciateComment:
         return '評論' // TODO: i18n
       case TRANSACTION_PURPOSE.invitationAccepted:
         return '新用戶註冊激活' // TODO: i18n
       case TRANSACTION_PURPOSE.joinByInvitation:
         return '新用戶註冊激活' // TODO: i18n
+      case TRANSACTION_PURPOSE.firstPost:
+        return '新人首帖' // TODO: i18n
     }
   }
 }

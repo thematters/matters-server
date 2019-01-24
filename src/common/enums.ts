@@ -24,6 +24,7 @@ export const USER_ACTION = {
 export const TRANSACTION_PURPOSE = {
   appreciate: 'appreciate',
   appreciateComment: 'appreciate-comment',
+  appreciateSubsidy: 'appreciate-subsidy',
   invitationAccepted: 'invitation-accepted',
   joinByInvitation: 'join-by-invitation',
   joinByTask: 'join-by-task',
