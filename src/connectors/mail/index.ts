@@ -19,14 +19,14 @@ class MailService {
     if (isTest) {
       return
     }
-    console.log(params, '...')
+
     await this.mail.send({
       ...params
-      // mailSettings: {
-      //   sandboxMode: {
-      //     enable: isDev
-      //   }
-      // }
+      mailSettings: {
+        sandboxMode: {
+          enable: isDev
+        }
+      }
     })
   }
 }
