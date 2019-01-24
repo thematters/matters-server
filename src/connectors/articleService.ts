@@ -12,7 +12,7 @@ import {
 } from 'common/enums'
 import { ItemData, GQLSearchInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
-import { stripHtml, countWords } from 'common/utils'
+import { stripHtml, countWords, makeSummary } from 'common/utils'
 import { ArticleNotFoundError } from 'common/errors'
 
 import { BaseService } from './baseService'
@@ -80,7 +80,7 @@ export class ArticleService extends BaseService {
     const html = this.ipfs.makeHTML({
       title,
       author: { userName: author.userName, displayName: author.displayName },
-      summary,
+      summary: summary || makeSummary(stripHtml(content)),
       content,
       publishedAt: now
     })
