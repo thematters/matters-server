@@ -10,7 +10,7 @@ exports.up = async knex => {
 
 exports.down = async knex => {
   await knex.schema.alterTable(table, function(t) {
-    t.bigInteger('content')
+    t.text('content')
       .notNullable()
       .alter()
   })
