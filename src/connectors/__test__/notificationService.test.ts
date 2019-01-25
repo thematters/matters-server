@@ -34,10 +34,15 @@ describe('user notify setting', async () => {
     'comment_new_reply',
     'comment_new_upvote',
     'comment_mentioned_you',
-    'official_announcement'
+    'official_announcement',
+    'user_banned',
+    'user_frozen',
+    'comment_banned',
+    'article_banned',
+    'comment_reported',
+    'article_reported'
   ]
   const defaultNoifySetting: { [key in NotificationType]: boolean } = {
-    article_updated: false,
     user_new_follower: true,
     article_published: true,
     article_new_downstream: true,
@@ -51,7 +56,13 @@ describe('user notify setting', async () => {
     comment_new_reply: true,
     comment_new_upvote: false,
     comment_mentioned_you: true,
-    official_announcement: true
+    official_announcement: true,
+    user_banned: true,
+    user_frozen: true,
+    comment_banned: false,
+    article_banned: false,
+    comment_reported: false,
+    article_reported: false
   }
 
   test('user receives notifications', async () => {
@@ -60,7 +71,7 @@ describe('user notify setting', async () => {
         const {
           canPush
         } = await notificationService.push.checkUserNotifySetting({
-          noticeType: type,
+          event: type,
           userId: recipientId
         })
         expect(canPush).toBe(defaultNoifySetting[type])
@@ -75,7 +86,7 @@ describe('user notify setting', async () => {
         const {
           canPush
         } = await notificationService.push.checkUserNotifySetting({
-          noticeType: type,
+          event: type,
           userId: recipientId
         })
         expect(canPush).toBe(

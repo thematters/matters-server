@@ -1,5 +1,5 @@
 import { MutationToDeleteCommentResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 import { COMMENT_STATE } from 'common/enums'
 import { ForbiddenError, AuthenticationError } from 'common/errors'
 
@@ -27,18 +27,15 @@ const resolver: MutationToDeleteCommentResolver = async (
     updatedAt: new Date()
   })
 
-  // trigger notificaiton
+  // publish a PubSub event
   const article = await articleService.dataloader.load(articleId)
-  notificationService.trigger({
-    event: 'article_updated',
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'article',
-        entity: article
-      }
-    ]
-  })
+  notificationService.pubsub.publish(
+    toGlobalId({
+      type: 'Article',
+      id: article.id
+    }),
+    article
+  )
 
   return true
 }

@@ -492,6 +492,7 @@ type Mutation {
   reportComment(input: ReportCommentInput!): Boolean
   voteComment(input: VoteCommentInput!): Comment!
   unvoteComment(input: UnvoteCommentInput!): Comment!
+  updateCommentState(input: UpdateCommentStateInput!): Comment!
 
   """audio dtaft"""
   putAudiodraft(input: PutAudiodraftInput!): Audiodraft!
@@ -1047,6 +1048,11 @@ input UnvoteCommentInput {
 input UpdateArticleStateInput {
   id: ID!
   state: ArticleState!
+}
+
+input UpdateCommentStateInput {
+  id: ID!
+  state: CommentState!
 }
 
 input UpdateNotificationSettingInput {

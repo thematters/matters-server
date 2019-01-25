@@ -9,11 +9,11 @@ export class PrivateDirective extends SchemaDirectiveVisitor {
     field.resolve = async function(...args) {
       const [{ id }, _, { viewer }] = args
 
-      if (!viewer.id || id !== viewer.id || !viewer.hasRole('admin')) {
-        throw new ForbiddenError(`unauthorized user`)
+      if (id === viewer.id || viewer.hasRole('admin')) {
+        return resolve.apply(this, args)
       }
 
-      return resolve.apply(this, args)
+      throw new ForbiddenError(`unauthorized user`)
     }
   }
 }

@@ -191,10 +191,12 @@ export class BaseService extends DataSource {
     }
 
     // update
-    return (await this.knex(tableName)
+    const [updatedItem] = await this.knex(tableName)
       .where(where)
       .update(data)
-      .returning('*'))[0]
+      .returning('*')
+    logger.info(`Updated id ${updatedItem.id} in ${tableName}`)
+    return updatedItem
   }
 
   /**
@@ -220,7 +222,7 @@ export class BaseService extends DataSource {
       return this.baseCreate(data, tableName)
     }
 
-    // update
+    // find
     return item
   }
 
@@ -231,13 +233,17 @@ export class BaseService extends DataSource {
     id: string,
     data: ItemData,
     table?: TableName
-  ): Promise<any> =>
-    (await this.knex
+  ): Promise<any> => {
+    const [updatedItem] = await this.knex
       .where('id', id)
       .update(data)
       .into(table || this.table)
-      .returning('*'))[0]
+      .returning('*')
 
+    logger.info(`Updated id ${id} in ${table || this.table}`)
+
+    return updatedItem
+  }
   /**
    * Update a batch of items by given ids.
    */
@@ -259,12 +265,17 @@ export class BaseService extends DataSource {
     uuid: string,
     data: ItemData,
     table?: TableName
-  ): Promise<any> =>
-    (await this.knex
+  ): Promise<any> => {
+    const [updatedItem] = await this.knex
       .where('uuid', uuid)
       .update(data)
       .into(table || this.table)
-      .returning('*'))[0]
+      .returning('*')
+
+    logger.info(`Updated uuid ${uuid} in ${table || this.table}`)
+
+    return updatedItem
+  }
 
   /**
    * Delete an item by a given id.

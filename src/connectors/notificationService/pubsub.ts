@@ -1,6 +1,7 @@
 import { RedisPubSub } from 'graphql-redis-subscriptions'
 
 import { environment } from 'common/environment'
+import logger from 'common/logger'
 
 class PubSub {
   engine: InstanceType<typeof RedisPubSub>
@@ -16,6 +17,14 @@ class PubSub {
         }
       }
     })
+  }
+
+  publish = async (trigger: string, payload: any) => {
+    try {
+      this.engine.publish(trigger, payload)
+    } catch (e) {
+      logger.error('Publish PubSub event error.', e)
+    }
   }
 }
 

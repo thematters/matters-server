@@ -44,25 +44,25 @@ const resolver: MutationToArchiveArticleResolver = async (
       ]
     })
   })
-  if (article.upstreamId) {
-    const upstream = await articleService.dataloader.load(article.upstreamId)
-    notificationService.trigger({
-      event: 'downstream_article_archived',
-      recipientId: upstream.authorId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'article',
-          entity: upstream
-        },
-        {
-          type: 'downstream',
-          entityTable: 'article',
-          entity: article
-        }
-      ]
-    })
-  }
+  // if (article.upstreamId) {
+  //   const upstream = await articleService.dataloader.load(article.upstreamId)
+  //   notificationService.trigger({
+  //     event: 'downstream_article_archived',
+  //     recipientId: upstream.authorId,
+  //     entities: [
+  //       {
+  //         type: 'target',
+  //         entityTable: 'article',
+  //         entity: upstream
+  //       },
+  //       {
+  //         type: 'downstream',
+  //         entityTable: 'article',
+  //         entity: article
+  //       }
+  //     ]
+  //   })
+  // }
 
   return article
 }

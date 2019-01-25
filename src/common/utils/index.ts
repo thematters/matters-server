@@ -15,9 +15,9 @@ export const countWords = (html: string) =>
     .split(' ')
     .filter(s => s !== '').length
 
-export const makeSummary = (string: string) =>
+export const makeSummary = (string: string, length?: number) =>
   _.truncate(string, {
-    length: 200,
+    length: length || 200,
     separator: /,? +/
   })
 

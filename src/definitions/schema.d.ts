@@ -940,6 +940,7 @@ export interface GQLMutation {
   reportComment?: boolean
   voteComment: GQLComment
   unvoteComment: GQLComment
+  updateCommentState: GQLComment
 
   /**
    * audio dtaft
@@ -1138,6 +1139,11 @@ export interface GQLVoteCommentInput {
 
 export interface GQLUnvoteCommentInput {
   id: string
+}
+
+export interface GQLUpdateCommentStateInput {
+  id: string
+  state: GQLCommentState
 }
 
 export interface GQLPutAudiodraftInput {
@@ -5143,6 +5149,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   reportComment?: MutationToReportCommentResolver<TParent>
   voteComment?: MutationToVoteCommentResolver<TParent>
   unvoteComment?: MutationToUnvoteCommentResolver<TParent>
+  updateCommentState?: MutationToUpdateCommentStateResolver<TParent>
   putAudiodraft?: MutationToPutAudiodraftResolver<TParent>
   deleteAudiodraft?: MutationToDeleteAudiodraftResolver<TParent>
   putDraft?: MutationToPutDraftResolver<TParent>
@@ -5466,6 +5473,21 @@ export interface MutationToUnvoteCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUnvoteCommentArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateCommentStateArgs {
+  input: GQLUpdateCommentStateInput
+}
+export interface MutationToUpdateCommentStateResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateCommentStateArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

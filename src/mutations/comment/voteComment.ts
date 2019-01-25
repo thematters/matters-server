@@ -1,5 +1,5 @@
 import { MutationToVoteCommentResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToVoteCommentResolver = async (
@@ -41,16 +41,15 @@ const resolver: MutationToVoteCommentResolver = async (
       entities: [{ type: 'target', entityTable: 'comment', entity: comment }]
     })
   }
-  notificationService.trigger({
-    event: 'article_updated',
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'article',
-        entity: article
-      }
-    ]
-  })
+
+  // publish a PubSub event
+  notificationService.pubsub.publish(
+    toGlobalId({
+      type: 'Article',
+      id: article.id
+    }),
+    article
+  )
 
   return comment
 }

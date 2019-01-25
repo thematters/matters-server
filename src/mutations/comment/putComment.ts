@@ -1,5 +1,5 @@
 import { MutationToPutCommentResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 import {
   AuthenticationError,
   UserInputError,
@@ -93,6 +93,7 @@ const resolver: MutationToPutCommentResolver = async (
     newComment = await commentService.create(data)
 
     // trigger notifications
+    // notify article's author
     notificationService.trigger({
       event: 'article_new_comment',
       actorId: viewer.id,
@@ -110,6 +111,7 @@ const resolver: MutationToPutCommentResolver = async (
         }
       ]
     })
+    // notify article's subscribers
     const articleSubscribers = await articleService.findSubscriptions({
       id: article.id
     })
@@ -136,6 +138,7 @@ const resolver: MutationToPutCommentResolver = async (
       })
     })
     if (parentComment) {
+      // notify parent comment
       notificationService.trigger({
         event: 'comment_new_reply',
         actorId: viewer.id,
@@ -156,17 +159,17 @@ const resolver: MutationToPutCommentResolver = async (
     }
   }
 
+  // publish a PubSub event
+  notificationService.pubsub.publish(
+    toGlobalId({
+      type: 'Article',
+      id: article.id
+    }),
+    article
+  )
+
   // trigger notifications
-  notificationService.trigger({
-    event: 'article_updated',
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'article',
-        entity: article
-      }
-    ]
-  })
+  // notify mentioned users
   data.mentionedUserIds &&
     data.mentionedUserIds.forEach((userId: string) => {
       notificationService.trigger({
