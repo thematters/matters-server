@@ -23,7 +23,7 @@ export class NetworkError extends ApolloError {
 
 export class ServerError extends ApolloError {
   constructor(message: string, properties?: Record<string, any>) {
-    super(message, 'SERVER_ERROR', properties)
+    super(message, 'INTERNAL_SERVER_ERROR', properties)
 
     Object.defineProperty(this, 'name', { value: 'ServerError' })
   }

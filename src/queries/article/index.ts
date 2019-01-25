@@ -44,6 +44,7 @@ export default {
     downstreams,
     relatedArticles,
     MAT,
+    mediaHash: ({ dataHash }: { dataHash: string }) => dataHash, // TODO: remove in production
     subscribed,
     subscribers,
     appreciators,
