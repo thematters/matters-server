@@ -170,16 +170,6 @@ describe('query article', async () => {
     expect(result.data.oss.articles.edges.length).toBeGreaterThan(1)
   })
 
-  test('query article by mediaHash', async () => {
-    const { query } = await testClient()
-    const { data } = await query({
-      query: GET_ARTICLE_BY_MEDIA_HASH,
-      // @ts-ignore
-      variables: { input: { mediaHash } }
-    })
-    expect(_.get(data, 'article.mediaHash')).toBe(mediaHash)
-  })
-
   test('query related articles', async () => {
     const { query } = await testClient()
     const result = await query({
