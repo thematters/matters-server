@@ -1,0 +1,27 @@
+<mjml>
+  <mj-include path="./components/head.mjml" />
+
+  <mj-body background-color="#f6f6f6">
+    <mj-include path="./components/header.mjml" />
+
+    <mj-section background-color="#ffffff" padding="32px">
+      <mj-column>
+        <mj-text padding="0">
+          Hi，
+        </mj-text>
+
+        <mj-text padding-top="16px">
+          下面是你{{type}}需要的驗證碼。
+        </mj-text>
+
+        <mj-text mj-class="verification-code">
+          {{code}}
+        </mj-text>
+
+        <mj-include path="./components/ending.mjml" />
+      </mj-column>
+    </mj-section>
+
+    <mj-include path="./components/footer.mjml" />
+  </mj-body>
+</mjml>
