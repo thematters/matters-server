@@ -33,7 +33,7 @@ export class NotificationService extends BaseService {
             type: 'Article',
             id: params.entities[0].entity.id
           }),
-          params.entities[0]
+          params.entities[0].entity
         )
         return
       case 'user_new_follower':
