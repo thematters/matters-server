@@ -131,17 +131,20 @@ const template = ({
     <meta name="twitter:description" content="${summary}">
     ${style}
   </head>
-  <body>
+  <body itemscope itemtype="http://schema.org/Article">
     <main>
       <header>
-        <h1>${title}</h1>
+        <h1 itemprop="headline">${title}</h1>
         <figure class="byline">
-          <a ref="author">${author.userName} (@${author.displayName})</a>
-          <time datetime="${publishedAt.toISOString()}">${toDateString(publishedAt)}</time>
-          <a ref="source">from Matters</a>
+          <span itemprop="author">${author.userName} (@${author.displayName})</span>
+          <time itemprop="datePublished" datetime="${publishedAt.toISOString()}">${toDateString(publishedAt)}</time>
+          <span itemprops="provider" itemscope itemtype="http://schema.org/Organization">
+            from <span itemprops="name">Matters</span>
+            <meta itemprops="url" content="https://matters.news">
+          </span>
         </figure>
       </header>
-      <article>
+      <article itemprop="articleBody">
         ${content}
       </article>
     </main>
