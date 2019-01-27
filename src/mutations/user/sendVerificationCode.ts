@@ -47,7 +47,9 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     to: email,
     type,
     code,
-    recipientDisplayName: user && user.displayName
+    recipient: {
+      displayName: user && user.displayName
+    }
   })
 
   return true

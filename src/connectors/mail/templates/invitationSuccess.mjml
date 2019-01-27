@@ -13,15 +13,15 @@
           <mj-include path="./partials/greeting.mjml" />
 
           <mj-text padding-top="16px">
-            {{#if senderDisplayName}}
-              你的朋友 <a href="https://matters.news/@{{senderUserName}}" class="link">{{senderDisplayName}}<a> 邀請你成為 Matters 內容平台的創作者，已幫你解鎖全部创作功能。
+            {{#if sender.displayName}}
+              你的朋友 <a href="https://matters.news/@{{sender.userName}}" class="link">{{sender.displayName}}</a> 邀請你成為 Matters 內容平台的創作者，已幫你解鎖全部创作功能。
             {{else}}
               Matty 邀請你成為 Matters 內容平台的創作者，已幫你解鎖全部创作功能。
             {{/if}}
           </mj-text>
 
           <mj-button mj-class="cta-button" href="https://matters.news">
-            {{#if type === 'invitation'}}
+            {{#if invitation}}
               開始註冊 →
             {{else}}
               開始創作 →

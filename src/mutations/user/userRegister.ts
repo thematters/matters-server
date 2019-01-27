@@ -82,7 +82,9 @@ const resolver: MutationToUserRegisterResolver = async (
   // send email
   notificationService.mail.sendRegisterSuccess({
     to: email,
-    recipientDisplayName: displayName
+    recipient: {
+      displayName
+    }
   })
 
   return userService.login(input)

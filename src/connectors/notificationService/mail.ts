@@ -13,13 +13,15 @@ class Mail {
     language = 'zh_hant',
     type,
     code,
-    recipientDisplayName
+    recipient
   }: {
     to: string
     language?: keyof typeof LANGUAGE
     type: keyof typeof VERIFICATION_CODE_TYPES
     code: string
-    recipientDisplayName?: string
+    recipient: {
+      displayName?: string
+    }
   }) => {
     // TODO: language
     const templateId = EMAIL_TEMPLATE_ID.verificationCode
@@ -41,7 +43,7 @@ class Mail {
             subject: `Matters | ${dataType}驗證碼`,
             code,
             type: dataType,
-            recipientDisplayName
+            recipient
           }
         }
       ]
@@ -51,11 +53,13 @@ class Mail {
   sendRegisterSuccess = async ({
     to,
     language = 'zh_hant',
-    recipientDisplayName
+    recipient
   }: {
     to: string
     language?: keyof typeof LANGUAGE
-    recipientDisplayName: string
+    recipient: {
+      displayName?: string
+    }
   }) => {
     // TODO: language
     const templateId = EMAIL_TEMPLATE_ID.registerSuccess
@@ -69,7 +73,7 @@ class Mail {
           // @ts-ignore
           dynamic_template_data: {
             subject: 'Matters | 你已註冊成功',
-            recipientDisplayName
+            recipient
           }
         }
       ]
@@ -80,16 +84,20 @@ class Mail {
     to,
     language = 'zh_hans',
     type,
-    recipientDisplayName,
-    senderDisplayName,
-    senderUserName
+    recipient,
+    sender
   }: {
     to: string
     language?: keyof typeof LANGUAGE
     type: 'invitation' | 'activation'
-    recipientDisplayName?: string
-    senderDisplayName?: string
-    senderUserName?: string
+    recipient?: {
+      displayName?: string
+      userName?: string
+    }
+    sender: {
+      displayName?: string
+      userName?: string
+    }
   }) => {
     // TODO: language
     const templateId = EMAIL_TEMPLATE_ID.invitationSuccess
@@ -103,10 +111,10 @@ class Mail {
           // @ts-ignore
           dynamic_template_data: {
             subject: 'Matters | 你被邀請成為內容創作者',
-            recipientDisplayName,
-            senderDisplayName,
-            senderUserName,
-            type
+            recipient,
+            sender,
+            invitation: type === 'invitation',
+            activation: type === 'activation'
           }
         }
       ]
