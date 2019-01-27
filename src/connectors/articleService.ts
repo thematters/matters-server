@@ -254,7 +254,7 @@ export class ArticleService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
-      return this.dataloader.loadMany(ids)
+      return this.baseFindByIds(ids)
     } catch (err) {
       logger.error(err)
       throw new ServerError('search failed')
