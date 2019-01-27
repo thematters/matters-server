@@ -132,7 +132,7 @@
   "graphql-inspector": {
     "diff": true,
     "schema": {
-      "ref": "head/staging",
+      "ref": "staging",
       "path": "schema.graphql"
     }
   }
