@@ -1,5 +1,5 @@
 import { MutationToUnvoteCommentResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToUnvoteCommentResolver = async (
@@ -20,17 +20,14 @@ const resolver: MutationToUnvoteCommentResolver = async (
   const comment = await commentService.dataloader.load(dbId)
   const article = await articleService.dataloader.load(comment.articleId)
 
-  // trigger notifications
-  notificationService.trigger({
-    event: 'article_updated',
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'article',
-        entity: article
-      }
-    ]
-  })
+  // publish a PubSub event
+  notificationService.pubsub.publish(
+    toGlobalId({
+      type: 'Article',
+      id: article.id
+    }),
+    article
+  )
 
   return comment
 }

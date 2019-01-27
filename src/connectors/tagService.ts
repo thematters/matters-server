@@ -75,7 +75,7 @@ export class TagService extends BaseService {
     })
 
   findScore = async (tagId: string) => {
-    const tag = await this.knex('tag_count_materialized')
+    const tag = await this.knex('tag_count_view')
       .select()
       .where({ id: tagId })
       .first()

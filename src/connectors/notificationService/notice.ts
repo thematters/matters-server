@@ -11,6 +11,7 @@ import {
 } from 'definitions'
 import { BaseService } from '../baseService'
 import { BATCH_SIZE } from 'common/enums'
+import logger from 'common/logger'
 
 export type NoticeUserId = string
 export type NoticeEntity = {
@@ -76,6 +77,7 @@ class Notice extends BaseService {
         })
         .into('notice_detail')
         .returning('*')
+      logger.info(`Inserted id ${noticeDetailId} to notice_detail`)
 
       // create notice
       const [{ id: noticeId }] = await trx
@@ -86,17 +88,20 @@ class Notice extends BaseService {
         })
         .into('notice')
         .returning('*')
+      logger.info(`Inserted id ${noticeId} to notice`)
 
       // create notice actorIds
       if (actorIds) {
         await Promise.all(
           actorIds.map(async actorId => {
-            await trx
+            const [{ id: noticeActorId }] = await trx
               .insert({
                 noticeId,
                 actorId
               })
               .into('notice_actor')
+              .returning('*')
+            logger.info(`Inserted id ${noticeActorId} to notice_actor`)
           })
         )
       }
@@ -111,7 +116,7 @@ class Notice extends BaseService {
                 .from('entity_type')
                 .where({ table: entityTable })
                 .first()
-              await trx
+              const [{ id: noticeEntityId }] = await trx
                 .insert({
                   type,
                   entityTypeId,
@@ -119,6 +124,8 @@ class Notice extends BaseService {
                   noticeId
                 })
                 .into('notice_entity')
+                .returning('*')
+              logger.info(`Inserted id ${noticeEntityId} to notice_entity`)
             }
           )
         )
@@ -140,12 +147,16 @@ class Notice extends BaseService {
       // add actors
       await Promise.all(
         actorIds.map(async actorId => {
-          await trx
+          const [{ id: noticeActorId }] = await trx
             .insert({
               noticeId,
               actorId
             })
             .into('notice_actor')
+            .returning('*')
+          logger.info(
+            `[addNoticeActors] Inserted id ${noticeActorId} to notice_actor`
+          )
         })
       )
 
@@ -153,6 +164,7 @@ class Notice extends BaseService {
       await trx('notice')
         .where({ id: noticeId })
         .update({ unread: true, updatedAt: new Date() })
+      logger.info(`[addNoticeActors] Updated id ${noticeId} in notice`)
     })
   }
 

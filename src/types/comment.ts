@@ -4,9 +4,10 @@ export default /* GraphQL */ `
     pinComment(input: PinCommentInput!): Comment! @authenticate
     unpinComment(input: UnpinCommentInput!): Comment! @authenticate
     deleteComment(input: DeleteCommentInput!): Boolean @authenticate
-    reportComment(input: ReportCommentInput!): Boolean @authenticate
+    reportComment(input: ReportCommentInput!): Boolean
     voteComment(input: VoteCommentInput!): Comment! @authenticate
     unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate
+    updateCommentState(input: UpdateCommentStateInput!): Comment! @authorize
   }
 
   type Comment implements Node {
@@ -108,6 +109,11 @@ export default /* GraphQL */ `
 
   input UnvoteCommentInput {
     id: ID!
+  }
+
+  input UpdateCommentStateInput {
+    id: ID!
+    state: CommentState!
   }
 
   enum Vote {

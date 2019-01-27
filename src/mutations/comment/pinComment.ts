@@ -1,5 +1,5 @@
 import { MutationToPinCommentResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 import {
   AuthenticationError,
   ForbiddenError,
@@ -43,16 +43,6 @@ const resolver: MutationToPinCommentResolver = async (
 
   // trigger notifications
   notificationService.trigger({
-    event: 'article_updated',
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'article',
-        entity: article
-      }
-    ]
-  })
-  notificationService.trigger({
     event: 'comment_pinned',
     actorId: viewer.id,
     recipientId: comment.authorId,
@@ -64,6 +54,15 @@ const resolver: MutationToPinCommentResolver = async (
       }
     ]
   })
+
+  // publish a PubSub event
+  notificationService.pubsub.publish(
+    toGlobalId({
+      type: 'Article',
+      id: article.id
+    }),
+    article
+  )
 
   return pinnedComment
 }

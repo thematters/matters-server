@@ -9,7 +9,15 @@ import {
 const resolver: MutationToReportCommentResolver = async (
   root,
   { input: { id, category, description, contact, assetIds: assetUUIDs } },
-  { viewer, dataSources: { commentService, systemService } }
+  {
+    viewer,
+    dataSources: {
+      userService,
+      commentService,
+      systemService,
+      notificationService
+    }
+  }
 ) => {
   if (!viewer.id && !contact) {
     throw new UserInputError('"contact" is required with visitor')
@@ -38,6 +46,14 @@ const resolver: MutationToReportCommentResolver = async (
     description,
     contact,
     assetIds
+  })
+
+  // trigger notification
+  const commentAuthor = await userService.dataloader.load(comment.authorId)
+  notificationService.trigger({
+    event: 'comment_reported',
+    entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
+    recipientId: commentAuthor.id
   })
 
   return true

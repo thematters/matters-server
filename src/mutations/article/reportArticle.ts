@@ -9,7 +9,15 @@ import {
 const resolver: MutationToReportArticleResolver = async (
   root,
   { input: { id, category, description, contact, assetIds: assetUUIDs } },
-  { viewer, dataSources: { articleService, systemService } }
+  {
+    viewer,
+    dataSources: {
+      userService,
+      articleService,
+      systemService,
+      notificationService
+    }
+  }
 ) => {
   if (!viewer.id && !contact) {
     throw new UserInputError('"contact" is required with visitor')
@@ -38,6 +46,14 @@ const resolver: MutationToReportArticleResolver = async (
     description,
     contact,
     assetIds
+  })
+
+  // trigger notification
+  const articleAuthor = await userService.dataloader.load(article.authorId)
+  notificationService.trigger({
+    event: 'article_reported',
+    entities: [{ type: 'target', entityTable: 'article', entity: article }],
+    recipientId: articleAuthor.id
   })
 
   return true

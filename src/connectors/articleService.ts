@@ -451,12 +451,18 @@ export class ArticleService extends BaseService {
 
   countRecommendHottest = async ({
     where = {},
-    all = false
+    oss = false
   }: {
     where?: { [key: string]: any }
-    all?: boolean
+    oss?: boolean
   }) => {
-    let qs = this.knex('article_activity_materialized as view')
+    // use view when oss for real time update
+    // use materialized in other cases
+    const table = oss
+      ? 'article_activity_view'
+      : 'article_activity_materialized'
+
+    let qs = this.knex(`${table} as view`)
       .leftJoin(
         'article_recommend_setting as setting',
         'view.id',
@@ -466,7 +472,7 @@ export class ArticleService extends BaseService {
       .count()
       .first()
 
-    if (!all) {
+    if (!oss) {
       qs = qs.andWhere(function() {
         this.where({ inHottest: true }).orWhereNull('in_hottest')
       })
@@ -477,10 +483,10 @@ export class ArticleService extends BaseService {
 
   countRecommendNewest = async ({
     where = {},
-    all = false
+    oss = false
   }: {
     where?: { [key: string]: any }
-    all?: boolean
+    oss?: boolean
   }) => {
     let qs = this.knex('article')
       .leftJoin(
@@ -492,7 +498,7 @@ export class ArticleService extends BaseService {
       .count()
       .first()
 
-    if (!all) {
+    if (!oss) {
       qs = qs.andWhere(function() {
         this.where({ inNewest: true }).orWhereNull('in_newest')
       })
@@ -526,7 +532,7 @@ export class ArticleService extends BaseService {
     })
 
   findScore = async (articleId: string) => {
-    const article = await this.knex('article_count_materialized')
+    const article = await this.knex('article_count_view')
       .select()
       .where({ id: articleId })
       .first()

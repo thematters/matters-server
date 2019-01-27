@@ -96,6 +96,7 @@
     "chokidar": "^2.0.3",
     "chokidar-cli": "^1.2.0",
     "codecov": "^3.1.0",
+    "husky": "^1.3.1",
     "jest": "^23.6.0",
     "knex-migrate": "^1.7.0",
     "nodemon": "^1.18.6",
@@ -121,5 +122,17 @@
   "prettier": {
     "singleQuote": true,
     "semi": false
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run build && npm run gen && npm run format && git add schema.graphql src/definitions/schema.d.ts"
+    }
+  },
+  "graphql-inspector": {
+    "diff": true,
+    "schema": {
+      "ref": "head/staging",
+      "path": "schema.graphql"
+    }
   }
 }
