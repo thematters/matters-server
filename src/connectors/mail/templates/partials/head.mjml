@@ -1,0 +1,60 @@
+<mj-attributes>
+  <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 'PingFang TC', 'Hiragino Sans GB', 'Microsoft Yahei', sans-serif" padding="0" font-weight="400" font-size="14px" color="#000" line-height="24px" />
+
+  <mj-class name="body" background-color="#f6f6f6" width="630px" />
+  <mj-class name="wrapper" padding-left="10px" padding-right="10px" />
+  <mj-class name="card" background-color="#ffffff" padding="32px" />
+  <mj-class name="verification-code" color="#0d6763" font-size="24px" padding-top="16px" font-weight="500" />
+  <mj-class name="cta-button" width="100%" color="white" font-size="16px" border-radius="0" height="47px" padding="24px 0 0 0" background-color="#0d6763" inner-padding="0" />
+</mj-attributes>
+
+<mj-style inline="inline">
+  .link {
+    color: #0d6763;
+    text-decoration: none;
+  }
+</mj-style>
+
+<mj-style>
+  .logo {
+    padding: 10px 10px 0 10px !important;
+  }
+
+  .slogan {
+    padding: 10px 10px 0 10px !important;
+    font-size: 12px !important;
+  }
+
+  .footer {
+    padding: 0 10px !important;
+  }
+
+  .download-image {
+    padding-top: 10px !important;
+    padding-right: 0 !important;
+  }
+
+  @media all and (min-width: 480px) {
+
+    .logo {
+      padding: 10px 0 0 24px !important;
+    }
+
+    .slogan {
+      padding: 10px 16px 0 0 !important;
+    }
+
+    .slogan div {
+      text-align: right !important;
+    }
+
+    .footer {
+      padding: 0 0 0 24px !important;
+    }
+
+    .download-image {
+      padding-right: 24px !important;
+    }
+
+  }
+</mj-style>

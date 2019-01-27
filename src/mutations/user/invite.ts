@@ -54,10 +54,12 @@ const resolver: MutationToInviteResolver = async (
     })
 
     // send email
-    notificationService.mail.sendActivationSuccess({
+    notificationService.mail.sendInvitationSuccess({
       to: email,
       recipientDisplayName: recipient.displayName,
-      senderDisplayName: isAdmin ? 'Matty' : viewer.displayName
+      senderDisplayName: isAdmin ? undefined : viewer.displayName,
+      senderUserName: isAdmin ? undefined : viewer.userName,
+      type: 'activation'
     })
   } else {
     const user = await userService.findByEmail(email)
@@ -73,7 +75,9 @@ const resolver: MutationToInviteResolver = async (
     // send email
     notificationService.mail.sendInvitationSuccess({
       to: email,
-      senderDisplayName: isAdmin ? 'Matty' : viewer.displayName
+      senderDisplayName: isAdmin ? undefined : viewer.displayName,
+      senderUserName: isAdmin ? undefined : viewer.userName,
+      type: 'invitation'
     })
   }
 

@@ -1,7 +1,7 @@
 <mjml>
   <mj-head>
     <mj-include path="./partials/head.mjml" />
-    <mj-title>Matters | {{type}}驗證碼</mj-title>
+    <mj-title>Matters | 你已註冊成功</mj-title>
   </mj-head>
 
   <mj-body mj-class="body">
@@ -13,12 +13,14 @@
           <mj-include path="./partials/greeting.mjml" />
 
           <mj-text padding-top="16px">
-            你進行{{type}}的驗證碼是（如果不是本人，請不要做任何操作）：
+            恭喜你，你已經成功註冊了 Matters 賬號，歡迎 <a class="link" href="https://matters.news">浏览社区里的精彩内容 →</a>
           </mj-text>
 
-          <mj-text mj-class="verification-code">
-            {{code}}
+          <mj-text padding-top="16px">
+            目前 Matters 是一個邀請制社區，你的賬號需要激活才能擁有創作資格，你可以向你認識的老用戶索取激活資格。
           </mj-text>
+
+          <mj-include path="./partials/download.mjml" />
 
           <mj-include path="./partials/ending.mjml" />
         </mj-column>

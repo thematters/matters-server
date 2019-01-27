@@ -1,0 +1,42 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./partials/head.mjml" />
+    <mj-title>Matters | 你被邀請成為內容創作者</mj-title>
+  </mj-head>
+
+  <mj-body mj-class="body">
+    <mj-wrapper mj-class="wrapper">
+      <mj-include path="./partials/header.mjml" />
+
+      <mj-section mj-class="card">
+        <mj-column>
+          <mj-include path="./partials/greeting.mjml" />
+
+          <mj-text padding-top="16px">
+            {{#if senderDisplayName}}
+              你的朋友 <a href="https://matters.news/@{{senderUserName}}" class="link">{{senderDisplayName}}<a> 邀請你成為 Matters 內容平台的創作者，已幫你解鎖全部创作功能。
+            {{else}}
+              Matty 邀請你成為 Matters 內容平台的創作者，已幫你解鎖全部创作功能。
+            {{/if}}
+          </mj-text>
+
+          <mj-button mj-class="cta-button" href="https://matters.news">
+            {{#if type === 'invitation'}}
+              開始註冊 →
+            {{else}}
+              開始創作 →
+            {{/if}}
+          </mj-button>
+
+          <mj-text padding-top="32px">
+            你在 Matters 發布的文章將通過星際文件系統（InterPlanetary File System, IPFS）實現分佈式存儲。文章可以永久保存，也可以通過多個分佈式節點傳播，不再侷限於單一網頁地址訪問。瀏覽<a class="link" target="_blank" href="https://matters.news/forum/?post=53ae62fa-2a1a-419d-bc77-d744f13ffd3d">產品公告</a>可了解具體操作方法。
+          </mj-text>
+
+          <mj-include path="./partials/ending.mjml" />
+        </mj-column>
+      </mj-section>
+
+      <mj-include path="./partials/footer.mjml" />
+    </mj-wrapper>
+  </mj-body>
+</mjml>

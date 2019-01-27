@@ -1,0 +1,7 @@
+<mj-text padding="0">
+  {{#if recipientDisplayName}}
+    Hi {{recipientDisplayName}}，
+  {{else}}
+    Hi，
+  {{/if}}
+</mj-text>
