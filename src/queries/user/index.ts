@@ -1,7 +1,7 @@
-import { Context } from 'definitions'
 import { toGlobalId } from 'common/utils'
 import { MAT_UNIT } from 'common/enums'
 
+import rootViewer from './rootViewer'
 import rootUser from './rootUser'
 import subscriptions from './subscriptions'
 import followers from './followers'
@@ -31,7 +31,7 @@ import { boost, score } from './oss'
 
 export default {
   Query: {
-    viewer: (root: any, _: any, { viewer }: Context) => viewer,
+    viewer: rootViewer,
     user: rootUser
   },
   User: {
