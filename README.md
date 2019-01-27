@@ -48,7 +48,6 @@ We use [MJML](https://mjml.io) to develop our SendGrid email template.
 
 1. Create template file (e.g. `invitationSuccess.mjml`) and put it in `src/connectors/mail/templates`
 2. `npm run start:dev:email` or `npm run build:email` will output compiled HTML files to `src/connectors/mail/templates/build/`
-3. In [SendGrid Transactional Templates](https://sendgrid.com/dynamic_templates)
-4. Create Template or Add Verion to an existing template
-5. Copy and paste HTML codes into the editor and edit the "Email Subject" as `{{subject}}` in Settings in the left sidebar
-6. Click "Save Template" and "Make Active"
+3. "Create Template" or "Add Verion" to an existing template in [SendGrid Transactional Templates](https://sendgrid.com/dynamic_templates)
+4. Copy and paste HTML codes into the editor and edit the "Email Subject" as `{{subject}}` in Settings in the left sidebar
+5. Click "Save Template" and "Make Active"
