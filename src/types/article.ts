@@ -8,7 +8,6 @@ export default /* GraphQL */ `
     archiveArticle(input: ArchiveArticleInput!): Article! @authenticate
     subscribeArticle(input: SubscribeArticleInput!): Boolean @authenticate
     unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean @authenticate
-    reportArticle(input: ReportArticleInput!): Boolean
     appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate
     readArticle(input: ReadArticleInput!): Boolean
     recallPublish(input: RecallPublishInput!): Draft! @authenticate

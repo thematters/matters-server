@@ -472,7 +472,6 @@ type Mutation {
   archiveArticle(input: ArchiveArticleInput!): Article!
   subscribeArticle(input: SubscribeArticleInput!): Boolean
   unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean
-  reportArticle(input: ReportArticleInput!): Boolean
   appreciateArticle(input: AppreciateArticleInput!): Article!
   readArticle(input: ReadArticleInput!): Boolean
   recallPublish(input: RecallPublishInput!): Draft!

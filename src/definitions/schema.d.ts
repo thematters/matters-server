@@ -918,7 +918,6 @@ export interface GQLMutation {
   archiveArticle: GQLArticle
   subscribeArticle?: boolean
   unsubscribeArticle?: boolean
-  reportArticle?: boolean
   appreciateArticle: GQLArticle
   readArticle?: boolean
   recallPublish: GQLDraft
@@ -1031,14 +1030,6 @@ export interface GQLSubscribeArticleInput {
 
 export interface GQLUnsubscribeArticleInput {
   id: string
-}
-
-export interface GQLReportArticleInput {
-  id: string
-  category: string
-  description: string
-  assetIds?: Array<string>
-  contact?: string
 }
 
 export interface GQLAppreciateArticleInput {
@@ -1453,6 +1444,14 @@ export interface GQLOfficialAnnouncementNotice extends GQLNotice {
 }
 
 export type GQLPositiveFloat = any
+
+export interface GQLReportArticleInput {
+  id: string
+  category: string
+  description: string
+  assetIds?: Array<string>
+  contact?: string
+}
 
 export enum GQLRole {
   vistor = 'vistor',
@@ -5131,7 +5130,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   archiveArticle?: MutationToArchiveArticleResolver<TParent>
   subscribeArticle?: MutationToSubscribeArticleResolver<TParent>
   unsubscribeArticle?: MutationToUnsubscribeArticleResolver<TParent>
-  reportArticle?: MutationToReportArticleResolver<TParent>
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
   recallPublish?: MutationToRecallPublishResolver<TParent>
@@ -5242,18 +5240,6 @@ export interface MutationToUnsubscribeArticleResolver<
   (
     parent: TParent,
     args: MutationToUnsubscribeArticleArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToReportArticleArgs {
-  input: GQLReportArticleInput
-}
-export interface MutationToReportArticleResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToReportArticleArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
