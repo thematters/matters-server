@@ -8,7 +8,7 @@
     <mj-wrapper mj-class="wrapper">
       <mj-include path="./partials/header.mjml" />
 
-      <mj-section mj-class="card">
+      <mj-section mj-class="card" padding-bottom="0">
         <mj-column>
           <mj-include path="./partials/greeting.mjml" />
 
@@ -19,9 +19,15 @@
           <mj-text padding-top="16px">
             目前 Matters 是一個邀請制社區，你的賬號需要激活才能擁有創作資格，你可以向你認識的老用戶索取激活資格。
           </mj-text>
+        </mj-column>
+      </mj-section>
 
-          <mj-include path="./partials/download.mjml" />
+      <mj-section mj-class="card" padding-top="24px" padding-bottom="0">
+        <mj-include path="./partials/download.mjml" />
+      </mj-section>
 
+      <mj-section mj-class="card" padding-top="0">
+        <mj-column>
           <mj-include path="./partials/ending.mjml" />
         </mj-column>
       </mj-section>
