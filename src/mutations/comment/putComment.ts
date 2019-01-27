@@ -1,5 +1,5 @@
 import { MutationToPutCommentResolver } from 'definitions'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId, sanitize } from 'common/utils'
 import {
   AuthenticationError,
   UserInputError,
@@ -31,7 +31,7 @@ const resolver: MutationToPutCommentResolver = async (
   } = comment
 
   let data: any = {
-    content,
+    content: sanitize(content),
     authorId: viewer.id
   }
 
@@ -46,7 +46,7 @@ const resolver: MutationToPutCommentResolver = async (
         ...data,
         quotationStart,
         quotationEnd,
-        quotationContent
+        quotationContent: sanitize(quotationContent)
       }
     }
   }

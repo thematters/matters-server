@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import xss from 'xss'
 
 export * from './makeContext'
 export * from './globalId'
@@ -9,6 +10,8 @@ export * from './notice'
 export * from './getViewerFromHeaders'
 
 export const stripHtml = (html: string) => html.replace(/(<([^>]+)>)/gi, '')
+
+export const sanitize = (string: string) => xss(string)
 
 export const countWords = (html: string) =>
   stripHtml(html)
