@@ -1,6 +1,6 @@
 export default /* GraphQL */ `
   extend type Query {
-    viewer: User
+    viewer: User @authenticate
     user(input: UserInput!): User
   }
 
