@@ -47,7 +47,7 @@ const resolvers: GQLRecommendationTypeResolver = {
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.countRecommendHottest({
       where,
-      all: oss
+      oss
     })
     return connectionFromPromisedArray(
       articleService.recommendHottest({
@@ -83,7 +83,7 @@ const resolvers: GQLRecommendationTypeResolver = {
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.countRecommendNewest({
       where,
-      all: oss
+      oss
     })
 
     return connectionFromPromisedArray(

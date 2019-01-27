@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import xss from 'xss'
 
 export * from './makeContext'
 export * from './globalId'
@@ -10,14 +11,16 @@ export * from './getViewerFromHeaders'
 
 export const stripHtml = (html: string) => html.replace(/(<([^>]+)>)/gi, '')
 
+export const sanitize = (string: string) => xss(string)
+
 export const countWords = (html: string) =>
   stripHtml(html)
     .split(' ')
     .filter(s => s !== '').length
 
-export const makeSummary = (string: string) =>
+export const makeSummary = (string: string, length?: number) =>
   _.truncate(string, {
-    length: 200,
+    length: length || 200,
     separator: /,? +/
   })
 

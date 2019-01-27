@@ -497,7 +497,7 @@ export class UserService extends BaseService {
     })
 
   findScore = async (userId: string) => {
-    const author = await this.knex('user_reader_materialized')
+    const author = await this.knex('user_reader_view')
       .select()
       .where({ id: userId })
       .first()
