@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 import { MutationToPutCommentResolver } from 'definitions'
 import { fromGlobalId, toGlobalId, sanitize } from 'common/utils'
 import {
@@ -8,7 +10,7 @@ import {
 } from 'common/errors'
 
 const resolver: MutationToPutCommentResolver = async (
-  _,
+  root,
   { input: { comment, id } },
   {
     viewer,
@@ -36,18 +38,22 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   // check quotation input
-  if (quotationStart || quotationEnd || quotationContent) {
-    if (!(quotationStart && quotationEnd && quotationContent)) {
+  const quotationInputs = _.filter(
+    [quotationStart, quotationEnd, quotationContent],
+    o => !_.isNil(o)
+  )
+  if (quotationInputs) {
+    if (quotationInputs.length < 3) {
       throw new UserInputError(
         `Quotation needs fields "quotationStart, quotationEnd, quotationContent"`
       )
-    } else {
-      data = {
-        ...data,
-        quotationStart,
-        quotationEnd,
-        quotationContent: sanitize(quotationContent)
-      }
+    }
+
+    data = {
+      ...data,
+      quotationStart,
+      quotationEnd,
+      quotationContent: sanitize(quotationContent || '')
     }
   }
 
