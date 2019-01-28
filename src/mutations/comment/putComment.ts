@@ -42,7 +42,7 @@ const resolver: MutationToPutCommentResolver = async (
     [quotationStart, quotationEnd, quotationContent],
     o => !_.isNil(o)
   )
-  if (quotationInputs) {
+  if (quotationInputs.length > 0) {
     if (quotationInputs.length < 3) {
       throw new UserInputError(
         `Quotation needs fields "quotationStart, quotationEnd, quotationContent"`
