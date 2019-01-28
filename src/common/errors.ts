@@ -66,6 +66,14 @@ export class ForbiddenError extends ApolloError {
   }
 }
 
+export class TokenInvalidError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'TOKEN_INVALID')
+
+    Object.defineProperty(this, 'name', { value: 'TokenInvalidError' })
+  }
+}
+
 /*********************************
  *                               *
  *           Entity              *
