@@ -20,15 +20,16 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     )
   }
 
+  let user
   if (type === VERIFICATION_CODE_TYPES.register) {
-    const user = await userService.findByEmail(email)
+    user = await userService.findByEmail(email)
     if (user) {
       throw new EmailExistsError('email has been registered')
     }
   }
 
   if (type === VERIFICATION_CODE_TYPES.password_reset) {
-    const user = await userService.findByEmail(email)
+    user = await userService.findByEmail(email)
     if (!user) {
       throw new EmailNotFoundError('cannot find email')
     }
@@ -45,7 +46,10 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   notificationService.mail.sendVerificationCode({
     to: email,
     type,
-    code
+    code,
+    recipient: {
+      displayName: user && user.displayName
+    }
   })
 
   return true

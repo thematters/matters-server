@@ -1,0 +1,30 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./partials/head.mjml" />
+    <mj-title>Matters | {{type}}驗證碼</mj-title>
+  </mj-head>
+
+  <mj-body mj-class="body">
+    <mj-wrapper mj-class="wrapper">
+      <mj-include path="./partials/header.mjml" />
+
+      <mj-section mj-class="card">
+        <mj-column>
+          <mj-include path="./partials/greeting.mjml" />
+
+          <mj-text padding-top="16px">
+            你進行{{type}}的驗證碼是（如果不是本人，請不要做任何操作）：
+          </mj-text>
+
+          <mj-text mj-class="verification-code">
+            {{code}}
+          </mj-text>
+
+          <mj-include path="./partials/ending.mjml" />
+        </mj-column>
+      </mj-section>
+
+      <mj-include path="./partials/footer.mjml" />
+    </mj-wrapper>
+  </mj-body>
+</mjml>
