@@ -10,28 +10,26 @@ import {
 class Mail {
   sendVerificationCode = async ({
     to,
+    language = 'zh_hant',
     type,
     code,
-    language = 'zh_hant'
+    recipient
   }: {
     to: string
+    language?: keyof typeof LANGUAGE
     type: keyof typeof VERIFICATION_CODE_TYPES
     code: string
-    language?: keyof typeof LANGUAGE
+    recipient: {
+      displayName?: string
+    }
   }) => {
     // TODO: language
     const templateId = EMAIL_TEMPLATE_ID.verificationCode
-    const subject = {
-      register: '你的註冊驗證碼',
-      email_reset: '你的修改郵箱驗證碼',
-      password_reset: '你的重置密碼驗證碼',
-      email_verify: '你的郵箱認證驗證碼'
-    }[type]
     const dataType = {
       register: '註冊',
       email_reset: '修改郵箱',
-      password_reset: '重置密碼',
-      email_verify: '郵箱認證'
+      password_reset: '修改密碼',
+      email_verify: '電子信箱認證'
     }[type]
 
     notificationQueue.sendMail({
@@ -42,9 +40,10 @@ class Mail {
           to,
           // @ts-ignore https://github.com/sendgrid/sendgrid-nodejs/issues/729
           dynamic_template_data: {
-            subject,
+            subject: `Matters | ${dataType}驗證碼`,
             code,
-            type: dataType
+            type: dataType,
+            recipient
           }
         }
       ]
@@ -54,15 +53,16 @@ class Mail {
   sendRegisterSuccess = async ({
     to,
     language = 'zh_hant',
-    displayName
+    recipient
   }: {
     to: string
     language?: keyof typeof LANGUAGE
-    displayName: string
+    recipient: {
+      displayName?: string
+    }
   }) => {
     // TODO: language
     const templateId = EMAIL_TEMPLATE_ID.registerSuccess
-    const subject = '註冊成功'
 
     notificationQueue.sendMail({
       from: environment.emailFromAsk as string,
@@ -72,8 +72,8 @@ class Mail {
           to,
           // @ts-ignore
           dynamic_template_data: {
-            subject,
-            displayName
+            subject: 'Matters | 你已註冊成功',
+            recipient
           }
         }
       ]
@@ -83,15 +83,24 @@ class Mail {
   sendInvitationSuccess = async ({
     to,
     language = 'zh_hans',
-    senderDisplayName
+    type,
+    recipient,
+    sender
   }: {
     to: string
     language?: keyof typeof LANGUAGE
-    senderDisplayName: string
+    type: 'invitation' | 'activation'
+    recipient?: {
+      displayName?: string
+      userName?: string
+    }
+    sender: {
+      displayName?: string
+      userName?: string
+    }
   }) => {
     // TODO: language
     const templateId = EMAIL_TEMPLATE_ID.invitationSuccess
-    const subject = '你已獲得激活資格'
 
     notificationQueue.sendMail({
       from: environment.emailFromAsk as string,
@@ -101,40 +110,11 @@ class Mail {
           to,
           // @ts-ignore
           dynamic_template_data: {
-            subject,
-            senderDisplayName
-          }
-        }
-      ]
-    })
-  }
-
-  sendActivationSuccess = async ({
-    to,
-    language = 'zh_hans',
-    recipientDisplayName,
-    senderDisplayName
-  }: {
-    to: string
-    language?: keyof typeof LANGUAGE
-    recipientDisplayName: string
-    senderDisplayName: string
-  }) => {
-    // TODO: language
-    const templateId = EMAIL_TEMPLATE_ID.activationSuccess
-    const subject = '帳戶激活成功'
-
-    notificationQueue.sendMail({
-      from: environment.emailFromAsk as string,
-      templateId,
-      personalizations: [
-        {
-          to,
-          // @ts-ignore
-          dynamic_template_data: {
-            subject,
-            recipientDisplayName,
-            senderDisplayName
+            subject: 'Matters | 你被邀請成為內容創作者',
+            recipient,
+            sender,
+            invitation: type === 'invitation',
+            activation: type === 'activation'
           }
         }
       ]
