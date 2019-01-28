@@ -27,7 +27,9 @@ class ScheduleQueue {
     this.draftService = new DraftService()
     this.userService = new UserService()
     this.articleService = new ArticleService()
+  }
 
+  start = () => {
     this.q = createQueue(this.queueName)
     this.addConsumers()
     this.addRepeatJobs()
