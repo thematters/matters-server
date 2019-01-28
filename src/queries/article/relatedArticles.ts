@@ -1,5 +1,6 @@
-import { uniq, without } from 'lodash'
+import _ from 'lodash'
 import { ArticleToRelatedArticlesResolver } from 'definitions'
+import bodybuilder from 'bodybuilder'
 import { connectionFromPromisedArray } from 'common/utils'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
@@ -9,38 +10,82 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 ) => {
   const recommendationSize = 10 // return 10 recommendations for now
 
-  // TODO: use vector score from ElasticSearch
-  let recommendations: string[] = []
+  const result = await articleService.es.client.get({
+    index: 'analysis',
+    type: 'article',
+    id: '1'
+  })
 
-  const addRec = (rec: string[], extra: string[]) =>
-    without(uniq(rec.concat(extra)), id)
+  const factorString = _.get(result, '_source.factor')
 
-  const tagIds = await articleService.findTagIds({ id })
+  const factor = factorString.split('|').map((s: string) => parseFloat(s))
 
-  for (const tagId of tagIds) {
-    if (recommendations.length >= recommendationSize) {
-      break
-    }
-
-    let articleIds = await tagService.findArticleIds({
-      id: tagId,
-      limit: recommendationSize - recommendations.length
+  const q = '*'
+  const body = bodybuilder()
+    .query('function_score', {
+      query: {
+        query_string: {
+          query: q
+        }
+      },
+      script_score: {
+        script: {
+          inline: 'payload_vector_score',
+          lang: 'native',
+          params: {
+            field: 'factor',
+            vector: factor,
+            cosine: true
+          }
+        }
+      },
+      boost_mode: 'replace'
     })
-    recommendations = addRec(recommendations, articleIds)
-  }
+    .build()
 
-  if (recommendations.length >= recommendationSize) {
-    let articles = await articleService.findByAuthor(authorId)
-    recommendations = addRec(
-      recommendations,
-      articles.map(({ id }: { id: string }) => id)
-    )
-  }
+  console.log(body)
 
-  return connectionFromPromisedArray(
-    articleService.dataloader.loadMany(recommendations),
-    input
-  )
+  const related = await articleService.es.client.search({
+    index: 'analysis',
+    type: 'article',
+    body
+  })
+  const hits = related['hits']['hits']
+  console.log({ hits })
+
+  return []
+  // TODO: use vector score from ElasticSearch
+  // let recommendations: string[] = []
+
+  // const addRec = (rec: string[], extra: string[]) =>
+  //   _.without(_.uniq(rec.concat(extra)), id)
+
+  // const tagIds = await articleService.findTagIds({ id })
+
+  // for (const tagId of tagIds) {
+  //   if (recommendations.length >= recommendationSize) {
+  //     break
+  //   }
+
+  //   let articleIds = await tagService.findArticleIds({
+  //     id: tagId,
+  //     limit: recommendationSize - recommendations.length
+  //   })
+  //   recommendations = addRec(recommendations, articleIds)
+  // }
+
+  // if (recommendations.length >= recommendationSize) {
+  //   let articles = await articleService.findByAuthor(authorId)
+  //   recommendations = addRec(
+  //     recommendations,
+  //     articles.map(({ id }: { id: string }) => id)
+  //   )
+  // }
+
+  // return connectionFromPromisedArray(
+  //   articleService.dataloader.loadMany(recommendations),
+  //   input
+  // )
 }
 
 export default resolver

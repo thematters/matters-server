@@ -15,7 +15,7 @@ class ElasticSearch {
 
   constructor() {
     this.client = new elasticsearch.Client({
-      host: { host, port }
+      host: { host: '18.136.63.149', port }
     })
 
     this.init()
