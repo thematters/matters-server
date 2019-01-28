@@ -14,6 +14,7 @@ import { DraftService, UserService, ArticleService } from 'connectors'
 import { refreshView } from '../db'
 // local
 import { createQueue } from './utils'
+import publicationQueue from './publication'
 
 class ScheduleQueue {
   q: InstanceType<typeof Queue>
@@ -39,8 +40,6 @@ class ScheduleQueue {
    * Cusumers
    */
   private addConsumers = () => {
-    const { publicationQueue } = require('./publication')
-
     // publish pending drafs
     this.q.process(QUEUE_JOB.publishPendingDrafts, async (job, done) => {
       try {
