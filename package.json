@@ -31,7 +31,8 @@
     "gen:schema": "ts-node --files src/common/utils/exportSchema.ts",
     "gen:types": "ts-node --files src/common/utils/generateTypes.ts",
     "gen": "npm run gen:schema && npm run gen:types",
-    "schema:push": "apollo service:push --key=$MATTERS_APOLLO_API_KEY --localSchemaFile=schema.graphql"
+    "schema:push": "apollo service:push --key=$MATTERS_APOLLO_API_KEY --localSchemaFile=schema.graphql",
+    "schema:check": "apollo service:check --key=$MATTERS_APOLLO_API_KEY --endpoint=https://server-stage.matters.news"
   },
   "author": "",
   "license": "UNLICENSED",
