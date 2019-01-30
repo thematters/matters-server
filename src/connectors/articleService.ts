@@ -671,13 +671,12 @@ export class ArticleService extends BaseService {
     offset?: number
   }) =>
     await this.knex('transaction')
-      .distinct('sender_id', 'id')
+      .distinct('sender_id')
       .select('sender_id')
       .where({
         referenceId: id,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
-      .orderBy('id', 'desc')
       .limit(limit)
       .offset(offset)
 
