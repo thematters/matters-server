@@ -117,7 +117,10 @@ export class ArticleService extends BaseService {
     // add upstream
     if (upstreamId) {
       const upstream = await this.dataloader.load(upstreamId)
-      mediaObj.upstream = { '/': upstream.mediaHash }
+
+      if (upstream && upstream.mediaHash) {
+        mediaObj.upstream = { '/': upstream.mediaHash }
+      }
     }
 
     // get media hash
