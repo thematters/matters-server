@@ -252,8 +252,7 @@ export class UserService extends BaseService {
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
-        fuzziness: 5,
-        fields: ['description', 'displayName^10', 'userName^5']
+        fields: ['displayName^5', 'userName^10', 'description']
       })
       .size(100)
       .build()
