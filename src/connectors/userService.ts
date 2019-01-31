@@ -389,6 +389,7 @@ export class UserService extends BaseService {
       .select('ar.*')
       .join('article as ar', 'ar.author_id', 'au.target_id')
       .where({ action: 'follow', userId })
+      .orderBy('ar.created_at', 'desc')
       .offset(offset)
       .limit(limit)
 
