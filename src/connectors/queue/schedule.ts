@@ -62,22 +62,22 @@ class ScheduleQueue {
     })
 
     // initialize search
-    this.q.process(QUEUE_JOB.initializeSearch, async (job, done) => {
-      logger.info(`[schedule job] initializing search`)
-      try {
-        await this.articleService.es.clear()
-        const articleRes = await this.articleService.initSearch()
-        job.progress(50)
-        const userRes = await this.userService.initSearch()
-        job.progress(100)
-        done(null, { articleRes, userRes })
-      } catch (e) {
-        logger.error(
-          `[schedule job] error in initializing search: ${JSON.stringify(e)}`
-        )
-        done(e)
-      }
-    })
+    // this.q.process(QUEUE_JOB.initializeSearch, async (job, done) => {
+    //   logger.info(`[schedule job] initializing search`)
+    //   try {
+    //     await this.articleService.es.clear()
+    //     const articleRes = await this.articleService.initSearch()
+    //     job.progress(50)
+    //     const userRes = await this.userService.initSearch()
+    //     job.progress(100)
+    //     done(null, { articleRes, userRes })
+    //   } catch (e) {
+    //     logger.error(
+    //       `[schedule job] error in initializing search: ${JSON.stringify(e)}`
+    //     )
+    //     done(e)
+    //   }
+    // })
 
     // refresh view
     this.q.process(

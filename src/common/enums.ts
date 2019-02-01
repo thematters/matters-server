@@ -178,7 +178,6 @@ export const QUEUE_JOB = {
   pushNotification: 'pushNotification',
   // repeat jobs
   publishPendingDrafts: 'publishPendingDrafts',
-  initializeSearch: 'initializeSearch',
   refreshView: 'refreshView'
 }
 
