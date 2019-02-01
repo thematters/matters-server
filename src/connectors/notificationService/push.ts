@@ -2,10 +2,10 @@ import _ from 'lodash'
 
 import { BaseService } from 'connectors/baseService'
 import notificationQueue from 'connectors/queue/notification'
-import { NotificationType, PutNoticeParams } from 'definitions'
+import { NotificationType, PutNoticeParams, LANGUAGES } from 'definitions'
 import logger from 'common/logger'
 
-import templates from './templates'
+import trans from './translations'
 
 class Push extends BaseService {
   constructor() {
@@ -61,8 +61,11 @@ class Push extends BaseService {
     type,
     actorIds,
     entities,
-    message
-  }: PutNoticeParams): Promise<string | null | undefined> => {
+    message,
+    language
+  }: PutNoticeParams & { language: LANGUAGES }): Promise<
+    string | null | undefined
+  > => {
     const actors = actorIds ? await this.baseFindByIds(actorIds, 'user') : null
     const target = _.find(entities, ['type', 'target'])
     const downstream = _.find(entities, ['type', 'downstream'])
@@ -75,97 +78,103 @@ class Push extends BaseService {
       case 'user_new_follower':
         return (
           actors &&
-          templates.user_new_follower({ displayName: actors[0].displayName })
-            .message
+          trans.user_new_follower(language, {
+            displayName: actors[0].displayName
+          })
         )
       case 'article_published':
         return (
           target &&
-          templates.article_published({ title: target.entity.title }).message
+          trans.article_published(language, { title: target.entity.title })
         )
       case 'article_new_downstream':
         return (
           actors &&
           target &&
-          templates.article_new_downstream({
+          trans.article_new_downstream(language, {
             displayName: actors[0].displayName,
             title: target.entity.title
-          }).message
+          })
         )
       case 'article_new_appreciation':
         return (
           actorIds &&
-          templates.article_new_appreciation({
+          trans.article_new_appreciation(language, {
             displayName: actors[0].displayName
-          }).message
+          })
         )
       case 'article_new_subscriber':
         return (
           actors &&
           target &&
-          templates.article_new_subscriber({
+          trans.article_new_subscriber(language, {
             displayName: actors[0].displayName,
             title: target.entity.title
-          }).message
+          })
         )
       case 'article_new_comment':
         return (
           actors &&
           target &&
-          templates.article_new_comment({
+          trans.article_new_comment(language, {
             displayName: actors[0].displayName,
             title: target.entity.title
-          }).message
+          })
         )
       case 'subscribed_article_new_comment':
         return (
           actors &&
           target &&
-          templates.subscribed_article_new_comment({
+          trans.subscribed_article_new_comment(language, {
             displayName: actors[0].displayName,
             title: target.entity.title
-          }).message
+          })
         )
       case 'upstream_article_archived':
-        return templates.upstream_article_archived().message
+        return trans.upstream_article_archived(language, {})
       case 'downstream_article_archived':
         return (
           downstream &&
-          templates.downstream_article_archived({
+          trans.downstream_article_archived(language, {
             title: downstream.entity.title
-          }).message
+          })
         )
       case 'comment_pinned':
         return (
           actors &&
-          templates.comment_pinned({ displayName: actors[0].displayName })
-            .message
+          trans.comment_pinned(language, { displayName: actors[0].displayName })
         )
       case 'comment_new_reply':
         return (
           actors &&
-          templates.comment_new_reply({ displayName: actors[0].displayName })
-            .message
+          trans.comment_new_reply(language, {
+            displayName: actors[0].displayName
+          })
         )
       case 'comment_new_upvote':
         return (
           actors &&
-          templates.comment_new_upvote({ displayName: actors[0].displayName })
-            .message
+          trans.comment_new_upvote(language, {
+            displayName: actors[0].displayName
+          })
         )
       case 'comment_mentioned_you':
         return (
           actors &&
-          templates.comment_mentioned_you({
+          trans.comment_mentioned_you(language, {
             displayName: actors[0].displayName
-          }).message
+          })
         )
       case 'official_announcement':
-        return message && templates.official_announcement({ message }).message
+        return message && trans.official_announcement(language, { message })
     }
   }
 
-  push = async (noticeParams: PutNoticeParams, event: NotificationType) => {
+  push = async (
+    noticeParams: PutNoticeParams,
+    event: NotificationType,
+    language: LANGUAGES
+  ) => {
     const { canPush } = await this.checkUserNotifySetting({
       event,
       userId: noticeParams.recipientId
@@ -182,7 +191,7 @@ class Push extends BaseService {
       noticeParams.recipientId,
       'user'
     )
-    const text = await this.generatePushText(noticeParams)
+    const text = await this.generatePushText({ ...noticeParams, language })
 
     if (!recipientUUID || !text) {
       return

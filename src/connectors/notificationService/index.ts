@@ -1,6 +1,6 @@
 //local
 import logger from 'common/logger'
-import { NotificationPrarms, PutNoticeParams } from 'definitions'
+import { NotificationPrarms, PutNoticeParams, LANGUAGES } from 'definitions'
 import { toGlobalId } from 'common/utils'
 import { BaseService } from 'connectors/baseService'
 
@@ -8,7 +8,7 @@ import { mail } from './mail'
 import { push } from './push'
 import { notice } from './notice'
 import { pubsub } from './pubsub'
-import templates from './templates'
+import trans from './translations'
 
 export class NotificationService extends BaseService {
   mail: typeof mail
@@ -25,7 +25,8 @@ export class NotificationService extends BaseService {
   }
 
   private getNoticeParams = (
-    params: NotificationPrarms
+    params: NotificationPrarms,
+    language: LANGUAGES
   ): PutNoticeParams | undefined => {
     switch (params.event) {
       case 'user_new_follower':
@@ -68,48 +69,48 @@ export class NotificationService extends BaseService {
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
-          message: templates.user_banned({}).message
+          message: trans.user_banned(language, {})
         }
       case 'user_frozen':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
-          message: templates.user_frozen().message
+          message: trans.user_frozen(language, {})
         }
       case 'comment_banned':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
-          message: templates.comment_banned({
+          message: trans.comment_banned(language, {
             content: params.entities[0].entity.content
-          }).message,
+          }),
           entities: params.entities
         }
       case 'article_banned':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
-          message: templates.article_banned({
+          message: trans.article_banned(language, {
             title: params.entities[0].entity.title
-          }).message,
+          }),
           entities: params.entities
         }
       case 'comment_reported':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
-          message: templates.comment_reported({
+          message: trans.comment_reported(language, {
             content: params.entities[0].entity.content
-          }).message,
+          }),
           entities: params.entities
         }
       case 'article_reported':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
-          message: templates.article_reported({
+          message: trans.article_reported(language, {
             title: params.entities[0].entity.title
-          }).message,
+          }),
           entities: params.entities
         }
       default:
@@ -118,7 +119,8 @@ export class NotificationService extends BaseService {
   }
 
   private async __trigger(params: NotificationPrarms) {
-    const noticeParams = this.getNoticeParams(params)
+    const recipient = await this.baseFindById(params.recipientId, 'user')
+    const noticeParams = this.getNoticeParams(params, recipient.language)
 
     if (!noticeParams) {
       return
@@ -133,7 +135,6 @@ export class NotificationService extends BaseService {
     }
 
     // Publish a PubSub event due to the recipent has a new unread notice
-    const recipient = await this.baseFindById(noticeParams.recipientId, 'user')
     this.pubsub.publish(
       toGlobalId({
         type: 'User',
@@ -143,7 +144,7 @@ export class NotificationService extends BaseService {
     )
 
     // Push Notification
-    this.push.push(noticeParams, params.event)
+    this.push.push(noticeParams, params.event, recipient.language)
   }
 
   trigger = (params: NotificationPrarms) => {
