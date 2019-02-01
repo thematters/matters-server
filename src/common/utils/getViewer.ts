@@ -21,7 +21,8 @@ export const getViewerFromReq = async (
   const { headers } = req
 
   const language = getLanguage((headers['accept-language'] ||
-    headers['Accept-Language']) as string)
+    headers['Accept-Language'] ||
+    '') as string)
 
   let viewer: Viewer = {
     id: null,

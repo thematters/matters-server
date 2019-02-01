@@ -18,8 +18,10 @@ export const initSubscriptions = (): { onConnect: any } => ({
     webSocket: any,
     context: any
   ): Promise<Context> => {
+    // `connectionParams` passed from client
+    // https://www.apollographql.com/docs/react/advanced/subscriptions.html#authentication
     const viewer = await getViewerFromReq({
-      headers: connectionParams,
+      headers: { ...connectionParams, ...context.request.headers },
       connection: {}
     })
 
