@@ -292,14 +292,15 @@ export class ArticleService extends BaseService {
       : 'article_activity_materialized'
 
     let qs = this.knex(`${table} as view`)
-      .select('view.*', 'setting.in_hottest')
+      .select('view.*', 'setting.in_hottest', 'article.state')
       .leftJoin(
         'article_recommend_setting as setting',
         'view.id',
         'setting.article_id'
       )
+      .leftJoin('article', 'view.id', 'article.id')
       .orderByRaw('latest_activity DESC NULLS LAST')
-      .where(where)
+      .where({ 'article.state': ARTICLE_STATE.active, ...where })
       .limit(limit)
       .offset(offset)
 
@@ -310,6 +311,7 @@ export class ArticleService extends BaseService {
     }
 
     const result = await qs
+    console.log(result)
     return result
   }
 
@@ -393,9 +395,11 @@ export class ArticleService extends BaseService {
   }) => {
     const table = oss ? 'article_count_view' : 'article_count_materialized'
 
-    return await this.knex(table)
+    return await this.knex(`${table} as view`)
+      .select('view.*', 'article.state')
+      .join('article', 'view.id', 'article.id')
       .orderByRaw('topic_score DESC NULLS LAST')
-      .where(where)
+      .where({ 'article.state': ARTICLE_STATE.active, ...where })
       .limit(limit)
       .offset(offset)
   }
