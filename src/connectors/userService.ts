@@ -603,7 +603,7 @@ export class UserService extends BaseService {
       .limit(limit)
       .offset(offset)
 
-    return result
+    return result.map(({ readAt, ...article }: any) => ({ readAt, article }))
   }
 
   clearReadHistory = async ({
