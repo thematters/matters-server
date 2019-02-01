@@ -7,7 +7,7 @@ export * from './initSubscriptions'
 export * from './connections'
 export * from './validator'
 export * from './notice'
-export * from './getViewerFromHeaders'
+export * from './getViewer'
 
 export const stripHtml = (html: string) => html.replace(/(<([^>]+)>)/gi, '')
 

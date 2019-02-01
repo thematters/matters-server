@@ -1,26 +1,20 @@
+import { Request } from 'request-ip'
+
 import { RequestContext } from 'definitions'
-import { getViewerFromHeaders } from './getViewerFromHeaders'
+import { getViewerFromReq } from './getViewer'
 
 export const makeContext = async ({
   req,
   connection
 }: {
-  req: {
-    headers?: {
-      'x-access-token'?: string
-      'accept-language'?: string
-      'x-real-ip'?: string
-    }
-  }
+  req: Request
   connection?: any
 }): Promise<RequestContext> => {
   if (connection) {
     return connection.context
   }
 
-  const headers = req.headers || {}
-
-  const viewer = await getViewerFromHeaders(headers)
+  const viewer = await getViewerFromReq(req)
 
   return {
     viewer

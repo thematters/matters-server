@@ -2,6 +2,7 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 import slugify from '@matters/slugify'
+import _ from 'lodash'
 
 import {
   ARTICLE_APPRECIATE_LIMIT,
@@ -17,6 +18,7 @@ import { ArticleNotFoundError, ServerError } from 'common/errors'
 
 import { BaseService } from './baseService'
 import { UserService } from './userService'
+import { SystemService } from './systemService'
 import logger from 'common/logger'
 
 export class ArticleService extends BaseService {
@@ -68,20 +70,27 @@ export class ArticleService extends BaseService {
     upstreamId,
     title,
     cover,
-    summary,
+    summary: draftSummary,
     content
   }: {
     [key: string]: string
   }) => {
     const userService = new UserService()
+    const systemService = new SystemService()
+
+    // prepare metadata
     const author = await userService.dataloader.load(authorId)
     const now = new Date()
+    const summary = draftSummary || makeSummary(stripHtml(content))
+    const userImg =
+      author.avatar && (await systemService.findAssetUrl(author.avatar))
+    const articleImg = cover && (await systemService.findAssetUrl(cover))
 
     // add content to ipfs
     const html = this.ipfs.makeHTML({
       title,
       author: { userName: author.userName, displayName: author.displayName },
-      summary: summary || makeSummary(stripHtml(content)),
+      summary,
       content,
       publishedAt: now
     })
@@ -89,23 +98,24 @@ export class ArticleService extends BaseService {
 
     // add meta data to ipfs
     let mediaObj: { [key: string]: any } = {
-      content: {
-        html: {
-          '/': dataHash
-        }
-      },
-      summary,
+      '@context': 'http://schema.org',
+      '@type': 'Article',
+      '@id': `ipfs://ipfs/${dataHash}`,
       author: {
         name: author.userName,
-        description: author.description || ''
+        image: userImg,
+        url: `https://matters.news/@${author.userName}`,
+        description: author.description
       },
-      publishedAt: now.toISOString()
+      dateCreated: now.toISOString(),
+      description: summary,
+      image: articleImg
     }
 
     // add cover to ipfs
     // TODO: check data type for cover
-    if (cover) {
-      const coverData = await this.ipfs.getDataAsFile(cover, '/')
+    if (articleImg) {
+      const coverData = await this.ipfs.getDataAsFile(articleImg, '/')
       if (coverData && coverData.content) {
         const [{ hash }] = await this.ipfs.client.add(coverData.content, {
           pin: true
@@ -117,21 +127,10 @@ export class ArticleService extends BaseService {
     // add upstream
     if (upstreamId) {
       const upstream = await this.dataloader.load(upstreamId)
-
-      if (upstream && upstream.mediaHash) {
-        mediaObj.upstream = { '/': upstream.mediaHash }
-      }
+      mediaObj.upstream = `ipfs://ipfs/${upstream.mediaHash}`
     }
 
-    // get media hash
-    // const [{ hash: mediaHash }] = await this.ipfs.client.add(
-    //   Buffer.from(JSON.stringify(mediaObj)),
-    //   {
-    //     pin: true
-    //   }
-    // )
-
-    const cid = await this.ipfs.client.dag.put(mediaObj, {
+    const cid = await this.ipfs.client.dag.put(_.pickBy(mediaObj, _.isObject), {
       format: 'dag-cbor',
       pin: true,
       hashAlg: 'sha2-256'
