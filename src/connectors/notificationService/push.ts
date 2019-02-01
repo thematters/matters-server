@@ -73,7 +73,6 @@ class Push extends BaseService {
     // const upstream = _.find(entities, ['type', 'upstream'])
     // const reply = _.find(entities, ['type', 'reply'])
 
-    // TODO: i18n
     switch (type) {
       case 'user_new_follower':
         return (
