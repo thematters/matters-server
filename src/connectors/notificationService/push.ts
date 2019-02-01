@@ -2,10 +2,9 @@ import _ from 'lodash'
 
 import { BaseService } from 'connectors/baseService'
 import notificationQueue from 'connectors/queue/notification'
-import { NotificationType } from 'definitions'
+import { NotificationType, PutNoticeParams } from 'definitions'
 import logger from 'common/logger'
 
-import { PutNoticeParams } from './notice'
 import templates from './templates'
 
 class Push extends BaseService {

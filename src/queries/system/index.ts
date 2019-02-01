@@ -39,7 +39,7 @@ export default {
     reportCategory,
     feedbackCategory,
     releases, // TODO
-    links, // TODO
+    links,
     placements, // TODO
     gatewayUrls
   },

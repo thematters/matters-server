@@ -5,6 +5,10 @@
   </mj-head>
 
   <mj-body mj-class="body">
+    <mj-text mj-class="preheader" css-class="preheader">
+      你的驗證碼是 {{code}}
+    </mj-text>
+
     <mj-wrapper mj-class="wrapper">
       <mj-include path="./partials/header.mjml" />
 

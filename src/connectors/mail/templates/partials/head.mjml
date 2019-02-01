@@ -4,6 +4,7 @@
   <mj-class name="body" background-color="#f6f6f6" width="630px" />
   <mj-class name="wrapper" padding-left="10px" padding-right="10px" />
   <mj-class name="card" background-color="#ffffff" padding="32px" />
+  <mj-class name="preheader" color="#f6f6f6" font-size="0" height="0" padding="0" />
   <mj-class name="verification-code" color="#0d6763" font-size="24px" padding-top="16px" font-weight="500" />
   <mj-class name="cta-button" width="100%" color="white" font-size="16px" border-radius="0" height="47px" padding="24px 0 0 0" background-color="#0d6763" inner-padding="0" />
 </mj-attributes>
@@ -16,6 +17,10 @@
 </mj-style>
 
 <mj-style>
+  .preheader {
+    display:  !important;
+  }
+
   .logo {
     padding: 10px 10px 0 10px !important;
   }

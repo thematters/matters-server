@@ -1,12 +1,12 @@
 //local
 import logger from 'common/logger'
-import { NotificationPrarms } from 'definitions'
+import { NotificationPrarms, PutNoticeParams } from 'definitions'
 import { toGlobalId } from 'common/utils'
 import { BaseService } from 'connectors/baseService'
 
 import { mail } from './mail'
 import { push } from './push'
-import { notice, PutNoticeParams } from './notice'
+import { notice } from './notice'
 import { pubsub } from './pubsub'
 import templates from './templates'
 

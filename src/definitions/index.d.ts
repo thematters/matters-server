@@ -9,6 +9,8 @@ import {
 } from 'connectors'
 import { DataSource } from 'apollo-datasource'
 
+import { LANGUAGE } from 'common/enums'
+
 export * from './schema'
 export * from './notification'
 
@@ -28,7 +30,7 @@ export type User = {
   baseGravity: number
   currGravity: number
   mat: number
-  language: string
+  language: LANGUAGES
   // oauthType: any
   role: 'admin' | 'user'
   state: string
@@ -44,7 +46,7 @@ export type Viewer = (User | { id: null }) & {
   hasRole: (role: string) => boolean
   ip?: string
   role: string
-  language: string
+  language: LANGUAGES
 }
 
 export type RequestContext = {
@@ -126,3 +128,5 @@ export type S3Bucket =
 export type Item = { id: string; [key: string]: any }
 
 export type ItemData = { [key: string]: any }
+
+export type LANGUAGES = keyof typeof LANGUAGE
