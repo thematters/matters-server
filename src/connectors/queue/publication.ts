@@ -59,8 +59,16 @@ class PublicationQueue {
           }
 
           // publish to IPFS
-          const article = await this.articleService.publish(draft)
-          job.progress(20)
+          let article
+          try {
+            article = await this.articleService.publish(draft)
+            job.progress(20)
+          } catch (e) {
+            await this.draftService.baseUpdate(draft.id, {
+              publishState: PUBLISH_STATE.error
+            })
+            throw e
+          }
 
           // mark draft as published
           await this.draftService.baseUpdate(draft.id, {

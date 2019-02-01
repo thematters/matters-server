@@ -104,18 +104,23 @@ export class ArticleService extends BaseService {
 
     // add cover to ipfs
     // TODO: check data type for cover
-    const coverData = await this.ipfs.getDataAsFile(cover, '/')
-    if (coverData && coverData.content) {
-      const [{ hash }] = await this.ipfs.client.add(coverData.content, {
-        pin: true
-      })
-      mediaObj.cover = { '/': hash }
+    if (cover) {
+      const coverData = await this.ipfs.getDataAsFile(cover, '/')
+      if (coverData && coverData.content) {
+        const [{ hash }] = await this.ipfs.client.add(coverData.content, {
+          pin: true
+        })
+        mediaObj.cover = { '/': hash }
+      }
     }
 
     // add upstream
     if (upstreamId) {
       const upstream = await this.dataloader.load(upstreamId)
-      mediaObj.upstream = { '/': upstream.mediaHash }
+
+      if (upstream && upstream.mediaHash) {
+        mediaObj.upstream = { '/': upstream.mediaHash }
+      }
     }
 
     // get media hash
@@ -141,6 +146,7 @@ export class ArticleService extends BaseService {
       slug: slugify(title),
       summary,
       content,
+      cover,
       dataHash,
       mediaHash,
       state: ARTICLE_STATE.active
