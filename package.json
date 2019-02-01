@@ -131,7 +131,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run build && npm run gen && npm run format && git add schema.graphql src/definitions/schema.d.ts"
+      "pre-commit": "npm run gen && npm run format && git add schema.graphql src/definitions/schema.d.ts"
     }
   },
   "graphql-inspector": {
