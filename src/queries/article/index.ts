@@ -1,3 +1,5 @@
+import slugify from '@matters/slugify'
+
 import { toGlobalId } from 'common/utils'
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
 
@@ -37,6 +39,8 @@ export default {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
     topicScore: ({ topicScore }: { topicScore: number }) =>
       topicScore ? Math.round(topicScore) : null,
+    slug: ({ slug, title }: { slug: string; title: string }) =>
+      slug || slugify(title),
     author,
     cover,
     tags,

@@ -10,16 +10,15 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 ) => {
   const recommendationSize = 10 // return 10 recommendations for now
 
-  const result = await articleService.es.client.get({
-    index: 'analysis',
-    type: 'article',
-    id: '1'
-  })
+  // const result = await articleService.es.client.get({
+  //   index: 'analysis',
+  //   type: 'article',
+  //   id: '1'
+  // })
 
-  const factorString = _.get(result, '_source.factor')
+  // const factorString = _.get(result, '_source.factor')
 
-  const factor = factorString.split('|').map((s: string) => parseFloat(s))
-
+  // const factor = factorString.split('|').map((s: string) => parseFloat(s))
   const q = '*'
   const body = bodybuilder()
     .query('function_score', {
@@ -34,7 +33,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
           lang: 'native',
           params: {
             field: 'factor',
-            vector: factor,
+            vector: [parseFloat('1.1'), parseFloat('1.2')],
             cosine: true
           }
         }
@@ -46,7 +45,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   console.log(body)
 
   const related = await articleService.es.client.search({
-    index: 'analysis',
+    index: 'article',
     type: 'article',
     body
   })
