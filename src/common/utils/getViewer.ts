@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import requestIp from 'request-ip'
 import _ from 'lodash'
 
-import { USER_ROLE } from 'common/enums'
+import { USER_ROLE, LANGUAGE } from 'common/enums'
 import { UserService } from 'connectors'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
@@ -60,6 +60,11 @@ export const getViewerFromReq = async (
   viewer.hasRole = (requires: string) =>
     roleAccess.findIndex(role => role === viewer.role) >=
     roleAccess.findIndex(role => role === requires)
+
+  // fall back to zh_hant if no languange exists
+  if (!viewer.language) {
+    viewer.language = LANGUAGE.zh_hant
+  }
 
   return viewer
 }
