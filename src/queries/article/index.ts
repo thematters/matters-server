@@ -40,7 +40,7 @@ export default {
     topicScore: ({ topicScore }: { topicScore: number }) =>
       topicScore ? Math.round(topicScore) : null,
     slug: ({ slug, title }: { slug: string; title: string }) =>
-      slug || slugify(title),
+      slug || slugify(title), // handle missing slug from migration
     author,
     cover,
     tags,
@@ -56,8 +56,8 @@ export default {
     appreciatorCount,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
     appreciateLeft,
-    participants, // TODO
-    participantCount: () => 50, // TODO
+    participants, // not used anymore
+    participantCount: () => 50, // not used anymore
     oss: (root: any) => root
   },
   Tag: {
