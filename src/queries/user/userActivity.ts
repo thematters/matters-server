@@ -5,7 +5,6 @@ import {
 } from 'common/utils'
 
 import { GQLUserActivityTypeResolver } from 'definitions'
-import article from 'types/article'
 
 const resolver: GQLUserActivityTypeResolver = {
   history: async (
