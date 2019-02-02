@@ -1,4 +1,4 @@
-import { TableName } from './'
+import { TableName, User } from './'
 
 export type NoticeType =
   // user
@@ -251,3 +251,40 @@ export type NotificationPrarms =
   | NoticeArticleBannedParams
   | NoticeArticleReportedParams
   | NoticeCommentReportedParams
+
+export type NoticeUserId = string
+export type NoticeEntity = {
+  type: NoticeEntityType
+  table: TableName
+  entityId: string
+}
+export type NoticeEntitiesMap = { [key in NoticeEntityType]: any }
+export type NoticeMessage = string
+export type NoticeData = {
+  url?: string
+  reason?: string
+}
+export type NoticeDetail = {
+  id: string
+  uuid: string
+  unread: boolean
+  deleted: boolean
+  updatedAt: Date
+  noticeType: NoticeType
+  message?: NoticeMessage
+  data?: NoticeData
+}
+export type NoticeItem = NoticeDetail & {
+  createdAt: Date
+  type: NoticeType
+  actors?: User[]
+  entities?: NoticeEntitiesMap
+}
+export type PutNoticeParams = {
+  type: NoticeType
+  actorIds?: NoticeUserId[]
+  recipientId: NoticeUserId
+  entities?: NotificationEntity[]
+  message?: NoticeMessage | null
+  data?: NoticeData | null
+}

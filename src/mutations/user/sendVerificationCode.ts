@@ -49,7 +49,8 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     code,
     recipient: {
       displayName: user && user.displayName
-    }
+    },
+    language: viewer.language
   })
 
   return true

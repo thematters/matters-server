@@ -6,7 +6,7 @@ import { USER_ROLE, LANGUAGE } from 'common/enums'
 import { UserService } from 'connectors'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { Viewer } from 'definitions'
+import { Viewer, LANGUAGES } from 'definitions'
 import { TokenInvalidError } from 'common/errors'
 
 import { getLanguage } from './getLanguage'
@@ -63,7 +63,7 @@ export const getViewerFromReq = async (
 
   // fall back to zh_hant if no languange exists
   if (!viewer.language) {
-    viewer.language = LANGUAGE.zh_hant
+    viewer.language = LANGUAGE.zh_hant as LANGUAGES
   }
 
   return viewer

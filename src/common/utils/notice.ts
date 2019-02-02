@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { NoticeItem } from 'connectors/notificationService/notice'
+import { NoticeItem } from 'definitions'
 
 const actorsRequired = {
   user_new_follower: true,
