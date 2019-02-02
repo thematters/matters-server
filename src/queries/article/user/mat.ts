@@ -1,3 +1,5 @@
+import pMap from 'p-map'
+
 import { UserStatusToMATResolver } from 'definitions'
 
 const resolver: UserStatusToMATResolver = async (
@@ -6,12 +8,13 @@ const resolver: UserStatusToMATResolver = async (
   { dataSources: { articleService } }
 ) => {
   const articles = await articleService.findByAuthor(id)
-  const apprecitions = ((await Promise.all(
+  const apprecitions = (await pMap(
+    articles,
     articles.map(
       async ({ id }: { id: string }) =>
         await articleService.totalAppreciation(id)
     )
-  )) as unknown) as number[]
+  )) as number[]
   return apprecitions.reduce((a: number, b: number): number => a + b, 0)
 }
 

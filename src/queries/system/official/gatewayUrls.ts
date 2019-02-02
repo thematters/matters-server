@@ -1,4 +1,5 @@
 import axios from 'axios'
+import pMap from 'p-map'
 
 const TEST_HASH = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a'
 const PUBLIC_GATEWAYS: string[] = [
@@ -40,10 +41,8 @@ const checkGateway = async (
 }
 
 export const gatewayUrls = async () => {
-  const checkers = await Promise.all(
-    PUBLIC_GATEWAYS.map(url =>
-      checkGateway(TEST_HASH, url).then((alive: boolean) => ({ url, alive }))
-    )
+  const checkers = await pMap(PUBLIC_GATEWAYS, url =>
+    checkGateway(TEST_HASH, url).then((alive: boolean) => ({ url, alive }))
   )
   return checkers.filter(({ alive }) => alive).map(({ url }) => url)
 }

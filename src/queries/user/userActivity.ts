@@ -1,9 +1,10 @@
+import pMap from 'p-map'
+
 import {
   connectionFromPromisedArray,
   cursorToIndex,
   connectionFromArray
 } from 'common/utils'
-
 import { GQLUserActivityTypeResolver } from 'definitions'
 
 const resolver: GQLUserActivityTypeResolver = {
@@ -26,15 +27,13 @@ const resolver: GQLUserActivityTypeResolver = {
     })
 
     return connectionFromPromisedArray(
-      Promise.all(
-        readHistory.map(async ({ articleId, readAt }: any) => {
-          const article = await articleService.dataloader.load(articleId)
-          return {
-            article,
-            readAt
-          }
-        })
-      ),
+      pMap(readHistory, async ({ articleId, readAt }: any) => {
+        const article = await articleService.dataloader.load(articleId)
+        return {
+          article,
+          readAt
+        }
+      }),
       input,
       totalCount
     )

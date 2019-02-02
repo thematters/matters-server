@@ -1,3 +1,4 @@
+import pMap from 'p-map'
 import Queue from 'bull'
 // internal
 import {
@@ -82,11 +83,9 @@ class PublicationQueue {
           let tags = draft.tags
           if (tags && tags.length > 0) {
             // create tag records, return tag record if already exists
-            const dbTags = ((await Promise.all(
-              tags.map((tag: string) =>
-                this.tagService.create({ content: tag })
-              )
-            )) as unknown) as [{ id: string; content: string }]
+            const dbTags = (await pMap(tags, (tag: string) =>
+              this.tagService.create({ content: tag })
+            )) as [{ id: string; content: string }]
             // create article_tag record
             await this.tagService.createArticleTags({
               articleIds: [article.id],

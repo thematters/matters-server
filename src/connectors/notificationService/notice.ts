@@ -1,6 +1,7 @@
 import { v4 } from 'uuid'
 import { isEqual, difference } from 'lodash'
 import DataLoader from 'dataloader'
+import pMap from 'p-map'
 
 import {
   User,
@@ -58,42 +59,39 @@ class Notice extends BaseService {
 
       // create notice actorIds
       if (actorIds) {
-        await Promise.all(
-          actorIds.map(async actorId => {
-            const [{ id: noticeActorId }] = await trx
-              .insert({
-                noticeId,
-                actorId
-              })
-              .into('notice_actor')
-              .returning('*')
-            logger.info(`Inserted id ${noticeActorId} to notice_actor`)
-          })
-        )
+        await pMap(actorIds, async actorId => {
+          const [{ id: noticeActorId }] = await trx
+            .insert({
+              noticeId,
+              actorId
+            })
+            .into('notice_actor')
+            .returning('*')
+          logger.info(`Inserted id ${noticeActorId} to notice_actor`)
+        })
       }
 
       // craete notice entities
       if (entities) {
-        await Promise.all(
-          entities.map(
-            async ({ type, entityTable, entity }: NotificationEntity) => {
-              const { id: entityTypeId } = await trx
-                .select('id')
-                .from('entity_type')
-                .where({ table: entityTable })
-                .first()
-              const [{ id: noticeEntityId }] = await trx
-                .insert({
-                  type,
-                  entityTypeId,
-                  entityId: entity.id,
-                  noticeId
-                })
-                .into('notice_entity')
-                .returning('*')
-              logger.info(`Inserted id ${noticeEntityId} to notice_entity`)
-            }
-          )
+        await pMap(
+          entities,
+          async ({ type, entityTable, entity }: NotificationEntity) => {
+            const { id: entityTypeId } = await trx
+              .select('id')
+              .from('entity_type')
+              .where({ table: entityTable })
+              .first()
+            const [{ id: noticeEntityId }] = await trx
+              .insert({
+                type,
+                entityTypeId,
+                entityId: entity.id,
+                noticeId
+              })
+              .into('notice_entity')
+              .returning('*')
+            logger.info(`Inserted id ${noticeEntityId} to notice_entity`)
+          }
         )
       }
     })
@@ -111,20 +109,18 @@ class Notice extends BaseService {
   }): Promise<void> {
     await this.knex.transaction(async trx => {
       // add actors
-      await Promise.all(
-        actorIds.map(async actorId => {
-          const [{ id: noticeActorId }] = await trx
-            .insert({
-              noticeId,
-              actorId
-            })
-            .into('notice_actor')
-            .returning('*')
-          logger.info(
-            `[addNoticeActors] Inserted id ${noticeActorId} to notice_actor`
-          )
-        })
-      )
+      await pMap(actorIds, async actorId => {
+        const [{ id: noticeActorId }] = await trx
+          .insert({
+            noticeId,
+            actorId
+          })
+          .into('notice_actor')
+          .returning('*')
+        logger.info(
+          `[addNoticeActors] Inserted id ${noticeActorId} to notice_actor`
+        )
+      })
 
       // update notice
       await trx('notice')
@@ -370,22 +366,18 @@ class Notice extends BaseService {
       whereIn: ['notice.id', ids]
     })
 
-    return Promise.all(
-      notices.map(async (notice: NoticeDetail) => {
-        const entities = (await this.findEntities(
-          notice.id
-        )) as NoticeEntitiesMap
-        const actors = await this.findActors(notice.id)
+    return pMap(notices, async (notice: NoticeDetail) => {
+      const entities = (await this.findEntities(notice.id)) as NoticeEntitiesMap
+      const actors = await this.findActors(notice.id)
 
-        return {
-          ...notice,
-          createdAt: notice.updatedAt,
-          type: notice.noticeType,
-          actors,
-          entities
-        }
-      })
-    )
+      return {
+        ...notice,
+        createdAt: notice.updatedAt,
+        type: notice.noticeType,
+        actors,
+        entities
+      }
+    })
   }
 
   /*********************************
@@ -408,22 +400,18 @@ class Notice extends BaseService {
       limit
     })
 
-    return Promise.all(
-      notices.map(async (notice: NoticeDetail) => {
-        const entities = (await this.findEntities(
-          notice.id
-        )) as NoticeEntitiesMap
-        const actors = await this.findActors(notice.id)
+    return pMap(notices, async (notice: NoticeDetail) => {
+      const entities = (await this.findEntities(notice.id)) as NoticeEntitiesMap
+      const actors = await this.findActors(notice.id)
 
-        return {
-          ...notice,
-          createdAt: notice.updatedAt,
-          type: notice.noticeType,
-          actors,
-          entities
-        }
-      })
-    )
+      return {
+        ...notice,
+        createdAt: notice.updatedAt,
+        type: notice.noticeType,
+        actors,
+        entities
+      }
+    })
   }
 
   markAllNoticesAsRead = async (userId: string): Promise<any> =>
