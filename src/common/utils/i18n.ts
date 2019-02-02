@@ -19,12 +19,13 @@ type TransFn<V> = (lang: LANGUAGES, vars: V) => string
  *    en: ({ index }) => `Item ${index}`
  *  })
  *
- *  t(zh_hant, { index: 1 }) // "Item 1"
+ *  t('en', { index: 1 }) // "Item 1"
  * ```
  *
  */
 export const i18n = <V>(translations: Translations<V>): TransFn<V> => {
   return (lang, vars) => {
+    // fallback to `zh_hant`
     const trans = translations[lang] || translations['zh_hant']
 
     if (typeof trans === 'string') {
