@@ -165,6 +165,27 @@ steps:
         - push
     
   # === CI tasks for `master` branch
+  - name: prod:db-migrate
+    image: node:10.14
+    environment:
+      MATTERS_ENV: production
+      MATTERS_PG_HOST:
+        from_secret: PROD_PG_HOST
+      MATTERS_PG_DATABASE:
+        from_secret: PROD_PG_DATABASE
+      MATTERS_PG_USER:
+        from_secret: PROD_PG_USER
+      MATTERS_PG_PASSWORD:
+        from_secret: PROD_PG_PASSWORD
+    commands:
+      - npm run db:migrate
+    when:
+      branch:
+        - master
+        - feature/prod
+      event:
+        - push
+
   - name: prod:docker
     image: plugins/ecr
     settings:
