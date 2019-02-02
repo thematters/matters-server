@@ -2,6 +2,7 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
 import slugify from '@matters/slugify'
+import _ from 'lodash'
 
 import {
   ARTICLE_APPRECIATE_LIMIT,
@@ -12,10 +13,13 @@ import {
 } from 'common/enums'
 import { ItemData, GQLSearchInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
-import { stripHtml, countWords } from 'common/utils'
+import { stripHtml, countWords, makeSummary } from 'common/utils'
+import { ArticleNotFoundError, ServerError } from 'common/errors'
 
 import { BaseService } from './baseService'
 import { UserService } from './userService'
+import { SystemService } from './systemService'
+import logger from 'common/logger'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
@@ -23,8 +27,26 @@ export class ArticleService extends BaseService {
   constructor() {
     super('article')
     this.ipfs = ipfs
-    this.dataloader = new DataLoader(this.baseFindByIds)
-    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+
+    this.dataloader = new DataLoader(async (ids: string[]) => {
+      const result = await this.baseFindByIds(ids)
+
+      if (result.findIndex((item: any) => !item) >= 0) {
+        throw new ArticleNotFoundError('Cannot find article')
+      }
+
+      return result
+    })
+
+    this.uuidLoader = new DataLoader(async (uuids: string[]) => {
+      const result = await this.baseFindByUUIDs(uuids)
+
+      if (result.findIndex((item: any) => !item) >= 0) {
+        throw new ArticleNotFoundError('Cannot find article')
+      }
+
+      return result
+    })
   }
 
   /**
@@ -48,61 +70,67 @@ export class ArticleService extends BaseService {
     upstreamId,
     title,
     cover,
-    summary,
+    summary: draftSummary,
     content
   }: {
     [key: string]: string
   }) => {
     const userService = new UserService()
+    const systemService = new SystemService()
+
+    // prepare metadata
+    const author = await userService.dataloader.load(authorId)
+    const now = new Date()
+    const summary = draftSummary || makeSummary(stripHtml(content))
+    const userImg =
+      author.avatar && (await systemService.findAssetUrl(author.avatar))
+    const articleImg = cover && (await systemService.findAssetUrl(cover))
 
     // add content to ipfs
-    const dataHash = await this.ipfs.addHTML(content)
+    const html = this.ipfs.makeHTML({
+      title,
+      author: { userName: author.userName, displayName: author.displayName },
+      summary,
+      content,
+      publishedAt: now
+    })
+    const dataHash = await this.ipfs.addHTML(html)
 
     // add meta data to ipfs
-    const { userName: name, description } = await userService.dataloader.load(
-      authorId
-    )
-
-    const now = new Date()
     let mediaObj: { [key: string]: any } = {
-      content: {
-        html: {
-          '/': dataHash
-        }
-      },
-      summary,
+      '@context': 'http://schema.org',
+      '@type': 'Article',
+      '@id': `ipfs://ipfs/${dataHash}`,
       author: {
-        name,
-        description: description || ''
+        name: author.userName,
+        image: userImg,
+        url: `https://matters.news/@${author.userName}`,
+        description: author.description
       },
-      publishedAt: now.toISOString()
+      dateCreated: now.toISOString(),
+      description: summary,
+      image: articleImg
     }
 
     // add cover to ipfs
     // TODO: check data type for cover
-    const coverData = await this.ipfs.getDataAsFile(cover, '/')
-    if (coverData && coverData.content) {
-      const [{ hash }] = await this.ipfs.client.add(coverData.content, {
-        pin: true
-      })
-      mediaObj.cover = { '/': hash }
+    if (articleImg) {
+      const coverData = await this.ipfs.getDataAsFile(articleImg, '/')
+      if (coverData && coverData.content) {
+        const [{ hash }] = await this.ipfs.client.add(coverData.content, {
+          pin: true
+        })
+        mediaObj.cover = { '/': hash }
+      }
     }
 
     // add upstream
     if (upstreamId) {
       const upstream = await this.dataloader.load(upstreamId)
-      mediaObj.upstream = { '/': upstream.mediaHash }
+      mediaObj.upstream = `ipfs://ipfs/${upstream.mediaHash}`
     }
 
-    // get media hash
-    // const [{ hash: mediaHash }] = await this.ipfs.client.add(
-    //   Buffer.from(JSON.stringify(mediaObj)),
-    //   {
-    //     pin: true
-    //   }
-    // )
-
-    const cid = await this.ipfs.client.dag.put(mediaObj, {
+    const cid = await this.ipfs.client.dag.put(_.pickBy(mediaObj, _.isObject), {
       format: 'dag-cbor',
       pin: true,
       hashAlg: 'sha2-256'
@@ -117,28 +145,13 @@ export class ArticleService extends BaseService {
       slug: slugify(title),
       summary,
       content,
+      cover,
       dataHash,
       mediaHash,
       state: ARTICLE_STATE.active
     })
 
     return article
-  }
-
-  /**
-   * Find articles
-   */
-  find = async ({ where }: { where?: { [key: string]: any } }) => {
-    let qs = this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
-
-    if (where) {
-      qs = qs.where(where)
-    }
-
-    return await qs
   }
 
   /**
@@ -206,6 +219,7 @@ export class ArticleService extends BaseService {
       )
     })
   }
+
   addToSearch = async ({
     id,
     title,
@@ -245,9 +259,10 @@ export class ArticleService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
-      return this.dataloader.loadMany(ids)
+      return this.baseFindByIds(ids)
     } catch (err) {
-      throw err
+      logger.error(err)
+      throw new ServerError('search failed')
     }
   }
 
@@ -256,42 +271,97 @@ export class ArticleService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
+  /**
+   * Find Many
+   */
   recommendHottest = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    where = {}
+    where = {},
+    oss = false
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-  }) =>
-    await this.knex('article_activity_view')
+    oss?: boolean
+  }) => {
+    // use view when oss for real time update
+    // use materialized in other cases
+    const table = oss
+      ? 'article_activity_view'
+      : 'article_activity_materialized'
+
+    let qs = this.knex(`${table} as view`)
+      .select('view.*', 'setting.in_hottest')
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'view.id',
+        'setting.article_id'
+      )
+      .orderByRaw('latest_activity DESC NULLS LAST')
       .where(where)
-      .orderBy('latest_activity', 'desc null last')
       .limit(limit)
       .offset(offset)
+
+    if (!oss) {
+      qs = qs.andWhere(function() {
+        this.where({ inHottest: true }).orWhereNull('in_hottest')
+      })
+    }
+
+    const result = await qs
+    return result
+  }
 
   recommendNewest = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    where = {}
+    where = {},
+    oss = false
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-  }) =>
-    await this.knex(this.table)
+    oss?: boolean
+  }) => {
+    let qs = this.knex('article')
+      .select('article.*', 'setting.in_newest')
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'article.id',
+        'setting.article_id'
+      )
       .orderBy('id', 'desc')
       .where(where)
       .limit(limit)
       .offset(offset)
 
-  recommendToday = async () =>
+    if (!oss) {
+      qs = qs.andWhere(function() {
+        this.where({ inNewest: true }).orWhereNull('in_newest')
+      })
+    }
+
+    const result = await qs
+    return result
+  }
+
+  recommendToday = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {}
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+  }) =>
     this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
       .join('matters_today as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
-      .first()
+      .where(where)
+      .offset(offset)
+      .limit(limit)
 
   recommendIcymi = async ({
     limit = BATCH_SIZE,
@@ -302,7 +372,7 @@ export class ArticleService extends BaseService {
     offset?: number
     where?: { [key: string]: any }
   }) =>
-    await this.knex('article')
+    this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
       .join('matters_choice as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
@@ -313,17 +383,219 @@ export class ArticleService extends BaseService {
   recommendTopics = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    where = {}
+    where = {},
+    oss = false
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-  }) =>
-    await this.knex('article_count_view')
-      .orderBy('topic_score', 'desc')
+    oss?: boolean
+  }) => {
+    const table = oss ? 'article_count_view' : 'article_count_materialized'
+
+    return await this.knex(table)
+      .orderByRaw('topic_score DESC NULLS LAST')
       .where(where)
       .limit(limit)
       .offset(offset)
+  }
+
+  /**
+   * Find One
+   */
+  findRecommendToday = async (articleId: string) =>
+    this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_today as c', 'c.article_id', 'article.id')
+      .where({ articleId })
+      .first()
+
+  findRecommendIcymi = async (articleId: string) =>
+    this.knex('article')
+      .select('article.*', 'c.updated_at as chose_at')
+      .join('matters_choice as c', 'c.article_id', 'article.id')
+      .orderBy('chose_at', 'desc')
+      .where({ articleId })
+      .first()
+
+  findRecommendHottest = async (articleId: string) =>
+    this.knex('article_activity_materialized')
+      .where({ id: articleId })
+      .first()
+
+  findRecommendNewset = async (articleId: string) =>
+    this.knex(this.table)
+      .where({ id: articleId })
+      .first()
+
+  findRecommendTopic = async (articleId: string) =>
+    this.knex('article_count_materialized')
+      .where({ id: articleId })
+      .first()
+
+  /**
+   * Count
+   */
+  countRecommendToday = async (where: { [key: string]: any } = {}) => {
+    const result = await this.knex('article')
+      .join('matters_today as c', 'c.article_id', 'article.id')
+      .where(where)
+      .count()
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  countRecommendIcymi = async (where: { [key: string]: any } = {}) => {
+    const result = await this.knex('article')
+      .join('matters_choice as c', 'c.article_id', 'article.id')
+      .where(where)
+      .count()
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  countRecommendHottest = async ({
+    where = {},
+    oss = false
+  }: {
+    where?: { [key: string]: any }
+    oss?: boolean
+  }) => {
+    // use view when oss for real time update
+    // use materialized in other cases
+    const table = oss
+      ? 'article_activity_view'
+      : 'article_activity_materialized'
+
+    let qs = this.knex(`${table} as view`)
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'view.id',
+        'setting.article_id'
+      )
+      .where(where)
+      .count()
+      .first()
+
+    if (!oss) {
+      qs = qs.andWhere(function() {
+        this.where({ inHottest: true }).orWhereNull('in_hottest')
+      })
+    }
+    const result = await qs
+    return parseInt(result.count, 10)
+  }
+
+  countRecommendNewest = async ({
+    where = {},
+    oss = false
+  }: {
+    where?: { [key: string]: any }
+    oss?: boolean
+  }) => {
+    let qs = this.knex('article')
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'article.id',
+        'setting.article_id'
+      )
+      .where(where)
+      .count()
+      .first()
+
+    if (!oss) {
+      qs = qs.andWhere(function() {
+        this.where({ inNewest: true }).orWhereNull('in_newest')
+      })
+    }
+
+    const result = await qs
+    return parseInt(result.count, 10)
+  }
+
+  /**
+   * Boost & Score
+   */
+  findBoost = async (articleId: string) => {
+    const articleBoost = await this.knex('article_boost')
+      .select()
+      .where({ articleId })
+      .first()
+
+    if (!articleBoost) {
+      return 1
+    }
+
+    return articleBoost.boost
+  }
+
+  setBoost = async ({ id, boost }: { id: string; boost: number }) =>
+    this.baseUpdateOrCreate({
+      where: { articleId: id },
+      data: { articleId: id, boost, updatedAt: new Date() },
+      table: 'article_boost'
+    })
+
+  findScore = async (articleId: string) => {
+    const article = await this.knex('article_count_view')
+      .select()
+      .where({ id: articleId })
+      .first()
+    return article.topicScore || 0
+  }
+
+  /**
+   * Find or Update recommendation
+   */
+  addRecommendToday = async (articleId: string) =>
+    this.baseFindOrCreate({
+      where: { articleId },
+      data: { articleId },
+      table: 'matters_today'
+    })
+
+  removeRecommendToday = async (articleId: string) =>
+    this.knex('matters_today')
+      .where({ articleId })
+      .del()
+
+  addRecommendIcymi = async (articleId: string) =>
+    this.baseFindOrCreate({
+      where: { articleId },
+      data: { articleId },
+      table: 'matters_choice'
+    })
+
+  removeRecommendIcymi = async (articleId: string) =>
+    this.knex('matters_choice')
+      .where({ articleId })
+      .del()
+
+  findRecommendSetting = async (articleId: string) => {
+    const setting = await this.knex('article_recommend_setting')
+      .select()
+      .where({ articleId })
+      .first()
+
+    if (!setting) {
+      return { inHottest: true, inNewest: true }
+    }
+
+    return setting
+  }
+
+  updateRecommendSetting = async ({
+    articleId,
+    data
+  }: {
+    articleId: string
+    data: { [key in 'inHottest' | 'inNewest']?: boolean }
+  }) =>
+    this.baseUpdateOrCreate({
+      where: { articleId },
+      data: { ...data, articleId },
+      table: 'article_recommend_setting'
+    })
 
   /*********************************
    *                               *
@@ -404,13 +676,12 @@ export class ArticleService extends BaseService {
     offset?: number
   }) =>
     await this.knex('transaction')
-      .distinct('sender_id', 'id')
+      .distinct('sender_id')
       .select('sender_id')
       .where({
         referenceId: id,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
-      .orderBy('id', 'desc')
       .limit(limit)
       .offset(offset)
 
@@ -553,15 +824,18 @@ export class ArticleService extends BaseService {
   /**
    * User subscribe an article
    */
-  subscribe = async (targetId: string, userId: string): Promise<any[]> =>
-    await this.baseCreate(
-      {
-        targetId,
-        userId,
-        action: USER_ACTION.subscribe
-      },
-      'action_article'
-    )
+  subscribe = async (targetId: string, userId: string): Promise<any[]> => {
+    const data = {
+      targetId,
+      userId,
+      action: USER_ACTION.subscribe
+    }
+    return this.baseUpdateOrCreate({
+      where: data,
+      data: { updatedAt: new Date(), ...data },
+      table: 'action_article'
+    })
+  }
 
   /**
    * User unsubscribe an article
@@ -584,26 +858,24 @@ export class ArticleService extends BaseService {
   /**
    * User read an article
    */
-  read = async (articleId: string, userId: string): Promise<any[]> => {
-    const readHistory = await this.knex
-      .select()
-      .from('article_read')
-      .where({ articleId, userId, archived: false })
-      .first()
-
-    if (readHistory) {
-      return readHistory
-    }
-
-    return await this.baseCreate(
+  read = async ({
+    articleId,
+    userId,
+    ip
+  }: {
+    articleId: string
+    userId?: string | null
+    ip?: string
+  }): Promise<any[]> =>
+    await this.baseCreate(
       {
         uuid: v4(),
         articleId,
-        userId
+        userId,
+        ip
       },
       'article_read'
     )
-  }
 
   /*********************************
    *                               *

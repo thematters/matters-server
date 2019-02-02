@@ -14,12 +14,15 @@ export class DraftService extends BaseService {
    *             Draft             *
    *                               *
    *********************************/
+  archive = async (id: string) =>
+    this.baseUpdate(id, { archived: true, updatedAt: new Date() })
+
   /**
    * Count user's drafts by a given author id (user).
    */
   countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
-      .where({ authorId })
+      .where({ authorId, archived: false })
       .count()
       .first()
     return parseInt(result.count, 10)

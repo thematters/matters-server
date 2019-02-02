@@ -13,11 +13,13 @@
     "db:seed": "knex seed:run",
     "db:seed:make": "knex seed:make",
     "clean": "rimraf build",
+    "build:email": "mjml src/connectors/mail/templates/*.mjml -o src/connectors/mail/templates/build/",
     "build": "tsc -p .",
     "watch:build": "tsc -p . --watch",
     "watch:server": "nodemon build/index.js",
     "start": "node build/index.js",
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
+    "start:dev:email": "mjml -w src/connectors/mail/templates/*.mjml -o src/connectors/mail/templates/build/",
     "test:connectors": "MATTERS_ENV=test jest src/connectors --forceExit",
     "test:types": "MATTERS_ENV=test jest src/types --forceExit",
     "test": "npm run test:connectors && npm run test:types && codecov",
@@ -28,12 +30,14 @@
     "format:check": "npm run format -- --list-different",
     "gen:schema": "ts-node --files src/common/utils/exportSchema.ts",
     "gen:types": "ts-node --files src/common/utils/generateTypes.ts",
-    "gen": "npm run gen:schema && npm run gen:types"
+    "gen": "npm run gen:schema && npm run gen:types",
+    "schema:push": "apollo service:push --key=$MATTERS_APOLLO_API_KEY --localSchemaFile=schema.graphql"
   },
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
     "@matters/slugify": "^0.7.3",
+    "@okgrow/graphql-scalars": "^0.4.2",
     "@sendgrid/mail": "^6.3.1",
     "apollo-server": "^2.2.0",
     "aws-sdk": "^2.374.0",
@@ -64,10 +68,12 @@
     "newrelic": "^4.12.0",
     "objection": "^1.4.0",
     "pg": "^7.6.1",
+    "request-ip": "^2.1.3",
     "typescript": "^3.1.6",
     "uuid": "^3.1.0",
-    "validator": "^10.9.0",
-    "winston": "^3.1.0"
+    "validator": "^10.11.0",
+    "winston": "^3.1.0",
+    "xss": "^1.0.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",
@@ -85,6 +91,7 @@
     "@types/knex": "^0.15.1",
     "@types/lodash": "^4.14.117",
     "@types/newrelic": "^3.4.0",
+    "@types/request-ip": "0.0.33",
     "@types/uuid": "^3.4.3",
     "@types/validator": "^9.4.3",
     "@types/winston": "^2.4.4",
@@ -94,8 +101,10 @@
     "chokidar": "^2.0.3",
     "chokidar-cli": "^1.2.0",
     "codecov": "^3.1.0",
+    "husky": "^1.3.1",
     "jest": "^23.6.0",
     "knex-migrate": "^1.7.0",
+    "mjml": "^4.3.1",
     "nodemon": "^1.18.6",
     "npm-run-all": "^4.1.3",
     "prettier": "1.14.2",
@@ -119,5 +128,17 @@
   "prettier": {
     "singleQuote": true,
     "semi": false
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run build && npm run gen && npm run format && git add schema.graphql src/definitions/schema.d.ts"
+    }
+  },
+  "graphql-inspector": {
+    "diff": true,
+    "schema": {
+      "ref": "staging",
+      "path": "schema.graphql"
+    }
   }
 }

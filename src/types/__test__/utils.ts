@@ -2,7 +2,12 @@
 import { createTestClient } from 'apollo-server-testing'
 import { ApolloServer } from 'apollo-server'
 // local
-import { DataSources } from 'definitions'
+import {
+  DataSources,
+  GQLPublishArticleInput,
+  GQLPutDraftInput,
+  GQLUserRegisterInput
+} from 'definitions'
 import {
   ArticleService,
   CommentService,
@@ -12,7 +17,7 @@ import {
   UserService,
   NotificationService
 } from 'connectors'
-import { initSubscriptions } from 'common/utils'
+import { roleAccess } from 'common/utils'
 import schema from '../../schema'
 
 export const defaultTestUser = {
@@ -46,15 +51,26 @@ export const testClient = async (
     context: null
   }
 ) => {
-  let _context: any
+  let _context: any = {}
   if (context) {
-    _context = { viewer: { id: null }, ...context }
+    _context = context
   } else if (isAuth) {
     _context = await getUserContext({
       email: isAdmin ? adminUser.email : defaultTestUser.email
     })
-  } else {
-    _context = { viewer: { id: null } }
+  }
+
+  const viewer = (_context && _context.viewer) || { id: null }
+
+  if (!viewer.role) {
+    viewer.role = isAdmin ? 'admin' : isAuth ? 'user' : 'visitor'
+  }
+
+  _context.viewer = {
+    ...viewer,
+    hasRole: (requires: string) =>
+      roleAccess.findIndex(role => role === viewer.role) >=
+      roleAccess.findIndex(role => role === requires)
   }
 
   const server = new ApolloServer({
@@ -72,4 +88,135 @@ export const testClient = async (
   })
 
   return createTestClient(server)
+}
+
+export const publishArticle = async (input: GQLPublishArticleInput) => {
+  const PUBLISH_ARTICLE = `
+    mutation($input: PublishArticleInput!) {
+      publishArticle(input: $input) {
+        id
+        publishState
+        title
+        content
+        createdAt
+      }
+    }
+  `
+
+  const { mutate } = await testClient({
+    isAuth: true
+  })
+
+  const result = await mutate({
+    mutation: PUBLISH_ARTICLE,
+    // @ts-ignore
+    variables: { input }
+  })
+
+  const article = result && result.data && result.data.publishArticle
+  return article
+}
+
+export const putDraft = async (draft: GQLPutDraftInput) => {
+  const PUT_DRAFT = `
+    mutation($input: PutDraftInput!) {
+      putDraft(input: $input) {
+        id
+        upstream {
+          id
+        }
+        cover
+        title
+        summary
+        content
+        createdAt
+      }
+    }
+  `
+  const { mutate } = await testClient({
+    isAuth: true
+  })
+  const result = await mutate({
+    mutation: PUT_DRAFT,
+    // @ts-ignore
+    variables: { input: draft }
+  })
+
+  const putDraft = result && result.data && result.data.putDraft
+  return putDraft
+}
+
+export const registerUser = async (user: GQLUserRegisterInput) => {
+  const USER_REGISTER = `
+    mutation UserRegister($input: UserRegisterInput!) {
+      userRegister(input: $input) {
+        auth
+        token
+      }
+    }
+  `
+
+  const { mutate } = await testClient()
+  return mutate({
+    mutation: USER_REGISTER,
+    // @ts-ignore
+    variables: { input: user }
+  })
+}
+
+export const updateUserDescription = async ({
+  email,
+  description
+}: {
+  email?: string
+  description: string
+}) => {
+  const UPDATE_USER_INFO_DESCRIPTION = `
+    mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
+      updateUserInfo(input: $input) {
+        info {
+          description
+        }
+      }
+    }
+  `
+
+  let _email = defaultTestUser.email
+  if (email) {
+    _email = email
+  }
+  const context = await getUserContext({ email: _email })
+  const { mutate } = await testClient({
+    context
+  })
+  return mutate({
+    mutation: UPDATE_USER_INFO_DESCRIPTION,
+    // @ts-ignore
+    variables: { input: { description } }
+  })
+}
+
+export const getViewerMAT = async () => {
+  const GET_VIEWER_MAT = `
+    query {
+      viewer {
+        status {
+          MAT {
+            total
+          }
+        }
+      }
+    }
+  `
+
+  const { query } = await testClient({ isAuth: true })
+  const result = await query({
+    query: GET_VIEWER_MAT,
+    // @ts-ignore
+    variables: { input: {} }
+  })
+  const { data } = result
+  const { total } =
+    data && data.viewer && data.viewer.status && data.viewer.status.MAT
+  return total
 }

@@ -1,0 +1,42 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./partials/head.mjml" />
+    <mj-title>Matters | 你已註冊成功</mj-title>
+  </mj-head>
+
+  <mj-body mj-class="body">
+    <mj-text mj-class="preheader" css-class="preheader">
+      恭喜你，你已經成功註冊了 Matters 賬號
+    </mj-text>
+
+    <mj-wrapper mj-class="wrapper">
+      <mj-include path="./partials/header.mjml" />
+
+      <mj-section mj-class="card" padding-bottom="0">
+        <mj-column>
+          <mj-include path="./partials/greeting.mjml" />
+
+          <mj-text padding-top="16px">
+            恭喜你，你已經成功註冊了 Matters 賬號，歡迎 <a class="link" href="https://matters.news">浏览社区里的精彩内容 →</a>
+          </mj-text>
+
+          <mj-text padding-top="16px">
+            目前 Matters 是一個邀請制社區，你的賬號需要激活才能擁有創作資格，你可以向你認識的老用戶索取激活資格。
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-section mj-class="card" padding-top="24px" padding-bottom="0">
+        <mj-include path="./partials/download.mjml" />
+      </mj-section>
+
+      <mj-section mj-class="card" padding-top="0">
+        <mj-column>
+          <mj-include path="./partials/ending.mjml" />
+        </mj-column>
+      </mj-section>
+
+      <mj-include path="./partials/footer.mjml" />
+    </mj-wrapper>
+  </mj-body>
+</mjml>

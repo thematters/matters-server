@@ -1,6 +1,11 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
-import { AuthenticationError } from 'apollo-server'
+import { sampleSize } from 'lodash'
+import {
+  connectionFromPromisedArray,
+  cursorToIndex,
+  connectionFromArray
+} from 'common/utils'
 import { GQLRecommendationTypeResolver } from 'definitions'
+import { ForbiddenError, AuthenticationError } from 'common/errors'
 
 const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles: async (
@@ -20,84 +25,194 @@ const resolvers: GQLRecommendationTypeResolver = {
       totalCount
     )
   },
-  hottest: async ({ id }, { input }, { dataSources: { articleService } }) => {
+  hottest: async (
+    { id },
+    { input },
+    { viewer, dataSources: { articleService } }
+  ) => {
+    const { oss = false } = input
+
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
+    }
+
+    let where = {}
+    if (!id) {
+      where = { ...where, public: true }
+    }
+
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
-    const totalCount = await articleService.baseCount()
+    const totalCount = await articleService.countRecommendHottest({
+      where,
+      oss
+    })
     return connectionFromPromisedArray(
       articleService.recommendHottest({
         offset,
         limit: first,
-        where: id ? {} : { public: true }
+        where,
+        oss
       }),
       input,
       totalCount
     )
   },
-  newest: async ({ id }, { input }, { dataSources: { articleService } }) => {
+  newest: async (
+    { id },
+    { input },
+    { viewer, dataSources: { articleService } }
+  ) => {
+    const { oss = false } = input
+
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
+    }
+
+    let where = {}
+
+    if (!id) {
+      where = { ...where, public: true }
+    }
+
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
-    const totalCount = await articleService.baseCount()
+    const totalCount = await articleService.countRecommendNewest({
+      where,
+      oss
+    })
+
     return connectionFromPromisedArray(
       articleService.recommendNewest({
         offset,
         limit: first,
-        where: id ? {} : { public: true }
+        where,
+        oss
       }),
       input,
       totalCount
     )
   },
-  today: async (_, __, { dataSources: { articleService } }) =>
-    articleService.recommendToday(),
+  today: async (_, __, { dataSources: { articleService } }) => {
+    const [article] = await articleService.recommendToday({
+      offset: 0,
+      limit: 1
+    })
+    return article
+  },
   icymi: async ({ id }, { input }, { dataSources: { articleService } }) => {
+    const where = id ? {} : { public: true }
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
-    const totalCount = await articleService.baseCount()
+    const totalCount = await articleService.countRecommendIcymi(where)
     return connectionFromPromisedArray(
       articleService.recommendIcymi({
         offset,
         limit: first,
-        where: id ? {} : { public: true }
+        where
       }),
       input,
       totalCount
     )
   },
-  topics: async ({ id }, { input }, { dataSources: { articleService } }) => {
+  topics: async (
+    { id },
+    { input },
+    { dataSources: { articleService }, viewer }
+  ) => {
+    const { oss = false } = input
+
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
+    }
+
     const { first, after } = input
+    const where = id ? {} : { public: true }
     const offset = cursorToIndex(after) + 1
-    const totalCount = await articleService.baseCount()
+    const totalCount = await articleService.baseCount(where)
     return connectionFromPromisedArray(
       articleService.recommendTopics({
         offset,
         limit: first,
-        where: id ? {} : { public: true }
+        where,
+        oss
       }),
       input,
       totalCount
     )
   },
-  tags: async ({ id }, { input }, { dataSources: { tagService } }) => {
+  tags: async ({ id }, { input }, { dataSources: { tagService }, viewer }) => {
+    const { oss = false } = input
+
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
+    }
+
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await tagService.baseCount()
     return connectionFromPromisedArray(
       tagService.recommendTags({
         offset,
-        limit: first
+        limit: first,
+        oss
       }),
       input,
       totalCount
     )
   },
-  authors: async ({ id }, { input }, { dataSources: { userService } }) => {
-    const { first, after } = input
+  authors: async (
+    { id },
+    { input },
+    { dataSources: { userService }, viewer }
+  ) => {
+    const { oss = false } = input
+
+    if (oss) {
+      if (!viewer.hasRole('admin')) {
+        throw new ForbiddenError('only admin can access oss')
+      }
+    }
+
+    const randomDraw = 5
+
+    const { first, after, filter } = input
+
+    let notIn: any = []
+    if (filter && filter.followed === false) {
+      // TODO: move this logic to db layer
+      const followees = await userService.findFollowees({
+        userId: id,
+        limit: 999
+      })
+      notIn = followees.map(({ targetId }: any) => targetId)
+    }
+
+    if (filter && filter.random) {
+      const authors = await userService.recommendAuthor({
+        limit: 50,
+        notIn,
+        oss
+      })
+
+      return connectionFromArray(sampleSize(authors, randomDraw), input)
+    }
+
     const offset = cursorToIndex(after) + 1
     const totalCount = await userService.baseCount()
+
     return connectionFromPromisedArray(
       userService.recommendAuthor({
         offset,
+        notIn,
         limit: first
       }),
       input,

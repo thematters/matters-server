@@ -9,9 +9,7 @@ import {
   GQLAppreciateArticleInput
 } from 'definitions'
 // local
-import { testClient } from './utils'
-import { putDraft } from './draft.test'
-import { getViewerMAT } from './user.test'
+import { testClient, publishArticle, putDraft, getViewerMAT } from './utils'
 
 afterAll(knex.destroy)
 
@@ -132,19 +130,6 @@ const GET_RELATED_ARTICLES = `
   }
 `
 
-export const publishArticle = async (input: GQLPublishArticleInput) => {
-  const { mutate } = await testClient({
-    isAuth: true
-  })
-  const result = await mutate({
-    mutation: PUBLISH_ARTICLE,
-    // @ts-ignore
-    variables: { input }
-  })
-  const article = result && result.data && result.data.publishArticle
-  return article
-}
-
 export const getArticleMAT = async (input: GQLNodeInput) => {
   const { query } = await testClient()
   const { data } = await query({
@@ -185,16 +170,6 @@ describe('query article', async () => {
     expect(result.data.oss.articles.edges.length).toBeGreaterThan(1)
   })
 
-  test('query article by mediaHash', async () => {
-    const { query } = await testClient()
-    const { data } = await query({
-      query: GET_ARTICLE_BY_MEDIA_HASH,
-      // @ts-ignore
-      variables: { input: { mediaHash } }
-    })
-    expect(_.get(data, 'article.mediaHash')).toBe(mediaHash)
-  })
-
   test('query related articles', async () => {
     const { query } = await testClient()
     const result = await query({
@@ -202,7 +177,6 @@ describe('query article', async () => {
       // @ts-ignore
       variables: { input: { mediaHash } }
     })
-    console.log({ error: result.errors })
     expect(_.get(result, 'data.article.relatedArticles.edges')).toBeDefined()
   })
 })

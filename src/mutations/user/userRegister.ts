@@ -1,20 +1,32 @@
 import { MutationToUserRegisterResolver } from 'definitions'
-import { UserInputError, ForbiddenError } from 'apollo-server'
+import { random } from 'lodash'
+import {
+  UserInputError,
+  ForbiddenError,
+  EmailExistsError,
+  EmailInvalidError,
+  CodeInvalidError,
+  DisplayNameInvalidError,
+  PasswordInvalidError,
+  UsernameInvalidError
+} from 'common/errors'
 import {
   isValidEmail,
   isValidUserName,
   isValidDisplayName,
-  isValidPassword
+  isValidPassword,
+  makeUserName
 } from 'common/utils'
 
 const resolver: MutationToUserRegisterResolver = async (
   root,
   { input },
-  { dataSources: { userService } }
+  { viewer, dataSources: { userService, notificationService } }
 ) => {
-  const { email, userName, displayName, password, codeId } = input
-  if (!email) {
-    throw new Error('invalid email address format')
+  const { email: rawEmail, userName, displayName, password, codeId } = input
+  const email = rawEmail ? rawEmail.toLowerCase() : null
+  if (!isValidEmail(email)) {
+    throw new EmailInvalidError('invalid email address format')
   }
 
   // check verification code
@@ -27,30 +39,53 @@ const resolver: MutationToUserRegisterResolver = async (
     }
   })
   if (!code) {
-    throw new UserInputError('code does not exists')
+    throw new CodeInvalidError('code does not exists')
   }
 
   // check email
   const user = await userService.findByEmail(email)
   if (user) {
-    throw new ForbiddenError('email address has already been registered')
+    throw new EmailExistsError('email address has already been registered')
   }
-  if (userName && !isValidUserName(userName)) {
-    throw new Error('invalid user name')
-  }
+  // check display name
   if (!isValidDisplayName(displayName)) {
-    throw new Error('invalid user display name')
+    throw new DisplayNameInvalidError('invalid user display name')
   }
+  // check password
   if (!isValidPassword(password)) {
-    throw new Error('invalid user password')
+    throw new PasswordInvalidError('invalid user password')
   }
 
-  await userService.create(input)
+  // Programatically generate user name
+  let retries = 0
+  let mainName = makeUserName(email)
+  let newUserName = mainName
+  while (
+    !isValidUserName(newUserName) ||
+    (await userService.countUserNames(newUserName)) > 0
+  ) {
+    if (retries >= 20) {
+      throw new UsernameInvalidError('cannot generate user name')
+    }
+    newUserName = `${mainName}${random(1, 999)}`
+    retries += 1
+  }
+
+  await userService.create({ ...input, email, userName: newUserName })
 
   // mark code status as used
   await userService.markVerificationCodeAs({
     codeId: code.id,
     status: 'used'
+  })
+
+  // send email
+  notificationService.mail.sendRegisterSuccess({
+    to: email,
+    recipient: {
+      displayName
+    },
+    language: viewer.language
   })
 
   return userService.login(input)

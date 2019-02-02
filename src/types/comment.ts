@@ -1,12 +1,13 @@
 export default /* GraphQL */ `
   extend type Mutation {
-    putComment(input: PutCommentInput!): Comment!
-    pinComment(input: PinCommentInput!): Comment!
-    unpinComment(input: UnpinCommentInput!): Comment!
-    deleteComment(input: DeleteCommentInput!): Boolean
+    putComment(input: PutCommentInput!): Comment! @authenticate
+    pinComment(input: PinCommentInput!): Comment! @authenticate
+    unpinComment(input: UnpinCommentInput!): Comment! @authenticate
+    deleteComment(input: DeleteCommentInput!): Boolean @authenticate
     reportComment(input: ReportCommentInput!): Boolean
-    voteComment(input: VoteCommentInput!): Comment!
-    unvoteComment(input: UnvoteCommentInput!): Comment!
+    voteComment(input: VoteCommentInput!): Comment! @authenticate
+    unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate
+    updateCommentState(input: UpdateCommentStateInput!): Comment! @authorize
   }
 
   type Comment implements Node {
@@ -27,7 +28,8 @@ export default /* GraphQL */ `
     quotationStart: Int
     quotationEnd: Int
     quotationContent: String
-    replyTo: User
+    replyTo: Comment
+    remark: String @authorize
   }
 
   extend type Article {
@@ -38,7 +40,7 @@ export default /* GraphQL */ `
     comments(input: CommentsInput!): CommentConnection!
   }
 
-  type CommentConnection {
+  type CommentConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [CommentEdge!]
@@ -107,6 +109,11 @@ export default /* GraphQL */ `
 
   input UnvoteCommentInput {
     id: ID!
+  }
+
+  input UpdateCommentStateInput {
+    id: ID!
+    state: CommentState!
   }
 
   enum Vote {

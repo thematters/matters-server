@@ -8,6 +8,7 @@ import logger from 'common/logger'
 import { environment, isProd } from 'common/environment'
 import { DataSources } from 'definitions'
 import { makeContext, initSubscriptions } from 'common/utils'
+import scheduleQueue from 'connectors/queue/schedule'
 import {
   ArticleService,
   CommentService,
@@ -30,6 +31,9 @@ const mocks = {
   UUID: () => '00000000-0000-0000-0000-000000000001',
   URL: () => 'test-url'
 }
+
+// start schedule jobs
+scheduleQueue.start()
 
 const server = new ApolloServer({
   schema,

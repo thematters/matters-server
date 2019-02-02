@@ -9,6 +9,8 @@ import {
 } from 'connectors'
 import { DataSource } from 'apollo-datasource'
 
+import { LANGUAGE } from 'common/enums'
+
 export * from './schema'
 export * from './notification'
 
@@ -28,7 +30,7 @@ export type User = {
   baseGravity: number
   currGravity: number
   mat: number
-  language: string
+  language: LANGUAGES
   // oauthType: any
   role: 'admin' | 'user'
   state: string
@@ -40,8 +42,15 @@ export type Context = RequestContext & {
   dataSources: DataSources
 }
 
+export type Viewer = (User | { id: null }) & {
+  hasRole: (role: string) => boolean
+  ip?: string
+  role: string
+  language: LANGUAGES
+}
+
 export type RequestContext = {
-  viewer: User | { id: null }
+  viewer: Viewer
 }
 
 export type DataSources = {
@@ -86,6 +95,18 @@ export type TableName =
   | 'invitation'
   | 'verification_code'
   | 'search_history'
+  | 'article_boost'
+  | 'tag_boost'
+  | 'user_boost'
+  | 'matters_today'
+  | 'matters_choice'
+  | 'article_recommend_setting'
+
+export type MaterializedView =
+  | 'article_count_materialized'
+  | 'tag_count_materialized'
+  | 'user_reader_materialized'
+  | 'article_activity_materialized'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'
@@ -107,3 +128,5 @@ export type S3Bucket =
 export type Item = { id: string; [key: string]: any }
 
 export type ItemData = { [key: string]: any }
+
+export type LANGUAGES = keyof typeof LANGUAGE

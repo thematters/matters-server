@@ -1,6 +1,10 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToPinCommentResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
+import {
+  AuthenticationError,
+  ForbiddenError,
+  ActionLimitExceededError
+} from 'common/errors'
 
 const resolver: MutationToPinCommentResolver = async (
   _,
@@ -24,7 +28,7 @@ const resolver: MutationToPinCommentResolver = async (
 
   const pinLeft = await commentService.pinLeftByArticle(comment.articleId)
   if (pinLeft <= 0) {
-    throw new ForbiddenError('reach pin limit')
+    throw new ActionLimitExceededError('reach pin limit')
   }
 
   // check is pinned before
@@ -32,23 +36,15 @@ const resolver: MutationToPinCommentResolver = async (
     return comment
   }
 
-  const pinnedComment = await commentService.baseUpdateById(dbId, {
-    pinned: true
+  const pinnedComment = await commentService.baseUpdate(dbId, {
+    pinned: true,
+    updatedAt: new Date()
   })
 
   // trigger notifications
   notificationService.trigger({
-    event: 'article_updated',
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'article',
-        entity: article
-      }
-    ]
-  })
-  notificationService.trigger({
     event: 'comment_pinned',
+    actorId: viewer.id,
     recipientId: comment.authorId,
     entities: [
       {
@@ -58,6 +54,15 @@ const resolver: MutationToPinCommentResolver = async (
       }
     ]
   })
+
+  // publish a PubSub event
+  notificationService.pubsub.publish(
+    toGlobalId({
+      type: 'Article',
+      id: article.id
+    }),
+    article
+  )
 
   return pinnedComment
 }

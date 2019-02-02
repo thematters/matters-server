@@ -1,4 +1,7 @@
-import { GQLPossibleNodeTypeNames } from 'definitions'
+import {
+  GQLPossibleNodeTypeNames,
+  GQLPossibleConnectionTypeNames
+} from 'definitions'
 
 import node from './node'
 import search from './search'
@@ -11,7 +14,7 @@ import {
   placements,
   gatewayUrls
 } from './official'
-import { rootOSS, users, articles, tags, reports, report } from './oss'
+import { users, articles, tags, reports, report, today } from './oss'
 import Report from './report'
 
 export default {
@@ -20,10 +23,14 @@ export default {
     search,
     frequentSearch,
     official: () => true,
-    oss: rootOSS
+    oss: () => true
   },
   Node: {
     __resolveType: ({ __type }: { __type: GQLPossibleNodeTypeNames }) => __type
+  },
+  Connection: {
+    __resolveType: ({ __type }: { __type: GQLPossibleConnectionTypeNames }) =>
+      __type
   },
   Asset: {
     id: ({ uuid }: { uuid: string }) => uuid
@@ -32,7 +39,7 @@ export default {
     reportCategory,
     feedbackCategory,
     releases, // TODO
-    links, // TODO
+    links,
     placements, // TODO
     gatewayUrls
   },
@@ -41,7 +48,8 @@ export default {
     articles,
     tags,
     reports,
-    report
+    report,
+    today
   },
   Report
 }

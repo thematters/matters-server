@@ -1,7 +1,7 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToDeleteCommentResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 import { COMMENT_STATE } from 'common/enums'
+import { ForbiddenError, AuthenticationError } from 'common/errors'
 
 const resolver: MutationToDeleteCommentResolver = async (
   _,
@@ -22,22 +22,20 @@ const resolver: MutationToDeleteCommentResolver = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-  await commentService.baseUpdateById(dbId, {
-    state: COMMENT_STATE.archived
+  await commentService.baseUpdate(dbId, {
+    state: COMMENT_STATE.archived,
+    updatedAt: new Date()
   })
 
-  // trigger notificaiton
+  // publish a PubSub event
   const article = await articleService.dataloader.load(articleId)
-  notificationService.trigger({
-    event: 'article_updated',
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'article',
-        entity: article
-      }
-    ]
-  })
+  notificationService.pubsub.publish(
+    toGlobalId({
+      type: 'Article',
+      id: article.id
+    }),
+    article
+  )
 
   return true
 }

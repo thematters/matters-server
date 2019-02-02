@@ -1,11 +1,23 @@
-import { ForbiddenError, UserInputError } from 'apollo-server'
 import { MutationToReportArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import {
+  UserInputError,
+  ArticleNotFoundError,
+  AssetNotFoundError
+} from 'common/errors'
 
 const resolver: MutationToReportArticleResolver = async (
   root,
   { input: { id, category, description, contact, assetIds: assetUUIDs } },
-  { viewer, dataSources: { articleService, systemService } }
+  {
+    viewer,
+    dataSources: {
+      userService,
+      articleService,
+      systemService,
+      notificationService
+    }
+  }
 ) => {
   if (!viewer.id && !contact) {
     throw new UserInputError('"contact" is required with visitor')
@@ -14,14 +26,15 @@ const resolver: MutationToReportArticleResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
-    throw new ForbiddenError('target article does not exists')
+    throw new ArticleNotFoundError('target article does not exists')
   }
 
   let assetIds
   if (assetUUIDs) {
     const assets = await systemService.findAssetByUUIDs(assetUUIDs)
     if (!assets || assets.length <= 0) {
-      throw new ForbiddenError('Asset does not exists')
+      assetIds = []
+      // throw new AssetNotFoundError('Asset does not exists')
     }
     assetIds = assets.map((asset: any) => asset.id)
   }
@@ -33,6 +46,14 @@ const resolver: MutationToReportArticleResolver = async (
     description,
     contact,
     assetIds
+  })
+
+  // trigger notification
+  const articleAuthor = await userService.dataloader.load(article.authorId)
+  notificationService.trigger({
+    event: 'article_reported',
+    entities: [{ type: 'target', entityTable: 'article', entity: article }],
+    recipientId: articleAuthor.id
   })
 
   return true

@@ -12,6 +12,7 @@ import avatar from './avatar'
 import badges from './badges'
 import userNameEditable from './userNameEditable'
 import articleCount from './articleCount'
+import draftCount from './draftCount'
 import commentCount from './commentCount'
 // import oauthType from './oauthType'
 import UserActivity from './userActivity'
@@ -25,7 +26,9 @@ import invitationLeft from './invitationLeft'
 import invitationSent from './invitationSent'
 import invitationRecipient from './invitationRecipient'
 import invitationAccepted from './invitationAccepted'
+import invitationReward from './invitationReward'
 import { MAT, Transaction } from './transaction'
+import { boost, score } from './oss'
 
 export default {
   Query: {
@@ -39,6 +42,7 @@ export default {
     status: (root: any) => root,
     activity: (root: any) => root,
     recommendation: (root: any) => root,
+    oss: (root: any) => root,
     // hasFollowed,
     subscriptions,
     // quotations,
@@ -51,7 +55,8 @@ export default {
   UserInfo: {
     avatar,
     badges,
-    userNameEditable
+    userNameEditable,
+    email: ({ email }: { email: string }) => email.replace(/#/g, '@')
   },
   UserSettings: {
     // oauthType,
@@ -65,7 +70,7 @@ export default {
     invitation: (root: any) => root,
     articleCount,
     // viewCount,
-    // draftCount,
+    draftCount,
     commentCount,
     // quotationCount
     followerCount,
@@ -73,11 +78,8 @@ export default {
     subscriptionCount,
     unreadNoticeCount
   },
-  ReadHistory: {
-    id: ({ uuid }: { uuid: string }) => uuid
-  },
   InvitationStatus: {
-    MAT: () => MAT_UNIT.joinByInvitation,
+    reward: invitationReward,
     left: invitationLeft,
     sent: invitationSent
   },
@@ -85,5 +87,9 @@ export default {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Invitation', id }),
     user: invitationRecipient,
     accepted: invitationAccepted
+  },
+  UserOSS: {
+    boost,
+    score
   }
 }

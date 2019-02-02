@@ -1,4 +1,9 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
+import {
+  AuthenticationError,
+  NotEnoughMatError,
+  ArticleNotFoundError,
+  ActionLimitExceededError
+} from 'common/errors'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 import { v4 } from 'uuid'
 import { fromGlobalId } from 'common/utils'
@@ -13,13 +18,13 @@ const resolver: MutationToAppreciateArticleResolver = async (
   }
 
   if (viewer.mat < amount) {
-    throw new ForbiddenError('not enough MAT to appreciate')
+    throw new NotEnoughMatError('not enough MAT to appreciate')
   }
 
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
-    throw new ForbiddenError('target article does not exists')
+    throw new ArticleNotFoundError('target article does not exists')
   }
 
   const appreciateLeft = await articleService.appreciateLeftByUser({
@@ -27,7 +32,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     userId: viewer.id
   })
   if (appreciateLeft <= 0) {
-    throw new ForbiddenError('too many appreciations')
+    throw new ActionLimitExceededError('too many appreciations')
   }
 
   await articleService.appreciate({

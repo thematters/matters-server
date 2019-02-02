@@ -11,44 +11,43 @@ export default /* GraphQL */ `
     # change or reset password
     resetPassword(input: ResetPasswordInput!): Boolean
     # change email
-    changeEmail(input: ChangeEmailInput!): Boolean
+    changeEmail(input: ChangeEmailInput!): Boolean @authenticate
     # verify email
-    verifyEmail(input: VerifyEmailInput!): Boolean
+    verifyEmail(input: VerifyEmailInput!): Boolean @authenticate
     # register
     userRegister(input: UserRegisterInput!): AuthResult!
     # login
     userLogin(input: UserLoginInput!): AuthResult!
     # addOAuth(input: AddOAuthInput!): Boolean
     # update info/ setting
-    updateUserInfo(input: UpdateUserInfoInput!): User!
-    updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
+    updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
+    updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting @authenticate
     # follow/unfollow
-    followUser(input: FollowUserInput!): Boolean
-    unfollowUser(input: UnfollowUserInput!): Boolean
-    # misc
+    followUser(input: FollowUserInput!): Boolean @authenticate
+    unfollowUser(input: UnfollowUserInput!): Boolean @authenticate
     # importArticles(input: ImportArticlesInput!): [Article!]
-    clearReadHistory(input: ClearReadHistoryInput!): Boolean
-    clearSearchHistory: Boolean
-    invite(input: InviteInput!): Boolean
+    clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
+    clearSearchHistory: Boolean  @authenticate
+    invite(input: InviteInput!): Boolean @authenticate
 
-    # !!! update state: REMOVE IN PRODUTION !!!
-    updateUserState__(input: UpdateUserStateInput!): User!
+    # OSS
+    updateUserState(input: UpdateUserStateInput!): User! @authorize
   }
 
   type User implements Node {
     id: ID!
     uuid: UUID!
     info: UserInfo!
-    settings: UserSettings!
-    recommendation: Recommendation!
+    settings: UserSettings! @private
+    recommendation: Recommendation! @private
     # Articles written by this user
     articles(input: ConnectionArgs!): ArticleConnection!
-    drafts(input: ConnectionArgs!): DraftConnection!
-    audiodrafts(input: ConnectionArgs!): AudiodraftConnection!
+    drafts(input: ConnectionArgs!): DraftConnection! @private
+    audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @private
     # Comments posted by this user
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
-    subscriptions(input: ConnectionArgs!): ArticleConnection!
-    activity: UserActivity!
+    subscriptions(input: ConnectionArgs!): ArticleConnection! @private
+    activity: UserActivity! @private
     # Followers of this user
     followers(input: ConnectionArgs!): UserConnection!
     # Users that this user follows
@@ -58,17 +57,20 @@ export default /* GraphQL */ `
     # Viewer is following this user
     isFollowee: Boolean!
     status: UserStatus!
+    # OSS
+    oss: UserOSS! @authorize
+    remark: String @authorize
   }
 
   type InvitationStatus {
-    MAT: Int!
+    reward: String!
     # invitation number left
     left: Int!
     # invitations sent
     sent(input: ConnectionArgs!): InvitationConnection!
   }
 
-  type Invitation implements Node  {
+  type Invitation {
     id: ID!
     user: User
     email: String
@@ -86,7 +88,19 @@ export default /* GraphQL */ `
     icymi(input: ConnectionArgs!): ArticleConnection!
     tags(input: ConnectionArgs!): TagConnection!
     topics(input: ConnectionArgs!): ArticleConnection!
-    authors(input: ConnectionArgs!): UserConnection!
+    authors(input: AuthorsInput!): UserConnection!
+  }
+
+  input AuthorsInput {
+    after: String
+    first: Int
+    oss: Boolean
+    filter: AuthorsFilter
+  }
+
+  input AuthorsFilter {
+    random: Boolean
+    followed: Boolean
   }
 
   type UserInfo {
@@ -101,9 +115,9 @@ export default /* GraphQL */ `
     description: String
     # URL for avatar
     avatar: URL
-    email: Email
+    email: Email @private
     emailVerified: Boolean
-    mobile: String
+    mobile: String @private
     # Use 500 for now, adaptive in the future
     readSpeed: Int!
     badges: [Badge!]
@@ -126,23 +140,28 @@ export default /* GraphQL */ `
   type UserStatus {
     state: UserState!
     # Total MAT left in wallet
-    MAT: MAT!
-    invitation: InvitationStatus!
+    MAT: MAT! @private
+    invitation: InvitationStatus! @private
     # Number of articles published by user
-    articleCount: Int!
+    articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
     # Number of views on articles
-    viewCount: Int!
-    draftCount: Int!
+    viewCount: Int! @private
+    draftCount: Int! @private @deprecated(reason: "Use \`User.drafts.totalCount\`.")
     # Number of comments posted by user
     commentCount: Int!
-    quotationCount: Int!
-    subscriptionCount: Int!
+    # quotationCount: Int! @deprecated(reason: "not used")
+    subscriptionCount: Int! @private @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
     # Number of user that this user follows
-    followeeCount: Int!
+    followeeCount: Int! @deprecated(reason: "Use \`User.followees.totalCount\`.")
     # Number of user that follows this user
-    followerCount: Int!
+    followerCount: Int! @deprecated(reason: "Use \`User.followers.totalCount\`.")
     # Number of unread notices
-    unreadNoticeCount: Int!
+    unreadNoticeCount: Int! @private
+  }
+
+  type UserOSS {
+    boost: NonNegativeFloat!
+    score: NonNegativeFloat!
   }
 
   type MAT {
@@ -174,7 +193,6 @@ export default /* GraphQL */ `
   }
 
   type ReadHistory {
-    id: ID!
     article: Article!
     readAt: DateTime!
   }
@@ -188,7 +206,7 @@ export default /* GraphQL */ `
     token: String
   }
 
-  type UserConnection {
+  type UserConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [UserEdge!]
@@ -199,7 +217,7 @@ export default /* GraphQL */ `
     node: User!
   }
 
-  type InvitationConnection {
+  type InvitationConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [InvitationEdge!]
@@ -210,7 +228,7 @@ export default /* GraphQL */ `
     node: Invitation!
   }
 
-  type ReadHistoryConnection {
+  type ReadHistoryConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [ReadHistoryEdge!]
@@ -221,7 +239,7 @@ export default /* GraphQL */ `
     node: ReadHistory!
   }
 
-  type RecentSearchConnection {
+  type RecentSearchConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [RecentSearchEdge!]
@@ -232,7 +250,7 @@ export default /* GraphQL */ `
     node: String!
   }
 
-  type TransactionConnection {
+  type TransactionConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [TransactionEdge!]
@@ -315,7 +333,9 @@ export default /* GraphQL */ `
   input UpdateUserStateInput {
     id: ID!
     state: UserState!
+    banDays: PositiveInt
   }
+
 
   input FollowUserInput {
     id: ID!
@@ -390,8 +410,12 @@ export default /* GraphQL */ `
 
   enum TransactionPurpose {
     appreciate
+    appreciateComment
+    appreciateSubsidy
     invitationAccepted
     joinByInvitation
     joinByTask
+    firstPost
+    systemSubsidy
   }
 `

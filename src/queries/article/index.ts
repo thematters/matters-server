@@ -20,6 +20,8 @@ import appreciateLeft from './appreciateLeft'
 import participants from './participants'
 import appreciators from './appreciators'
 import relatedArticles from './relatedArticles'
+import * as articleOSS from './oss'
+import * as tagOSS from './tag/oss'
 
 export default {
   Query: {
@@ -42,6 +44,7 @@ export default {
     downstreams,
     relatedArticles,
     MAT,
+    mediaHash: ({ dataHash }: { dataHash: string }) => dataHash, // TODO: remove in production
     subscribed,
     subscribers,
     appreciators,
@@ -50,11 +53,25 @@ export default {
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
     appreciateLeft,
     participants, // TODO
-    participantCount: () => 50 // TODO
+    participantCount: () => 50, // TODO
+    oss: (root: any) => root
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
     count: tagCount,
-    articles: tagArticles
+    articles: tagArticles,
+    oss: (root: any) => root
+  },
+  ArticleOSS: {
+    boost: articleOSS.boost,
+    score: articleOSS.score,
+    inRecommendToday: articleOSS.inRecommendToday,
+    inRecommendIcymi: articleOSS.inRecommendIcymi,
+    inRecommendHottest: articleOSS.inRecommendHottest,
+    inRecommendNewest: articleOSS.inRecommendNewest
+  },
+  TagOSS: {
+    boost: tagOSS.boost,
+    score: tagOSS.score
   }
 }

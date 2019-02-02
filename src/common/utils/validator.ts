@@ -1,14 +1,10 @@
+import { isEmail } from 'validator'
 import { INVALID_NAMES } from 'common/enums'
 
 /**
  * Validate email address.
  */
-export const isValidEmail = (email: string): boolean => {
-  if (!email) {
-    return false
-  }
-  return /\S+@\S+\.\S+/.test(email)
-}
+export const isValidEmail = isEmail
 
 /**
  * Validate user name. It only accepts alphabets, numbers and _.

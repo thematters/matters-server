@@ -45,6 +45,8 @@ steps:
     image: node:10.14
     environment:
       MATTERS_ENV: development
+      MATTERS_APOLLO_API_KEY:
+        from_secret: APOLLO_API_KEY
       MATTERS_PG_HOST:
         from_secret: DEVELOP_PG_HOST
       MATTERS_PG_DATABASE:
@@ -107,6 +109,8 @@ steps:
     image: node:10.14
     environment:
       MATTERS_ENV: staging
+      MATTERS_APOLLO_API_KEY:
+        from_secret: APOLLO_API_KEY
       MATTERS_PG_HOST:
         from_secret: STAGING_PG_HOST
       MATTERS_PG_DATABASE:
@@ -117,6 +121,7 @@ steps:
         from_secret: STAGING_PG_PASSWORD
     commands:
       - npm run db:migrate
+      - npm run schema:push
     when:
       branch:
         - staging
@@ -163,7 +168,7 @@ steps:
         - feature/staging
       event:
         - push
-    
+
   # === CI tasks for `master` branch
   - name: prod:db-migrate
     image: node:10.14

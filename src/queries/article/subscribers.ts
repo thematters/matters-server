@@ -9,14 +9,12 @@ const resolver: ArticleToSubscribersResolver = async (
 ) => {
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
-
+  const totalCount = await articleService.countSubscriptions(id)
   const actions = await articleService.findSubscriptions({
     id,
     offset,
     limit: first
   })
-
-  const totalCount = await articleService.countSubscriptions(id)
 
   return connectionFromPromisedArray(
     userService.dataloader.loadMany(

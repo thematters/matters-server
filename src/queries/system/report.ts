@@ -12,8 +12,8 @@ const resolvers: GQLReportTypeResolver = {
     commentId && commentService.dataloader.load(commentId),
   assets: ({ id }, _, { dataSources: { systemService } }) =>
     systemService.findAssetsByReportId(id),
-  category: ({ category }) => {
-    const matched = _.find(REPORT_CATEGORIES, { id: category })
+  category: ({ category }, __, { viewer }) => {
+    const matched = _.find(REPORT_CATEGORIES[viewer.language], { id: category })
     return _.get(matched, 'name', 'UNKNOWN')
   }
 }

@@ -1,6 +1,7 @@
-import { connectionFromPromisedArray } from 'graphql-relay'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 
 import { OSSToReportsResolver } from 'definitions'
+import { UserInputError } from 'common/errors'
 
 export const reports: OSSToReportsResolver = async (
   root,
@@ -8,11 +9,21 @@ export const reports: OSSToReportsResolver = async (
   { viewer, dataSources: { systemService } }
 ) => {
   if (!comment && !article) {
-    throw new Error('comment or article must be true')
+    throw new UserInputError('comment or article must be true')
   }
 
+  const { first, after } = connectionArgs
+  const offset = cursorToIndex(after) + 1
+  const totalCount = await systemService.countReports({ comment, article })
+
   return connectionFromPromisedArray(
-    systemService.findReports({ comment, article }),
-    connectionArgs
+    systemService.findReports({
+      comment,
+      article,
+      offset,
+      limit: first
+    }),
+    connectionArgs,
+    totalCount
   )
 }

@@ -1,9 +1,16 @@
-import { AuthenticationError, UserInputError } from 'apollo-server'
+import _ from 'lodash'
+
 import { MutationToPutCommentResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId, sanitize } from 'common/utils'
+import {
+  AuthenticationError,
+  UserInputError,
+  ArticleNotFoundError,
+  CommentNotFoundError
+} from 'common/errors'
 
 const resolver: MutationToPutCommentResolver = async (
-  _,
+  root,
   { input: { comment, id } },
   {
     viewer,
@@ -26,23 +33,27 @@ const resolver: MutationToPutCommentResolver = async (
   } = comment
 
   let data: any = {
-    content,
+    content: sanitize(content),
     authorId: viewer.id
   }
 
   // check quotation input
-  if (quotationStart || quotationEnd || quotationContent) {
-    if (!(quotationStart && quotationEnd && quotationContent)) {
+  const quotationInputs = _.filter(
+    [quotationStart, quotationEnd, quotationContent],
+    o => !_.isNil(o)
+  )
+  if (quotationInputs.length > 0) {
+    if (quotationInputs.length < 3) {
       throw new UserInputError(
         `Quotation needs fields "quotationStart, quotationEnd, quotationContent"`
       )
-    } else {
-      data = {
-        ...data,
-        quotationStart,
-        quotationEnd,
-        quotationContent
-      }
+    }
+
+    data = {
+      ...data,
+      quotationStart,
+      quotationEnd,
+      quotationContent: sanitize(quotationContent || '')
     }
   }
 
@@ -50,7 +61,7 @@ const resolver: MutationToPutCommentResolver = async (
   const { id: authorDbId } = fromGlobalId(articleId)
   const article = await articleService.dataloader.load(authorDbId)
   if (!article) {
-    throw new UserInputError('target article does not exists')
+    throw new ArticleNotFoundError('target article does not exists')
   }
   data.articleId = article.id
 
@@ -60,7 +71,7 @@ const resolver: MutationToPutCommentResolver = async (
     const { id: parentDbId } = fromGlobalId(parentId)
     parentComment = await commentService.dataloader.load(parentDbId)
     if (!parentComment) {
-      throw new UserInputError('target parentComment does not exists')
+      throw new CommentNotFoundError('target parentComment does not exists')
     }
     data.parentCommentId = parentComment.id
   }
@@ -88,6 +99,7 @@ const resolver: MutationToPutCommentResolver = async (
     newComment = await commentService.create(data)
 
     // trigger notifications
+    // notify article's author
     notificationService.trigger({
       event: 'article_new_comment',
       actorId: viewer.id,
@@ -105,6 +117,7 @@ const resolver: MutationToPutCommentResolver = async (
         }
       ]
     })
+    // notify article's subscribers
     const articleSubscribers = await articleService.findSubscriptions({
       id: article.id
     })
@@ -131,6 +144,7 @@ const resolver: MutationToPutCommentResolver = async (
       })
     })
     if (parentComment) {
+      // notify parent comment
       notificationService.trigger({
         event: 'comment_new_reply',
         actorId: viewer.id,
@@ -151,17 +165,17 @@ const resolver: MutationToPutCommentResolver = async (
     }
   }
 
+  // publish a PubSub event
+  notificationService.pubsub.publish(
+    toGlobalId({
+      type: 'Article',
+      id: article.id
+    }),
+    article
+  )
+
   // trigger notifications
-  notificationService.trigger({
-    event: 'article_updated',
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'article',
-        entity: article
-      }
-    ]
-  })
+  // notify mentioned users
   data.mentionedUserIds &&
     data.mentionedUserIds.forEach((userId: string) => {
       notificationService.trigger({

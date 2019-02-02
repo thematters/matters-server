@@ -4,16 +4,22 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    publishArticle(input: PublishArticleInput!): Draft!
-    archiveArticle(input: ArchiveArticleInput!): Article!
-    subscribeArticle(input: SubscribeArticleInput!): Boolean
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean
+    publishArticle(input: PublishArticleInput!): Draft! @authenticate
+    archiveArticle(input: ArchiveArticleInput!): Article! @authenticate
+    subscribeArticle(input: SubscribeArticleInput!): Boolean @authenticate
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean @authenticate
     reportArticle(input: ReportArticleInput!): Boolean
-    appreciateArticle(input: AppreciateArticleInput!): Article!
+    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate
     readArticle(input: ReadArticleInput!): Boolean
-    recallPublish(input: RecallPublishInput!): Draft!
-    toggleArticleLive(input: ToggleArticleLiveInput!): Article!
-    toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
+    recallPublish(input: RecallPublishInput!): Draft! @authenticate
+    # OSS
+    toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authorize
+    toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @authorize
+    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @authorize
+    updateArticleState(input: UpdateArticleStateInput!): Article! @authorize
+    deleteTags(input: DeleteTagsInput!): Boolean @authorize
+    renameTag(input: RenameTagInput!): Tag! @authorize
+    mergeTags(input: MergeTagsInput!): Tag! @authorize
   }
 
   type Article implements Node {
@@ -38,11 +44,11 @@ export default /* GraphQL */ `
     relatedArticles(input: ConnectionArgs!): ArticleConnection!
     # MAT recieved for this article
     MAT: Int!
-    participantCount: Int!
-    participants: UserConnection!
+    participantCount: Int! @deprecated(reason: "not used")
+    participants: UserConnection! @deprecated(reason: "not used")
     subscribers(input: ConnectionArgs!): UserConnection!
     appreciators(input: ConnectionArgs!): UserConnection!
-    appreciatorCount: Int!
+    appreciatorCount: Int! @deprecated(reason: "Use \`appreciators.totalCount\`.")
     # limit the nuhmber of appreciate per user
     appreciateLimit: Int!
     appreciateLeft: Int!
@@ -50,17 +56,37 @@ export default /* GraphQL */ `
     hasAppreciate: Boolean!
     # Viewer has subscribed
     subscribed: Boolean!
+    # OSS
+    oss: ArticleOSS! @authorize
+    remark: String @authorize
   }
 
   type Tag implements Node {
     id: ID!
     content: String!
-    count: Int!
+    count: Int! @deprecated(reason: "Use \`articles.totalCount\`.")
     articles(input: ConnectionArgs!): ArticleConnection!
     createdAt: DateTime!
+    # OSS
+    oss: TagOSS! @authorize
+    remark: String @authorize
   }
 
-  type ArticleConnection {
+  type  ArticleOSS {
+    boost: NonNegativeFloat!
+    score: NonNegativeFloat!
+    inRecommendToday: Boolean!
+    inRecommendIcymi: Boolean!
+    inRecommendHottest: Boolean!
+    inRecommendNewest: Boolean!
+  }
+
+  type TagOSS {
+    boost: NonNegativeFloat!
+    score: NonNegativeFloat!
+  }
+
+  type ArticleConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [ArticleEdge!]
@@ -71,7 +97,7 @@ export default /* GraphQL */ `
     node: Article!
   }
 
-  type TagConnection {
+  type TagConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [TagEdge!]
@@ -134,10 +160,41 @@ export default /* GraphQL */ `
     enabled: Boolean!
   }
 
+  input ToggleArticleRecommendInput {
+    id: ID!
+    enabled: Boolean!
+    type: RecommendTypes!
+  }
+
+  input UpdateArticleStateInput {
+    id: ID!
+    state: ArticleState!
+  }
+
+  input DeleteTagsInput {
+    ids: [ID!]!
+  }
+
+  input RenameTagInput {
+    id: ID!
+    content: String!
+  }
+
+  input MergeTagsInput {
+    ids: [ID!]!
+    content: String!
+  }
 
   enum ArticleState {
     active
     archived
     banned
+  }
+
+  enum RecommendTypes {
+    today
+    icymi
+    hottest
+    newest
   }
 `

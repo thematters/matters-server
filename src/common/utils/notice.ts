@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { Notice } from 'connectors/notificationService/notice'
+import { NoticeItem } from 'definitions'
 
 const actorsRequired = {
   user_new_follower: true,
@@ -51,8 +51,11 @@ const messageRequired = {
   official_announcement: true
 }
 
-export const filterMissingFieldNotices = (notices: Notice[]): Notice[] => {
-  return notices.filter(notice => {
+type NoticeEdges = { node: NoticeItem; cursor: string }[]
+export const filterMissingFieldNoticeEdges = (
+  edges: NoticeEdges
+): NoticeEdges => {
+  return edges.filter(({ node: notice }) => {
     const noticeType = notice.type
     // check actors
     if (actorsRequired[noticeType] && _.isEmpty(notice.actors)) {

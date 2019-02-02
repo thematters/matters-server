@@ -1,5 +1,6 @@
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
+import { uniq } from 'lodash'
 
 import {
   USER_ACTION,
@@ -7,14 +8,30 @@ import {
   COMMENT_STATE
 } from 'common/enums'
 import { BaseService } from './baseService'
+import { CommentNotFoundError } from 'common/errors'
 
 import { GQLCommentsInput, GQLVote } from 'definitions/schema'
 
 export class CommentService extends BaseService {
   constructor() {
     super('comment')
-    this.dataloader = new DataLoader(this.baseFindByIds)
-    this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+    this.dataloader = new DataLoader(async (ids: string[]) => {
+      const result = await this.baseFindByIds(ids)
+
+      if (result.findIndex((item: any) => !item) >= 0) {
+        throw new CommentNotFoundError('Cannot find comment')
+      }
+      return result
+    })
+    this.uuidLoader = new DataLoader(async (uuids: string[]) => {
+      const result = await this.baseFindByUUIDs(uuids)
+
+      if (result.findIndex((item: any) => !item) >= 0) {
+        throw new CommentNotFoundError('Cannot find comment')
+      }
+
+      return result
+    })
   }
 
   create = async ({
@@ -61,10 +78,11 @@ export class CommentService extends BaseService {
     [key: string]: any
   }) => {
     // update comment
-    const comemnt = await this.baseUpdateById(id, {
+    const comemnt = await this.baseUpdate(id, {
       articleId,
       parentCommentId,
-      content
+      content,
+      updatedAt: new Date()
     })
     // remove exists mentions
     await this.knex('comment_mentioned_user')
@@ -84,7 +102,7 @@ export class CommentService extends BaseService {
    */
   countByAuthor = async (authorId: string): Promise<number> => {
     const result = await this.knex(this.table)
-      .where({ authorId })
+      .where({ authorId, state: COMMENT_STATE.active })
       .count()
       .first()
     return parseInt(result.count, 10)
@@ -96,17 +114,6 @@ export class CommentService extends BaseService {
   countByArticle = async (articleId: string): Promise<number> => {
     const result = await this.knex(this.table)
       .where({ articleId, state: COMMENT_STATE.active })
-      .count()
-      .first()
-    return parseInt(result.count, 10)
-  }
-
-  /**
-   * Count comments by a given comment id.
-   */
-  countByParent = async (commentId: string): Promise<number> => {
-    const result = await this.knex(this.table)
-      .where('parent_comment_id', commentId)
       .count()
       .first()
     return parseInt(result.count, 10)
@@ -130,8 +137,10 @@ export class CommentService extends BaseService {
       .select()
       .from(this.table)
       .where({
-        parentCommentId: commentId
+        parentCommentId: commentId,
+        state: COMMENT_STATE.active
       })
+      .orderBy('created_at', 'desc')
 
   /**
    * Find comments by a given article id.
@@ -143,9 +152,6 @@ export class CommentService extends BaseService {
     parent
   }: GQLCommentsInput & { id: string }) => {
     let where: { [key: string]: string | boolean } = { articleId: id }
-    if (author) {
-      where = { ...where, authorId: author }
-    }
 
     let query = null
     const sortCreatedAt = (by: 'desc' | 'asc') =>
@@ -154,6 +160,10 @@ export class CommentService extends BaseService {
         .from(this.table)
         .where(where)
         .orderBy('created_at', by)
+
+    if (author) {
+      where = { ...where, authorId: author, state: COMMENT_STATE.active }
+    }
 
     if (sort == 'upvotes') {
       query = this.knex('comment')
@@ -178,7 +188,7 @@ export class CommentService extends BaseService {
       query = sortCreatedAt('desc')
     }
 
-    if (parent === true) {
+    if (parent) {
       query = query.whereNull('parent_comment_id')
     }
 
@@ -198,15 +208,19 @@ export class CommentService extends BaseService {
     userId: string
     commentId: string
     vote: GQLVote
-  }) =>
-    this.baseCreate(
-      {
-        userId,
-        targetId: commentId,
-        action: `${vote}_vote`
-      },
-      'action_comment'
-    )
+  }) => {
+    const data = {
+      userId,
+      targetId: commentId,
+      action: `${vote}_vote`
+    }
+
+    return this.baseUpdateOrCreate({
+      where: data,
+      data: { updatedAt: new Date(), ...data },
+      table: 'action_comment'
+    })
+  }
 
   unvote = async ({
     userId,
@@ -248,31 +262,6 @@ export class CommentService extends BaseService {
       .count()
       .first()
     return parseInt(result.count, 10)
-  }
-
-  /**
-   * Find a comment's up votes by a given target id (comment).
-   */
-  findUpVotes = async (targetId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('action_comment')
-      .where({
-        targetId,
-        action: USER_ACTION.upVote
-      })
-
-  /**
-   * Find a comment's down votes by a given target id (comment).
-   */
-  findDownVotes = async (targetId: string): Promise<any[]> => {
-    return await this.knex
-      .select()
-      .from('action_comment')
-      .where({
-        targetId,
-        action: USER_ACTION.downVote
-      })
   }
 
   /**
@@ -335,10 +324,10 @@ export class CommentService extends BaseService {
     articleId: string
     activeOnly?: boolean
   }): Promise<number> => {
-    let qs = this.knex
-      .select()
-      .from(this.table)
+    let qs = this.knex(this.table)
+      .count()
       .where({ articleId, pinned: true })
+      .first()
 
     if (activeOnly) {
       qs = qs.where({ state: COMMENT_STATE.active })

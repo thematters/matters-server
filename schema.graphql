@@ -1,3 +1,9 @@
+directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION
+
+directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
+
+directive @private on FIELD_DEFINITION
+
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
@@ -30,11 +36,11 @@ type Article implements Node {
 
   """MAT recieved for this article"""
   MAT: Int!
-  participantCount: Int!
-  participants: UserConnection!
+  participantCount: Int! @deprecated(reason: "not used")
+  participants: UserConnection! @deprecated(reason: "not used")
   subscribers(input: ConnectionArgs!): UserConnection!
   appreciators(input: ConnectionArgs!): UserConnection!
-  appreciatorCount: Int!
+  appreciatorCount: Int! @deprecated(reason: "Use `appreciators.totalCount`.")
 
   """limit the nuhmber of appreciate per user"""
   appreciateLimit: Int!
@@ -45,6 +51,10 @@ type Article implements Node {
 
   """Viewer has subscribed"""
   subscribed: Boolean!
+
+  """OSS"""
+  oss: ArticleOSS!
+  remark: String
   commentCount: Int!
   pinCommentLimit: Int!
   pinCommentLeft: Int!
@@ -52,7 +62,7 @@ type Article implements Node {
   comments(input: CommentsInput!): CommentConnection!
 }
 
-type ArticleConnection {
+type ArticleConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [ArticleEdge!]
@@ -102,6 +112,15 @@ type ArticleNewSubscriberNotice implements Notice {
   target: Article!
 }
 
+type ArticleOSS {
+  boost: NonNegativeFloat!
+  score: NonNegativeFloat!
+  inRecommendToday: Boolean!
+  inRecommendIcymi: Boolean!
+  inRecommendHottest: Boolean!
+  inRecommendNewest: Boolean!
+}
+
 type ArticlePublishedNotice implements Notice {
   id: ID!
   unread: Boolean!
@@ -147,7 +166,7 @@ type Audiodraft {
   updatedAt: DateTime!
 }
 
-type AudiodraftConnection {
+type AudiodraftConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [AudiodraftEdge!]
@@ -156,6 +175,18 @@ type AudiodraftConnection {
 type AudiodraftEdge {
   cursor: String!
   node: Audiodraft!
+}
+
+input AuthorsFilter {
+  random: Boolean
+  followed: Boolean
+}
+
+input AuthorsInput {
+  after: String
+  first: Int
+  oss: Boolean
+  filter: AuthorsFilter
 }
 
 type AuthResult {
@@ -169,6 +200,12 @@ type Badge {
 
 enum BadgeType {
   seed
+}
+
+enum BoostTypes {
+  Article
+  User
+  Tag
 }
 
 type Category {
@@ -211,10 +248,11 @@ type Comment implements Node {
   quotationStart: Int
   quotationEnd: Int
   quotationContent: String
-  replyTo: User
+  replyTo: Comment
+  remark: String
 }
 
-type CommentConnection {
+type CommentConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [CommentEdge!]
@@ -295,9 +333,15 @@ input ConfirmVerificationCodeInput {
   code: String!
 }
 
+interface Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+}
+
 input ConnectionArgs {
   after: String
   first: Int
+  oss: Boolean
 }
 
 scalar Date
@@ -314,6 +358,10 @@ input DeleteCommentInput {
 
 input DeleteDraftInput {
   id: ID!
+}
+
+input DeleteTagsInput {
+  ids: [ID!]!
 }
 
 type DownstreamArticleArchivedNotice implements Notice {
@@ -338,7 +386,7 @@ type Draft implements Node {
   publishState: PublishState!
 }
 
-type DraftConnection {
+type DraftConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [DraftEdge!]
@@ -372,7 +420,7 @@ input ImportArticlesInput {
   token: String
 }
 
-type Invitation implements Node {
+type Invitation {
   id: ID!
   user: User
   email: String
@@ -380,7 +428,7 @@ type Invitation implements Node {
   createdAt: DateTime!
 }
 
-type InvitationConnection {
+type InvitationConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [InvitationEdge!]
@@ -392,7 +440,7 @@ type InvitationEdge {
 }
 
 type InvitationStatus {
-  MAT: Int!
+  reward: String!
 
   """invitation number left"""
   left: Int!
@@ -413,6 +461,11 @@ type MAT {
   history(input: ConnectionArgs!): TransactionConnection!
 }
 
+input MergeTagsInput {
+  ids: [ID!]!
+  content: String!
+}
+
 type Mutation {
   _: Boolean
   publishArticle(input: PublishArticleInput!): Draft!
@@ -423,8 +476,15 @@ type Mutation {
   appreciateArticle(input: AppreciateArticleInput!): Article!
   readArticle(input: ReadArticleInput!): Boolean
   recallPublish(input: RecallPublishInput!): Draft!
+
+  """OSS"""
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
   toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
+  toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article!
+  updateArticleState(input: UpdateArticleStateInput!): Article!
+  deleteTags(input: DeleteTagsInput!): Boolean
+  renameTag(input: RenameTagInput!): Tag!
+  mergeTags(input: MergeTagsInput!): Tag!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   unpinComment(input: UnpinCommentInput!): Comment!
@@ -432,6 +492,7 @@ type Mutation {
   reportComment(input: ReportCommentInput!): Boolean
   voteComment(input: VoteCommentInput!): Comment!
   unvoteComment(input: UnvoteCommentInput!): Comment!
+  updateCommentState(input: UpdateCommentStateInput!): Comment!
 
   """audio dtaft"""
   putAudiodraft(input: PutAudiodraftInput!): Audiodraft!
@@ -443,6 +504,8 @@ type Mutation {
   markAllNoticesAsRead: Boolean
   singleFileUpload(input: SingleFileUploadInput!): Asset!
   feedback(input: FeedbackInput!): Boolean
+  setBoost(input: SetBoostInput!): Node!
+  putRemark(input: PutRemarkInput!): String
 
   """send/confirm verification code"""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -474,17 +537,18 @@ type Mutation {
   followUser(input: FollowUserInput!): Boolean
   unfollowUser(input: UnfollowUserInput!): Boolean
 
-  """
-  misc
-  importArticles(input: ImportArticlesInput!): [Article!]
-  """
+  """importArticles(input: ImportArticlesInput!): [Article!]"""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
   clearSearchHistory: Boolean
   invite(input: InviteInput!): Boolean
 
-  """!!! update state: REMOVE IN PRODUTION !!!"""
-  updateUserState__(input: UpdateUserStateInput!): User!
+  """OSS"""
+  updateUserState(input: UpdateUserStateInput!): User!
 }
+
+scalar NegativeFloat
+
+scalar NegativeInt
 
 interface Node {
   id: ID!
@@ -498,13 +562,21 @@ input NodeInput {
   id: ID!
 }
 
+scalar NonNegativeFloat
+
+scalar NonNegativeInt
+
+scalar NonPositiveFloat
+
+scalar NonPositiveInt
+
 interface Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
 }
 
-type NoticeConnection {
+type NoticeConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [NoticeEdge!]
@@ -573,11 +645,12 @@ type OfficialLinks {
 }
 
 type OSS {
-  users(input: UsersInput!): UserConnection!
+  users(input: ConnectionArgs!): UserConnection!
   articles(input: ArticlesInput!): ArticleConnection!
   tags(input: ConnectionArgs!): TagConnection!
   reports(input: ReportsInput!): ReportConnection!
   report(input: ReportInput!): Report!
+  today(input: ConnectionArgs!): ArticleConnection!
 }
 
 type PageInfo {
@@ -610,6 +683,10 @@ enum PlatformType {
   android
 }
 
+scalar PositiveFloat
+
+scalar PositiveInt
+
 input PublishArticleInput {
   id: ID!
   delay: Int
@@ -638,9 +715,15 @@ input PutDraftInput {
   id: ID
   upstreamId: ID
   title: String
-  content: String!
+  content: String
   tags: [String]
   coverAssetId: ID
+}
+
+input PutRemarkInput {
+  id: ID!
+  remark: String!
+  type: RemarkTypes!
 }
 
 """
@@ -666,12 +749,11 @@ input ReadArticleInput {
 }
 
 type ReadHistory {
-  id: ID!
   article: Article!
   readAt: DateTime!
 }
 
-type ReadHistoryConnection {
+type ReadHistoryConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [ReadHistoryEdge!]
@@ -686,7 +768,7 @@ input RecallPublishInput {
   id: ID!
 }
 
-type RecentSearchConnection {
+type RecentSearchConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [RecentSearchEdge!]
@@ -709,7 +791,14 @@ type Recommendation {
   icymi(input: ConnectionArgs!): ArticleConnection!
   tags(input: ConnectionArgs!): TagConnection!
   topics(input: ConnectionArgs!): ArticleConnection!
-  authors(input: ConnectionArgs!): UserConnection!
+  authors(input: AuthorsInput!): UserConnection!
+}
+
+enum RecommendTypes {
+  today
+  icymi
+  hottest
+  newest
 }
 
 type Release {
@@ -731,16 +820,31 @@ input ReleasesInput {
   first: Int
 }
 
+enum RemarkTypes {
+  Article
+  User
+  Tag
+  Comment
+  Report
+  Feedback
+}
+
+input RenameTagInput {
+  id: ID!
+  content: String!
+}
+
 type Report {
   id: ID!
   user: User
   article: Article
   comment: Comment
   category: String!
-  description: String!
+  description: String
   assets: [URL!]
   contact: String
   createdAt: DateTime!
+  remark: String
 }
 
 input ReportArticleInput {
@@ -759,7 +863,7 @@ input ReportCommentInput {
   contact: String
 }
 
-type ReportConnection {
+type ReportConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [ReportEdge!]
@@ -786,6 +890,12 @@ input ResetPasswordInput {
   codeId: ID!
 }
 
+enum Role {
+  vistor
+  user
+  admin
+}
+
 input SearchInput {
   key: String!
   type: SearchTypes!
@@ -793,7 +903,7 @@ input SearchInput {
   first: Int
 }
 
-type SearchResultConnection {
+type SearchResultConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [SearchResultEdge!]
@@ -813,6 +923,12 @@ enum SearchTypes {
 input SendVerificationCodeInput {
   email: Email!
   type: VerificationCodeType!
+}
+
+input SetBoostInput {
+  id: ID!
+  boost: NonNegativeFloat!
+  type: BoostTypes!
 }
 
 input SingleFileUploadInput {
@@ -841,12 +957,16 @@ type Subscription {
 type Tag implements Node {
   id: ID!
   content: String!
-  count: Int!
+  count: Int! @deprecated(reason: "Use `articles.totalCount`.")
   articles(input: ConnectionArgs!): ArticleConnection!
   createdAt: DateTime!
+
+  """OSS"""
+  oss: TagOSS!
+  remark: String
 }
 
-type TagConnection {
+type TagConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [TagEdge!]
@@ -855,6 +975,11 @@ type TagConnection {
 type TagEdge {
   cursor: String!
   node: Tag!
+}
+
+type TagOSS {
+  boost: NonNegativeFloat!
+  score: NonNegativeFloat!
 }
 
 scalar Time
@@ -869,6 +994,12 @@ input ToggleArticlePublicInput {
   enabled: Boolean!
 }
 
+input ToggleArticleRecommendInput {
+  id: ID!
+  enabled: Boolean!
+  type: RecommendTypes!
+}
+
 type Transaction {
   delta: Int!
   purpose: TransactionPurpose!
@@ -876,7 +1007,7 @@ type Transaction {
   createdAt: DateTime!
 }
 
-type TransactionConnection {
+type TransactionConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [TransactionEdge!]
@@ -889,9 +1020,13 @@ type TransactionEdge {
 
 enum TransactionPurpose {
   appreciate
+  appreciateComment
+  appreciateSubsidy
   invitationAccepted
   joinByInvitation
   joinByTask
+  firstPost
+  systemSubsidy
 }
 
 input UnfollowUserInput {
@@ -910,6 +1045,16 @@ input UnvoteCommentInput {
   id: ID!
 }
 
+input UpdateArticleStateInput {
+  id: ID!
+  state: ArticleState!
+}
+
+input UpdateCommentStateInput {
+  id: ID!
+  state: CommentState!
+}
+
 input UpdateNotificationSettingInput {
   type: NotificationSettingType!
   enabled: Boolean!
@@ -926,6 +1071,7 @@ input UpdateUserInfoInput {
 input UpdateUserStateInput {
   id: ID!
   state: UserState!
+  banDays: PositiveInt
 }
 
 scalar Upload
@@ -969,6 +1115,10 @@ type User implements Node {
   """Viewer is following this user"""
   isFollowee: Boolean!
   status: UserStatus!
+
+  """OSS"""
+  oss: UserOSS!
+  remark: String
   notices(input: ConnectionArgs!): NoticeConnection!
 }
 
@@ -977,7 +1127,7 @@ type UserActivity {
   recentSearches(input: ConnectionArgs!): RecentSearchConnection!
 }
 
-type UserConnection {
+type UserConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [UserEdge!]
@@ -1044,6 +1194,11 @@ type UserNewFollowerNotice implements Notice {
   actors: [User!]
 }
 
+type UserOSS {
+  boost: NonNegativeFloat!
+  score: NonNegativeFloat!
+}
+
 input UserRegisterInput {
   email: Email!
   userName: String
@@ -1065,11 +1220,6 @@ type UserSettings {
   notification: NotificationSetting!
 }
 
-input UsersInput {
-  after: String
-  first: Int
-}
-
 enum UserState {
   active
   onboarding
@@ -1086,22 +1236,23 @@ type UserStatus {
   invitation: InvitationStatus!
 
   """Number of articles published by user"""
-  articleCount: Int!
+  articleCount: Int! @deprecated(reason: "Use `User.articles.totalCount`.")
 
   """Number of views on articles"""
   viewCount: Int!
-  draftCount: Int!
+  draftCount: Int! @deprecated(reason: "Use `User.drafts.totalCount`.")
 
   """Number of comments posted by user"""
   commentCount: Int!
-  quotationCount: Int!
-  subscriptionCount: Int!
+
+  """quotationCount: Int! @deprecated(reason: "not used")"""
+  subscriptionCount: Int! @deprecated(reason: "Use `User.subscriptions.totalCount`.")
 
   """Number of user that this user follows"""
-  followeeCount: Int!
+  followeeCount: Int! @deprecated(reason: "Use `User.followees.totalCount`.")
 
   """Number of user that follows this user"""
-  followerCount: Int!
+  followerCount: Int! @deprecated(reason: "Use `User.followers.totalCount`.")
 
   """Number of unread notices"""
   unreadNoticeCount: Int!

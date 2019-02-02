@@ -1,14 +1,16 @@
-import {
-  AuthenticationError,
-  UserInputError,
-  ForbiddenError
-} from 'apollo-server'
+import _ from 'lodash'
 import { v4 } from 'uuid'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, stripHtml, makeSummary, sanitize } from 'common/utils'
+import {
+  DraftNotFoundError,
+  ForbiddenError,
+  AssetNotFoundError,
+  AuthenticationError
+} from 'common/errors'
 
 const resolver: MutationToPutDraftResolver = async (
-  _,
+  root,
   {
     input: {
       id,
@@ -34,33 +36,39 @@ const resolver: MutationToPutDraftResolver = async (
   if (coverAssetUUID) {
     const asset = await systemService.findAssetByUUID(coverAssetUUID)
     if (!asset || asset.type !== 'embed' || asset.authorId !== viewer.id) {
-      throw new UserInputError('Asset does not exists') // TODO
+      throw new AssetNotFoundError('Asset does not exists')
     }
     coverAssetId = asset.id
   }
 
-  const summary = content ? '' : undefined // TODO: Extract summary from html string
-  const data: ItemData = {
-    authorId: id ? undefined : viewer.id,
-    upstreamId: upstreamDBId,
-    title,
-    summary,
-    content,
-    tags,
-    cover: coverAssetId
-  }
+  const data: ItemData = _.pickBy(
+    {
+      authorId: id ? undefined : viewer.id,
+      upstreamId: upstreamDBId,
+      title,
+      summary: content && makeSummary(stripHtml(content)),
+      content: content && sanitize(content),
+      tags,
+      cover: coverAssetId
+    },
+    _.identity
+  )
 
   // Update
   if (id) {
     const { id: dbId } = fromGlobalId(id)
     const draft = await draftService.dataloader.load(dbId)
     if (!draft) {
-      throw new UserInputError('target draft does not exist')
+      throw new DraftNotFoundError('target draft does not exist')
     }
     if (draft.authorId != viewer.id) {
       throw new ForbiddenError('viewer has no permission')
     }
-    return await draftService.baseUpdateById(dbId, data, 'draft')
+    return await draftService.baseUpdate(
+      dbId,
+      { updatedAt: new Date(), ...data },
+      'draft'
+    )
   }
   // Create
   else {

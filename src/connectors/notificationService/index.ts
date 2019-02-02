@@ -1,60 +1,50 @@
 //local
 import logger from 'common/logger'
-import { NotificationType, NotificationPrarms } from 'definitions'
+import { NotificationPrarms, PutNoticeParams, LANGUAGES } from 'definitions'
 import { toGlobalId } from 'common/utils'
 import { BaseService } from 'connectors/baseService'
 
-import { mailService } from './mail'
-import { pushService } from './push'
-import { noticeService, PutNoticeParams } from './notice'
-import { pubsubService } from './pubsub'
+import { mail } from './mail'
+import { push } from './push'
+import { notice } from './notice'
+import { pubsub } from './pubsub'
+import trans from './translations'
 
 export class NotificationService extends BaseService {
-  mailService: typeof mailService
-  pushService: typeof pushService
-  noticeService: typeof noticeService
-  pubsubService: typeof pubsubService
+  mail: typeof mail
+  push: typeof push
+  notice: typeof notice
+  pubsub: typeof pubsub
 
   constructor() {
     super('noop')
-    this.mailService = mailService
-    this.pushService = pushService
-    this.noticeService = noticeService
-    this.pubsubService = pubsubService
+    this.mail = mail
+    this.push = push
+    this.notice = notice
+    this.pubsub = pubsub
   }
 
-  private async __trigger(params: NotificationPrarms) {
-    let noticeParams: PutNoticeParams
-    const { notificationQueue } = require('connectors/queue')
-
+  private getNoticeParams = (
+    params: NotificationPrarms,
+    language: LANGUAGES
+  ): PutNoticeParams | undefined => {
     switch (params.event) {
-      case 'article_updated':
-        this.pubsubService.engine.publish(
-          toGlobalId({
-            type: 'Article',
-            id: params.entities[0].entity.id
-          }),
-          params.entities[0]
-        )
-        return
       case 'user_new_follower':
       case 'comment_new_upvote':
-        noticeParams = {
+        return {
           type: params.event,
           recipientId: params.recipientId,
           actorIds: [params.actorId]
         }
-        break
       case 'article_published':
       case 'comment_pinned':
       case 'upstream_article_archived':
       case 'downstream_article_archived':
-        noticeParams = {
+        return {
           type: params.event,
           recipientId: params.recipientId,
           entities: params.entities
         }
-        break
       case 'article_new_downstream':
       case 'article_new_appreciation':
       case 'article_new_subscriber':
@@ -62,35 +52,90 @@ export class NotificationService extends BaseService {
       case 'article_new_comment':
       case 'subscribed_article_new_comment':
       case 'comment_new_reply':
-        noticeParams = {
+        return {
           type: params.event,
           recipientId: params.recipientId,
           actorIds: [params.actorId],
           entities: params.entities
         }
-        break
       case 'official_announcement':
-        noticeParams = {
-          type: params.event,
+        return {
+          type: 'official_announcement',
           recipientId: params.recipientId,
           message: params.message,
           data: params.data
         }
-        break
+      case 'user_banned':
+        return {
+          type: 'official_announcement',
+          recipientId: params.recipientId,
+          message: trans.user_banned(language, {})
+        }
+      case 'user_frozen':
+        return {
+          type: 'official_announcement',
+          recipientId: params.recipientId,
+          message: trans.user_frozen(language, {})
+        }
+      case 'comment_banned':
+        return {
+          type: 'official_announcement',
+          recipientId: params.recipientId,
+          message: trans.comment_banned(language, {
+            content: params.entities[0].entity.content
+          }),
+          entities: params.entities
+        }
+      case 'article_banned':
+        return {
+          type: 'official_announcement',
+          recipientId: params.recipientId,
+          message: trans.article_banned(language, {
+            title: params.entities[0].entity.title
+          }),
+          entities: params.entities
+        }
+      case 'comment_reported':
+        return {
+          type: 'official_announcement',
+          recipientId: params.recipientId,
+          message: trans.comment_reported(language, {
+            content: params.entities[0].entity.content
+          }),
+          entities: params.entities
+        }
+      case 'article_reported':
+        return {
+          type: 'official_announcement',
+          recipientId: params.recipientId,
+          message: trans.article_reported(language, {
+            title: params.entities[0].entity.title
+          }),
+          entities: params.entities
+        }
       default:
         return
     }
+  }
 
-    // Put Notice to DB
-    const { created, bundled } = await this.noticeService.process(noticeParams)
+  private async __trigger(params: NotificationPrarms) {
+    const recipient = await this.baseFindById(params.recipientId, 'user')
+    const noticeParams = this.getNoticeParams(params, recipient.language)
 
-    if (!created && !bundled) {
+    if (!noticeParams) {
       return
     }
 
-    // Publish a event due to the recipent has a new unread notice
-    const recipient = await this.baseFindById(noticeParams.recipientId, 'user')
-    this.pubsubService.engine.publish(
+    // Put Notice to DB
+    const { created, bundled } = await this.notice.process(noticeParams)
+
+    if (!created && !bundled) {
+      logger.info(`Notice ${params.event} to ${params.recipientId} skipped`)
+      return
+    }
+
+    // Publish a PubSub event due to the recipent has a new unread notice
+    this.pubsub.publish(
       toGlobalId({
         type: 'User',
         id: noticeParams.recipientId
@@ -99,57 +144,7 @@ export class NotificationService extends BaseService {
     )
 
     // Push Notification
-    const { canPush } = await this.checkUserNotifySetting({
-      event: params.event,
-      userId: noticeParams.recipientId
-    })
-
-    if (canPush) {
-      notificationQueue.pushNotification({
-        text: noticeParams.message || `[PUSH] ${params.event}`, // TODO
-        userIds: [noticeParams.recipientId]
-      })
-    }
-  }
-
-  checkUserNotifySetting = async ({
-    event,
-    userId
-  }: {
-    event: NotificationType
-    userId: string
-  }): Promise<{ canPush: boolean }> => {
-    const setting = await this.knex
-      .select()
-      .where({ userId })
-      .from('user_notify_setting')
-      .first()
-
-    if (!setting || !setting.enable) {
-      return { canPush: false }
-    }
-
-    const eventSettingMap: { [key in NotificationType]: boolean } = {
-      article_updated: false,
-      user_new_follower: setting.follow,
-      article_published: true,
-      article_new_downstream: setting.downstream,
-      article_new_appreciation: setting.appreciation,
-      article_new_subscriber: setting.articleSubscription,
-      article_new_comment: setting.comment,
-      subscribed_article_new_comment: setting.commentSubscribed,
-      upstream_article_archived: setting.downstream,
-      downstream_article_archived: setting.downstream,
-      comment_pinned: setting.commentPinned,
-      comment_new_reply: setting.comment,
-      comment_new_upvote: setting.commentVoted,
-      comment_mentioned_you: setting.mention,
-      official_announcement: setting.officialNotice
-    }
-
-    return {
-      canPush: eventSettingMap[event]
-    }
+    this.push.push(noticeParams, params.event, recipient.language)
   }
 
   trigger = (params: NotificationPrarms) => {

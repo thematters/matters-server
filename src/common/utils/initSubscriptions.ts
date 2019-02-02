@@ -1,8 +1,6 @@
-import jwt from 'jsonwebtoken'
+import { RequestHeaders } from 'request-ip'
 
 import { Context } from 'definitions'
-import logger from 'common/logger'
-import { environment } from 'common/environment'
 import {
   ArticleService,
   CommentService,
@@ -12,32 +10,25 @@ import {
   UserService,
   NotificationService
 } from 'connectors'
+import { getViewerFromReq } from './getViewer'
 
 export const initSubscriptions = (): { onConnect: any } => ({
   onConnect: async (
-    connectionParams: {
-      'x-access-token': string
-    },
+    connectionParams: RequestHeaders,
     webSocket: any,
     context: any
   ): Promise<Context> => {
-    const userService = new UserService()
-    let viewer
-
-    try {
-      const token = connectionParams['x-access-token']
-      const decoded = jwt.verify(token, environment.jwtSecret) as {
-        uuid: string
-      }
-      viewer = await userService.baseFindByUUID(decoded.uuid)
-    } catch (err) {
-      logger.info('[API] User is not logged in, viewing as guest')
-    }
+    // `connectionParams` passed from client
+    // https://www.apollographql.com/docs/react/advanced/subscriptions.html#authentication
+    const viewer = await getViewerFromReq({
+      headers: { ...connectionParams, ...context.request.headers },
+      connection: {}
+    })
 
     return {
       viewer,
       dataSources: {
-        userService,
+        userService: new UserService(),
         articleService: new ArticleService(),
         commentService: new CommentService(),
         draftService: new DraftService(),

@@ -59,13 +59,22 @@ class PublicationQueue {
           }
 
           // publish to IPFS
-          const article = await this.articleService.publish(draft)
-          job.progress(20)
+          let article
+          try {
+            article = await this.articleService.publish(draft)
+            job.progress(20)
+          } catch (e) {
+            await this.draftService.baseUpdate(draft.id, {
+              publishState: PUBLISH_STATE.error
+            })
+            throw e
+          }
 
           // mark draft as published
-          await this.draftService.baseUpdateById(draft.id, {
+          await this.draftService.baseUpdate(draft.id, {
             archived: true,
-            publishState: PUBLISH_STATE.published
+            publishState: PUBLISH_STATE.published,
+            updatedAt: new Date()
           })
           job.progress(40)
 
@@ -80,7 +89,7 @@ class PublicationQueue {
             )) as unknown) as [{ id: string; content: string }]
             // create article_tag record
             await this.tagService.createArticleTags({
-              articleId: article.id,
+              articleIds: [article.id],
               tagIds: dbTags.map(({ id }) => id)
             })
           } else {
@@ -160,4 +169,4 @@ class PublicationQueue {
   }
 }
 
-export const publicationQueue = new PublicationQueue()
+export default new PublicationQueue()

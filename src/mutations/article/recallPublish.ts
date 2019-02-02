@@ -1,7 +1,7 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToRecallPublishResolver } from 'definitions'
 import { PUBLISH_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
+import { AuthenticationError, DraftNotFoundError } from 'common/errors'
 
 const resolver: MutationToRecallPublishResolver = async (
   root,
@@ -19,12 +19,12 @@ const resolver: MutationToRecallPublishResolver = async (
     draft.archived ||
     draft.publishState === PUBLISH_STATE.published
   ) {
-    throw new ForbiddenError('draft does not exists')
+    throw new DraftNotFoundError('draft does not exists')
   }
 
-  const draftRecalled = await draftService.baseUpdateById(draftDBId, {
-    archived: true,
-    publishState: PUBLISH_STATE.unpublished
+  const draftRecalled = await draftService.baseUpdate(draftDBId, {
+    publishState: PUBLISH_STATE.unpublished,
+    updatedAt: new Date()
   })
 
   return draftRecalled

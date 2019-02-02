@@ -20,12 +20,14 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
-  ItemData,
-  GQLSearchInput,
-  GQLUpdateUserInfoInput,
-  GQLUserRegisterInput
-} from 'definitions'
+  EmailNotFoundError,
+  PasswordInvalidError,
+  ServerError
+} from 'common/errors'
+import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
+
 import { BaseService } from './baseService'
+import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders'
 
 export class UserService extends BaseService {
   constructor() {
@@ -43,14 +45,13 @@ export class UserService extends BaseService {
     displayName,
     description,
     password
-  }: GQLUserRegisterInput) => {
-    // TODO: do code validation here
-
-    // TODO: better default unique user name
-    if (!userName) {
-      userName = email
-    }
-
+  }: {
+    email: string
+    userName: string
+    displayName: string
+    description?: string
+    password: string
+  }) => {
     // TODO:
     const avatar = null
 
@@ -84,18 +85,12 @@ export class UserService extends BaseService {
     const user = await this.findByEmail(email)
 
     if (!user) {
-      logger.info('Cannot find user with email, login failed.')
-      return {
-        auth: false
-      }
+      throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 
     const auth = await compare(password, user.passwordHash)
     if (!auth) {
-      logger.info('Password incorrect, login failed.')
-      return {
-        auth: false
-      }
+      throw new PasswordInvalidError('Password incorrect, login failed.')
     }
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
@@ -113,7 +108,7 @@ export class UserService extends BaseService {
     id: string,
     input: GQLUpdateUserInfoInput & { email?: string; emailVerified?: boolean }
   ) => {
-    const user = await this.baseUpdateById(id, input)
+    const user = await this.baseUpdate(id, { updatedAt: new Date(), ...input })
 
     const { description, displayName, userName } = input
     if (!description && !displayName && !userName) {
@@ -142,9 +137,6 @@ export class UserService extends BaseService {
     return user
   }
 
-  updateState = async ({ userId, state }: { userId: string; state: string }) =>
-    await this.baseUpdateById(userId, { state })
-
   changePassword = async ({
     userId,
     password
@@ -153,26 +145,11 @@ export class UserService extends BaseService {
     password: string
   }) => {
     const passwordHash = await hash(password, BCRYPT_ROUNDS)
-    const user = await this.baseUpdateById(userId, {
-      passwordHash
+    const user = await this.baseUpdate(userId, {
+      passwordHash,
+      updatedAt: new Date()
     })
     return user
-  }
-
-  /**
-   * Find users
-   */
-  find = async ({ where }: { where?: { [key: string]: any } }) => {
-    let qs = this.knex
-      .select()
-      .from(this.table)
-      .orderBy('id', 'desc')
-
-    if (where) {
-      qs = qs.where(where)
-    }
-
-    return await qs
   }
 
   /**
@@ -217,6 +194,17 @@ export class UserService extends BaseService {
     userId: string
     previous: string
   }) => await this.baseCreate({ userId, previous }, 'username_edit_history')
+
+  /**
+   * Count same user names by a given user name.
+   */
+  countUserNames = async (userName: string): Promise<number> => {
+    const result = await this.knex(this.table)
+      .countDistinct('id')
+      .where({ userName })
+      .first()
+    return parseInt(result.count, 10)
+  }
 
   /*********************************
    *                               *
@@ -264,8 +252,7 @@ export class UserService extends BaseService {
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
-        fuzziness: 5,
-        fields: ['description', 'displayName', 'userName']
+        fields: ['displayName^5', 'userName^10', 'description']
       })
       .size(100)
       .build()
@@ -277,9 +264,10 @@ export class UserService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
-      return this.dataloader.loadMany(ids)
+      return this.baseFindByIds(ids)
     } catch (err) {
-      throw err
+      logger.error(err)
+      throw new ServerError('search failed')
     }
   }
 
@@ -287,6 +275,7 @@ export class UserService extends BaseService {
     const result = await this.knex('search_history')
       .select('search_key')
       .where({ userId, archived: false })
+      .whereNot({ searchKey: '' })
       .max('created_at as search_at')
       .groupBy('search_key')
       .orderBy('search_at', 'desc')
@@ -344,16 +333,18 @@ export class UserService extends BaseService {
    *             Follow            *
    *                               *
    *********************************/
-  follow = async (userId: string, targetId: string): Promise<any[]> =>
-    await this.baseUpdateOrCreate(
-      {
-        userId,
-        targetId,
-        action: USER_ACTION.follow
-      },
-      ['userId', 'targetId', 'action'],
-      'action_user'
-    )
+  follow = async (userId: string, targetId: string): Promise<any[]> => {
+    const data = {
+      userId,
+      targetId,
+      action: USER_ACTION.follow
+    }
+    return await this.baseUpdateOrCreate({
+      where: data,
+      data: { updatedAt: new Date(), ...data },
+      table: 'action_user'
+    })
+  }
 
   unfollow = async (userId: string, targetId: string): Promise<any[]> =>
     await this.knex
@@ -397,6 +388,7 @@ export class UserService extends BaseService {
       .select('ar.*')
       .join('article as ar', 'ar.author_id', 'au.target_id')
       .where({ action: 'follow', userId })
+      .orderBy('ar.created_at', 'desc')
       .offset(offset)
       .limit(limit)
 
@@ -465,16 +457,52 @@ export class UserService extends BaseService {
    *********************************/
   recommendAuthor = async ({
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
+    notIn = [],
+    oss = false
   }: {
     limit?: number
     offset?: number
-  }) =>
-    this.knex('user_reader_view')
+    notIn?: string[]
+    oss?: boolean
+  }) => {
+    const table = oss ? 'user_reader_view' : 'user_reader_materialized'
+    const result = await this.knex(table)
       .select()
-      .orderBy('author_score', 'desc')
+      .orderByRaw('author_score DESC NULLS LAST')
       .offset(offset)
       .limit(limit)
+      .whereNotIn('id', notIn)
+    return result
+  }
+
+  findBoost = async (userId: string) => {
+    const userBoost = await this.knex('user_boost')
+      .select()
+      .where({ userId })
+      .first()
+
+    if (!userBoost) {
+      return 1
+    }
+
+    return userBoost.boost
+  }
+
+  setBoost = async ({ id, boost }: { id: string; boost: number }) =>
+    this.baseUpdateOrCreate({
+      where: { userId: id },
+      data: { userId: id, boost, updatedAt: new Date() },
+      table: 'user_boost'
+    })
+
+  findScore = async (userId: string) => {
+    const author = await this.knex('user_reader_view')
+      .select()
+      .where({ id: userId })
+      .first()
+    return author.authorScore || 0
+  }
 
   /*********************************
    *                               *
@@ -492,7 +520,11 @@ export class UserService extends BaseService {
     id: string,
     data: ItemData
   ): Promise<any | null> =>
-    await this.baseUpdateById(id, data, 'user_notify_setting')
+    await this.baseUpdate(
+      id,
+      { updatedAt: new Date(), ...data },
+      'user_notify_setting'
+    )
 
   findBadges = async (userId: string): Promise<any[]> =>
     await this.knex
@@ -538,9 +570,9 @@ export class UserService extends BaseService {
   countReadHistory = async (userId: string) => {
     const result = await this.knex('article_read')
       .where({ userId, archived: false })
-      .count()
+      .countDistinct('article_id')
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result.count || 0, 10)
   }
 
   findReadHistory = async ({
@@ -553,26 +585,25 @@ export class UserService extends BaseService {
     offset?: number
   }) =>
     this.knex
-      .select()
+      .select('article_id')
+      .min('created_at as read_at')
       .from('article_read')
       .where({ userId, archived: false })
-      .orderBy('id', 'desc')
+      .groupBy('article_id')
+      .orderBy('read_at', 'desc')
       .limit(limit)
       .offset(offset)
 
-  findReadHistoryByUUID = async (
-    uuid: string,
-    userId: string
-  ): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('article_read')
-      .where({
-        uuid,
-        userId,
-        archived: false
-      })
-      .first()
+  clearReadHistory = async ({
+    articleId,
+    userId
+  }: {
+    articleId: string
+    userId: string | null
+  }) =>
+    await this.knex('article_read')
+      .where({ articleId, userId })
+      .update({ archived: true })
 
   /*********************************
    *                               *
@@ -734,7 +765,7 @@ export class UserService extends BaseService {
       })
 
       // update "recipientId" of invitation
-      await this.baseUpdateById(
+      await this.baseUpdate(
         invitation.id,
         { recipientId: userId },
         'invitation'
@@ -806,6 +837,10 @@ export class UserService extends BaseService {
       data = { ...data, verifiedAt: new Date() }
     }
 
-    return this.baseUpdateById(codeId, data, 'verification_code')
+    return this.baseUpdate(
+      codeId,
+      { updatedAt: new Date(), ...data },
+      'verification_code'
+    )
   }
 }

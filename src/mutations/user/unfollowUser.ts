@@ -1,6 +1,6 @@
-import { AuthenticationError, UserInputError } from 'apollo-server'
 import { MutationToUnfollowUserResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { AuthenticationError, UserNotFoundError } from 'common/errors'
 
 const resolver: MutationToUnfollowUserResolver = async (
   _,
@@ -13,7 +13,7 @@ const resolver: MutationToUnfollowUserResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const user = await userService.dataloader.load(dbId)
   if (!user) {
-    throw new UserInputError('target user does not exists')
+    throw new UserNotFoundError('target user does not exists')
   }
 
   await userService.unfollow(viewer.id, user.id)

@@ -1,7 +1,7 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToArchiveArticleResolver } from 'definitions'
 import { ARTICLE_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
+import { ForbiddenError, AuthenticationError } from 'common/errors'
 
 const resolver: MutationToArchiveArticleResolver = async (
   _,
@@ -19,8 +19,9 @@ const resolver: MutationToArchiveArticleResolver = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-  const article = await articleService.baseUpdateById(dbId, {
-    state: ARTICLE_STATE.archived
+  const article = await articleService.baseUpdate(dbId, {
+    state: ARTICLE_STATE.archived,
+    updatedAt: new Date()
   })
 
   // trigger notifications
@@ -43,25 +44,25 @@ const resolver: MutationToArchiveArticleResolver = async (
       ]
     })
   })
-  if (article.upstreamId) {
-    const upstream = await articleService.dataloader.load(article.upstreamId)
-    notificationService.trigger({
-      event: 'downstream_article_archived',
-      recipientId: upstream.authorId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'article',
-          entity: upstream
-        },
-        {
-          type: 'downstream',
-          entityTable: 'article',
-          entity: article
-        }
-      ]
-    })
-  }
+  // if (article.upstreamId) {
+  //   const upstream = await articleService.dataloader.load(article.upstreamId)
+  //   notificationService.trigger({
+  //     event: 'downstream_article_archived',
+  //     recipientId: upstream.authorId,
+  //     entities: [
+  //       {
+  //         type: 'target',
+  //         entityTable: 'article',
+  //         entity: upstream
+  //       },
+  //       {
+  //         type: 'downstream',
+  //         entityTable: 'article',
+  //         entity: article
+  //       }
+  //     ]
+  //   })
+  // }
 
   return article
 }

@@ -4,12 +4,14 @@ export default /* GraphQL */ `
     frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection!
     official: Official!
-    oss: OSS!
+    oss: OSS! @authorize
   }
 
   extend type Mutation {
     singleFileUpload(input: SingleFileUploadInput!): Asset!
     feedback(input: FeedbackInput!): Boolean
+    setBoost(input: SetBoostInput!): Node! @authorize
+    putRemark(input: PutRemarkInput!): String @authorize
   }
 
   extend type Subscription {
@@ -26,6 +28,11 @@ export default /* GraphQL */ `
     hasNextPage: Boolean!
   }
 
+  interface Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+  }
+
   type Official {
     reportCategory: [Category!]!
     feedbackCategory: [Category!]!
@@ -36,11 +43,12 @@ export default /* GraphQL */ `
   }
 
   type OSS {
-    users(input: UsersInput!): UserConnection!
+    users(input: ConnectionArgs!): UserConnection!
     articles(input: ArticlesInput!): ArticleConnection!
     tags(input: ConnectionArgs!): TagConnection!
     reports(input: ReportsInput!): ReportConnection!
     report(input: ReportInput!): Report!
+    today(input: ConnectionArgs!): ArticleConnection!
   }
 
   type Category {
@@ -91,7 +99,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
-  type SearchResultConnection {
+  type SearchResultConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [SearchResultEdge!]
@@ -102,7 +110,7 @@ export default /* GraphQL */ `
     node: Node!
   }
 
-  type ReportConnection {
+  type ReportConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [ReportEdge!]
@@ -114,10 +122,11 @@ export default /* GraphQL */ `
     article: Article
     comment: Comment
     category: String!
-    description: String!
+    description: String
     assets: [URL!]
     contact: String
     createdAt: DateTime!
+    remark: String @authorize
   }
 
   type ReportEdge {
@@ -127,11 +136,6 @@ export default /* GraphQL */ `
 
   input NodeInput {
     id: ID!
-  }
-
-  input UsersInput {
-    after: String
-    first: Int
   }
 
   input ArticlesInput {
@@ -185,15 +189,43 @@ export default /* GraphQL */ `
     contact: String
   }
 
+  input SetBoostInput {
+    id: ID!
+    boost: NonNegativeFloat!
+    type: BoostTypes!
+  }
+
+  input PutRemarkInput {
+    id: ID!
+    remark: String!
+    type: RemarkTypes!
+  }
+
   input ConnectionArgs {
     after: String
     first: Int
+    oss: Boolean
   }
 
   enum SearchTypes {
     Article
     User
     Tag
+  }
+
+  enum BoostTypes {
+    Article
+    User
+    Tag
+  }
+
+  enum RemarkTypes {
+    Article
+    User
+    Tag
+    Comment
+    Report
+    Feedback
   }
 
   enum AssetType {
@@ -214,4 +246,24 @@ export default /* GraphQL */ `
     appStore
     googlePlay
   }
+
+  enum Role {
+    vistor
+    user
+    admin
+  }
+
+  directive @deprecated(
+    reason: String = "No longer supported"
+  ) on FIELD_DEFINITION | ENUM_VALUE
+
+  directive @authenticate(
+    requires: Role = user,
+  ) on OBJECT | FIELD_DEFINITION
+
+  directive @authorize(
+    requires: Role = admin,
+  ) on OBJECT | FIELD_DEFINITION
+
+  directive @private on FIELD_DEFINITION
 `

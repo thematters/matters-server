@@ -4,7 +4,7 @@ export default /* GraphQL */ `
   }
 
   extend type User {
-    notices(input: ConnectionArgs!): NoticeConnection!
+    notices(input: ConnectionArgs!): NoticeConnection! @private
   }
 
   interface Notice {
@@ -13,7 +13,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
   }
 
-  type NoticeConnection {
+  type NoticeConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [NoticeEdge!]

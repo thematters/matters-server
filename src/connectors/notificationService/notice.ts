@@ -4,52 +4,19 @@ import DataLoader from 'dataloader'
 
 import {
   User,
-  NoticeType,
   NotificationEntity,
-  NoticeEntityType,
-  TableName
+  PutNoticeParams,
+  NoticeUserId,
+  NoticeEntity,
+  NoticeDetail,
+  NoticeEntitiesMap,
+  NoticeItem
 } from 'definitions'
 import { BaseService } from '../baseService'
 import { BATCH_SIZE } from 'common/enums'
+import logger from 'common/logger'
 
-export type NoticeUserId = string
-export type NoticeEntity = {
-  type: NoticeEntityType
-  table: TableName
-  entityId: string
-}
-export type NoticeEntitiesMap = { [key in NoticeEntityType]: any }
-export type NoticeMessage = string
-export type NoticeData = {
-  url?: string
-  reason?: string
-}
-export type NoticeDetail = {
-  id: string
-  uuid: string
-  unread: boolean
-  deleted: boolean
-  updatedAt: Date
-  noticeType: NoticeType
-  message?: NoticeMessage
-  data?: NoticeData
-}
-export type Notice = NoticeDetail & {
-  createdAt: Date
-  type: NoticeType
-  actors?: User[]
-  entities?: NoticeEntitiesMap
-}
-export type PutNoticeParams = {
-  type: NoticeType
-  actorIds?: NoticeUserId[]
-  recipientId: NoticeUserId
-  entities?: NotificationEntity[]
-  message?: NoticeMessage | null
-  data?: NoticeData | null
-}
-
-class NoticeService extends BaseService {
+class Notice extends BaseService {
   constructor() {
     super('notice')
     this.dataloader = new DataLoader(this.findByIds)
@@ -76,6 +43,7 @@ class NoticeService extends BaseService {
         })
         .into('notice_detail')
         .returning('*')
+      logger.info(`Inserted id ${noticeDetailId} to notice_detail`)
 
       // create notice
       const [{ id: noticeId }] = await trx
@@ -86,17 +54,20 @@ class NoticeService extends BaseService {
         })
         .into('notice')
         .returning('*')
+      logger.info(`Inserted id ${noticeId} to notice`)
 
       // create notice actorIds
       if (actorIds) {
         await Promise.all(
           actorIds.map(async actorId => {
-            await trx
+            const [{ id: noticeActorId }] = await trx
               .insert({
                 noticeId,
                 actorId
               })
               .into('notice_actor')
+              .returning('*')
+            logger.info(`Inserted id ${noticeActorId} to notice_actor`)
           })
         )
       }
@@ -111,7 +82,7 @@ class NoticeService extends BaseService {
                 .from('entity_type')
                 .where({ table: entityTable })
                 .first()
-              await trx
+              const [{ id: noticeEntityId }] = await trx
                 .insert({
                   type,
                   entityTypeId,
@@ -119,6 +90,8 @@ class NoticeService extends BaseService {
                   noticeId
                 })
                 .into('notice_entity')
+                .returning('*')
+              logger.info(`Inserted id ${noticeEntityId} to notice_entity`)
             }
           )
         )
@@ -140,12 +113,16 @@ class NoticeService extends BaseService {
       // add actors
       await Promise.all(
         actorIds.map(async actorId => {
-          await trx
+          const [{ id: noticeActorId }] = await trx
             .insert({
               noticeId,
               actorId
             })
             .into('notice_actor')
+            .returning('*')
+          logger.info(
+            `[addNoticeActors] Inserted id ${noticeActorId} to notice_actor`
+          )
         })
       )
 
@@ -153,6 +130,7 @@ class NoticeService extends BaseService {
       await trx('notice')
         .where({ id: noticeId })
         .update({ unread: true, updatedAt: new Date() })
+      logger.info(`[addNoticeActors] Updated id ${noticeId} in notice`)
     })
   }
 
@@ -387,7 +365,7 @@ class NoticeService extends BaseService {
   /**
    * Find notices by given ids.
    */
-  findByIds = async (ids: string[]): Promise<Notice[]> => {
+  findByIds = async (ids: string[]): Promise<NoticeItem[]> => {
     const notices = await this.findDetail({
       whereIn: ['notice.id', ids]
     })
@@ -423,7 +401,7 @@ class NoticeService extends BaseService {
     userId: string
     limit?: number
     offset?: number
-  }): Promise<Notice[]> => {
+  }): Promise<NoticeItem[]> => {
     const notices = await this.findDetail({
       where: { recipientId: userId, deleted: false },
       offset,
@@ -453,13 +431,25 @@ class NoticeService extends BaseService {
       .where({ recipientId: userId, unread: true })
       .update({ unread: false })
 
-  countUnreadNotice = async (userId: string): Promise<number> => {
-    const result = await this.knex('notice')
-      .where({ recipientId: userId, unread: true, deleted: false })
+  countNotice = async ({
+    userId,
+    unread
+  }: {
+    userId: string
+    unread?: boolean
+  }): Promise<number> => {
+    let qs = this.knex('notice')
+      .where({ recipientId: userId, deleted: false })
       .count()
       .first()
+
+    if (unread) {
+      qs = qs.where({ unread: true })
+    }
+
+    const result = await qs
     return parseInt(result.count, 10)
   }
 }
 
-export const noticeService = new NoticeService()
+export const notice = new Notice()

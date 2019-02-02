@@ -1,11 +1,11 @@
 export default /* GraphQL */ `
   extend type Mutation {
     # audio dtaft
-    putAudiodraft(input: PutAudiodraftInput!): Audiodraft!
-    deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean
+    putAudiodraft(input: PutAudiodraftInput!): Audiodraft! @authenticate
+    deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean @authenticate
     # draft
-    putDraft(input: PutDraftInput!): Draft!
-    deleteDraft(input: DeleteDraftInput!): Boolean
+    putDraft(input: PutDraftInput!): Draft! @authenticate
+    deleteDraft(input: DeleteDraftInput!): Boolean @authenticate
   }
 
   type Draft implements Node {
@@ -32,7 +32,7 @@ export default /* GraphQL */ `
     updatedAt: DateTime!
   }
 
-  type DraftConnection {
+  type DraftConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [DraftEdge!]
@@ -43,7 +43,7 @@ export default /* GraphQL */ `
     node: Draft!
   }
 
-  type AudiodraftConnection {
+  type AudiodraftConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
     edges: [AudiodraftEdge!]
@@ -69,7 +69,7 @@ export default /* GraphQL */ `
     id: ID
     upstreamId: ID
     title: String
-    content: String!
+    content: String
     tags: [String]
     coverAssetId: ID
   }

@@ -1,6 +1,10 @@
-import { AuthenticationError, UserInputError } from 'apollo-server'
 import { MutationToFollowUserResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import {
+  AuthenticationError,
+  UserFollowFailedError,
+  UserNotFoundError
+} from 'common/errors'
 
 const resolver: MutationToFollowUserResolver = async (
   _,
@@ -14,12 +18,12 @@ const resolver: MutationToFollowUserResolver = async (
   const { id: dbId } = fromGlobalId(id)
 
   if (viewer.id === dbId) {
-    throw new UserInputError('cannot follow yourself')
+    throw new UserFollowFailedError('cannot follow yourself')
   }
 
   const user = await userService.dataloader.load(dbId)
   if (!user) {
-    throw new UserInputError('target user does not exists')
+    throw new UserNotFoundError('target user does not exists')
   }
 
   await userService.follow(viewer.id, user.id)

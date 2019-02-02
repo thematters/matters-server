@@ -14,7 +14,6 @@ afterAll(async () => {
 
 const notificationService = new NotificationService()
 const userService = new UserService()
-const { noticeService } = notificationService
 const recipientId = '1'
 
 /**
@@ -35,10 +34,15 @@ describe('user notify setting', async () => {
     'comment_new_reply',
     'comment_new_upvote',
     'comment_mentioned_you',
-    'official_announcement'
+    'official_announcement',
+    'user_banned',
+    'user_frozen',
+    'comment_banned',
+    'article_banned',
+    'comment_reported',
+    'article_reported'
   ]
   const defaultNoifySetting: { [key in NotificationType]: boolean } = {
-    article_updated: false,
     user_new_follower: true,
     article_published: true,
     article_new_downstream: true,
@@ -52,13 +56,21 @@ describe('user notify setting', async () => {
     comment_new_reply: true,
     comment_new_upvote: false,
     comment_mentioned_you: true,
-    official_announcement: true
+    official_announcement: true,
+    user_banned: true,
+    user_frozen: true,
+    comment_banned: false,
+    article_banned: false,
+    comment_reported: false,
+    article_reported: false
   }
 
   test('user receives notifications', async () => {
     await Promise.all(
       noticeTypes.map(async type => {
-        const { canPush } = await notificationService.checkUserNotifySetting({
+        const {
+          canPush
+        } = await notificationService.push.checkUserNotifySetting({
           event: type,
           userId: recipientId
         })
@@ -71,7 +83,9 @@ describe('user notify setting', async () => {
     await userService.updateNotifySetting(notifySetting.id, { follow: false })
     await Promise.all(
       noticeTypes.map(async type => {
-        const { canPush } = await notificationService.checkUserNotifySetting({
+        const {
+          canPush
+        } = await notificationService.push.checkUserNotifySetting({
           event: type,
           userId: recipientId
         })
@@ -87,18 +101,20 @@ describe('user notify setting', async () => {
  * Notice Service
  */
 const getBundleableUserNewFollowerNoticeId = () =>
-  noticeService.getBundleableNoticeId({
+  notificationService.notice.getBundleableNoticeId({
     type: 'user_new_follower',
     actorIds: ['4'],
     recipientId
   })
 describe('find notice', async () => {
   test('find one notice', async () => {
-    const notice = await noticeService.dataloader.load('1')
+    const notice = await notificationService.notice.dataloader.load('1')
     expect(notice.id).toBe('1')
   })
   test('find many notices', async () => {
-    const notices = await noticeService.findByUser({ userId: recipientId })
+    const notices = await notificationService.notice.findByUser({
+      userId: recipientId
+    })
     expect(notices.length).toBeGreaterThan(5)
   })
 })
@@ -112,7 +128,7 @@ describe('bundle notices', async () => {
 
   test('unbundleable', async () => {
     // notice without actors
-    const articleNewDownstreamNoticeId = await noticeService.getBundleableNoticeId(
+    const articleNewDownstreamNoticeId = await notificationService.notice.getBundleableNoticeId(
       {
         type: 'article_new_downstream',
         recipientId,
@@ -130,13 +146,15 @@ describe('bundle notices', async () => {
     if (!noticeId) {
       throw new Error('expect notice is bundleable')
     }
-    const donothingActorIds = await noticeService.getBundleActorIds({
-      noticeId,
-      actorIds: ['2']
-    })
+    const donothingActorIds = await notificationService.notice.getBundleActorIds(
+      {
+        noticeId,
+        actorIds: ['2']
+      }
+    )
     expect(donothingActorIds.length).toBe(0)
 
-    const bundleActorIds = await noticeService.getBundleActorIds({
+    const bundleActorIds = await notificationService.notice.getBundleActorIds({
       noticeId,
       actorIds: ['2', '4']
     })
@@ -149,11 +167,14 @@ describe('bundle notices', async () => {
     if (!noticeId) {
       throw new Error('expect notice is bundleable')
     }
-    const noticeActors = await noticeService.findActors(noticeId)
+    const noticeActors = await notificationService.notice.findActors(noticeId)
     expect(noticeActors.length).toBe(2)
-    await noticeService.addNoticeActors({ noticeId, actorIds: ['4'] })
+    await notificationService.notice.addNoticeActors({
+      noticeId,
+      actorIds: ['4']
+    })
     await new Promise(resolve => setTimeout(resolve, 1000))
-    const notice2Actors = await noticeService.findActors(noticeId)
+    const notice2Actors = await notificationService.notice.findActors(noticeId)
     expect(notice2Actors.length).toBe(3)
   })
 
@@ -163,7 +184,10 @@ describe('bundle notices', async () => {
       throw new Error('expect notice is bundleable')
     }
     try {
-      await noticeService.addNoticeActors({ noticeId, actorIds: ['2'] })
+      await notificationService.notice.addNoticeActors({
+        noticeId,
+        actorIds: ['2']
+      })
     } catch (e) {
       expect(() => {
         throw e
@@ -176,7 +200,11 @@ describe('bundle notices', async () => {
     if (!noticeId) {
       throw new Error('expect notice is bundleable')
     }
-    await noticeService.baseUpdateById(noticeId, { unread: false }, 'notice')
+    await notificationService.notice.baseUpdate(
+      noticeId,
+      { unread: false },
+      'notice'
+    )
     const unbundleableNotice = await getBundleableUserNewFollowerNoticeId()
     expect(unbundleableNotice).toBeUndefined()
   })
@@ -184,15 +212,15 @@ describe('bundle notices', async () => {
 
 describe('update notices', async () => {
   test('markAllNoticesAsRead', async () => {
-    const notices = await noticeService.knex
+    const notices = await notificationService.notice.knex
       .select()
       .where({ recipientId, unread: true })
       .from('notice')
     expect(notices.length).not.toBe(0)
 
-    await noticeService.markAllNoticesAsRead(recipientId)
+    await notificationService.notice.markAllNoticesAsRead(recipientId)
 
-    const readNotices = await noticeService.knex
+    const readNotices = await notificationService.notice.knex
       .select()
       .where({ recipientId, unread: true })
       .from('notice')

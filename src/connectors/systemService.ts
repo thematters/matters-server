@@ -1,5 +1,6 @@
 import { BaseService } from './baseService'
 import logger from 'common/logger'
+import { BATCH_SIZE } from 'common/enums'
 
 export class SystemService extends BaseService {
   constructor() {
@@ -22,6 +23,7 @@ export class SystemService extends BaseService {
       .select('search_key')
       .count('id')
       .where('search_key', 'like', `%${key}%`)
+      .whereNot({ searchKey: '' })
       .groupBy('search_key')
       .orderBy('count', 'desc')
       .limit(first)
@@ -49,8 +51,10 @@ export class SystemService extends BaseService {
    * Find the url of an asset by a given id.
    */
   findAssetUrl = async (id: string): Promise<string | null> => {
-    const { path } = await this.baseFindById(id, 'asset')
-    return path ? `${this.aws.s3Endpoint}/${path}` : null
+    const result = await this.baseFindById(id, 'asset')
+    return result && result.path
+      ? `${this.aws.s3Endpoint}/${result.path}`
+      : null
   }
 
   /**
@@ -83,10 +87,14 @@ export class SystemService extends BaseService {
 
   findReports = async ({
     comment,
-    article
+    article,
+    offset = 0,
+    limit = BATCH_SIZE
   }: {
     comment: boolean
     article: boolean
+    offset?: number
+    limit?: number
   }) => {
     let qs = this.knex('report')
       .select()
@@ -95,12 +103,39 @@ export class SystemService extends BaseService {
     if (comment) {
       qs = qs.whereNotNull('comment_id')
     }
+    if (article) {
+      qs = qs.orWhereNotNull('article_id')
+    }
+    if (offset) {
+      qs = qs.offset(offset)
+    }
+    if (limit) {
+      qs = qs.limit(limit)
+    }
 
+    return qs
+  }
+
+  countReports = async ({
+    comment,
+    article
+  }: {
+    comment: boolean
+    article: boolean
+  }) => {
+    let qs = this.knex('report')
+      .count()
+      .first()
+
+    if (comment) {
+      qs = qs.whereNotNull('comment_id')
+    }
     if (article) {
       qs = qs.orWhereNotNull('article_id')
     }
 
-    return qs
+    const result = await qs
+    return parseInt(result.count, 10)
   }
 
   /*********************************
@@ -141,4 +176,10 @@ export class SystemService extends BaseService {
     }))
     await this.baseBatchCreate(reportAssets, 'feedback_asset')
   }
+
+  /*********************************
+   *                               *
+   *             Feedback          *
+   *                               *
+   *********************************/
 }

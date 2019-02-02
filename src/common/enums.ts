@@ -1,3 +1,24 @@
+import { i18n } from 'common/utils/i18n'
+
+export const MATERIALIZED_VIEW = {
+  articleCountMaterialized: 'article_count_materialized',
+  tagCountMaterialized: 'tag_count_materialized',
+  userReaderMaterialized: 'user_reader_materialized',
+  articleActivityMaterialized: 'article_activity_materialized'
+}
+
+export const USER_ROLE = {
+  admin: 'admin',
+  user: 'user',
+  visitor: 'visitor'
+}
+
+export const LANGUAGE = {
+  zh_hans: 'zh_hans',
+  zh_hant: 'zh_hant',
+  en: 'en'
+}
+
 export const USER_ACTION = {
   appreciate: 'appreciate',
   follow: 'follow',
@@ -10,9 +31,13 @@ export const USER_ACTION = {
 
 export const TRANSACTION_PURPOSE = {
   appreciate: 'appreciate',
+  appreciateComment: 'appreciate-comment',
+  appreciateSubsidy: 'appreciate-subsidy',
   invitationAccepted: 'invitation-accepted',
   joinByInvitation: 'join-by-invitation',
-  joinByTask: 'join-by-task'
+  joinByTask: 'join-by-task',
+  firstPost: 'first-post',
+  systemSubsidy: 'system-subsidy'
 }
 
 export const VOTE = {
@@ -69,7 +94,7 @@ export const MAT_UNIT = {
 export const ARTICLE_APPRECIATE_LIMIT = 5
 export const ARTICLE_PIN_COMMENT_LIMIT = 3
 
-export const VERIFICATION_CODE_EXIPRED_AFTER = 1000 * 60 // 60s
+export const VERIFICATION_CODE_EXIPRED_AFTER = 1000 * 60 * 5 // 5 mins
 export const VERIFICATION_CODE_STATUS = {
   active: 'active',
   inactive: 'inactive',
@@ -86,55 +111,130 @@ export const VERIFICATION_CODE_TYPES = {
 
 export const VERIFICATION_CODE_PROTECTED_TYPES = ['email_reset', 'email_verify']
 
-export const REPORT_CATEGORIES = [
+/**
+ * Categories
+ */
+const __REPORT_CATEGORIES = [
   {
     id: '1',
-    name: '侵權、抄襲'
+    name: i18n({
+      zh_hant: '侵權、抄襲',
+      zh_hans: '侵权、抄袭',
+      en: 'Include infringed or plagiarized contents'
+    })
   },
   {
-    id: '2',
-    name: '攻擊、侮辱、誹謗、恐嚇他人'
+    id: 'report-2',
+    name: i18n({
+      zh_hant: '攻擊、侮辱、誹謗、恐嚇他人',
+      zh_hans: '攻击、侮辱、诽谤、恐吓他人',
+      en: 'Include any abusive, insulting, threatening contents'
+    })
   },
   {
-    id: '3',
-    name: '鼓吹歧視、仇恨'
+    id: 'report-3',
+    name: i18n({
+      zh_hant: '鼓吹歧視、仇恨',
+      zh_hans: '鼓吹歧视、仇恨',
+      en: 'Include discriminating or hateful contents'
+    })
   },
   {
-    id: '4',
-    name: '誤導、欺詐、侵犯隱私'
+    id: 'report-4',
+    name: i18n({
+      zh_hant: '誤導、欺詐、侵犯隱私',
+      zh_hans: '误导、欺诈、侵犯隐私',
+      en:
+        "Include misleading, deceiving contents or violate others' legal rights"
+    })
   },
   {
-    id: '5',
-    name: '色情、暴力、教唆犯罪或鼓勵自我傷害'
+    id: 'report-5',
+    name: i18n({
+      zh_hant: '色情、暴力、教唆犯罪或鼓勵自我傷害',
+      zh_hans: '色情、暴力、教唆犯罪或鼓励自我伤害',
+      en: 'Include obscene, violent, tortuous inflammatory contents'
+    })
   },
   {
-    id: '6',
-    name: '假新聞、不實消息、垃圾訊息'
+    id: 'report-6',
+    name: i18n({
+      zh_hant: '假新聞、不實消息、垃圾訊息',
+      zh_hans: '假新闻、不实消息、垃圾讯息',
+      en: 'Include fake, inaccurate, trash contents'
+    })
   },
   {
-    id: '7',
-    name: '冒用他人身份'
+    id: 'report-7',
+    name: i18n({
+      zh_hant: '冒用他人身份',
+      zh_hans: '冒用他人身份',
+      en: 'Impersonate any person'
+    })
   },
   {
-    id: '8',
-    name: '其他（請填寫原因）'
+    id: 'report-8',
+    name: i18n({
+      zh_hant: '其他（請填寫原因）',
+      zh_hans: '其他（请填写原因）',
+      en: 'Others (please specify)'
+    })
   }
 ]
 
-export const FEEDBACK_CATEGORIES = [
+export const REPORT_CATEGORIES = {
+  zh_hant: __REPORT_CATEGORIES.map(({ id, name }) => ({
+    id,
+    name: name('zh_hant', {})
+  })),
+  zh_hans: __REPORT_CATEGORIES.map(({ id, name }) => ({
+    id,
+    name: name('zh_hans', {})
+  })),
+  en: __REPORT_CATEGORIES.map(({ id, name }) => ({ id, name: name('en', {}) }))
+}
+
+const __FEEDBACK_CATEGORIES = [
   {
-    id: '1',
-    name: '操作異常'
+    id: 'feedback-1',
+    name: i18n({
+      zh_hant: '操作異常',
+      zh_hans: '操作异常',
+      en: 'Operation Exception'
+    })
   },
   {
-    id: '2',
-    name: '功能建議'
+    id: 'feedback-2',
+    name: i18n({
+      zh_hant: '功能建議',
+      zh_hans: '功能建议',
+      en: 'Feature Suggestions'
+    })
   },
   {
-    id: '3',
-    name: '其他'
+    id: 'feedback-3',
+    name: i18n({
+      zh_hant: '其他（請填寫原因）',
+      zh_hans: '其他（请填写原因）',
+      en: 'Others (please specify)'
+    })
   }
 ]
+
+export const FEEDBACK_CATEGORIES = {
+  zh_hant: __FEEDBACK_CATEGORIES.map(({ id, name }) => ({
+    id,
+    name: name('zh_hant', {})
+  })),
+  zh_hans: __FEEDBACK_CATEGORIES.map(({ id, name }) => ({
+    id,
+    name: name('zh_hans', {})
+  })),
+  en: __FEEDBACK_CATEGORIES.map(({ id, name }) => ({
+    id,
+    name: name('en', {})
+  }))
+}
 
 /**
  * Queue
@@ -155,7 +255,8 @@ export const QUEUE_JOB = {
   pushNotification: 'pushNotification',
   // repeat jobs
   publishPendingDrafts: 'publishPendingDrafts',
-  initializeSearch: 'initializeSearch'
+  initializeSearch: 'initializeSearch',
+  refreshView: 'refreshView'
 }
 
 export const QUEUE_NAME = {
@@ -169,6 +270,24 @@ export const QUEUE_CONCURRENCY = {
 }
 
 export const PUBLISH_ARTICLE_DELAY = 1000 * 60 * 2
+
+export const EMAIL_TEMPLATE_ID = {
+  verificationCode: {
+    zh_hant: 'd-df196f90da7743f6900906fc18487953',
+    zh_hans: 'd-f9373c61bdac43e1a24f221ceba4c61c',
+    en: 'd-df196f90da7743f6900906fc18487953'
+  },
+  registerSuccess: {
+    zh_hant: 'd-765b335a77d244438891a62f023b8c2e',
+    zh_hans: 'd-30589f459aac4df1ab66e0f8af79fc4d',
+    en: 'd-765b335a77d244438891a62f023b8c2e'
+  },
+  invitationSuccess: {
+    zh_hant: 'd-daaa0da594034f509cfa01e5ecdb1f77',
+    zh_hans: 'd-1256cd9153204e6c840c2e51eb326f63',
+    en: 'd-daaa0da594034f509cfa01e5ecdb1f77'
+  }
+}
 
 export const INVALID_NAMES = [
   'administrator',

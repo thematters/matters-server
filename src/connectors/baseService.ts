@@ -1,16 +1,15 @@
 // external
 import { DataSource } from 'apollo-datasource'
 import _ from 'lodash'
-import assert from 'assert'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
-import { Client as ESClient } from 'elasticsearch'
 //local
 import { Item, ItemData, TableName } from 'definitions'
 import { aws, AWSService } from './aws'
 import { knex } from './db'
 import { es } from './es'
 import logger from 'common/logger'
+import { BATCH_SIZE } from 'common/enums'
 
 export class BaseService extends DataSource {
   es: typeof es
@@ -33,10 +32,16 @@ export class BaseService extends DataSource {
     this.aws = aws
   }
 
-  baseCount = async () => {
-    const result = await this.knex(this.table)
+  baseCount = async (where?: { [key: string]: any }, table?: TableName) => {
+    let qs = this.knex(table || this.table)
       .count()
       .first()
+
+    if (where) {
+      qs = qs.where(where)
+    }
+
+    const result = await qs
     return parseInt(result.count, 10)
   }
 
@@ -106,6 +111,38 @@ export class BaseService extends DataSource {
   }
 
   /**
+   * Find items by given "where", "offset" and "limit"
+   */
+  baseFind = async ({
+    where,
+    offset = 0,
+    limit = BATCH_SIZE,
+    table
+  }: {
+    where?: { [key: string]: any }
+    offset?: number
+    limit?: number
+    table?: TableName
+  }) => {
+    let qs = this.knex
+      .select()
+      .from(table || this.table)
+      .orderBy('id', 'desc')
+
+    if (where) {
+      qs = qs.where(where)
+    }
+    if (limit) {
+      qs = qs.limit(limit)
+    }
+    if (offset) {
+      qs = qs.offset(offset)
+    }
+
+    return qs
+  }
+
+  /**
    * Create item
    */
   baseCreate = async (data: ItemData, table?: TableName): Promise<any> => {
@@ -132,54 +169,94 @@ export class BaseService extends DataSource {
 
   /**
    * Create or Update Item
-   * https://github.com/ratson/knex-upsert/blob/master/index.js
    */
-  baseUpdateOrCreate = (
-    data: ItemData,
-    key: string | string[],
-    table: TableName
-  ) => {
-    const keys = _.isString(key) ? [key] : key
-    keys.forEach(field =>
-      assert(_.has(data, field), `Key "${field}" is missing.`)
-    )
+  baseUpdateOrCreate = async ({
+    where,
+    data,
+    table
+  }: {
+    where: { [key: string]: string | boolean }
+    data: ItemData
+    table?: TableName
+  }) => {
+    const tableName = table || this.table
+    const item = await this.knex(tableName)
+      .select()
+      .where(where)
+      .first()
 
-    const updateFields = _.keys(_.omit(data, keys))
-    const insert = this.knex.table(table).insert(data)
-    const keyPlaceholders = new Array(keys.length).fill('??').join(',')
-
-    if (updateFields.length === 0) {
-      return this.knex
-        .raw(`? ON CONFLICT (${keyPlaceholders}) DO NOTHING RETURNING *`, [
-          insert,
-          ...keys
-        ])
-        .then(result => _.get(result, ['rows', 0]))
+    // create
+    if (!item) {
+      return this.baseCreate(data, tableName)
     }
 
-    const update = this.knex.queryBuilder().update(_.pick(data, updateFields))
-    return this.knex
-      .raw(`? ON CONFLICT (${keyPlaceholders}) DO ? RETURNING *`, [
-        insert,
-        ...keys,
-        update
-      ])
-      .then(result => _.get(result, ['rows', 0]))
+    // update
+    const [updatedItem] = await this.knex(tableName)
+      .where(where)
+      .update(data)
+      .returning('*')
+    logger.info(`Updated id ${updatedItem.id} in ${tableName}`)
+    return updatedItem
+  }
+
+  /**
+   * Find or Create Item
+   */
+  baseFindOrCreate = async ({
+    where,
+    data,
+    table
+  }: {
+    where: { [key: string]: string | boolean }
+    data: ItemData
+    table?: TableName
+  }) => {
+    const tableName = table || this.table
+    const item = await this.knex(tableName)
+      .select()
+      .where(where)
+      .first()
+
+    // create
+    if (!item) {
+      return this.baseCreate(data, tableName)
+    }
+
+    // find
+    return item
   }
 
   /**
    * Update an item by a given id.
    */
-  baseUpdateById = async (
+  baseUpdate = async (
     id: string,
     data: ItemData,
     table?: TableName
-  ): Promise<any> =>
-    (await this.knex
+  ): Promise<any> => {
+    const [updatedItem] = await this.knex
       .where('id', id)
       .update(data)
       .into(table || this.table)
-      .returning('*'))[0]
+      .returning('*')
+
+    logger.info(`Updated id ${id} in ${table || this.table}`)
+
+    return updatedItem
+  }
+  /**
+   * Update a batch of items by given ids.
+   */
+  baseBatchUpdate = async (
+    ids: string[],
+    data: ItemData,
+    table?: TableName
+  ): Promise<any> =>
+    await this.knex
+      .whereIn('id', ids)
+      .update(data)
+      .into(table || this.table)
+      .returning('*')
 
   /**
    * Update an item by a given UUID.
@@ -188,12 +265,17 @@ export class BaseService extends DataSource {
     uuid: string,
     data: ItemData,
     table?: TableName
-  ): Promise<any> =>
-    (await this.knex
+  ): Promise<any> => {
+    const [updatedItem] = await this.knex
       .where('uuid', uuid)
       .update(data)
       .into(table || this.table)
-      .returning('*'))[0]
+      .returning('*')
+
+    logger.info(`Updated uuid ${uuid} in ${table || this.table}`)
+
+    return updatedItem
+  }
 
   /**
    * Delete an item by a given id.
@@ -201,5 +283,13 @@ export class BaseService extends DataSource {
   baseDelete = async (id: string, table?: TableName): Promise<any> =>
     await this.knex(table || this.table)
       .where({ id })
+      .del()
+
+  /**
+   * Delete a batch of items by  given ids.
+   */
+  baseBatchDelete = async (ids: string[], table?: TableName): Promise<any> =>
+    await this.knex(table || this.table)
+      .whereIn('id', ids)
       .del()
 }

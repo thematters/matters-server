@@ -1,4 +1,4 @@
-import { UserInputError } from 'apollo-server'
+import { CodeInvalidError, UserNotFoundError } from 'common/errors'
 import { MutationToChangeEmailResolver } from 'definitions'
 
 const resolver: MutationToChangeEmailResolver = async (
@@ -25,13 +25,13 @@ const resolver: MutationToChangeEmailResolver = async (
 
   // check codes
   if (!oldCode || !newCode) {
-    throw new UserInputError('code does not exists')
+    throw new CodeInvalidError('code does not exists')
   }
 
   // check email
   const user = await userService.findByEmail(oldCode.email)
   if (!user) {
-    throw new UserInputError('target user does not exists')
+    throw new UserNotFoundError('target user does not exists')
   }
 
   // update email

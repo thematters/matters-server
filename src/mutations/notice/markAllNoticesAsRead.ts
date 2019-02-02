@@ -1,5 +1,5 @@
-import { AuthenticationError } from 'apollo-server'
 import { MutationToMarkAllNoticesAsReadResolver } from 'definitions'
+import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToMarkAllNoticesAsReadResolver = async (
   root,
@@ -10,7 +10,7 @@ const resolver: MutationToMarkAllNoticesAsReadResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  await notificationService.noticeService.markAllNoticesAsRead(viewer.id)
+  await notificationService.notice.markAllNoticesAsRead(viewer.id)
 
   return true
 }

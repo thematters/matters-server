@@ -1,9 +1,9 @@
-import { AuthenticationError, ForbiddenError } from 'apollo-server'
 import { MutationToPublishArticleResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 import { PUBLISH_STATE, PUBLISH_ARTICLE_DELAY } from 'common/enums'
 
-import { publicationQueue } from 'connectors/queue'
+import publicationQueue from 'connectors/queue/publication'
+import { AuthenticationError, DraftNotFoundError } from 'common/errors'
 
 const resolver: MutationToPublishArticleResolver = async (
   _,
@@ -23,7 +23,7 @@ const resolver: MutationToPublishArticleResolver = async (
     draft.archived ||
     draft.publishState === PUBLISH_STATE.published
   ) {
-    throw new ForbiddenError('draft does not exists')
+    throw new DraftNotFoundError('draft does not exists')
   }
 
   if (draft.publishState === PUBLISH_STATE.pending) {
@@ -31,9 +31,10 @@ const resolver: MutationToPublishArticleResolver = async (
   }
 
   const scheduledAt = new Date(Date.now() + (delay || PUBLISH_ARTICLE_DELAY))
-  const draftPending = await draftService.baseUpdateById(draft.id, {
+  const draftPending = await draftService.baseUpdate(draft.id, {
     publishState: PUBLISH_STATE.pending,
-    scheduledAt
+    scheduledAt,
+    updatedAt: new Date()
   })
 
   // add job to queue

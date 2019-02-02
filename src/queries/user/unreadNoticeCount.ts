@@ -4,6 +4,6 @@ const resolver: UserStatusToUnreadNoticeCountResolver = (
   { id },
   _,
   { dataSources: { notificationService } }
-) => notificationService.noticeService.countUnreadNotice(id)
+) => notificationService.notice.countNotice({ userId: id, unread: true })
 
 export default resolver
