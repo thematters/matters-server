@@ -8,53 +8,55 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   { input },
   { viewer, dataSources: { articleService, tagService } }
 ) => {
-  const recommendationSize = 10 // return 10 recommendations for now
+  const recommendationSize = 10 // return 10 recommendations by default
 
-  // const result = await articleService.es.client.get({
-  //   index: 'analysis',
-  //   type: 'article',
-  //   id: '1'
-  // })
-
-  // const factorString = _.get(result, '_source.factor')
-
-  // const factor = factorString.split('|').map((s: string) => parseFloat(s))
-  const q = '*'
-  const body = bodybuilder()
-    .query('function_score', {
-      query: {
-        query_string: {
-          query: q
-        }
-      },
-      script_score: {
-        script: {
-          inline: 'payload_vector_score',
-          lang: 'native',
-          params: {
-            field: 'factor',
-            vector: [parseFloat('1.1'), parseFloat('1.2')],
-            cosine: true
-          }
-        }
-      },
-      boost_mode: 'replace'
-    })
-    .build()
-
-  console.log(body)
-
-  const related = await articleService.es.client.search({
+  const scoreResult = await articleService.es.client.get({
     index: 'article',
     type: 'article',
-    body
+    id: '1'
   })
-  const hits = related['hits']['hits']
-  console.log({ hits })
+  let ids: string[] = []
+  const factorString = _.get(scoreResult, '_source.factor')
 
-  return []
-  // TODO: use vector score from ElasticSearch
-  // let recommendations: string[] = []
+  if (factorString) {
+    const factor = factorString
+      .split(' ')
+      .map((s: string) => parseFloat(s.split('|')[1]))
+
+    const q = '*'
+    const body = bodybuilder()
+      .query('function_score', {
+        query: {
+          query_string: {
+            query: q
+          }
+        },
+        script_score: {
+          script: {
+            inline: 'payload_vector_score',
+            lang: 'native',
+            params: {
+              field: 'factor',
+              vector: factor,
+              cosine: true
+            }
+          }
+        },
+        boost_mode: 'replace'
+      })
+      .size(input.first || recommendationSize)
+      .build()
+
+    console.log(body)
+
+    const relatedResult = await articleService.es.client.search({
+      index: 'article',
+      type: 'article',
+      body
+    })
+
+    ids = relatedResult['hits']['hits'].map(({ _id }) => _id)
+  }
 
   // const addRec = (rec: string[], extra: string[]) =>
   //   _.without(_.uniq(rec.concat(extra)), id)
@@ -80,6 +82,15 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   //     articles.map(({ id }: { id: string }) => id)
   //   )
   // }
+
+  console.log({ ids })
+
+  return connectionFromPromisedArray(
+    articleService.dataloader.loadMany(ids),
+    input
+  )
+  // TODO: use vector score from ElasticSearch
+  // let recommendations: string[] = []
 
   // return connectionFromPromisedArray(
   //   articleService.dataloader.loadMany(recommendations),
