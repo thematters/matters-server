@@ -8,16 +8,24 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   { input },
   { viewer, dataSources: { articleService, tagService } }
 ) => {
-  const recommendationSize = 10 // return 10 recommendations by default
+  // return 10 recommendations by default
+  const recommendationSize = input.first || 10
 
+  // prevent duplicates and origin article
+  const addRec = (rec: string[], extra: string[]) =>
+    _.without(_.uniq(rec.concat(extra)), id)
+
+  // get vector score
   const scoreResult = await articleService.es.client.get({
     index: 'article',
     type: 'article',
-    id: '1'
+    id
   })
+
   let ids: string[] = []
   const factorString = _.get(scoreResult, '_source.factor')
 
+  // recommend with vector score
   if (factorString) {
     const factor = factorString
       .split(' ')
@@ -44,10 +52,8 @@ const resolver: ArticleToRelatedArticlesResolver = async (
         },
         boost_mode: 'replace'
       })
-      .size(input.first || recommendationSize)
+      .size(recommendationSize)
       .build()
-
-    console.log(body)
 
     const relatedResult = await articleService.es.client.search({
       index: 'article',
@@ -55,33 +61,32 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       body
     })
 
-    ids = relatedResult['hits']['hits'].map(({ _id }) => _id)
+    // add recommendation
+    ids = addRec(ids, relatedResult['hits']['hits'].map(({ _id }) => _id))
   }
 
-  // const addRec = (rec: string[], extra: string[]) =>
-  //   _.without(_.uniq(rec.concat(extra)), id)
+  // fall back to tag
+  if (ids.length < recommendationSize) {
+    const tagIds = await articleService.findTagIds({ id })
 
-  // const tagIds = await articleService.findTagIds({ id })
+    for (const tagId of tagIds) {
+      if (ids.length >= recommendationSize) {
+        break
+      }
 
-  // for (const tagId of tagIds) {
-  //   if (recommendations.length >= recommendationSize) {
-  //     break
-  //   }
+      let articleIds = await tagService.findArticleIds({
+        id: tagId,
+        limit: recommendationSize - ids.length
+      })
+      ids = addRec(ids, articleIds)
+    }
+  }
 
-  //   let articleIds = await tagService.findArticleIds({
-  //     id: tagId,
-  //     limit: recommendationSize - recommendations.length
-  //   })
-  //   recommendations = addRec(recommendations, articleIds)
-  // }
-
-  // if (recommendations.length >= recommendationSize) {
-  //   let articles = await articleService.findByAuthor(authorId)
-  //   recommendations = addRec(
-  //     recommendations,
-  //     articles.map(({ id }: { id: string }) => id)
-  //   )
-  // }
+  // fall back to author
+  if (ids.length >= recommendationSize) {
+    let articles = await articleService.findByAuthor(authorId)
+    ids = addRec(ids, articles.map(({ id }: { id: string }) => id))
+  }
 
   console.log({ ids })
 
