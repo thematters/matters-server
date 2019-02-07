@@ -252,8 +252,7 @@ export class UserService extends BaseService {
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
-        fuzziness: 5,
-        fields: ['description', 'displayName^10', 'userName^5']
+        fields: ['displayName^5', 'userName^10', 'description']
       })
       .size(100)
       .build()
@@ -389,6 +388,7 @@ export class UserService extends BaseService {
       .select('ar.*')
       .join('article as ar', 'ar.author_id', 'au.target_id')
       .where({ action: 'follow', userId })
+      .orderBy('ar.created_at', 'desc')
       .offset(offset)
       .limit(limit)
 

@@ -1,37 +1,63 @@
+import { LANGUAGES } from 'definitions'
+import { i18n } from 'common/utils/i18n'
+import { environment } from 'common/environment'
+import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPES } from 'common/enums'
 import notificationQueue from 'connectors/queue/notification'
 
-import { environment } from 'common/environment'
-import {
-  LANGUAGE,
-  EMAIL_TEMPLATE_ID,
-  VERIFICATION_CODE_TYPES
-} from 'common/enums'
+const trans = {
+  verificationCode: {
+    subject: i18n<{ type: string }>({
+      zh_hant: ({ type }) => `Matters | ${type}驗證碼`,
+      zh_hans: ({ type }) => `Matters | ${type}验证码`
+    }),
+    register: i18n({
+      zh_hant: '註冊',
+      zh_hans: '注册'
+    }),
+    email_reset: i18n({
+      zh_hant: '修改電子信箱',
+      zh_hans: '修改电子邮箱'
+    }),
+    password_reset: i18n({
+      zh_hant: '修改密碼',
+      zh_hans: '修改密碼'
+    }),
+    email_verify: i18n({
+      zh_hant: '電子信箱認證',
+      zh_hans: '电子邮箱认证'
+    })
+  },
+  registerSuccess: i18n({
+    zh_hant: 'Matters | 你已註冊成功',
+    zh_hans: 'Matters | 你已注册成功'
+  }),
+  invitationSuccess: i18n({
+    zh_hant: 'Matters | 你被邀請成為內容創作者',
+    zh_hans: 'Matters | 你被邀请成为内容创作者'
+  })
+}
 
 class Mail {
   sendVerificationCode = async ({
     to,
-    language = 'zh_hant',
     type,
     code,
-    recipient
+    recipient,
+    language = 'zh_hant'
   }: {
     to: string
-    language?: keyof typeof LANGUAGE
     type: keyof typeof VERIFICATION_CODE_TYPES
     code: string
     recipient: {
       displayName?: string
     }
+    language?: LANGUAGES
   }) => {
-    // TODO: language
-    const templateId = EMAIL_TEMPLATE_ID.verificationCode
-    const dataType = {
-      register: '註冊',
-      email_reset: '修改郵箱',
-      password_reset: '修改密碼',
-      email_verify: '電子信箱認證'
-    }[type]
-
+    const templateId = EMAIL_TEMPLATE_ID.verificationCode[language]
+    const codeTypeStr = trans.verificationCode[type](language, {})
+    const subject = trans.verificationCode.subject(language, {
+      type: codeTypeStr
+    })
     notificationQueue.sendMail({
       from: environment.emailFromAsk as string,
       templateId,
@@ -40,9 +66,9 @@ class Mail {
           to,
           // @ts-ignore https://github.com/sendgrid/sendgrid-nodejs/issues/729
           dynamic_template_data: {
-            subject: `Matters | ${dataType}驗證碼`,
+            subject,
             code,
-            type: dataType,
+            type: codeTypeStr,
             recipient
           }
         }
@@ -52,18 +78,16 @@ class Mail {
 
   sendRegisterSuccess = async ({
     to,
-    language = 'zh_hant',
-    recipient
+    recipient,
+    language = 'zh_hant'
   }: {
     to: string
-    language?: keyof typeof LANGUAGE
     recipient: {
       displayName?: string
     }
+    language?: LANGUAGES
   }) => {
-    // TODO: language
-    const templateId = EMAIL_TEMPLATE_ID.registerSuccess
-
+    const templateId = EMAIL_TEMPLATE_ID.registerSuccess[language]
     notificationQueue.sendMail({
       from: environment.emailFromAsk as string,
       templateId,
@@ -72,7 +96,7 @@ class Mail {
           to,
           // @ts-ignore
           dynamic_template_data: {
-            subject: 'Matters | 你已註冊成功',
+            subject: trans.registerSuccess(language, {}),
             recipient
           }
         }
@@ -82,13 +106,12 @@ class Mail {
 
   sendInvitationSuccess = async ({
     to,
-    language = 'zh_hans',
     type,
     recipient,
-    sender
+    sender,
+    language = 'zh_hans'
   }: {
     to: string
-    language?: keyof typeof LANGUAGE
     type: 'invitation' | 'activation'
     recipient?: {
       displayName?: string
@@ -98,10 +121,10 @@ class Mail {
       displayName?: string
       userName?: string
     }
+    language?: LANGUAGES
   }) => {
-    // TODO: language
-    const templateId = EMAIL_TEMPLATE_ID.invitationSuccess
-
+    const templateId = EMAIL_TEMPLATE_ID.invitationSuccess[language]
+    const subject = trans.invitationSuccess(language, {})
     notificationQueue.sendMail({
       from: environment.emailFromAsk as string,
       templateId,
@@ -110,7 +133,7 @@ class Mail {
           to,
           // @ts-ignore
           dynamic_template_data: {
-            subject: 'Matters | 你被邀請成為內容創作者',
+            subject,
             recipient,
             sender,
             invitation: type === 'invitation',

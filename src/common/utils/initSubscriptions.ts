@@ -1,3 +1,5 @@
+import { RequestHeaders } from 'request-ip'
+
 import { Context } from 'definitions'
 import {
   ArticleService,
@@ -8,19 +10,20 @@ import {
   UserService,
   NotificationService
 } from 'connectors'
-import { getViewerFromHeaders } from './getViewerFromHeaders'
+import { getViewerFromReq } from './getViewer'
 
 export const initSubscriptions = (): { onConnect: any } => ({
   onConnect: async (
-    connectionParams: {
-      'x-access-token'?: string
-      'accept-language'?: string
-      'x-real-ip'?: string
-    },
+    connectionParams: RequestHeaders,
     webSocket: any,
     context: any
   ): Promise<Context> => {
-    const viewer = await getViewerFromHeaders(connectionParams)
+    // `connectionParams` passed from client
+    // https://www.apollographql.com/docs/react/advanced/subscriptions.html#authentication
+    const viewer = await getViewerFromReq({
+      headers: { ...connectionParams, ...context.request.headers },
+      connection: {}
+    })
 
     return {
       viewer,

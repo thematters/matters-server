@@ -49,7 +49,7 @@ const resolver: MutationToInviteResolver = async (
     }
     // activate recipient
     await userService.activate({
-      senderId: isAdmin ? undefined : viewer.id,
+      senderId: viewer.id,
       recipientId: recipient.id
     })
 
@@ -65,7 +65,8 @@ const resolver: MutationToInviteResolver = async (
             displayName: viewer.displayName,
             userName: viewer.userName
           },
-      type: 'activation'
+      type: 'activation',
+      language: recipient.language
     })
   } else {
     const user = await userService.findByEmail(email)
@@ -74,7 +75,7 @@ const resolver: MutationToInviteResolver = async (
     }
     // invite email
     await userService.invite({
-      senderId: isAdmin ? undefined : viewer.id,
+      senderId: viewer.id,
       email
     })
 
