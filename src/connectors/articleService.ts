@@ -407,6 +407,7 @@ export class ArticleService extends BaseService {
     if (environment.env === 'test') {
       return []
     }
+
     // get vector score
     const scoreResult = await this.es.client.get({
       index: 'analysis', // TODO: switch to `this.table` after index is ready
@@ -415,7 +416,6 @@ export class ArticleService extends BaseService {
     })
 
     const factorString = _.get(scoreResult, '_source.factor')
-    console.log({ title: _.get(scoreResult, '_source.title') })
 
     // return empty list if we don't have any score
     if (!factorString) {
