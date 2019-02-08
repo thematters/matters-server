@@ -311,7 +311,6 @@ export class ArticleService extends BaseService {
     }
 
     const result = await qs
-    console.log(result)
     return result
   }
 
