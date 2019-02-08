@@ -11,7 +11,7 @@ type Item = { [key: string]: any; id: string }
 class ElasticSearch {
   client: elasticsearch.Client
 
-  indices = ['article', 'user']
+  indices = ['article', 'user', 'analysis']
 
   constructor() {
     this.client = new elasticsearch.Client({
@@ -50,9 +50,11 @@ class ElasticSearch {
    */
   indexManyItems = async ({
     index,
-    items
+    items,
+    type
   }: {
     index: string
+    type?: string
     items: Item[]
   }) => {
     // break items into chunks
@@ -66,7 +68,8 @@ class ElasticSearch {
     const indexItemsByChunk = async (chunks: Item[][]) => {
       for (let i = 0; i < chunks.length; i++) {
         await this.indexItems({
-          index: index,
+          index,
+          type: type || index,
           items: chunks[i]
         })
         logger.info(`Indexed ${chunks[i].length} items into ${index}.`)
@@ -75,7 +78,16 @@ class ElasticSearch {
     return indexItemsByChunk(chunks)
   }
 
-  indexItems = async ({ index, items }: { index: string; items: Item[] }) => {
+  indexItems = async ({
+    index,
+    items,
+    type
+  }: {
+    index: string
+    type?: string
+    items: Item[]
+  }) => {
+    const _type = type || index
     const exists = await this.client.indices.exists({ index })
     if (!exists) {
       await this.client.indices.create({ index })
@@ -84,7 +96,7 @@ class ElasticSearch {
     try {
       const body = _.flattenDepth(
         items.map(item => [
-          { index: { _index: index, _type: index, _id: item.id } },
+          { index: { _index: index, _type, _id: item.id } },
           item
         ])
       )
