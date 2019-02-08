@@ -139,6 +139,17 @@ export enum GQLArticleState {
 export interface GQLUser extends GQLNode {
   id: string
   uuid: GQLUUID
+  userName: string
+
+  /**
+   * Display name on profile
+   */
+  displayName: string
+
+  /**
+   * URL for avatar
+   */
+  avatar?: GQLURL
   info: GQLUserInfo
   settings: GQLUserSettings
   recommendation: GQLRecommendation
@@ -188,11 +199,14 @@ export interface GQLUser extends GQLNode {
 
 export type GQLUUID = any
 
+export type GQLURL = any
+
 export interface GQLUserInfo {
   createdAt: GQLDateTime
 
   /**
    * Unique user name
+   * @deprecated Use `User.userName`.
    */
   userName: string
 
@@ -203,6 +217,7 @@ export interface GQLUserInfo {
 
   /**
    * Display name on profile
+   * @deprecated Use `User.displayName`.
    */
   displayName: string
 
@@ -213,6 +228,7 @@ export interface GQLUserInfo {
 
   /**
    * URL for avatar
+   * @deprecated Use `User.avatar`.
    */
   avatar?: GQLURL
   email?: GQLEmail
@@ -225,8 +241,6 @@ export interface GQLUserInfo {
   readSpeed: number
   badges?: Array<GQLBadge>
 }
-
-export type GQLURL = any
 
 export type GQLEmail = any
 
@@ -1514,8 +1528,8 @@ export interface GQLResolver {
   DateTime?: GraphQLScalarType
   User?: GQLUserTypeResolver
   UUID?: GraphQLScalarType
-  UserInfo?: GQLUserInfoTypeResolver
   URL?: GraphQLScalarType
+  UserInfo?: GQLUserInfoTypeResolver
   Email?: GraphQLScalarType
   Badge?: GQLBadgeTypeResolver
   UserSettings?: GQLUserSettingsTypeResolver
@@ -2121,6 +2135,9 @@ export interface GQLNodeTypeResolver<TParent = any> {
 export interface GQLUserTypeResolver<TParent = any> {
   id?: UserToIdResolver<TParent>
   uuid?: UserToUuidResolver<TParent>
+  userName?: UserToUserNameResolver<TParent>
+  displayName?: UserToDisplayNameResolver<TParent>
+  avatar?: UserToAvatarResolver<TParent>
   info?: UserToInfoResolver<TParent>
   settings?: UserToSettingsResolver<TParent>
   recommendation?: UserToRecommendationResolver<TParent>
@@ -2150,6 +2167,33 @@ export interface UserToIdResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToUuidResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToUserNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToDisplayNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToAvatarResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

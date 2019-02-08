@@ -37,6 +37,7 @@ export default {
   },
   User: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'User', id }),
+    avatar,
     info: (root: any) => root,
     settings: (root: any) => root,
     status: (root: any) => root,
