@@ -32,18 +32,18 @@ class ElasticSearch {
     }
   }
 
-  clear = async () => {
-    try {
-      await this.client.indices.delete({
-        index: '_all'
-      })
+  // clear = async () => {
+  //   try {
+  //     await this.client.indices.delete({
+  //       index: '_all'
+  //     })
 
-      await this.init()
-      logger.info('All search indices are cleared')
-    } catch (err) {
-      throw err
-    }
-  }
+  //     await this.init()
+  //     logger.info('All search indices are cleared')
+  //   } catch (err) {
+  //     throw err
+  //   }
+  // }
 
   /**
    * break many items into smaller chunks, then bulk index each chunk

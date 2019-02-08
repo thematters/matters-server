@@ -16,7 +16,8 @@ import {
   VERIFICATION_CODE_TYPES,
   USER_STATE,
   INVITATION_STATUS,
-  BATCH_SIZE
+  BATCH_SIZE,
+  ARTICLE_STATE
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -583,16 +584,27 @@ export class UserService extends BaseService {
     userId: string
     limit?: number
     offset?: number
-  }) =>
-    this.knex
-      .select('article_id')
-      .min('created_at as read_at')
-      .from('article_read')
-      .where({ userId, archived: false })
-      .groupBy('article_id')
+  }) => {
+    const result = await this.knex('article')
+      .select('read.read_at', 'article.*')
+      .rightJoin(
+        this.knex
+          .select('read.article_id')
+          .min('read.created_at as read_at')
+          .from('article_read as read')
+          .groupBy('read.article_id')
+          .where({ userId, archived: false })
+          .as('read'),
+        'article.id',
+        'read.article_id'
+      )
+      .where({ state: ARTICLE_STATE.active })
       .orderBy('read_at', 'desc')
       .limit(limit)
       .offset(offset)
+
+    return result.map(({ readAt, ...article }: any) => ({ readAt, article }))
+  }
 
   clearReadHistory = async ({
     articleId,

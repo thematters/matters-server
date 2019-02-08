@@ -62,22 +62,22 @@ class ScheduleQueue {
     })
 
     // initialize search
-    this.q.process(QUEUE_JOB.initializeSearch, async (job, done) => {
-      logger.info(`[schedule job] initializing search`)
-      try {
-        await this.articleService.es.clear()
-        const articleRes = await this.articleService.initSearch()
-        job.progress(50)
-        const userRes = await this.userService.initSearch()
-        job.progress(100)
-        done(null, { articleRes, userRes })
-      } catch (e) {
-        logger.error(
-          `[schedule job] error in initializing search: ${JSON.stringify(e)}`
-        )
-        done(e)
-      }
-    })
+    // this.q.process(QUEUE_JOB.initializeSearch, async (job, done) => {
+    //   logger.info(`[schedule job] initializing search`)
+    //   try {
+    //     await this.articleService.es.clear()
+    //     const articleRes = await this.articleService.initSearch()
+    //     job.progress(50)
+    //     const userRes = await this.userService.initSearch()
+    //     job.progress(100)
+    //     done(null, { articleRes, userRes })
+    //   } catch (e) {
+    //     logger.error(
+    //       `[schedule job] error in initializing search: ${JSON.stringify(e)}`
+    //     )
+    //     done(e)
+    //   }
+    // })
 
     // refresh view
     this.q.process(
@@ -124,35 +124,39 @@ class ScheduleQueue {
     //   repeat: { cron: '0 4 * * *', tz: 'Asia/Hong_Kong' }
     // })
 
-    // refresh articleActivityMaterialized every hour
+    // refresh articleActivityMaterialized every 1.1 hour, for hottest recommendation
     this.q.add(
       QUEUE_JOB.refreshView,
       { view: MATERIALIZED_VIEW.articleActivityMaterialized },
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 60
+          every: 1000 * 60 * 60 * 1.1
         }
       }
     )
 
-    // refresh articleCountMaterialized every day at 3am
+    // refresh articleCountMaterialized every 2.1 hours, for topics recommendation
     this.q.add(
       QUEUE_JOB.refreshView,
       { view: MATERIALIZED_VIEW.articleCountMaterialized },
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
+        repeat: {
+          every: 1000 * 60 * 60 * 2.1
+        }
       }
     )
 
-    // refresh tagCountMaterialized every day at 3am
+    // refresh tagCountMaterialized every 3.1 hours
     this.q.add(
       QUEUE_JOB.refreshView,
       { view: MATERIALIZED_VIEW.tagCountMaterialized },
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
+        repeat: {
+          every: 1000 * 60 * 60 * 3.1
+        }
       }
     )
 
