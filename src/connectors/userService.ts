@@ -238,7 +238,8 @@ export class UserService extends BaseService {
     [key: string]: string
   }) =>
     await this.es.indexItems({
-      index: this.table,
+      index: 'analysis', // TODO: switch to `this.table` after index is ready
+      type: this.table,
       items: [
         {
           id,
@@ -260,7 +261,7 @@ export class UserService extends BaseService {
 
     try {
       const { hits } = await this.es.client.search({
-        index: this.table,
+        index: 'analysis', // TODO: switch to `this.table` after index is ready
         type: this.table,
         body
       })

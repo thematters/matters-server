@@ -20,7 +20,7 @@ import {
 let userService: any
 beforeAll(async () => {
   userService = new UserService()
-  await userService.initSearch()
+  // await userService.initSearch()
 })
 afterAll(knex.destroy)
 

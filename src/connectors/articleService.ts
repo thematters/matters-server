@@ -15,6 +15,7 @@ import { ItemData, GQLSearchInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
 import { stripHtml, countWords, makeSummary } from 'common/utils'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
+import { environment } from 'common/environment'
 
 import { BaseService } from './baseService'
 import { UserService } from './userService'
@@ -229,7 +230,8 @@ export class ArticleService extends BaseService {
     [key: string]: string
   }) => {
     const result = await this.es.indexItems({
-      index: this.table,
+      index: 'analysis', // TODO: switch to `this.table` after index is ready
+      type: this.table,
       items: [
         {
           id,
@@ -254,7 +256,7 @@ export class ArticleService extends BaseService {
 
     try {
       const { hits } = await this.es.client.search({
-        index: this.table,
+        index: 'analysis', // TODO: switch to `this.table` after index is ready
         type: this.table,
         body
       })
@@ -401,6 +403,64 @@ export class ArticleService extends BaseService {
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
       .limit(limit)
       .offset(offset)
+  }
+
+  related = async ({ id, size }: { id: string; size: number }) => {
+    // skip if in test
+    if (environment.env === 'test') {
+      return []
+    }
+
+    // get vector score
+    const scoreResult = await this.es.client.get({
+      index: 'analysis', // TODO: switch to `this.table` after index is ready
+      type: this.table,
+      id
+    })
+
+    const factorString = _.get(scoreResult, '_source.factor')
+
+    // return empty list if we don't have any score
+    if (!factorString) {
+      return []
+    }
+
+    // recommend with vector score
+    const factor = factorString
+      .split(' ')
+      .map((s: string) => parseFloat(s.split('|')[1]))
+
+    const q = '*'
+    const body = bodybuilder()
+      .query('function_score', {
+        query: {
+          query_string: {
+            query: q
+          }
+        },
+        script_score: {
+          script: {
+            inline: 'payload_vector_score',
+            lang: 'native',
+            params: {
+              field: 'factor',
+              vector: factor,
+              cosine: true
+            }
+          }
+        },
+        boost_mode: 'replace'
+      })
+      .size(size)
+      .build()
+
+    const relatedResult = await this.es.client.search({
+      index: 'analysis', // TODO: switch to `this.table` after index is ready
+      type: this.table,
+      body
+    })
+    // add recommendation
+    return relatedResult['hits']['hits'].map(hit => ({ ...hit, id: hit._id }))
   }
 
   /**

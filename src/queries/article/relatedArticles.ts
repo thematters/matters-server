@@ -1,44 +1,55 @@
-import { uniq, without } from 'lodash'
+import _ from 'lodash'
+
 import { ArticleToRelatedArticlesResolver } from 'definitions'
 import { connectionFromPromisedArray } from 'common/utils'
+import { environment } from 'common/environment'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
-  { id, authorId },
+  { authorId, id },
   { input },
   { viewer, dataSources: { articleService, tagService } }
 ) => {
-  const recommendationSize = 10 // return 10 recommendations for now
+  // return 10 recommendations by default
+  const recommendationSize = input.first || 10
 
-  // TODO: use vector score from ElasticSearch
-  let recommendations: string[] = []
-
+  // helper function to prevent duplicates and origin article
   const addRec = (rec: string[], extra: string[]) =>
-    without(uniq(rec.concat(extra)), id)
+    _.without(_.uniq(rec.concat(extra)), id)
 
-  const tagIds = await articleService.findTagIds({ id })
+  // get initial recommendation, skip if in test
+  const relatedArticles = await articleService.related({
+    id,
+    size: recommendationSize
+  })
 
-  for (const tagId of tagIds) {
-    if (recommendations.length >= recommendationSize) {
-      break
+  // pull out ids
+  let ids: string[] = relatedArticles.map(({ id }) => id)
+
+  // fall back to using tag
+  if (ids.length < recommendationSize) {
+    const tagIds = await articleService.findTagIds({ id })
+
+    for (const tagId of tagIds) {
+      if (ids.length >= recommendationSize) {
+        break
+      }
+
+      let articleIds = await tagService.findArticleIds({
+        id: tagId,
+        limit: recommendationSize - ids.length
+      })
+      ids = addRec(ids, articleIds)
     }
-
-    let articleIds = await tagService.findArticleIds({
-      id: tagId,
-      limit: recommendationSize - recommendations.length
-    })
-    recommendations = addRec(recommendations, articleIds)
   }
 
-  if (recommendations.length >= recommendationSize) {
+  // fall back to using author
+  if (ids.length >= recommendationSize) {
     let articles = await articleService.findByAuthor(authorId)
-    recommendations = addRec(
-      recommendations,
-      articles.map(({ id }: { id: string }) => id)
-    )
+    ids = addRec(ids, articles.map(({ id }: { id: string }) => id))
   }
 
   return connectionFromPromisedArray(
-    articleService.dataloader.loadMany(recommendations),
+    articleService.dataloader.loadMany(ids),
     input
   )
 }

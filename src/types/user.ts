@@ -37,6 +37,11 @@ export default /* GraphQL */ `
   type User implements Node {
     id: ID!
     uuid: UUID!
+    userName: String!
+    # Display name on profile
+    displayName: String!
+    # URL for avatar
+    avatar: URL
     info: UserInfo!
     settings: UserSettings! @private
     recommendation: Recommendation! @private
@@ -106,15 +111,15 @@ export default /* GraphQL */ `
   type UserInfo {
     createdAt: DateTime!
     # Unique user name
-    userName: String!
+    userName: String! @deprecated(reason: "Use \`User.userName\`.")
     # Is user name editable
     userNameEditable: Boolean!
     # Display name on profile
-    displayName: String!
+    displayName: String! @deprecated(reason: "Use \`User.displayName\`.")
     # User desciption
     description: String
     # URL for avatar
-    avatar: URL
+    avatar: URL @deprecated(reason: "Use \`User.avatar\`.")
     email: Email @private
     emailVerified: Boolean
     mobile: String @private
