@@ -1,7 +1,8 @@
 import _ from 'lodash'
+
 import { ArticleToRelatedArticlesResolver } from 'definitions'
-import bodybuilder from 'bodybuilder'
 import { connectionFromPromisedArray } from 'common/utils'
+import { environment } from 'common/environment'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
   { authorId, id },
@@ -15,7 +16,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   const addRec = (rec: string[], extra: string[]) =>
     _.without(_.uniq(rec.concat(extra)), id)
 
-  // get initial recommendation
+  // get initial recommendation, skip if in test
   const relatedArticles = await articleService.related({
     id,
     size: recommendationSize

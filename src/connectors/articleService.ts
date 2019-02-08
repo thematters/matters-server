@@ -15,6 +15,7 @@ import { ItemData, GQLSearchInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
 import { stripHtml, countWords, makeSummary } from 'common/utils'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
+import { environment } from 'common/environment'
 
 import { BaseService } from './baseService'
 import { UserService } from './userService'
@@ -402,6 +403,10 @@ export class ArticleService extends BaseService {
   }
 
   related = async ({ id, size }: { id: string; size: number }) => {
+    // skip if in test
+    if (environment.env === 'test') {
+      return []
+    }
     // get vector score
     const scoreResult = await this.es.client.get({
       index: 'analysis', // TODO: switch to `this.table` after index is ready
