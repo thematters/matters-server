@@ -65,7 +65,8 @@ const resolver: MutationToInviteResolver = async (
             displayName: viewer.displayName,
             userName: viewer.userName
           },
-      type: 'activation'
+      type: 'activation',
+      language: recipient.language
     })
   } else {
     const user = await userService.findByEmail(email)

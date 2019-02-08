@@ -21,7 +21,7 @@ import {
 const resolver: MutationToUserRegisterResolver = async (
   root,
   { input },
-  { dataSources: { userService, notificationService } }
+  { viewer, dataSources: { userService, notificationService } }
 ) => {
   const { email: rawEmail, userName, displayName, password, codeId } = input
   const email = rawEmail ? rawEmail.toLowerCase() : null
@@ -84,7 +84,8 @@ const resolver: MutationToUserRegisterResolver = async (
     to: email,
     recipient: {
       displayName
-    }
+    },
+    language: viewer.language
   })
 
   return userService.login(input)

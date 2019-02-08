@@ -4,51 +4,17 @@ import DataLoader from 'dataloader'
 
 import {
   User,
-  NoticeType,
   NotificationEntity,
-  NoticeEntityType,
-  TableName
+  PutNoticeParams,
+  NoticeUserId,
+  NoticeEntity,
+  NoticeDetail,
+  NoticeEntitiesMap,
+  NoticeItem
 } from 'definitions'
 import { BaseService } from '../baseService'
 import { BATCH_SIZE } from 'common/enums'
 import logger from 'common/logger'
-
-export type NoticeUserId = string
-export type NoticeEntity = {
-  type: NoticeEntityType
-  table: TableName
-  entityId: string
-}
-export type NoticeEntitiesMap = { [key in NoticeEntityType]: any }
-export type NoticeMessage = string
-export type NoticeData = {
-  url?: string
-  reason?: string
-}
-export type NoticeDetail = {
-  id: string
-  uuid: string
-  unread: boolean
-  deleted: boolean
-  updatedAt: Date
-  noticeType: NoticeType
-  message?: NoticeMessage
-  data?: NoticeData
-}
-export type NoticeItem = NoticeDetail & {
-  createdAt: Date
-  type: NoticeType
-  actors?: User[]
-  entities?: NoticeEntitiesMap
-}
-export type PutNoticeParams = {
-  type: NoticeType
-  actorIds?: NoticeUserId[]
-  recipientId: NoticeUserId
-  entities?: NotificationEntity[]
-  message?: NoticeMessage | null
-  data?: NoticeData | null
-}
 
 class Notice extends BaseService {
   constructor() {

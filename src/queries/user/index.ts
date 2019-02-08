@@ -26,6 +26,7 @@ import invitationLeft from './invitationLeft'
 import invitationSent from './invitationSent'
 import invitationRecipient from './invitationRecipient'
 import invitationAccepted from './invitationAccepted'
+import invitationReward from './invitationReward'
 import { MAT, Transaction } from './transaction'
 import { boost, score } from './oss'
 
@@ -78,10 +79,7 @@ export default {
     unreadNoticeCount
   },
   InvitationStatus: {
-    reward: () =>
-      `帮助對方快速成为 Matters 会员，新会员激活后，你会获得 ${
-        MAT_UNIT.invitationAccepted
-      }MAT，对方將獲得 ${MAT_UNIT.joinByInvitation}MAT。`, // TODO: i18n
+    reward: invitationReward,
     left: invitationLeft,
     sent: invitationSent
   },

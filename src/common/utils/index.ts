@@ -8,6 +8,7 @@ export * from './connections'
 export * from './validator'
 export * from './notice'
 export * from './getViewer'
+export * from './i18n'
 
 export const stripHtml = (html: string) => html.replace(/(<([^>]+)>)/gi, '')
 
