@@ -401,6 +401,60 @@ export class ArticleService extends BaseService {
       .offset(offset)
   }
 
+  related = async ({ id, size }: { id: string; size: number }) => {
+    // get vector score
+    const scoreResult = await this.es.client.get({
+      index: 'analysis', // TODO: switch to `this.table` after index is ready
+      type: this.table,
+      id
+    })
+
+    const factorString = _.get(scoreResult, '_source.factor')
+    console.log({ title: _.get(scoreResult, '_source.title') })
+
+    // return empty list if we don't have any score
+    if (!factorString) {
+      return []
+    }
+
+    // recommend with vector score
+    const factor = factorString
+      .split(' ')
+      .map((s: string) => parseFloat(s.split('|')[1]))
+
+    const q = '*'
+    const body = bodybuilder()
+      .query('function_score', {
+        query: {
+          query_string: {
+            query: q
+          }
+        },
+        script_score: {
+          script: {
+            inline: 'payload_vector_score',
+            lang: 'native',
+            params: {
+              field: 'factor',
+              vector: factor,
+              cosine: true
+            }
+          }
+        },
+        boost_mode: 'replace'
+      })
+      .size(size)
+      .build()
+
+    const relatedResult = await this.es.client.search({
+      index: 'analysis', // TODO: switch to `this.table` after index is ready
+      type: this.table,
+      body
+    })
+    // add recommendation
+    return relatedResult['hits']['hits'].map(hit => ({ ...hit, id: hit._id }))
+  }
+
   /**
    * Find One
    */
