@@ -134,6 +134,7 @@ export class TagService extends BaseService {
       .where({ tagId })
       .limit(limit)
       .offset(offset)
+      .orderBy('id', 'desc')
 
     return result.map(({ articleId }: { articleId: string }) => articleId)
   }

@@ -19,22 +19,13 @@ const resolver: GQLUserActivityTypeResolver = {
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await userService.countReadHistory(id)
-    const readHistory = await userService.findReadHistory({
-      userId: id,
-      offset,
-      limit: first
-    })
 
     return connectionFromPromisedArray(
-      Promise.all(
-        readHistory.map(async ({ articleId, readAt }: any) => {
-          const article = await articleService.dataloader.load(articleId)
-          return {
-            article,
-            readAt
-          }
-        })
-      ),
+      userService.findReadHistory({
+        userId: id,
+        offset,
+        limit: first
+      }),
       input,
       totalCount
     )
