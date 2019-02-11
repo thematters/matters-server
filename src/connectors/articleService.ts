@@ -294,7 +294,7 @@ export class ArticleService extends BaseService {
       : 'article_activity_materialized'
 
     let qs = this.knex(`${table} as view`)
-      .select('view.*', 'setting.in_hottest', 'article.state')
+      .select('view.id', 'setting.in_hottest', 'article.*')
       .leftJoin(
         'article_recommend_setting as setting',
         'view.id',
@@ -397,7 +397,7 @@ export class ArticleService extends BaseService {
     const table = oss ? 'article_count_view' : 'article_count_materialized'
 
     return await this.knex(`${table} as view`)
-      .select('view.*', 'article.state')
+      .select('view.*', 'article.state', 'article.public')
       .join('article', 'view.id', 'article.id')
       .orderByRaw('topic_score DESC NULLS LAST')
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
