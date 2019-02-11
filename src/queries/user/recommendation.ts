@@ -40,13 +40,13 @@ const resolvers: GQLRecommendationTypeResolver = {
 
     let where = {}
     if (!id) {
-      where = { ...where, public: true }
+      where = { ...where, 'article.public': true }
     }
 
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.countRecommendHottest({
-      where,
+      where: id ? {} : { public: true },
       oss
     })
     return connectionFromPromisedArray(
@@ -133,7 +133,7 @@ const resolvers: GQLRecommendationTypeResolver = {
     }
 
     const { first, after } = input
-    const where = id ? {} : { public: true }
+    const where = id ? {} : { 'article.public': true }
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.baseCount(where)
     return connectionFromPromisedArray(

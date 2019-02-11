@@ -11,7 +11,7 @@ type Item = { [key: string]: any; id: string }
 class ElasticSearch {
   client: elasticsearch.Client
 
-  indices = ['article', 'user', 'analysis']
+  indices = ['article', 'user']
 
   constructor() {
     this.client = new elasticsearch.Client({

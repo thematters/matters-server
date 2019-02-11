@@ -230,7 +230,7 @@ export class ArticleService extends BaseService {
     [key: string]: string
   }) => {
     const result = await this.es.indexItems({
-      index: 'analysis', // TODO: switch to `this.table` after index is ready
+      index: this.table,
       type: this.table,
       items: [
         {
@@ -256,7 +256,7 @@ export class ArticleService extends BaseService {
 
     try {
       const { hits } = await this.es.client.search({
-        index: 'analysis', // TODO: switch to `this.table` after index is ready
+        index: this.table,
         type: this.table,
         body
       })
@@ -294,7 +294,7 @@ export class ArticleService extends BaseService {
       : 'article_activity_materialized'
 
     let qs = this.knex(`${table} as view`)
-      .select('view.*', 'setting.in_hottest', 'article.state')
+      .select('view.id', 'setting.in_hottest', 'article.*')
       .leftJoin(
         'article_recommend_setting as setting',
         'view.id',
@@ -397,7 +397,7 @@ export class ArticleService extends BaseService {
     const table = oss ? 'article_count_view' : 'article_count_materialized'
 
     return await this.knex(`${table} as view`)
-      .select('view.*', 'article.state')
+      .select('view.*', 'article.state', 'article.public')
       .join('article', 'view.id', 'article.id')
       .orderByRaw('topic_score DESC NULLS LAST')
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
@@ -413,7 +413,7 @@ export class ArticleService extends BaseService {
 
     // get vector score
     const scoreResult = await this.es.client.get({
-      index: 'analysis', // TODO: switch to `this.table` after index is ready
+      index: this.table,
       type: this.table,
       id
     })
@@ -455,7 +455,7 @@ export class ArticleService extends BaseService {
       .build()
 
     const relatedResult = await this.es.client.search({
-      index: 'analysis', // TODO: switch to `this.table` after index is ready
+      index: this.table,
       type: this.table,
       body
     })
