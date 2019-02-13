@@ -57,7 +57,7 @@ export class IPFS {
     let assetsPromises: Array<
       Promise<{ path: string; content: Buffer } | undefined>
     > = []
-    const $ = cheerio.load(html)
+    const $ = cheerio.load(html, { decodeEntities: false })
 
     $('img').each((index, image) => {
       const imageSrc = $(image).attr('src')
@@ -77,7 +77,7 @@ export class IPFS {
     const htmlBundle = [
       {
         path: `${prefix}/index.html`,
-        content: Buffer.from(html)
+        content: Buffer.from($.html())
       },
       ...assets.filter(asset => asset)
     ]
