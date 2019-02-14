@@ -62,7 +62,7 @@ export class IPFS {
     $('img').each((index, image) => {
       const imageSrc = $(image).attr('src')
       // check if it's data url
-      if (!imageSrc.startsWith('data:')) {
+      if (imageSrc && !imageSrc.startsWith('data:')) {
         // assuming it's http url
         const imagePath = `${index}.${imageSrc.split('.').slice(-1)[0]}`
         const mutateOrigin = () => $(image).attr('src', imagePath)

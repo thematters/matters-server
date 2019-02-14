@@ -36,7 +36,8 @@ export default {
     user: rootUser
   },
   User: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: 'User', id }),
+    id: ({ id }: { id: string }) =>
+      id ? toGlobalId({ type: 'User', id }) : '',
     avatar,
     info: (root: any) => root,
     settings: (root: any) => root,
@@ -57,7 +58,7 @@ export default {
     avatar,
     badges,
     userNameEditable,
-    email: ({ email }: { email: string }) => email.replace(/#/g, '@')
+    email: ({ email }: { email: string }) => email && email.replace(/#/g, '@')
   },
   UserSettings: {
     // oauthType,
