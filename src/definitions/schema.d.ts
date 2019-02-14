@@ -299,7 +299,7 @@ export interface GQLRecommendation {
   /**
    * Matters Today
    */
-  today: GQLArticle
+  today?: GQLArticle
 
   /**
    * In case you missed it

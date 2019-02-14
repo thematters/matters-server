@@ -88,7 +88,7 @@ export default /* GraphQL */ `
     newest(input: ConnectionArgs!): ArticleConnection!
     hottest(input: ConnectionArgs!): ArticleConnection!
     # Matters Today
-    today: Article!
+    today: Article
     # In case you missed it
     icymi(input: ConnectionArgs!): ArticleConnection!
     tags(input: ConnectionArgs!): TagConnection!
