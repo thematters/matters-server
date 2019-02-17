@@ -4,7 +4,8 @@ import {
   EmailExistsError,
   UserInviteFailedError,
   UserInviteStateFailedError,
-  UserNotFoundError
+  UserNotFoundError,
+  UserInviteEmailInvitedFailedError
 } from 'common/errors'
 import { MutationToInviteResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
@@ -73,6 +74,12 @@ const resolver: MutationToInviteResolver = async (
     if (user) {
       throw new EmailExistsError('email has been registered')
     }
+
+    // check if the email has been invited
+    if (userService.findInvitationByEmail(email)) {
+      throw new UserInviteEmailInvitedFailedError('email has been invited')
+    }
+
     // invite email
     await userService.invite({
       senderId: viewer.id,
