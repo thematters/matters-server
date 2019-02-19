@@ -51,3 +51,15 @@ We use [MJML](https://mjml.io) to develop our SendGrid email template.
 3. "Create Template" or "Add Verion" to an existing template in [SendGrid Transactional Templates](https://sendgrid.com/dynamic_templates)
 4. Copy and paste HTML codes into the editor and edit the "Email Subject" as `{{subject}}` in Settings in the left sidebar
 5. Click "Save Template" and "Make Active"
+
+## NOTE: AWS resources that we need to put in the same VPC
+
+* Elastic Beanstalk
+* RDS PostgreSQL
+* ElastiCache Redis instances
+  * Pub/Sub
+  * Cache
+  * Queue
+* ElasticSearch EC2 instances
+* IPFS cluster EC2 instances
+
