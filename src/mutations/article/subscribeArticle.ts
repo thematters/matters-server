@@ -33,7 +33,7 @@ const resolver: MutationToSubscribeArticleResolver = async (
     ]
   })
 
-  return true
+  return article
 }
 
 export default resolver

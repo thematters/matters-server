@@ -17,7 +17,7 @@ const resolver: MutationToUnfollowUserResolver = async (
   }
 
   await userService.unfollow(viewer.id, user.id)
-  return true
+  return user
 }
 
 export default resolver
