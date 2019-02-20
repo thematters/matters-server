@@ -259,6 +259,16 @@ export class UserInviteEmailRegisteredFailedError extends ApolloError {
   }
 }
 
+export class UserInviteEmailInvitedFailedError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'USER_INVITE_EMAIL_INVITED')
+
+    Object.defineProperty(this, 'name', {
+      value: 'UserInviteEmailInvitedFailedError'
+    })
+  }
+}
+
 /*********************************
  *                               *
  *      Verification Code        *
