@@ -76,7 +76,8 @@ const resolver: MutationToInviteResolver = async (
     }
 
     // check if the email has been invited
-    if (userService.findInvitationByEmail(email)) {
+    const isEmailInvited = await userService.findInvitationByEmail(email)
+    if (isEmailInvited) {
       throw new UserInviteEmailInvitedFailedError('email has been invited')
     }
 
