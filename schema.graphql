@@ -525,6 +525,7 @@ type Mutation {
 
   """login"""
   userLogin(input: UserLoginInput!): AuthResult!
+  userLogout: Boolean
 
   """
   addOAuth(input: AddOAuthInput!): Boolean

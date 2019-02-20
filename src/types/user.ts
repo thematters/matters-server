@@ -18,6 +18,7 @@ export default /* GraphQL */ `
     userRegister(input: UserRegisterInput!): AuthResult!
     # login
     userLogin(input: UserLoginInput!): AuthResult!
+    userLogout: Boolean
     # addOAuth(input: AddOAuthInput!): Boolean
     # update info/ setting
     updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate

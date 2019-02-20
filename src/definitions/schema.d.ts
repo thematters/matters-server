@@ -1003,6 +1003,7 @@ export interface GQLMutation {
    * login
    */
   userLogin: GQLAuthResult
+  userLogout?: boolean
 
   /**
    * addOAuth(input: AddOAuthInput!): Boolean
@@ -5210,6 +5211,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   verifyEmail?: MutationToVerifyEmailResolver<TParent>
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
+  userLogout?: MutationToUserLogoutResolver<TParent>
   updateUserInfo?: MutationToUpdateUserInfoResolver<TParent>
   updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<
     TParent
@@ -5736,6 +5738,15 @@ export interface MutationToUserLoginResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUserLoginArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUserLogoutResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
