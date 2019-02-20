@@ -3,7 +3,7 @@ export default /* GraphQL */ `
     putComment(input: PutCommentInput!): Comment! @authenticate
     pinComment(input: PinCommentInput!): Comment! @authenticate
     unpinComment(input: UnpinCommentInput!): Comment! @authenticate
-    deleteComment(input: DeleteCommentInput!): Boolean @authenticate
+    deleteComment(input: DeleteCommentInput!): Comment @authenticate
     reportComment(input: ReportCommentInput!): Boolean
     voteComment(input: VoteCommentInput!): Comment! @authenticate
     unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate

@@ -470,11 +470,11 @@ type Mutation {
   _: Boolean
   publishArticle(input: PublishArticleInput!): Draft!
   archiveArticle(input: ArchiveArticleInput!): Article!
-  subscribeArticle(input: SubscribeArticleInput!): Boolean
-  unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean
+  subscribeArticle(input: SubscribeArticleInput!): Article
+  unsubscribeArticle(input: UnsubscribeArticleInput!): Article
   reportArticle(input: ReportArticleInput!): Boolean
   appreciateArticle(input: AppreciateArticleInput!): Article!
-  readArticle(input: ReadArticleInput!): Boolean
+  readArticle(input: ReadArticleInput!): Article
   recallPublish(input: RecallPublishInput!): Draft!
 
   """OSS"""
@@ -488,7 +488,7 @@ type Mutation {
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   unpinComment(input: UnpinCommentInput!): Comment!
-  deleteComment(input: DeleteCommentInput!): Boolean
+  deleteComment(input: DeleteCommentInput!): Comment
   reportComment(input: ReportCommentInput!): Boolean
   voteComment(input: VoteCommentInput!): Comment!
   unvoteComment(input: UnvoteCommentInput!): Comment!
@@ -535,8 +535,8 @@ type Mutation {
   updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
 
   """follow/unfollow"""
-  followUser(input: FollowUserInput!): Boolean
-  unfollowUser(input: UnfollowUserInput!): Boolean
+  followUser(input: FollowUserInput!): User
+  unfollowUser(input: UnfollowUserInput!): User
 
   """importArticles(input: ImportArticlesInput!): [Article!]"""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean

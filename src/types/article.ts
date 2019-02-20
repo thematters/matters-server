@@ -6,11 +6,11 @@ export default /* GraphQL */ `
   extend type Mutation {
     publishArticle(input: PublishArticleInput!): Draft! @authenticate
     archiveArticle(input: ArchiveArticleInput!): Article! @authenticate
-    subscribeArticle(input: SubscribeArticleInput!): Boolean @authenticate
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Boolean @authenticate
+    subscribeArticle(input: SubscribeArticleInput!): Article @authenticate
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Article @authenticate
     reportArticle(input: ReportArticleInput!): Boolean
     appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate
-    readArticle(input: ReadArticleInput!): Boolean
+    readArticle(input: ReadArticleInput!): Article
     recallPublish(input: RecallPublishInput!): Draft! @authenticate
     # OSS
     toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authorize

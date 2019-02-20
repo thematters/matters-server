@@ -12,7 +12,6 @@ export const makeContext = async ({
   res: Response
   connection?: any
 }): Promise<RequestContext> => {
-  console.log(req.cookies)
   if (connection) {
     return connection.context
   }
