@@ -1,3 +1,4 @@
+import { setCookie } from 'common/utils'
 import { MutationToUserLoginResolver } from 'definitions'
 
 const resolver: MutationToUserLoginResolver = async (
@@ -6,12 +7,12 @@ const resolver: MutationToUserLoginResolver = async (
   { dataSources: { userService }, res }
 ) => {
   try {
-    const { token, auth } = await userService.login({
+    const { token, auth, expiresIn } = await userService.login({
       ...input,
       email: input.email ? input.email.toLowerCase() : null
     })
 
-    res.cookie('token', token, { maxAge: 86400, httpOnly: true })
+    setCookie({ res, token, expiresIn })
 
     return { token, auth }
   } catch (err) {

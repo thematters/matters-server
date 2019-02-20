@@ -80,9 +80,17 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Login user and return jwt token.
+   * Login user and return jwt token. Default to expires in 24 * 90 hours
    */
-  login = async ({ email, password }: { email: string; password: string }) => {
+  login = async ({
+    email,
+    password,
+    expiresIn = 86400 * 90
+  }: {
+    email: string
+    password: string
+    expiresIn?: number
+  }) => {
     const user = await this.findByEmail(email)
 
     if (!user) {
@@ -95,12 +103,13 @@ export class UserService extends BaseService {
     }
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
-      expiresIn: 86400 * 90 // expires in 24 * 90 hours
+      expiresIn
     })
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
     return {
       auth: true,
+      expiresIn,
       token
     }
   }
