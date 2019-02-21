@@ -503,6 +503,7 @@ type Mutation {
   deleteDraft(input: DeleteDraftInput!): Boolean
   markAllNoticesAsRead: Boolean
   singleFileUpload(input: SingleFileUploadInput!): Asset!
+  singleFileDelete(input: SingleFileDeleteInput!): Boolean!
   feedback(input: FeedbackInput!): Boolean
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
@@ -930,6 +931,10 @@ input SetBoostInput {
   id: ID!
   boost: NonNegativeFloat!
   type: BoostTypes!
+}
+
+input SingleFileDeleteInput {
+  id: ID!
 }
 
 input SingleFileUploadInput {

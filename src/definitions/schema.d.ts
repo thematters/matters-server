@@ -969,6 +969,7 @@ export interface GQLMutation {
   deleteDraft?: boolean
   markAllNoticesAsRead?: boolean
   singleFileUpload: GQLAsset
+  singleFileDelete: boolean
   feedback?: boolean
   setBoost: GQLNode
   putRemark?: string
@@ -1206,6 +1207,10 @@ export interface GQLAsset {
   type: GQLAssetType
   path: string
   createdAt: GQLDateTime
+}
+
+export interface GQLSingleFileDeleteInput {
+  id: string
 }
 
 export interface GQLFeedbackInput {
@@ -5206,6 +5211,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteDraft?: MutationToDeleteDraftResolver<TParent>
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
   singleFileUpload?: MutationToSingleFileUploadResolver<TParent>
+  singleFileDelete?: MutationToSingleFileDeleteResolver<TParent>
   feedback?: MutationToFeedbackResolver<TParent>
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
@@ -5617,6 +5623,21 @@ export interface MutationToSingleFileUploadResolver<
   (
     parent: TParent,
     args: MutationToSingleFileUploadArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSingleFileDeleteArgs {
+  input: GQLSingleFileDeleteInput
+}
+export interface MutationToSingleFileDeleteResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToSingleFileDeleteArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
