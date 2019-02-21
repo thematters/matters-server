@@ -138,7 +138,7 @@
   "graphql-inspector": {
     "diff": true,
     "schema": {
-      "ref": "staging",
+      "ref": "develop",
       "path": "schema.graphql"
     }
   }

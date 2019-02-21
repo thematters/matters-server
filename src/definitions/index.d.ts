@@ -30,7 +30,6 @@ export type User = {
   readSpead: number
   baseGravity: number
   currGravity: number
-  mat: number
   language: LANGUAGES
   // oauthType: any
   role: 'admin' | 'user'
