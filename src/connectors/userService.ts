@@ -108,9 +108,9 @@ export class UserService extends BaseService {
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
     return {
-      auth: true,
       expiresIn,
-      token
+      token,
+      user
     }
   }
 

@@ -4,7 +4,7 @@ import { ForbiddenError } from 'common/errors'
 
 export class PrivateDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field: GraphQLField<any, any>) {
-    const { resolve = defaultFieldResolver } = field
+    const { resolve = defaultFieldResolver, name } = field
 
     field.resolve = async function(...args) {
       const [{ id }, _, { viewer }] = args
@@ -13,7 +13,7 @@ export class PrivateDirective extends SchemaDirectiveVisitor {
         return resolve.apply(this, args)
       }
 
-      throw new ForbiddenError(`unauthorized user`)
+      throw new ForbiddenError(`unauthorized user for field ${name}`)
     }
   }
 }

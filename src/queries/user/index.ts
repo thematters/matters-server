@@ -41,7 +41,7 @@ export default {
     avatar,
     info: (root: any) => root,
     settings: (root: any) => root,
-    status: (root: any) => root,
+    status: (root: any) => (root.id ? root : null),
     activity: (root: any) => root,
     recommendation: (root: any) => root,
     oss: (root: any) => root,

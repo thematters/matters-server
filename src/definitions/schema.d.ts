@@ -187,7 +187,7 @@ export interface GQLUser extends GQLNode {
    * Viewer is following this user
    */
   isFollowee: boolean
-  status: GQLUserStatus
+  status?: GQLUserStatus
 
   /**
    * OSS
@@ -997,13 +997,13 @@ export interface GQLMutation {
   /**
    * register
    */
-  userRegister: GQLAuthResult
+  userRegister: boolean
 
   /**
    * login
    */
-  userLogin: GQLUser
-  userLogout?: GQLUser
+  userLogin: GQLAuthResult
+  userLogout: boolean
 
   /**
    * addOAuth(input: AddOAuthInput!): Boolean
@@ -1285,6 +1285,11 @@ export interface GQLUserRegisterInput {
   codeId: string
 }
 
+export interface GQLUserLoginInput {
+  email: GQLEmail
+  password: string
+}
+
 export interface GQLAuthResult {
   auth: boolean
 
@@ -1293,11 +1298,6 @@ export interface GQLAuthResult {
    * @deprecated Use cookie for auth.
    */
   token?: string
-}
-
-export interface GQLUserLoginInput {
-  email: GQLEmail
-  password: string
 }
 
 export interface GQLUpdateUserInfoInput {

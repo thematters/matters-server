@@ -14,6 +14,18 @@ import { getLanguage } from './getLanguage'
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 
+export const getViewerFromUser = (user: any) => {
+  // overwrite default by user
+  let viewer = { language: LANGUAGE.zh_hant, role: USER_ROLE.visitor, ...user }
+
+  // append hepler functions
+  viewer.hasRole = (requires: string) =>
+    roleAccess.findIndex(role => role === viewer.role) >=
+    roleAccess.findIndex(role => role === requires)
+
+  return viewer
+}
+
 export const getViewerFromReq = async (
   req: requestIp.Request
 ): Promise<Viewer> => {
@@ -25,12 +37,10 @@ export const getViewerFromReq = async (
     headers['Accept-Language'] ||
     '') as string)
 
-  let viewer: Viewer = {
-    id: null,
+  // user infomation from request
+  let user = {
     language,
-    ip,
-    role: USER_ROLE.visitor,
-    hasRole: () => false
+    ip
   }
 
   // get user from token, use cookie first then 'x-access-token'
@@ -46,29 +56,15 @@ export const getViewerFromReq = async (
       const decoded = jwt.verify(token as string, environment.jwtSecret) as {
         uuid: string
       }
-      const user = await userService.baseFindByUUID(decoded.uuid)
+      const userDB = await userService.baseFindByUUID(decoded.uuid)
 
       // overwrite user setting by request
-      if (language) {
-        user.language = language
-      }
-
-      viewer = { ...viewer, ...user }
+      user = { ...userDB, ...user }
     } catch (err) {
       logger.info('token invalid')
       throw new TokenInvalidError('token invalid')
     }
   }
 
-  // append hepler functions
-  viewer.hasRole = (requires: string) =>
-    roleAccess.findIndex(role => role === viewer.role) >=
-    roleAccess.findIndex(role => role === requires)
-
-  // fall back to zh_hant if no languange exists
-  if (!viewer.language) {
-    viewer.language = LANGUAGE.zh_hant as LANGUAGES
-  }
-
-  return viewer
+  return getViewerFromUser(user)
 }

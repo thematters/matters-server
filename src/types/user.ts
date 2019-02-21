@@ -15,10 +15,10 @@ export default /* GraphQL */ `
     # verify email
     verifyEmail(input: VerifyEmailInput!): Boolean @authenticate
     # register
-    userRegister(input: UserRegisterInput!): AuthResult!
+    userRegister(input: UserRegisterInput!): Boolean!
     # login
-    userLogin(input: UserLoginInput!): User!
-    userLogout: User
+    userLogin(input: UserLoginInput!): AuthResult!
+    userLogout: Boolean!
     # addOAuth(input: AddOAuthInput!): Boolean
     # update info/ setting
     updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
@@ -62,7 +62,7 @@ export default /* GraphQL */ `
     isFollower: Boolean!
     # Viewer is following this user
     isFollowee: Boolean!
-    status: UserStatus!
+    status: UserStatus
     # OSS
     oss: UserOSS! @authorize
     remark: String @authorize
