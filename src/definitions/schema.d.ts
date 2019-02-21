@@ -930,11 +930,11 @@ export interface GQLMutation {
   _?: boolean
   publishArticle: GQLDraft
   archiveArticle: GQLArticle
-  subscribeArticle?: GQLArticle
-  unsubscribeArticle?: GQLArticle
+  subscribeArticle: GQLArticle
+  unsubscribeArticle: GQLArticle
   reportArticle?: boolean
   appreciateArticle: GQLArticle
-  readArticle?: GQLArticle
+  readArticle: GQLArticle
   recallPublish: GQLDraft
 
   /**
@@ -950,7 +950,7 @@ export interface GQLMutation {
   putComment: GQLComment
   pinComment: GQLComment
   unpinComment: GQLComment
-  deleteComment?: GQLComment
+  deleteComment: GQLComment
   reportComment?: boolean
   voteComment: GQLComment
   unvoteComment: GQLComment
@@ -1015,8 +1015,8 @@ export interface GQLMutation {
   /**
    * follow/unfollow
    */
-  followUser?: GQLUser
-  unfollowUser?: GQLUser
+  followUser: GQLUser
+  unfollowUser: GQLUser
 
   /**
    * importArticles(input: ImportArticlesInput!): [Article!]

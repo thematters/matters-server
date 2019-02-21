@@ -310,7 +310,7 @@ export const getUserInvitation = async (isAdmin = false) => {
 }
 
 describe('register and login functionarlities', () => {
-  test('register user and retrieve info', async () => {
+  test.only('register user and retrieve info', async () => {
     const email = `test-${Math.floor(Math.random() * 100)}@matters.news`
     const code = await userService.createVerificationCode({
       type: 'register',
@@ -327,7 +327,6 @@ describe('register and login functionarlities', () => {
       codeId: code.uuid
     }
     const registerResult = await registerUser(user)
-
     expect(_.get(registerResult, 'data.userRegister.token')).toBeTruthy()
 
     const context = await getUserContext({ email: user.email })

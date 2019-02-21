@@ -6,18 +6,14 @@ const resolver: MutationToUserLoginResolver = async (
   { input },
   { dataSources: { userService }, res }
 ) => {
-  try {
-    const { token, auth, expiresIn } = await userService.login({
-      ...input,
-      email: input.email ? input.email.toLowerCase() : null
-    })
+  const { token, auth, expiresIn } = await userService.login({
+    ...input,
+    email: input.email ? input.email.toLowerCase() : null
+  })
 
-    setCookie({ res, token, expiresIn })
+  setCookie({ res, token, expiresIn })
 
-    return { token, auth }
-  } catch (err) {
-    throw err
-  }
+  return { token, auth }
 }
 
 export default resolver
