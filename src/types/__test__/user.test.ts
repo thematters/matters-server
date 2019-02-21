@@ -43,12 +43,16 @@ const USER_REGISTER = `
 
 const FOLLOW_USER = `
   mutation FollowerUser($input: FollowUserInput!) {
-    followUser(input: $input)
+    followUser(input: $input) {
+      isFollowee
+    }
   }
 `
 const UNFOLLOW_USER = `
   mutation FollowerUser($input: UnfollowUserInput!) {
-    unfollowUser(input: $input)
+    unfollowUser(input: $input) {
+      isFollowee
+    }
   }
 `
 const UPDATE_USER_INFO_DESCRIPTION = `
@@ -495,7 +499,9 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: { id: followeeId } }
     })
-    expect(followData && followData.followUser).toBeTruthy()
+    expect(
+      followData && followData.followUser && followData.followUser.isFollowee
+    ).toBeTruthy()
 
     // check
     const { query } = await testClient({ isAuth: true })
@@ -516,7 +522,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: { id: followeeId } }
     })
-    expect(unfollowData && unfollowData.unfollowUser).toBeTruthy()
+    expect(unfollowData && unfollowData.unfollowUser.isFollowee).toBeFalsy()
 
     // re-check
     const { query: queryNew } = await testClient({ isAuth: true })
