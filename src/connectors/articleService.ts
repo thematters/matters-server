@@ -789,14 +789,12 @@ export class ArticleService extends BaseService {
     uuid,
     articleId,
     senderId,
-    senderMAT,
     recipientId,
     amount
   }: {
     uuid: string
     articleId: string
     senderId: string
-    senderMAT: number
     recipientId: string
     amount: number
   }): Promise<any> => {

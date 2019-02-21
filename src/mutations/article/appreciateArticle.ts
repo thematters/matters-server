@@ -11,13 +11,14 @@ import { fromGlobalId } from 'common/utils'
 const resolver: MutationToAppreciateArticleResolver = async (
   root,
   { input: { id, amount } },
-  { viewer, dataSources: { articleService, notificationService } }
+  { viewer, dataSources: { userService, articleService, notificationService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
 
-  if (viewer.mat < amount) {
+  const viewerTotalMAT = await userService.totalMAT(viewer.id)
+  if (viewerTotalMAT < amount) {
     throw new NotEnoughMatError('not enough MAT to appreciate')
   }
 
@@ -39,7 +40,6 @@ const resolver: MutationToAppreciateArticleResolver = async (
     uuid: v4(),
     articleId: article.id,
     senderId: viewer.id,
-    senderMAT: viewer.mat,
     recipientId: article.authorId,
     amount
   })
