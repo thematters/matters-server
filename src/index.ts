@@ -21,21 +21,18 @@ import {
 // local
 import schema from './schema'
 
-const mocks = {
-  JSON: () => ({
-    'index.html': '<html><p>hello</p></html>',
-    '1.png': 'some png string'
-  }),
-  DateTime: () => new Date().toISOString(),
-  Email: () => 'test@matters.news',
-  UUID: () => '00000000-0000-0000-0000-000000000001',
-  URL: () => 'test-url'
-}
-
 // start schedule jobs
 scheduleQueue.start()
 
 const server = new ApolloServer({
+  cors: {
+    origin: [
+      'http://localhost:3000',
+      'https://web-stage.matters.news',
+      'https://web-develop.matters.news'
+    ],
+    credentials: true
+  },
   schema,
   context: makeContext,
   engine: {

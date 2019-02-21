@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import requestIp from 'request-ip'
 import _ from 'lodash'
+import cookie from 'cookie'
 
 import { USER_ROLE, LANGUAGE } from 'common/enums'
 import { UserService } from 'connectors'
@@ -32,14 +33,17 @@ export const getViewerFromReq = async (
     hasRole: () => false
   }
 
-  // get user from token
-  const token = (headers['x-access-token'] || '') as string
+  // get user from token, use cookie first then 'x-access-token'
+  const token =
+    cookie.parse(headers.cookie || '')['token'] ||
+    (headers['x-access-token'] || '')
+
   if (!token) {
     logger.info('User is not logged in, viewing as guest')
   } else {
     try {
       const userService = new UserService()
-      const decoded = jwt.verify(token, environment.jwtSecret) as {
+      const decoded = jwt.verify(token as string, environment.jwtSecret) as {
         uuid: string
       }
       const user = await userService.baseFindByUUID(decoded.uuid)

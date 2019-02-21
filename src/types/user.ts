@@ -17,8 +17,8 @@ export default /* GraphQL */ `
     # register
     userRegister(input: UserRegisterInput!): AuthResult!
     # login
-    userLogin(input: UserLoginInput!): AuthResult!
-    userLogout: Boolean
+    userLogin(input: UserLoginInput!): User!
+    userLogout: User
     # addOAuth(input: AddOAuthInput!): Boolean
     # update info/ setting
     updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
@@ -38,9 +38,9 @@ export default /* GraphQL */ `
   type User implements Node {
     id: ID!
     uuid: UUID!
-    userName: String!
+    userName: String
     # Display name on profile
-    displayName: String!
+    displayName: String
     # URL for avatar
     avatar: URL
     info: UserInfo!
@@ -209,7 +209,7 @@ export default /* GraphQL */ `
 
   type AuthResult {
     auth: Boolean!
-    token: String
+    token: String @deprecated(reason: "Use cookie for auth.")
   }
 
   type UserConnection implements Connection {

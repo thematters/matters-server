@@ -139,12 +139,12 @@ export enum GQLArticleState {
 export interface GQLUser extends GQLNode {
   id: string
   uuid: GQLUUID
-  userName: string
+  userName?: string
 
   /**
    * Display name on profile
    */
-  displayName: string
+  displayName?: string
 
   /**
    * URL for avatar
@@ -1002,8 +1002,8 @@ export interface GQLMutation {
   /**
    * login
    */
-  userLogin: GQLAuthResult
-  userLogout?: boolean
+  userLogin: GQLUser
+  userLogout?: GQLUser
 
   /**
    * addOAuth(input: AddOAuthInput!): Boolean
@@ -1287,6 +1287,11 @@ export interface GQLUserRegisterInput {
 
 export interface GQLAuthResult {
   auth: boolean
+
+  /**
+   *
+   * @deprecated Use cookie for auth.
+   */
   token?: string
 }
 
