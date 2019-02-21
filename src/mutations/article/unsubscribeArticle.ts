@@ -23,7 +23,7 @@ const resolver: MutationToUnsubscribeArticleResolver = async (
 
   await articleService.unsubscribe(article.id, viewer.id)
 
-  return true
+  return article
 }
 
 export default resolver

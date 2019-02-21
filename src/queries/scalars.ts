@@ -1,3 +1,4 @@
+import { ApolloError } from 'apollo-server'
 import { GraphQLDate, GraphQLTime, GraphQLDateTime } from 'graphql-iso-date'
 import GraphQLJSON from 'graphql-type-json'
 import * as GraphQLUpload from 'graphql-upload'
@@ -14,6 +15,28 @@ import {
   EmailAddress,
   URL
 } from '@okgrow/graphql-scalars'
+import { EmailInvalidError } from 'common/errors'
+
+const errorWrapper = (
+  fn: (args: any) => any,
+  CustomError: typeof ApolloError
+) => (args: any) => {
+  try {
+    return fn(args)
+  } catch (err) {
+    throw new CustomError(err.message)
+  }
+}
+
+const CustomEmailAddress = {
+  serialize: errorWrapper(EmailAddress.serialize, EmailInvalidError),
+  parseValue: errorWrapper(EmailAddress.parseValue, EmailInvalidError),
+  parseLiteral: errorWrapper(
+    EmailAddress.parseLiteral as (args: any) => any,
+    EmailInvalidError
+  ),
+  ...EmailAddress
+}
 
 export default {
   Date: GraphQLDate,
@@ -22,7 +45,7 @@ export default {
   JSON: GraphQLJSON,
   Upload: GraphQLUpload,
   UUID: GraphQLUUID,
-  Email: EmailAddress,
+  Email: CustomEmailAddress,
   URL,
   NonPositiveInt,
   PositiveInt,

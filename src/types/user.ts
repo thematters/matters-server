@@ -18,13 +18,14 @@ export default /* GraphQL */ `
     userRegister(input: UserRegisterInput!): AuthResult!
     # login
     userLogin(input: UserLoginInput!): AuthResult!
+    userLogout: Boolean
     # addOAuth(input: AddOAuthInput!): Boolean
     # update info/ setting
     updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
     updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting @authenticate
     # follow/unfollow
-    followUser(input: FollowUserInput!): Boolean @authenticate
-    unfollowUser(input: UnfollowUserInput!): Boolean @authenticate
+    followUser(input: FollowUserInput!): User! @authenticate
+    unfollowUser(input: UnfollowUserInput!): User! @authenticate
     # importArticles(input: ImportArticlesInput!): [Article!]
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
     clearSearchHistory: Boolean  @authenticate

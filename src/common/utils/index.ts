@@ -9,6 +9,7 @@ export * from './validator'
 export * from './notice'
 export * from './getViewer'
 export * from './i18n'
+export * from './cookie'
 
 export const stripHtml = (html: string) => html.replace(/(<([^>]+)>)/gi, '')
 

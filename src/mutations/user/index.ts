@@ -5,6 +5,7 @@ import changeEmail from './changeEmail'
 import verifyEmail from './verifyEmail'
 import userRegister from './userRegister'
 import userLogin from './userLogin'
+import userLogout from './userLogout'
 import updateUserInfo from './updateUserInfo'
 import updateNotificationSetting from './updateNotificationSetting'
 import followUser from './followUser'
@@ -12,7 +13,6 @@ import unfollowUser from './unfollowUser'
 import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import invite from './invite'
-
 import updateUserState from './updateUserState'
 
 export default {
@@ -24,6 +24,7 @@ export default {
     verifyEmail,
     userRegister,
     userLogin,
+    userLogout,
     updateUserInfo,
     updateNotificationSetting,
     followUser,
@@ -31,7 +32,6 @@ export default {
     clearReadHistory,
     clearSearchHistory,
     invite,
-
     updateUserState
   }
 }

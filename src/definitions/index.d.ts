@@ -1,3 +1,6 @@
+import { Response } from 'express'
+import { DataSource } from 'apollo-datasource'
+
 import {
   UserService,
   ArticleService,
@@ -7,8 +10,6 @@ import {
   TagService,
   NotificationService
 } from 'connectors'
-import { DataSource } from 'apollo-datasource'
-
 import { LANGUAGE } from 'common/enums'
 
 export * from './schema'
@@ -51,6 +52,7 @@ export type Viewer = (User | { id: null }) & {
 
 export type RequestContext = {
   viewer: Viewer
+  res: Response
 }
 
 export type DataSources = {

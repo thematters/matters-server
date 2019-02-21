@@ -15,13 +15,14 @@ import {
   isValidUserName,
   isValidDisplayName,
   isValidPassword,
-  makeUserName
+  makeUserName,
+  setCookie
 } from 'common/utils'
 
 const resolver: MutationToUserRegisterResolver = async (
   root,
   { input },
-  { viewer, dataSources: { userService, notificationService } }
+  { viewer, dataSources: { userService, notificationService }, res }
 ) => {
   const { email: rawEmail, userName, displayName, password, codeId } = input
   const email = rawEmail ? rawEmail.toLowerCase() : null
@@ -88,7 +89,11 @@ const resolver: MutationToUserRegisterResolver = async (
     language: viewer.language
   })
 
-  return userService.login(input)
+  const { token, auth, expiresIn } = await userService.login(input)
+
+  setCookie({ res, token, expiresIn })
+
+  return { token, auth }
 }
 
 export default resolver

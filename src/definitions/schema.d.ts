@@ -930,11 +930,11 @@ export interface GQLMutation {
   _?: boolean
   publishArticle: GQLDraft
   archiveArticle: GQLArticle
-  subscribeArticle?: boolean
-  unsubscribeArticle?: boolean
+  subscribeArticle: GQLArticle
+  unsubscribeArticle: GQLArticle
   reportArticle?: boolean
   appreciateArticle: GQLArticle
-  readArticle?: boolean
+  readArticle: GQLArticle
   recallPublish: GQLDraft
 
   /**
@@ -950,7 +950,7 @@ export interface GQLMutation {
   putComment: GQLComment
   pinComment: GQLComment
   unpinComment: GQLComment
-  deleteComment?: boolean
+  deleteComment: GQLComment
   reportComment?: boolean
   voteComment: GQLComment
   unvoteComment: GQLComment
@@ -1003,6 +1003,7 @@ export interface GQLMutation {
    * login
    */
   userLogin: GQLAuthResult
+  userLogout?: boolean
 
   /**
    * addOAuth(input: AddOAuthInput!): Boolean
@@ -1014,8 +1015,8 @@ export interface GQLMutation {
   /**
    * follow/unfollow
    */
-  followUser?: boolean
-  unfollowUser?: boolean
+  followUser: GQLUser
+  unfollowUser: GQLUser
 
   /**
    * importArticles(input: ImportArticlesInput!): [Article!]
@@ -5210,6 +5211,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   verifyEmail?: MutationToVerifyEmailResolver<TParent>
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
+  userLogout?: MutationToUserLogoutResolver<TParent>
   updateUserInfo?: MutationToUpdateUserInfoResolver<TParent>
   updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<
     TParent
@@ -5736,6 +5738,15 @@ export interface MutationToUserLoginResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUserLoginArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUserLogoutResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

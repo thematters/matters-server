@@ -1,6 +1,7 @@
 // external
 import { createTestClient } from 'apollo-server-testing'
 import { ApolloServer } from 'apollo-server'
+import { Request } from 'express'
 // local
 import {
   DataSources,
@@ -75,7 +76,9 @@ export const testClient = async (
 
   const server = new ApolloServer({
     schema,
-    context: () => _context,
+    context: ({ req }: { req: Request }) => {
+      return { req, ..._context }
+    },
     dataSources: (): DataSources => ({
       userService: new UserService(),
       articleService: new ArticleService(),

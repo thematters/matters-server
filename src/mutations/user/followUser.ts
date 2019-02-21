@@ -35,7 +35,7 @@ const resolver: MutationToFollowUserResolver = async (
     recipientId: user.id
   })
 
-  return true
+  return user
 }
 
 export default resolver

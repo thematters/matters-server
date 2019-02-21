@@ -19,7 +19,7 @@ const resolver: MutationToReadArticleResolver = async (
     ip: viewer.ip
   })
 
-  return true
+  return article
 }
 
 export default resolver

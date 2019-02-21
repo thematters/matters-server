@@ -62,7 +62,9 @@ const UNVOTE_COMMENT = `
 
 const DELETE_COMMENT = `
   mutation($input: DeleteCommentInput!) {
-    deleteComment(input: $input)
+    deleteComment(input: $input) {
+      state
+    }
   }
 `
 
@@ -266,6 +268,6 @@ describe('mutations on comment', async () => {
         input: { id: toGlobalId({ type: 'Comment', id: 1 }) }
       }
     })
-    expect(_get(data, 'deleteComment')).toBe(true)
+    expect(_get(data, 'deleteComment.state')).toBe('archived')
   })
 })
