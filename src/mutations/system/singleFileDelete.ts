@@ -1,31 +1,21 @@
-import { v4 } from 'uuid'
+import { MutationToSingleFileDeleteResolver } from 'definitions'
+import { ForbiddenError } from 'common/errors'
 
-import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
-import { AuthenticationError } from 'common/errors'
-
-const resolver: MutationToSingleFileUploadResolver = async (
+const resolver: MutationToSingleFileDeleteResolver = async (
   root,
-  { input: { type, file } },
+  { input: { id } },
   { viewer, dataSources: { systemService } }
 ) => {
-  // if (!viewer.id) {
-  //   throw new AuthenticationError('visitor has no permission')
-  // }
+  const asset = await systemService.baseFindById(id, 'asset')
 
-  const data = await file
-  const { filename, mimetype, encoding } = data
-  const key = await systemService.aws.baseUploadFile(type, data)
-  const asset: ItemData = {
-    uuid: v4(),
-    authorId: viewer.id,
-    type,
-    path: key
+  if (viewer.id !== asset.authorId) {
+    throw new ForbiddenError('only autho can delete file')
   }
-  const newAsset = await systemService.baseCreate(asset, 'asset')
-  return {
-    ...newAsset,
-    path: `${systemService.aws.s3Endpoint}/${newAsset.path}`
-  }
+
+  await systemService.aws.baseDeleteFile(asset.path)
+  await systemService.baseDelete(asset.id, 'asset')
+
+  return true
 }
 
 export default resolver

@@ -11,14 +11,7 @@ import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql'
  *          TYPE DEFS          *
  *                             *
  *******************************/
-/**
- * The dummy queries and mutations are necessary because
- * graphql-js cannot have empty root types and we only extend
- * these types later on
- * Ref: apollographql/graphql-tools#293
- */
 export interface GQLQuery {
-  _?: boolean
   article?: GQLArticle
   node?: GQLNode
   frequentSearch?: Array<string>
@@ -927,7 +920,6 @@ export interface GQLUserInput {
 }
 
 export interface GQLMutation {
-  _?: boolean
   publishArticle: GQLDraft
   archiveArticle: GQLArticle
   subscribeArticle: GQLArticle
@@ -1359,7 +1351,6 @@ export interface GQLUpdateUserStateInput {
 export type GQLPositiveInt = any
 
 export interface GQLSubscription {
-  _?: boolean
   nodeEdited: GQLNode
 }
 
@@ -1635,7 +1626,6 @@ export interface GQLResolver {
   UserNewFollowerNotice?: GQLUserNewFollowerNoticeTypeResolver
 }
 export interface GQLQueryTypeResolver<TParent = any> {
-  _?: QueryTo_Resolver<TParent>
   article?: QueryToArticleResolver<TParent>
   node?: QueryToNodeResolver<TParent>
   frequentSearch?: QueryToFrequentSearchResolver<TParent>
@@ -1644,15 +1634,6 @@ export interface GQLQueryTypeResolver<TParent = any> {
   oss?: QueryToOssResolver<TParent>
   viewer?: QueryToViewerResolver<TParent>
   user?: QueryToUserResolver<TParent>
-}
-
-export interface QueryTo_Resolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
 }
 
 export interface QueryToArticleArgs {
@@ -5181,7 +5162,6 @@ export interface ReportToRemarkResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLMutationTypeResolver<TParent = any> {
-  _?: MutationTo_Resolver<TParent>
   publishArticle?: MutationToPublishArticleResolver<TParent>
   archiveArticle?: MutationToArchiveArticleResolver<TParent>
   subscribeArticle?: MutationToSubscribeArticleResolver<TParent>
@@ -5233,15 +5213,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   invite?: MutationToInviteResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
-}
-
-export interface MutationTo_Resolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
 }
 
 export interface MutationToPublishArticleArgs {
@@ -5953,23 +5924,7 @@ export interface AuthResultToTokenResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLSubscriptionTypeResolver<TParent = any> {
-  _?: SubscriptionTo_Resolver<TParent>
   nodeEdited?: SubscriptionToNodeEditedResolver<TParent>
-}
-
-export interface SubscriptionTo_Resolver<TParent = any, TResult = any> {
-  resolve?: (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ) => TResult
-  subscribe: (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ) => AsyncIterator<TResult>
 }
 
 export interface SubscriptionToNodeEditedArgs {

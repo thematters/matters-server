@@ -467,7 +467,6 @@ input MergeTagsInput {
 }
 
 type Mutation {
-  _: Boolean
   publishArticle(input: PublishArticleInput!): Draft!
   archiveArticle(input: ArchiveArticleInput!): Article!
   subscribeArticle(input: SubscribeArticleInput!): Article!
@@ -728,14 +727,7 @@ input PutRemarkInput {
   type: RemarkTypes!
 }
 
-"""
-The dummy queries and mutations are necessary because
-graphql-js cannot have empty root types and we only extend
-these types later on
-Ref: apollographql/graphql-tools#293
-"""
 type Query {
-  _: Boolean
   article(input: ArticleInput!): Article
   node(input: NodeInput!): Node
   frequentSearch(input: FrequentSearchInput!): [String!]
@@ -956,7 +948,6 @@ type SubscribedArticleNewCommentNotice implements Notice {
 }
 
 type Subscription {
-  _: Boolean
   nodeEdited(input: NodeEditedInput!): Node!
 }
 
