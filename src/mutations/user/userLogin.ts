@@ -10,12 +10,12 @@ const resolver: MutationToUserLoginResolver = async (
     dataSources: { userService },
     res
   } = context
-  const { token, expiresIn, user } = await userService.login({
+  const { token, user } = await userService.login({
     ...input,
     email: input.email ? input.email.toLowerCase() : null
   })
 
-  setCookie({ res, token, expiresIn })
+  setCookie({ res, token })
 
   context.viewer = getViewerFromUser(user)
 
