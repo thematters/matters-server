@@ -310,7 +310,7 @@ export const getUserInvitation = async (isAdmin = false) => {
 }
 
 describe('register and login functionarlities', () => {
-  test.only('register user and retrieve info', async () => {
+  test('register user and retrieve info', async () => {
     const email = `test-${Math.floor(Math.random() * 100)}@matters.news`
     const code = await userService.createVerificationCode({
       type: 'register',

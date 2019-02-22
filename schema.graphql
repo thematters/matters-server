@@ -521,7 +521,7 @@ type Mutation {
   verifyEmail(input: VerifyEmailInput!): Boolean
 
   """register"""
-  userRegister(input: UserRegisterInput!): Boolean!
+  userRegister(input: UserRegisterInput!): AuthResult!
 
   """login"""
   userLogin(input: UserLoginInput!): AuthResult!

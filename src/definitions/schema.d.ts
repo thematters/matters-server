@@ -990,7 +990,7 @@ export interface GQLMutation {
   /**
    * register
    */
-  userRegister: boolean
+  userRegister: GQLAuthResult
 
   /**
    * login
@@ -1282,11 +1282,6 @@ export interface GQLUserRegisterInput {
   codeId: string
 }
 
-export interface GQLUserLoginInput {
-  email: GQLEmail
-  password: string
-}
-
 export interface GQLAuthResult {
   auth: boolean
 
@@ -1295,6 +1290,11 @@ export interface GQLAuthResult {
    * @deprecated Use cookie for auth.
    */
   token?: string
+}
+
+export interface GQLUserLoginInput {
+  email: GQLEmail
+  password: string
 }
 
 export interface GQLUpdateUserInfoInput {

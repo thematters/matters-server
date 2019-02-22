@@ -93,7 +93,7 @@ const resolver: MutationToUserRegisterResolver = async (
 
   setCookie({ res, token, expiresIn })
 
-  return true
+  return { token, auth: true }
 }
 
 export default resolver

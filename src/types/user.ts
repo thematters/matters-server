@@ -15,7 +15,7 @@ export default /* GraphQL */ `
     # verify email
     verifyEmail(input: VerifyEmailInput!): Boolean @authenticate
     # register
-    userRegister(input: UserRegisterInput!): Boolean!
+    userRegister(input: UserRegisterInput!): AuthResult!
     # login
     userLogin(input: UserLoginInput!): AuthResult!
     userLogout: Boolean!
