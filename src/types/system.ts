@@ -8,7 +8,8 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    singleFileUpload(input: SingleFileUploadInput!): Asset!
+    singleFileUpload(input: SingleFileUploadInput!): Asset! @authenticate
+    singleFileDelete(input: SingleFileDeleteInput!): Boolean! @authenticate
     feedback(input: FeedbackInput!): Boolean
     setBoost(input: SetBoostInput!): Node! @authorize
     putRemark(input: PutRemarkInput!): String @authorize
@@ -181,6 +182,11 @@ export default /* GraphQL */ `
     type: AssetType!
     file: Upload!
   }
+
+  input SingleFileDeleteInput {
+    id: ID!
+  }
+
 
   input FeedbackInput {
     category: ID!

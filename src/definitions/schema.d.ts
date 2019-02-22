@@ -11,14 +11,7 @@ import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql'
  *          TYPE DEFS          *
  *                             *
  *******************************/
-/**
- * The dummy queries and mutations are necessary because
- * graphql-js cannot have empty root types and we only extend
- * these types later on
- * Ref: apollographql/graphql-tools#293
- */
 export interface GQLQuery {
-  _?: boolean
   article?: GQLArticle
   node?: GQLNode
   frequentSearch?: Array<string>
@@ -139,12 +132,12 @@ export enum GQLArticleState {
 export interface GQLUser extends GQLNode {
   id: string
   uuid: GQLUUID
-  userName: string
+  userName?: string
 
   /**
    * Display name on profile
    */
-  displayName: string
+  displayName?: string
 
   /**
    * URL for avatar
@@ -187,7 +180,7 @@ export interface GQLUser extends GQLNode {
    * Viewer is following this user
    */
   isFollowee: boolean
-  status: GQLUserStatus
+  status?: GQLUserStatus
 
   /**
    * OSS
@@ -927,7 +920,6 @@ export interface GQLUserInput {
 }
 
 export interface GQLMutation {
-  _?: boolean
   publishArticle: GQLDraft
   archiveArticle: GQLArticle
   subscribeArticle: GQLArticle
@@ -969,6 +961,7 @@ export interface GQLMutation {
   deleteDraft?: boolean
   markAllNoticesAsRead?: boolean
   singleFileUpload: GQLAsset
+  singleFileDelete: boolean
   feedback?: boolean
   setBoost: GQLNode
   putRemark?: string
@@ -1003,7 +996,7 @@ export interface GQLMutation {
    * login
    */
   userLogin: GQLAuthResult
-  userLogout?: boolean
+  userLogout: boolean
 
   /**
    * addOAuth(input: AddOAuthInput!): Boolean
@@ -1208,6 +1201,10 @@ export interface GQLAsset {
   createdAt: GQLDateTime
 }
 
+export interface GQLSingleFileDeleteInput {
+  id: string
+}
+
 export interface GQLFeedbackInput {
   category: string
   description?: string
@@ -1287,6 +1284,11 @@ export interface GQLUserRegisterInput {
 
 export interface GQLAuthResult {
   auth: boolean
+
+  /**
+   *
+   * @deprecated Use cookie for auth.
+   */
   token?: string
 }
 
@@ -1349,7 +1351,6 @@ export interface GQLUpdateUserStateInput {
 export type GQLPositiveInt = any
 
 export interface GQLSubscription {
-  _?: boolean
   nodeEdited: GQLNode
 }
 
@@ -1625,7 +1626,6 @@ export interface GQLResolver {
   UserNewFollowerNotice?: GQLUserNewFollowerNoticeTypeResolver
 }
 export interface GQLQueryTypeResolver<TParent = any> {
-  _?: QueryTo_Resolver<TParent>
   article?: QueryToArticleResolver<TParent>
   node?: QueryToNodeResolver<TParent>
   frequentSearch?: QueryToFrequentSearchResolver<TParent>
@@ -1634,15 +1634,6 @@ export interface GQLQueryTypeResolver<TParent = any> {
   oss?: QueryToOssResolver<TParent>
   viewer?: QueryToViewerResolver<TParent>
   user?: QueryToUserResolver<TParent>
-}
-
-export interface QueryTo_Resolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
 }
 
 export interface QueryToArticleArgs {
@@ -5171,7 +5162,6 @@ export interface ReportToRemarkResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLMutationTypeResolver<TParent = any> {
-  _?: MutationTo_Resolver<TParent>
   publishArticle?: MutationToPublishArticleResolver<TParent>
   archiveArticle?: MutationToArchiveArticleResolver<TParent>
   subscribeArticle?: MutationToSubscribeArticleResolver<TParent>
@@ -5201,6 +5191,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteDraft?: MutationToDeleteDraftResolver<TParent>
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
   singleFileUpload?: MutationToSingleFileUploadResolver<TParent>
+  singleFileDelete?: MutationToSingleFileDeleteResolver<TParent>
   feedback?: MutationToFeedbackResolver<TParent>
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
@@ -5222,15 +5213,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   invite?: MutationToInviteResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
-}
-
-export interface MutationTo_Resolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
 }
 
 export interface MutationToPublishArticleArgs {
@@ -5617,6 +5599,21 @@ export interface MutationToSingleFileUploadResolver<
   ): TResult
 }
 
+export interface MutationToSingleFileDeleteArgs {
+  input: GQLSingleFileDeleteInput
+}
+export interface MutationToSingleFileDeleteResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToSingleFileDeleteArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface MutationToFeedbackArgs {
   input: GQLFeedbackInput
 }
@@ -5927,23 +5924,7 @@ export interface AuthResultToTokenResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLSubscriptionTypeResolver<TParent = any> {
-  _?: SubscriptionTo_Resolver<TParent>
   nodeEdited?: SubscriptionToNodeEditedResolver<TParent>
-}
-
-export interface SubscriptionTo_Resolver<TParent = any, TResult = any> {
-  resolve?: (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ) => TResult
-  subscribe: (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ) => AsyncIterator<TResult>
 }
 
 export interface SubscriptionToNodeEditedArgs {

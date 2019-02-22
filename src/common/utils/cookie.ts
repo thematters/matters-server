@@ -14,5 +14,6 @@ export const setCookie = ({
     // skip during testing
     return
   }
+
   return res.cookie('token', token, { maxAge: expiresIn, httpOnly: true })
 }
