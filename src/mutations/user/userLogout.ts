@@ -1,8 +1,8 @@
 import { MutationToUserLogoutResolver } from 'definitions'
-import { USER_ROLE } from 'common/enums'
+import { clearCookie } from 'common/utils'
 
 const resolver: MutationToUserLogoutResolver = async (root, args, { res }) => {
-  res.clearCookie('token')
+  clearCookie(res)
   return true
 }
 

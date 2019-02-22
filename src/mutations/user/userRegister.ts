@@ -89,9 +89,9 @@ const resolver: MutationToUserRegisterResolver = async (
     language: viewer.language
   })
 
-  const { token, expiresIn } = await userService.login(input)
+  const { token } = await userService.login(input)
 
-  setCookie({ res, token, expiresIn })
+  setCookie({ res, token })
 
   return { token, auth: true }
 }

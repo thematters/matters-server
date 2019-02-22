@@ -1,31 +1,35 @@
 import { Response } from 'express'
 import psl from 'psl'
+
 import { environment } from 'common/environment'
+import { EXPIRES_IN } from 'common/enums'
 
-export const setCookie = ({
-  res,
-  token,
-  expiresIn
-}: {
-  res: Response
-  token: string
-  expiresIn: number
-}) => {
-  if (environment.env === 'test') {
-    // skip during testing
-    return
-  }
-
-  let domain
+const getCookieOption = () => {
+  let domain: string
   if (environment.env === 'develop') {
     domain = ''
   } else {
     domain = `.${psl.get(environment.domain || 'matters.news')}`
   }
 
-  return res.cookie('token', token, {
-    maxAge: expiresIn,
+  return {
+    maxAge: EXPIRES_IN,
     httpOnly: true,
     domain
-  })
+  }
+}
+
+export const setCookie = ({ res, token }: { res: Response; token: string }) => {
+  if (environment.env === 'test') {
+    // skip during testing
+    return
+  }
+
+  const opts = getCookieOption()
+  return res.cookie('token', token, opts)
+}
+
+export const clearCookie = (res: Response) => {
+  const opts = getCookieOption()
+  return res.clearCookie('token', opts)
 }

@@ -312,3 +312,5 @@ export const INVALID_NAMES = [
   'matters管理員',
   'matters管理员'
 ]
+
+export const EXPIRES_IN = 86400 * 90 // millisecond

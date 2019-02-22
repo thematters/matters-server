@@ -17,7 +17,8 @@ import {
   USER_STATE,
   INVITATION_STATUS,
   BATCH_SIZE,
-  ARTICLE_STATE
+  ARTICLE_STATE,
+  EXPIRES_IN
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -28,7 +29,6 @@ import {
 import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
-import { ConfigurationServicePlaceholders } from 'aws-sdk/lib/config_service_placeholders'
 
 export class UserService extends BaseService {
   constructor() {
@@ -82,15 +82,7 @@ export class UserService extends BaseService {
   /**
    * Login user and return jwt token. Default to expires in 24 * 90 hours
    */
-  login = async ({
-    email,
-    password,
-    expiresIn = 86400 * 90
-  }: {
-    email: string
-    password: string
-    expiresIn?: number
-  }) => {
+  login = async ({ email, password }: { email: string; password: string }) => {
     const user = await this.findByEmail(email)
 
     if (!user) {
@@ -103,12 +95,11 @@ export class UserService extends BaseService {
     }
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
-      expiresIn
+      expiresIn: EXPIRES_IN
     })
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
     return {
-      expiresIn,
       token,
       user
     }
