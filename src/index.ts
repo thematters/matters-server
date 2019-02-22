@@ -28,6 +28,7 @@ const server = new ApolloServer({
   cors: {
     origin: [
       'http://localhost:3000',
+      'http://127.0.0.1:3000',
       'https://web-stage.matters.news',
       'https://web-develop.matters.news',
       'http://matters-server-develop.ap-southeast-1.elasticbeanstalk.com/'
