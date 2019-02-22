@@ -9,7 +9,7 @@ const resolver: MutationToSingleFileDeleteResolver = async (
   const asset = await systemService.baseFindById(id, 'asset')
 
   if (viewer.id !== asset.authorId) {
-    throw new ForbiddenError('only autho can delete file')
+    throw new ForbiddenError('only author can delete file')
   }
 
   await systemService.aws.baseDeleteFile(asset.path)
