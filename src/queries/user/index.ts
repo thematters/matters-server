@@ -1,6 +1,5 @@
 import { Context } from 'definitions'
 import { toGlobalId } from 'common/utils'
-import { MAT_UNIT } from 'common/enums'
 
 import rootUser from './rootUser'
 import subscriptions from './subscriptions'

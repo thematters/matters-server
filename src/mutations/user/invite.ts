@@ -28,8 +28,9 @@ const resolver: MutationToInviteResolver = async (
   const isAdmin = viewer.hasRole('admin')
   if (!isAdmin) {
     const invited = await userService.findInvitations(viewer.id)
+    const viewerTotalMAT = await userService.totalMAT(viewer.id)
     const invitationLeft =
-      Math.floor(viewer.mat / MAT_UNIT.invitationCalculate) - invited.length
+      Math.floor(viewerTotalMAT / MAT_UNIT.invitationCalculate) - invited.length
 
     if (viewer.state !== 'active' || invitationLeft <= 0) {
       throw new UserInviteFailedError('unable to invite')
