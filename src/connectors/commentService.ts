@@ -126,7 +126,7 @@ export class CommentService extends BaseService {
     await this.knex
       .select()
       .from(this.table)
-      .where({ authorId })
+      .where({ authorId, state: COMMENT_STATE.active })
       .orderBy('id', 'desc')
 
   /**
