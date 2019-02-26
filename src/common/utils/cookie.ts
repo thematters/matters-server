@@ -6,7 +6,7 @@ import { EXPIRES_IN } from 'common/enums'
 
 const getCookieOption = () => {
   let domain: string
-  if (environment.env === 'develop') {
+  if (environment.env === 'development') {
     domain = ''
   } else {
     domain = `.${psl.get(environment.domain || 'matters.news')}`
