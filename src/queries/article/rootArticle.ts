@@ -2,13 +2,20 @@ import { QueryToArticleResolver } from 'definitions'
 
 const resolver: QueryToArticleResolver = async (
   root,
-  { input: { mediaHash } },
+  { input: { mediaHash, uuid } },
   { viewer, dataSources: { articleService } }
 ) => {
-  if (!mediaHash) {
+  if (!mediaHash && !uuid) {
     return
   }
-  return articleService.findByMediaHash(mediaHash)
+
+  if (mediaHash) {
+    return articleService.findByMediaHash(mediaHash)
+  }
+
+  if (uuid) {
+    return articleService.baseFindByUUID(uuid)
+  }
 }
 
 export default resolver
