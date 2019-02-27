@@ -36,6 +36,7 @@ export type User = {
   state: string
   createdAt: string
   updatedAt: string
+  agreeOn: string
 }
 
 export type Context = RequestContext & {

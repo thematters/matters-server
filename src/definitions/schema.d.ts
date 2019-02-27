@@ -233,6 +233,7 @@ export interface GQLUserInfo {
    */
   readSpeed: number
   badges?: Array<GQLBadge>
+  agreeOn?: GQLDateTime
 }
 
 export type GQLEmail = any
@@ -1304,6 +1305,7 @@ export interface GQLUpdateUserInfoInput {
   avatar?: string
   description?: string
   language?: GQLUserLanguage
+  agreeOn?: boolean
 }
 
 export interface GQLUpdateNotificationSettingInput {
@@ -1501,7 +1503,8 @@ export enum GQLUserInfoFields {
   avatar = 'avatar',
   description = 'description',
   email = 'email',
-  mobile = 'mobile'
+  mobile = 'mobile',
+  agreeOn = 'agreeOn'
 }
 
 export interface GQLUserNewFollowerNotice extends GQLNotice {
@@ -2384,6 +2387,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   mobile?: UserInfoToMobileResolver<TParent>
   readSpeed?: UserInfoToReadSpeedResolver<TParent>
   badges?: UserInfoToBadgesResolver<TParent>
+  agreeOn?: UserInfoToAgreeOnResolver<TParent>
 }
 
 export interface UserInfoToCreatedAtResolver<TParent = any, TResult = any> {
@@ -2480,6 +2484,15 @@ export interface UserInfoToReadSpeedResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToBadgesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToAgreeOnResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
