@@ -23,8 +23,11 @@ export interface GQLQuery {
 }
 
 export interface GQLArticleInput {
-  mediaHash: string
+  mediaHash?: string
+  uuid?: GQLUUID
 }
+
+export type GQLUUID = any
 
 export interface GQLArticle extends GQLNode {
   id: string
@@ -190,8 +193,6 @@ export interface GQLUser extends GQLNode {
   notices: GQLNoticeConnection
 }
 
-export type GQLUUID = any
-
 export type GQLURL = any
 
 export interface GQLUserInfo {
@@ -233,6 +234,7 @@ export interface GQLUserInfo {
    */
   readSpeed: number
   badges?: Array<GQLBadge>
+  agreeOn?: GQLDateTime
 }
 
 export type GQLEmail = any
@@ -1304,6 +1306,7 @@ export interface GQLUpdateUserInfoInput {
   avatar?: string
   description?: string
   language?: GQLUserLanguage
+  agreeOn?: boolean
 }
 
 export interface GQLUpdateNotificationSettingInput {
@@ -1501,7 +1504,8 @@ export enum GQLUserInfoFields {
   avatar = 'avatar',
   description = 'description',
   email = 'email',
-  mobile = 'mobile'
+  mobile = 'mobile',
+  agreeOn = 'agreeOn'
 }
 
 export interface GQLUserNewFollowerNotice extends GQLNotice {
@@ -1523,6 +1527,7 @@ export interface GQLUserNewFollowerNotice extends GQLNotice {
  */
 export interface GQLResolver {
   Query?: GQLQueryTypeResolver
+  UUID?: GraphQLScalarType
   Article?: GQLArticleTypeResolver
   Node?: {
     __resolveType: GQLNodeTypeResolver
@@ -1530,7 +1535,6 @@ export interface GQLResolver {
 
   DateTime?: GraphQLScalarType
   User?: GQLUserTypeResolver
-  UUID?: GraphQLScalarType
   URL?: GraphQLScalarType
   UserInfo?: GQLUserInfoTypeResolver
   Email?: GraphQLScalarType
@@ -2384,6 +2388,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   mobile?: UserInfoToMobileResolver<TParent>
   readSpeed?: UserInfoToReadSpeedResolver<TParent>
   badges?: UserInfoToBadgesResolver<TParent>
+  agreeOn?: UserInfoToAgreeOnResolver<TParent>
 }
 
 export interface UserInfoToCreatedAtResolver<TParent = any, TResult = any> {
@@ -2480,6 +2485,15 @@ export interface UserInfoToReadSpeedResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToBadgesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToAgreeOnResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

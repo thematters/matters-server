@@ -54,6 +54,11 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     updateParams.displayName = input.displayName
   }
 
+  // check user agree term
+  if (input.agreeOn === true) {
+    updateParams.agreeOn = new Date()
+  }
+
   if (isEmpty(updateParams)) {
     throw new UserInputError('bad request')
   }

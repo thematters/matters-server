@@ -121,6 +121,7 @@ const GET_VIEWER_INFO = `
         mobile
         readSpeed
         createdAt
+        agreeOn
       }
     }
   }

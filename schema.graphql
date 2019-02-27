@@ -74,7 +74,8 @@ type ArticleEdge {
 }
 
 input ArticleInput {
-  mediaHash: String!
+  mediaHash: String
+  uuid: UUID
 }
 
 type ArticleNewAppreciationNotice implements Notice {
@@ -1064,6 +1065,7 @@ input UpdateUserInfoInput {
   avatar: ID
   description: String
   language: UserLanguage
+  agreeOn: Boolean
 }
 
 input UpdateUserStateInput {
@@ -1167,6 +1169,7 @@ type UserInfo {
   """Use 500 for now, adaptive in the future"""
   readSpeed: Int!
   badges: [Badge!]
+  agreeOn: DateTime
 }
 
 enum UserInfoFields {
@@ -1175,6 +1178,7 @@ enum UserInfoFields {
   description
   email
   mobile
+  agreeOn
 }
 
 input UserInput {

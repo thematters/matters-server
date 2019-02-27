@@ -127,6 +127,7 @@ export default /* GraphQL */ `
     # Use 500 for now, adaptive in the future
     readSpeed: Int!
     badges: [Badge!]
+    agreeOn: DateTime
   }
 
   type UserSettings {
@@ -334,6 +335,7 @@ export default /* GraphQL */ `
     avatar: ID
     description: String
     language: UserLanguage
+    agreeOn: Boolean
   }
 
   input UpdateUserStateInput {
@@ -377,6 +379,7 @@ export default /* GraphQL */ `
     description
     email
     mobile
+    agreeOn
   }
 
   enum UserLanguage {
