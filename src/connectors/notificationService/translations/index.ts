@@ -144,8 +144,8 @@ export default {
       )}" has been reported by other users`
   }),
   article_reported: i18n<{ title: string }>({
-    zh_hant: ({ title }) => `您的文章被舉報《${title}}》`,
-    zh_hans: ({ title }) => `您的文章被举报《${title}}》`,
+    zh_hant: ({ title }) => `您的文章《${title}}》被舉報`,
+    zh_hans: ({ title }) => `您的文章《${title}}》被举报`,
     en: ({ title }) =>
       `Your article "${title}" has been reported by other users`
   })
