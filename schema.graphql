@@ -74,7 +74,8 @@ type ArticleEdge {
 }
 
 input ArticleInput {
-  mediaHash: String!
+  mediaHash: String
+  uuid: UUID
 }
 
 type ArticleNewAppreciationNotice implements Notice {

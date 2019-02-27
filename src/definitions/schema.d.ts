@@ -23,8 +23,11 @@ export interface GQLQuery {
 }
 
 export interface GQLArticleInput {
-  mediaHash: string
+  mediaHash?: string
+  uuid?: GQLUUID
 }
+
+export type GQLUUID = any
 
 export interface GQLArticle extends GQLNode {
   id: string
@@ -189,8 +192,6 @@ export interface GQLUser extends GQLNode {
   remark?: string
   notices: GQLNoticeConnection
 }
-
-export type GQLUUID = any
 
 export type GQLURL = any
 
@@ -1526,6 +1527,7 @@ export interface GQLUserNewFollowerNotice extends GQLNotice {
  */
 export interface GQLResolver {
   Query?: GQLQueryTypeResolver
+  UUID?: GraphQLScalarType
   Article?: GQLArticleTypeResolver
   Node?: {
     __resolveType: GQLNodeTypeResolver
@@ -1533,7 +1535,6 @@ export interface GQLResolver {
 
   DateTime?: GraphQLScalarType
   User?: GQLUserTypeResolver
-  UUID?: GraphQLScalarType
   URL?: GraphQLScalarType
   UserInfo?: GQLUserInfoTypeResolver
   Email?: GraphQLScalarType
