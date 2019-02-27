@@ -186,19 +186,16 @@ class Push extends BaseService {
       return
     }
 
-    const recipientUUID = await this.baseFindById(
-      noticeParams.recipientId,
-      'user'
-    )
+    const recipient = await this.baseFindById(noticeParams.recipientId, 'user')
     const text = await this.generatePushText({ ...noticeParams, language })
 
-    if (!recipientUUID || !text) {
+    if (!recipient || !text) {
       return
     }
 
     notificationQueue.pushNotification({
       text,
-      recipientUUIDs: [recipientUUID]
+      recipientUUIDs: [recipient.uuid]
     })
   }
 }
