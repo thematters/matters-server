@@ -407,7 +407,7 @@ export class ArticleService extends BaseService {
 
   related = async ({ id, size }: { id: string; size: number }) => {
     // skip if in test
-    if (environment.env === 'test') {
+    if (['test', 'development'].includes(environment.env)) {
       return []
     }
 

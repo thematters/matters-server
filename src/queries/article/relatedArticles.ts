@@ -48,6 +48,8 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     ids = addRec(ids, articles.map(({ id }: { id: string }) => id))
   }
 
+  console.log(ids)
+
   return connectionFromPromisedArray(
     articleService.dataloader.loadMany(ids),
     input

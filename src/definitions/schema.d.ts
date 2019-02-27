@@ -441,7 +441,7 @@ export interface GQLDraft extends GQLNode {
   title?: string
   slug: string
   summary?: string
-  content: string
+  content?: string
   scheduledAt?: GQLDateTime
   createdAt: GQLDateTime
   updatedAt: GQLDateTime

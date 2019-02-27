@@ -14,7 +14,7 @@ export default /* GraphQL */ `
     title: String
     slug: String!
     summary: String
-    content: String!
+    content: String
     scheduledAt: DateTime
     createdAt: DateTime!
     updatedAt: DateTime!

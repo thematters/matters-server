@@ -378,7 +378,7 @@ type Draft implements Node {
   title: String
   slug: String!
   summary: String
-  content: String!
+  content: String
   scheduledAt: DateTime
   createdAt: DateTime!
   updatedAt: DateTime!
