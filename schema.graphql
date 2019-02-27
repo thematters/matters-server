@@ -376,6 +376,7 @@ type Draft implements Node {
   id: ID!
   upstream: Article
   title: String
+  slug: String!
   summary: String
   content: String!
   scheduledAt: DateTime

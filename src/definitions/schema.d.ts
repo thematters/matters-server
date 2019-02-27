@@ -439,6 +439,7 @@ export interface GQLDraft extends GQLNode {
   id: string
   upstream?: GQLArticle
   title?: string
+  slug: string
   summary?: string
   content: string
   scheduledAt?: GQLDateTime
@@ -3194,6 +3195,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   id?: DraftToIdResolver<TParent>
   upstream?: DraftToUpstreamResolver<TParent>
   title?: DraftToTitleResolver<TParent>
+  slug?: DraftToSlugResolver<TParent>
   summary?: DraftToSummaryResolver<TParent>
   content?: DraftToContentResolver<TParent>
   scheduledAt?: DraftToScheduledAtResolver<TParent>
@@ -3223,6 +3225,15 @@ export interface DraftToUpstreamResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToTitleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToSlugResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

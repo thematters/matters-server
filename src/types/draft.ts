@@ -12,6 +12,7 @@ export default /* GraphQL */ `
     id: ID!
     upstream: Article
     title: String
+    slug: String!
     summary: String
     content: String!
     scheduledAt: DateTime
