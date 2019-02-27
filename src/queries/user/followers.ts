@@ -1,4 +1,8 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  cursorToIndex,
+  connectionFromArray
+} from 'common/utils'
 
 import { UserToFollowersResolver } from 'definitions'
 
@@ -7,6 +11,10 @@ const resolver: UserToFollowersResolver = async (
   { input },
   { dataSources: { userService } }
 ) => {
+  if (!id) {
+    return connectionFromArray([], input)
+  }
+
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
   const totalCount = await userService.countFollowers(id)

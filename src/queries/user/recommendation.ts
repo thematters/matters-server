@@ -189,11 +189,13 @@ const resolvers: GQLRecommendationTypeResolver = {
     let notIn: any = []
     if (filter && filter.followed === false) {
       // TODO: move this logic to db layer
-      const followees = await userService.findFollowees({
-        userId: id,
-        limit: 999
-      })
-      notIn = followees.map(({ targetId }: any) => targetId)
+      if (id) {
+        const followees = await userService.findFollowees({
+          userId: id,
+          limit: 999
+        })
+        notIn = followees.map(({ targetId }: any) => targetId)
+      }
     }
 
     if (filter && filter.random) {

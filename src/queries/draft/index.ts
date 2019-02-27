@@ -1,3 +1,5 @@
+import slugify from '@matters/slugify'
+
 import { toGlobalId } from 'common/utils'
 
 import drafts from './drafts'
@@ -13,6 +15,7 @@ export default {
   },
   Draft: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Draft', id }),
+    slug: ({ title }: { title: string }) => slugify(title),
     cover,
     upstream
   },
