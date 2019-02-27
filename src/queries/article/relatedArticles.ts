@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import { ArticleToRelatedArticlesResolver } from 'definitions'
 import { connectionFromPromisedArray } from 'common/utils'
-import { environment } from 'common/environment'
+import logger from 'common/logger'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
   { authorId, id },
@@ -16,14 +16,19 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   const addRec = (rec: string[], extra: string[]) =>
     _.without(_.uniq(rec.concat(extra)), id)
 
-  // get initial recommendation, skip if in test
-  const relatedArticles = await articleService.related({
-    id,
-    size: recommendationSize
-  })
+  let ids: string[] = []
+  // get initial recommendation, preventing crashing site
+  try {
+    const relatedArticles = await articleService.related({
+      id,
+      size: recommendationSize
+    })
 
-  // pull out ids
-  let ids: string[] = relatedArticles.map(({ id }) => id)
+    // pull out ids
+    ids = relatedArticles.map(({ id }) => id)
+  } catch (err) {
+    logger.error(`error in recommendation via ES: ${JSON.stringify(err)}`)
+  }
 
   // fall back to using tag
   if (ids.length < recommendationSize) {
@@ -47,8 +52,6 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     let articles = await articleService.findByAuthor(authorId)
     ids = addRec(ids, articles.map(({ id }: { id: string }) => id))
   }
-
-  console.log(ids)
 
   return connectionFromPromisedArray(
     articleService.dataloader.loadMany(ids),
