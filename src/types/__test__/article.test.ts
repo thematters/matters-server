@@ -13,7 +13,7 @@ import { testClient, publishArticle, putDraft, getViewerMAT } from './utils'
 
 afterAll(knex.destroy)
 
-const mediaHash = 'some-ipfs-media-hash-1'
+const mediaHash = 'someIpfsMediaHash1'
 
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 2 })
 
