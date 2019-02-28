@@ -13,8 +13,8 @@ exports.seed = function(knex, Promise) {
           slug: 'test-article-1',
           summary: 'Some text',
           word_count: '1000',
-          data_hash: 'some-ipfs-data-hash-1',
-          media_hash: 'some-ipfs-media-hash-1',
+          data_hash: 'someIpfsDataHash1',
+          media_hash: 'someIpfsMediaHash1',
           content: '<div>some html string</div>',
           state: 'active'
         },
@@ -27,8 +27,8 @@ exports.seed = function(knex, Promise) {
           slug: 'test-article-2',
           summary: 'Some text',
           word_count: '1000',
-          data_hash: 'some-ipfs-data-hash-2',
-          media_hash: 'some-ipfs-media-hash-2',
+          data_hash: 'someIpfsDataHash2',
+          media_hash: 'someIpfsMediaHash2',
           content: '<div>some html string</div>',
           state: 'active'
         },
@@ -41,8 +41,8 @@ exports.seed = function(knex, Promise) {
           slug: 'test-article-3',
           summary: 'Some text',
           word_count: '1000',
-          data_hash: 'some-ipfs-data-hash-3',
-          media_hash: 'some-ipfs-media-hash-3',
+          data_hash: 'someIpfsMediaHash3',
+          media_hash: 'someIpfsMediaHash3',
           content: '<div>some html string</div>',
           state: 'active',
           public: true
@@ -55,8 +55,8 @@ exports.seed = function(knex, Promise) {
           slug: 'test-article-4',
           summary: 'Some text',
           word_count: '1000',
-          data_hash: 'some-ipfs-data-hash-4',
-          media_hash: 'some-ipfs-media-hash-4',
+          data_hash: 'someIpfsMediaHash4',
+          media_hash: 'someIpfsMediaHash4',
           content: '<div>some html string</div>',
           state: 'active',
           public: true

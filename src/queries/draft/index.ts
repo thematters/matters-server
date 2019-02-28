@@ -1,6 +1,6 @@
 import slugify from '@matters/slugify'
 
-import { toGlobalId } from 'common/utils'
+import { toGlobalId, countWords } from 'common/utils'
 
 import drafts from './drafts'
 import audiodrafts from './audiodrafts'
@@ -16,6 +16,8 @@ export default {
   Draft: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Draft', id }),
     slug: ({ title }: { title: string }) => slugify(title),
+    wordCount: ({ content }: { content?: string }) =>
+      content ? countWords(content) : 0,
     cover,
     upstream
   },

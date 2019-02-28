@@ -244,14 +244,21 @@ export class ArticleService extends BaseService {
     return result
   }
 
-  search = async ({ key }: GQLSearchInput) => {
+  search = async ({ key, first }: GQLSearchInput) => {
+    // for local dev
+    if (environment.env === 'development') {
+      return this.knex(this.table)
+        .where('title', 'like', `%${key}%`)
+        .limit(100)
+    }
+
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
         fuzziness: 5,
         fields: ['title^10', 'content']
       })
-      .size(100)
+      .size(100) // TODO: pagination with search
       .build()
 
     try {
@@ -407,7 +414,7 @@ export class ArticleService extends BaseService {
 
   related = async ({ id, size }: { id: string; size: number }) => {
     // skip if in test
-    if (environment.env === 'test') {
+    if (['test', 'development'].includes(environment.env)) {
       return []
     }
 

@@ -251,12 +251,17 @@ export class UserService extends BaseService {
     })
 
   search = async ({ key }: GQLSearchInput) => {
+    if (environment.env === 'development') {
+      return this.knex(this.table)
+        .where('user_name', 'like', `%${key}%`)
+        .limit(100)
+    }
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
         fields: ['displayName^5', 'userName^10', 'description']
       })
-      .size(100)
+      .size(100) // TODO: pagination with search
       .build()
 
     try {
