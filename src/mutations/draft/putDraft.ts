@@ -11,18 +11,17 @@ import {
 
 const resolver: MutationToPutDraftResolver = async (
   root,
-  {
-    input: {
-      id,
-      upstreamId,
-      title,
-      content,
-      tags,
-      coverAssetId: coverAssetUUID
-    }
-  },
+  { input },
   { viewer, dataSources: { draftService, systemService } }
 ) => {
+  const {
+    id,
+    upstreamId,
+    title,
+    content,
+    tags,
+    coverAssetId: coverAssetUUID
+  } = input
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
@@ -54,6 +53,11 @@ const resolver: MutationToPutDraftResolver = async (
     _.identity
   )
 
+  // for removing upstream
+  if (upstreamId === '') {
+    data.upstreamId = null
+  }
+
   // Update
   if (id) {
     const { id: dbId } = fromGlobalId(id)
@@ -64,6 +68,7 @@ const resolver: MutationToPutDraftResolver = async (
     if (draft.authorId != viewer.id) {
       throw new ForbiddenError('viewer has no permission')
     }
+
     return await draftService.baseUpdate(
       dbId,
       { updatedAt: new Date(), ...data },
