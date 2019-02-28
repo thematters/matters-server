@@ -18,6 +18,7 @@ export default /* GraphQL */ `
     scheduledAt: DateTime
     createdAt: DateTime!
     updatedAt: DateTime!
+    wordCount: Int!
     tags: [String!]
     cover: URL
     publishState: PublishState!

@@ -447,6 +447,7 @@ export interface GQLDraft extends GQLNode {
   scheduledAt?: GQLDateTime
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
+  wordCount: number
   tags?: Array<string>
   cover?: GQLURL
   publishState: GQLPublishState
@@ -3215,6 +3216,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   scheduledAt?: DraftToScheduledAtResolver<TParent>
   createdAt?: DraftToCreatedAtResolver<TParent>
   updatedAt?: DraftToUpdatedAtResolver<TParent>
+  wordCount?: DraftToWordCountResolver<TParent>
   tags?: DraftToTagsResolver<TParent>
   cover?: DraftToCoverResolver<TParent>
   publishState?: DraftToPublishStateResolver<TParent>
@@ -3293,6 +3295,15 @@ export interface DraftToCreatedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToUpdatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToWordCountResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
