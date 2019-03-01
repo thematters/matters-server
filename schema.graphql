@@ -244,13 +244,20 @@ type Comment implements Node {
   downvotes: Int!
   myVote: Vote
   mentions: [User!]
-  comments(input: ConnectionArgs!): CommentConnection!
+  comments(input: CommentCommentsInput!): CommentConnection!
   parentComment: Comment
   quotationStart: Int
   quotationEnd: Int
   quotationContent: String
   replyTo: Comment
   remark: String
+}
+
+input CommentCommentsInput {
+  author: ID
+  sort: CommentSort
+  after: String
+  first: Int
 }
 
 type CommentConnection implements Connection {

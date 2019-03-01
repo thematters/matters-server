@@ -23,7 +23,7 @@ export default /* GraphQL */ `
     downvotes: Int!
     myVote: Vote
     mentions: [User!]
-    comments(input: ConnectionArgs!): CommentConnection!
+    comments(input: CommentCommentsInput!): CommentConnection!
     parentComment: Comment
     quotationStart: Int
     quotationEnd: Int
@@ -67,6 +67,12 @@ export default /* GraphQL */ `
     mentions: [ID!]
   }
 
+  input CommentCommentsInput {
+    author: ID
+    sort: CommentSort
+    after: String
+    first: Int
+  }
 
   input CommentsInput {
     author: ID

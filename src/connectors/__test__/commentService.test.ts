@@ -36,6 +36,6 @@ test('findPinnedByArticle', async () => {
 })
 
 test('findByParent', async () => {
-  const comments = await commentService.findByParent('1')
+  const comments = await commentService.findByParent({ id: '1' })
   expect(comments.length).toBe(2)
 })
