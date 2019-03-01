@@ -239,6 +239,8 @@ export class CommentService extends BaseService {
       query = query.whereNull('parent_comment_id')
     }
 
+    query = query.whereNot({ state: COMMENT_STATE.archived })
+
     return query
   }
 
