@@ -10,7 +10,11 @@ import {
 import { BaseService } from './baseService'
 import { CommentNotFoundError } from 'common/errors'
 
-import { GQLCommentsInput, GQLVote } from 'definitions/schema'
+import {
+  GQLCommentsInput,
+  GQLVote,
+  GQLCommentCommentsInput
+} from 'definitions/schema'
 
 export class CommentService extends BaseService {
   constructor() {
@@ -132,15 +136,53 @@ export class CommentService extends BaseService {
   /**
    * Find comments by a given comment id.
    */
-  findByParent = async (commentId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({
-        parentCommentId: commentId,
-        state: COMMENT_STATE.active
-      })
-      .orderBy('created_at', 'desc')
+  findByParent = async ({
+    id,
+    author,
+    sort
+  }: GQLCommentCommentsInput & { id: string }): Promise<any[]> => {
+    let where: { [key: string]: string | boolean } = {
+      parentCommentId: id,
+      state: COMMENT_STATE.active // filter inactive descendant comments
+    }
+
+    let query = null
+    const sortCreatedAt = (by: 'desc' | 'asc') =>
+      this.knex
+        .select()
+        .from(this.table)
+        .where(where)
+        .orderBy('created_at', by)
+
+    if (author) {
+      where = { ...where, authorId: author }
+    }
+
+    if (sort == 'upvotes') {
+      query = this.knex('comment')
+        .select('comment.*')
+        .countDistinct('votes.user_id as upvotes')
+        .leftJoin(
+          this.knex
+            .select('target_id', 'user_id')
+            .from('action_comment')
+            .as('votes'),
+          'votes.target_id',
+          'comment.id'
+        )
+        .groupBy('comment.id')
+        .where(where)
+        .orderBy('upvotes', 'desc')
+    } else if (sort === 'oldest') {
+      query = sortCreatedAt('asc')
+    } else if (sort === 'newest') {
+      query = sortCreatedAt('desc')
+    } else {
+      query = sortCreatedAt('desc')
+    }
+
+    return query
+  }
 
   /**
    * Find comments by a given article id.
@@ -162,7 +204,12 @@ export class CommentService extends BaseService {
         .orderBy('created_at', by)
 
     if (author) {
-      where = { ...where, authorId: author, state: COMMENT_STATE.active }
+      where = {
+        ...where,
+        authorId: author,
+        // filter inactive comments of author, used in UserComments page
+        state: COMMENT_STATE.active
+      }
     }
 
     if (sort == 'upvotes') {

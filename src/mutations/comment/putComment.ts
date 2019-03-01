@@ -32,6 +32,12 @@ const resolver: MutationToPutCommentResolver = async (
     replyTo
   } = comment
 
+  if (!content || content.length <= 0) {
+    throw new UserInputError(
+      `"content" is required and must be at least 1 character`
+    )
+  }
+
   let data: any = {
     content: sanitize(content),
     authorId: viewer.id

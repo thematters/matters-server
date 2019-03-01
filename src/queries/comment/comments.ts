@@ -4,10 +4,13 @@ import { CommentToCommentsResolver } from 'definitions'
 
 const resolver: CommentToCommentsResolver = (
   { id },
-  { input },
+  { input: { author, sort, ...connectionArgs } },
   { dataSources: { commentService } }
 ) => {
-  return connectionFromPromisedArray(commentService.findByParent(id), input)
+  return connectionFromPromisedArray(
+    commentService.findByParent({ id, author, sort }),
+    connectionArgs
+  )
 }
 
 export default resolver

@@ -745,6 +745,19 @@ export enum GQLVote {
   down = 'down'
 }
 
+export interface GQLCommentCommentsInput {
+  author?: string
+  sort?: GQLCommentSort
+  after?: string
+  first?: number
+}
+
+export enum GQLCommentSort {
+  oldest = 'oldest',
+  newest = 'newest',
+  upvotes = 'upvotes'
+}
+
 export interface GQLCommentConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
@@ -762,12 +775,6 @@ export interface GQLCommentsInput {
   after?: string
   first?: number
   parent?: boolean
-}
-
-export enum GQLCommentSort {
-  oldest = 'oldest',
-  newest = 'newest',
-  upvotes = 'upvotes'
 }
 
 export interface GQLNodeInput {
@@ -4385,7 +4392,7 @@ export interface CommentToMentionsResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToCommentsArgs {
-  input: GQLConnectionArgs
+  input: GQLCommentCommentsInput
 }
 export interface CommentToCommentsResolver<TParent = any, TResult = any> {
   (
