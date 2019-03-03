@@ -1374,8 +1374,8 @@ export interface GQLArticleNewAppreciationNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  actors?: Array<GQLUser>
-  target: GQLArticle
+  actors?: Array<GQLUser | null>
+  target?: GQLArticle
   MAT: number
 }
 
@@ -1383,33 +1383,33 @@ export interface GQLArticleNewCommentNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  actors?: Array<GQLUser>
-  target: GQLArticle
-  comment: GQLComment
+  actors?: Array<GQLUser | null>
+  target?: GQLArticle
+  comment?: GQLComment
 }
 
 export interface GQLArticleNewDownstreamNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  actors?: Array<GQLUser>
-  downstream: GQLArticle
-  target: GQLArticle
+  actors?: Array<GQLUser | null>
+  downstream?: GQLArticle
+  target?: GQLArticle
 }
 
 export interface GQLArticleNewSubscriberNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  actors?: Array<GQLUser>
-  target: GQLArticle
+  actors?: Array<GQLUser | null>
+  target?: GQLArticle
 }
 
 export interface GQLArticlePublishedNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  target: GQLArticle
+  target?: GQLArticle
 }
 
 export interface GQLCommentMentionedYouNotice extends GQLNotice {
@@ -1417,24 +1417,24 @@ export interface GQLCommentMentionedYouNotice extends GQLNotice {
   unread: boolean
   createdAt: GQLDateTime
   actor: GQLUser
-  target: GQLComment
+  target?: GQLComment
 }
 
 export interface GQLCommentNewReplyNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  actors?: Array<GQLUser>
-  target: GQLComment
-  reply: GQLComment
+  actors?: Array<GQLUser | null>
+  target?: GQLComment
+  reply?: GQLComment
 }
 
 export interface GQLCommentNewUpvoteNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  actors?: Array<GQLUser>
-  target: GQLComment
+  actors?: Array<GQLUser | null>
+  target?: GQLComment
 }
 
 export interface GQLCommentPinnedNotice extends GQLNotice {
@@ -1442,7 +1442,7 @@ export interface GQLCommentPinnedNotice extends GQLNotice {
   unread: boolean
   createdAt: GQLDateTime
   actor: GQLUser
-  target: GQLComment
+  target?: GQLComment
 }
 
 export type GQLDate = any
@@ -1451,8 +1451,8 @@ export interface GQLDownstreamArticleArchivedNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  downstream: GQLArticle
-  target: GQLArticle
+  downstream?: GQLArticle
+  target?: GQLArticle
 }
 
 export interface GQLImportArticlesInput {
@@ -1492,9 +1492,9 @@ export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  actors?: Array<GQLUser>
-  target: GQLArticle
-  comment: GQLComment
+  actors?: Array<GQLUser | null>
+  target?: GQLArticle
+  comment?: GQLComment
 }
 
 export type GQLTime = any
@@ -1503,8 +1503,8 @@ export interface GQLUpstreamArticleArchivedNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  upstream: GQLArticle
-  target: GQLArticle
+  upstream?: GQLArticle
+  target?: GQLArticle
 }
 
 export enum GQLUserInfoFields {
@@ -1520,7 +1520,7 @@ export interface GQLUserNewFollowerNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  actors?: Array<GQLUser>
+  actors?: Array<GQLUser | null>
 }
 
 /*********************************
