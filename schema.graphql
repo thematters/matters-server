@@ -542,7 +542,7 @@ type Mutation {
   update info/ setting
   """
   updateUserInfo(input: UpdateUserInfoInput!): User!
-  updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting
+  updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
 
   """follow/unfollow"""
   followUser(input: FollowUserInput!): User!
