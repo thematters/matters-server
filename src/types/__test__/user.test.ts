@@ -76,7 +76,11 @@ const UPDATE_USER_INFO_AVATAR = `
 const UPDATE_NOTIFICARION_SETTINGS = `
   mutation UpdateNotificationSetting($input: UpdateNotificationSettingInput!) {
     updateNotificationSetting(input: $input) {
-      enable
+      settings {
+        notification {
+          enable
+        }
+      }
     }
   }
 `
@@ -574,7 +578,10 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: { type: 'enable', enabled: false } }
     })
-    const enable = _.get(data, 'updateNotificationSetting.enable')
+    const enable = _.get(
+      data,
+      'updateNotificationSetting.settings.notification.enable'
+    )
     expect(enable).toBe(false)
   })
 })

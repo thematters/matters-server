@@ -1014,7 +1014,7 @@ export interface GQLMutation {
    * update info/ setting
    */
   updateUserInfo: GQLUser
-  updateNotificationSetting?: GQLNotificationSetting
+  updateNotificationSetting: GQLUser
 
   /**
    * follow/unfollow

@@ -22,7 +22,7 @@ export default /* GraphQL */ `
     # addOAuth(input: AddOAuthInput!): Boolean
     # update info/ setting
     updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
-    updateNotificationSetting(input: UpdateNotificationSettingInput!): NotificationSetting @authenticate
+    updateNotificationSetting(input: UpdateNotificationSettingInput!): User! @authenticate
     # follow/unfollow
     followUser(input: FollowUserInput!): User! @authenticate
     unfollowUser(input: UnfollowUserInput!): User! @authenticate
