@@ -29,10 +29,9 @@ export const getViewerFromUser = (user: any) => {
 export const getViewerFromReq = async (
   req: requestIp.Request
 ): Promise<Viewer> => {
-  const ip = requestIp.getClientIp(req)
-
   const { headers } = req
-
+  const ip = requestIp.getClientIp(req)
+  const isWeb = headers['x-client-name'] === 'web'
   const language = getLanguage((headers['accept-language'] ||
     headers['Accept-Language'] ||
     '') as string)
@@ -59,7 +58,11 @@ export const getViewerFromReq = async (
       const userDB = await userService.baseFindByUUID(decoded.uuid)
 
       // overwrite user setting by request
-      user = { ...userDB, ...user }
+      if (isWeb) {
+        user = { ...userDB, ip: user.ip }
+      } else {
+        user = { ...userDB, ...user }
+      }
     } catch (err) {
       logger.info('token invalid')
       throw new TokenInvalidError('token invalid')
