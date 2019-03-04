@@ -1,6 +1,7 @@
 // external
 import * as AWS from 'aws-sdk'
 import { v4 } from 'uuid'
+import slugify from '@matters/slugify'
 //local
 import { S3Bucket, GQLAssetType } from 'definitions'
 import { LOCAL_S3_ENDPOINT } from 'common/enums'
@@ -75,7 +76,8 @@ export class AWSService {
    * Upload file to AWS S3.
    */
   baseUploadFile = async (folder: GQLAssetType, file: any): Promise<string> => {
-    const { stream, filename, mimetype, encoding } = file
+    const { stream, mimetype, encoding } = file
+    const filename = slugify(file.filename)
     const key = `${folder}/${v4()}/${filename}`
     const result = await this.s3
       .upload({
