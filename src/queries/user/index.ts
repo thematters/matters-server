@@ -65,7 +65,7 @@ export default {
       { language }: { language: string },
       _: any,
       { viewer }: Context
-    ) => (viewer.id ? language : LANGUAGE.zh_hant),
+    ) => (viewer.id && language ? language : viewer.language),
     notification
   },
   UserActivity,
