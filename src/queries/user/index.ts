@@ -28,6 +28,7 @@ import invitationAccepted from './invitationAccepted'
 import invitationReward from './invitationReward'
 import { MAT, Transaction } from './transaction'
 import { boost, score } from './oss'
+import { LANGUAGE } from 'common/enums'
 
 export default {
   Query: {
@@ -60,7 +61,11 @@ export default {
     email: ({ email }: { email: string }) => email && email.replace(/#/g, '@')
   },
   UserSettings: {
-    // oauthType,
+    language: (
+      { language }: { language: string },
+      _: any,
+      { viewer }: Context
+    ) => (viewer.id ? language : LANGUAGE.zh_hant),
     notification
   },
   UserActivity,
