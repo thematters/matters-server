@@ -6,6 +6,7 @@ import {
   ForbiddenError,
   AssetNotFoundError,
   DisplayNameInvalidError,
+  UsernameExistsError,
   UsernameInvalidError,
   UserInputError
 } from 'common/errors'
@@ -42,6 +43,10 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     }
     if (!isValidUserName(input.userName)) {
       throw new UsernameInvalidError('invalid user name')
+    }
+    const isUserNameExisted = await userService.countUserNames(input.userName)
+    if (isUserNameExisted > 0) {
+      throw new UsernameExistsError('user name already exists')
     }
     updateParams.userName = input.userName
   }
