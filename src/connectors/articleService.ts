@@ -131,7 +131,8 @@ export class ArticleService extends BaseService {
       mediaObj.upstream = `ipfs://ipfs/${upstream.mediaHash}`
     }
 
-    const cid = await this.ipfs.client.dag.put(_.pickBy(mediaObj, _.isObject), {
+    const mediaObjectCleaned = _.pickBy(mediaObj, _.identity)
+    const cid = await this.ipfs.client.dag.put(mediaObjectCleaned, {
       format: 'dag-cbor',
       pin: true,
       hashAlg: 'sha2-256'

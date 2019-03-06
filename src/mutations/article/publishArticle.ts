@@ -17,7 +17,6 @@ const resolver: MutationToPublishArticleResolver = async (
   // retrive data from draft
   const { id: draftDBId } = fromGlobalId(id)
   const draft = await draftService.dataloader.load(draftDBId)
-
   if (
     draft.authorId !== viewer.id ||
     draft.archived ||
