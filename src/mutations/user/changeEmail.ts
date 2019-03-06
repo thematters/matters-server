@@ -1,4 +1,4 @@
-import { CodeInvalidError, UserNotFoundError } from 'common/errors'
+import { CodeInvalidError, EmailExistsError, UserNotFoundError } from 'common/errors'
 import { MutationToChangeEmailResolver } from 'definitions'
 
 const resolver: MutationToChangeEmailResolver = async (
@@ -32,6 +32,12 @@ const resolver: MutationToChangeEmailResolver = async (
   const user = await userService.findByEmail(oldCode.email)
   if (!user) {
     throw new UserNotFoundError('target user does not exists')
+  }
+
+  // check new email
+  const isNewEmailExisted = await userService.findByEmail(newCode.email)
+  if (isNewEmailExisted) {
+    throw new EmailExistsError('email already exists')
   }
 
   // update email
