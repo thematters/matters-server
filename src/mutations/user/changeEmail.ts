@@ -1,4 +1,8 @@
-import { CodeInvalidError, EmailExistsError, UserNotFoundError } from 'common/errors'
+import {
+  CodeInvalidError,
+  EmailExistsError,
+  UserNotFoundError
+} from 'common/errors'
 import { MutationToChangeEmailResolver } from 'definitions'
 
 const resolver: MutationToChangeEmailResolver = async (
