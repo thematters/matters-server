@@ -28,7 +28,6 @@ import invitationAccepted from './invitationAccepted'
 import invitationReward from './invitationReward'
 import { MAT, Transaction } from './transaction'
 import { boost, score } from './oss'
-import { LANGUAGE } from 'common/enums'
 
 export default {
   Query: {

@@ -1,10 +1,12 @@
 import { QueryToNodeResolver, Context, NodeTypes } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { ForbiddenError } from 'common/errors'
 
 const resolver: QueryToNodeResolver = async (
   root,
   { input: { id } },
   {
+    viewer,
     dataSources: {
       articleService,
       userService,
@@ -27,6 +29,10 @@ const resolver: QueryToNodeResolver = async (
     id: string
   }
   const node = await serviceMap[type].dataloader.load(dbId)
+
+  if (type === 'Draft' && viewer.id !== node.authorId) {
+    throw new ForbiddenError('only author is allowed to view draft')
+  }
 
   return { ...node, __type: type }
 }

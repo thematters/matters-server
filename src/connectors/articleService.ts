@@ -13,7 +13,7 @@ import {
 } from 'common/enums'
 import { ItemData, GQLSearchInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
-import { stripHtml, countWords, makeSummary } from 'common/utils'
+import { stripHtml, countWords, makeSummary, removeEmpty } from 'common/utils'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import { environment } from 'common/environment'
 
@@ -131,7 +131,9 @@ export class ArticleService extends BaseService {
       mediaObj.upstream = `ipfs://ipfs/${upstream.mediaHash}`
     }
 
-    const cid = await this.ipfs.client.dag.put(_.pickBy(mediaObj, _.isObject), {
+    const mediaObjectCleaned = removeEmpty(mediaObj)
+
+    const cid = await this.ipfs.client.dag.put(mediaObjectCleaned, {
       format: 'dag-cbor',
       pin: true,
       hashAlg: 'sha2-256'
