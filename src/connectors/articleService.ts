@@ -681,10 +681,13 @@ export class ArticleService extends BaseService {
     const result = await this.knex
       .select()
       .from('transaction')
-      .where({
-        referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate
-      })
+      .whereIn(
+        ['reference_id', 'purpose'],
+        [
+          [articleId, TRANSACTION_PURPOSE.appreciate],
+          [articleId, TRANSACTION_PURPOSE.appreciateSubsidy]
+        ]
+      )
       .sum('amount')
       .first()
     return parseInt(result.sum || '0', 10)
