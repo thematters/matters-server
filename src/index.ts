@@ -37,6 +37,7 @@ const server = new ApolloServer({
       'https://oss-develop.matters.news',
       'https://matters.one',
       'https://www.matters.one',
+      'https://oss.matters.news',
       'http://matters-server-develop.ap-southeast-1.elasticbeanstalk.com/',
       'http://matters-client-web-prod.ap-southeast-1.elasticbeanstalk.com/'
     ],
