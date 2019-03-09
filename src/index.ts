@@ -29,11 +29,16 @@ const server = new ApolloServer({
     origin: [
       'http://localhost:3000',
       'http://127.0.0.1:3000',
+      'https://matters.news',
+      'https://www.matters.news',
       'https://web-stage.matters.news',
       'https://oss-stage.matters.news',
       'https://web-develop.matters.news',
       'https://oss-develop.matters.news',
-      'http://matters-server-develop.ap-southeast-1.elasticbeanstalk.com/'
+      'https://matters.one',
+      'https://www.matters.one',
+      'http://matters-server-develop.ap-southeast-1.elasticbeanstalk.com/',
+      'http://matters-client-web-prod.ap-southeast-1.elasticbeanstalk.com/'
     ],
     credentials: true
   },
