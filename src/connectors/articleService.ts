@@ -548,6 +548,7 @@ export class ArticleService extends BaseService {
         'view.id',
         'setting.article_id'
       )
+      .join('article', 'article.id', 'view.id')
       .where(where)
       .count()
       .first()

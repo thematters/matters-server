@@ -39,7 +39,9 @@ const resolvers: GQLRecommendationTypeResolver = {
       }
     }
 
-    let where = { state: ARTICLE_STATE.active } as { [key: string]: any }
+    let where = { 'article.state': ARTICLE_STATE.active } as {
+      [key: string]: any
+    }
     if (!id) {
       where = { ...where, 'article.public': true }
     }
@@ -137,8 +139,8 @@ const resolvers: GQLRecommendationTypeResolver = {
 
     const { first, after } = input
     const where = id
-      ? { state: ARTICLE_STATE.active }
-      : { 'article.public': true, state: ARTICLE_STATE.active }
+      ? { 'article.state': ARTICLE_STATE.active }
+      : { 'article.public': true, 'article.state': ARTICLE_STATE.active }
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.baseCount(where)
     return connectionFromPromisedArray(
