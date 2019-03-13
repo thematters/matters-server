@@ -8,6 +8,7 @@ import {
   AssetNotFoundError,
   AuthenticationError
 } from 'common/errors'
+import { PUBLISH_STATE } from 'common/enums'
 
 const resolver: MutationToPutDraftResolver = async (
   root,
@@ -67,6 +68,15 @@ const resolver: MutationToPutDraftResolver = async (
     }
     if (draft.authorId != viewer.id) {
       throw new ForbiddenError('viewer has no permission')
+    }
+
+    if (
+      draft.publishState === PUBLISH_STATE.pending ||
+      draft.publishState === PUBLISH_STATE.published
+    ) {
+      throw new ForbiddenError(
+        'current publishState is not allow to be updated'
+      )
     }
 
     return await draftService.baseUpdate(
