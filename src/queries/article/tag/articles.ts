@@ -8,6 +8,7 @@ const resolver: TagToArticlesResolver = async (
 ) => {
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
+
   const totalCount = await tagService.countArticles(id)
   const articleIds = await tagService.findArticleIds({
     id,

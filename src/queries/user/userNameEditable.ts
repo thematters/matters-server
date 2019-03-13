@@ -4,6 +4,12 @@ const resolver: UserInfoToUserNameEditableResolver = (
   { id },
   _,
   { dataSources: { userService } }
-) => userService.isUserNameEditable(id)
+) => {
+  if (!id) {
+    return false
+  }
+
+  return userService.isUserNameEditable(id)
+}
 
 export default resolver

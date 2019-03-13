@@ -4,7 +4,7 @@ import _ from 'lodash'
 // internal
 import { GQLSearchInput } from 'definitions'
 import { BaseService } from './baseService'
-import { BATCH_SIZE } from 'common/enums'
+import { BATCH_SIZE, ARTICLE_STATE } from 'common/enums'
 
 export class TagService extends BaseService {
   constructor() {
@@ -110,8 +110,9 @@ export class TagService extends BaseService {
    */
   countArticles = async (id: string) => {
     const result = await this.knex('article_tag')
+      .join('article', 'article_id', 'article.id')
       .countDistinct('article_id')
-      .where({ tagId: id })
+      .where({ tagId: id, state: ARTICLE_STATE.active })
       .first()
     return parseInt(result.count, 10)
   }
@@ -127,14 +128,16 @@ export class TagService extends BaseService {
     id: string
     offset?: number
     limit?: number
+    filter?: { [key: string]: any }
   }) => {
     const result = await this.knex
       .select('article_id')
       .from('article_tag')
-      .where({ tagId })
+      .join('article', 'article_id', 'article.id')
+      .where({ tagId, state: ARTICLE_STATE.active })
       .limit(limit)
       .offset(offset)
-      .orderBy('id', 'desc')
+      .orderBy('article_tag.id', 'desc')
 
     return result.map(({ articleId }: { articleId: string }) => articleId)
   }

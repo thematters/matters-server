@@ -16,7 +16,7 @@ export const makeContext = async ({
     return connection.context
   }
 
-  const viewer = await getViewerFromReq(req)
+  const viewer = await getViewerFromReq({ req, res })
 
   return {
     viewer,

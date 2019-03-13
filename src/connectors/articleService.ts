@@ -160,11 +160,11 @@ export class ArticleService extends BaseService {
   /**
    *  Find articles by a given author id (user).
    */
-  findByAuthor = async (authorId: string) =>
+  findByAuthor = async (authorId: string, filter = {}) =>
     await this.knex
       .select()
       .from(this.table)
-      .where({ authorId })
+      .where({ authorId, ...filter })
       .orderBy('id', 'desc')
 
   /**
@@ -270,7 +270,10 @@ export class ArticleService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
-      return this.baseFindByIds(ids)
+      const articles = await this.baseFindByIds(ids, this.table)
+      return articles.filter(
+        ({ state }: { state: string }) => state === ARTICLE_STATE.active
+      )
     } catch (err) {
       logger.error(err)
       throw new ServerError('search failed')
@@ -545,6 +548,7 @@ export class ArticleService extends BaseService {
         'view.id',
         'setting.article_id'
       )
+      .join('article', 'article.id', 'view.id')
       .where(where)
       .count()
       .first()
