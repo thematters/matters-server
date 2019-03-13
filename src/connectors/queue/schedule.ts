@@ -131,7 +131,7 @@ class ScheduleQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 60 * 1.1
+          every: 1000 * 60 * 16 // every 15 + 1 minutes
         }
       }
     )
@@ -143,7 +143,7 @@ class ScheduleQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 60 * 2.1
+          every: 1000 * 60 * 60 * 1.1 // every 1 + 0.1 hour
         }
       }
     )
@@ -155,7 +155,7 @@ class ScheduleQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 60 * 3.1
+          every: 1000 * 60 * 60 * 3.1 // every 3 + 0.1 hour
         }
       }
     )

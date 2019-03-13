@@ -21,8 +21,10 @@ export const initSubscriptions = (): { onConnect: any } => ({
     // `connectionParams` passed from client
     // https://www.apollographql.com/docs/react/advanced/subscriptions.html#authentication
     const viewer = await getViewerFromReq({
-      headers: { ...connectionParams, ...context.request.headers },
-      connection: {}
+      req: {
+        headers: { ...connectionParams, ...context.request.headers },
+        connection: {}
+      }
     })
 
     return {
