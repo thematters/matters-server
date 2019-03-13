@@ -3,6 +3,7 @@ import _ from 'lodash'
 import { ArticleToRelatedArticlesResolver } from 'definitions'
 import { connectionFromPromisedArray } from 'common/utils'
 import logger from 'common/logger'
+import { ARTICLE_STATE } from 'common/enums'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
   { authorId, id },
@@ -17,8 +18,9 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     _.without(_.uniq(rec.concat(extra)), id)
 
   let ids: string[] = []
-  // get initial recommendation, preventing crashing site
+  // get initial recommendation
   try {
+    // TODO: filter archived article
     const relatedArticles = await articleService.related({
       id,
       size: recommendationSize
@@ -49,7 +51,9 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
   // fall back to using author
   if (ids.length >= recommendationSize) {
-    let articles = await articleService.findByAuthor(authorId)
+    let articles = await articleService.findByAuthor(authorId, {
+      state: ARTICLE_STATE.active
+    })
     ids = addRec(ids, articles.map(({ id }: { id: string }) => id))
   }
 

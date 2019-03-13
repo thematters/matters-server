@@ -6,6 +6,7 @@ import {
 } from 'common/utils'
 import { GQLRecommendationTypeResolver } from 'definitions'
 import { ForbiddenError, AuthenticationError } from 'common/errors'
+import { ARTICLE_STATE } from 'common/enums'
 
 const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles: async (
@@ -38,7 +39,7 @@ const resolvers: GQLRecommendationTypeResolver = {
       }
     }
 
-    let where = {}
+    let where = { state: ARTICLE_STATE.active } as { [key: string]: any }
     if (!id) {
       where = { ...where, 'article.public': true }
     }
@@ -73,7 +74,7 @@ const resolvers: GQLRecommendationTypeResolver = {
       }
     }
 
-    let where = {}
+    let where = { state: ARTICLE_STATE.active } as { [key: string]: any }
 
     if (!id) {
       where = { ...where, public: true }
@@ -105,7 +106,9 @@ const resolvers: GQLRecommendationTypeResolver = {
     return article
   },
   icymi: async ({ id }, { input }, { dataSources: { articleService } }) => {
-    const where = id ? {} : { public: true }
+    const where = id
+      ? { state: ARTICLE_STATE.active }
+      : { public: true, state: ARTICLE_STATE.active }
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.countRecommendIcymi(where)
@@ -133,7 +136,9 @@ const resolvers: GQLRecommendationTypeResolver = {
     }
 
     const { first, after } = input
-    const where = id ? {} : { 'article.public': true }
+    const where = id
+      ? { state: ARTICLE_STATE.active }
+      : { 'article.public': true, state: ARTICLE_STATE.active }
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.baseCount(where)
     return connectionFromPromisedArray(

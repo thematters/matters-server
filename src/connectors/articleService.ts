@@ -270,7 +270,10 @@ export class ArticleService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
-      return this.baseFindByIds(ids)
+      const articles = await this.baseFindByIds(ids, this.table)
+      return articles.filter(
+        ({ state }: { state: string }) => state === ARTICLE_STATE.active
+      )
     } catch (err) {
       logger.error(err)
       throw new ServerError('search failed')
