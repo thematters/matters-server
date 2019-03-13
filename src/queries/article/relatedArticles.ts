@@ -50,7 +50,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   }
 
   // fall back to using author
-  if (ids.length >= recommendationSize) {
+  if (ids.length < recommendationSize) {
     let articles = await articleService.findByAuthor(authorId, {
       state: ARTICLE_STATE.active
     })
