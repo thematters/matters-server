@@ -5,6 +5,7 @@ import _ from 'lodash'
 import { GQLSearchInput } from 'definitions'
 import { BaseService } from './baseService'
 import { BATCH_SIZE, ARTICLE_STATE } from 'common/enums'
+import { isEnglish } from 'common/utils'
 
 export class TagService extends BaseService {
   constructor() {
@@ -27,10 +28,17 @@ export class TagService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-  search = async ({ key, first }: GQLSearchInput) =>
-    await this.knex(this.table)
-      .where('content', 'like', `%${key}%`)
+  search = async ({ key, first }: GQLSearchInput) => {
+    let searchKey = key
+
+    if (isEnglish(key)) {
+      searchKey = `${key}|${key.toLowerCase()}|${key.toUpperCase()}`
+    }
+
+    return await this.knex(this.table)
+      .where(this.knex.raw(`content similar to '%(${searchKey})%'`))
       .limit(100) // TODO: pagination with search
+  }
 
   /*********************************
    *                               *
