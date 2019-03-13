@@ -32,5 +32,5 @@ export const getLanguage = (acceptLanguage: string) => {
     return reverseMap[requestList[supportIndex]]
   }
 
-  return ''
+  return LANGUAGE.zh_hant
 }

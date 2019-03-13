@@ -18,7 +18,7 @@ export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 
 export const getViewerFromUser = (user: any) => {
   // overwrite default by user
-  let viewer = { language: LANGUAGE.zh_hant, role: USER_ROLE.visitor, ...user }
+  let viewer = { role: USER_ROLE.visitor, ...user }
 
   // append hepler functions
   viewer.hasRole = (requires: string) =>
@@ -40,7 +40,7 @@ export const getViewerFromReq = async ({
   const isWeb = headers['x-client-name'] === 'web'
   const language = getLanguage((headers['accept-language'] ||
     headers['Accept-Language'] ||
-    '') as string)
+    LANGUAGE.zh_hant) as string)
 
   // user infomation from request
   let user = {
