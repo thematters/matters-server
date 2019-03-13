@@ -2,7 +2,8 @@ import {
   AuthenticationError,
   NotEnoughMatError,
   ArticleNotFoundError,
-  ActionLimitExceededError
+  ActionLimitExceededError,
+  ForbiddenError
 } from 'common/errors'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 import { v4 } from 'uuid'
@@ -26,6 +27,10 @@ const resolver: MutationToAppreciateArticleResolver = async (
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
+  }
+
+  if (article.author_id === viewer.id) {
+    throw new ForbiddenError('cannot appreciate your own article')
   }
 
   const appreciateLeft = await articleService.appreciateLeftByUser({

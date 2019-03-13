@@ -395,7 +395,7 @@ export class UserService extends BaseService {
     await this.knex('action_user as au')
       .select('ar.*')
       .join('article as ar', 'ar.author_id', 'au.target_id')
-      .where({ action: 'follow', userId })
+      .where({ action: 'follow', userId, 'ar.state': ARTICLE_STATE.active })
       .orderBy('ar.created_at', 'desc')
       .offset(offset)
       .limit(limit)
@@ -403,7 +403,7 @@ export class UserService extends BaseService {
   countFolloweeArticles = async (userId: string) => {
     const result = await this.knex('action_user as au')
       .join('article as ar', 'ar.author_id', 'au.target_id')
-      .where({ action: 'follow', userId })
+      .where({ action: 'follow', userId, 'ar.state': ARTICLE_STATE.active })
       .countDistinct('ar.id')
       .first()
     return parseInt(result.count, 10)
