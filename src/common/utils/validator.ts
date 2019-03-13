@@ -50,8 +50,6 @@ export const isValidPassword = (password: string): boolean => {
 
 /**
  * Validate if string is in english.
- *
- * @see https://mattersnews.slack.com/archives/G8877EQMS/p1546446430005500
  */
 export const isEnglish = (str: string): boolean => {
   if (!str) {
