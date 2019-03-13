@@ -9,8 +9,8 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   { input },
   { viewer, dataSources: { articleService, tagService } }
 ) => {
-  // return 10 recommendations by default
-  const recommendationSize = input.first || 10
+  // return 5 recommendations by default
+  const recommendationSize = input.first || 5
 
   // helper function to prevent duplicates and origin article
   const addRec = (rec: string[], extra: string[]) =>
