@@ -28,17 +28,10 @@ export class TagService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-  search = async ({ key, first }: GQLSearchInput) => {
-    let searchKey = key
-
-    if (isEnglish(key)) {
-      searchKey = `${key}|${key.toLowerCase()}|${key.toUpperCase()}`
-    }
-
-    return await this.knex(this.table)
-      .where(this.knex.raw(`content similar to '%(${searchKey})%'`))
+  search = async ({ key, first }: GQLSearchInput) =>
+    await this.knex(this.table)
+      .where('content', 'ilike', `%${key}%`)
       .limit(100) // TODO: pagination with search
-  }
 
   /*********************************
    *                               *
