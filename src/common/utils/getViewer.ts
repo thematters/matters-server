@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken'
 import requestIp from 'request-ip'
 import _ from 'lodash'
 import cookie from 'cookie'
+import { Response } from 'express'
 
 import { USER_ROLE, LANGUAGE } from 'common/enums'
 import { UserService } from 'connectors'
@@ -11,6 +12,7 @@ import { Viewer, LANGUAGES } from 'definitions'
 import { TokenInvalidError } from 'common/errors'
 
 import { getLanguage } from './getLanguage'
+import { clearCookie } from './cookie'
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 
@@ -26,9 +28,13 @@ export const getViewerFromUser = (user: any) => {
   return viewer
 }
 
-export const getViewerFromReq = async (
+export const getViewerFromReq = async ({
+  req,
+  res
+}: {
   req: requestIp.Request
-): Promise<Viewer> => {
+  res?: Response
+}): Promise<Viewer> => {
   const { headers } = req
   const ip = requestIp.getClientIp(req)
   const isWeb = headers['x-client-name'] === 'web'
@@ -65,6 +71,9 @@ export const getViewerFromReq = async (
       }
     } catch (err) {
       logger.info('token invalid')
+      if (res) {
+        clearCookie(res)
+      }
       throw new TokenInvalidError('token invalid')
     }
   }
