@@ -120,9 +120,24 @@ export class NotificationService extends BaseService {
 
   private async __trigger(params: NotificationPrarms) {
     const recipient = await this.baseFindById(params.recipientId, 'user')
+
+    if (!recipient) {
+      logger.info(`recipient ${params.recipientId} not found, skipped`)
+      return
+    }
+
     const noticeParams = this.getNoticeParams(params, recipient.language)
 
     if (!noticeParams) {
+      return
+    }
+
+    if ('actorId' in params && params.actorId === params.recipientId) {
+      logger.info(
+        `Actor ${params.actorId} is same as recipient ${
+          params.recipientId
+        }, skipped`
+      )
       return
     }
 

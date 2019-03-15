@@ -74,7 +74,7 @@ export const getViewerFromReq = async ({
       if (res) {
         clearCookie(res)
       }
-      throw new TokenInvalidError('token invalid')
+      // throw new TokenInvalidError('token invalid')
     }
   }
 

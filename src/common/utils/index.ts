@@ -12,7 +12,8 @@ export * from './cookie'
 export * from './removeEmpty'
 export * from './xss'
 
-export const stripHtml = (html: string) => html.replace(/(<([^>]+)>)/gi, '')
+export const stripHtml = (html: string) =>
+  (html || '').replace(/(<([^>]+)>)/gi, '')
 
 export const countWords = (html: string) =>
   stripHtml(html)
