@@ -49,6 +49,10 @@ class ScheduleQueue {
         const pendingDraftIds: string[] = []
 
         drafts.forEach((draft: any, index: number) => {
+          // skip if draft was scheduled and later than now
+          if (draft.scheduledAt && draft.scheduledAt > new Date()) {
+            return
+          }
           publicationQueue.publishArticle({ draftId: draft.id, delay: 0 })
           pendingDraftIds.push(draft.id)
           job.progress(((index + 1) / drafts.length) * 100)
