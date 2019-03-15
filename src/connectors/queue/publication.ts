@@ -50,7 +50,7 @@ class PublicationQueue {
       async (job, done) => {
         try {
           const { draftId } = job.data
-          const draft = await this.draftService.dataloader.load(draftId)
+          const draft = await this.draftService.baseFindById(draftId)
 
           if (draft.publishState !== PUBLISH_STATE.pending) {
             job.progress(100)
