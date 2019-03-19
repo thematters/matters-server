@@ -515,6 +515,7 @@ export interface GQLRecentSearchEdge {
 
 export interface GQLUserStatus {
   state: GQLUserState
+  role: GQLUserRole
 
   /**
    * Total MAT left in wallet
@@ -574,6 +575,11 @@ export enum GQLUserState {
   banned = 'banned',
   frozen = 'frozen',
   archived = 'archived'
+}
+
+export enum GQLUserRole {
+  user = 'user',
+  admin = 'admin'
 }
 
 export interface GQLMAT {
@@ -3674,6 +3680,7 @@ export interface RecentSearchEdgeToNodeResolver<TParent = any, TResult = any> {
 
 export interface GQLUserStatusTypeResolver<TParent = any> {
   state?: UserStatusToStateResolver<TParent>
+  role?: UserStatusToRoleResolver<TParent>
   MAT?: UserStatusToMATResolver<TParent>
   invitation?: UserStatusToInvitationResolver<TParent>
   articleCount?: UserStatusToArticleCountResolver<TParent>
@@ -3687,6 +3694,15 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
 }
 
 export interface UserStatusToStateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToRoleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
