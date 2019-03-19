@@ -26,9 +26,9 @@
         </mj-column>
       </mj-section>
 
-      <mj-section mj-class="card" padding-top="24px" padding-bottom="0">
+      <!-- <mj-section mj-class="card" padding-top="24px" padding-bottom="0">
         <mj-include path="./partials/download.mjml" />
-      </mj-section>
+      </mj-section> -->
 
       <mj-section mj-class="card" padding-top="0">
         <mj-column>
