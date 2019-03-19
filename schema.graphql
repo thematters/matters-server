@@ -1225,6 +1225,11 @@ input UserRegisterInput {
   codeId: ID!
 }
 
+enum UserRole {
+  user
+  admin
+}
+
 type UserSettings {
   """User language setting"""
   language: UserLanguage!
@@ -1247,6 +1252,7 @@ enum UserState {
 
 type UserStatus {
   state: UserState!
+  role: UserRole!
 
   """Total MAT left in wallet"""
   MAT: MAT!

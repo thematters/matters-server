@@ -146,6 +146,7 @@ export default /* GraphQL */ `
 
   type UserStatus {
     state: UserState!
+    role: UserRole!
     # Total MAT left in wallet
     MAT: MAT! @private
     invitation: InvitationStatus! @private
@@ -415,6 +416,11 @@ export default /* GraphQL */ `
     banned
     frozen
     archived
+  }
+
+  enum UserRole {
+    user
+    admin
   }
 
   enum TransactionPurpose {
