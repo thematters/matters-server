@@ -314,7 +314,7 @@ export class ArticleService extends BaseService {
       )
       .leftJoin('article', 'view.id', 'article.id')
       .orderByRaw('latest_activity DESC NULLS LAST')
-      .orderBy('view.id', 'DESC')
+      .orderBy('view.id', 'desc')
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
       .limit(limit)
       .offset(offset)
