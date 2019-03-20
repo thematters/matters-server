@@ -148,5 +148,19 @@ export default {
     zh_hans: ({ title }) => `您的文章《${title}}》被举报`,
     en: ({ title }) =>
       `Your article "${title}" has been reported by other users`
+  }),
+  user_activated_recipient: i18n<{ displayName: string }>({
+    zh_hant: ({ displayName }) =>
+      `你的好友 ${displayName} 邀請你成為 Matters 社區創作者，你的帳號已成功解鎖，擁有全部創作權限，期待你的大作。`,
+    zh_hans: ({ displayName }) =>
+      `你的好友 ${displayName} 邀请你成为 Matters 社区创作者，你的账号已成功解锁，拥有全部创作权限，期待你的第一篇作品。`
+    // en: ({displayName}) => ``,
+  }),
+  user_activated_sender: i18n<{ displayName: string }>({
+    zh_hant: ({ displayName }) =>
+      `你的好友 ${displayName} 已透過你的邀請成為 Matters 創作者。感謝你們一起搭建 Matters 社群，5 MAT 獎勵已送達。`,
+    zh_hans: ({ displayName }) =>
+      `你的好友 ${displayName} 已通过你的邀请成为 Matters 创作者。感谢你们一起搭建 Matters 社群，5 MAT 奖励已送达。`
+    // en: () => ``,
   })
 }

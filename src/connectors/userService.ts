@@ -29,12 +29,16 @@ import {
 import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
+import { NotificationService } from './notificationService'
 
 export class UserService extends BaseService {
+  notificationService: InstanceType<typeof NotificationService>
+
   constructor() {
     super('user')
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+    this.notificationService = new NotificationService()
   }
 
   /**
@@ -631,6 +635,16 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
   /**
+   * Find invitation
+   */
+  findInvitationByRecipientId = async (recipientId: string) =>
+    await this.knex
+      .select()
+      .from('invitation')
+      .where({ recipientId })
+      .first()
+
+  /**
    * Find invitation by email
    */
   findInvitationByEmail = async (email: string) =>
@@ -785,11 +799,26 @@ export class UserService extends BaseService {
       })
 
       // update "recipientId" of invitation
-      await this.baseUpdate(
+      const updatedInvitation = await this.baseUpdate(
         invitation.id,
         { recipientId: userId },
         'invitation'
       )
+
+      // trigger notification
+      if (sender.id) {
+        this.notificationService.trigger({
+          event: 'user_activated',
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'invitation',
+              entity: updatedInvitation
+            }
+          ],
+          recipientId: sender.id
+        })
+      }
     } catch (e) {
       logger.error('[activateInvitedEmailUser]', e)
     }

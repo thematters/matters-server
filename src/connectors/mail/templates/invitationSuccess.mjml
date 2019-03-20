@@ -18,7 +18,7 @@
 
           <mj-text padding-top="16px">
             {{#if sender.displayName}}
-              你的朋友 <a href="https://matters.news/@{{sender.userName}}" class="link">{{sender.displayName}}</a> 邀請你成為 Matters 內容平台的創作者，已幫你解鎖全部创作功能。
+              你的好友 <a href="https://matters.news/@{{sender.userName}}" class="link">{{sender.displayName}}</a> 邀請你成為 Matters 內容平台的創作者，已幫你解鎖全部创作功能。
             {{else}}
               你已成為 Matters 內容平台的創作者，已幫你解鎖全部创作功能
             {{/if}}

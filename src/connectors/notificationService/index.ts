@@ -2,6 +2,7 @@
 import logger from 'common/logger'
 import { NotificationPrarms, PutNoticeParams, LANGUAGES } from 'definitions'
 import { toGlobalId } from 'common/utils'
+import { USER_ROLE } from 'common/enums'
 import { BaseService } from 'connectors/baseService'
 
 import { mail } from './mail'
@@ -24,10 +25,10 @@ export class NotificationService extends BaseService {
     this.pubsub = pubsub
   }
 
-  private getNoticeParams = (
+  private getNoticeParams = async (
     params: NotificationPrarms,
     language: LANGUAGES
-  ): PutNoticeParams | undefined => {
+  ): Promise<PutNoticeParams | undefined> => {
     switch (params.event) {
       case 'user_new_follower':
       case 'comment_new_upvote':
@@ -113,6 +114,41 @@ export class NotificationService extends BaseService {
           }),
           entities: params.entities
         }
+      case 'user_activated':
+        const invitation = params.entities[0].entity
+        const invitationSender = await this.baseFindById(
+          invitation.senderId,
+          'user'
+        )
+        const invitationRecipient = await this.baseFindById(
+          invitation.recipientId,
+          'user'
+        )
+
+        if (invitationSender.id === params.recipientId) {
+          return {
+            type: 'official_announcement',
+            recipientId: params.recipientId,
+            message: trans.user_activated_sender(language, {
+              displayName: invitationRecipient.displayName
+            })
+          }
+        }
+
+        if (invitationRecipient.id === params.recipientId) {
+          return {
+            type: 'official_announcement',
+            recipientId: params.recipientId,
+            message: trans.user_activated_recipient(language, {
+              displayName:
+                invitationSender.role !== USER_ROLE.admin
+                  ? invitationSender.displayName
+                  : 'Matty'
+            })
+          }
+        }
+
+        return
       default:
         return
     }
@@ -126,7 +162,7 @@ export class NotificationService extends BaseService {
       return
     }
 
-    const noticeParams = this.getNoticeParams(params, recipient.language)
+    const noticeParams = await this.getNoticeParams(params, recipient.language)
 
     if (!noticeParams) {
       return
@@ -159,7 +195,7 @@ export class NotificationService extends BaseService {
     )
 
     // Push Notification
-    this.push.push(noticeParams, params.event, recipient.language)
+    // this.push.push(noticeParams, params.event, recipient.language)
   }
 
   trigger = (params: NotificationPrarms) => {
