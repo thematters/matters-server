@@ -1,5 +1,6 @@
 import { makeSummary, stripHtml } from 'common/utils'
 import { i18n } from 'common/utils/i18n'
+import { MAT_UNIT } from 'common/enums'
 
 export default {
   user_new_follower: i18n<{ displayName: string }>({
@@ -151,16 +152,24 @@ export default {
   }),
   user_activated_recipient: i18n<{ displayName: string }>({
     zh_hant: ({ displayName }) =>
-      `你的好友 ${displayName} 邀請你成為 Matters 社區創作者，你的帳號已成功解鎖，擁有全部創作權限，期待你的大作。`,
+      `你的好友 ${displayName} 邀請你成為 Matters 社區創作者，你的帳號已成功解鎖，擁有全部創作權限，期待你的大作。解鎖資格所贈送的 ${
+        MAT_UNIT.joinByInvitation
+      } MAT 已送達，請點擊錢包查看。`,
     zh_hans: ({ displayName }) =>
-      `你的好友 ${displayName} 邀请你成为 Matters 社区创作者，你的账号已成功解锁，拥有全部创作权限，期待你的第一篇作品。`
+      `你的好友 ${displayName} 邀请你成为 Matters 社区创作者，你的账号已成功解锁，拥有全部创作权限，期待你的第一篇作品。解锁资格所赠送的 ${
+        MAT_UNIT.joinByInvitation
+      } MAT 已送达，请点击钱包查看。`
     // en: ({displayName}) => ``,
   }),
   user_activated_sender: i18n<{ displayName: string }>({
     zh_hant: ({ displayName }) =>
-      `你的好友 ${displayName} 已透過你的邀請成為 Matters 創作者。感謝你們一起搭建 Matters 社群，5 MAT 獎勵已送達。`,
+      `你的好友 ${displayName} 已透過你的邀請成為 Matters 創作者。感謝你們一起搭建 Matters 社群，${
+        MAT_UNIT.invitationAccepted
+      } MAT 獎勵已送達。`,
     zh_hans: ({ displayName }) =>
-      `你的好友 ${displayName} 已通过你的邀请成为 Matters 创作者。感谢你们一起搭建 Matters 社群，5 MAT 奖励已送达。`
+      `你的好友 ${displayName} 已通过你的邀请成为 Matters 创作者。感谢你们一起搭建 Matters 社群，${
+        MAT_UNIT.invitationAccepted
+      } MAT 奖励已送达。`
     // en: () => ``,
   })
 }

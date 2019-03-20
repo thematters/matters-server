@@ -806,6 +806,17 @@ export class UserService extends BaseService {
       )
 
       // trigger notification & send email
+      this.notificationService.trigger({
+        event: 'user_activated',
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'invitation',
+            entity: updatedInvitation
+          }
+        ],
+        recipientId: userId
+      })
       if (sender.id) {
         const user = await this.dataloader.load(userId)
         this.notificationService.trigger({
