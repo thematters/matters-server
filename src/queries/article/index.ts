@@ -1,6 +1,6 @@
 import slugify from '@matters/slugify'
 
-import { toGlobalId } from 'common/utils'
+import { toGlobalId, stripHtml, htmlRe } from 'common/utils'
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
 
 import rootArticle from './rootArticle'
@@ -41,6 +41,33 @@ export default {
       topicScore ? Math.round(topicScore) : null,
     slug: ({ slug, title }: { slug: string; title: string }) =>
       slug || slugify(title), // handle missing slug from migration
+    summary: ({ content, cover }: { cover: string; content: string }) => {
+      // buffer for search
+      const buffer = 20
+
+      // end depend on having cover or not
+      const end = cover ? 110 : 140
+
+      // split on sentence breaks
+      const sections = stripHtml(content, '')
+        .replace(/([.?!。？！])\s*/g, '$1|')
+        .split('|')
+
+      // grow summary within buffer
+      let summary = ''
+      while (summary.length < end - buffer && sections.length > 0) {
+        const el = sections.shift() || ''
+
+        const addition =
+          el.length + summary.length > end + buffer
+            ? `${el.substring(0, end - summary.length)}...`
+            : el
+
+        summary = summary.concat(addition)
+      }
+
+      return summary
+    },
     author,
     cover,
     tags,

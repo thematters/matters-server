@@ -12,12 +12,13 @@ export * from './cookie'
 export * from './removeEmpty'
 export * from './xss'
 
-export const stripHtml = (html: string) =>
-  (html || '').replace(/(<([^>]+)>)/gi, ' ')
+export const htmlRe = /((<([^>]+)>)|&nbsp;)/gi
+
+export const stripHtml = (html: string, replacement = ' ') =>
+  (html || '').replace(htmlRe, replacement)
 
 export const countWords = (html: string) =>
   stripHtml(html)
-    .replace(/&nbsp;/g, ' ')
     .split(' ')
     .filter(s => s !== '').length
 
