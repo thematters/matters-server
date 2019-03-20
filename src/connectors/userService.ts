@@ -801,12 +801,13 @@ export class UserService extends BaseService {
       // update "recipientId" of invitation
       const updatedInvitation = await this.baseUpdate(
         invitation.id,
-        { recipientId: userId },
+        { recipientId: userId, status: INVITATION_STATUS.activated },
         'invitation'
       )
 
-      // trigger notification
+      // trigger notification & send email
       if (sender.id) {
+        const user = await this.dataloader.load(userId)
         this.notificationService.trigger({
           event: 'user_activated',
           entities: [
@@ -817,6 +818,15 @@ export class UserService extends BaseService {
             }
           ],
           recipientId: sender.id
+        })
+        this.notificationService.mail.sendUserActivated({
+          to: sender.email,
+          recipient: {
+            displayName: sender.displayName
+          },
+          email: user.email,
+          userName: user.userName,
+          language: sender.language
         })
       }
     } catch (e) {
