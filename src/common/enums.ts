@@ -285,6 +285,11 @@ export const EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-daaa0da594034f509cfa01e5ecdb1f77',
     zh_hans: 'd-1256cd9153204e6c840c2e51eb326f63',
     en: 'd-daaa0da594034f509cfa01e5ecdb1f77'
+  },
+  userActivated: {
+    zh_hant: 'd-6e0a8f374ed04b068baabaf2db65b945',
+    zh_hans: 'd-b2758620963644ff88f6ec834cb67275',
+    en: 'd-6e0a8f374ed04b068baabaf2db65b945'
   }
 }
 

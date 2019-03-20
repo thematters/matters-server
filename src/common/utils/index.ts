@@ -22,11 +22,30 @@ export const countWords = (html: string) =>
     .split(' ')
     .filter(s => s !== '').length
 
-export const makeSummary = (string: string, length?: number) =>
-  _.truncate(string, {
-    length: length || 200,
-    separator: /,? +/
-  })
+export const makeSummary = (html: string, length = 140) => {
+  // buffer for search
+  const buffer = 20
+
+  // split on sentence breaks
+  const sections = stripHtml(html, '')
+    .replace(/([.?!。？！])\s*/g, '$1|')
+    .split('|')
+
+  // grow summary within buffer
+  let summary = ''
+  while (summary.length < length - buffer && sections.length > 0) {
+    const el = sections.shift() || ''
+
+    const addition =
+      el.length + summary.length > length + buffer
+        ? `${el.substring(0, length - summary.length)}...`
+        : el
+
+    summary = summary.concat(addition)
+  }
+
+  return summary
+}
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.

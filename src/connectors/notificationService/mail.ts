@@ -34,6 +34,10 @@ const trans = {
   invitationSuccess: i18n({
     zh_hant: 'Matters | 你被邀請成為內容創作者',
     zh_hans: 'Matters | 你被邀请成为内容创作者'
+  }),
+  userActivated: i18n({
+    zh_hant: 'Matters | 你邀請的好友已進站',
+    zh_hans: 'Matters | 你邀请的好友已进站'
   })
 }
 
@@ -109,7 +113,7 @@ class Mail {
     type,
     recipient,
     sender,
-    language = 'zh_hans'
+    language = 'zh_hant'
   }: {
     to: string
     type: 'invitation' | 'activation'
@@ -138,6 +142,42 @@ class Mail {
             sender,
             invitation: type === 'invitation',
             activation: type === 'activation'
+          }
+        }
+      ]
+    })
+  }
+
+  sendUserActivated = async ({
+    to,
+    recipient,
+    email,
+    userName,
+    language = 'zh_hant'
+  }: {
+    to: string
+    recipient?: {
+      displayName?: string
+      userName?: string
+    }
+    email: string
+    userName: string
+    language?: LANGUAGES
+  }) => {
+    const templateId = EMAIL_TEMPLATE_ID.userActivated[language]
+    const subject = trans.userActivated(language, {})
+    notificationQueue.sendMail({
+      from: environment.emailFromAsk as string,
+      templateId,
+      personalizations: [
+        {
+          to,
+          // @ts-ignore
+          dynamic_template_data: {
+            subject,
+            recipient,
+            email,
+            userName
           }
         }
       ]

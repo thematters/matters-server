@@ -27,6 +27,7 @@ export type OfficialNoticeExtendType =
   | 'article_banned'
   | 'article_reported'
   | 'comment_reported'
+  | 'user_activated'
 
 export type NoticeEntityType =
   | 'target'
@@ -224,6 +225,12 @@ export interface NoticeCommentReportedParams
   recipientId: string
 }
 
+export interface NoticeUserActivatedParams extends NotificationRequiredParams {
+  event: 'user_activated'
+  entities: [NotificationEntity<'target', 'invitation'>]
+  recipientId: string
+}
+
 // export interface NoticeCommentReportedSafeParams extends NotificationRequiredParams  {
 //   event: 'comment_reported_safe'
 //   entities: [NotificationEntity<'target', 'comment'>]
@@ -251,6 +258,7 @@ export type NotificationPrarms =
   | NoticeArticleBannedParams
   | NoticeArticleReportedParams
   | NoticeCommentReportedParams
+  | NoticeUserActivatedParams
 
 export type NoticeUserId = string
 export type NoticeEntity = {

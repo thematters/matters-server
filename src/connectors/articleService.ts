@@ -82,7 +82,7 @@ export class ArticleService extends BaseService {
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
     const now = new Date()
-    const summary = draftSummary || makeSummary(stripHtml(content))
+    const summary = draftSummary || makeSummary(content)
     const userImg =
       author.avatar && (await systemService.findAssetUrl(author.avatar))
     const articleImg = cover && (await systemService.findAssetUrl(cover))

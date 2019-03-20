@@ -18,6 +18,7 @@ import {
   makeUserName,
   setCookie
 } from 'common/utils'
+import { USER_STATE } from 'common/enums'
 
 const resolver: MutationToUserRegisterResolver = async (
   root,
@@ -72,7 +73,11 @@ const resolver: MutationToUserRegisterResolver = async (
     retries += 1
   }
 
-  await userService.create({ ...input, email, userName: newUserName })
+  await userService.create({
+    ...input,
+    email,
+    userName: newUserName
+  })
 
   // mark code status as used
   await userService.markVerificationCodeAs({
@@ -81,13 +86,16 @@ const resolver: MutationToUserRegisterResolver = async (
   })
 
   // send email
-  notificationService.mail.sendRegisterSuccess({
-    to: email,
-    recipient: {
-      displayName
-    },
-    language: viewer.language
-  })
+  const registeredUser = await userService.findByEmail(email)
+  if (registeredUser.state === USER_STATE.onboarding) {
+    notificationService.mail.sendRegisterSuccess({
+      to: email,
+      recipient: {
+        displayName
+      },
+      language: viewer.language
+    })
+  }
 
   const { token } = await userService.login(input)
 
