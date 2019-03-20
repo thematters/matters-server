@@ -73,7 +73,7 @@ const resolver: MutationToUserRegisterResolver = async (
     retries += 1
   }
 
-  const registeredUser = await userService.create({
+  await userService.create({
     ...input,
     email,
     userName: newUserName
@@ -86,6 +86,7 @@ const resolver: MutationToUserRegisterResolver = async (
   })
 
   // send email
+  const registeredUser = await userService.findByEmail(email)
   if (registeredUser.state === USER_STATE.onboarding) {
     notificationService.mail.sendRegisterSuccess({
       to: email,
