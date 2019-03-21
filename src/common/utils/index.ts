@@ -12,15 +12,14 @@ export * from './cookie'
 export * from './removeEmpty'
 export * from './xss'
 
-export const htmlRe = /((<([^>]+)>)|&nbsp;)/gi
-
 export const stripHtml = (html: string, replacement = ' ') =>
-  (html || '').replace(htmlRe, replacement)
+  (html || '').replace(/((<([^>]+)>)|&nbsp;)/gi, replacement)
 
-export const countWords = (html: string) =>
-  stripHtml(html)
-    .split(' ')
-    .filter(s => s !== '').length
+export const countWords = (html: string) => {
+  const matches = stripHtml(html).match(/[\u4e00-\u9fcc]|\S+/g)
+
+  return matches ? matches.length : 0
+}
 
 export const makeSummary = (html: string, length = 140) => {
   // buffer for search
