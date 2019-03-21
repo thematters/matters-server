@@ -29,12 +29,16 @@ import {
 import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
+import { NotificationService } from './notificationService'
 
 export class UserService extends BaseService {
+  notificationService: InstanceType<typeof NotificationService>
+
   constructor() {
     super('user')
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
+    this.notificationService = new NotificationService()
   }
 
   /**
@@ -67,7 +71,8 @@ export class UserService extends BaseService {
       description,
       avatar,
       passwordHash,
-      agreeOn: new Date()
+      agreeOn: new Date(),
+      state: USER_STATE.onboarding
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
     await this.activateInvitedEmailUser({
@@ -478,6 +483,7 @@ export class UserService extends BaseService {
     const result = await this.knex(table)
       .select()
       .orderByRaw('author_score DESC NULLS LAST')
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
       .whereNotIn('id', notIn)
@@ -629,6 +635,16 @@ export class UserService extends BaseService {
    *           Invitation          *
    *                               *
    *********************************/
+  /**
+   * Find invitation
+   */
+  findInvitationByRecipientId = async (recipientId: string) =>
+    await this.knex
+      .select()
+      .from('invitation')
+      .where({ recipientId })
+      .first()
+
   /**
    * Find invitation by email
    */
@@ -784,11 +800,47 @@ export class UserService extends BaseService {
       })
 
       // update "recipientId" of invitation
-      await this.baseUpdate(
+      const updatedInvitation = await this.baseUpdate(
         invitation.id,
-        { recipientId: userId },
+        { recipientId: userId, status: INVITATION_STATUS.activated },
         'invitation'
       )
+
+      // trigger notification & send email
+      this.notificationService.trigger({
+        event: 'user_activated',
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'invitation',
+            entity: updatedInvitation
+          }
+        ],
+        recipientId: userId
+      })
+      if (sender.id) {
+        const user = await this.dataloader.load(userId)
+        this.notificationService.trigger({
+          event: 'user_activated',
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'invitation',
+              entity: updatedInvitation
+            }
+          ],
+          recipientId: sender.id
+        })
+        this.notificationService.mail.sendUserActivated({
+          to: sender.email,
+          recipient: {
+            displayName: sender.displayName
+          },
+          email: user.email,
+          userName: user.userName,
+          language: sender.language
+        })
+      }
     } catch (e) {
       logger.error('[activateInvitedEmailUser]', e)
     }

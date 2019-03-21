@@ -57,7 +57,7 @@ const resolver: MutationToInviteResolver = async (
 
     // send email
     notificationService.mail.sendInvitationSuccess({
-      to: email,
+      to: recipient.email,
       recipient: {
         displayName: recipient.displayName
       },
@@ -70,6 +70,24 @@ const resolver: MutationToInviteResolver = async (
       type: 'activation',
       language: recipient.language
     })
+
+    // trigger notification
+    const invitation = await userService.findInvitationByRecipientId(
+      recipient.id
+    )
+    if (invitation) {
+      notificationService.trigger({
+        event: 'user_activated',
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'invitation',
+            entity: invitation
+          }
+        ],
+        recipientId: recipient.id
+      })
+    }
   } else {
     const user = await userService.findByEmail(email)
     if (user) {

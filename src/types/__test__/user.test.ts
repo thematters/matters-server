@@ -328,7 +328,7 @@ describe('register and login functionarlities', () => {
     const user = {
       email,
       displayName: 'testUser',
-      password: '12345678',
+      password: 'Abcd1234',
       codeId: code.uuid
     }
     const registerResult = await registerUser(user)
@@ -702,7 +702,7 @@ describe('invitation', async () => {
     const registerResult = await registerUser({
       email: unregisterEmail,
       displayName: 'newTestUser',
-      password: '12345678',
+      password: 'Abcd1234',
       codeId: code.uuid
     })
     expect(_.get(registerResult, 'data.userRegister.token')).toBeTruthy()

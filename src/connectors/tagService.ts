@@ -51,6 +51,7 @@ export class TagService extends BaseService {
     return await this.knex(table)
       .select()
       .orderByRaw('tag_score DESC NULLS LAST')
+      .orderBy('count', 'desc')
       .limit(limit)
       .offset(offset)
   }

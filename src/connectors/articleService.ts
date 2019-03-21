@@ -82,7 +82,7 @@ export class ArticleService extends BaseService {
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
     const now = new Date()
-    const summary = draftSummary || makeSummary(stripHtml(content))
+    const summary = draftSummary || makeSummary(content)
     const userImg =
       author.avatar && (await systemService.findAssetUrl(author.avatar))
     const articleImg = cover && (await systemService.findAssetUrl(cover))
@@ -314,6 +314,7 @@ export class ArticleService extends BaseService {
       )
       .leftJoin('article', 'view.id', 'article.id')
       .orderByRaw('latest_activity DESC NULLS LAST')
+      .orderBy('view.id', 'desc')
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
       .limit(limit)
       .offset(offset)
@@ -412,6 +413,7 @@ export class ArticleService extends BaseService {
       .select('view.*', 'article.state', 'article.public')
       .join('article', 'view.id', 'article.id')
       .orderByRaw('topic_score DESC NULLS LAST')
+      .orderBy('view.id', 'desc')
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
       .limit(limit)
       .offset(offset)

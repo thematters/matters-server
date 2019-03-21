@@ -63,11 +63,11 @@ export const getViewerFromReq = async ({
       }
       const userDB = await userService.baseFindByUUID(decoded.uuid)
 
-      // overwrite user setting by request
+      // overwrite request by user settings
       if (isWeb) {
-        user = { ...userDB, ip: user.ip }
+        user = { ip: user.ip, ...userDB }
       } else {
-        user = { ...userDB, ...user }
+        user = { ...user, ...userDB }
       }
     } catch (err) {
       logger.info('token invalid')

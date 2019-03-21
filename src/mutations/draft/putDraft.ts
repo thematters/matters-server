@@ -46,7 +46,7 @@ const resolver: MutationToPutDraftResolver = async (
       authorId: id ? undefined : viewer.id,
       upstreamId: upstreamDBId,
       title,
-      summary: content && makeSummary(stripHtml(content)),
+      summary: content && makeSummary(content),
       content: content && sanitize(content),
       tags,
       cover: coverAssetId
