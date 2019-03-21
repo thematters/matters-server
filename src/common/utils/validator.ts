@@ -49,6 +49,19 @@ export const isValidPassword = (password: string): boolean => {
 }
 
 /**
+ * Validate user raw pass word. It must has at least one alphabet, one
+ * number and minimum length should be 8.
+ *
+ * @see https://mattersnews.slack.com/archives/G8877EQMS/p1546446430005500
+ */
+export const isValidStrictPassword = (password: string): boolean => {
+  if (!password || password.length < 8) {
+    return false
+  }
+  return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/.test(password)
+}
+
+/**
  * Validate if string is in english.
  */
 export const isEnglish = (str: string): boolean => {
