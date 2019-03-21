@@ -57,7 +57,7 @@ const resolver: MutationToInviteResolver = async (
 
     // send email
     notificationService.mail.sendInvitationSuccess({
-      to: email,
+      to: recipient.email,
       recipient: {
         displayName: recipient.displayName
       },

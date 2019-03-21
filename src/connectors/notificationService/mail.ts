@@ -158,7 +158,6 @@ class Mail {
     to: string
     recipient?: {
       displayName?: string
-      userName?: string
     }
     email: string
     userName: string
