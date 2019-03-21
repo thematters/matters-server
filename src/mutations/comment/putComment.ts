@@ -6,7 +6,8 @@ import {
   AuthenticationError,
   UserInputError,
   ArticleNotFoundError,
-  CommentNotFoundError
+  CommentNotFoundError,
+  ForbiddenError
 } from 'common/errors'
 
 const resolver: MutationToPutCommentResolver = async (
@@ -98,6 +99,13 @@ const resolver: MutationToPutCommentResolver = async (
   let newComment: any
   if (id) {
     const { id: commentDbId } = fromGlobalId(id)
+
+    // check permission
+    const comment = await commentService.dataloader.load(commentDbId)
+    if (comment.authorId !== viewer.id) {
+      throw new ForbiddenError('viewer has no permission')
+    }
+
     newComment = await commentService.update({ id: commentDbId, ...data })
   }
   // Create
