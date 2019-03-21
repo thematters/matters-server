@@ -6,7 +6,7 @@
 
   <mj-body mj-class="body">
     <mj-text mj-class="preheader" css-class="preheader">
-      你已成為 Matters 內容平台的創作者，已幫你解鎖全部创作功能
+      你已成為 Matters 內容平台的創作者，已幫你解鎖全部創作功能
     </mj-text>
 
     <mj-wrapper mj-class="wrapper">
@@ -25,9 +25,9 @@
               {{/if}}
             {{else}}
               {{#if sender.displayName}}
-                你的好友 <a href="https://matters.news/@{{sender.userName}}" class="link">{{sender.displayName}}</a> 邀請你成為 Matters 內容社群的創作者，已幫你解鎖全部创作功能。
+                你的好友 <a href="https://matters.news/@{{sender.userName}}" class="link">{{sender.displayName}}</a> 邀請你成為 Matters 內容社群的創作者，已幫你解鎖全部創作功能。
               {{else}}
-                你已成為 Matters 內容社群的創作者，已幫你解鎖全部创作功能。
+                你已成為 Matters 內容社群的創作者，已幫你解鎖全部創作功能。
               {{/if}}
             {{/if}}
           </mj-text>
