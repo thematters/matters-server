@@ -1,6 +1,6 @@
 import slugify from '@matters/slugify'
 
-import { toGlobalId } from 'common/utils'
+import { toGlobalId, stripHtml, makeSummary } from 'common/utils'
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
 
 import rootArticle from './rootArticle'
@@ -41,6 +41,8 @@ export default {
       topicScore ? Math.round(topicScore) : null,
     slug: ({ slug, title }: { slug: string; title: string }) =>
       slug || slugify(title), // handle missing slug from migration
+    summary: ({ content, cover }: { cover: string; content: string }) =>
+      makeSummary(content, cover ? 110 : 140),
     author,
     cover,
     tags,

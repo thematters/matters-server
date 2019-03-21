@@ -64,7 +64,7 @@ export default {
       { language }: { language: string },
       _: any,
       { viewer }: Context
-    ) => (viewer.id && language ? language : viewer.language),
+    ) => viewer.language,
     notification
   },
   UserActivity,

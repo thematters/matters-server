@@ -111,17 +111,17 @@ export default {
   comment_banned: i18n<{ content: string }>({
     zh_hant: ({ content }) =>
       `因為違反社區規則，Matters 決定將您的評論《${makeSummary(
-        stripHtml(content),
+        content,
         17
       )}》隱藏`,
     zh_hans: ({ content }) =>
       `因为违反社区规则，Matters 决定将您的评论《${makeSummary(
-        stripHtml(content),
+        content,
         17
       )}》隐藏`,
     en: ({ content }) =>
       `You comment "${makeSummary(
-        stripHtml(content),
+        content,
         17
       )}" has been archived from Matters for violating the community rules`
   }),
@@ -134,13 +134,11 @@ export default {
       `You article "${title}" has been archived from Matters for violating the community rules`
   }),
   comment_reported: i18n<{ content: string }>({
-    zh_hant: ({ content }) =>
-      `您的評論被舉報《${makeSummary(stripHtml(content), 17)}》`,
-    zh_hans: ({ content }) =>
-      `您的评论被举报《${makeSummary(stripHtml(content), 17)}》`,
+    zh_hant: ({ content }) => `您的評論被舉報《${makeSummary(content, 17)}》`,
+    zh_hans: ({ content }) => `您的评论被举报《${makeSummary(content, 17)}》`,
     en: ({ content }) =>
       `Your comment "${makeSummary(
-        stripHtml(content),
+        content,
         17
       )}" has been reported by other users`
   }),

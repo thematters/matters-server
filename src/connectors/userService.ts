@@ -483,6 +483,7 @@ export class UserService extends BaseService {
     const result = await this.knex(table)
       .select()
       .orderByRaw('author_score DESC NULLS LAST')
+      .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
       .whereNotIn('id', notIn)

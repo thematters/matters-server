@@ -6,7 +6,7 @@ import logger from 'common/logger'
 import { ARTICLE_STATE } from 'common/enums'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
-  { authorId, id },
+  { authorId, id, title },
   { input },
   { viewer, dataSources: { articleService, tagService } }
 ) => {
@@ -28,6 +28,10 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
     // pull out ids
     ids = relatedArticles.map(({ id }) => id)
+
+    logger.info(
+      `[recommendation] article ${id}, title ${title}, ES result ${ids} `
+    )
   } catch (err) {
     logger.error(`error in recommendation via ES: ${JSON.stringify(err)}`)
   }
@@ -45,6 +49,10 @@ const resolver: ArticleToRelatedArticlesResolver = async (
         id: tagId,
         limit: recommendationSize - ids.length
       })
+
+      logger.info(
+        `[recommendation] article ${id}, title ${title}, tag result ${articleIds} `
+      )
       ids = addRec(ids, articleIds)
     }
   }
@@ -54,8 +62,16 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     let articles = await articleService.findByAuthor(authorId, {
       state: ARTICLE_STATE.active
     })
-    ids = addRec(ids, articles.map(({ id }: { id: string }) => id))
+    const newIds = articles.map(({ id }: { id: string }) => id)
+    ids = addRec(ids, newIds)
+    logger.info(
+      `[recommendation] article ${id}, title ${title}, author result ${newIds} `
+    )
   }
+
+  logger.info(
+    `[recommendation] article ${id}, title ${title}, final result ${ids} `
+  )
 
   return connectionFromPromisedArray(
     articleService.dataloader.loadMany(ids),
