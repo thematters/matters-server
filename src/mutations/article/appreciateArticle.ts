@@ -49,6 +49,9 @@ const resolver: MutationToAppreciateArticleResolver = async (
     amount
   })
 
+  // publish a PubSub event
+  notificationService.pubsub.publish(id, article)
+
   // trigger notifications
   notificationService.trigger({
     event: 'article_new_appreciation',
