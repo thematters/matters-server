@@ -13,7 +13,9 @@ export * from './removeEmpty'
 export * from './xss'
 
 export const stripHtml = (html: string, replacement = ' ') =>
-  (html || '').replace(/((<([^>]+)>)|&nbsp;)/gi, replacement)
+  (html || '')
+    .replace(/(<\/p><p>|&nbsp;)/g, ' ') // replace line break and space first
+    .replace(/(<([^>]+)>)/gi, replacement)
 
 export const countWords = (html: string) => {
   const matches = stripHtml(html).match(/[\u4e00-\u9fcc]|\S+/g)
@@ -27,7 +29,7 @@ export const makeSummary = (html: string, length = 140) => {
 
   // split on sentence breaks
   const sections = stripHtml(html, '')
-    .replace(/([.?!。？！])\s*/g, '$1|')
+    .replace(/([?!。？！]|(\.\s))\s*/g, '$1|')
     .split('|')
 
   // grow summary within buffer

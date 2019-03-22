@@ -26,11 +26,14 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       size: recommendationSize
     })
 
+    // skip ES for now, but keep log for debug
     // pull out ids
-    ids = relatedArticles.map(({ id }) => id)
+    // ids = relatedArticles.map(({ id }) => id)
 
     logger.info(
-      `[recommendation] article ${id}, title ${title}, ES result ${ids} `
+      `[recommendation] article ${id}, title ${title}, ES result ${relatedArticles.map(
+        ({ id }) => id
+      )} `
     )
   } catch (err) {
     logger.error(`error in recommendation via ES: ${JSON.stringify(err)}`)
