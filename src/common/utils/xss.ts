@@ -2,7 +2,8 @@ import xss from 'xss'
 
 const CUSTOM_WHITE_LISTS = {
   figure: [],
-  figcaption: []
+  figcaption: [],
+  iframe: ['src']
 }
 
 export const sanitize = (string: string) =>
