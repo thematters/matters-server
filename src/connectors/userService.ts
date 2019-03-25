@@ -603,7 +603,7 @@ export class UserService extends BaseService {
       .rightJoin(
         this.knex
           .select('read.article_id')
-          .min('read.created_at as read_at')
+          .max('read.created_at as read_at')
           .from('article_read as read')
           .groupBy('read.article_id')
           .where({ userId, archived: false })

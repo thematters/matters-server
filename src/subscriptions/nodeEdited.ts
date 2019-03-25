@@ -7,8 +7,8 @@ const resolver: {
   Subscription: {
     nodeEdited: {
       resolve: (node: any, { input: { id } }: { input: { id: string } }) => {
-        const { type } = fromGlobalId(id)
-        return { ...node, __type: type }
+        const { type, id: dbId } = fromGlobalId(id)
+        return { ...node, id: dbId, __type: type }
       },
       subscribe: (
         _: any,
