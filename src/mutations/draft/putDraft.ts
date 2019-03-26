@@ -1,7 +1,13 @@
 import _ from 'lodash'
 import { v4 } from 'uuid'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
-import { fromGlobalId, stripHtml, makeSummary, sanitize } from 'common/utils'
+import {
+  fromGlobalId,
+  stripHtml,
+  makeSummary,
+  sanitize,
+  cleanContent
+} from 'common/utils'
 import {
   DraftNotFoundError,
   ForbiddenError,
@@ -40,14 +46,14 @@ const resolver: MutationToPutDraftResolver = async (
     }
     coverAssetId = asset.id
   }
-
+  const cleanedContent = cleanContent(content)
   const data: ItemData = _.pickBy(
     {
       authorId: id ? undefined : viewer.id,
       upstreamId: upstreamDBId,
       title,
-      summary: content && makeSummary(content),
-      content: content && sanitize(content),
+      summary: content && makeSummary(cleanedContent),
+      content: content && sanitize(cleanedContent),
       tags,
       cover: coverAssetId
     },

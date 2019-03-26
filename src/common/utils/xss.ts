@@ -3,7 +3,7 @@ import xss from 'xss'
 const CUSTOM_WHITE_LISTS = {
   figure: [],
   figcaption: [],
-  iframe: ['src']
+  iframe: ['src', 'style']
 }
 
 export const sanitize = (string: string) =>
