@@ -4,6 +4,7 @@ import { ArticleToRelatedArticlesResolver } from 'definitions'
 import { connectionFromPromisedArray } from 'common/utils'
 import logger from 'common/logger'
 import { ARTICLE_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
   { authorId, id, title },
@@ -26,9 +27,11 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       size: recommendationSize
     })
 
-    // skip ES for now, but keep log for debug
-    // pull out ids
-    // ids = relatedArticles.map(({ id }) => id)
+    // skip ES rec unless in development env, but keep log for debug
+    if (environment.env === 'staging') {
+      // pull out ids
+      ids = relatedArticles.map(({ id }) => id)
+    }
 
     logger.info(
       `[recommendation] article ${id}, title ${title}, ES result ${relatedArticles.map(
