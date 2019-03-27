@@ -1,9 +1,16 @@
 import xss from 'xss'
 
 const CUSTOM_WHITE_LISTS = {
+  a: [
+    ...(xss.whiteList.a || []),
+    'class',
+    'data-id',
+    'data-user-name',
+    'data-display-name'
+  ],
   figure: [],
   figcaption: [],
-  iframe: ['src', 'style']
+  iframe: ['src', 'class', 'style']
 }
 
 export const sanitize = (string: string) =>
