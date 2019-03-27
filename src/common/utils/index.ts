@@ -61,9 +61,3 @@ export const makeUserName = (email: string): string => {
 
   return matched.join('').substring(0, 18)
 }
-
-/**
- * Remove unwanted dom element from input.
- */
-export const cleanContent = (content: string | undefined) =>
-  (content || '').replace(/(<input([^>]+)>)/gi, '')

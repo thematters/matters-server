@@ -6,7 +6,6 @@ import {
   stripHtml,
   makeSummary,
   sanitize,
-  cleanContent
 } from 'common/utils'
 import {
   DraftNotFoundError,
@@ -46,14 +45,14 @@ const resolver: MutationToPutDraftResolver = async (
     }
     coverAssetId = asset.id
   }
-  const cleanedContent = cleanContent(content)
+
   const data: ItemData = _.pickBy(
     {
       authorId: id ? undefined : viewer.id,
       upstreamId: upstreamDBId,
       title,
-      summary: content && makeSummary(cleanedContent),
-      content: content && sanitize(cleanedContent),
+      summary: content && makeSummary(content),
+      content: content && sanitize(content),
       tags,
       cover: coverAssetId
     },

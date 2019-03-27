@@ -13,5 +13,17 @@ const CUSTOM_WHITE_LISTS = {
   iframe: ['src', 'class', 'style']
 }
 
+const ignoreTagProcessor = (tag: string, html: string, options: {[key: string]: any}) => {
+  if (tag === 'input') {
+    return ''
+  }
+}
+
 export const sanitize = (string: string) =>
-  xss(string, { whiteList: { ...xss.whiteList, ...CUSTOM_WHITE_LISTS } })
+  xss(
+    string,
+    {
+      whiteList: { ...xss.whiteList, ...CUSTOM_WHITE_LISTS },
+      onIgnoreTag: ignoreTagProcessor
+    }
+  )
