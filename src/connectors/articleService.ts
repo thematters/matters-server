@@ -370,14 +370,29 @@ export class ArticleService extends BaseService {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
-  }) =>
-    this.knex('article')
-      .select('article.*', 'c.updated_at as chose_at')
+  }) => {
+    const today = await this.knex('article')
+      .select(
+        'article.*',
+        'c.updated_at as chose_at',
+        'c.cover as oss_cover',
+        'c.title as oss_title',
+        'c.summary as oss_summary'
+      )
       .join('matters_today as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
       .where(where)
       .offset(offset)
       .limit(limit)
+      .first()
+
+    return {
+      ...today,
+      cover: today.ossCover || today.cover,
+      title: today.ossTitle || today.title,
+      summary: today.ossSummary || today.summary
+    }
+  }
 
   recommendIcymi = async ({
     limit = BATCH_SIZE,
