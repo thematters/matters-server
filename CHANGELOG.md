@@ -38,3 +38,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimize summary generation #233
 - Strip html tag and redundant spaces in content #235
 - Check permission if viewer request to edit comment #238
+

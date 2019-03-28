@@ -101,7 +101,7 @@ const resolvers: GQLRecommendationTypeResolver = {
     )
   },
   today: async (_, __, { dataSources: { articleService } }) => {
-    const [article] = await articleService.recommendToday({
+    const article = await articleService.recommendToday({
       offset: 0,
       limit: 1
     })
