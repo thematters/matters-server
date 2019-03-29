@@ -8,13 +8,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
   { input: { type, file } },
   { viewer, dataSources: { systemService } }
 ) => {
-  // if (!viewer.id) {
-  //   throw new AuthenticationError('visitor has no permission')
-  // }
-
-  const data = await file
-  const { filename, mimetype, encoding } = data
-  const key = await systemService.aws.baseUploadFile(type, data)
+  const key = await systemService.aws.baseUploadFile(type, file)
   const asset: ItemData = {
     uuid: v4(),
     authorId: viewer.id,
