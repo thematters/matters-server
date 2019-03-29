@@ -713,6 +713,9 @@ export interface GQLArticleOSS {
   inRecommendIcymi: boolean
   inRecommendHottest: boolean
   inRecommendNewest: boolean
+  todayCover?: string
+  todayTitle?: string
+  todaySummary?: string
 }
 
 export interface GQLComment extends GQLNode {
@@ -4227,6 +4230,9 @@ export interface GQLArticleOSSTypeResolver<TParent = any> {
   inRecommendIcymi?: ArticleOSSToInRecommendIcymiResolver<TParent>
   inRecommendHottest?: ArticleOSSToInRecommendHottestResolver<TParent>
   inRecommendNewest?: ArticleOSSToInRecommendNewestResolver<TParent>
+  todayCover?: ArticleOSSToTodayCoverResolver<TParent>
+  todayTitle?: ArticleOSSToTodayTitleResolver<TParent>
+  todaySummary?: ArticleOSSToTodaySummaryResolver<TParent>
 }
 
 export interface ArticleOSSToBoostResolver<TParent = any, TResult = any> {
@@ -4284,6 +4290,36 @@ export interface ArticleOSSToInRecommendHottestResolver<
 }
 
 export interface ArticleOSSToInRecommendNewestResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleOSSToTodayCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleOSSToTodayTitleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleOSSToTodaySummaryResolver<
   TParent = any,
   TResult = any
 > {
