@@ -101,11 +101,18 @@ const resolvers: GQLRecommendationTypeResolver = {
     )
   },
   today: async (_, __, { dataSources: { articleService } }) => {
-    const article = await articleService.recommendToday({
+    const [article] = await articleService.recommendToday({
       offset: 0,
       limit: 1
     })
     return article
+      ? {
+          ...article,
+          cover: article.ossCover || article.cover,
+          title: article.ossTitle || article.title,
+          summary: article.ossSummary || article.summary
+        }
+      : article
   },
   icymi: async ({ id }, { input }, { dataSources: { articleService } }) => {
     const where = id
