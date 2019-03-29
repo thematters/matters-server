@@ -75,16 +75,14 @@ export class AWSService {
   /**
    * Upload file to AWS S3.
    */
-  baseUploadFile = async (folder: GQLAssetType, file: any): Promise<string> => {
-    const {
-      createReadStream,
-      mimetype,
-      encoding,
-      filename: filenameOrigin
-    } = await file
+  baseUploadFile = async (
+    folder: GQLAssetType,
+    upload: any
+  ): Promise<string> => {
+    const { createReadStream, mimetype, encoding } = upload
     const stream = createReadStream()
 
-    const filename = slugify(filenameOrigin)
+    const filename = slugify(upload.filename)
     const key = `${folder}/${v4()}/${filename}`
     const result = await this.s3
       .upload({
