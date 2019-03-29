@@ -488,7 +488,7 @@ export class ArticleService extends BaseService {
    */
   findRecommendToday = async (articleId: string) =>
     this.knex('article')
-      .select('article.*', 'c.updated_at as chose_at')
+      .select('article.*', 'c.updated_at as chose_at', 'c.cover as todayCover')
       .join('matters_today as c', 'c.article_id', 'article.id')
       .where({ articleId })
       .first()
@@ -635,6 +635,16 @@ export class ArticleService extends BaseService {
     this.baseFindOrCreate({
       where: { articleId },
       data: { articleId },
+      table: 'matters_today'
+    })
+
+  updateRecommendToday = async (
+    articleId: string,
+    data: { cover?: number; title?: string; summary?: string }
+  ) =>
+    this.baseUpdateOrCreate({
+      where: { articleId },
+      data,
       table: 'matters_today'
     })
 
