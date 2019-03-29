@@ -956,6 +956,7 @@ export interface GQLMutation {
   deleteTags?: boolean
   renameTag: GQLTag
   mergeTags: GQLTag
+  updateMattersToday: GQLArticle
   putComment: GQLComment
   pinComment: GQLComment
   unpinComment: GQLComment
@@ -1119,6 +1120,13 @@ export interface GQLRenameTagInput {
 export interface GQLMergeTagsInput {
   ids: Array<string>
   content: string
+}
+
+export interface GQLUpdateMattersTodayInput {
+  id: string
+  cover?: string
+  title?: string
+  summary?: string
 }
 
 export interface GQLPutCommentInput {
@@ -5236,6 +5244,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteTags?: MutationToDeleteTagsResolver<TParent>
   renameTag?: MutationToRenameTagResolver<TParent>
   mergeTags?: MutationToMergeTagsResolver<TParent>
+  updateMattersToday?: MutationToUpdateMattersTodayResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   pinComment?: MutationToPinCommentResolver<TParent>
   unpinComment?: MutationToUnpinCommentResolver<TParent>
@@ -5476,6 +5485,21 @@ export interface MutationToMergeTagsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToMergeTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateMattersTodayArgs {
+  input: GQLUpdateMattersTodayInput
+}
+export interface MutationToUpdateMattersTodayResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateMattersTodayArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

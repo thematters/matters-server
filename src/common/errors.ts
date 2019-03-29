@@ -151,6 +151,14 @@ export class NoticeNotFoundError extends ApolloError {
   }
 }
 
+export class MattersTodayNotFoundError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'MATTERS_TODAY_NOT_FOUND')
+
+    Object.defineProperty(this, 'name', { value: 'MattersTodayNotFoundError' })
+  }
+}
+
 /*********************************
  *                               *
  *           Article             *

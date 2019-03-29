@@ -20,6 +20,7 @@ export default /* GraphQL */ `
     deleteTags(input: DeleteTagsInput!): Boolean @authorize
     renameTag(input: RenameTagInput!): Tag! @authorize
     mergeTags(input: MergeTagsInput!): Tag! @authorize
+    updateMattersToday(input: UpdateMattersTodayInput!): Article! @authorize
   }
 
   type Article implements Node {
@@ -184,6 +185,13 @@ export default /* GraphQL */ `
   input MergeTagsInput {
     ids: [ID!]!
     content: String!
+  }
+
+  input UpdateMattersTodayInput {
+    id: ID!
+    cover: String
+    title: String
+    summary: String
   }
 
   enum ArticleState {

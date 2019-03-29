@@ -638,6 +638,16 @@ export class ArticleService extends BaseService {
       table: 'matters_today'
     })
 
+  updateRecommendToday = async (
+    articleId: string,
+    data: { cover?: number; title?: string; summary?: string }
+  ) =>
+    this.baseUpdateOrCreate({
+      where: { articleId },
+      data,
+      table: 'matters_today'
+    })
+
   removeRecommendToday = async (articleId: string) =>
     this.knex('matters_today')
       .where({ articleId })
