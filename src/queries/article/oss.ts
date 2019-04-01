@@ -56,5 +56,7 @@ export const todayCover: ArticleOSSToTodayCoverResolver = async (
   { dataSources: { articleService, systemService } }
 ) => {
   const today = await articleService.findRecommendToday(id)
-  return today && today.todayCover ? systemService.findAssetUrl(today.todayCover) : null
+  return today && today.todayCover
+    ? systemService.findAssetUrl(today.todayCover)
+    : null
 }
