@@ -1208,7 +1208,8 @@ export interface GQLDeleteDraftInput {
 
 export interface GQLSingleFileUploadInput {
   type: GQLAssetType
-  file: GQLUpload
+  file?: GQLUpload
+  url?: GQLURL
 }
 
 export enum GQLAssetType {

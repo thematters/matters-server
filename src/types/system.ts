@@ -180,7 +180,8 @@ export default /* GraphQL */ `
 
   input SingleFileUploadInput {
     type: AssetType!
-    file: Upload!
+    file: Upload
+    url: URL
   }
 
   input SingleFileDeleteInput {
