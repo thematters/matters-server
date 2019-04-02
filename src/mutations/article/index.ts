@@ -13,6 +13,7 @@ import updateArticleState from './updateArticleState'
 import deleteTags from './deleteTags'
 import renameTag from './renameTag'
 import mergeTags from './mergeTags'
+import updateMattersToday from './updateMattersToday'
 
 export default {
   Mutation: {
@@ -30,6 +31,7 @@ export default {
     updateArticleState,
     deleteTags,
     renameTag,
-    mergeTags
+    mergeTags,
+    updateMattersToday
   }
 }

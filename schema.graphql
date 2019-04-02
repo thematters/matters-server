@@ -120,6 +120,9 @@ type ArticleOSS {
   inRecommendIcymi: Boolean!
   inRecommendHottest: Boolean!
   inRecommendNewest: Boolean!
+  todayCover: String
+  todayTitle: String
+  todaySummary: String
 }
 
 type ArticlePublishedNotice implements Notice {
@@ -494,6 +497,7 @@ type Mutation {
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
+  updateMattersToday(input: UpdateMattersTodayInput!): Article!
   putComment(input: PutCommentInput!): Comment!
   pinComment(input: PinCommentInput!): Comment!
   unpinComment(input: UnpinCommentInput!): Comment!
@@ -941,7 +945,8 @@ input SingleFileDeleteInput {
 
 input SingleFileUploadInput {
   type: AssetType!
-  file: Upload!
+  file: Upload
+  url: URL
 }
 
 input SubscribeArticleInput {
@@ -1060,6 +1065,13 @@ input UpdateArticleStateInput {
 input UpdateCommentStateInput {
   id: ID!
   state: CommentState!
+}
+
+input UpdateMattersTodayInput {
+  id: ID!
+  cover: String
+  title: String
+  summary: String
 }
 
 input UpdateNotificationSettingInput {

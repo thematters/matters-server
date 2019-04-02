@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Matters Server",
   "main": "build/index.js",
   "engines": {

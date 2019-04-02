@@ -10,7 +10,7 @@ import { environment } from 'common/environment'
 export class AWSService {
   s3: AWS.S3
 
-  s3Bucket: S3Bucket
+  s3Bucket: string
 
   s3Endpoint: string
 
@@ -57,27 +57,22 @@ export class AWSService {
   /**
    * Get S3 bucket.
    */
-  getS3Bucket = (): S3Bucket => {
-    const { env } = environment
-    switch (env) {
-      case 'staging': {
-        return 'matters-server-stage'
-      }
-      case 'production': {
-        return 'matters-server-production'
-      }
-      default: {
-        return 'matters-server-dev'
-      }
-    }
+  getS3Bucket = (): string => {
+    const { awsS3Bucket } = environment
+    return awsS3Bucket || 'matters-server-dev'
   }
 
   /**
    * Upload file to AWS S3.
    */
-  baseUploadFile = async (folder: GQLAssetType, file: any): Promise<string> => {
-    const { stream, mimetype, encoding } = file
-    const filename = slugify(file.filename)
+  baseUploadFile = async (
+    folder: GQLAssetType,
+    upload: any
+  ): Promise<string> => {
+    const { createReadStream, mimetype, encoding } = upload
+    const stream = createReadStream()
+
+    const filename = slugify(upload.filename)
     const key = `${folder}/${v4()}/${filename}`
     const result = await this.s3
       .upload({
