@@ -58,7 +58,7 @@ class PublicationQueue {
             return
           }
 
-          if (draft.scheduledAt > new Date()) {
+          if (draft.scheduledAt && draft.scheduledAt > new Date()) {
             job.progress(100)
             done(null, `Draft's (${draftId}) scheduledAt is greater than now`)
             return
