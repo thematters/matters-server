@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2019-04-02
+
+### Added
+
+- Added an API for updating matters today #257
+
+### Changed
+
+- Add url support for singleFileUpload, used when user refer to external images #259
+- Add "data-", "class" and iframe to XSS Whitelist #258
+- Define S3 bucket using env variables #258
+
 ## [1.0.3] - 2019-03-28
 
 ### Added
@@ -38,4 +50,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimize summary generation #233
 - Strip html tag and redundant spaces in content #235
 - Check permission if viewer request to edit comment #238
-
