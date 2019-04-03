@@ -58,7 +58,7 @@ export default /* GraphQL */ `
     # Viewer has subscribed
     subscribed: Boolean!
     # OSS
-    oss: ArticleOSS! @authorize
+    oss: ArticleOSS!
     remark: String @authorize
   }
 
@@ -74,12 +74,12 @@ export default /* GraphQL */ `
   }
 
   type  ArticleOSS {
-    boost: NonNegativeFloat!
-    score: NonNegativeFloat!
-    inRecommendToday: Boolean!
-    inRecommendIcymi: Boolean!
-    inRecommendHottest: Boolean!
-    inRecommendNewest: Boolean!
+    boost: NonNegativeFloat! @authorize
+    score: NonNegativeFloat! @authorize
+    inRecommendToday: Boolean! @authorize
+    inRecommendIcymi: Boolean! @authorize
+    inRecommendHottest: Boolean! @authorize
+    inRecommendNewest: Boolean! @authorize
     todayCover: String
     todayTitle: String
     todaySummary: String
