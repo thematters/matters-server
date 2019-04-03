@@ -319,3 +319,11 @@ export const INVALID_NAMES = [
 ]
 
 export const EXPIRES_IN = 1000 * 60 * 60 * 24 * 90 // millisecond
+
+export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
+  'image/gif',
+  'image/png',
+  'image/jpeg',
+  'image/svg+xml',
+  'image/webp'
+]
