@@ -43,9 +43,10 @@ const resolver: MutationToSingleFileUploadResolver = async (
     upload = await file
   }
 
-  const key = await systemService.aws.baseUploadFile(type, upload)
+  const uuid = v4()
+  const key = await systemService.aws.baseUploadFile(type, upload, uuid)
   const asset: ItemData = {
-    uuid: v4(),
+    uuid,
     authorId: viewer.id,
     type,
     path: key
