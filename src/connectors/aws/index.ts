@@ -10,7 +10,7 @@ import { environment } from 'common/environment'
 export class AWSService {
   s3: AWS.S3
 
-  s3Bucket: S3Bucket
+  s3Bucket: string
 
   s3Endpoint: string
 
@@ -57,19 +57,9 @@ export class AWSService {
   /**
    * Get S3 bucket.
    */
-  getS3Bucket = (): S3Bucket => {
-    const { env } = environment
-    switch (env) {
-      case 'staging': {
-        return 'matters-server-stage'
-      }
-      case 'production': {
-        return 'matters-server-production'
-      }
-      default: {
-        return 'matters-server-dev'
-      }
-    }
+  getS3Bucket = (): string => {
+    const { awsS3Bucket } = environment
+    return awsS3Bucket || 'matters-server-dev'
   }
 
   /**

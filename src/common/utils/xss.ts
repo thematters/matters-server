@@ -5,16 +5,16 @@ const CUSTOM_WHITE_LISTS = {
   img: [],
   figure: [],
   figcaption: [],
-  iframe: ['src', 'class', 'style']
+  iframe: ['src', 'frameborder', 'allowfullscreen', 'sandbox']
 }
 
 const onIgnoreTagAttr = (tag: string, name: string, value: string) => {
   /**
-   * Allow attributes of whitelist tags start with "data-"
+   * Allow attributes of whitelist tags start with "data-" or "class"
    *
    * @see https://github.com/leizongmin/js-xss#allow-attributes-of-whitelist-tags-start-with-data-
    */
-  if (name.substr(0, 5) === 'data-') {
+  if (name.substr(0, 5) === 'data-' || name.substr(0, 5) === 'class') {
     // escape its value using built-in escapeAttrValue function
     return name + '="' + xss.escapeAttrValue(value) + '"'
   }
@@ -25,7 +25,7 @@ const ignoreTagProcessor = (
   html: string,
   options: { [key: string]: any }
 ) => {
-  if (tag === 'input') {
+  if (tag === 'input' || tag === 'textarea') {
     return ''
   }
 }
