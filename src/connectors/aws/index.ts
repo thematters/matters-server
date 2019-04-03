@@ -1,11 +1,17 @@
 // external
 import * as AWS from 'aws-sdk'
+import imagemin from 'imagemin'
+import imageminGifsicle from 'imagemin-gifsicle'
+import imageminJpegtran from 'imagemin-jpegtran'
+import imageminPngquant from 'imagemin-pngquant'
+import imageminSvgo from 'imagemin-svgo'
 import { v4 } from 'uuid'
 import slugify from '@matters/slugify'
 //local
 import { S3Bucket, GQLAssetType } from 'definitions'
 import { LOCAL_S3_ENDPOINT } from 'common/enums'
 import { environment } from 'common/environment'
+import { streamToBuffer } from 'common/utils'
 
 export class AWSService {
   s3: AWS.S3
@@ -71,12 +77,21 @@ export class AWSService {
   ): Promise<string> => {
     const { createReadStream, mimetype, encoding } = upload
     const stream = createReadStream()
+    const buffer = await streamToBuffer(stream)
+    const reducedBuffer = await imagemin.buffer(buffer, {
+      plugins: [
+        imageminGifsicle(),
+        imageminJpegtran(),
+        imageminPngquant(),
+        imageminSvgo()
+      ]
+    })
 
     const filename = slugify(upload.filename)
     const key = `${folder}/${v4()}/${filename}`
     const result = await this.s3
       .upload({
-        Body: stream,
+        Body: reducedBuffer,
         Bucket: this.s3Bucket,
         ContentEncoding: encoding,
         ContentType: mimetype,
