@@ -23,7 +23,7 @@ const ignoreTagProcessor = (
   html: string,
   options: { [key: string]: any }
 ) => {
-  if (tag === 'input') {
+  if (tag === 'input' || tag === 'textarea') {
     return ''
   }
 }
