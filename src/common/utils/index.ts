@@ -11,6 +11,7 @@ export * from './i18n'
 export * from './cookie'
 export * from './removeEmpty'
 export * from './xss'
+export * from './makeStreamToBuffer'
 
 export const stripHtml = (html: string, replacement = ' ') =>
   (html || '')
@@ -60,16 +61,4 @@ export const makeUserName = (email: string): string => {
   }
 
   return matched.join('').substring(0, 18)
-}
-
-/**
- * Make stream to buffer.
- */
-export const streamToBuffer = async (stream: any): Promise<any> => {
-  return new Promise((resolve: any, reject: any) => {
-    let buffers: any[] = []
-    stream.on('error', reject)
-    stream.on('data', (data: any) => buffers.push(data))
-    stream.on('end', () => resolve(Buffer.concat(buffers)))
-  })
 }

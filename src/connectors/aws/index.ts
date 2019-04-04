@@ -11,7 +11,7 @@ import slugify from '@matters/slugify'
 import { S3Bucket, GQLAssetType } from 'definitions'
 import { ACCEPTED_UPLOAD_IMAGE_TYPES, LOCAL_S3_ENDPOINT } from 'common/enums'
 import { environment } from 'common/environment'
-import { streamToBuffer } from 'common/utils'
+import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
 
 export class AWSService {
   s3: AWS.S3
@@ -77,7 +77,7 @@ export class AWSService {
   ): Promise<string> => {
     const { createReadStream, mimetype, encoding } = upload
     const stream = createReadStream()
-    let buffer = await streamToBuffer(stream)
+    let buffer = await makeStreamToBuffer(stream)
 
     // Reduce image size
     if (mimetype && ACCEPTED_UPLOAD_IMAGE_TYPES.includes(mimetype)) {
@@ -102,7 +102,6 @@ export class AWSService {
         Key: key
       })
       .promise()
-
     return key
   }
 
