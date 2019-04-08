@@ -92,8 +92,9 @@ export class AWSService {
       })
     }
 
-    const filename = slugify(upload.filename)
-    const key = `${folder}/${uuid}/${filename}`
+    const extension = upload.filename.split('.').pop()
+    const filename = slugify(upload.filename.replace(`.${extension}`, ''))
+    const key = `${folder}/${uuid}/${filename}.${extension}`
     const result = await this.s3
       .upload({
         Body: buffer,
