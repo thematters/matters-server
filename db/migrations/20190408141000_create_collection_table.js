@@ -12,8 +12,7 @@ exports.up = async knex => {
     t.bigInteger('article_id')
       .unsigned()
       .notNullable()
-    t.integer('order')
-      .notNullable()
+    t.integer('order').notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
