@@ -5,6 +5,7 @@ require('dotenv').config()
 import { ApolloServer } from 'apollo-server'
 // internal
 import logger from 'common/logger'
+import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import { DataSources } from 'definitions'
 import { makeContext, initSubscriptions } from 'common/utils'
@@ -59,6 +60,10 @@ const server = new ApolloServer({
     tagService: new TagService(),
     notificationService: new NotificationService()
   }),
+  uploads: {
+    maxFileSize: UPLOAD_FILE_SIZE_LIMIT,
+    maxFiles: 10
+  },
   debug: !isProd
   // mocks
 })
