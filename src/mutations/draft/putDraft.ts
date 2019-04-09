@@ -6,32 +6,29 @@ import {
   DraftNotFoundError,
   ForbiddenError,
   AssetNotFoundError,
-  AuthenticationError
+  AuthenticationError,
+  ArticleNotFoundError
 } from 'common/errors'
-import { PUBLISH_STATE } from 'common/enums'
+import { PUBLISH_STATE, ARTICLE_STATE } from 'common/enums'
 
 const resolver: MutationToPutDraftResolver = async (
   root,
   { input },
-  { viewer, dataSources: { draftService, systemService } }
+  { viewer, dataSources: { draftService, systemService, articleService } }
 ) => {
   const {
     id,
-    upstreamId,
     title,
     content,
     tags,
-    coverAssetId: coverAssetUUID
+    coverAssetId: coverAssetUUID,
+    collection: collectionGlobalIds
   } = input
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
 
-  let upstreamDBId
-  if (upstreamId) {
-    upstreamDBId = fromGlobalId(upstreamId).id
-  }
-
+  // check for asset existence
   let coverAssetId
   if (coverAssetUUID) {
     const asset = await systemService.findAssetByUUID(coverAssetUUID)
@@ -41,35 +38,55 @@ const resolver: MutationToPutDraftResolver = async (
     coverAssetId = asset.id
   }
 
+  // check for collection existence
+  // add to dbId array if ok
+  let collection = []
+  if (collectionGlobalIds && collectionGlobalIds.length > 0) {
+    for (const articleGlobalId in collectionGlobalIds) {
+      const { id: articleId } = fromGlobalId(articleGlobalId)
+      const article = await articleService.baseFindById(articleId)
+      if (!article) {
+        throw new ArticleNotFoundError(`Cannot find article ${articleGlobalId}`)
+      } else if (article.state !== ARTICLE_STATE.active) {
+        throw new ForbiddenError(
+          `Article ${article.title} cannot be collected.`
+        )
+      } else {
+        collection.push(articleId)
+      }
+    }
+  }
+
+  // assemble data
   const data: ItemData = _.pickBy(
     {
       authorId: id ? undefined : viewer.id,
-      upstreamId: upstreamDBId,
       title,
       summary: content && makeSummary(content),
       content: content && sanitize(content),
       tags,
-      cover: coverAssetId
+      cover: coverAssetId,
+      collection
     },
     _.identity
   )
-
-  // for removing upstream
-  if (upstreamId === '') {
-    data.upstreamId = null
-  }
 
   // Update
   if (id) {
     const { id: dbId } = fromGlobalId(id)
     const draft = await draftService.dataloader.load(dbId)
+
+    // check for draft existence
     if (!draft) {
       throw new DraftNotFoundError('target draft does not exist')
     }
+
+    // check for permission
     if (draft.authorId != viewer.id) {
       throw new ForbiddenError('viewer has no permission')
     }
 
+    // check for draft state
     if (
       draft.publishState === PUBLISH_STATE.pending ||
       draft.publishState === PUBLISH_STATE.published
@@ -79,18 +96,16 @@ const resolver: MutationToPutDraftResolver = async (
       )
     }
 
-    return await draftService.baseUpdate(
-      dbId,
-      { updatedAt: new Date(), ...data },
-      'draft'
-    )
+    // update
+    return await draftService.baseUpdate(dbId, {
+      updatedAt: new Date(),
+      ...data
+    })
   }
+
   // Create
   else {
-    const draft = await draftService.baseCreate(
-      { uuid: v4(), ...data },
-      'draft'
-    )
+    const draft = await draftService.baseCreate({ uuid: v4(), ...data })
     return draft
   }
 }

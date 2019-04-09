@@ -69,11 +69,11 @@ export default /* GraphQL */ `
 
   input PutDraftInput {
     id: ID
-    upstreamId: ID
     title: String
     content: String
     tags: [String]
     coverAssetId: ID
+    collection: [ID]
   }
 
   input DeleteDraftInput {

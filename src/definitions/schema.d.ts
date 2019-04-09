@@ -1195,11 +1195,11 @@ export interface GQLDeleteAudiodraftInput {
 
 export interface GQLPutDraftInput {
   id?: string
-  upstreamId?: string
   title?: string
   content?: string
   tags?: Array<string | null>
   coverAssetId?: string
+  collection?: Array<string | null>
 }
 
 export interface GQLDeleteDraftInput {
