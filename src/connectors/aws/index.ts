@@ -90,8 +90,8 @@ export class AWSService {
     if (mimetype && ACCEPTED_UPLOAD_IMAGE_TYPES.includes(mimetype)) {
       // Detect image dimension
       const { width, height } = sizeOf(buffer)
-      if (Math.max(width, height) > IMAGE_DIMENSION_LIMIT) {
-        buffer = await this.resizeImage(buffer, width, height)
+      if (width > IMAGE_DIMENSION_LIMIT) {
+        buffer = await this.resizeImage(buffer, IMAGE_DIMENSION_LIMIT, null)
       }
 
       // Compress image
@@ -132,24 +132,15 @@ export class AWSService {
       .promise()
 
   /**
-   * Resize image into specific size.
+   * Resize image to specific size.
    */
   resizeImage = async (
     buffer: Buffer,
-    width: number,
-    height: number
+    width: number | null,
+    height: number | null
   ): Promise<Buffer> => {
-    const dimension: { width: number | null; height: number | null } = {
-      width: null,
-      height: null
-    }
-    if (width > height) {
-      dimension.width = IMAGE_DIMENSION_LIMIT
-    } else {
-      dimension.height = IMAGE_DIMENSION_LIMIT
-    }
     return sharp(buffer)
-      .resize(dimension.width, dimension.height)
+      .resize(width, height)
       .toBuffer()
   }
 }
