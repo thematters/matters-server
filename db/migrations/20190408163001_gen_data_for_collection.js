@@ -7,8 +7,7 @@ exports.up = async knex => {
     .orderBy('upstream_id')
 
   // Produce and insert collection data
-  for(const item of data) {
-
+  for (const item of data) {
     const articles = await knex('article')
       .where(item)
       .orderBy('created_at')
