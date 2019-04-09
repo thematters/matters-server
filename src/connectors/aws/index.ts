@@ -5,11 +5,13 @@ import imageminGifsicle from 'imagemin-gifsicle'
 import imageminJpegtran from 'imagemin-jpegtran'
 import imageminPngquant from 'imagemin-pngquant'
 import imageminSvgo from 'imagemin-svgo'
+import sizeOf from 'image-size'
 import { v4 } from 'uuid'
 import slugify from '@matters/slugify'
+import sharp from 'sharp'
 //local
 import { S3Bucket, GQLAssetType } from 'definitions'
-import { ACCEPTED_UPLOAD_IMAGE_TYPES, LOCAL_S3_ENDPOINT } from 'common/enums'
+import { ACCEPTED_UPLOAD_IMAGE_TYPES, IMAGE_DIMENSION_LIMIT, LOCAL_S3_ENDPOINT } from 'common/enums'
 import { environment } from 'common/environment'
 import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
 
@@ -82,6 +84,14 @@ export class AWSService {
 
     // Reduce image size
     if (mimetype && ACCEPTED_UPLOAD_IMAGE_TYPES.includes(mimetype)) {
+
+      // Detect image dimension
+      const { width, height } = sizeOf(buffer)
+      if (Math.max(width, height) > IMAGE_DIMENSION_LIMIT) {
+        buffer = await this.resizeImage(buffer, width, height)
+      }
+
+      // Compress image
       buffer = await imagemin.buffer(buffer, {
         plugins: [
           imageminGifsicle(),
@@ -117,6 +127,23 @@ export class AWSService {
         Key: key
       })
       .promise()
+
+  /**
+   * Resize image into specific size.
+   */
+  resizeImage = async (buffer: Buffer, width: number, height: number): Promise<Buffer> => {
+    const dimension: { width: number | null, height: number | null } = { width: null, height: null }
+    if (width > height) {
+      dimension.width = IMAGE_DIMENSION_LIMIT
+    }
+    else {
+      dimension.height = IMAGE_DIMENSION_LIMIT
+    }
+    return sharp(buffer)
+      .resize(dimension.width, dimension.height)
+      .toBuffer()
+  }
+
 }
 
 export const aws = new AWSService()
