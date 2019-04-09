@@ -54,12 +54,17 @@ We use [MJML](https://mjml.io) to develop our SendGrid email template.
 
 ## NOTE: AWS resources that we need to put in the same VPC
 
-* Elastic Beanstalk
-* RDS PostgreSQL
-* ElastiCache Redis instances
-  * Pub/Sub
-  * Cache
-  * Queue
-* ElasticSearch EC2 instances
-* IPFS cluster EC2 instances
+- Elastic Beanstalk
+- RDS PostgreSQL
+- ElastiCache Redis instances
+  - Pub/Sub
+  - Cache
+  - Queue
+- ElasticSearch EC2 instances
+- IPFS cluster EC2 instances
 
+## Release a new version
+
+1. Update `CHANGELOG.md`
+2. Update `version` field of `package.json`
+3. Create a new release and tag in [GitHub Releases](https://github.com/thematters/matters-web/releases)
