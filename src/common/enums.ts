@@ -330,3 +330,5 @@ export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
   'image/svg+xml',
   'image/webp'
 ]
+
+export const IMAGE_DIMENSION_LIMIT = 1400
