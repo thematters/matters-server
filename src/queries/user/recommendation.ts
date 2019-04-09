@@ -106,13 +106,6 @@ const resolvers: GQLRecommendationTypeResolver = {
       limit: 1
     })
     return article
-      ? {
-          ...article,
-          cover: article.ossCover || article.cover,
-          title: article.ossTitle || article.title,
-          summary: article.ossSummary || article.summary
-        }
-      : article
   },
   icymi: async ({ id }, { input }, { dataSources: { articleService } }) => {
     const where = id

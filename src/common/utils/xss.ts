@@ -1,6 +1,7 @@
 import xss from 'xss'
 
 const CUSTOM_WHITE_LISTS = {
+  a: [...(xss.whiteList.a || []), 'class'],
   figure: [],
   figcaption: [],
   iframe: ['src', 'frameborder', 'allowfullscreen', 'sandbox']
@@ -23,7 +24,7 @@ const ignoreTagProcessor = (
   html: string,
   options: { [key: string]: any }
 ) => {
-  if (tag === 'input') {
+  if (tag === 'input' || tag === 'textarea') {
     return ''
   }
 }

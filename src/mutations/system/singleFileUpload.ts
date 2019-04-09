@@ -3,6 +3,7 @@ import { v4 } from 'uuid'
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 import { UserInputError } from 'common/errors'
 import axios from 'axios'
+import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
 
 const resolver: MutationToSingleFileUploadResolver = async (
   root,
@@ -16,7 +17,11 @@ const resolver: MutationToSingleFileUploadResolver = async (
   let upload
   if (url) {
     try {
-      const res = await axios.get(url, { responseType: 'stream' })
+      // TODO: resize image if too large
+      const res = await axios.get(url, {
+        responseType: 'stream',
+        maxContentLength: UPLOAD_FILE_SIZE_LIMIT
+      })
       const disposition = res.headers['content-disposition']
       const filename =
         (disposition && decodeURI(disposition.match(/filename="(.*)"/)[1])) ||
@@ -38,9 +43,10 @@ const resolver: MutationToSingleFileUploadResolver = async (
     upload = await file
   }
 
-  const key = await systemService.aws.baseUploadFile(type, upload)
+  const uuid = v4()
+  const key = await systemService.aws.baseUploadFile(type, upload, uuid)
   const asset: ItemData = {
-    uuid: v4(),
+    uuid,
     authorId: viewer.id,
     type,
     path: key

@@ -1,5 +1,7 @@
 import { i18n } from 'common/utils/i18n'
 
+export const UPLOAD_FILE_SIZE_LIMIT = 5 * 1024 * 1024
+
 export const MATERIALIZED_VIEW = {
   articleCountMaterialized: 'article_count_materialized',
   tagCountMaterialized: 'tag_count_materialized',
@@ -319,3 +321,14 @@ export const INVALID_NAMES = [
 ]
 
 export const EXPIRES_IN = 1000 * 60 * 60 * 24 * 90 // millisecond
+
+export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
+  'image/gif',
+  'image/png',
+  'image/jpg',
+  'image/jpeg',
+  'image/svg+xml',
+  'image/webp'
+]
+
+export const IMAGE_DIMENSION_LIMIT = 1400

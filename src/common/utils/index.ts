@@ -11,6 +11,7 @@ export * from './i18n'
 export * from './cookie'
 export * from './removeEmpty'
 export * from './xss'
+export * from './makeStreamToBuffer'
 
 export const stripHtml = (html: string, replacement = ' ') =>
   (html || '')
