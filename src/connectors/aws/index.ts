@@ -11,7 +11,11 @@ import slugify from '@matters/slugify'
 import sharp from 'sharp'
 //local
 import { S3Bucket, GQLAssetType } from 'definitions'
-import { ACCEPTED_UPLOAD_IMAGE_TYPES, IMAGE_DIMENSION_LIMIT, LOCAL_S3_ENDPOINT } from 'common/enums'
+import {
+  ACCEPTED_UPLOAD_IMAGE_TYPES,
+  IMAGE_DIMENSION_LIMIT,
+  LOCAL_S3_ENDPOINT
+} from 'common/enums'
 import { environment } from 'common/environment'
 import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
 
@@ -84,7 +88,6 @@ export class AWSService {
 
     // Reduce image size
     if (mimetype && ACCEPTED_UPLOAD_IMAGE_TYPES.includes(mimetype)) {
-
       // Detect image dimension
       const { width, height } = sizeOf(buffer)
       if (Math.max(width, height) > IMAGE_DIMENSION_LIMIT) {
@@ -131,19 +134,24 @@ export class AWSService {
   /**
    * Resize image into specific size.
    */
-  resizeImage = async (buffer: Buffer, width: number, height: number): Promise<Buffer> => {
-    const dimension: { width: number | null, height: number | null } = { width: null, height: null }
+  resizeImage = async (
+    buffer: Buffer,
+    width: number,
+    height: number
+  ): Promise<Buffer> => {
+    const dimension: { width: number | null; height: number | null } = {
+      width: null,
+      height: null
+    }
     if (width > height) {
       dimension.width = IMAGE_DIMENSION_LIMIT
-    }
-    else {
+    } else {
       dimension.height = IMAGE_DIMENSION_LIMIT
     }
     return sharp(buffer)
       .resize(dimension.width, dimension.height)
       .toBuffer()
   }
-
 }
 
 export const aws = new AWSService()
