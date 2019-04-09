@@ -439,7 +439,7 @@ export interface GQLDraftEdge {
 
 export interface GQLDraft extends GQLNode {
   id: string
-  upstream?: GQLArticle
+  collection?: Array<GQLArticle | null>
   title?: string
   slug: string
   summary?: string
@@ -3233,7 +3233,7 @@ export interface DraftEdgeToNodeResolver<TParent = any, TResult = any> {
 
 export interface GQLDraftTypeResolver<TParent = any> {
   id?: DraftToIdResolver<TParent>
-  upstream?: DraftToUpstreamResolver<TParent>
+  collection?: DraftToCollectionResolver<TParent>
   title?: DraftToTitleResolver<TParent>
   slug?: DraftToSlugResolver<TParent>
   summary?: DraftToSummaryResolver<TParent>
@@ -3256,7 +3256,7 @@ export interface DraftToIdResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface DraftToUpstreamResolver<TParent = any, TResult = any> {
+export interface DraftToCollectionResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
