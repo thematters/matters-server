@@ -112,7 +112,6 @@ export class AWSService {
       .upload({
         Body: buffer,
         Bucket: this.s3Bucket,
-        ContentEncoding: encoding,
         ContentType: mimetype,
         Key: key
       })
