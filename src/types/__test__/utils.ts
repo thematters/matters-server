@@ -125,8 +125,12 @@ export const putDraft = async (draft: GQLPutDraftInput) => {
     mutation($input: PutDraftInput!) {
       putDraft(input: $input) {
         id
-        upstream {
-          id
+        collection(input: { first: 10 }) {
+          edges {
+            node {
+              id
+            }
+          }
         }
         cover
         title

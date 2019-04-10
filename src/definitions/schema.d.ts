@@ -46,8 +46,8 @@ export interface GQLArticle extends GQLNode {
   dataHash?: string
   mediaHash?: string
   content: string
-  upstream?: GQLArticle
-  downstreams: GQLArticleConnection
+  collectedBy: GQLArticleConnection
+  collection: GQLArticleConnection
   relatedArticles: GQLArticleConnection
 
   /**
@@ -439,7 +439,7 @@ export interface GQLDraftEdge {
 
 export interface GQLDraft extends GQLNode {
   id: string
-  collection?: Array<GQLArticle | null>
+  collection: GQLArticleConnection
   title?: string
   slug: string
   summary?: string
@@ -1771,8 +1771,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   dataHash?: ArticleToDataHashResolver<TParent>
   mediaHash?: ArticleToMediaHashResolver<TParent>
   content?: ArticleToContentResolver<TParent>
-  upstream?: ArticleToUpstreamResolver<TParent>
-  downstreams?: ArticleToDownstreamsResolver<TParent>
+  collectedBy?: ArticleToCollectedByResolver<TParent>
+  collection?: ArticleToCollectionResolver<TParent>
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>
   MAT?: ArticleToMATResolver<TParent>
   participantCount?: ArticleToParticipantCountResolver<TParent>
@@ -1937,22 +1937,25 @@ export interface ArticleToContentResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface ArticleToUpstreamResolver<TParent = any, TResult = any> {
+export interface ArticleToCollectedByArgs {
+  input: GQLConnectionArgs
+}
+export interface ArticleToCollectedByResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: {},
+    args: ArticleToCollectedByArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
-export interface ArticleToDownstreamsArgs {
+export interface ArticleToCollectionArgs {
   input: GQLConnectionArgs
 }
-export interface ArticleToDownstreamsResolver<TParent = any, TResult = any> {
+export interface ArticleToCollectionResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: ArticleToDownstreamsArgs,
+    args: ArticleToCollectionArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -3256,10 +3259,13 @@ export interface DraftToIdResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface DraftToCollectionArgs {
+  input: GQLConnectionArgs
+}
 export interface DraftToCollectionResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: {},
+    args: DraftToCollectionArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

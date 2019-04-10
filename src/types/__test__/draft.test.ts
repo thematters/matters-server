@@ -1,25 +1,13 @@
+// external
+import _ from 'lodash'
 // local
 import { knex } from 'connectors/db'
 import { GQLPutAudiodraftInput } from 'definitions'
 import { testClient, putDraft } from './utils'
+import { toGlobalId } from 'common/utils'
 
 afterAll(knex.destroy)
 
-const PUT_DRAFT = `
-  mutation($input: PutDraftInput!) {
-    putDraft(input: $input) {
-      id
-      cover
-      title
-      summary
-      content
-      createdAt
-      collection {
-        id
-      }
-    }
-  }
-`
 const PUT_AUDIO_DRAFT = `
   mutation($input: PutAudiodraftInput!) {
     putAudiodraft(input: $input) {
@@ -46,24 +34,6 @@ export const putAudiodraft = async (Audiodraft: GQLPutAudiodraftInput) => {
 }
 
 describe('put draft', async () => {
-  test('create and edit new draft', async () => {
-    // create
-    const draft = {
-      title: 'test',
-      content: 'asds'
-    }
-    const draftCreated = await putDraft(draft)
-    expect(draftCreated).toMatchObject(draft)
-
-    // edit
-    const editDraft = {
-      id: draftCreated.id,
-      content: 'edited content'
-    }
-    const draftEdited = await putDraft(editDraft)
-    expect(draftEdited.content).toBe(editDraft.content)
-  })
-
   test('create new draft with cover', async () => {
     const draft = {
       title: 'draft title with cover',
@@ -72,6 +42,41 @@ describe('put draft', async () => {
     }
     const draftCreated = await putDraft(draft)
     expect(draftCreated.cover).toBeTruthy()
+  })
+
+  test('create and edit draft with collection', async () => {
+    let collection = [
+      toGlobalId({ type: 'Article', id: 1 }),
+      toGlobalId({ type: 'Article', id: 2 })
+    ]
+
+    // create
+    const draft = {
+      title: 'test',
+      content: 'test content',
+      collection
+    }
+    const draftCreated = await putDraft(draft)
+    expect(
+      draftCreated.collection.edges.map(
+        ({ node }: { id: string; [key: string]: any }) => node.id
+      )
+    ).toMatchObject(collection)
+
+    // edit
+    collection.pop()
+    const editDraft = {
+      id: draftCreated.id,
+      content: 'edited content',
+      collection
+    }
+    const draftEdited = await putDraft(editDraft)
+    expect(draftEdited.content).toBe(editDraft.content)
+    expect(
+      draftEdited.collection.edges.map(
+        ({ node }: { id: string; [key: string]: any }) => node.id
+      )
+    ).toMatchObject(collection)
   })
 })
 

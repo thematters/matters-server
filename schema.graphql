@@ -30,8 +30,8 @@ type Article implements Node {
   dataHash: String
   mediaHash: String
   content: String!
-  upstream: Article
-  downstreams(input: ConnectionArgs!): ArticleConnection!
+  collectedBy(input: ConnectionArgs!): ArticleConnection!
+  collection(input: ConnectionArgs!): ArticleConnection!
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
   """MAT recieved for this article"""
@@ -385,7 +385,7 @@ type DownstreamArticleArchivedNotice implements Notice {
 
 type Draft implements Node {
   id: ID!
-  collection: [Article]
+  collection(input: ConnectionArgs!): ArticleConnection!
   title: String
   slug: String!
   summary: String

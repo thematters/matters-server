@@ -14,6 +14,7 @@ export const fromGlobalId = (globalId: string) => {
   const [type, id] = Base64.decode(globalId).split(':')
 
   if (!id) {
+    console.log({ globalId })
     throw new UserInputError('invalid globalId')
   }
   return { type, id }

@@ -40,21 +40,30 @@ const resolver: MutationToPutDraftResolver = async (
 
   // check for collection existence
   // add to dbId array if ok
-  let collection = []
+  let collection = [] as string[]
   if (collectionGlobalIds && collectionGlobalIds.length > 0) {
-    for (const articleGlobalId in collectionGlobalIds) {
-      const { id: articleId } = fromGlobalId(articleGlobalId)
-      const article = await articleService.baseFindById(articleId)
-      if (!article) {
-        throw new ArticleNotFoundError(`Cannot find article ${articleGlobalId}`)
-      } else if (article.state !== ARTICLE_STATE.active) {
-        throw new ForbiddenError(
-          `Article ${article.title} cannot be collected.`
-        )
-      } else {
-        collection.push(articleId)
-      }
-    }
+    collection = await Promise.all(
+      collectionGlobalIds.map(async articleGlobalId => {
+        if (!articleGlobalId) {
+          throw new ArticleNotFoundError(
+            `Cannot find article ${articleGlobalId}`
+          )
+        }
+        const { id: articleId } = fromGlobalId(articleGlobalId)
+        const article = await articleService.baseFindById(articleId)
+        if (!article) {
+          throw new ArticleNotFoundError(
+            `Cannot find article ${articleGlobalId}`
+          )
+        } else if (article.state !== ARTICLE_STATE.active) {
+          throw new ForbiddenError(
+            `Article ${article.title} cannot be collected.`
+          )
+        } else {
+          return articleId
+        }
+      })
+    )
   }
 
   // assemble data

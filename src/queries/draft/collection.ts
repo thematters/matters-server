@@ -1,15 +1,19 @@
 import { DraftToCollectionResolver } from 'definitions'
+import { connectionFromPromisedArray } from 'common/utils'
 
 const resolver: DraftToCollectionResolver = (
   { collection },
-  _,
+  { input },
   { dataSources: { articleService } }
 ) => {
   if (!collection || collection.length === 0) {
     return []
   }
 
-  return articleService.dataloader.loadMany(collection)
+  return connectionFromPromisedArray(
+    articleService.dataloader.loadMany(collection),
+    input
+  )
 }
 
 export default resolver

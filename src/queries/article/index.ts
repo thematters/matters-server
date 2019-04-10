@@ -11,8 +11,8 @@ import tagArticles from './tag/articles'
 import author from './author'
 import cover from './cover'
 import tags from './tags'
-import upstream from './upstream'
-import downstreams from './downstreams'
+import collection from './collection'
+import collectedBy from './collectedBy'
 import MAT from './mat'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
@@ -46,8 +46,8 @@ export default {
     author,
     cover,
     tags,
-    upstream,
-    downstreams,
+    collection,
+    collectedBy,
     relatedArticles,
     MAT,
     subscribed,

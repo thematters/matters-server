@@ -10,7 +10,7 @@ export default /* GraphQL */ `
 
   type Draft implements Node {
     id: ID!
-    collection: [Article]
+    collection(input: ConnectionArgs!): ArticleConnection!
     title: String
     slug: String!
     summary: String

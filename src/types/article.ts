@@ -40,8 +40,8 @@ export default /* GraphQL */ `
     dataHash: String
     mediaHash: String
     content: String!
-    upstream: Article
-    downstreams(input: ConnectionArgs!): ArticleConnection!
+    collectedBy(input: ConnectionArgs!): ArticleConnection!
+    collection(input: ConnectionArgs!): ArticleConnection!
     relatedArticles(input: ConnectionArgs!): ArticleConnection!
     # MAT recieved for this article
     MAT: Int!
