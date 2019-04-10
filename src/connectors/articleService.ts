@@ -176,9 +176,10 @@ export class ArticleService extends BaseService {
 
   deleteCollection = async ({ entranceId }: { entranceId: string }) => {
     const table = 'collection'
-    const ids = await this.knex(table)
+    const items = await this.knex('collection')
       .select('id')
       .where({ entranceId })
+    const ids = items.map(({ id }: { id: string }) => id)
 
     return this.baseBatchDelete(ids, table)
   }

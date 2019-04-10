@@ -948,6 +948,7 @@ export interface GQLMutation {
   appreciateArticle: GQLArticle
   readArticle: GQLArticle
   recallPublish: GQLDraft
+  setCollection: GQLArticle
 
   /**
    * OSS
@@ -1081,6 +1082,11 @@ export interface GQLReadArticleInput {
 
 export interface GQLRecallPublishInput {
   id: string
+}
+
+export interface GQLSetCollectionInput {
+  id: string
+  collection: Array<string>
 }
 
 export interface GQLToggleArticleLiveInput {
@@ -5280,6 +5286,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
   recallPublish?: MutationToRecallPublishResolver<TParent>
+  setCollection?: MutationToSetCollectionResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
@@ -5432,6 +5439,18 @@ export interface MutationToRecallPublishResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToRecallPublishArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSetCollectionArgs {
+  input: GQLSetCollectionInput
+}
+export interface MutationToSetCollectionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToSetCollectionArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
