@@ -90,24 +90,6 @@ class PublicationQueue {
               entranceId: article.id,
               articleIds: draft.collection
             })
-
-            // this.notificationService.trigger({
-            //   event: 'article_new_downstream',
-            //   actorId: article.authorId,
-            //   recipientId: upstream.authorId,
-            //   entities: [
-            //     {
-            //       type: 'target',
-            //       entityTable: 'article',
-            //       entity: upstream
-            //     },
-            //     {
-            //       type: 'downstream',
-            //       entityTable: 'article',
-            //       entity: article
-            //     }
-            //   ]
-            // })
           }
 
           job.progress(40)
