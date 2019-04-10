@@ -30,17 +30,7 @@ const GET_ARTICLES = `
     }
   }
 `
-const PUBLISH_ARTICLE = `
-  mutation($input: PublishArticleInput!) {
-    publishArticle(input: $input) {
-      id
-      publishState
-      title
-      content
-      createdAt
-    }
-  }
-`
+
 const RECALL_PUBLISH = `
   mutation($input: RecallPublishInput!) {
     recallPublish(input: $input) {
@@ -49,25 +39,6 @@ const RECALL_PUBLISH = `
   }
 `
 
-const GET_ARTICLE_BY_MEDIA_HASH = `
-  query ($input: ArticleInput!) {
-    article(input: $input) {
-      mediaHash
-    }
-  }
-`
-const GET_ARTICLE_UPSTREAM = `
-  query($input: NodeInput!) {
-    node(input: $input) {
-      ... on Article {
-        id
-        upstream {
-          id
-        }
-      }
-    }
-  }
-`
 const GET_ARTICLE_TAGS = `
   query ($input: NodeInput!) {
     node(input: $input) {
@@ -181,7 +152,7 @@ describe('query article', async () => {
   })
 })
 
-describe('query tag and upstream on article', async () => {
+describe('query tag on article', async () => {
   test('query tag on article', async () => {
     const id = toGlobalId({ type: 'Article', id: 1 })
     const { query } = await testClient()
@@ -194,30 +165,6 @@ describe('query tag and upstream on article', async () => {
     expect(
       new Set(tags.map(({ content }: { content: string }) => content))
     ).toEqual(new Set(['article', 'test']))
-  })
-
-  test('query upstream on article', async () => {
-    const id = toGlobalId({ type: 'Article', id: 2 })
-    const { query } = await testClient()
-    const { data } = await query({
-      query: GET_ARTICLE_UPSTREAM,
-      // @ts-ignore
-      variables: { input: { id } }
-    })
-    const upstream = data && data.node && data.node.upstream
-    expect(upstream.id).toEqual(toGlobalId({ type: 'Article', id: 1 }))
-  })
-
-  test('query null upstream on article', async () => {
-    const id = toGlobalId({ type: 'Article', id: 1 })
-    const { query } = await testClient()
-    const { data } = await query({
-      query: GET_ARTICLE_UPSTREAM,
-      // @ts-ignore
-      variables: { input: { id } }
-    })
-    const upstream = data && data.node && data.node.upstream
-    expect(upstream).toBeNull()
   })
 })
 
@@ -242,6 +189,44 @@ describe('publish article', async () => {
     })
     const draftRecalled = result && result.data && result.data.recallPublish
     expect(draftRecalled.publishState).toBe(PUBLISH_STATE.unpublished)
+  })
+
+  test('add collection to article and query', async () => {
+    const { mutate } = await testClient({
+      isAuth: true
+    })
+
+    const collection = [
+      toGlobalId({ type: 'Article', id: 1 }),
+      toGlobalId({ type: 'Article', id: 2 })
+    ]
+
+    const result = await mutate({
+      mutation: `
+        mutation($id: ID!, $collection: [ID!]!) {
+          setCollection(input: { id: $id, collection: $collection }) {
+            collection(input: {}) {
+              edges {
+                node {
+                  id
+                }
+              }
+            }
+          }
+        }
+      `,
+      // @ts-ignore
+      variables: {
+        id: toGlobalId({ type: 'Article', id: 3 }),
+        collection
+      }
+    })
+
+    expect(
+      _.get(result, 'data.setCollection.collection.edges').map(
+        ({ node }: { node: { id: string } }) => node.id
+      )
+    ).toMatchObject(collection)
   })
 })
 

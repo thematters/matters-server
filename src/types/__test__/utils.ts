@@ -116,8 +116,8 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
     variables: { input }
   })
 
-  const article = result && result.data && result.data.publishArticle
-  return article
+  const draft = result && result.data && result.data.publishArticle
+  return draft
 }
 
 export const putDraft = async (draft: GQLPutDraftInput) => {

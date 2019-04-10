@@ -205,15 +205,6 @@ export class ArticleService extends BaseService {
       .first()
 
   /**
-   * Find articles by upstream id (article).
-   */
-  findByUpstream = async (upstreamId: string) =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ upstreamId })
-
-  /**
    * Count articles by a given authorId (user).
    */
   countByAuthor = async (authorId: string): Promise<number> => {

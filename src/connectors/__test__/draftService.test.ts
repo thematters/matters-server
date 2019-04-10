@@ -8,7 +8,6 @@ const draftValidation = {
   id: expect.any(String),
   uuid: expect.any(String),
   authorId: expect.any(String),
-  upstreamId: null,
   title: expect.any(String),
   cover: null,
   summary: expect.any(String),
