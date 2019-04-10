@@ -1043,4 +1043,67 @@ export class ArticleService extends BaseService {
     }))
     await this.baseBatchCreate(reportAssets, 'report_asset')
   }
+
+  /*********************************
+   *                               *
+   *          Collection           *
+   *                               *
+   *********************************/
+  /**
+   * Find an article's collections by a given article id.
+   */
+  findCollections = async ({
+    entranceId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    entranceId: string
+    limit?: number
+    offset?: number
+  }) =>
+    await this.knex('collection')
+      .select('article_id')
+      .where({ entranceId })
+      .limit(limit)
+      .offset(offset)
+
+  /**
+   * Find an article is collected by which articles.
+   */
+  findCollectedBy = async ({
+    articleId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    articleId: string
+    limit?: number
+    offset?: number
+  }) =>
+    await this.knex('collection')
+      .select('entrance_id')
+      .where({ articleId })
+      .limit(limit)
+      .offset(offset)
+
+  /**
+   * Count collections by a given article id.
+   */
+  countCollections = async (id: string) => {
+    const result = await this.knex('collection')
+      .where({ entranceId: id })
+      .countDistinct('article_id')
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  /**
+   * Count an article is collect by how many articles.
+   */
+  countCollectedBy = async (id: string) => {
+    const result = await this.knex('collection')
+      .where({ articleId: id })
+      .countDistinct('entrance_id')
+      .first()
+    return parseInt(result.count, 10)
+  }
 }

@@ -1,16 +1,27 @@
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { ArticleToCollectionResolver } from 'definitions'
 
-const resolver: ArticleToCollectionResolver = (
+const resolver: ArticleToCollectionResolver = async (
   { id },
-  _,
+  { input },
   { dataSources: { articleService } }
 ) => {
-  // if (!upstreamId) {
-  //   return null
-  // }
+  const { after, first } = input
+  const offset = cursorToIndex(after) + 1
+  const totalCount = await articleService.countCollections(id)
+  const collections = await articleService.findCollections({
+    entranceId: id,
+    limit: first,
+    offset
+  })
 
-  // return articleService.dataloader.load(upstreamId)
-  return []
+  return connectionFromPromisedArray(
+    articleService.dataloader.loadMany(
+      collections.map(({ articleId }: { articleId: string }) => articleId)
+    ),
+    input,
+    totalCount
+  )
 }
 
 export default resolver
