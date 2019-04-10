@@ -179,7 +179,6 @@ export class ArticleService extends BaseService {
     const ids = await this.knex(table)
       .select('id')
       .where({ entranceId })
-    console.log(ids)
 
     return this.baseBatchDelete(ids, table)
   }
