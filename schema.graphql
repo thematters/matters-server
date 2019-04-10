@@ -488,6 +488,7 @@ type Mutation {
   appreciateArticle(input: AppreciateArticleInput!): Article!
   readArticle(input: ReadArticleInput!): Article!
   recallPublish(input: RecallPublishInput!): Draft!
+  setCollection(input: SetCollectionInput!): Article!
 
   """OSS"""
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
@@ -937,6 +938,11 @@ input SetBoostInput {
   id: ID!
   boost: NonNegativeFloat!
   type: BoostTypes!
+}
+
+input SetCollectionInput {
+  id: ID!
+  collection: [ID!]!
 }
 
 input SingleFileDeleteInput {
