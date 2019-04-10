@@ -68,7 +68,6 @@ export class ArticleService extends BaseService {
    */
   publish = async ({
     authorId,
-    upstreamId,
     title,
     cover,
     summary: draftSummary,
@@ -125,12 +124,6 @@ export class ArticleService extends BaseService {
       }
     }
 
-    // add upstream
-    if (upstreamId) {
-      const upstream = await this.dataloader.load(upstreamId)
-      mediaObj.upstream = `ipfs://ipfs/${upstream.mediaHash}`
-    }
-
     const mediaObjectCleaned = removeEmpty(mediaObj)
 
     const cid = await this.ipfs.client.dag.put(mediaObjectCleaned, {
@@ -143,7 +136,6 @@ export class ArticleService extends BaseService {
     // edit db record
     const article = await this.create({
       authorId,
-      upstreamId,
       title,
       slug: slugify(title),
       summary,
@@ -155,6 +147,41 @@ export class ArticleService extends BaseService {
     })
 
     return article
+  }
+
+  /**
+   * Create a collection for article
+   */
+
+  createCollection = async ({
+    entranceId,
+    articleIds
+  }: {
+    articleIds: string[]
+    entranceId: string
+  }) => {
+    const items = articleIds.map((articleId, index) => ({
+      entranceId,
+      articleId,
+      order: index,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }))
+    return this.baseBatchCreate(items, 'collection')
+  }
+
+  /**
+   * Delete a collection for article
+   */
+
+  deleteCollection = async ({ entranceId }: { entranceId: string }) => {
+    const table = 'collection'
+    const ids = await this.knex(table)
+      .select('id')
+      .where({ entranceId })
+    console.log(ids)
+
+    return this.baseBatchDelete(ids, table)
   }
 
   /**

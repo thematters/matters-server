@@ -68,7 +68,6 @@ class PublicationQueue {
           let article
           try {
             article = await this.articleService.publish(draft)
-            job.progress(20)
           } catch (e) {
             await this.draftService.baseUpdate(draft.id, {
               publishState: PUBLISH_STATE.error
@@ -82,6 +81,17 @@ class PublicationQueue {
             publishState: PUBLISH_STATE.published,
             updatedAt: new Date()
           })
+          job.progress(20)
+
+          // handle collection
+          if (draft.collection && draft.collection.length > 0) {
+            // create collection records
+            await this.articleService.createCollection({
+              entranceId: article.id,
+              articleIds: draft.collection
+            })
+          }
+
           job.progress(40)
 
           // handle tags
