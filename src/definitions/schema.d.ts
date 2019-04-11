@@ -46,8 +46,8 @@ export interface GQLArticle extends GQLNode {
   dataHash?: string
   mediaHash?: string
   content: string
-  upstream?: GQLArticle
-  downstreams: GQLArticleConnection
+  collectedBy: GQLArticleConnection
+  collection: GQLArticleConnection
   relatedArticles: GQLArticleConnection
 
   /**
@@ -439,7 +439,7 @@ export interface GQLDraftEdge {
 
 export interface GQLDraft extends GQLNode {
   id: string
-  upstream?: GQLArticle
+  collection: GQLArticleConnection
   title?: string
   slug: string
   summary?: string
@@ -948,6 +948,7 @@ export interface GQLMutation {
   appreciateArticle: GQLArticle
   readArticle: GQLArticle
   recallPublish: GQLDraft
+  setCollection: GQLArticle
 
   /**
    * OSS
@@ -1083,6 +1084,11 @@ export interface GQLRecallPublishInput {
   id: string
 }
 
+export interface GQLSetCollectionInput {
+  id: string
+  collection: Array<string>
+}
+
 export interface GQLToggleArticleLiveInput {
   id: string
   enabled: boolean
@@ -1195,11 +1201,11 @@ export interface GQLDeleteAudiodraftInput {
 
 export interface GQLPutDraftInput {
   id?: string
-  upstreamId?: string
   title?: string
   content?: string
   tags?: Array<string | null>
   coverAssetId?: string
+  collection?: Array<string | null>
 }
 
 export interface GQLDeleteDraftInput {
@@ -1771,8 +1777,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   dataHash?: ArticleToDataHashResolver<TParent>
   mediaHash?: ArticleToMediaHashResolver<TParent>
   content?: ArticleToContentResolver<TParent>
-  upstream?: ArticleToUpstreamResolver<TParent>
-  downstreams?: ArticleToDownstreamsResolver<TParent>
+  collectedBy?: ArticleToCollectedByResolver<TParent>
+  collection?: ArticleToCollectionResolver<TParent>
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>
   MAT?: ArticleToMATResolver<TParent>
   participantCount?: ArticleToParticipantCountResolver<TParent>
@@ -1937,22 +1943,25 @@ export interface ArticleToContentResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface ArticleToUpstreamResolver<TParent = any, TResult = any> {
+export interface ArticleToCollectedByArgs {
+  input: GQLConnectionArgs
+}
+export interface ArticleToCollectedByResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: {},
+    args: ArticleToCollectedByArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
-export interface ArticleToDownstreamsArgs {
+export interface ArticleToCollectionArgs {
   input: GQLConnectionArgs
 }
-export interface ArticleToDownstreamsResolver<TParent = any, TResult = any> {
+export interface ArticleToCollectionResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: ArticleToDownstreamsArgs,
+    args: ArticleToCollectionArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -3233,7 +3242,7 @@ export interface DraftEdgeToNodeResolver<TParent = any, TResult = any> {
 
 export interface GQLDraftTypeResolver<TParent = any> {
   id?: DraftToIdResolver<TParent>
-  upstream?: DraftToUpstreamResolver<TParent>
+  collection?: DraftToCollectionResolver<TParent>
   title?: DraftToTitleResolver<TParent>
   slug?: DraftToSlugResolver<TParent>
   summary?: DraftToSummaryResolver<TParent>
@@ -3256,10 +3265,13 @@ export interface DraftToIdResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface DraftToUpstreamResolver<TParent = any, TResult = any> {
+export interface DraftToCollectionArgs {
+  input: GQLConnectionArgs
+}
+export interface DraftToCollectionResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: {},
+    args: DraftToCollectionArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5274,6 +5286,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
   recallPublish?: MutationToRecallPublishResolver<TParent>
+  setCollection?: MutationToSetCollectionResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
@@ -5426,6 +5439,18 @@ export interface MutationToRecallPublishResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToRecallPublishArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSetCollectionArgs {
+  input: GQLSetCollectionInput
+}
+export interface MutationToSetCollectionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToSetCollectionArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

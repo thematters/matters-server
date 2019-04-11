@@ -241,7 +241,6 @@ export class BaseService extends DataSource {
       .returning('*')
 
     logger.info(`Updated id ${id} in ${table || this.table}`)
-
     return updatedItem
   }
   /**

@@ -116,8 +116,8 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
     variables: { input }
   })
 
-  const article = result && result.data && result.data.publishArticle
-  return article
+  const draft = result && result.data && result.data.publishArticle
+  return draft
 }
 
 export const putDraft = async (draft: GQLPutDraftInput) => {
@@ -125,8 +125,12 @@ export const putDraft = async (draft: GQLPutDraftInput) => {
     mutation($input: PutDraftInput!) {
       putDraft(input: $input) {
         id
-        upstream {
-          id
+        collection(input: { first: 10 }) {
+          edges {
+            node {
+              id
+            }
+          }
         }
         cover
         title

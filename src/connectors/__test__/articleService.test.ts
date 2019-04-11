@@ -38,11 +38,6 @@ test('findByAuthor', async () => {
   expect(articles.length).toBeDefined()
 })
 
-test('findByUpstream', async () => {
-  const articles = await articleService.findByUpstream('2')
-  expect(articles.length).toBe(2)
-})
-
 test('findAppreciations', async () => {
   const appreciations = await articleService.findAppreciations('1')
   expect(appreciations.length).toBe(4)

@@ -30,8 +30,8 @@ type Article implements Node {
   dataHash: String
   mediaHash: String
   content: String!
-  upstream: Article
-  downstreams(input: ConnectionArgs!): ArticleConnection!
+  collectedBy(input: ConnectionArgs!): ArticleConnection!
+  collection(input: ConnectionArgs!): ArticleConnection!
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
   """MAT recieved for this article"""
@@ -385,7 +385,7 @@ type DownstreamArticleArchivedNotice implements Notice {
 
 type Draft implements Node {
   id: ID!
-  upstream: Article
+  collection(input: ConnectionArgs!): ArticleConnection!
   title: String
   slug: String!
   summary: String
@@ -488,6 +488,7 @@ type Mutation {
   appreciateArticle(input: AppreciateArticleInput!): Article!
   readArticle(input: ReadArticleInput!): Article!
   recallPublish(input: RecallPublishInput!): Draft!
+  setCollection(input: SetCollectionInput!): Article!
 
   """OSS"""
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
@@ -728,11 +729,11 @@ input PutCommentInput {
 
 input PutDraftInput {
   id: ID
-  upstreamId: ID
   title: String
   content: String
   tags: [String]
   coverAssetId: ID
+  collection: [ID]
 }
 
 input PutRemarkInput {
@@ -937,6 +938,11 @@ input SetBoostInput {
   id: ID!
   boost: NonNegativeFloat!
   type: BoostTypes!
+}
+
+input SetCollectionInput {
+  id: ID!
+  collection: [ID!]!
 }
 
 input SingleFileDeleteInput {

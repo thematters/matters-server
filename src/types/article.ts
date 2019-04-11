@@ -12,6 +12,7 @@ export default /* GraphQL */ `
     appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate
     readArticle(input: ReadArticleInput!): Article!
     recallPublish(input: RecallPublishInput!): Draft! @authenticate
+    setCollection(input: SetCollectionInput!): Article! @authenticate
     # OSS
     toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authorize
     toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @authorize
@@ -40,8 +41,8 @@ export default /* GraphQL */ `
     dataHash: String
     mediaHash: String
     content: String!
-    upstream: Article
-    downstreams(input: ConnectionArgs!): ArticleConnection!
+    collectedBy(input: ConnectionArgs!): ArticleConnection!
+    collection(input: ConnectionArgs!): ArticleConnection!
     relatedArticles(input: ConnectionArgs!): ArticleConnection!
     # MAT recieved for this article
     MAT: Int!
@@ -153,6 +154,11 @@ export default /* GraphQL */ `
 
   input RecallPublishInput {
     id: ID!
+  }
+
+  input SetCollectionInput {
+    id: ID!
+    collection: [ID!]!
   }
 
   input ToggleArticleLiveInput {

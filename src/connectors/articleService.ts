@@ -68,7 +68,6 @@ export class ArticleService extends BaseService {
    */
   publish = async ({
     authorId,
-    upstreamId,
     title,
     cover,
     summary: draftSummary,
@@ -125,12 +124,6 @@ export class ArticleService extends BaseService {
       }
     }
 
-    // add upstream
-    if (upstreamId) {
-      const upstream = await this.dataloader.load(upstreamId)
-      mediaObj.upstream = `ipfs://ipfs/${upstream.mediaHash}`
-    }
-
     const mediaObjectCleaned = removeEmpty(mediaObj)
 
     const cid = await this.ipfs.client.dag.put(mediaObjectCleaned, {
@@ -143,7 +136,6 @@ export class ArticleService extends BaseService {
     // edit db record
     const article = await this.create({
       authorId,
-      upstreamId,
       title,
       slug: slugify(title),
       summary,
@@ -155,6 +147,41 @@ export class ArticleService extends BaseService {
     })
 
     return article
+  }
+
+  /**
+   * Create a collection for article
+   */
+
+  createCollection = async ({
+    entranceId,
+    articleIds
+  }: {
+    articleIds: string[]
+    entranceId: string
+  }) => {
+    const items = articleIds.map((articleId, index) => ({
+      entranceId,
+      articleId,
+      order: index,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }))
+    return this.baseBatchCreate(items, 'collection')
+  }
+
+  /**
+   * Delete a collection for article
+   */
+
+  deleteCollection = async ({ entranceId }: { entranceId: string }) => {
+    const table = 'collection'
+    const items = await this.knex('collection')
+      .select('id')
+      .where({ entranceId })
+    const ids = items.map(({ id }: { id: string }) => id)
+
+    return this.baseBatchDelete(ids, table)
   }
 
   /**
@@ -176,15 +203,6 @@ export class ArticleService extends BaseService {
       .from(this.table)
       .where({ mediaHash })
       .first()
-
-  /**
-   * Find articles by upstream id (article).
-   */
-  findByUpstream = async (upstreamId: string) =>
-    await this.knex
-      .select()
-      .from(this.table)
-      .where({ upstreamId })
 
   /**
    * Count articles by a given authorId (user).
@@ -1015,5 +1033,68 @@ export class ArticleService extends BaseService {
       assetId
     }))
     await this.baseBatchCreate(reportAssets, 'report_asset')
+  }
+
+  /*********************************
+   *                               *
+   *          Collection           *
+   *                               *
+   *********************************/
+  /**
+   * Find an article's collections by a given article id.
+   */
+  findCollections = async ({
+    entranceId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    entranceId: string
+    limit?: number
+    offset?: number
+  }) =>
+    await this.knex('collection')
+      .select('article_id')
+      .where({ entranceId })
+      .limit(limit)
+      .offset(offset)
+
+  /**
+   * Find an article is collected by which articles.
+   */
+  findCollectedBy = async ({
+    articleId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    articleId: string
+    limit?: number
+    offset?: number
+  }) =>
+    await this.knex('collection')
+      .select('entrance_id')
+      .where({ articleId })
+      .limit(limit)
+      .offset(offset)
+
+  /**
+   * Count collections by a given article id.
+   */
+  countCollections = async (id: string) => {
+    const result = await this.knex('collection')
+      .where({ entranceId: id })
+      .countDistinct('article_id')
+      .first()
+    return parseInt(result.count, 10)
+  }
+
+  /**
+   * Count an article is collect by how many articles.
+   */
+  countCollectedBy = async (id: string) => {
+    const result = await this.knex('collection')
+      .where({ articleId: id })
+      .countDistinct('entrance_id')
+      .first()
+    return parseInt(result.count, 10)
   }
 }

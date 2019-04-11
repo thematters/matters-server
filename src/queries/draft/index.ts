@@ -5,7 +5,7 @@ import { toGlobalId, countWords, makeSummary } from 'common/utils'
 import drafts from './drafts'
 import audiodrafts from './audiodrafts'
 import cover from './cover'
-import upstream from './upstream'
+import collection from './collection'
 import audio from './audio'
 
 export default {
@@ -21,7 +21,7 @@ export default {
     summary: ({ content, cover }: { content?: string; cover?: string }) =>
       content ? makeSummary(content, cover ? 110 : 140) : '',
     cover,
-    upstream
+    collection
   },
   Audiodraft: {
     id: ({ uuid }: { uuid: string }) => uuid,
