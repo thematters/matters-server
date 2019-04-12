@@ -1,11 +1,16 @@
 // external
 import DataLoader from 'dataloader'
 import _ from 'lodash'
+import bodybuilder from 'bodybuilder'
 // internal
 import { GQLSearchInput } from 'definitions'
 import { BaseService } from './baseService'
 import { BATCH_SIZE, ARTICLE_STATE } from 'common/enums'
-import { isEnglish } from 'common/utils'
+// import { isEnglish } from 'common/utils'
+// import { environment } from 'common/environment'
+import logger from 'common/logger'
+import { ServerError } from 'common/errors'
+import { environment } from 'common/environment'
 
 export class TagService extends BaseService {
   constructor() {
@@ -28,10 +33,41 @@ export class TagService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-  search = async ({ key, first }: GQLSearchInput) =>
-    await this.knex(this.table)
-      .where('content', 'ilike', `%${key}%`)
-      .limit(100) // TODO: pagination with search
+
+  search = async ({ key, first }: GQLSearchInput) => {
+    // for local dev
+    if (environment.env === 'development') {
+      return this.knex(this.table)
+        .where('content', 'ilike', `%${key}%`)
+        .limit(100)
+    }
+
+    const body = bodybuilder()
+      .query('match', 'content', {
+        query: key,
+        fuzziness: 5
+      })
+      .size(50) // TODO: pagination with search
+      .build()
+
+    try {
+      const result = await this.es.client.search({
+        index: this.table,
+        type: this.table,
+        body
+      })
+
+      const { hits } = result
+
+      const ids = hits.hits.map(({ _id }) => _id)
+      const tags = await this.baseFindByIds(ids, this.table)
+
+      return tags
+    } catch (err) {
+      logger.error(err)
+      throw new ServerError('tag search failed')
+    }
+  }
 
   /*********************************
    *                               *

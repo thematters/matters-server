@@ -294,7 +294,7 @@ export class ArticleService extends BaseService {
       )
     } catch (err) {
       logger.error(err)
-      throw new ServerError('search failed')
+      throw new ServerError('article search failed')
     }
   }
 
