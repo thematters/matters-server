@@ -800,6 +800,7 @@ export interface GQLSearchInput {
   type: GQLSearchTypes
   after?: string
   first?: number
+  oss?: boolean
 }
 
 export enum GQLSearchTypes {
