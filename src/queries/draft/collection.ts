@@ -1,5 +1,5 @@
 import { DraftToCollectionResolver } from 'definitions'
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromPromisedArray, connectionFromArray } from 'common/utils'
 
 const resolver: DraftToCollectionResolver = (
   { collection },
@@ -7,7 +7,7 @@ const resolver: DraftToCollectionResolver = (
   { dataSources: { articleService } }
 ) => {
   if (!collection || collection.length === 0) {
-    return []
+    return connectionFromArray([], input)
   }
 
   return connectionFromPromisedArray(
