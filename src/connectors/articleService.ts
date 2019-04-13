@@ -150,38 +150,27 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Create a collection for article
+   * Archive article
    */
+  archive = async (id: string) => {
+    // update search
+    try {
+      await this.es.client.update({
+        index: this.table,
+        type: this.table,
+        id,
+        body: {
+          doc: { state: ARTICLE_STATE.archived }
+        }
+      })
+    } catch (e) {
+      logger.error(e)
+    }
 
-  createCollection = async ({
-    entranceId,
-    articleIds
-  }: {
-    articleIds: string[]
-    entranceId: string
-  }) => {
-    const items = articleIds.map((articleId, index) => ({
-      entranceId,
-      articleId,
-      order: index,
-      createdAt: new Date(),
+    return await this.baseUpdate(id, {
+      state: ARTICLE_STATE.archived,
       updatedAt: new Date()
-    }))
-    return this.baseBatchCreate(items, 'collection')
-  }
-
-  /**
-   * Delete a collection for article
-   */
-
-  deleteCollection = async ({ entranceId }: { entranceId: string }) => {
-    const table = 'collection'
-    const items = await this.knex('collection')
-      .select('id')
-      .where({ entranceId })
-    const ids = items.map(({ id }: { id: string }) => id)
-
-    return this.baseBatchDelete(ids, table)
+    })
   }
 
   /**
@@ -264,12 +253,18 @@ export class ArticleService extends BaseService {
     return result
   }
 
-  search = async ({ key, first }: GQLSearchInput) => {
+  search = async ({
+    key,
+    first = 20,
+    offset,
+    oss = false
+  }: GQLSearchInput & { offset: number; oss?: boolean }) => {
     // for local dev
     if (environment.env === 'development') {
       return this.knex(this.table)
         .where('title', 'like', `%${key}%`)
-        .limit(100)
+        .offset(offset)
+        .limit(first)
     }
 
     const body = bodybuilder()
@@ -278,20 +273,29 @@ export class ArticleService extends BaseService {
         fuzziness: 5,
         fields: ['title^10', 'content']
       })
-      .size(100) // TODO: pagination with search
-      .build()
+      .from(offset)
+      .size(first)
+
+    // only return active if not in oss
+    if (!oss) {
+      body.notFilter('term', { state: ARTICLE_STATE.archived })
+    }
 
     try {
-      const { hits } = await this.es.client.search({
+      const result = await this.es.client.search({
         index: this.table,
         type: this.table,
-        body
+        body: body.build()
       })
+      const { hits } = result
       const ids = hits.hits.map(({ _id }) => _id)
-      const articles = await this.baseFindByIds(ids, this.table)
-      return articles.filter(
-        ({ state }: { state: string }) => state === ARTICLE_STATE.active
-      )
+      const nodes = await this.baseFindByIds(ids, this.table)
+
+      // TODO: handle missing articles
+      return {
+        nodes,
+        totalCount: hits.total
+      }
     } catch (err) {
       logger.error(err)
       throw new ServerError('article search failed')
@@ -489,6 +493,7 @@ export class ArticleService extends BaseService {
         },
         boost_mode: 'replace'
       })
+      .notFilter('ids', { values: [id] })
       .size(size)
       .build()
 
@@ -1040,6 +1045,42 @@ export class ArticleService extends BaseService {
    *          Collection           *
    *                               *
    *********************************/
+
+  /**
+   * Create a collection for article
+   */
+
+  createCollection = async ({
+    entranceId,
+    articleIds
+  }: {
+    articleIds: string[]
+    entranceId: string
+  }) => {
+    const items = articleIds.map((articleId, index) => ({
+      entranceId,
+      articleId,
+      order: index,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }))
+    return this.baseBatchCreate(items, 'collection')
+  }
+
+  /**
+   * Delete a collection for article
+   */
+
+  deleteCollection = async ({ entranceId }: { entranceId: string }) => {
+    const table = 'collection'
+    const items = await this.knex('collection')
+      .select('id')
+      .where({ entranceId })
+    const ids = items.map(({ id }: { id: string }) => id)
+
+    return this.baseBatchDelete(ids, table)
+  }
+
   /**
    * Find an article's collections by a given article id.
    */

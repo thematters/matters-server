@@ -256,18 +256,26 @@ export class UserService extends BaseService {
       ]
     })
 
-  search = async ({ key }: GQLSearchInput) => {
+  search = async ({
+    key,
+    first = 20,
+    offset,
+    oss = false
+  }: GQLSearchInput & { offset: number; oss?: boolean }) => {
     if (environment.env === 'development') {
       return this.knex(this.table)
         .where('user_name', 'like', `%${key}%`)
-        .limit(100)
+        .offset(offset)
+        .limit(first)
     }
+
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
         fields: ['displayName^5', 'userName^10', 'description']
       })
-      .size(100) // TODO: pagination with search
+      .from(offset)
+      .size(first) // TODO: pagination with search
       .build()
 
     try {
@@ -277,7 +285,7 @@ export class UserService extends BaseService {
         body
       })
       const ids = hits.hits.map(({ _id }) => _id)
-      return this.baseFindByIds(ids)
+      return { nodes: this.baseFindByIds(ids), totalCount: hits.total }
     } catch (err) {
       logger.error(err)
       throw new ServerError('search failed')
