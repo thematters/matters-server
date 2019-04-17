@@ -9,6 +9,7 @@ export type NoticeType =
   | 'article_new_appreciation'
   | 'article_new_subscriber'
   | 'article_new_comment'
+  | 'article_mentioned_you'
   | 'subscribed_article_new_comment'
   | 'upstream_article_archived'
   | 'downstream_article_archived'
@@ -102,6 +103,14 @@ export interface NoticeArticleNewCommentParams
     NotificationEntity<'target', 'article'>,
     NotificationEntity<'comment', 'comment'>
   ]
+}
+
+export interface NoticeArticleMentionedYouParams
+  extends NotificationRequiredParams {
+  event: 'article_mentioned_you'
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'article'>]
 }
 
 export interface NoticeSubscribedArticleNewCommentParams
@@ -244,6 +253,7 @@ export type NotificationPrarms =
   | NoticeArticleNewAppreciationParams
   | NoticeArticleNewSubscriberParams
   | NoticeArticleNewCommentParams
+  | NoticeArticleMentionedYouParams
   | NoticeSubscribedArticleNewCommentParams
   | NoticeUpstreamArticleArchivedParams
   | NoticeDownstreamArticleArchivedParams

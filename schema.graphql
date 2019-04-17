@@ -78,12 +78,12 @@ input ArticleInput {
   uuid: UUID
 }
 
-type ArticleMentionNotice implements Notice {
+type ArticleMentionedYouNotice implements Notice {
   id: ID!
   unread: Boolean!
   createdAt: DateTime!
-  actor: User
-  target: User
+  actor: User!
+  target: Article
 }
 
 type ArticleNewAppreciationNotice implements Notice {

@@ -36,6 +36,7 @@ class Push extends BaseService {
       article_new_appreciation: setting.appreciation,
       article_new_subscriber: setting.articleSubscription,
       article_new_comment: setting.comment,
+      article_mentioned_you: setting.mention,
       subscribed_article_new_comment: setting.commentSubscribed,
       upstream_article_archived: setting.downstream,
       downstream_article_archived: setting.downstream,
@@ -117,6 +118,15 @@ class Push extends BaseService {
           actors &&
           target &&
           trans.article_new_comment(language, {
+            displayName: actors[0].displayName,
+            title: target.entity.title
+          })
+        )
+      case 'article_mentioned_you':
+        return (
+          actors &&
+          target &&
+          trans.article_mentioned_you(language, {
             displayName: actors[0].displayName,
             title: target.entity.title
           })

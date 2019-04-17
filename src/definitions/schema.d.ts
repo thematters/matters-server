@@ -673,7 +673,7 @@ export interface GQLNotice {
 
 /** Use this to resolve interface type Notice */
 export type GQLPossibleNoticeTypeNames =
-  | 'ArticleMentionNotice'
+  | 'ArticleMentionedYouNotice'
   | 'ArticleNewAppreciationNotice'
   | 'ArticleNewCommentNotice'
   | 'ArticleNewDownstreamNotice'
@@ -691,7 +691,7 @@ export type GQLPossibleNoticeTypeNames =
 
 export interface GQLNoticeNameMap {
   Notice: GQLNotice
-  ArticleMentionNotice: GQLArticleMentionNotice
+  ArticleMentionedYouNotice: GQLArticleMentionedYouNotice
   ArticleNewAppreciationNotice: GQLArticleNewAppreciationNotice
   ArticleNewCommentNotice: GQLArticleNewCommentNotice
   ArticleNewDownstreamNotice: GQLArticleNewDownstreamNotice
@@ -1396,12 +1396,12 @@ export interface GQLNodeEditedInput {
   id: string
 }
 
-export interface GQLArticleMentionNotice extends GQLNotice {
+export interface GQLArticleMentionedYouNotice extends GQLNotice {
   id: string
   unread: boolean
   createdAt: GQLDateTime
-  actor?: GQLUser
-  target?: GQLUser
+  actor: GQLUser
+  target?: GQLArticle
 }
 
 export interface GQLArticleNewAppreciationNotice extends GQLNotice {
@@ -1648,7 +1648,7 @@ export interface GQLResolver {
   AuthResult?: GQLAuthResultTypeResolver
   PositiveInt?: GraphQLScalarType
   Subscription?: GQLSubscriptionTypeResolver
-  ArticleMentionNotice?: GQLArticleMentionNoticeTypeResolver
+  ArticleMentionedYouNotice?: GQLArticleMentionedYouNoticeTypeResolver
   ArticleNewAppreciationNotice?: GQLArticleNewAppreciationNoticeTypeResolver
   ArticleNewCommentNotice?: GQLArticleNewCommentNoticeTypeResolver
   ArticleNewDownstreamNotice?: GQLArticleNewDownstreamNoticeTypeResolver
@@ -4232,7 +4232,7 @@ export interface NoticeEdgeToNodeResolver<TParent = any, TResult = any> {
 
 export interface GQLNoticeTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
-    | 'ArticleMentionNotice'
+    | 'ArticleMentionedYouNotice'
     | 'ArticleNewAppreciationNotice'
     | 'ArticleNewCommentNotice'
     | 'ArticleNewDownstreamNotice'
@@ -6105,15 +6105,15 @@ export interface SubscriptionToNodeEditedResolver<
   ) => AsyncIterator<TResult>
 }
 
-export interface GQLArticleMentionNoticeTypeResolver<TParent = any> {
-  id?: ArticleMentionNoticeToIdResolver<TParent>
-  unread?: ArticleMentionNoticeToUnreadResolver<TParent>
-  createdAt?: ArticleMentionNoticeToCreatedAtResolver<TParent>
-  actor?: ArticleMentionNoticeToActorResolver<TParent>
-  target?: ArticleMentionNoticeToTargetResolver<TParent>
+export interface GQLArticleMentionedYouNoticeTypeResolver<TParent = any> {
+  id?: ArticleMentionedYouNoticeToIdResolver<TParent>
+  unread?: ArticleMentionedYouNoticeToUnreadResolver<TParent>
+  createdAt?: ArticleMentionedYouNoticeToCreatedAtResolver<TParent>
+  actor?: ArticleMentionedYouNoticeToActorResolver<TParent>
+  target?: ArticleMentionedYouNoticeToTargetResolver<TParent>
 }
 
-export interface ArticleMentionNoticeToIdResolver<
+export interface ArticleMentionedYouNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
@@ -6125,7 +6125,7 @@ export interface ArticleMentionNoticeToIdResolver<
   ): TResult
 }
 
-export interface ArticleMentionNoticeToUnreadResolver<
+export interface ArticleMentionedYouNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
@@ -6137,7 +6137,7 @@ export interface ArticleMentionNoticeToUnreadResolver<
   ): TResult
 }
 
-export interface ArticleMentionNoticeToCreatedAtResolver<
+export interface ArticleMentionedYouNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -6149,7 +6149,7 @@ export interface ArticleMentionNoticeToCreatedAtResolver<
   ): TResult
 }
 
-export interface ArticleMentionNoticeToActorResolver<
+export interface ArticleMentionedYouNoticeToActorResolver<
   TParent = any,
   TResult = any
 > {
@@ -6161,7 +6161,7 @@ export interface ArticleMentionNoticeToActorResolver<
   ): TResult
 }
 
-export interface ArticleMentionNoticeToTargetResolver<
+export interface ArticleMentionedYouNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
