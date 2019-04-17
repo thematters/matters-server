@@ -1,4 +1,5 @@
 import { MutationToSetCollectionResolver } from 'definitions'
+import { ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 
 const resolver: MutationToSetCollectionResolver = async (
@@ -6,6 +7,10 @@ const resolver: MutationToSetCollectionResolver = async (
   { input: { id, collection } },
   { viewer, dataSources: { articleService } }
 ) => {
+  if (!viewer.hasRole('admin')) {
+    throw new ForbiddenError('viewer has no permission')
+  }
+
   const entranceId = fromGlobalId(id).id
   const articleIds = collection.map(id => fromGlobalId(id).id)
 
