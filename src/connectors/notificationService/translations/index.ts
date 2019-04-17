@@ -45,10 +45,13 @@ export default {
     en: ({ displayName, title }) =>
       `${displayName} commented on your article "${title}"`
   }),
-  article_mentioned_you: i18n<{ displayName: string, title: string }>({
-    zh_hant: ({ displayName, title }) => `${displayName} 在文章《${title}》中提及了你`,
-    zh_hans: ({ displayName, title }) => `${displayName} 在文章《${title}》中提及了你`,
-    en: ({ displayName, title }) => `${displayName} mentioned you in the article ${title}`
+  article_mentioned_you: i18n<{ displayName: string; title: string }>({
+    zh_hant: ({ displayName, title }) =>
+      `${displayName} 在文章《${title}》中提及了你`,
+    zh_hans: ({ displayName, title }) =>
+      `${displayName} 在文章《${title}》中提及了你`,
+    en: ({ displayName, title }) =>
+      `${displayName} mentioned you in the article ${title}`
   }),
   subscribed_article_new_comment: i18n<{ displayName: string; title: string }>({
     zh_hant: ({ displayName, title }) =>
