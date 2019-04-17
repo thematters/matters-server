@@ -1,4 +1,5 @@
 import Queue from 'bull'
+import * as cheerio from 'cheerio'
 // internal
 import {
   PUBLISH_STATE,
@@ -9,6 +10,7 @@ import {
   PUBLISH_ARTICLE_DELAY
 } from 'common/enums'
 import { isTest } from 'common/environment'
+import { fromGlobalId } from 'common/utils'
 import {
   DraftService,
   ArticleService,
@@ -65,7 +67,7 @@ class PublicationQueue {
           }
 
           // publish to IPFS
-          let article
+          let article: any
           try {
             article = await this.articleService.publish(draft)
           } catch (e) {
@@ -130,6 +132,39 @@ class PublicationQueue {
             ]
           })
           job.progress(100)
+
+          // handle mentions
+          const $ = cheerio.load(article.content)
+          const mentionIds = $('a.mention')
+            .map((index: number, node: any) => {
+              const id = $(node).attr('data-id')
+              if (id) {
+                return id
+              }
+            })
+            .get()
+
+          // trigger mention notifications
+          mentionIds.forEach((id: string) => {
+            const mentionId = fromGlobalId(id).id
+            if (!mentionId) {
+              return false
+            }
+            this.notificationService.trigger({
+              event: 'article_mentioned_you',
+              actorId: article.author_id,
+              recipientId: mentionId,
+              entities: [
+                {
+                  type: 'target',
+                  entityTable: 'article',
+                  entity: article
+                }
+              ]
+            })
+          })
+          job.progress(100)
+
           done(null, {
             dataHash: article.dataHash,
             mediaHash: article.mediaHash

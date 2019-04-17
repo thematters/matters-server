@@ -673,6 +673,7 @@ export interface GQLNotice {
 
 /** Use this to resolve interface type Notice */
 export type GQLPossibleNoticeTypeNames =
+  | 'ArticleMentionedYouNotice'
   | 'ArticleNewAppreciationNotice'
   | 'ArticleNewCommentNotice'
   | 'ArticleNewDownstreamNotice'
@@ -690,6 +691,7 @@ export type GQLPossibleNoticeTypeNames =
 
 export interface GQLNoticeNameMap {
   Notice: GQLNotice
+  ArticleMentionedYouNotice: GQLArticleMentionedYouNotice
   ArticleNewAppreciationNotice: GQLArticleNewAppreciationNotice
   ArticleNewCommentNotice: GQLArticleNewCommentNotice
   ArticleNewDownstreamNotice: GQLArticleNewDownstreamNotice
@@ -1394,6 +1396,14 @@ export interface GQLNodeEditedInput {
   id: string
 }
 
+export interface GQLArticleMentionedYouNotice extends GQLNotice {
+  id: string
+  unread: boolean
+  createdAt: GQLDateTime
+  actor: GQLUser
+  target?: GQLArticle
+}
+
 export interface GQLArticleNewAppreciationNotice extends GQLNotice {
   id: string
   unread: boolean
@@ -1638,6 +1648,7 @@ export interface GQLResolver {
   AuthResult?: GQLAuthResultTypeResolver
   PositiveInt?: GraphQLScalarType
   Subscription?: GQLSubscriptionTypeResolver
+  ArticleMentionedYouNotice?: GQLArticleMentionedYouNoticeTypeResolver
   ArticleNewAppreciationNotice?: GQLArticleNewAppreciationNoticeTypeResolver
   ArticleNewCommentNotice?: GQLArticleNewCommentNoticeTypeResolver
   ArticleNewDownstreamNotice?: GQLArticleNewDownstreamNoticeTypeResolver
@@ -4221,6 +4232,7 @@ export interface NoticeEdgeToNodeResolver<TParent = any, TResult = any> {
 
 export interface GQLNoticeTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
+    | 'ArticleMentionedYouNotice'
     | 'ArticleNewAppreciationNotice'
     | 'ArticleNewCommentNotice'
     | 'ArticleNewDownstreamNotice'
@@ -6091,6 +6103,74 @@ export interface SubscriptionToNodeEditedResolver<
     context: Context,
     info: GraphQLResolveInfo
   ) => AsyncIterator<TResult>
+}
+
+export interface GQLArticleMentionedYouNoticeTypeResolver<TParent = any> {
+  id?: ArticleMentionedYouNoticeToIdResolver<TParent>
+  unread?: ArticleMentionedYouNoticeToUnreadResolver<TParent>
+  createdAt?: ArticleMentionedYouNoticeToCreatedAtResolver<TParent>
+  actor?: ArticleMentionedYouNoticeToActorResolver<TParent>
+  target?: ArticleMentionedYouNoticeToTargetResolver<TParent>
+}
+
+export interface ArticleMentionedYouNoticeToIdResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleMentionedYouNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleMentionedYouNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleMentionedYouNoticeToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleMentionedYouNoticeToTargetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface GQLArticleNewAppreciationNoticeTypeResolver<TParent = any> {
