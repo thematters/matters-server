@@ -193,7 +193,8 @@ describe('publish article', async () => {
 
   test('add collection to article and query', async () => {
     const { mutate } = await testClient({
-      isAuth: true
+      isAuth: true,
+      isAdmin: true
     })
 
     const collection = [
