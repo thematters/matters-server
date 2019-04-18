@@ -167,6 +167,7 @@ export default /* GraphQL */ `
 
   input SearchInput {
     key: String!
+    include: [String]
     type: SearchTypes!
     after: String
     first: Int

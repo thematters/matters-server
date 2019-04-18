@@ -41,18 +41,15 @@ export class TagService extends BaseService {
     oss = false
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
     // for local dev
-    if (environment.env === 'development') {
-      return this.knex(this.table)
-        .where('content', 'ilike', `%${key}%`)
-        .offset(offset)
-        .limit(first)
-    }
+    // if (environment.env === 'development') {
+    //   return this.knex(this.table)
+    //     .where('content', 'ilike', `%${key}%`)
+    //     .offset(offset)
+    //     .limit(first)
+    // }
 
     const body = bodybuilder()
-      .query('match', 'content', {
-        query: key,
-        fuzziness: 5
-      })
+      .query('match', 'content', key)
       .from(offset)
       .size(first)
       .build()

@@ -30,6 +30,7 @@ import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
 import { NotificationService } from './notificationService'
+import { SearchResponse } from 'elasticsearch'
 
 export class UserService extends BaseService {
   notificationService: InstanceType<typeof NotificationService>
@@ -262,12 +263,12 @@ export class UserService extends BaseService {
     offset,
     oss = false
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
-    if (environment.env === 'development') {
-      return this.knex(this.table)
-        .where('user_name', 'like', `%${key}%`)
-        .offset(offset)
-        .limit(first)
-    }
+    // if (environment.env === 'development') {
+    //   return this.knex(this.table)
+    //     .where('user_name', 'like', `%${key}%`)
+    //     .offset(offset)
+    //     .limit(first)
+    // }
 
     const body = bodybuilder()
       .query('multi_match', {
@@ -275,17 +276,39 @@ export class UserService extends BaseService {
         fields: ['displayName^5', 'userName^10', 'description']
       })
       .from(offset)
-      .size(first) // TODO: pagination with search
-      .build()
+      .size(first)
+      .build() as { [key: string]: any }
+
+    body.suggest = {
+      userName: {
+        prefix: key,
+        completion: {
+          field: 'userName'
+        }
+      }
+    }
 
     try {
-      const { hits } = await this.es.client.search({
+      const result = await this.es.client.search({
         index: this.table,
         type: this.table,
         body
       })
-      const ids = hits.hits.map(({ _id }) => _id)
-      return { nodes: this.baseFindByIds(ids), totalCount: hits.total }
+
+      const { hits, suggest } = result as (typeof result) & {
+        suggest: { userName: any[] }
+      }
+
+      let ids = hits.hits.map(({ _id }) => _id)
+
+      const suggested = _.get(suggest, 'userName.0.options.0._id')
+      if (suggested) {
+        ids.unshift(suggested)
+        ids = ids.slice(0, first)
+      }
+
+      const nodes = await this.baseFindByIds(ids)
+      return { nodes, totalCount: hits.total }
     } catch (err) {
       logger.error(err)
       throw new ServerError('search failed')

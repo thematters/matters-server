@@ -260,18 +260,24 @@ export class ArticleService extends BaseService {
     oss = false
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
     // for local dev
-    if (environment.env === 'development') {
-      return this.knex(this.table)
-        .where('title', 'like', `%${key}%`)
-        .offset(offset)
-        .limit(first)
-    }
+    // if (environment.env === 'development') {
+    //   return this.knex(this.table)
+    //     .where('title', 'like', `%${key}%`)
+    //     .offset(offset)
+    //     .limit(first)
+    // }
 
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
         fuzziness: 5,
-        fields: ['title^10', 'content']
+        fields: [
+          'title^10',
+          'title.synonyms^5',
+          'content^2',
+          'content.synonyms'
+        ],
+        type: 'most_fields'
       })
       .from(offset)
       .size(first)
@@ -291,7 +297,6 @@ export class ArticleService extends BaseService {
       const ids = hits.hits.map(({ _id }) => _id)
       const nodes = await this.baseFindByIds(ids, this.table)
 
-      // TODO: handle missing articles
       return {
         nodes,
         totalCount: hits.total
