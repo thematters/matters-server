@@ -107,7 +107,7 @@ describe('user notify setting', async () => {
 const getBundleableUserNewFollowerNoticeId = () =>
   notificationService.notice.getBundleableNoticeId({
     type: 'user_new_follower',
-    actorIds: ['4'],
+    actorId: '4',
     recipientId
   })
 describe('find notice', async () => {
@@ -145,27 +145,6 @@ describe('bundle notices', async () => {
     expect(articleNewDownstreamNoticeId).toBeUndefined()
   })
 
-  test('getBundleActorIds', async () => {
-    const noticeId = await getBundleableUserNewFollowerNoticeId()
-    if (!noticeId) {
-      throw new Error('expect notice is bundleable')
-    }
-    const donothingActorIds = await notificationService.notice.getBundleActorIds(
-      {
-        noticeId,
-        actorIds: ['2']
-      }
-    )
-    expect(donothingActorIds.length).toBe(0)
-
-    const bundleActorIds = await notificationService.notice.getBundleActorIds({
-      noticeId,
-      actorIds: ['2', '4']
-    })
-    expect(bundleActorIds.length).toBe(1)
-    expect(bundleActorIds[0]).toBe('4')
-  })
-
   test('bundle successs', async () => {
     const noticeId = await getBundleableUserNewFollowerNoticeId()
     if (!noticeId) {
@@ -173,9 +152,9 @@ describe('bundle notices', async () => {
     }
     const noticeActors = await notificationService.notice.findActors(noticeId)
     expect(noticeActors.length).toBe(2)
-    await notificationService.notice.addNoticeActors({
+    await notificationService.notice.addNoticeActor({
       noticeId,
-      actorIds: ['4']
+      actorId: '4'
     })
     await new Promise(resolve => setTimeout(resolve, 1000))
     const notice2Actors = await notificationService.notice.findActors(noticeId)
@@ -188,9 +167,9 @@ describe('bundle notices', async () => {
       throw new Error('expect notice is bundleable')
     }
     try {
-      await notificationService.notice.addNoticeActors({
+      await notificationService.notice.addNoticeActor({
         noticeId,
-        actorIds: ['2']
+        actorId: '2'
       })
     } catch (e) {
       expect(() => {

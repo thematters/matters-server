@@ -27,7 +27,7 @@ class Notice extends BaseService {
    */
   async create({
     type,
-    actorIds,
+    actorId,
     recipientId,
     entities,
     message,
@@ -56,20 +56,16 @@ class Notice extends BaseService {
         .returning('*')
       logger.info(`Inserted id ${noticeId} to notice`)
 
-      // create notice actorIds
-      if (actorIds) {
-        await Promise.all(
-          actorIds.map(async actorId => {
-            const [{ id: noticeActorId }] = await trx
-              .insert({
-                noticeId,
-                actorId
-              })
-              .into('notice_actor')
-              .returning('*')
-            logger.info(`Inserted id ${noticeActorId} to notice_actor`)
+      // create notice actorId
+      if (actorId) {
+        const [{ id: noticeActorId }] = await trx
+          .insert({
+            noticeId,
+            actorId
           })
-        )
+          .into('notice_actor')
+          .returning('*')
+        logger.info(`Inserted id ${noticeActorId} to notice_actor`)
       }
 
       // craete notice entities
@@ -102,35 +98,31 @@ class Notice extends BaseService {
   /**
    * Bundle with existing notice
    */
-  async addNoticeActors({
+  async addNoticeActor({
     noticeId,
-    actorIds
+    actorId
   }: {
     noticeId: string
-    actorIds: NoticeUserId[]
+    actorId: NoticeUserId
   }): Promise<void> {
     await this.knex.transaction(async trx => {
-      // add actors
-      await Promise.all(
-        actorIds.map(async actorId => {
-          const [{ id: noticeActorId }] = await trx
-            .insert({
-              noticeId,
-              actorId
-            })
-            .into('notice_actor')
-            .returning('*')
-          logger.info(
-            `[addNoticeActors] Inserted id ${noticeActorId} to notice_actor`
-          )
+      // add actorf
+      const [{ id: noticeActorId }] = await trx
+        .insert({
+          noticeId,
+          actorId
         })
+        .into('notice_actor')
+        .returning('*')
+      logger.info(
+        `[addNoticeActor] Inserted id ${noticeActorId} to notice_actor`
       )
 
       // update notice
       await trx('notice')
         .where({ id: noticeId })
         .update({ unread: true, updatedAt: new Date() })
-      logger.info(`[addNoticeActors] Updated id ${noticeId} in notice`)
+      logger.info(`[addNoticeActor] Updated id ${noticeId} in notice`)
     })
   }
 
@@ -141,47 +133,24 @@ class Notice extends BaseService {
   process = async (
     params: PutNoticeParams
   ): Promise<{ created: boolean; bundled: boolean }> => {
-    // create
+    // TODO: skip if notice already exists
+
+    // create new notice if there is no notice to bundle with it
     const bundleableNoticeId = await this.getBundleableNoticeId(params)
     if (!bundleableNoticeId) {
       await this.create(params)
       return { created: true, bundled: false }
     }
 
-    // do nothing
-    const bundleActorIds = await this.getBundleActorIds({
-      noticeId: bundleableNoticeId,
-      actorIds: params.actorIds || []
-    })
-
-    if (!bundleActorIds || bundleActorIds.length <= 0) {
+    // bundle notice
+    if (!params.actorId) {
       return { created: false, bundled: false }
     }
-
-    // bundle
-    await this.addNoticeActors({
+    await this.addNoticeActor({
       noticeId: bundleableNoticeId,
-      actorIds: bundleActorIds
+      actorId: params.actorId
     })
     return { created: false, bundled: true }
-  }
-
-  getBundleActorIds = async ({
-    noticeId,
-    actorIds
-  }: {
-    noticeId: string
-    actorIds: NoticeUserId[]
-  }): Promise<NoticeUserId[]> => {
-    const sourceActors = await this.knex
-      .select('actorId')
-      .where({ noticeId })
-      .whereIn('actorId', actorIds)
-      .from('notice_actor')
-    const sourceActorIds = sourceActors.map(
-      ({ actorId }: { actorId: NoticeUserId }) => actorId
-    )
-    return difference(actorIds, sourceActorIds)
   }
 
   /**
@@ -190,14 +159,14 @@ class Notice extends BaseService {
    */
   getBundleableNoticeId = async ({
     type,
-    actorIds,
+    actorId,
     recipientId,
     entities,
     message = null,
     data = null
   }: PutNoticeParams): Promise<string | undefined> => {
-    // only notice with actors can be bundled
-    if (!actorIds || actorIds.length <= 0) {
+    // only notice with actor can be bundled
+    if (!actorId) {
       return
     }
 

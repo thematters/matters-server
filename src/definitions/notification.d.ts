@@ -300,7 +300,7 @@ export type NoticeItem = NoticeDetail & {
 }
 export type PutNoticeParams = {
   type: NoticeType
-  actorIds?: NoticeUserId[]
+  actorId?: NoticeUserId
   recipientId: NoticeUserId
   entities?: NotificationEntity[]
   message?: NoticeMessage | null
