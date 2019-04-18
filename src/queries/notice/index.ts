@@ -69,6 +69,11 @@ export default {
     target: ({ entities }: { entities: any }) => entities['target'],
     comment: ({ entities }: { entities: any }) => entities['comment']
   },
+  ArticleMentionedYouNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    target: ({ entities }: { entities: any }) => entities['target']
+  },
   SubscribedArticleNewCommentNotice: {
     id: ({ uuid }: { uuid: string }) => uuid,
     target: ({ entities }: { entities: any }) => entities['target'],
