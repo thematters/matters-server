@@ -152,7 +152,7 @@ class PublicationQueue {
             }
             this.notificationService.trigger({
               event: 'article_mentioned_you',
-              actorId: article.author_id,
+              actorId: article.authorId,
               recipientId: mentionId,
               entities: [
                 {
