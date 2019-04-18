@@ -797,7 +797,6 @@ export interface GQLFrequentSearchInput {
 
 export interface GQLSearchInput {
   key: string
-  include?: Array<string | null>
   type: GQLSearchTypes
   after?: string
   first?: number
