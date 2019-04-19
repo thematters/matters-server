@@ -12,7 +12,6 @@ import author from './author'
 import upvotes from './upvotes'
 import downvotes from './downvotes'
 import myVote from './myVote'
-import mentions from './mentions'
 import comments from './comments'
 import parentComment from './parentComment'
 import replyTo from './replyTo'
@@ -37,7 +36,6 @@ export default {
     upvotes,
     downvotes,
     myVote,
-    mentions,
     comments,
     parentComment
   }

@@ -22,7 +22,6 @@ export default /* GraphQL */ `
     upvotes: Int!
     downvotes: Int!
     myVote: Vote
-    mentions: [User!]
     comments(input: CommentCommentsInput!): CommentConnection!
     parentComment: Comment
     quotationStart: Int

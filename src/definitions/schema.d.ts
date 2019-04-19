@@ -735,7 +735,6 @@ export interface GQLComment extends GQLNode {
   upvotes: number
   downvotes: number
   myVote?: GQLVote
-  mentions?: Array<GQLUser>
   comments: GQLCommentConnection
   parentComment?: GQLComment
   quotationStart?: number
@@ -4367,7 +4366,6 @@ export interface GQLCommentTypeResolver<TParent = any> {
   upvotes?: CommentToUpvotesResolver<TParent>
   downvotes?: CommentToDownvotesResolver<TParent>
   myVote?: CommentToMyVoteResolver<TParent>
-  mentions?: CommentToMentionsResolver<TParent>
   comments?: CommentToCommentsResolver<TParent>
   parentComment?: CommentToParentCommentResolver<TParent>
   quotationStart?: CommentToQuotationStartResolver<TParent>
@@ -4459,15 +4457,6 @@ export interface CommentToDownvotesResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToMyVoteResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToMentionsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

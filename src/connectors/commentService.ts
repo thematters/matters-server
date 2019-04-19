@@ -376,23 +376,6 @@ export class CommentService extends BaseService {
 
   /*********************************
    *                               *
-   *            Mention            *
-   *                               *
-   *********************************/
-  /**
-   * Find a comment's mentioned users by a given comment id.
-   */
-  findMentionedUsers = async (commentId: string): Promise<any[]> => {
-    return await this.knex
-      .select()
-      .from('comment_mentioned_user')
-      .where({
-        commentId
-      })
-  }
-
-  /*********************************
-   *                               *
    *             Report            *
    *                               *
    *********************************/
