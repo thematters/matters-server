@@ -42,7 +42,6 @@ export class CommentService extends BaseService {
     authorId,
     articleId,
     parentCommentId,
-    mentionedUserIds = [],
     content,
     quotationStart,
     quotationEnd,
@@ -63,12 +62,6 @@ export class CommentService extends BaseService {
       quotationContent,
       replyTo
     })
-    // create mentions
-    const mentionsDataItems = mentionedUserIds.map((userId: string) => ({
-      commentId: comemnt.id,
-      userId
-    }))
-    await this.baseBatchCreate(mentionsDataItems, 'comment_mentioned_user')
     return comemnt
   }
 
@@ -76,7 +69,6 @@ export class CommentService extends BaseService {
     id,
     articleId,
     parentCommentId,
-    mentionedUserIds = [],
     content
   }: {
     [key: string]: any
@@ -88,16 +80,6 @@ export class CommentService extends BaseService {
       content,
       updatedAt: new Date()
     })
-    // remove exists mentions
-    await this.knex('comment_mentioned_user')
-      .where({ commentId: id })
-      .del()
-    // re-create mentions
-    const mentionsDataItems = mentionedUserIds.map((userId: string) => ({
-      commentId: comemnt.id,
-      userId
-    }))
-    await this.baseBatchCreate(mentionsDataItems, 'comment_mentioned_user')
     return comemnt
   }
 
