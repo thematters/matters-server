@@ -106,7 +106,7 @@ class Notice extends BaseService {
     actorId: NoticeUserId
   }): Promise<void> {
     await this.knex.transaction(async trx => {
-      // add actorf
+      // add actor
       const [{ id: noticeActorId }] = await trx
         .insert({
           noticeId,
@@ -128,100 +128,115 @@ class Notice extends BaseService {
 
   /**
    * Process new event to determine
-   * whether to bundle with old notice or write new notice
+   * whether to bundle with old notice or create new notice or do nothing
    */
   process = async (
     params: PutNoticeParams
   ): Promise<{ created: boolean; bundled: boolean }> => {
-    // TODO: skip if notice already exists
+    const duplicates = await this.findDuplicates(params)
+    const bundleables = duplicates.filter(notice => notice.unread)
 
-    // create new notice if there is no notice to bundle with it
-    const bundleableNoticeId = await this.getBundleableNoticeId(params)
-    if (!bundleableNoticeId) {
-      await this.create(params)
-      return { created: true, bundled: false }
+    // skip if same notice already exists
+    for (let i = 0; i < duplicates.length; i++) {
+      const actors = await this.findActors(duplicates[i].id)
+      const actorIds = actors.map(actor => actor.id)
+
+      if (
+        !params.actorId ||
+        (params.actorId && actorIds.indexOf(params.actorId) >= 0)
+      ) {
+        return { created: false, bundled: false }
+      }
     }
 
-    // bundle notice
-    if (!params.actorId) {
-      return { created: false, bundled: false }
+    // bundle
+    if (bundleables[0] && params.actorId) {
+      await this.addNoticeActor({
+        noticeId: bundleables[0].id,
+        actorId: params.actorId
+      })
+      return { created: false, bundled: true }
     }
-    await this.addNoticeActor({
-      noticeId: bundleableNoticeId,
-      actorId: params.actorId
-    })
-    return { created: false, bundled: true }
+
+    // create new notice
+    await this.create(params)
+    return { created: true, bundled: false }
   }
 
   /**
-   * Get a bundleable notice
+   * Find duplicate notices
    *
    */
-  getBundleableNoticeId = async ({
+  findDuplicates = async ({
     type,
-    actorId,
     recipientId,
     entities,
     message = null,
     data = null
-  }: PutNoticeParams): Promise<string | undefined> => {
-    // only notice with actor can be bundled
-    if (!actorId) {
-      return
-    }
-
-    // filter with type, unread, deleted, recipientId and message
+  }: PutNoticeParams): Promise<NoticeDetail[]> => {
     const notices = await this.findDetail({
       where: {
         noticeType: type,
-        unread: true,
         deleted: false,
         recipientId,
         message
       }
     })
+    const duplicates: NoticeDetail[] = []
 
-    for (const [index, notice] of notices.entries()) {
-      // compare notice data
-      if (!isEqual(notice.data, data)) {
-        return
-      }
-      const targetEntities = (await this.findEntities(
-        notice.id,
-        false
-      )) as NoticeEntity[]
-      // Check if entities exist
-      const isTargetEntitiesExists = targetEntities && targetEntities.length > 0
-      const isSourceEntitiesExists = entities && entities.length > 0
-      if (!isTargetEntitiesExists || !isSourceEntitiesExists) {
-        return notice.id
-      }
-      if (
-        (isTargetEntitiesExists && !isSourceEntitiesExists) ||
-        (!isTargetEntitiesExists && isSourceEntitiesExists)
-      ) {
-        return
-      }
-
-      // compare notice entities
-      let targetEntitiesHashMap: any = {}
-      let sourceEntitiesHashMap: any = {}
-      targetEntities.forEach(({ type, table, entityId }) => {
-        const hash = `${type}:${table}:${entityId}`
-        targetEntitiesHashMap[hash] = true
-      })
-      ;(entities || []).forEach(({ type, entityTable, entity }) => {
-        const hash = `${type}:${entityTable}:${entity.id}`
-        sourceEntitiesHashMap[hash] = true
-      })
-      if (isEqual(targetEntitiesHashMap, sourceEntitiesHashMap)) {
-        return notice.id
-      }
-
-      return
+    // no notices have same details
+    console.log(new Date())
+    if (!notices || notices.length <= 0) {
+      return duplicates
     }
 
-    return
+    await Promise.all(
+      notices.map(async notice => {
+        // skip if data isn't the same
+        if (!isEqual(notice.data, data)) {
+          return
+        }
+
+        const targetEntities = (await this.findEntities(
+          notice.id,
+          false
+        )) as NoticeEntity[]
+
+        // check entities' existence
+        const isTargetEntitiesExists =
+          targetEntities && targetEntities.length > 0
+        const isSourceEntitiesExists = entities && entities.length > 0
+        if (!isTargetEntitiesExists || !isSourceEntitiesExists) {
+          duplicates.push(notice)
+          return
+        }
+        if (
+          (isTargetEntitiesExists && !isSourceEntitiesExists) ||
+          (!isTargetEntitiesExists && isSourceEntitiesExists)
+        ) {
+          return
+        }
+
+        // compare notice entities
+        let targetEntitiesHashMap: any = {}
+        let sourceEntitiesHashMap: any = {}
+        const sourceEntities = entities || []
+        targetEntities.forEach(({ type, table, entityId }) => {
+          const hash = `${type}:${table}:${entityId}`
+          targetEntitiesHashMap[hash] = true
+        })
+        sourceEntities.forEach(({ type, entityTable, entity }) => {
+          const hash = `${type}:${entityTable}:${entity.id}`
+          sourceEntitiesHashMap[hash] = true
+        })
+        if (isEqual(targetEntitiesHashMap, sourceEntitiesHashMap)) {
+          duplicates.push(notice)
+          return
+        }
+      })
+    )
+
+    return duplicates
   }
 
   /**
