@@ -104,12 +104,15 @@ describe('user notify setting', async () => {
 /**
  * Notice Service
  */
-const getBundleableUserNewFollowerNoticeId = () =>
-  notificationService.notice.getBundleableNoticeId({
+const getBundleableUserNewFollowerNotice = async () => {
+  const duplicates = await notificationService.notice.findDuplicates({
     type: 'user_new_follower',
     actorId: '4',
     recipientId
   })
+  const bundleables = duplicates.filter(notice => notice.unread)
+  return bundleables[0]
+}
 describe('find notice', async () => {
   test('find one notice', async () => {
     const notice = await notificationService.notice.dataloader.load('1')
@@ -126,49 +129,47 @@ describe('find notice', async () => {
 describe('bundle notices', async () => {
   test('bundleable', async () => {
     // bundleable
-    const userNewFollowerNoticeId = await getBundleableUserNewFollowerNoticeId()
-    expect(userNewFollowerNoticeId).not.toBeUndefined()
+    const userNewFollowerNotice = await getBundleableUserNewFollowerNotice()
+    expect(userNewFollowerNotice.id).not.toBeUndefined()
   })
 
   test('unbundleable', async () => {
     // notice without actors
-    const articleNewDownstreamNoticeId = await notificationService.notice.getBundleableNoticeId(
-      {
-        type: 'article_new_downstream',
-        recipientId,
-        entities: [
-          { type: 'target', entityTable: 'article', entity: { id: '1' } },
-          { type: 'downstream', entityTable: 'article', entity: { id: '3' } }
-        ]
-      }
-    )
-    expect(articleNewDownstreamNoticeId).toBeUndefined()
+    const duplicates = await notificationService.notice.findDuplicates({
+      type: 'article_new_downstream',
+      recipientId,
+      entities: [
+        { type: 'target', entityTable: 'article', entity: { id: '1' } },
+        { type: 'downstream', entityTable: 'article', entity: { id: '3' } }
+      ]
+    })
+    expect(duplicates.length).toBe(0)
   })
 
   test('bundle successs', async () => {
-    const noticeId = await getBundleableUserNewFollowerNoticeId()
-    if (!noticeId) {
+    const notice = await getBundleableUserNewFollowerNotice()
+    if (!notice) {
       throw new Error('expect notice is bundleable')
     }
-    const noticeActors = await notificationService.notice.findActors(noticeId)
+    const noticeActors = await notificationService.notice.findActors(notice.id)
     expect(noticeActors.length).toBe(2)
     await notificationService.notice.addNoticeActor({
-      noticeId,
+      noticeId: notice.id,
       actorId: '4'
     })
     await new Promise(resolve => setTimeout(resolve, 1000))
-    const notice2Actors = await notificationService.notice.findActors(noticeId)
+    const notice2Actors = await notificationService.notice.findActors(notice.id)
     expect(notice2Actors.length).toBe(3)
   })
 
   test('bundle failed if the notice actor is duplicate', async () => {
-    const noticeId = await getBundleableUserNewFollowerNoticeId()
-    if (!noticeId) {
+    const notice = await getBundleableUserNewFollowerNotice()
+    if (!notice) {
       throw new Error('expect notice is bundleable')
     }
     try {
       await notificationService.notice.addNoticeActor({
-        noticeId,
+        noticeId: notice.id,
         actorId: '2'
       })
     } catch (e) {
@@ -179,16 +180,16 @@ describe('bundle notices', async () => {
   })
 
   test('mark notice as read then it becomes unbundleable', async () => {
-    const noticeId = await getBundleableUserNewFollowerNoticeId()
-    if (!noticeId) {
+    const notice = await getBundleableUserNewFollowerNotice()
+    if (!notice) {
       throw new Error('expect notice is bundleable')
     }
     await notificationService.notice.baseUpdate(
-      noticeId,
+      notice.id,
       { unread: false },
       'notice'
     )
-    const unbundleableNotice = await getBundleableUserNewFollowerNoticeId()
+    const unbundleableNotice = await getBundleableUserNewFollowerNotice()
     expect(unbundleableNotice).toBeUndefined()
   })
 })
