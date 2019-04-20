@@ -185,7 +185,6 @@ class Notice extends BaseService {
     const duplicates: NoticeDetail[] = []
 
     // no notices have same details
-    console.log(new Date())
     if (!notices || notices.length <= 0) {
       return duplicates
     }
