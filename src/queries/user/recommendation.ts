@@ -39,11 +39,8 @@ const resolvers: GQLRecommendationTypeResolver = {
       }
     }
 
-    let where = { 'article.state': ARTICLE_STATE.active } as {
+    const where = { 'article.state': ARTICLE_STATE.active } as {
       [key: string]: any
-    }
-    if (!id) {
-      where = { ...where, 'article.public': true }
     }
 
     const { first, after } = input
@@ -78,10 +75,6 @@ const resolvers: GQLRecommendationTypeResolver = {
 
     let where = { state: ARTICLE_STATE.active } as { [key: string]: any }
 
-    if (!id) {
-      where = { ...where, 'article.public': true }
-    }
-
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.countRecommendNewest({
@@ -108,9 +101,7 @@ const resolvers: GQLRecommendationTypeResolver = {
     return article
   },
   icymi: async ({ id }, { input }, { dataSources: { articleService } }) => {
-    const where = id
-      ? { state: ARTICLE_STATE.active }
-      : { public: true, state: ARTICLE_STATE.active }
+    const where = { state: ARTICLE_STATE.active }
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.countRecommendIcymi(where)
@@ -138,9 +129,7 @@ const resolvers: GQLRecommendationTypeResolver = {
     }
 
     const { first, after } = input
-    const where = id
-      ? { 'article.state': ARTICLE_STATE.active }
-      : { 'article.public': true, 'article.state': ARTICLE_STATE.active }
+    const where = { 'article.state': ARTICLE_STATE.active }
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.baseCount(where)
     return connectionFromPromisedArray(

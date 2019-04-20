@@ -73,6 +73,14 @@ export default /* GraphQL */ `
     comment: Comment
   }
 
+  type ArticleMentionedYouNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actor: User!
+    target: Article
+  }
+
   type SubscribedArticleNewCommentNotice implements Notice {
     id: ID!
     unread: Boolean!

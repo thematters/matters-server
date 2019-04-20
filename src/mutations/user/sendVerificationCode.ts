@@ -28,10 +28,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     }
   }
 
-  if (
-    type === VERIFICATION_CODE_TYPES.password_reset ||
-    type === VERIFICATION_CODE_TYPES.email_reset
-  ) {
+  if (type === VERIFICATION_CODE_TYPES.password_reset) {
     user = await userService.findByEmail(email)
     if (!user) {
       throw new EmailNotFoundError('cannot find email')

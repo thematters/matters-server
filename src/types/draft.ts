@@ -10,7 +10,7 @@ export default /* GraphQL */ `
 
   type Draft implements Node {
     id: ID!
-    upstream: Article
+    collection(input: ConnectionArgs!): ArticleConnection!
     title: String
     slug: String!
     summary: String
@@ -69,11 +69,11 @@ export default /* GraphQL */ `
 
   input PutDraftInput {
     id: ID
-    upstreamId: ID
     title: String
     content: String
     tags: [String]
     coverAssetId: ID
+    collection: [ID]
   }
 
   input DeleteDraftInput {

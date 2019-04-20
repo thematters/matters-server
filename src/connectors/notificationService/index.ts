@@ -35,7 +35,7 @@ export class NotificationService extends BaseService {
         return {
           type: params.event,
           recipientId: params.recipientId,
-          actorIds: [params.actorId]
+          actorId: params.actorId
         }
       case 'article_published':
       case 'comment_pinned':
@@ -49,6 +49,7 @@ export class NotificationService extends BaseService {
       case 'article_new_downstream':
       case 'article_new_appreciation':
       case 'article_new_subscriber':
+      case 'article_mentioned_you':
       case 'comment_mentioned_you':
       case 'article_new_comment':
       case 'subscribed_article_new_comment':
@@ -56,7 +57,7 @@ export class NotificationService extends BaseService {
         return {
           type: params.event,
           recipientId: params.recipientId,
-          actorIds: [params.actorId],
+          actorId: params.actorId,
           entities: params.entities
         }
       case 'official_announcement':

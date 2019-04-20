@@ -36,6 +36,7 @@ class Push extends BaseService {
       article_new_appreciation: setting.appreciation,
       article_new_subscriber: setting.articleSubscription,
       article_new_comment: setting.comment,
+      article_mentioned_you: setting.mention,
       subscribed_article_new_comment: setting.commentSubscribed,
       upstream_article_archived: setting.downstream,
       downstream_article_archived: setting.downstream,
@@ -60,14 +61,14 @@ class Push extends BaseService {
 
   generatePushText = async ({
     type,
-    actorIds,
+    actorId,
     entities,
     message,
     language
   }: PutNoticeParams & { language: LANGUAGES }): Promise<
     string | null | undefined
   > => {
-    const actors = actorIds ? await this.baseFindByIds(actorIds, 'user') : null
+    const actor = actorId ? await this.baseFindById(actorId, 'user') : null
     const target = _.find(entities, ['type', 'target'])
     const downstream = _.find(entities, ['type', 'downstream'])
     // const comment = _.find(entities, ['type', 'comment'])
@@ -77,9 +78,9 @@ class Push extends BaseService {
     switch (type) {
       case 'user_new_follower':
         return (
-          actors &&
+          actor &&
           trans.user_new_follower(language, {
-            displayName: actors[0].displayName
+            displayName: actor.displayName
           })
         )
       case 'article_published':
@@ -89,44 +90,53 @@ class Push extends BaseService {
         )
       case 'article_new_downstream':
         return (
-          actors &&
+          actor &&
           target &&
           trans.article_new_downstream(language, {
-            displayName: actors[0].displayName,
+            displayName: actor.displayName,
             title: target.entity.title
           })
         )
       case 'article_new_appreciation':
         return (
-          actorIds &&
+          actor &&
           trans.article_new_appreciation(language, {
-            displayName: actors[0].displayName
+            displayName: actor.displayName
           })
         )
       case 'article_new_subscriber':
         return (
-          actors &&
+          actor &&
           target &&
           trans.article_new_subscriber(language, {
-            displayName: actors[0].displayName,
+            displayName: actor.displayName,
             title: target.entity.title
           })
         )
       case 'article_new_comment':
         return (
-          actors &&
+          actor &&
           target &&
           trans.article_new_comment(language, {
-            displayName: actors[0].displayName,
+            displayName: actor.displayName,
+            title: target.entity.title
+          })
+        )
+      case 'article_mentioned_you':
+        return (
+          actor &&
+          target &&
+          trans.article_mentioned_you(language, {
+            displayName: actor.displayName,
             title: target.entity.title
           })
         )
       case 'subscribed_article_new_comment':
         return (
-          actors &&
+          actor &&
           target &&
           trans.subscribed_article_new_comment(language, {
-            displayName: actors[0].displayName,
+            displayName: actor.displayName,
             title: target.entity.title
           })
         )
@@ -141,28 +151,28 @@ class Push extends BaseService {
         )
       case 'comment_pinned':
         return (
-          actors &&
-          trans.comment_pinned(language, { displayName: actors[0].displayName })
+          actor &&
+          trans.comment_pinned(language, { displayName: actor.displayName })
         )
       case 'comment_new_reply':
         return (
-          actors &&
+          actor &&
           trans.comment_new_reply(language, {
-            displayName: actors[0].displayName
+            displayName: actor.displayName
           })
         )
       case 'comment_new_upvote':
         return (
-          actors &&
+          actor &&
           trans.comment_new_upvote(language, {
-            displayName: actors[0].displayName
+            displayName: actor.displayName
           })
         )
       case 'comment_mentioned_you':
         return (
-          actors &&
+          actor &&
           trans.comment_mentioned_you(language, {
-            displayName: actors[0].displayName
+            displayName: actor.displayName
           })
         )
       case 'official_announcement':
