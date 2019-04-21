@@ -123,10 +123,7 @@ export class UserService extends BaseService {
     }
 
     // remove null and undefined
-    const searchable = _.pickBy(
-      { description, displayName, userName },
-      _.identity
-    )
+    const searchable = _.omitBy({ description, displayName, userName }, _.isNil)
 
     try {
       await this.es.client.update({
