@@ -67,7 +67,7 @@ const resolver: MutationToPutDraftResolver = async (
   }
 
   // assemble data
-  const data: ItemData = _.pickBy(
+  const data: ItemData = _.omitBy(
     {
       authorId: id ? undefined : viewer.id,
       title,
@@ -77,7 +77,7 @@ const resolver: MutationToPutDraftResolver = async (
       cover: coverAssetId,
       collection
     },
-    _.identity
+    _.isNil
   )
 
   // Update
