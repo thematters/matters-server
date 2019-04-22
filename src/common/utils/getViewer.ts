@@ -9,7 +9,7 @@ import { UserService } from 'connectors'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { Viewer, LANGUAGES } from 'definitions'
-import { TokenInvalidError } from 'common/errors'
+import { TokenInvalidError, ForbiddenError } from 'common/errors'
 
 import { getLanguage } from './getLanguage'
 import { clearCookie } from './cookie'
@@ -35,6 +35,7 @@ export const getViewerFromReq = async ({
   req: requestIp.Request
   res?: Response
 }): Promise<Viewer> => {
+  const { env } = environment
   const { headers } = req
   const ip = requestIp.getClientIp(req)
   const isWeb = headers['x-client-name'] === 'web'
@@ -76,6 +77,12 @@ export const getViewerFromReq = async ({
       }
       // throw new TokenInvalidError('token invalid')
     }
+  }
+
+  //@ts-ignore
+  // Temporarily saftey check
+  if (env === 'stage' && user['isAdmin'] !== true) {
+    throw new ForbiddenError('forbidden operation')
   }
 
   return getViewerFromUser(user)
