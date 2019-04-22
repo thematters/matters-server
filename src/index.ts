@@ -36,7 +36,7 @@ const server = new ApolloServer({
       'https://production.matters.news',
       'https://web-stage.matters.news',
       'https://oss-stage.matters.news',
-      'https://web-develop.matters.news',
+      'https://web-yuus2tcp.matters.news',
       'https://oss-develop.matters.news',
       'https://matters.one',
       'https://www.matters.one',
