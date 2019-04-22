@@ -61,7 +61,7 @@ export class AWSService {
           `${this.s3Bucket}.${awsS3Endpoint}`}`
       }
       default: {
-        return `${LOCAL_S3_ENDPOINT}/${''}`
+        return `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
       }
     }
   }

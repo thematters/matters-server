@@ -1,25 +1,25 @@
 version: '3'
 
 services:
-  #app:
-  #  container_name: api
-  #  image: matters-server:latest
-  #  build:
-  #    context: ../
-  #    dockerfile: docker/Dockerfile
-  #  command: ['npm', 'run', 'start:dev']
-  #  env_file: ../.env
-  #  volumes:
-  #    - ..:/var/app
-  #    - /var/app/node_modules
-  #  depends_on:
-  #    - db
-  #    - redis
-  #    - s3
-  #    - elasticsearch
-  #    - ipfs
-  #  ports:
-  #    - '4000:4000'
+  app:
+    container_name: api
+    image: matters-server:latest
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    command: ['npm', 'run', 'start:dev']
+    env_file: ../.env
+    volumes:
+      - ..:/var/app
+      - /var/app/node_modules
+    depends_on:
+      - db
+      - redis
+      - s3
+      - elasticsearch
+      - ipfs
+    ports:
+      - '4000:4000'
   db:
     image: postgres:10
     container_name: db
@@ -27,8 +27,8 @@ services:
       - POSTGRES_DB=matters-dev
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-    #volumes:
-    #  - postgres_data:/var/lib/postgresql/data/
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
     ports:
       - '5432:5432'
   redis:
@@ -55,8 +55,8 @@ services:
     command: elasticsearch -E network.host=0.0.0.0 -E discovery.zen.minimum_master_nodes=1
     environment:
       - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'
-    #volumes:
-    #  - elasticsearch_data:/usr/share/elasticsearch/data
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
     ports:
       - '9200:9200'
       - '9300:9300'
