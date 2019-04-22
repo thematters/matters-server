@@ -735,6 +735,11 @@ export interface GQLComment extends GQLNode {
   upvotes: number
   downvotes: number
   myVote?: GQLVote
+
+  /**
+   *
+   * @deprecated not used
+   */
   mentions?: Array<GQLUser>
   comments: GQLCommentConnection
   parentComment?: GQLComment

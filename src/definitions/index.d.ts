@@ -78,7 +78,6 @@ export type TableName =
   | 'article_tag'
   | 'audio_draft'
   | 'comment'
-  | 'comment_mentioned_user'
   | 'collection'
   | 'draft'
   | 'noop'
