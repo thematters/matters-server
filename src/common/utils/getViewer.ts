@@ -81,7 +81,7 @@ export const getViewerFromReq = async ({
 
   //@ts-ignore
   // Temporarily saftey check
-  if (env === 'stage' && user['isAdmin'] !== true) {
+  if (env === 'staging' && user['isAdmin'] !== true) {
     throw new ForbiddenError('forbidden operation')
   }
 
