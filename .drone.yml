@@ -245,6 +245,8 @@ services:
     image: postgres:10-alpine
     environment:
       POSTGRES_DB: matters-test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
   - name: redis
     image: redis
   - name: elasticsearch
