@@ -23,7 +23,6 @@ const resolver: MutationToSetCollectionResolver = async (
     }
   }
 
-
   const entranceId = fromGlobalId(id).id
   const articleIds = collection.map(id => fromGlobalId(id).id)
 
