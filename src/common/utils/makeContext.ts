@@ -10,8 +10,7 @@ const purgeSentryData = (req: Request): any => {
     for (const key of Object.keys(source)) {
       if (key === target) {
         delete source[key]
-      }
-      else if (typeof source[key] === 'object') {
+      } else if (typeof source[key] === 'object') {
         omit(source[key], target)
       }
     }
@@ -25,7 +24,6 @@ const purgeSentryData = (req: Request): any => {
   return {}
 }
 
-
 export const makeContext = async ({
   req,
   res,
@@ -35,12 +33,10 @@ export const makeContext = async ({
   res: Response
   connection?: any
 }): Promise<RequestContext> => {
-
   // Add params for Sentry
   Sentry.configureScope((scope: any) => {
     scope.setExtra('parameters', purgeSentryData(req))
   })
-
 
   if (connection) {
     return connection.context
