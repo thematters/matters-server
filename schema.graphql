@@ -671,10 +671,16 @@ type OfficialLinks {
 type OSS {
   users(input: ConnectionArgs!): UserConnection!
   articles(input: ArticlesInput!): ArticleConnection!
-  tags(input: ConnectionArgs!): TagConnection!
+  tags(input: OSSTagsInput!): TagConnection!
   reports(input: ReportsInput!): ReportConnection!
   report(input: ReportInput!): Report!
   today(input: ConnectionArgs!): ArticleConnection!
+}
+
+input OSSTagsInput {
+  after: String
+  first: Int
+  sort: TagsSort
 }
 
 type PageInfo {
@@ -1007,6 +1013,12 @@ type TagEdge {
 type TagOSS {
   boost: NonNegativeFloat!
   score: NonNegativeFloat!
+}
+
+enum TagsSort {
+  newest
+  oldest
+  hottest
 }
 
 scalar Time

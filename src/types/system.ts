@@ -46,7 +46,7 @@ export default /* GraphQL */ `
   type OSS {
     users(input: ConnectionArgs!): UserConnection!
     articles(input: ArticlesInput!): ArticleConnection!
-    tags(input: ConnectionArgs!): TagConnection!
+    tags(input: OSSTagsInput!): TagConnection!
     reports(input: ReportsInput!): ReportConnection!
     report(input: ReportInput!): Report!
     today(input: ConnectionArgs!): ArticleConnection!
@@ -213,6 +213,18 @@ export default /* GraphQL */ `
     after: String
     first: Int
     oss: Boolean
+  }
+
+  input OSSTagsInput {
+    after: String
+    first: Int
+    sort: TagsSort
+  }
+
+  enum TagsSort {
+    newest
+    oldest
+    hottest
   }
 
   enum SearchTypes {
