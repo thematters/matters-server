@@ -71,6 +71,7 @@ const server = new ApolloServer({
   },
   debug: !isProd,
   formatError: (error: any) => {
+    // catch error globally
     Sentry.captureException(error)
     return error
   }

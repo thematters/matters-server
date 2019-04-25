@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node'
 import {
   AuthenticationError,
   UserInputError,
@@ -16,6 +17,9 @@ const resolver: MutationToInviteResolver = async (
   { input: { id, email } },
   { viewer, dataSources: { userService, notificationService } }
 ) => {
+  // Add extra info for Sentry
+  Sentry.addBreadcrumb({ data: { id, email } })
+
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
