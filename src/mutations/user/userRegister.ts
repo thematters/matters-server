@@ -27,7 +27,6 @@ const resolver: MutationToUserRegisterResolver = async (
 ) => {
   const { email: rawEmail, userName, displayName, password, codeId } = input
   const email = rawEmail ? rawEmail.toLowerCase() : null
-
   if (!isValidEmail(email)) {
     throw new EmailInvalidError('invalid email address format')
   }
