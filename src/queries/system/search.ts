@@ -1,9 +1,9 @@
 import _ from 'lodash'
 
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromArray, cursorToIndex } from 'common/utils'
 import { QueryToSearchResolver, GQLNode } from 'definitions'
 
-const resolver: QueryToSearchResolver = (
+const resolver: QueryToSearchResolver = async (
   root,
   { input },
   {
@@ -18,19 +18,25 @@ const resolver: QueryToSearchResolver = (
     )
   }
 
+  const offset = cursorToIndex(input.after) + 1
+
   const serviceMap = {
     Article: articleService,
     User: userService,
     Tag: tagService
   }
 
-  return connectionFromPromisedArray(
-    serviceMap[input.type].search(input).then(nodes => {
+  const { nodes, totalCount } = await serviceMap[input.type]
+    .search({ ...input, offset })
+    .then(({ nodes, totalCount }) => {
       nodes = _.compact(nodes)
-      return nodes.map((node: GQLNode) => ({ ...node, __type: input.type }))
-    }),
-    input
-  )
+      return {
+        nodes: nodes.map((node: GQLNode) => ({ ...node, __type: input.type })),
+        totalCount
+      }
+    })
+
+  return connectionFromArray(nodes, input, totalCount)
 }
 
 export default resolver

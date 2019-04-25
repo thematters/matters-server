@@ -5,10 +5,7 @@ const resolver: CommentToMentionsResolver = async (
   _,
   { dataSources: { userService, commentService } }
 ) => {
-  const mentionedUsers = await commentService.findMentionedUsers(id)
-  return userService.dataloader.loadMany(
-    mentionedUsers.map(({ userId }: { userId: string }) => userId)
-  )
+  return []
 }
 
 export default resolver

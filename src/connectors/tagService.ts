@@ -34,20 +34,24 @@ export class TagService extends BaseService {
    *                               *
    *********************************/
 
-  search = async ({ key, first }: GQLSearchInput) => {
+  search = async ({
+    key,
+    first = 20,
+    offset,
+    oss = false
+  }: GQLSearchInput & { offset: number; oss?: boolean }) => {
     // for local dev
-    if (environment.env === 'development') {
-      return this.knex(this.table)
-        .where('content', 'ilike', `%${key}%`)
-        .limit(100)
-    }
+    // if (environment.env === 'development') {
+    //   return this.knex(this.table)
+    //     .where('content', 'ilike', `%${key}%`)
+    //     .offset(offset)
+    //     .limit(first)
+    // }
 
     const body = bodybuilder()
-      .query('match', 'content', {
-        query: key,
-        fuzziness: 5
-      })
-      .size(50) // TODO: pagination with search
+      .query('match', 'content', key)
+      .from(offset)
+      .size(first)
       .build()
 
     try {
@@ -62,7 +66,7 @@ export class TagService extends BaseService {
       const ids = hits.hits.map(({ _id }) => _id)
       const tags = await this.baseFindByIds(ids, this.table)
 
-      return tags
+      return { nodes: tags, totalCount: hits.total }
     } catch (err) {
       logger.error(err)
       throw new ServerError('tag search failed')

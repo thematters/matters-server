@@ -735,6 +735,11 @@ export interface GQLComment extends GQLNode {
   upvotes: number
   downvotes: number
   myVote?: GQLVote
+
+  /**
+   *
+   * @deprecated not used
+   */
   mentions?: Array<GQLUser>
   comments: GQLCommentConnection
   parentComment?: GQLComment
@@ -802,6 +807,7 @@ export interface GQLSearchInput {
   type: GQLSearchTypes
   after?: string
   first?: number
+  oss?: boolean
 }
 
 export enum GQLSearchTypes {

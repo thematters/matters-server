@@ -30,6 +30,7 @@ import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
 import { NotificationService } from './notificationService'
+import { SearchResponse } from 'elasticsearch'
 
 export class UserService extends BaseService {
   notificationService: InstanceType<typeof NotificationService>
@@ -123,10 +124,7 @@ export class UserService extends BaseService {
     }
 
     // remove null and undefined
-    const searchable = _.pickBy(
-      { description, displayName, userName },
-      _.identity
-    )
+    const searchable = _.omitBy({ description, displayName, userName }, _.isNil)
 
     try {
       await this.es.client.update({
@@ -256,28 +254,58 @@ export class UserService extends BaseService {
       ]
     })
 
-  search = async ({ key }: GQLSearchInput) => {
-    if (environment.env === 'development') {
-      return this.knex(this.table)
-        .where('user_name', 'like', `%${key}%`)
-        .limit(100)
-    }
+  search = async ({
+    key,
+    first = 20,
+    offset,
+    oss = false
+  }: GQLSearchInput & { offset: number; oss?: boolean }) => {
+    // if (environment.env === 'development') {
+    //   return this.knex(this.table)
+    //     .where('user_name', 'like', `%${key}%`)
+    //     .offset(offset)
+    //     .limit(first)
+    // }
+
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
         fields: ['displayName^5', 'userName^10', 'description']
       })
-      .size(100) // TODO: pagination with search
-      .build()
+      .from(offset)
+      .size(first)
+      .build() as { [key: string]: any }
+
+    body.suggest = {
+      userName: {
+        prefix: key,
+        completion: {
+          field: 'userName'
+        }
+      }
+    }
 
     try {
-      const { hits } = await this.es.client.search({
+      const result = await this.es.client.search({
         index: this.table,
         type: this.table,
         body
       })
-      const ids = hits.hits.map(({ _id }) => _id)
-      return this.baseFindByIds(ids)
+
+      const { hits, suggest } = result as (typeof result) & {
+        suggest: { userName: any[] }
+      }
+
+      let ids = hits.hits.map(({ _id }) => _id)
+
+      const suggested = _.get(suggest, 'userName.0.options.0._id')
+      if (suggested) {
+        ids.unshift(suggested)
+        ids = ids.slice(0, first)
+      }
+
+      const nodes = await this.baseFindByIds(ids)
+      return { nodes, totalCount: hits.total }
     } catch (err) {
       logger.error(err)
       throw new ServerError('search failed')

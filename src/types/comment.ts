@@ -22,7 +22,7 @@ export default /* GraphQL */ `
     upvotes: Int!
     downvotes: Int!
     myVote: Vote
-    mentions: [User!]
+    mentions: [User!] @deprecated(reason: "not used")
     comments(input: CommentCommentsInput!): CommentConnection!
     parentComment: Comment
     quotationStart: Int

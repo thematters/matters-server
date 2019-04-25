@@ -170,6 +170,7 @@ export default /* GraphQL */ `
     type: SearchTypes!
     after: String
     first: Int
+    oss: Boolean
   }
 
   input ReleasesInput {
