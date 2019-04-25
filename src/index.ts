@@ -2,6 +2,7 @@ require('newrelic')
 require('module-alias/register')
 require('dotenv').config()
 // external
+import * as Sentry from '@sentry/node'
 import { ApolloServer } from 'apollo-server'
 // internal
 import logger from 'common/logger'
@@ -21,6 +22,9 @@ import {
 } from 'connectors'
 // local
 import schema from './schema'
+
+// start Sentry
+Sentry.init({ dsn: environment.sentryDsn || '' })
 
 // start schedule jobs
 scheduleQueue.start()
@@ -65,7 +69,11 @@ const server = new ApolloServer({
     maxFileSize: UPLOAD_FILE_SIZE_LIMIT,
     maxFiles: 10
   },
-  debug: !isProd
+  debug: !isProd,
+  formatError: (error: any) => {
+    Sentry.captureException(error)
+    return error
+  }
   // mocks
 })
 

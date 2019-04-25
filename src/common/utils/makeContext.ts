@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node'
 import { Response, Request } from 'express'
 
 import { RequestContext } from 'definitions'
@@ -17,6 +18,15 @@ export const makeContext = async ({
   }
 
   const viewer = await getViewerFromReq({ req, res })
+
+  // Add info for Sentry
+  Sentry.configureScope((scope: any) => {
+    scope.setUser({
+      id: viewer.id,
+      role: viewer.role,
+      language: viewer.language
+    })
+  })
 
   return {
     viewer,

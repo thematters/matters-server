@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node'
 import { MutationToUserRegisterResolver } from 'definitions'
 import { random } from 'lodash'
 import {
@@ -27,6 +28,10 @@ const resolver: MutationToUserRegisterResolver = async (
 ) => {
   const { email: rawEmail, userName, displayName, password, codeId } = input
   const email = rawEmail ? rawEmail.toLowerCase() : null
+
+  // Add extra info for Sentry
+  Sentry.addBreadcrumb({ data: { email, displayName, codeId } })
+
   if (!isValidEmail(email)) {
     throw new EmailInvalidError('invalid email address format')
   }
