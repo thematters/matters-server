@@ -10,7 +10,7 @@ const purgeSentryData = (req: Request): any => {
     for (const key of Object.keys(source)) {
       if (key === target) {
         delete source[key]
-      } else if (typeof source[key] === 'object') {
+      } else if (typeof source[key] === 'object' && source[key] != null) {
         omit(source[key], target)
       }
     }
