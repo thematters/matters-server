@@ -370,6 +370,7 @@ export default /* GraphQL */ `
   enum VerificationCodeType {
     register
     email_reset
+    email_reset_confirm
     password_reset
     email_verify
   }

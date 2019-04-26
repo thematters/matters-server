@@ -107,11 +107,16 @@ export const VERIFICATION_CODE_STATUS = {
 export const VERIFICATION_CODE_TYPES = {
   register: 'register',
   email_reset: 'email_reset',
+  email_reset_confirm: 'email_reset_confirm',
   password_reset: 'password_reset',
   email_verify: 'email_verify'
 }
 
-export const VERIFICATION_CODE_PROTECTED_TYPES = ['email_reset', 'email_verify']
+export const VERIFICATION_CODE_PROTECTED_TYPES = [
+  'email_reset',
+  'email_verify',
+  'email_reset_confirm'
+]
 
 /**
  * Categories
