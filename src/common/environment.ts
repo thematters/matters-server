@@ -30,7 +30,8 @@ export const environment = {
   jpushSecret: process.env['MATTERS_JPUSH_API_SECRET'],
   emailFromAsk: process.env['MATTERS_EMAIL_FROM_ASK'],
   jwtSecret: process.env['MATTERS_JWT_SECRET'] || '_dev_jwt_secret_',
-  apiKey: process.env['MATTERS_APOLLO_API_KEY']
+  apiKey: process.env['MATTERS_APOLLO_API_KEY'],
+  sentryDsn: process.env['MATTERS_SENTRY_DSN']
 }
 
 export const isDev = environment.env.includes('dev')

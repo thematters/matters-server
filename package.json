@@ -39,6 +39,7 @@
     "@matters/slugify": "^0.7.3",
     "@okgrow/graphql-scalars": "^0.4.2",
     "@sendgrid/mail": "^6.3.1",
+    "@sentry/node": "^5.1.0",
     "@types/cookie": "^0.3.2",
     "apollo-server": "^2.2.0",
     "aws-sdk": "^2.374.0",
