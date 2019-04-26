@@ -4,6 +4,7 @@ import { cloneDeep } from 'lodash'
 
 import { RequestContext } from 'definitions'
 import { getViewerFromReq } from './getViewer'
+import { toGlobalId } from './globalId'
 
 const purgeSentryData = (req: Request): any => {
   const omit = (source: any, target: any) => {
@@ -35,6 +36,9 @@ export const makeContext = async ({
 }): Promise<RequestContext> => {
   // Add params for Sentry
   Sentry.configureScope((scope: any) => {
+    const { headers } = req
+    scope.setTag('action-id', headers ? headers['x-sentry-action-id'] : null)
+    scope.setTag('source', 'server')
     scope.setExtra('parameters', purgeSentryData(req))
   })
 
@@ -47,7 +51,7 @@ export const makeContext = async ({
   // Add user info for Sentry
   Sentry.configureScope((scope: any) => {
     scope.setUser({
-      id: viewer.id,
+      id: viewer.id ? toGlobalId({ type: 'User', id: viewer.id }) : viewer.id,
       role: viewer.role,
       language: viewer.language
     })
