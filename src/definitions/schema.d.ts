@@ -908,7 +908,7 @@ export interface GQLArticlesInput {
   first?: number
 }
 
-export interface GQLOSSTagsInput {
+export interface GQLTagsInput {
   after?: string
   first?: number
   sort?: GQLTagsSort
@@ -5095,7 +5095,7 @@ export interface OSSToArticlesResolver<TParent = any, TResult = any> {
 }
 
 export interface OSSToTagsArgs {
-  input: GQLOSSTagsInput
+  input: GQLTagsInput
 }
 export interface OSSToTagsResolver<TParent = any, TResult = any> {
   (
