@@ -6,16 +6,52 @@ import bodybuilder from 'bodybuilder'
 import { GQLSearchInput } from 'definitions'
 import { BaseService } from './baseService'
 import { BATCH_SIZE, ARTICLE_STATE } from 'common/enums'
-// import { isEnglish } from 'common/utils'
-// import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { ServerError } from 'common/errors'
-import { environment } from 'common/environment'
 
 export class TagService extends BaseService {
   constructor() {
     super('tag')
     this.dataloader = new DataLoader(this.baseFindByIds)
+  }
+
+  /**
+   * Find tags
+   */
+  find = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    sort
+  }: {
+    limit?: number
+    offset?: number
+    sort?: 'newest' | 'oldest' | 'hottest'
+  }): Promise<any[]> => {
+    let query = null
+
+    const sortCreatedAt = (by: 'desc' | 'asc') =>
+      this.knex
+        .select()
+        .from(this.table)
+        .orderBy('created_at', by)
+
+    if (sort == 'hottest') {
+      query = this.knex
+        .select('tag_id', 'tag.*')
+        .from('article_tag')
+        .count('tag_id')
+        .join('tag', 'tag_id', 'tag.id')
+        .groupBy('tag_id', 'tag.id')
+        .orderBy('count', 'desc')
+    } else if (sort === 'oldest') {
+      query = sortCreatedAt('asc')
+    } else if (sort === 'newest') {
+      query = sortCreatedAt('desc')
+    } else {
+      query = sortCreatedAt('desc')
+    }
+
+    return query.limit(limit).offset(offset)
   }
 
   create = async ({

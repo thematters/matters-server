@@ -908,6 +908,18 @@ export interface GQLArticlesInput {
   first?: number
 }
 
+export interface GQLTagsInput {
+  after?: string
+  first?: number
+  sort?: GQLTagsSort
+}
+
+export enum GQLTagsSort {
+  newest = 'newest',
+  oldest = 'oldest',
+  hottest = 'hottest'
+}
+
 export interface GQLReportsInput {
   article: boolean
   comment: boolean
@@ -5083,7 +5095,7 @@ export interface OSSToArticlesResolver<TParent = any, TResult = any> {
 }
 
 export interface OSSToTagsArgs {
-  input: GQLConnectionArgs
+  input: GQLTagsInput
 }
 export interface OSSToTagsResolver<TParent = any, TResult = any> {
   (
