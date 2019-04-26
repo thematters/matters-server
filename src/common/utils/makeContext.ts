@@ -36,6 +36,9 @@ export const makeContext = async ({
 }): Promise<RequestContext> => {
   // Add params for Sentry
   Sentry.configureScope((scope: any) => {
+    const { headers } = req
+    scope.setTag('action-id', headers ? headers['x-sentry-action-id'] : null)
+    scope.setTag('source', 'server')
     scope.setExtra('parameters', purgeSentryData(req))
   })
 
@@ -52,7 +55,6 @@ export const makeContext = async ({
       role: viewer.role,
       language: viewer.language
     })
-    scope.setTag('source', 'server')
   })
 
   return {
