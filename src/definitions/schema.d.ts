@@ -1302,6 +1302,7 @@ export interface GQLSendVerificationCodeInput {
 export enum GQLVerificationCodeType {
   register = 'register',
   email_reset = 'email_reset',
+  email_reset_confirm = 'email_reset_confirm',
   password_reset = 'password_reset',
   email_verify = 'email_verify'
 }
