@@ -4,6 +4,7 @@ import { cloneDeep } from 'lodash'
 
 import { RequestContext } from 'definitions'
 import { getViewerFromReq } from './getViewer'
+import { toGlobalId } from './globalId'
 
 const purgeSentryData = (req: Request): any => {
   const omit = (source: any, target: any) => {
@@ -47,10 +48,11 @@ export const makeContext = async ({
   // Add user info for Sentry
   Sentry.configureScope((scope: any) => {
     scope.setUser({
-      id: viewer.id,
+      id: viewer.id ? toGlobalId({ type: 'User', id: viewer.id }) : viewer.id,
       role: viewer.role,
       language: viewer.language
-    })
+    }),
+    scope.setTag('source', 'server')
   })
 
   return {
