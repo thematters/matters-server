@@ -51,7 +51,7 @@ export const makeContext = async ({
       id: viewer.id ? toGlobalId({ type: 'User', id: viewer.id }) : viewer.id,
       role: viewer.role,
       language: viewer.language
-    }),
+    })
     scope.setTag('source', 'server')
   })
 
