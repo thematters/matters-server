@@ -7,14 +7,14 @@ export const tags: OSSToTagsResolver = async (
   { input },
   { viewer, dataSources: { tagService } }
 ) => {
-  const { first, after } = input
+  const { first, after, sort = 'newest' } = input
   const where = { deleted: false }
   const offset = cursorToIndex(after) + 1
   const totalCount = await tagService.baseCount(where)
 
   return connectionFromPromisedArray(
-    tagService.baseFind({
-      where,
+    tagService.find({
+      sort,
       offset,
       limit: first
     }),

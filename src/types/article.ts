@@ -113,6 +113,13 @@ export default /* GraphQL */ `
     node: Tag!
   }
 
+
+  input TagsInput {
+    after: String
+    first: Int
+    sort: TagsSort
+  }
+
   input ArticleInput {
     mediaHash: String
     uuid: UUID
@@ -214,5 +221,11 @@ export default /* GraphQL */ `
     icymi
     hottest
     newest
+  }
+
+  enum TagsSort {
+    newest
+    oldest
+    hottest
   }
 `

@@ -18,6 +18,10 @@ const trans = {
       zh_hant: '修改電子信箱',
       zh_hans: '修改电子邮箱'
     }),
+    email_reset_confirm: i18n({
+      zh_hant: '修改電子信箱',
+      zh_hans: '修改电子邮箱'
+    }),
     password_reset: i18n({
       zh_hant: '修改密碼',
       zh_hans: '修改密碼'

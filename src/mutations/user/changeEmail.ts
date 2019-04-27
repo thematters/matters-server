@@ -22,7 +22,7 @@ const resolver: MutationToChangeEmailResolver = async (
     where: {
       uuid: newEmailCodeId,
       email: newEmail,
-      type: 'email_reset',
+      type: 'email_reset_confirm',
       status: 'verified'
     }
   })

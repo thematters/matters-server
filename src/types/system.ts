@@ -46,7 +46,7 @@ export default /* GraphQL */ `
   type OSS {
     users(input: ConnectionArgs!): UserConnection!
     articles(input: ArticlesInput!): ArticleConnection!
-    tags(input: ConnectionArgs!): TagConnection!
+    tags(input: TagsInput!): TagConnection!
     reports(input: ReportsInput!): ReportConnection!
     report(input: ReportInput!): Report!
     today(input: ConnectionArgs!): ArticleConnection!

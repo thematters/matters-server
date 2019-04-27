@@ -908,6 +908,18 @@ export interface GQLArticlesInput {
   first?: number
 }
 
+export interface GQLTagsInput {
+  after?: string
+  first?: number
+  sort?: GQLTagsSort
+}
+
+export enum GQLTagsSort {
+  newest = 'newest',
+  oldest = 'oldest',
+  hottest = 'hottest'
+}
+
 export interface GQLReportsInput {
   article: boolean
   comment: boolean
@@ -1290,6 +1302,7 @@ export interface GQLSendVerificationCodeInput {
 export enum GQLVerificationCodeType {
   register = 'register',
   email_reset = 'email_reset',
+  email_reset_confirm = 'email_reset_confirm',
   password_reset = 'password_reset',
   email_verify = 'email_verify'
 }
@@ -5083,7 +5096,7 @@ export interface OSSToArticlesResolver<TParent = any, TResult = any> {
 }
 
 export interface OSSToTagsArgs {
-  input: GQLConnectionArgs
+  input: GQLTagsInput
 }
 export interface OSSToTagsResolver<TParent = any, TResult = any> {
   (
