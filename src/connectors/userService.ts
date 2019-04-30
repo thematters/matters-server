@@ -733,7 +733,7 @@ export class UserService extends BaseService {
         .into(this.table)
         .returning('*')
       // add invitation record
-      const { id: invitationId } = await trx
+      const [{ id: invitationId }] = await trx
         .insert({ senderId, recipientId, status: INVITATION_STATUS.activated })
         .into('invitation')
         .returning('*')
