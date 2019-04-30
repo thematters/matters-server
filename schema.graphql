@@ -95,6 +95,15 @@ type ArticleNewAppreciationNotice implements Notice {
   MAT: Int!
 }
 
+type ArticleNewCollectedNotice implements Notice {
+  id: ID!
+  unread: Boolean!
+  createdAt: DateTime!
+  actor: User!
+  collection: Article
+  target: Article
+}
+
 type ArticleNewCommentNotice implements Notice {
   id: ID!
   unread: Boolean!

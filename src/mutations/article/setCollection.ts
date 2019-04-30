@@ -7,7 +7,7 @@ import { fromGlobalId } from 'common/utils'
 const resolver: MutationToSetCollectionResolver = async (
   root,
   { input: { id, collection } },
-  { viewer, dataSources: { articleService } }
+  { viewer, dataSources: { articleService, notificationService } }
 ) => {
   const userName = get(viewer, 'userName')
   const isPartner = PARTNERS.includes(userName)
@@ -31,6 +31,28 @@ const resolver: MutationToSetCollectionResolver = async (
   // Clean all existing collection and then insert
   await articleService.deleteCollection({ entranceId })
   await articleService.createCollection({ entranceId, articleIds })
+
+  // trigger notifications
+  articleIds.forEach(async (id: string) => {
+    const collection = await articleService.baseFindById(id)
+    notificationService.trigger({
+      event: 'article_new_collected',
+      recipientId: collection.authorId,
+      actorId: article.authorId,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'article',
+          entity: collection
+        },
+        {
+          type: 'collection',
+          entityTable: 'article',
+          entity: article
+        }
+      ]
+    })
+  })
 
   return articleService.dataloader.load(entranceId)
 }

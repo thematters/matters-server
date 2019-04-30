@@ -47,6 +47,7 @@ export class NotificationService extends BaseService {
           entities: params.entities
         }
       case 'article_new_downstream':
+      case 'article_new_collected':
       case 'article_new_appreciation':
       case 'article_new_subscriber':
       case 'article_mentioned_you':
