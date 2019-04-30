@@ -47,6 +47,15 @@ export default /* GraphQL */ `
     target: Article
   }
 
+  type ArticleNewCollectedNotice implements Notice {
+    id: ID!
+    unread: Boolean!
+    createdAt: DateTime!
+    actor: User!
+    collection: Article
+    target: Article
+  }
+
   type ArticleNewAppreciationNotice implements Notice {
     id: ID!
     unread: Boolean!

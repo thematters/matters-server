@@ -14,6 +14,7 @@ export default {
         // article
         article_published: 'ArticlePublishedNotice',
         article_new_downstream: 'ArticleNewDownstreamNotice',
+        article_new_collected: 'ArticleNewCollectedNotice',
         article_new_appreciation: 'ArticleNewAppreciationNotice',
         article_new_subscriber: 'ArticleNewSubscriberNotice',
         article_new_comment: 'ArticleNewCommentNotice',
@@ -43,6 +44,12 @@ export default {
     id: ({ uuid }: { uuid: string }) => uuid,
     target: ({ entities }: { entities: any }) => entities['target'],
     downstream: ({ entities }: { entities: any }) => entities['downstream']
+  },
+  ArticleNewCollectedNotice: {
+    id: ({ uuid }: { uuid: string }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    target: ({ entities }: { entities: any }) => entities['target'],
+    collection: ({ entities }: { entities: any }) => entities['collection']
   },
   ArticleNewAppreciationNotice: {
     id: ({ uuid }: { uuid: string }) => uuid,
