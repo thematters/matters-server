@@ -102,12 +102,12 @@ class PublicationQueue {
                   {
                     type: 'target',
                     entityTable: 'article',
-                    entity: article
+                    entity: collection
                   },
                   {
                     type: 'collection',
                     entityTable: 'article',
-                    entity: collection
+                    entity: article
                   }
                 ]
               })
