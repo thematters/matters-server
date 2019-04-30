@@ -675,6 +675,7 @@ export interface GQLNotice {
 export type GQLPossibleNoticeTypeNames =
   | 'ArticleMentionedYouNotice'
   | 'ArticleNewAppreciationNotice'
+  | 'ArticleNewCollectedNotice'
   | 'ArticleNewCommentNotice'
   | 'ArticleNewDownstreamNotice'
   | 'ArticleNewSubscriberNotice'
@@ -693,6 +694,7 @@ export interface GQLNoticeNameMap {
   Notice: GQLNotice
   ArticleMentionedYouNotice: GQLArticleMentionedYouNotice
   ArticleNewAppreciationNotice: GQLArticleNewAppreciationNotice
+  ArticleNewCollectedNotice: GQLArticleNewCollectedNotice
   ArticleNewCommentNotice: GQLArticleNewCommentNotice
   ArticleNewDownstreamNotice: GQLArticleNewDownstreamNotice
   ArticleNewSubscriberNotice: GQLArticleNewSubscriberNotice
@@ -1432,6 +1434,15 @@ export interface GQLArticleNewAppreciationNotice extends GQLNotice {
   MAT: number
 }
 
+export interface GQLArticleNewCollectedNotice extends GQLNotice {
+  id: string
+  unread: boolean
+  createdAt: GQLDateTime
+  actor: GQLUser
+  collection?: GQLArticle
+  target?: GQLArticle
+}
+
 export interface GQLArticleNewCommentNotice extends GQLNotice {
   id: string
   unread: boolean
@@ -1669,6 +1680,7 @@ export interface GQLResolver {
   Subscription?: GQLSubscriptionTypeResolver
   ArticleMentionedYouNotice?: GQLArticleMentionedYouNoticeTypeResolver
   ArticleNewAppreciationNotice?: GQLArticleNewAppreciationNoticeTypeResolver
+  ArticleNewCollectedNotice?: GQLArticleNewCollectedNoticeTypeResolver
   ArticleNewCommentNotice?: GQLArticleNewCommentNoticeTypeResolver
   ArticleNewDownstreamNotice?: GQLArticleNewDownstreamNoticeTypeResolver
   ArticleNewSubscriberNotice?: GQLArticleNewSubscriberNoticeTypeResolver
@@ -4253,6 +4265,7 @@ export interface GQLNoticeTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'ArticleMentionedYouNotice'
     | 'ArticleNewAppreciationNotice'
+    | 'ArticleNewCollectedNotice'
     | 'ArticleNewCommentNotice'
     | 'ArticleNewDownstreamNotice'
     | 'ArticleNewSubscriberNotice'
@@ -6262,6 +6275,87 @@ export interface ArticleNewAppreciationNoticeToTargetResolver<
 }
 
 export interface ArticleNewAppreciationNoticeToMATResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLArticleNewCollectedNoticeTypeResolver<TParent = any> {
+  id?: ArticleNewCollectedNoticeToIdResolver<TParent>
+  unread?: ArticleNewCollectedNoticeToUnreadResolver<TParent>
+  createdAt?: ArticleNewCollectedNoticeToCreatedAtResolver<TParent>
+  actor?: ArticleNewCollectedNoticeToActorResolver<TParent>
+  collection?: ArticleNewCollectedNoticeToCollectionResolver<TParent>
+  target?: ArticleNewCollectedNoticeToTargetResolver<TParent>
+}
+
+export interface ArticleNewCollectedNoticeToIdResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleNewCollectedNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleNewCollectedNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleNewCollectedNoticeToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleNewCollectedNoticeToCollectionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleNewCollectedNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {

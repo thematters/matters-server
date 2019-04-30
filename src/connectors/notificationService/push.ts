@@ -33,6 +33,7 @@ class Push extends BaseService {
       user_new_follower: setting.follow,
       article_published: true,
       article_new_downstream: setting.downstream,
+      article_new_collected: setting.downstream,
       article_new_appreciation: setting.appreciation,
       article_new_subscriber: setting.articleSubscription,
       article_new_comment: setting.comment,
@@ -71,6 +72,7 @@ class Push extends BaseService {
     const actor = actorId ? await this.baseFindById(actorId, 'user') : null
     const target = _.find(entities, ['type', 'target'])
     const downstream = _.find(entities, ['type', 'downstream'])
+    const collection = _.find(entities, ['type', 'collection'])
     // const comment = _.find(entities, ['type', 'comment'])
     // const upstream = _.find(entities, ['type', 'upstream'])
     // const reply = _.find(entities, ['type', 'reply'])
@@ -94,6 +96,17 @@ class Push extends BaseService {
           target &&
           trans.article_new_downstream(language, {
             displayName: actor.displayName,
+            title: target.entity.title
+          })
+        )
+      case 'article_new_collected':
+        return (
+          actor &&
+          target &&
+          collection &&
+          trans.article_new_collected(language, {
+            displayName: actor.displayName,
+            collectionTitle: collection.entity.title,
             title: target.entity.title
           })
         )
