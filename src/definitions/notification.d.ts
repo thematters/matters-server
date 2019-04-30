@@ -6,6 +6,7 @@ export type NoticeType =
   // article
   | 'article_published'
   | 'article_new_downstream'
+  | 'article_new_collected'
   | 'article_new_appreciation'
   | 'article_new_subscriber'
   | 'article_new_comment'
@@ -36,6 +37,7 @@ export type NoticeEntityType =
   | 'upstream'
   | 'comment'
   | 'reply'
+  | 'collection'
 
 export type NotificationType = NoticeType | OfficialNoticeExtendType
 
@@ -75,6 +77,17 @@ export interface NoticeArticleNewDownstreamParams
   entities: [
     NotificationEntity<'target', 'article'>,
     NotificationEntity<'downstream', 'article'>
+  ]
+}
+
+export interface NoticeArticleNewCollectedParams
+  extends NotificationRequiredParams {
+  event: 'article_new_collected'
+  recipientId: string
+  actorId: string
+  entities: [
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'collection', 'article'>
   ]
 }
 
@@ -250,6 +263,7 @@ export type NotificationPrarms =
   | NoticeUserNewFollowerParams
   | NoticeArticlePublishedParams
   | NoticeArticleNewDownstreamParams
+  | NoticeArticleNewCollectedParams
   | NoticeArticleNewAppreciationParams
   | NoticeArticleNewSubscriberParams
   | NoticeArticleNewCommentParams

@@ -92,8 +92,27 @@ class PublicationQueue {
               entranceId: article.id,
               articleIds: draft.collection
             })
+            draft.collection.forEach(async (id: string) => {
+              const collection = await this.articleService.baseFindById(id)
+              this.notificationService.trigger({
+                event: 'article_new_collected',
+                recipientId: collection.authorId,
+                actorId: article.authorId,
+                entities: [
+                  {
+                    type: 'target',
+                    entityTable: 'article',
+                    entity: collection
+                  },
+                  {
+                    type: 'collection',
+                    entityTable: 'article',
+                    entity: article
+                  }
+                ]
+              })
+            })
           }
-
           job.progress(40)
 
           // handle tags
@@ -119,20 +138,6 @@ class PublicationQueue {
           await this.articleService.addToSearch({ ...article, tags })
           job.progress(80)
 
-          // trigger notifications
-          this.notificationService.trigger({
-            event: 'article_published',
-            recipientId: article.authorId,
-            entities: [
-              {
-                type: 'target',
-                entityTable: 'article',
-                entity: article
-              }
-            ]
-          })
-          job.progress(100)
-
           // handle mentions
           const $ = cheerio.load(article.content)
           const mentionIds = $('a.mention')
@@ -144,7 +149,6 @@ class PublicationQueue {
             })
             .get()
 
-          // trigger mention notifications
           mentionIds.forEach((id: string) => {
             const mentionId = fromGlobalId(id).id
             if (!mentionId) {
@@ -163,6 +167,21 @@ class PublicationQueue {
               ]
             })
           })
+          job.progress(90)
+
+          // trigger notifications
+          this.notificationService.trigger({
+            event: 'article_published',
+            recipientId: article.authorId,
+            entities: [
+              {
+                type: 'target',
+                entityTable: 'article',
+                entity: article
+              }
+            ]
+          })
+
           job.progress(100)
 
           done(null, {

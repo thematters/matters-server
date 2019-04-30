@@ -24,6 +24,16 @@ export default {
     en: ({ displayName, title }) =>
       `${displayName} extended your article "${title}"`
   }),
+  article_new_collected: i18n<{
+    displayName: string
+    title: string
+    collectionTitle: string
+  }>({
+    zh_hant: ({ displayName, title, collectionTitle }) =>
+      `恭喜！你的大作《${title}》已被 ${displayName} 在其作品 《${collectionTitle}》 中關聯推薦`,
+    zh_hans: ({ displayName, title, collectionTitle }) =>
+      `恭喜！你的大作《${title}》已被 ${displayName} 在其作品 《${collectionTitle}》 中关联推荐`
+  }),
   article_new_appreciation: i18n<{ displayName: string }>({
     zh_hant: ({ displayName }) => `${displayName} 讚賞了你的文章`,
     zh_hans: ({ displayName }) => `${displayName} 赞赏了你的文章`,
