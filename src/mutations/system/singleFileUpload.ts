@@ -24,11 +24,12 @@ const resolver: MutationToSingleFileUploadResolver = async (
     throw new UserInputError('Entity id is incorrect')
   }
 
-  const { id: entityTypeId } = await systemService.baseFindEntityTypeId(entityType)
+  const { id: entityTypeId } = await systemService.baseFindEntityTypeId(
+    entityType
+  )
   if (!entityTypeId) {
     throw new UserInputError('Entity type is incorrect.')
   }
-
 
   let upload
   if (url) {
