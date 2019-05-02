@@ -184,7 +184,7 @@ export default /* GraphQL */ `
     file: Upload
     url: URL
     entityType: EntityType!
-    entityId: ID!
+    entityId: ID
   }
 
   input SingleFileDeleteInput {

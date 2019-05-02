@@ -978,7 +978,7 @@ input SingleFileUploadInput {
   file: Upload
   url: URL
   entityType: EntityType!
-  entityId: ID!
+  entityId: ID
 }
 
 input SubscribeArticleInput {

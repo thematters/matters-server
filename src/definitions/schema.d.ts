@@ -1239,7 +1239,7 @@ export interface GQLSingleFileUploadInput {
   file?: GQLUpload
   url?: GQLURL
   entityType: GQLEntityType
-  entityId: string
+  entityId?: string
 }
 
 export enum GQLAssetType {

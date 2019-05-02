@@ -15,11 +15,15 @@ const resolver: MutationToSingleFileUploadResolver = async (
     throw new UserInputError('One of file and url needs to be specified.')
   }
 
-  if (!entityType || !entityId) {
-    throw new UserInputError('Entity type and id need to be specified.')
+  if (!entityType) {
+    throw new UserInputError('Entity type needs to be specified.')
   }
 
-  const relatedEntityId = fromGlobalId(entityId).id
+  if (entityType !== 'user' && !entityId) {
+    throw new UserInputError('Entity id needs to be specified.')
+  }
+
+  const relatedEntityId = entityType === 'user' ? viewer.id : fromGlobalId(entityId || '').id
   if (!relatedEntityId) {
     throw new UserInputError('Entity id is incorrect')
   }
