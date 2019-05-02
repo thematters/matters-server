@@ -23,7 +23,8 @@ const resolver: MutationToSingleFileUploadResolver = async (
     throw new UserInputError('Entity id needs to be specified.')
   }
 
-  const relatedEntityId = entityType === 'user' ? viewer.id : fromGlobalId(entityId || '').id
+  const relatedEntityId =
+    entityType === 'user' ? viewer.id : fromGlobalId(entityId || '').id
   if (!relatedEntityId) {
     throw new UserInputError('Entity id is incorrect')
   }
