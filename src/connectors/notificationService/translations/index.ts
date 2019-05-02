@@ -166,6 +166,16 @@ export default {
     en: ({ title }) =>
       `Your article "${title}" has been reported by other users`
   }),
+  user_activated_by_task: i18n<{}>({
+    zh_hant: () =>
+      `恭喜！因為你的精彩評論，你的創作者資格已被激活！${
+        MAT_UNIT.joinByTask
+      } MAT獎勵也已到位，期待你的第一篇創作。`,
+    zh_hans: () =>
+      `恭喜！因为你的精彩评论，你的创作者资格已被激活！${
+        MAT_UNIT.joinByTask
+      } MAT奖励也已到位，期待你的第一篇创作。`
+  }),
   user_activated_recipient: i18n<{ displayName: string }>({
     zh_hant: ({ displayName }) =>
       `你的好友 ${displayName} 邀請你成為 Matters 社區創作者，你的帳號已成功解鎖，擁有全部創作權限，期待你的大作。解鎖資格所贈送的 ${

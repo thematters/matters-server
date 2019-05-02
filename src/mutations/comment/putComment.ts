@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { MutationToPutCommentResolver } from 'definitions'
-import { fromGlobalId, toGlobalId, sanitize } from 'common/utils'
+import { fromGlobalId, toGlobalId, sanitize, countWords } from 'common/utils'
 import {
   AuthenticationError,
   UserInputError,
@@ -9,13 +9,19 @@ import {
   CommentNotFoundError,
   ForbiddenError
 } from 'common/errors'
+import { USER_STATE } from 'common/enums'
 
 const resolver: MutationToPutCommentResolver = async (
   root,
   { input: { comment, id } },
   {
     viewer,
-    dataSources: { commentService, articleService, notificationService }
+    dataSources: {
+      commentService,
+      articleService,
+      notificationService,
+      userService
+    }
   }
 ) => {
   if (!viewer.id) {
@@ -108,9 +114,35 @@ const resolver: MutationToPutCommentResolver = async (
 
     newComment = await commentService.update({ id: commentDbId, ...data })
   }
+
   // Create
   else {
     newComment = await commentService.create(data)
+
+    // check if we should activate user
+    if (viewer.state === USER_STATE.onboarding) {
+      const activate = async () => {
+        await userService.activate({ recipientId: viewer.id })
+
+        // notice user
+        notificationService.trigger({
+          event: 'user_activated_by_task',
+          recipientId: viewer.id
+        })
+      }
+
+      if (countWords(data.content) > 600) {
+        activate()
+      } else {
+        const comments = await commentService.findByAuthor(viewer.id)
+        const totalCount = comments
+          .map(comment => countWords(comment))
+          .reduce((a, b) => a + b)
+        if (comments.length > 3 && totalCount > 600) {
+          activate()
+        }
+      }
+    }
 
     // trigger notifications
     // notify article's author
