@@ -37,6 +37,31 @@ export class SystemService extends BaseService {
    *                               *
    *********************************/
   /**
+   * Create asset and asset_map
+   */
+  createAssetAndAssetMap = async (
+    asset: { [key: string]: any },
+    entityTypeId: string,
+    entityId: string
+  ): Promise<any> =>
+    await this.knex.transaction(async trx => {
+      const [newAsset] = await trx
+        .insert(asset)
+        .into('asset')
+        .returning('*')
+
+      await trx
+        .insert({
+          assetId: newAsset.id,
+          entityTypeId,
+          entityId
+        })
+        .into('asset_map')
+
+      return newAsset
+    })
+
+  /**
    * Find asset by a given uuid
    */
   findAssetByUUID = async (uuid: string) => this.baseFindByUUID(uuid, 'asset')

@@ -183,12 +183,13 @@ export default /* GraphQL */ `
     type: AssetType!
     file: Upload
     url: URL
+    entityType: EntityType!
+    entityId: ID!
   }
 
   input SingleFileDeleteInput {
     id: ID!
   }
-
 
   input FeedbackInput {
     category: ID!
@@ -243,6 +244,12 @@ export default /* GraphQL */ `
     report
     feedback
     embed
+  }
+
+  enum EntityType {
+    article
+    draft
+    user
   }
 
   enum PlatformType {
