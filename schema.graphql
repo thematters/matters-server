@@ -429,6 +429,12 @@ type DraftEdge {
 
 scalar Email
 
+enum EntityType {
+  article
+  draft
+  user
+}
+
 input FeedbackInput {
   category: ID!
   description: String
@@ -971,6 +977,8 @@ input SingleFileUploadInput {
   type: AssetType!
   file: Upload
   url: URL
+  entityType: EntityType!
+  entityId: ID
 }
 
 input SubscribeArticleInput {
