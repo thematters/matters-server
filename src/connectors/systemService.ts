@@ -99,6 +99,9 @@ export class SystemService extends BaseService {
     )
   }
 
+  findAssetMapByEntityId = async (entityId: string) =>
+    this.knex('asset_map').where({ entityId })
+
   /*********************************
    *                               *
    *             Report            *
