@@ -1,6 +1,6 @@
 import { i18n } from 'common/utils/i18n'
 
-export const UPLOAD_FILE_SIZE_LIMIT = 5 * 1024 * 1024
+export const UPLOAD_FILE_SIZE_LIMIT = 100 * 1024 * 1024
 
 export const MATERIALIZED_VIEW = {
   articleCountMaterialized: 'article_count_materialized',
