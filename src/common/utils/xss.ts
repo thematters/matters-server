@@ -4,6 +4,7 @@ const CUSTOM_WHITE_LISTS = {
   a: [...(xss.whiteList.a || []), 'class'],
   figure: [],
   figcaption: [],
+  source: ['src', 'type'],
   iframe: ['src', 'frameborder', 'allowfullscreen', 'sandbox']
 }
 
