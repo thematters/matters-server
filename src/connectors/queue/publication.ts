@@ -10,7 +10,7 @@ import {
   PUBLISH_ARTICLE_DELAY
 } from 'common/enums'
 import { isTest } from 'common/environment'
-import { fromGlobalId } from 'common/utils'
+import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import {
   DraftService,
   ArticleService,
@@ -118,7 +118,7 @@ class PublicationQueue {
           }
           job.progress(40)
 
-          // update asset_map
+          // Remove unused assets and assets_map
           const [
             { id: draftEntityTypeId },
             { id: articleEntityTypeId }
@@ -126,6 +126,25 @@ class PublicationQueue {
             this.systemService.baseFindEntityTypeId('draft'),
             this.systemService.baseFindEntityTypeId('article')
           ])
+          const [assetMap, uuids] = await Promise.all([
+            this.systemService.findAssetMap(draftEntityTypeId, draft.id),
+            extractAssetDataFromHtml(draft.content)
+          ])
+          const assets = assetMap.reduce((data: any, asset: any) => {
+            if (uuids && !uuids.includes(asset.uuid)) {
+              data[`${asset.assetId}`] = asset.path
+            }
+            return data
+          }, {})
+
+          if (assets && Object.keys(assets).length > 0) {
+            await this.systemService.deleteAssetAndAssetMap(Object.keys(assets))
+            await Promise.all(
+              Object.values(assets).map((key: any) => {
+                this.systemService.aws.baseDeleteFile(key)
+              })
+            )
+          }
           await this.systemService.replaceAssetMapEntityTypeAndId(
             draftEntityTypeId,
             draft.id,

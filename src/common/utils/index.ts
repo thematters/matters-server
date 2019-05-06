@@ -65,7 +65,7 @@ export const makeUserName = (email: string): string => {
 }
 
 export const extractAssetDataFromHtml = (html: string) => {
-  const $ = cheerio.load(html, { decodeEntities: false })
+  const $ = cheerio.load(html || '', { decodeEntities: false })
   return $('img')
     .map((index: number, element: any) => {
       const uuid = $(element).attr('data-asset-id')

@@ -6,16 +6,16 @@ const resolver: DraftToAssetsResolver = async (
   _,
   { dataSources: { systemService } }
 ) => {
-  // Gather data from asset_map
-  const { id: entityTypeId } = await systemService.baseFindEntityTypeId('draft')
-  let uuids = (await systemService.findAssetMap(entityTypeId, id)).map(
-    (item: any) => item.uuid
-  )
-  // Use assets from raw content as fallback
-  if (!uuids || (uuids && uuids.length === 0)) {
-    uuids = extractAssetDataFromHtml(content)
-  }
-  return systemService.baseFindByUUIDs(uuids, 'asset')
+  // gather assets from raw content
+  const uuids = extractAssetDataFromHtml(content)
+  return (await systemService.baseFindByUUIDs(uuids, 'asset'))
+    .map((item: any) => {
+      const { path } = item
+      return {
+        ...item,
+        path: path ? `${systemService.aws.s3Endpoint}/${path}` : null
+      }
+    })
 }
 
 export default resolver

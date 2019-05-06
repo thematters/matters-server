@@ -18,36 +18,6 @@ import {
 } from 'common/errors'
 import { PUBLISH_STATE, ARTICLE_STATE } from 'common/enums'
 
-const processEmbeddedAssets = async (
-  id: string,
-  content: string,
-  systemService: any
-) => {
-  // Gather assets' data
-  const { id: entityTypeId } = await systemService.baseFindEntityTypeId('draft')
-  const [assetMap, uuids] = await Promise.all([
-    systemService.findAssetMap(entityTypeId, id),
-    extractAssetDataFromHtml(content)
-  ])
-  // Gather assets to be removed
-  const assets = assetMap.reduce((data: any, asset: any) => {
-    if (uuids && !uuids.includes(asset.uuid)) {
-      data[`${asset.assetId}`] = asset.path
-    }
-    return data
-  }, {})
-
-  // Delete unused assets
-  if (Object.keys(assets).length > 0) {
-    await systemService.deleteAssetAndAssetMap(Object.keys(assets))
-    await Promise.all(
-      Object.values(assets).map((key: any) => {
-        systemService.aws.baseDeleteFile(key)
-      })
-    )
-  }
-}
-
 const resolver: MutationToPutDraftResolver = async (
   root,
   { input },
@@ -142,24 +112,26 @@ const resolver: MutationToPutDraftResolver = async (
       )
     }
 
-    // check if cover needs to be removed forcely
+    // handle cover
     if (content) {
-      const embeddedAssetUUIDs = extractAssetDataFromHtml(content)
-      if (embeddedAssetUUIDs && embeddedAssetUUIDs.length === 0) {
+      const uuids = extractAssetDataFromHtml(content) || []
+      // check if cover needs to be removed forcely
+      if (uuids.length === 0) {
         data.cover = null
+      }
+      if (draft.cover && uuids.length > 0) {
+        const currentCover = await systemService.baseFindById(draft.cover, 'asset')
+        if (!uuids.includes(currentCover.uuid)) {
+          data.cover = null
+        }
       }
     }
 
     // update
-    const updatedDraft = await draftService.baseUpdate(dbId, {
+    return await draftService.baseUpdate(dbId, {
       updatedAt: new Date(),
       ...data
     })
-
-    // check if assets need to be removed
-    await processEmbeddedAssets(dbId, data.content, systemService)
-
-    return updatedDraft
   }
 
   // Create
