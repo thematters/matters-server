@@ -3,7 +3,11 @@ import { fromGlobalId } from 'common/utils'
 import { PUBLISH_STATE, PUBLISH_ARTICLE_DELAY } from 'common/enums'
 
 import publicationQueue from 'connectors/queue/publication'
-import { AuthenticationError, DraftNotFoundError, DraftHasNoCoverError } from 'common/errors'
+import {
+  AuthenticationError,
+  DraftNotFoundError,
+  DraftHasNoCoverError
+} from 'common/errors'
 import { extractAssetDataFromHtml } from 'common/utils'
 
 const resolver: MutationToPublishArticleResolver = async (
