@@ -109,6 +109,25 @@ export class SystemService extends BaseService {
       .rightJoin('asset', 'asset_map.asset_id', 'asset.id')
 
   /**
+   * Update asset map by given entity type and id
+   */
+  replaceAssetMapEntityTypeAndId = async (
+    oldEntityTypeId: string,
+    oldEntityId: string,
+    newEntityTypeId: string,
+    newEntityId: string,
+  ) =>
+    this.knex('asset_map')
+      .where({
+        entityTypeId: oldEntityTypeId,
+        entityId: oldEntityId
+      })
+      .update({
+        entityTypeId: newEntityTypeId,
+        entityId: newEntityId
+      })
+
+  /**
    * Delete asset and asset map by a given id
    */
   deleteAssetAndAssetMap = async (ids: string[]) =>

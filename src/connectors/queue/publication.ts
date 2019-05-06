@@ -15,7 +15,8 @@ import {
   DraftService,
   ArticleService,
   TagService,
-  NotificationService
+  NotificationService,
+  SystemService
 } from 'connectors'
 // local
 import { createQueue } from './utils'
@@ -26,6 +27,7 @@ class PublicationQueue {
   articleService: InstanceType<typeof ArticleService>
   draftService: InstanceType<typeof DraftService>
   notificationService: InstanceType<typeof NotificationService>
+  systemService: InstanceType<typeof SystemService>
 
   private queueName = QUEUE_NAME.publication
 
@@ -34,6 +36,7 @@ class PublicationQueue {
     this.tagService = new TagService()
     this.articleService = new ArticleService()
     this.draftService = new DraftService()
+    this.systemService = new SystemService()
     this.q = createQueue(this.queueName)
     this.addConsumers()
   }
@@ -114,6 +117,22 @@ class PublicationQueue {
             })
           }
           job.progress(40)
+
+          // update asset_map
+          const [
+            {id: draftEntityTypeId },
+            {id: articleEntityTypeId }
+          ] = await Promise.all([
+            this.systemService.baseFindEntityTypeId('draft'),
+            this.systemService.baseFindEntityTypeId('article')
+          ])
+          await this.systemService.replaceAssetMapEntityTypeAndId(
+            draftEntityTypeId,
+            draft.id,
+            articleEntityTypeId,
+            article.id
+          )
+          job.progress(50)
 
           // handle tags
           let tags = draft.tags

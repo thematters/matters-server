@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import * as cheerio from 'cheerio'
 import { v4 } from 'uuid'
 
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
