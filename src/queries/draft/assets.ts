@@ -1,3 +1,4 @@
+import { extractAssetDataFromHtml } from 'common/utils'
 import { DraftToAssetsResolver } from 'definitions'
 
 const resolver: DraftToAssetsResolver = async (
@@ -5,10 +6,16 @@ const resolver: DraftToAssetsResolver = async (
   _,
   { dataSources: { systemService } }
 ) => {
-  const assetIds = (await systemService.findAssetMapByEntityId(id)).map(
-    (item: any) => item.assetId
+  // Gather data from asset_map
+  const { id: entityTypeId } = await systemService.baseFindEntityTypeId('draft')
+  let uuids = (await systemService.findAssetMap(entityTypeId, id)).map(
+    (item: any) => item.uuid
   )
-  return systemService.baseFindByIds(assetIds, 'asset')
+  // Use assets from raw content as fallback
+  if (!uuids || (uuids && uuids.length === 0)) {
+    uuids = extractAssetDataFromHtml(content)
+  }
+  return systemService.baseFindByUUIDs(uuids, 'asset')
 }
 
 export default resolver
