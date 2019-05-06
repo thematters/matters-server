@@ -41,9 +41,11 @@ const processEmbeddedAssets = async (
   // Delete unused assets
   if (Object.keys(assets).length > 0) {
     await systemService.deleteAssetAndAssetMap(Object.keys(assets))
-    await Promise.all((Object.values(assets)).map((key: any) => {
-      systemService.aws.baseDeleteFile(key)
-    }))
+    await Promise.all(
+      Object.values(assets).map((key: any) => {
+        systemService.aws.baseDeleteFile(key)
+      })
+    )
   }
 }
 
