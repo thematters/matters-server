@@ -115,7 +115,7 @@ export class SystemService extends BaseService {
     oldEntityTypeId: string,
     oldEntityId: string,
     newEntityTypeId: string,
-    newEntityId: string,
+    newEntityId: string
   ) =>
     this.knex('asset_map')
       .where({

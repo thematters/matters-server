@@ -120,8 +120,8 @@ class PublicationQueue {
 
           // update asset_map
           const [
-            {id: draftEntityTypeId },
-            {id: articleEntityTypeId }
+            { id: draftEntityTypeId },
+            { id: articleEntityTypeId }
           ] = await Promise.all([
             this.systemService.baseFindEntityTypeId('draft'),
             this.systemService.baseFindEntityTypeId('article')
