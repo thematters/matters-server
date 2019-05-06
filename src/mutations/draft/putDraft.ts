@@ -120,7 +120,10 @@ const resolver: MutationToPutDraftResolver = async (
         data.cover = null
       }
       if (draft.cover && uuids.length > 0) {
-        const currentCover = await systemService.baseFindById(draft.cover, 'asset')
+        const currentCover = await systemService.baseFindById(
+          draft.cover,
+          'asset'
+        )
         if (!uuids.includes(currentCover.uuid)) {
           data.cover = null
         }
