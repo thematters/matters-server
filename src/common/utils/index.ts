@@ -14,13 +14,12 @@ export * from './xss'
 export * from './makeStreamToBuffer'
 
 export const stripHtml = (html: string, replacement = ' ') =>
-  (html || '')
+  (String(html) || '')
     .replace(/(<\/p><p>|&nbsp;)/g, ' ') // replace line break and space first
     .replace(/(<([^>]+)>)/gi, replacement)
 
 export const countWords = (html: string) => {
-  const matches = stripHtml(html).match(/[\u4e00-\u9fcc]|\S+/g)
-
+  const matches = stripHtml(html).match(/[\u4e00-\u9fcc]|\w+/g)
   return matches ? matches.length : 0
 }
 
