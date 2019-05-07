@@ -291,4 +291,13 @@ export class BaseService extends DataSource {
     await this.knex(table || this.table)
       .whereIn('id', ids)
       .del()
+
+  /**
+   * Find entity type id by a given type string.
+   */
+  baseFindEntityTypeId = async (entityType: string): Promise<any> =>
+    await this.knex('entity_type')
+      .select('id')
+      .where({ table: entityType })
+      .first()
 }

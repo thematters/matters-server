@@ -1238,6 +1238,8 @@ export interface GQLSingleFileUploadInput {
   type: GQLAssetType
   file?: GQLUpload
   url?: GQLURL
+  entityType: GQLEntityType
+  entityId?: string
 }
 
 export enum GQLAssetType {
@@ -1250,6 +1252,12 @@ export enum GQLAssetType {
 }
 
 export type GQLUpload = any
+
+export enum GQLEntityType {
+  article = 'article',
+  draft = 'draft',
+  user = 'user'
+}
 
 export interface GQLAsset {
   id: string

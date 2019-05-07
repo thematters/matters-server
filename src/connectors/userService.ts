@@ -739,7 +739,7 @@ export class UserService extends BaseService {
       if (senderId) {
         // add invitation record
         // tslint:disable-next-line: await-promise
-        const { id: invitationId } = await trx
+        const [{ id: invitationId }] = await trx
           .insert({
             senderId,
             recipientId,
