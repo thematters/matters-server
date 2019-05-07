@@ -244,7 +244,7 @@ export default /* GraphQL */ `
     report
     feedback
     embed
-    embedAudio
+    embedaudio
   }
 
   enum EntityType {

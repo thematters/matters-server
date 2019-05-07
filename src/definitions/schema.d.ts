@@ -1249,7 +1249,7 @@ export enum GQLAssetType {
   report = 'report',
   feedback = 'feedback',
   embed = 'embed',
-  embedAudio = 'embedAudio'
+  embedaudio = 'embedaudio'
 }
 
 export type GQLUpload = any
