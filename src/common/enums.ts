@@ -275,7 +275,7 @@ export const QUEUE_CONCURRENCY = {
   publishArticle: 100
 }
 
-export const PUBLISH_ARTICLE_DELAY = 1000 * 60 * 2
+export const PUBLISH_ARTICLE_DELAY = 1000
 
 export const EMAIL_TEMPLATE_ID = {
   verificationCode: {

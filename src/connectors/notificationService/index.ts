@@ -116,6 +116,12 @@ export class NotificationService extends BaseService {
           }),
           entities: params.entities
         }
+      case 'user_activated_by_task':
+        return {
+          type: 'official_announcement',
+          recipientId: params.recipientId,
+          message: trans.user_activated_by_task(language, {})
+        }
       case 'user_activated':
         const invitation = params.entities[0].entity
         const invitationSender = await this.baseFindById(

@@ -474,7 +474,8 @@ export enum GQLAssetType {
   audiodraft = 'audiodraft',
   report = 'report',
   feedback = 'feedback',
-  embed = 'embed'
+  embed = 'embed',
+  embedaudio = 'embedaudio'
 }
 
 export interface GQLAudiodraftConnection extends GQLConnection {
