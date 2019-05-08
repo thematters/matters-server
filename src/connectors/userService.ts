@@ -773,12 +773,6 @@ export class UserService extends BaseService {
           .into('transaction')
           .returning('*')
       } else {
-        console.log({
-          uuid: v4(),
-          recipientId,
-          purpose: TRANSACTION_PURPOSE.joinByTask,
-          amount: MAT_UNIT.joinByTask
-        })
         // add transaction record
         // tslint:disable-next-line: await-promise
         await trx

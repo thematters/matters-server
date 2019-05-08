@@ -138,7 +138,6 @@ const resolver: MutationToPutCommentResolver = async (
         const totalCount = comments
           .map(({ content }) => countWords(content))
           .reduce((a, b) => a + b)
-        console.log({ totalCount })
         if (comments.length > 3 && totalCount > 600) {
           activate()
         }
