@@ -13,7 +13,13 @@ import {
 } from 'common/enums'
 import { ItemData, GQLSearchInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
-import { stripHtml, countWords, makeSummary, removeEmpty } from 'common/utils'
+import {
+  stripHtml,
+  countWords,
+  makeSummary,
+  removeEmpty,
+  outputCleanHTML
+} from 'common/utils'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import { environment } from 'common/environment'
 
@@ -91,7 +97,7 @@ export class ArticleService extends BaseService {
       title,
       author: { userName: author.userName, displayName: author.displayName },
       summary,
-      content,
+      content: outputCleanHTML(content),
       publishedAt: now
     })
     const dataHash = await this.ipfs.addHTML(html)
