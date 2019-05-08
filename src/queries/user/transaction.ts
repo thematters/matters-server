@@ -73,6 +73,7 @@ export const Transaction: GQLTransactionTypeResolver = {
       case TRANSACTION_PURPOSE.invitationAccepted:
         return trans['invitationAccepted'](viewer.language, {})
       case TRANSACTION_PURPOSE.joinByInvitation:
+      case TRANSACTION_PURPOSE.joinByTask:
         return trans['joinByInvitation'](viewer.language, {})
       case TRANSACTION_PURPOSE.firstPost:
         return trans['firstPost'](viewer.language, {})
