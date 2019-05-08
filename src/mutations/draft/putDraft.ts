@@ -1,7 +1,14 @@
 import _ from 'lodash'
 import { v4 } from 'uuid'
+
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
-import { fromGlobalId, stripHtml, makeSummary, sanitize } from 'common/utils'
+import {
+  extractAssetDataFromHtml,
+  fromGlobalId,
+  stripHtml,
+  makeSummary,
+  sanitize
+} from 'common/utils'
 import {
   DraftNotFoundError,
   ForbiddenError,
@@ -103,6 +110,24 @@ const resolver: MutationToPutDraftResolver = async (
       throw new ForbiddenError(
         'current publishState is not allow to be updated'
       )
+    }
+
+    // handle cover
+    if (content) {
+      const uuids = extractAssetDataFromHtml(content) || []
+      // check if cover needs to be removed forcely
+      if (uuids.length === 0) {
+        data.cover = null
+      }
+      if (draft.cover && uuids.length > 0) {
+        const currentCover = await systemService.baseFindById(
+          draft.cover,
+          'asset'
+        )
+        if (!uuids.includes(currentCover.uuid)) {
+          data.cover = null
+        }
+      }
     }
 
     // update

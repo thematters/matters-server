@@ -127,6 +127,14 @@ export class DraftNotFoundError extends ApolloError {
   }
 }
 
+export class DraftHasNoCoverError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'DRAFT_HAS_NO_COVER')
+
+    Object.defineProperty(this, 'name', { value: 'DraftHasNoCoverError' })
+  }
+}
+
 export class AudioDraftNotFoundError extends ApolloError {
   constructor(message: string) {
     super(message, 'AUDIO_DRAFT_NOT_FOUND')
