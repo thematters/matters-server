@@ -52,6 +52,9 @@ const style =
     max-width: 100%;
     margin: 0 auto;
   }
+  audio {
+    width: 100%;
+  }
   blockquote {
     margin-left: 20px;
     margin-right: 20px;
@@ -92,16 +95,24 @@ const style =
   article p {
     line-height: 1.8;
   }
-  figure.summary {
-
-  }
-  figure.embed {
-
-  }
   figure figcaption {
     margin-top: 5px;
     font-size: 16px;
     color: #b3b3b3;
+  }
+
+  figure .iframe-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-top: 56.25%;
+  }
+  figure .iframe-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
   }
 </style>
 
@@ -126,7 +137,7 @@ const template = ({
     <meta name="description" content="${summary}">
     <meta property="og:title" content="${author.displayName}: ${title}">
     <meta property="og:description" content="${summary}">
-    <meta property="article:author" content="${author.userName} (@${author.displayName})">
+    <meta property="article:author" content="${author.displayName} (@${author.userName})">
     <meta name="twitter:title" content="${author.displayName}: ${title}">
     <meta name="twitter:description" content="${summary}">
     ${style}
@@ -136,7 +147,7 @@ const template = ({
       <header>
         <h1 itemprop="headline">${title}</h1>
         <figure class="byline">
-          <span itemprop="author">${author.userName} (@${author.displayName})</span>
+          <span itemprop="author">${author.displayName} (@${author.userName})</span>
           <time itemprop="datePublished" datetime="${publishedAt.toISOString()}">${toDateString(publishedAt)}</time>
           <span itemprops="provider" itemscope itemtype="http://schema.org/Organization">
             from <span itemprops="name">Matters</span>
