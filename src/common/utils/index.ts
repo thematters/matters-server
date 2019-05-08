@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import * as cheerio from 'cheerio'
 
 export * from './makeContext'
 export * from './globalId'
@@ -60,4 +61,16 @@ export const makeUserName = (email: string): string => {
   }
 
   return matched.join('').substring(0, 18)
+}
+
+export const extractAssetDataFromHtml = (html: string) => {
+  const $ = cheerio.load(html || '', { decodeEntities: false })
+  return $('img')
+    .map((index: number, element: any) => {
+      const uuid = $(element).attr('data-asset-id')
+      if (uuid) {
+        return uuid
+      }
+    })
+    .get()
 }

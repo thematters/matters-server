@@ -415,6 +415,7 @@ type Draft implements Node {
   tags: [String!]
   cover: URL
   publishState: PublishState!
+  assets: [Asset!]!
 }
 
 type DraftConnection implements Connection {

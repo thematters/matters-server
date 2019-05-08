@@ -451,6 +451,7 @@ export interface GQLDraft extends GQLNode {
   tags?: Array<string>
   cover?: GQLURL
   publishState: GQLPublishState
+  assets: Array<GQLAsset>
 }
 
 export enum GQLPublishState {
@@ -458,6 +459,23 @@ export enum GQLPublishState {
   pending = 'pending',
   error = 'error',
   published = 'published'
+}
+
+export interface GQLAsset {
+  id: string
+  type: GQLAssetType
+  path: string
+  createdAt: GQLDateTime
+}
+
+export enum GQLAssetType {
+  avatar = 'avatar',
+  cover = 'cover',
+  audiodraft = 'audiodraft',
+  report = 'report',
+  feedback = 'feedback',
+  embed = 'embed',
+  embedaudio = 'embedaudio'
 }
 
 export interface GQLAudiodraftConnection extends GQLConnection {
@@ -1242,29 +1260,12 @@ export interface GQLSingleFileUploadInput {
   entityId?: string
 }
 
-export enum GQLAssetType {
-  avatar = 'avatar',
-  cover = 'cover',
-  audiodraft = 'audiodraft',
-  report = 'report',
-  feedback = 'feedback',
-  embed = 'embed',
-  embedaudio = 'embedaudio'
-}
-
 export type GQLUpload = any
 
 export enum GQLEntityType {
   article = 'article',
   draft = 'draft',
   user = 'user'
-}
-
-export interface GQLAsset {
-  id: string
-  type: GQLAssetType
-  path: string
-  createdAt: GQLDateTime
 }
 
 export interface GQLSingleFileDeleteInput {
@@ -1640,6 +1641,7 @@ export interface GQLResolver {
   DraftConnection?: GQLDraftConnectionTypeResolver
   DraftEdge?: GQLDraftEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
+  Asset?: GQLAssetTypeResolver
   AudiodraftConnection?: GQLAudiodraftConnectionTypeResolver
   AudiodraftEdge?: GQLAudiodraftEdgeTypeResolver
   Audiodraft?: GQLAudiodraftTypeResolver
@@ -1683,7 +1685,6 @@ export interface GQLResolver {
   Report?: GQLReportTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
-  Asset?: GQLAssetTypeResolver
   AuthResult?: GQLAuthResultTypeResolver
   PositiveInt?: GraphQLScalarType
   Subscription?: GQLSubscriptionTypeResolver
@@ -3305,6 +3306,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   tags?: DraftToTagsResolver<TParent>
   cover?: DraftToCoverResolver<TParent>
   publishState?: DraftToPublishStateResolver<TParent>
+  assets?: DraftToAssetsResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -3419,6 +3421,58 @@ export interface DraftToCoverResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToPublishStateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToAssetsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLAssetTypeResolver<TParent = any> {
+  id?: AssetToIdResolver<TParent>
+  type?: AssetToTypeResolver<TParent>
+  path?: AssetToPathResolver<TParent>
+  createdAt?: AssetToCreatedAtResolver<TParent>
+}
+
+export interface AssetToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AssetToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AssetToPathResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AssetToCreatedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6050,49 +6104,6 @@ export interface MutationToUpdateUserStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserStateArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLAssetTypeResolver<TParent = any> {
-  id?: AssetToIdResolver<TParent>
-  type?: AssetToTypeResolver<TParent>
-  path?: AssetToPathResolver<TParent>
-  createdAt?: AssetToCreatedAtResolver<TParent>
-}
-
-export interface AssetToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AssetToTypeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AssetToPathResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AssetToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

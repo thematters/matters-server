@@ -99,6 +99,48 @@ export class SystemService extends BaseService {
     )
   }
 
+  /**
+   * Find asset map by given entity type and id
+   */
+  findAssetMap = async (entityTypeId: string, entityId: string) =>
+    this.knex('asset_map')
+      .select('asset_id', 'uuid', 'path', 'entityId')
+      .where({ entityTypeId, entityId })
+      .rightJoin('asset', 'asset_map.asset_id', 'asset.id')
+
+  /**
+   * Update asset map by given entity type and id
+   */
+  replaceAssetMapEntityTypeAndId = async (
+    oldEntityTypeId: string,
+    oldEntityId: string,
+    newEntityTypeId: string,
+    newEntityId: string
+  ) =>
+    this.knex('asset_map')
+      .where({
+        entityTypeId: oldEntityTypeId,
+        entityId: oldEntityId
+      })
+      .update({
+        entityTypeId: newEntityTypeId,
+        entityId: newEntityId
+      })
+
+  /**
+   * Delete asset and asset map by a given id
+   */
+  deleteAssetAndAssetMap = async (ids: string[]) =>
+    await this.knex.transaction(async trx => {
+      await trx('asset_map')
+        .whereIn('asset_id', ids)
+        .del()
+
+      await trx('asset')
+        .whereIn('id', ids)
+        .del()
+    })
+
   /*********************************
    *                               *
    *             Report            *
