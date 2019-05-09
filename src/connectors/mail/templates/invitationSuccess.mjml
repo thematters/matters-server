@@ -41,7 +41,7 @@
           </mj-button>
 
           <mj-text padding-top="32px">
-            你在 Matters 發布的文章將通過星際文件系統（InterPlanetary File System，IPFS）實現分佈式存儲。文章可以永久保存，也可以通過多個分佈式節點傳播，不再侷限於單一網頁地址訪問。瀏覽<a class="link" href="https://matters.news/faq">常見問題</a>可了解更多玩法。
+            你在 Matters 發布的作品將通過星際文件系統（InterPlanetary File System，IPFS）實現分佈式存儲。作品可以永久保存，也可以通過多個分佈式節點傳播，不再侷限於單一網頁地址訪問。瀏覽<a class="link" href="https://matters.news/faq">常見問題</a>可了解更多玩法。
           </mj-text>
 
           <mj-text padding-top="16px">
