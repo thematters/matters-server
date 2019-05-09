@@ -18,6 +18,10 @@ import {
 } from 'common/errors'
 import { PUBLISH_STATE, ARTICLE_STATE } from 'common/enums'
 
+const isInvalidAsset = (asset: any, viewer: any) => {
+  return !asset || asset.type !== 'embed' || asset.authorId !== viewer.id
+}
+
 const resolver: MutationToPutDraftResolver = async (
   root,
   { input },
@@ -119,13 +123,28 @@ const resolver: MutationToPutDraftResolver = async (
       if (uuids.length === 0) {
         data.cover = null
       }
-      if (draft.cover && uuids.length > 0) {
-        const currentCover = await systemService.baseFindById(
-          draft.cover,
-          'asset'
-        )
-        if (!uuids.includes(currentCover.uuid)) {
-          data.cover = null
+
+      if (!coverAssetUUID) {
+        let coverCandidate
+        if (draft.cover && uuids.length > 0) {
+          const currentCover = await systemService.baseFindById(
+            draft.cover,
+            'asset'
+          )
+          if (!uuids.includes(currentCover.uuid)) {
+            coverCandidate = await systemService.findAssetByUUID(uuids[0])
+            if (isInvalidAsset(coverCandidate, viewer)) {
+              throw new AssetNotFoundError('Asset does not exists')
+            }
+            data.cover = coverCandidate.id
+          }
+        }
+        if (!draft.cover && uuids.length === 1) {
+          coverCandidate = await systemService.findAssetByUUID(uuids[0])
+          if (isInvalidAsset(coverCandidate, viewer)) {
+            throw new AssetNotFoundError('Asset does not exists')
+          }
+          data.cover = coverCandidate.id
         }
       }
     }
