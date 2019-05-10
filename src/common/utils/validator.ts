@@ -46,7 +46,6 @@ export const isValidPassword = (password: string): boolean => {
   return /^[\x00-\x7F]*$/.test(password)
 }
 
-
 /**
  * Validate if string is in english.
  */
