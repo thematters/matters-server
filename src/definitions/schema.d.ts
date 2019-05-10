@@ -585,6 +585,7 @@ export interface GQLUserStatus {
    * Number of unread notices
    */
   unreadNoticeCount: number
+  unreadFolloweeArticles: boolean
 }
 
 export enum GQLUserState {
@@ -1027,6 +1028,7 @@ export interface GQLMutation {
   feedback?: boolean
   setBoost: GQLNode
   putRemark?: string
+  logRecord?: boolean
 
   /**
    * send/confirm verification code
@@ -1304,6 +1306,14 @@ export enum GQLRemarkTypes {
   Comment = 'Comment',
   Report = 'Report',
   Feedback = 'Feedback'
+}
+
+export interface GQLLogRecordInput {
+  type: GQLLogRecordTypes
+}
+
+export enum GQLLogRecordTypes {
+  ReadFolloweeArticles = 'ReadFolloweeArticles'
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -3820,6 +3830,7 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   followeeCount?: UserStatusToFolloweeCountResolver<TParent>
   followerCount?: UserStatusToFollowerCountResolver<TParent>
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
+  unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
 }
 
 export interface UserStatusToStateResolver<TParent = any, TResult = any> {
@@ -3937,6 +3948,18 @@ export interface UserStatusToFollowerCountResolver<
 }
 
 export interface UserStatusToUnreadNoticeCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToUnreadFolloweeArticlesResolver<
   TParent = any,
   TResult = any
 > {
@@ -5420,6 +5443,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   feedback?: MutationToFeedbackResolver<TParent>
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
+  logRecord?: MutationToLogRecordResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -5897,6 +5921,18 @@ export interface MutationToPutRemarkResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutRemarkArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToLogRecordArgs {
+  input: GQLLogRecordInput
+}
+export interface MutationToLogRecordResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToLogRecordArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -1,6 +1,7 @@
 import { BaseService } from './baseService'
 import logger from 'common/logger'
 import { BATCH_SIZE } from 'common/enums'
+import { v4 } from 'uuid'
 
 export class SystemService extends BaseService {
   constructor() {
@@ -246,7 +247,21 @@ export class SystemService extends BaseService {
 
   /*********************************
    *                               *
-   *             Feedback          *
+   *            Log Record         *
    *                               *
    *********************************/
+  findLogRecord = async (where: { [key: string]: string | boolean }) =>
+    this.knex
+      .select()
+      .from('log_record')
+      .where(where)
+      .first()
+
+  logRecord = async (data: { userId: string; type: string }) => {
+    return await this.baseUpdateOrCreate({
+      where: data,
+      data: { updatedAt: new Date(), uuid: v4(), ...data },
+      table: 'log_record'
+    })
+  }
 }

@@ -165,6 +165,8 @@ export default /* GraphQL */ `
     followerCount: Int! @deprecated(reason: "Use \`User.followers.totalCount\`.")
     # Number of unread notices
     unreadNoticeCount: Int! @private
+
+    unreadFolloweeArticles: Boolean!
   }
 
   type UserOSS {
