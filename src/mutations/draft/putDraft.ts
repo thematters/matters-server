@@ -18,8 +18,10 @@ import {
 } from 'common/errors'
 import { PUBLISH_STATE, ARTICLE_STATE } from 'common/enums'
 
-const isInvalidAsset = (asset: any, viewer: any) => {
-  return !asset || asset.type !== 'embed' || asset.authorId !== viewer.id
+const checkAssetValidity = (asset: any, viewer: any) => {
+  if (!asset || asset.type !== 'embed' || asset.authorId !== viewer.id) {
+    throw new AssetNotFoundError('Asset does not exists')
+  }
 }
 
 const resolver: MutationToPutDraftResolver = async (
@@ -43,9 +45,7 @@ const resolver: MutationToPutDraftResolver = async (
   let coverAssetId
   if (coverAssetUUID) {
     const asset = await systemService.findAssetByUUID(coverAssetUUID)
-    if (!asset || asset.type !== 'embed' || asset.authorId !== viewer.id) {
-      throw new AssetNotFoundError('Asset does not exists')
-    }
+    checkAssetValidity(asset, viewer)
     coverAssetId = asset.id
   }
 
@@ -117,33 +117,27 @@ const resolver: MutationToPutDraftResolver = async (
     }
 
     // handle cover
-    if (content) {
-      const uuids = extractAssetDataFromHtml(content) || []
+    if (content || content === '') {
+      const uuids = extractAssetDataFromHtml(content, 'image')
       // check if cover needs to be removed forcely
       if (uuids.length === 0) {
         data.cover = null
       }
 
+      // If no cover is specified
       if (!coverAssetUUID) {
-        let coverCandidate
-        if (draft.cover && uuids.length > 0) {
-          const currentCover = await systemService.baseFindById(
-            draft.cover,
-            'asset'
+        const isCurrentCoverInvalid =
+          draft.cover &&
+          uuids.length > 0 &&
+          !uuids.includes(
+            (await systemService.baseFindById(draft.cover, 'asset')).uuid
           )
-          if (!uuids.includes(currentCover.uuid)) {
-            coverCandidate = await systemService.findAssetByUUID(uuids[0])
-            if (isInvalidAsset(coverCandidate, viewer)) {
-              throw new AssetNotFoundError('Asset does not exists')
-            }
-            data.cover = coverCandidate.id
-          }
-        }
-        if (!draft.cover && uuids.length === 1) {
-          coverCandidate = await systemService.findAssetByUUID(uuids[0])
-          if (isInvalidAsset(coverCandidate, viewer)) {
-            throw new AssetNotFoundError('Asset does not exists')
-          }
+        const needSetCandidateCover = !draft.cover && uuids.length >= 1
+
+        // fallback to set candidate cover
+        if (isCurrentCoverInvalid || needSetCandidateCover) {
+          const coverCandidate = await systemService.findAssetByUUID(uuids[0])
+          checkAssetValidity(coverCandidate, viewer)
           data.cover = coverCandidate.id
         }
       }
