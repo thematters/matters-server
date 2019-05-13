@@ -1,7 +1,6 @@
 import { BaseService } from './baseService'
 import logger from 'common/logger'
 import { BATCH_SIZE } from 'common/enums'
-import { v4 } from 'uuid'
 
 export class SystemService extends BaseService {
   constructor() {
@@ -260,7 +259,7 @@ export class SystemService extends BaseService {
   logRecord = async (data: { userId: string; type: string }) => {
     return await this.baseUpdateOrCreate({
       where: data,
-      data: { updatedAt: new Date(), uuid: v4(), ...data },
+      data: { readAt: new Date(), ...data },
       table: 'log_record'
     })
   }

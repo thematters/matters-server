@@ -19,7 +19,7 @@ const resolver: UserStatusToUnreadFolloweeArticlesResolver = async (
     return false
   }
 
-  return readFolloweeArticlesLog.updatedAt < latestFolloweeArticle.createdAt
+  return readFolloweeArticlesLog.readAt < latestFolloweeArticle.createdAt
 }
 
 export default resolver
