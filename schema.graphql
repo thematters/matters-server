@@ -494,6 +494,14 @@ input InviteInput {
 
 scalar JSON
 
+input LogRecordInput {
+  type: LogRecordTypes!
+}
+
+enum LogRecordTypes {
+  ReadFolloweeArticles
+}
+
 type MAT {
   total: Int!
   history(input: ConnectionArgs!): TransactionConnection!
@@ -546,6 +554,7 @@ type Mutation {
   feedback(input: FeedbackInput!): Boolean
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
+  logRecord(input: LogRecordInput!): Boolean
 
   """send/confirm verification code"""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1337,6 +1346,7 @@ type UserStatus {
 
   """Number of unread notices"""
   unreadNoticeCount: Int!
+  unreadFolloweeArticles: Boolean!
 }
 
 scalar UUID

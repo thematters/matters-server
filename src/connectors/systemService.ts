@@ -246,7 +246,21 @@ export class SystemService extends BaseService {
 
   /*********************************
    *                               *
-   *             Feedback          *
+   *            Log Record         *
    *                               *
    *********************************/
+  findLogRecord = async (where: { [key: string]: string | boolean }) =>
+    this.knex
+      .select()
+      .from('log_record')
+      .where(where)
+      .first()
+
+  logRecord = async (data: { userId: string; type: string }) => {
+    return await this.baseUpdateOrCreate({
+      where: data,
+      data: { readAt: new Date(), ...data },
+      table: 'log_record'
+    })
+  }
 }

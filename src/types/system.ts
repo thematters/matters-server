@@ -13,6 +13,7 @@ export default /* GraphQL */ `
     feedback(input: FeedbackInput!): Boolean
     setBoost(input: SetBoostInput!): Node! @authorize
     putRemark(input: PutRemarkInput!): String @authorize
+    logRecord(input: LogRecordInput!): Boolean
   }
 
   extend type Subscription {
@@ -210,6 +211,10 @@ export default /* GraphQL */ `
     type: RemarkTypes!
   }
 
+  input LogRecordInput {
+    type: LogRecordTypes!
+  }
+
   input ConnectionArgs {
     after: String
     first: Int
@@ -235,6 +240,10 @@ export default /* GraphQL */ `
     Comment
     Report
     Feedback
+  }
+
+  enum LogRecordTypes {
+    ReadFolloweeArticles
   }
 
   enum AssetType {
