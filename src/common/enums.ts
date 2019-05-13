@@ -337,5 +337,3 @@ export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
 ]
 
 export const IMAGE_DIMENSION_LIMIT = 1400
-
-export const PARTNERS = ['ckxpress', 'leungkaichihk']
