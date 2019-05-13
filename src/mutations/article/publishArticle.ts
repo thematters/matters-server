@@ -3,12 +3,7 @@ import { fromGlobalId } from 'common/utils'
 import { PUBLISH_STATE, PUBLISH_ARTICLE_DELAY } from 'common/enums'
 
 import publicationQueue from 'connectors/queue/publication'
-import {
-  AuthenticationError,
-  DraftNotFoundError,
-  DraftHasNoCoverError
-} from 'common/errors'
-import { extractAssetDataFromHtml } from 'common/utils'
+import { AuthenticationError, DraftNotFoundError } from 'common/errors'
 
 const resolver: MutationToPublishArticleResolver = async (
   _,
@@ -28,12 +23,6 @@ const resolver: MutationToPublishArticleResolver = async (
     draft.publishState === PUBLISH_STATE.published
   ) {
     throw new DraftNotFoundError('draft does not exists')
-  }
-
-  // check cover has been set or not
-  const uuids = extractAssetDataFromHtml(draft.content) || []
-  if (!draft.cover && uuids.length > 0) {
-    throw new DraftHasNoCoverError('draft has no cover')
   }
 
   if (draft.publishState === PUBLISH_STATE.pending) {
