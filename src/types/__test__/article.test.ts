@@ -217,7 +217,7 @@ describe('publish article', async () => {
       `,
       // @ts-ignore
       variables: {
-        id: toGlobalId({ type: 'Article', id: 3 }),
+        id: toGlobalId({ type: 'Article', id: 4 }),
         collection
       }
     })
