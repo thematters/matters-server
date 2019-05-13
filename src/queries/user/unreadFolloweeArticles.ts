@@ -16,7 +16,7 @@ const resolver: UserStatusToUnreadFolloweeArticlesResolver = async (
   })
 
   if (!readFolloweeArticlesLog || !latestFolloweeArticle) {
-    return false
+    return true
   }
 
   return readFolloweeArticlesLog.readAt < latestFolloweeArticle.createdAt
