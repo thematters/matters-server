@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2019-05-14
+
+### Added
+
+- Activation by comment #316
+- Add asset map handler #317
+- Add "embedaudio" asset type #321
+- Notice dot for "Follow" tab #328
+
+### Changed
+
+- Alter Draft query and mutation for returning assets #318
+- Increase upload file size to 100MB for audio #319
+- Simplify publishing procedure #320
+- Audio and iframe support for IPFS #322
+- change "文章" to "作品" #323
+- Fix activation transaction #324
+- Set default cover when saving Draft #325
+- Update password rule #326
+- Fix unable to clear collection #327
+- Fix unable to extend article #329
+- Fix cover & asset #330
+- Enable collection for all #331
+
 ## [1.3.1] - 2019-04-30
 
 ### Added
