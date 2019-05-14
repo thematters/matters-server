@@ -52,7 +52,8 @@ class Push extends BaseService {
       article_banned: setting.reportFeedback,
       comment_reported: setting.reportFeedback,
       article_reported: setting.reportFeedback,
-      user_activated: setting.officialNotice
+      user_activated: setting.officialNotice,
+      user_activated_by_task: setting.officialNotice
     }
 
     return {

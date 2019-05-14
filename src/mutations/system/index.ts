@@ -3,6 +3,7 @@ import singleFileDelete from './singleFileDelete'
 import feedback from './feedback'
 import setBoost from './setBoost'
 import putRemark from './putRemark'
+import logRecord from './logRecord'
 
 export default {
   Mutation: {
@@ -10,6 +11,7 @@ export default {
     singleFileDelete,
     feedback,
     setBoost,
-    putRemark
+    putRemark,
+    logRecord
   }
 }

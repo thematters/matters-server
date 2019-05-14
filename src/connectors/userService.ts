@@ -725,39 +725,66 @@ export class UserService extends BaseService {
     senderId?: string
     recipientId: string
   }): Promise<any> => {
-    await this.knex.transaction(async trx => {
+    // tslint:disable-next-line: await-promise
+    return await this.knex.transaction(async trx => {
       // set recipient's state to "active"
+      // tslint:disable-next-line: await-promise
       await trx
         .where({ id: recipientId })
         .update({ state: USER_STATE.active })
         .into(this.table)
         .returning('*')
-      // add invitation record
-      const { id: invitationId } = await trx
-        .insert({ senderId, recipientId, status: INVITATION_STATUS.activated })
-        .into('invitation')
-        .returning('*')
-      // add transaction record
-      await trx
-        .insert({
-          uuid: v4(),
-          recipientId,
-          referenceId: invitationId,
-          purpose: TRANSACTION_PURPOSE.joinByInvitation,
-          amount: MAT_UNIT.joinByInvitation
-        })
-        .into('transaction')
-        .returning('*')
-      await trx
-        .insert({
-          uuid: v4(),
-          recipientId: senderId,
-          referenceId: invitationId,
-          purpose: TRANSACTION_PURPOSE.invitationAccepted,
-          amount: MAT_UNIT.invitationAccepted
-        })
-        .into('transaction')
-        .returning('*')
+
+      // by invitation
+      if (senderId) {
+        // add invitation record
+        // tslint:disable-next-line: await-promise
+        const [{ id: invitationId }] = await trx
+          .insert({
+            senderId,
+            recipientId,
+            status: INVITATION_STATUS.activated
+          })
+          .into('invitation')
+          .returning('*')
+
+        // add transaction record
+        // tslint:disable-next-line: await-promise
+        await trx
+          .insert({
+            uuid: v4(),
+            recipientId,
+            referenceId: invitationId,
+            purpose: TRANSACTION_PURPOSE.joinByInvitation,
+            amount: MAT_UNIT.joinByInvitation
+          })
+          .into('transaction')
+          .returning('*')
+
+        // tslint:disable-next-line: await-promise
+        await trx
+          .insert({
+            uuid: v4(),
+            recipientId: senderId,
+            referenceId: invitationId,
+            purpose: TRANSACTION_PURPOSE.invitationAccepted,
+            amount: MAT_UNIT.invitationAccepted
+          })
+          .into('transaction')
+          .returning('*')
+      } else {
+        // add transaction record
+        // tslint:disable-next-line: await-promise
+        await trx
+          .insert({
+            uuid: v4(),
+            recipientId,
+            purpose: TRANSACTION_PURPOSE.joinByTask,
+            amount: MAT_UNIT.joinByTask
+          })
+          .into('transaction')
+          .returning('*')
+      }
     })
   }
 

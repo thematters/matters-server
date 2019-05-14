@@ -193,8 +193,7 @@ describe('publish article', async () => {
 
   test('add collection to article and query', async () => {
     const { mutate } = await testClient({
-      isAuth: true,
-      isAdmin: true
+      isAuth: true
     })
 
     const collection = [
@@ -218,7 +217,7 @@ describe('publish article', async () => {
       `,
       // @ts-ignore
       variables: {
-        id: toGlobalId({ type: 'Article', id: 3 }),
+        id: toGlobalId({ type: 'Article', id: 4 }),
         collection
       }
     })

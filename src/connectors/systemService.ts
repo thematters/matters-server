@@ -37,6 +37,31 @@ export class SystemService extends BaseService {
    *                               *
    *********************************/
   /**
+   * Create asset and asset_map
+   */
+  createAssetAndAssetMap = async (
+    asset: { [key: string]: any },
+    entityTypeId: string,
+    entityId: string
+  ): Promise<any> =>
+    await this.knex.transaction(async trx => {
+      const [newAsset] = await trx
+        .insert(asset)
+        .into('asset')
+        .returning('*')
+
+      await trx
+        .insert({
+          assetId: newAsset.id,
+          entityTypeId,
+          entityId
+        })
+        .into('asset_map')
+
+      return newAsset
+    })
+
+  /**
    * Find asset by a given uuid
    */
   findAssetByUUID = async (uuid: string) => this.baseFindByUUID(uuid, 'asset')
@@ -73,6 +98,48 @@ export class SystemService extends BaseService {
         path ? `${this.aws.s3Endpoint}/${path}` : null
     )
   }
+
+  /**
+   * Find asset map by given entity type and id
+   */
+  findAssetMap = async (entityTypeId: string, entityId: string) =>
+    this.knex('asset_map')
+      .select('asset_id', 'uuid', 'path', 'entityId')
+      .where({ entityTypeId, entityId })
+      .rightJoin('asset', 'asset_map.asset_id', 'asset.id')
+
+  /**
+   * Update asset map by given entity type and id
+   */
+  replaceAssetMapEntityTypeAndId = async (
+    oldEntityTypeId: string,
+    oldEntityId: string,
+    newEntityTypeId: string,
+    newEntityId: string
+  ) =>
+    this.knex('asset_map')
+      .where({
+        entityTypeId: oldEntityTypeId,
+        entityId: oldEntityId
+      })
+      .update({
+        entityTypeId: newEntityTypeId,
+        entityId: newEntityId
+      })
+
+  /**
+   * Delete asset and asset map by a given id
+   */
+  deleteAssetAndAssetMap = async (ids: string[]) =>
+    await this.knex.transaction(async trx => {
+      await trx('asset_map')
+        .whereIn('asset_id', ids)
+        .del()
+
+      await trx('asset')
+        .whereIn('id', ids)
+        .del()
+    })
 
   /*********************************
    *                               *
@@ -179,7 +246,21 @@ export class SystemService extends BaseService {
 
   /*********************************
    *                               *
-   *             Feedback          *
+   *            Log Record         *
    *                               *
    *********************************/
+  findLogRecord = async (where: { [key: string]: string | boolean }) =>
+    this.knex
+      .select()
+      .from('log_record')
+      .where(where)
+      .first()
+
+  logRecord = async (data: { userId: string; type: string }) => {
+    return await this.baseUpdateOrCreate({
+      where: data,
+      data: { readAt: new Date(), ...data },
+      table: 'log_record'
+    })
+  }
 }

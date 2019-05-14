@@ -10,12 +10,13 @@ import {
   PUBLISH_ARTICLE_DELAY
 } from 'common/enums'
 import { isTest } from 'common/environment'
-import { fromGlobalId } from 'common/utils'
+import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import {
   DraftService,
   ArticleService,
   TagService,
-  NotificationService
+  NotificationService,
+  SystemService
 } from 'connectors'
 // local
 import { createQueue } from './utils'
@@ -26,6 +27,7 @@ class PublicationQueue {
   articleService: InstanceType<typeof ArticleService>
   draftService: InstanceType<typeof DraftService>
   notificationService: InstanceType<typeof NotificationService>
+  systemService: InstanceType<typeof SystemService>
 
   private queueName = QUEUE_NAME.publication
 
@@ -34,6 +36,7 @@ class PublicationQueue {
     this.tagService = new TagService()
     this.articleService = new ArticleService()
     this.draftService = new DraftService()
+    this.systemService = new SystemService()
     this.q = createQueue(this.queueName)
     this.addConsumers()
   }
@@ -114,6 +117,41 @@ class PublicationQueue {
             })
           }
           job.progress(40)
+
+          // Remove unused assets and assets_map
+          const [
+            { id: draftEntityTypeId },
+            { id: articleEntityTypeId }
+          ] = await Promise.all([
+            this.systemService.baseFindEntityTypeId('draft'),
+            this.systemService.baseFindEntityTypeId('article')
+          ])
+          const [assetMap, uuids] = await Promise.all([
+            this.systemService.findAssetMap(draftEntityTypeId, draft.id),
+            extractAssetDataFromHtml(draft.content)
+          ])
+          const assets = assetMap.reduce((data: any, asset: any) => {
+            if (uuids && !uuids.includes(asset.uuid)) {
+              data[`${asset.assetId}`] = asset.path
+            }
+            return data
+          }, {})
+
+          if (assets && Object.keys(assets).length > 0) {
+            await this.systemService.deleteAssetAndAssetMap(Object.keys(assets))
+            await Promise.all(
+              Object.values(assets).map((key: any) => {
+                this.systemService.aws.baseDeleteFile(key)
+              })
+            )
+          }
+          await this.systemService.replaceAssetMapEntityTypeAndId(
+            draftEntityTypeId,
+            draft.id,
+            articleEntityTypeId,
+            article.id
+          )
+          job.progress(50)
 
           // handle tags
           let tags = draft.tags

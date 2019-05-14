@@ -175,6 +175,7 @@ enum AssetType {
   report
   feedback
   embed
+  embedaudio
 }
 
 type Audiodraft {
@@ -414,6 +415,7 @@ type Draft implements Node {
   tags: [String!]
   cover: URL
   publishState: PublishState!
+  assets: [Asset!]!
 }
 
 type DraftConnection implements Connection {
@@ -428,6 +430,12 @@ type DraftEdge {
 }
 
 scalar Email
+
+enum EntityType {
+  article
+  draft
+  user
+}
 
 input FeedbackInput {
   category: ID!
@@ -486,6 +494,14 @@ input InviteInput {
 
 scalar JSON
 
+input LogRecordInput {
+  type: LogRecordTypes!
+}
+
+enum LogRecordTypes {
+  ReadFolloweeArticles
+}
+
 type MAT {
   total: Int!
   history(input: ConnectionArgs!): TransactionConnection!
@@ -538,6 +554,7 @@ type Mutation {
   feedback(input: FeedbackInput!): Boolean
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
+  logRecord(input: LogRecordInput!): Boolean
 
   """send/confirm verification code"""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -971,6 +988,8 @@ input SingleFileUploadInput {
   type: AssetType!
   file: Upload
   url: URL
+  entityType: EntityType!
+  entityId: ID
 }
 
 input SubscribeArticleInput {
@@ -1327,6 +1346,7 @@ type UserStatus {
 
   """Number of unread notices"""
   unreadNoticeCount: Int!
+  unreadFolloweeArticles: Boolean!
 }
 
 scalar UUID

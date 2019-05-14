@@ -151,7 +151,7 @@ exports.seed = async knex => {
       notice_type: 'official_announcement',
       recipient_id: '1',
       message:
-        '因為違反社區規則，Matters 決定將您禁言 7 天，期間無法發佈文章、評論和讚賞'
+        '因為違反社區規則，Matters 決定將您禁言 7 天，期間無法發佈作品、評論和讚賞'
     },
     // Official Announcement - User Frozen
     {
@@ -166,14 +166,14 @@ exports.seed = async knex => {
       recipient_id: '1',
       data: { link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1' },
       message:
-        '因為違反社區規則，Matters 決定將您的文章《改革開放四十週年大會看點》隱藏'
+        '因為違反社區規則，Matters 決定將您的作品《改革開放四十週年大會看點》隱藏'
     },
     {
       notice_type: 'official_announcement',
       recipient_id: '1',
       data: { link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1' },
       message:
-        '因為未違反社區規則， Matters 對您的文章《改革開放四十週年大會看點》將不做任何處理'
+        '因為未違反社區規則， Matters 對您的作品《改革開放四十週年大會看點》將不做任何處理'
     },
     // Official Announcement - Article Report Feedback
     {
@@ -181,14 +181,14 @@ exports.seed = async knex => {
       recipient_id: '1',
       data: { link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1' },
       message:
-        '你舉報的文章《改革開放四十週年大會看點》已被刪除！感謝你對 Matters 的支持！'
+        '你舉報的作品《改革開放四十週年大會看點》已被刪除！感謝你對 Matters 的支持！'
     },
     {
       notice_type: 'official_announcement',
       recipient_id: '1',
       data: { link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1' },
       message:
-        '您舉報的文章《改革開放四十週年大會看點》經查並未違反社區規則，將不做處理'
+        '您舉報的作品《改革開放四十週年大會看點》經查並未違反社區規則，將不做處理'
     }
   ]
 

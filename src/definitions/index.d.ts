@@ -103,6 +103,7 @@ export type TableName =
   | 'matters_today'
   | 'matters_choice'
   | 'article_recommend_setting'
+  | 'log_record'
 
 export type MaterializedView =
   | 'article_count_materialized'

@@ -13,6 +13,7 @@ export default /* GraphQL */ `
     feedback(input: FeedbackInput!): Boolean
     setBoost(input: SetBoostInput!): Node! @authorize
     putRemark(input: PutRemarkInput!): String @authorize
+    logRecord(input: LogRecordInput!): Boolean
   }
 
   extend type Subscription {
@@ -183,12 +184,13 @@ export default /* GraphQL */ `
     type: AssetType!
     file: Upload
     url: URL
+    entityType: EntityType!
+    entityId: ID
   }
 
   input SingleFileDeleteInput {
     id: ID!
   }
-
 
   input FeedbackInput {
     category: ID!
@@ -207,6 +209,10 @@ export default /* GraphQL */ `
     id: ID!
     remark: String!
     type: RemarkTypes!
+  }
+
+  input LogRecordInput {
+    type: LogRecordTypes!
   }
 
   input ConnectionArgs {
@@ -236,6 +242,10 @@ export default /* GraphQL */ `
     Feedback
   }
 
+  enum LogRecordTypes {
+    ReadFolloweeArticles
+  }
+
   enum AssetType {
     avatar
     cover
@@ -243,6 +253,13 @@ export default /* GraphQL */ `
     report
     feedback
     embed
+    embedaudio
+  }
+
+  enum EntityType {
+    article
+    draft
+    user
   }
 
   enum PlatformType {

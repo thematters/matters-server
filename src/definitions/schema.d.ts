@@ -451,6 +451,7 @@ export interface GQLDraft extends GQLNode {
   tags?: Array<string>
   cover?: GQLURL
   publishState: GQLPublishState
+  assets: Array<GQLAsset>
 }
 
 export enum GQLPublishState {
@@ -458,6 +459,23 @@ export enum GQLPublishState {
   pending = 'pending',
   error = 'error',
   published = 'published'
+}
+
+export interface GQLAsset {
+  id: string
+  type: GQLAssetType
+  path: string
+  createdAt: GQLDateTime
+}
+
+export enum GQLAssetType {
+  avatar = 'avatar',
+  cover = 'cover',
+  audiodraft = 'audiodraft',
+  report = 'report',
+  feedback = 'feedback',
+  embed = 'embed',
+  embedaudio = 'embedaudio'
 }
 
 export interface GQLAudiodraftConnection extends GQLConnection {
@@ -567,6 +585,7 @@ export interface GQLUserStatus {
    * Number of unread notices
    */
   unreadNoticeCount: number
+  unreadFolloweeArticles: boolean
 }
 
 export enum GQLUserState {
@@ -1009,6 +1028,7 @@ export interface GQLMutation {
   feedback?: boolean
   setBoost: GQLNode
   putRemark?: string
+  logRecord?: boolean
 
   /**
    * send/confirm verification code
@@ -1238,24 +1258,16 @@ export interface GQLSingleFileUploadInput {
   type: GQLAssetType
   file?: GQLUpload
   url?: GQLURL
-}
-
-export enum GQLAssetType {
-  avatar = 'avatar',
-  cover = 'cover',
-  audiodraft = 'audiodraft',
-  report = 'report',
-  feedback = 'feedback',
-  embed = 'embed'
+  entityType: GQLEntityType
+  entityId?: string
 }
 
 export type GQLUpload = any
 
-export interface GQLAsset {
-  id: string
-  type: GQLAssetType
-  path: string
-  createdAt: GQLDateTime
+export enum GQLEntityType {
+  article = 'article',
+  draft = 'draft',
+  user = 'user'
 }
 
 export interface GQLSingleFileDeleteInput {
@@ -1294,6 +1306,14 @@ export enum GQLRemarkTypes {
   Comment = 'Comment',
   Report = 'Report',
   Feedback = 'Feedback'
+}
+
+export interface GQLLogRecordInput {
+  type: GQLLogRecordTypes
+}
+
+export enum GQLLogRecordTypes {
+  ReadFolloweeArticles = 'ReadFolloweeArticles'
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -1631,6 +1651,7 @@ export interface GQLResolver {
   DraftConnection?: GQLDraftConnectionTypeResolver
   DraftEdge?: GQLDraftEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
+  Asset?: GQLAssetTypeResolver
   AudiodraftConnection?: GQLAudiodraftConnectionTypeResolver
   AudiodraftEdge?: GQLAudiodraftEdgeTypeResolver
   Audiodraft?: GQLAudiodraftTypeResolver
@@ -1674,7 +1695,6 @@ export interface GQLResolver {
   Report?: GQLReportTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
-  Asset?: GQLAssetTypeResolver
   AuthResult?: GQLAuthResultTypeResolver
   PositiveInt?: GraphQLScalarType
   Subscription?: GQLSubscriptionTypeResolver
@@ -3296,6 +3316,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   tags?: DraftToTagsResolver<TParent>
   cover?: DraftToCoverResolver<TParent>
   publishState?: DraftToPublishStateResolver<TParent>
+  assets?: DraftToAssetsResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -3410,6 +3431,58 @@ export interface DraftToCoverResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToPublishStateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToAssetsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLAssetTypeResolver<TParent = any> {
+  id?: AssetToIdResolver<TParent>
+  type?: AssetToTypeResolver<TParent>
+  path?: AssetToPathResolver<TParent>
+  createdAt?: AssetToCreatedAtResolver<TParent>
+}
+
+export interface AssetToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AssetToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AssetToPathResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AssetToCreatedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -3757,6 +3830,7 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   followeeCount?: UserStatusToFolloweeCountResolver<TParent>
   followerCount?: UserStatusToFollowerCountResolver<TParent>
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
+  unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
 }
 
 export interface UserStatusToStateResolver<TParent = any, TResult = any> {
@@ -3874,6 +3948,18 @@ export interface UserStatusToFollowerCountResolver<
 }
 
 export interface UserStatusToUnreadNoticeCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToUnreadFolloweeArticlesResolver<
   TParent = any,
   TResult = any
 > {
@@ -5357,6 +5443,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   feedback?: MutationToFeedbackResolver<TParent>
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
+  logRecord?: MutationToLogRecordResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -5839,6 +5926,18 @@ export interface MutationToPutRemarkResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface MutationToLogRecordArgs {
+  input: GQLLogRecordInput
+}
+export interface MutationToLogRecordResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToLogRecordArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface MutationToSendVerificationCodeArgs {
   input: GQLSendVerificationCodeInput
 }
@@ -6041,49 +6140,6 @@ export interface MutationToUpdateUserStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserStateArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLAssetTypeResolver<TParent = any> {
-  id?: AssetToIdResolver<TParent>
-  type?: AssetToTypeResolver<TParent>
-  path?: AssetToPathResolver<TParent>
-  createdAt?: AssetToCreatedAtResolver<TParent>
-}
-
-export interface AssetToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AssetToTypeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AssetToPathResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AssetToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

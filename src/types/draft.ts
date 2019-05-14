@@ -22,6 +22,7 @@ export default /* GraphQL */ `
     tags: [String!]
     cover: URL
     publishState: PublishState!
+    assets: [Asset!]!
   }
 
   type Audiodraft {

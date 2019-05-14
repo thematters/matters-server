@@ -1,6 +1,6 @@
 import { i18n } from 'common/utils/i18n'
 
-export const UPLOAD_FILE_SIZE_LIMIT = 5 * 1024 * 1024
+export const UPLOAD_FILE_SIZE_LIMIT = 100 * 1024 * 1024
 
 export const MATERIALIZED_VIEW = {
   articleCountMaterialized: 'article_count_materialized',
@@ -275,7 +275,7 @@ export const QUEUE_CONCURRENCY = {
   publishArticle: 100
 }
 
-export const PUBLISH_ARTICLE_DELAY = 1000 * 60 * 2
+export const PUBLISH_ARTICLE_DELAY = 1000
 
 export const EMAIL_TEMPLATE_ID = {
   verificationCode: {
@@ -337,5 +337,3 @@ export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
 ]
 
 export const IMAGE_DIMENSION_LIMIT = 1400
-
-export const PARTNERS = ['ckxpress', 'leungkaichihk']

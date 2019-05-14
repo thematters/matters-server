@@ -1,7 +1,14 @@
 import _ from 'lodash'
 import { v4 } from 'uuid'
+
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
-import { fromGlobalId, stripHtml, makeSummary, sanitize } from 'common/utils'
+import {
+  extractAssetDataFromHtml,
+  fromGlobalId,
+  stripHtml,
+  makeSummary,
+  sanitize
+} from 'common/utils'
 import {
   DraftNotFoundError,
   ForbiddenError,
@@ -10,6 +17,12 @@ import {
   ArticleNotFoundError
 } from 'common/errors'
 import { PUBLISH_STATE, ARTICLE_STATE } from 'common/enums'
+
+const checkAssetValidity = (asset: any, viewer: any) => {
+  if (!asset || asset.type !== 'embed' || asset.authorId !== viewer.id) {
+    throw new AssetNotFoundError('Asset does not exists')
+  }
+}
 
 const resolver: MutationToPutDraftResolver = async (
   root,
@@ -32,16 +45,14 @@ const resolver: MutationToPutDraftResolver = async (
   let coverAssetId
   if (coverAssetUUID) {
     const asset = await systemService.findAssetByUUID(coverAssetUUID)
-    if (!asset || asset.type !== 'embed' || asset.authorId !== viewer.id) {
-      throw new AssetNotFoundError('Asset does not exists')
-    }
+    checkAssetValidity(asset, viewer)
     coverAssetId = asset.id
   }
 
   // check for collection existence
   // add to dbId array if ok
   let collection = null
-  if (collectionGlobalIds && collectionGlobalIds.length > 0) {
+  if (collectionGlobalIds) {
     collection = await Promise.all(
       collectionGlobalIds.map(async articleGlobalId => {
         if (!articleGlobalId) {
@@ -103,6 +114,33 @@ const resolver: MutationToPutDraftResolver = async (
       throw new ForbiddenError(
         'current publishState is not allow to be updated'
       )
+    }
+
+    // handle cover
+    if (content || content === '') {
+      const uuids = extractAssetDataFromHtml(content, 'image')
+      // check if cover needs to be removed forcely
+      if (uuids.length === 0) {
+        data.cover = null
+      }
+
+      // If no cover is specified
+      if (!coverAssetUUID) {
+        const isCurrentCoverInvalid =
+          draft.cover &&
+          uuids.length > 0 &&
+          !uuids.includes(
+            (await systemService.baseFindById(draft.cover, 'asset')).uuid
+          )
+        const needSetCandidateCover = !draft.cover && uuids.length >= 1
+
+        // fallback to set candidate cover
+        if (isCurrentCoverInvalid || needSetCandidateCover) {
+          const coverCandidate = await systemService.findAssetByUUID(uuids[0])
+          checkAssetValidity(coverCandidate, viewer)
+          data.cover = coverCandidate.id
+        }
+      }
     }
 
     // update

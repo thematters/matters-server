@@ -14,7 +14,7 @@ import {
   isValidEmail,
   isValidUserName,
   isValidDisplayName,
-  isValidStrictPassword,
+  isValidPassword,
   makeUserName,
   setCookie
 } from 'common/utils'
@@ -54,7 +54,7 @@ const resolver: MutationToUserRegisterResolver = async (
     throw new DisplayNameInvalidError('invalid user display name')
   }
   // check password
-  if (!isValidStrictPassword(password)) {
+  if (!isValidPassword(password)) {
     throw new PasswordInvalidError('invalid user password')
   }
 

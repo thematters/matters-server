@@ -7,6 +7,7 @@ import audiodrafts from './audiodrafts'
 import cover from './cover'
 import collection from './collection'
 import audio from './audio'
+import assets from './assets'
 
 export default {
   User: {
@@ -21,7 +22,8 @@ export default {
     summary: ({ content, cover }: { content?: string; cover?: string }) =>
       content ? makeSummary(content, cover ? 110 : 140) : '',
     cover,
-    collection
+    collection,
+    assets
   },
   Audiodraft: {
     id: ({ uuid }: { uuid: string }) => uuid,

@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import * as cheerio from 'cheerio'
 
 export * from './makeContext'
 export * from './globalId'
@@ -12,42 +13,7 @@ export * from './cookie'
 export * from './removeEmpty'
 export * from './xss'
 export * from './makeStreamToBuffer'
-
-export const stripHtml = (html: string, replacement = ' ') =>
-  (html || '')
-    .replace(/(<\/p><p>|&nbsp;)/g, ' ') // replace line break and space first
-    .replace(/(<([^>]+)>)/gi, replacement)
-
-export const countWords = (html: string) => {
-  const matches = stripHtml(html).match(/[\u4e00-\u9fcc]|\S+/g)
-
-  return matches ? matches.length : 0
-}
-
-export const makeSummary = (html: string, length = 140) => {
-  // buffer for search
-  const buffer = 20
-
-  // split on sentence breaks
-  const sections = stripHtml(html, '')
-    .replace(/([?!。？！]|(\.\s))\s*/g, '$1|')
-    .split('|')
-
-  // grow summary within buffer
-  let summary = ''
-  while (summary.length < length - buffer && sections.length > 0) {
-    const el = sections.shift() || ''
-
-    const addition =
-      el.length + summary.length > length + buffer
-        ? `${el.substring(0, length - summary.length)}...`
-        : el
-
-    summary = summary.concat(addition)
-  }
-
-  return summary
-}
+export * from './content'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.
@@ -61,4 +27,29 @@ export const makeUserName = (email: string): string => {
   }
 
   return matched.join('').substring(0, 18)
+}
+
+export const extractAssetDataFromHtml = (
+  html: string,
+  type?: 'image' | 'audio'
+) => {
+  const $ = cheerio.load(html || '', { decodeEntities: false })
+
+  let selector = '[data-asset-id]'
+
+  if (type === 'image') {
+    selector = 'figure.image [data-asset-id]'
+  } else if (type === 'audio') {
+    selector = 'figure.audio [data-asset-id]'
+  }
+
+  return $(selector)
+    .map((index: number, element: CheerioElement) => {
+      const uuid = $(element).attr('data-asset-id')
+
+      if (uuid) {
+        return uuid
+      }
+    })
+    .get()
 }
