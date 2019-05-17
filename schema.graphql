@@ -337,9 +337,9 @@ type CommentPinnedNotice implements Notice {
 }
 
 input CommentsFilter {
-  parentComment: String
+  parentComment: ID
   state: CommentState
-  author: String
+  author: ID
 }
 
 input CommentsInput {

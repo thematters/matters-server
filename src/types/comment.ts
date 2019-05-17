@@ -83,9 +83,9 @@ export default /* GraphQL */ `
   }
 
   input CommentsFilter {
-    parentComment: String
+    parentComment: ID
     state: CommentState
-    author: String
+    author: ID
   }
 
   enum CommentSort {
