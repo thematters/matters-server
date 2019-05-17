@@ -76,9 +76,9 @@ export default /* GraphQL */ `
 
   input CommentsInput {
     sort: CommentSort
-    after: ID
+    after: String
     first: Int
-    before: ID
+    before: String
     filter: CommentsFilter
   }
 
