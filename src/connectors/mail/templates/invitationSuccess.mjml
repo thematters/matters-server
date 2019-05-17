@@ -5,9 +5,13 @@
   </mj-head>
 
   <mj-body mj-class="body">
-    <mj-text mj-class="preheader" css-class="preheader">
-      你已成為 Matters 內容平台的創作者，已幫你解鎖全部創作功能
-    </mj-text>
+    <mj-section>
+      <mj-column>
+        <mj-text mj-class="preheader" css-class="preheader">
+          你已成為 Matters 內容平台的創作者，已幫你解鎖全部創作功能
+        </mj-text>
+      </mj-column>
+    </mj-section>
 
     <mj-wrapper mj-class="wrapper">
       <mj-include path="./partials/header.mjml" />
