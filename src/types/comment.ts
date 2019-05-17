@@ -80,7 +80,6 @@ export default /* GraphQL */ `
     first: Int
     before: ID
     filter: CommentsFilter
-    parent: Boolean
   }
 
   input CommentsFilter {

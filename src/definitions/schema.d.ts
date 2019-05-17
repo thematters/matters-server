@@ -818,7 +818,6 @@ export interface GQLCommentsInput {
   first?: number
   before?: string
   filter?: GQLCommentsFilter
-  parent?: boolean
 }
 
 export interface GQLCommentsFilter {
