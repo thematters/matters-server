@@ -186,8 +186,6 @@ export class CommentService extends BaseService {
     // build where clause
     let where = filter
 
-    console.log(filter)
-
     const query = this.knex
       .select()
       .from(this.table)
