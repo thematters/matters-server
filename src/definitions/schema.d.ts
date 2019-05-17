@@ -813,7 +813,6 @@ export interface GQLCommentEdge {
 }
 
 export interface GQLCommentsInput {
-  author?: string
   sort?: GQLCommentSort
   after?: string
   first?: number

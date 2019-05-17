@@ -75,7 +75,6 @@ export default /* GraphQL */ `
   }
 
   input CommentsInput {
-    author: ID
     sort: CommentSort
     after: ID
     first: Int

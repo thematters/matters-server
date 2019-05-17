@@ -343,7 +343,6 @@ input CommentsFilter {
 }
 
 input CommentsInput {
-  author: ID
   sort: CommentSort
   after: ID
   first: Int

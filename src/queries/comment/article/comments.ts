@@ -6,7 +6,7 @@ import { COMMENT_STATE } from 'common/enums'
 
 const resolver: ArticleToCommentsResolver = async (
   { id },
-  { input: { author, sort, parent, first, ...rest } },
+  { input: { sort, parent, first, ...rest } },
   { dataSources: { commentService } }
 ) => {
   // resolve sort to order
