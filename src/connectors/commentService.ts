@@ -177,16 +177,16 @@ export class CommentService extends BaseService {
    * Find comments.
    */
   find = async ({
-    sort,
+    order = 'desc',
     filter,
     after,
     first,
     before
-  }: GQLCommentsInput & { filter: CommentFilter }) => {
-    const order = sort === 'oldest' ? 'asc' : 'desc'
-
+  }: GQLCommentsInput & { filter: CommentFilter; order?: string }) => {
     // build where clause
     let where = filter
+
+    console.log(filter)
 
     const query = this.knex
       .select()
@@ -195,11 +195,11 @@ export class CommentService extends BaseService {
       .orderBy('created_at', order)
 
     if (before) {
-      query.andWhere('id', '<', before)
+      query.andWhere('id', order === 'asc' ? '<' : '>', before)
     }
 
     if (after) {
-      query.andWhere('id', '>', after)
+      query.andWhere('id', order === 'asc' ? '>' : '<', after)
     }
 
     if (first) {
@@ -212,8 +212,8 @@ export class CommentService extends BaseService {
   /**
    * Find id range with given filter
    */
-  range = async (filter: CommentFilter) =>
-    this.knex
+  range = async (filter: CommentFilter) => {
+    const { count, max, min } = await this.knex
       .select()
       .from(this.table)
       .where(filter)
@@ -221,6 +221,13 @@ export class CommentService extends BaseService {
       .max('id')
       .count()
       .first()
+
+    return {
+      count: parseInt(count, 10),
+      min: parseInt(min, 10),
+      max: parseInt(max, 10)
+    }
+  }
 
   /*********************************
    *                               *

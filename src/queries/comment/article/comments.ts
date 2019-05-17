@@ -1,8 +1,7 @@
-import { connectionFromPromisedArray, toGlobalId } from 'common/utils'
+import { toGlobalId } from 'common/utils'
 
 import { ArticleToCommentsResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
-import { ForbiddenError } from 'common/errors'
 import { COMMENT_STATE } from 'common/enums'
 
 const resolver: ArticleToCommentsResolver = async (
@@ -10,6 +9,9 @@ const resolver: ArticleToCommentsResolver = async (
   { input: { author, sort, parent, first, ...rest } },
   { dataSources: { commentService } }
 ) => {
+  // resolve sort to order
+  const order = sort === 'oldest' ? 'asc' : 'desc'
+
   // set default for first in forward pagination
   // TODO: use "last" for backward pagination
   if (!rest.before && !first) {
@@ -37,7 +39,8 @@ const resolver: ArticleToCommentsResolver = async (
     }
     if (author) {
       filter = {
-        parentCommentId: fromGlobalId(author).id,
+        authorId: fromGlobalId(author).id,
+        state: COMMENT_STATE.active, // will be overwrite by sate in input if specified
         ...filter
       }
     }
@@ -49,20 +52,13 @@ const resolver: ArticleToCommentsResolver = async (
     }
   }
 
-  if (author) {
-    filter = {
-      authorId: fromGlobalId(author).id,
-      state: COMMENT_STATE.active, // will be overwrite by sate in input if specified
-      ...filter
-    }
-  }
-
   const comments = await commentService.find({
     sort,
     before,
     after,
     first,
-    filter
+    filter,
+    order
   })
 
   const edges = comments.map((comment: { [key: string]: string }) => ({
@@ -73,9 +69,10 @@ const resolver: ArticleToCommentsResolver = async (
   const range = await commentService.range(filter)
 
   const firstEdge = edges[0]
-  const lastEdge = edges[edges.length - 1]
+  const firstId = firstEdge && parseInt(firstEdge.node.id, 10)
 
-  console.log({ range, firstEdge, lastEdge })
+  const lastEdge = edges[edges.length - 1]
+  const lastId = lastEdge && parseInt(lastEdge.node.id, 10)
 
   return {
     edges,
@@ -83,12 +80,9 @@ const resolver: ArticleToCommentsResolver = async (
     pageInfo: {
       startCursor: firstEdge ? firstEdge.cursor : '',
       endCursor: lastEdge ? lastEdge.cursor : '',
-      hasPreviousPage: firstEdge
-        ? parseInt(firstEdge.node.id, 10) > parseInt(range.min, 10)
-        : false,
-      hasNextPage: lastEdge
-        ? parseInt(lastEdge.node.id, 10) < parseInt(range.max, 10)
-        : false
+      hasPreviousPage:
+        order === 'asc' ? firstId > range.min : firstId < range.max,
+      hasNextPage: order === 'asc' ? lastId < range.max : lastId > range.min
     }
   }
 }
