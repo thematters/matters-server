@@ -14,7 +14,7 @@ const resolver: ArticleToCommentsResolver = async (
 
   // set default for first in forward pagination
   // TODO: use "last" for backward pagination
-  if (!rest.before && !first) {
+  if (!rest.before && typeof(first) !== 'number') {
     first = 10
   }
 
