@@ -359,6 +359,7 @@ export interface GQLPageInfo {
   startCursor?: string
   endCursor?: string
   hasNextPage: boolean
+  hasPreviousPage: boolean
 }
 
 export interface GQLArticleEdge {
@@ -792,6 +793,11 @@ export interface GQLCommentCommentsInput {
 export enum GQLCommentSort {
   oldest = 'oldest',
   newest = 'newest',
+
+  /**
+   *
+   * @deprecated not used
+   */
   upvotes = 'upvotes'
 }
 
@@ -811,7 +817,15 @@ export interface GQLCommentsInput {
   sort?: GQLCommentSort
   after?: string
   first?: number
+  before?: string
+  filter?: GQLCommentsFilter
   parent?: boolean
+}
+
+export interface GQLCommentsFilter {
+  parentComment?: string
+  state?: GQLCommentState
+  author?: string
 }
 
 export interface GQLNodeInput {
@@ -2968,6 +2982,7 @@ export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
   endCursor?: PageInfoToEndCursorResolver<TParent>
   hasNextPage?: PageInfoToHasNextPageResolver<TParent>
+  hasPreviousPage?: PageInfoToHasPreviousPageResolver<TParent>
 }
 
 export interface PageInfoToStartCursorResolver<TParent = any, TResult = any> {
@@ -2989,6 +3004,18 @@ export interface PageInfoToEndCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface PageInfoToHasNextPageResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PageInfoToHasPreviousPageResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},

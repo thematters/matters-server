@@ -336,18 +336,26 @@ type CommentPinnedNotice implements Notice {
   target: Comment
 }
 
+input CommentsFilter {
+  parentComment: String
+  state: CommentState
+  author: String
+}
+
 input CommentsInput {
   author: ID
   sort: CommentSort
-  after: String
+  after: ID
   first: Int
+  before: ID
+  filter: CommentsFilter
   parent: Boolean
 }
 
 enum CommentSort {
   oldest
   newest
-  upvotes
+  upvotes @deprecated(reason: "not used")
 }
 
 enum CommentState {
@@ -707,6 +715,7 @@ type PageInfo {
   startCursor: String
   endCursor: String
   hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
 }
 
 input PinCommentInput {
