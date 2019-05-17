@@ -52,21 +52,22 @@ const resolver: ArticleToCommentsResolver = async (
     }
   }
 
-  const comments = await commentService.find({
-    sort,
-    before,
-    after,
-    first,
-    filter,
-    order
-  })
+  const [comments, range] = await Promise.all([
+    commentService.find({
+      sort,
+      before,
+      after,
+      first,
+      filter,
+      order
+    }),
+    commentService.range(filter)
+  ])
 
   const edges = comments.map((comment: { [key: string]: string }) => ({
     cursor: toGlobalId({ type: 'Comment', id: comment.id }),
     node: comment
   }))
-
-  const range = await commentService.range(filter)
 
   const firstEdge = edges[0]
   const firstId = firstEdge && parseInt(firstEdge.node.id, 10)
