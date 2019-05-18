@@ -28,6 +28,7 @@ export default /* GraphQL */ `
     startCursor: String
     endCursor: String
     hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
   }
 
   interface Connection {

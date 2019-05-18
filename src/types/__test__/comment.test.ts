@@ -110,32 +110,13 @@ describe('query comment list on article', async () => {
       // @ts-ignore
       variables: {
         nodeInput: { id: ARTICLE_ID },
-        commentsInput: { author: authorId }
+        commentsInput: { filter: { author: authorId } }
       }
     })
     const comments = _get(result, 'data.node.comments.edges')
     for (const comment of comments) {
       expect(comment.node.author.id).toBe(authorId)
     }
-  })
-
-  test('sort comments by upvotes', async () => {
-    const { query } = await testClient()
-    const { data } = await query({
-      query: GET_ARTILCE_COMMENTS,
-      // @ts-ignore
-      variables: {
-        nodeInput: { id: ARTICLE_ID },
-        commentsInput: { sort: 'upvotes' }
-      }
-    })
-
-    const comments = _get(data, 'node.comments.edges')
-
-    const commentVotes = comments.map(
-      ({ node: { upvotes } }: { node: { upvotes: number } }) => upvotes
-    )
-    expect(isDesc(commentVotes)).toBe(true)
   })
 
   test('sort comments by newest', async () => {

@@ -75,17 +75,23 @@ export default /* GraphQL */ `
   }
 
   input CommentsInput {
-    author: ID
     sort: CommentSort
     after: String
     first: Int
-    parent: Boolean
+    before: String
+    filter: CommentsFilter
+  }
+
+  input CommentsFilter {
+    parentComment: ID
+    state: CommentState
+    author: ID
   }
 
   enum CommentSort {
     oldest
     newest
-    upvotes
+    upvotes @deprecated(reason: "not used")
   }
 
   input PinCommentInput {
