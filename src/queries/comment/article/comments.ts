@@ -12,9 +12,9 @@ const resolver: ArticleToCommentsResolver = async (
   // resolve sort to order
   const order = sort === 'oldest' ? 'asc' : 'desc'
 
-  // set default for first in forward pagination
+  // set default for first in forward pagination. use 0 for query all.
   // TODO: use "last" for backward pagination
-  if (!rest.before && !first) {
+  if (!rest.before && typeof first !== 'number') {
     first = 10
   }
 
