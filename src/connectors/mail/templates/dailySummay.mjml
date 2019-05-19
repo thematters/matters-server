@@ -1,0 +1,116 @@
+<mjml>
+  <mj-head>
+    <mj-include path="./partials/head.mjml" />
+    <mj-title>Matters | 這裡有你想知道的最新消息</mj-title>
+    <mj-preview>Matters | 這裡有你想知道的最新消息</mj-preview>
+  </mj-head>
+
+  <mj-body mj-class="body" css-class="body">
+    <mj-wrapper mj-class="wrapper">
+      <mj-include path="./partials/header.mjml" />
+
+      <!-- Follow -->
+      <mj-raw>
+        {{#if TODO}}
+      </mj-raw>
+
+      <mj-section css-class="card bottom-clear">
+        <mj-column>
+          <mj-text font-size="16px" font-weight="700">與站上朋友通通過追蹤進行互動</mj-text>
+          <mj-spacer height="16px" />
+        </mj-column>
+      </mj-section>
+
+      <mj-section css-class="card top-clear bottom-clear">
+        <mj-column>
+          <mj-text>
+            <img class="avatar" src="https://assets.matters.news/avatar/2f0ef102-9cb6-43c7-9d25-850b63d97c81/avataaars-1.png" />
+            <img class="avatar" src="https://assets.matters.news/avatar/cd6ad617-5223-4d7d-af28-df8f190d71a0/daido-moriyama-03-final-jpg" />
+            <img class="avatar" src="https://assets.matters.news/avatar/e69e94ec-9c36-4829-9331-7365b8c19693/75b0a53802dfc66e80c8e4b93f47414027c6754c2fb0b3388617be8db8b7bbd8.jpg" />
+          </mj-text>
+          <mj-text color="#b3b3b3">
+            <a class="link-black" href=".">cc</a>、<a class="link-black" href=".">zeckli</a>、<a class="link-black" href=".">曉雅</a> 追踪了你
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-raw>
+        {{/if}}
+      </mj-raw>
+
+
+      <!-- Article -->
+      <mj-raw>
+        {{#if TODO}}
+      </mj-raw>
+
+      <mj-section css-class="card bottom-clear">
+        <mj-column>
+          <mj-spacer height="16px" />
+          <mj-text font-size="16px" font-weight="700">你的作品在站上受到歡迎</mj-text>
+          <mj-spacer height="16px" />
+        </mj-column>
+      </mj-section>
+
+      <mj-section css-class="card bottom-clear top-clear" text-align="left">
+        <mj-column>
+          <mj-text color="#b3b3b3">
+            你的作品<a class="link-black" href=".">《大陆95后生存报告：“生错了性别，还是爱错了人”》</a>收穫了來自 <a class="link-black" href=".">林博濤</a>、<a class="link-black" href=".">蔣錦程</a>、<a class="link-black" href=".">趙子騫</a> 等的讚賞
+          </mj-text>
+
+          <mj-spacer height="16px" />
+          <mj-text color="#b3b3b3">
+            你的作品<a class="link-black" href=".">《寫給會考後的我們：別再讓下一代經歷這些》</a>被 <a class="link-black" href=".">崔偉誠</a>、<a class="link-black" href=".">Pasqual</a>、<a class="link-black" href=".">Jiahe</a> 等的收藏
+          </mj-text>
+
+          <mj-spacer height="16px" />
+          <mj-text color="#b3b3b3">
+            <a class="link-black" href=".">江燁偉</a> 在他的作品<a class="link-black" href=".">《转帖：刘瑜：关于metoo》</a>里提及了你
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-raw>
+        {{/if}}
+      </mj-raw>
+
+
+      <!-- Comment -->
+      <mj-raw>
+        {{#if TODO}}
+      </mj-raw>
+
+      <mj-section css-class="card bottom-clear">
+        <mj-column>
+          <mj-spacer height="16px" />
+          <mj-text font-size="16px" font-weight="700">評論 matters</mj-text>
+          <mj-spacer height="16px" />
+        </mj-column>
+      </mj-section>
+
+      <mj-section css-class="card top-clear" text-align="left">
+        <mj-column>
+          <mj-text color="#b3b3b3">
+            <a class="link-black" href=".">纪小城</a> 在評論中提及了你
+          </mj-text>
+
+          <mj-spacer height="16px" />
+          <mj-text color="#b3b3b3">
+            <a class="link-black" href=".">蔡振家</a> 回復了你在<a class="link-black" href=".">《寫給會考後的我們：別再讓下一代經歷這些》</a>中的評論
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <mj-raw>
+        {{/if}}
+      </mj-raw>
+
+      <mj-section padding="24px 0">
+        <mj-column>
+          <mj-text css-class="footer" font-size="12px" color="#999c9d">想要變更郵件接收設定，請前往 Matters 主站進行<a class="link-underline" href=".">設置</a>。</mj-text>
+          <mj-text css-class="footer" font-size="12px" color="#999c9d">Copyright © 2019 Matters, All rights reserved.</mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>

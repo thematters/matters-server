@@ -2,25 +2,18 @@
   <mj-head>
     <mj-include path="./partials/head.mjml" />
     <mj-title>Matters | 你被邀請成為內容創作者</mj-title>
+    <mj-preview>你已成為 Matters 內容平台的創作者，已幫你解鎖全部創作功能</mj-preview>
   </mj-head>
 
-  <mj-body mj-class="body">
-    <mj-section>
-      <mj-column>
-        <mj-text mj-class="preheader" css-class="preheader">
-          你已成為 Matters 內容平台的創作者，已幫你解鎖全部創作功能
-        </mj-text>
-      </mj-column>
-    </mj-section>
-
+  <mj-body mj-class="body" css-class="body">
     <mj-wrapper mj-class="wrapper">
       <mj-include path="./partials/header.mjml" />
 
-      <mj-section mj-class="card">
+      <mj-section css-class="card">
         <mj-column>
           <mj-include path="./partials/greeting.mjml" />
-
-          <mj-text padding-top="16px">
+          <mj-spacer height="16px" />
+          <mj-text>
             {{#if invitation}}
               {{#if sender.displayName}}
                 你的好友 <a href="https://matters.news/@{{sender.userName}}" class="link">{{sender.displayName}}</a> 邀請你成為 Matters 內容社群的創作者，完成註冊並解鎖全部創作功能。
@@ -43,12 +36,12 @@
               開始創作 →
             {{/if}}
           </mj-button>
-
-          <mj-text padding-top="32px">
+          <mj-spacer height="32px" />
+          <mj-text>
             你在 Matters 發布的作品將通過星際文件系統（InterPlanetary File System，IPFS）實現分佈式存儲。作品可以永久保存，也可以通過多個分佈式節點傳播，不再侷限於單一網頁地址訪問。瀏覽<a class="link" href="https://matters.news/faq">常見問題</a>可了解更多玩法。
           </mj-text>
-
-          <mj-text padding-top="16px">
+          <mj-spacer height="16px" />
+          <mj-text>
             Matters 會第一時間在<a class="link" href="https://www.facebook.com/MattersLab2018">臉書</a>和<a class="link" href="https://weibo.com/6695370718/profile?topnav=1&wvr=6">微博帳號 MattersLab</a> 與大家分享新動態，歡迎關注。
           </mj-text>
 
