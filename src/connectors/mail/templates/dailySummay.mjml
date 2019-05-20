@@ -9,9 +9,15 @@
     <mj-wrapper mj-class="wrapper">
       <mj-include path="./partials/header.mjml" />
 
+      <mj-section>
+        <mj-column>
+          <mj-image src="https://assets-develop.matters.news/embed/3ac5a83a-9ee7-4eef-9198-4cd661774460/app%E6%8F%92%E5%9B%BE.jpg" />
+        </mj-column>
+      </mj-section>
+
       <!-- Follow -->
       <mj-raw>
-        {{#if TODO}}
+        {{#if follow}}
       </mj-raw>
 
       <mj-section css-class="card bottom-clear">
@@ -41,12 +47,12 @@
 
       <!-- Article -->
       <mj-raw>
-        {{#if TODO}}
+        {{#if article}}
       </mj-raw>
 
       <mj-section css-class="card bottom-clear">
         <mj-column>
-          <mj-spacer height="16px" />
+          <mj-divider padding="0 0 32px 0" border-color="#ddd" border-width="1px" />
           <mj-text font-size="16px" font-weight="700">你的作品在站上受到歡迎</mj-text>
           <mj-spacer height="16px" />
         </mj-column>
@@ -77,12 +83,12 @@
 
       <!-- Comment -->
       <mj-raw>
-        {{#if TODO}}
+        {{#if comment}}
       </mj-raw>
 
       <mj-section css-class="card bottom-clear">
         <mj-column>
-          <mj-spacer height="16px" />
+          <mj-divider padding="0 0 32px 0" border-color="#ddd" border-width="1px" />
           <mj-text font-size="16px" font-weight="700">評論 matters</mj-text>
           <mj-spacer height="16px" />
         </mj-column>

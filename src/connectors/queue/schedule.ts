@@ -10,7 +10,12 @@ import {
 } from 'common/enums'
 import logger from 'common/logger'
 import { MaterializedView } from 'definitions'
-import { DraftService, UserService, ArticleService } from 'connectors'
+import {
+  DraftService,
+  UserService,
+  ArticleService,
+  NotificationService
+} from 'connectors'
 import { refreshView } from '../db'
 // local
 import { createQueue } from './utils'
@@ -21,10 +26,12 @@ class ScheduleQueue {
   draftService: InstanceType<typeof DraftService>
   userService: InstanceType<typeof UserService>
   articleService: InstanceType<typeof ArticleService>
+  notificationService: InstanceType<typeof NotificationService>
 
   private queueName = QUEUE_NAME.schedule
 
   constructor() {
+    this.notificationService = new NotificationService()
     this.draftService = new DraftService()
     this.userService = new UserService()
     this.articleService = new ArticleService()
@@ -106,6 +113,21 @@ class ScheduleQueue {
         }
       }
     )
+
+    // send daily summary email
+    this.q.process(QUEUE_JOB.sendDailySummaryEmail, async (job, done) => {
+      try {
+        logger.info(`[schedule job] send daily summary email`)
+        const notices = await this.notificationService.notice.findDailySummaryNotices(
+          '3075'
+        )
+        console.log(notices)
+        job.progress(100)
+        done(null)
+      } catch (e) {
+        done(e)
+      }
+    })
   }
 
   /**
@@ -171,6 +193,19 @@ class ScheduleQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
+
+    // send daily summary email every day at 7am
+    this.q.add(
+      QUEUE_JOB.sendDailySummaryEmail,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: 1000 * 60 * 1 // every 20 mins
+        }
+        // repeat: { cron: '0 7 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
   }
