@@ -77,8 +77,10 @@ export default /* GraphQL */ `
   input CommentsInput {
     sort: CommentSort
     after: String
-    first: Int
     before: String
+    includeAfter: Boolean
+    includeBefore: Boolean
+    first: Int
     filter: CommentsFilter
   }
 
