@@ -647,6 +647,7 @@ type NoticeEdge {
 
 type NotificationSetting {
   enable: Boolean!
+  email: Boolean!
   mention: Boolean!
   follow: Boolean!
   comment: Boolean!
@@ -664,6 +665,7 @@ type NotificationSetting {
 
 enum NotificationSettingType {
   enable
+  email
   mention
   follow
   comment

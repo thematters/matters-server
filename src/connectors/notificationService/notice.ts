@@ -422,11 +422,18 @@ class Notice extends BaseService {
       .select('user.*')
       .where({
         unread: true,
-        deleted: false
+        deleted: false,
+        'user_notify_setting.enable': true,
+        'user_notify_setting.email': true
       })
       .where('notice.updated_at', '>=', from)
       .where('notice.updated_at', '<=', to)
       .join('user', 'user.id', 'recipient_id')
+      .join(
+        'user_notify_setting',
+        'user_notify_setting.user_id',
+        'recipient_id'
+      )
       .groupBy('user.id')
 
     return recipients

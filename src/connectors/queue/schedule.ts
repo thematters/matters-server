@@ -120,7 +120,7 @@ class ScheduleQueue {
         logger.info(`[schedule job] send daily summary email`)
         const users = await this.notificationService.notice.findDailySummaryUsers()
 
-        users.forEach(async user => {
+        users.forEach(async (user, index) => {
           const notices = await this.notificationService.notice.findDailySummaryNoticesByUser(
             user.id
           )
@@ -129,8 +129,7 @@ class ScheduleQueue {
             notices.filter(notice => notice.noticeType === type)
 
           this.notificationService.mail.sendDailySummary({
-            // to: user.email,
-            to: 'bt@matters.news',
+            to: user.email,
             recipient: {
               displayName: user.displayName
             },
@@ -147,6 +146,8 @@ class ScheduleQueue {
               comment_mentioned_you: filterNotices('comment_mentioned_you')
             }
           })
+
+          job.progress(((index + 1) / users.length) * 100)
         })
 
         job.progress(100)
