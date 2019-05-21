@@ -22,7 +22,7 @@ const resolver: ArticleToCollectedByResolver = async (
         collections.map(({ entranceId }: { entranceId: string }) => entranceId)
       )
       .then(articles =>
-        articles.filter(article => article.state === ARTICLE_STATE.active)
+        articles.filter(({ state }) => state === ARTICLE_STATE.active)
       ),
     input,
     totalCount
