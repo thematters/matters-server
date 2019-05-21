@@ -59,7 +59,9 @@ const resolver: ArticleToCommentsResolver = async (
       after,
       first,
       filter,
-      order
+      order,
+      includeAfter: rest.includeAfter,
+      includeBefore: rest.includeBefore
     }),
     commentService.range(filter)
   ])

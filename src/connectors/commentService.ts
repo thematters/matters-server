@@ -181,7 +181,9 @@ export class CommentService extends BaseService {
     filter,
     after,
     first,
-    before
+    before,
+    includeAfter = false,
+    includeBefore = false
   }: GQLCommentsInput & { filter: CommentFilter; order?: string }) => {
     // build where clause
     let where = filter
@@ -193,11 +195,19 @@ export class CommentService extends BaseService {
       .orderBy('created_at', order)
 
     if (before) {
-      query.andWhere('id', order === 'asc' ? '<' : '>', before)
+      if (includeBefore) {
+        query.andWhere('id', order === 'asc' ? '<=' : '>=', before)
+      } else {
+        query.andWhere('id', order === 'asc' ? '<' : '>', before)
+      }
     }
 
     if (after) {
-      query.andWhere('id', order === 'asc' ? '>' : '<', after)
+      if (includeAfter) {
+        query.andWhere('id', order === 'asc' ? '>=' : '<=', after)
+      } else {
+        query.andWhere('id', order === 'asc' ? '>' : '<', after)
+      }
     }
 
     if (first) {

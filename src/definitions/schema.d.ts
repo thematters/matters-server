@@ -815,8 +815,10 @@ export interface GQLCommentEdge {
 export interface GQLCommentsInput {
   sort?: GQLCommentSort
   after?: string
-  first?: number
   before?: string
+  includeAfter?: boolean
+  includeBefore?: boolean
+  first?: number
   filter?: GQLCommentsFilter
 }
 
