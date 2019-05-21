@@ -36,7 +36,7 @@
 
       <mj-section css-class="card top-clear bottom-clear">
         <mj-column>
-          <mj-text font-size="16px" font-weight="700">你的作品在站上受到歡迎</mj-text>
+          <mj-text mj-class="subtitle">你的作品在站上受到歡迎</mj-text>
           <mj-spacer height="16px" />
         </mj-column>
       </mj-section>
@@ -47,7 +47,7 @@
           <mj-raw>
             {{#each notices.article_new_appreciation}}
           </mj-raw>
-          <mj-text color="#999c9d">
+          <mj-text mj-class="color-grey-dark">
             {{#each this.actors}}
               <a class="link-black" href="https://matters.news/@{{this.userName}}">{{this.displayName}}</a>
               {{#if @last}} {{else}}、{{/if}}
@@ -68,7 +68,7 @@
           <mj-raw>
             {{#each notices.article_new_comment}}
           </mj-raw>
-          <mj-text color="#999c9d">
+          <mj-text mj-class="color-grey-dark">
             {{#each this.actors}}
               <a class="link-black" href="https://matters.news/@{{this.userName}}">{{this.displayName}}</a>
               {{#if @last}} {{else}}、{{/if}}
@@ -89,7 +89,7 @@
           <mj-raw>
             {{#each notices.article_new_subscriber}}
           </mj-raw>
-          <mj-text color="#999c9d">
+          <mj-text mj-class="color-grey-dark">
             {{#each this.actors}}
               <a class="link-black" href="https://matters.news/@{{this.userName}}">{{this.displayName}}</a>
               {{#if @last}} {{else}}、{{/if}}
@@ -110,7 +110,7 @@
           <mj-raw>
             {{#each notices.article_new_collected}}
           </mj-raw>
-          <mj-text color="#999c9d">
+          <mj-text mj-class="color-grey-dark">
             <a class="link-black" href="https://matters.news/@{{this.actor.userName}}">{{this.actor.displayName}}</a>
             關聯了你的作品
             <a class="link-black" href="https://matters.news/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
@@ -146,7 +146,7 @@
           </mj-raw>
           <!-- divider:end -->
 
-          <mj-text font-size="16px" font-weight="700">評論 matters</mj-text>
+          <mj-text mj-class="subtitle">評論 matters</mj-text>
           <mj-spacer height="16px" />
         </mj-column>
       </mj-section>
@@ -157,7 +157,7 @@
           <mj-raw>
             {{#each notices.article_mentioned_you}}
           </mj-raw>
-          <mj-text color="#999c9d">
+          <mj-text mj-class="color-grey-dark">
             <a class="link-black" href="https://matters.news/@{{this.actor.userName}}">{{this.actor.displayName}}</a> 在作品
             <a class="link-black" href="https://matters.news/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
             中提及了你
@@ -172,7 +172,7 @@
           <mj-raw>
             {{#each notices.comment_mentioned_you}}
           </mj-raw>
-          <mj-text color="#999c9d">
+          <mj-text mj-class="color-grey-dark">
             <a class="link-black" href="https://matters.news/@{{this.actor.userName}}">{{this.actor.displayName}}</a>
             在評論中提及了你
           </mj-text>
@@ -186,7 +186,7 @@
           <mj-raw>
             {{#each notices.comment_new_reply}}
           </mj-raw>
-          <mj-text color="#999c9d">
+          <mj-text mj-class="color-grey-dark">
             你在作品
             <a class="link-black" href="https://matters.news/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}">《{{this.comment.article.title}}》</a>
             中的評論
@@ -231,7 +231,7 @@
             {{/if}}
           </mj-raw>
           <!-- divider:end -->
-          <mj-text font-size="16px" font-weight="700">與站上朋友通過追蹤進行互動</mj-text>
+          <mj-text mj-class="subtitle">與站上朋友通過追蹤進行互動</mj-text>
           <mj-spacer height="16px" />
         </mj-column>
       </mj-section>
@@ -247,7 +247,7 @@
               <img class="avatar" src="{{this.avatar}}" />
             {{/each}}
           </mj-text>
-          <mj-text color="#999c9d">
+          <mj-text mj-class="color-grey-dark">
             {{#each this.actors}}
               <a class="link-black" href="https://matters.news/@{{this.userName}}">{{this.displayName}}</a>
               {{#if @last}} {{else}}、{{/if}}
@@ -274,8 +274,8 @@
       <mj-section css-class="card top-clear"></mj-section>
       <mj-section padding="24px 0">
         <mj-column>
-          <mj-text css-class="footer" font-size="12px" color="#999c9d">想要變更郵件接收設定，請前往 Matters 主站進行<a class="link-underline" href=".">設置</a>。</mj-text>
-          <mj-text css-class="footer" font-size="12px" color="#999c9d">Copyright © 2019 Matters, All rights reserved.</mj-text>
+          <mj-text css-class="footer" font-size="12px" mj-class="color-grey-dark">想要變更郵件接收設定，請前往 Matters 主站進行<a class="link-underline" href=".">設置</a>。</mj-text>
+          <mj-text css-class="footer" font-size="12px" mj-class="color-grey-dark">Copyright © 2019 Matters, All rights reserved.</mj-text>
         </mj-column>
       </mj-section>
     </mj-wrapper>
