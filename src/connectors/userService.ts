@@ -270,7 +270,7 @@ export class UserService extends BaseService {
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
-        fields: ['displayName^5', 'userName^10', 'description']
+        fields: ['displayName^5', 'userName^10']
       })
       .from(offset)
       .size(first)
