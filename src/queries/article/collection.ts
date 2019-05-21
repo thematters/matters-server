@@ -1,5 +1,6 @@
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { ArticleToCollectionResolver } from 'definitions'
+import { ARTICLE_STATE } from 'common/enums'
 
 const resolver: ArticleToCollectionResolver = async (
   { id },
@@ -16,9 +17,13 @@ const resolver: ArticleToCollectionResolver = async (
   })
 
   return connectionFromPromisedArray(
-    articleService.dataloader.loadMany(
-      collections.map(({ articleId }: { articleId: string }) => articleId)
-    ),
+    articleService.dataloader
+      .loadMany(
+        collections.map(({ articleId }: { articleId: string }) => articleId)
+      )
+      .then(articles =>
+        articles.filter(article => article.state === ARTICLE_STATE.active)
+      ),
     input,
     totalCount
   )
