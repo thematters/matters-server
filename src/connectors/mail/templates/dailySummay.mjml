@@ -1,8 +1,8 @@
 <mjml>
   <mj-head>
     <mj-include path="./partials/head.mjml" />
-    <mj-title>Matters | 這裡有你想知道的最新消息</mj-title>
-    <mj-preview>Matters | 這裡有你想知道的最新消息</mj-preview>
+    <mj-title>{{recipient.displayName}}，這是專屬於你的 Matters 日報</mj-title>
+    <mj-preview>{{recipient.displayName}}，這是專屬於你的 Matters 日報</mj-preview>
   </mj-head>
 
   <mj-body mj-class="body" css-class="body">
@@ -11,106 +11,267 @@
 
       <mj-section>
         <mj-column>
-          <mj-image src="https://assets-develop.matters.news/embed/3ac5a83a-9ee7-4eef-9198-4cd661774460/app%E6%8F%92%E5%9B%BE.jpg" />
+          <mj-image src="https://marketing-image-production.s3.amazonaws.com/uploads/c1d8d390954f12fe494f7b105d4e0ab910bd27a5c7a287a28775b16d4bb0de88e6217c608b7003bb65aa52d6c4fa6c3dfd86927489389c213af32e2f09e05811.jpg" />
         </mj-column>
       </mj-section>
 
-      <!-- Follow -->
+      <mj-section css-class="card">
+        <mj-column>
+          <mj-text>
+            {{#if recipient.displayName }}
+              親愛的{{ recipient.displayName }}，謝謝你一起搭建 Matters 社區。
+            {{/if}}
+          </mj-text>
+          <mj-text>
+            這是最近 24 小時 Matters 站上與你有關的活動。
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <!-- section:article:start -->
       <mj-raw>
-        {{#if follow}}
+        {{#if section.article}}
       </mj-raw>
 
-      <mj-section css-class="card bottom-clear">
+
+      <mj-section css-class="card top-clear bottom-clear">
         <mj-column>
-          <mj-text font-size="16px" font-weight="700">與站上朋友通通過追蹤進行互動</mj-text>
+          <mj-text font-size="16px" font-weight="700">你的作品在站上受到歡迎</mj-text>
           <mj-spacer height="16px" />
         </mj-column>
       </mj-section>
 
       <mj-section css-class="card top-clear bottom-clear">
         <mj-column>
-          <mj-text>
-            <img class="avatar" src="https://assets.matters.news/avatar/2f0ef102-9cb6-43c7-9d25-850b63d97c81/avataaars-1.png" />
-            <img class="avatar" src="https://assets.matters.news/avatar/cd6ad617-5223-4d7d-af28-df8f190d71a0/daido-moriyama-03-final-jpg" />
-            <img class="avatar" src="https://assets.matters.news/avatar/e69e94ec-9c36-4829-9331-7365b8c19693/75b0a53802dfc66e80c8e4b93f47414027c6754c2fb0b3388617be8db8b7bbd8.jpg" />
+          <!-- article_new_appreciation:start -->
+          <mj-raw>
+            {{#each notices.article_new_appreciation}}
+          </mj-raw>
+          <mj-text color="#999c9d">
+            {{#each this.actors}}
+              <a class="link-black" href="https://matters.news/@{{this.userName}}">{{this.displayName}}</a>
+              {{#if @last}} {{else}}、{{/if}}
+            {{/each}}
+            {{#if this.actorCount}}
+              等 {{this.actorCount}} 人
+            {{/if}}
+            讚賞了你的作品
+            <a class="link-black" href="https://matters.news/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
           </mj-text>
-          <mj-text color="#b3b3b3">
-            <a class="link-black" href=".">cc</a>、<a class="link-black" href=".">zeckli</a>、<a class="link-black" href=".">曉雅</a> 追踪了你
+          <mj-spacer height="16px" />
+          <mj-raw>
+            {{/each}}
+          </mj-raw>
+          <!-- article_new_appreciation:end -->
+
+          <!-- article_new_comment:start -->
+          <mj-raw>
+            {{#each notices.article_new_comment}}
+          </mj-raw>
+          <mj-text color="#999c9d">
+            {{#each this.actors}}
+              <a class="link-black" href="https://matters.news/@{{this.userName}}">{{this.displayName}}</a>
+              {{#if @last}} {{else}}、{{/if}}
+            {{/each}}
+            {{#if this.actorCount}}
+              等 {{this.actorCount}} 人
+            {{/if}}
+            回應了你的作品
+            <a class="link-black" href="https://matters.news/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
           </mj-text>
+          <mj-spacer height="16px" />
+          <mj-raw>
+            {{/each}}
+          </mj-raw>
+          <!-- article_new_comment:end -->
+
+          <!-- article_new_subscriber:start -->
+          <mj-raw>
+            {{#each notices.article_new_subscriber}}
+          </mj-raw>
+          <mj-text color="#999c9d">
+            {{#each this.actors}}
+              <a class="link-black" href="https://matters.news/@{{this.userName}}">{{this.displayName}}</a>
+              {{#if @last}} {{else}}、{{/if}}
+            {{/each}}
+            {{#if this.actorCount}}
+              等 {{this.actorCount}} 人
+            {{/if}}
+            收藏了你的作品
+            <a class="link-black" href="https://matters.news/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-raw>
+            {{/each}}
+          </mj-raw>
+          <!-- article_new_subscriber:end -->
+
+          <!-- article_new_collected:start -->
+          <mj-raw>
+            {{#each notices.article_new_collected}}
+          </mj-raw>
+          <mj-text color="#999c9d">
+            <a class="link-black" href="https://matters.news/@{{this.actor.userName}}">{{this.actor.displayName}}</a>
+            關聯了你的作品
+            <a class="link-black" href="https://matters.news/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-raw>
+            {{/each}}
+          </mj-raw>
+          <!-- article_new_collected:end -->
         </mj-column>
       </mj-section>
 
       <mj-raw>
         {{/if}}
       </mj-raw>
+      <!-- section:article:end -->
 
 
-      <!-- Article -->
+      <!-- section:mention:start -->
       <mj-raw>
-        {{#if article}}
+        {{#if section.mention}}
       </mj-raw>
 
-      <mj-section css-class="card bottom-clear">
+      <mj-section css-class="card top-clear bottom-clear">
         <mj-column>
-          <mj-divider padding="0 0 32px 0" border-color="#ddd" border-width="1px" />
-          <mj-text font-size="16px" font-weight="700">你的作品在站上受到歡迎</mj-text>
-          <mj-spacer height="16px" />
-        </mj-column>
-      </mj-section>
+          <!-- divider:start -->
+          <mj-raw>
+            {{#if section.article}}
+          </mj-raw>
+          <mj-divider padding="16px 0 32px 0" border-color="#ddd" border-width="1px" />
+          <mj-raw>
+            {{/if}}
+          </mj-raw>
+          <!-- divider:end -->
 
-      <mj-section css-class="card bottom-clear top-clear" text-align="left">
-        <mj-column>
-          <mj-text color="#b3b3b3">
-            你的作品<a class="link-black" href=".">《大陆95后生存报告：“生错了性别，还是爱错了人”》</a>收穫了來自 <a class="link-black" href=".">林博濤</a>、<a class="link-black" href=".">蔣錦程</a>、<a class="link-black" href=".">趙子騫</a> 等的讚賞
-          </mj-text>
-
-          <mj-spacer height="16px" />
-          <mj-text color="#b3b3b3">
-            你的作品<a class="link-black" href=".">《寫給會考後的我們：別再讓下一代經歷這些》</a>被 <a class="link-black" href=".">崔偉誠</a>、<a class="link-black" href=".">Pasqual</a>、<a class="link-black" href=".">Jiahe</a> 等的收藏
-          </mj-text>
-
-          <mj-spacer height="16px" />
-          <mj-text color="#b3b3b3">
-            <a class="link-black" href=".">江燁偉</a> 在他的作品<a class="link-black" href=".">《转帖：刘瑜：关于metoo》</a>里提及了你
-          </mj-text>
-        </mj-column>
-      </mj-section>
-
-      <mj-raw>
-        {{/if}}
-      </mj-raw>
-
-
-      <!-- Comment -->
-      <mj-raw>
-        {{#if comment}}
-      </mj-raw>
-
-      <mj-section css-class="card bottom-clear">
-        <mj-column>
-          <mj-divider padding="0 0 32px 0" border-color="#ddd" border-width="1px" />
           <mj-text font-size="16px" font-weight="700">評論 matters</mj-text>
           <mj-spacer height="16px" />
         </mj-column>
       </mj-section>
 
-      <mj-section css-class="card top-clear" text-align="left">
+      <mj-section css-class="card top-clear bottom-clear">
         <mj-column>
-          <mj-text color="#b3b3b3">
-            <a class="link-black" href=".">纪小城</a> 在評論中提及了你
+          <!-- article_mentioned_you:start -->
+          <mj-raw>
+            {{#each notices.article_mentioned_you}}
+          </mj-raw>
+          <mj-text color="#999c9d">
+            <a class="link-black" href="https://matters.news/@{{this.actor.userName}}">{{this.actor.displayName}}</a> 在作品
+            <a class="link-black" href="https://matters.news/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+            中提及了你
           </mj-text>
-
           <mj-spacer height="16px" />
-          <mj-text color="#b3b3b3">
-            <a class="link-black" href=".">蔡振家</a> 回復了你在<a class="link-black" href=".">《寫給會考後的我們：別再讓下一代經歷這些》</a>中的評論
+          <mj-raw>
+            {{/each}}
+          </mj-raw>
+          <!-- article_mentioned_you:end -->
+
+          <!-- comment_mentioned_you:start -->
+          <mj-raw>
+            {{#each notices.comment_mentioned_you}}
+          </mj-raw>
+          <mj-text color="#999c9d">
+            <a class="link-black" href="https://matters.news/@{{this.actor.userName}}">{{this.actor.displayName}}</a>
+            在評論中提及了你
           </mj-text>
+          <mj-spacer height="16px" />
+          <mj-raw>
+            {{/each}}
+          </mj-raw>
+          <!-- comment_mentioned_you:end -->
+
+          <!-- comment_new_reply:start -->
+          <mj-raw>
+            {{#each notices.comment_new_reply}}
+          </mj-raw>
+          <mj-text color="#999c9d">
+            你在作品
+            <a class="link-black" href="https://matters.news/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}">《{{this.comment.article.title}}》</a>
+            中的評論
+            <a class="link-black" href="https://matters.news/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}">「{{this.comment.content}}」</a>
+            被
+            <a class="link-black" href="https://matters.news/@{{this.actor.userName}}">{{this.actor.displayName}}</a>
+            回覆
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-raw>
+            {{/each}}
+          </mj-raw>
+          <!-- comment_new_reply:end -->
         </mj-column>
       </mj-section>
 
       <mj-raw>
         {{/if}}
       </mj-raw>
+      <!-- section:mention:end -->
 
+
+      <!-- section:follow:start -->
+      <mj-raw>
+        {{#if section.follow}}
+      </mj-raw>
+
+      <mj-section css-class="card top-clear bottom-clear">
+        <mj-column>
+          <!-- divider:start -->
+          <mj-raw>
+            {{#if section.article}}
+          </mj-raw>
+          <mj-divider padding="16px 0 32px 0" border-color="#ddd" border-width="1px" />
+          <mj-raw>
+            {{else}}
+              {{#if section.mention }}
+          </mj-raw>
+          <mj-divider padding="16px 0 32px 0" border-color="#ddd" border-width="1px" />
+          <mj-raw>
+            {{/if}}
+            {{/if}}
+          </mj-raw>
+          <!-- divider:end -->
+          <mj-text font-size="16px" font-weight="700">與站上朋友通過追蹤進行互動</mj-text>
+          <mj-spacer height="16px" />
+        </mj-column>
+      </mj-section>
+
+      <mj-section css-class="card top-clear bottom-clear">
+        <mj-column>
+          <!-- user_new_follower:start -->
+          <mj-raw>
+            {{#each notices.user_new_follower}}
+          </mj-raw>
+          <mj-text>
+            {{#each this.actors}}
+              <img class="avatar" src="{{this.avatar}}" />
+            {{/each}}
+          </mj-text>
+          <mj-text color="#999c9d">
+            {{#each this.actors}}
+              <a class="link-black" href="https://matters.news/@{{this.userName}}">{{this.displayName}}</a>
+              {{#if @last}} {{else}}、{{/if}}
+            {{/each}}
+            {{#if this.actorCount}}
+              等 {{this.actorCount}} 人
+            {{/if}}
+            追蹤了你。通過創作與他們進行交流吧！
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-raw>
+            {{/each}}
+          </mj-raw>
+          <!-- user_new_follower:end -->
+        </mj-column>
+      </mj-section>
+
+      <mj-raw>
+        {{/if}}
+      </mj-raw>
+      <!-- section:follow:end -->
+
+
+      <mj-section css-class="card top-clear"></mj-section>
       <mj-section padding="24px 0">
         <mj-column>
           <mj-text css-class="footer" font-size="12px" color="#999c9d">想要變更郵件接收設定，請前往 Matters 主站進行<a class="link-underline" href=".">設置</a>。</mj-text>

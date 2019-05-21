@@ -118,10 +118,37 @@ class ScheduleQueue {
     this.q.process(QUEUE_JOB.sendDailySummaryEmail, async (job, done) => {
       try {
         logger.info(`[schedule job] send daily summary email`)
-        const notices = await this.notificationService.notice.findDailySummaryNotices(
-          '3075'
-        )
-        console.log(notices)
+        const users = await this.notificationService.notice.findDailySummaryUsers()
+
+        users.forEach(async user => {
+          const notices = await this.notificationService.notice.findDailySummaryNoticesByUser(
+            user.id
+          )
+
+          const filterNotices = (type: string) =>
+            notices.filter(notice => notice.noticeType === type)
+
+          this.notificationService.mail.sendDailySummary({
+            // to: user.email,
+            to: 'bt@matters.news',
+            recipient: {
+              displayName: user.displayName
+            },
+            notices: {
+              user_new_follower: filterNotices('user_new_follower'),
+              article_new_collected: filterNotices('article_new_collected'),
+              article_new_appreciation: filterNotices(
+                'article_new_appreciation'
+              ),
+              article_new_subscriber: filterNotices('article_new_subscriber'),
+              article_new_comment: filterNotices('article_new_comment'),
+              article_mentioned_you: filterNotices('article_mentioned_you'),
+              comment_new_reply: filterNotices('comment_new_reply'),
+              comment_mentioned_you: filterNotices('comment_mentioned_you')
+            }
+          })
+        })
+
         job.progress(100)
         done(null)
       } catch (e) {
@@ -202,10 +229,7 @@ class ScheduleQueue {
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: 1000 * 60 * 1 // every 20 mins
-        }
-        // repeat: { cron: '0 7 * * *', tz: 'Asia/Hong_Kong' }
+        repeat: { cron: '0 7 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
   }

@@ -49,9 +49,9 @@ export default {
   }),
   article_new_comment: i18n<{ displayName: string; title: string }>({
     zh_hant: ({ displayName, title }) =>
-      `${displayName} 評論了你收藏的作品《${title}》`,
+      `${displayName} 評論了你的作品《${title}》`,
     zh_hans: ({ displayName, title }) =>
-      `${displayName} 评论了你收藏的作品《${title}》`,
+      `${displayName} 评论了你的作品《${title}》`,
     en: ({ displayName, title }) =>
       `${displayName} commented on your article "${title}"`
   }),
@@ -130,17 +130,17 @@ export default {
     zh_hant: ({ content }) =>
       `因為違反社區規則，Matters 決定將您的評論《${makeSummary(
         content,
-        17
+        21
       )}》隱藏`,
     zh_hans: ({ content }) =>
       `因为违反社区规则，Matters 决定将您的评论《${makeSummary(
         content,
-        17
+        21
       )}》隐藏`,
     en: ({ content }) =>
       `You comment "${makeSummary(
         content,
-        17
+        21
       )}" has been archived from Matters for violating the community rules`
   }),
   article_banned: i18n<{ title: string }>({
