@@ -300,6 +300,12 @@ export class UserService extends BaseService {
 
       const suggested = _.get(suggest, 'userName.0.options.0._id')
       if (suggested) {
+        // remove duplication
+        const index = ids.indexOf(suggested)
+        if (index > -1) {
+          ids.splice(index, 1)
+        }
+        // add to start
         ids.unshift(suggested)
         ids = ids.slice(0, first)
       }
