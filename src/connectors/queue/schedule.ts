@@ -37,10 +37,11 @@ class ScheduleQueue {
     this.articleService = new ArticleService()
   }
 
-  start = () => {
+  start = async () => {
     this.q = createQueue(this.queueName)
     this.addConsumers()
-    this.addRepeatJobs()
+    await this.clearRepeatJobs()
+    await this.addRepeatJobs()
   }
 
   /**
@@ -91,28 +92,22 @@ class ScheduleQueue {
     // })
 
     // refresh view
-    this.q.process(
-      QUEUE_JOB.refreshView,
-      async (
-        job: { data: { view: MaterializedView }; [key: string]: any },
-        done
-      ) => {
-        const { view } = job.data
-        try {
-          logger.info(`[schedule job] refreshing view ${view}`)
-          await refreshView(view)
-          job.progress(100)
-          done(null)
-        } catch (e) {
-          logger.error(
-            `[schedule job] error in refreshing view ${view}: ${JSON.stringify(
-              e
-            )}`
-          )
-          done(e)
-        }
+    this.q.process(QUEUE_JOB.refreshView, async (job, done) => {
+      const { view } = job.data as { view: MaterializedView }
+      try {
+        logger.info(`[schedule job] refreshing view ${view}`)
+        await refreshView(view)
+        job.progress(100)
+        done(null)
+      } catch (e) {
+        logger.error(
+          `[schedule job] error in refreshing view ${view}: ${JSON.stringify(
+            e
+          )}`
+        )
+        done(e)
       }
-    )
+    })
 
     // send daily summary email
     this.q.process(QUEUE_JOB.sendDailySummaryEmail, async (job, done) => {
@@ -161,15 +156,30 @@ class ScheduleQueue {
   /**
    * Producers
    */
-  addRepeatJobs = () => {
+  clearRepeatJobs = async () => {
+    try {
+      const jobs = await this.q.getRepeatableJobs()
+      jobs.forEach(async job => {
+        await this.q.removeRepeatableByKey(job.key)
+      })
+    } catch (e) {
+      console.error('failed to clear repeat jobs', e)
+    }
+  }
+
+  addRepeatJobs = async () => {
     // publish pending draft every 20 minutes
-    this.q.add(QUEUE_JOB.publishPendingDrafts, null, {
-      priority: QUEUE_PRIORITY.HIGH,
-      repeat: {
-        every: 1000 * 60 * 20 // every 20 mins
+    this.q.add(
+      QUEUE_JOB.publishPendingDrafts,
+      {},
+      {
+        priority: QUEUE_PRIORITY.HIGH,
+        repeat: {
+          every: 1000 * 60 * 20 // every 20 mins
+        }
+        // removeOnComplete: true
       }
-      // removeOnComplete: true
-    })
+    )
 
     // initialize search every day at 4am
     // moved to db pipeline
