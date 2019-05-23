@@ -120,6 +120,10 @@ class ScheduleQueue {
             user.id
           )
 
+          if (!notices || notices.length <= 0) {
+            return
+          }
+
           const filterNotices = (type: string) =>
             notices.filter(notice => notice.noticeType === type)
 
@@ -240,7 +244,7 @@ class ScheduleQueue {
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 7 * * *', tz: 'Asia/Hong_Kong' }
+        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
   }

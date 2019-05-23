@@ -16,7 +16,7 @@
             恭喜你，你的好友 {{ email }} 已透過你的邀請註冊成功，並開啟了創作者資格。感謝你們一起搭建 Matters 社群，5 MAT 獎勵已送達。
           </mj-text>
 
-          <mj-button mj-class="cta-button" href="https://matters.news/@{{ userName }}">
+          <mj-button mj-class="cta-button" href="{{siteDomain}}/@{{ userName }}">
             查看好友 →
           </mj-button>
           <mj-spacer height="32px" />
