@@ -49,14 +49,14 @@
           </mj-raw>
           <mj-text mj-class="color-grey-dark">
             {{#each this.actors}}
-              <a class="link-black" href="{{siteDomain}}/@{{this.userName}}">{{this.displayName}}</a>
+              <a class="link-black" href="{{siteDomain}}/@{{this.userName}}?utm_medium=email">{{this.displayName}}</a>
               {{#if @last}} {{else}}、{{/if}}
             {{/each}}
             {{#if this.actorCount}}
               等 {{this.actorCount}} 人
             {{/if}}
             讚賞了你的作品
-            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}?utm_medium=email">《{{this.article.title}}》</a>
           </mj-text>
           <mj-spacer height="16px" />
           <mj-raw>
@@ -70,14 +70,14 @@
           </mj-raw>
           <mj-text mj-class="color-grey-dark">
             {{#each this.actors}}
-              <a class="link-black" href="{{siteDomain}}/@{{this.userName}}">{{this.displayName}}</a>
+              <a class="link-black" href="{{siteDomain}}/@{{this.userName}}?utm_medium=email">{{this.displayName}}</a>
               {{#if @last}} {{else}}、{{/if}}
             {{/each}}
             {{#if this.actorCount}}
               等 {{this.actorCount}} 人
             {{/if}}
             回應了你的作品
-            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}?utm_medium=email">《{{this.article.title}}》</a>
           </mj-text>
           <mj-spacer height="16px" />
           <mj-raw>
@@ -91,14 +91,14 @@
           </mj-raw>
           <mj-text mj-class="color-grey-dark">
             {{#each this.actors}}
-              <a class="link-black" href="{{siteDomain}}/@{{this.userName}}">{{this.displayName}}</a>
+              <a class="link-black" href="{{siteDomain}}/@{{this.userName}}?utm_medium=email">{{this.displayName}}</a>
               {{#if @last}} {{else}}、{{/if}}
             {{/each}}
             {{#if this.actorCount}}
               等 {{this.actorCount}} 人
             {{/if}}
             收藏了你的作品
-            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}?utm_medium=email">《{{this.article.title}}》</a>
           </mj-text>
           <mj-spacer height="16px" />
           <mj-raw>
@@ -111,9 +111,9 @@
             {{#each notices.article_new_collected}}
           </mj-raw>
           <mj-text mj-class="color-grey-dark">
-            <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}">{{this.actor.displayName}}</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}?utm_medium=email">{{this.actor.displayName}}</a>
             關聯了你的作品
-            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}?utm_medium=email">《{{this.article.title}}》</a>
           </mj-text>
           <mj-spacer height="16px" />
           <mj-raw>
@@ -158,8 +158,8 @@
             {{#each notices.article_mentioned_you}}
           </mj-raw>
           <mj-text mj-class="color-grey-dark">
-            <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}">{{this.actor.displayName}}</a> 在作品
-            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}?utm_medium=email">{{this.actor.displayName}}</a> 在作品
+            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}?utm_medium=email">《{{this.article.title}}》</a>
             中提及了你
           </mj-text>
           <mj-spacer height="16px" />
@@ -173,8 +173,8 @@
             {{#each notices.comment_mentioned_you}}
           </mj-raw>
           <mj-text mj-class="color-grey-dark">
-            <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}">{{this.actor.displayName}}</a>
-            在評論<a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}#{{this.comment.globalId}}">「{{this.comment.content}}」</a>中提及了你
+            <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}?utm_medium=email">{{this.actor.displayName}}</a>
+            在評論<a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}#{{this.comment.globalId}}?utm_medium=email">「{{this.comment.content}}」</a>中提及了你
           </mj-text>
           <mj-spacer height="16px" />
           <mj-raw>
@@ -188,11 +188,11 @@
           </mj-raw>
           <mj-text mj-class="color-grey-dark">
             你在作品
-            <a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}">《{{this.comment.article.title}}》</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}?utm_medium=email">《{{this.comment.article.title}}》</a>
             中的評論
-            <a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}#{{this.comment.globalId}}">「{{this.comment.content}}」</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}#{{this.comment.globalId}}?utm_medium=email">「{{this.comment.content}}」</a>
             被
-            <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}">{{this.actor.displayName}}</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}?utm_medium=email">{{this.actor.displayName}}</a>
             回覆
           </mj-text>
           <mj-spacer height="16px" />
@@ -249,7 +249,7 @@
           </mj-text>
           <mj-text mj-class="color-grey-dark">
             {{#each this.actors}}
-              <a class="link-black" href="{{siteDomain}}/@{{this.userName}}">{{this.displayName}}</a>
+              <a class="link-black" href="{{siteDomain}}/@{{this.userName}}?utm_medium=email">{{this.displayName}}</a>
               {{#if @last}} {{else}}、{{/if}}
             {{/each}}
             {{#if this.actorCount}}
@@ -274,7 +274,7 @@
       <mj-section css-class="card top-clear"></mj-section>
       <mj-section padding="24px 0">
         <mj-column>
-          <mj-text css-class="footer" font-size="12px" mj-class="color-grey">想要變更郵件接收設定，請前往 Matters 主站進行<a class="link-underline" href="{{siteDomain}}/me/settings/notification">設置</a>。</mj-text>
+          <mj-text css-class="footer" font-size="12px" mj-class="color-grey">想要變更郵件接收設定，請前往 Matters 主站進行<a class="link-underline" href="{{siteDomain}}/me/settings/notification?utm_medium=email">設置</a>。</mj-text>
           <mj-text css-class="footer" font-size="12px" mj-class="color-grey">Copyright © 2019 Matters, All rights reserved.</mj-text>
         </mj-column>
       </mj-section>

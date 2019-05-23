@@ -16,20 +16,20 @@
           <mj-text>
             {{#if invitation}}
               {{#if sender.displayName}}
-                你的好友 <a href="{{siteDomain}}/@{{sender.userName}}" class="link">{{sender.displayName}}</a> 邀請你成為 Matters 內容社群的創作者，完成註冊並解鎖全部創作功能。
+                你的好友 <a href="{{siteDomain}}/@{{sender.userName}}?utm_medium=email" class="link">{{sender.displayName}}</a> 邀請你成為 Matters 內容社群的創作者，完成註冊並解鎖全部創作功能。
               {{else}}
                 你已成為 Matters 內容平台的創作者，完成註冊並解鎖全部創作功能。
               {{/if}}
             {{else}}
               {{#if sender.displayName}}
-                你的好友 <a href="{{siteDomain}}/@{{sender.userName}}" class="link">{{sender.displayName}}</a> 邀請你成為 Matters 內容社群的創作者，已幫你解鎖全部創作功能。
+                你的好友 <a href="{{siteDomain}}/@{{sender.userName}}?utm_medium=email" class="link">{{sender.displayName}}</a> 邀請你成為 Matters 內容社群的創作者，已幫你解鎖全部創作功能。
               {{else}}
                 你已成為 Matters 內容社群的創作者，已幫你解鎖全部創作功能。
               {{/if}}
             {{/if}}
           </mj-text>
 
-          <mj-button mj-class="cta-button" href="{{siteDomain}}">
+          <mj-button mj-class="cta-button" href="{{siteDomain}}?utm_medium=email">
             {{#if invitation}}
               開始註冊 →
             {{else}}
