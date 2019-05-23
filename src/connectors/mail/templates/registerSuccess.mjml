@@ -14,7 +14,7 @@
           <mj-include path="./partials/greeting.mjml" />
           <mj-spacer height="16px" />
           <mj-text>
-            恭喜你，你已成功註冊 Matters 帳號，歡迎<a class="link" href="https://matters.news/">瀏覽站上精彩內容 →</a>
+            恭喜你，你已成功註冊 Matters 帳號，歡迎<a class="link" href="{{siteDomain}}?utm_medium=email">瀏覽站上精彩內容 →</a>
           </mj-text>
           <mj-spacer height="16px" />
           <mj-text>

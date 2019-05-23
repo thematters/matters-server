@@ -1,6 +1,6 @@
 <mj-section padding="38px 0 24px 0">
   <mj-column>
-    <mj-image css-class="logo" align="left" width="96px" padding="10px 0 0 0" href="https://matters.news" src="https://marketing-image-production.s3.amazonaws.com/uploads/dd2815f7e0c7267b263ed2d481795a8a65c25d914aa0d42d7526a9c8654d52c82b6a01668863967c05f78e21b4145bc142f6820eb3cc6b2c89d58ce9138d1edb.png" />
+    <mj-image css-class="logo" align="left" width="96px" padding="10px 0 0 0" href="{{siteDomain}}?utm_medium=email" src="https://marketing-image-production.s3.amazonaws.com/uploads/dd2815f7e0c7267b263ed2d481795a8a65c25d914aa0d42d7526a9c8654d52c82b6a01668863967c05f78e21b4145bc142f6820eb3cc6b2c89d58ce9138d1edb.png" />
   </mj-column>
   <mj-column>
     <mj-text css-class="slogan" align="left" padding="10px 0 0 0" color="#b3b3b3">

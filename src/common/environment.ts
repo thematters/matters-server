@@ -5,6 +5,7 @@
 export const environment = {
   env: process.env['MATTERS_ENV'] || 'development',
   domain: process.env['MATTERS_DOMAIN'],
+  siteDomain: process.env['MATTERS_SITE_DOMAIN'],
   awsRegion: process.env['MATTERS_AWS_REGION'],
   awsAccessId: process.env['MATTERS_AWS_ACCESS_ID'],
   awsAccessKey: process.env['MATTERS_AWS_ACCESS_KEY'],
