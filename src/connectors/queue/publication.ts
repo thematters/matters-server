@@ -54,7 +54,7 @@ class PublicationQueue {
       QUEUE_CONCURRENCY.publishArticle,
       async (job, done) => {
         try {
-          const { draftId } = job.data
+          const { draftId } = job.data as { draftId: string }
           const draft = await this.draftService.baseFindById(draftId)
 
           if (draft.publishState !== PUBLISH_STATE.pending) {

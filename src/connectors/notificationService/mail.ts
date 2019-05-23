@@ -1,8 +1,12 @@
-import { LANGUAGES } from 'definitions'
+import _ from 'lodash'
+
+import { LANGUAGES, NoticeItem, User } from 'definitions'
 import { i18n } from 'common/utils/i18n'
 import { environment } from 'common/environment'
 import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPES } from 'common/enums'
 import notificationQueue from 'connectors/queue/notification'
+import { UserService, ArticleService } from 'connectors'
+import { makeSummary } from 'common/utils'
 
 const trans = {
   verificationCode: {
@@ -42,6 +46,10 @@ const trans = {
   userActivated: i18n({
     zh_hant: 'Matters | 你邀請的好友已進站',
     zh_hans: 'Matters | 你邀请的好友已进站'
+  }),
+  dailySummary: i18n<{ displayName: string }>({
+    zh_hant: ({ displayName }) => `${displayName}，這是專屬於你的 Matters 日報`,
+    zh_hans: ({ displayName }) => `${displayName}，这是专属于你的 Matters 日报`
   })
 }
 
@@ -181,6 +189,169 @@ class Mail {
             recipient,
             email,
             userName
+          }
+        }
+      ]
+    })
+  }
+
+  sendDailySummary = async ({
+    to,
+    recipient,
+    language = 'zh_hant',
+    notices
+  }: {
+    to: string
+    recipient: {
+      displayName: string
+    }
+    language?: LANGUAGES
+    notices: {
+      user_new_follower: NoticeItem[]
+      article_new_collected: NoticeItem[]
+      article_new_appreciation: NoticeItem[]
+      article_new_subscriber: NoticeItem[]
+      article_new_comment: NoticeItem[]
+      article_mentioned_you: NoticeItem[]
+      comment_new_reply: NoticeItem[]
+      comment_mentioned_you: NoticeItem[]
+    }
+  }) => {
+    const userService = new UserService()
+    const articleService = new ArticleService()
+
+    const templateId = EMAIL_TEMPLATE_ID.dailySummary[language]
+    const subject = trans.dailySummary(language, {
+      displayName: recipient.displayName
+    })
+
+    const getUserDigest = (user: User | undefined) => {
+      if (!user) {
+        return
+      }
+      return {
+        id: user.id,
+        userName: user.userName,
+        displayName: user.displayName
+      }
+    }
+    const getArticleDigest = async (article: any | undefined) => {
+      if (!article) {
+        return
+      }
+      return {
+        id: article.id,
+        author: getUserDigest(await userService.baseFindById(article.authorId)),
+        title: article.title,
+        slug: article.slug,
+        mediaHash: article.mediaHash
+      }
+    }
+    const getCommentDigest = async (comment: any | undefined) => {
+      if (!comment) {
+        return
+      }
+
+      const content = makeSummary(comment.content, 21)
+
+      return {
+        id: comment.id,
+        content: content.length === comment.content ? content : `${content}…`,
+        article: await getArticleDigest(
+          await articleService.baseFindById(comment.articleId)
+        )
+      }
+    }
+
+    const user_new_follower = await Promise.all(
+      notices.user_new_follower.map(async ({ actors = [] }) => ({
+        actors: actors.map(actor => getUserDigest(actor)),
+        actorCount: actors.length > 3 ? actors.length : false
+      }))
+    )
+    const article_new_collected = await Promise.all(
+      notices.article_new_collected.map(async ({ actors = [], entities }) => ({
+        actor: getUserDigest(actors[0]),
+        article: await getArticleDigest(entities && entities.target)
+      }))
+    )
+    const article_new_appreciation = await Promise.all(
+      notices.article_new_appreciation.map(
+        async ({ actors = [], entities }) => ({
+          actors: actors.map(actor => getUserDigest(actor)),
+          article: await getArticleDigest(entities && entities.target)
+        })
+      )
+    )
+    const article_mentioned_you = await Promise.all(
+      notices.article_mentioned_you.map(async ({ actors = [], entities }) => ({
+        actor: getUserDigest(actors[0]),
+        article: await getArticleDigest(entities && entities.target)
+      }))
+    )
+    const article_new_subscriber = await Promise.all(
+      notices.article_new_subscriber.map(async ({ actors = [], entities }) => ({
+        actors: actors.map(actor => getUserDigest(actor)),
+        article: await getArticleDigest(entities && entities.target)
+      }))
+    )
+    const article_new_comment = await Promise.all(
+      notices.article_new_subscriber.map(async ({ actors = [], entities }) => ({
+        actors: actors.map(actor => getUserDigest(actor)),
+        article: await getArticleDigest(entities && entities.target)
+      }))
+    )
+    const comment_new_reply = await Promise.all(
+      notices.comment_new_reply.map(async ({ actors = [], entities }) => ({
+        actor: getUserDigest(actors[0]),
+        comment: await getCommentDigest(entities && entities.target)
+      }))
+    )
+    const comment_mentioned_you = await Promise.all(
+      notices.comment_mentioned_you.map(async ({ actors = [], entities }) => ({
+        actor: getUserDigest(actors[0]),
+        comment: await getCommentDigest(entities && entities.target)
+      }))
+    )
+
+    const data = {
+      section: {
+        follow: !!_.get(notices.user_new_follower, '0'),
+        article: [
+          'article_new_collected',
+          'article_new_appreciation',
+          'article_new_subscriber',
+          'article_new_comment'
+        ].some(type => _.get(notices, `${type}.0`)),
+        mention: [
+          'article_mentioned_you',
+          'comment_mentioned_you',
+          'comment_new_reply'
+        ].some(type => _.get(notices, `${type}.0`))
+      },
+      notices: {
+        user_new_follower,
+        article_new_collected,
+        article_new_appreciation,
+        article_new_subscriber,
+        article_new_comment,
+        article_mentioned_you,
+        comment_new_reply,
+        comment_mentioned_you
+      }
+    }
+
+    notificationQueue.sendMail({
+      from: environment.emailFromAsk as string,
+      templateId,
+      personalizations: [
+        {
+          to,
+          // @ts-ignore
+          dynamic_template_data: {
+            subject,
+            recipient,
+            ...data
           }
         }
       ]

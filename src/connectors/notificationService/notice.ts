@@ -175,12 +175,16 @@ class Notice extends BaseService {
     data = null
   }: PutNoticeParams): Promise<NoticeDetail[]> => {
     const notices = await this.findDetail({
-      where: {
-        noticeType: type,
-        deleted: false,
-        recipientId,
-        message
-      }
+      where: [
+        [
+          {
+            noticeType: type,
+            deleted: false,
+            recipientId,
+            message
+          }
+        ]
+      ]
     })
     const duplicates: NoticeDetail[] = []
 
@@ -247,7 +251,7 @@ class Notice extends BaseService {
     offset,
     limit
   }: {
-    where?: { [key: string]: any }
+    where?: any[][]
     whereIn?: [string, any[]]
     offset?: number
     limit?: number
@@ -273,12 +277,13 @@ class Notice extends BaseService {
       .orderBy('updated_at', 'desc')
 
     if (where) {
-      query = query.where(where)
+      where.forEach(w => {
+        query = query.where(w[0], w[1], w[2])
+      })
     }
 
     if (whereIn) {
-      const [col, arr] = whereIn
-      query = query.whereIn(col, arr)
+      query = query.whereIn(...whereIn)
     }
 
     if (offset) {
@@ -386,9 +391,76 @@ class Notice extends BaseService {
     offset?: number
   }): Promise<NoticeItem[]> => {
     const notices = await this.findDetail({
-      where: { recipientId: userId, deleted: false },
+      where: [[{ recipientId: userId, deleted: false }]],
       offset,
       limit
+    })
+
+    return Promise.all(
+      notices.map(async (notice: NoticeDetail) => {
+        const entities = (await this.findEntities(
+          notice.id
+        )) as NoticeEntitiesMap
+        const actors = await this.findActors(notice.id)
+
+        return {
+          ...notice,
+          createdAt: notice.updatedAt,
+          type: notice.noticeType,
+          actors,
+          entities
+        }
+      })
+    )
+  }
+
+  findDailySummaryUsers = async (): Promise<User[]> => {
+    const from = new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString()
+    const to = new Date(Date.now()).toISOString()
+
+    const recipients = await this.knex('notice')
+      .select('user.*')
+      .where({
+        unread: true,
+        deleted: false,
+        'user_notify_setting.enable': true,
+        'user_notify_setting.email': true
+      })
+      .where('notice.updated_at', '>=', from)
+      .where('notice.updated_at', '<=', to)
+      .join('user', 'user.id', 'recipient_id')
+      .join(
+        'user_notify_setting',
+        'user_notify_setting.user_id',
+        'recipient_id'
+      )
+      .groupBy('user.id')
+
+    return recipients
+  }
+
+  findDailySummaryNoticesByUser = async (
+    userId: string
+  ): Promise<NoticeItem[]> => {
+    const from = new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString()
+    const to = new Date(Date.now()).toISOString()
+    const validNoticeTypes = [
+      'user_new_follower',
+      'article_new_collected',
+      'article_new_appreciation',
+      'article_new_subscriber',
+      'article_new_comment',
+      'article_mentioned_you',
+      'comment_new_reply',
+      'comment_mentioned_you'
+    ]
+    const notices = await this.findDetail({
+      where: [
+        [{ recipientId: userId, deleted: false, unread: true }],
+        ['notice.updated_at', '>=', from],
+        ['notice.updated_at', '<=', to]
+      ],
+      whereIn: ['notice_detail.notice_type', validNoticeTypes]
     })
 
     return Promise.all(

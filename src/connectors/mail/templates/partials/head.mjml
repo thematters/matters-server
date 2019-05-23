@@ -3,10 +3,10 @@
 
   <mj-class name="body" background-color="#f6f6f6" width="630px" />
   <mj-class name="wrapper" padding-left="10px" padding-right="10px" />
-  <mj-class name="card" background-color="#ffffff" padding="32px" />
-  <mj-class name="preheader" color="#f6f6f6" font-size="0" height="0" padding="0" />
   <mj-class name="verification-code" color="#0d6763" font-size="24px" padding-top="16px" font-weight="500" />
   <mj-class name="cta-button" width="100%" color="white" font-size="16px" border-radius="0" height="47px" padding="24px 0 0 0" background-color="#0d6763" inner-padding="0" />
+  <mj-class name="color-grey-dark" color="#999c9d" />
+  <mj-class name="subtitle" font-size="16px" font-weight="700" />
 </mj-attributes>
 
 <mj-style inline="inline">
@@ -14,11 +14,34 @@
     color: #0d6763;
     text-decoration: none;
   }
+
+  .link-black {
+    color: #000;
+    text-decoration: none;
+  }
+
+  .link-underline {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  .avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+  }
 </mj-style>
 
 <mj-style>
-  .preheader {
-    display:  !important;
+  .body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeSpeed;
+  }
+
+  .card {
+    background-color: #ffffff !important;
+    padding: 16px !important;
   }
 
   .logo {
@@ -40,6 +63,9 @@
   }
 
   @media all and (min-width: 480px) {
+    .card {
+      padding: 32px !important;
+    }
 
     .logo {
       padding: 10px 0 0 24px !important;
@@ -61,5 +87,13 @@
       padding-right: 24px !important;
     }
 
+  }
+
+  .top-clear {
+    padding-top: 0 !important;
+  }
+
+  .bottom-clear {
+    padding-bottom: 0 !important;
   }
 </mj-style>

@@ -24,7 +24,7 @@ class NotificationQueue {
   private addConsumers = () => {
     this.q.process(QUEUE_JOB.sendMail, async (job, done) => {
       try {
-        const result = await mailService.send(job.data)
+        const result = await mailService.send(job.data as MailData)
         job.progress(100)
         done(null, result)
       } catch (e) {
@@ -33,7 +33,7 @@ class NotificationQueue {
     })
     this.q.process(QUEUE_JOB.pushNotification, async (job, done) => {
       try {
-        const result = await pushService.push(job.data)
+        const result = await pushService.push(job.data as PushParams)
         job.progress(100)
         done(null, result)
       } catch (e) {
