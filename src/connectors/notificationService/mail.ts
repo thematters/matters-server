@@ -6,7 +6,7 @@ import { environment } from 'common/environment'
 import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPES } from 'common/enums'
 import notificationQueue from 'connectors/queue/notification'
 import { UserService, ArticleService, SystemService } from 'connectors'
-import { makeSummary } from 'common/utils'
+import { makeSummary, toGlobalId } from 'common/utils'
 
 const trans = {
   verificationCode: {
@@ -48,8 +48,10 @@ const trans = {
     zh_hans: 'Matters | 你邀请的好友已进站'
   }),
   dailySummary: i18n<{ displayName: string }>({
-    zh_hant: ({ displayName }) => `${displayName}，這是專屬於你的 Matters 日報`,
-    zh_hans: ({ displayName }) => `${displayName}，这是专属于你的 Matters 日报`
+    zh_hant: ({ displayName }) =>
+      `🐿️ ${displayName}，這是專屬於你的 Matters 日報`,
+    zh_hans: ({ displayName }) =>
+      `🐿️ ${displayName}，这是专属于你的 Matters 日报`
   })
 }
 
@@ -260,7 +262,7 @@ class Mail {
           await userService.baseFindById(article.authorId)
         ),
         title: article.title,
-        slug: article.slug,
+        slug: encodeURIComponent(article.slug),
         mediaHash: article.mediaHash
       }
     }
@@ -273,6 +275,7 @@ class Mail {
 
       return {
         id: comment.id,
+        globalId: toGlobalId({ type: 'Comment', id: comment.id }),
         content: content.length === comment.content ? content : `${content}…`,
         article: await getArticleDigest(
           await articleService.baseFindById(comment.articleId)
@@ -318,7 +321,7 @@ class Mail {
       }))
     )
     const article_new_comment = await Promise.all(
-      notices.article_new_subscriber.map(async ({ actors = [], entities }) => ({
+      notices.article_new_comment.map(async ({ actors = [], entities }) => ({
         actors: await getActors(actors),
         article: await getArticleDigest(entities && entities.target)
       }))

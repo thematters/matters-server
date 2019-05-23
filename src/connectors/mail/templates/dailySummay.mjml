@@ -1,8 +1,7 @@
 <mjml>
   <mj-head>
     <mj-include path="./partials/head.mjml" />
-    <mj-title>{{recipient.displayName}}，這是專屬於你的 Matters 日報</mj-title>
-    <mj-preview>{{recipient.displayName}}，這是專屬於你的 Matters 日報</mj-preview>
+    <mj-title>🐿️ {{recipient.displayName}}，這是專屬於你的 Matters 日報</mj-title>
   </mj-head>
 
   <mj-body mj-class="body" css-class="body">
@@ -22,8 +21,9 @@
               親愛的{{ recipient.displayName }}，
             {{/if}}
           </mj-text>
+          <mj-spacer height="8px" />
           <mj-text>
-            謝謝你一起搭建 Matters 社區。請查收最近 24 小時站上與你有關的活動 🌾
+            謝謝你一起搭建 Matters 社區。這是最近 24 小時站上與你有關的活動 🌾
           </mj-text>
         </mj-column>
       </mj-section>
@@ -56,7 +56,7 @@
               等 {{this.actorCount}} 人
             {{/if}}
             讚賞了你的作品
-            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
           </mj-text>
           <mj-spacer height="16px" />
           <mj-raw>
@@ -77,7 +77,7 @@
               等 {{this.actorCount}} 人
             {{/if}}
             回應了你的作品
-            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
           </mj-text>
           <mj-spacer height="16px" />
           <mj-raw>
@@ -98,7 +98,7 @@
               等 {{this.actorCount}} 人
             {{/if}}
             收藏了你的作品
-            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
           </mj-text>
           <mj-spacer height="16px" />
           <mj-raw>
@@ -113,7 +113,7 @@
           <mj-text mj-class="color-grey-dark">
             <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}">{{this.actor.displayName}}</a>
             關聯了你的作品
-            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
           </mj-text>
           <mj-spacer height="16px" />
           <mj-raw>
@@ -159,7 +159,7 @@
           </mj-raw>
           <mj-text mj-class="color-grey-dark">
             <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}">{{this.actor.displayName}}</a> 在作品
-            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{this.article.slug}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.article.author.userName}}/{{{this.article.slug}}}-{{this.article.mediaHash}}">《{{this.article.title}}》</a>
             中提及了你
           </mj-text>
           <mj-spacer height="16px" />
@@ -174,7 +174,7 @@
           </mj-raw>
           <mj-text mj-class="color-grey-dark">
             <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}">{{this.actor.displayName}}</a>
-            在評論中提及了你
+            在評論<a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}#{{this.comment.globalId}}">「{{this.comment.content}}」</a>中提及了你
           </mj-text>
           <mj-spacer height="16px" />
           <mj-raw>
@@ -190,7 +190,7 @@
             你在作品
             <a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}">《{{this.comment.article.title}}》</a>
             中的評論
-            <a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}">「{{this.comment.content}}」</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}#{{this.comment.globalId}}">「{{this.comment.content}}」</a>
             被
             <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}">{{this.actor.displayName}}</a>
             回覆
