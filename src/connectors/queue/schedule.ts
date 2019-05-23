@@ -40,7 +40,7 @@ class ScheduleQueue {
   start = async () => {
     this.q = createQueue(this.queueName)
     this.addConsumers()
-    await this.clearRepeatJobs()
+    await this.clearDelayedJobs()
     await this.addRepeatJobs()
   }
 
@@ -160,11 +160,11 @@ class ScheduleQueue {
   /**
    * Producers
    */
-  clearRepeatJobs = async () => {
+  clearDelayedJobs = async () => {
     try {
-      const jobs = await this.q.getRepeatableJobs()
+      const jobs = await this.q.getDelayed()
       jobs.forEach(async job => {
-        await this.q.removeRepeatableByKey(job.key)
+        await job.remove()
       })
     } catch (e) {
       console.error('failed to clear repeat jobs', e)
