@@ -64,13 +64,14 @@ export class IPFS {
       // check if it's data url
       if (imageSrc && !imageSrc.startsWith('data:')) {
         // assuming it's http url
-        const imagePath = `${index}.${imageSrc.split('.').slice(-1)[0]}`
+        const imagePath = imageSrc.split('/').pop() || index.toString()
         const mutateOrigin = () => $(image).attr('src', imagePath)
         assetsPromises.push(
           this.getDataAsFile(imageSrc, `${prefix}/${imagePath}`, mutateOrigin)
         )
       }
     })
+
     const assets = await Promise.all(assetsPromises)
 
     // bundle html
