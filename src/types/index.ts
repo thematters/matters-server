@@ -5,6 +5,7 @@ import notice from './notice'
 import scalars from './scalars'
 import system from './system'
 import user from './user'
+import response from './response'
 
 const Root = /* GraphQL */ `
   type Query
@@ -17,4 +18,14 @@ const Root = /* GraphQL */ `
   }
 `
 
-export default [Root, article, comment, draft, notice, scalars, system, user]
+export default [
+  Root,
+  article,
+  comment,
+  draft,
+  notice,
+  scalars,
+  system,
+  user,
+  response
+]

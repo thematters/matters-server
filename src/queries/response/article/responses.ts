@@ -1,0 +1,114 @@
+import _last from 'lodash/last'
+
+import { fromGlobalId, toGlobalId } from 'common/utils'
+import { ArticleService, CommentService } from 'connectors'
+import { ArticleToResponsesResolver } from 'definitions'
+
+const getComparedValue = async (
+  articleId: string,
+  { type, id }: { [key: string]: any },
+  articleService: InstanceType<typeof ArticleService>,
+  commentService: InstanceType<typeof CommentService>
+): Promise<any> => {
+  let data
+  switch (type) {
+    case 'Article': {
+      data = await articleService.findCollection({ entranceId: id, articleId })
+      break
+    }
+    case 'Comment': {
+      data = await commentService.baseFindById(id)
+      break
+    }
+  }
+  if (data) {
+    return data.createdAt
+  }
+  return undefined
+}
+
+const resolver: ArticleToResponsesResolver = async (
+  { id },
+  { input: { sort, first, ...restParams } },
+  { dataSources: { articleService, commentService } }
+) => {
+  const order = sort === 'oldest' ? 'asc' : 'desc'
+  const state = 'active'
+
+  // set default first as 10, and use null for querying all.
+  if (!restParams.before && typeof first === 'undefined') {
+    first = 8
+  }
+
+  let after, before
+  if (restParams.after) {
+    after = fromGlobalId(restParams.after).id
+  }
+  if (restParams.before) {
+    before = fromGlobalId(restParams.before).id
+  }
+
+  // fetch order and range based on Collection and Comment
+  const [sources, range] = await Promise.all([
+    articleService.findResponses({
+      id,
+      order,
+      state,
+      after,
+      before,
+      first
+    }),
+    articleService.responseRange({
+      id,
+      order,
+      state
+    })
+  ])
+
+  // fetch Article
+  const items = await Promise.all(
+    sources.map((source: { [key: string]: any }) => {
+      switch (source.type) {
+        case 'Article': {
+          return articleService.baseFindById(source.entityId)
+        }
+        case 'Comment': {
+          return commentService.baseFindById(source.entityId)
+        }
+      }
+    })
+  )
+
+  // re-process edges
+  const edges = items.map((item: { [key: string]: any }) => {
+    const type = !!item.title ? 'Article' : 'Comment'
+    return {
+      cursor: toGlobalId({ type, id: item.id }),
+      node: { type, ...item }
+    }
+  })
+
+  // handle page info
+  const head = sources[0] as { [key: string]: any }
+  const headSeq = head && parseInt(head.seq, 10)
+
+  const tail = _last(sources) as { [key: string]: any }
+  const tailSeq = tail && parseInt(tail.seq, 10)
+
+  const edgeHead = edges[0]
+  const edgeTail = _last(edges)
+
+  return {
+    edges,
+    totalCount: range.count,
+    pageInfo: {
+      startCursor: edgeHead ? edgeHead.cursor : '',
+      endCursor: edgeTail ? edgeTail.cursor : '',
+      hasPreviousPage:
+        order === 'asc' ? headSeq > range.min : headSeq < range.max,
+      hasNextPage: order === 'asc' ? tailSeq < range.max : tailSeq > range.min
+    }
+  }
+}
+
+export default resolver

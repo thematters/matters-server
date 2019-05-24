@@ -60,6 +60,7 @@ type Article implements Node {
   pinCommentLeft: Int!
   pinnedComments: [Comment!]
   comments(input: CommentsInput!): CommentConnection!
+  responses(input: ResponsesInput!): ResponseConnection!
 }
 
 type ArticleConnection implements Connection {
@@ -942,6 +943,33 @@ input ReportsInput {
 input ResetPasswordInput {
   password: String!
   codeId: ID!
+}
+
+union Response = Article | Comment
+
+type ResponseConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ResponseEdge!]
+}
+
+type ResponseEdge {
+  cursor: String!
+  node: Response!
+}
+
+input ResponsesInput {
+  sort: ResponseSort
+  after: String
+  before: String
+  includeAfter: Boolean
+  includeBefore: Boolean
+  first: Int
+}
+
+enum ResponseSort {
+  oldest
+  newest
 }
 
 enum Role {
