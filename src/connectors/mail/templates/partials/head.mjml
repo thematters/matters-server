@@ -6,6 +6,7 @@
   <mj-class name="verification-code" color="#0d6763" font-size="24px" padding-top="16px" font-weight="500" />
   <mj-class name="cta-button" width="100%" color="white" font-size="16px" border-radius="0" height="47px" padding="24px 0 0 0" background-color="#0d6763" inner-padding="0" />
   <mj-class name="color-grey-dark" color="#999c9d" />
+  <mj-class name="color-grey" color="#b3b3b3" />
   <mj-class name="subtitle" font-size="16px" font-weight="700" />
 </mj-attributes>
 

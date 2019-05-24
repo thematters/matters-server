@@ -40,7 +40,7 @@ class ScheduleQueue {
   start = async () => {
     this.q = createQueue(this.queueName)
     this.addConsumers()
-    await this.clearRepeatJobs()
+    await this.clearDelayedJobs()
     await this.addRepeatJobs()
   }
 
@@ -120,6 +120,10 @@ class ScheduleQueue {
             user.id
           )
 
+          if (!notices || notices.length <= 0) {
+            return
+          }
+
           const filterNotices = (type: string) =>
             notices.filter(notice => notice.noticeType === type)
 
@@ -156,11 +160,11 @@ class ScheduleQueue {
   /**
    * Producers
    */
-  clearRepeatJobs = async () => {
+  clearDelayedJobs = async () => {
     try {
-      const jobs = await this.q.getRepeatableJobs()
+      const jobs = await this.q.getDelayed()
       jobs.forEach(async job => {
-        await this.q.removeRepeatableByKey(job.key)
+        await job.remove()
       })
     } catch (e) {
       console.error('failed to clear repeat jobs', e)
@@ -240,7 +244,7 @@ class ScheduleQueue {
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 7 * * *', tz: 'Asia/Hong_Kong' }
+        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
   }

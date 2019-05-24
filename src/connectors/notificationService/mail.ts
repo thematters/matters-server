@@ -5,8 +5,8 @@ import { i18n } from 'common/utils/i18n'
 import { environment } from 'common/environment'
 import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPES } from 'common/enums'
 import notificationQueue from 'connectors/queue/notification'
-import { UserService, ArticleService } from 'connectors'
-import { makeSummary } from 'common/utils'
+import { UserService, ArticleService, SystemService } from 'connectors'
+import { makeSummary, toGlobalId } from 'common/utils'
 
 const trans = {
   verificationCode: {
@@ -48,8 +48,10 @@ const trans = {
     zh_hans: 'Matters | 你邀请的好友已进站'
   }),
   dailySummary: i18n<{ displayName: string }>({
-    zh_hant: ({ displayName }) => `${displayName}，這是專屬於你的 Matters 日報`,
-    zh_hans: ({ displayName }) => `${displayName}，这是专属于你的 Matters 日报`
+    zh_hant: ({ displayName }) =>
+      `🐿️ ${displayName}，這是專屬於你的 Matters 日報`,
+    zh_hans: ({ displayName }) =>
+      `🐿️ ${displayName}，这是专属于你的 Matters 日报`
   })
 }
 
@@ -83,6 +85,7 @@ class Mail {
           // @ts-ignore https://github.com/sendgrid/sendgrid-nodejs/issues/729
           dynamic_template_data: {
             subject,
+            siteDomain: environment.siteDomain,
             code,
             type: codeTypeStr,
             recipient
@@ -113,6 +116,7 @@ class Mail {
           // @ts-ignore
           dynamic_template_data: {
             subject: trans.registerSuccess(language, {}),
+            siteDomain: environment.siteDomain,
             recipient
           }
         }
@@ -150,6 +154,7 @@ class Mail {
           // @ts-ignore
           dynamic_template_data: {
             subject,
+            siteDomain: environment.siteDomain,
             recipient,
             sender,
             invitation: type === 'invitation',
@@ -186,6 +191,7 @@ class Mail {
           // @ts-ignore
           dynamic_template_data: {
             subject,
+            siteDomain: environment.siteDomain,
             recipient,
             email,
             userName
@@ -219,20 +225,31 @@ class Mail {
   }) => {
     const userService = new UserService()
     const articleService = new ArticleService()
+    const systemService = new SystemService()
 
     const templateId = EMAIL_TEMPLATE_ID.dailySummary[language]
     const subject = trans.dailySummary(language, {
       displayName: recipient.displayName
     })
 
-    const getUserDigest = (user: User | undefined) => {
+    const getUserDigest = async (user: User | undefined) => {
       if (!user) {
         return
       }
+
+      let avatar = user.avatar
+      if (avatar) {
+        const url = await systemService.findAssetUrl(avatar)
+        if (url) {
+          avatar = url
+        }
+      }
+
       return {
         id: user.id,
         userName: user.userName,
-        displayName: user.displayName
+        displayName: user.displayName,
+        avatar
       }
     }
     const getArticleDigest = async (article: any | undefined) => {
@@ -241,9 +258,11 @@ class Mail {
       }
       return {
         id: article.id,
-        author: getUserDigest(await userService.baseFindById(article.authorId)),
+        author: await getUserDigest(
+          await userService.baseFindById(article.authorId)
+        ),
         title: article.title,
-        slug: article.slug,
+        slug: encodeURIComponent(article.slug),
         mediaHash: article.mediaHash
       }
     }
@@ -256,60 +275,66 @@ class Mail {
 
       return {
         id: comment.id,
+        globalId: toGlobalId({ type: 'Comment', id: comment.id }),
         content: content.length === comment.content ? content : `${content}…`,
         article: await getArticleDigest(
           await articleService.baseFindById(comment.articleId)
         )
       }
     }
+    const getActors = async (actors: User[]) => {
+      return await Promise.all(
+        actors.map(async actor => await getUserDigest(actor))
+      )
+    }
 
     const user_new_follower = await Promise.all(
       notices.user_new_follower.map(async ({ actors = [] }) => ({
-        actors: actors.map(actor => getUserDigest(actor)),
+        actors: await getActors(actors),
         actorCount: actors.length > 3 ? actors.length : false
       }))
     )
     const article_new_collected = await Promise.all(
       notices.article_new_collected.map(async ({ actors = [], entities }) => ({
-        actor: getUserDigest(actors[0]),
+        actor: await getUserDigest(actors[0]),
         article: await getArticleDigest(entities && entities.target)
       }))
     )
     const article_new_appreciation = await Promise.all(
       notices.article_new_appreciation.map(
         async ({ actors = [], entities }) => ({
-          actors: actors.map(actor => getUserDigest(actor)),
+          actors: await getActors(actors),
           article: await getArticleDigest(entities && entities.target)
         })
       )
     )
     const article_mentioned_you = await Promise.all(
       notices.article_mentioned_you.map(async ({ actors = [], entities }) => ({
-        actor: getUserDigest(actors[0]),
+        actor: await getUserDigest(actors[0]),
         article: await getArticleDigest(entities && entities.target)
       }))
     )
     const article_new_subscriber = await Promise.all(
       notices.article_new_subscriber.map(async ({ actors = [], entities }) => ({
-        actors: actors.map(actor => getUserDigest(actor)),
+        actors: await getActors(actors),
         article: await getArticleDigest(entities && entities.target)
       }))
     )
     const article_new_comment = await Promise.all(
-      notices.article_new_subscriber.map(async ({ actors = [], entities }) => ({
-        actors: actors.map(actor => getUserDigest(actor)),
+      notices.article_new_comment.map(async ({ actors = [], entities }) => ({
+        actors: await getActors(actors),
         article: await getArticleDigest(entities && entities.target)
       }))
     )
     const comment_new_reply = await Promise.all(
       notices.comment_new_reply.map(async ({ actors = [], entities }) => ({
-        actor: getUserDigest(actors[0]),
+        actor: await getUserDigest(actors[0]),
         comment: await getCommentDigest(entities && entities.target)
       }))
     )
     const comment_mentioned_you = await Promise.all(
       notices.comment_mentioned_you.map(async ({ actors = [], entities }) => ({
-        actor: getUserDigest(actors[0]),
+        actor: await getUserDigest(actors[0]),
         comment: await getCommentDigest(entities && entities.target)
       }))
     )
@@ -350,6 +375,7 @@ class Mail {
           // @ts-ignore
           dynamic_template_data: {
             subject,
+            siteDomain: environment.siteDomain,
             recipient,
             ...data
           }
