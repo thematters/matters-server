@@ -1,4 +1,5 @@
 import slugify from '@matters/slugify'
+import * as cheerio from 'cheerio'
 
 import { toGlobalId, countWords, makeSummary } from 'common/utils'
 
