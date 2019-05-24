@@ -1251,7 +1251,12 @@ export class ArticleService extends BaseService {
   }) => {
     const query = this.makeResponseQuery({ id, order, state })
     if (after) {
-      const subQuery = this.makeResponseFilterQuery({ id, order, state, entityId: after })
+      const subQuery = this.makeResponseFilterQuery({
+        id,
+        order,
+        state,
+        entityId: after
+      })
       if (includeAfter) {
         query.andWhere('seq', order === 'asc' ? '>=' : '<=', subQuery)
       } else {
@@ -1259,7 +1264,12 @@ export class ArticleService extends BaseService {
       }
     }
     if (before) {
-      const subQuery = this.makeResponseFilterQuery({ id, order, state, entityId: before })
+      const subQuery = this.makeResponseFilterQuery({
+        id,
+        order,
+        state,
+        entityId: before
+      })
       if (includeBefore) {
         query.andWhere('seq', order === 'asc' ? '<=' : '>=', subQuery)
       } else {
