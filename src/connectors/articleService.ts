@@ -1236,7 +1236,9 @@ export class ArticleService extends BaseService {
     state = 'active',
     after,
     before,
-    first
+    first,
+    includeAfter = false,
+    includeBefore = false
   }: {
     id: string
     order?: string
@@ -1244,26 +1246,30 @@ export class ArticleService extends BaseService {
     after?: any
     before?: any
     first?: number
+    includeAfter?: boolean
+    includeBefore?: boolean
   }) => {
     const query = this.makeResponseQuery({ id, order, state })
     if (after) {
-      query.andWhere(
-        'seq',
-        order === 'asc' ? '>=' : '<=',
-        this.makeResponseFilterQuery({ id, order, state, entityId: after })
-      )
+      const subQuery = this.makeResponseFilterQuery({ id, order, state, entityId: after })
+      if (includeAfter) {
+        query.andWhere('seq', order === 'asc' ? '>=' : '<=', subQuery)
+      } else {
+        query.andWhere('seq', order === 'asc' ? '>' : '<', subQuery)
+      }
     }
     if (before) {
-      query.andWhere(
-        'seq',
-        order === 'asc' ? '<=' : '>=',
-        this.makeResponseFilterQuery({ id, order, state, entityId: before })
-      )
+      const subQuery = this.makeResponseFilterQuery({ id, order, state, entityId: before })
+      if (includeBefore) {
+        query.andWhere('seq', order === 'asc' ? '<=' : '>=', subQuery)
+      } else {
+        query.andWhere('seq', order === 'asc' ? '<' : '>', subQuery)
+      }
     }
     if (first) {
       query.limit(first)
     }
-    console.debug(query.toString())
+
     return query
   }
 

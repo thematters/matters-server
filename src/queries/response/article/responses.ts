@@ -1,31 +1,7 @@
 import _last from 'lodash/last'
 
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { ArticleService, CommentService } from 'connectors'
 import { ArticleToResponsesResolver } from 'definitions'
-
-const getComparedValue = async (
-  articleId: string,
-  { type, id }: { [key: string]: any },
-  articleService: InstanceType<typeof ArticleService>,
-  commentService: InstanceType<typeof CommentService>
-): Promise<any> => {
-  let data
-  switch (type) {
-    case 'Article': {
-      data = await articleService.findCollection({ entranceId: id, articleId })
-      break
-    }
-    case 'Comment': {
-      data = await commentService.baseFindById(id)
-      break
-    }
-  }
-  if (data) {
-    return data.createdAt
-  }
-  return undefined
-}
 
 const resolver: ArticleToResponsesResolver = async (
   { id },
@@ -49,6 +25,7 @@ const resolver: ArticleToResponsesResolver = async (
   }
 
   // fetch order and range based on Collection and Comment
+  const { includeAfter, includeBefore } = restParams
   const [sources, range] = await Promise.all([
     articleService.findResponses({
       id,
@@ -56,7 +33,9 @@ const resolver: ArticleToResponsesResolver = async (
       state,
       after,
       before,
-      first
+      first,
+      includeAfter,
+      includeBefore
     }),
     articleService.responseRange({
       id,
