@@ -59,18 +59,29 @@ export class IPFS {
     > = []
     const $ = cheerio.load(html, { decodeEntities: false })
 
-    $('img').each((index, image) => {
-      const imageSrc = $(image).attr('src')
+    const getSrc = (index: number, element: CheerioElement) => {
+      const elementSrc = $(element).attr('src')
       // check if it's data url
-      if (imageSrc && !imageSrc.startsWith('data:')) {
+      if (elementSrc && !elementSrc.startsWith('data:')) {
         // assuming it's http url
-        const imagePath = `${index}.${imageSrc.split('.').slice(-1)[0]}`
-        const mutateOrigin = () => $(image).attr('src', imagePath)
+        const assetPath =
+          elementSrc.split('/').pop() ||
+          `${index.toString()}-${element.tagName}`
+        const mutateOrigin = () => $(element).attr('src', assetPath)
         assetsPromises.push(
-          this.getDataAsFile(imageSrc, `${prefix}/${imagePath}`, mutateOrigin)
+          this.getDataAsFile(elementSrc, `${prefix}/${assetPath}`, mutateOrigin)
         )
       }
+    }
+
+    $('img').each((index, image) => {
+      getSrc(index, image)
     })
+
+    $('audio source').each((index, audio) => {
+      getSrc(index, audio)
+    })
+
     const assets = await Promise.all(assetsPromises)
 
     // bundle html
