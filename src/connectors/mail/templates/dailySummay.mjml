@@ -174,7 +174,7 @@
           </mj-raw>
           <mj-text mj-class="color-grey-dark">
             <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}?utm_medium=email">{{this.actor.displayName}}</a>
-            在評論<a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}#{{this.comment.globalId}}?utm_medium=email">「{{this.comment.content}}」</a>中提及了你
+            在評論<a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}?utm_medium=email#{{this.comment.globalId}}">「{{this.comment.content}}」</a>中提及了你
           </mj-text>
           <mj-spacer height="16px" />
           <mj-raw>
@@ -190,7 +190,7 @@
             你在作品
             <a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}?utm_medium=email">《{{this.comment.article.title}}》</a>
             中的評論
-            <a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}#{{this.comment.globalId}}?utm_medium=email">「{{this.comment.content}}」</a>
+            <a class="link-black" href="{{siteDomain}}/@{{this.comment.article.author.userName}}/{{this.comment.article.slug}}-{{this.comment.article.mediaHash}}?utm_medium=email#{{this.comment.globalId}}">「{{this.comment.content}}」</a>
             被
             <a class="link-black" href="{{siteDomain}}/@{{this.actor.userName}}?utm_medium=email">{{this.actor.displayName}}</a>
             回覆
