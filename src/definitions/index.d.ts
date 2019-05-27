@@ -133,3 +133,5 @@ export type Item = { id: string; [key: string]: any }
 export type ItemData = { [key: string]: any }
 
 export type LANGUAGES = keyof typeof LANGUAGE
+
+export type ResponseType = 'Article' | 'Comment'
