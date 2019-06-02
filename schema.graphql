@@ -60,6 +60,7 @@ type Article implements Node {
   pinCommentLeft: Int!
   pinnedComments: [Comment!]
   comments(input: CommentsInput!): CommentConnection!
+  responseCount: Int!
   responses(input: ResponsesInput!): ResponseConnection!
 }
 
