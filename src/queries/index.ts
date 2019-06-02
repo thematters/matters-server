@@ -7,5 +7,15 @@ import comment from './comment'
 import draft from './draft'
 import notice from './notice'
 import system from './system'
+import response from './response'
 
-export default merge(scalars, article, comment, user, draft, notice, system)
+export default merge(
+  scalars,
+  article,
+  comment,
+  user,
+  draft,
+  notice,
+  system,
+  response
+)

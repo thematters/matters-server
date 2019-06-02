@@ -1,9 +1,9 @@
 <mj-column>
-  <mj-image css-class="download-image" href="https://matters.news/download/?p=ios" src="https://marketing-image-production.s3.amazonaws.com/uploads/38bccffcea442511bcc6ab058c438b93afd825889955e7daaf4203289651fdf85c8437755c9147d224547d186c8b1617bcf1786b3e2a855082e8b7d78cf30f29.png" />
+  <mj-image css-class="download-image" href="{{siteDomain}}/download/?p=ios" src="https://marketing-image-production.s3.amazonaws.com/uploads/38bccffcea442511bcc6ab058c438b93afd825889955e7daaf4203289651fdf85c8437755c9147d224547d186c8b1617bcf1786b3e2a855082e8b7d78cf30f29.png" />
 </mj-column>
 
 <mj-column>
-  <mj-image css-class="download-image" href="https://matters.news/download/?p=android" src="https://marketing-image-production.s3.amazonaws.com/uploads/f769eddd94a6c7ed317664e732107e84a2a382575bf110bd5cef71cb844707bc374e9c8f830858fda0ad7a94661522a20756b9cb453cb54ad6f2af3fc23bc1ea.png" />
+  <mj-image css-class="download-image" href="{{siteDomain}}/download/?p=android" src="https://marketing-image-production.s3.amazonaws.com/uploads/f769eddd94a6c7ed317664e732107e84a2a382575bf110bd5cef71cb844707bc374e9c8f830858fda0ad7a94661522a20756b9cb453cb54ad6f2af3fc23bc1ea.png" />
 </mj-column>
 
 <mj-column>

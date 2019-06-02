@@ -11,7 +11,7 @@ import {
   USER_ACTION,
   TRANSACTION_PURPOSE
 } from 'common/enums'
-import { ItemData, GQLSearchInput } from 'definitions'
+import { ItemData, GQLSearchInput, GQLResponsesInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
 import {
   stripHtml,
@@ -1081,7 +1081,6 @@ export class ArticleService extends BaseService {
   /**
    * Delete a collection for article
    */
-
   deleteCollection = async ({ entranceId }: { entranceId: string }) => {
     const table = 'collection'
     const items = await this.knex('collection')
@@ -1091,6 +1090,21 @@ export class ArticleService extends BaseService {
 
     return this.baseBatchDelete(ids, table)
   }
+
+  /**
+   * Find single collection by given entrance id and article id.
+   */
+  findCollection = async ({
+    entranceId,
+    articleId
+  }: {
+    entranceId: string | number
+    articleId: string
+  }) =>
+    await this.knex('collection')
+      .select()
+      .where({ entranceId, articleId })
+      .first()
 
   /**
    * Find an article's collections by a given article id.
@@ -1148,5 +1162,146 @@ export class ArticleService extends BaseService {
       .countDistinct('entrance_id')
       .first()
     return parseInt(result.count, 10)
+  }
+
+  /*********************************
+   *                               *
+   *           Response            *
+   *                               *
+   *********************************/
+
+  makeResponseQuery = ({
+    id,
+    order,
+    state,
+    fields = '*'
+  }: {
+    id: string
+    order: string
+    state?: string
+    fields?: string
+  }) =>
+    this.knex.select(fields).from((wrapper: any) => {
+      wrapper
+        .select(
+          this.knex.raw('row_number() over (order by created_at) as seq, *')
+        )
+        .from((knex: any) => {
+          knex
+            .union((operator: any) => {
+              operator
+                .select(
+                  this.knex.raw(
+                    "'Article' as type, entrance_id as entity_id, collection.created_at"
+                  )
+                )
+                .from('collection')
+                .rightJoin('article', 'collection.article_id', 'article.id')
+                .where({ 'collection.article_id': id, 'article.state': state })
+            })
+            .union((operator: any) => {
+              operator
+                .select(
+                  this.knex.raw(
+                    "'Comment' as type, id as entity_id, created_at"
+                  )
+                )
+                .from('comment')
+                .where({ articleId: id, parentCommentId: null, state })
+            })
+            .as('base_sources')
+        })
+        .orderBy('created_at', order)
+        .as('sources')
+    })
+
+  makeResponseFilterQuery = ({
+    id,
+    entityId,
+    order,
+    state
+  }: {
+    id: string
+    entityId: string
+    order: string
+    state?: string
+  }) => {
+    const query = this.makeResponseQuery({ id, order, state, fields: 'seq' })
+    return query.where({ entityId }).first()
+  }
+
+  findResponses = ({
+    id,
+    order = 'desc',
+    state = 'active',
+    after,
+    before,
+    first,
+    includeAfter = false,
+    includeBefore = false
+  }: {
+    id: string
+    order?: string
+    state?: string
+    after?: any
+    before?: any
+    first?: number
+    includeAfter?: boolean
+    includeBefore?: boolean
+  }) => {
+    const query = this.makeResponseQuery({ id, order, state })
+    if (after) {
+      const subQuery = this.makeResponseFilterQuery({
+        id,
+        order,
+        state,
+        entityId: after
+      })
+      if (includeAfter) {
+        query.andWhere('seq', order === 'asc' ? '>=' : '<=', subQuery)
+      } else {
+        query.andWhere('seq', order === 'asc' ? '>' : '<', subQuery)
+      }
+    }
+    if (before) {
+      const subQuery = this.makeResponseFilterQuery({
+        id,
+        order,
+        state,
+        entityId: before
+      })
+      if (includeBefore) {
+        query.andWhere('seq', order === 'asc' ? '<=' : '>=', subQuery)
+      } else {
+        query.andWhere('seq', order === 'asc' ? '<' : '>', subQuery)
+      }
+    }
+    if (first) {
+      query.limit(first)
+    }
+
+    return query
+  }
+
+  responseRange = async ({
+    id,
+    order,
+    state
+  }: {
+    id: string
+    order: string
+    state: string
+  }) => {
+    const query = this.makeResponseQuery({ id, order, state, fields: '' })
+    const { count, max, min } = await query
+      .max('seq')
+      .min('seq')
+      .count()
+      .first()
+    return {
+      count: parseInt(count, 10),
+      max: parseInt(max, 10),
+      min: parseInt(min, 10)
+    }
   }
 }

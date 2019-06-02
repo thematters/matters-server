@@ -16,6 +16,13 @@ import {
   GQLCommentCommentsInput
 } from 'definitions/schema'
 
+type CommentFilter = {
+  articleId?: string
+  authorId?: string
+  state?: string
+  parentCommentId?: string | null
+}
+
 export class CommentService extends BaseService {
   constructor() {
     super('comment')
@@ -167,61 +174,67 @@ export class CommentService extends BaseService {
   }
 
   /**
-   * Find comments by a given article id.
+   * Find comments.
    */
-  findByArticle = async ({
-    id,
-    author,
-    sort,
-    parent
-  }: GQLCommentsInput & { id: string }) => {
-    let where: { [key: string]: string | boolean } = { articleId: id }
+  find = async ({
+    order = 'desc',
+    filter,
+    after,
+    first,
+    before,
+    includeAfter = false,
+    includeBefore = false
+  }: GQLCommentsInput & { filter: CommentFilter; order?: string }) => {
+    // build where clause
+    let where = filter
 
-    let query = null
-    const sortCreatedAt = (by: 'desc' | 'asc') =>
-      this.knex
-        .select()
-        .from(this.table)
-        .where(where)
-        .orderBy('created_at', by)
+    const query = this.knex
+      .select()
+      .from(this.table)
+      .where(where)
+      .orderBy('created_at', order)
 
-    if (author) {
-      where = {
-        ...where,
-        authorId: author,
-        // filter inactive comments of author, used in UserComments page
-        state: COMMENT_STATE.active
+    if (before) {
+      if (includeBefore) {
+        query.andWhere('id', order === 'asc' ? '<=' : '>=', before)
+      } else {
+        query.andWhere('id', order === 'asc' ? '<' : '>', before)
       }
     }
 
-    if (sort == 'upvotes') {
-      query = this.knex('comment')
-        .select('comment.*')
-        .countDistinct('votes.user_id as upvotes')
-        .leftJoin(
-          this.knex
-            .select('target_id', 'user_id')
-            .from('action_comment')
-            .as('votes'),
-          'votes.target_id',
-          'comment.id'
-        )
-        .groupBy('comment.id')
-        .where(where)
-        .orderBy('upvotes', 'desc')
-    } else if (sort === 'oldest') {
-      query = sortCreatedAt('asc')
-    } else if (sort === 'newest') {
-      query = sortCreatedAt('desc')
-    } else {
-      query = sortCreatedAt('desc')
+    if (after) {
+      if (includeAfter) {
+        query.andWhere('id', order === 'asc' ? '>=' : '<=', after)
+      } else {
+        query.andWhere('id', order === 'asc' ? '>' : '<', after)
+      }
     }
 
-    if (parent) {
-      query = query.whereNull('parent_comment_id')
+    if (first) {
+      query.limit(first)
     }
 
     return query
+  }
+
+  /**
+   * Find id range with given filter
+   */
+  range = async (filter: CommentFilter) => {
+    const { count, max, min } = await this.knex
+      .select()
+      .from(this.table)
+      .where(filter)
+      .min('id')
+      .max('id')
+      .count()
+      .first()
+
+    return {
+      count: parseInt(count, 10),
+      min: parseInt(min, 10),
+      max: parseInt(max, 10)
+    }
   }
 
   /*********************************

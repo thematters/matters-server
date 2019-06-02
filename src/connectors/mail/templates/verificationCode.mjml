@@ -2,21 +2,19 @@
   <mj-head>
     <mj-include path="./partials/head.mjml" />
     <mj-title>Matters | {{type}}驗證碼</mj-title>
+    <mj-preview>你的驗證碼是 {{code}}</mj-preview>
   </mj-head>
 
-  <mj-body mj-class="body">
-    <mj-text mj-class="preheader" css-class="preheader">
-      你的驗證碼是 {{code}}
-    </mj-text>
-
+  <mj-body mj-class="body" css-class="body">
     <mj-wrapper mj-class="wrapper">
       <mj-include path="./partials/header.mjml" />
 
-      <mj-section mj-class="card">
+      <mj-section css-class="card">
         <mj-column>
           <mj-include path="./partials/greeting.mjml" />
 
-          <mj-text padding-top="16px">
+          <mj-spacer height="16px" />
+          <mj-text>
             你進行{{type}}的驗證碼是（如果不是本人，請不要做任何操作）：
           </mj-text>
 

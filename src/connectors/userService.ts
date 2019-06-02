@@ -270,7 +270,7 @@ export class UserService extends BaseService {
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
-        fields: ['displayName^5', 'userName^10', 'description']
+        fields: ['displayName^5', 'userName^10']
       })
       .from(offset)
       .size(first)
@@ -300,6 +300,12 @@ export class UserService extends BaseService {
 
       const suggested = _.get(suggest, 'userName.0.options.0._id')
       if (suggested) {
+        // remove duplication
+        const index = ids.indexOf(suggested)
+        if (index > -1) {
+          ids.splice(index, 1)
+        }
+        // add to start
         ids.unshift(suggested)
         ids = ids.slice(0, first)
       }

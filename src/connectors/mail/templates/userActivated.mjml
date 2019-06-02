@@ -4,27 +4,27 @@
     <mj-title>Matters | 你邀請的好友已進站</mj-title>
   </mj-head>
 
-  <mj-body mj-class="body">
+  <mj-body mj-class="body" css-class="body">
     <mj-wrapper mj-class="wrapper">
       <mj-include path="./partials/header.mjml" />
 
-      <mj-section mj-class="card">
+      <mj-section css-class="card">
         <mj-column>
           <mj-include path="./partials/greeting.mjml" />
-
-          <mj-text padding-top="16px">
+          <mj-spacer height="16px" />
+          <mj-text>
             恭喜你，你的好友 {{ email }} 已透過你的邀請註冊成功，並開啟了創作者資格。感謝你們一起搭建 Matters 社群，5 MAT 獎勵已送達。
           </mj-text>
 
-          <mj-button mj-class="cta-button" href="https://matters.news/@{{ userName }}">
+          <mj-button mj-class="cta-button" href="{{siteDomain}}/@{{ userName }}?utm_medium=email">
             查看好友 →
           </mj-button>
-
-          <mj-text padding-top="32px">
+          <mj-spacer height="32px" />
+          <mj-text>
             期待你持續在 Matters 上發佈作品、收穫 MAT，獲取邀請資格，為我們介紹更多新朋友。
           </mj-text>
-
-          <mj-text padding-top="16px">
+          <mj-spacer height="16px" />
+          <mj-text>
             Matters 會第一時間在<a class="link" href="https://www.facebook.com/MattersLab2018">臉書</a>和<a class="link" href="https://weibo.com/6695370718/profile?topnav=1&wvr=6">微博帳號 MattersLab</a> 與大家分享新動態，歡迎關注。
           </mj-text>
 

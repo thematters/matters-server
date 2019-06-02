@@ -1,55 +1,60 @@
 import _ from 'lodash'
 
 import { ArticleToRelatedArticlesResolver } from 'definitions'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { connectionFromArray } from 'common/utils'
 import logger from 'common/logger'
 import { ARTICLE_STATE } from 'common/enums'
-import { environment } from 'common/environment'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
   { authorId, id, title },
   { input },
-  { viewer, dataSources: { articleService, tagService } }
+  { dataSources: { articleService, tagService } }
 ) => {
-  // return 5 recommendations by default
-  const recommendationSize = input.first || 5
-  // const offset = cursorToIndex(input.after) + 1
+  // buffer for archived article and random draw
+  const buffer = 7
+
+  // return 3 recommendations by default
+  const recommendationSize = input.first || 3
 
   // helper function to prevent duplicates and origin article
-  const addRec = (rec: string[], extra: string[]) =>
-    _.without(_.uniq(rec.concat(extra)), id)
+  const addRec = (rec: any[], extra: any[]) =>
+    _.uniqBy(rec.concat(extra), 'id').filter(rec => rec.id !== id)
 
   let ids: string[] = []
+  let articles: any[] = []
   // get initial recommendation
   try {
-    // TODO: filter archived article
     const relatedArticles = await articleService.related({
       id,
-      size: recommendationSize
+      size: recommendationSize + buffer
     })
 
-    // pull out ids
-    ids = relatedArticles.map(({ id }) => id)
-
     logger.info(
-      `[recommendation] article ${id}, title ${title}, ES result ${relatedArticles.map(
+      `[recommendation] article ${id}, title ${title}, ES result ${articles.map(
         ({ id }) => id
       )} `
     )
+
+    // get articles
+    articles = await articleService.dataloader
+      .loadMany(relatedArticles.map(({ id }) => id))
+      .then(allArticles =>
+        allArticles.filter(({ state }) => state === ARTICLE_STATE.active)
+      )
   } catch (err) {
     logger.error(`error in recommendation via ES: ${JSON.stringify(err)}`)
   }
 
-  // fall back to using tag
-  if (ids.length < recommendationSize) {
+  // fall back to tags
+  if (articles.length < recommendationSize + buffer) {
     const tagIds = await articleService.findTagIds({ id })
 
     for (const tagId of tagIds) {
-      if (ids.length >= recommendationSize) {
+      if (articles.length >= recommendationSize + buffer) {
         break
       }
 
-      let articleIds = await tagService.findArticleIds({
+      const articleIds = await tagService.findArticleIds({
         id: tagId,
         limit: recommendationSize - ids.length
       })
@@ -57,30 +62,37 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       logger.info(
         `[recommendation] article ${id}, title ${title}, tag result ${articleIds} `
       )
-      ids = addRec(ids, articleIds)
+
+      // get articles and append
+      const articlesFromTag = await articleService.dataloader.loadMany(
+        articleIds
+      )
+
+      articles = addRec(articles, articlesFromTag)
     }
   }
 
-  // fall back to using author
-  if (ids.length < recommendationSize) {
-    let articles = await articleService.findByAuthor(authorId, {
+  // fall back to author
+  if (articles.length < recommendationSize + buffer) {
+    let articlesFromAuthor = await articleService.findByAuthor(authorId, {
       state: ARTICLE_STATE.active
     })
-    const newIds = articles.map(({ id }: { id: string }) => id)
-    ids = addRec(ids, newIds)
     logger.info(
-      `[recommendation] article ${id}, title ${title}, author result ${newIds} `
+      `[recommendation] article ${id}, title ${title}, author result ${articlesFromAuthor.map(
+        ({ id }: { id: string }) => id
+      )} `
     )
+    articles = addRec(articles, articlesFromAuthor)
   }
 
-  logger.info(
-    `[recommendation] article ${id}, title ${title}, final result ${ids} `
+  // random pick for last few elements
+  const randomPick = 1
+  let pick = articles.slice(0, recommendationSize - randomPick)
+  pick = pick.concat(
+    _.sampleSize(articles.slice(recommendationSize - randomPick), randomPick)
   )
 
-  return connectionFromPromisedArray(
-    articleService.dataloader.loadMany(ids),
-    input
-  )
+  return connectionFromArray(pick, input)
 }
 
 export default resolver

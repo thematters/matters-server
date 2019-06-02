@@ -262,7 +262,8 @@ export const QUEUE_JOB = {
   pushNotification: 'pushNotification',
   // repeat jobs
   publishPendingDrafts: 'publishPendingDrafts',
-  refreshView: 'refreshView'
+  refreshView: 'refreshView',
+  sendDailySummaryEmail: 'sendDailySummaryEmail'
 }
 
 export const QUEUE_NAME = {
@@ -297,6 +298,11 @@ export const EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-6e0a8f374ed04b068baabaf2db65b945',
     zh_hans: 'd-b2758620963644ff88f6ec834cb67275',
     en: 'd-6e0a8f374ed04b068baabaf2db65b945'
+  },
+  dailySummary: {
+    zh_hant: 'd-047f3359fea54f1bac7f6d6ea4030c4c',
+    zh_hans: 'd-8ecc50276ac6412ea4c716971953360a',
+    en: 'd-047f3359fea54f1bac7f6d6ea4030c4c'
   }
 }
 

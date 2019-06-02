@@ -10,7 +10,12 @@ import {
 } from 'common/enums'
 import logger from 'common/logger'
 import { MaterializedView } from 'definitions'
-import { DraftService, UserService, ArticleService } from 'connectors'
+import {
+  DraftService,
+  UserService,
+  ArticleService,
+  NotificationService
+} from 'connectors'
 import { refreshView } from '../db'
 // local
 import { createQueue } from './utils'
@@ -21,19 +26,22 @@ class ScheduleQueue {
   draftService: InstanceType<typeof DraftService>
   userService: InstanceType<typeof UserService>
   articleService: InstanceType<typeof ArticleService>
+  notificationService: InstanceType<typeof NotificationService>
 
   private queueName = QUEUE_NAME.schedule
 
   constructor() {
+    this.notificationService = new NotificationService()
     this.draftService = new DraftService()
     this.userService = new UserService()
     this.articleService = new ArticleService()
   }
 
-  start = () => {
+  start = async () => {
     this.q = createQueue(this.queueName)
     this.addConsumers()
-    this.addRepeatJobs()
+    await this.clearDelayedJobs()
+    await this.addRepeatJobs()
   }
 
   /**
@@ -84,42 +92,98 @@ class ScheduleQueue {
     // })
 
     // refresh view
-    this.q.process(
-      QUEUE_JOB.refreshView,
-      async (
-        job: { data: { view: MaterializedView }; [key: string]: any },
-        done
-      ) => {
-        const { view } = job.data
-        try {
-          logger.info(`[schedule job] refreshing view ${view}`)
-          await refreshView(view)
-          job.progress(100)
-          done(null)
-        } catch (e) {
-          logger.error(
-            `[schedule job] error in refreshing view ${view}: ${JSON.stringify(
-              e
-            )}`
-          )
-          done(e)
-        }
+    this.q.process(QUEUE_JOB.refreshView, async (job, done) => {
+      const { view } = job.data as { view: MaterializedView }
+      try {
+        logger.info(`[schedule job] refreshing view ${view}`)
+        await refreshView(view)
+        job.progress(100)
+        done(null)
+      } catch (e) {
+        logger.error(
+          `[schedule job] error in refreshing view ${view}: ${JSON.stringify(
+            e
+          )}`
+        )
+        done(e)
       }
-    )
+    })
+
+    // send daily summary email
+    this.q.process(QUEUE_JOB.sendDailySummaryEmail, async (job, done) => {
+      try {
+        logger.info(`[schedule job] send daily summary email`)
+        const users = await this.notificationService.notice.findDailySummaryUsers()
+
+        users.forEach(async (user, index) => {
+          const notices = await this.notificationService.notice.findDailySummaryNoticesByUser(
+            user.id
+          )
+
+          if (!notices || notices.length <= 0) {
+            return
+          }
+
+          const filterNotices = (type: string) =>
+            notices.filter(notice => notice.noticeType === type)
+
+          this.notificationService.mail.sendDailySummary({
+            to: user.email,
+            recipient: {
+              displayName: user.displayName
+            },
+            notices: {
+              user_new_follower: filterNotices('user_new_follower'),
+              article_new_collected: filterNotices('article_new_collected'),
+              article_new_appreciation: filterNotices(
+                'article_new_appreciation'
+              ),
+              article_new_subscriber: filterNotices('article_new_subscriber'),
+              article_new_comment: filterNotices('article_new_comment'),
+              article_mentioned_you: filterNotices('article_mentioned_you'),
+              comment_new_reply: filterNotices('comment_new_reply'),
+              comment_mentioned_you: filterNotices('comment_mentioned_you')
+            }
+          })
+
+          job.progress(((index + 1) / users.length) * 100)
+        })
+
+        job.progress(100)
+        done(null)
+      } catch (e) {
+        done(e)
+      }
+    })
   }
 
   /**
    * Producers
    */
-  addRepeatJobs = () => {
+  clearDelayedJobs = async () => {
+    try {
+      const jobs = await this.q.getDelayed()
+      jobs.forEach(async job => {
+        await job.remove()
+      })
+    } catch (e) {
+      console.error('failed to clear repeat jobs', e)
+    }
+  }
+
+  addRepeatJobs = async () => {
     // publish pending draft every 20 minutes
-    this.q.add(QUEUE_JOB.publishPendingDrafts, null, {
-      priority: QUEUE_PRIORITY.HIGH,
-      repeat: {
-        every: 1000 * 60 * 20 // every 20 mins
+    this.q.add(
+      QUEUE_JOB.publishPendingDrafts,
+      {},
+      {
+        priority: QUEUE_PRIORITY.HIGH,
+        repeat: {
+          every: 1000 * 60 * 20 // every 20 mins
+        }
+        // removeOnComplete: true
       }
-      // removeOnComplete: true
-    })
+    )
 
     // initialize search every day at 4am
     // moved to db pipeline
@@ -171,6 +235,16 @@ class ScheduleQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
+
+    // send daily summary email every day at 7am
+    this.q.add(
+      QUEUE_JOB.sendDailySummaryEmail,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
   }

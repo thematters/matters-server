@@ -46,7 +46,7 @@
     "axios": "^0.18.0",
     "bcrypt": "^3.0.3",
     "bodybuilder": "^2.2.16",
-    "bull": "^3.5.2",
+    "bull": "^3.9.0",
     "cheerio": "^1.0.0-rc.2",
     "cookie": "^0.3.1",
     "dataloader": "^1.4.0",
@@ -89,7 +89,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",
-    "@types/bull": "^3.5.1",
+    "@types/bull": "^3.5.14",
     "@types/cheerio": "^0.22.6",
     "@types/elasticsearch": "^5.0.29",
     "@types/graphql": "^14.0.3",
