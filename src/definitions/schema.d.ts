@@ -840,6 +840,7 @@ export interface GQLResponsesInput {
   includeAfter?: boolean
   includeBefore?: boolean
   first?: number
+  articleOnly?: boolean
 }
 
 export enum GQLResponseSort {

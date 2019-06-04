@@ -966,6 +966,7 @@ input ResponsesInput {
   includeAfter: Boolean
   includeBefore: Boolean
   first: Int
+  articleOnly: Boolean
 }
 
 enum ResponseSort {
