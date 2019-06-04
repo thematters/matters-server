@@ -13,9 +13,11 @@ import { MAT_UNIT } from 'common/enums'
 
 const resolver: MutationToInviteResolver = async (
   _,
-  { input: { id, email } },
+  { input: { id, email: rawEmail } },
   { viewer, dataSources: { userService, notificationService } }
 ) => {
+  const email = rawEmail ? rawEmail.toLowerCase() : null
+
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
