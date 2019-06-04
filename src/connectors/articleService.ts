@@ -1265,7 +1265,6 @@ export class ArticleService extends BaseService {
     includeBefore?: boolean
     articleOnly?: boolean
   }) => {
-    console.log(articleOnly)
     const query = this.makeResponseQuery({ id, order, state, articleOnly })
     if (after) {
       const subQuery = this.makeResponseFilterQuery({
