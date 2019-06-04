@@ -101,6 +101,7 @@ export interface GQLArticle extends GQLNode {
   pinCommentLeft: number
   pinnedComments?: Array<GQLComment>
   comments: GQLCommentConnection
+  responseCount: number
   responses: GQLResponseConnection
 }
 
@@ -1920,6 +1921,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   pinCommentLeft?: ArticleToPinCommentLeftResolver<TParent>
   pinnedComments?: ArticleToPinnedCommentsResolver<TParent>
   comments?: ArticleToCommentsResolver<TParent>
+  responseCount?: ArticleToResponseCountResolver<TParent>
   responses?: ArticleToResponsesResolver<TParent>
 }
 
@@ -2275,6 +2277,15 @@ export interface ArticleToCommentsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: ArticleToCommentsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToResponseCountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

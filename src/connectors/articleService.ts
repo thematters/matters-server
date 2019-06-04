@@ -1304,4 +1304,18 @@ export class ArticleService extends BaseService {
       min: parseInt(min, 10)
     }
   }
+
+  countByResponses = async ({
+    id,
+    order = 'desc',
+    state = 'active'
+  }: {
+    id: string
+    order?: string
+    state?: string
+  }) => {
+    const query = this.makeResponseQuery({ id, order, state, fields: '' })
+    const { count } = await query.count().first()
+    return parseInt(count, 10)
+  }
 }
