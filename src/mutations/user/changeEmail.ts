@@ -7,9 +7,19 @@ import { MutationToChangeEmailResolver } from 'definitions'
 
 const resolver: MutationToChangeEmailResolver = async (
   _,
-  { input: { oldEmail, oldEmailCodeId, newEmail, newEmailCodeId } },
+  {
+    input: {
+      oldEmail: rawOldEmail,
+      oldEmailCodeId,
+      newEmail: rawNewEmail,
+      newEmailCodeId
+    }
+  },
   { viewer, dataSources: { userService } }
 ) => {
+  const oldEmail = rawOldEmail ? rawOldEmail.toLowerCase() : null
+  const newEmail = rawNewEmail ? rawNewEmail.toLowerCase() : null
+
   const [oldCode] = await userService.findVerificationCodes({
     where: {
       uuid: oldEmailCodeId,
