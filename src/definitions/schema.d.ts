@@ -592,6 +592,7 @@ export interface GQLUserStatus {
    */
   unreadNoticeCount: number
   unreadFolloweeArticles: boolean
+  unreadResponseInfoPopUp: boolean
 }
 
 export enum GQLUserState {
@@ -1369,7 +1370,8 @@ export interface GQLLogRecordInput {
 }
 
 export enum GQLLogRecordTypes {
-  ReadFolloweeArticles = 'ReadFolloweeArticles'
+  ReadFolloweeArticles = 'ReadFolloweeArticles',
+  ReadResponseInfoPopUp = 'ReadResponseInfoPopUp'
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -3944,6 +3946,7 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   followerCount?: UserStatusToFollowerCountResolver<TParent>
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
   unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
+  unreadResponseInfoPopUp?: UserStatusToUnreadResponseInfoPopUpResolver<TParent>
 }
 
 export interface UserStatusToStateResolver<TParent = any, TResult = any> {
@@ -4073,6 +4076,18 @@ export interface UserStatusToUnreadNoticeCountResolver<
 }
 
 export interface UserStatusToUnreadFolloweeArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToUnreadResponseInfoPopUpResolver<
   TParent = any,
   TResult = any
 > {

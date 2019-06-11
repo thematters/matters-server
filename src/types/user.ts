@@ -167,6 +167,7 @@ export default /* GraphQL */ `
     unreadNoticeCount: Int! @private
 
     unreadFolloweeArticles: Boolean!
+    unreadResponseInfoPopUp: Boolean!
   }
 
   type UserOSS {

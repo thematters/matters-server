@@ -21,6 +21,7 @@ import followeeCount from './followeeCount'
 import subscriptionCount from './subscriptionCount'
 import unreadNoticeCount from './unreadNoticeCount'
 import unreadFolloweeArticles from './unreadFolloweeArticles'
+import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
 import Recommendation from './recommendation'
 import invitationLeft from './invitationLeft'
 import invitationSent from './invitationSent'
@@ -83,7 +84,8 @@ export default {
     followeeCount,
     subscriptionCount,
     unreadNoticeCount,
-    unreadFolloweeArticles
+    unreadFolloweeArticles,
+    unreadResponseInfoPopUp
   },
   InvitationStatus: {
     reward: invitationReward,

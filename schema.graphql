@@ -510,6 +510,7 @@ input LogRecordInput {
 
 enum LogRecordTypes {
   ReadFolloweeArticles
+  ReadResponseInfoPopUp
 }
 
 type MAT {
@@ -1388,6 +1389,7 @@ type UserStatus {
   """Number of unread notices"""
   unreadNoticeCount: Int!
   unreadFolloweeArticles: Boolean!
+  unreadResponseInfoPopUp: Boolean!
 }
 
 scalar UUID
