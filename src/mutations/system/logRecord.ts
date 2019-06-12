@@ -6,13 +6,19 @@ const resolver: MutationToLogRecordResolver = async (
   { input: { type } },
   { viewer, dataSources: { systemService } }
 ) => {
-  if (type !== 'ReadFolloweeArticles' || !viewer.id) {
+
+  const types = {
+    ReadFolloweeArticles: 'read_followee_articles',
+    ReadResponseInfoPopUp: 'read_response_info_pop_up'
+  }
+
+  if (!(type in types) || !viewer.id) {
     throw new ForbiddenError('only authenticated user can log with this "type"')
   }
 
   await systemService.logRecord({
     userId: viewer.id,
-    type: 'read_followee_articles'
+    type: types[type]
   })
 
   return true
