@@ -651,17 +651,17 @@ export enum GQLTransactionPurpose {
  * # TODO: remove in OSS
  */
 export interface GQLInvitationStatus {
-  reward: string
+  reward?: string
 
   /**
    * invitation number left
    */
-  left: number
+  left?: number
 
   /**
    * invitations sent
    */
-  sent: GQLInvitationConnection
+  sent?: GQLInvitationConnection
 }
 
 /**

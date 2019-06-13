@@ -69,6 +69,12 @@ export default {
   Transaction,
   UserStatus: {
     MAT: (root: any) => root,
+    // TODO: remove field in OSS
+    invitation: () => ({
+      reward: null,
+      left: null,
+      sent: null
+    }),
     articleCount,
     // viewCount,
     draftCount,

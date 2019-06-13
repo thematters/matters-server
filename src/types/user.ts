@@ -155,11 +155,11 @@ export default /* GraphQL */ `
 
   ## TODO: remove in OSS
   type InvitationStatus {
-    reward: String!
+    reward: String
     # invitation number left
-    left: Int!
+    left: Int
     # invitations sent
-    sent(input: ConnectionArgs!): InvitationConnection!
+    sent(input: ConnectionArgs!): InvitationConnection
   }
 
   ## TODO: remove in OSS
