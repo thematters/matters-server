@@ -43,8 +43,7 @@ describe('user notify setting', async () => {
     'article_banned',
     'comment_reported',
     'article_reported',
-    'user_activated',
-    'user_activated_by_task'
+    'user_activated'
   ]
   const defaultNoifySetting: { [key in NotificationType]: boolean } = {
     user_new_follower: true,
@@ -70,7 +69,7 @@ describe('user notify setting', async () => {
     comment_reported: false,
     article_reported: false,
     user_activated: true,
-    user_activated_by_task: true
+    user_first_post_award: true
   }
 
   test('user receives notifications', async () => {

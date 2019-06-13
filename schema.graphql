@@ -468,40 +468,6 @@ input ImportArticlesInput {
   token: String
 }
 
-type Invitation {
-  id: ID!
-  user: User
-  email: String
-  accepted: Boolean!
-  createdAt: DateTime!
-}
-
-type InvitationConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [InvitationEdge!]
-}
-
-type InvitationEdge {
-  cursor: String!
-  node: Invitation!
-}
-
-type InvitationStatus {
-  reward: String!
-
-  """invitation number left"""
-  left: Int!
-
-  """invitations sent"""
-  sent(input: ConnectionArgs!): InvitationConnection!
-}
-
-input InviteInput {
-  id: ID
-  email: Email
-}
-
 scalar JSON
 
 input LogRecordInput {
@@ -601,7 +567,6 @@ type Mutation {
   """importArticles(input: ImportArticlesInput!): [Article!]"""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
   clearSearchHistory: Boolean
-  invite(input: InviteInput!): Boolean
 
   """OSS"""
   updateUserState(input: UpdateUserStateInput!): User!
@@ -1365,7 +1330,6 @@ type UserStatus {
 
   """Total MAT left in wallet"""
   MAT: MAT!
-  invitation: InvitationStatus!
 
   """Number of articles published by user"""
   articleCount: Int! @deprecated(reason: "Use `User.articles.totalCount`.")

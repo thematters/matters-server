@@ -302,18 +302,6 @@ export const getViewerMATHistory = async () => {
   return _.get(data, 'viewer.status.MAT.history.edges')
 }
 
-export const getUserInvitation = async (isAdmin = false) => {
-  const { query } = await testClient({
-    isAuth: true,
-    isAdmin
-  })
-  const result = await query({
-    query: GET_USER_INVITATION
-  })
-  const { data } = result
-  return data
-}
-
 describe('register and login functionarlities', () => {
   test('register user and retrieve info', async () => {
     const email = `test-${Math.floor(Math.random() * 100)}@matters.news`
@@ -649,95 +637,6 @@ describe('badges', async () => {
       variables: {}
     })
     expect(_.get(data, 'viewer.info.badges.0.type')).toBe('seed')
-  })
-})
-
-describe('invitation', async () => {
-  test('invite email', async () => {
-    const unregisterEmail = `test-new-${Math.floor(
-      Math.random() * 10000
-    )}@matters.news`
-    const invitationData = await getUserInvitation()
-    const left = _.get(invitationData, 'viewer.status.invitation.left')
-    const { mutate } = await testClient({
-      isAuth: true
-    })
-    const { data: invitedData, errors } = await mutate({
-      mutation: INVITE,
-      // @ts-ignore
-      variables: {
-        input: {
-          email: unregisterEmail
-        }
-      }
-    })
-
-    if (errors) {
-      throw errors
-    }
-
-    expect(invitedData.invite).toBe(true)
-
-    // retrieve user's invitations
-    const newInvitationData = await getUserInvitation()
-    expect(_.get(newInvitationData, 'viewer.status.invitation.left')).toBe(
-      Math.max(left - 1, 0)
-    )
-    expect(
-      _.get(
-        newInvitationData,
-        'viewer.status.invitation.sent.edges.0.node.email'
-      )
-    ).toBe(unregisterEmail)
-
-    // register user
-    const code = await userService.createVerificationCode({
-      type: 'register',
-      email: unregisterEmail
-    })
-    await userService.markVerificationCodeAs({
-      codeId: code.id,
-      status: 'verified'
-    })
-    const registerResult = await registerUser({
-      email: unregisterEmail,
-      displayName: 'newTestUser',
-      password: 'Abcd1234',
-      codeId: code.uuid
-    })
-    expect(_.get(registerResult, 'data.userRegister.token')).toBeTruthy()
-
-    // check user state
-    const user = await userService.findByEmail(unregisterEmail)
-    expect(user.state).toBe('active')
-  })
-
-  test('admin is not limit on invitations', async () => {
-    const invitationData = await getUserInvitation(true)
-    const left = _.get(invitationData, 'viewer.status.invitation.left')
-    expect(left).toBeLessThanOrEqual(0)
-
-    const { mutate } = await testClient({
-      isAuth: true,
-      isAdmin: true
-    })
-    const { data: invitedData, errors } = await mutate({
-      mutation: INVITE,
-      // @ts-ignore
-      variables: {
-        input: {
-          email: `test-new-${Math.floor(
-            Math.random() * 100
-          )}@matters.admin.news`
-        }
-      }
-    })
-
-    if (errors) {
-      throw errors
-    }
-
-    expect(invitedData.invite).toBe(true)
   })
 })
 

@@ -119,31 +119,6 @@ const resolver: MutationToPutCommentResolver = async (
   else {
     newComment = await commentService.create(data)
 
-    // check if we should activate user
-    if (viewer.state === USER_STATE.onboarding) {
-      const activate = async () => {
-        await userService.activate({ recipientId: viewer.id })
-
-        // notice user
-        notificationService.trigger({
-          event: 'user_activated_by_task',
-          recipientId: viewer.id
-        })
-      }
-
-      if (countWords(data.content) > 200) {
-        activate()
-      } else {
-        const comments = await commentService.findByAuthor(viewer.id)
-        const totalWordCount = comments
-          .map(({ content }) => countWords(content))
-          .reduce((a, b) => a + b)
-        if (comments.length > 3 && totalWordCount > 420) {
-          activate()
-        }
-      }
-    }
-
     // trigger notifications
     // notify article's author
     notificationService.trigger({

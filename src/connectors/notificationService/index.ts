@@ -116,47 +116,18 @@ export class NotificationService extends BaseService {
           }),
           entities: params.entities
         }
-      case 'user_activated_by_task':
+      case 'user_activated':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
-          message: trans.user_activated_by_task(language, {})
+          message: trans.user_activated(language, {})
         }
-      case 'user_activated':
-        const invitation = params.entities[0].entity
-        const invitationSender = await this.baseFindById(
-          invitation.senderId,
-          'user'
-        )
-        const invitationRecipient = await this.baseFindById(
-          invitation.recipientId,
-          'user'
-        )
-
-        if (invitationSender.id === params.recipientId) {
-          return {
-            type: 'official_announcement',
-            recipientId: params.recipientId,
-            message: trans.user_activated_sender(language, {
-              displayName: invitationRecipient.displayName
-            })
-          }
+      case 'user_first_post_award':
+        return {
+          type: 'official_announcement',
+          recipientId: params.recipientId,
+          message: trans.user_first_post_award(language, {})
         }
-
-        if (invitationRecipient.id === params.recipientId) {
-          return {
-            type: 'official_announcement',
-            recipientId: params.recipientId,
-            message: trans.user_activated_recipient(language, {
-              displayName:
-                invitationSender.role !== USER_ROLE.admin
-                  ? invitationSender.displayName
-                  : 'Matty'
-            })
-          }
-        }
-
-        return
       default:
         return
     }

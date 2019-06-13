@@ -166,36 +166,24 @@ export default {
     en: ({ title }) =>
       `Your article "${title}" has been reported by other users`
   }),
-  user_activated_by_task: i18n<{}>({
+  user_activated: i18n<{}>({
     zh_hant: () =>
-      `恭喜！因為你的精彩評論，你的創作者資格已被激活！${
-        MAT_UNIT.joinByTask
-      } MAT獎勵也已到位，期待你的第一篇創作。`,
+      `好消息！社區全面開放，你已升級成為創作者。趕快發佈第一篇作品，贏取 ${
+        MAT_UNIT.firstPost
+      } MAT 獎勵吧！`,
     zh_hans: () =>
-      `恭喜！因为你的精彩评论，你的创作者资格已被激活！${
-        MAT_UNIT.joinByTask
-      } MAT奖励也已到位，期待你的第一篇创作。`
+      `好消息！社区全面开放，你已升级成为创作者。赶快发布第一篇作品，赢取 ${
+        MAT_UNIT.firstPost
+      } MAT 奖励吧！`
   }),
-  user_activated_recipient: i18n<{ displayName: string }>({
-    zh_hant: ({ displayName }) =>
-      `你的好友 ${displayName} 邀請你成為 Matters 社區創作者，你的帳號已成功解鎖，擁有全部創作權限，期待你的大作。解鎖資格所贈送的 ${
-        MAT_UNIT.joinByInvitation
-      } MAT 已送達，請點擊錢包查看。`,
-    zh_hans: ({ displayName }) =>
-      `你的好友 ${displayName} 邀请你成为 Matters 社区创作者，你的账号已成功解锁，拥有全部创作权限，期待你的第一篇作品。解锁资格所赠送的 ${
-        MAT_UNIT.joinByInvitation
-      } MAT 已送达，请点击钱包查看。`
-    // en: ({displayName}) => ``,
-  }),
-  user_activated_sender: i18n<{ displayName: string }>({
-    zh_hant: ({ displayName }) =>
-      `你的好友 ${displayName} 已透過你的邀請成為 Matters 創作者。感謝你們一起搭建 Matters 社群，${
-        MAT_UNIT.invitationAccepted
-      } MAT 獎勵已送達。`,
-    zh_hans: ({ displayName }) =>
-      `你的好友 ${displayName} 已通过你的邀请成为 Matters 创作者。感谢你们一起搭建 Matters 社群，${
-        MAT_UNIT.invitationAccepted
-      } MAT 奖励已送达。`
-    // en: () => ``,
+  user_first_post_award: i18n<{}>({
+    zh_hant: () =>
+      `恭喜！你已成功發佈第一篇作品，請查收 ${
+        MAT_UNIT.firstPost
+      } MAT 獎勵。快去看看其他人寫了什麼，使用讚賞功能獎勵作者吧。`,
+    zh_hans: () =>
+      `恭喜！你已成功发布第一篇作品，请查收 ${
+        MAT_UNIT.firstPost
+      } MAT 奖励。快去看看其他人写了什么，使用赞赏功能奖励作者吧。`
   })
 }

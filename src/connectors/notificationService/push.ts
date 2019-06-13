@@ -25,6 +25,8 @@ class Push extends BaseService {
       .from('user_notify_setting')
       .first()
 
+    console.log(setting)
+
     if (!setting || !setting.enable) {
       return { canPush: false }
     }
@@ -52,8 +54,8 @@ class Push extends BaseService {
       article_banned: setting.reportFeedback,
       comment_reported: setting.reportFeedback,
       article_reported: setting.reportFeedback,
-      user_activated: setting.officialNotice,
-      user_activated_by_task: setting.officialNotice
+      user_activated: true,
+      user_first_post_award: true
     }
 
     return {
