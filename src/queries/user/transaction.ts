@@ -28,8 +28,8 @@ const trans = {
     en: 'Activation reward'
   }),
   firstPost: i18n({
-    zh_hant: '新人首帖',
-    zh_hans: '新人首帖',
+    zh_hant: '首發獎勵',
+    zh_hans: '首发奖励',
     en: 'First post reward'
   })
 }

@@ -30,6 +30,7 @@ export type OfficialNoticeExtendType =
   | 'article_reported'
   | 'comment_reported'
   | 'user_activated'
+  | 'user_first_post_award'
 
 export type NoticeEntityType =
   | 'target'
@@ -234,12 +235,6 @@ export interface NoticeArticleReportedParams
   recipientId: string
 }
 
-// export interface NoticeArticleReportedSafeParams extends NotificationRequiredParams  {
-//   event: 'article_reported_safe'
-//   entities: [NotificationEntity<'target', 'article'>]
-//   recipientId: string
-// }
-
 export interface NoticeCommentReportedParams
   extends NotificationRequiredParams {
   event: 'comment_reported'
@@ -252,11 +247,11 @@ export interface NoticeUserActivatedParams extends NotificationRequiredParams {
   recipientId: string
 }
 
-// export interface NoticeCommentReportedSafeParams extends NotificationRequiredParams  {
-//   event: 'comment_reported_safe'
-//   entities: [NotificationEntity<'target', 'comment'>]
-//   recipientId: string
-// }
+export interface NoticeUserFirstPostAwardParams
+  extends NotificationRequiredParams {
+  event: 'user_first_post_award'
+  recipientId: string
+}
 
 export type NotificationPrarms =
   | NoticeUserNewFollowerParams
@@ -282,19 +277,23 @@ export type NotificationPrarms =
   | NoticeArticleReportedParams
   | NoticeCommentReportedParams
   | NoticeUserActivatedParams
+  | NoticeUserFirstPostAwardParams
 
 export type NoticeUserId = string
+
 export type NoticeEntity = {
   type: NoticeEntityType
   table: TableName
   entityId: string
 }
+
 export type NoticeEntitiesMap = { [key in NoticeEntityType]: any }
 export type NoticeMessage = string
 export type NoticeData = {
   url?: string
   reason?: string
 }
+
 export type NoticeDetail = {
   id: string
   uuid: string
@@ -305,12 +304,14 @@ export type NoticeDetail = {
   message?: NoticeMessage
   data?: NoticeData
 }
+
 export type NoticeItem = NoticeDetail & {
   createdAt: Date
   type: NoticeType
   actors?: User[]
   entities?: NoticeEntitiesMap
 }
+
 export type PutNoticeParams = {
   type: NoticeType
   actorId?: NoticeUserId

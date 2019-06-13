@@ -122,6 +122,12 @@ export class NotificationService extends BaseService {
           recipientId: params.recipientId,
           message: trans.user_activated(language, {})
         }
+      case 'user_first_post_award':
+        return {
+          type: 'official_announcement',
+          recipientId: params.recipientId,
+          message: trans.user_first_post_award(language, {})
+        }
       default:
         return
     }

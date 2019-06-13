@@ -1,6 +1,7 @@
 import { BaseService } from './baseService'
 import logger from 'common/logger'
-import { BATCH_SIZE } from 'common/enums'
+import { BATCH_SIZE, TRANSACTION_PURPOSE, MAT_UNIT } from 'common/enums'
+import { v4 } from 'uuid'
 
 export class SystemService extends BaseService {
   constructor() {
@@ -263,4 +264,21 @@ export class SystemService extends BaseService {
       table: 'log_record'
     })
   }
+
+  /*********************************
+   *                               *
+   *             Award             *
+   *                               *
+   *********************************/
+
+  firstPostAward = (id: string) =>
+    this.knex('transaction')
+      .insert({
+        uuid: v4(),
+        recipientId: id,
+        purpose: TRANSACTION_PURPOSE.firstPost,
+        amount: MAT_UNIT.firstPost
+      })
+      .into('transaction')
+      .returning('*')
 }
