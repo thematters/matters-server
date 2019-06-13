@@ -1,5 +1,5 @@
 import { Context } from 'definitions'
-import { toGlobalId } from 'common/utils'
+import { toGlobalId, connectionFromArray } from 'common/utils'
 
 import rootUser from './rootUser'
 import subscriptions from './subscriptions'
@@ -73,7 +73,7 @@ export default {
     invitation: () => ({
       reward: null,
       left: null,
-      sent: null
+      sent: connectionFromArray([], {})
     }),
     articleCount,
     // viewCount,
