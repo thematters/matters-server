@@ -7,7 +7,6 @@ const resolver: MutationToLogRecordResolver = async (
   { input: { type } },
   { viewer, dataSources: { systemService } }
 ) => {
-
   if (!(type in LOG_RECORD_TYPES) || !viewer.id) {
     throw new ForbiddenError('only authenticated user can log with this "type"')
   }
