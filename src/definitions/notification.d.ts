@@ -30,7 +30,6 @@ export type OfficialNoticeExtendType =
   | 'article_reported'
   | 'comment_reported'
   | 'user_activated'
-  | 'user_activated_by_task'
 
 export type NoticeEntityType =
   | 'target'
@@ -250,13 +249,6 @@ export interface NoticeCommentReportedParams
 
 export interface NoticeUserActivatedParams extends NotificationRequiredParams {
   event: 'user_activated'
-  entities: [NotificationEntity<'target', 'invitation'>]
-  recipientId: string
-}
-
-export interface NoticeUserActivatedByTaskParams
-  extends NotificationRequiredParams {
-  event: 'user_activated_by_task'
   recipientId: string
 }
 
@@ -290,7 +282,6 @@ export type NotificationPrarms =
   | NoticeArticleReportedParams
   | NoticeCommentReportedParams
   | NoticeUserActivatedParams
-  | NoticeUserActivatedByTaskParams
 
 export type NoticeUserId = string
 export type NoticeEntity = {

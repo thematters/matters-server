@@ -12,7 +12,6 @@ import followUser from './followUser'
 import unfollowUser from './unfollowUser'
 import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
-import invite from './invite'
 import updateUserState from './updateUserState'
 
 export default {
@@ -31,7 +30,6 @@ export default {
     unfollowUser,
     clearReadHistory,
     clearSearchHistory,
-    invite,
     updateUserState
   }
 }

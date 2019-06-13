@@ -5,14 +5,26 @@ import cookie from 'cookie'
 import { Response } from 'express'
 
 import { USER_ROLE, LANGUAGE } from 'common/enums'
-import { UserService } from 'connectors'
+import { UserService, NotificationService } from 'connectors'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { Viewer, LANGUAGES } from 'definitions'
-import { TokenInvalidError, ForbiddenError } from 'common/errors'
+import { Viewer } from 'definitions'
 
 import { getLanguage } from './getLanguage'
 import { clearCookie } from './cookie'
+
+const userService = new UserService()
+const notificationService = new NotificationService()
+
+const activeUser = async (id: string) => {
+  await userService.activate({ id })
+
+  // notice user
+  notificationService.trigger({
+    event: 'user_activated',
+    recipientId: id
+  })
+}
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 
@@ -58,7 +70,6 @@ export const getViewerFromReq = async ({
     logger.info('User is not logged in, viewing as guest')
   } else {
     try {
-      const userService = new UserService()
       const decoded = jwt.verify(token as string, environment.jwtSecret) as {
         uuid: string
       }

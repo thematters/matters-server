@@ -90,7 +90,8 @@ export const MAT_UNIT = {
   invitationCalculate: 20,
   invitationAccepted: 5,
   joinByInvitation: 5,
-  joinByTask: 10
+  joinByTask: 10,
+  firstArticle: 10
 }
 
 export const ARTICLE_APPRECIATE_LIMIT = 5

@@ -29,7 +29,6 @@ export default /* GraphQL */ `
     # importArticles(input: ImportArticlesInput!): [Article!]
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
     clearSearchHistory: Boolean  @authenticate
-    invite(input: InviteInput!): Boolean @authenticate
 
     # OSS
     updateUserState(input: UpdateUserStateInput!): User! @authorize
@@ -66,22 +65,6 @@ export default /* GraphQL */ `
     # OSS
     oss: UserOSS! @authorize
     remark: String @authorize
-  }
-
-  type InvitationStatus {
-    reward: String!
-    # invitation number left
-    left: Int!
-    # invitations sent
-    sent(input: ConnectionArgs!): InvitationConnection!
-  }
-
-  type Invitation {
-    id: ID!
-    user: User
-    email: String
-    accepted: Boolean!
-    createdAt: DateTime!
   }
 
   type Recommendation {
@@ -149,7 +132,6 @@ export default /* GraphQL */ `
     role: UserRole!
     # Total MAT left in wallet
     MAT: MAT! @private
-    invitation: InvitationStatus! @private
     # Number of articles published by user
     articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
     # Number of views on articles
@@ -229,17 +211,6 @@ export default /* GraphQL */ `
     node: User!
   }
 
-  type InvitationConnection implements Connection {
-    totalCount: Int!
-    pageInfo: PageInfo!
-    edges: [InvitationEdge!]
-  }
-
-  type InvitationEdge {
-    cursor: String!
-    node: Invitation!
-  }
-
   type ReadHistoryConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
@@ -275,11 +246,6 @@ export default /* GraphQL */ `
 
   input UserInput {
     userName: String!
-  }
-
-  input InviteInput {
-    id: ID
-    email: Email
   }
 
   input SendVerificationCodeInput {
