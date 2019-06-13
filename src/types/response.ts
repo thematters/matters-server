@@ -24,6 +24,7 @@ export default /* GraphQL */ `
     includeAfter: Boolean
     includeBefore: Boolean
     first: Int
+    articleOnly: Boolean
   }
 
   enum ResponseSort {

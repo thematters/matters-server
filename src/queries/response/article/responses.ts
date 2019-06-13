@@ -25,7 +25,7 @@ const resolver: ArticleToResponsesResolver = async (
   }
 
   // fetch order and range based on Collection and Comment
-  const { includeAfter, includeBefore } = restParams
+  const { includeAfter, includeBefore, articleOnly } = restParams
   const [sources, range] = await Promise.all([
     articleService.findResponses({
       id,
@@ -35,7 +35,8 @@ const resolver: ArticleToResponsesResolver = async (
       before,
       first,
       includeAfter,
-      includeBefore
+      includeBefore,
+      articleOnly
     }),
     articleService.responseRange({
       id,
@@ -44,7 +45,7 @@ const resolver: ArticleToResponsesResolver = async (
     })
   ])
 
-  // fetch Article
+  // fetch responses
   const items = await Promise.all(
     sources.map((source: { [key: string]: any }) => {
       switch (source.type) {

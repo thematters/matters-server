@@ -343,3 +343,8 @@ export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
 ]
 
 export const IMAGE_DIMENSION_LIMIT = 1400
+
+export const LOG_RECORD_TYPES = {
+  ReadFolloweeArticles: 'read_followee_articles',
+  ReadResponseInfoPopUp: 'read_response_info_pop_up'
+}

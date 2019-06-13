@@ -245,6 +245,7 @@ export default /* GraphQL */ `
 
   enum LogRecordTypes {
     ReadFolloweeArticles
+    ReadResponseInfoPopUp
   }
 
   enum AssetType {
