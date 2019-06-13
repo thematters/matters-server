@@ -20,7 +20,7 @@
     "start": "node build/index.js",
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
     "start:dev:email": "mjml -w src/connectors/mail/templates/*.mjml -o src/connectors/mail/templates/build/",
-    "test:connectors": "MATTERS_ENV=test jest src/connectors/__test__/notificationService.test.ts --forceExit",
+    "test:connectors": "MATTERS_ENV=test jest src/connectors --forceExit",
     "test:types": "MATTERS_ENV=test jest src/types --forceExit",
     "test": "MATTERS_ENV=test jest src/types --forceExit && codecov",
     "tslint:dev": "tslint --force -c tslint.json 'src/**/*.ts{,x}' -e '**/node_modules/**/*'",
