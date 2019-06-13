@@ -1,5 +1,5 @@
 import { Context } from 'definitions'
-import { toGlobalId } from 'common/utils'
+import { toGlobalId, connectionFromArray } from 'common/utils'
 
 import rootUser from './rootUser'
 import subscriptions from './subscriptions'
@@ -21,12 +21,8 @@ import followeeCount from './followeeCount'
 import subscriptionCount from './subscriptionCount'
 import unreadNoticeCount from './unreadNoticeCount'
 import unreadFolloweeArticles from './unreadFolloweeArticles'
+import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
 import Recommendation from './recommendation'
-import invitationLeft from './invitationLeft'
-import invitationSent from './invitationSent'
-import invitationRecipient from './invitationRecipient'
-import invitationAccepted from './invitationAccepted'
-import invitationReward from './invitationReward'
 import { MAT, Transaction } from './transaction'
 import { boost, score } from './oss'
 
@@ -73,7 +69,12 @@ export default {
   Transaction,
   UserStatus: {
     MAT: (root: any) => root,
-    invitation: (root: any) => root,
+    // TODO: remove field in OSS
+    invitation: () => ({
+      reward: null,
+      left: null,
+      sent: connectionFromArray([], {})
+    }),
     articleCount,
     // viewCount,
     draftCount,
@@ -83,17 +84,8 @@ export default {
     followeeCount,
     subscriptionCount,
     unreadNoticeCount,
-    unreadFolloweeArticles
-  },
-  InvitationStatus: {
-    reward: invitationReward,
-    left: invitationLeft,
-    sent: invitationSent
-  },
-  Invitation: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: 'Invitation', id }),
-    user: invitationRecipient,
-    accepted: invitationAccepted
+    unreadFolloweeArticles,
+    unreadResponseInfoPopUp
   },
   UserOSS: {
     boost,

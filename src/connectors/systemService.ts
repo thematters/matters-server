@@ -1,6 +1,7 @@
 import { BaseService } from './baseService'
 import logger from 'common/logger'
-import { BATCH_SIZE } from 'common/enums'
+import { BATCH_SIZE, TRANSACTION_PURPOSE, MAT_UNIT } from 'common/enums'
+import { v4 } from 'uuid'
 
 export class SystemService extends BaseService {
   constructor() {
@@ -19,14 +20,25 @@ export class SystemService extends BaseService {
     key?: string
     first?: number
   }) => {
-    const result = await this.knex('search_history')
+    const query = this.knex('search_history')
       .select('search_key')
       .count('id')
-      .where('search_key', 'like', `%${key}%`)
       .whereNot({ searchKey: '' })
       .groupBy('search_key')
       .orderBy('count', 'desc')
       .limit(first)
+
+    if (key) {
+      query.where('search_key', 'like', `%${key}%`)
+    } else {
+      query.where(
+        'created_at',
+        '>=',
+        this.knex.raw(`now() -  interval '14 days'`)
+      )
+    }
+
+    const result = await query
 
     return result.map(({ searchKey }: { searchKey: string }) => searchKey)
   }
@@ -263,4 +275,21 @@ export class SystemService extends BaseService {
       table: 'log_record'
     })
   }
+
+  /*********************************
+   *                               *
+   *             Award             *
+   *                               *
+   *********************************/
+
+  firstPostAward = (id: string) =>
+    this.knex('transaction')
+      .insert({
+        uuid: v4(),
+        recipientId: id,
+        purpose: TRANSACTION_PURPOSE.firstPost,
+        amount: MAT_UNIT.firstPost
+      })
+      .into('transaction')
+      .returning('*')
 }

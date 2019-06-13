@@ -30,7 +30,6 @@ import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
 import { NotificationService } from './notificationService'
-import { SearchResponse } from 'elasticsearch'
 
 export class UserService extends BaseService {
   notificationService: InstanceType<typeof NotificationService>
@@ -73,13 +72,9 @@ export class UserService extends BaseService {
       avatar,
       passwordHash,
       agreeOn: new Date(),
-      state: USER_STATE.onboarding
+      state: USER_STATE.active
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
-    await this.activateInvitedEmailUser({
-      userId: user.id,
-      email
-    })
 
     await this.addToSearch(user)
 
@@ -664,247 +659,15 @@ export class UserService extends BaseService {
       .where({ articleId, userId })
       .update({ archived: true })
 
-  /*********************************
-   *                               *
-   *           Invitation          *
-   *                               *
-   *********************************/
-  /**
-   * Find invitation
-   */
-  findInvitationByRecipientId = async (recipientId: string) =>
-    await this.knex
-      .select()
-      .from('invitation')
-      .where({ recipientId })
-      .first()
-
-  /**
-   * Find invitation by email
-   */
-  findInvitationByEmail = async (email: string) =>
-    await this.knex
-      .select()
-      .from('invitation')
-      .where({ email })
-      .first()
-
-  /**
-   * Find invitations
-   */
-  findInvitations = async (userId: string): Promise<any[]> =>
-    await this.knex
-      .select()
-      .from('invitation')
-      .where({ senderId: userId })
-      .orderBy('id', 'desc')
-
-  /**
-   * count invitations
-   */
-  countInvitation = async (userId: string) => {
-    const result = await this.knex('invitation')
-      .select()
-      .where({ senderId: userId })
-      .count()
-      .first()
-    return parseInt(result.count, 10)
-  }
-
-  /**
-   * Find invitation by id
-   */
-  findInvitation = async (id: string) => {
-    const result = await this.knex('invitation')
-      .select()
-      .where({ id })
-      .first()
-    return result
-  }
   /**
    * Activate user
    */
-  activate = async ({
-    senderId,
-    recipientId
-  }: {
-    senderId?: string
-    recipientId: string
-  }): Promise<any> => {
-    // tslint:disable-next-line: await-promise
-    return await this.knex.transaction(async trx => {
-      // set recipient's state to "active"
-      // tslint:disable-next-line: await-promise
-      await trx
-        .where({ id: recipientId })
-        .update({ state: USER_STATE.active })
-        .into(this.table)
-        .returning('*')
-
-      // by invitation
-      if (senderId) {
-        // add invitation record
-        // tslint:disable-next-line: await-promise
-        const [{ id: invitationId }] = await trx
-          .insert({
-            senderId,
-            recipientId,
-            status: INVITATION_STATUS.activated
-          })
-          .into('invitation')
-          .returning('*')
-
-        // add transaction record
-        // tslint:disable-next-line: await-promise
-        await trx
-          .insert({
-            uuid: v4(),
-            recipientId,
-            referenceId: invitationId,
-            purpose: TRANSACTION_PURPOSE.joinByInvitation,
-            amount: MAT_UNIT.joinByInvitation
-          })
-          .into('transaction')
-          .returning('*')
-
-        // tslint:disable-next-line: await-promise
-        await trx
-          .insert({
-            uuid: v4(),
-            recipientId: senderId,
-            referenceId: invitationId,
-            purpose: TRANSACTION_PURPOSE.invitationAccepted,
-            amount: MAT_UNIT.invitationAccepted
-          })
-          .into('transaction')
-          .returning('*')
-      } else {
-        // add transaction record
-        // tslint:disable-next-line: await-promise
-        await trx
-          .insert({
-            uuid: v4(),
-            recipientId,
-            purpose: TRANSACTION_PURPOSE.joinByTask,
-            amount: MAT_UNIT.joinByTask
-          })
-          .into('transaction')
-          .returning('*')
-      }
-    })
-  }
-
-  /**
-   * Invite email
-   */
-  invite = async ({
-    senderId,
-    email
-  }: {
-    senderId?: string
-    email: string
-  }): Promise<any> =>
-    await this.baseCreate(
-      { senderId, email, status: INVITATION_STATUS.pending },
-      'invitation'
-    )
-
-  /**
-   * Activate new user of invited email
-   */
-  activateInvitedEmailUser = async ({
-    userId,
-    email
-  }: {
-    userId: string
-    email: string
-  }) => {
-    try {
-      const invitation = await this.findInvitationByEmail(email)
-
-      if (!invitation) {
-        return
-      }
-
-      const sender =
-        invitation.senderId && (await this.dataloader.load(invitation.senderId))
-      await this.knex.transaction(async trx => {
-        // set recipient's state to "active"
-        await trx
-          .where({ id: userId })
-          .update({ state: USER_STATE.active })
-          .into(this.table)
-          .returning('*')
-        // add transaction record
-        await trx
-          .insert({
-            uuid: v4(),
-            recipientId: userId,
-            referenceId: invitation.id,
-            purpose: TRANSACTION_PURPOSE.joinByInvitation,
-            amount: MAT_UNIT.joinByInvitation
-          })
-          .into('transaction')
-          .returning('*')
-        if (sender) {
-          await trx
-            .insert({
-              uuid: v4(),
-              recipientId: sender.id,
-              referenceId: invitation.id,
-              purpose: TRANSACTION_PURPOSE.invitationAccepted,
-              amount: MAT_UNIT.invitationAccepted
-            })
-            .into('transaction')
-            .returning('*')
-        }
-      })
-
-      // update "recipientId" of invitation
-      const updatedInvitation = await this.baseUpdate(
-        invitation.id,
-        { recipientId: userId, status: INVITATION_STATUS.activated },
-        'invitation'
-      )
-
-      // trigger notification & send email
-      this.notificationService.trigger({
-        event: 'user_activated',
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'invitation',
-            entity: updatedInvitation
-          }
-        ],
-        recipientId: userId
-      })
-      if (sender.id) {
-        const user = await this.dataloader.load(userId)
-        this.notificationService.trigger({
-          event: 'user_activated',
-          entities: [
-            {
-              type: 'target',
-              entityTable: 'invitation',
-              entity: updatedInvitation
-            }
-          ],
-          recipientId: sender.id
-        })
-        this.notificationService.mail.sendUserActivated({
-          to: sender.email,
-          recipient: {
-            displayName: sender.displayName
-          },
-          email: user.email,
-          userName: user.userName,
-          language: sender.language
-        })
-      }
-    } catch (e) {
-      logger.error('[activateInvitedEmailUser]', e)
-    }
+  activate = async ({ id }: { id: string }): Promise<any> => {
+    const result = await this.knex(this.table)
+      .where({ id })
+      .update({ state: USER_STATE.active })
+      .returning('*')
+    return result[0]
   }
 
   /*********************************

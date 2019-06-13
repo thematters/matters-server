@@ -60,6 +60,7 @@ type Article implements Node {
   pinCommentLeft: Int!
   pinnedComments: [Comment!]
   comments(input: CommentsInput!): CommentConnection!
+  responseCount: Int!
   responses(input: ResponsesInput!): ResponseConnection!
 }
 
@@ -467,6 +468,7 @@ input ImportArticlesInput {
   token: String
 }
 
+"""# TODO: remove in OSS"""
 type Invitation {
   id: ID!
   user: User
@@ -475,30 +477,28 @@ type Invitation {
   createdAt: DateTime!
 }
 
+"""# TODO: remove in OSS"""
 type InvitationConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
   edges: [InvitationEdge!]
 }
 
+"""# TODO: remove in OSS"""
 type InvitationEdge {
   cursor: String!
   node: Invitation!
 }
 
+"""# TODO: remove in OSS"""
 type InvitationStatus {
-  reward: String!
+  reward: String
 
   """invitation number left"""
-  left: Int!
+  left: Int
 
   """invitations sent"""
-  sent(input: ConnectionArgs!): InvitationConnection!
-}
-
-input InviteInput {
-  id: ID
-  email: Email
+  sent(input: ConnectionArgs!): InvitationConnection
 }
 
 scalar JSON
@@ -509,6 +509,7 @@ input LogRecordInput {
 
 enum LogRecordTypes {
   ReadFolloweeArticles
+  ReadResponseInfoPopUp
 }
 
 type MAT {
@@ -599,7 +600,6 @@ type Mutation {
   """importArticles(input: ImportArticlesInput!): [Article!]"""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
   clearSearchHistory: Boolean
-  invite(input: InviteInput!): Boolean
 
   """OSS"""
   updateUserState(input: UpdateUserStateInput!): User!
@@ -965,6 +965,7 @@ input ResponsesInput {
   includeAfter: Boolean
   includeBefore: Boolean
   first: Int
+  articleOnly: Boolean
 }
 
 enum ResponseSort {
@@ -1362,7 +1363,7 @@ type UserStatus {
 
   """Total MAT left in wallet"""
   MAT: MAT!
-  invitation: InvitationStatus!
+  invitation: InvitationStatus @deprecated(reason: "removed")
 
   """Number of articles published by user"""
   articleCount: Int! @deprecated(reason: "Use `User.articles.totalCount`.")
@@ -1386,6 +1387,7 @@ type UserStatus {
   """Number of unread notices"""
   unreadNoticeCount: Int!
   unreadFolloweeArticles: Boolean!
+  unreadResponseInfoPopUp: Boolean!
 }
 
 scalar UUID

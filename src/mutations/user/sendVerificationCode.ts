@@ -11,9 +11,11 @@ import {
 
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,
-  { input: { email, type } },
+  { input: { email: rawEmail, type } },
   { viewer, dataSources: { userService, notificationService } }
 ) => {
+  const email = rawEmail ? rawEmail.toLowerCase() : null
+
   if (!viewer.id && VERIFICATION_CODE_PROTECTED_TYPES.includes(type)) {
     throw new AuthenticationError(
       `visitor cannot send verification code of ${type}`

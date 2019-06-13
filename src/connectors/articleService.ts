@@ -1174,12 +1174,14 @@ export class ArticleService extends BaseService {
     id,
     order,
     state,
-    fields = '*'
+    fields = '*',
+    articleOnly = false
   }: {
     id: string
     order: string
     state?: string
     fields?: string
+    articleOnly?: boolean
   }) =>
     this.knex.select(fields).from((wrapper: any) => {
       wrapper
@@ -1187,19 +1189,20 @@ export class ArticleService extends BaseService {
           this.knex.raw('row_number() over (order by created_at) as seq, *')
         )
         .from((knex: any) => {
-          knex
-            .union((operator: any) => {
-              operator
-                .select(
-                  this.knex.raw(
-                    "'Article' as type, entrance_id as entity_id, collection.created_at"
-                  )
+          const source = knex.union((operator: any) => {
+            operator
+              .select(
+                this.knex.raw(
+                  "'Article' as type, entrance_id as entity_id, collection.created_at"
                 )
-                .from('collection')
-                .rightJoin('article', 'collection.article_id', 'article.id')
-                .where({ 'collection.article_id': id, 'article.state': state })
-            })
-            .union((operator: any) => {
+              )
+              .from('collection')
+              .rightJoin('article', 'collection.article_id', 'article.id')
+              .where({ 'collection.article_id': id, 'article.state': state })
+          })
+
+          if (articleOnly !== true) {
+            source.union((operator: any) => {
               operator
                 .select(
                   this.knex.raw(
@@ -1209,7 +1212,10 @@ export class ArticleService extends BaseService {
                 .from('comment')
                 .where({ articleId: id, parentCommentId: null, state })
             })
-            .as('base_sources')
+          }
+
+          source.as('base_sources')
+          return source
         })
         .orderBy('created_at', order)
         .as('sources')
@@ -1219,14 +1225,22 @@ export class ArticleService extends BaseService {
     id,
     entityId,
     order,
-    state
+    state,
+    articleOnly
   }: {
     id: string
     entityId: string
     order: string
     state?: string
+    articleOnly?: boolean
   }) => {
-    const query = this.makeResponseQuery({ id, order, state, fields: 'seq' })
+    const query = this.makeResponseQuery({
+      id,
+      order,
+      state,
+      fields: 'seq',
+      articleOnly
+    })
     return query.where({ entityId }).first()
   }
 
@@ -1238,7 +1252,8 @@ export class ArticleService extends BaseService {
     before,
     first,
     includeAfter = false,
-    includeBefore = false
+    includeBefore = false,
+    articleOnly = false
   }: {
     id: string
     order?: string
@@ -1248,14 +1263,16 @@ export class ArticleService extends BaseService {
     first?: number
     includeAfter?: boolean
     includeBefore?: boolean
+    articleOnly?: boolean
   }) => {
-    const query = this.makeResponseQuery({ id, order, state })
+    const query = this.makeResponseQuery({ id, order, state, articleOnly })
     if (after) {
       const subQuery = this.makeResponseFilterQuery({
         id,
         order,
         state,
-        entityId: after
+        entityId: after,
+        articleOnly
       })
       if (includeAfter) {
         query.andWhere('seq', order === 'asc' ? '>=' : '<=', subQuery)
@@ -1303,5 +1320,19 @@ export class ArticleService extends BaseService {
       max: parseInt(max, 10),
       min: parseInt(min, 10)
     }
+  }
+
+  countByResponses = async ({
+    id,
+    order = 'desc',
+    state = 'active'
+  }: {
+    id: string
+    order?: string
+    state?: string
+  }) => {
+    const query = this.makeResponseQuery({ id, order, state, fields: '' })
+    const { count } = await query.count().first()
+    return parseInt(count, 10)
   }
 }

@@ -90,7 +90,8 @@ export const MAT_UNIT = {
   invitationCalculate: 20,
   invitationAccepted: 5,
   joinByInvitation: 5,
-  joinByTask: 10
+  joinByTask: 10,
+  firstPost: 10
 }
 
 export const ARTICLE_APPRECIATE_LIMIT = 5
@@ -343,3 +344,8 @@ export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
 ]
 
 export const IMAGE_DIMENSION_LIMIT = 1400
+
+export const LOG_RECORD_TYPES = {
+  ReadFolloweeArticles: 'read_followee_articles',
+  ReadResponseInfoPopUp: 'read_response_info_pop_up'
+}

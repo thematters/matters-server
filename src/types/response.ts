@@ -2,6 +2,7 @@ export default /* GraphQL */ `
   union Response = Article | Comment
 
   extend type Article {
+    responseCount: Int!
     responses(input: ResponsesInput!): ResponseConnection!
   }
 
@@ -23,6 +24,7 @@ export default /* GraphQL */ `
     includeAfter: Boolean
     includeBefore: Boolean
     first: Int
+    articleOnly: Boolean
   }
 
   enum ResponseSort {

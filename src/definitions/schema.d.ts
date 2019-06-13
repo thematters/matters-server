@@ -101,6 +101,7 @@ export interface GQLArticle extends GQLNode {
   pinCommentLeft: number
   pinnedComments?: Array<GQLComment>
   comments: GQLCommentConnection
+  responseCount: number
   responses: GQLResponseConnection
 }
 
@@ -544,7 +545,12 @@ export interface GQLUserStatus {
    * Total MAT left in wallet
    */
   MAT: GQLMAT
-  invitation: GQLInvitationStatus
+
+  /**
+   *
+   * @deprecated removed
+   */
+  invitation?: GQLInvitationStatus
 
   /**
    * Number of articles published by user
@@ -591,6 +597,7 @@ export interface GQLUserStatus {
    */
   unreadNoticeCount: number
   unreadFolloweeArticles: boolean
+  unreadResponseInfoPopUp: boolean
 }
 
 export enum GQLUserState {
@@ -640,31 +647,43 @@ export enum GQLTransactionPurpose {
   systemSubsidy = 'systemSubsidy'
 }
 
+/**
+ * # TODO: remove in OSS
+ */
 export interface GQLInvitationStatus {
-  reward: string
+  reward?: string
 
   /**
    * invitation number left
    */
-  left: number
+  left?: number
 
   /**
    * invitations sent
    */
-  sent: GQLInvitationConnection
+  sent?: GQLInvitationConnection
 }
 
+/**
+ * # TODO: remove in OSS
+ */
 export interface GQLInvitationConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLInvitationEdge>
 }
 
+/**
+ * # TODO: remove in OSS
+ */
 export interface GQLInvitationEdge {
   cursor: string
   node: GQLInvitation
 }
 
+/**
+ * # TODO: remove in OSS
+ */
 export interface GQLInvitation {
   id: string
   user?: GQLUser
@@ -839,6 +858,7 @@ export interface GQLResponsesInput {
   includeAfter?: boolean
   includeBefore?: boolean
   first?: number
+  articleOnly?: boolean
 }
 
 export enum GQLResponseSort {
@@ -1134,7 +1154,6 @@ export interface GQLMutation {
    */
   clearReadHistory?: boolean
   clearSearchHistory?: boolean
-  invite?: boolean
 
   /**
    * OSS
@@ -1367,7 +1386,8 @@ export interface GQLLogRecordInput {
 }
 
 export enum GQLLogRecordTypes {
-  ReadFolloweeArticles = 'ReadFolloweeArticles'
+  ReadFolloweeArticles = 'ReadFolloweeArticles',
+  ReadResponseInfoPopUp = 'ReadResponseInfoPopUp'
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -1469,11 +1489,6 @@ export interface GQLUnfollowUserInput {
 
 export interface GQLClearReadHistoryInput {
   id: string
-}
-
-export interface GQLInviteInput {
-  id?: string
-  email?: GQLEmail
 }
 
 export interface GQLUpdateUserStateInput {
@@ -1920,6 +1935,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   pinCommentLeft?: ArticleToPinCommentLeftResolver<TParent>
   pinnedComments?: ArticleToPinnedCommentsResolver<TParent>
   comments?: ArticleToCommentsResolver<TParent>
+  responseCount?: ArticleToResponseCountResolver<TParent>
   responses?: ArticleToResponsesResolver<TParent>
 }
 
@@ -2275,6 +2291,15 @@ export interface ArticleToCommentsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: ArticleToCommentsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToResponseCountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -3932,6 +3957,7 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   followerCount?: UserStatusToFollowerCountResolver<TParent>
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
   unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
+  unreadResponseInfoPopUp?: UserStatusToUnreadResponseInfoPopUpResolver<TParent>
 }
 
 export interface UserStatusToStateResolver<TParent = any, TResult = any> {
@@ -4061,6 +4087,18 @@ export interface UserStatusToUnreadNoticeCountResolver<
 }
 
 export interface UserStatusToUnreadFolloweeArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToUnreadResponseInfoPopUpResolver<
   TParent = any,
   TResult = any
 > {
@@ -5631,7 +5669,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   unfollowUser?: MutationToUnfollowUserResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
-  invite?: MutationToInviteResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
 }
 
@@ -6284,18 +6321,6 @@ export interface MutationToClearSearchHistoryResolver<
   (
     parent: TParent,
     args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToInviteArgs {
-  input: GQLInviteInput
-}
-export interface MutationToInviteResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToInviteArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
