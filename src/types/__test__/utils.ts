@@ -2,6 +2,7 @@
 import { createTestClient } from 'apollo-server-testing'
 import { ApolloServer } from 'apollo-server'
 import { Request } from 'express'
+
 // local
 import {
   DataSources,
@@ -9,6 +10,7 @@ import {
   GQLPutDraftInput,
   GQLUserRegisterInput
 } from 'definitions'
+
 import {
   ArticleService,
   CommentService,
@@ -18,7 +20,9 @@ import {
   UserService,
   NotificationService
 } from 'connectors'
+
 import { roleAccess } from 'common/utils'
+
 import schema from '../../schema'
 
 export const defaultTestUser = {
