@@ -68,7 +68,8 @@ describe('user notify setting', async () => {
     article_banned: false,
     comment_reported: false,
     article_reported: false,
-    user_activated: true
+    user_activated: true,
+    user_first_post_award: true
   }
 
   test('user receives notifications', async () => {
