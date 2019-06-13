@@ -1,4 +1,5 @@
 import { UserStatusToUnreadFolloweeArticlesResolver } from 'definitions'
+import { LOG_RECORD_TYPES } from 'common/enums'
 
 const resolver: UserStatusToUnreadFolloweeArticlesResolver = async (
   { id },
@@ -7,7 +8,7 @@ const resolver: UserStatusToUnreadFolloweeArticlesResolver = async (
 ) => {
   const readFolloweeArticlesLog = await systemService.findLogRecord({
     userId: id,
-    type: 'read_followee_articles'
+    type: LOG_RECORD_TYPES.ReadFolloweeArticles
   })
   const [latestFolloweeArticle] = await userService.followeeArticles({
     userId: id,

@@ -1,4 +1,5 @@
 import { MutationToLogRecordResolver } from 'definitions'
+import { LOG_RECORD_TYPES } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 
 const resolver: MutationToLogRecordResolver = async (
@@ -6,18 +7,14 @@ const resolver: MutationToLogRecordResolver = async (
   { input: { type } },
   { viewer, dataSources: { systemService } }
 ) => {
-  const types = {
-    ReadFolloweeArticles: 'read_followee_articles',
-    ReadResponseInfoPopUp: 'read_response_info_pop_up'
-  }
 
-  if (!(type in types) || !viewer.id) {
+  if (!(type in LOG_RECORD_TYPES) || !viewer.id) {
     throw new ForbiddenError('only authenticated user can log with this "type"')
   }
 
   await systemService.logRecord({
     userId: viewer.id,
-    type: types[type]
+    type: LOG_RECORD_TYPES[type]
   })
 
   return true

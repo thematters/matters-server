@@ -1,4 +1,5 @@
 import { UserStatusToUnreadResponseInfoPopUpResolver } from 'definitions'
+import { LOG_RECORD_TYPES } from 'common/enums'
 
 const resolver: UserStatusToUnreadResponseInfoPopUpResolver = async (
   { id },
@@ -7,7 +8,7 @@ const resolver: UserStatusToUnreadResponseInfoPopUpResolver = async (
 ) => {
   const readResponseInfoPopUpLog = await systemService.findLogRecord({
     userId: id,
-    type: 'read_response_info_pop_up'
+    type: LOG_RECORD_TYPES.ReadResponseInfoPopUp
   })
 
   if (!readResponseInfoPopUpLog) {
