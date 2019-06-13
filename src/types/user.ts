@@ -132,6 +132,7 @@ export default /* GraphQL */ `
     role: UserRole!
     # Total MAT left in wallet
     MAT: MAT! @private
+    invitation: InvitationStatus @deprecated(reason: "removed")
     # Number of articles published by user
     articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
     # Number of views on articles
@@ -150,6 +151,37 @@ export default /* GraphQL */ `
 
     unreadFolloweeArticles: Boolean!
     unreadResponseInfoPopUp: Boolean!
+  }
+
+  ## TODO: remove in OSS
+  type InvitationStatus {
+    reward: String!
+    # invitation number left
+    left: Int!
+    # invitations sent
+    sent(input: ConnectionArgs!): InvitationConnection!
+  }
+
+  ## TODO: remove in OSS
+  type Invitation {
+    id: ID!
+    user: User
+    email: String
+    accepted: Boolean!
+    createdAt: DateTime!
+  }
+
+  ## TODO: remove in OSS
+  type InvitationConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [InvitationEdge!]
+  }
+
+  ## TODO: remove in OSS
+  type InvitationEdge {
+    cursor: String!
+    node: Invitation!
   }
 
   type UserOSS {
