@@ -30,7 +30,6 @@ import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
 import { NotificationService } from './notificationService'
-import { SearchResponse } from 'elasticsearch'
 
 export class UserService extends BaseService {
   notificationService: InstanceType<typeof NotificationService>
@@ -663,11 +662,13 @@ export class UserService extends BaseService {
   /**
    * Activate user
    */
-  activate = async ({ id }: { id: string }): Promise<any> =>
-    this.knex(this.table)
+  activate = async ({ id }: { id: string }): Promise<any> => {
+    const result = await this.knex(this.table)
       .where({ id })
       .update({ state: USER_STATE.active })
       .returning('*')
+    return result[0]
+  }
 
   /*********************************
    *                               *

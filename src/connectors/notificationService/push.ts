@@ -25,6 +25,8 @@ class Push extends BaseService {
       .from('user_notify_setting')
       .first()
 
+    console.log(setting)
+
     if (!setting || !setting.enable) {
       return { canPush: false }
     }

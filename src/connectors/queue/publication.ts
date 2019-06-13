@@ -232,6 +232,8 @@ class PublicationQueue {
             ]
           })
 
+          this.firstPostAward(article.authorId)
+
           job.progress(100)
 
           done(null, {
