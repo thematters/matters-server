@@ -1213,7 +1213,7 @@ export class ArticleService extends BaseService {
                 )
               )
               .from('collection')
-              .rightJoin('article', 'collection.article_id', 'article.id')
+              .rightJoin('article', 'collection.entrance_id', 'article.id')
               .where({ 'collection.article_id': id, 'article.state': state })
           })
 
@@ -1312,7 +1312,6 @@ export class ArticleService extends BaseService {
     if (first) {
       query.limit(first)
     }
-
     return query
   }
 
