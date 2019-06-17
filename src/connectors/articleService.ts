@@ -1167,10 +1167,13 @@ export class ArticleService extends BaseService {
   /**
    * Count an article is collected by how many active articles.
    */
-  countActiveCollectedBy = async(id: string) => {
+  countActiveCollectedBy = async (id: string) => {
     const query = this.knex('collection')
       .rightJoin('article', 'collection.entrance_id', 'article.id')
-      .where({ 'collection.article_id': id, 'article.state': ARTICLE_STATE.active })
+      .where({
+        'collection.article_id': id,
+        'article.state': ARTICLE_STATE.active
+      })
       .countDistinct('entrance_id')
       .first()
     const result = await query
