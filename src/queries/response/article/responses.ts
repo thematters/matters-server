@@ -45,7 +45,6 @@ const resolver: ArticleToResponsesResolver = async (
     })
   ])
 
-
   // fetch responses
   const items = await Promise.all(
     sources.map((source: { [key: string]: any }) => {
@@ -59,7 +58,6 @@ const resolver: ArticleToResponsesResolver = async (
       }
     })
   )
-
 
   // re-process edges
   const edges = items.map((item: { [key: string]: any }) => {
