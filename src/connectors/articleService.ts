@@ -1164,6 +1164,22 @@ export class ArticleService extends BaseService {
     return parseInt(result.count, 10)
   }
 
+  /**
+   * Count an article is collected by how many active articles.
+   */
+  countActiveCollectedBy = async (id: string) => {
+    const query = this.knex('collection')
+      .rightJoin('article', 'collection.entrance_id', 'article.id')
+      .where({
+        'collection.article_id': id,
+        'article.state': ARTICLE_STATE.active
+      })
+      .countDistinct('entrance_id')
+      .first()
+    const result = await query
+    return parseInt(result.count, 10)
+  }
+
   /*********************************
    *                               *
    *           Response            *
@@ -1197,7 +1213,7 @@ export class ArticleService extends BaseService {
                 )
               )
               .from('collection')
-              .rightJoin('article', 'collection.article_id', 'article.id')
+              .rightJoin('article', 'collection.entrance_id', 'article.id')
               .where({ 'collection.article_id': id, 'article.state': state })
           })
 
@@ -1296,7 +1312,6 @@ export class ArticleService extends BaseService {
     if (first) {
       query.limit(first)
     }
-
     return query
   }
 
