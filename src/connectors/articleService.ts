@@ -202,11 +202,21 @@ export class ArticleService extends BaseService {
   /**
    * Count articles by a given authorId (user).
    */
-  countByAuthor = async (authorId: string): Promise<number> => {
-    const result = await this.knex(this.table)
-      .where({ authorId, state: ARTICLE_STATE.active })
+  countByAuthor = async (
+    authorId: string,
+    activeOnly: boolean = true
+  ): Promise<number> => {
+    let qs = this.knex(this.table)
+      .where({ authorId })
       .count()
       .first()
+
+    if (activeOnly) {
+      qs = qs.where({ state: ARTICLE_STATE.active })
+    }
+
+    const result = await qs
+
     return parseInt(result.count, 10)
   }
 
