@@ -1070,7 +1070,6 @@ export class ArticleService extends BaseService {
   /**
    * Create a collection for article
    */
-
   createCollection = async ({
     entranceId,
     articleIds
@@ -1089,6 +1088,48 @@ export class ArticleService extends BaseService {
   }
 
   /**
+   * Insert a single record to collection for article
+   */
+  insertCollection = async ({
+    entranceId,
+    articleId,
+    order
+  }: {
+    entranceId: string
+    articleId: string
+    order: number
+  }) =>
+    this.baseCreate(
+      {
+        entranceId,
+        articleId,
+        order,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      'collection'
+    )
+
+  /**
+   * Update a collection order by given entrance id and article id.
+   */
+  updateCollectionOrder = async ({
+    entranceId,
+    articleId,
+    order
+  }: {
+    entranceId: string
+    articleId: string
+    order: number
+  }) => {
+    const [updatedItem] = await this.knex('collection')
+      .where({ entranceId, articleId })
+      .update({ order })
+      .returning('*')
+    return updatedItem
+  }
+
+  /**
    * Delete a collection for article
    */
   deleteCollection = async ({ entranceId }: { entranceId: string }) => {
@@ -1100,6 +1141,21 @@ export class ArticleService extends BaseService {
 
     return this.baseBatchDelete(ids, table)
   }
+
+  /**
+   * Delete record of a collection by given entrance id and an array of article id.
+   */
+  deleteCollectionByArticleIds = async ({
+    entranceId,
+    articleIds
+  }: {
+    entranceId: string
+    articleIds: string[]
+  }) =>
+    this.knex('collection')
+      .where({ entranceId })
+      .whereIn('articleId', articleIds)
+      .del()
 
   /**
    * Find single collection by given entrance id and article id.
@@ -1125,14 +1181,20 @@ export class ArticleService extends BaseService {
     offset = 0
   }: {
     entranceId: string
-    limit?: number
+    limit?: number | null
     offset?: number
-  }) =>
-    await this.knex('collection')
+  }) => {
+    const query = this.knex('collection')
       .select('article_id')
       .where({ entranceId })
-      .limit(limit)
       .offset(offset)
+      .orderBy('order', 'asc')
+
+    if (limit) {
+      query.limit(limit)
+    }
+    return query
+  }
 
   /**
    * Find an article is collected by which articles.
