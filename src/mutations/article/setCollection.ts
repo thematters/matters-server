@@ -1,4 +1,4 @@
-import { get } from 'lodash'
+import { difference } from 'lodash'
 import { MutationToSetCollectionResolver } from 'definitions'
 import { EntityNotFoundError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
@@ -8,8 +8,6 @@ const resolver: MutationToSetCollectionResolver = async (
   { input: { id, collection } },
   { viewer, dataSources: { articleService, notificationService } }
 ) => {
-  const userName = get(viewer, 'userName')
-
   const entranceId = fromGlobalId(id).id
   const article = await articleService.baseFindById(entranceId)
   if (!article) {
@@ -20,14 +18,44 @@ const resolver: MutationToSetCollectionResolver = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-  const articleIds = collection.map(id => fromGlobalId(id).id)
+  // Compare new and old collections
+  const oldIds = (await articleService.findCollections({
+    entranceId,
+    limit: null
+  })).map(({ articleId }: any) => articleId)
+  const newIds = collection.map(id => fromGlobalId(id).id)
+  const addItems: any[] = []
+  const updateItems: any[] = []
+  const deleteItems: any[] = []
+  const diff = difference(newIds, oldIds)
 
-  // Clean all existing collection and then insert
-  await articleService.deleteCollection({ entranceId })
-  await articleService.createCollection({ entranceId, articleIds })
+  // Gather data
+  newIds.map((id: string, index: number) => {
+    const indexOf = oldIds.indexOf(id)
+    if (indexOf < 0) {
+      addItems.push({ entranceId, articleId: id, order: index })
+    }
+    if (indexOf >= 0 && index !== indexOf) {
+      updateItems.push({ entranceId, articleId: id, order: index })
+    }
+  })
+
+  // Add and update
+  await Promise.all([
+    ...addItems.map((data: any) => articleService.insertCollection(data)),
+    ...updateItems.map((data: any) =>
+      articleService.updateCollectionOrder(data)
+    )
+  ])
+
+  // Delete unwanted
+  await articleService.deleteCollectionByArticleIds({
+    entranceId,
+    articleIds: difference(oldIds, newIds)
+  })
 
   // trigger notifications
-  articleIds.forEach(async (id: string) => {
+  diff.forEach(async (id: string) => {
     const collection = await articleService.baseFindById(id)
     notificationService.trigger({
       event: 'article_new_collected',
