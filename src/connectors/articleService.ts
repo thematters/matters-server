@@ -202,11 +202,21 @@ export class ArticleService extends BaseService {
   /**
    * Count articles by a given authorId (user).
    */
-  countByAuthor = async (authorId: string): Promise<number> => {
-    const result = await this.knex(this.table)
-      .where({ authorId, state: ARTICLE_STATE.active })
+  countByAuthor = async (
+    authorId: string,
+    activeOnly: boolean = true
+  ): Promise<number> => {
+    let qs = this.knex(this.table)
+      .where({ authorId })
       .count()
       .first()
+
+    if (activeOnly) {
+      qs = qs.where({ state: ARTICLE_STATE.active })
+    }
+
+    const result = await qs
+
     return parseInt(result.count, 10)
   }
 
@@ -1060,7 +1070,6 @@ export class ArticleService extends BaseService {
   /**
    * Create a collection for article
    */
-
   createCollection = async ({
     entranceId,
     articleIds
@@ -1079,6 +1088,48 @@ export class ArticleService extends BaseService {
   }
 
   /**
+   * Insert a single record to collection for article
+   */
+  insertCollection = async ({
+    entranceId,
+    articleId,
+    order
+  }: {
+    entranceId: string
+    articleId: string
+    order: number
+  }) =>
+    this.baseCreate(
+      {
+        entranceId,
+        articleId,
+        order,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      'collection'
+    )
+
+  /**
+   * Update a collection order by given entrance id and article id.
+   */
+  updateCollectionOrder = async ({
+    entranceId,
+    articleId,
+    order
+  }: {
+    entranceId: string
+    articleId: string
+    order: number
+  }) => {
+    const [updatedItem] = await this.knex('collection')
+      .where({ entranceId, articleId })
+      .update({ order })
+      .returning('*')
+    return updatedItem
+  }
+
+  /**
    * Delete a collection for article
    */
   deleteCollection = async ({ entranceId }: { entranceId: string }) => {
@@ -1090,6 +1141,21 @@ export class ArticleService extends BaseService {
 
     return this.baseBatchDelete(ids, table)
   }
+
+  /**
+   * Delete record of a collection by given entrance id and an array of article id.
+   */
+  deleteCollectionByArticleIds = async ({
+    entranceId,
+    articleIds
+  }: {
+    entranceId: string
+    articleIds: string[]
+  }) =>
+    this.knex('collection')
+      .where({ entranceId })
+      .whereIn('articleId', articleIds)
+      .del()
 
   /**
    * Find single collection by given entrance id and article id.
@@ -1115,14 +1181,20 @@ export class ArticleService extends BaseService {
     offset = 0
   }: {
     entranceId: string
-    limit?: number
+    limit?: number | null
     offset?: number
-  }) =>
-    await this.knex('collection')
+  }) => {
+    const query = this.knex('collection')
       .select('article_id')
       .where({ entranceId })
-      .limit(limit)
       .offset(offset)
+      .orderBy('order', 'asc')
+
+    if (limit) {
+      query.limit(limit)
+    }
+    return query
+  }
 
   /**
    * Find an article is collected by which articles.
@@ -1164,6 +1236,22 @@ export class ArticleService extends BaseService {
     return parseInt(result.count, 10)
   }
 
+  /**
+   * Count an article is collected by how many active articles.
+   */
+  countActiveCollectedBy = async (id: string) => {
+    const query = this.knex('collection')
+      .rightJoin('article', 'collection.entrance_id', 'article.id')
+      .where({
+        'collection.article_id': id,
+        'article.state': ARTICLE_STATE.active
+      })
+      .countDistinct('entrance_id')
+      .first()
+    const result = await query
+    return parseInt(result.count, 10)
+  }
+
   /*********************************
    *                               *
    *           Response            *
@@ -1197,7 +1285,7 @@ export class ArticleService extends BaseService {
                 )
               )
               .from('collection')
-              .rightJoin('article', 'collection.article_id', 'article.id')
+              .rightJoin('article', 'collection.entrance_id', 'article.id')
               .where({ 'collection.article_id': id, 'article.state': state })
           })
 
@@ -1296,7 +1384,6 @@ export class ArticleService extends BaseService {
     if (first) {
       query.limit(first)
     }
-
     return query
   }
 

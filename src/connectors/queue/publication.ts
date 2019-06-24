@@ -42,7 +42,8 @@ class PublicationQueue {
   }
 
   private firstPostAward = async (authorId: string) => {
-    const count = await this.articleService.countByAuthor(authorId)
+    const count = await this.articleService.countByAuthor(authorId, false)
+
     if (count === 1) {
       const trx = await this.systemService.firstPostAward(authorId)
 

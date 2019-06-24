@@ -192,14 +192,14 @@ class ScheduleQueue {
     //   repeat: { cron: '0 4 * * *', tz: 'Asia/Hong_Kong' }
     // })
 
-    // refresh articleActivityMaterialized every 1.1 hour, for hottest recommendation
+    // refresh articleActivityMaterialized every 2 minutes, for hottest recommendation
     this.q.add(
       QUEUE_JOB.refreshView,
       { view: MATERIALIZED_VIEW.articleActivityMaterialized },
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 16 // every 15 + 1 minutes
+          every: 1000 * 60 * 2 // every 2 minutes
         }
       }
     )
