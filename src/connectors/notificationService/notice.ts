@@ -4,6 +4,7 @@ import DataLoader from 'dataloader'
 
 import {
   User,
+  NotificationType,
   NotificationEntity,
   PutNoticeParams,
   NoticeUserId,
@@ -479,6 +480,53 @@ class Notice extends BaseService {
         }
       })
     )
+  }
+
+  checkUserNotifySetting = async ({
+    event,
+    userId
+  }: {
+    event: NotificationType
+    userId: string
+  }): Promise<boolean> => {
+    const setting = await this.knex
+      .select()
+      .where({ userId })
+      .from('user_notify_setting')
+      .first()
+
+    if (!setting || !setting.enable) {
+      return false
+    }
+
+    const noticeSettingMap: { [key in NotificationType]: boolean } = {
+      user_new_follower: setting.follow,
+      article_published: true,
+      article_new_downstream: setting.downstream,
+      article_new_collected: setting.downstream,
+      article_new_appreciation: setting.appreciation,
+      article_new_subscriber: setting.articleSubscription,
+      article_new_comment: setting.comment,
+      article_mentioned_you: setting.mention,
+      subscribed_article_new_comment: setting.commentSubscribed,
+      upstream_article_archived: setting.downstream,
+      downstream_article_archived: setting.downstream,
+      comment_pinned: setting.commentPinned,
+      comment_new_reply: setting.comment,
+      comment_new_upvote: setting.commentVoted,
+      comment_mentioned_you: setting.mention,
+      official_announcement: setting.officialNotice,
+      user_banned: true,
+      user_frozen: true,
+      comment_banned: setting.reportFeedback,
+      article_banned: setting.reportFeedback,
+      comment_reported: setting.reportFeedback,
+      article_reported: setting.reportFeedback,
+      user_activated: true,
+      user_first_post_award: true
+    }
+
+    return noticeSettingMap[event]
   }
 
   markAllNoticesAsRead = async (userId: string): Promise<any> =>

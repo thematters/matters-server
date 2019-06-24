@@ -147,11 +147,24 @@ export class NotificationService extends BaseService {
       return
     }
 
+    // skip if actor === recipient
     if ('actorId' in params && params.actorId === params.recipientId) {
       logger.info(
         `Actor ${params.actorId} is same as recipient ${
           params.recipientId
         }, skipped`
+      )
+      return
+    }
+
+    // skip if user disable push notification
+    const enable = await this.notice.checkUserNotifySetting({
+      event: params.event,
+      userId: noticeParams.recipientId
+    })
+    if (!enable) {
+      logger.info(
+        `Push ${noticeParams.type} to ${noticeParams.recipientId} skipped`
       )
       return
     }
