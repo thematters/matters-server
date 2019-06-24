@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2019-06-24
+
+### Changed
+
+- Alter article activity view definition based on collection metrics #362
+- Fix dups first post reward issue #361
+- Change collection management in backend #360
+- Reduce interval of refreshing view for hottest recommendation #359
+- Fix response count and query result contains archived articles #358
+- Fix user unable to register if the submitted email has uppercase character #357
+
 ## [1.4.0] - 2019-05-14
 
 ### Added
