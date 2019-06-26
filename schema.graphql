@@ -1,3 +1,5 @@
+directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
+
 directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION
 
 directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
@@ -381,6 +383,11 @@ input ConnectionArgs {
   after: String
   first: Int
   oss: Boolean
+}
+
+input CostComplexity {
+  min: Int = 1
+  max: Int
 }
 
 scalar Date
