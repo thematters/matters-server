@@ -29,25 +29,104 @@ export interface GQLArticleInput {
 
 export type GQLUUID = any
 
+/**
+ * This type contains metadata, content, hash and related data of an article. If you
+ * want information about article's comments. Please check Comment type.
+ */
 export interface GQLArticle extends GQLNode {
+  /**
+   * Unique ID of this article
+   */
   id: string
+
+  /**
+   * The number represents how popular is this article.
+   */
   topicScore?: number
+
+  /**
+   * Slugified article title.
+   */
   slug: string
+
+  /**
+   * Time of this article was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * State of this article.
+   */
   state: GQLArticleState
+
+  /**
+   * This value determines if this article is accessible to visitors.
+   */
   public: boolean
+
+  /**
+   * This value determines if this article is under Subscription or not.
+   */
   live: boolean
+
+  /**
+   * Author of this article.
+   */
   author: GQLUser
+
+  /**
+   * Article title.
+   */
   title: string
+
+  /**
+   * Article cover's link.
+   */
   cover?: GQLURL
+
+  /**
+   * A short summary for this article.
+   */
   summary: string
+
+  /**
+   * Tags attached to this article.
+   */
   tags?: Array<GQLTag>
+
+  /**
+   * Word count of this article.
+   */
   wordCount?: number
+
+  /**
+   * IPFS hash of this article.
+   */
   dataHash?: string
+
+  /**
+   * Media hash, composed of cid encoding, of this article.
+   */
   mediaHash?: string
+
+  /**
+   * Content of this article.
+   */
   content: string
+
+  /**
+   * List of articles which added this article into their collections.
+   */
   collectedBy: GQLArticleConnection
+
+  /**
+   * List of articles added into this articles' collection.
+   */
   collection: GQLArticleConnection
+
+  /**
+   * Related articles to this articles.
+   */
   relatedArticles: GQLArticleConnection
 
   /**
@@ -66,28 +145,40 @@ export interface GQLArticle extends GQLNode {
    * @deprecated not used
    */
   participants: GQLUserConnection
+
+  /**
+   * Subscribers of this articles.
+   */
   subscribers: GQLUserConnection
+
+  /**
+   * Appreciators of this articles.
+   */
   appreciators: GQLUserConnection
 
   /**
-   *
+   * Total count of this article's appreciations.
    * @deprecated Use `appreciators.totalCount`.
    */
   appreciatorCount: number
 
   /**
-   * limit the nuhmber of appreciate per user
+   * Limit the nuhmber of appreciate per user.
    */
   appreciateLimit: number
+
+  /**
+   * Number represents how many times per user can appreciate this article.
+   */
   appreciateLeft: number
 
   /**
-   * Viewer has appreciate
+   * This value determines if current viewer has appreciated or not.
    */
   hasAppreciate: boolean
 
   /**
-   * Viewer has subscribed
+   * This value determines if current Viewer has subscribed of not.
    */
   subscribed: boolean
 
@@ -128,6 +219,9 @@ export interface GQLNodeNameMap {
 
 export type GQLDateTime = any
 
+/**
+ * Enums for an article state.
+ */
 export enum GQLArticleState {
   active = 'active',
   archived = 'archived',
@@ -383,8 +477,18 @@ export interface GQLTagEdge {
   node: GQLTag
 }
 
+/**
+ * This type contains content, count and related data of an article tag.
+ */
 export interface GQLTag extends GQLNode {
+  /**
+   * Unique id of this tag.
+   */
   id: string
+
+  /**
+   * Content of this tag.
+   */
   content: string
 
   /**
@@ -392,7 +496,15 @@ export interface GQLTag extends GQLNode {
    * @deprecated Use `articles.totalCount`.
    */
   count: number
+
+  /**
+   * List of how many articles were attached with this tag.
+   */
   articles: GQLArticleConnection
+
+  /**
+   * Time of this tag was created.
+   */
   createdAt: GQLDateTime
 
   /**
@@ -1009,6 +1121,9 @@ export interface GQLTagsInput {
   sort?: GQLTagsSort
 }
 
+/**
+ * Enums for sorting tags.
+ */
 export enum GQLTagsSort {
   newest = 'newest',
   oldest = 'oldest',
@@ -1055,14 +1170,49 @@ export interface GQLUserInput {
 }
 
 export interface GQLMutation {
+  /**
+   * Publish an article onto IPFS.
+   */
   publishArticle: GQLDraft
+
+  /**
+   * Archive an article and users won't be able to view this article.
+   */
   archiveArticle: GQLArticle
+
+  /**
+   * Subscribe an artcile.
+   */
   subscribeArticle: GQLArticle
+
+  /**
+   * Unsubscribe an article.
+   */
   unsubscribeArticle: GQLArticle
+
+  /**
+   * Report an article to team.
+   */
   reportArticle?: boolean
+
+  /**
+   * Appreciate an article.
+   */
   appreciateArticle: GQLArticle
+
+  /**
+   * Read an article.
+   */
   readArticle: GQLArticle
+
+  /**
+   * Recall while publishing.
+   */
   recallPublish: GQLDraft
+
+  /**
+   * Set collection of an article.
+   */
   setCollection: GQLArticle
 
   /**
@@ -1220,6 +1370,9 @@ export interface GQLToggleArticleRecommendInput {
   type: GQLRecommendTypes
 }
 
+/**
+ * Enums for types of recommend articles.
+ */
 export enum GQLRecommendTypes {
   today = 'today',
   icymi = 'icymi',
