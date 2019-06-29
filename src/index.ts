@@ -75,7 +75,6 @@ const server = new ApolloServer({
     Sentry.captureException(error)
     return error
   }
-  // mocks
 })
 
 server

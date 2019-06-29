@@ -5,52 +5,91 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    # send/confirm verification code
+    "Send verification code for email."
     sendVerificationCode(input: SendVerificationCodeInput!): Boolean
+
+    "Confirm verification code from email."
     confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
-    # change or reset password
+
+    "Reset user password."
     resetPassword(input: ResetPasswordInput!): Boolean
-    # change email
+
+    "Change user email."
     changeEmail(input: ChangeEmailInput!): Boolean @authenticate
-    # verify email
+
+    "Verify user email."
     verifyEmail(input: VerifyEmailInput!): Boolean @authenticate
-    # register
+
+    "Register user."
     userRegister(input: UserRegisterInput!): AuthResult!
-    # login
+
+    "Login user."
     userLogin(input: UserLoginInput!): AuthResult!
+
+    "Logout user."
     userLogout: Boolean!
+
     # addOAuth(input: AddOAuthInput!): Boolean
-    # update info/ setting
+
+    "Update user information."
     updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
+
+    "Update user notification settings."
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User! @authenticate
-    # follow/unfollow
+
+    "Follow a given user."
     followUser(input: FollowUserInput!): User! @authenticate
+
+    "Unfollow curent user."
     unfollowUser(input: UnfollowUserInput!): User! @authenticate
-    # importArticles(input: ImportArticlesInput!): [Article!]
+
+    "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
+
+    "Clear search history for user."
     clearSearchHistory: Boolean  @authenticate
 
-    # OSS
+    "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): User! @authorize
   }
 
   type User implements Node {
+    "Global id of an user."
     id: ID!
+
+    "UUID of an user, for backward compatibility."
     uuid: UUID!
+
+    "Global unique user name of a user."
     userName: String
-    # Display name on profile
+
+    "Display name on user profile, can be duplicated."
     displayName: String
-    # URL for avatar
+
+    "URL for user avatar."
     avatar: URL
+
+    "User information."
     info: UserInfo!
+
+    "User settings."
     settings: UserSettings! @private
+
+    "Article recommendations for current user."
     recommendation: Recommendation! @private
-    # Articles written by this user
+
+    "Articles authored by current user."
     articles(input: ConnectionArgs!): ArticleConnection!
+
+    "Drafts authored by current user."
     drafts(input: ConnectionArgs!): DraftConnection! @private
+
+    "Audiodraft by user, currently not used."
     audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @private
-    # Comments posted by this user
+
+    "Articles current user commented on"
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
+
     subscriptions(input: ConnectionArgs!): ArticleConnection! @private
     activity: UserActivity! @private
     # Followers of this user

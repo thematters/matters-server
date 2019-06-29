@@ -635,42 +635,49 @@ type Mutation {
   putRemark(input: PutRemarkInput!): String
   logRecord(input: LogRecordInput!): Boolean
 
-  """send/confirm verification code"""
+  """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
+
+  """Confirm verification code from email."""
   confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
-  """change or reset password"""
+  """Reset user password."""
   resetPassword(input: ResetPasswordInput!): Boolean
 
-  """change email"""
+  """Change user email."""
   changeEmail(input: ChangeEmailInput!): Boolean
 
-  """verify email"""
+  """Verify user email."""
   verifyEmail(input: VerifyEmailInput!): Boolean
 
-  """register"""
+  """Register user."""
   userRegister(input: UserRegisterInput!): AuthResult!
 
-  """login"""
+  """Login user."""
   userLogin(input: UserLoginInput!): AuthResult!
+
+  """Logout user."""
   userLogout: Boolean!
 
-  """
-  addOAuth(input: AddOAuthInput!): Boolean
-  update info/ setting
-  """
+  """Update user information."""
   updateUserInfo(input: UpdateUserInfoInput!): User!
+
+  """Update user notification settings."""
   updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
 
-  """follow/unfollow"""
+  """Follow a given user."""
   followUser(input: FollowUserInput!): User!
+
+  """Unfollow curent user."""
   unfollowUser(input: UnfollowUserInput!): User!
 
-  """importArticles(input: ImportArticlesInput!): [Article!]"""
+  """Clear read history for user."""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
+
+  """Clear search history for user."""
   clearSearchHistory: Boolean
 
-  """OSS"""
+  """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): User!
 }
 
@@ -1281,25 +1288,40 @@ type UpstreamArticleArchivedNotice implements Notice {
 scalar URL
 
 type User implements Node {
+  """Global id of an user."""
   id: ID!
+
+  """UUID of an user, for backward compatibility."""
   uuid: UUID!
+
+  """Global unique user name of a user."""
   userName: String
 
-  """Display name on profile"""
+  """Display name on user profile, can be duplicated."""
   displayName: String
 
-  """URL for avatar"""
+  """URL for user avatar."""
   avatar: URL
+
+  """User information."""
   info: UserInfo!
+
+  """User settings."""
   settings: UserSettings!
+
+  """Article recommendations for current user."""
   recommendation: Recommendation!
 
-  """Articles written by this user"""
+  """Articles authored by current user."""
   articles(input: ConnectionArgs!): ArticleConnection!
+
+  """Drafts authored by current user."""
   drafts(input: ConnectionArgs!): DraftConnection!
+
+  """Audiodraft by user, currently not used."""
   audiodrafts(input: ConnectionArgs!): AudiodraftConnection!
 
-  """Comments posted by this user"""
+  """Articles current user commented on"""
   commentedArticles(input: ConnectionArgs!): ArticleConnection!
   subscriptions(input: ConnectionArgs!): ArticleConnection!
   activity: UserActivity!
