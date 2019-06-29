@@ -288,28 +288,40 @@ export interface GQLUser extends GQLNode {
    * Articles current user commented on
    */
   commentedArticles: GQLArticleConnection
+
+  /**
+   * Artilces current user subscribed to.
+   */
   subscriptions: GQLArticleConnection
+
+  /**
+   * Record of user activity, only accessable by current user.
+   */
   activity: GQLUserActivity
 
   /**
-   * Followers of this user
+   * Followers of this user.
    */
   followers: GQLUserConnection
 
   /**
-   * Users that this user follows
+   * Users that this user follows.
    */
   followees: GQLUserConnection
 
   /**
-   * This user is following viewer
+   * Whether current user is following viewer.
    */
   isFollower: boolean
 
   /**
-   * Viewer is following this user
+   * Whether viewer is following current user.
    */
   isFollowee: boolean
+
+  /**
+   * Status of current user.
+   */
   status?: GQLUserStatus
 
   /**

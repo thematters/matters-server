@@ -90,17 +90,27 @@ export default /* GraphQL */ `
     "Articles current user commented on"
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
 
+    "Artilces current user subscribed to."
     subscriptions(input: ConnectionArgs!): ArticleConnection! @private
+
+    "Record of user activity, only accessable by current user."
     activity: UserActivity! @private
-    # Followers of this user
+
+    "Followers of this user."
     followers(input: ConnectionArgs!): UserConnection!
-    # Users that this user follows
+
+    "Users that this user follows."
     followees(input: ConnectionArgs!): UserConnection!
-    # This user is following viewer
+
+    "Whether current user is following viewer."
     isFollower: Boolean!
-    # Viewer is following this user
+
+    "Whether viewer is following current user."
     isFollowee: Boolean!
+
+    "Status of current user."
     status: UserStatus
+
     # OSS
     oss: UserOSS! @authorize
     remark: String @authorize
