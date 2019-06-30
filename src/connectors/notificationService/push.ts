@@ -3,64 +3,12 @@ import _ from 'lodash'
 import { BaseService } from 'connectors/baseService'
 import notificationQueue from 'connectors/queue/notification'
 import { NotificationType, PutNoticeParams, LANGUAGES } from 'definitions'
-import logger from 'common/logger'
 
 import trans from './translations'
 
 class Push extends BaseService {
   constructor() {
     super('push_device')
-  }
-
-  checkUserNotifySetting = async ({
-    event,
-    userId
-  }: {
-    event: NotificationType
-    userId: string
-  }): Promise<{ canPush: boolean }> => {
-    const setting = await this.knex
-      .select()
-      .where({ userId })
-      .from('user_notify_setting')
-      .first()
-
-    console.log(setting)
-
-    if (!setting || !setting.enable) {
-      return { canPush: false }
-    }
-
-    const noticeSettingMap: { [key in NotificationType]: boolean } = {
-      user_new_follower: setting.follow,
-      article_published: true,
-      article_new_downstream: setting.downstream,
-      article_new_collected: setting.downstream,
-      article_new_appreciation: setting.appreciation,
-      article_new_subscriber: setting.articleSubscription,
-      article_new_comment: setting.comment,
-      article_mentioned_you: setting.mention,
-      subscribed_article_new_comment: setting.commentSubscribed,
-      upstream_article_archived: setting.downstream,
-      downstream_article_archived: setting.downstream,
-      comment_pinned: setting.commentPinned,
-      comment_new_reply: setting.comment,
-      comment_new_upvote: setting.commentVoted,
-      comment_mentioned_you: setting.mention,
-      official_announcement: setting.officialNotice,
-      user_banned: true,
-      user_frozen: true,
-      comment_banned: setting.reportFeedback,
-      article_banned: setting.reportFeedback,
-      comment_reported: setting.reportFeedback,
-      article_reported: setting.reportFeedback,
-      user_activated: true,
-      user_first_post_award: true
-    }
-
-    return {
-      canPush: noticeSettingMap[event]
-    }
   }
 
   generatePushText = async ({
@@ -201,18 +149,6 @@ class Push extends BaseService {
     event: NotificationType,
     language: LANGUAGES
   ) => {
-    const { canPush } = await this.checkUserNotifySetting({
-      event,
-      userId: noticeParams.recipientId
-    })
-
-    if (!canPush) {
-      logger.info(
-        `Push ${noticeParams.type} to ${noticeParams.recipientId} skipped`
-      )
-      return
-    }
-
     const recipient = await this.baseFindById(noticeParams.recipientId, 'user')
     const text = await this.generatePushText({ ...noticeParams, language })
 
