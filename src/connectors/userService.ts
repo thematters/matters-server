@@ -263,10 +263,6 @@ export class UserService extends BaseService {
     // }
 
     const body = bodybuilder()
-      .query('multi_match', {
-        query: key,
-        fields: ['displayName^5', 'userName^10']
-      })
       .from(offset)
       .size(first)
       .build() as { [key: string]: any }
@@ -276,6 +272,15 @@ export class UserService extends BaseService {
         prefix: key,
         completion: {
           field: 'userName'
+        }
+      },
+      displayName: {
+        prefix: key,
+        completion: {
+          field: 'displayName',
+          fuzzy : {
+            fuzziness : 0
+          }
         }
       }
     }
@@ -287,26 +292,17 @@ export class UserService extends BaseService {
         body
       })
 
-      const { hits, suggest } = result as (typeof result) & {
-        suggest: { userName: any[] }
+      const { suggest } = result as (typeof result) & {
+        suggest: { userName: any[], displayName: any[] }
       }
 
-      let ids = hits.hits.map(({ _id }) => _id)
+      let userNameIds = suggest.userName[0].options.map(({ _id }: {_id: any}) => _id)
+      let displayNameIds = suggest.displayName[0].options.map(({ _id }: {_id: any}) => _id)
 
-      const suggested = _.get(suggest, 'userName.0.options.0._id')
-      if (suggested) {
-        // remove duplication
-        const index = ids.indexOf(suggested)
-        if (index > -1) {
-          ids.splice(index, 1)
-        }
-        // add to start
-        ids.unshift(suggested)
-        ids = ids.slice(0, first)
-      }
-
+      // merge two ID arrays and remove duplicates
+      let ids = [...new Set([...displayNameIds, ...userNameIds])]
       const nodes = await this.baseFindByIds(ids)
-      return { nodes, totalCount: hits.total }
+      return { nodes, totalCount: nodes.length }
     } catch (err) {
       logger.error(err)
       throw new ServerError('search failed')
