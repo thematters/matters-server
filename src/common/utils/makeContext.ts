@@ -6,7 +6,7 @@ import { RequestContext } from 'definitions'
 import { getViewerFromReq } from './getViewer'
 import { toGlobalId } from './globalId'
 
-const purgeSentryData = (req: Request): any => {
+const purgeSentryData = (req?: Request): any => {
   const omit = (source: any, target: any) => {
     for (const key of Object.keys(source)) {
       if (key === target) {
@@ -30,14 +30,14 @@ export const makeContext = async ({
   res,
   connection
 }: {
-  req: Request
+  req?: Request
   res: Response
   connection?: any
 }): Promise<RequestContext> => {
   // Add params for Sentry
   Sentry.configureScope((scope: any) => {
-    const { headers } = req
-    scope.setTag('action-id', headers ? headers['x-sentry-action-id'] : null)
+    const headers = req ? req.headers : {}
+    scope.setTag('action-id', headers['x-sentry-action-id'])
     scope.setTag('source', 'server')
     scope.setExtra('parameters', purgeSentryData(req))
   })

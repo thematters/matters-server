@@ -229,56 +229,99 @@ export enum GQLArticleState {
 }
 
 export interface GQLUser extends GQLNode {
+  /**
+   * Global id of an user.
+   */
   id: string
+
+  /**
+   * UUID of an user, for backward compatibility.
+   */
   uuid: GQLUUID
+
+  /**
+   * Global unique user name of a user.
+   */
   userName?: string
 
   /**
-   * Display name on profile
+   * Display name on user profile, can be duplicated.
    */
   displayName?: string
 
   /**
-   * URL for avatar
+   * URL for user avatar.
    */
   avatar?: GQLURL
+
+  /**
+   * User information.
+   */
   info: GQLUserInfo
+
+  /**
+   * User settings.
+   */
   settings: GQLUserSettings
+
+  /**
+   * Article recommendations for current user.
+   */
   recommendation: GQLRecommendation
 
   /**
-   * Articles written by this user
+   * Articles authored by current user.
    */
   articles: GQLArticleConnection
+
+  /**
+   * Drafts authored by current user.
+   */
   drafts: GQLDraftConnection
+
+  /**
+   * Audiodraft by user, currently not used.
+   */
   audiodrafts: GQLAudiodraftConnection
 
   /**
-   * Comments posted by this user
+   * Articles current user commented on
    */
   commentedArticles: GQLArticleConnection
+
+  /**
+   * Artilces current user subscribed to.
+   */
   subscriptions: GQLArticleConnection
+
+  /**
+   * Record of user activity, only accessable by current user.
+   */
   activity: GQLUserActivity
 
   /**
-   * Followers of this user
+   * Followers of this user.
    */
   followers: GQLUserConnection
 
   /**
-   * Users that this user follows
+   * Users that this user follows.
    */
   followees: GQLUserConnection
 
   /**
-   * This user is following viewer
+   * Whether current user is following viewer.
    */
   isFollower: boolean
 
   /**
-   * Viewer is following this user
+   * Whether viewer is following current user.
    */
   isFollowee: boolean
+
+  /**
+   * Status of current user.
+   */
   status?: GQLUserStatus
 
   /**
@@ -1255,58 +1298,77 @@ export interface GQLMutation {
   logRecord?: boolean
 
   /**
-   * send/confirm verification code
+   * Send verification code for email.
    */
   sendVerificationCode?: boolean
+
+  /**
+   * Confirm verification code from email.
+   */
   confirmVerificationCode: string
 
   /**
-   * change or reset password
+   * Reset user password.
    */
   resetPassword?: boolean
 
   /**
-   * change email
+   * Change user email.
    */
   changeEmail?: boolean
 
   /**
-   * verify email
+   * Verify user email.
    */
   verifyEmail?: boolean
 
   /**
-   * register
+   * Register user.
    */
   userRegister: GQLAuthResult
 
   /**
-   * login
+   * Login user.
    */
   userLogin: GQLAuthResult
+
+  /**
+   * Logout user.
+   */
   userLogout: boolean
 
   /**
-   * addOAuth(input: AddOAuthInput!): Boolean
-   * update info/ setting
+   * Update user information.
    */
   updateUserInfo: GQLUser
+
+  /**
+   * Update user notification settings.
+   */
   updateNotificationSetting: GQLUser
 
   /**
-   * follow/unfollow
+   * Follow a given user.
    */
   followUser: GQLUser
+
+  /**
+   * Unfollow curent user.
+   */
   unfollowUser: GQLUser
 
   /**
-   * importArticles(input: ImportArticlesInput!): [Article!]
+   * Clear read history for user.
    */
   clearReadHistory?: boolean
+
+  /**
+   * Clear search history for user.
+   */
   clearSearchHistory?: boolean
 
   /**
-   * OSS
+   * Update state of a user, used in OSS.
    */
   updateUserState: GQLUser
 }
