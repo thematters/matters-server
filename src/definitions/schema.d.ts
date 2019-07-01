@@ -1814,6 +1814,11 @@ export interface GQLCommentPinnedNotice extends GQLNotice {
   target?: GQLComment
 }
 
+export interface GQLCostComplexity {
+  min?: number
+  max?: number
+}
+
 export type GQLDate = any
 
 export interface GQLDownstreamArticleArchivedNotice extends GQLNotice {
