@@ -15,43 +15,94 @@ input ArchiveArticleInput {
   id: ID!
 }
 
+"""
+This type contains metadata, content, hash and related data of an article. If you
+want information about article's comments. Please check Comment type.
+"""
 type Article implements Node {
+  """Unique ID of this article"""
   id: ID!
+
+  """The number represents how popular is this article."""
   topicScore: Int
+
+  """Slugified article title."""
   slug: String!
+
+  """Time of this article was created."""
   createdAt: DateTime!
+
+  """State of this article."""
   state: ArticleState!
+
+  """This value determines if this article is accessible to visitors."""
   public: Boolean!
+
+  """This value determines if this article is under Subscription or not."""
   live: Boolean!
+
+  """Author of this article."""
   author: User!
+
+  """Article title."""
   title: String!
+
+  """Article cover's link."""
   cover: URL
+
+  """A short summary for this article."""
   summary: String!
+
+  """Tags attached to this article."""
   tags: [Tag!]
+
+  """Word count of this article."""
   wordCount: Int
+
+  """IPFS hash of this article."""
   dataHash: String
+
+  """Media hash, composed of cid encoding, of this article."""
   mediaHash: String
+
+  """Content of this article."""
   content: String!
+
+  """List of articles which added this article into their collections."""
   collectedBy(input: ConnectionArgs!): ArticleConnection!
+
+  """List of articles added into this articles' collection."""
   collection(input: ConnectionArgs!): ArticleConnection!
+
+  """Related articles to this articles."""
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
-  """MAT recieved for this article"""
+  """MAT recieved for this article """
   MAT: Int!
   participantCount: Int! @deprecated(reason: "not used")
   participants: UserConnection! @deprecated(reason: "not used")
+
+  """Subscribers of this articles."""
   subscribers(input: ConnectionArgs!): UserConnection!
+
+  """Appreciators of this articles."""
   appreciators(input: ConnectionArgs!): UserConnection!
+
+  """Total count of this article's appreciations."""
   appreciatorCount: Int! @deprecated(reason: "Use `appreciators.totalCount`.")
 
-  """limit the nuhmber of appreciate per user"""
+  """Limit the nuhmber of appreciate per user."""
   appreciateLimit: Int!
+
+  """
+  Number represents how many times per user can appreciate this article.
+  """
   appreciateLeft: Int!
 
-  """Viewer has appreciate"""
+  """This value determines if current viewer has appreciated or not."""
   hasAppreciate: Boolean!
 
-  """Viewer has subscribed"""
+  """This value determines if current Viewer has subscribed of not."""
   subscribed: Boolean!
 
   """OSS"""
@@ -159,6 +210,7 @@ input ArticlesInput {
   first: Int
 }
 
+"""Enums for an article state."""
 enum ArticleState {
   active
   archived
@@ -530,14 +582,31 @@ input MergeTagsInput {
 }
 
 type Mutation {
+  """Publish an article onto IPFS."""
   publishArticle(input: PublishArticleInput!): Draft!
+
+  """Archive an article and users won't be able to view this article."""
   archiveArticle(input: ArchiveArticleInput!): Article!
+
+  """Subscribe an artcile."""
   subscribeArticle(input: SubscribeArticleInput!): Article!
+
+  """Unsubscribe an article."""
   unsubscribeArticle(input: UnsubscribeArticleInput!): Article!
+
+  """Report an article to team."""
   reportArticle(input: ReportArticleInput!): Boolean
+
+  """Appreciate an article."""
   appreciateArticle(input: AppreciateArticleInput!): Article!
+
+  """Read an article."""
   readArticle(input: ReadArticleInput!): Article!
+
+  """Recall while publishing."""
   recallPublish(input: RecallPublishInput!): Draft!
+
+  """Set collection of an article."""
   setCollection(input: SetCollectionInput!): Article!
 
   """OSS"""
@@ -573,42 +642,49 @@ type Mutation {
   putRemark(input: PutRemarkInput!): String
   logRecord(input: LogRecordInput!): Boolean
 
-  """send/confirm verification code"""
+  """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
+
+  """Confirm verification code from email."""
   confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
-  """change or reset password"""
+  """Reset user password."""
   resetPassword(input: ResetPasswordInput!): Boolean
 
-  """change email"""
+  """Change user email."""
   changeEmail(input: ChangeEmailInput!): Boolean
 
-  """verify email"""
+  """Verify user email."""
   verifyEmail(input: VerifyEmailInput!): Boolean
 
-  """register"""
+  """Register user."""
   userRegister(input: UserRegisterInput!): AuthResult!
 
-  """login"""
+  """Login user."""
   userLogin(input: UserLoginInput!): AuthResult!
+
+  """Logout user."""
   userLogout: Boolean!
 
-  """
-  addOAuth(input: AddOAuthInput!): Boolean
-  update info/ setting
-  """
+  """Update user information."""
   updateUserInfo(input: UpdateUserInfoInput!): User!
+
+  """Update user notification settings."""
   updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
 
-  """follow/unfollow"""
+  """Follow a given user."""
   followUser(input: FollowUserInput!): User!
+
+  """Unfollow curent user."""
   unfollowUser(input: UnfollowUserInput!): User!
 
-  """importArticles(input: ImportArticlesInput!): [Article!]"""
+  """Clear read history for user."""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
+
+  """Clear search history for user."""
   clearSearchHistory: Boolean
 
-  """OSS"""
+  """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): User!
 }
 
@@ -856,6 +932,7 @@ type Recommendation {
   authors(input: AuthorsInput!): UserConnection!
 }
 
+"""Enums for types of recommend articles."""
 enum RecommendTypes {
   today
   icymi
@@ -1056,11 +1133,19 @@ type Subscription {
   nodeEdited(input: NodeEditedInput!): Node!
 }
 
+"""This type contains content, count and related data of an article tag."""
 type Tag implements Node {
+  """Unique id of this tag."""
   id: ID!
+
+  """Content of this tag."""
   content: String!
   count: Int! @deprecated(reason: "Use `articles.totalCount`.")
+
+  """List of how many articles were attached with this tag."""
   articles(input: ConnectionArgs!): ArticleConnection!
+
+  """Time of this tag was created."""
   createdAt: DateTime!
 
   """OSS"""
@@ -1090,6 +1175,7 @@ input TagsInput {
   sort: TagsSort
 }
 
+"""Enums for sorting tags."""
 enum TagsSort {
   newest
   oldest
@@ -1209,40 +1295,61 @@ type UpstreamArticleArchivedNotice implements Notice {
 scalar URL
 
 type User implements Node {
+  """Global id of an user."""
   id: ID!
+
+  """UUID of an user, for backward compatibility."""
   uuid: UUID!
+
+  """Global unique user name of a user."""
   userName: String
 
-  """Display name on profile"""
+  """Display name on user profile, can be duplicated."""
   displayName: String
 
-  """URL for avatar"""
+  """URL for user avatar."""
   avatar: URL
+
+  """User information."""
   info: UserInfo!
+
+  """User settings."""
   settings: UserSettings!
+
+  """Article recommendations for current user."""
   recommendation: Recommendation!
 
-  """Articles written by this user"""
+  """Articles authored by current user."""
   articles(input: ConnectionArgs!): ArticleConnection!
+
+  """Drafts authored by current user."""
   drafts(input: ConnectionArgs!): DraftConnection!
+
+  """Audiodraft by user, currently not used."""
   audiodrafts(input: ConnectionArgs!): AudiodraftConnection!
 
-  """Comments posted by this user"""
+  """Articles current user commented on"""
   commentedArticles(input: ConnectionArgs!): ArticleConnection!
+
+  """Artilces current user subscribed to."""
   subscriptions(input: ConnectionArgs!): ArticleConnection!
+
+  """Record of user activity, only accessable by current user."""
   activity: UserActivity!
 
-  """Followers of this user"""
+  """Followers of this user."""
   followers(input: ConnectionArgs!): UserConnection!
 
-  """Users that this user follows"""
+  """Users that this user follows."""
   followees(input: ConnectionArgs!): UserConnection!
 
-  """This user is following viewer"""
+  """Whether current user is following viewer."""
   isFollower: Boolean!
 
-  """Viewer is following this user"""
+  """Whether viewer is following current user."""
   isFollowee: Boolean!
+
+  """Status of current user."""
   status: UserStatus
 
   """OSS"""
