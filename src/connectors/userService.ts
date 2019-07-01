@@ -278,8 +278,8 @@ export class UserService extends BaseService {
         prefix: key,
         completion: {
           field: 'displayName',
-          fuzzy : {
-            fuzziness : 0
+          fuzzy: {
+            fuzziness: 0
           }
         }
       }
@@ -293,11 +293,15 @@ export class UserService extends BaseService {
       })
 
       const { suggest } = result as (typeof result) & {
-        suggest: { userName: any[], displayName: any[] }
+        suggest: { userName: any[]; displayName: any[] }
       }
 
-      let userNameIds = suggest.userName[0].options.map(({ _id }: {_id: any}) => _id)
-      let displayNameIds = suggest.displayName[0].options.map(({ _id }: {_id: any}) => _id)
+      let userNameIds = suggest.userName[0].options.map(
+        ({ _id }: { _id: any }) => _id
+      )
+      let displayNameIds = suggest.displayName[0].options.map(
+        ({ _id }: { _id: any }) => _id
+      )
 
       // merge two ID arrays and remove duplicates
       let ids = [...new Set([...displayNameIds, ...userNameIds])]
