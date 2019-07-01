@@ -55,7 +55,7 @@ class ProtectedApolloServer extends ApolloServer {
           createError: (max: number, actual: number) => {
             const err = new ActionLimitExceededError(
               `GraphQL query exceeds maximum complexity,` +
-              `please remove some nesting or fields and try again. (max: ${max}, actual: ${actual})`
+                `please remove some nesting or fields and try again. (max: ${max}, actual: ${actual})`
             )
             return err
           },
