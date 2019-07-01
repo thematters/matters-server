@@ -155,7 +155,7 @@ export default /* GraphQL */ `
     remark: String @authorize
   }
 
-  type  ArticleOSS {
+  type ArticleOSS {
     boost: NonNegativeFloat! @authorize
     score: NonNegativeFloat! @authorize
     inRecommendToday: Boolean! @authorize
