@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2019-07-02
+
+- Update the logic of notification distribution #366
+- Add documentation for Article related APIs #367
+- Resource Limitations #368
+- Alter preview/preheader text of daily summary email #369
+- User doc & handle null req #370
+- Admin can also access user's inactive articles #371
+- Enhance search user accuracy #372
+
+### Changed
+
 ## [1.5.0] - 2019-06-24
 
 ### Changed
