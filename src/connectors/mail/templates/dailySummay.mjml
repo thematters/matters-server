@@ -2,6 +2,83 @@
   <mj-head>
     <mj-include path="./partials/head.mjml" />
     <mj-title>🐿️ {{recipient.displayName}}，這是專屬於你的 Matters 日報</mj-title>
+    <mj-preview>
+
+      {{#if notices.article_new_appreciation}}
+        {{#each notices.article_new_appreciation}}
+          {{#each this.actors}}
+            <span>{{this.displayName}}</span>
+            {{#if @last}}{{#if @../last}} {{else}}<span>、</span>{{/if}}{{else}}<span>、</span>{{/if}}
+          {{/each}}
+        {{/each}}
+        讚賞了你的作品；
+      {{/if}}
+
+      {{#if notices.article_new_comment}}
+        {{#each notices.article_new_comment}}
+          {{#each this.actors}}
+            <span>{{this.displayName}}</span>
+            {{#if @last}}{{#if @../last}} {{else}}<span>、</span>{{/if}}{{else}}<span>、</span>{{/if}}
+          {{/each}}
+        {{/each}}
+        回應了你的作品；
+      {{/if}}
+
+      {{#if notices.article_new_subscriber}}
+        {{#each notices.article_new_subscriber}}
+          {{#each this.actors}}
+            <span>{{this.displayName}}</span>
+            {{#if @last}}{{#if @../last}} {{else}}<span>、</span>{{/if}}{{else}}<span>、</span>{{/if}}
+          {{/each}}
+        {{/each}}
+        收藏了你的作品；
+      {{/if}}
+
+      {{#if notices.article_new_collected}}
+        {{#each notices.article_new_collected}}
+          <span>{{this.actor.displayName}}</span>
+          {{#if @last}} {{else}}<span>、</span>{{/if}}
+        {{/each}}
+        關聯了你的作品；
+      {{/if}}
+
+      {{#if notices.article_mentioned_you}}
+        {{#each notices.article_mentioned_you}}
+          <span>{{this.actor.displayName}}</span>
+          {{#if @last}} {{else}}<span>、</span>{{/if}}
+        {{/each}}
+        在作品中提及了你；
+      {{/if}}
+
+      {{#if notices.comment_mentioned_you}}
+        {{#each notices.comment_mentioned_you}}
+          <span>{{this.actor.displayName}}</span>
+          {{#if @last}} {{else}}<span>、</span>{{/if}}
+        {{/each}}
+        在評論中提及了你；
+      {{/if}}
+
+      {{#if notices.comment_new_reply}}
+        你的評論被
+        {{#each notices.comment_new_reply}}
+          <span>{{this.actor.displayName}}</span>
+          {{#if @last}} {{else}}<span>、</span>{{/if}}
+        {{/each}}
+        回覆；
+      {{/if}}
+
+      {{#if notices.user_new_follower}}
+        {{#each notices.user_new_follower}}
+          {{#each this.actors}}
+            <span>{{this.displayName}}</span>
+            {{#if @last}}{{#if @../last}} {{else}}<span>、</span>{{/if}}{{else}}<span>、</span>{{/if}}
+          {{/each}}
+        {{/each}}
+        追蹤了你
+      {{/if}}
+
+      &zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+    </mj-preview>
   </mj-head>
 
   <mj-body mj-class="body" css-class="body">

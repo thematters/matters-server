@@ -280,6 +280,17 @@ export default /* GraphQL */ `
     admin
   }
 
+  input CostComplexity {
+    min: Int = 1,
+    max: Int
+  }
+
+  directive @cost(
+    multipliers: [String],
+    useMultipliers: Boolean,
+    complexity: CostComplexity
+  ) on OBJECT | FIELD_DEFINITION
+
   directive @deprecated(
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ENUM_VALUE

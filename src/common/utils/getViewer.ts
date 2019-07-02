@@ -56,11 +56,10 @@ export const getViewerFromReq = async ({
   req,
   res
 }: {
-  req: requestIp.Request
+  req?: requestIp.Request
   res?: Response
 }): Promise<Viewer> => {
-  const { headers } = req
-  const ip = requestIp.getClientIp(req)
+  const headers = req ? req.headers : {}
   const isWeb = headers['x-client-name'] === 'web'
   const language = getLanguage((headers['accept-language'] ||
     headers['Accept-Language'] ||
@@ -68,8 +67,7 @@ export const getViewerFromReq = async ({
 
   // user infomation from request
   let user = {
-    language,
-    ip
+    language
   }
 
   // get user from token, use cookie first then 'x-access-token'
@@ -90,11 +88,7 @@ export const getViewerFromReq = async ({
       userDB = await activeIfOnboarding(userDB)
 
       // overwrite request by user settings
-      if (isWeb) {
-        user = { ip: user.ip, ...userDB }
-      } else {
-        user = { ...user, ...userDB }
-      }
+      user = { ...user, ...userDB }
     } catch (err) {
       logger.info('token invalid')
       if (res) {
