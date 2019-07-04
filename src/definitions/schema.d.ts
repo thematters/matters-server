@@ -187,10 +187,30 @@ export interface GQLArticle extends GQLNode {
    */
   oss: GQLArticleOSS
   remark?: string
+
+  /**
+   * The counting number of comments.
+   */
   commentCount: number
+
+  /**
+   * The number determines how many pinned comments can be set.
+   */
   pinCommentLimit: number
+
+  /**
+   * The number determines how many comments can be set as pinned comment.
+   */
   pinCommentLeft: number
+
+  /**
+   * List of pinned comments.
+   */
   pinnedComments?: Array<GQLComment>
+
+  /**
+   * List of comments of this article.
+   */
   comments: GQLCommentConnection
   responseCount: number
   responses: GQLResponseConnection
@@ -920,20 +940,58 @@ export interface GQLArticleOSS {
   todaySummary?: string
 }
 
+/**
+ * This type contains content, author, descendant comments and related data of a comment.
+ */
 export interface GQLComment extends GQLNode {
+  /**
+   * Unique ID of this comment.
+   */
   id: string
+
+  /**
+   * State of this comment.
+   */
   state: GQLCommentState
+
+  /**
+   * Time of this comment was created.
+   */
   createdAt: GQLDateTime
 
   /**
-   * Original article of this comment
+   * Article that the comment is belonged to.
    */
   article: GQLArticle
+
+  /**
+   * Content of this comment.
+   */
   content?: string
+
+  /**
+   * Author of this comment.
+   */
   author: GQLUser
+
+  /**
+   * This value determines this comment is pinned or not.
+   */
   pinned: boolean
+
+  /**
+   * The counting number of upvotes.
+   */
   upvotes: number
+
+  /**
+   * The counting number of downvotes.
+   */
   downvotes: number
+
+  /**
+   * The value determines current user's vote.
+   */
   myVote?: GQLVote
 
   /**
@@ -941,21 +999,39 @@ export interface GQLComment extends GQLNode {
    * @deprecated not used
    */
   mentions?: Array<GQLUser>
+
+  /**
+   * Descendant comments of this comment.
+   */
   comments: GQLCommentConnection
+
+  /**
+   * Parent comment of this comment.
+   */
   parentComment?: GQLComment
   quotationStart?: number
   quotationEnd?: number
   quotationContent?: string
+
+  /**
+   * A Comment that this comment replied to.
+   */
   replyTo?: GQLComment
   remark?: string
 }
 
+/**
+ * Enums for comment state.
+ */
 export enum GQLCommentState {
   active = 'active',
   archived = 'archived',
   banned = 'banned'
 }
 
+/**
+ * Enums for vote types.
+ */
 export enum GQLVote {
   up = 'up',
   down = 'down'
@@ -968,6 +1044,9 @@ export interface GQLCommentCommentsInput {
   first?: number
 }
 
+/**
+ * Enums for sorting comments by time.
+ */
 export enum GQLCommentSort {
   oldest = 'oldest',
   newest = 'newest',
@@ -1269,13 +1348,45 @@ export interface GQLMutation {
   renameTag: GQLTag
   mergeTags: GQLTag
   updateMattersToday: GQLArticle
+
+  /**
+   * Publish a comment.
+   */
   putComment: GQLComment
+
+  /**
+   * Pin a comment.
+   */
   pinComment: GQLComment
+
+  /**
+   * Unpin a comment.
+   */
   unpinComment: GQLComment
+
+  /**
+   * Remove a comment.
+   */
   deleteComment: GQLComment
+
+  /**
+   * Report a comment to team.
+   */
   reportComment?: boolean
+
+  /**
+   * Upvote or downvote a comment.
+   */
   voteComment: GQLComment
+
+  /**
+   * Unvote a comment.
+   */
   unvoteComment: GQLComment
+
+  /**
+   * Update a comment's state.
+   */
   updateCommentState: GQLComment
 
   /**
