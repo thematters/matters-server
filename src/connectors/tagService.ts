@@ -192,7 +192,7 @@ export class TagService extends BaseService {
       .countDistinct('article_id')
       .where({ tagId: id, state: ARTICLE_STATE.active })
       .first()
-    return parseInt(result ? result.count as string : '0', 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**

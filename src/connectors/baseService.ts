@@ -42,7 +42,7 @@ export class BaseService extends DataSource {
     }
 
     const result = await qs
-    return parseInt(result ? result.count as string : '0', 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**

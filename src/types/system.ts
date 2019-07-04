@@ -281,13 +281,13 @@ export default /* GraphQL */ `
   }
 
   input CostComplexity {
-    min: Int = 1,
+    min: Int = 1
     max: Int
   }
 
   directive @cost(
-    multipliers: [String],
-    useMultipliers: Boolean,
+    multipliers: [String]
+    useMultipliers: Boolean
     complexity: CostComplexity
   ) on OBJECT | FIELD_DEFINITION
 
@@ -295,13 +295,9 @@ export default /* GraphQL */ `
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ENUM_VALUE
 
-  directive @authenticate(
-    requires: Role = user,
-  ) on OBJECT | FIELD_DEFINITION
+  directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION
 
-  directive @authorize(
-    requires: Role = admin,
-  ) on OBJECT | FIELD_DEFINITION
+  directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
 
   directive @private on FIELD_DEFINITION
 `
