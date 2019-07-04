@@ -212,7 +212,15 @@ export interface GQLArticle extends GQLNode {
    * List of comments of this article.
    */
   comments: GQLCommentConnection
+
+  /**
+   * The counting number of this article.
+   */
   responseCount: number
+
+  /**
+   * List of responses of a article.
+   */
   responses: GQLResponseConnection
 }
 
@@ -618,23 +626,80 @@ export interface GQLDraftEdge {
   node: GQLDraft
 }
 
+/**
+ * This type contains content, collections, assets and related data of a draft.
+ */
 export interface GQLDraft extends GQLNode {
+  /**
+   * Unique ID of this draft.
+   */
   id: string
+
+  /**
+   * Collection list of this draft.
+   */
   collection: GQLArticleConnection
+
+  /**
+   * Draft title.
+   */
   title?: string
+
+  /**
+   * Slugified draft title.
+   */
   slug: string
+
+  /**
+   * Summary of this draft.
+   */
   summary?: string
+
+  /**
+   * Content of this draft.
+   */
   content?: string
   scheduledAt?: GQLDateTime
+
+  /**
+   * Time of this draft was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * Last time of this draft was upadted.
+   */
   updatedAt: GQLDateTime
+
+  /**
+   * The counting number of words in this draft.
+   */
   wordCount: number
+
+  /**
+   * Tags are attached to this draft.
+   */
   tags?: Array<string>
+
+  /**
+   * Draft's cover link.
+   */
   cover?: GQLURL
+
+  /**
+   * State of draft during publihsing.
+   */
   publishState: GQLPublishState
+
+  /**
+   * List of asstets are belonged to this draft.
+   */
   assets: Array<GQLAsset>
 }
 
+/**
+ * Enums for publishing state.
+ */
 export enum GQLPublishState {
   unpublished = 'unpublished',
   pending = 'pending',
@@ -642,13 +707,34 @@ export enum GQLPublishState {
   published = 'published'
 }
 
+/**
+ * This type contains type, link and related data of an asset.
+ */
 export interface GQLAsset {
+  /**
+   * Unique ID of this Asset.
+   */
   id: string
+
+  /**
+   * Types of this asset.
+   */
   type: GQLAssetType
+
+  /**
+   * Link of this asset.
+   */
   path: string
+
+  /**
+   * Time of this asset was created.
+   */
   createdAt: GQLDateTime
 }
 
+/**
+ * Enums for asset types.
+ */
 export enum GQLAssetType {
   avatar = 'avatar',
   cover = 'cover',
@@ -1095,6 +1181,9 @@ export interface GQLResponsesInput {
   articleOnly?: boolean
 }
 
+/**
+ * Enums for sorting responses.
+ */
 export enum GQLResponseSort {
   oldest = 'oldest',
   newest = 'newest'
@@ -1156,12 +1245,23 @@ export interface GQLSearchResultEdge {
   node: GQLNode
 }
 
+/**
+ * This type contains system-wise settings.
+ */
 export interface GQLOfficial {
   reportCategory: Array<GQLCategory>
   feedbackCategory: Array<GQLCategory>
   releases?: Array<GQLRelease>
+
+  /**
+   * Links of specific pages on Matters site.
+   */
   links: GQLOfficialLinks
   placements: GQLPlacements
+
+  /**
+   * IPFS gateway URLs.
+   */
   gatewayUrls?: Array<GQLURL>
 }
 
@@ -1388,24 +1488,36 @@ export interface GQLMutation {
    * Update a comment's state.
    */
   updateCommentState: GQLComment
-
-  /**
-   * audio dtaft
-   */
   putAudiodraft: GQLAudiodraft
   deleteAudiodraft?: boolean
 
   /**
-   * draft
+   * Create or update a draft.
    */
   putDraft: GQLDraft
+
+  /**
+   * Remove a draft.
+   */
   deleteDraft?: boolean
   markAllNoticesAsRead?: boolean
+
+  /**
+   * Upload a single file.
+   */
   singleFileUpload: GQLAsset
+
+  /**
+   * Delete a uploaded file.
+   */
   singleFileDelete: boolean
   feedback?: boolean
   setBoost: GQLNode
   putRemark?: string
+
+  /**
+   * Add specific user behavior record.
+   */
   logRecord?: boolean
 
   /**
@@ -1967,6 +2079,9 @@ export interface GQLOfficialAnnouncementNotice extends GQLNotice {
 
 export type GQLPositiveFloat = any
 
+/**
+ * Enums for user roles.
+ */
 export enum GQLRole {
   vistor = 'vistor',
   user = 'user',

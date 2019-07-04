@@ -123,7 +123,11 @@ type Article implements Node {
 
   """List of comments of this article."""
   comments(input: CommentsInput!): CommentConnection!
+
+  """The counting number of this article."""
   responseCount: Int!
+
+  """List of responses of a article."""
   responses(input: ResponsesInput!): ResponseConnection!
 }
 
@@ -227,13 +231,22 @@ enum ArticleState {
   banned
 }
 
+"""This type contains type, link and related data of an asset."""
 type Asset {
+  """Unique ID of this Asset."""
   id: ID!
+
+  """Types of this asset."""
   type: AssetType!
+
+  """Link of this asset."""
   path: String!
+
+  """Time of this asset was created."""
   createdAt: DateTime!
 }
 
+"""Enums for asset types."""
 enum AssetType {
   avatar
   cover
@@ -508,20 +521,48 @@ type DownstreamArticleArchivedNotice implements Notice {
   target: Article
 }
 
+"""
+This type contains content, collections, assets and related data of a draft.
+"""
 type Draft implements Node {
+  """Unique ID of this draft."""
   id: ID!
+
+  """Collection list of this draft."""
   collection(input: ConnectionArgs!): ArticleConnection!
+
+  """Draft title."""
   title: String
+
+  """Slugified draft title."""
   slug: String!
+
+  """Summary of this draft."""
   summary: String
+
+  """Content of this draft."""
   content: String
   scheduledAt: DateTime
+
+  """Time of this draft was created."""
   createdAt: DateTime!
+
+  """Last time of this draft was upadted."""
   updatedAt: DateTime!
+
+  """The counting number of words in this draft."""
   wordCount: Int!
+
+  """Tags are attached to this draft."""
   tags: [String!]
+
+  """Draft's cover link."""
   cover: URL
+
+  """State of draft during publihsing."""
   publishState: PublishState!
+
+  """List of asstets are belonged to this draft."""
   assets: [Asset!]!
 }
 
@@ -680,20 +721,26 @@ type Mutation {
 
   """Update a comment's state."""
   updateCommentState(input: UpdateCommentStateInput!): Comment!
-
-  """audio dtaft"""
   putAudiodraft(input: PutAudiodraftInput!): Audiodraft!
   deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean
 
-  """draft"""
+  """Create or update a draft."""
   putDraft(input: PutDraftInput!): Draft!
+
+  """Remove a draft."""
   deleteDraft(input: DeleteDraftInput!): Boolean
   markAllNoticesAsRead: Boolean
+
+  """Upload a single file."""
   singleFileUpload(input: SingleFileUploadInput!): Asset!
+
+  """Delete a uploaded file."""
   singleFileDelete(input: SingleFileDeleteInput!): Boolean!
   feedback(input: FeedbackInput!): Boolean
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
+
+  """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
 
   """Send verification code for email."""
@@ -817,12 +864,17 @@ enum NotificationSettingType {
   reportFeedback
 }
 
+"""This type contains system-wise settings."""
 type Official {
   reportCategory: [Category!]!
   feedbackCategory: [Category!]!
   releases(input: ReleasesInput!): [Release!]
+
+  """Links of specific pages on Matters site."""
   links: OfficialLinks!
   placements: Placements!
+
+  """IPFS gateway URLs."""
   gatewayUrls: [URL!]
 }
 
@@ -891,6 +943,7 @@ input PublishArticleInput {
   delay: Int
 }
 
+"""Enums for publishing state."""
 enum PublishState {
   unpublished
   pending
@@ -1106,11 +1159,13 @@ input ResponsesInput {
   articleOnly: Boolean
 }
 
+"""Enums for sorting responses."""
 enum ResponseSort {
   oldest
   newest
 }
 
+"""Enums for user roles."""
 enum Role {
   vistor
   user
