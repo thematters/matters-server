@@ -3,7 +3,7 @@ import Knex from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 // internal
 const knexConfig = require('../../../knexfile')
-// loccal
+// local
 import { environment } from 'common/environment'
 import { MaterializedView } from 'definitions'
 

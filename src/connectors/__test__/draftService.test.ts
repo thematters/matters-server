@@ -1,9 +1,5 @@
 import { DraftService } from '../draftService'
 
-import { knex } from 'connectors/db'
-
-afterAll(knex.destroy)
-
 const draftValidation = {
   id: expect.any(String),
   uuid: expect.any(String),

@@ -15,5 +15,10 @@ module.exports = {
   globalSetup: '<rootDir>/db/testSetup.js',
   globalTeardown: '<rootDir>/db/testTeardown.js',
   coverageDirectory: './coverage/',
-  collectCoverage: true
+  collectCoverage: true,
+  globals: {
+    'ts-jest': {
+      diagnostics: false
+    }
+  }
 }

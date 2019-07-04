@@ -7,7 +7,6 @@ const articleService = new ArticleService()
 //   await articleService.es.clear()
 //   await articleService.initSearch()
 // })
-afterAll(knex.destroy)
 
 test('publish', async () => {
   const articlePublished = await articleService.publish({

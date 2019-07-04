@@ -8,7 +8,7 @@ import {
 } from 'common/enums'
 import { MaterializedView } from 'definitions'
 import { UserService } from 'connectors'
-import { knex, refreshView } from 'connectors/db'
+import { refreshView } from 'connectors/db'
 import {
   defaultTestUser,
   getUserContext,
@@ -22,7 +22,6 @@ beforeAll(async () => {
   userService = new UserService()
   // await userService.initSearch()
 })
-afterAll(knex.destroy)
 
 const USER_LOGIN = `
   mutation UserLogin($input: UserLoginInput!) {

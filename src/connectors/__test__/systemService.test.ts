@@ -1,10 +1,6 @@
 import { v4 } from 'uuid'
 import { SystemService } from '../systemService'
 
-import { knex } from 'connectors/db'
-
-afterAll(knex.destroy)
-
 const assetValidation = {
   id: expect.any(String),
   uuid: expect.any(String),
