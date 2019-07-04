@@ -969,9 +969,23 @@ export interface GQLNoticeEdge {
   node: GQLNotice
 }
 
+/**
+ * This interface contains common fields of a notice.
+ */
 export interface GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
 }
 
@@ -1500,6 +1514,10 @@ export interface GQLMutation {
    * Remove a draft.
    */
   deleteDraft?: boolean
+
+  /**
+   * Mark all received notices as read.
+   */
   markAllNoticesAsRead?: boolean
 
   /**
@@ -1945,38 +1963,138 @@ export interface GQLNodeEditedInput {
   id: string
 }
 
+/**
+ * This notice type contains info about current user has been mentioned in an article.
+ */
 export interface GQLArticleMentionedYouNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who mentioned current user.
+   */
   actor: GQLUser
+
+  /**
+   * The article that current user has been mentioned in.
+   */
   target?: GQLArticle
 }
 
+/**
+ * This notice type contains info about current user's article has been appreciated by others.
+ */
 export interface GQLArticleNewAppreciationNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * List of users who appreciated current user's article.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The article that has been appreciated.
+   */
   target?: GQLArticle
+
+  /**
+   * The amount of appreciations.
+   */
   MAT: number
 }
 
+/**
+ * This notice type contains info about current user's article has been collected by others.
+ */
 export interface GQLArticleNewCollectedNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user collect current user's articles.
+   */
   actor: GQLUser
+
+  /**
+   * The article that collected current user's articles.
+   */
   collection?: GQLArticle
+
+  /**
+   * The article that has been collected.
+   */
   target?: GQLArticle
 }
 
+/**
+ * This notice type contains info about current user's article has new comment.
+ */
 export interface GQLArticleNewCommentNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who comment current user's article.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The article that has new comment.
+   */
   target?: GQLArticle
+
+  /**
+   * The comment data.
+   */
   comment?: GQLComment
 }
 
@@ -1989,18 +2107,58 @@ export interface GQLArticleNewDownstreamNotice extends GQLNotice {
   target?: GQLArticle
 }
 
+/**
+ * This notice type contains info about current user's article has been subscribed by others.
+ */
 export interface GQLArticleNewSubscriberNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * List of users who subscribed current user's article.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The article that has been subscribed.
+   */
   target?: GQLArticle
 }
 
+/**
+ * This notice type contains info about current user's article publihsed successfully.
+ */
 export interface GQLArticlePublishedNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The article that has been published.
+   */
   target?: GQLArticle
 }
 
@@ -2012,28 +2170,98 @@ export interface GQLCommentMentionedYouNotice extends GQLNotice {
   target?: GQLComment
 }
 
+/**
+ * This notice type contains info about current user's comment has new reply.
+ */
 export interface GQLCommentNewReplyNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who replied current user's comment.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The comment that has new replied.
+   */
   target?: GQLComment
+
+  /**
+   * The comment that replied to current user's existing comment.
+   */
   reply?: GQLComment
 }
 
+/**
+ * The notice type contains info about current user's comment has new vote.
+ */
 export interface GQLCommentNewUpvoteNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who vote current user's comment.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The comment that has new vote.
+   */
   target?: GQLComment
 }
 
+/**
+ * This notice type contains info about current user's comment has been pinned.
+ */
 export interface GQLCommentPinnedNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who pinned current user's comment.
+   */
   actor: GQLUser
+
+  /**
+   * The comment data.
+   */
   target?: GQLComment
 }
 
@@ -2069,11 +2297,33 @@ export type GQLNonPositiveFloat = any
 
 export type GQLNonPositiveInt = any
 
+/**
+ * The notice type contains info about official announcement.
+ */
 export interface GQLOfficialAnnouncementNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The message content.
+   */
   message: string
+
+  /**
+   * The link to a specific page if provided.
+   */
   link?: GQLURL
 }
 
@@ -2088,12 +2338,38 @@ export enum GQLRole {
   admin = 'admin'
 }
 
+/**
+ * This notice type contains info about current user's subscribed article has new comment.
+ */
 export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who made new comment to current user's subscribed article.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The article that current user has been subscribed.
+   */
   target?: GQLArticle
+
+  /**
+   * The comment data.
+   */
   comment?: GQLComment
 }
 
@@ -2116,10 +2392,28 @@ export enum GQLUserInfoFields {
   agreeOn = 'agreeOn'
 }
 
+/**
+ * This notice type contains info about current user has new followers.
+ */
 export interface GQLUserNewFollowerNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * List of new followers.
+   */
   actors?: Array<GQLUser | null>
 }
 
