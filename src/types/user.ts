@@ -117,6 +117,7 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
+    ""
     followeeArticles(input: ConnectionArgs!): ArticleConnection!
     newest(input: ConnectionArgs!): ArticleConnection!
     hottest(input: ConnectionArgs!): ArticleConnection!
