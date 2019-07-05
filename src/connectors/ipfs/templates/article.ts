@@ -1,3 +1,8 @@
+import { UTM_PARAMETER } from 'common/enums'
+import { environment } from 'common/environment'
+
+const { domain } = environment
+
 type TemplateVars = {
   title: string
   author: {
@@ -147,7 +152,9 @@ const template = ({
       <header>
         <h1 itemprop="headline">${title}</h1>
         <figure class="byline">
-          <span itemprop="author">${author.displayName} (@${author.userName})</span>
+          <a href="${domain}/@${author.userName}&${UTM_PARAMETER.SOURCE.IPFS}" target="_blank" itemprop="author">
+            ${author.displayName} (@${author.userName})
+          </a>
           <time itemprop="datePublished" datetime="${publishedAt.toISOString()}">${toDateString(publishedAt)}</time>
           <span itemprops="provider" itemscope itemtype="http://schema.org/Organization">
             from <span itemprops="name">Matters</span>
