@@ -363,44 +363,67 @@ export interface GQLUser extends GQLNode {
 export type GQLURL = any
 
 export interface GQLUserInfo {
+  /**
+   * Timestamp of registration.
+   */
   createdAt: GQLDateTime
 
   /**
-   * Unique user name
+   * Unique user name.
    * @deprecated Use `User.userName`.
    */
   userName: string
 
   /**
-   * Is user name editable
+   * Is user name editable.
    */
   userNameEditable: boolean
 
   /**
-   * Display name on profile
+   * Display name on profile.
    * @deprecated Use `User.displayName`.
    */
   displayName: string
 
   /**
-   * User desciption
+   * User desciption.
    */
   description?: string
 
   /**
-   * URL for avatar
+   * URL for avatar.
    * @deprecated Use `User.avatar`.
    */
   avatar?: GQLURL
+
+  /**
+   * User email.
+   */
   email?: GQLEmail
+
+  /**
+   * Is email verified.
+   */
   emailVerified?: boolean
+
+  /**
+   * Moble number.
+   */
   mobile?: string
 
   /**
-   * Use 500 for now, adaptive in the future
+   * User reading speed, 500 as default.
    */
   readSpeed: number
+
+  /**
+   * User badges.
+   */
   badges?: Array<GQLBadge>
+
+  /**
+   * Timestamp of user agreement.
+   */
   agreeOn?: GQLDateTime
 }
 
@@ -416,14 +439,12 @@ export enum GQLBadgeType {
 
 export interface GQLUserSettings {
   /**
-   * User language setting
+   * User language setting.
    */
   language: GQLUserLanguage
 
   /**
-   * Thrid party accounts binded for the user
-   * oauthType: [OAuthType!]
-   * Notification settings
+   * Notification settings.
    */
   notification: GQLNotificationSetting
 }
@@ -455,21 +476,44 @@ export interface GQLNotificationSetting {
 }
 
 export interface GQLRecommendation {
+  /**
+   * Articles published by user's followees.
+   */
   followeeArticles: GQLArticleConnection
+
+  /**
+   * Global articles sort by publish time.
+   */
   newest: GQLArticleConnection
+
+  /**
+   * Global articles sort by latest activity time.
+   */
   hottest: GQLArticleConnection
 
   /**
-   * Matters Today
+   * 'Matters Today' recommendation.
    */
   today?: GQLArticle
 
   /**
-   * In case you missed it
+   * 'In case you missed it' recommendation.
    */
   icymi: GQLArticleConnection
+
+  /**
+   * Global tag list, sort by activities in recent 14 days.
+   */
   tags: GQLTagConnection
+
+  /**
+   * Gloabl article list, sort by activities in recent 72 hours.
+   */
   topics: GQLArticleConnection
+
+  /**
+   * Global user list, sort by activities in recent 6 month.
+   */
   authors: GQLUserConnection
 }
 
@@ -767,7 +811,14 @@ export interface GQLAudiodraft {
 }
 
 export interface GQLUserActivity {
+  /**
+   * User reading history.
+   */
   history: GQLReadHistoryConnection
+
+  /**
+   * User search history.
+   */
   recentSearches: GQLRecentSearchConnection
 }
 
@@ -799,16 +850,23 @@ export interface GQLRecentSearchEdge {
 }
 
 export interface GQLUserStatus {
+  /**
+   * User state.
+   */
   state: GQLUserState
+
+  /**
+   * User role and access level.
+   */
   role: GQLUserRole
 
   /**
-   * Total MAT left in wallet
+   * Total MAT left in wallet.
    */
   MAT: GQLMAT
 
   /**
-   *
+   * Invitation. Deprecated.
    * @deprecated removed
    */
   invitation?: GQLInvitationStatus
@@ -820,44 +878,52 @@ export interface GQLUserStatus {
   articleCount: number
 
   /**
-   * Number of views on articles
+   * Number of views on user articles. Not yet in use.
    */
   viewCount: number
 
   /**
-   *
+   * Number of draft of user.
    * @deprecated Use `User.drafts.totalCount`.
    */
   draftCount: number
 
   /**
-   * Number of comments posted by user
+   * Number of comments posted by user.
    */
   commentCount: number
 
   /**
-   * quotationCount: Int! @deprecated(reason: "not used")
+   *
    * @deprecated Use `User.subscriptions.totalCount`.
    */
   subscriptionCount: number
 
   /**
-   * Number of user that this user follows
+   *
    * @deprecated Use `User.followees.totalCount`.
    */
   followeeCount: number
 
   /**
-   * Number of user that follows this user
+   *
    * @deprecated Use `User.followers.totalCount`.
    */
   followerCount: number
 
   /**
-   * Number of unread notices
+   * Number of unread notices.
    */
   unreadNoticeCount: number
+
+  /**
+   * Whether there are unread articles from followees.
+   */
   unreadFolloweeArticles: boolean
+
+  /**
+   * Whether user has read response info or not.
+   */
   unreadResponseInfoPopUp: boolean
 }
 
