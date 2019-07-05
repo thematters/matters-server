@@ -995,9 +995,6 @@ type Official {
   """Links of specific pages on Matters site."""
   links: OfficialLinks!
   placements: Placements!
-
-  """IPFS gateway URLs."""
-  gatewayUrls: [URL!]
 }
 
 """The notice type contains info about official announcement."""

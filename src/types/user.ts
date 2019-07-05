@@ -35,7 +35,8 @@ export default /* GraphQL */ `
     updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
 
     "Update user notification settings."
-    updateNotificationSetting(input: UpdateNotificationSettingInput!): User! @authenticate
+    updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
+      @authenticate
 
     "Follow a given user."
     followUser(input: FollowUserInput!): User! @authenticate
@@ -47,7 +48,7 @@ export default /* GraphQL */ `
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
 
     "Clear search history for user."
-    clearSearchHistory: Boolean  @authenticate
+    clearSearchHistory: Boolean @authenticate
 
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): User! @authorize
@@ -186,15 +187,21 @@ export default /* GraphQL */ `
     articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
     # Number of views on articles
     viewCount: Int! @private
-    draftCount: Int! @private @deprecated(reason: "Use \`User.drafts.totalCount\`.")
+    draftCount: Int!
+      @private
+      @deprecated(reason: "Use \`User.drafts.totalCount\`.")
     # Number of comments posted by user
     commentCount: Int!
     # quotationCount: Int! @deprecated(reason: "not used")
-    subscriptionCount: Int! @private @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
+    subscriptionCount: Int!
+      @private
+      @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
     # Number of user that this user follows
-    followeeCount: Int! @deprecated(reason: "Use \`User.followees.totalCount\`.")
+    followeeCount: Int!
+      @deprecated(reason: "Use \`User.followees.totalCount\`.")
     # Number of user that follows this user
-    followerCount: Int! @deprecated(reason: "Use \`User.followers.totalCount\`.")
+    followerCount: Int!
+      @deprecated(reason: "Use \`User.followers.totalCount\`.")
     # Number of unread notices
     unreadNoticeCount: Int! @private
 
@@ -395,7 +402,6 @@ export default /* GraphQL */ `
     state: UserState!
     banDays: PositiveInt
   }
-
 
   input FollowUserInput {
     id: ID!

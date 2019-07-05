@@ -1272,11 +1272,6 @@ export interface GQLOfficial {
    */
   links: GQLOfficialLinks
   placements: GQLPlacements
-
-  /**
-   * IPFS gateway URLs.
-   */
-  gatewayUrls?: Array<GQLURL>
 }
 
 export interface GQLCategory {
@@ -5751,7 +5746,6 @@ export interface GQLOfficialTypeResolver<TParent = any> {
   releases?: OfficialToReleasesResolver<TParent>
   links?: OfficialToLinksResolver<TParent>
   placements?: OfficialToPlacementsResolver<TParent>
-  gatewayUrls?: OfficialToGatewayUrlsResolver<TParent>
 }
 
 export interface OfficialToReportCategoryResolver<
@@ -5800,15 +5794,6 @@ export interface OfficialToLinksResolver<TParent = any, TResult = any> {
 }
 
 export interface OfficialToPlacementsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface OfficialToGatewayUrlsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
