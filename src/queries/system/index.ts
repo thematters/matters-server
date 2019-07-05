@@ -11,8 +11,7 @@ import {
   feedbackCategory,
   releases,
   links,
-  placements,
-  gatewayUrls
+  placements
 } from './official'
 import { users, articles, tags, reports, report, today } from './oss'
 import Report from './report'
@@ -40,8 +39,7 @@ export default {
     feedbackCategory,
     releases, // TODO
     links,
-    placements, // TODO
-    gatewayUrls
+    placements // TODO
   },
   OSS: {
     users,

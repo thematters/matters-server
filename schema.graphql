@@ -1,3 +1,5 @@
+directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
+
 directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION
 
 directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
@@ -106,12 +108,26 @@ type Article implements Node {
   """OSS"""
   oss: ArticleOSS!
   remark: String
+
+  """The counting number of comments."""
   commentCount: Int!
+
+  """The number determines how many pinned comments can be set."""
   pinCommentLimit: Int!
+
+  """The number determines how many comments can be set as pinned comment."""
   pinCommentLeft: Int!
+
+  """List of pinned comments."""
   pinnedComments: [Comment!]
+
+  """List of comments of this article."""
   comments(input: CommentsInput!): CommentConnection!
+
+  """The counting number of this article."""
   responseCount: Int!
+
+  """List of responses of a article."""
   responses(input: ResponsesInput!): ResponseConnection!
 }
 
@@ -131,38 +147,92 @@ input ArticleInput {
   uuid: UUID
 }
 
+"""
+This notice type contains info about current user has been mentioned in an article.
+"""
 type ArticleMentionedYouNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """The user who mentioned current user."""
   actor: User!
+
+  """The article that current user has been mentioned in."""
   target: Article
 }
 
+"""
+This notice type contains info about current user's article has been appreciated by others.
+"""
 type ArticleNewAppreciationNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """List of users who appreciated current user's article."""
   actors: [User]
+
+  """The article that has been appreciated."""
   target: Article
+
+  """The amount of appreciations."""
   MAT: Int!
 }
 
+"""
+This notice type contains info about current user's article has been collected by others.
+"""
 type ArticleNewCollectedNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """The user collect current user's articles."""
   actor: User!
+
+  """The article that collected current user's articles."""
   collection: Article
+
+  """The article that has been collected."""
   target: Article
 }
 
+"""
+This notice type contains info about current user's article has new comment.
+"""
 type ArticleNewCommentNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """The user who comment current user's article."""
   actors: [User]
+
+  """The article that has new comment."""
   target: Article
+
+  """The comment data."""
   comment: Comment
 }
 
@@ -175,11 +245,23 @@ type ArticleNewDownstreamNotice implements Notice {
   target: Article
 }
 
+"""
+This notice type contains info about current user's article has been subscribed by others.
+"""
 type ArticleNewSubscriberNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """List of users who subscribed current user's article."""
   actors: [User]
+
+  """The article that has been subscribed."""
   target: Article
 }
 
@@ -195,10 +277,20 @@ type ArticleOSS {
   todaySummary: String
 }
 
+"""
+This notice type contains info about current user's article publihsed successfully.
+"""
 type ArticlePublishedNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """The article that has been published."""
   target: Article
 }
 
@@ -215,13 +307,22 @@ enum ArticleState {
   banned
 }
 
+"""This type contains type, link and related data of an asset."""
 type Asset {
+  """Unique ID of this Asset."""
   id: ID!
+
+  """Types of this asset."""
   type: AssetType!
+
+  """Link of this asset."""
   path: String!
+
+  """Time of this asset was created."""
   createdAt: DateTime!
 }
 
+"""Enums for asset types."""
 enum AssetType {
   avatar
   cover
@@ -305,25 +406,51 @@ input ClearReadHistoryInput {
   id: ID!
 }
 
+"""
+This type contains content, author, descendant comments and related data of a comment.
+"""
 type Comment implements Node {
+  """Unique ID of this comment."""
   id: ID!
+
+  """State of this comment."""
   state: CommentState!
+
+  """Time of this comment was created."""
   createdAt: DateTime!
 
-  """Original article of this comment"""
+  """Article that the comment is belonged to."""
   article: Article!
+
+  """Content of this comment."""
   content: String
+
+  """Author of this comment."""
   author: User!
+
+  """This value determines this comment is pinned or not."""
   pinned: Boolean!
+
+  """The counting number of upvotes."""
   upvotes: Int!
+
+  """The counting number of downvotes."""
   downvotes: Int!
+
+  """The value determines current user's vote."""
   myVote: Vote
   mentions: [User!] @deprecated(reason: "not used")
+
+  """Descendant comments of this comment."""
   comments(input: CommentCommentsInput!): CommentConnection!
+
+  """Parent comment of this comment."""
   parentComment: Comment
   quotationStart: Int
   quotationEnd: Int
   quotationContent: String
+
+  """A Comment that this comment replied to."""
   replyTo: Comment
   remark: String
 }
@@ -365,28 +492,66 @@ type CommentMentionedYouNotice implements Notice {
   target: Comment
 }
 
+"""
+This notice type contains info about current user's comment has new reply.
+"""
 type CommentNewReplyNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """The user who replied current user's comment."""
   actors: [User]
+
+  """The comment that has new replied."""
   target: Comment
+
+  """The comment that replied to current user's existing comment."""
   reply: Comment
 }
 
+"""
+The notice type contains info about current user's comment has new vote.
+"""
 type CommentNewUpvoteNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """The user who vote current user's comment."""
   actors: [User]
+
+  """The comment that has new vote."""
   target: Comment
 }
 
+"""
+This notice type contains info about current user's comment has been pinned.
+"""
 type CommentPinnedNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """The user who pinned current user's comment."""
   actor: User!
+
+  """The comment data."""
   target: Comment
 }
 
@@ -406,12 +571,14 @@ input CommentsInput {
   filter: CommentsFilter
 }
 
+"""Enums for sorting comments by time."""
 enum CommentSort {
   oldest
   newest
   upvotes @deprecated(reason: "not used")
 }
 
+"""Enums for comment state."""
 enum CommentState {
   active
   archived
@@ -433,6 +600,11 @@ input ConnectionArgs {
   after: String
   first: Int
   oss: Boolean
+}
+
+input CostComplexity {
+  min: Int = 1
+  max: Int
 }
 
 scalar Date
@@ -463,20 +635,48 @@ type DownstreamArticleArchivedNotice implements Notice {
   target: Article
 }
 
+"""
+This type contains content, collections, assets and related data of a draft.
+"""
 type Draft implements Node {
+  """Unique ID of this draft."""
   id: ID!
+
+  """Collection list of this draft."""
   collection(input: ConnectionArgs!): ArticleConnection!
+
+  """Draft title."""
   title: String
+
+  """Slugified draft title."""
   slug: String!
+
+  """Summary of this draft."""
   summary: String
+
+  """Content of this draft."""
   content: String
   scheduledAt: DateTime
+
+  """Time of this draft was created."""
   createdAt: DateTime!
+
+  """Last time of this draft was upadted."""
   updatedAt: DateTime!
+
+  """The counting number of words in this draft."""
   wordCount: Int!
+
+  """Tags are attached to this draft."""
   tags: [String!]
+
+  """Draft's cover link."""
   cover: URL
+
+  """State of draft during publihsing."""
   publishState: PublishState!
+
+  """List of asstets are belonged to this draft."""
   assets: [Asset!]!
 }
 
@@ -611,28 +811,52 @@ type Mutation {
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
   updateMattersToday(input: UpdateMattersTodayInput!): Article!
-  putComment(input: PutCommentInput!): Comment!
-  pinComment(input: PinCommentInput!): Comment!
-  unpinComment(input: UnpinCommentInput!): Comment!
-  deleteComment(input: DeleteCommentInput!): Comment!
-  reportComment(input: ReportCommentInput!): Boolean
-  voteComment(input: VoteCommentInput!): Comment!
-  unvoteComment(input: UnvoteCommentInput!): Comment!
-  updateCommentState(input: UpdateCommentStateInput!): Comment!
 
-  """audio dtaft"""
+  """Publish a comment."""
+  putComment(input: PutCommentInput!): Comment!
+
+  """Pin a comment."""
+  pinComment(input: PinCommentInput!): Comment!
+
+  """Unpin a comment."""
+  unpinComment(input: UnpinCommentInput!): Comment!
+
+  """Remove a comment."""
+  deleteComment(input: DeleteCommentInput!): Comment!
+
+  """Report a comment to team."""
+  reportComment(input: ReportCommentInput!): Boolean
+
+  """Upvote or downvote a comment."""
+  voteComment(input: VoteCommentInput!): Comment!
+
+  """Unvote a comment."""
+  unvoteComment(input: UnvoteCommentInput!): Comment!
+
+  """Update a comment's state."""
+  updateCommentState(input: UpdateCommentStateInput!): Comment!
   putAudiodraft(input: PutAudiodraftInput!): Audiodraft!
   deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean
 
-  """draft"""
+  """Create or update a draft."""
   putDraft(input: PutDraftInput!): Draft!
+
+  """Remove a draft."""
   deleteDraft(input: DeleteDraftInput!): Boolean
+
+  """Mark all received notices as read."""
   markAllNoticesAsRead: Boolean
+
+  """Upload a single file."""
   singleFileUpload(input: SingleFileUploadInput!): Asset!
+
+  """Delete a uploaded file."""
   singleFileDelete(input: SingleFileDeleteInput!): Boolean!
   feedback(input: FeedbackInput!): Boolean
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
+
+  """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
 
   """Send verification code for email."""
@@ -705,9 +929,15 @@ scalar NonPositiveFloat
 
 scalar NonPositiveInt
 
+"""This interface contains common fields of a notice."""
 interface Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
 }
 
@@ -756,20 +986,32 @@ enum NotificationSettingType {
   reportFeedback
 }
 
+"""This type contains system-wise settings."""
 type Official {
   reportCategory: [Category!]!
   feedbackCategory: [Category!]!
   releases(input: ReleasesInput!): [Release!]
+
+  """Links of specific pages on Matters site."""
   links: OfficialLinks!
   placements: Placements!
-  gatewayUrls: [URL!]
 }
 
+"""The notice type contains info about official announcement."""
 type OfficialAnnouncementNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """The message content."""
   message: String!
+
+  """The link to a specific page if provided."""
   link: URL
 }
 
@@ -830,6 +1072,7 @@ input PublishArticleInput {
   delay: Int
 }
 
+"""Enums for publishing state."""
 enum PublishState {
   unpublished
   pending
@@ -1045,11 +1288,13 @@ input ResponsesInput {
   articleOnly: Boolean
 }
 
+"""Enums for sorting responses."""
 enum ResponseSort {
   oldest
   newest
 }
 
+"""Enums for user roles."""
 enum Role {
   vistor
   user
@@ -1113,12 +1358,26 @@ input SubscribeArticleInput {
   id: ID!
 }
 
+"""
+This notice type contains info about current user's subscribed article has new comment.
+"""
 type SubscribedArticleNewCommentNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """The user who made new comment to current user's subscribed article."""
   actors: [User]
+
+  """The article that current user has been subscribed."""
   target: Article
+
+  """The comment data."""
   comment: Comment
 }
 
@@ -1418,10 +1677,18 @@ input UserLoginInput {
   password: String!
 }
 
+"""This notice type contains info about current user has new followers."""
 type UserNewFollowerNotice implements Notice {
+  """Unique ID of this notice."""
   id: ID!
+
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
+
+  """Time of this notice was created."""
   createdAt: DateTime!
+
+  """List of new followers."""
   actors: [User]
 }
 
@@ -1511,6 +1778,7 @@ input VerifyEmailInput {
   codeId: ID!
 }
 
+"""Enums for vote types."""
 enum Vote {
   up
   down

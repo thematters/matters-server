@@ -3,7 +3,10 @@ require('module-alias/register')
 require('dotenv').config()
 // external
 import * as Sentry from '@sentry/node'
-import { ApolloServer } from 'apollo-server'
+import { ApolloServer, GraphQLOptions } from 'apollo-server'
+import express from 'express'
+import costAnalysis from 'graphql-cost-analysis'
+import depthLimit from 'graphql-depth-limit'
 // internal
 import logger from 'common/logger'
 import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
@@ -20,8 +23,11 @@ import {
   UserService,
   NotificationService
 } from 'connectors'
+import { ActionLimitExceededError } from 'common/errors'
+
 // local
 import schema from './schema'
+import costMap from './costMap'
 
 // start Sentry
 Sentry.init({ dsn: environment.sentryDsn || '' })
@@ -29,7 +35,41 @@ Sentry.init({ dsn: environment.sentryDsn || '' })
 // start schedule jobs
 scheduleQueue.start()
 
-const server = new ApolloServer({
+class ProtectedApolloServer extends ApolloServer {
+  async createGraphQLServerOptions(
+    req: express.Request,
+    res: express.Response
+  ): Promise<GraphQLOptions> {
+    const options = await super.createGraphQLServerOptions(req, res)
+    const maximumCost = 500
+
+    return {
+      ...options,
+      validationRules: [
+        ...(options.validationRules || []),
+        costAnalysis({
+          variables: req.body.variables,
+          maximumCost,
+          defaultCost: 1,
+          costMap,
+          createError: (max: number, actual: number) => {
+            const err = new ActionLimitExceededError(
+              `GraphQL query exceeds maximum complexity,` +
+                `please remove some nesting or fields and try again. (max: ${max}, actual: ${actual})`
+            )
+            return err
+          },
+          onComplete: (costs: number) =>
+            logger.info(
+              `[graphql-cost-analysis] costs: ${costs} (max: ${maximumCost})`
+            )
+        })
+      ]
+    }
+  }
+}
+
+const server = new ProtectedApolloServer({
   cors: {
     origin: [
       'http://localhost:3000',
@@ -74,7 +114,8 @@ const server = new ApolloServer({
     // catch error globally
     Sentry.captureException(error)
     return error
-  }
+  },
+  validationRules: [depthLimit(15)]
 })
 
 server

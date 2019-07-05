@@ -1,27 +1,57 @@
 export default /* GraphQL */ `
   extend type Mutation {
-    # audio dtaft
     putAudiodraft(input: PutAudiodraftInput!): Audiodraft! @authenticate
     deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean @authenticate
-    # draft
+
+    "Create or update a draft."
     putDraft(input: PutDraftInput!): Draft! @authenticate
+
+    "Remove a draft."
     deleteDraft(input: DeleteDraftInput!): Boolean @authenticate
   }
 
+  """
+  This type contains content, collections, assets and related data of a draft.
+  """
   type Draft implements Node {
+    "Unique ID of this draft."
     id: ID!
+
+    "Collection list of this draft."
     collection(input: ConnectionArgs!): ArticleConnection!
+
+    "Draft title."
     title: String
+
+    "Slugified draft title."
     slug: String!
+
+    "Summary of this draft."
     summary: String
+
+    "Content of this draft."
     content: String
     scheduledAt: DateTime
+
+    "Time of this draft was created."
     createdAt: DateTime!
+
+    "Last time of this draft was upadted."
     updatedAt: DateTime!
+
+    "The counting number of words in this draft."
     wordCount: Int!
+
+    "Tags are attached to this draft."
     tags: [String!]
+
+    "Draft's cover link."
     cover: URL
+
+    "State of draft during publihsing."
     publishState: PublishState!
+
+    "List of asstets are belonged to this draft."
     assets: [Asset!]!
   }
 
@@ -81,6 +111,7 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  "Enums for publishing state."
   enum PublishState {
     unpublished
     pending

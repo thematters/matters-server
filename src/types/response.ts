@@ -2,7 +2,10 @@ export default /* GraphQL */ `
   union Response = Article | Comment
 
   extend type Article {
+    "The counting number of this article."
     responseCount: Int!
+
+    "List of responses of a article."
     responses(input: ResponsesInput!): ResponseConnection!
   }
 
@@ -27,6 +30,7 @@ export default /* GraphQL */ `
     articleOnly: Boolean
   }
 
+  "Enums for sorting responses."
   enum ResponseSort {
     oldest
     newest
