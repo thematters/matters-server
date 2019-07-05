@@ -349,3 +349,9 @@ export const LOG_RECORD_TYPES = {
   ReadFolloweeArticles: 'read_followee_articles',
   ReadResponseInfoPopUp: 'read_response_info_pop_up'
 }
+
+export const UTM_PARAMETER = {
+  SOURCE: {
+    IPFS: 'utm_source=ipfs'
+  }
+}
