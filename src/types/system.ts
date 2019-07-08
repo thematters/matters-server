@@ -8,11 +8,16 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
+    "Upload a single file."
     singleFileUpload(input: SingleFileUploadInput!): Asset! @authenticate
+
+    "Delete a uploaded file."
     singleFileDelete(input: SingleFileDeleteInput!): Boolean! @authenticate
     feedback(input: FeedbackInput!): Boolean
     setBoost(input: SetBoostInput!): Node! @authorize
     putRemark(input: PutRemarkInput!): String @authorize
+
+    "Add specific user behavior record."
     logRecord(input: LogRecordInput!): Boolean
   }
 
@@ -36,13 +41,15 @@ export default /* GraphQL */ `
     pageInfo: PageInfo!
   }
 
+  "This type contains system-wise settings."
   type Official {
     reportCategory: [Category!]!
     feedbackCategory: [Category!]!
     releases(input: ReleasesInput!): [Release!]
+
+    "Links of specific pages on Matters site."
     links: OfficialLinks!
     placements: Placements!
-    gatewayUrls: [URL!]
   }
 
   type OSS {
@@ -95,10 +102,20 @@ export default /* GraphQL */ `
     adLabel: Boolean!
   }
 
+  """
+  This type contains type, link and related data of an asset.
+  """
   type Asset {
+    "Unique ID of this Asset."
     id: ID!
+
+    "Types of this asset."
     type: AssetType!
+
+    "Link of this asset."
     path: String!
+
+    "Time of this asset was created."
     createdAt: DateTime!
   }
 
@@ -248,6 +265,7 @@ export default /* GraphQL */ `
     ReadResponseInfoPopUp
   }
 
+  "Enums for asset types."
   enum AssetType {
     avatar
     cover
@@ -274,6 +292,7 @@ export default /* GraphQL */ `
     googlePlay
   }
 
+  "Enums for user roles."
   enum Role {
     vistor
     user

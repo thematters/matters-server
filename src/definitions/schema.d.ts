@@ -187,12 +187,40 @@ export interface GQLArticle extends GQLNode {
    */
   oss: GQLArticleOSS
   remark?: string
+
+  /**
+   * The counting number of comments.
+   */
   commentCount: number
+
+  /**
+   * The number determines how many pinned comments can be set.
+   */
   pinCommentLimit: number
+
+  /**
+   * The number determines how many comments can be set as pinned comment.
+   */
   pinCommentLeft: number
+
+  /**
+   * List of pinned comments.
+   */
   pinnedComments?: Array<GQLComment>
+
+  /**
+   * List of comments of this article.
+   */
   comments: GQLCommentConnection
+
+  /**
+   * The counting number of this article.
+   */
   responseCount: number
+
+  /**
+   * List of responses of a article.
+   */
   responses: GQLResponseConnection
 }
 
@@ -335,44 +363,67 @@ export interface GQLUser extends GQLNode {
 export type GQLURL = any
 
 export interface GQLUserInfo {
+  /**
+   * Timestamp of registration.
+   */
   createdAt: GQLDateTime
 
   /**
-   * Unique user name
+   * Unique user name.
    * @deprecated Use `User.userName`.
    */
   userName: string
 
   /**
-   * Is user name editable
+   * Is user name editable.
    */
   userNameEditable: boolean
 
   /**
-   * Display name on profile
+   * Display name on profile.
    * @deprecated Use `User.displayName`.
    */
   displayName: string
 
   /**
-   * User desciption
+   * User desciption.
    */
   description?: string
 
   /**
-   * URL for avatar
+   * URL for avatar.
    * @deprecated Use `User.avatar`.
    */
   avatar?: GQLURL
+
+  /**
+   * User email.
+   */
   email?: GQLEmail
+
+  /**
+   * Is email verified.
+   */
   emailVerified?: boolean
+
+  /**
+   * Moble number.
+   */
   mobile?: string
 
   /**
-   * Use 500 for now, adaptive in the future
+   * User reading speed, 500 as default.
    */
   readSpeed: number
+
+  /**
+   * User badges.
+   */
   badges?: Array<GQLBadge>
+
+  /**
+   * Timestamp of user agreement.
+   */
   agreeOn?: GQLDateTime
 }
 
@@ -388,14 +439,12 @@ export enum GQLBadgeType {
 
 export interface GQLUserSettings {
   /**
-   * User language setting
+   * User language setting.
    */
   language: GQLUserLanguage
 
   /**
-   * Thrid party accounts binded for the user
-   * oauthType: [OAuthType!]
-   * Notification settings
+   * Notification settings.
    */
   notification: GQLNotificationSetting
 }
@@ -427,21 +476,44 @@ export interface GQLNotificationSetting {
 }
 
 export interface GQLRecommendation {
+  /**
+   * Articles published by user's followees.
+   */
   followeeArticles: GQLArticleConnection
+
+  /**
+   * Global articles sort by publish time.
+   */
   newest: GQLArticleConnection
+
+  /**
+   * Global articles sort by latest activity time.
+   */
   hottest: GQLArticleConnection
 
   /**
-   * Matters Today
+   * 'Matters Today' recommendation.
    */
   today?: GQLArticle
 
   /**
-   * In case you missed it
+   * 'In case you missed it' recommendation.
    */
   icymi: GQLArticleConnection
+
+  /**
+   * Global tag list, sort by activities in recent 14 days.
+   */
   tags: GQLTagConnection
+
+  /**
+   * Gloabl article list, sort by activities in recent 72 hours.
+   */
   topics: GQLArticleConnection
+
+  /**
+   * Global user list, sort by activities in recent 6 month.
+   */
   authors: GQLUserConnection
 }
 
@@ -598,23 +670,80 @@ export interface GQLDraftEdge {
   node: GQLDraft
 }
 
+/**
+ * This type contains content, collections, assets and related data of a draft.
+ */
 export interface GQLDraft extends GQLNode {
+  /**
+   * Unique ID of this draft.
+   */
   id: string
+
+  /**
+   * Collection list of this draft.
+   */
   collection: GQLArticleConnection
+
+  /**
+   * Draft title.
+   */
   title?: string
+
+  /**
+   * Slugified draft title.
+   */
   slug: string
+
+  /**
+   * Summary of this draft.
+   */
   summary?: string
+
+  /**
+   * Content of this draft.
+   */
   content?: string
   scheduledAt?: GQLDateTime
+
+  /**
+   * Time of this draft was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * Last time of this draft was upadted.
+   */
   updatedAt: GQLDateTime
+
+  /**
+   * The counting number of words in this draft.
+   */
   wordCount: number
+
+  /**
+   * Tags are attached to this draft.
+   */
   tags?: Array<string>
+
+  /**
+   * Draft's cover link.
+   */
   cover?: GQLURL
+
+  /**
+   * State of draft during publihsing.
+   */
   publishState: GQLPublishState
+
+  /**
+   * List of asstets are belonged to this draft.
+   */
   assets: Array<GQLAsset>
 }
 
+/**
+ * Enums for publishing state.
+ */
 export enum GQLPublishState {
   unpublished = 'unpublished',
   pending = 'pending',
@@ -622,13 +751,34 @@ export enum GQLPublishState {
   published = 'published'
 }
 
+/**
+ * This type contains type, link and related data of an asset.
+ */
 export interface GQLAsset {
+  /**
+   * Unique ID of this Asset.
+   */
   id: string
+
+  /**
+   * Types of this asset.
+   */
   type: GQLAssetType
+
+  /**
+   * Link of this asset.
+   */
   path: string
+
+  /**
+   * Time of this asset was created.
+   */
   createdAt: GQLDateTime
 }
 
+/**
+ * Enums for asset types.
+ */
 export enum GQLAssetType {
   avatar = 'avatar',
   cover = 'cover',
@@ -661,7 +811,14 @@ export interface GQLAudiodraft {
 }
 
 export interface GQLUserActivity {
+  /**
+   * User reading history.
+   */
   history: GQLReadHistoryConnection
+
+  /**
+   * User search history.
+   */
   recentSearches: GQLRecentSearchConnection
 }
 
@@ -693,16 +850,23 @@ export interface GQLRecentSearchEdge {
 }
 
 export interface GQLUserStatus {
+  /**
+   * User state.
+   */
   state: GQLUserState
+
+  /**
+   * User role and access level.
+   */
   role: GQLUserRole
 
   /**
-   * Total MAT left in wallet
+   * Total MAT left in wallet.
    */
   MAT: GQLMAT
 
   /**
-   *
+   * Invitation. Deprecated.
    * @deprecated removed
    */
   invitation?: GQLInvitationStatus
@@ -714,44 +878,52 @@ export interface GQLUserStatus {
   articleCount: number
 
   /**
-   * Number of views on articles
+   * Number of views on user articles. Not yet in use.
    */
   viewCount: number
 
   /**
-   *
+   * Number of draft of user.
    * @deprecated Use `User.drafts.totalCount`.
    */
   draftCount: number
 
   /**
-   * Number of comments posted by user
+   * Number of comments posted by user.
    */
   commentCount: number
 
   /**
-   * quotationCount: Int! @deprecated(reason: "not used")
+   *
    * @deprecated Use `User.subscriptions.totalCount`.
    */
   subscriptionCount: number
 
   /**
-   * Number of user that this user follows
+   *
    * @deprecated Use `User.followees.totalCount`.
    */
   followeeCount: number
 
   /**
-   * Number of user that follows this user
+   *
    * @deprecated Use `User.followers.totalCount`.
    */
   followerCount: number
 
   /**
-   * Number of unread notices
+   * Number of unread notices.
    */
   unreadNoticeCount: number
+
+  /**
+   * Whether there are unread articles from followees.
+   */
   unreadFolloweeArticles: boolean
+
+  /**
+   * Whether user has read response info or not.
+   */
   unreadResponseInfoPopUp: boolean
 }
 
@@ -863,9 +1035,23 @@ export interface GQLNoticeEdge {
   node: GQLNotice
 }
 
+/**
+ * This interface contains common fields of a notice.
+ */
 export interface GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
 }
 
@@ -920,20 +1106,58 @@ export interface GQLArticleOSS {
   todaySummary?: string
 }
 
+/**
+ * This type contains content, author, descendant comments and related data of a comment.
+ */
 export interface GQLComment extends GQLNode {
+  /**
+   * Unique ID of this comment.
+   */
   id: string
+
+  /**
+   * State of this comment.
+   */
   state: GQLCommentState
+
+  /**
+   * Time of this comment was created.
+   */
   createdAt: GQLDateTime
 
   /**
-   * Original article of this comment
+   * Article that the comment is belonged to.
    */
   article: GQLArticle
+
+  /**
+   * Content of this comment.
+   */
   content?: string
+
+  /**
+   * Author of this comment.
+   */
   author: GQLUser
+
+  /**
+   * This value determines this comment is pinned or not.
+   */
   pinned: boolean
+
+  /**
+   * The counting number of upvotes.
+   */
   upvotes: number
+
+  /**
+   * The counting number of downvotes.
+   */
   downvotes: number
+
+  /**
+   * The value determines current user's vote.
+   */
   myVote?: GQLVote
 
   /**
@@ -941,21 +1165,39 @@ export interface GQLComment extends GQLNode {
    * @deprecated not used
    */
   mentions?: Array<GQLUser>
+
+  /**
+   * Descendant comments of this comment.
+   */
   comments: GQLCommentConnection
+
+  /**
+   * Parent comment of this comment.
+   */
   parentComment?: GQLComment
   quotationStart?: number
   quotationEnd?: number
   quotationContent?: string
+
+  /**
+   * A Comment that this comment replied to.
+   */
   replyTo?: GQLComment
   remark?: string
 }
 
+/**
+ * Enums for comment state.
+ */
 export enum GQLCommentState {
   active = 'active',
   archived = 'archived',
   banned = 'banned'
 }
 
+/**
+ * Enums for vote types.
+ */
 export enum GQLVote {
   up = 'up',
   down = 'down'
@@ -968,6 +1210,9 @@ export interface GQLCommentCommentsInput {
   first?: number
 }
 
+/**
+ * Enums for sorting comments by time.
+ */
 export enum GQLCommentSort {
   oldest = 'oldest',
   newest = 'newest',
@@ -1016,6 +1261,9 @@ export interface GQLResponsesInput {
   articleOnly?: boolean
 }
 
+/**
+ * Enums for sorting responses.
+ */
 export enum GQLResponseSort {
   oldest = 'oldest',
   newest = 'newest'
@@ -1077,13 +1325,19 @@ export interface GQLSearchResultEdge {
   node: GQLNode
 }
 
+/**
+ * This type contains system-wise settings.
+ */
 export interface GQLOfficial {
   reportCategory: Array<GQLCategory>
   feedbackCategory: Array<GQLCategory>
   releases?: Array<GQLRelease>
+
+  /**
+   * Links of specific pages on Matters site.
+   */
   links: GQLOfficialLinks
   placements: GQLPlacements
-  gatewayUrls?: Array<GQLURL>
 }
 
 export interface GQLCategory {
@@ -1269,32 +1523,80 @@ export interface GQLMutation {
   renameTag: GQLTag
   mergeTags: GQLTag
   updateMattersToday: GQLArticle
-  putComment: GQLComment
-  pinComment: GQLComment
-  unpinComment: GQLComment
-  deleteComment: GQLComment
-  reportComment?: boolean
-  voteComment: GQLComment
-  unvoteComment: GQLComment
-  updateCommentState: GQLComment
 
   /**
-   * audio dtaft
+   * Publish a comment.
    */
+  putComment: GQLComment
+
+  /**
+   * Pin a comment.
+   */
+  pinComment: GQLComment
+
+  /**
+   * Unpin a comment.
+   */
+  unpinComment: GQLComment
+
+  /**
+   * Remove a comment.
+   */
+  deleteComment: GQLComment
+
+  /**
+   * Report a comment to team.
+   */
+  reportComment?: boolean
+
+  /**
+   * Upvote or downvote a comment.
+   */
+  voteComment: GQLComment
+
+  /**
+   * Unvote a comment.
+   */
+  unvoteComment: GQLComment
+
+  /**
+   * Update a comment's state.
+   */
+  updateCommentState: GQLComment
   putAudiodraft: GQLAudiodraft
   deleteAudiodraft?: boolean
 
   /**
-   * draft
+   * Create or update a draft.
    */
   putDraft: GQLDraft
+
+  /**
+   * Remove a draft.
+   */
   deleteDraft?: boolean
+
+  /**
+   * Mark all received notices as read.
+   */
   markAllNoticesAsRead?: boolean
+
+  /**
+   * Upload a single file.
+   */
   singleFileUpload: GQLAsset
+
+  /**
+   * Delete a uploaded file.
+   */
   singleFileDelete: boolean
   feedback?: boolean
   setBoost: GQLNode
   putRemark?: string
+
+  /**
+   * Add specific user behavior record.
+   */
   logRecord?: boolean
 
   /**
@@ -1722,38 +2024,138 @@ export interface GQLNodeEditedInput {
   id: string
 }
 
+/**
+ * This notice type contains info about current user has been mentioned in an article.
+ */
 export interface GQLArticleMentionedYouNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who mentioned current user.
+   */
   actor: GQLUser
+
+  /**
+   * The article that current user has been mentioned in.
+   */
   target?: GQLArticle
 }
 
+/**
+ * This notice type contains info about current user's article has been appreciated by others.
+ */
 export interface GQLArticleNewAppreciationNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * List of users who appreciated current user's article.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The article that has been appreciated.
+   */
   target?: GQLArticle
+
+  /**
+   * The amount of appreciations.
+   */
   MAT: number
 }
 
+/**
+ * This notice type contains info about current user's article has been collected by others.
+ */
 export interface GQLArticleNewCollectedNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user collect current user's articles.
+   */
   actor: GQLUser
+
+  /**
+   * The article that collected current user's articles.
+   */
   collection?: GQLArticle
+
+  /**
+   * The article that has been collected.
+   */
   target?: GQLArticle
 }
 
+/**
+ * This notice type contains info about current user's article has new comment.
+ */
 export interface GQLArticleNewCommentNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who comment current user's article.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The article that has new comment.
+   */
   target?: GQLArticle
+
+  /**
+   * The comment data.
+   */
   comment?: GQLComment
 }
 
@@ -1766,18 +2168,58 @@ export interface GQLArticleNewDownstreamNotice extends GQLNotice {
   target?: GQLArticle
 }
 
+/**
+ * This notice type contains info about current user's article has been subscribed by others.
+ */
 export interface GQLArticleNewSubscriberNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * List of users who subscribed current user's article.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The article that has been subscribed.
+   */
   target?: GQLArticle
 }
 
+/**
+ * This notice type contains info about current user's article publihsed successfully.
+ */
 export interface GQLArticlePublishedNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The article that has been published.
+   */
   target?: GQLArticle
 }
 
@@ -1789,28 +2231,98 @@ export interface GQLCommentMentionedYouNotice extends GQLNotice {
   target?: GQLComment
 }
 
+/**
+ * This notice type contains info about current user's comment has new reply.
+ */
 export interface GQLCommentNewReplyNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who replied current user's comment.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The comment that has new replied.
+   */
   target?: GQLComment
+
+  /**
+   * The comment that replied to current user's existing comment.
+   */
   reply?: GQLComment
 }
 
+/**
+ * The notice type contains info about current user's comment has new vote.
+ */
 export interface GQLCommentNewUpvoteNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who vote current user's comment.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The comment that has new vote.
+   */
   target?: GQLComment
 }
 
+/**
+ * This notice type contains info about current user's comment has been pinned.
+ */
 export interface GQLCommentPinnedNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who pinned current user's comment.
+   */
   actor: GQLUser
+
+  /**
+   * The comment data.
+   */
   target?: GQLComment
 }
 
@@ -1846,28 +2358,79 @@ export type GQLNonPositiveFloat = any
 
 export type GQLNonPositiveInt = any
 
+/**
+ * The notice type contains info about official announcement.
+ */
 export interface GQLOfficialAnnouncementNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The message content.
+   */
   message: string
+
+  /**
+   * The link to a specific page if provided.
+   */
   link?: GQLURL
 }
 
 export type GQLPositiveFloat = any
 
+/**
+ * Enums for user roles.
+ */
 export enum GQLRole {
   vistor = 'vistor',
   user = 'user',
   admin = 'admin'
 }
 
+/**
+ * This notice type contains info about current user's subscribed article has new comment.
+ */
 export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * The user who made new comment to current user's subscribed article.
+   */
   actors?: Array<GQLUser | null>
+
+  /**
+   * The article that current user has been subscribed.
+   */
   target?: GQLArticle
+
+  /**
+   * The comment data.
+   */
   comment?: GQLComment
 }
 
@@ -1890,10 +2453,28 @@ export enum GQLUserInfoFields {
   agreeOn = 'agreeOn'
 }
 
+/**
+ * This notice type contains info about current user has new followers.
+ */
 export interface GQLUserNewFollowerNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
+
+  /**
+   * List of new followers.
+   */
   actors?: Array<GQLUser | null>
 }
 
@@ -5231,7 +5812,6 @@ export interface GQLOfficialTypeResolver<TParent = any> {
   releases?: OfficialToReleasesResolver<TParent>
   links?: OfficialToLinksResolver<TParent>
   placements?: OfficialToPlacementsResolver<TParent>
-  gatewayUrls?: OfficialToGatewayUrlsResolver<TParent>
 }
 
 export interface OfficialToReportCategoryResolver<
@@ -5280,15 +5860,6 @@ export interface OfficialToLinksResolver<TParent = any, TResult = any> {
 }
 
 export interface OfficialToPlacementsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface OfficialToGatewayUrlsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
