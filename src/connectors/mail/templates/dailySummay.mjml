@@ -11,7 +11,7 @@
             {{#if @last}}{{#if @../last}} {{else}}<span>、</span>{{/if}}{{else}}<span>、</span>{{/if}}
           {{/each}}
         {{/each}}
-        讚賞了你的作品；
+        讚賞了你的作品…
       {{/if}}
 
       {{#if notices.article_new_comment}}
@@ -21,7 +21,7 @@
             {{#if @last}}{{#if @../last}} {{else}}<span>、</span>{{/if}}{{else}}<span>、</span>{{/if}}
           {{/each}}
         {{/each}}
-        回應了你的作品；
+        回應了你的作品…
       {{/if}}
 
       {{#if notices.article_new_subscriber}}
@@ -31,7 +31,7 @@
             {{#if @last}}{{#if @../last}} {{else}}<span>、</span>{{/if}}{{else}}<span>、</span>{{/if}}
           {{/each}}
         {{/each}}
-        收藏了你的作品；
+        收藏了你的作品…
       {{/if}}
 
       {{#if notices.article_new_collected}}
@@ -39,7 +39,7 @@
           <span>{{this.actor.displayName}}</span>
           {{#if @last}} {{else}}<span>、</span>{{/if}}
         {{/each}}
-        關聯了你的作品；
+        關聯了你的作品…
       {{/if}}
 
       {{#if notices.article_mentioned_you}}
@@ -47,7 +47,7 @@
           <span>{{this.actor.displayName}}</span>
           {{#if @last}} {{else}}<span>、</span>{{/if}}
         {{/each}}
-        在作品中提及了你；
+        在作品中提及了你…
       {{/if}}
 
       {{#if notices.comment_mentioned_you}}
@@ -55,7 +55,7 @@
           <span>{{this.actor.displayName}}</span>
           {{#if @last}} {{else}}<span>、</span>{{/if}}
         {{/each}}
-        在評論中提及了你；
+        在評論中提及了你…
       {{/if}}
 
       {{#if notices.comment_new_reply}}
@@ -74,7 +74,7 @@
             {{#if @last}}{{#if @../last}} {{else}}<span>、</span>{{/if}}{{else}}<span>、</span>{{/if}}
           {{/each}}
         {{/each}}
-        追蹤了你
+        追蹤了你…
       {{/if}}
 
       &zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
