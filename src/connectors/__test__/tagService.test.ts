@@ -1,7 +1,4 @@
 import { TagService } from '../tagService'
-import { knex } from 'connectors/db'
-
-afterAll(knex.destroy)
 
 const tagService = new TagService()
 

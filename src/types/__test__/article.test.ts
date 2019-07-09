@@ -2,7 +2,6 @@ import _ from 'lodash'
 // internal
 import { toGlobalId } from 'common/utils'
 import { PUBLISH_STATE } from 'common/enums'
-import { knex } from 'connectors/db'
 import {
   GQLNodeInput,
   GQLPublishArticleInput,
@@ -10,8 +9,6 @@ import {
 } from 'definitions'
 // local
 import { testClient, publishArticle, putDraft, getViewerMAT } from './utils'
-
-afterAll(knex.destroy)
 
 const mediaHash = 'someIpfsMediaHash1'
 

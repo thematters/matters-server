@@ -94,9 +94,7 @@ type Article implements Node {
   """Limit the nuhmber of appreciate per user."""
   appreciateLimit: Int!
 
-  """
-  Number represents how many times per user can appreciate this article.
-  """
+  """Number represents how many times per user can appreciate this article."""
   appreciateLeft: Int!
 
   """This value determines if current viewer has appreciated or not."""

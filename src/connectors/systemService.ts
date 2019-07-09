@@ -40,7 +40,7 @@ export class SystemService extends BaseService {
 
     const result = await query
 
-    return result.map(({ searchKey }: { searchKey: string }) => searchKey)
+    return result.map(({ searchKey }) => searchKey)
   }
 
   /*********************************
@@ -105,9 +105,8 @@ export class SystemService extends BaseService {
       reportAssets.map(({ assetId }: { assetId: string }) => assetId),
       'asset'
     )
-    return assets.map(
-      ({ path }: { path: string }) =>
-        path ? `${this.aws.s3Endpoint}/${path}` : null
+    return assets.map(({ path }: { path: string }) =>
+      path ? `${this.aws.s3Endpoint}/${path}` : null
     )
   }
 
@@ -214,7 +213,7 @@ export class SystemService extends BaseService {
     }
 
     const result = await qs
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /*********************************

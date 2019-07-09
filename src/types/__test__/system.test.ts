@@ -1,7 +1,6 @@
 import _get from 'lodash/get'
 // internal
 import { toGlobalId } from 'common/utils'
-import { knex } from 'connectors/db'
 // local
 import {
   testClient,
@@ -40,7 +39,6 @@ beforeAll(async () => {
     throw err
   }
 })
-afterAll(knex.destroy)
 
 const GET_USER = `
   query($input: NodeInput!) {
