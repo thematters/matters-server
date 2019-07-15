@@ -104,6 +104,10 @@ export type TableName =
   | 'matters_choice'
   | 'article_recommend_setting'
   | 'log_record'
+  | 'oauth_client'
+  | 'oauth_access_token'
+  | 'oauth_authorization_code'
+  | 'oauth_refresh_token'
 
 export type MaterializedView =
   | 'article_count_materialized'
@@ -135,3 +139,42 @@ export type ItemData = { [key: string]: any }
 export type LANGUAGES = keyof typeof LANGUAGE
 
 export type ResponseType = 'Article' | 'Comment'
+
+export interface OAuthClient {
+  id: string
+  redirectUris?: string | string[]
+  grants: string | string[]
+  accessTokenLifetime?: number
+  refreshTokenLifetime?: number
+  [key: string]: any
+}
+
+export interface OAuthAuthorizationCode {
+  authorizationCode: string
+  expiresAt: Date
+  redirectUri: string
+  scope?: string | string[]
+  client: OAuthClient
+  user: User
+  [key: string]: any
+}
+
+export interface OAuthToken {
+  accessToken: string
+  accessTokenExpiresAt?: Date
+  refreshToken?: string
+  refreshTokenExpiresAt?: Date
+  scope?: string | string[]
+  client: OAuthClient
+  user: User
+  [key: string]: any
+}
+
+interface OAuthRefreshToken {
+  refreshToken: string
+  refreshTokenExpiresAt?: Date
+  scope?: string | string[]
+  client: OAuthClient
+  user: User
+  [key: string]: any
+}

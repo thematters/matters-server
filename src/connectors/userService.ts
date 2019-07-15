@@ -18,7 +18,7 @@ import {
   INVITATION_STATUS,
   BATCH_SIZE,
   ARTICLE_STATE,
-  EXPIRES_IN
+  USER_ACCESS_TOKEN_EXPIRES_IN
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -97,7 +97,7 @@ export class UserService extends BaseService {
     }
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
-      expiresIn: EXPIRES_IN
+      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN
     })
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
