@@ -1,6 +1,4 @@
-const {
-  baseDown
-} = require('../utils')
+const { baseDown } = require('../utils')
 
 const table = 'oauth_access_token'
 
