@@ -70,7 +70,7 @@ export class OAuthService extends BaseService {
     scope: string
   ): Promise<string> => {
     const token = jwt.sign(
-      { uuid: user.uuid, scope, client_id: client.id },
+      { uuid: user.uuid, scope, client_id: client.id, type: 'oauth' },
       environment.oAuthSecret,
       {
         expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN
