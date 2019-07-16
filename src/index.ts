@@ -44,12 +44,19 @@ const oauth = new OAuthServer({
     revokeAuthorizationCode: oauthService.revokeAuthorizationCode,
     validateScope: oauthService.validateScope,
     getAccessToken: oauthService.getAccessToken,
+    getRefreshToken: oauthService.getRefreshToken,
+    revokeToken: oauthService.revokeToken,
     verifyScope: oauthService.verifyScope
   },
   allowEmptyState: true,
   authenticateHandler: {
     handle: async (req: any, res: any) => {
       const viewer = await getViewerFromReq({ req, res })
+
+      if (!viewer.id) {
+        return false
+      }
+
       return viewer
     }
   },

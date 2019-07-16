@@ -170,7 +170,7 @@ export interface OAuthToken {
   [key: string]: any
 }
 
-interface OAuthRefreshToken {
+export interface OAuthRefreshToken {
   refreshToken: string
   refreshTokenExpiresAt?: Date
   scope?: string | string[]
