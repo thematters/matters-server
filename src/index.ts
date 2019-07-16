@@ -12,7 +12,13 @@ import * as routes from './routes'
 // internal
 import { OAuthService } from 'connectors'
 import { environment } from 'common/environment'
+import { getViewerFromReq } from 'common/utils/getViewer'
 import scheduleQueue from 'connectors/queue/schedule'
+import {
+  OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN,
+  OAUTH_ACCESS_TOKEN_EXPIRES_IN,
+  OAUTH_REFRESH_TOKEN_EXPIRES_IN
+} from 'common/enums'
 
 /**
  * Init
@@ -21,16 +27,9 @@ Sentry.init({ dsn: environment.sentryDsn || '' })
 scheduleQueue.start()
 
 /**
- * Middlewares
- */
-const app = express()
-
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: false }))
-
-/**
  * Routes
  */
+const app = express()
 const server = routes.graphql(app)
 
 const oauthService = new OAuthService()
@@ -38,7 +37,6 @@ const oauth = new OAuthServer({
   model: {
     generateAccessToken: oauthService.generateAccessToken,
     generateRefreshToken: oauthService.generateRefreshToken,
-    generateAuthorizationCode: oauthService.generateAuthorizationCode,
     getAuthorizationCode: oauthService.getAuthorizationCode,
     getClient: oauthService.getClient,
     saveToken: oauthService.saveToken,
@@ -47,9 +45,25 @@ const oauth = new OAuthServer({
     validateScope: oauthService.validateScope,
     getAccessToken: oauthService.getAccessToken,
     verifyScope: oauthService.verifyScope
-  }
+  },
+  allowEmptyState: true,
+  authenticateHandler: {
+    handle: async (req: any, res: any) => {
+      const viewer = await getViewerFromReq({ req, res })
+      return viewer
+    }
+  },
+  authorizationCodeLifetime: OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN / 1000,
+  accessTokenLifetime: OAUTH_ACCESS_TOKEN_EXPIRES_IN / 1000,
+  refreshTokenLifetime: OAUTH_REFRESH_TOKEN_EXPIRES_IN / 1000
 })
-app.use('/oauth/authorize', oauth.authorize())
+app.use('/oauth', bodyParser.json())
+app.use('/oauth', bodyParser.urlencoded({ extended: false }))
+app.get('/oauth/authorize', async (req, res, next) => {
+  const loginURL = `${environment.siteDomain}/login?`
+  res.redirect(loginURL)
+})
+app.post('/oauth/authorize', oauth.authorize())
 app.use('/oauth/access_token', oauth.token())
 
 app.listen({ port: 4000 }, () => {

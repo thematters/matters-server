@@ -62,16 +62,6 @@ export class OAuthService extends BaseService {
     return token
   }
 
-  generateAuthorizationCode = async (
-    client: OAuthClient,
-    user: User,
-    scope: string
-  ) => {
-    console.log('generateAuthorizationCode')
-
-    return randomString(40)
-  }
-
   getAuthorizationCode = async (authorizationCode: string) => {
     console.log('getAuthorizationCode')
 
@@ -100,13 +90,12 @@ export class OAuthService extends BaseService {
 
     const client = await this.knex('oauth_client')
       .select()
-      // .where({ clientId, clientSecret })
-      .where({ clientId })
+      .where({ clientId, ...(clientSecret ? { clientSecret } : {}) })
       .first()
 
     return {
       id: client.id,
-      // redirectUris: [],
+      redirectUris: [client.redirectUri],
       grants: client.grantTypes.split(' ')
       // accessTokenLifetime: ,
       // refreshTokenLifetime: ,
@@ -135,13 +124,12 @@ export class OAuthService extends BaseService {
     user: User
   ): Promise<OAuthToken> => {
     console.log('savetoken')
-    const now = Date.now()
 
     // access token
     const accessToken = await this.baseCreate(
       {
         token: token.accessToken,
-        expires: new Date(now + OAUTH_ACCESS_TOKEN_EXPIRES_IN),
+        expires: token.accessTokenExpiresAt,
         clientId: client.id,
         userId: user.id,
         scope: token.scope
@@ -153,7 +141,7 @@ export class OAuthService extends BaseService {
     const refreshToken = await this.baseCreate(
       {
         token: token.refreshToken,
-        expires: new Date(now + OAUTH_REFRESH_TOKEN_EXPIRES_IN),
+        expires: token.refreshTokenExpiresAt,
         clientId: client.id,
         userId: user.id,
         scope: token.scope
@@ -178,12 +166,11 @@ export class OAuthService extends BaseService {
     user: User
   ): Promise<OAuthAuthorizationCode> => {
     console.log('saveAuthorizationCode')
-    const now = Date.now()
 
     const refreshToken = await this.baseCreate(
       {
-        authorization_code: code.authorizationCode,
-        expires: new Date(now + OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN),
+        code: code.authorizationCode,
+        expires: code.expiresAt,
         redirect_uri: code.redirectUri,
         scope: code.scope,
         clientId: client.id,
