@@ -11,7 +11,7 @@ import depthLimit from 'graphql-depth-limit'
 
 // internal
 import logger from 'common/logger'
-import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
+import { UPLOAD_FILE_SIZE_LIMIT, CORS_OPTIONS } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import { DataSources } from 'definitions'
 import { makeContext, initSubscriptions } from 'common/utils'
@@ -97,26 +97,7 @@ export const graphql = (app: Express) => {
   server.applyMiddleware({
     app,
     path: '/graphql',
-    cors: {
-      origin: [
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-        'https://matters.news',
-        'https://www.matters.news',
-        'https://oss.matters.news',
-        'https://production.matters.news',
-        'https://web-stage.matters.news',
-        'https://oss-stage.matters.news',
-        'https://web-yuus2tcp.matters.news',
-        'https://web-develop.matters.news',
-        'https://oss-develop.matters.news',
-        'https://matters.one',
-        'https://www.matters.one',
-        'http://matters-server-develop.ap-southeast-1.elasticbeanstalk.com/',
-        'http://matters-client-web-prod.ap-southeast-1.elasticbeanstalk.com/'
-      ],
-      credentials: true
-    }
+    cors: CORS_OPTIONS
   })
 
   return server

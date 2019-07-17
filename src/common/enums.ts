@@ -358,3 +358,20 @@ export const UTM_PARAMETER = {
     IPFS: 'utm_source=ipfs'
   }
 }
+
+export const CORS_OPTIONS = {
+  origin: [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://matters.news',
+    'https://www.matters.news',
+    'https://oss.matters.news',
+    'https://web-stage.matters.news',
+    'https://oss-stage.matters.news',
+    'https://web-develop.matters.news',
+    'https://oss-develop.matters.news',
+    'https://matters.one',
+    'https://www.matters.one'
+  ],
+  credentials: true
+}

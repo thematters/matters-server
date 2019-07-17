@@ -49,6 +49,7 @@
     "bull": "^3.10.0",
     "cheerio": "^1.0.0-rc.2",
     "cookie": "^0.4.0",
+    "cors": "^2.8.5",
     "dataloader": "^1.4.0",
     "dotenv": "^8.0.0",
     "elasticsearch": "^16.1.1",

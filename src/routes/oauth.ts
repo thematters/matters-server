@@ -34,7 +34,7 @@ const oAuthServer = new OAuthServer({
   allowEmptyState: true,
   authenticateHandler: {
     handle: async (req: any, res: any) => {
-      const viewer = req.app.locals.viewer
+      const viewer = await getViewerFromReq({ req, res })
 
       if (!viewer.id) {
         return false
@@ -49,13 +49,13 @@ const oAuthServer = new OAuthServer({
 })
 
 // Middlewares
+oAuthRouter.use('/', bodyParser.json())
+oAuthRouter.use('/', bodyParser.urlencoded({ extended: false }))
 oAuthRouter.use('/', async (req, res, next) => {
   const viewer = await getViewerFromReq({ req, res })
   req.app.locals.viewer = viewer
   next()
 })
-oAuthRouter.use('/', bodyParser.json())
-oAuthRouter.use('/', bodyParser.urlencoded({ extended: false }))
 
 // Routes
 oAuthRouter.get('/authorize', async (req, res, next) => {
