@@ -1,4 +1,5 @@
 // external
+import querystring from 'querystring'
 import OAuthServer from 'express-oauth-server'
 import { Router } from 'express'
 import bodyParser from 'body-parser'
@@ -33,7 +34,7 @@ const oAuthServer = new OAuthServer({
   allowEmptyState: true,
   authenticateHandler: {
     handle: async (req: any, res: any) => {
-      const viewer = await getViewerFromReq({ req, res })
+      const viewer = req.app.locals.viewer
 
       if (!viewer.id) {
         return false
@@ -48,13 +49,32 @@ const oAuthServer = new OAuthServer({
 })
 
 // Middlewares
+oAuthRouter.use('/', async (req, res, next) => {
+  const viewer = await getViewerFromReq({ req, res })
+  req.app.locals.viewer = viewer
+  next()
+})
 oAuthRouter.use('/', bodyParser.json())
 oAuthRouter.use('/', bodyParser.urlencoded({ extended: false }))
 
 // Routes
 oAuthRouter.get('/authorize', async (req, res, next) => {
-  const loginURL = `${environment.siteDomain}/login?client_id=${req.query.client_id}&redirect_uri`
-  res.redirect(loginURL)
+  const qs = querystring.stringify(req.query)
+  const grantUrl = `${environment.siteDomain}/oauth/authorize?${qs}`
+  const loginUrl = `${environment.siteDomain}/login?${querystring.stringify({
+    target: grantUrl
+  })}`
+  let redirectUrl = ''
+
+  if (req.app.locals.viewer.id) {
+    // grant
+    redirectUrl = grantUrl
+  } else {
+    // login then grant
+    redirectUrl = loginUrl
+  }
+
+  res.redirect(redirectUrl)
 })
 oAuthRouter.post('/authorize', oAuthServer.authorize())
 
