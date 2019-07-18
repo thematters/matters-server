@@ -1,6 +1,5 @@
 // external
 import querystring from 'querystring'
-import OAuthServer from 'express-oauth-server'
 import { Router } from 'express'
 import bodyParser from 'body-parser'
 
@@ -13,6 +12,9 @@ import {
   OAUTH_ACCESS_TOKEN_EXPIRES_IN,
   OAUTH_REFRESH_TOKEN_EXPIRES_IN
 } from 'common/enums'
+
+// local
+import OAuthServer from './express-oauth-server'
 
 const oAuthRouter = Router()
 const oAuthService = new OAuthService()
@@ -77,7 +79,6 @@ oAuthRouter.get('/authorize', async (req, res, next) => {
   res.redirect(redirectUrl)
 })
 oAuthRouter.post('/authorize', oAuthServer.authorize())
-
 oAuthRouter.use('/access_token', oAuthServer.token())
 
 export const oauth = oAuthRouter
