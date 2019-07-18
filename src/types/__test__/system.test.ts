@@ -140,7 +140,7 @@ describe('query nodes of different type', () => {
 })
 
 // TODO: fix search tests
-describe.skip('Search', async () => {
+describe.skip('Search', () => {
   test('search article', async () => {
     const { query } = await testClient()
 

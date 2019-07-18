@@ -14,7 +14,6 @@ import { getLanguage } from './getLanguage'
 import { clearCookie } from './cookie'
 
 const userService = new UserService()
-const notificationService = new NotificationService()
 
 const activeIfOnboarding = async (user: {
   id: string
@@ -27,6 +26,7 @@ const activeIfOnboarding = async (user: {
       activatedUser = await userService.activate({ id: user.id })
 
       // notice user
+      const notificationService = new NotificationService()
       notificationService.trigger({
         event: 'user_activated',
         recipientId: user.id

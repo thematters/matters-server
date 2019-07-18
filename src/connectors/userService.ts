@@ -29,16 +29,12 @@ import {
 import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
-import { NotificationService } from './notificationService'
 
 export class UserService extends BaseService {
-  notificationService: InstanceType<typeof NotificationService>
-
   constructor() {
     super('user')
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
-    this.notificationService = new NotificationService()
   }
 
   /**
