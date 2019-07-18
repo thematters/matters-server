@@ -28,7 +28,7 @@ export class OAuthService extends BaseService {
    *********************************/
   getClient = async (
     clientId: string,
-    clientSecret: string
+    clientSecret?: string
   ): Promise<OAuthClient | Falsey> => {
     const client = await this.knex('oauth_client')
       .select()
@@ -73,7 +73,7 @@ export class OAuthService extends BaseService {
   ): Promise<string> => {
     const token = jwt.sign(
       { uuid: user.uuid, scope, client_id: client.id, type: 'oauth' },
-      environment.oAuthSecret,
+      environment.jwtSecret,
       {
         expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN
       }

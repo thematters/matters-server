@@ -15,6 +15,7 @@ const reverseList = _(langMap)
   .values()
   .map((list, i) => list.map(lang => ({ [lang]: langList[i] })))
   .flatten()
+  // @ts-ignore
   .merge()
   .value()
 
