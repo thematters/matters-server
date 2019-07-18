@@ -100,7 +100,7 @@ const FEEDBACK = `
   }
 `
 
-describe('query nodes of different type', async () => {
+describe('query nodes of different type', () => {
   test('query user node', async () => {
     const id = toGlobalId({ type: 'User', id: 1 })
     const { query } = await testClient()
@@ -202,7 +202,7 @@ describe.skip('Search', async () => {
   })
 })
 
-describe('Feedback', async () => {
+describe('Feedback', () => {
   test('submit a feedback', async () => {
     const { mutate } = await testClient({ isAuth: true })
     const result = await mutate({

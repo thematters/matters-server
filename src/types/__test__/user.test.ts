@@ -374,7 +374,7 @@ describe('register and login functionarlities', () => {
   })
 })
 
-describe('user mat', async () => {
+describe('user mat', () => {
   test('total', async () => {
     const mat = await getViewerMAT()
     expect(typeof mat).toBe('number')
@@ -625,7 +625,7 @@ describe('user recommendations', () => {
   })
 })
 
-describe('badges', async () => {
+describe('badges', () => {
   test('get user badges', async () => {
     const { query } = await testClient({
       isAuth: true
@@ -639,7 +639,7 @@ describe('badges', async () => {
   })
 })
 
-describe('verification code', async () => {
+describe('verification code', () => {
   const email = `verification-${Math.floor(Math.random() * 100)}@test.com`
   const type = 'register'
 

@@ -1,16 +1,6 @@
 import { OAuthService } from '../oauthService'
 import { UserService } from '../userService'
 
-import { knex } from 'connectors/db'
-import { sharedQueueOpts } from 'connectors/queue/utils'
-
-afterAll(async () => {
-  await knex.destroy()
-  const redisClient = sharedQueueOpts.createClient()
-  // TODO: still have asynchronous operations running
-  redisClient.disconnect()
-})
-
 const getClient = () => {
   const oauthService = new OAuthService()
   return oauthService.getClient('test-client-id')
@@ -20,14 +10,14 @@ const getUser = () => {
   return userService.dataloader.load('1')
 }
 
-describe('client', async () => {
+describe('client', () => {
   test('getClient', async () => {
     const client = await getClient()
     expect(client).toBeDefined()
   })
 })
 
-describe('scope', async () => {
+describe('scope', () => {
   test('validateScope', async () => {
     const oauthService = new OAuthService()
     const client = await getClient()
@@ -42,14 +32,14 @@ describe('scope', async () => {
   })
 })
 
-describe('token', async () => {
+describe('token', () => {
   const oauthService = new OAuthService()
-  const client = await getClient()
-  const user = await getUser()
   let accessToken
   let refreshToken
 
   test('generate', async () => {
+    const client = await getClient()
+    const user = await getUser()
     // access token
     accessToken = await oauthService.generateAccessToken(client, user, '')
     expect(typeof accessToken).toEqual('string')
@@ -60,6 +50,8 @@ describe('token', async () => {
   })
 
   test('save', async () => {
+    const client = await getClient()
+    const user = await getUser()
     const token = await oauthService.saveToken(
       {
         accessToken,
@@ -84,7 +76,13 @@ describe('token', async () => {
   })
 
   test('reovoke', async () => {
-    const revoked = await oauthService.revokeToken(refreshToken)
+    const client = await getClient()
+    const user = await getUser()
+    const revoked = await oauthService.revokeToken({
+      refreshToken,
+      client,
+      user
+    })
     expect(revoked).toEqual(true)
   })
 })
