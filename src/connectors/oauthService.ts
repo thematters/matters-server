@@ -10,10 +10,7 @@ import {
 } from 'definitions'
 import logger from 'common/logger'
 import { environment } from 'common/environment'
-import {
-  OAUTH_ACCESS_TOKEN_EXPIRES_IN,
-  OAUTH_REFRESH_TOKEN_EXPIRES_IN
-} from 'common/enums'
+import { OAUTH_ACCESS_TOKEN_EXPIRES_IN, OAUTH_VALID_SCOPES } from 'common/enums'
 import { randomString } from 'common/utils'
 
 import { BaseService } from './baseService'
@@ -285,8 +282,10 @@ export class OAuthService extends BaseService {
     client: OAuthClient,
     scope: string
   ): Promise<string | string[] | Falsey> => {
-    // TODO
-    return []
+    return scope
+      .split(' ')
+      .filter(s => OAUTH_VALID_SCOPES.indexOf(s) >= 0)
+      .join(' ')
   }
 
   verifyScope = async (

@@ -375,3 +375,5 @@ export const CORS_OPTIONS = {
   ],
   credentials: true
 }
+
+export const OAUTH_VALID_SCOPES: string[] = []
