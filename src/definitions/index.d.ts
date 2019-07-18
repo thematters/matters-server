@@ -178,3 +178,5 @@ export interface OAuthRefreshToken {
   user: User
   [key: string]: any
 }
+
+export type Falsey = '' | 0 | false | null | undefined

@@ -5,6 +5,7 @@ require('dotenv').config()
 import * as Sentry from '@sentry/node'
 import express from 'express'
 import cors from 'cors'
+import helmet from 'helmet'
 
 // local
 import * as routes from './routes'
@@ -23,6 +24,7 @@ const app = express()
 /**
  * Middlewares
  */
+app.use(helmet())
 app.use(cors(CORS_OPTIONS))
 
 /**
