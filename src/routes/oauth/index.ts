@@ -2,6 +2,7 @@
 import querystring from 'querystring'
 import { Router } from 'express'
 import bodyParser from 'body-parser'
+import passport from 'passport'
 
 // internal
 import { OAuthService } from 'connectors'
@@ -14,6 +15,7 @@ import {
 } from 'common/enums'
 
 // local
+import passportStrategy from './strategy'
 import OAuthServer from './express-oauth-server'
 
 const oAuthRouter = Router()
@@ -50,7 +52,9 @@ const oAuthServer = new OAuthServer({
   refreshTokenLifetime: OAUTH_REFRESH_TOKEN_EXPIRES_IN / 1000
 })
 
-// Middlewares
+/**
+ * Routes
+ */
 oAuthRouter.use('/', bodyParser.json())
 oAuthRouter.use('/', bodyParser.urlencoded({ extended: false }))
 oAuthRouter.use('/', async (req, res, next) => {
@@ -59,7 +63,10 @@ oAuthRouter.use('/', async (req, res, next) => {
   next()
 })
 
-// Routes
+/**
+ * Routes
+ */
+// Provider
 oAuthRouter.get('/authorize', async (req, res, next) => {
   const qs = querystring.stringify(req.query)
   const grantUrl = `${environment.siteDomain}/oauth/authorize?${qs}`
@@ -80,5 +87,18 @@ oAuthRouter.get('/authorize', async (req, res, next) => {
 })
 oAuthRouter.post('/authorize', oAuthServer.authorize())
 oAuthRouter.use('/access_token', oAuthServer.token())
+
+// Receiver
+passportStrategy()
+
+oAuthRouter.get('/:provider', (req, res, next) => {
+  passport.authenticate(req.params.provider)
+})
+oAuthRouter.get('/:provider/callbabck', (req, res, next) => {
+  passport.authenticate(req.params.provider, {
+    successRedirect: '/',
+    failureRedirect: '/login'
+  })
+})
 
 export const oauth = oAuthRouter

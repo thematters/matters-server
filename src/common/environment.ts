@@ -32,7 +32,12 @@ export const environment = {
   emailFromAsk: process.env['MATTERS_EMAIL_FROM_ASK'],
   jwtSecret: process.env['MATTERS_JWT_SECRET'] || '_dev_jwt_secret_',
   apiKey: process.env['MATTERS_APOLLO_API_KEY'],
-  sentryDsn: process.env['MATTERS_SENTRY_DSN']
+  sentryDsn: process.env['MATTERS_SENTRY_DSN'],
+  likecoinAuthorizationURL: process.env['MATTERS_LIKECOIN_AUTH_URL'] || '',
+  likecoinTokenURL: process.env['MATTERS_LIKECOIN_TOKEN_URL'] || '',
+  likecoinClientId: process.env['MATTERS_LIKECOIN_CLIENT_ID'] || '',
+  likecoinClientSecret: process.env['MATTERS_LIKECOIN_CLIENT_SECRET'] || '',
+  likecoinCallbackURL: process.env['MATTERS_LIKECOIN_CALLBACK_URL'] || ''
 }
 
 export const isDev = environment.env.includes('dev')
