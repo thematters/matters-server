@@ -15,7 +15,7 @@ import {
 } from 'common/enums'
 
 // local
-import passportStrategy from './strategy'
+import initPassportStrategies from './strategies'
 import OAuthServer from './express-oauth-server'
 
 const oAuthRouter = Router()
@@ -55,9 +55,10 @@ const oAuthServer = new OAuthServer({
 /**
  * Routes
  */
-oAuthRouter.use('/', bodyParser.json())
-oAuthRouter.use('/', bodyParser.urlencoded({ extended: false }))
-oAuthRouter.use('/', async (req, res, next) => {
+oAuthRouter.use(passport.initialize())
+oAuthRouter.use(bodyParser.json())
+oAuthRouter.use(bodyParser.urlencoded({ extended: false }))
+oAuthRouter.use(async (req, res, next) => {
   const viewer = await getViewerFromReq({ req, res })
   req.app.locals.viewer = viewer
   next()
@@ -89,10 +90,10 @@ oAuthRouter.post('/authorize', oAuthServer.authorize())
 oAuthRouter.use('/access_token', oAuthServer.token())
 
 // Receiver
-passportStrategy()
+initPassportStrategies()
 
 oAuthRouter.get('/:provider', (req, res, next) => {
-  passport.authenticate(req.params.provider)
+  passport.authenticate(req.params.provider)(req, res, next)
 })
 oAuthRouter.get('/:provider/callbabck', (req, res, next) => {
   passport.authenticate(req.params.provider, {

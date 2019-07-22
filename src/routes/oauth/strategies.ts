@@ -1,10 +1,23 @@
 import passport from 'passport'
-import { Strategy, VerifyCallback } from 'passport-oauth2'
+import {
+  Strategy,
+  VerifyCallback,
+  StrategyOptions,
+  VerifyFunction
+} from 'passport-oauth2'
 import { environment } from 'common/environment'
 
-export default () =>
+class LikeCoinStrategy extends Strategy {
+  constructor(options: StrategyOptions, verify: VerifyFunction) {
+    options = options || {}
+    super(options, verify)
+    this.name = 'likecoin'
+  }
+}
+
+export default () => {
   passport.use(
-    new Strategy(
+    new LikeCoinStrategy(
       {
         authorizationURL: environment.likecoinAuthorizationURL,
         tokenURL: environment.likecoinTokenURL,
@@ -24,3 +37,4 @@ export default () =>
       }
     )
   )
+}
