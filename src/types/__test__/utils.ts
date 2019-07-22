@@ -1,6 +1,6 @@
 // external
 import { createTestClient } from 'apollo-server-testing'
-import { ApolloServer } from 'apollo-server'
+import { ApolloServer } from 'apollo-server-express'
 import { Request } from 'express'
 
 // local

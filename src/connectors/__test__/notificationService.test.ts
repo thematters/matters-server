@@ -19,7 +19,7 @@ const recipientId = '1'
 /**
  * Notification Service
  */
-describe('user notify setting', async () => {
+describe('user notify setting', () => {
   const noticeTypes: NotificationType[] = [
     'user_new_follower',
     'article_published',
@@ -83,6 +83,7 @@ describe('user notify setting', async () => {
       })
     )
   })
+
   test('user disable "user_new_follower"', async () => {
     const notifySetting = await userService.findNotifySetting(recipientId)
     await userService.updateNotifySetting(notifySetting.id, { follow: false })
@@ -112,7 +113,7 @@ const getBundleableUserNewFollowerNotice = async () => {
   const bundleables = duplicates.filter(notice => notice.unread)
   return bundleables[0]
 }
-describe('find notice', async () => {
+describe('find notice', () => {
   test('find one notice', async () => {
     const notice = await notificationService.notice.dataloader.load('1')
     expect(notice.id).toBe('1')
@@ -125,7 +126,7 @@ describe('find notice', async () => {
   })
 })
 
-describe('bundle notices', async () => {
+describe('bundle notices', () => {
   test('bundleable', async () => {
     // bundleable
     const userNewFollowerNotice = await getBundleableUserNewFollowerNotice()
@@ -193,7 +194,7 @@ describe('bundle notices', async () => {
   })
 })
 
-describe('update notices', async () => {
+describe('update notices', () => {
   test('markAllNoticesAsRead', async () => {
     const notices = await notificationService.notice.knex
       .select()

@@ -98,7 +98,7 @@ const getCommentVotes = async (commentId: string) => {
   return data && data.node
 }
 
-describe('query comment list on article', async () => {
+describe('query comment list on article', () => {
   test('query comments by author', async () => {
     const authorId = toGlobalId({ type: 'User', id: 2 })
     const { query } = await testClient()
@@ -136,7 +136,7 @@ describe('query comment list on article', async () => {
   })
 })
 
-describe('Report comment', async () => {
+describe('Report comment', () => {
   test('report a comment without asset', async () => {
     const { mutate } = await testClient({ isAuth: true })
     const result = await mutate({
@@ -171,7 +171,7 @@ describe('Report comment', async () => {
   })
 })
 
-describe('mutations on comment', async () => {
+describe('mutations on comment', () => {
   const commentId = toGlobalId({ type: 'Comment', id: 3 })
 
   test('create a comment', async () => {
