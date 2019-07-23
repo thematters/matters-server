@@ -14,8 +14,7 @@ const resolver: QueryToArticleResolver = async (
   let article
   if (mediaHash) {
     article = await articleService.findByMediaHash(mediaHash)
-  }
-  else if (uuid) {
+  } else if (uuid) {
     article = await articleService.baseFindByUUID(uuid)
   }
 
