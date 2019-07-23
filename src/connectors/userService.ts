@@ -18,7 +18,8 @@ import {
   INVITATION_STATUS,
   BATCH_SIZE,
   ARTICLE_STATE,
-  EXPIRES_IN
+  EXPIRES_IN,
+  BLOCK_USERS
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -88,6 +89,10 @@ export class UserService extends BaseService {
     const user = await this.findByEmail(email)
 
     if (!user) {
+      throw new EmailNotFoundError('Cannot find user with email, login failed.')
+    }
+
+    if (BLOCK_USERS.includes(user.userName)) {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 
