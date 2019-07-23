@@ -377,3 +377,5 @@ export const CORS_OPTIONS = {
 }
 
 export const OAUTH_VALID_SCOPES: string[] = []
+
+export const BLOCK_USERS = ['jQwZ2JnYzg3MmdAZw']
