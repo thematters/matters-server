@@ -332,7 +332,10 @@ export const INVALID_NAMES = [
   'matters管理员'
 ]
 
-export const EXPIRES_IN = 1000 * 60 * 60 * 24 * 90 // millisecond
+export const USER_ACCESS_TOKEN_EXPIRES_IN = 1000 * 60 * 60 * 24 * 90 // 90 days
+export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN = 1000 * 60 * 10 // 10 mins
+export const OAUTH_ACCESS_TOKEN_EXPIRES_IN = 1000 * 60 * 60 * 24 * 30 // 30 days
+export const OAUTH_REFRESH_TOKEN_EXPIRES_IN = 1000 * 60 * 60 * 24 * 90 // 90 days
 
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
   'image/gif',
@@ -355,3 +358,22 @@ export const UTM_PARAMETER = {
     IPFS: 'utm_source=ipfs'
   }
 }
+
+export const CORS_OPTIONS = {
+  origin: [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://matters.news',
+    'https://www.matters.news',
+    'https://oss.matters.news',
+    'https://web-stage.matters.news',
+    'https://oss-stage.matters.news',
+    'https://web-develop.matters.news',
+    'https://oss-develop.matters.news',
+    'https://matters.one',
+    'https://www.matters.one'
+  ],
+  credentials: true
+}
+
+export const OAUTH_VALID_SCOPES: string[] = []

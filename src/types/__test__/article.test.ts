@@ -127,7 +127,7 @@ export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
   return article
 }
 
-describe('query article', async () => {
+describe('query article', () => {
   test('query articles', async () => {
     const { query } = await testClient({ isAuth: true, isAdmin: true })
     const result = await query({
@@ -149,7 +149,7 @@ describe('query article', async () => {
   })
 })
 
-describe('query tag on article', async () => {
+describe('query tag on article', () => {
   test('query tag on article', async () => {
     const id = toGlobalId({ type: 'Article', id: 1 })
     const { query } = await testClient()
@@ -165,7 +165,7 @@ describe('query tag on article', async () => {
   })
 })
 
-describe('publish article', async () => {
+describe('publish article', () => {
   test('create draft, publish and recall', async () => {
     jest.setTimeout(10000)
     const draft = {
@@ -227,7 +227,7 @@ describe('publish article', async () => {
   })
 })
 
-describe('appreciate article', async () => {
+describe('appreciate article', () => {
   test('appreciate success', async () => {
     const viewerCurrentMAT = await getViewerMAT()
     const articleCurrentMAT = await getArticleMAT({ id: ARTICLE_ID })
@@ -252,7 +252,7 @@ describe('appreciate article', async () => {
   })
 })
 
-describe('report article', async () => {
+describe('report article', () => {
   test('report a article without assets', async () => {
     const { mutate } = await testClient({ isAuth: true })
     const result = await mutate({
@@ -287,7 +287,7 @@ describe('report article', async () => {
   })
 })
 
-describe('toggle article state', async () => {
+describe('toggle article state', () => {
   test('enable article live', async () => {
     const { mutate } = await testClient({ isAuth: true, isAdmin: true })
     const result = await mutate({

@@ -18,7 +18,7 @@ import {
   INVITATION_STATUS,
   BATCH_SIZE,
   ARTICLE_STATE,
-  EXPIRES_IN
+  USER_ACCESS_TOKEN_EXPIRES_IN
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -29,16 +29,12 @@ import {
 import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
-import { NotificationService } from './notificationService'
 
 export class UserService extends BaseService {
-  notificationService: InstanceType<typeof NotificationService>
-
   constructor() {
     super('user')
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
-    this.notificationService = new NotificationService()
   }
 
   /**
@@ -97,7 +93,7 @@ export class UserService extends BaseService {
     }
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
-      expiresIn: EXPIRES_IN
+      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN
     })
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
