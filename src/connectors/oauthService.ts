@@ -282,10 +282,12 @@ export class OAuthService extends BaseService {
     client: OAuthClient,
     scope: string
   ): Promise<string | string[] | Falsey> => {
-    return scope
-      .split(' ')
-      .filter(s => OAUTH_VALID_SCOPES.indexOf(s) >= 0)
-      .join(' ')
+    return (
+      (scope || '')
+        .split(' ')
+        .filter(s => OAUTH_VALID_SCOPES.indexOf(s) >= 0)
+        .join(' ') || []
+    )
   }
 
   verifyScope = async (
