@@ -33,7 +33,8 @@ app.use(cors(CORS_OPTIONS))
 /**
  * Routes
  *
- * @see {@url https://www.apollographql.com/docs/apollo-server/features/subscriptions/#subscriptions-with-additional-middleware}
+ * @see {@url https://www.apollographql.com/docs/apollo-server
+/features/subscriptions/#subscriptions-with-additional-middleware}
  */
 // GraphQL
 const server = routes.graphql(app)
