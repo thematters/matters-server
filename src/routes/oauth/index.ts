@@ -95,11 +95,11 @@ initPassportStrategies()
 oAuthRouter.get('/:provider', (req, res, next) => {
   passport.authenticate(req.params.provider)(req, res, next)
 })
-oAuthRouter.get('/:provider/callbabck', (req, res, next) => {
+oAuthRouter.get('/:provider/callback', (req, res, next) => {
   passport.authenticate(req.params.provider, {
     successRedirect: '/',
     failureRedirect: '/login'
-  })
+  })(req, res, next)
 })
 
 export const oauth = oAuthRouter
