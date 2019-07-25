@@ -2,6 +2,7 @@ require('newrelic')
 require('module-alias/register')
 require('dotenv').config()
 // external
+import http from 'http'
 import * as Sentry from '@sentry/node'
 import express from 'express'
 import cors from 'cors'
@@ -19,7 +20,9 @@ import { CORS_OPTIONS } from 'common/enums'
  */
 Sentry.init({ dsn: environment.sentryDsn || '' })
 scheduleQueue.start()
+const PORT = 4000
 const app = express()
+const httpServer = http.createServer(app)
 
 /**
  * Middlewares
@@ -30,11 +33,22 @@ app.use(cors(CORS_OPTIONS))
 
 /**
  * Routes
+ *
+ * @see {@url https://www.apollographql.com/docs/apollo-server
+/features/subscriptions/#subscriptions-with-additional-middleware}
  */
+// GraphQL
 const server = routes.graphql(app)
+server.installSubscriptionHandlers(httpServer)
 
+// OAuth
 app.use('/oauth', routes.oauth)
 
-app.listen({ port: 4000 }, () => {
-  console.log(`🚀 Server ready at ${server.graphqlPath}`)
+httpServer.listen(PORT, () => {
+  console.log(
+    `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
+  )
+  console.log(
+    `🚀 Subscriptions ready at ws://localhost:${PORT}${server.subscriptionsPath}`
+  )
 })
