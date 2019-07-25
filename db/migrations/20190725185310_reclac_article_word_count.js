@@ -23,14 +23,19 @@ exports.up = async knex => {
       .whereIn('id', ids.map(({ id }) => id))
 
     // Generate new word counts
-    const params = items.map(({ id, content }) =>
-      ({ id, word_count: countWords(content)})
-    )
+    const params = items.map(({ id, content }) => ({
+      id,
+      word_count: countWords(content)
+    }))
 
     // Update
-    await Promise.all(params.map(({ id, word_count }) =>
-      knex(table).where({ id }).update( { word_count })
-    ))
+    await Promise.all(
+      params.map(({ id, word_count }) =>
+        knex(table)
+          .where({ id })
+          .update({ word_count })
+      )
+    )
   }
 }
 
