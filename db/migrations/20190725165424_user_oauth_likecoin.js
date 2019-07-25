@@ -1,6 +1,4 @@
-const {
-  baseDown
-} = require('../utils')
+const { baseDown } = require('../utils')
 
 const table = 'user_oauth_likecoin'
 
@@ -13,12 +11,13 @@ exports.up = async knex => {
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
-    t.string('liker_id').unique().notNullable()
+    t.string('liker_id')
+      .unique()
+      .notNullable()
     t.enu('account_type', ['temporal', 'general'])
       .notNullable()
       .defaultTo('temporal')
-    t.string('access_token')
-      .notNullable()
+    t.string('access_token').notNullable()
     t.string('refresh_token')
     t.timestamp('expires')
     t.text('scope')
