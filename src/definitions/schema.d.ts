@@ -425,6 +425,11 @@ export interface GQLUserInfo {
    * Timestamp of user agreement.
    */
   agreeOn?: GQLDateTime
+
+  /**
+   * Number of total written words.
+   */
+  totalWordCount: number
 }
 
 export type GQLEmail = any
@@ -3386,6 +3391,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   readSpeed?: UserInfoToReadSpeedResolver<TParent>
   badges?: UserInfoToBadgesResolver<TParent>
   agreeOn?: UserInfoToAgreeOnResolver<TParent>
+  totalWordCount?: UserInfoToTotalWordCountResolver<TParent>
 }
 
 export interface UserInfoToCreatedAtResolver<TParent = any, TResult = any> {
@@ -3491,6 +3497,18 @@ export interface UserInfoToBadgesResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToAgreeOnResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToTotalWordCountResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},

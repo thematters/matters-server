@@ -19,6 +19,7 @@ import notification from './notification'
 import followerCount from './followerCount'
 import followeeCount from './followeeCount'
 import subscriptionCount from './subscriptionCount'
+import totalWordCount from './totalWordCount'
 import unreadNoticeCount from './unreadNoticeCount'
 import unreadFolloweeArticles from './unreadFolloweeArticles'
 import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
@@ -54,7 +55,8 @@ export default {
     avatar,
     badges,
     userNameEditable,
-    email: ({ email }: { email: string }) => email && email.replace(/#/g, '@')
+    email: ({ email }: { email: string }) => email && email.replace(/#/g, '@'),
+    totalWordCount
   },
   UserSettings: {
     language: (
