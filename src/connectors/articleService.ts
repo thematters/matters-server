@@ -220,6 +220,26 @@ export class ArticleService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
+  /**
+   * Sum up word counts by a given authorId (user).
+   */
+  sumWordCountByAuthor = async (
+    authorId: string,
+    activeOnly: boolean = true
+  ): Promise<number> => {
+    let query = this.knex(this.table)
+      .sum('word_count')
+      .where({ authorId })
+      .first()
+
+    if (activeOnly) {
+      query = query.where({ state: ARTICLE_STATE.active })
+    }
+
+    const result = await query
+    return parseInt(result ? (result.sum as string) : '0', 10)
+  }
+
   /*********************************
    *                               *
    *           Search              *
