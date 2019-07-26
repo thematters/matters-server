@@ -77,10 +77,8 @@ oAuthRouter.get('/authorize', async (req, res, next) => {
   let redirectUrl = ''
 
   if (req.app.locals.viewer.id) {
-    // grant
     redirectUrl = grantUrl
   } else {
-    // login then grant
     redirectUrl = loginUrl
   }
 
@@ -92,13 +90,32 @@ oAuthRouter.use('/access_token', oAuthServer.token())
 // Receiver
 initPassportStrategies()
 
+oAuthRouter.use('/:provider', (req, res, next) => {
+  const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
+  const loginUrl = `${environment.siteDomain}/login?${querystring.stringify({
+    target: fullUrl
+  })}`
+  let redirectUrl = ''
+
+  if (!req.app.locals.viewer.id) {
+    redirectUrl = loginUrl
+    return res.redirect(redirectUrl)
+  }
+
+  next()
+})
 oAuthRouter.get('/:provider', (req, res, next) => {
   passport.authenticate(req.params.provider)(req, res, next)
 })
 oAuthRouter.get('/:provider/callback', (req, res, next) => {
-  passport.authenticate(req.params.provider, {
-    successRedirect: '/',
-    failureRedirect: '/login'
+  const provider = req.params.provider
+  const successRedirect = `${environment.siteDomain}/oauth/${provider}/success`
+  const failureRedirect = `${environment.siteDomain}/oauth/${provider}/failure`
+
+  passport.authenticate(provider, {
+    successRedirect,
+    failureRedirect,
+    session: false
   })(req, res, next)
 })
 

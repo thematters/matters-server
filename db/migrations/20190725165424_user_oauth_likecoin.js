@@ -17,8 +17,8 @@ exports.up = async knex => {
     t.enu('account_type', ['temporal', 'general'])
       .notNullable()
       .defaultTo('temporal')
-    t.string('access_token').notNullable()
-    t.string('refresh_token')
+    t.text('access_token').notNullable()
+    t.text('refresh_token')
     t.timestamp('expires')
     t.text('scope')
 

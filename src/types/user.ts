@@ -67,6 +67,9 @@ export default /* GraphQL */ `
     "Display name on user profile, can be duplicated."
     displayName: String
 
+    "LikerID of LikeCoin"
+    likerId: String
+
     "URL for user avatar."
     avatar: URL
 

@@ -739,4 +739,54 @@ export class UserService extends BaseService {
       'verification_code'
     )
   }
+
+  /*********************************
+   *                               *
+   *         OAuth:LikeCoin        *
+   *                               *
+   *********************************/
+  saveLiker = async ({
+    userId,
+    likerId,
+    accountType,
+    accessToken,
+    refreshToken,
+    expires,
+    scope
+  }: {
+    userId: string
+    likerId: string
+    accountType: 'temporal' | 'general'
+    accessToken: string
+    refreshToken?: string
+    expires?: number
+    scope?: string
+  }) => {
+    let user = await this.dataloader.load(userId)
+    await this.knex
+      .select()
+      .from('user_oauth_likecoin')
+      .where({ likerId: user.likerId })
+      .del()
+     user = await this.baseUpdate(userId, {
+      updatedAt: new Date(),
+      likerId
+    })
+
+    await this.baseUpdateOrCreate({
+      where: { likerId },
+      data: {
+        updatedAt: new Date(),
+        likerId,
+        accountType,
+        accessToken,
+        refreshToken,
+        expires,
+        scope
+      },
+      table: 'user_oauth_likecoin'
+    })
+
+    return user
+  }
 }
