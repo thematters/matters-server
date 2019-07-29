@@ -153,7 +153,8 @@
     "definitions": "./build/definitions",
     "mutations": "./build/mutations",
     "queries": "./build/queries",
-    "types": "./build/types"
+    "types": "./build/types",
+    "lib": "./build/lib"
   },
   "prettier": {
     "singleQuote": true,

@@ -8,6 +8,7 @@ import {
 
 import { environment } from 'common/environment'
 import { UserService } from 'connectors'
+import { OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
 
 class LikeCoinStrategy extends Strategy {
   constructor(
@@ -32,16 +33,24 @@ export default () => {
         passReqToCallback: true
       },
       async (req, accessToken, refreshToken, params, profile, done) => {
-        const likerId = _.get(params, 'user')
         const userService = new UserService()
-        const userId = _.get(req.app.locals.viewer, 'id')
+        const viewer = req.app.locals.viewer
+        const userId = _.get(viewer, 'id')
+        const likerId = _.get(params, 'user')
 
-        // TODO: check likerId already bound with another user
-        // TODO: check is user exists
+        if (!userId) {
+          return done(null, undefined, {
+            code: OAUTH_CALLBACK_ERROR_CODE.userNotFound,
+            message: 'viewer not found.'
+          })
+        }
 
-        // if (!likerId) {
-        //   return done(null, false, { message: "likerId isn's exists" })
-        // }
+        if (!likerId) {
+          return done(null, undefined, {
+            code: OAUTH_CALLBACK_ERROR_CODE.likerNotFound,
+            message: 'liker not found.'
+          })
+        }
 
         try {
           const user = await userService.saveLiker({
@@ -53,7 +62,8 @@ export default () => {
           })
           return done(null, user)
         } catch (e) {
-          return done(e)
+          console.error(e)
+          return done(null, undefined)
         }
       }
     )

@@ -68,7 +68,7 @@ export default /* GraphQL */ `
     displayName: String
 
     "LikerID of LikeCoin"
-    likerId: String
+    likerId: String @private
 
     "URL for user avatar."
     avatar: URL
