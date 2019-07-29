@@ -194,6 +194,9 @@ export default /* GraphQL */ `
 
     "Timestamp of user agreement."
     agreeOn: DateTime
+
+    "Number of total written words."
+    totalWordCount: Int!
   }
 
   type UserSettings {
