@@ -1,14 +1,19 @@
 import passport from 'passport'
+import _ from 'lodash'
 import {
   Strategy,
-  VerifyCallback,
-  StrategyOptions,
-  VerifyFunction
+  StrategyOptionsWithRequest,
+  VerifyFunctionWithRequest
 } from 'passport-oauth2'
+
 import { environment } from 'common/environment'
+import { UserService } from 'connectors'
 
 class LikeCoinStrategy extends Strategy {
-  constructor(options: StrategyOptions, verify: VerifyFunction) {
+  constructor(
+    options: StrategyOptionsWithRequest,
+    verify: VerifyFunctionWithRequest
+  ) {
     options = options || {}
     super(options, verify)
     this.name = 'likecoin'
@@ -23,17 +28,33 @@ export default () => {
         tokenURL: environment.likecoinTokenURL,
         clientID: environment.likecoinClientId,
         clientSecret: environment.likecoinClientSecret,
-        callbackURL: environment.likecoinCallbackURL
+        callbackURL: environment.likecoinCallbackURL,
+        passReqToCallback: true
       },
-      (
-        accessToken: string,
-        refreshToken: string,
-        profile: any,
-        done: VerifyCallback
-      ) => {
-        // TODOs
-        console.log(accessToken, refreshToken, profile)
-        done(null)
+      async (req, accessToken, refreshToken, params, profile, done) => {
+        const likerId = _.get(params, 'user')
+        const userService = new UserService()
+        const userId = _.get(req.app.locals.viewer, 'id')
+
+        // TODO: check likerId already bound with another user
+        // TODO: check is user exists
+
+        // if (!likerId) {
+        //   return done(null, false, { message: "likerId isn's exists" })
+        // }
+
+        try {
+          const user = await userService.saveLiker({
+            userId,
+            likerId,
+            accessToken,
+            refreshToken,
+            accountType: 'general'
+          })
+          return done(null, user)
+        } catch (e) {
+          return done(e)
+        }
       }
     )
   )
