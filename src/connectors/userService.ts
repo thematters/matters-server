@@ -768,7 +768,7 @@ export class UserService extends BaseService {
       .from('user_oauth_likecoin')
       .where({ likerId: user.likerId })
       .del()
-     user = await this.baseUpdate(userId, {
+    user = await this.baseUpdate(userId, {
       updatedAt: new Date(),
       likerId
     })
