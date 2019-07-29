@@ -35,7 +35,8 @@ export default /* GraphQL */ `
     updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
 
     "Update user notification settings."
-    updateNotificationSetting(input: UpdateNotificationSettingInput!): User! @authenticate
+    updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
+      @authenticate
 
     "Follow a given user."
     followUser(input: FollowUserInput!): User! @authenticate
@@ -47,7 +48,7 @@ export default /* GraphQL */ `
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
 
     "Clear search history for user."
-    clearSearchHistory: Boolean  @authenticate
+    clearSearchHistory: Boolean @authenticate
 
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): User! @authorize
@@ -117,15 +118,28 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
+    "Articles published by user's followees."
     followeeArticles(input: ConnectionArgs!): ArticleConnection!
+
+    "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection!
+
+    "Global articles sort by latest activity time."
     hottest(input: ConnectionArgs!): ArticleConnection!
-    # Matters Today
+
+    "'Matters Today' recommendation."
     today: Article
-    # In case you missed it
+
+    "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection!
+
+    "Global tag list, sort by activities in recent 14 days."
     tags(input: ConnectionArgs!): TagConnection!
+
+    "Gloabl article list, sort by activities in recent 72 hours."
     topics(input: ConnectionArgs!): ArticleConnection!
+
+    "Global user list, sort by activities in recent 6 month."
     authors(input: AuthorsInput!): UserConnection!
   }
 
@@ -142,63 +156,108 @@ export default /* GraphQL */ `
   }
 
   type UserInfo {
+    "Timestamp of registration."
     createdAt: DateTime!
-    # Unique user name
+
+    "Unique user name."
     userName: String! @deprecated(reason: "Use \`User.userName\`.")
-    # Is user name editable
+
+    "Is user name editable."
     userNameEditable: Boolean!
-    # Display name on profile
+
+    "Display name on profile."
     displayName: String! @deprecated(reason: "Use \`User.displayName\`.")
-    # User desciption
+
+    "User desciption."
     description: String
-    # URL for avatar
+
+    "URL for avatar."
     avatar: URL @deprecated(reason: "Use \`User.avatar\`.")
+
+    "User email."
     email: Email @private
+
+    "Is email verified."
     emailVerified: Boolean
+
+    "Moble number."
     mobile: String @private
-    # Use 500 for now, adaptive in the future
+
+    "User reading speed, 500 as default."
     readSpeed: Int!
+
+    "User badges."
     badges: [Badge!]
+
+    "Timestamp of user agreement."
     agreeOn: DateTime
+
+    "Number of total written words."
+    totalWordCount: Int!
   }
 
   type UserSettings {
-    # User language setting
+    "User language setting."
     language: UserLanguage!
     # Thrid party accounts binded for the user
     # oauthType: [OAuthType!]
     # Notification settings
+    "Notification settings."
     notification: NotificationSetting!
   }
 
   type UserActivity {
+    "User reading history."
     history(input: ConnectionArgs!): ReadHistoryConnection!
+
+    "User search history."
     recentSearches(input: ConnectionArgs!): RecentSearchConnection!
   }
 
   type UserStatus {
+    "User state."
     state: UserState!
+
+    "User role and access level."
     role: UserRole!
-    # Total MAT left in wallet
+
+    "Total MAT left in wallet."
     MAT: MAT! @private
+
+    "Invitation. Deprecated."
     invitation: InvitationStatus @deprecated(reason: "removed")
-    # Number of articles published by user
+
+    "Number of articles published by user"
     articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
-    # Number of views on articles
+
+    "Number of views on user articles. Not yet in use."
     viewCount: Int! @private
-    draftCount: Int! @private @deprecated(reason: "Use \`User.drafts.totalCount\`.")
-    # Number of comments posted by user
+
+    "Number of draft of user."
+    draftCount: Int!
+      @private
+      @deprecated(reason: "Use \`User.drafts.totalCount\`.")
+
+    "Number of comments posted by user."
     commentCount: Int!
-    # quotationCount: Int! @deprecated(reason: "not used")
-    subscriptionCount: Int! @private @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
-    # Number of user that this user follows
-    followeeCount: Int! @deprecated(reason: "Use \`User.followees.totalCount\`.")
-    # Number of user that follows this user
-    followerCount: Int! @deprecated(reason: "Use \`User.followers.totalCount\`.")
-    # Number of unread notices
+
+    subscriptionCount: Int!
+      @private
+      @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
+
+    followeeCount: Int!
+      @deprecated(reason: "Use \`User.followees.totalCount\`.")
+
+    followerCount: Int!
+      @deprecated(reason: "Use \`User.followers.totalCount\`.")
+
+    "Number of unread notices."
     unreadNoticeCount: Int! @private
 
+    "Whether there are unread articles from followees."
     unreadFolloweeArticles: Boolean!
+
+    "Whether user has read response info or not."
     unreadResponseInfoPopUp: Boolean!
   }
 
@@ -395,7 +454,6 @@ export default /* GraphQL */ `
     state: UserState!
     banDays: PositiveInt
   }
-
 
   input FollowUserInput {
     id: ID!

@@ -217,7 +217,27 @@ export class ArticleService extends BaseService {
 
     const result = await qs
 
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Sum up word counts by a given authorId (user).
+   */
+  sumWordCountByAuthor = async (
+    authorId: string,
+    activeOnly: boolean = true
+  ): Promise<number> => {
+    let query = this.knex(this.table)
+      .sum('word_count')
+      .where({ authorId })
+      .first()
+
+    if (activeOnly) {
+      query = query.where({ state: ARTICLE_STATE.active })
+    }
+
+    const result = await query
+    return parseInt(result ? (result.sum as string) : '0', 10)
   }
 
   /*********************************
@@ -569,7 +589,7 @@ export class ArticleService extends BaseService {
       .where(where)
       .count()
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   countRecommendIcymi = async (where: { [key: string]: any } = {}) => {
@@ -578,7 +598,7 @@ export class ArticleService extends BaseService {
       .where(where)
       .count()
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   countRecommendHottest = async ({
@@ -611,7 +631,7 @@ export class ArticleService extends BaseService {
       })
     }
     const result = await qs
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   countRecommendNewest = async ({
@@ -638,7 +658,7 @@ export class ArticleService extends BaseService {
     }
 
     const result = await qs
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**
@@ -790,7 +810,7 @@ export class ArticleService extends BaseService {
       })
       .countDistinct('sender_id')
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**
@@ -943,7 +963,7 @@ export class ArticleService extends BaseService {
       .where({ targetId: id, action: USER_ACTION.subscribe })
       .countDistinct('user_id')
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   isSubscribed = async ({
@@ -1222,7 +1242,7 @@ export class ArticleService extends BaseService {
       .where({ entranceId: id })
       .countDistinct('article_id')
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**
@@ -1233,7 +1253,7 @@ export class ArticleService extends BaseService {
       .where({ articleId: id })
       .countDistinct('entrance_id')
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**
@@ -1249,7 +1269,7 @@ export class ArticleService extends BaseService {
       .countDistinct('entrance_id')
       .first()
     const result = await query
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /*********************************

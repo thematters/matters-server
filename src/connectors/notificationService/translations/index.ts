@@ -168,22 +168,14 @@ export default {
   }),
   user_activated: i18n<{}>({
     zh_hant: () =>
-      `好消息！社區全面開放，你已升級成為創作者。趕快發佈第一篇作品，贏取 ${
-        MAT_UNIT.firstPost
-      } MAT 獎勵吧！`,
+      `好消息！社區全面開放，你已升級成為創作者。趕快發佈第一篇作品，贏取 ${MAT_UNIT.firstPost} MAT 獎勵吧！`,
     zh_hans: () =>
-      `好消息！社区全面开放，你已升级成为创作者。赶快发布第一篇作品，赢取 ${
-        MAT_UNIT.firstPost
-      } MAT 奖励吧！`
+      `好消息！社区全面开放，你已升级成为创作者。赶快发布第一篇作品，赢取 ${MAT_UNIT.firstPost} MAT 奖励吧！`
   }),
   user_first_post_award: i18n<{}>({
     zh_hant: () =>
-      `恭喜！你已成功發佈第一篇作品，請查收 ${
-        MAT_UNIT.firstPost
-      } MAT 獎勵。快去看看其他人寫了什麼，使用讚賞功能獎勵作者吧。`,
+      `恭喜！你已成功發佈第一篇作品，請查收 ${MAT_UNIT.firstPost} MAT 獎勵。快去看看其他人寫了什麼，使用讚賞功能獎勵作者吧。`,
     zh_hans: () =>
-      `恭喜！你已成功发布第一篇作品，请查收 ${
-        MAT_UNIT.firstPost
-      } MAT 奖励。快去看看其他人写了什么，使用赞赏功能奖励作者吧。`
+      `恭喜！你已成功发布第一篇作品，请查收 ${MAT_UNIT.firstPost} MAT 奖励。快去看看其他人写了什么，使用赞赏功能奖励作者吧。`
   })
 }

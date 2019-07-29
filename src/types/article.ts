@@ -34,7 +34,8 @@ export default /* GraphQL */ `
     # OSS
     toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authorize
     toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @authorize
-    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @authorize
+    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article!
+      @authorize
     updateArticleState(input: UpdateArticleStateInput!): Article! @authorize
     deleteTags(input: DeleteTagsInput!): Boolean @authorize
     renameTag(input: RenameTagInput!): Tag! @authorize
@@ -116,7 +117,8 @@ export default /* GraphQL */ `
     appreciators(input: ConnectionArgs!): UserConnection!
 
     "Total count of this article's appreciations."
-    appreciatorCount: Int! @deprecated(reason: "Use \`appreciators.totalCount\`.")
+    appreciatorCount: Int!
+      @deprecated(reason: "Use \`appreciators.totalCount\`.")
 
     "Limit the nuhmber of appreciate per user."
     appreciateLimit: Int!

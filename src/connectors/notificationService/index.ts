@@ -150,9 +150,7 @@ export class NotificationService extends BaseService {
     // skip if actor === recipient
     if ('actorId' in params && params.actorId === params.recipientId) {
       logger.info(
-        `Actor ${params.actorId} is same as recipient ${
-          params.recipientId
-        }, skipped`
+        `Actor ${params.actorId} is same as recipient ${params.recipientId}, skipped`
       )
       return
     }

@@ -98,7 +98,7 @@ export class CommentService extends BaseService {
       .where({ authorId, state: COMMENT_STATE.active })
       .count()
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**
@@ -109,7 +109,7 @@ export class CommentService extends BaseService {
       .where({ articleId, state: COMMENT_STATE.active })
       .count()
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**
@@ -289,7 +289,7 @@ export class CommentService extends BaseService {
       })
       .count()
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**
@@ -303,7 +303,7 @@ export class CommentService extends BaseService {
       })
       .count()
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**
@@ -376,7 +376,7 @@ export class CommentService extends BaseService {
     }
 
     const result = await qs
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   pinLeftByArticle = async (articleId: string) => {

@@ -18,7 +18,7 @@ import {
   INVITATION_STATUS,
   BATCH_SIZE,
   ARTICLE_STATE,
-  EXPIRES_IN,
+  USER_ACCESS_TOKEN_EXPIRES_IN,
   BLOCK_USERS
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -30,16 +30,12 @@ import {
 import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
-import { NotificationService } from './notificationService'
 
 export class UserService extends BaseService {
-  notificationService: InstanceType<typeof NotificationService>
-
   constructor() {
     super('user')
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
-    this.notificationService = new NotificationService()
   }
 
   /**
@@ -102,7 +98,7 @@ export class UserService extends BaseService {
     }
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
-      expiresIn: EXPIRES_IN
+      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN
     })
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
@@ -208,7 +204,7 @@ export class UserService extends BaseService {
       .countDistinct('id')
       .where({ userName })
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /*********************************
@@ -326,7 +322,7 @@ export class UserService extends BaseService {
       .max('created_at as search_at')
       .groupBy('search_key')
       .orderBy('search_at', 'desc')
-    return result.map(({ searchKey }: { searchKey: string }) => searchKey)
+    return result.map(({ searchKey }) => searchKey)
   }
 
   clearSearches = (userId: string) =>
@@ -372,7 +368,7 @@ export class UserService extends BaseService {
       })
       .count()
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /*********************************
@@ -411,7 +407,7 @@ export class UserService extends BaseService {
       })
       .count()
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   countFollowers = async (targetId: string): Promise<number> => {
@@ -419,7 +415,7 @@ export class UserService extends BaseService {
       .where({ targetId, action: USER_ACTION.follow })
       .count()
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   followeeArticles = async ({
@@ -445,7 +441,7 @@ export class UserService extends BaseService {
       .where({ action: 'follow', userId, 'ar.state': ARTICLE_STATE.active })
       .countDistinct('ar.id')
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   findFollowees = async ({
@@ -590,7 +586,7 @@ export class UserService extends BaseService {
       .where({ userId, action: USER_ACTION.subscribe })
       .count()
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   findSubscriptions = async ({
@@ -620,7 +616,7 @@ export class UserService extends BaseService {
       .where({ userId, archived: false })
       .countDistinct('article_id')
       .first()
-    return parseInt(result.count || 0, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   findReadHistory = async ({

@@ -25,7 +25,7 @@ export class DraftService extends BaseService {
       .where({ authorId, archived: false })
       .count()
       .first()
-    return parseInt(result.count, 10)
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /**

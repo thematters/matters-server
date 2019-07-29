@@ -1,7 +1,6 @@
 import _get from 'lodash/get'
 // internal
 import { toGlobalId } from 'common/utils'
-import { knex } from 'connectors/db'
 // local
 import {
   testClient,
@@ -40,7 +39,6 @@ beforeAll(async () => {
     throw err
   }
 })
-afterAll(knex.destroy)
 
 const GET_USER = `
   query($input: NodeInput!) {
@@ -102,7 +100,7 @@ const FEEDBACK = `
   }
 `
 
-describe('query nodes of different type', async () => {
+describe('query nodes of different type', () => {
   test('query user node', async () => {
     const id = toGlobalId({ type: 'User', id: 1 })
     const { query } = await testClient()
@@ -142,7 +140,7 @@ describe('query nodes of different type', async () => {
 })
 
 // TODO: fix search tests
-describe.skip('Search', async () => {
+describe.skip('Search', () => {
   test('search article', async () => {
     const { query } = await testClient()
 
@@ -204,7 +202,7 @@ describe.skip('Search', async () => {
   })
 })
 
-describe('Feedback', async () => {
+describe('Feedback', () => {
   test('submit a feedback', async () => {
     const { mutate } = await testClient({ isAuth: true })
     const result = await mutate({

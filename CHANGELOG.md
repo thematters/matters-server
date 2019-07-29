@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2019-07-29
+
+### Changed
+
+- Add API for total written word counts. #396
+- Add migration for correcting word count. #395
+- Block specific users. #390
+- OAuth Server #386
+- Add rate-limiting to matters-server #384
+- Make author info as link with utm parameter for IPFS file #378 #379
+- API docs #377 #380
+- Remove `Official.gatewayUrls` #376
+
+## [1.6.0] - 2019-07-02
+
+### Changed
+
+- Update the logic of notification distribution #366
+- Add documentation for Article related APIs #367
+- Resource Limitations #368
+- Alter preview/preheader text of daily summary email #369
+- User doc & handle null req #370
+- Admin can also access user's inactive articles #371
+- Enhance search user accuracy #372
+
 ## [1.5.0] - 2019-06-24
 
 ### Changed
