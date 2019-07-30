@@ -10,7 +10,7 @@ module.exports = {
     '^connectors(.*)$': '<rootDir>/src/connectors$1',
     '^definitions(.*)$': '<rootDir>/src/definitions$1',
     '^mutations(.*)$': '<rootDir>/src/mutations$1',
-    '^queries(.*)$': '<rootDir>/src/queries$1'
+    '^queries(.*)$': '<rootDir>/src/queries$1',
   },
   globalSetup: '<rootDir>/db/testSetup.js',
   globalTeardown: '<rootDir>/db/testTeardown.js',

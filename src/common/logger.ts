@@ -19,7 +19,9 @@ const logger = createLogger({
     // The simple format outputs
     // `${level}: ${message} ${[Object with everything else]}`
     //
-    format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+    format.printf(
+      info => `${info.timestamp} ${info.level}: ${JSON.stringify(info.message)}`
+    )
   ),
   transports: [
     new transports.File({

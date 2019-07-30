@@ -278,6 +278,11 @@ export interface GQLUser extends GQLNode {
   displayName?: string
 
   /**
+   * LikerID of LikeCoin
+   */
+  likerId?: string
+
+  /**
    * URL for user avatar.
    */
   avatar?: GQLURL
@@ -3136,6 +3141,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   uuid?: UserToUuidResolver<TParent>
   userName?: UserToUserNameResolver<TParent>
   displayName?: UserToDisplayNameResolver<TParent>
+  likerId?: UserToLikerIdResolver<TParent>
   avatar?: UserToAvatarResolver<TParent>
   info?: UserToInfoResolver<TParent>
   settings?: UserToSettingsResolver<TParent>
@@ -3184,6 +3190,15 @@ export interface UserToUserNameResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToDisplayNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToLikerIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
