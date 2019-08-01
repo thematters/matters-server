@@ -46,6 +46,8 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       throw new AssetNotFoundError('profile cover asset does not exists')
     }
     updateParams.profileCover = asset.id
+  } else if (input.profileCover === null) {
+    updateParams.profileCover = null
   }
 
   // check user name is editable
