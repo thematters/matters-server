@@ -121,25 +121,28 @@ const resolver: MutationToPutCommentResolver = async (
   else {
     newComment = await commentService.create(data)
 
-    // trigger notifications
     // notify article's author
-    notificationService.trigger({
-      event: 'article_new_comment',
-      actorId: viewer.id,
-      recipientId: article.authorId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'article',
-          entity: article
-        },
-        {
-          type: 'comment',
-          entityTable: 'comment',
-          entity: newComment
-        }
-      ]
-    })
+    // note: only trigger `comment_new_reply` if the article author's comment was replied
+    if (article.authorId !== parentComment.authorId) {
+      notificationService.trigger({
+        event: 'article_new_comment',
+        actorId: viewer.id,
+        recipientId: article.authorId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'article',
+            entity: article
+          },
+          {
+            type: 'comment',
+            entityTable: 'comment',
+            entity: newComment
+          }
+        ]
+      })
+    }
+
     // notify article's subscribers
     const articleSubscribers = await articleService.findSubscriptions({
       id: article.id
