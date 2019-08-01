@@ -90,7 +90,9 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   // check reply to
+  let replyToComment: any
   if (replyTo) {
+    replyToComment = await commentService.dataloader.load(replyToComment)
     data.replyTo = fromGlobalId(replyTo).id
   }
 
@@ -164,8 +166,9 @@ const resolver: MutationToPutCommentResolver = async (
         ]
       })
     })
+
+    // notify the author of parent's comment
     if (parentComment) {
-      // notify parent comment
       notificationService.trigger({
         event: 'comment_new_reply',
         actorId: viewer.id,
@@ -175,6 +178,27 @@ const resolver: MutationToPutCommentResolver = async (
             type: 'target',
             entityTable: 'comment',
             entity: parentComment
+          },
+          {
+            type: 'reply',
+            entityTable: 'comment',
+            entity: newComment
+          }
+        ]
+      })
+    }
+
+    // notify the author of replyTo's comment
+    if (replyToComment) {
+      notificationService.trigger({
+        event: 'comment_new_reply',
+        actorId: viewer.id,
+        recipientId: replyToComment.authorId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'comment',
+            entity: replyToComment
           },
           {
             type: 'reply',
