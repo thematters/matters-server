@@ -92,7 +92,8 @@ const resolver: MutationToPutCommentResolver = async (
   // check reply to
   let replyToComment: any
   if (replyTo) {
-    replyToComment = await commentService.dataloader.load(replyToComment)
+    const { id: replyToDBId } = fromGlobalId(replyTo)
+    replyToComment = await commentService.dataloader.load(replyToDBId)
     data.replyTo = fromGlobalId(replyTo).id
   }
 
@@ -123,7 +124,7 @@ const resolver: MutationToPutCommentResolver = async (
 
     // notify article's author
     // note: only trigger `comment_new_reply` if the article author's comment was replied
-    if (article.authorId !== parentComment.authorId) {
+    if (!parentComment || article.authorId !== parentComment.authorId) {
       notificationService.trigger({
         event: 'article_new_comment',
         actorId: viewer.id,
