@@ -90,7 +90,10 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   // check reply to
+  let replyToComment: any
   if (replyTo) {
+    const { id: replyToDBId } = fromGlobalId(replyTo)
+    replyToComment = await commentService.dataloader.load(replyToDBId)
     data.replyTo = fromGlobalId(replyTo).id
   }
 
@@ -119,25 +122,28 @@ const resolver: MutationToPutCommentResolver = async (
   else {
     newComment = await commentService.create(data)
 
-    // trigger notifications
     // notify article's author
-    notificationService.trigger({
-      event: 'article_new_comment',
-      actorId: viewer.id,
-      recipientId: article.authorId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'article',
-          entity: article
-        },
-        {
-          type: 'comment',
-          entityTable: 'comment',
-          entity: newComment
-        }
-      ]
-    })
+    // note: only trigger `comment_new_reply` if the article author's comment was replied
+    if (!parentComment || article.authorId !== parentComment.authorId) {
+      notificationService.trigger({
+        event: 'article_new_comment',
+        actorId: viewer.id,
+        recipientId: article.authorId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'article',
+            entity: article
+          },
+          {
+            type: 'comment',
+            entityTable: 'comment',
+            entity: newComment
+          }
+        ]
+      })
+    }
+
     // notify article's subscribers
     const articleSubscribers = await articleService.findSubscriptions({
       id: article.id
@@ -164,8 +170,9 @@ const resolver: MutationToPutCommentResolver = async (
         ]
       })
     })
+
+    // notify the author of parent's comment
     if (parentComment) {
-      // notify parent comment
       notificationService.trigger({
         event: 'comment_new_reply',
         actorId: viewer.id,
@@ -175,6 +182,27 @@ const resolver: MutationToPutCommentResolver = async (
             type: 'target',
             entityTable: 'comment',
             entity: parentComment
+          },
+          {
+            type: 'reply',
+            entityTable: 'comment',
+            entity: newComment
+          }
+        ]
+      })
+    }
+
+    // notify the author of replyTo's comment
+    if (replyToComment) {
+      notificationService.trigger({
+        event: 'comment_new_reply',
+        actorId: viewer.id,
+        recipientId: replyToComment.authorId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'comment',
+            entity: replyToComment
           },
           {
             type: 'reply',
