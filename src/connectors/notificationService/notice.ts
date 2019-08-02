@@ -137,19 +137,6 @@ class Notice extends BaseService {
     const duplicates = await this.findDuplicates(params)
     const bundleables = duplicates.filter(notice => notice.unread)
 
-    // skip if same notice already exists
-    for (let i = 0; i < duplicates.length; i++) {
-      const actors = await this.findActors(duplicates[i].id)
-      const actorIds = actors.map(actor => actor.id)
-
-      if (
-        !params.actorId ||
-        (params.actorId && actorIds.indexOf(params.actorId) >= 0)
-      ) {
-        return { created: false, bundled: false }
-      }
-    }
-
     // bundle
     if (bundleables[0] && params.actorId) {
       await this.addNoticeActor({
