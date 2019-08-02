@@ -274,6 +274,7 @@ export default /* GraphQL */ `
     feedback
     embed
     embedaudio
+    profileCover
   }
 
   enum EntityType {

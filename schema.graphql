@@ -329,6 +329,7 @@ enum AssetType {
   feedback
   embed
   embedaudio
+  profileCover
 }
 
 type Audiodraft {
@@ -1535,6 +1536,7 @@ input UpdateUserInfoInput {
   description: String
   language: UserLanguage
   agreeOn: Boolean
+  profileCover: ID
 }
 
 input UpdateUserStateInput {
@@ -1680,6 +1682,9 @@ type UserInfo {
 
   """Number of total written words."""
   totalWordCount: Int!
+
+  """Cover of profile page."""
+  profileCover: URL
 }
 
 enum UserInfoFields {
