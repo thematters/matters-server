@@ -268,11 +268,18 @@ export class UserService extends BaseService {
       .size(first)
       .build() as { [key: string]: any }
 
+    body.query = {
+      match: {
+        displayName: key
+      }
+    }
+
     body.suggest = {
       userName: {
         prefix: key,
         completion: {
-          field: 'userName'
+          field: 'userName',
+          size: first
         }
       },
       displayName: {
@@ -281,7 +288,8 @@ export class UserService extends BaseService {
           field: 'displayName',
           fuzzy: {
             fuzziness: 0
-          }
+          },
+          size: first
         }
       }
     }
@@ -293,9 +301,14 @@ export class UserService extends BaseService {
         body
       })
 
-      const { suggest } = result as (typeof result) & {
+      const { hits, suggest } = result as (typeof result) & {
+        hits: { hits: any[] },
         suggest: { userName: any[]; displayName: any[] }
       }
+
+      let matchIds = hits.hits.map(
+        ({ _id }: { _id: any }) => _id
+      )
 
       let userNameIds = suggest.userName[0].options.map(
         ({ _id }: { _id: any }) => _id
@@ -305,7 +318,7 @@ export class UserService extends BaseService {
       )
 
       // merge two ID arrays and remove duplicates
-      let ids = [...new Set([...displayNameIds, ...userNameIds])]
+      let ids = [...new Set([...matchIds, ...displayNameIds, ...userNameIds])]
       const nodes = await this.baseFindByIds(ids)
       return { nodes, totalCount: nodes.length }
     } catch (err) {
