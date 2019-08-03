@@ -27,6 +27,10 @@
       "ContainerDirectory": "/var/app/knexfile.js"
     },
     {
+      "HostDirectory": "/var/app/current/newrelic.js",
+      "ContainerDirectory": "/var/app/newrelic.js"
+    },
+    {
       "HostDirectory": "/var/app/current/package.json",
       "ContainerDirectory": "/var/app/package.json"
     },
