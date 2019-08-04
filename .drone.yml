@@ -64,26 +64,6 @@ steps:
       event:
         - push
 
-  - name: develop:docker
-    image: plugins/ecr
-    settings:
-      access_key:
-        from_secret: AWS_ACCESS_KEY_ID
-      secret_key:
-        from_secret: AWS_SECRET_ACCESS_KEY
-      region: ap-southeast-1
-      repo: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server
-      registry: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com
-      dockerfile: docker/Dockerfile
-      tags:
-        - develop
-    when:
-      branch:
-        - develop
-        - feature/develop
-      event:
-        - push
-
   - name: develop:deploy
     image: matters/awsebcli
     environment:
@@ -100,72 +80,7 @@ steps:
     when:
       branch:
         - develop
-        - feature/develop
-      event:
-        - push
-
-  # === CI tasks for `staging` branch
-  - name: staging:db-migrate
-    image: node:10.15
-    environment:
-      MATTERS_ENV: staging
-      MATTERS_APOLLO_API_KEY:
-        from_secret: APOLLO_API_KEY
-      MATTERS_PG_HOST:
-        from_secret: STAGING_PG_HOST
-      MATTERS_PG_DATABASE:
-        from_secret: STAGING_PG_DATABASE
-      MATTERS_PG_USER:
-        from_secret: STAGING_PG_USER
-      MATTERS_PG_PASSWORD:
-        from_secret: STAGING_PG_PASSWORD
-    commands:
-      - npm run db:migrate
-      - npm run schema:push
-    when:
-      branch:
-        - staging
-        - feature/staging
-      event:
-        - push
-
-  - name: staging:docker
-    image: plugins/ecr
-    settings:
-      access_key:
-        from_secret: AWS_ACCESS_KEY_ID
-      secret_key:
-        from_secret: AWS_SECRET_ACCESS_KEY
-      region: ap-southeast-1
-      repo: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server
-      registry: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com
-      dockerfile: docker/Dockerfile
-      tags:
-        - staging
-    when:
-      branch:
-        - staging
-        - feature/staging
-      event:
-        - push
-
-  - name: staging:deploy
-    image: matters/awsebcli
-    environment:
-      AWS_ACCESS_KEY_ID:
-        from_secret: AWS_ACCESS_KEY_ID
-      AWS_SECRET_ACCESS_KEY:
-        from_secret: AWS_SECRET_ACCESS_KEY
-      AWS_DEFAULT_REGION: ap-southeast-1
-    commands:
-      - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-      - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-      - aws configure set aws_default_region $AWS_DEFAULT_REGION
-      - bash ./bin/eb-deploy.sh staging
-    when:
-      branch:
-        - staging
-        - feature/staging
+        - feature/eb-node-env
       event:
         - push
 
@@ -184,26 +99,6 @@ steps:
         from_secret: PROD_PG_PASSWORD
     commands:
       - npm run db:migrate
-    when:
-      branch:
-        - master
-        - feature/prod
-      event:
-        - push
-
-  - name: prod:docker
-    image: plugins/ecr
-    settings:
-      access_key:
-        from_secret: AWS_ACCESS_KEY_ID
-      secret_key:
-        from_secret: AWS_SECRET_ACCESS_KEY
-      region: ap-southeast-1
-      repo: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server
-      registry: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com
-      dockerfile: docker/Dockerfile
-      tags:
-        - prod
     when:
       branch:
         - master
