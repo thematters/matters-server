@@ -302,13 +302,11 @@ export class UserService extends BaseService {
       })
 
       const { hits, suggest } = result as (typeof result) & {
-        hits: { hits: any[] },
+        hits: { hits: any[] }
         suggest: { userName: any[]; displayName: any[] }
       }
 
-      let matchIds = hits.hits.map(
-        ({ _id }: { _id: any }) => _id
-      )
+      let matchIds = hits.hits.map(({ _id }: { _id: any }) => _id)
 
       let userNameIds = suggest.userName[0].options.map(
         ({ _id }: { _id: any }) => _id
