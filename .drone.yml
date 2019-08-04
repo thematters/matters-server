@@ -3,18 +3,18 @@ name: default
 
 steps:
   - name: node modules
-    image: node:10.14
+    image: node:10.15
     commands:
       - npm install --no-progress --quiet --unsafe-perm >  npm-install.log
 
   - name: tslint
-    image: node:10.14
+    image: node:10.15
     commands:
       - npm run tslint:production
       - npm run format:check
 
   - name: test
-    image: node:10.14
+    image: node:10.15
     environment:
       CODECOV_TOKEN: de5ab681-0837-4a24-b614-0a29225a7e4c
       MATTERS_ENV: test
@@ -36,13 +36,13 @@ steps:
       - npm run test
 
   - name: build
-    image: node:10.14
+    image: node:10.15
     commands:
       - npm run build
 
   # === CI tasks for `develop` branch ===
   - name: develop:db-migrate
-    image: node:10.14
+    image: node:10.15
     environment:
       MATTERS_ENV: development
       MATTERS_APOLLO_API_KEY:
@@ -106,7 +106,7 @@ steps:
 
   # === CI tasks for `staging` branch
   - name: staging:db-migrate
-    image: node:10.14
+    image: node:10.15
     environment:
       MATTERS_ENV: staging
       MATTERS_APOLLO_API_KEY:
@@ -171,7 +171,7 @@ steps:
 
   # === CI tasks for `master` branch
   - name: prod:db-migrate
-    image: node:10.14
+    image: node:10.15
     environment:
       MATTERS_ENV: production
       MATTERS_PG_HOST:

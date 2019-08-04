@@ -4,7 +4,8 @@
   "description": "Matters Server",
   "main": "build/index.js",
   "engines": {
-    "node": ">=10.14"
+    "node": ">=10.15",
+    "npm": ">=6.5.0"
   },
   "scripts": {
     "db:rollback": "knex-migrate rollback",
