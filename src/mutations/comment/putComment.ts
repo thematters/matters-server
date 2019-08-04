@@ -94,7 +94,7 @@ const resolver: MutationToPutCommentResolver = async (
   if (replyTo) {
     const { id: replyToDBId } = fromGlobalId(replyTo)
     replyToComment = await commentService.dataloader.load(replyToDBId)
-    data.replyTo = fromGlobalId(replyTo).id
+    data.replyTo = replyToDBId
   }
 
   // check mentions
@@ -193,7 +193,11 @@ const resolver: MutationToPutCommentResolver = async (
     }
 
     // notify the author of replyTo's comment
-    if (replyToComment && replyToComment.id !== parentComment.id) {
+    if (
+      replyToComment &&
+      parentComment &&
+      replyToComment.id !== parentComment.id
+    ) {
       notificationService.trigger({
         event: 'comment_new_reply',
         actorId: viewer.id,
