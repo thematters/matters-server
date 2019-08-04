@@ -193,7 +193,7 @@ const resolver: MutationToPutCommentResolver = async (
     }
 
     // notify the author of replyTo's comment
-    if (replyToComment) {
+    if (replyToComment && replyToComment.id !== parentComment.id) {
       notificationService.trigger({
         event: 'comment_new_reply',
         actorId: viewer.id,
