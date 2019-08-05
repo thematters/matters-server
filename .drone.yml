@@ -64,25 +64,25 @@ steps:
       event:
         - push
 
-  - name: develop:docker
-    image: plugins/ecr
-    settings:
-      access_key:
-        from_secret: AWS_ACCESS_KEY_ID
-      secret_key:
-        from_secret: AWS_SECRET_ACCESS_KEY
-      region: ap-southeast-1
-      repo: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server
-      registry: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com
-      dockerfile: docker/Dockerfile
-      tags:
-        - develop
-    when:
-      branch:
-        - develop
-        - feature/develop
-      event:
-        - push
+  # - name: develop:docker
+  #   image: plugins/ecr
+  #   settings:
+  #     access_key:
+  #       from_secret: AWS_ACCESS_KEY_ID
+  #     secret_key:
+  #       from_secret: AWS_SECRET_ACCESS_KEY
+  #     region: ap-southeast-1
+  #     repo: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server
+  #     registry: 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com
+  #     dockerfile: docker/Dockerfile
+  #     tags:
+  #       - develop
+  #   when:
+  #     branch:
+  #       - develop
+  #       - feature/develop
+  #     event:
+  #       - push
 
   - name: develop:deploy
     image: matters/awsebcli
