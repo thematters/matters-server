@@ -1,6 +1,6 @@
 #!/bin/bash
 APP_DEVELOP="matters-stage"
-ENV_DEVELOP="matters-server-develop-node"
+ENV_DEVELOP="matters-server-develop-nodejs"
 REGION_DEVELOP="ap-southeast-1"
 
 APP_STAGING="matters-stage"
