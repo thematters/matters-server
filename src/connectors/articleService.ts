@@ -200,6 +200,15 @@ export class ArticleService extends BaseService {
       .first()
 
   /**
+   * Find article by which set as sticky.
+   */
+  findBySticky = async (authorId: string, sticky: boolean) =>
+    await this.knex
+      .select('id')
+      .from(this.table)
+      .where({ authorId, sticky: true})
+
+  /**
    * Count articles by a given authorId (user).
    */
   countByAuthor = async (
