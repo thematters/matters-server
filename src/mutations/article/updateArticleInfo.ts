@@ -33,10 +33,18 @@ const resolver: MutationToUpdateArticleInfoResolver = async (
 
     // Reset if there are some sticky articles.
     if (sticky === true) {
-      const stickyIds = (await articleService.findBySticky(viewer.id, true)).map(({ id }) => id)
-      await Promise.all(stickyIds.map(id =>
-        articleService.baseUpdate(id, { sticky: false, updatedAt: new Date()})
-      ))
+      const stickyIds = (await articleService.findBySticky(
+        viewer.id,
+        true
+      )).map(({ id }) => id)
+      await Promise.all(
+        stickyIds.map(id =>
+          articleService.baseUpdate(id, {
+            sticky: false,
+            updatedAt: new Date()
+          })
+        )
+      )
     }
   }
 

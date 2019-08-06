@@ -206,7 +206,7 @@ export class ArticleService extends BaseService {
     await this.knex
       .select('id')
       .from(this.table)
-      .where({ authorId, sticky: true})
+      .where({ authorId, sticky: true })
 
   /**
    * Count articles by a given authorId (user).
