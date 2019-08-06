@@ -306,7 +306,7 @@ export class ArticleService extends BaseService {
     const body = bodybuilder()
       .query('multi_match', {
         query: key,
-        fuzziness: 5,
+        fuzziness: 'AUTO',
         fields: [
           'title^10',
           'title.synonyms^5',
