@@ -182,12 +182,23 @@ export class ArticleService extends BaseService {
   /**
    *  Find articles by a given author id (user).
    */
-  findByAuthor = async (authorId: string, filter = {}) =>
-    await this.knex
+  findByAuthor = async (authorId: string, filter = {}, stickyFirst = false) => {
+    const query = this.knex
       .select()
       .from(this.table)
       .where({ authorId, ...filter })
-      .orderBy('id', 'desc')
+
+    if (stickyFirst === true) {
+      query.orderBy([
+        { column: 'sticky', order: 'desc' },
+        { column: 'id', order: 'desc' }
+      ])
+    } else {
+      query.orderBy('id', 'desc')
+    }
+
+    return query
+  }
 
   /**
    * Find article by media hash

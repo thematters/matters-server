@@ -13,7 +13,7 @@ const resolver: UserToArticlesResolver = (
       ? {}
       : { state: ARTICLE_STATE.active }
   return connectionFromPromisedArray(
-    articleService.findByAuthor(id, filter),
+    articleService.findByAuthor(id, filter, true),
     input
   )
 }
