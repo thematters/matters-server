@@ -8,7 +8,6 @@ import passport from 'passport'
 import { OAuthService } from 'connectors'
 import { getViewerFromReq } from 'common/utils/getViewer'
 import { environment } from 'common/environment'
-import OAuthServer from 'lib/express-oauth-server'
 import {
   OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN,
   OAUTH_ACCESS_TOKEN_EXPIRES_IN,
@@ -17,6 +16,7 @@ import {
 
 // local
 import initPassportStrategies from './strategies'
+import OAuthServer from './express-oauth-server'
 
 const oAuthRouter = Router()
 const oAuthService = new OAuthService()
