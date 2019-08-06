@@ -8,7 +8,6 @@ import passport from 'passport'
 import { OAuthService } from 'connectors'
 import { getViewerFromReq } from 'common/utils/getViewer'
 import { environment } from 'common/environment'
-import OAuthServer from 'lib/express-oauth-server'
 import {
   OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN,
   OAUTH_ACCESS_TOKEN_EXPIRES_IN,
@@ -17,6 +16,7 @@ import {
 
 // local
 import initPassportStrategies from './strategies'
+import OAuthServer from './express-oauth-server'
 
 const oAuthRouter = Router()
 const oAuthService = new OAuthService()
@@ -67,7 +67,7 @@ oAuthRouter.use(async (req, res, next) => {
 /**
  * Routes:Provider
  */
-oAuthRouter.get('/authorize', async (req, res, next) => {
+oAuthRouter.use('/authorize', async (req, res, next) => {
   const qs = querystring.stringify(req.query)
   const grantUrl = `${environment.siteDomain}/oauth/authorize?${qs}`
   const loginUrl = `${environment.siteDomain}/login?${querystring.stringify({
@@ -76,7 +76,11 @@ oAuthRouter.get('/authorize', async (req, res, next) => {
   let redirectUrl = ''
 
   if (req.app.locals.viewer.id) {
-    redirectUrl = grantUrl
+    if (req.method === 'POST') {
+      return next()
+    } else {
+      redirectUrl = grantUrl
+    }
   } else {
     redirectUrl = loginUrl
   }

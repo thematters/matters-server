@@ -13,8 +13,7 @@
       "connectors": ["connectors/"],
       "definitions": ["definitions/"],
       "mutations": ["mutations/"],
-      "queries": ["queries/"],
-      "lib": ["lib/"]
+      "queries": ["queries/"]
     },
     "pretty": true,
     "lib": [

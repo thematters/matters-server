@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2019-08-06
+
+### Added
+
+- PoC of OAuth login with LikeCoin #387 #394
+
+### Changed
+
+- Alter API for profile #398
+- Fix notice issues #399 #403
+- Update user search #400
+- Update fuzziness to AUTO as suggested in documentation #402
+- Add multiple redirectUris support for OAuth Server #407
+
 ## [1.7.0] - 2019-07-29
 
 ### Changed

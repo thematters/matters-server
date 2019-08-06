@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Matters Server",
   "main": "build/index.js",
   "engines": {
@@ -154,8 +154,7 @@
     "definitions": "./build/definitions",
     "mutations": "./build/mutations",
     "queries": "./build/queries",
-    "types": "./build/types",
-    "lib": "./build/lib"
+    "types": "./build/types"
   },
   "prettier": {
     "singleQuote": true,
