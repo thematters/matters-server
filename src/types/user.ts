@@ -67,6 +67,9 @@ export default /* GraphQL */ `
     "Display name on user profile, can be duplicated."
     displayName: String
 
+    "LikerID of LikeCoin"
+    likerId: String @private
+
     "URL for user avatar."
     avatar: URL
 
@@ -194,6 +197,9 @@ export default /* GraphQL */ `
 
     "Number of total written words."
     totalWordCount: Int!
+
+    "Cover of profile page."
+    profileCover: URL
   }
 
   type UserSettings {
@@ -447,6 +453,7 @@ export default /* GraphQL */ `
     description: String
     language: UserLanguage
     agreeOn: Boolean
+    profileCover: ID
   }
 
   input UpdateUserStateInput {

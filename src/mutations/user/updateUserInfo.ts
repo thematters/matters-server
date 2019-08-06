@@ -35,6 +35,21 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     updateParams.avatar = asset.id
   }
 
+  // check profile cover
+  if (input.profileCover) {
+    const asset = await systemService.findAssetByUUID(input.profileCover)
+    if (
+      !asset ||
+      asset.type !== 'profileCover' ||
+      asset.authorId !== viewer.id
+    ) {
+      throw new AssetNotFoundError('profile cover asset does not exists')
+    }
+    updateParams.profileCover = asset.id
+  } else if (input.profileCover === null) {
+    updateParams.profileCover = null
+  }
+
   // check user name is editable
   if (input.userName) {
     const isUserNameEditable = await userService.isUserNameEditable(viewer.id)

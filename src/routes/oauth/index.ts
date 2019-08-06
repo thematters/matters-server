@@ -2,6 +2,7 @@
 import querystring from 'querystring'
 import { Router } from 'express'
 import bodyParser from 'body-parser'
+import passport from 'passport'
 
 // internal
 import { OAuthService } from 'connectors'
@@ -14,6 +15,7 @@ import {
 } from 'common/enums'
 
 // local
+import initPassportStrategies from './strategies'
 import OAuthServer from './express-oauth-server'
 
 const oAuthRouter = Router()
@@ -50,17 +52,22 @@ const oAuthServer = new OAuthServer({
   refreshTokenLifetime: OAUTH_REFRESH_TOKEN_EXPIRES_IN / 1000
 })
 
-// Middlewares
-oAuthRouter.use('/', bodyParser.json())
-oAuthRouter.use('/', bodyParser.urlencoded({ extended: false }))
-oAuthRouter.use('/', async (req, res, next) => {
+/**
+ * Routes
+ */
+oAuthRouter.use(passport.initialize())
+oAuthRouter.use(bodyParser.json())
+oAuthRouter.use(bodyParser.urlencoded({ extended: false }))
+oAuthRouter.use(async (req, res, next) => {
   const viewer = await getViewerFromReq({ req, res })
   req.app.locals.viewer = viewer
   next()
 })
 
-// Routes
-oAuthRouter.get('/authorize', async (req, res, next) => {
+/**
+ * Routes:Provider
+ */
+oAuthRouter.use('/authorize', async (req, res, next) => {
   const qs = querystring.stringify(req.query)
   const grantUrl = `${environment.siteDomain}/oauth/authorize?${qs}`
   const loginUrl = `${environment.siteDomain}/login?${querystring.stringify({
@@ -69,10 +76,12 @@ oAuthRouter.get('/authorize', async (req, res, next) => {
   let redirectUrl = ''
 
   if (req.app.locals.viewer.id) {
-    // grant
-    redirectUrl = grantUrl
+    if (req.method === 'POST') {
+      return next()
+    } else {
+      redirectUrl = grantUrl
+    }
   } else {
-    // login then grant
     redirectUrl = loginUrl
   }
 
@@ -80,5 +89,48 @@ oAuthRouter.get('/authorize', async (req, res, next) => {
 })
 oAuthRouter.post('/authorize', oAuthServer.authorize())
 oAuthRouter.use('/access_token', oAuthServer.token())
+
+/**
+ * Routes:Receiver
+ */
+initPassportStrategies()
+
+oAuthRouter.use('/:provider', (req, res, next) => {
+  const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
+  const qs = querystring.stringify({
+    target: fullUrl
+  })
+  const loginUrl = `${environment.siteDomain}/login?${qs}`
+  let redirectUrl = ''
+
+  if (!req.app.locals.viewer.id) {
+    redirectUrl = loginUrl
+    return res.redirect(redirectUrl)
+  }
+
+  next()
+})
+oAuthRouter.get('/:provider', (req, res, next) => {
+  passport.authenticate(req.params.provider)(req, res, next)
+})
+oAuthRouter.get('/:provider/callback', (req, res, next) => {
+  const provider = req.params.provider
+
+  passport.authenticate(provider, (err, user, info) => {
+    if (err) {
+      return next(err)
+    }
+
+    const qs = querystring.stringify(info)
+    const successRedirect = `${environment.siteDomain}/oauth/${provider}/success`
+    const failureRedirect = `${environment.siteDomain}/oauth/${provider}/failure?${qs}`
+
+    if (!user) {
+      return res.redirect(failureRedirect)
+    }
+
+    res.redirect(successRedirect)
+  })(req, res, next)
+})
 
 export const oauth = oAuthRouter

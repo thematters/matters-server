@@ -1,10 +1,11 @@
 {
   "name": "matters-server",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Matters Server",
   "main": "build/index.js",
   "engines": {
-    "node": ">=10.14"
+    "node": ">=10.15",
+    "npm": ">=6.5.0"
   },
   "scripts": {
     "db:rollback": "knex-migrate rollback",
@@ -81,6 +82,8 @@
     "newrelic": "^5.10.0",
     "oauth2-server": "^3.0.1",
     "objection": "^1.6.9",
+    "passport": "^0.4.0",
+    "passport-oauth2": "^1.5.0",
     "pg": "^7.11.0",
     "psl": "^1.2.0",
     "request-ip": "^2.1.3",
@@ -115,6 +118,8 @@
     "@types/lodash": "^4.14.136",
     "@types/newrelic": "^4.11.0",
     "@types/oauth2-server": "^3.0.10",
+    "@types/passport": "^1.0.0",
+    "@types/passport-oauth2": "^1.4.8",
     "@types/psl": "^1.1.0",
     "@types/request-ip": "0.0.34",
     "@types/sharp": "^0.22.2",

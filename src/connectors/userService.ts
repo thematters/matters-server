@@ -268,11 +268,18 @@ export class UserService extends BaseService {
       .size(first)
       .build() as { [key: string]: any }
 
+    body.query = {
+      match: {
+        displayName: key
+      }
+    }
+
     body.suggest = {
       userName: {
         prefix: key,
         completion: {
-          field: 'userName'
+          field: 'userName',
+          size: first
         }
       },
       displayName: {
@@ -281,7 +288,8 @@ export class UserService extends BaseService {
           field: 'displayName',
           fuzzy: {
             fuzziness: 0
-          }
+          },
+          size: first
         }
       }
     }
@@ -293,9 +301,12 @@ export class UserService extends BaseService {
         body
       })
 
-      const { suggest } = result as (typeof result) & {
+      const { hits, suggest } = result as (typeof result) & {
+        hits: { hits: any[] }
         suggest: { userName: any[]; displayName: any[] }
       }
+
+      let matchIds = hits.hits.map(({ _id }: { _id: any }) => _id)
 
       let userNameIds = suggest.userName[0].options.map(
         ({ _id }: { _id: any }) => _id
@@ -305,7 +316,7 @@ export class UserService extends BaseService {
       )
 
       // merge two ID arrays and remove duplicates
-      let ids = [...new Set([...displayNameIds, ...userNameIds])]
+      let ids = [...new Set([...matchIds, ...displayNameIds, ...userNameIds])]
       const nodes = await this.baseFindByIds(ids)
       return { nodes, totalCount: nodes.length }
     } catch (err) {
@@ -738,5 +749,55 @@ export class UserService extends BaseService {
       { updatedAt: new Date(), ...data },
       'verification_code'
     )
+  }
+
+  /*********************************
+   *                               *
+   *         OAuth:LikeCoin        *
+   *                               *
+   *********************************/
+  saveLiker = async ({
+    userId,
+    likerId,
+    accountType,
+    accessToken,
+    refreshToken,
+    expires,
+    scope
+  }: {
+    userId: string
+    likerId: string
+    accountType: 'temporal' | 'general'
+    accessToken: string
+    refreshToken?: string
+    expires?: number
+    scope?: string
+  }) => {
+    let user = await this.dataloader.load(userId)
+    await this.knex
+      .select()
+      .from('user_oauth_likecoin')
+      .where({ likerId: user.likerId })
+      .del()
+    user = await this.baseUpdate(userId, {
+      updatedAt: new Date(),
+      likerId
+    })
+
+    await this.baseUpdateOrCreate({
+      where: { likerId },
+      data: {
+        updatedAt: new Date(),
+        likerId,
+        accountType,
+        accessToken,
+        refreshToken,
+        expires,
+        scope
+      },
+      table: 'user_oauth_likecoin'
+    })
+
+    return user
   }
 }

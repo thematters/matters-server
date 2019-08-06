@@ -45,7 +45,7 @@ export class OAuthService extends BaseService {
 
     return {
       id: dbClient.id,
-      redirectUris: [dbClient.redirectUri],
+      redirectUris: dbClient.redirectUri.split(' '),
       grants: dbClient.grantTypes.split(' ')
       // accessTokenLifetime: , // Client-specific lifetime
       // refreshTokenLifetime: , // Client-specific lifetime

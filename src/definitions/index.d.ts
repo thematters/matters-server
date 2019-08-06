@@ -108,6 +108,7 @@ export type TableName =
   | 'oauth_access_token'
   | 'oauth_authorization_code'
   | 'oauth_refresh_token'
+  | 'user_oauth_likecoin'
 
 export type MaterializedView =
   | 'article_count_materialized'

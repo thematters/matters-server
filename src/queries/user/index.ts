@@ -26,6 +26,7 @@ import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
 import Recommendation from './recommendation'
 import { MAT, Transaction } from './transaction'
 import { boost, score } from './oss'
+import profileCover from './profileCover'
 
 export default {
   Query: {
@@ -56,7 +57,8 @@ export default {
     badges,
     userNameEditable,
     email: ({ email }: { email: string }) => email && email.replace(/#/g, '@'),
-    totalWordCount
+    totalWordCount,
+    profileCover
   },
   UserSettings: {
     language: (

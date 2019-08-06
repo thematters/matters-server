@@ -329,6 +329,7 @@ enum AssetType {
   feedback
   embed
   embedaudio
+  profileCover
 }
 
 type Audiodraft {
@@ -1535,6 +1536,7 @@ input UpdateUserInfoInput {
   description: String
   language: UserLanguage
   agreeOn: Boolean
+  profileCover: ID
 }
 
 input UpdateUserStateInput {
@@ -1567,6 +1569,9 @@ type User implements Node {
 
   """Display name on user profile, can be duplicated."""
   displayName: String
+
+  """LikerID of LikeCoin"""
+  likerId: String
 
   """URL for user avatar."""
   avatar: URL
@@ -1677,6 +1682,9 @@ type UserInfo {
 
   """Number of total written words."""
   totalWordCount: Int!
+
+  """Cover of profile page."""
+  profileCover: URL
 }
 
 enum UserInfoFields {

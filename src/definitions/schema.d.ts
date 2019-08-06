@@ -278,6 +278,11 @@ export interface GQLUser extends GQLNode {
   displayName?: string
 
   /**
+   * LikerID of LikeCoin
+   */
+  likerId?: string
+
+  /**
    * URL for user avatar.
    */
   avatar?: GQLURL
@@ -430,6 +435,11 @@ export interface GQLUserInfo {
    * Number of total written words.
    */
   totalWordCount: number
+
+  /**
+   * Cover of profile page.
+   */
+  profileCover?: GQLURL
 }
 
 export type GQLEmail = any
@@ -791,7 +801,8 @@ export enum GQLAssetType {
   report = 'report',
   feedback = 'feedback',
   embed = 'embed',
-  embedaudio = 'embedaudio'
+  embedaudio = 'embedaudio',
+  profileCover = 'profileCover'
 }
 
 export interface GQLAudiodraftConnection extends GQLConnection {
@@ -1978,6 +1989,7 @@ export interface GQLUpdateUserInfoInput {
   description?: string
   language?: GQLUserLanguage
   agreeOn?: boolean
+  profileCover?: string
 }
 
 export interface GQLUpdateNotificationSettingInput {
@@ -3136,6 +3148,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   uuid?: UserToUuidResolver<TParent>
   userName?: UserToUserNameResolver<TParent>
   displayName?: UserToDisplayNameResolver<TParent>
+  likerId?: UserToLikerIdResolver<TParent>
   avatar?: UserToAvatarResolver<TParent>
   info?: UserToInfoResolver<TParent>
   settings?: UserToSettingsResolver<TParent>
@@ -3184,6 +3197,15 @@ export interface UserToUserNameResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToDisplayNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToLikerIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -3392,6 +3414,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   badges?: UserInfoToBadgesResolver<TParent>
   agreeOn?: UserInfoToAgreeOnResolver<TParent>
   totalWordCount?: UserInfoToTotalWordCountResolver<TParent>
+  profileCover?: UserInfoToProfileCoverResolver<TParent>
 }
 
 export interface UserInfoToCreatedAtResolver<TParent = any, TResult = any> {
@@ -3509,6 +3532,15 @@ export interface UserInfoToTotalWordCountResolver<
   TParent = any,
   TResult = any
 > {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToProfileCoverResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

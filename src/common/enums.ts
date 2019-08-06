@@ -378,4 +378,9 @@ export const CORS_OPTIONS = {
 
 export const OAUTH_VALID_SCOPES: string[] = []
 
+export const OAUTH_CALLBACK_ERROR_CODE = {
+  userNotFound: 1,
+  likerNotFound: 2
+}
+
 export const BLOCK_USERS = ['jQwZ2JnYzg3MmdAZw']
