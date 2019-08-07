@@ -257,7 +257,9 @@ export class ArticleService extends BaseService {
     }
 
     const result = await query
-    return parseInt(result ? (result.sum as string) : '0', 10)
+    return (
+      parseInt(result && result.sum ? (result.sum as string) : '0', 10) || 0
+    )
   }
 
   /*********************************

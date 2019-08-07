@@ -1,8 +1,6 @@
 import { MutationToUserRegisterResolver } from 'definitions'
 import { random } from 'lodash'
 import {
-  UserInputError,
-  ForbiddenError,
   EmailExistsError,
   EmailInvalidError,
   CodeInvalidError,
@@ -84,18 +82,6 @@ const resolver: MutationToUserRegisterResolver = async (
     codeId: code.id,
     status: 'used'
   })
-
-  // send email
-  const registeredUser = await userService.findByEmail(email)
-  if (registeredUser.state === USER_STATE.onboarding) {
-    notificationService.mail.sendRegisterSuccess({
-      to: email,
-      recipient: {
-        displayName
-      },
-      language: viewer.language
-    })
-  }
 
   const { token } = await userService.login({ ...input, email })
 
