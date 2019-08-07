@@ -45,8 +45,8 @@ export class OAuthService extends BaseService {
 
     return {
       id: dbClient.id,
-      redirectUris: dbClient.redirectUri.split(' '),
-      grants: dbClient.grantTypes.split(' ')
+      redirectUris: dbClient.redirectUri,
+      grants: dbClient.grantTypes
       // accessTokenLifetime: , // Client-specific lifetime
       // refreshTokenLifetime: , // Client-specific lifetime
     }
@@ -110,8 +110,7 @@ export class OAuthService extends BaseService {
     client: OAuthClient,
     user: User
   ): Promise<OAuthToken> => {
-    const scope =
-      token.scope instanceof Array ? token.scope.join(' ') : token.scope
+    const scope = token.scope instanceof Array ? token.scope : [token.scope]
 
     const accessToken = await this.baseCreate(
       {
