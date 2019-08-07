@@ -15,29 +15,6 @@ import { clearCookie } from './cookie'
 
 const userService = new UserService()
 
-const activeIfOnboarding = async (user: {
-  id: string
-  state: string
-  [key: string]: any
-}) => {
-  let activatedUser = user
-  try {
-    if (user.state === USER_STATE.onboarding) {
-      activatedUser = await userService.activate({ id: user.id })
-
-      // notice user
-      const notificationService = new NotificationService()
-      notificationService.trigger({
-        event: 'user_activated',
-        recipientId: user.id
-      })
-    }
-  } catch (err) {
-    logger.error(`Fail to activate user, ${err}`)
-  }
-  return activatedUser
-}
-
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 
 export const getViewerFromUser = (user: any) => {
@@ -83,9 +60,6 @@ export const getViewerFromReq = async ({
         uuid: string
       }
       let userDB = await userService.baseFindByUUID(decoded.uuid)
-
-      // activate onboarding users
-      userDB = await activeIfOnboarding(userDB)
 
       // overwrite request by user settings
       user = { ...user, ...userDB }

@@ -9,8 +9,8 @@ exports.seed = function(knex, Promise) {
           user_id: 1,
           client_id: 'test-client-id',
           client_secret: 'test-client-secret',
-          redirect_uri: 'https://matters.news',
-          grant_types: 'authorization_code refresh_token'
+          redirect_uri: ['https://matters.news'],
+          grant_types: ['authorization_code', 'refresh_token']
         }
       ])
     })
