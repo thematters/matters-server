@@ -175,6 +175,7 @@ export class ArticleService extends BaseService {
 
     return await this.baseUpdate(id, {
       state: ARTICLE_STATE.archived,
+      sticky: false,
       updatedAt: new Date()
     })
   }
