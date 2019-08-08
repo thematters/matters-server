@@ -183,6 +183,11 @@ export interface GQLArticle extends GQLNode {
   subscribed: boolean
 
   /**
+   * This value determines if this article is an author selected article or not.
+   */
+  sticky: boolean
+
+  /**
    * OSS
    */
   oss: GQLArticleOSS
@@ -1529,6 +1534,11 @@ export interface GQLMutation {
   setCollection: GQLArticle
 
   /**
+   * Update article information.
+   */
+  updateArticleInfo: GQLArticle
+
+  /**
    * OSS
    */
   toggleArticleLive: GQLArticle
@@ -1732,6 +1742,11 @@ export interface GQLRecallPublishInput {
 export interface GQLSetCollectionInput {
   id: string
   collection: Array<string>
+}
+
+export interface GQLUpdateArticleInfoInput {
+  id: string
+  sticky?: boolean
 }
 
 export interface GQLToggleArticleLiveInput {
@@ -2746,6 +2761,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   appreciateLeft?: ArticleToAppreciateLeftResolver<TParent>
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>
   subscribed?: ArticleToSubscribedResolver<TParent>
+  sticky?: ArticleToStickyResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
@@ -3037,6 +3053,15 @@ export interface ArticleToHasAppreciateResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToStickyResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6467,6 +6492,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   readArticle?: MutationToReadArticleResolver<TParent>
   recallPublish?: MutationToRecallPublishResolver<TParent>
   setCollection?: MutationToSetCollectionResolver<TParent>
+  updateArticleInfo?: MutationToUpdateArticleInfoResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
@@ -6631,6 +6657,21 @@ export interface MutationToSetCollectionResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToSetCollectionArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateArticleInfoArgs {
+  input: GQLUpdateArticleInfoInput
+}
+export interface MutationToUpdateArticleInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateArticleInfoArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

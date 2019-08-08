@@ -103,6 +103,11 @@ type Article implements Node {
   """This value determines if current Viewer has subscribed of not."""
   subscribed: Boolean!
 
+  """
+  This value determines if this article is an author selected article or not.
+  """
+  sticky: Boolean!
+
   """OSS"""
   oss: ArticleOSS!
   remark: String
@@ -800,6 +805,9 @@ type Mutation {
 
   """Set collection of an article."""
   setCollection(input: SetCollectionInput!): Article!
+
+  """Update article information."""
+  updateArticleInfo(input: UpdateArticleInfoInput!): Article!
 
   """OSS"""
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
@@ -1505,6 +1513,11 @@ input UnsubscribeArticleInput {
 
 input UnvoteCommentInput {
   id: ID!
+}
+
+input UpdateArticleInfoInput {
+  id: ID!
+  sticky: Boolean
 }
 
 input UpdateArticleStateInput {

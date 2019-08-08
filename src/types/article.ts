@@ -31,6 +31,9 @@ export default /* GraphQL */ `
     "Set collection of an article."
     setCollection(input: SetCollectionInput!): Article! @authenticate
 
+    "Update article information."
+    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @authenticate
+
     # OSS
     toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authorize
     toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @authorize
@@ -131,6 +134,9 @@ export default /* GraphQL */ `
 
     "This value determines if current Viewer has subscribed of not."
     subscribed: Boolean!
+
+    "This value determines if this article is an author selected article or not."
+    sticky: Boolean!
 
     # OSS
     oss: ArticleOSS!
@@ -248,6 +254,11 @@ export default /* GraphQL */ `
   input SetCollectionInput {
     id: ID!
     collection: [ID!]!
+  }
+
+  input UpdateArticleInfoInput {
+    id: ID!
+    sticky: Boolean
   }
 
   input ToggleArticleLiveInput {

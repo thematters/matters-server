@@ -15,6 +15,7 @@ import renameTag from './renameTag'
 import mergeTags from './mergeTags'
 import updateMattersToday from './updateMattersToday'
 import setCollection from './setCollection'
+import updateArticleInfo from './updateArticleInfo'
 
 export default {
   Mutation: {
@@ -34,6 +35,7 @@ export default {
     renameTag,
     mergeTags,
     updateMattersToday,
-    setCollection
+    setCollection,
+    updateArticleInfo
   }
 }
