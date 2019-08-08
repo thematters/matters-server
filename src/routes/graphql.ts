@@ -8,6 +8,7 @@ import express, { Express } from 'express'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
 import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
+import { RedisCache } from 'apollo-server-cache-redis'
 
 // internal
 import logger from 'common/logger'
@@ -90,7 +91,13 @@ const server = new ProtectedApolloServer({
     Sentry.captureException(error)
     return error
   },
-  validationRules: [depthLimit(15)]
+  validationRules: [depthLimit(15)],
+  persistedQueries: {
+    cache: new RedisCache({
+      host: environment.cacheHost,
+      port: environment.cachePort
+    })
+  }
 })
 
 export const graphql = (app: Express) => {

@@ -41,6 +41,7 @@
     "@okgrow/graphql-scalars": "^0.4.5",
     "@sendgrid/mail": "^6.4.0",
     "@sentry/node": "^5.5.0",
+    "apollo-server-cache-redis": "^1.1.1",
     "apollo-server-express": "^2.7.0",
     "aws-sdk": "^2.494.0",
     "axios": "^0.19.0",

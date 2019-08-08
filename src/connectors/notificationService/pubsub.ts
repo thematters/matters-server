@@ -9,8 +9,8 @@ class PubSub {
   constructor() {
     this.engine = new RedisPubSub({
       connection: {
-        host: environment.pubSubHost as string,
-        port: environment.pubSubPort as number,
+        host: environment.pubSubHost,
+        port: environment.pubSubPort,
         retryStrategy: (times: number) => {
           // reconnect after
           return Math.max(times * 100, 3000)
