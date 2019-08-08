@@ -91,7 +91,7 @@ export class IPFS {
         path: `${prefix}/index.html`,
         content: Buffer.from($.html())
       },
-      ...(uniqBy(assets.filter(asset => asset), 'path'))
+      ...uniqBy(assets.filter(asset => asset), 'path')
     ]
     const result = await this.client.add(htmlBundle, { pin: true })
 
