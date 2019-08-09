@@ -106,7 +106,8 @@ export class AWSService {
       })
     }
 
-    const extension = mime.extension(mimetype) || upload.filename.split('.').pop()
+    const extension =
+      mime.extension(mimetype) || upload.filename.split('.').pop()
     const filename = this.generateFileName()
     const key = `${folder}/${uuid}/${filename}.${extension}`
     const result = await this.s3
