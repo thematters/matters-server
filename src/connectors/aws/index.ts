@@ -19,7 +19,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
-import { randomString } from 'common/utils'
+import { randomString } from 'common/utils/randomString'
 
 export class AWSService {
   s3: AWS.S3
