@@ -14,7 +14,7 @@ const getFileName = (disposition: string, url: string) => {
     }
   }
 
-   if (url) {
+  if (url) {
     const fragment = url.split('/').pop()
     if (fragment) {
       return fragment.split('?')[0]
