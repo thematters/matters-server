@@ -6,6 +6,7 @@ import imageminJpegtran from 'imagemin-jpegtran'
 import imageminPngquant from 'imagemin-pngquant'
 import imageminSvgo from 'imagemin-svgo'
 import sizeOf from 'image-size'
+import mime from 'mime-types'
 import { v4 } from 'uuid'
 import slugify from '@matters/slugify'
 import sharp from 'sharp'
@@ -18,6 +19,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
+import { randomString } from 'common/utils'
 
 export class AWSService {
   s3: AWS.S3
@@ -105,8 +107,8 @@ export class AWSService {
       })
     }
 
-    const extension = upload.filename.split('.').pop()
-    const filename = slugify(upload.filename.replace(`.${extension}`, ''))
+    const extension = mime.extension(mimetype) || upload.filename.split('.').pop()
+    const filename = `asset-${randomString(4)}`
     const key = `${folder}/${uuid}/${filename}.${extension}`
     const result = await this.s3
       .upload({
