@@ -43,6 +43,7 @@
     "@sentry/node": "^5.5.0",
     "apollo-server-cache-redis": "^1.1.1",
     "apollo-server-express": "^2.7.0",
+    "apollo-server-plugin-response-cache": "^0.3.1",
     "aws-sdk": "^2.494.0",
     "axios": "^0.19.0",
     "bcrypt": "^3.0.6",

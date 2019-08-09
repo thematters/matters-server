@@ -9,6 +9,7 @@ import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
 import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
 import { RedisCache } from 'apollo-server-cache-redis'
+import responseCachePlugin from 'apollo-server-plugin-response-cache'
 
 // internal
 import logger from 'common/logger'
@@ -65,6 +66,10 @@ class ProtectedApolloServer extends ApolloServer {
   }
 }
 
+const redisCache = new RedisCache({
+  host: environment.cacheHost,
+  port: environment.cachePort
+})
 const server = new ProtectedApolloServer({
   schema,
   context: makeContext,
@@ -92,12 +97,14 @@ const server = new ProtectedApolloServer({
     return error
   },
   validationRules: [depthLimit(15)],
+  cache: redisCache,
   persistedQueries: {
-    cache: new RedisCache({
-      host: environment.cacheHost,
-      port: environment.cachePort
-    })
-  }
+    cache: redisCache
+  },
+  // cacheControl: {
+  //   defaultMaxAge: 60
+  // },
+  plugins: [responseCachePlugin()]
 })
 
 export const graphql = (app: Express) => {
