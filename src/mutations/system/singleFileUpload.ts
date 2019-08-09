@@ -6,6 +6,22 @@ import { fromGlobalId } from 'common/utils'
 import axios from 'axios'
 import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
 
+const getFileName = (disposition: string, url: string) => {
+  if (disposition) {
+    const match = disposition.match(/filename="(.*)"/) || []
+    if (match.length >= 2) {
+      return decodeURI(match[1])
+    }
+  }
+
+   if (url) {
+    const fragment = url.split('/').pop()
+    if (fragment) {
+      return fragment.split('?')[0]
+    }
+  }
+}
+
 const resolver: MutationToSingleFileUploadResolver = async (
   root,
   { input: { type, file, url, entityType, entityId } },
@@ -45,12 +61,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
         maxContentLength: UPLOAD_FILE_SIZE_LIMIT
       })
       const disposition = res.headers['content-disposition']
-      const filename =
-        (disposition && decodeURI(disposition.match(/filename="(.*)"/)[1])) ||
-        url
-          .split('/')
-          .pop()
-          .split('?')[0]
+      const filename = getFileName(disposition, url)
 
       upload = {
         createReadStream: () => res.data,
