@@ -123,8 +123,8 @@ const resolver: MutationToPutCommentResolver = async (
     newComment = await commentService.create(data)
 
     // notify article's author
-    // note: only trigger `comment_new_reply` if the article author's comment was replied
-    if (!parentComment || article.authorId !== parentComment.authorId) {
+    // note: skip trigger `article_new_comment` if the article author's comment was replied
+    if (!replyToComment || article.authorId !== replyToComment.authorId) {
       notificationService.trigger({
         event: 'article_new_comment',
         actorId: viewer.id,

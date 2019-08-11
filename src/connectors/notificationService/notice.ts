@@ -134,8 +134,7 @@ class Notice extends BaseService {
   process = async (
     params: PutNoticeParams
   ): Promise<{ created: boolean; bundled: boolean }> => {
-    const duplicates = await this.findDuplicates(params)
-    const bundleables = duplicates.filter(notice => notice.unread)
+    const bundleables = await this.findBundleables(params)
 
     // bundle
     if (bundleables[0] && params.actorId) {
@@ -152,10 +151,10 @@ class Notice extends BaseService {
   }
 
   /**
-   * Find duplicate notices
+   * Find bundleable notices
    *
    */
-  findDuplicates = async ({
+  findBundleables = async ({
     type,
     recipientId,
     entities,
@@ -167,6 +166,7 @@ class Notice extends BaseService {
         [
           {
             noticeType: type,
+            unread: true,
             deleted: false,
             recipientId,
             message
@@ -174,11 +174,11 @@ class Notice extends BaseService {
         ]
       ]
     })
-    const duplicates: NoticeDetail[] = []
+    const bundleables: NoticeDetail[] = []
 
     // no notices have same details
     if (!notices || notices.length <= 0) {
-      return duplicates
+      return bundleables
     }
 
     await Promise.all(
@@ -198,7 +198,7 @@ class Notice extends BaseService {
           targetEntities && targetEntities.length > 0
         const isSourceEntitiesExists = entities && entities.length > 0
         if (!isTargetEntitiesExists || !isSourceEntitiesExists) {
-          duplicates.push(notice)
+          bundleables.push(notice)
           return
         }
         if (
@@ -221,13 +221,13 @@ class Notice extends BaseService {
           sourceEntitiesHashMap[hash] = true
         })
         if (isEqual(targetEntitiesHashMap, sourceEntitiesHashMap)) {
-          duplicates.push(notice)
+          bundleables.push(notice)
           return
         }
       })
     )
 
-    return duplicates
+    return bundleables
   }
 
   /**
