@@ -105,12 +105,11 @@ describe('user notify setting', () => {
  * Notice Service
  */
 const getBundleableUserNewFollowerNotice = async () => {
-  const duplicates = await notificationService.notice.findDuplicates({
+  const bundleables = await notificationService.notice.findBundleables({
     type: 'user_new_follower',
     actorId: '4',
     recipientId
   })
-  const bundleables = duplicates.filter(notice => notice.unread)
   return bundleables[0]
 }
 describe('find notice', () => {
@@ -135,7 +134,7 @@ describe('bundle notices', () => {
 
   test('unbundleable', async () => {
     // notice without actors
-    const duplicates = await notificationService.notice.findDuplicates({
+    const bundleables = await notificationService.notice.findBundleables({
       type: 'article_new_downstream',
       recipientId,
       entities: [
@@ -143,7 +142,7 @@ describe('bundle notices', () => {
         { type: 'downstream', entityTable: 'article', entity: { id: '3' } }
       ]
     })
-    expect(duplicates.length).toBe(0)
+    expect(bundleables.length).toBe(0)
   })
 
   test('bundle successs', async () => {
