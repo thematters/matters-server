@@ -4,6 +4,7 @@ import * as cheerio from 'cheerio'
 import ipfsClient = require('ipfs-http-client')
 import axios from 'axios'
 import { resolve as urlResolve } from 'url'
+import { uniqBy } from 'lodash'
 
 import logger from 'common/logger'
 import { environment } from 'common/environment'
@@ -90,7 +91,7 @@ export class IPFS {
         path: `${prefix}/index.html`,
         content: Buffer.from($.html())
       },
-      ...assets.filter(asset => asset)
+      ...uniqBy(assets.filter(asset => asset), 'path')
     ]
     const result = await this.client.add(htmlBundle, { pin: true })
 
