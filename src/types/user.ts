@@ -54,7 +54,7 @@ export default /* GraphQL */ `
     updateUserState(input: UpdateUserStateInput!): User! @authorize
   }
 
-  type User implements Node {
+  type User implements Node @cacheViewer(maxAge: 3600) {
     "Global id of an user."
     id: ID!
 
