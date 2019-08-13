@@ -2255,6 +2255,11 @@ export interface GQLArticlePublishedNotice extends GQLNotice {
   target?: GQLArticle
 }
 
+export enum GQLCacheScope {
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVATE'
+}
+
 export interface GQLCommentMentionedYouNotice extends GQLNotice {
   id: string
   unread: boolean

@@ -6,6 +6,8 @@ directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
 
 directive @private on FIELD_DEFINITION
 
+directive @cacheViewer(maxAge: Int = 60, scope: CacheScope = PUBLIC) on OBJECT | FIELD_DEFINITION
+
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
@@ -387,6 +389,11 @@ enum BoostTypes {
   Article
   User
   Tag
+}
+
+enum CacheScope {
+  PUBLIC
+  PRIVATE
 }
 
 type Category {
