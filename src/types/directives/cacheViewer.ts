@@ -45,7 +45,7 @@ export class CacheViewerDirective extends SchemaDirectiveVisitor {
           cacheControl.setCacheHint({ scope: CacheScope.Private })
         } else if (maxAge || scope) {
           cacheControl.setCacheHint({
-            ...(maxAge ? { maxAge }: {}),
+            ...(maxAge ? { maxAge } : {}),
             ...(scope ? { scope } : {})
           })
         }
