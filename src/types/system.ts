@@ -310,6 +310,11 @@ export default /* GraphQL */ `
     max: Int
   }
 
+  directive @cacheViewer(
+    maxAge: Int
+    scope: CacheScope
+  ) on OBJECT | FIELD | FIELD_DEFINITION
+
   directive @cost(
     multipliers: [String]
     useMultipliers: Boolean
@@ -325,9 +330,4 @@ export default /* GraphQL */ `
   directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
 
   directive @private on FIELD_DEFINITION
-
-  directive @cacheViewer(
-    maxAge: Int = 60
-    scope: CacheScope = PUBLIC
-  ) on OBJECT | FIELD_DEFINITION
 `

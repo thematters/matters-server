@@ -1,8 +1,7 @@
 import { CacheScope } from 'apollo-cache-control'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { GraphQLObjectType, defaultFieldResolver, GraphQLField } from 'graphql'
-import { ForbiddenError } from 'common/errors'
-import { Context } from 'definitions'
+import _get from 'lodash/get'
 
 type Params = {
   _maxAge?: number
@@ -36,9 +35,10 @@ export class CacheViewerDirective extends SchemaDirectiveVisitor {
       const field = fields[fieldName]
       const { resolve = defaultFieldResolver } = field
       field.resolve = async function(...args) {
-        const [{ id }, _, { viewer }, { cacheControl }] = args
+        const [root, _, { viewer }, { cacheControl }] = args
         const maxAge = field._maxAge || objectType._maxAge
         const scope = field._scope || objectType._scope
+        const id = _get(root, 'id')
 
         // Set cache
         if (id && viewer && id === viewer.id) {

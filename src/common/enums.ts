@@ -9,6 +9,13 @@ export const MATERIALIZED_VIEW = {
   articleActivityMaterialized: 'article_activity_materialized'
 }
 
+export const CACHE_TTL = {
+  LONG: 60 * 60,
+  MEDIUM: 60,
+  SHORT: 10,
+  INSTANT: 0
+}
+
 export const USER_ROLE = {
   admin: 'admin',
   user: 'user',

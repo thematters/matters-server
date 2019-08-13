@@ -1,6 +1,8 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Query {
-    viewer: User
+    viewer: User @cacheViewer(maxAge: ${CACHE_TTL.LONG})
     user(input: UserInput!): User
   }
 
@@ -54,7 +56,7 @@ export default /* GraphQL */ `
     updateUserState(input: UpdateUserStateInput!): User! @authorize
   }
 
-  type User implements Node @cacheViewer(maxAge: 3600) {
+  type User implements Node @cacheViewer(maxAge: ${CACHE_TTL.LONG}) {
     "Global id of an user."
     id: ID!
 
@@ -204,7 +206,7 @@ export default /* GraphQL */ `
 
   type UserSettings {
     "User language setting."
-    language: UserLanguage!
+    language: UserLanguage! @cacheViewer(maxAge: ${CACHE_TTL.INSTANT})
     # Thrid party accounts binded for the user
     # oauthType: [OAuthType!]
     # Notification settings
@@ -298,7 +300,7 @@ export default /* GraphQL */ `
     node: Invitation!
   }
 
-  type UserOSS {
+  type UserOSS @cacheViewer(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
   }
