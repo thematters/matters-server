@@ -300,6 +300,11 @@ export default /* GraphQL */ `
     admin
   }
 
+  enum CacheScope {
+    PUBLIC
+    PRIVATE
+  }
+
   input CostComplexity {
     min: Int = 1
     max: Int
@@ -320,4 +325,9 @@ export default /* GraphQL */ `
   directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
 
   directive @private on FIELD_DEFINITION
+
+  directive @cacheViewer(
+    maxAge: Int = 60
+    scope: CacheScope = PUBLIC
+  ) on OBJECT | FIELD_DEFINITION
 `
