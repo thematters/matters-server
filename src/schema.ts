@@ -9,8 +9,7 @@ import subscriptions from './subscriptions'
 import {
   DeprecatedDirective,
   PrivateDirective,
-  authDirectiveFactory,
-  CacheViewerDirective
+  authDirectiveFactory
 } from './types/directives'
 
 const schema = makeExecutableSchema({
@@ -19,8 +18,7 @@ const schema = makeExecutableSchema({
     deprecated: DeprecatedDirective,
     authenticate: authDirectiveFactory(AuthenticationError),
     authorize: authDirectiveFactory(ForbiddenError),
-    private: PrivateDirective,
-    cacheViewer: CacheViewerDirective
+    private: PrivateDirective
   },
   resolvers: merge(queries, mutations, subscriptions)
 })

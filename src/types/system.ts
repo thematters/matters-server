@@ -1,3 +1,5 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node
@@ -52,7 +54,7 @@ export default /* GraphQL */ `
     placements: Placements!
   }
 
-  type OSS {
+  type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     users(input: ConnectionArgs!): UserConnection!
     articles(input: ArticlesInput!): ArticleConnection!
     tags(input: TagsInput!): TagConnection!
@@ -310,7 +312,7 @@ export default /* GraphQL */ `
     max: Int
   }
 
-  directive @cacheViewer(
+  directive @cacheControl(
     maxAge: Int
     scope: CacheScope
   ) on OBJECT | FIELD | FIELD_DEFINITION

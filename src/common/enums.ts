@@ -10,9 +10,7 @@ export const MATERIALIZED_VIEW = {
 }
 
 export const CACHE_TTL = {
-  LONG: 60 * 60,
-  MEDIUM: 60,
-  SHORT: 10,
+  DEFAULT: 60,
   INSTANT: 0
 }
 

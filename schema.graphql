@@ -1,4 +1,4 @@
-directive @cacheViewer(maxAge: Int, scope: CacheScope) on OBJECT | FIELD | FIELD_DEFINITION
+directive @cacheControl(maxAge: Int, scope: CacheScope) on OBJECT | FIELD | FIELD_DEFINITION
 
 directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
 
