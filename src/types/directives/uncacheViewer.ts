@@ -10,7 +10,6 @@ export class UncacheViewerDirective extends SchemaDirectiveVisitor {
     field.resolve = async function(...args) {
       const [root, _, { viewer }, { cacheControl }] = args
 
-      console.log(viewer)
       if (viewer.id || viewer.hasRole('admin')) {
         cacheControl.setCacheHint({
           maxAge: CACHE_TTL.INSTANT,
