@@ -438,6 +438,7 @@ export interface GQLUserInfo {
 
   /**
    * Number of total written words.
+   * @deprecated Use `User.status.totalWordCount`.
    */
   totalWordCount: number
 
@@ -894,7 +895,6 @@ export interface GQLUserStatus {
 
   /**
    * Number of articles published by user
-   * @deprecated Use `User.articles.totalCount`.
    */
   articleCount: number
 
@@ -946,6 +946,11 @@ export interface GQLUserStatus {
    * Whether user has read response info or not.
    */
   unreadResponseInfoPopUp: boolean
+
+  /**
+   * Number of total written words.
+   */
+  totalWordCount: number
 }
 
 export enum GQLUserState {
@@ -4839,6 +4844,7 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
   unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
   unreadResponseInfoPopUp?: UserStatusToUnreadResponseInfoPopUpResolver<TParent>
+  totalWordCount?: UserStatusToTotalWordCountResolver<TParent>
 }
 
 export interface UserStatusToStateResolver<TParent = any, TResult = any> {
@@ -4980,6 +4986,18 @@ export interface UserStatusToUnreadFolloweeArticlesResolver<
 }
 
 export interface UserStatusToUnreadResponseInfoPopUpResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToTotalWordCountResolver<
   TParent = any,
   TResult = any
 > {

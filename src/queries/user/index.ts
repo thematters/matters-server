@@ -89,7 +89,8 @@ export default {
     subscriptionCount,
     unreadNoticeCount,
     unreadFolloweeArticles,
-    unreadResponseInfoPopUp
+    unreadResponseInfoPopUp,
+    totalWordCount
   },
   UserOSS: {
     boost,

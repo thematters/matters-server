@@ -197,6 +197,7 @@ export default /* GraphQL */ `
 
     "Number of total written words."
     totalWordCount: Int!
+      @deprecated(reason: "Use \`User.status.totalWordCount\`.")
 
     "Cover of profile page."
     profileCover: URL
@@ -234,7 +235,7 @@ export default /* GraphQL */ `
     invitation: InvitationStatus @deprecated(reason: "removed")
 
     "Number of articles published by user"
-    articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
+    articleCount: Int!
 
     "Number of views on user articles. Not yet in use."
     viewCount: Int! @private
@@ -265,6 +266,9 @@ export default /* GraphQL */ `
 
     "Whether user has read response info or not."
     unreadResponseInfoPopUp: Boolean!
+
+    "Number of total written words."
+    totalWordCount: Int!
   }
 
   ## TODO: remove in OSS
