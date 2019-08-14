@@ -9,8 +9,8 @@ export const sharedQueueOpts = {
   // Reusing Redis Connections
   createClient() {
     return new Redis({
-      host: environment.queueHost as string,
-      port: environment.queuePort as number
+      host: environment.queueHost,
+      port: environment.queuePort
     })
   }
 }
