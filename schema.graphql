@@ -1701,7 +1701,7 @@ type UserInfo {
   agreeOn: DateTime
 
   """Number of total written words."""
-  totalWordCount: Int!
+  totalWordCount: Int! @deprecated(reason: "Use `User.status.totalWordCount`.")
 
   """Cover of profile page."""
   profileCover: URL
@@ -1795,7 +1795,7 @@ type UserStatus {
   invitation: InvitationStatus @deprecated(reason: "removed")
 
   """Number of articles published by user"""
-  articleCount: Int! @deprecated(reason: "Use `User.articles.totalCount`.")
+  articleCount: Int!
 
   """Number of views on user articles. Not yet in use."""
   viewCount: Int!
@@ -1817,6 +1817,9 @@ type UserStatus {
 
   """Whether user has read response info or not."""
   unreadResponseInfoPopUp: Boolean!
+
+  """Number of total written words."""
+  totalWordCount: Int!
 }
 
 scalar UUID
