@@ -371,6 +371,7 @@ export const CORS_OPTIONS = {
     'https://matters.news',
     'https://www.matters.news',
     'https://oss.matters.news',
+    'https://likecoin.matters.news',
     'https://web-stage.matters.news',
     'https://oss-stage.matters.news',
     'https://web-develop.matters.news',
