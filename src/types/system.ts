@@ -1,10 +1,12 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Query {
-    node(input: NodeInput!): Node
+    node(input: NodeInput!): Node @uncacheViewer
     frequentSearch(input: FrequentSearchInput!): [String!]
-    search(input: SearchInput!): SearchResultConnection!
+    search(input: SearchInput!): SearchResultConnection! @uncacheViewer
     official: Official!
-    oss: OSS! @authorize
+    oss: OSS! @authorize @uncacheViewer
   }
 
   extend type Mutation {
@@ -52,7 +54,7 @@ export default /* GraphQL */ `
     placements: Placements!
   }
 
-  type OSS {
+  type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     users(input: ConnectionArgs!): UserConnection!
     articles(input: ArticlesInput!): ArticleConnection!
     tags(input: TagsInput!): TagConnection!
@@ -310,6 +312,13 @@ export default /* GraphQL */ `
     max: Int
   }
 
+  directive @cacheControl(
+    maxAge: Int
+    scope: CacheScope
+  ) on OBJECT | FIELD | FIELD_DEFINITION
+
+  directive @uncacheViewer on FIELD_DEFINITION
+
   directive @cost(
     multipliers: [String]
     useMultipliers: Boolean
@@ -325,9 +334,4 @@ export default /* GraphQL */ `
   directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
 
   directive @private on FIELD_DEFINITION
-
-  directive @cacheViewer(
-    maxAge: Int = 60
-    scope: CacheScope = PUBLIC
-  ) on OBJECT | FIELD_DEFINITION
 `

@@ -1,6 +1,8 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Query {
-    article(input: ArticleInput!): Article
+    article(input: ArticleInput!): Article @uncacheViewer
   }
 
   extend type Mutation {
@@ -163,7 +165,7 @@ export default /* GraphQL */ `
     remark: String @authorize
   }
 
-  type ArticleOSS {
+  type ArticleOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: NonNegativeFloat! @authorize
     score: NonNegativeFloat! @authorize
     inRecommendToday: Boolean! @authorize
@@ -175,7 +177,7 @@ export default /* GraphQL */ `
     todaySummary: String
   }
 
-  type TagOSS {
+  type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
   }

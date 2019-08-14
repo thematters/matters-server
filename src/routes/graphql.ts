@@ -4,6 +4,7 @@ require('dotenv').config()
 
 // external
 import * as Sentry from '@sentry/node'
+import _ from 'lodash'
 import express, { Express } from 'express'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
 import costAnalysis from 'graphql-cost-analysis'
@@ -17,7 +18,7 @@ import {
 
 // internal
 import logger from 'common/logger'
-import { UPLOAD_FILE_SIZE_LIMIT, CORS_OPTIONS } from 'common/enums'
+import { UPLOAD_FILE_SIZE_LIMIT, CORS_OPTIONS, CACHE_TTL } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import { DataSources } from 'definitions'
 import { makeContext, initSubscriptions } from 'common/utils'
@@ -108,10 +109,16 @@ const server = new ProtectedApolloServer({
   persistedQueries: {
     cache: redisCache
   },
-  // cacheControl: {
-  //   defaultMaxAge: 60
-  // },
-  plugins: [responseCachePlugin()],
+  cacheControl: {
+    calculateHttpHeaders: false,
+    defaultMaxAge: CACHE_TTL.DEFAULT,
+    stripFormattedExtensions: isProd
+  },
+  plugins: [
+    responseCachePlugin({
+      sessionId: ({ context }) => _.get(context, 'viewer.id', null)
+    })
+  ],
   playground: false
 })
 
