@@ -2,11 +2,11 @@ import { CACHE_TTL } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    node(input: NodeInput!): Node
+    node(input: NodeInput!): Node @uncacheViewer
     frequentSearch(input: FrequentSearchInput!): [String!]
-    search(input: SearchInput!): SearchResultConnection!
+    search(input: SearchInput!): SearchResultConnection! @uncacheViewer
     official: Official!
-    oss: OSS! @authorize
+    oss: OSS! @authorize @uncacheViewer
   }
 
   extend type Mutation {
@@ -316,6 +316,8 @@ export default /* GraphQL */ `
     maxAge: Int
     scope: CacheScope
   ) on OBJECT | FIELD | FIELD_DEFINITION
+
+  directive @uncacheViewer on FIELD_DEFINITION
 
   directive @cost(
     multipliers: [String]

@@ -1,5 +1,7 @@
 directive @cacheControl(maxAge: Int, scope: CacheScope) on OBJECT | FIELD | FIELD_DEFINITION
 
+directive @uncacheViewer on FIELD_DEFINITION
+
 directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
 
 directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION

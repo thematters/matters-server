@@ -2,8 +2,8 @@ import { CACHE_TTL } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    viewer: User
-    user(input: UserInput!): User
+    viewer: User @uncacheViewer
+    user(input: UserInput!): User @uncacheViewer
   }
 
   extend type Mutation {

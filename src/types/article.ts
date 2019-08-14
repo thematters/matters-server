@@ -2,7 +2,7 @@ import { CACHE_TTL } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    article(input: ArticleInput!): Article
+    article(input: ArticleInput!): Article @uncacheViewer
   }
 
   extend type Mutation {
