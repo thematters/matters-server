@@ -122,13 +122,32 @@ const resolver: MutationToPutCommentResolver = async (
   else {
     newComment = await commentService.create(data)
 
+    /**
+     * Notifications
+     *
+     */
+    const articleAuthor = _.get(article, 'authorId')
+    const parentCommentAuthor = _.get(parentComment, 'authorId')
+    const parentCommentId = _.get(parentComment, 'id')
+    const replyToCommentAuthor = _.get(replyToComment, 'authorId')
+    const replyToCommentId = _.get(replyToComment, 'id')
+
+    const isLevel1Comment = !parentComment && !replyToComment
+    const isReplyingLevel1Comment =
+      !isLevel1Comment && parentCommentId === replyToCommentId
+    const isReplyingLevel2Comment =
+      !isLevel1Comment && parentCommentId !== replyToCommentId
+
     // notify article's author
-    // note: skip trigger `article_new_comment` if the article author's comment was replied
-    if (!replyToComment || article.authorId !== replyToComment.authorId) {
+    const shouldNotifyArticleAuthor =
+      isLevel1Comment ||
+      (articleAuthor !== parentCommentAuthor &&
+        articleAuthor !== replyToCommentAuthor)
+    if (shouldNotifyArticleAuthor) {
       notificationService.trigger({
         event: 'article_new_comment',
         actorId: viewer.id,
-        recipientId: article.authorId,
+        recipientId: articleAuthor,
         entities: [
           {
             type: 'target',
@@ -144,12 +163,57 @@ const resolver: MutationToPutCommentResolver = async (
       })
     }
 
+    // notify parentComment's author
+    const shouldNotifyParentCommentAuthor =
+      isReplyingLevel1Comment || parentCommentAuthor !== replyToCommentAuthor
+    if (shouldNotifyParentCommentAuthor) {
+      notificationService.trigger({
+        event: 'comment_new_reply',
+        actorId: viewer.id,
+        recipientId: parentCommentAuthor,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'comment',
+            entity: parentComment
+          },
+          {
+            type: 'reply',
+            entityTable: 'comment',
+            entity: newComment
+          }
+        ]
+      })
+    }
+
+    // notify replyToComment's author
+    const shouldNotifyReplyToCommentAuthor = isReplyingLevel2Comment
+    if (shouldNotifyReplyToCommentAuthor) {
+      notificationService.trigger({
+        event: 'comment_new_reply',
+        actorId: viewer.id,
+        recipientId: replyToCommentAuthor,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'comment',
+            entity: replyToComment
+          },
+          {
+            type: 'reply',
+            entityTable: 'comment',
+            entity: newComment
+          }
+        ]
+      })
+    }
+
     // notify article's subscribers
     const articleSubscribers = await articleService.findSubscriptions({
       id: article.id
     })
     articleSubscribers.forEach((subscriber: any) => {
-      if (subscriber.id == article.authorId) {
+      if (subscriber.id == articleAuthor) {
         return
       }
       notificationService.trigger({
@@ -170,27 +234,6 @@ const resolver: MutationToPutCommentResolver = async (
         ]
       })
     })
-
-    // notify the author of replyTo's (parent's) comment
-    if (replyToComment) {
-      notificationService.trigger({
-        event: 'comment_new_reply',
-        actorId: viewer.id,
-        recipientId: replyToComment.authorId,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'comment',
-            entity: replyToComment
-          },
-          {
-            type: 'reply',
-            entityTable: 'comment',
-            entity: newComment
-          }
-        ]
-      })
-    }
   }
 
   // publish a PubSub event
