@@ -124,7 +124,9 @@ const resolver: MutationToPutCommentResolver = async (
 
     // notify article's author
     // note: skip trigger `article_new_comment` if the article author's comment was replied
-    if (!replyToComment || article.authorId !== replyToComment.authorId) {
+    const shouldNotifyArticleAuthor =
+      !replyToComment || article.authorId !== replyToComment.authorId
+    if (shouldNotifyArticleAuthor) {
       notificationService.trigger({
         event: 'article_new_comment',
         actorId: viewer.id,
@@ -172,32 +174,8 @@ const resolver: MutationToPutCommentResolver = async (
     })
 
     // notify the author of parent's comment
-    if (parentComment) {
-      notificationService.trigger({
-        event: 'comment_new_reply',
-        actorId: viewer.id,
-        recipientId: parentComment.authorId,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'comment',
-            entity: parentComment
-          },
-          {
-            type: 'reply',
-            entityTable: 'comment',
-            entity: newComment
-          }
-        ]
-      })
-    }
-
-    // notify the author of replyTo's comment
-    if (
-      replyToComment &&
-      parentComment &&
-      replyToComment.id !== parentComment.id
-    ) {
+    const shouldNotifyParentCommentAuthor = replyToComment
+    if (shouldNotifyParentCommentAuthor) {
       notificationService.trigger({
         event: 'comment_new_reply',
         actorId: viewer.id,
@@ -206,7 +184,7 @@ const resolver: MutationToPutCommentResolver = async (
           {
             type: 'target',
             entityTable: 'comment',
-            entity: replyToComment
+            entity: parentComment
           },
           {
             type: 'reply',
