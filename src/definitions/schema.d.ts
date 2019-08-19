@@ -1425,6 +1425,7 @@ export interface GQLPlacementUnit {
 
 export interface GQLOSS {
   users: GQLUserConnection
+  comments: GQLCommentConnection
   articles: GQLArticleConnection
   tags: GQLTagConnection
   reports: GQLReportConnection
@@ -1432,7 +1433,7 @@ export interface GQLOSS {
   today: GQLArticleConnection
 }
 
-export interface GQLArticlesInput {
+export interface GQLOSSArticlesInput {
   public?: boolean
   after?: string
   first?: number
@@ -6261,6 +6262,7 @@ export interface PlacementUnitToAdLabelResolver<TParent = any, TResult = any> {
 
 export interface GQLOSSTypeResolver<TParent = any> {
   users?: OSSToUsersResolver<TParent>
+  comments?: OSSToCommentsResolver<TParent>
   articles?: OSSToArticlesResolver<TParent>
   tags?: OSSToTagsResolver<TParent>
   reports?: OSSToReportsResolver<TParent>
@@ -6280,8 +6282,20 @@ export interface OSSToUsersResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface OSSToCommentsArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToCommentsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToCommentsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface OSSToArticlesArgs {
-  input: GQLArticlesInput
+  input: GQLOSSArticlesInput
 }
 export interface OSSToArticlesResolver<TParent = any, TResult = any> {
   (

@@ -56,7 +56,8 @@ export default /* GraphQL */ `
 
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     users(input: ConnectionArgs!): UserConnection!
-    articles(input: ArticlesInput!): ArticleConnection!
+    comments(input: ConnectionArgs!): CommentConnection!
+    articles(input: OSSArticlesInput!): ArticleConnection!
     tags(input: TagsInput!): TagConnection!
     reports(input: ReportsInput!): ReportConnection!
     report(input: ReportInput!): Report!
@@ -160,7 +161,7 @@ export default /* GraphQL */ `
     id: ID!
   }
 
-  input ArticlesInput {
+  input OSSArticlesInput {
     public: Boolean
     after: String
     first: Int

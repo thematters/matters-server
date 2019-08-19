@@ -1,5 +1,6 @@
 export * from './users'
 export * from './articles'
+export * from './comments'
 export * from './tags'
 export * from './reports'
 export * from './report'
