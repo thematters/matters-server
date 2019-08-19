@@ -47,17 +47,15 @@ exports.up = async knex => {
 
   const users = compact(
     await Promise.all(
-      items.map(
-        async ({ userName, role, amount }) => {
-          const user = await knex('user')
-            .select('id')
-            .where({ 'user_name': userName, role })
-            .first()
-          if (user) {
-            return { id: user.id, amount }
-          }
+      items.map(async ({ userName, role, amount }) => {
+        const user = await knex('user')
+          .select('id')
+          .where({ user_name: userName, role })
+          .first()
+        if (user) {
+          return { id: user.id, amount }
         }
-      )
+      })
     )
   )
 
@@ -68,7 +66,7 @@ exports.up = async knex => {
           uuid: uuidv4(),
           recipient_id: id,
           purpose,
-          amount,
+          amount
         })
         .into(table)
     )
