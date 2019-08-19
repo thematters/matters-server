@@ -59,18 +59,22 @@ exports.up = async knex => {
     )
   )
 
-  await Promise.all(
+  const result = await Promise.all(
     users.map(({ id, amount }) =>
       knex(table)
         .insert({
           uuid: uuidv4(),
           recipient_id: id,
+          reference_id: id,
           purpose,
           amount
         })
         .into(table)
+        .returning(['id', 'recipient_id', 'amount'])
     )
   )
+
+  console.log(result)
 }
 
 exports.down = () => {}
