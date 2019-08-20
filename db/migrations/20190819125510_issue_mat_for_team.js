@@ -39,8 +39,8 @@ exports.up = async knex => {
       amount: 1000
     },
     {
-      userName: '',
-      role: '',
+      userName: 'andyischaos',
+      role: 'admin',
       amount: 500
     }
   ]
