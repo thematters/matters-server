@@ -5,6 +5,7 @@ import deleteComment from './deleteComment'
 import reportComment from './reportComment'
 import voteComment from './voteComment'
 import unvoteComment from './unvoteComment'
+import updateCommentState from './updateCommentState'
 
 export default {
   Mutation: {
@@ -14,6 +15,7 @@ export default {
     deleteComment,
     reportComment,
     voteComment,
-    unvoteComment
+    unvoteComment,
+    updateCommentState
   }
 }

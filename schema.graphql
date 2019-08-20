@@ -301,12 +301,6 @@ type ArticlePublishedNotice implements Notice {
   target: Article
 }
 
-input ArticlesInput {
-  public: Boolean
-  after: String
-  first: Int
-}
-
 """Enums for an article state."""
 enum ArticleState {
   active
@@ -1041,11 +1035,18 @@ type OfficialLinks {
 
 type OSS {
   users(input: ConnectionArgs!): UserConnection!
-  articles(input: ArticlesInput!): ArticleConnection!
+  comments(input: ConnectionArgs!): CommentConnection!
+  articles(input: OSSArticlesInput!): ArticleConnection!
   tags(input: TagsInput!): TagConnection!
   reports(input: ReportsInput!): ReportConnection!
   report(input: ReportInput!): Report!
   today(input: ConnectionArgs!): ArticleConnection!
+}
+
+input OSSArticlesInput {
+  public: Boolean
+  after: String
+  first: Int
 }
 
 type PageInfo {
