@@ -282,6 +282,13 @@ export const QUEUE_CONCURRENCY = {
   publishArticle: 100
 }
 
+export const QUEUE_COMPLETED_LIST_SIZE = {
+  none: true,
+  small: 100,
+  medium: 1000,
+  large: 10000
+}
+
 export const PUBLISH_ARTICLE_DELAY = 1000
 
 export const EMAIL_TEMPLATE_ID = {
