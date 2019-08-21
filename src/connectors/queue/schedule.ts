@@ -5,7 +5,6 @@ import {
   QUEUE_JOB,
   QUEUE_PRIORITY,
   QUEUE_NAME,
-  QUEUE_COMPLETED_LIST_SIZE,
   PUBLISH_STATE,
   MATERIALIZED_VIEW
 } from 'common/enums'
@@ -181,8 +180,7 @@ class ScheduleQueue {
         priority: QUEUE_PRIORITY.HIGH,
         repeat: {
           every: 1000 * 60 * 20 // every 20 mins
-        },
-        removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small
+        }
       }
     )
 
@@ -201,8 +199,7 @@ class ScheduleQueue {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
           every: 1000 * 60 * 2 // every 2 minutes
-        },
-        removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small
+        }
       }
     )
 
@@ -214,8 +211,7 @@ class ScheduleQueue {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
           every: 1000 * 60 * 60 * 1.1 // every 1 + 0.1 hour
-        },
-        removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small
+        }
       }
     )
 
@@ -227,8 +223,7 @@ class ScheduleQueue {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
           every: 1000 * 60 * 60 * 3.1 // every 3 + 0.1 hour
-        },
-        removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small
+        }
       }
     )
 
@@ -238,8 +233,7 @@ class ScheduleQueue {
       { view: MATERIALIZED_VIEW.userReaderMaterialized },
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' },
-        removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small
+        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
 
@@ -249,8 +243,7 @@ class ScheduleQueue {
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' },
-        removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small
+        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
   }

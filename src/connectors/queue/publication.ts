@@ -7,7 +7,6 @@ import {
   QUEUE_PRIORITY,
   QUEUE_NAME,
   QUEUE_CONCURRENCY,
-  QUEUE_COMPLETED_LIST_SIZE,
   PUBLISH_ARTICLE_DELAY
 } from 'common/enums'
 import { isTest } from 'common/environment'
@@ -264,8 +263,7 @@ class PublicationQueue {
       { draftId },
       {
         delay,
-        priority: QUEUE_PRIORITY.CRITICAL,
-        removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small
+        priority: QUEUE_PRIORITY.CRITICAL
       }
     )
   }

@@ -3,7 +3,6 @@ import Queue from 'bull'
 import { MailData } from '@sendgrid/helpers/classes/mail'
 // internal
 import {
-  QUEUE_COMPLETED_LIST_SIZE,
   QUEUE_PRIORITY,
   QUEUE_JOB,
   QUEUE_NAME
@@ -52,15 +51,13 @@ class NotificationQueue {
    */
   sendMail = (data: MailData) => {
     return this.q.add(QUEUE_JOB.sendMail, data, {
-      priority: QUEUE_PRIORITY.NORMAL,
-      removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small
+      priority: QUEUE_PRIORITY.NORMAL
     })
   }
 
   pushNotification = (data: PushParams) => {
     return this.q.add(QUEUE_JOB.pushNotification, data, {
-      priority: QUEUE_PRIORITY.NORMAL,
-      removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small
+      priority: QUEUE_PRIORITY.NORMAL
     })
   }
 }
