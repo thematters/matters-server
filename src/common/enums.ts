@@ -9,6 +9,11 @@ export const MATERIALIZED_VIEW = {
   articleActivityMaterialized: 'article_activity_materialized'
 }
 
+export const CACHE_TTL = {
+  DEFAULT: 60,
+  INSTANT: 0
+}
+
 export const USER_ROLE = {
   admin: 'admin',
   user: 'user',
@@ -277,6 +282,13 @@ export const QUEUE_CONCURRENCY = {
   publishArticle: 100
 }
 
+export const QUEUE_COMPLETED_LIST_SIZE = {
+  none: true,
+  small: 100,
+  medium: 1000,
+  large: 10000
+}
+
 export const PUBLISH_ARTICLE_DELAY = 1000
 
 export const EMAIL_TEMPLATE_ID = {
@@ -368,6 +380,7 @@ export const CORS_OPTIONS = {
     'https://oss.matters.news',
     'https://web-stage.matters.news',
     'https://oss-stage.matters.news',
+    'https://web-likecoin.matters.news',
     'https://web-develop.matters.news',
     'https://oss-develop.matters.news',
     'https://matters.one',

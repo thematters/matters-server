@@ -175,6 +175,7 @@ export class ArticleService extends BaseService {
 
     return await this.baseUpdate(id, {
       state: ARTICLE_STATE.archived,
+      sticky: false,
       updatedAt: new Date()
     })
   }
@@ -182,12 +183,23 @@ export class ArticleService extends BaseService {
   /**
    *  Find articles by a given author id (user).
    */
-  findByAuthor = async (authorId: string, filter = {}) =>
-    await this.knex
+  findByAuthor = async (authorId: string, filter = {}, stickyFirst = false) => {
+    const query = this.knex
       .select()
       .from(this.table)
       .where({ authorId, ...filter })
-      .orderBy('id', 'desc')
+
+    if (stickyFirst === true) {
+      query.orderBy([
+        { column: 'sticky', order: 'desc' },
+        { column: 'id', order: 'desc' }
+      ])
+    } else {
+      query.orderBy('id', 'desc')
+    }
+
+    return query
+  }
 
   /**
    * Find article by media hash
@@ -198,6 +210,15 @@ export class ArticleService extends BaseService {
       .from(this.table)
       .where({ mediaHash })
       .first()
+
+  /**
+   * Find article by which set as sticky.
+   */
+  findBySticky = async (authorId: string, sticky: boolean) =>
+    await this.knex
+      .select('id')
+      .from(this.table)
+      .where({ authorId, sticky: true })
 
   /**
    * Count articles by a given authorId (user).

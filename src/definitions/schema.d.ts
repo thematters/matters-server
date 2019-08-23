@@ -183,6 +183,11 @@ export interface GQLArticle extends GQLNode {
   subscribed: boolean
 
   /**
+   * This value determines if this article is an author selected article or not.
+   */
+  sticky: boolean
+
+  /**
    * OSS
    */
   oss: GQLArticleOSS
@@ -433,6 +438,7 @@ export interface GQLUserInfo {
 
   /**
    * Number of total written words.
+   * @deprecated Use `User.status.totalWordCount`.
    */
   totalWordCount: number
 
@@ -889,7 +895,6 @@ export interface GQLUserStatus {
 
   /**
    * Number of articles published by user
-   * @deprecated Use `User.articles.totalCount`.
    */
   articleCount: number
 
@@ -941,6 +946,11 @@ export interface GQLUserStatus {
    * Whether user has read response info or not.
    */
   unreadResponseInfoPopUp: boolean
+
+  /**
+   * Number of total written words.
+   */
+  totalWordCount: number
 }
 
 export enum GQLUserState {
@@ -1415,6 +1425,7 @@ export interface GQLPlacementUnit {
 
 export interface GQLOSS {
   users: GQLUserConnection
+  comments: GQLCommentConnection
   articles: GQLArticleConnection
   tags: GQLTagConnection
   reports: GQLReportConnection
@@ -1422,7 +1433,7 @@ export interface GQLOSS {
   today: GQLArticleConnection
 }
 
-export interface GQLArticlesInput {
+export interface GQLOSSArticlesInput {
   public?: boolean
   after?: string
   first?: number
@@ -1527,6 +1538,11 @@ export interface GQLMutation {
    * Set collection of an article.
    */
   setCollection: GQLArticle
+
+  /**
+   * Update article information.
+   */
+  updateArticleInfo: GQLArticle
 
   /**
    * OSS
@@ -1732,6 +1748,11 @@ export interface GQLRecallPublishInput {
 export interface GQLSetCollectionInput {
   id: string
   collection: Array<string>
+}
+
+export interface GQLUpdateArticleInfoInput {
+  id: string
+  sticky?: boolean
 }
 
 export interface GQLToggleArticleLiveInput {
@@ -2240,6 +2261,11 @@ export interface GQLArticlePublishedNotice extends GQLNotice {
   target?: GQLArticle
 }
 
+export enum GQLCacheScope {
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVATE'
+}
+
 export interface GQLCommentMentionedYouNotice extends GQLNotice {
   id: string
   unread: boolean
@@ -2746,6 +2772,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   appreciateLeft?: ArticleToAppreciateLeftResolver<TParent>
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>
   subscribed?: ArticleToSubscribedResolver<TParent>
+  sticky?: ArticleToStickyResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
@@ -3037,6 +3064,15 @@ export interface ArticleToHasAppreciateResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToStickyResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4809,6 +4845,7 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
   unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
   unreadResponseInfoPopUp?: UserStatusToUnreadResponseInfoPopUpResolver<TParent>
+  totalWordCount?: UserStatusToTotalWordCountResolver<TParent>
 }
 
 export interface UserStatusToStateResolver<TParent = any, TResult = any> {
@@ -4950,6 +4987,18 @@ export interface UserStatusToUnreadFolloweeArticlesResolver<
 }
 
 export interface UserStatusToUnreadResponseInfoPopUpResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToTotalWordCountResolver<
   TParent = any,
   TResult = any
 > {
@@ -6213,6 +6262,7 @@ export interface PlacementUnitToAdLabelResolver<TParent = any, TResult = any> {
 
 export interface GQLOSSTypeResolver<TParent = any> {
   users?: OSSToUsersResolver<TParent>
+  comments?: OSSToCommentsResolver<TParent>
   articles?: OSSToArticlesResolver<TParent>
   tags?: OSSToTagsResolver<TParent>
   reports?: OSSToReportsResolver<TParent>
@@ -6232,8 +6282,20 @@ export interface OSSToUsersResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface OSSToCommentsArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToCommentsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToCommentsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface OSSToArticlesArgs {
-  input: GQLArticlesInput
+  input: GQLOSSArticlesInput
 }
 export interface OSSToArticlesResolver<TParent = any, TResult = any> {
   (
@@ -6467,6 +6529,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   readArticle?: MutationToReadArticleResolver<TParent>
   recallPublish?: MutationToRecallPublishResolver<TParent>
   setCollection?: MutationToSetCollectionResolver<TParent>
+  updateArticleInfo?: MutationToUpdateArticleInfoResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
@@ -6631,6 +6694,21 @@ export interface MutationToSetCollectionResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToSetCollectionArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateArticleInfoArgs {
+  input: GQLUpdateArticleInfoInput
+}
+export interface MutationToUpdateArticleInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateArticleInfoArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

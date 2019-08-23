@@ -48,14 +48,12 @@ class NotificationQueue {
   sendMail = (data: MailData) => {
     return this.q.add(QUEUE_JOB.sendMail, data, {
       priority: QUEUE_PRIORITY.NORMAL
-      // removeOnComplete: true
     })
   }
 
   pushNotification = (data: PushParams) => {
     return this.q.add(QUEUE_JOB.pushNotification, data, {
       priority: QUEUE_PRIORITY.NORMAL
-      // removeOnComplete: true
     })
   }
 }

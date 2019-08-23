@@ -1,7 +1,9 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Query {
-    viewer: User
-    user(input: UserInput!): User
+    viewer: User @uncacheViewer
+    user(input: UserInput!): User @uncacheViewer
   }
 
   extend type Mutation {
@@ -197,6 +199,7 @@ export default /* GraphQL */ `
 
     "Number of total written words."
     totalWordCount: Int!
+      @deprecated(reason: "Use \`User.status.totalWordCount\`.")
 
     "Cover of profile page."
     profileCover: URL
@@ -204,7 +207,7 @@ export default /* GraphQL */ `
 
   type UserSettings {
     "User language setting."
-    language: UserLanguage!
+    language: UserLanguage! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
     # Thrid party accounts binded for the user
     # oauthType: [OAuthType!]
     # Notification settings
@@ -234,7 +237,7 @@ export default /* GraphQL */ `
     invitation: InvitationStatus @deprecated(reason: "removed")
 
     "Number of articles published by user"
-    articleCount: Int! @deprecated(reason: "Use \`User.articles.totalCount\`.")
+    articleCount: Int!
 
     "Number of views on user articles. Not yet in use."
     viewCount: Int! @private
@@ -265,6 +268,9 @@ export default /* GraphQL */ `
 
     "Whether user has read response info or not."
     unreadResponseInfoPopUp: Boolean!
+
+    "Number of total written words."
+    totalWordCount: Int!
   }
 
   ## TODO: remove in OSS
@@ -298,7 +304,7 @@ export default /* GraphQL */ `
     node: Invitation!
   }
 
-  type UserOSS {
+  type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
   }

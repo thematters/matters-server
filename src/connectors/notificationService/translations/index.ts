@@ -128,15 +128,8 @@ export default {
   }),
   comment_banned: i18n<{ content: string }>({
     zh_hant: ({ content }) =>
-      `因為違反社區規則，Matters 決定將您的評論《${makeSummary(
-        content,
-        21
-      )}》隱藏`,
-    zh_hans: ({ content }) =>
-      `因为违反社区规则，Matters 决定将您的评论《${makeSummary(
-        content,
-        21
-      )}》隐藏`,
+      `因為違反社區規則，您的評論「${makeSummary(content, 21)}」已被隱藏`,
+    zh_hans: ({ content }) => `您的评论“${makeSummary(content, 21)}”已被隐藏`,
     en: ({ content }) =>
       `You comment "${makeSummary(
         content,
@@ -144,16 +137,14 @@ export default {
       )}" has been archived from Matters for violating the community rules`
   }),
   article_banned: i18n<{ title: string }>({
-    zh_hant: ({ title }) =>
-      `因為違反社區規則，Matters 決定將您的作品《${title}》隱藏`,
-    zh_hans: ({ title }) =>
-      `因为违反社区规则，Matters 决定将您的作品《${title}》隐藏`,
+    zh_hant: ({ title }) => `因為違反社區規則，您的作品《${title}》已被隱藏`,
+    zh_hans: ({ title }) => `因为违反社区规则，您的作品《${title}》已被隐藏`,
     en: ({ title }) =>
       `You article "${title}" has been archived from Matters for violating the community rules`
   }),
   comment_reported: i18n<{ content: string }>({
-    zh_hant: ({ content }) => `您的評論被舉報《${makeSummary(content, 17)}》`,
-    zh_hans: ({ content }) => `您的评论被举报《${makeSummary(content, 17)}》`,
+    zh_hant: ({ content }) => `您的評論被舉報「${makeSummary(content, 17)}」`,
+    zh_hans: ({ content }) => `您的评论被举报“${makeSummary(content, 17)}”`,
     en: ({ content }) =>
       `Your comment "${makeSummary(
         content,

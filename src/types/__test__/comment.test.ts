@@ -184,6 +184,7 @@ describe('mutations on comment', () => {
         input: {
           comment: {
             content: 'test',
+            parentId: COMMENT_ID,
             replyTo: COMMENT_ID,
             articleId: ARTICLE_ID
           }

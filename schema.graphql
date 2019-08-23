@@ -1,3 +1,7 @@
+directive @cacheControl(maxAge: Int, scope: CacheScope) on OBJECT | FIELD | FIELD_DEFINITION
+
+directive @uncacheViewer on FIELD_DEFINITION
+
 directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
 
 directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION
@@ -102,6 +106,11 @@ type Article implements Node {
 
   """This value determines if current Viewer has subscribed of not."""
   subscribed: Boolean!
+
+  """
+  This value determines if this article is an author selected article or not.
+  """
+  sticky: Boolean!
 
   """OSS"""
   oss: ArticleOSS!
@@ -292,12 +301,6 @@ type ArticlePublishedNotice implements Notice {
   target: Article
 }
 
-input ArticlesInput {
-  public: Boolean
-  after: String
-  first: Int
-}
-
 """Enums for an article state."""
 enum ArticleState {
   active
@@ -382,6 +385,11 @@ enum BoostTypes {
   Article
   User
   Tag
+}
+
+enum CacheScope {
+  PUBLIC
+  PRIVATE
 }
 
 type Category {
@@ -801,6 +809,9 @@ type Mutation {
   """Set collection of an article."""
   setCollection(input: SetCollectionInput!): Article!
 
+  """Update article information."""
+  updateArticleInfo(input: UpdateArticleInfoInput!): Article!
+
   """OSS"""
   toggleArticleLive(input: ToggleArticleLiveInput!): Article!
   toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
@@ -1024,11 +1035,18 @@ type OfficialLinks {
 
 type OSS {
   users(input: ConnectionArgs!): UserConnection!
-  articles(input: ArticlesInput!): ArticleConnection!
+  comments(input: ConnectionArgs!): CommentConnection!
+  articles(input: OSSArticlesInput!): ArticleConnection!
   tags(input: TagsInput!): TagConnection!
   reports(input: ReportsInput!): ReportConnection!
   report(input: ReportInput!): Report!
   today(input: ConnectionArgs!): ArticleConnection!
+}
+
+input OSSArticlesInput {
+  public: Boolean
+  after: String
+  first: Int
 }
 
 type PageInfo {
@@ -1507,6 +1525,11 @@ input UnvoteCommentInput {
   id: ID!
 }
 
+input UpdateArticleInfoInput {
+  id: ID!
+  sticky: Boolean
+}
+
 input UpdateArticleStateInput {
   id: ID!
   state: ArticleState!
@@ -1681,7 +1704,7 @@ type UserInfo {
   agreeOn: DateTime
 
   """Number of total written words."""
-  totalWordCount: Int!
+  totalWordCount: Int! @deprecated(reason: "Use `User.status.totalWordCount`.")
 
   """Cover of profile page."""
   profileCover: URL
@@ -1775,7 +1798,7 @@ type UserStatus {
   invitation: InvitationStatus @deprecated(reason: "removed")
 
   """Number of articles published by user"""
-  articleCount: Int! @deprecated(reason: "Use `User.articles.totalCount`.")
+  articleCount: Int!
 
   """Number of views on user articles. Not yet in use."""
   viewCount: Int!
@@ -1797,6 +1820,9 @@ type UserStatus {
 
   """Whether user has read response info or not."""
   unreadResponseInfoPopUp: Boolean!
+
+  """Number of total written words."""
+  totalWordCount: Int!
 }
 
 scalar UUID

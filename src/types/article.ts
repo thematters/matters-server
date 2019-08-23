@@ -1,6 +1,8 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Query {
-    article(input: ArticleInput!): Article
+    article(input: ArticleInput!): Article @uncacheViewer
   }
 
   extend type Mutation {
@@ -30,6 +32,9 @@ export default /* GraphQL */ `
 
     "Set collection of an article."
     setCollection(input: SetCollectionInput!): Article! @authenticate
+
+    "Update article information."
+    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @authenticate
 
     # OSS
     toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authorize
@@ -132,6 +137,9 @@ export default /* GraphQL */ `
     "This value determines if current Viewer has subscribed of not."
     subscribed: Boolean!
 
+    "This value determines if this article is an author selected article or not."
+    sticky: Boolean!
+
     # OSS
     oss: ArticleOSS!
     remark: String @authorize
@@ -157,7 +165,7 @@ export default /* GraphQL */ `
     remark: String @authorize
   }
 
-  type ArticleOSS {
+  type ArticleOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: NonNegativeFloat! @authorize
     score: NonNegativeFloat! @authorize
     inRecommendToday: Boolean! @authorize
@@ -169,7 +177,7 @@ export default /* GraphQL */ `
     todaySummary: String
   }
 
-  type TagOSS {
+  type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
   }
@@ -248,6 +256,11 @@ export default /* GraphQL */ `
   input SetCollectionInput {
     id: ID!
     collection: [ID!]!
+  }
+
+  input UpdateArticleInfoInput {
+    id: ID!
+    sticky: Boolean
   }
 
   input ToggleArticleLiveInput {

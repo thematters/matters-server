@@ -264,7 +264,6 @@ class PublicationQueue {
       {
         delay,
         priority: QUEUE_PRIORITY.CRITICAL
-        // removeOnComplete: true
       }
     )
   }
