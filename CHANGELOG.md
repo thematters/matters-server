@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2019-08-23
+
+### Added
+
+- Sticky article #410 #416
+- Cache Control #418 #420 #423 #437
+
+### Changed
+
+- Fix publish #419
+- Reopen articleCount field and move totalWordCount into UserStatus . #425
+- Add `oss.comments` query and `updateCommentState` mutation #432
+- Re-add removeOnComplete option for queue service. #436
+- Refactoring the business logics of "putComment" related notices #431
+
 ## [1.8.1] - 2019-08-07
 
 ### Changed
