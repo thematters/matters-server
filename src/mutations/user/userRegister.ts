@@ -6,7 +6,8 @@ import {
   CodeInvalidError,
   DisplayNameInvalidError,
   PasswordInvalidError,
-  UsernameInvalidError
+  UsernameInvalidError,
+  UsernameExistsError
 } from 'common/errors'
 import {
   isValidEmail,
@@ -56,19 +57,32 @@ const resolver: MutationToUserRegisterResolver = async (
     throw new PasswordInvalidError('invalid user password')
   }
 
-  // Programatically generate user name
-  let retries = 0
-  let mainName = makeUserName(email)
-  let newUserName = mainName
-  while (
-    !isValidUserName(newUserName) ||
-    (await userService.countUserNames(newUserName)) > 0
-  ) {
-    if (retries >= 20) {
-      throw new UsernameInvalidError('cannot generate user name')
+  let newUserName
+  if (userName) {
+    if (!isValidUserName(userName)) {
+      throw new UsernameInvalidError('invalid user name')
     }
-    newUserName = `${mainName}${random(1, 999)}`
-    retries += 1
+
+    if (await userService.countUserNames(userName)) {
+      throw new UsernameExistsError('user name already exists')
+    }
+
+    newUserName = userName
+  } else {
+    // Programatically generate user name
+    let retries = 0
+    let mainName = makeUserName(email)
+    newUserName = mainName
+    while (
+      !isValidUserName(newUserName) ||
+      (await userService.countUserNames(newUserName)) > 0
+    ) {
+      if (retries >= 20) {
+        throw new UsernameInvalidError('cannot generate user name')
+      }
+      newUserName = `${mainName}${random(1, 999)}`
+      retries += 1
+    }
   }
 
   await userService.create({
