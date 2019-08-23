@@ -502,7 +502,7 @@ export class ArticleService extends BaseService {
     const table = oss ? 'article_count_view' : 'article_count_materialized'
 
     return await this.knex(`${table} as view`)
-      .select('view.*', 'article.state', 'article.public')
+      .select('view.*', 'article.state', 'article.public', 'article.sticky')
       .join('article', 'view.id', 'article.id')
       .orderByRaw('topic_score DESC NULLS LAST')
       .orderBy('view.id', 'desc')
