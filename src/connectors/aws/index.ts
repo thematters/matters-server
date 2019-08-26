@@ -109,8 +109,7 @@ export class AWSService {
 
     const extension =
       mime.extension(mimetype) || upload.filename.split('.').pop()
-    const filename = `asset-${randomString(4)}`
-    const key = `${folder}/${uuid}/${filename}.${extension}`
+    const key = `${folder}/${uuid}.${extension}`
     const result = await this.s3
       .upload({
         Body: buffer,
