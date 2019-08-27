@@ -262,23 +262,12 @@ export class UserService extends BaseService {
     offset,
     oss = false
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
-    // if (environment.env === 'development') {
-    //   return this.knex(this.table)
-    //     .where('user_name', 'like', `%${key}%`)
-    //     .offset(offset)
-    //     .limit(first)
-    // }
-
     const body = bodybuilder()
       .from(offset)
       .size(first)
+      .query('match', 'displayName', key)
+      .filter('term', 'state', USER_STATE.active)
       .build() as { [key: string]: any }
-
-    body.query = {
-      match: {
-        displayName: key
-      }
-    }
 
     body.suggest = {
       userName: {
