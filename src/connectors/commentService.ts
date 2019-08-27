@@ -113,6 +113,25 @@ export class CommentService extends BaseService {
   }
 
   /**
+   * Count comments which themselves and parents are active by a given article id.
+   */
+  countByArticleForResponse = async (articleId: string): Promise<number> => {
+    const result = await this.knex
+      .from('comment as t1')
+      .leftJoin('comment as t2', 't1.parent_comment_id', 't2.id')
+      .where({
+        't1.article_id': articleId,
+        't1.state': COMMENT_STATE.active
+      })
+      .andWhere(builder =>
+        builder.whereNull('t2.state').orWhere('t2.state', 'active')
+      )
+      .count()
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
    * Find comments by a given author id (user).
    */
   findByAuthor = async (authorId: string): Promise<any[]> =>
