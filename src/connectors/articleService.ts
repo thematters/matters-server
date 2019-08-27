@@ -1341,7 +1341,7 @@ export class ArticleService extends BaseService {
                   )
                 )
                 .from('comment')
-                .where({ articleId: id, parentCommentId: null, state })
+                .where({ articleId: id, parentCommentId: null })
             })
           }
 
