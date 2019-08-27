@@ -110,17 +110,23 @@ export class UserService extends BaseService {
 
   updateInfo = async (
     id: string,
-    input: GQLUpdateUserInfoInput & { email?: string; emailVerified?: boolean }
+    input: GQLUpdateUserInfoInput & {
+      email?: string
+      emailVerified?: boolean
+      state?: string
+    }
   ) => {
     const user = await this.baseUpdate(id, { updatedAt: new Date(), ...input })
 
-    const { description, displayName, userName } = input
-    if (!description && !displayName && !userName) {
+    // remove null and undefined, and write into search
+    const { description, displayName, userName, state } = input
+    if (!(description || displayName || userName || state)) {
       return user
     }
-
-    // remove null and undefined
-    const searchable = _.omitBy({ description, displayName, userName }, _.isNil)
+    const searchable = _.omitBy(
+      { description, displayName, userName, state },
+      _.isNil
+    )
 
     try {
       await this.es.client.update({
