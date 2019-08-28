@@ -8,11 +8,8 @@ const resolver: MutationToUpdateUserStateResolver = async (
 ) => {
   const { id: dbId } = fromGlobalId(id)
 
-  // TODO: banDays
-
-  const user = await userService.baseUpdate(dbId, {
-    state,
-    updatedAt: new Date()
+  const user = await userService.updateInfo(dbId, {
+    state
   })
 
   // trigger notification
