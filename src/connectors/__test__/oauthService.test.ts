@@ -75,7 +75,7 @@ describe('token', () => {
     expect(newRefreshToken.refreshToken).toEqual(refreshToken)
   })
 
-  test('reovoke', async () => {
+  test('revoke', async () => {
     const client = await getClient()
     const user = await getUser()
     const revoked = await oauthService.revokeToken({
