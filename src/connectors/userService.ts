@@ -30,10 +30,14 @@ import {
 import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
+import { likecoin } from './likecoin'
 
 export class UserService extends BaseService {
+  likecoin: typeof likecoin
+
   constructor() {
     super('user')
+    this.likecoin = likecoin
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
@@ -751,6 +755,26 @@ export class UserService extends BaseService {
    *         OAuth:LikeCoin        *
    *                               *
    *********************************/
+  findLiker = async ({
+    userId,
+    likerId
+  }: {
+    userId?: string
+    likerId?: string
+  }) => {
+    let userLikerId
+    if (userId) {
+      const user = await this.dataloader.load(userId)
+      userLikerId = user.likerId
+    }
+
+    return await this.knex
+      .select()
+      .from('user_oauth_likecoin')
+      .where({ likerId: userLikerId || likerId })
+      .first()
+  }
+
   saveLiker = async ({
     userId,
     likerId,
@@ -769,11 +793,13 @@ export class UserService extends BaseService {
     scope?: string
   }) => {
     let user = await this.dataloader.load(userId)
+
     await this.knex
       .select()
       .from('user_oauth_likecoin')
       .where({ likerId: user.likerId })
       .del()
+
     user = await this.baseUpdate(userId, {
       updatedAt: new Date(),
       likerId
@@ -794,5 +820,62 @@ export class UserService extends BaseService {
     })
 
     return user
+  }
+
+  registerLikerId = async ({
+    userId,
+    userName
+  }: {
+    userId: string
+    userName: string
+  }) => {
+    // check
+    const likerId = await this.likecoin.check({ user: userName })
+
+    // register
+    const token = '21313' // TODO
+    const { accessToken, refreshToken, scope } = await this.likecoin.register({
+      user: likerId,
+      token
+    })
+
+    // save to db
+    return this.saveLiker({
+      userId,
+      likerId,
+      accountType: 'general',
+      accessToken,
+      refreshToken,
+      scope
+    })
+  }
+
+  claimLikerId = async ({ likerId }: { likerId: string }) => {
+    const liker = await this.findLiker({ likerId })
+    return this.likecoin.edit({
+      user: likerId,
+      action: 'claim',
+      payload: { token: liker.accessToken }
+    })
+  }
+
+  transferLikerId = async ({
+    fromLikerId,
+    toLikerId
+  }: {
+    fromLikerId: string
+    toLikerId: string
+  }) => {
+    const fromLiker = await this.findLiker({ likerId: fromLikerId })
+    const toLiker = await this.findLiker({ likerId: toLikerId })
+
+    return this.likecoin.edit({
+      user: toLikerId, // TBC
+      action: 'transfer',
+      payload: {
+        fromUserToken: fromLiker.accessToken,
+        toUserToken: toLiker.accessToken
+      }
+    })
   }
 }

@@ -1672,6 +1672,11 @@ export interface GQLMutation {
   userLogout: boolean
 
   /**
+   * Generate or claim a Liker ID through LikeCoin
+   */
+  generateLikerId: GQLUser
+
+  /**
    * Update user information.
    */
   updateUserInfo: GQLUser
@@ -6565,6 +6570,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
   userLogout?: MutationToUserLogoutResolver<TParent>
+  generateLikerId?: MutationToGenerateLikerIdResolver<TParent>
   updateUserInfo?: MutationToUpdateUserInfoResolver<TParent>
   updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<
     TParent
@@ -7156,6 +7162,18 @@ export interface MutationToUserLoginResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToUserLogoutResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToGenerateLikerIdResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},

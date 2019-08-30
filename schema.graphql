@@ -893,6 +893,9 @@ type Mutation {
   """Logout user."""
   userLogout: Boolean!
 
+  """Generate or claim a Liker ID through LikeCoin"""
+  generateLikerId: User!
+
   """Update user information."""
   updateUserInfo(input: UpdateUserInfoInput!): User!
 

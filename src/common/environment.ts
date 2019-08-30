@@ -33,6 +33,7 @@ export const environment = {
   jwtSecret: process.env['MATTERS_JWT_SECRET'] || '_dev_jwt_secret_',
   apiKey: process.env['MATTERS_APOLLO_API_KEY'],
   sentryDsn: process.env['MATTERS_SENTRY_DSN'],
+  likecoinApiURL: process.env['MATTERS_LIKECOIN_API_URL'] || '',
   likecoinAuthorizationURL: process.env['MATTERS_LIKECOIN_AUTH_URL'] || '',
   likecoinTokenURL: process.env['MATTERS_LIKECOIN_TOKEN_URL'] || '',
   likecoinClientId: process.env['MATTERS_LIKECOIN_CLIENT_ID'] || '',
