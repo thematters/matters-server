@@ -1,14 +1,10 @@
-import { compact } from 'lodash/compact'
-import { merge } from 'lodash/merge'
-import { trim } from 'lodash/trim'
-import { set } from 'lodash/set'
-import { replace } from 'lodash/replace'
+import _ from 'lodash'
 
 /**
  * Clean up raw data and split scope string.
  */
 const parse = (data: string) =>
-  compact(replace(trim(data), '.', '').split(':'))
+  _.compact(_.replace(_.trim(data), '.', '').split(':'))
 
 /**
  * Prepare scope data to be composed into a scope object.
@@ -25,11 +21,11 @@ const prepare = (data: string) => {
 /**
  * Merge scopes as one.
  */
-const process = (result: {[key: string]: any}, datum: any) => {
+const process = (result: { [key: string]: any }, datum: any) => {
   if (!datum) {
     return result
   }
-  return merge(result, set({}, datum[0], datum[1]))
+  return _.merge(result, _.set({}, datum[0], datum[1]))
 }
 
 /**
