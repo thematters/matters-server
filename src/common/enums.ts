@@ -20,6 +20,18 @@ export const USER_ROLE = {
   visitor: 'visitor'
 }
 
+export const SCOPE_MODE = {
+  visitor: 'visitor',
+  user: 'user',
+  admin: 'admin',
+  oauth: 'oauth'
+}
+
+export const SCOPE_TYPE = {
+  read: 'read',
+  write: 'write'
+}
+
 export const LANGUAGE = {
   zh_hans: 'zh_hans',
   zh_hant: 'zh_hant',
@@ -397,3 +409,8 @@ export const OAUTH_CALLBACK_ERROR_CODE = {
 }
 
 export const BLOCK_USERS = ['jQwZ2JnYzg3MmdAZw']
+
+export const GQL_OPERATION = {
+  query: 'query',
+  mutation: 'mutation'
+}
