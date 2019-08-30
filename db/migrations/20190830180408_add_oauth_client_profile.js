@@ -2,11 +2,16 @@ const table = 'oauth_client'
 
 exports.up = async knex => {
   await knex.schema.table(table, function (t) {
-    t.string('name').notNullable()
+    t.string('name')
+      .notNullable()
       .unique()
     t.text('description')
     t.text('website_url')
     t.bigInteger('avatar')
+
+    t.foreign('avatar')
+      .references('id')
+      .inTable('asset')
   })
 }
 
