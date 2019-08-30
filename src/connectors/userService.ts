@@ -9,13 +9,10 @@ import logger from 'common/logger'
 import {
   BCRYPT_ROUNDS,
   USER_ACTION,
-  TRANSACTION_PURPOSE,
-  MAT_UNIT,
   VERIFICATION_CODE_EXIPRED_AFTER,
   VERIFICATION_CODE_STATUS,
   VERIFICATION_CODE_TYPES,
   USER_STATE,
-  INVITATION_STATUS,
   BATCH_SIZE,
   ARTICLE_STATE,
   USER_ACCESS_TOKEN_EXPIRES_IN,
@@ -30,6 +27,7 @@ import {
 import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
 
 import { BaseService } from './baseService'
+import { OAuthService } from './oauthService'
 import { likecoin } from './likecoin'
 
 export class UserService extends BaseService {
@@ -790,7 +788,7 @@ export class UserService extends BaseService {
     accessToken: string
     refreshToken?: string
     expires?: number
-    scope?: string
+    scope?: string[]
   }) => {
     let user = await this.dataloader.load(userId)
 
@@ -831,12 +829,13 @@ export class UserService extends BaseService {
   }) => {
     // check
     const likerId = await this.likecoin.check({ user: userName })
+    const oAuthService = new OAuthService()
 
     // register
-    const token = '21313' // TODO
+    const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
     const { accessToken, refreshToken, scope } = await this.likecoin.register({
       user: likerId,
-      token
+      token: tokens.accessToken
     })
 
     // save to db
@@ -852,11 +851,16 @@ export class UserService extends BaseService {
 
   claimLikerId = async ({ likerId }: { likerId: string }) => {
     const liker = await this.findLiker({ likerId })
-    return this.likecoin.edit({
+
+    await this.likecoin.edit({
       user: likerId,
       action: 'claim',
       payload: { token: liker.accessToken }
     })
+
+    return await this.knex('user_oauth_likecoin')
+      .where({ likerId })
+      .update({ accountType: 'general' })
   }
 
   transferLikerId = async ({

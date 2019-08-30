@@ -59,6 +59,7 @@ export class LikeCoin {
         return alternative
       }
 
+      console.error(e)
       logger.error(e)
       throw e
     }
@@ -105,6 +106,7 @@ export class LikeCoin {
         throw res
       }
     } catch (e) {
+      console.error(e)
       logger.error(e)
       throw e
     }
@@ -145,6 +147,7 @@ export class LikeCoin {
         throw res
       }
     } catch (e) {
+      console.error(e)
       logger.error(e)
       throw e
     }

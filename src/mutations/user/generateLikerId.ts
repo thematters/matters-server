@@ -1,13 +1,5 @@
 import { MutationToGenerateLikerIdResolver } from 'definitions'
-import {
-  AuthenticationError,
-  ForbiddenError,
-  AssetNotFoundError,
-  DisplayNameInvalidError,
-  UsernameExistsError,
-  UsernameInvalidError,
-  UserInputError
-} from 'common/errors'
+import { AuthenticationError } from 'common/errors'
 
 const resolver: MutationToGenerateLikerIdResolver = async (
   _,
