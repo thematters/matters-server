@@ -2,6 +2,10 @@ const table = 'oauth_client'
 
 exports.up = async knex => {
   await knex.schema.table(table, function (t) {
+    t.bigInteger('user_id')
+      .nullable()
+      .alter()
+
     t.string('name')
       .notNullable()
       .unique()
@@ -21,5 +25,9 @@ exports.down = async knex => {
     t.dropColumn('website_url')
     t.dropColumn('description')
     t.dropColumn('name')
+
+    t.bigInteger('user_id')
+      .notNullable()
+      .alter()
   })
 }
