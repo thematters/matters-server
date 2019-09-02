@@ -17,7 +17,7 @@ const resolver: MutationToUserLoginResolver = async (
 
   setCookie({ res, token })
 
-  context.viewer = getViewerFromUser(user)
+  context.viewer = await getViewerFromUser(user, token)
 
   return { token, auth: true }
 }
