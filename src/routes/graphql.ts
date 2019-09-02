@@ -29,7 +29,8 @@ import {
   SystemService,
   TagService,
   UserService,
-  NotificationService
+  NotificationService,
+  OAuthService
 } from 'connectors'
 import { ActionLimitExceededError } from 'common/errors'
 
@@ -92,7 +93,8 @@ const server = new ProtectedApolloServer({
     draftService: new DraftService(),
     systemService: new SystemService(),
     tagService: new TagService(),
-    notificationService: new NotificationService()
+    notificationService: new NotificationService(),
+    oauthService: new OAuthService()
   }),
   uploads: {
     maxFileSize: UPLOAD_FILE_SIZE_LIMIT,

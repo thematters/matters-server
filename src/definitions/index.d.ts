@@ -8,7 +8,8 @@ import {
   DraftService,
   SystemService,
   TagService,
-  NotificationService
+  NotificationService,
+  OAuthService
 } from 'connectors'
 import { LANGUAGE } from 'common/enums'
 
@@ -64,6 +65,7 @@ export type DataSources = {
   systemService: InstanceType<typeof SystemService>
   tagService: InstanceType<typeof TagService>
   notificationService: InstanceType<typeof NotificationService>
+  oauthService: InstanceType<typeof OAuthService>
 }
 
 export type TableName =

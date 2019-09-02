@@ -20,6 +20,7 @@ export interface GQLQuery {
   oss: GQLOSS
   viewer?: GQLUser
   user?: GQLUser
+  oauthClient?: GQLOAuthClient
 }
 
 export interface GQLArticleInput {
@@ -1493,6 +1494,57 @@ export interface GQLUserInput {
   userName: string
 }
 
+export interface GQLOAuthClientInput {
+  id: string
+}
+
+export interface GQLOAuthClient {
+  /**
+   * Unique Client ID of this OAuth Client.
+   */
+  id: string
+
+  /**
+   * App name
+   */
+  name: string
+
+  /**
+   * App Description
+   */
+  description?: string
+
+  /**
+   * URL for oauth client's official website
+   */
+  website?: GQLURL
+
+  /**
+   * URL for oauth client's avatar.
+   */
+  avatar?: GQLURL
+
+  /**
+   * Client secret
+   */
+  secret: string
+
+  /**
+   * Redirect URIs
+   */
+  redirectURIs?: Array<GQLURL>
+
+  /**
+   * Grant Types
+   */
+  grantTypes?: Array<GQLGrantType>
+}
+
+export enum GQLGrantType {
+  authorization_code = 'authorization_code',
+  refresh_token = 'refresh_token'
+}
+
 export interface GQLMutation {
   /**
    * Publish an article onto IPFS.
@@ -2618,6 +2670,7 @@ export interface GQLResolver {
   ReportConnection?: GQLReportConnectionTypeResolver
   ReportEdge?: GQLReportEdgeTypeResolver
   Report?: GQLReportTypeResolver
+  OAuthClient?: GQLOAuthClientTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
   AuthResult?: GQLAuthResultTypeResolver
@@ -2658,6 +2711,7 @@ export interface GQLQueryTypeResolver<TParent = any> {
   oss?: QueryToOssResolver<TParent>
   viewer?: QueryToViewerResolver<TParent>
   user?: QueryToUserResolver<TParent>
+  oauthClient?: QueryToOauthClientResolver<TParent>
 }
 
 export interface QueryToArticleArgs {
@@ -2742,6 +2796,18 @@ export interface QueryToUserResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToUserArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface QueryToOauthClientArgs {
+  input: GQLOAuthClientInput
+}
+export interface QueryToOauthClientResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: QueryToOauthClientArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6516,6 +6582,95 @@ export interface ReportToCreatedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface ReportToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLOAuthClientTypeResolver<TParent = any> {
+  id?: OAuthClientToIdResolver<TParent>
+  name?: OAuthClientToNameResolver<TParent>
+  description?: OAuthClientToDescriptionResolver<TParent>
+  website?: OAuthClientToWebsiteResolver<TParent>
+  avatar?: OAuthClientToAvatarResolver<TParent>
+  secret?: OAuthClientToSecretResolver<TParent>
+  redirectURIs?: OAuthClientToRedirectURIsResolver<TParent>
+  grantTypes?: OAuthClientToGrantTypesResolver<TParent>
+}
+
+export interface OAuthClientToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientToNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientToDescriptionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientToWebsiteResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientToAvatarResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientToSecretResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientToRedirectURIsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientToGrantTypesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

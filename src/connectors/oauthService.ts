@@ -30,6 +30,13 @@ export class OAuthService extends BaseService {
    *             Client            *
    *                               *
    *********************************/
+  findClient = async ({ clientId }: { clientId: string }) => {
+    return await this.knex('oauth_client')
+      .select()
+      .where({ clientId })
+      .first()
+  }
+
   getClient = async (
     clientId: string,
     clientSecret?: string
