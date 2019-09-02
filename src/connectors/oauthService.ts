@@ -92,13 +92,14 @@ export class OAuthService extends BaseService {
       .select()
       .where({ token: accessToken })
       .first()
-    const client = (await this.getClientById(token.clientId)) as OAuthClient
-    const userService = new UserService()
-    const user = (await userService.dataloader.load(token.userId)) as User
 
     if (!token) {
       return
     }
+
+    const client = (await this.getClientById(token.clientId)) as OAuthClient
+    const userService = new UserService()
+    const user = (await userService.dataloader.load(token.userId)) as User
 
     return {
       accessToken: token.token,
