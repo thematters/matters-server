@@ -15,6 +15,7 @@ import {
   renderPlaygroundPage,
   RenderPageOptions as PlaygroundRenderPageOptions
 } from '@apollographql/graphql-playground-html'
+import { applyMiddleware } from 'graphql-middleware'
 
 // internal
 import logger from 'common/logger'
@@ -32,6 +33,7 @@ import {
   NotificationService
 } from 'connectors'
 import { ActionLimitExceededError } from 'common/errors'
+import { scopeMiddleware } from 'middlewares/scope'
 
 // local
 import schema from '../schema'
@@ -78,8 +80,11 @@ const redisCache = new RedisCache({
   host: environment.cacheHost,
   port: environment.cachePort
 })
+
+const composedSchema = applyMiddleware(schema, scopeMiddleware)
+
 const server = new ProtectedApolloServer({
-  schema,
+  schema: composedSchema,
   context: makeContext,
   engine: {
     apiKey: environment.apiKey
