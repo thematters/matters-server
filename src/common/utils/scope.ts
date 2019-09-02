@@ -48,7 +48,7 @@ export const makeScope = (data: string[], root?: string) => {
  * Get read scope by walking down to specific depth.
  */
 const walkReadScopeByDepth = (scopes: any, nodes: any, depth: number) => {
-  for (let level = 1; level <= depth; level ++) {
+  for (let level = 1; level <= depth; level++) {
     const path = _.slice(nodes, 0, level)
     if (path.length === 0) {
       break
