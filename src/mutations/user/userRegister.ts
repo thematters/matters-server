@@ -17,7 +17,6 @@ import {
   makeUserName,
   setCookie
 } from 'common/utils'
-import { USER_STATE } from 'common/enums'
 
 const resolver: MutationToUserRegisterResolver = async (
   root,
@@ -49,7 +48,9 @@ const resolver: MutationToUserRegisterResolver = async (
     throw new EmailExistsError('email address has already been registered')
   }
   // check display name
-  if (!isValidDisplayName(displayName)) {
+  // Note: We will use "userName" to pre-fill "displayName" in step-1 of signUp flow on website
+  const shouldCheckDisplayName = displayName !== userName
+  if (shouldCheckDisplayName && !isValidDisplayName(displayName)) {
     throw new DisplayNameInvalidError('invalid user display name')
   }
   // check password
