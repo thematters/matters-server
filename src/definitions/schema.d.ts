@@ -1520,6 +1520,11 @@ export interface GQLOAuthClient {
   website?: GQLURL
 
   /**
+   * Scopes
+   */
+  scope?: Array<string>
+
+  /**
    * URL for oauth client's avatar.
    */
   avatar?: GQLURL
@@ -6595,6 +6600,7 @@ export interface GQLOAuthClientTypeResolver<TParent = any> {
   name?: OAuthClientToNameResolver<TParent>
   description?: OAuthClientToDescriptionResolver<TParent>
   website?: OAuthClientToWebsiteResolver<TParent>
+  scope?: OAuthClientToScopeResolver<TParent>
   avatar?: OAuthClientToAvatarResolver<TParent>
   secret?: OAuthClientToSecretResolver<TParent>
   redirectURIs?: OAuthClientToRedirectURIsResolver<TParent>
@@ -6632,6 +6638,15 @@ export interface OAuthClientToDescriptionResolver<
 }
 
 export interface OAuthClientToWebsiteResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientToScopeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

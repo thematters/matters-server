@@ -16,6 +16,9 @@ export default /* GraphQL */ `
     "URL for oauth client's official website"
     website: URL
 
+    "Scopes"
+    scope: [String!]
+
     "URL for oauth client's avatar."
     avatar: URL
 
