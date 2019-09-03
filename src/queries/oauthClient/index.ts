@@ -6,14 +6,8 @@ export default {
     oauthClient: rootOAuthClient
   },
   OAuthClient: {
-    id: ({ clientId }: { clientId: string }) => {
-      console.log('clientId', clientId)
-      return clientId
-    },
+    id: ({ clientId }: { clientId: string }) => clientId,
     avatar,
-    website: ({ websiteUrl }: { websiteUrl: string }) => {
-      console.log(websiteUrl, 'websiteUrl')
-      return websiteUrl
-    }
+    website: ({ websiteUrl }: { websiteUrl: string }) => websiteUrl
   }
 }

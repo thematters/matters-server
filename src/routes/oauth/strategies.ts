@@ -53,6 +53,24 @@ export default () => {
         }
 
         try {
+          // transfer viewer's temporary LikerID to his own LikerID
+          if (viewer.likerId) {
+            const fromLiker = await userService.findLiker({
+              likerId: viewer.likerId
+            })
+
+            if (fromLiker.accountType === 'temporal') {
+              await userService.transferLikerId({
+                fromLiker,
+                toLiker: {
+                  likerId,
+                  accessToken
+                }
+              })
+            }
+          }
+
+          // save and remove the existing temporary one
           const user = await userService.saveLiker({
             userId,
             likerId,
@@ -60,6 +78,7 @@ export default () => {
             refreshToken,
             accountType: 'general'
           })
+
           return done(null, user)
         } catch (e) {
           console.error(e)

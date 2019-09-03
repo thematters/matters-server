@@ -144,6 +144,15 @@ export type LANGUAGES = keyof typeof LANGUAGE
 
 export type ResponseType = 'Article' | 'Comment'
 
+export interface UserOAuthLikeCoin {
+  likerId: string
+  accountType: 'temporal' | 'general'
+  accessToken: string
+  refreshToken: string
+  expires: Date
+  scope: string | string[]
+}
+
 export interface OAuthClient {
   id: string
   redirectUris?: string | string[]

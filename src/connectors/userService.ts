@@ -24,7 +24,12 @@ import {
   PasswordInvalidError,
   ServerError
 } from 'common/errors'
-import { ItemData, GQLSearchInput, GQLUpdateUserInfoInput } from 'definitions'
+import {
+  ItemData,
+  GQLSearchInput,
+  GQLUpdateUserInfoInput,
+  UserOAuthLikeCoin
+} from 'definitions'
 
 import { BaseService } from './baseService'
 import { OAuthService } from './oauthService'
@@ -763,7 +768,7 @@ export class UserService extends BaseService {
   }: {
     userId?: string
     likerId?: string
-  }) => {
+  }): Promise<UserOAuthLikeCoin> => {
     let userLikerId
     if (userId) {
       const user = await this.dataloader.load(userId)
@@ -868,17 +873,14 @@ export class UserService extends BaseService {
   }
 
   transferLikerId = async ({
-    fromLikerId,
-    toLikerId
+    fromLiker,
+    toLiker
   }: {
-    fromLikerId: string
-    toLikerId: string
+    fromLiker: UserOAuthLikeCoin
+    toLiker: Pick<UserOAuthLikeCoin, 'likerId' | 'accessToken'>
   }) => {
-    const fromLiker = await this.findLiker({ likerId: fromLikerId })
-    const toLiker = await this.findLiker({ likerId: toLikerId })
-
     return this.likecoin.edit({
-      user: toLikerId, // TBC
+      user: toLiker.likerId, // TBC
       action: 'transfer',
       payload: {
         fromUserToken: fromLiker.accessToken,
