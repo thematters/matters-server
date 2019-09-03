@@ -110,17 +110,23 @@ export class UserService extends BaseService {
 
   updateInfo = async (
     id: string,
-    input: GQLUpdateUserInfoInput & { email?: string; emailVerified?: boolean }
+    input: GQLUpdateUserInfoInput & {
+      email?: string
+      emailVerified?: boolean
+      state?: string
+    }
   ) => {
     const user = await this.baseUpdate(id, { updatedAt: new Date(), ...input })
 
-    const { description, displayName, userName } = input
-    if (!description && !displayName && !userName) {
+    // remove null and undefined, and write into search
+    const { description, displayName, userName, state } = input
+    if (!(description || displayName || userName || state)) {
       return user
     }
-
-    // remove null and undefined
-    const searchable = _.omitBy({ description, displayName, userName }, _.isNil)
+    const searchable = _.omitBy(
+      { description, displayName, userName, state },
+      _.isNil
+    )
 
     try {
       await this.es.client.update({
@@ -256,23 +262,12 @@ export class UserService extends BaseService {
     offset,
     oss = false
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
-    // if (environment.env === 'development') {
-    //   return this.knex(this.table)
-    //     .where('user_name', 'like', `%${key}%`)
-    //     .offset(offset)
-    //     .limit(first)
-    // }
-
     const body = bodybuilder()
       .from(offset)
       .size(first)
+      .query('match', 'displayName', key)
+      .filter('term', 'state', USER_STATE.active)
       .build() as { [key: string]: any }
-
-    body.query = {
-      match: {
-        displayName: key
-      }
-    }
 
     body.suggest = {
       userName: {

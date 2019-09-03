@@ -1,4 +1,6 @@
 import { sampleSize } from 'lodash'
+import { CacheScope } from 'apollo-cache-control'
+
 import {
   connectionFromPromisedArray,
   cursorToIndex,
@@ -6,7 +8,7 @@ import {
 } from 'common/utils'
 import { GQLRecommendationTypeResolver } from 'definitions'
 import { ForbiddenError, AuthenticationError } from 'common/errors'
-import { ARTICLE_STATE } from 'common/enums'
+import { ARTICLE_STATE, CACHE_TTL } from 'common/enums'
 
 const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles: async (
@@ -168,7 +170,8 @@ const resolvers: GQLRecommendationTypeResolver = {
   authors: async (
     { id },
     { input },
-    { dataSources: { userService }, viewer }
+    { dataSources: { userService }, viewer },
+    { cacheControl }
   ) => {
     const { oss = false } = input
 
@@ -195,6 +198,10 @@ const resolvers: GQLRecommendationTypeResolver = {
     }
 
     if (filter && filter.random) {
+      cacheControl.setCacheHint({
+        maxAge: CACHE_TTL.INSTANT,
+        scope: CacheScope.Private
+      })
       const authors = await userService.recommendAuthor({
         limit: 50,
         notIn,
