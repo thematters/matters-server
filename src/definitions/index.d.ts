@@ -49,7 +49,7 @@ export type Viewer = (User | { id: null }) & {
   ip?: string
   role: string
   language: LANGUAGES
-  scope: {[key: string]: any}
+  scope: { [key: string]: any }
   scopeMode: 'visitor' | 'oauth' | 'user' | 'admin'
 }
 
