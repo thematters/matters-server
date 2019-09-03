@@ -20,9 +20,9 @@ const oAuthService = new OAuthService()
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 export const scopeModes = [
   SCOPE_MODE.visitor,
+  SCOPE_MODE.oauth,
   SCOPE_MODE.user,
-  SCOPE_MODE.admin,
-  SCOPE_MODE.oauth
+  SCOPE_MODE.admin
 ]
 
 const getViewerScope = async (role: string, token: any) => {
@@ -32,7 +32,7 @@ const getViewerScope = async (role: string, token: any) => {
 
   const oAuthToken = await oAuthService.getAccessToken(token as string)
   if (oAuthToken) {
-    const scope = makeScope(oAuthToken.scope as string[], 'viewer')
+    const scope = makeScope(oAuthToken.scope as string[])
     return { scopeMode: SCOPE_MODE.oauth, scope }
   }
   return { scopeMode: role, scope: {} }

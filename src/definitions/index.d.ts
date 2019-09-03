@@ -45,9 +45,12 @@ export type Context = RequestContext & {
 
 export type Viewer = (User | { id: null }) & {
   hasRole: (role: string) => boolean
+  hasScopeMode: (mode: string) => boolean
   ip?: string
   role: string
   language: LANGUAGES
+  scope: {[key: string]: any}
+  scopeMode: 'visitor' | 'oauth' | 'user' | 'admin'
 }
 
 export type RequestContext = {
