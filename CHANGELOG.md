@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2019-09-02
+
+### Changed
+
+- Update `userRegister` mutation to support custom userName #440
+- Update userName validate rule #440
+- Change asset's structure of path and name #443
+- Update user state in search #446
+- Fix response not showing archived comments #445
+
 ## [1.9.0] - 2019-08-23
 
 ### Added

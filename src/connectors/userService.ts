@@ -75,7 +75,11 @@ export class UserService extends BaseService {
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
 
-    await this.addToSearch(user)
+    try {
+      await this.addToSearch(user)
+    } catch (e) {
+      logger.error(e)
+    }
 
     return user
   }
