@@ -15,7 +15,6 @@ import { clearCookie } from './cookie'
 import { makeScope } from './scope'
 
 const userService = new UserService()
-const oAuthService = new OAuthService()
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 export const scopeModes = [
@@ -30,6 +29,7 @@ const getViewerScope = async (role: string, token: any) => {
     return { scopeMode: SCOPE_MODE.visitor, scope: {} }
   }
 
+  const oAuthService = new OAuthService()
   const oAuthToken = await oAuthService.getAccessToken(token as string)
   if (oAuthToken) {
     const scope = makeScope(oAuthToken.scope as string[])

@@ -21,7 +21,7 @@ import {
   NotificationService
 } from 'connectors'
 
-import { roleAccess } from 'common/utils'
+import { roleAccess, scopeModes } from 'common/utils'
 
 import schema from '../../schema'
 
@@ -71,11 +71,17 @@ export const testClient = async (
     viewer.role = isAdmin ? 'admin' : isAuth ? 'user' : 'visitor'
   }
 
+  viewer.scopeMode = viewer.role
+  viewer.scope = {}
+
   _context.viewer = {
     ...viewer,
     hasRole: (requires: string) =>
       roleAccess.findIndex(role => role === viewer.role) >=
-      roleAccess.findIndex(role => role === requires)
+      roleAccess.findIndex(role => role === requires),
+    hasScopeMode: (requires: string) =>
+      scopeModes.findIndex(mode => mode === viewer.scopeMode) >=
+      scopeModes.findIndex(mode => mode === requires)
   }
 
   const server = new ApolloServer({
