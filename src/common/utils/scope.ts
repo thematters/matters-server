@@ -14,13 +14,10 @@ const parse = (data: string) =>
 /**
  * Prepare scope data to be composed into a scope object.
  */
-const prepare = (data: string, root?: string) => {
+const prepare = (data: string) => {
   const list = parse(data)
   if (list.length <= 1) {
     return undefined
-  }
-  if (root) {
-    list[0] = root
   }
   const value = list.pop()
   return [list.join('.'), value]
@@ -39,8 +36,8 @@ const process = (result: { [key: string]: any }, datum: any) => {
 /**
  * Make one scope object by parsing and merging mutiple scope strings.
  */
-export const makeScope = (data: string[], root?: string) => {
-  const source = data.map((datum: string) => prepare(datum, root))
+export const makeScope = (data: string[]) => {
+  const source = data.map((datum: string) => prepare(datum))
   return source.reduce((result, datum) => process(result, datum), {})
 }
 
@@ -73,7 +70,7 @@ export const isValidReadScope = (scopes: any, paths: any) => {
   if (isNotEmptyObject(permission) || permission === SCOPE_TYPE.read) {
     return true
   }
-  // Check parent's scope by depth
+  // Check parent's scope by walking depths
   if (walkReadScopeByDepth(scopes, nodes, 3)) {
     return true
   }
