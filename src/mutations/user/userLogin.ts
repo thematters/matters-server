@@ -1,5 +1,5 @@
 import { setCookie, getViewerFromUser } from 'common/utils'
-import { MutationToUserLoginResolver } from 'definitions'
+import { MutationToUserLoginResolver, ScopeMode } from 'definitions'
 
 const resolver: MutationToUserLoginResolver = async (
   root,
@@ -17,7 +17,9 @@ const resolver: MutationToUserLoginResolver = async (
 
   setCookie({ res, token })
 
-  context.viewer = await getViewerFromUser(user, token)
+  context.viewer = await getViewerFromUser(user)
+  context.viewer.scopeMode = user.role as ScopeMode
+  context.viewer.scope = {}
 
   return { token, auth: true }
 }

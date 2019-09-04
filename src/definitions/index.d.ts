@@ -50,7 +50,7 @@ export type Viewer = (User | { id: null }) & {
   role: string
   language: LANGUAGES
   scope: { [key: string]: any }
-  scopeMode: 'visitor' | 'oauth' | 'user' | 'admin'
+  scopeMode: ScopeMode
 }
 
 export type RequestContext = {
@@ -184,3 +184,5 @@ export interface OAuthRefreshToken {
 }
 
 export type Falsey = '' | 0 | false | null | undefined
+
+export type ScopeMode = 'visitor' | 'oauth' | 'user' | 'admin'

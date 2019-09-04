@@ -24,21 +24,7 @@ export const scopeModes = [
   SCOPE_MODE.admin
 ]
 
-const getViewerScope = async (role: string, token: any) => {
-  if (!token || (role !== USER_ROLE.user && role !== USER_ROLE.admin)) {
-    return { scopeMode: SCOPE_MODE.visitor, scope: {} }
-  }
-
-  const oAuthService = new OAuthService()
-  const oAuthToken = await oAuthService.getAccessToken(token as string)
-  if (oAuthToken) {
-    const scope = makeScope(oAuthToken.scope as string[])
-    return { scopeMode: SCOPE_MODE.oauth, scope }
-  }
-  return { scopeMode: role, scope: {} }
-}
-
-export const getViewerFromUser = async (user: any, token: any) => {
+export const getViewerFromUser = async (user: any) => {
   // overwrite default by user
   let viewer = { role: USER_ROLE.visitor, ...user }
 
@@ -47,16 +33,31 @@ export const getViewerFromUser = async (user: any, token: any) => {
     roleAccess.findIndex(role => role === viewer.role) >=
     roleAccess.findIndex(role => role === requires)
 
-  // get viewer scope
-  const scope = await getViewerScope(viewer.role, token)
-  viewer = { ...viewer, ...scope }
-
   // append helper functions
   viewer.hasScopeMode = (requires: string) =>
     scopeModes.findIndex(mode => mode === viewer.scopeMode) >=
     scopeModes.findIndex(mode => mode === requires)
 
   return viewer
+}
+
+const getUser = async (token: string) => {
+  try {
+    // get general user
+    const source = jwt.verify(token, environment.jwtSecret) as { uuid: string }
+    const user = await userService.baseFindByUUID(source.uuid)
+    return { user, scopeMode: user.role }
+  }
+  catch (error) {
+    // get oauth user
+    const oAuthService = new OAuthService()
+    const data = await oAuthService.getAccessToken(token)
+    if (data) {
+      const scope = makeScope(data.scope as string[])
+      return { ...data.user, scopeMode: SCOPE_MODE.oauth, scope }
+    }
+    throw new Error('token invalid')
+  }
 }
 
 export const getViewerFromReq = async ({
@@ -74,7 +75,9 @@ export const getViewerFromReq = async ({
 
   // user infomation from request
   let user = {
-    language
+    language,
+    scopeMode: SCOPE_MODE.visitor,
+    scope: {}
   }
 
   // get user from token, use cookie first then 'x-access-token'
@@ -86,10 +89,7 @@ export const getViewerFromReq = async ({
     logger.info('User is not logged in, viewing as guest')
   } else {
     try {
-      const decoded = jwt.verify(token as string, environment.jwtSecret) as {
-        uuid: string
-      }
-      let userDB = await userService.baseFindByUUID(decoded.uuid)
+      const userDB = await getUser(token as string)
 
       // overwrite request by user settings
       user = { ...user, ...userDB }
@@ -101,5 +101,5 @@ export const getViewerFromReq = async ({
     }
   }
 
-  return getViewerFromUser(user, token)
+  return getViewerFromUser(user)
 }
