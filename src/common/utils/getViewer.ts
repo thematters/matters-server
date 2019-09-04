@@ -42,7 +42,7 @@ export const getViewerFromUser = async (user: any, token: any) => {
   // overwrite default by user
   let viewer = { role: USER_ROLE.visitor, ...user }
 
-  // append hepler functions
+  // append hepler functions (keep it till we fully utilize scope)
   viewer.hasRole = (requires: string) =>
     roleAccess.findIndex(role => role === viewer.role) >=
     roleAccess.findIndex(role => role === requires)
