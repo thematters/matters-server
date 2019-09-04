@@ -2,7 +2,6 @@
 import _ from 'lodash'
 import { responsePathAsArray } from 'graphql'
 // local
-import { SCOPE_TYPE } from '../enums'
 import { isNotEmptyObject } from './validator'
 
 /**
@@ -16,11 +15,10 @@ const parse = (data: string) =>
  */
 const prepare = (data: string) => {
   const list = parse(data)
-  if (list.length <= 1) {
+  if (list.length <= 2) {
     return undefined
   }
-  const value = list.pop()
-  return [list.join('.'), value]
+  return list.join('.')
 }
 
 /**
@@ -30,7 +28,7 @@ const process = (result: { [key: string]: any }, datum: any) => {
   if (!datum) {
     return result
   }
-  return _.merge(result, _.set({}, datum[0], datum[1]))
+  return _.merge(result, _.set({}, datum, true))
 }
 
 /**
@@ -51,7 +49,7 @@ const walkReadScopeByDepth = (scopes: any, nodes: any, depth: number) => {
       break
     }
     const permission = _.get(scopes, path.join('.'), false)
-    if (permission === SCOPE_TYPE.read) {
+    if (permission === true) {
       return true
     }
   }
@@ -61,13 +59,13 @@ const walkReadScopeByDepth = (scopes: any, nodes: any, depth: number) => {
 /**
  * Check if this scope is valid.
  */
-export const isValidReadScope = (scopes: any, paths: any) => {
-  const nodes = responsePathAsArray(paths)
+export const isValidReadScope = (scopes: any, paths: any, prefix = 'query') => {
+  const nodes = [prefix, ...responsePathAsArray(paths)]
   const path = nodes.join('.') || ''
   const permission = _.get(scopes, path, false)
 
   // Check current field scope
-  if (isNotEmptyObject(permission) || permission === SCOPE_TYPE.read) {
+  if (isNotEmptyObject(permission) || permission === true) {
     return true
   }
   // Check parent's scope by walking depths

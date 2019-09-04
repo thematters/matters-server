@@ -46,9 +46,8 @@ const getUser = async (token: string) => {
     // get general user
     const source = jwt.verify(token, environment.jwtSecret) as { uuid: string }
     const user = await userService.baseFindByUUID(source.uuid)
-    return { user, scopeMode: user.role }
-  }
-  catch (error) {
+    return { ...user, scopeMode: user.role }
+  } catch (error) {
     // get oauth user
     const oAuthService = new OAuthService()
     const data = await oAuthService.getAccessToken(token)
@@ -90,7 +89,6 @@ export const getViewerFromReq = async ({
   } else {
     try {
       const userDB = await getUser(token as string)
-
       // overwrite request by user settings
       user = { ...user, ...userDB }
     } catch (err) {
