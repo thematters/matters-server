@@ -52,8 +52,8 @@ export const authDirectiveFactory = (AuthError = ForbiddenError) => {
 
           const context: Context = args[2]
 
-          if (!context.viewer.hasRole(requiredRole)) {
-            throw new AuthError(`${context.viewer.role} is not authorized`)
+          if (!context.viewer.hasScopeMode(requiredRole)) {
+            throw new AuthError(`${context.viewer.scopeMode} is not authorized`)
           }
 
           return resolve.apply(this, args)
