@@ -12,7 +12,6 @@ import logger from 'common/logger'
 import { environment } from 'common/environment'
 import {
   OAUTH_ACCESS_TOKEN_EXPIRES_IN,
-  OAUTH_VALID_SCOPES,
   OAUTH_REFRESH_TOKEN_EXPIRES_IN
 } from 'common/enums'
 
@@ -56,7 +55,8 @@ export class OAuthService extends BaseService {
     return {
       id: dbClient.id,
       redirectUris: dbClient.redirectUri,
-      grants: dbClient.grantTypes
+      grants: dbClient.grantTypes,
+      scope: dbClient.scope
       // accessTokenLifetime: , // Client-specific lifetime
       // refreshTokenLifetime: , // Client-specific lifetime
     }
@@ -79,7 +79,7 @@ export class OAuthService extends BaseService {
   generateAccessToken = async (
     client: OAuthClient,
     user: User,
-    scope: string[]
+    scope: string | string[]
   ): Promise<string> => {
     return nanoid(40)
   }
@@ -232,7 +232,7 @@ export class OAuthService extends BaseService {
   generateRefreshToken = async (
     client: OAuthClient,
     user: User,
-    scope: string
+    scope: string | string[]
   ): Promise<string> => {
     return nanoid(40)
   }
@@ -279,24 +279,31 @@ export class OAuthService extends BaseService {
    *             Scope             *
    *                               *
    *********************************/
+  scopeStr2Arr = (scope: string): string[] => {
+    return scope.split(/[,\s]/).filter(s => !!s)
+  }
+
   validateScope = async (
     user: User,
     client: OAuthClient,
-    scope: string
+    scope: string | string[]
   ): Promise<string | string[] | Falsey> => {
-    return (
-      (scope || '')
-        .split(' ')
-        .filter(s => OAUTH_VALID_SCOPES.indexOf(s) >= 0)
-        .join(' ') || []
-    )
+    // Use client's default scope,
+    // if thrid-party app has not specified "scope" query parameter in authorization,
+    if (!scope) {
+      return client.scope
+    }
+
+    // TODO: validate scope with client's scope in DB
+    scope = scope instanceof Array ? scope : this.scopeStr2Arr(scope)
+    return scope
   }
 
   verifyScope = async (
     accessToken: OAuthToken,
-    scope: string
+    scope: string | string[]
   ): Promise<boolean> => {
-    //TODO
+    //TODO: Maybe we don't have to implement this?
     return true
   }
 

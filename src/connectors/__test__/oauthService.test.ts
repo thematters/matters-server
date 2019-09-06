@@ -26,9 +26,11 @@ describe('scope', () => {
     const validScopes = await oauthService.validateScope(
       client,
       user,
-      'invalid-scope'
+      'query:viewer:likerId'
     )
-    expect(validScopes.length).toBe(0)
+    expect(validScopes.length).toBe(1)
+
+    // TODO: test invalid scopes
   })
 })
 

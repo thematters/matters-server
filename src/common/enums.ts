@@ -401,8 +401,6 @@ export const CORS_OPTIONS = {
   credentials: true
 }
 
-export const OAUTH_VALID_SCOPES: string[] = []
-
 export const OAUTH_CALLBACK_ERROR_CODE = {
   userNotFound: 1,
   likerNotFound: 2
