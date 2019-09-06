@@ -6,6 +6,7 @@ import scalars from './scalars'
 import system from './system'
 import user from './user'
 import response from './response'
+import oauthClient from './oauthClient'
 
 const Root = /* GraphQL */ `
   type Query
@@ -27,5 +28,6 @@ export default [
   scalars,
   system,
   user,
-  response
+  response,
+  oauthClient
 ]

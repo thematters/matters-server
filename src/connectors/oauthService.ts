@@ -9,7 +9,12 @@ import {
   Falsey
 } from 'definitions'
 import logger from 'common/logger'
-import { OAUTH_VALID_SCOPES } from 'common/enums'
+import { environment } from 'common/environment'
+import {
+  OAUTH_ACCESS_TOKEN_EXPIRES_IN,
+  OAUTH_VALID_SCOPES,
+  OAUTH_REFRESH_TOKEN_EXPIRES_IN
+} from 'common/enums'
 
 import { BaseService } from './baseService'
 import { UserService } from './userService'
@@ -24,6 +29,13 @@ export class OAuthService extends BaseService {
    *             Client            *
    *                               *
    *********************************/
+  findClient = async ({ clientId }: { clientId: string }) => {
+    return await this.knex('oauth_client')
+      .select()
+      .where({ clientId })
+      .first()
+  }
+
   getClient = async (
     clientId: string,
     clientSecret?: string
@@ -67,7 +79,7 @@ export class OAuthService extends BaseService {
   generateAccessToken = async (
     client: OAuthClient,
     user: User,
-    scope: string
+    scope: string[]
   ): Promise<string> => {
     return nanoid(40)
   }
@@ -286,5 +298,56 @@ export class OAuthService extends BaseService {
   ): Promise<boolean> => {
     //TODO
     return true
+  }
+
+  /**
+   * LikeCoin
+   */
+  generateTokenForLikeCoin = async ({ userId }: { userId: string }) => {
+    const userService = new UserService()
+    const user = (await userService.dataloader.load(userId)) as User
+    const name = environment.likecoinOAuthClientName
+    const client = await this.knex('oauth_client')
+      .select()
+      .where({ name })
+      .first()
+    const oauthClient = this.toOAuthClient(client)
+
+    if (!client || !oauthClient) {
+      throw new Error(`client of "${name}" does not exists`)
+    }
+
+    // generate access token
+    const accessToken = await this.generateAccessToken(
+      oauthClient,
+      user,
+      client.scope
+    )
+
+    // generate refresh token
+    const refreshToken = await this.generateRefreshToken(
+      oauthClient,
+      user,
+      client.scope
+    )
+
+    // save token
+    return await this.saveToken(
+      {
+        accessToken,
+        accessTokenExpiresAt: new Date(
+          Date.now() + OAUTH_ACCESS_TOKEN_EXPIRES_IN
+        ),
+        refreshToken,
+        refreshTokenExpiresAt: new Date(
+          Date.now() + OAUTH_REFRESH_TOKEN_EXPIRES_IN
+        ),
+        scope: client.scope,
+        client,
+        user
+      },
+      client,
+      user
+    )
   }
 }

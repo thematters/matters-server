@@ -31,7 +31,8 @@ export default /* GraphQL */ `
     "Logout user."
     userLogout: Boolean!
 
-    # addOAuth(input: AddOAuthInput!): Boolean
+    "Generate or claim a Liker ID through LikeCoin"
+    generateLikerId: User! @authenticate
 
     "Update user information."
     updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
@@ -208,8 +209,6 @@ export default /* GraphQL */ `
   type UserSettings {
     "User language setting."
     language: UserLanguage! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
-    # Thrid party accounts binded for the user
-    # oauthType: [OAuthType!]
     # Notification settings
     "Notification settings."
     notification: NotificationSetting!
@@ -441,12 +440,6 @@ export default /* GraphQL */ `
     password: String!
   }
 
-  # input AddOAuthInput {
-  #   name: String!
-  #   id: String!
-  #   type: OAuthType
-  # }
-
   input UpdateNotificationSettingInput {
     type: NotificationSettingType!
     enabled: Boolean!
@@ -527,12 +520,6 @@ export default /* GraphQL */ `
     officialNotice
     reportFeedback
   }
-
-  # enum OAuthType {
-  #   facebook
-  #   wechat
-  #   google
-  # }
 
   enum UserState {
     active

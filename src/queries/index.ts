@@ -8,6 +8,7 @@ import draft from './draft'
 import notice from './notice'
 import system from './system'
 import response from './response'
+import oauthClient from './oauthClient'
 
 export default merge(
   scalars,
@@ -17,5 +18,6 @@ export default merge(
   draft,
   notice,
   system,
-  response
+  response,
+  oauthClient
 )

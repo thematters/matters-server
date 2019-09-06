@@ -6,6 +6,7 @@ import verifyEmail from './verifyEmail'
 import userRegister from './userRegister'
 import userLogin from './userLogin'
 import userLogout from './userLogout'
+import generateLikerId from './generateLikerId'
 import updateUserInfo from './updateUserInfo'
 import updateNotificationSetting from './updateNotificationSetting'
 import followUser from './followUser'
@@ -24,6 +25,7 @@ export default {
     userRegister,
     userLogin,
     userLogout,
+    generateLikerId,
     updateUserInfo,
     updateNotificationSetting,
     followUser,

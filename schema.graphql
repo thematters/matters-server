@@ -722,6 +722,11 @@ input FrequentSearchInput {
   first: Int
 }
 
+enum GrantType {
+  authorization_code
+  refresh_token
+}
+
 input ImportArticlesInput {
   platform: String
   token: String
@@ -893,6 +898,9 @@ type Mutation {
   """Logout user."""
   userLogout: Boolean!
 
+  """Generate or claim a Liker ID through LikeCoin"""
+  generateLikerId: User!
+
   """Update user information."""
   updateUserInfo(input: UpdateUserInfoInput!): User!
 
@@ -994,6 +1002,39 @@ enum NotificationSettingType {
   commentVoted
   officialNotice
   reportFeedback
+}
+
+type OAuthClient {
+  """Unique Client ID of this OAuth Client."""
+  id: ID!
+
+  """App name"""
+  name: String!
+
+  """App Description"""
+  description: String
+
+  """URL for oauth client's official website"""
+  website: URL
+
+  """Scopes"""
+  scope: [String!]
+
+  """URL for oauth client's avatar."""
+  avatar: URL
+
+  """Client secret"""
+  secret: String!
+
+  """Redirect URIs"""
+  redirectURIs: [URL!]
+
+  """Grant Types"""
+  grantTypes: [GrantType!]
+}
+
+input OAuthClientInput {
+  id: ID!
 }
 
 """This type contains system-wise settings."""
@@ -1133,6 +1174,7 @@ type Query {
   oss: OSS!
   viewer: User
   user(input: UserInput!): User
+  oauthClient(input: OAuthClientInput!): OAuthClient
 }
 
 input ReadArticleInput {

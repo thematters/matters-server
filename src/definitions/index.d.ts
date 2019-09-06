@@ -8,7 +8,8 @@ import {
   DraftService,
   SystemService,
   TagService,
-  NotificationService
+  NotificationService,
+  OAuthService
 } from 'connectors'
 import { LANGUAGE } from 'common/enums'
 
@@ -25,6 +26,7 @@ export type User = {
   description: string
   avatar: string
   email: string
+  likerId?: string
   mobile: string | null
   passwordHash: string
   readSpead: number
@@ -66,6 +68,7 @@ export type DataSources = {
   systemService: InstanceType<typeof SystemService>
   tagService: InstanceType<typeof TagService>
   notificationService: InstanceType<typeof NotificationService>
+  oauthService: InstanceType<typeof OAuthService>
 }
 
 export type TableName =
@@ -143,6 +146,15 @@ export type ItemData = { [key: string]: any }
 export type LANGUAGES = keyof typeof LANGUAGE
 
 export type ResponseType = 'Article' | 'Comment'
+
+export interface UserOAuthLikeCoin {
+  likerId: string
+  accountType: 'temporal' | 'general'
+  accessToken: string
+  refreshToken: string
+  expires: Date
+  scope: string | string[]
+}
 
 export interface OAuthClient {
   id: string
