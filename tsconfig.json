@@ -12,6 +12,7 @@
       "common": ["common/"],
       "connectors": ["connectors/"],
       "definitions": ["definitions/"],
+      "middlewares": ["middlewares"],
       "mutations": ["mutations/"],
       "queries": ["queries/"]
     },

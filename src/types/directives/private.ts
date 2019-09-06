@@ -9,7 +9,7 @@ export class PrivateDirective extends SchemaDirectiveVisitor {
     field.resolve = async function(...args) {
       const [{ id }, _, { viewer }] = args
 
-      if (id === viewer.id || viewer.hasRole('admin')) {
+      if (id === viewer.id || viewer.hasScopeMode('admin')) {
         return resolve.apply(this, args)
       }
 

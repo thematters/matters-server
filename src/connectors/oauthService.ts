@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import nanoid from 'nanoid'
 
 import {
   OAuthClient,
@@ -15,7 +15,6 @@ import {
   OAUTH_VALID_SCOPES,
   OAUTH_REFRESH_TOKEN_EXPIRES_IN
 } from 'common/enums'
-import { randomString } from 'common/utils'
 
 import { BaseService } from './baseService'
 import { UserService } from './userService'
@@ -82,14 +81,7 @@ export class OAuthService extends BaseService {
     user: User,
     scope: string[]
   ): Promise<string> => {
-    const token = jwt.sign(
-      { uuid: user.uuid, scope, client_id: client.id, type: 'oauth' },
-      environment.jwtSecret,
-      {
-        expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN
-      }
-    )
-    return token
+    return nanoid(40)
   }
 
   getAccessToken = async (
@@ -242,8 +234,7 @@ export class OAuthService extends BaseService {
     user: User,
     scope: string
   ): Promise<string> => {
-    const token = randomString(40)
-    return token
+    return nanoid(40)
   }
 
   getRefreshToken = async (

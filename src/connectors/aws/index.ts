@@ -7,11 +7,9 @@ import imageminPngquant from 'imagemin-pngquant'
 import imageminSvgo from 'imagemin-svgo'
 import sizeOf from 'image-size'
 import mime from 'mime-types'
-import { v4 } from 'uuid'
-import slugify from '@matters/slugify'
 import sharp from 'sharp'
 //local
-import { S3Bucket, GQLAssetType } from 'definitions'
+import { GQLAssetType } from 'definitions'
 import {
   ACCEPTED_UPLOAD_IMAGE_TYPES,
   IMAGE_DIMENSION_LIMIT,
@@ -19,7 +17,6 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
-import { randomString } from 'common/utils/randomString'
 
 export class AWSService {
   s3: AWS.S3
