@@ -14,28 +14,26 @@ export const scopeMiddleware = async (
   context: any,
   info: any
 ) => {
-  if (root) {
-    // validate OAuth scope
-    if (context.viewer.scopeMode === SCOPE_MODE.oauth) {
-      const operation = get(info, 'operation.operation')
+  // validate OAuth scope
+  if (context.viewer.scopeMode === SCOPE_MODE.oauth) {
+    const operation = get(info, 'operation.operation')
 
-      switch (operation) {
-        case GQL_OPERATION.mutation: {
+    switch (operation) {
+      case GQL_OPERATION.mutation: {
+        throw new ForbiddenError('viewer has no permission')
+        break
+      }
+
+      case GQL_OPERATION.query: {
+        if (!isValidReadScope(context.viewer.scope, info.path)) {
           throw new ForbiddenError('viewer has no permission')
-          break
         }
+        break
+      }
 
-        case GQL_OPERATION.query: {
-          if (!isValidReadScope(context.viewer.scope, info.path)) {
-            throw new ForbiddenError('viewer has no permission')
-          }
-          break
-        }
-
-        default: {
-          throw new UnknownError('unknown operation')
-          break
-        }
+      default: {
+        throw new UnknownError('unknown operation')
+        break
       }
     }
   }
