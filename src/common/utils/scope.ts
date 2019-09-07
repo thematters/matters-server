@@ -59,10 +59,15 @@ const walkReadScopeByDepth = (scopes: any, nodes: any, depth: number) => {
 /**
  * Check if this scope is valid.
  */
-export const isValidReadScope = (scopes: any, paths: any, prefix = 'query') => {
+export const isValidReadScope = (scopes: any, paths: any, prefix = 'query', requiredRoots = ['viewer']) => {
   const nodes = [prefix, ...responsePathAsArray(paths)]
   const path = nodes.join('.') || ''
   const permission = _.get(scopes, path, false)
+
+  // Check if query root can pass or not
+  if (!requiredRoots.includes(nodes[1] as string)) {
+    return true
+  }
 
   // Check current field scope
   if (isNotEmptyObject(permission) || permission === true) {
