@@ -17,7 +17,7 @@ export default /* GraphQL */ `
     resetPassword(input: ResetPasswordInput!): Boolean
 
     "Change user email."
-    changeEmail(input: ChangeEmailInput!): Boolean @authenticate
+    changeEmail(input: ChangeEmailInput!): User! @authenticate
 
     "Verify user email."
     verifyEmail(input: VerifyEmailInput!): Boolean @authenticate

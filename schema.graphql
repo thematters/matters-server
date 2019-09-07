@@ -884,7 +884,7 @@ type Mutation {
   resetPassword(input: ResetPasswordInput!): Boolean
 
   """Change user email."""
-  changeEmail(input: ChangeEmailInput!): Boolean
+  changeEmail(input: ChangeEmailInput!): User!
 
   """Verify user email."""
   verifyEmail(input: VerifyEmailInput!): Boolean

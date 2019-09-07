@@ -1706,7 +1706,7 @@ export interface GQLMutation {
   /**
    * Change user email.
    */
-  changeEmail?: boolean
+  changeEmail: GQLUser
 
   /**
    * Verify user email.
