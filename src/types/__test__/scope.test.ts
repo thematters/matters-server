@@ -6,10 +6,7 @@ import { makeScope } from 'common/utils'
 // local
 import { defaultTestUser, getUserContext, testClient } from './utils'
 
-const testScopes = [
-  'query:viewer:likerId',
-  'query:viewer:info:email'
-]
+const testScopes = ['query:viewer:likerId', 'query:viewer:info:email']
 
 const QUERY_CASE_1 = `
   query ($input: UserInput!) {
@@ -62,9 +59,13 @@ const UPDATE_USER_INFO_DESCRIPTION = `
 `
 
 const prepare = async ({
-  email, mode, scope
+  email,
+  mode,
+  scope
 }: {
-  email: string, mode: string, scope: { [key: string]: any }
+  email: string
+  mode: string
+  scope: { [key: string]: any }
 }) => {
   const context = await getUserContext({ email })
   context.viewer.scopeMode = mode || context.viewer.role
@@ -76,12 +77,13 @@ const prepare = async ({
 
 // Check OAuth viewer query and mutation are functional or not.
 describe('OAuth viewer qeury and mutation', () => {
-
   const scope = makeScope(testScopes)
 
   test('query with public and socped fields', async () => {
-    const { context, query } = await prepare ({
-      email: defaultTestUser.email, mode: SCOPE_MODE.oauth, scope
+    const { context, query } = await prepare({
+      email: defaultTestUser.email,
+      mode: SCOPE_MODE.oauth,
+      scope
     })
     const otherUserName = 'test2'
     const { data } = await query({
@@ -95,7 +97,9 @@ describe('OAuth viewer qeury and mutation', () => {
 
   test('query with no scoped and other private fields', async () => {
     const { context, query } = await prepare({
-      email: defaultTestUser.email, mode: SCOPE_MODE.oauth, scope
+      email: defaultTestUser.email,
+      mode: SCOPE_MODE.oauth,
+      scope
     })
     // query no scope field error
     const error_case1 = await query({ query: QUERY_CASE_2 })
@@ -109,12 +113,16 @@ describe('OAuth viewer qeury and mutation', () => {
       variables: { input: { userName: otherUserName } }
     })
     expect(error_case2.errors.length).toBe(1)
-    expect(error_case2.errors[0].message).toBe('unauthorized user for field email')
+    expect(error_case2.errors[0].message).toBe(
+      'unauthorized user for field email'
+    )
   })
 
   test('mutation', async () => {
-    const { context, mutate } = await prepare ({
-      email: defaultTestUser.email, mode: SCOPE_MODE.oauth, scope
+    const { context, mutate } = await prepare({
+      email: defaultTestUser.email,
+      mode: SCOPE_MODE.oauth,
+      scope
     })
     const description = 'foo bar'
     const { errors } = await mutate({
@@ -126,12 +134,10 @@ describe('OAuth viewer qeury and mutation', () => {
   })
 })
 
-
 // Check general viewer query and mutation are functional or not.
 describe('General viewer query and mutation', () => {
-
   test('query with public and socped fields', async () => {
-    const { context, query } = await prepare ({ email: defaultTestUser.email })
+    const { context, query } = await prepare({ email: defaultTestUser.email })
     const otherUserName = 'test2'
     const { data } = await query({
       query: QUERY_CASE_1,
@@ -155,17 +161,18 @@ describe('General viewer query and mutation', () => {
       variables: { input: { userName: otherUserName } }
     })
     expect(error_case.errors.length).toBe(1)
-    expect(error_case.errors[0].message).toBe('unauthorized user for field email')
+    expect(error_case.errors[0].message).toBe(
+      'unauthorized user for field email'
+    )
   })
 
   test('mutation', async () => {
     const description = 'foo bar'
-    const { context, mutate } = await prepare ({ email: defaultTestUser.email })
+    const { context, mutate } = await prepare({ email: defaultTestUser.email })
     const { data } = await mutate({
       mutation: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } }
     })
     expect(data.updateUserInfo.info.description).toEqual(description)
   })
-
 })
