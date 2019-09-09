@@ -14,7 +14,7 @@ export const scopeMiddleware = async (
   context: any,
   info: any
 ) => {
-  // validate OAuth scope
+  // check OAuth operation
   if (context.viewer.scopeMode === SCOPE_MODE.oauth) {
     const operation = get(info, 'operation.operation')
 
@@ -25,9 +25,6 @@ export const scopeMiddleware = async (
       }
 
       case GQL_OPERATION.query: {
-        if (!isValidReadScope(context.viewer.scope, info.path)) {
-          throw new ForbiddenError('viewer has no permission')
-        }
         break
       }
 
