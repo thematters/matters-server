@@ -9,6 +9,7 @@ import {
 import { environment } from 'common/environment'
 import { UserService } from 'connectors'
 import { OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
+import logger from 'common/logger'
 
 class LikeCoinStrategy extends Strategy {
   constructor(
@@ -53,6 +54,18 @@ export default () => {
         }
 
         try {
+          // check if likerId is already exists
+          const liker = await userService.findLiker({
+            likerId
+          })
+
+          if (liker) {
+            return done(null, undefined, {
+              code: OAUTH_CALLBACK_ERROR_CODE.likerExists,
+              message: 'liker already exists'
+            })
+          }
+
           // transfer viewer's temporary LikerID to his own LikerID
           if (viewer.likerId) {
             const fromLiker = await userService.findLiker({
@@ -70,7 +83,7 @@ export default () => {
             }
           }
 
-          // save and remove the existing temporary one
+          // save authorized liker and remove the existing temporary one
           const user = await userService.saveLiker({
             userId,
             likerId,
@@ -81,7 +94,7 @@ export default () => {
 
           return done(null, user)
         } catch (e) {
-          console.error(e)
+          logger.error(e)
           return done(null, undefined)
         }
       }
