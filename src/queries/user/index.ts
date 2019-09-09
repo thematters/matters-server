@@ -7,6 +7,7 @@ import followers from './followers'
 import followees from './followees'
 import isFollower from './isFollower'
 import isFollowee from './isFollowee'
+import likerId from './likerId'
 import avatar from './avatar'
 import badges from './badges'
 import userNameEditable from './userNameEditable'
@@ -37,6 +38,7 @@ export default {
     id: ({ id }: { id: string }) =>
       id ? toGlobalId({ type: 'User', id }) : '',
     avatar,
+    likerId,
     info: (root: any) => root,
     settings: (root: any) => root,
     status: (root: any) => (root.id ? root : null),

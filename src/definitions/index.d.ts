@@ -148,9 +148,11 @@ export type LANGUAGES = keyof typeof LANGUAGE
 
 export type ResponseType = 'Article' | 'Comment'
 
+export type UserOAuthLikeCoinAccountType = 'temporal' | 'general'
+
 export interface UserOAuthLikeCoin {
   likerId: string
-  accountType: 'temporal' | 'general'
+  accountType: UserOAuthLikeCoinAccountType
   accessToken: string
   refreshToken: string
   expires: Date

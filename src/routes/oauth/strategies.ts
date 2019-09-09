@@ -59,7 +59,7 @@ export default () => {
               likerId: viewer.likerId
             })
 
-            if (fromLiker.accountType === 'temporal') {
+            if (fromLiker && fromLiker.accountType === 'temporal') {
               await userService.transferLikerId({
                 fromLiker,
                 toLiker: {
