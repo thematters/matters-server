@@ -43,6 +43,7 @@ export type User = {
 
 export type Context = RequestContext & {
   dataSources: DataSources
+  cacheKey: string
 }
 
 export type Viewer = (User | { id: null }) & {

@@ -10,7 +10,6 @@ import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
 import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
 import { RedisCache } from 'apollo-server-cache-redis'
-import responseCachePlugin from 'apollo-server-plugin-response-cache'
 import {
   renderPlaygroundPage,
   RenderPageOptions as PlaygroundRenderPageOptions
@@ -35,6 +34,7 @@ import {
 } from 'connectors'
 import { ActionLimitExceededError } from 'common/errors'
 import { scopeMiddleware } from 'middlewares/scope'
+import responseCachePlugin from 'middlewares/responseCachePlugin'
 
 // local
 import schema from '../schema'
