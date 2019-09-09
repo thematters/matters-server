@@ -14,6 +14,7 @@ export * from './removeEmpty'
 export * from './xss'
 export * from './makeStreamToBuffer'
 export * from './content'
+export * from './scope'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.
