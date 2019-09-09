@@ -60,7 +60,7 @@ const walkReadScopeByDepth = (scopes: any, nodes: any, depth: number) => {
  * Check if this scope is valid.
  */
 export const isValidReadScope = (
-  scopes: {[key: string]: any},
+  scopes: { [key: string]: any },
   paths: any,
   prefix = 'query'
 ) => {

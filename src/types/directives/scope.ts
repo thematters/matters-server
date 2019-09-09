@@ -1,4 +1,8 @@
-import { defaultFieldResolver, GraphQLField, responsePathAsArray } from 'graphql'
+import {
+  defaultFieldResolver,
+  GraphQLField,
+  responsePathAsArray
+} from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 
 import { SCOPE_MODE } from 'common/enums'
