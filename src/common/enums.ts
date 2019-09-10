@@ -403,7 +403,8 @@ export const CORS_OPTIONS = {
 
 export const OAUTH_CALLBACK_ERROR_CODE = {
   userNotFound: 1,
-  likerNotFound: 2
+  likerNotFound: 2,
+  likerExists: 3
 }
 
 export const BLOCK_USERS = ['jQwZ2JnYzg3MmdAZw']

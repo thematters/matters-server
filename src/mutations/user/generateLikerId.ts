@@ -1,5 +1,5 @@
 import { MutationToGenerateLikerIdResolver } from 'definitions'
-import { AuthenticationError } from 'common/errors'
+import { AuthenticationError, ForbiddenError } from 'common/errors'
 
 const resolver: MutationToGenerateLikerIdResolver = async (
   _,
@@ -10,8 +10,10 @@ const resolver: MutationToGenerateLikerIdResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
+  const liker = await userService.findLiker({ userId: viewer.id })
+
   // generate
-  if (!viewer.likerId) {
+  if (!liker || !liker.likerId) {
     await userService.registerLikerId({
       userId: viewer.id,
       userName: viewer.userName
@@ -20,8 +22,12 @@ const resolver: MutationToGenerateLikerIdResolver = async (
 
   // claim
   else {
+    if (liker.accountType !== 'temporal') {
+      throw new ForbiddenError('viewer aleready has a likerId')
+    }
+
     await userService.claimLikerId({
-      likerId: viewer.likerId
+      liker
     })
   }
 

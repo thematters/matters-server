@@ -28,7 +28,8 @@ import {
   ItemData,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
-  UserOAuthLikeCoin
+  UserOAuthLikeCoin,
+  UserOAuthLikeCoinAccountType
 } from 'definitions'
 
 import { BaseService } from './baseService'
@@ -768,17 +769,21 @@ export class UserService extends BaseService {
   }: {
     userId?: string
     likerId?: string
-  }): Promise<UserOAuthLikeCoin> => {
-    let userLikerId
+  }): Promise<UserOAuthLikeCoin | null> => {
+    let userLikerId = likerId
     if (userId) {
       const user = await this.dataloader.load(userId)
       userLikerId = user.likerId
     }
 
+    if (!userLikerId) {
+      return null
+    }
+
     return await this.knex
       .select()
       .from('user_oauth_likecoin')
-      .where({ likerId: userLikerId || likerId })
+      .where({ likerId: userLikerId })
       .first()
   }
 
@@ -793,7 +798,7 @@ export class UserService extends BaseService {
   }: {
     userId: string
     likerId: string
-    accountType: 'temporal' | 'general'
+    accountType: UserOAuthLikeCoinAccountType
     accessToken: string
     refreshToken?: string
     expires?: number
@@ -858,17 +863,15 @@ export class UserService extends BaseService {
     })
   }
 
-  claimLikerId = async ({ likerId }: { likerId: string }) => {
-    const liker = await this.findLiker({ likerId })
-
+  claimLikerId = async ({ liker }: { liker: UserOAuthLikeCoin }) => {
     await this.likecoin.edit({
-      user: likerId,
+      user: liker.likerId,
       action: 'claim',
       payload: { token: liker.accessToken }
     })
 
     return await this.knex('user_oauth_likecoin')
-      .where({ likerId })
+      .where({ likerId: liker.likerId })
       .update({ accountType: 'general' })
   }
 
