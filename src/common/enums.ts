@@ -10,6 +10,7 @@ export const MATERIALIZED_VIEW = {
 }
 
 export const CACHE_TTL = {
+  SHORT: 90,
   DEFAULT: 60,
   INSTANT: 0
 }

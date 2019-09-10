@@ -171,6 +171,7 @@ export default function plugin(
             const serializedValue = await cache.get(key)
 
             if (serializedValue === undefined) {
+              requestContext.context.redis = options.cache || outerRequestContext.cache
               requestContext.context.cacheKey = key
               return null
             }
