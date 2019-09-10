@@ -130,6 +130,9 @@ type Article implements Node {
   """List of pinned comments."""
   pinnedComments: [Comment!]
 
+  """List of featured comments of this article."""
+  featuredComments(input: FeaturedCommentsInput!): CommentConnection!
+
   """List of comments of this article."""
   comments(input: CommentsInput!): CommentConnection!
 
@@ -706,6 +709,12 @@ enum EntityType {
   article
   draft
   user
+}
+
+input FeaturedCommentsInput {
+  sort: CommentSort
+  after: String
+  first: Int
 }
 
 input FeedbackInput {
