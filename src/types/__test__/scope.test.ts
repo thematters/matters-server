@@ -4,7 +4,7 @@ import get from 'lodash/get'
 import { SCOPE_MODE } from 'common/enums'
 import { makeScope } from 'common/utils'
 // local
-import { defaultTestUser, getUserContext, testClient } from './utils'
+import { adminUser, defaultTestUser, getUserContext, testClient } from './utils'
 
 const testScopes = ['query:viewer:likerId', 'query:viewer:info:email']
 
@@ -164,6 +164,46 @@ describe('General viewer query and mutation', () => {
     expect(error_case.errors[0].message).toBe(
       'unauthorized user for field email'
     )
+  })
+
+  test('mutation', async () => {
+    const description = 'foo bar'
+    const { context, mutate } = await prepare({ email: defaultTestUser.email })
+    const { data } = await mutate({
+      mutation: UPDATE_USER_INFO_DESCRIPTION,
+      variables: { input: { description } }
+    })
+    expect(data.updateUserInfo.info.description).toEqual(description)
+  })
+})
+
+// Check admin viewer query and mutation are functional or not.
+describe('Admin viewer query and mutation', () => {
+  test('query with public and socped fields', async () => {
+    const { context, query } = await prepare({ email: adminUser.email })
+    const otherUserName = 'test2'
+    const { data } = await query({
+      query: QUERY_CASE_1,
+      variables: { input: { userName: otherUserName } }
+    })
+    expect(data.viewer.displayName).toBe(context.viewer.displayName)
+    expect(data.viewer.info.email).toBe(context.viewer.email)
+    expect(data.user.displayName).toBe(otherUserName)
+  })
+
+  test('query with private fields', async () => {
+    const { context, query } = await prepare({ email: adminUser.email })
+    // query no scope field error
+    const { data } = await query({ query: QUERY_CASE_2 })
+    expect(data.viewer.info.mobile).toBe(context.viewer.mobile)
+
+    // query other private field error
+    const otherUserName = 'test2'
+    const { data: data2 } = await query({
+      query: QUERY_CASE_3,
+      variables: { input: { userName: otherUserName } }
+    })
+    expect(data2.user.info.email).toBe('test2@matters.news')
   })
 
   test('mutation', async () => {
