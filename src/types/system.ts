@@ -335,4 +335,6 @@ export default /* GraphQL */ `
   directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
 
   directive @private on FIELD_DEFINITION
+
+  directive @scope on FIELD_DEFINITION
 `

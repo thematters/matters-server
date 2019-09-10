@@ -71,8 +71,12 @@ export const testClient = async (
     viewer.role = isAdmin ? 'admin' : isAuth ? 'user' : 'visitor'
   }
 
-  viewer.scopeMode = viewer.role
-  viewer.scope = {}
+  if (!viewer.scopeMode) {
+    viewer.scopeMode = viewer.role
+  }
+  if (!viewer.scope) {
+    viewer.scope = {}
+  }
 
   _context.viewer = {
     ...viewer,

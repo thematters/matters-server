@@ -59,8 +59,12 @@ const walkReadScopeByDepth = (scopes: any, nodes: any, depth: number) => {
 /**
  * Check if this scope is valid.
  */
-export const isValidReadScope = (scopes: any, paths: any, prefix = 'query') => {
-  const nodes = [prefix, ...responsePathAsArray(paths)]
+export const isValidReadScope = (
+  scopes: { [key: string]: any },
+  paths: any,
+  prefix = 'query'
+) => {
+  const nodes = [prefix, ...paths]
   const path = nodes.join('.') || ''
   const permission = _.get(scopes, path, false)
 

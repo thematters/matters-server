@@ -71,7 +71,7 @@ export default /* GraphQL */ `
     displayName: String
 
     "LikerID of LikeCoin"
-    likerId: String @private
+    likerId: String @scope
 
     "URL for user avatar."
     avatar: URL
@@ -80,28 +80,28 @@ export default /* GraphQL */ `
     info: UserInfo!
 
     "User settings."
-    settings: UserSettings! @private
+    settings: UserSettings! @scope
 
     "Article recommendations for current user."
-    recommendation: Recommendation! @private
+    recommendation: Recommendation! @scope
 
     "Articles authored by current user."
     articles(input: ConnectionArgs!): ArticleConnection!
 
     "Drafts authored by current user."
-    drafts(input: ConnectionArgs!): DraftConnection! @private
+    drafts(input: ConnectionArgs!): DraftConnection! @scope
 
     "Audiodraft by user, currently not used."
-    audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @private
+    audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @scope
 
     "Articles current user commented on"
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Artilces current user subscribed to."
-    subscriptions(input: ConnectionArgs!): ArticleConnection! @private
+    subscriptions(input: ConnectionArgs!): ArticleConnection! @scope
 
     "Record of user activity, only accessable by current user."
-    activity: UserActivity! @private
+    activity: UserActivity! @scope
 
     "Followers of this user."
     followers(input: ConnectionArgs!): UserConnection!
@@ -181,13 +181,13 @@ export default /* GraphQL */ `
     avatar: URL @deprecated(reason: "Use \`User.avatar\`.")
 
     "User email."
-    email: Email @private
+    email: Email @scope
 
     "Is email verified."
     emailVerified: Boolean
 
     "Moble number."
-    mobile: String @private
+    mobile: String @scope
 
     "User reading speed, 500 as default."
     readSpeed: Int!
@@ -230,7 +230,7 @@ export default /* GraphQL */ `
     role: UserRole!
 
     "Total MAT left in wallet."
-    MAT: MAT! @private
+    MAT: MAT! @scope
 
     "Invitation. Deprecated."
     invitation: InvitationStatus @deprecated(reason: "removed")
@@ -239,18 +239,18 @@ export default /* GraphQL */ `
     articleCount: Int!
 
     "Number of views on user articles. Not yet in use."
-    viewCount: Int! @private
+    viewCount: Int! @scope
 
     "Number of draft of user."
     draftCount: Int!
-      @private
+      @scope
       @deprecated(reason: "Use \`User.drafts.totalCount\`.")
 
     "Number of comments posted by user."
     commentCount: Int!
 
     subscriptionCount: Int!
-      @private
+      @scope
       @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
 
     followeeCount: Int!
@@ -260,7 +260,7 @@ export default /* GraphQL */ `
       @deprecated(reason: "Use \`User.followers.totalCount\`.")
 
     "Number of unread notices."
-    unreadNoticeCount: Int! @private
+    unreadNoticeCount: Int! @scope
 
     "Whether there are unread articles from followees."
     unreadFolloweeArticles: Boolean!
