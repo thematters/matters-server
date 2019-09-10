@@ -190,7 +190,7 @@ export default /* GraphQL */ `
 
   type ArticleEdge {
     cursor: String!
-    node: Article!
+    node: Article! @recordCache(type: "Article")
   }
 
   type TagConnection implements Connection {

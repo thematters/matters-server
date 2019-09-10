@@ -337,4 +337,6 @@ export default /* GraphQL */ `
   directive @private on FIELD_DEFINITION
 
   directive @scope on FIELD_DEFINITION
+
+  directive @recordCache(type: String!) on FIELD_DEFINITION
 `
