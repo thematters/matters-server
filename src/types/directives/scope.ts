@@ -17,9 +17,6 @@ export class ScopeDirective extends SchemaDirectiveVisitor {
       const [{ id }, _, { viewer }, { path }] = args
 
       switch (viewer.scopeMode) {
-        case SCOPE_MODE.visitor: {
-          break
-        }
         case SCOPE_MODE.oauth: {
           const nodes = responsePathAsArray(path) || []
           if (nodes[0] !== 'viewer') {
@@ -31,6 +28,7 @@ export class ScopeDirective extends SchemaDirectiveVisitor {
           throw new ForbiddenError('viewer has no permission')
           break
         }
+        case SCOPE_MODE.visitor:
         case SCOPE_MODE.user: {
           if (id === viewer.id) {
             return resolve.apply(this, args)
