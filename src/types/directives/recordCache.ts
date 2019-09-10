@@ -24,4 +24,3 @@ export class RecordCacheDirective extends SchemaDirectiveVisitor {
     }
   }
 }
-
