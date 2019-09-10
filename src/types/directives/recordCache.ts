@@ -13,7 +13,7 @@ export class RecordCacheDirective extends SchemaDirectiveVisitor {
     const { resolve = defaultFieldResolver } = field
     field._cacheType = this.args.type
     field.resolve = async function(...args) {
-      const [{ id }, _, { viewer, cacheKey, redis }] = args
+      const [root, _, { viewer, cacheKey, redis }] = args
       const result = await resolve.apply(this, args)
       if (result.id && redis && cacheKey && field._cacheType) {
         const key = `cache-keys:${field._cacheType}:${result.id}`
