@@ -385,7 +385,7 @@ export class CommentService extends BaseService {
           where article_id = ${id}) as comment_score
       `)
       )
-      .where({ pinned: true })
+      .where({ pinned: true, parentCommentId: null })
       .orWhere('score', '>', threshold)
       .orderBy('score', 'desc')
     return result
