@@ -102,7 +102,7 @@ export default /* GraphQL */ `
 
   type CommentEdge {
     cursor: String!
-    node: Comment!
+    node: Comment! @recordCache(type: "Comment")
   }
 
   input PutCommentInput {
