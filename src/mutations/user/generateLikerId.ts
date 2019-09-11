@@ -31,7 +31,9 @@ const resolver: MutationToGenerateLikerIdResolver = async (
     })
   }
 
-  return viewer
+  // return latest user object
+  const user = await userService.baseFindById(viewer.id)
+  return user
 }
 
 export default resolver
