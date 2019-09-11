@@ -33,6 +33,7 @@ import {
   OAuthService
 } from 'connectors'
 import { ActionLimitExceededError } from 'common/errors'
+import { cacheMiddleware } from 'middlewares/cache'
 import { scopeMiddleware } from 'middlewares/scope'
 import responseCachePlugin from 'middlewares/responseCachePlugin'
 
@@ -82,7 +83,7 @@ const redisCache = new RedisCache({
   port: environment.cachePort
 })
 
-const composedSchema = applyMiddleware(schema, scopeMiddleware)
+const composedSchema = applyMiddleware(schema, scopeMiddleware, cacheMiddleware)
 
 const server = new ProtectedApolloServer({
   schema: composedSchema,
