@@ -2,7 +2,7 @@ import { CACHE_TTL } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    article(input: ArticleInput!): Article @uncacheViewer
+    article(input: ArticleInput!): Article @uncacheViewer @recordCache(type: "Article")
   }
 
   extend type Mutation {
@@ -190,7 +190,7 @@ export default /* GraphQL */ `
 
   type ArticleEdge {
     cursor: String!
-    node: Article!
+    node: Article! @recordCache(type: "Article")
   }
 
   type TagConnection implements Connection {
