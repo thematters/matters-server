@@ -29,8 +29,7 @@ export const cacheMiddleware = async (
             .srem(key, hash)
             .exec()
         )
-      }
-      catch (error) {
+      } catch (error) {
         Sentry.captureException(error)
       }
     }

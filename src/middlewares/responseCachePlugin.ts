@@ -156,7 +156,8 @@ export default function plugin(
           requestContext
         ): Promise<GraphQLResponse | null> {
           requestContext.metrics.responseCacheHit = false
-          requestContext.context.redis = options.cache || outerRequestContext.cache
+          requestContext.context.redis =
+            options.cache || outerRequestContext.cache
 
           if (!isGraphQLQuery(requestContext)) {
             return null

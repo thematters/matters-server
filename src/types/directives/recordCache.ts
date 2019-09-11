@@ -21,8 +21,7 @@ export class RecordCacheDirective extends SchemaDirectiveVisitor {
           const key = `cache-keys:${field._cacheType}:${result.id}`
           redis.client.sadd(key, cacheKey)
           redis.client.expire(key, CACHE_TTL.SHORT)
-        }
-        catch (error) {
+        } catch (error) {
           Sentry.captureException(error)
         }
       }
