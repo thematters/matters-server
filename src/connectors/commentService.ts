@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
-import { uniq } from 'lodash'
+import Knex from 'knex'
 
 import {
   USER_ACTION,
@@ -347,9 +347,50 @@ export class CommentService extends BaseService {
 
   /*********************************
    *                               *
-   *              Pin              *
+   *           Featured            *
    *                               *
    *********************************/
+
+  /**
+   * Find featured comments by a given article id.
+   */
+  findFeaturedCommentsByArticle = async ({
+    id,
+    first,
+    after
+  }: {
+    [key: string]: string
+  }) => {
+    const threshold = 20
+    const result = await this.knex
+      .select()
+      .from(
+        this.knex.raw(/*sql*/ `
+          (select *,
+                  (coalesce(upvoute_count, 0) + coalesce(downvoute_count, 0) + 1) *
+                  sqrt(coalesce(upvoute_count, 0) + coalesce(downvoute_count, 0)) as score
+          from comment
+          left join
+            (select target_id,
+                    count(id) as upvoute_count
+              from action_comment as action
+              where action.action = 'up_vote'
+              group by action.target_id) as upvotes on comment.id = upvotes.target_id
+          left join
+            (select target_id,
+                    coalesce(count(id), 0) as downvoute_count
+              from action_comment as action
+              where action.action = 'down_vote'
+              group by action.target_id) as downvotes on comment.id = downvotes.target_id
+          where article_id = ${id}) as comment_score
+      `)
+      )
+      .where({ pinned: true })
+      .orWhere('score', '>', threshold)
+      .orderBy('score', 'desc')
+    return result
+  }
+
   /**
    * Find pinned comments by a given article id.
    */
