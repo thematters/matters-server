@@ -367,18 +367,18 @@ export class CommentService extends BaseService {
       .from(
         this.knex.raw(/*sql*/ `
           (select *,
-                  (coalesce(upvoute_count, 0) + coalesce(downvoute_count, 0) + 1) *
-                  sqrt(coalesce(upvoute_count, 0) + coalesce(downvoute_count, 0)) as score
+                  (coalesce(upvote_count, 0) + coalesce(downvote_count, 0) + 1) *
+                  sqrt(coalesce(upvote_count, 0) + coalesce(downvote_count, 0)) as score
           from comment
           left join
             (select target_id,
-                    count(id) as upvoute_count
+                    count(id) as upvote_count
               from action_comment as action
               where action.action = 'up_vote'
               group by action.target_id) as upvotes on comment.id = upvotes.target_id
           left join
             (select target_id,
-                    coalesce(count(id), 0) as downvoute_count
+                    coalesce(count(id), 0) as downvote_count
               from action_comment as action
               where action.action = 'down_vote'
               group by action.target_id) as downvotes on comment.id = downvotes.target_id
