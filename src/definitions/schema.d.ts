@@ -215,6 +215,11 @@ export interface GQLArticle extends GQLNode {
   pinnedComments?: Array<GQLComment>
 
   /**
+   * List of featured comments of this article.
+   */
+  featuredComments: GQLCommentConnection
+
+  /**
    * List of comments of this article.
    */
   comments: GQLCommentConnection
@@ -1260,6 +1265,12 @@ export interface GQLCommentConnection extends GQLConnection {
 export interface GQLCommentEdge {
   cursor: string
   node: GQLComment
+}
+
+export interface GQLFeaturedCommentsInput {
+  sort?: GQLCommentSort
+  after?: string
+  first?: number
 }
 
 export interface GQLCommentsInput {
@@ -2855,6 +2866,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   pinCommentLimit?: ArticleToPinCommentLimitResolver<TParent>
   pinCommentLeft?: ArticleToPinCommentLeftResolver<TParent>
   pinnedComments?: ArticleToPinnedCommentsResolver<TParent>
+  featuredComments?: ArticleToFeaturedCommentsResolver<TParent>
   comments?: ArticleToCommentsResolver<TParent>
   responseCount?: ArticleToResponseCountResolver<TParent>
   responses?: ArticleToResponsesResolver<TParent>
@@ -3209,6 +3221,21 @@ export interface ArticleToPinnedCommentsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToFeaturedCommentsArgs {
+  input: GQLFeaturedCommentsInput
+}
+export interface ArticleToFeaturedCommentsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: ArticleToFeaturedCommentsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -87,6 +87,9 @@ export default /* GraphQL */ `
     "List of pinned comments."
     pinnedComments: [Comment!]
 
+    "List of featured comments of this article."
+    featuredComments(input: FeaturedCommentsInput!): CommentConnection!
+
     "List of comments of this article."
     comments(input: CommentsInput!): CommentConnection!
   }
@@ -133,6 +136,12 @@ export default /* GraphQL */ `
     includeBefore: Boolean
     first: Int
     filter: CommentsFilter
+  }
+
+  input FeaturedCommentsInput {
+    sort: CommentSort
+    after: String
+    first: Int
   }
 
   input CommentsFilter {
