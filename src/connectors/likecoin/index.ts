@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import _ from 'lodash'
+import * as Sentry from '@sentry/node'
 
 import { UserOAuthLikeCoin } from 'definitions'
 import logger from 'common/logger'
@@ -89,7 +90,7 @@ export class LikeCoin extends BaseService {
         return await makeRequest({ accessToken })
       } else {
         console.error(e)
-        logger.error(e)
+        Sentry.captureException(e)
         throw e
       }
     }
@@ -123,7 +124,7 @@ export class LikeCoin extends BaseService {
         })
     } catch (e) {
       console.error(e)
-      logger.error(e)
+      Sentry.captureException(e)
     }
 
     return data.access_token
