@@ -28,6 +28,7 @@ import Recommendation from './recommendation'
 import { MAT, Transaction } from './transaction'
 import { boost, score } from './oss'
 import profileCover from './profileCover'
+import LIKE from './like'
 
 export default {
   Query: {
@@ -72,9 +73,11 @@ export default {
   },
   UserActivity,
   MAT,
+  LIKE,
   Transaction,
   UserStatus: {
     MAT: (root: any) => root,
+    LIKE: (root: any) => root,
     // TODO: remove field in OSS
     invitation: () => ({
       reward: null,
