@@ -577,6 +577,7 @@ export type GQLPossibleConnectionTypeNames =
   | 'ResponseConnection'
   | 'SearchResultConnection'
   | 'ReportConnection'
+  | 'OAuthClientConnection'
 
 export interface GQLConnectionNameMap {
   Connection: GQLConnection
@@ -594,6 +595,7 @@ export interface GQLConnectionNameMap {
   ResponseConnection: GQLResponseConnection
   SearchResultConnection: GQLSearchResultConnection
   ReportConnection: GQLReportConnection
+  OAuthClientConnection: GQLOAuthClientConnection
 }
 
 export interface GQLPageInfo {
@@ -1453,6 +1455,7 @@ export interface GQLOSS {
   reports: GQLReportConnection
   report: GQLReport
   today: GQLArticleConnection
+  oauthClients: GQLOAuthClientConnection
 }
 
 export interface GQLOSSArticlesInput {
@@ -1511,12 +1514,15 @@ export interface GQLReportInput {
   id: string
 }
 
-export interface GQLUserInput {
-  userName: string
+export interface GQLOAuthClientConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLOAuthClientEdge>
 }
 
-export interface GQLOAuthClientInput {
-  id: string
+export interface GQLOAuthClientEdge {
+  cursor: string
+  node: GQLOAuthClient
 }
 
 export interface GQLOAuthClient {
@@ -1569,6 +1575,14 @@ export interface GQLOAuthClient {
 export enum GQLGrantType {
   authorization_code = 'authorization_code',
   refresh_token = 'refresh_token'
+}
+
+export interface GQLUserInput {
+  userName: string
+}
+
+export interface GQLOAuthClientInput {
+  id: string
 }
 
 export interface GQLMutation {
@@ -2714,6 +2728,8 @@ export interface GQLResolver {
   ReportConnection?: GQLReportConnectionTypeResolver
   ReportEdge?: GQLReportEdgeTypeResolver
   Report?: GQLReportTypeResolver
+  OAuthClientConnection?: GQLOAuthClientConnectionTypeResolver
+  OAuthClientEdge?: GQLOAuthClientEdgeTypeResolver
   OAuthClient?: GQLOAuthClientTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
@@ -4094,6 +4110,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'ResponseConnection'
     | 'SearchResultConnection'
     | 'ReportConnection'
+    | 'OAuthClientConnection'
 }
 export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
@@ -6432,6 +6449,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   reports?: OSSToReportsResolver<TParent>
   report?: OSSToReportResolver<TParent>
   today?: OSSToTodayResolver<TParent>
+  oauthClients?: OSSToOauthClientsResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -6513,6 +6531,18 @@ export interface OSSToTodayResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToTodayArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToOauthClientsArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToOauthClientsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToOauthClientsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6675,6 +6705,71 @@ export interface ReportToCreatedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface ReportToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLOAuthClientConnectionTypeResolver<TParent = any> {
+  totalCount?: OAuthClientConnectionToTotalCountResolver<TParent>
+  pageInfo?: OAuthClientConnectionToPageInfoResolver<TParent>
+  edges?: OAuthClientConnectionToEdgesResolver<TParent>
+}
+
+export interface OAuthClientConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLOAuthClientEdgeTypeResolver<TParent = any> {
+  cursor?: OAuthClientEdgeToCursorResolver<TParent>
+  node?: OAuthClientEdgeToNodeResolver<TParent>
+}
+
+export interface OAuthClientEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientEdgeToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

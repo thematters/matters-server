@@ -20,7 +20,7 @@ import { UserService } from './userService'
 
 export class OAuthService extends BaseService {
   constructor() {
-    super('noop')
+    super('oauth_client')
   }
 
   /*********************************

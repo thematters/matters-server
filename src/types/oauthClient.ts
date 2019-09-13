@@ -37,6 +37,17 @@ export default /* GraphQL */ `
     grantTypes: [GrantType!] @authorize
   }
 
+  type OAuthClientConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [OAuthClientEdge!]
+  }
+
+  type OAuthClientEdge {
+    cursor: String!
+    node: OAuthClient!
+  }
+
   input OAuthClientInput {
     id: ID!
   }

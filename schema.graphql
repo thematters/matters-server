@@ -1054,6 +1054,17 @@ type OAuthClient {
   grantTypes: [GrantType!]
 }
 
+type OAuthClientConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [OAuthClientEdge!]
+}
+
+type OAuthClientEdge {
+  cursor: String!
+  node: OAuthClient!
+}
+
 input OAuthClientInput {
   id: ID!
 }
@@ -1103,6 +1114,7 @@ type OSS {
   reports(input: ReportsInput!): ReportConnection!
   report(input: ReportInput!): Report!
   today(input: ConnectionArgs!): ArticleConnection!
+  oauthClients(input: ConnectionArgs!): OAuthClientConnection!
 }
 
 input OSSArticlesInput {
