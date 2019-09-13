@@ -1,5 +1,6 @@
 import rootOAuthClient from './rootOAuthClient'
 import avatar from './avatar'
+import user from './user'
 
 export default {
   Query: {
@@ -10,6 +11,7 @@ export default {
     secret: ({ clientSecret }: { clientSecret: string }) => clientSecret,
     redirectURIs: ({ redirectUri }: { redirectUri: string }) => redirectUri,
     avatar,
+    user,
     website: ({ websiteUrl }: { websiteUrl: string }) => websiteUrl
   }
 }

@@ -35,6 +35,12 @@ export default /* GraphQL */ `
 
     "Grant Types"
     grantTypes: [GrantType!] @authorize
+
+    "Linked Developer Account"
+    user: User
+
+    "Creation Date"
+    createdAt: Date!
   }
 
   type OAuthClientConnection implements Connection {

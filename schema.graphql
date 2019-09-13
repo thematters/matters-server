@@ -1052,6 +1052,12 @@ type OAuthClient {
 
   """Grant Types"""
   grantTypes: [GrantType!]
+
+  """Linked Developer Account"""
+  user: User
+
+  """Creation Date"""
+  createdAt: Date!
 }
 
 type OAuthClientConnection implements Connection {

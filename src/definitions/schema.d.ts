@@ -1570,12 +1570,24 @@ export interface GQLOAuthClient {
    * Grant Types
    */
   grantTypes?: Array<GQLGrantType>
+
+  /**
+   * Linked Developer Account
+   */
+  user?: GQLUser
+
+  /**
+   * Creation Date
+   */
+  createdAt: GQLDate
 }
 
 export enum GQLGrantType {
   authorization_code = 'authorization_code',
   refresh_token = 'refresh_token'
 }
+
+export type GQLDate = any
 
 export interface GQLUserInput {
   userName: string
@@ -2488,8 +2500,6 @@ export interface GQLCostComplexity {
   max?: number
 }
 
-export type GQLDate = any
-
 export interface GQLDownstreamArticleArchivedNotice extends GQLNotice {
   id: string
   unread: boolean
@@ -2731,6 +2741,7 @@ export interface GQLResolver {
   OAuthClientConnection?: GQLOAuthClientConnectionTypeResolver
   OAuthClientEdge?: GQLOAuthClientEdgeTypeResolver
   OAuthClient?: GQLOAuthClientTypeResolver
+  Date?: GraphQLScalarType
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
   AuthResult?: GQLAuthResultTypeResolver
@@ -2747,7 +2758,6 @@ export interface GQLResolver {
   CommentNewReplyNotice?: GQLCommentNewReplyNoticeTypeResolver
   CommentNewUpvoteNotice?: GQLCommentNewUpvoteNoticeTypeResolver
   CommentPinnedNotice?: GQLCommentPinnedNoticeTypeResolver
-  Date?: GraphQLScalarType
   DownstreamArticleArchivedNotice?: GQLDownstreamArticleArchivedNoticeTypeResolver
   JSON?: GraphQLScalarType
   NegativeFloat?: GraphQLScalarType
@@ -6788,6 +6798,8 @@ export interface GQLOAuthClientTypeResolver<TParent = any> {
   secret?: OAuthClientToSecretResolver<TParent>
   redirectURIs?: OAuthClientToRedirectURIsResolver<TParent>
   grantTypes?: OAuthClientToGrantTypesResolver<TParent>
+  user?: OAuthClientToUserResolver<TParent>
+  createdAt?: OAuthClientToCreatedAtResolver<TParent>
 }
 
 export interface OAuthClientToIdResolver<TParent = any, TResult = any> {
@@ -6869,6 +6881,24 @@ export interface OAuthClientToRedirectURIsResolver<
 }
 
 export interface OAuthClientToGrantTypesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientToUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientToCreatedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
