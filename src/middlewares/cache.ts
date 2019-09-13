@@ -18,7 +18,7 @@ export const cacheMiddleware = async (
   if (operation === GQL_OPERATION.mutation) {
     const { redis } = context
     const { returnType } = info
-    if (result.id && redis && returnType) {
+    if (result && result.id && redis && returnType) {
       try {
         const key = `cache-keys:${replace(returnType, '!', '')}:${result.id}`
         const hashes = await redis.client.smembers(key)
