@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import nanoid from 'nanoid'
 
-import { MutationToPutOAuthClientResolver, GQLGrantType } from 'definitions'
+import { MutationToPutOAuthClientResolver } from 'definitions'
 import { AuthenticationError, UserInputError } from 'common/errors'
 
 const resolver: MutationToPutOAuthClientResolver = async (
@@ -25,15 +25,15 @@ const resolver: MutationToPutOAuthClientResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  let oauthClient = {
-    clientId: id,
+  let oauthClient: any = {
+    clientId: id || nanoid(32),
     clientSecret: secret,
     name,
     description,
     avatar,
     scope,
-    grantTypes,
     websiteUrl: website,
+    grantTypes,
     redirectUri: redirectURIs
   }
 
@@ -43,12 +43,6 @@ const resolver: MutationToPutOAuthClientResolver = async (
   if (!id) {
     if (!name) {
       throw new UserInputError(`"name" is required in creation`)
-    }
-
-    // client id
-    oauthClient = {
-      ...oauthClient,
-      clientId: nanoid(32)
     }
 
     // client secret
@@ -63,19 +57,12 @@ const resolver: MutationToPutOAuthClientResolver = async (
     if (!grantTypes) {
       oauthClient = {
         ...oauthClient,
-        grantTypes: [
-          GQLGrantType.refresh_token,
-          GQLGrantType.authorization_code
-        ]
+        grantTypes: ['refresh_token', 'authorization_code']
       }
     }
   }
 
-  // @ts-ignore
-  const newOAuthClient = await oauthService.updateOrCreateClient(oauthClient)
-
-  console.log(newOAuthClient)
-  return newOAuthClient
+  return await oauthService.updateOrCreateClient(oauthClient)
 }
 
 export default resolver
