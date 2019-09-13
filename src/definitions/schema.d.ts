@@ -215,6 +215,11 @@ export interface GQLArticle extends GQLNode {
   pinnedComments?: Array<GQLComment>
 
   /**
+   * List of featured comments of this article.
+   */
+  featuredComments: GQLCommentConnection
+
+  /**
    * List of comments of this article.
    */
   comments: GQLCommentConnection
@@ -884,6 +889,11 @@ export interface GQLUserStatus {
   role: GQLUserRole
 
   /**
+   * Total LIKE left in wallet.
+   */
+  LIKE: GQLLIKE
+
+  /**
    * Total MAT left in wallet.
    */
   MAT: GQLMAT
@@ -965,6 +975,11 @@ export enum GQLUserState {
 export enum GQLUserRole {
   user = 'user',
   admin = 'admin'
+}
+
+export interface GQLLIKE {
+  total: GQLNonNegativeFloat
+  rateUSD?: GQLNonNegativeFloat
 }
 
 export interface GQLMAT {
@@ -1260,6 +1275,12 @@ export interface GQLCommentConnection extends GQLConnection {
 export interface GQLCommentEdge {
   cursor: string
   node: GQLComment
+}
+
+export interface GQLFeaturedCommentsInput {
+  sort?: GQLCommentSort
+  after?: string
+  first?: number
 }
 
 export interface GQLCommentsInput {
@@ -2655,6 +2676,7 @@ export interface GQLResolver {
   RecentSearchConnection?: GQLRecentSearchConnectionTypeResolver
   RecentSearchEdge?: GQLRecentSearchEdgeTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
+  LIKE?: GQLLIKETypeResolver
   MAT?: GQLMATTypeResolver
   TransactionConnection?: GQLTransactionConnectionTypeResolver
   TransactionEdge?: GQLTransactionEdgeTypeResolver
@@ -2872,6 +2894,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   pinCommentLimit?: ArticleToPinCommentLimitResolver<TParent>
   pinCommentLeft?: ArticleToPinCommentLeftResolver<TParent>
   pinnedComments?: ArticleToPinnedCommentsResolver<TParent>
+  featuredComments?: ArticleToFeaturedCommentsResolver<TParent>
   comments?: ArticleToCommentsResolver<TParent>
   responseCount?: ArticleToResponseCountResolver<TParent>
   responses?: ArticleToResponsesResolver<TParent>
@@ -3226,6 +3249,21 @@ export interface ArticleToPinnedCommentsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToFeaturedCommentsArgs {
+  input: GQLFeaturedCommentsInput
+}
+export interface ArticleToFeaturedCommentsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: ArticleToFeaturedCommentsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -4926,6 +4964,7 @@ export interface RecentSearchEdgeToNodeResolver<TParent = any, TResult = any> {
 export interface GQLUserStatusTypeResolver<TParent = any> {
   state?: UserStatusToStateResolver<TParent>
   role?: UserStatusToRoleResolver<TParent>
+  LIKE?: UserStatusToLIKEResolver<TParent>
   MAT?: UserStatusToMATResolver<TParent>
   invitation?: UserStatusToInvitationResolver<TParent>
   articleCount?: UserStatusToArticleCountResolver<TParent>
@@ -4951,6 +4990,15 @@ export interface UserStatusToStateResolver<TParent = any, TResult = any> {
 }
 
 export interface UserStatusToRoleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToLIKEResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5095,6 +5143,29 @@ export interface UserStatusToTotalWordCountResolver<
   TParent = any,
   TResult = any
 > {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLLIKETypeResolver<TParent = any> {
+  total?: LIKEToTotalResolver<TParent>
+  rateUSD?: LIKEToRateUSDResolver<TParent>
+}
+
+export interface LIKEToTotalResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface LIKEToRateUSDResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

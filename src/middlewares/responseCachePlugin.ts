@@ -156,6 +156,8 @@ export default function plugin(
           requestContext
         ): Promise<GraphQLResponse | null> {
           requestContext.metrics.responseCacheHit = false
+          requestContext.context.redis =
+            options.cache || outerRequestContext.cache
 
           if (!isGraphQLQuery(requestContext)) {
             return null
@@ -171,8 +173,6 @@ export default function plugin(
             const serializedValue = await cache.get(key)
 
             if (serializedValue === undefined) {
-              requestContext.context.redis =
-                options.cache || outerRequestContext.cache
               requestContext.context.cacheKey = key
               return null
             }

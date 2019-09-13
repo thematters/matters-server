@@ -883,12 +883,22 @@ export class UserService extends BaseService {
     toLiker: Pick<UserOAuthLikeCoin, 'likerId' | 'accessToken'>
   }) => {
     return this.likecoin.edit({
-      user: toLiker.likerId, // TBC
+      user: fromLiker.likerId,
       action: 'transfer',
       payload: {
         fromUserToken: fromLiker.accessToken,
         toUserToken: toLiker.accessToken
       }
     })
+  }
+
+  totalLIKE = async ({ userId }: { userId: string }) => {
+    const liker = await this.findLiker({ userId })
+
+    if (!liker) {
+      return 0
+    }
+
+    return this.likecoin.total({ liker })
   }
 }

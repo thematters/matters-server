@@ -4,6 +4,7 @@ import { ARTICLE_PIN_COMMENT_LIMIT } from 'common/enums'
 import userCommentedArticles from './user/commentedArticles'
 import articleCommentCount from './article/commentCount'
 import articlePinnedComments from './article/pinnedComments'
+import articleFeaturedComments from './article/featuredComments'
 import pinCommentLeft from './article/pinCommentLeft'
 import articleComments from './article/comments'
 import article from './article'
@@ -26,6 +27,7 @@ export default {
     pinCommentLimit: () => ARTICLE_PIN_COMMENT_LIMIT,
     pinCommentLeft,
     pinnedComments: articlePinnedComments,
+    featuredComments: articleFeaturedComments,
     comments: articleComments
   },
   Comment: {

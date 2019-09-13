@@ -132,6 +132,9 @@ type Article implements Node {
   """List of pinned comments."""
   pinnedComments: [Comment!]
 
+  """List of featured comments of this article."""
+  featuredComments(input: FeaturedCommentsInput!): CommentConnection!
+
   """List of comments of this article."""
   comments(input: CommentsInput!): CommentConnection!
 
@@ -710,6 +713,12 @@ enum EntityType {
   user
 }
 
+input FeaturedCommentsInput {
+  sort: CommentSort
+  after: String
+  first: Int
+}
+
 input FeedbackInput {
   category: ID!
   description: String
@@ -770,6 +779,11 @@ type InvitationStatus {
 }
 
 scalar JSON
+
+type LIKE {
+  total: NonNegativeFloat!
+  rateUSD: NonNegativeFloat
+}
 
 input LogRecordInput {
   type: LogRecordTypes!
@@ -1851,6 +1865,9 @@ type UserStatus {
 
   """User role and access level."""
   role: UserRole!
+
+  """Total LIKE left in wallet."""
+  LIKE: LIKE!
 
   """Total MAT left in wallet."""
   MAT: MAT!

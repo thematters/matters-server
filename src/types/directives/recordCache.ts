@@ -1,4 +1,5 @@
 // external
+import * as Sentry from '@sentry/node'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { defaultFieldResolver, GraphQLField } from 'graphql'
 // internal
@@ -16,9 +17,13 @@ export class RecordCacheDirective extends SchemaDirectiveVisitor {
       const [root, _, { viewer, cacheKey, redis }] = args
       const result = await resolve.apply(this, args)
       if (result.id && redis && cacheKey && field._cacheType) {
-        const key = `cache-keys:${field._cacheType}:${result.id}`
-        redis.client.sadd(key, cacheKey)
-        redis.client.expire(key, CACHE_TTL.SHORT)
+        try {
+          const key = `cache-keys:${field._cacheType}:${result.id}`
+          redis.client.sadd(key, cacheKey)
+          redis.client.expire(key, CACHE_TTL.SHORT)
+        } catch (error) {
+          Sentry.captureException(error)
+        }
       }
       return result
     }

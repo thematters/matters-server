@@ -1,11 +1,10 @@
 import slugify from '@matters/slugify'
 
-import { toGlobalId, stripHtml, makeSummary } from 'common/utils'
+import { toGlobalId, makeSummary } from 'common/utils'
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
 
 import rootArticle from './rootArticle'
 import userArticles from './user/articles'
-import userMAT from './user/mat'
 import tagCount from './tag/count'
 import tagArticles from './tag/articles'
 import author from './author'
@@ -31,9 +30,6 @@ export default {
   },
   User: {
     articles: userArticles
-  },
-  UserStatus: {
-    MAT: userMAT
   },
   Article: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
