@@ -889,6 +889,11 @@ export interface GQLUserStatus {
   role: GQLUserRole
 
   /**
+   * Total LIKE left in wallet.
+   */
+  LIKE: GQLLIKE
+
+  /**
    * Total MAT left in wallet.
    */
   MAT: GQLMAT
@@ -970,6 +975,11 @@ export enum GQLUserState {
 export enum GQLUserRole {
   user = 'user',
   admin = 'admin'
+}
+
+export interface GQLLIKE {
+  total: GQLNonNegativeFloat
+  rateUSD?: GQLNonNegativeFloat
 }
 
 export interface GQLMAT {
@@ -2649,6 +2659,7 @@ export interface GQLResolver {
   RecentSearchConnection?: GQLRecentSearchConnectionTypeResolver
   RecentSearchEdge?: GQLRecentSearchEdgeTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
+  LIKE?: GQLLIKETypeResolver
   MAT?: GQLMATTypeResolver
   TransactionConnection?: GQLTransactionConnectionTypeResolver
   TransactionEdge?: GQLTransactionEdgeTypeResolver
@@ -4936,6 +4947,7 @@ export interface RecentSearchEdgeToNodeResolver<TParent = any, TResult = any> {
 export interface GQLUserStatusTypeResolver<TParent = any> {
   state?: UserStatusToStateResolver<TParent>
   role?: UserStatusToRoleResolver<TParent>
+  LIKE?: UserStatusToLIKEResolver<TParent>
   MAT?: UserStatusToMATResolver<TParent>
   invitation?: UserStatusToInvitationResolver<TParent>
   articleCount?: UserStatusToArticleCountResolver<TParent>
@@ -4961,6 +4973,15 @@ export interface UserStatusToStateResolver<TParent = any, TResult = any> {
 }
 
 export interface UserStatusToRoleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToLIKEResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5105,6 +5126,29 @@ export interface UserStatusToTotalWordCountResolver<
   TParent = any,
   TResult = any
 > {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLLIKETypeResolver<TParent = any> {
+  total?: LIKEToTotalResolver<TParent>
+  rateUSD?: LIKEToRateUSDResolver<TParent>
+}
+
+export interface LIKEToTotalResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface LIKEToRateUSDResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

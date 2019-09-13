@@ -229,6 +229,9 @@ export default /* GraphQL */ `
     "User role and access level."
     role: UserRole!
 
+    "Total LIKE left in wallet."
+    LIKE: LIKE! @scope
+
     "Total MAT left in wallet."
     MAT: MAT! @scope
 
@@ -311,6 +314,11 @@ export default /* GraphQL */ `
   type MAT {
     total: Int!
     history(input: ConnectionArgs!): TransactionConnection!
+  }
+
+  type LIKE {
+    total: NonNegativeFloat!
+    rateUSD: NonNegativeFloat
   }
 
   type Transaction {

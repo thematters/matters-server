@@ -780,6 +780,11 @@ type InvitationStatus {
 
 scalar JSON
 
+type LIKE {
+  total: NonNegativeFloat!
+  rateUSD: NonNegativeFloat
+}
+
 input LogRecordInput {
   type: LogRecordTypes!
 }
@@ -1845,6 +1850,9 @@ type UserStatus {
 
   """User role and access level."""
   role: UserRole!
+
+  """Total LIKE left in wallet."""
+  LIKE: LIKE!
 
   """Total MAT left in wallet."""
   MAT: MAT!
