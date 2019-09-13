@@ -3,6 +3,11 @@ export default /* GraphQL */ `
     oauthClient(input: OAuthClientInput!): OAuthClient @uncacheViewer
   }
 
+  extend type Mutation {
+    "Create or Update an OAuth Client, used in OSS."
+    putOAuthClient(input: PutOAuthClientInput!): OAuthClient @authorize
+  }
+
   type OAuthClient {
     "Unique Client ID of this OAuth Client."
     id: ID!
@@ -34,6 +39,18 @@ export default /* GraphQL */ `
 
   input OAuthClientInput {
     id: ID!
+  }
+
+  input PutOAuthClientInput {
+    id: ID
+    name: String
+    description: String
+    website: URL
+    scope: [String!]
+    avatar: ID
+    secret: String
+    redirectURIs: [URL!]
+    grantTypes: [GrantType!]
   }
 
   enum GrantType {

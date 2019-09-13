@@ -35,6 +35,27 @@ export class OAuthService extends BaseService {
       .first()
   }
 
+  updateOrCreateClient = async (params: {
+    clientId: string
+    clientSecret?: string
+    name?: string
+    description?: string
+    websiteUrl?: string
+    scope?: string[]
+    avatar?: string
+    redirectURIs?: string[]
+    grantTypes?: string[]
+  }) => {
+    return await this.baseUpdateOrCreate({
+      where: { clientId: params.clientId },
+      data: {
+        ...params,
+        updatedAt: new Date()
+      },
+      table: 'oauth_client'
+    })
+  }
+
   getClient = async (
     clientId: string,
     clientSecret?: string
@@ -307,9 +328,11 @@ export class OAuthService extends BaseService {
     return true
   }
 
-  /**
-   * LikeCoin
-   */
+  /*********************************
+   *                               *
+   *           LikeCoin            *
+   *                               *
+   *********************************/
   generateTokenForLikeCoin = async ({ userId }: { userId: string }) => {
     const userService = new UserService()
     const user = (await userService.dataloader.load(userId)) as User

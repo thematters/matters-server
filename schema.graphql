@@ -925,6 +925,9 @@ type Mutation {
 
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): User!
+
+  """Create or Update an OAuth Client, used in OSS."""
+  putOAuthClient(input: PutOAuthClientInput!): OAuthClient
 }
 
 scalar NegativeFloat
@@ -1161,6 +1164,18 @@ input PutDraftInput {
   tags: [String]
   coverAssetId: ID
   collection: [ID]
+}
+
+input PutOAuthClientInput {
+  id: ID
+  name: String
+  description: String
+  website: URL
+  scope: [String!]
+  avatar: ID
+  secret: String
+  redirectURIs: [URL!]
+  grantTypes: [GrantType!]
 }
 
 input PutRemarkInput {

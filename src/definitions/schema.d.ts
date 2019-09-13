@@ -1767,6 +1767,11 @@ export interface GQLMutation {
    * Update state of a user, used in OSS.
    */
   updateUserState: GQLUser
+
+  /**
+   * Create or Update an OAuth Client, used in OSS.
+   */
+  putOAuthClient?: GQLOAuthClient
 }
 
 export interface GQLPublishArticleInput {
@@ -2115,6 +2120,18 @@ export interface GQLUpdateUserStateInput {
 }
 
 export type GQLPositiveInt = any
+
+export interface GQLPutOAuthClientInput {
+  id?: string
+  name?: string
+  description?: string
+  website?: GQLURL
+  scope?: Array<string>
+  avatar?: string
+  secret?: string
+  redirectURIs?: Array<GQLURL>
+  grantTypes?: Array<GQLGrantType>
+}
 
 export interface GQLSubscription {
   nodeEdited: GQLNode
@@ -6750,6 +6767,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
+  putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
 export interface MutationToPublishArticleArgs {
@@ -7443,6 +7461,21 @@ export interface MutationToUpdateUserStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserStateArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutOAuthClientArgs {
+  input: GQLPutOAuthClientInput
+}
+export interface MutationToPutOAuthClientResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToPutOAuthClientArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
