@@ -2178,6 +2178,7 @@ export interface GQLPutOAuthClientInput {
   secret?: string
   redirectURIs?: Array<GQLURL>
   grantTypes?: Array<GQLGrantType>
+  user?: string
 }
 
 export interface GQLSubscription {

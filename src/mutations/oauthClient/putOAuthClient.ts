@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import nanoid from 'nanoid'
+import { fromGlobalId } from 'common/utils'
 
 import { MutationToPutOAuthClientResolver } from 'definitions'
 import { AuthenticationError, UserInputError } from 'common/errors'
@@ -16,7 +17,8 @@ const resolver: MutationToPutOAuthClientResolver = async (
       scope,
       grantTypes,
       website,
-      redirectURIs
+      redirectURIs,
+      user
     }
   },
   { viewer, dataSources: { oauthService } }
@@ -34,7 +36,8 @@ const resolver: MutationToPutOAuthClientResolver = async (
     scope,
     websiteUrl: website,
     grantTypes,
-    redirectUri: redirectURIs
+    redirectUri: redirectURIs,
+    userId: user ? fromGlobalId(user).id : user
   }
 
   /**

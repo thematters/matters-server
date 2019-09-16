@@ -45,6 +45,7 @@ export class OAuthService extends BaseService {
     avatar?: string
     redirectURIs?: string[]
     grantTypes?: string[]
+    userId: string
   }) => {
     return await this.baseUpdateOrCreate({
       where: { clientId: params.clientId },

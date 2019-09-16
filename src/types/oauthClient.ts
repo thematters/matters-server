@@ -68,6 +68,7 @@ export default /* GraphQL */ `
     secret: String
     redirectURIs: [URL!]
     grantTypes: [GrantType!]
+    user: ID
   }
 
   enum GrantType {

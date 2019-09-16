@@ -8,10 +8,11 @@ export default {
   },
   OAuthClient: {
     id: ({ clientId }: { clientId: string }) => clientId,
-    secret: ({ clientSecret }: { clientSecret: string }) => clientSecret,
+    secret: ({ clientSecret }: { clientSecret: string }) =>
+      clientSecret || null,
     redirectURIs: ({ redirectUri }: { redirectUri: string }) => redirectUri,
     avatar,
     user,
-    website: ({ websiteUrl }: { websiteUrl: string }) => websiteUrl
+    website: ({ websiteUrl }: { websiteUrl: string }) => websiteUrl || null
   }
 }
