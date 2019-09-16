@@ -9,7 +9,7 @@ import {
   CommentNotFoundError,
   ForbiddenError
 } from 'common/errors'
-import { USER_STATE } from 'common/enums'
+import { NODE_TYPES, USER_STATE } from 'common/enums'
 
 const resolver: MutationToPutCommentResolver = async (
   root,
@@ -238,7 +238,7 @@ const resolver: MutationToPutCommentResolver = async (
     // Add custom cache-key
     newComment['cache'] = {
       id: article.id,
-      type: 'Article'
+      type: NODE_TYPES.article
     }
   }
 

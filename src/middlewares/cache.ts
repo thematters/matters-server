@@ -10,6 +10,7 @@ type CacheSet = {
   type: string
 }
 
+// get cache key if there is a custom one. default is based on schema.
 const getCacheKey = (custom: CacheSet, fallback: CacheSet) => {
   if (custom && custom.id && custom.type) {
     return `cache-keys:${custom.type}:${custom.id}`
