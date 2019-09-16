@@ -32,7 +32,10 @@ export const cacheMiddleware = async (
     const { returnType } = info
     if (result && result.id && redis && returnType) {
       try {
-        const key = getCacheKey(result.cache, { id: result.id, type: returnType })
+        const key = getCacheKey(result.cache, {
+          id: result.id,
+          type: returnType
+        })
         const hashes = await redis.client.smembers(key)
         hashes.map((hash: string) =>
           redis.client
