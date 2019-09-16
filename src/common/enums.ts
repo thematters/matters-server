@@ -422,3 +422,5 @@ export const NODE_TYPES = {
   user: 'User',
   tag: 'Tag'
 }
+
+export const CACHE_KEYWORD = '__cache__'

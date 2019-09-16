@@ -1,21 +1,28 @@
 // external
 import * as Sentry from '@sentry/node'
+import compact from 'lodash/compact'
 import get from 'lodash/get'
 import replace from 'lodash/replace'
 // internal
-import { GQL_OPERATION } from 'common/enums'
+import { CACHE_KEYWORD, GQL_OPERATION } from 'common/enums'
 
 type CacheSet = {
   id: string
   type: string
 }
 
-// get cache key if there is a custom one. default is based on schema.
-const getCacheKey = (custom: CacheSet, fallback: CacheSet) => {
-  if (custom && custom.id && custom.type) {
-    return `cache-keys:${custom.type}:${custom.id}`
+// get cache keys if there are custom sets. default is based on schema.
+const getCacheKeys = (customs: CacheSet[], fallback: CacheSet) => {
+  if (customs && customs.length > 0) {
+    return compact(
+      customs.map((custom: CacheSet) => {
+        if (custom && custom.id && custom.type) {
+          return `cache-keys:${custom.type}:${custom.id}`
+        }
+      })
+    )
   }
-  return `cache-keys:${replace(fallback.type, '!', '')}:${fallback.id}`
+  return [`cache-keys:${replace(fallback.type, '!', '')}:${fallback.id}`]
 }
 
 export const cacheMiddleware = async (
@@ -33,18 +40,21 @@ export const cacheMiddleware = async (
     const { returnType } = info
     if (result && result.id && redis && returnType) {
       try {
-        const key = getCacheKey(result.cache, {
+        const source = get(result, CACHE_KEYWORD, [])
+        const keys = getCacheKeys(source, {
           id: result.id,
           type: returnType
         })
-        const hashes = await redis.client.smembers(key)
-        hashes.map((hash: string) =>
-          redis.client
-            .pipeline()
-            .del(`fqc:${hash}`)
-            .srem(key, hash)
-            .exec()
-        )
+        keys.map(async (key: string) => {
+          const hashes = await redis.client.smembers(key)
+          hashes.map((hash: string) => {
+            redis.client
+              .pipeline()
+              .del(`fqc:${hash}`)
+              .srem(key, hash)
+              .exec()
+          })
+        })
       } catch (error) {
         Sentry.captureException(error)
       }

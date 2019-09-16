@@ -1,3 +1,5 @@
+import { NODE_TYPES } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Mutation {
     "Publish a comment."
@@ -102,7 +104,7 @@ export default /* GraphQL */ `
 
   type CommentEdge {
     cursor: String!
-    node: Comment! @recordCache(type: "Comment")
+    node: Comment! @recordCache(type: "${NODE_TYPES.comment}")
   }
 
   input PutCommentInput {
