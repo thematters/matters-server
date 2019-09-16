@@ -178,7 +178,7 @@ export class LikeCoin extends BaseService {
     isEmailEnabled?: boolean
   }) => {
     const res = await this.request({
-      endpoint: ENDPOINTS.check,
+      endpoint: ENDPOINTS.register,
       withClientCredential: true,
       method: 'POST',
       data: {
@@ -212,7 +212,7 @@ export class LikeCoin extends BaseService {
     payload: { [key: string]: any }
   }) => {
     const res = await this.request({
-      endpoint: ENDPOINTS.check,
+      endpoint: ENDPOINTS.edit,
       withClientCredential: true,
       method: 'POST',
       data: {
