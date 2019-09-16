@@ -3,7 +3,11 @@ import nanoid from 'nanoid'
 import { fromGlobalId } from 'common/utils'
 
 import { MutationToPutOAuthClientResolver } from 'definitions'
-import { AuthenticationError, UserInputError } from 'common/errors'
+import {
+  AuthenticationError,
+  UserInputError,
+  AssetNotFoundError
+} from 'common/errors'
 
 const resolver: MutationToPutOAuthClientResolver = async (
   root,
@@ -21,7 +25,7 @@ const resolver: MutationToPutOAuthClientResolver = async (
       user
     }
   },
-  { viewer, dataSources: { oauthService } }
+  { viewer, dataSources: { oauthService, systemService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -38,6 +42,18 @@ const resolver: MutationToPutOAuthClientResolver = async (
     grantTypes,
     redirectUri: redirectURIs,
     userId: user ? fromGlobalId(user).id : user
+  }
+
+  if (avatar) {
+    const asset = await systemService.findAssetByUUID(avatar)
+    if (
+      !asset ||
+      asset.type !== 'oauthClientAvatar' ||
+      asset.authorId !== viewer.id
+    ) {
+      throw new AssetNotFoundError('avatar asset does not exists')
+    }
+    oauthClient.avatar = asset.id
   }
 
   /**

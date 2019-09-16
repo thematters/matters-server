@@ -816,7 +816,8 @@ export enum GQLAssetType {
   feedback = 'feedback',
   embed = 'embed',
   embedaudio = 'embedaudio',
-  profileCover = 'profileCover'
+  profileCover = 'profileCover',
+  oauthClientAvatar = 'oauthClientAvatar'
 }
 
 export interface GQLAudiodraftConnection extends GQLConnection {

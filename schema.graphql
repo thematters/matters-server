@@ -340,6 +340,7 @@ enum AssetType {
   embed
   embedaudio
   profileCover
+  oauthClientAvatar
 }
 
 type Audiodraft {
