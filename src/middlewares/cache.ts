@@ -5,6 +5,18 @@ import replace from 'lodash/replace'
 // internal
 import { GQL_OPERATION } from 'common/enums'
 
+type CacheSet = {
+  id: string
+  type: string
+}
+
+const getCacheKey = (custom: CacheSet, fallback: CacheSet) => {
+  if (custom && custom.id && custom.type) {
+    return `cache-keys:${custom.type}:${custom.id}`
+  }
+  return `cache-keys:${replace(fallback.type, '!', '')}:${fallback.id}`
+}
+
 export const cacheMiddleware = async (
   resolve: any,
   root: { [key: string]: any },
@@ -20,7 +32,7 @@ export const cacheMiddleware = async (
     const { returnType } = info
     if (result && result.id && redis && returnType) {
       try {
-        const key = `cache-keys:${replace(returnType, '!', '')}:${result.id}`
+        const key = getCacheKey(result.cache, { id: result.id, type: returnType })
         const hashes = await redis.client.smembers(key)
         hashes.map((hash: string) =>
           redis.client

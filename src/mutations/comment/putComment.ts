@@ -234,6 +234,12 @@ const resolver: MutationToPutCommentResolver = async (
         ]
       })
     })
+
+    // Add custom cache-key
+    newComment['cache'] = {
+      id: article.id,
+      type: 'Article'
+    }
   }
 
   // publish a PubSub event
