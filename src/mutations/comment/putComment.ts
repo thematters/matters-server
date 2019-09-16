@@ -235,7 +235,7 @@ const resolver: MutationToPutCommentResolver = async (
       })
     })
 
-    // Add custom cache-key
+    // Add custom data for cache invalidation
     newComment['cache'] = {
       id: article.id,
       type: NODE_TYPES.article
