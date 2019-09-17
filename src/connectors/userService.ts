@@ -350,7 +350,7 @@ export class UserService extends BaseService {
 
   /*********************************
    *                               *
-   *            MAT                *
+   *        Transaction            *
    *                               *
    *********************************/
   totalMAT = async (userId: string) => {
@@ -361,6 +361,77 @@ export class UserService extends BaseService {
       .sum('delta as total')
     return Math.max(parseInt(result[0].total || 0, 10), 0)
   }
+
+  totalRecived = async (recipientId: string) => {
+    const result = await this.knex('transaction')
+      .where({
+        recipientId
+      })
+      .sum('amount as total')
+
+    return Math.max(parseInt(result[0].total || 0, 10), 0)
+  }
+
+  totalRecivedTransactionCount = async (recipientId: string) => {
+    const result = await this.knex('transaction')
+      .where({
+        recipientId
+      })
+      .count()
+    console.log({ result })
+    return parseInt(`${result[0].count}` || '0', 10)
+  }
+
+  totalSentTransactionCount = async (senderId: string) => {
+    const result = await this.knex('transaction')
+      .where({
+        senderId
+      })
+      .count()
+    console.log({ result })
+    return parseInt(`${result[0].count}` || '0', 10)
+  }
+
+  totalSent = async (senderId: string) => {
+    const result = await this.knex('transaction')
+      .where({
+        senderId
+      })
+      .sum('amount as total')
+    return Math.max(parseInt(result[0].total || 0, 10), 0)
+  }
+
+  findTransactionBySender = async ({
+    senderId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    senderId: string
+    limit: number
+    offset: number
+  }) =>
+    this.knex('transaction')
+      .where({
+        senderId
+      })
+      .limit(limit)
+      .offset(offset)
+
+  findTransactionByRecipient = async ({
+    recipientId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    recipientId: string
+    limit: number
+    offset: number
+  }) =>
+    this.knex('transaction')
+      .where({
+        recipientId
+      })
+      .limit(limit)
+      .offset(offset)
 
   findTransactionHistory = async ({
     id: userId,

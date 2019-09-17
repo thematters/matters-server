@@ -81,5 +81,13 @@ export const Transaction: GQLTransactionTypeResolver = {
         logger.error(`transaction purpose ${trx.purpose} no match`)
         return ''
     }
-  }
+  },
+  sender: (trx, _, { dataSources: { userService } }) =>
+    userService.baseFindById(trx.senderId),
+  recipient: (trx, _, { dataSources: { userService } }) =>
+    userService.baseFindById(trx.recipientId),
+  target: (trx, _, { dataSources: { articleService } }) =>
+    articleService.baseFindById(trx.referenceId),
+  // TODO
+  unit: (trx, _, { dataSources }) => 'mat'
 }

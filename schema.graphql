@@ -1579,7 +1579,21 @@ type Transaction {
   delta: Int!
   purpose: TransactionPurpose!
   content: String!
+
+  """Timestamp of transaction."""
   createdAt: DateTime!
+
+  """Unit of transaction used."""
+  unit: TransactionUnit!
+
+  """Recipient of transaction."""
+  recipient: User!
+
+  """Sender of transaction."""
+  sender: User
+
+  """Object that transaction is meant for."""
+  target: Article
 }
 
 type TransactionConnection implements Connection {
@@ -1602,6 +1616,11 @@ enum TransactionPurpose {
   joinByTask
   firstPost
   systemSubsidy
+}
+
+enum TransactionUnit {
+  mat
+  like
 }
 
 input UnfollowUserInput {
@@ -1748,6 +1767,18 @@ type UserActivity {
 
   """User search history."""
   recentSearches(input: ConnectionArgs!): RecentSearchConnection!
+
+  """Appreciations current user gave."""
+  appreciations(input: ConnectionArgs): TransactionConnection!
+
+  """Total number of appreciation current user gave."""
+  totalAppreciation: Int!
+
+  """Appreciations current user received."""
+  appreciatedBy(input: ConnectionArgs): TransactionConnection!
+
+  """Total number of appreciation current user received."""
+  totalAppreciatedBy: Int!
 }
 
 type UserConnection implements Connection {
@@ -1890,7 +1921,7 @@ type UserStatus {
   LIKE: LIKE!
 
   """Total MAT left in wallet."""
-  MAT: MAT!
+  MAT: MAT! @deprecated(reason: "Use 'UserActivity instead'.")
 
   """Invitation. Deprecated."""
   invitation: InvitationStatus @deprecated(reason: "removed")

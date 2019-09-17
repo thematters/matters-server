@@ -43,6 +43,23 @@ const resolver: GQLUserActivityTypeResolver = {
       userService.findRecentSearches(id),
       input
     )
+  },
+  appreciations: ({ id }, { input }, { dataSources: { userService } }) => {
+    // const first,
+    // offset
+    // userService.findTransactionBySender({ senderId: id, })
+    // TODO
+    return connectionFromArray([], input || {})
+  },
+  totalAppreciation: ({ id }, _, { dataSources: { userService } }) =>
+    userService.totalSent(id),
+  appreciatedBy: ({ id }, _, { dataSources: { userService } }) => {
+    // userService.findTransactionByRecipient(id)
+  },
+  totalAppreciatedBy: ({ id }, input, { dataSources: { userService } }) => {
+    // userService.totalRecived(id)
+    // TODO
+    return connectionFromArray([], input || {})
   }
 }
 

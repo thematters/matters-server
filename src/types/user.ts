@@ -220,6 +220,18 @@ export default /* GraphQL */ `
 
     "User search history."
     recentSearches(input: ConnectionArgs!): RecentSearchConnection!
+
+    "Appreciations current user gave."
+    appreciations(input: ConnectionArgs): TransactionConnection!
+
+    "Total number of appreciation current user gave."
+    totalAppreciation: Int!
+
+    "Appreciations current user received."
+    appreciatedBy(input: ConnectionArgs): TransactionConnection!
+
+    "Total number of appreciation current user received."
+    totalAppreciatedBy: Int!
   }
 
   type UserStatus {
@@ -233,7 +245,7 @@ export default /* GraphQL */ `
     LIKE: LIKE! @scope
 
     "Total MAT left in wallet."
-    MAT: MAT! @scope
+    MAT: MAT! @scope @deprecated(reason: "Use 'UserActivity instead'.")
 
     "Invitation. Deprecated."
     invitation: InvitationStatus @deprecated(reason: "removed")
@@ -325,7 +337,21 @@ export default /* GraphQL */ `
     delta: Int!
     purpose: TransactionPurpose!
     content: String!
+
+    "Timestamp of transaction."
     createdAt: DateTime!
+
+    "Unit of transaction used."
+    unit: TransactionUnit!
+
+    "Recipient of transaction."
+    recipient: User!
+
+    "Sender of transaction."
+    sender: User
+
+    "Object that transaction is meant for."
+    target: Article
   }
 
   type NotificationSetting {
@@ -540,6 +566,11 @@ export default /* GraphQL */ `
   enum UserRole {
     user
     admin
+  }
+
+  enum TransactionUnit {
+    mat
+    like
   }
 
   enum TransactionPurpose {
