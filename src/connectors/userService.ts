@@ -378,7 +378,6 @@ export class UserService extends BaseService {
         recipientId
       })
       .count()
-    console.log({ result })
     return parseInt(`${result[0].count}` || '0', 10)
   }
 
@@ -388,7 +387,6 @@ export class UserService extends BaseService {
         senderId
       })
       .count()
-    console.log({ result })
     return parseInt(`${result[0].count}` || '0', 10)
   }
 
@@ -407,8 +405,8 @@ export class UserService extends BaseService {
     offset = 0
   }: {
     senderId: string
-    limit: number
-    offset: number
+    limit?: number
+    offset?: number
   }) =>
     this.knex('transaction')
       .where({
@@ -423,8 +421,8 @@ export class UserService extends BaseService {
     offset = 0
   }: {
     recipientId: string
-    limit: number
-    offset: number
+    limit?: number
+    offset?: number
   }) =>
     this.knex('transaction')
       .where({

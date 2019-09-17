@@ -912,7 +912,12 @@ export interface GQLTransactionEdge {
 }
 
 export interface GQLTransaction {
+  /**
+   *
+   * @deprecated use 'amount' instead.
+   */
   delta: number
+  amount: number
   purpose: GQLTransactionPurpose
   content: string
 
@@ -5165,6 +5170,7 @@ export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
 
 export interface GQLTransactionTypeResolver<TParent = any> {
   delta?: TransactionToDeltaResolver<TParent>
+  amount?: TransactionToAmountResolver<TParent>
   purpose?: TransactionToPurposeResolver<TParent>
   content?: TransactionToContentResolver<TParent>
   createdAt?: TransactionToCreatedAtResolver<TParent>
@@ -5175,6 +5181,15 @@ export interface GQLTransactionTypeResolver<TParent = any> {
 }
 
 export interface TransactionToDeltaResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToAmountResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

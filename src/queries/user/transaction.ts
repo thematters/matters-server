@@ -50,9 +50,9 @@ export const MAT: GQLMATTypeResolver = {
 }
 
 export const Transaction: GQLTransactionTypeResolver = {
-  delta: ({ delta }) => delta,
+  // deprecated
+  delta: ({ amount }) => amount,
   purpose: ({ purpose }) => camelCase(purpose),
-  createdAt: ({ createdAt }) => createdAt,
   content: async (
     trx,
     _,
@@ -89,5 +89,5 @@ export const Transaction: GQLTransactionTypeResolver = {
   target: (trx, _, { dataSources: { articleService } }) =>
     articleService.baseFindById(trx.referenceId),
   // TODO
-  unit: (trx, _, { dataSources }) => 'mat'
+  unit: ({ unit }, _, { dataSources }) => unit || 'mat'
 }

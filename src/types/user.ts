@@ -334,7 +334,8 @@ export default /* GraphQL */ `
   }
 
   type Transaction {
-    delta: Int!
+    delta: Int!  @deprecated(reason: "use 'amount' instead.")
+    amount: Int!
     purpose: TransactionPurpose!
     content: String!
 
