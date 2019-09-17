@@ -53,14 +53,13 @@ const resolver: GQLUserActivityTypeResolver = {
   },
   totalAppreciation: ({ id }, _, { dataSources: { userService } }) =>
     userService.totalSent(id),
-  appreciatedBy: ({ id }, _, { dataSources: { userService } }) => {
+  appreciatedBy: ({ id }, { input }, { dataSources: { userService } }) => {
     // userService.findTransactionByRecipient(id)
-  },
-  totalAppreciatedBy: ({ id }, input, { dataSources: { userService } }) => {
-    // userService.totalRecived(id)
     // TODO
     return connectionFromArray([], input || {})
-  }
+  },
+  totalAppreciatedBy: ({ id }, _, { dataSources: { userService } }) =>
+    userService.totalRecived(id)
 }
 
 export default resolver
