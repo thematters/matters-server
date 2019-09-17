@@ -4,7 +4,7 @@ import compact from 'lodash/compact'
 import get from 'lodash/get'
 import replace from 'lodash/replace'
 // internal
-import { CACHE_KEYWORD, GQL_OPERATION } from 'common/enums'
+import { CACHE, GQL_OPERATION } from 'common/enums'
 
 type CacheSet = {
   id: string
@@ -38,23 +38,34 @@ export const cacheMiddleware = async (
   if (operation === GQL_OPERATION.mutation) {
     const { redis } = context
     const { returnType } = info
+
     if (result && result.id && redis && returnType) {
       try {
-        const source = get(result, CACHE_KEYWORD, [])
-        const keys = getCacheKeys(source, {
-          id: result.id,
-          type: returnType
-        })
-        keys.map(async (key: string) => {
-          const hashes = await redis.client.smembers(key)
-          hashes.map((hash: string) => {
-            redis.client
-              .pipeline()
-              .del(`fqc:${hash}`)
-              .srem(key, hash)
-              .exec()
-          })
-        })
+        const cache = get(result, CACHE.keyword, [])
+        switch (cache) {
+          case CACHE.bypass: {
+            // No cache invalidation
+            break
+          }
+          default: {
+            // Do cache invalidationn
+            const keys = getCacheKeys(cache, {
+              id: result.id,
+              type: returnType
+            })
+            keys.map(async (key: string) => {
+              const hashes = await redis.client.smembers(key)
+              hashes.map((hash: string) => {
+                redis.client
+                  .pipeline()
+                  .del(`fqc:${hash}`)
+                  .srem(key, hash)
+                  .exec()
+              })
+            })
+            break
+          }
+        }
       } catch (error) {
         Sentry.captureException(error)
       }

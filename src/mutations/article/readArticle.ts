@@ -1,4 +1,6 @@
 import { MutationToReadArticleResolver } from 'definitions'
+
+import { CACHE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
 import { ArticleNotFoundError } from 'common/errors'
 
@@ -18,6 +20,9 @@ const resolver: MutationToReadArticleResolver = async (
     userId: viewer.id,
     ip: viewer.ip
   })
+
+  // Add bypass for cache invaldation
+  article[CACHE.keyword] = CACHE.bypass
 
   return article
 }

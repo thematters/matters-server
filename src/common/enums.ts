@@ -423,4 +423,7 @@ export const NODE_TYPES = {
   tag: 'Tag'
 }
 
-export const CACHE_KEYWORD = '__cache__'
+export const CACHE = {
+  keyword: '__cache__',
+  bypass: 'bypass'
+}
