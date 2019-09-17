@@ -274,21 +274,4 @@ export class SystemService extends BaseService {
       table: 'log_record'
     })
   }
-
-  /*********************************
-   *                               *
-   *             Award             *
-   *                               *
-   *********************************/
-
-  firstPostAward = (id: string) =>
-    this.knex('transaction')
-      .insert({
-        uuid: v4(),
-        recipientId: id,
-        purpose: TRANSACTION_PURPOSE.firstPost,
-        amount: MAT_UNIT.firstPost
-      })
-      .into('transaction')
-      .returning('*')
 }
