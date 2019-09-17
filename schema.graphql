@@ -340,6 +340,7 @@ enum AssetType {
   embed
   embedaudio
   profileCover
+  oauthClientAvatar
 }
 
 type Audiodraft {
@@ -939,6 +940,9 @@ type Mutation {
 
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): User!
+
+  """Create or Update an OAuth Client, used in OSS."""
+  putOAuthClient(input: PutOAuthClientInput!): OAuthClient
 }
 
 scalar NegativeFloat
@@ -1049,6 +1053,23 @@ type OAuthClient {
 
   """Grant Types"""
   grantTypes: [GrantType!]
+
+  """Linked Developer Account"""
+  user: User
+
+  """Creation Date"""
+  createdAt: Date!
+}
+
+type OAuthClientConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [OAuthClientEdge!]
+}
+
+type OAuthClientEdge {
+  cursor: String!
+  node: OAuthClient!
 }
 
 input OAuthClientInput {
@@ -1100,6 +1121,7 @@ type OSS {
   reports(input: ReportsInput!): ReportConnection!
   report(input: ReportInput!): Report!
   today(input: ConnectionArgs!): ArticleConnection!
+  oauthClients(input: ConnectionArgs!): OAuthClientConnection!
 }
 
 input OSSArticlesInput {
@@ -1175,6 +1197,19 @@ input PutDraftInput {
   tags: [String]
   coverAssetId: ID
   collection: [ID]
+}
+
+input PutOAuthClientInput {
+  id: ID
+  name: String
+  description: String
+  website: URL
+  scope: [String!]
+  avatar: ID
+  secret: String
+  redirectURIs: [URL!]
+  grantTypes: [GrantType!]
+  user: ID
 }
 
 input PutRemarkInput {

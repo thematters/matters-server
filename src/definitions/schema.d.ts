@@ -577,6 +577,7 @@ export type GQLPossibleConnectionTypeNames =
   | 'ResponseConnection'
   | 'SearchResultConnection'
   | 'ReportConnection'
+  | 'OAuthClientConnection'
 
 export interface GQLConnectionNameMap {
   Connection: GQLConnection
@@ -594,6 +595,7 @@ export interface GQLConnectionNameMap {
   ResponseConnection: GQLResponseConnection
   SearchResultConnection: GQLSearchResultConnection
   ReportConnection: GQLReportConnection
+  OAuthClientConnection: GQLOAuthClientConnection
 }
 
 export interface GQLPageInfo {
@@ -814,7 +816,8 @@ export enum GQLAssetType {
   feedback = 'feedback',
   embed = 'embed',
   embedaudio = 'embedaudio',
-  profileCover = 'profileCover'
+  profileCover = 'profileCover',
+  oauthClientAvatar = 'oauthClientAvatar'
 }
 
 export interface GQLAudiodraftConnection extends GQLConnection {
@@ -1453,6 +1456,7 @@ export interface GQLOSS {
   reports: GQLReportConnection
   report: GQLReport
   today: GQLArticleConnection
+  oauthClients: GQLOAuthClientConnection
 }
 
 export interface GQLOSSArticlesInput {
@@ -1511,12 +1515,15 @@ export interface GQLReportInput {
   id: string
 }
 
-export interface GQLUserInput {
-  userName: string
+export interface GQLOAuthClientConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLOAuthClientEdge>
 }
 
-export interface GQLOAuthClientInput {
-  id: string
+export interface GQLOAuthClientEdge {
+  cursor: string
+  node: GQLOAuthClient
 }
 
 export interface GQLOAuthClient {
@@ -1564,11 +1571,31 @@ export interface GQLOAuthClient {
    * Grant Types
    */
   grantTypes?: Array<GQLGrantType>
+
+  /**
+   * Linked Developer Account
+   */
+  user?: GQLUser
+
+  /**
+   * Creation Date
+   */
+  createdAt: GQLDate
 }
 
 export enum GQLGrantType {
   authorization_code = 'authorization_code',
   refresh_token = 'refresh_token'
+}
+
+export type GQLDate = any
+
+export interface GQLUserInput {
+  userName: string
+}
+
+export interface GQLOAuthClientInput {
+  id: string
 }
 
 export interface GQLMutation {
@@ -1788,6 +1815,11 @@ export interface GQLMutation {
    * Update state of a user, used in OSS.
    */
   updateUserState: GQLUser
+
+  /**
+   * Create or Update an OAuth Client, used in OSS.
+   */
+  putOAuthClient?: GQLOAuthClient
 }
 
 export interface GQLPublishArticleInput {
@@ -2137,6 +2169,19 @@ export interface GQLUpdateUserStateInput {
 
 export type GQLPositiveInt = any
 
+export interface GQLPutOAuthClientInput {
+  id?: string
+  name?: string
+  description?: string
+  website?: GQLURL
+  scope?: Array<string>
+  avatar?: string
+  secret?: string
+  redirectURIs?: Array<GQLURL>
+  grantTypes?: Array<GQLGrantType>
+  user?: string
+}
+
 export interface GQLSubscription {
   nodeEdited: GQLNode
 }
@@ -2457,8 +2502,6 @@ export interface GQLCostComplexity {
   max?: number
 }
 
-export type GQLDate = any
-
 export interface GQLDownstreamArticleArchivedNotice extends GQLNotice {
   id: string
   unread: boolean
@@ -2697,7 +2740,10 @@ export interface GQLResolver {
   ReportConnection?: GQLReportConnectionTypeResolver
   ReportEdge?: GQLReportEdgeTypeResolver
   Report?: GQLReportTypeResolver
+  OAuthClientConnection?: GQLOAuthClientConnectionTypeResolver
+  OAuthClientEdge?: GQLOAuthClientEdgeTypeResolver
   OAuthClient?: GQLOAuthClientTypeResolver
+  Date?: GraphQLScalarType
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
   AuthResult?: GQLAuthResultTypeResolver
@@ -2714,7 +2760,6 @@ export interface GQLResolver {
   CommentNewReplyNotice?: GQLCommentNewReplyNoticeTypeResolver
   CommentNewUpvoteNotice?: GQLCommentNewUpvoteNoticeTypeResolver
   CommentPinnedNotice?: GQLCommentPinnedNoticeTypeResolver
-  Date?: GraphQLScalarType
   DownstreamArticleArchivedNotice?: GQLDownstreamArticleArchivedNoticeTypeResolver
   JSON?: GraphQLScalarType
   NegativeFloat?: GraphQLScalarType
@@ -4077,6 +4122,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'ResponseConnection'
     | 'SearchResultConnection'
     | 'ReportConnection'
+    | 'OAuthClientConnection'
 }
 export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
@@ -6415,6 +6461,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   reports?: OSSToReportsResolver<TParent>
   report?: OSSToReportResolver<TParent>
   today?: OSSToTodayResolver<TParent>
+  oauthClients?: OSSToOauthClientsResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -6496,6 +6543,18 @@ export interface OSSToTodayResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToTodayArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToOauthClientsArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToOauthClientsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToOauthClientsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6666,6 +6725,71 @@ export interface ReportToRemarkResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface GQLOAuthClientConnectionTypeResolver<TParent = any> {
+  totalCount?: OAuthClientConnectionToTotalCountResolver<TParent>
+  pageInfo?: OAuthClientConnectionToPageInfoResolver<TParent>
+  edges?: OAuthClientConnectionToEdgesResolver<TParent>
+}
+
+export interface OAuthClientConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLOAuthClientEdgeTypeResolver<TParent = any> {
+  cursor?: OAuthClientEdgeToCursorResolver<TParent>
+  node?: OAuthClientEdgeToNodeResolver<TParent>
+}
+
+export interface OAuthClientEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLOAuthClientTypeResolver<TParent = any> {
   id?: OAuthClientToIdResolver<TParent>
   name?: OAuthClientToNameResolver<TParent>
@@ -6676,6 +6800,8 @@ export interface GQLOAuthClientTypeResolver<TParent = any> {
   secret?: OAuthClientToSecretResolver<TParent>
   redirectURIs?: OAuthClientToRedirectURIsResolver<TParent>
   grantTypes?: OAuthClientToGrantTypesResolver<TParent>
+  user?: OAuthClientToUserResolver<TParent>
+  createdAt?: OAuthClientToCreatedAtResolver<TParent>
 }
 
 export interface OAuthClientToIdResolver<TParent = any, TResult = any> {
@@ -6765,6 +6891,24 @@ export interface OAuthClientToGrantTypesResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface OAuthClientToUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OAuthClientToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLMutationTypeResolver<TParent = any> {
   publishArticle?: MutationToPublishArticleResolver<TParent>
   archiveArticle?: MutationToArchiveArticleResolver<TParent>
@@ -6821,6 +6965,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
+  putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
 export interface MutationToPublishArticleArgs {
@@ -7514,6 +7659,21 @@ export interface MutationToUpdateUserStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserStateArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutOAuthClientArgs {
+  input: GQLPutOAuthClientInput
+}
+export interface MutationToPutOAuthClientResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToPutOAuthClientArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

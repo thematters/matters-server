@@ -62,6 +62,7 @@ export default /* GraphQL */ `
     reports(input: ReportsInput!): ReportConnection!
     report(input: ReportInput!): Report!
     today(input: ConnectionArgs!): ArticleConnection!
+    oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   }
 
   type Category {
@@ -278,6 +279,7 @@ export default /* GraphQL */ `
     embed
     embedaudio
     profileCover
+    oauthClientAvatar
   }
 
   enum EntityType {

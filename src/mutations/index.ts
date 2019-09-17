@@ -6,5 +6,6 @@ import draft from './draft'
 import system from './system'
 import user from './user'
 import notice from './notice'
+import oauthClient from './oauthClient'
 
-export default merge(article, comment, draft, system, user, notice)
+export default merge(article, comment, draft, system, user, notice, oauthClient)

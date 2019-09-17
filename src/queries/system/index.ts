@@ -13,7 +13,16 @@ import {
   links,
   placements
 } from './official'
-import { users, articles, comments, tags, reports, report, today } from './oss'
+import {
+  users,
+  articles,
+  comments,
+  tags,
+  reports,
+  report,
+  today,
+  oauthClients
+} from './oss'
 import Report from './report'
 
 export default {
@@ -48,7 +57,8 @@ export default {
     tags,
     reports,
     report,
-    today
+    today,
+    oauthClients
   },
   Report
 }
