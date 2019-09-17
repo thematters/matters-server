@@ -9,7 +9,7 @@ import {
   CommentNotFoundError,
   ForbiddenError
 } from 'common/errors'
-import { USER_STATE } from 'common/enums'
+import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
 
 const resolver: MutationToPutCommentResolver = async (
   root,
@@ -234,6 +234,14 @@ const resolver: MutationToPutCommentResolver = async (
         ]
       })
     })
+
+    // Add custom data for cache invalidation
+    newComment[CACHE_KEYWORD] = [
+      {
+        id: article.id,
+        type: NODE_TYPES.article
+      }
+    ]
   }
 
   // publish a PubSub event

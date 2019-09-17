@@ -414,3 +414,13 @@ export const GQL_OPERATION = {
   query: 'query',
   mutation: 'mutation'
 }
+
+export const NODE_TYPES = {
+  article: 'Article',
+  comment: 'Comment',
+  draft: 'Draft',
+  user: 'User',
+  tag: 'Tag'
+}
+
+export const CACHE_KEYWORD = '__cache__'
