@@ -51,7 +51,7 @@ export const MAT: GQLMATTypeResolver = {
 
 export const Transaction: GQLTransactionTypeResolver = {
   // deprecated
-  delta: ({ amount }) => amount,
+  delta: ({ delta, amount }) => delta || amount,
   purpose: ({ purpose }) => camelCase(purpose),
   content: async (
     trx,
