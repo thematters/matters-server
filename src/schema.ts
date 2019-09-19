@@ -13,7 +13,7 @@ import {
   UncacheViewerDirective,
   ScopeDirective,
   RecordCacheDirective,
-  PurgeCacheDirective,
+  PurgeCacheDirective
 } from './types/directives'
 
 const schema = makeExecutableSchema({
