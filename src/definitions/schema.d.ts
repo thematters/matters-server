@@ -851,6 +851,26 @@ export interface GQLUserActivity {
    * User search history.
    */
   recentSearches: GQLRecentSearchConnection
+
+  /**
+   * Appreciations current user gave.
+   */
+  appreciations: GQLTransactionConnection
+
+  /**
+   * Total number of appreciation current user gave.
+   */
+  totalAppreciation: number
+
+  /**
+   * Appreciations current user received.
+   */
+  appreciatedBy: GQLTransactionConnection
+
+  /**
+   * Total number of appreciation current user received.
+   */
+  totalAppreciatedBy: number
 }
 
 export interface GQLReadHistoryConnection extends GQLConnection {
@@ -880,6 +900,69 @@ export interface GQLRecentSearchEdge {
   node: string
 }
 
+export interface GQLTransactionConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLTransactionEdge>
+}
+
+export interface GQLTransactionEdge {
+  cursor: string
+  node: GQLTransaction
+}
+
+export interface GQLTransaction {
+  /**
+   *
+   * @deprecated use 'amount' instead.
+   */
+  delta: number
+  amount: number
+  purpose: GQLTransactionPurpose
+  content: string
+
+  /**
+   * Timestamp of transaction.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * Unit of transaction used.
+   */
+  unit: GQLTransactionUnit
+
+  /**
+   * Recipient of transaction.
+   */
+  recipient: GQLUser
+
+  /**
+   * Sender of transaction.
+   */
+  sender?: GQLUser
+
+  /**
+   * Object that transaction is meant for.
+   */
+  target?: GQLArticle
+}
+
+export enum GQLTransactionPurpose {
+  appreciate = 'appreciate',
+  appreciateComment = 'appreciateComment',
+  appreciateSubsidy = 'appreciateSubsidy',
+  invitationAccepted = 'invitationAccepted',
+  joinByInvitation = 'joinByInvitation',
+  joinByTask = 'joinByTask',
+  firstPost = 'firstPost',
+  systemSubsidy = 'systemSubsidy'
+}
+
+export enum GQLTransactionUnit {
+  mat = 'mat',
+  like = 'like'
+}
+
 export interface GQLUserStatus {
   /**
    * User state.
@@ -898,6 +981,7 @@ export interface GQLUserStatus {
 
   /**
    * Total MAT left in wallet.
+   * @deprecated Use 'UserActivity instead'.
    */
   MAT: GQLMAT
 
@@ -988,35 +1072,6 @@ export interface GQLLIKE {
 export interface GQLMAT {
   total: number
   history: GQLTransactionConnection
-}
-
-export interface GQLTransactionConnection extends GQLConnection {
-  totalCount: number
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLTransactionEdge>
-}
-
-export interface GQLTransactionEdge {
-  cursor: string
-  node: GQLTransaction
-}
-
-export interface GQLTransaction {
-  delta: number
-  purpose: GQLTransactionPurpose
-  content: string
-  createdAt: GQLDateTime
-}
-
-export enum GQLTransactionPurpose {
-  appreciate = 'appreciate',
-  appreciateComment = 'appreciateComment',
-  appreciateSubsidy = 'appreciateSubsidy',
-  invitationAccepted = 'invitationAccepted',
-  joinByInvitation = 'joinByInvitation',
-  joinByTask = 'joinByTask',
-  firstPost = 'firstPost',
-  systemSubsidy = 'systemSubsidy'
 }
 
 /**
@@ -2701,12 +2756,12 @@ export interface GQLResolver {
   ReadHistory?: GQLReadHistoryTypeResolver
   RecentSearchConnection?: GQLRecentSearchConnectionTypeResolver
   RecentSearchEdge?: GQLRecentSearchEdgeTypeResolver
-  UserStatus?: GQLUserStatusTypeResolver
-  LIKE?: GQLLIKETypeResolver
-  MAT?: GQLMATTypeResolver
   TransactionConnection?: GQLTransactionConnectionTypeResolver
   TransactionEdge?: GQLTransactionEdgeTypeResolver
   Transaction?: GQLTransactionTypeResolver
+  UserStatus?: GQLUserStatusTypeResolver
+  LIKE?: GQLLIKETypeResolver
+  MAT?: GQLMATTypeResolver
   InvitationStatus?: GQLInvitationStatusTypeResolver
   InvitationConnection?: GQLInvitationConnectionTypeResolver
   InvitationEdge?: GQLInvitationEdgeTypeResolver
@@ -4805,6 +4860,10 @@ export interface AudiodraftToUpdatedAtResolver<TParent = any, TResult = any> {
 export interface GQLUserActivityTypeResolver<TParent = any> {
   history?: UserActivityToHistoryResolver<TParent>
   recentSearches?: UserActivityToRecentSearchesResolver<TParent>
+  appreciations?: UserActivityToAppreciationsResolver<TParent>
+  totalAppreciation?: UserActivityToTotalAppreciationResolver<TParent>
+  appreciatedBy?: UserActivityToAppreciatedByResolver<TParent>
+  totalAppreciatedBy?: UserActivityToTotalAppreciatedByResolver<TParent>
 }
 
 export interface UserActivityToHistoryArgs {
@@ -4829,6 +4888,60 @@ export interface UserActivityToRecentSearchesResolver<
   (
     parent: TParent,
     args: UserActivityToRecentSearchesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserActivityToAppreciationsArgs {
+  input?: GQLConnectionArgs
+}
+export interface UserActivityToAppreciationsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: UserActivityToAppreciationsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserActivityToTotalAppreciationResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserActivityToAppreciatedByArgs {
+  input?: GQLConnectionArgs
+}
+export interface UserActivityToAppreciatedByResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: UserActivityToAppreciatedByArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserActivityToTotalAppreciatedByResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -4982,6 +5095,164 @@ export interface RecentSearchEdgeToCursorResolver<
 }
 
 export interface RecentSearchEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTransactionConnectionTypeResolver<TParent = any> {
+  totalCount?: TransactionConnectionToTotalCountResolver<TParent>
+  pageInfo?: TransactionConnectionToPageInfoResolver<TParent>
+  edges?: TransactionConnectionToEdgesResolver<TParent>
+}
+
+export interface TransactionConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTransactionEdgeTypeResolver<TParent = any> {
+  cursor?: TransactionEdgeToCursorResolver<TParent>
+  node?: TransactionEdgeToNodeResolver<TParent>
+}
+
+export interface TransactionEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTransactionTypeResolver<TParent = any> {
+  delta?: TransactionToDeltaResolver<TParent>
+  amount?: TransactionToAmountResolver<TParent>
+  purpose?: TransactionToPurposeResolver<TParent>
+  content?: TransactionToContentResolver<TParent>
+  createdAt?: TransactionToCreatedAtResolver<TParent>
+  unit?: TransactionToUnitResolver<TParent>
+  recipient?: TransactionToRecipientResolver<TParent>
+  sender?: TransactionToSenderResolver<TParent>
+  target?: TransactionToTargetResolver<TParent>
+}
+
+export interface TransactionToDeltaResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToAmountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToPurposeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToContentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToUnitResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToRecipientResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToSenderResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToTargetResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5224,114 +5495,6 @@ export interface MATToHistoryResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MATToHistoryArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLTransactionConnectionTypeResolver<TParent = any> {
-  totalCount?: TransactionConnectionToTotalCountResolver<TParent>
-  pageInfo?: TransactionConnectionToPageInfoResolver<TParent>
-  edges?: TransactionConnectionToEdgesResolver<TParent>
-}
-
-export interface TransactionConnectionToTotalCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TransactionConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TransactionConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLTransactionEdgeTypeResolver<TParent = any> {
-  cursor?: TransactionEdgeToCursorResolver<TParent>
-  node?: TransactionEdgeToNodeResolver<TParent>
-}
-
-export interface TransactionEdgeToCursorResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLTransactionTypeResolver<TParent = any> {
-  delta?: TransactionToDeltaResolver<TParent>
-  purpose?: TransactionToPurposeResolver<TParent>
-  content?: TransactionToContentResolver<TParent>
-  createdAt?: TransactionToCreatedAtResolver<TParent>
-}
-
-export interface TransactionToDeltaResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TransactionToPurposeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TransactionToContentResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TransactionToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -50,13 +50,13 @@ export const MAT: GQLMATTypeResolver = {
 }
 
 export const Transaction: GQLTransactionTypeResolver = {
-  delta: ({ delta }) => delta,
+  // deprecated
+  delta: ({ delta, amount }) => delta || amount,
   purpose: ({ purpose }) => camelCase(purpose),
-  createdAt: ({ createdAt }) => createdAt,
   content: async (
     trx,
     _,
-    { viewer, dataSources: { userService, articleService } }
+    { viewer, dataSources: { articleService } }
   ): Promise<string> => {
     switch (trx.purpose) {
       case TRANSACTION_PURPOSE.appreciate:
@@ -81,5 +81,13 @@ export const Transaction: GQLTransactionTypeResolver = {
         logger.error(`transaction purpose ${trx.purpose} no match`)
         return ''
     }
-  }
+  },
+  sender: (trx, _, { dataSources: { userService } }) =>
+    userService.dataloader.load(trx.senderId),
+  recipient: (trx, _, { dataSources: { userService } }) =>
+    userService.dataloader.load(trx.recipientId),
+  target: (trx, _, { dataSources: { articleService } }) =>
+    articleService.dataloader.load(trx.referenceId),
+  // TODO: remove after migration
+  unit: ({ unit }) => unit || 'mat'
 }

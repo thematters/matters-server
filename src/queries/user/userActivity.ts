@@ -43,7 +43,49 @@ const resolver: GQLUserActivityTypeResolver = {
       userService.findRecentSearches(id),
       input
     )
-  }
+  },
+  appreciations: async (
+    { id },
+    { input = {} },
+    { dataSources: { userService } }
+  ) => {
+    const { first, after } = input
+
+    const offset = after ? cursorToIndex(after) + 1 : 0
+    const totalCount = await userService.totalSentTransactionCount(id)
+    return connectionFromPromisedArray(
+      userService.findTransactionBySender({
+        senderId: id,
+        limit: first,
+        offset
+      }),
+      input,
+      totalCount
+    )
+  },
+  totalAppreciation: ({ id }, _, { dataSources: { userService } }) =>
+    userService.totalSent(id),
+  appreciatedBy: async (
+    { id },
+    { input = {} },
+    { dataSources: { userService } }
+  ) => {
+    const { first, after } = input
+
+    const offset = after ? cursorToIndex(after) + 1 : 0
+    const totalCount = await userService.totalRecivedTransactionCount(id)
+    return connectionFromPromisedArray(
+      userService.findTransactionByRecipient({
+        recipientId: id,
+        limit: first,
+        offset
+      }),
+      input,
+      totalCount
+    )
+  },
+  totalAppreciatedBy: ({ id }, _, { dataSources: { userService } }) =>
+    userService.totalRecived(id)
 }
 
 export default resolver

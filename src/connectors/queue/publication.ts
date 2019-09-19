@@ -41,19 +41,6 @@ class PublicationQueue {
     this.addConsumers()
   }
 
-  private firstPostAward = async (authorId: string) => {
-    const count = await this.articleService.countByAuthor(authorId, false)
-
-    if (count === 1) {
-      const trx = await this.systemService.firstPostAward(authorId)
-
-      this.notificationService.trigger({
-        event: 'user_first_post_award',
-        recipientId: authorId
-      })
-    }
-  }
-
   /**
    * Cusumers
    */
@@ -232,8 +219,6 @@ class PublicationQueue {
               }
             ]
           })
-
-          this.firstPostAward(article.authorId)
 
           job.progress(100)
 
