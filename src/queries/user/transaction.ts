@@ -56,7 +56,7 @@ export const Transaction: GQLTransactionTypeResolver = {
   content: async (
     trx,
     _,
-    { viewer, dataSources: { userService, articleService } }
+    { viewer, dataSources: { articleService } }
   ): Promise<string> => {
     switch (trx.purpose) {
       case TRANSACTION_PURPOSE.appreciate:
@@ -83,11 +83,11 @@ export const Transaction: GQLTransactionTypeResolver = {
     }
   },
   sender: (trx, _, { dataSources: { userService } }) =>
-    userService.baseFindById(trx.senderId),
+    userService.dataloader.load(trx.senderId),
   recipient: (trx, _, { dataSources: { userService } }) =>
-    userService.baseFindById(trx.recipientId),
+    userService.dataloader.load(trx.recipientId),
   target: (trx, _, { dataSources: { articleService } }) =>
-    articleService.baseFindById(trx.referenceId),
-  // TODO
-  unit: ({ unit }, _, { dataSources }) => unit || 'mat'
+    articleService.dataloader.load(trx.referenceId),
+  // TODO: remove after migration
+  unit: ({ unit }) => unit || 'mat'
 }
