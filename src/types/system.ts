@@ -341,4 +341,6 @@ export default /* GraphQL */ `
   directive @scope on FIELD_DEFINITION
 
   directive @recordCache(type: String!) on FIELD_DEFINITION
+
+  directive @purgeCache on FIELD_DEFINITION
 `
