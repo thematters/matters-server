@@ -12,7 +12,8 @@ import {
   authDirectiveFactory,
   UncacheViewerDirective,
   ScopeDirective,
-  RecordCacheDirective
+  RecordCacheDirective,
+  PurgeCacheDirective
 } from './types/directives'
 
 const schema = makeExecutableSchema({
@@ -24,7 +25,8 @@ const schema = makeExecutableSchema({
     private: PrivateDirective,
     uncacheViewer: UncacheViewerDirective,
     scope: ScopeDirective,
-    recordCache: RecordCacheDirective
+    recordCache: RecordCacheDirective,
+    purgeCache: PurgeCacheDirective
   },
   resolvers: merge(queries, mutations, subscriptions)
 })
