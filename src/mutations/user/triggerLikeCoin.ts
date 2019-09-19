@@ -10,7 +10,7 @@ const resolver: MutationToTriggerLikeCoinResolver = async (
    * To see the progress, you can query the `oss.noLikerIdCount`.
    */
   if (action === 'generateTempUsers') {
-    userService.generateTempLikeCoinUsers()
+    userService.likecoin.generateTempUsers()
   }
 
   // if (action === 'transferPendingLIKE') {

@@ -985,18 +985,4 @@ export class UserService extends BaseService {
       }
     })
   }
-
-  totalLIKE = async ({ userId }: { userId: string }) => {
-    const liker = await this.findLiker({ userId })
-
-    if (!liker) {
-      return 0
-    }
-
-    return this.likecoin.total({ liker })
-  }
-
-  generateTempLikeCoinUsers = async () => {
-    return this.likecoin.generateTempUsers()
-  }
 }
