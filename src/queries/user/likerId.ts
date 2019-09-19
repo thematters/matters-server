@@ -1,9 +1,10 @@
 import { UserToLikerIdResolver } from 'definitions'
+import { environment } from 'common/environment'
 
 const resolver: UserToLikerIdResolver = async (
   { likerId },
   _,
-  { dataSources: { userService } }
+  { viewer, dataSources: { userService } }
 ) => {
   if (!likerId) {
     return null
@@ -11,11 +12,16 @@ const resolver: UserToLikerIdResolver = async (
 
   const liker = await userService.findLiker({ likerId })
 
-  if (!liker || liker.accountType === 'temporal') {
-    return null
+  // backdoor for "LikeCoin" OAuth Client to finish "Login with Matters" flow.
+  const isFromLikeCoinOAuthClient =
+    viewer.oauthClient &&
+    viewer.oauthClient.name === environment.likecoinOAuthClientName
+
+  if (liker && (isFromLikeCoinOAuthClient || liker.accountType === 'general')) {
+    return likerId
   }
 
-  return likerId
+  return null
 }
 
 export default resolver

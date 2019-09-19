@@ -35,6 +35,13 @@ export class OAuthService extends BaseService {
       .first()
   }
 
+  findClientByName = async ({ name }: { name: string }) => {
+    return await this.knex('oauth_client')
+      .select()
+      .where({ name })
+      .first()
+  }
+
   updateOrCreateClient = async (params: {
     clientId: string
     clientSecret?: string
@@ -78,7 +85,8 @@ export class OAuthService extends BaseService {
       id: dbClient.id,
       redirectUris: dbClient.redirectUri,
       grants: dbClient.grantTypes,
-      scope: dbClient.scope
+      scope: dbClient.scope,
+      rawClient: dbClient
       // accessTokenLifetime: , // Client-specific lifetime
       // refreshTokenLifetime: , // Client-specific lifetime
     }
@@ -338,10 +346,7 @@ export class OAuthService extends BaseService {
     const userService = new UserService()
     const user = (await userService.dataloader.load(userId)) as User
     const name = environment.likecoinOAuthClientName
-    const client = await this.knex('oauth_client')
-      .select()
-      .where({ name })
-      .first()
+    const client = await this.findClientByName({ name })
     const oauthClient = this.toOAuthClient(client)
 
     if (!client || !oauthClient) {
