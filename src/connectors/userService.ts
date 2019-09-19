@@ -903,6 +903,29 @@ export class UserService extends BaseService {
     return user
   }
 
+  findNoLikerIdUsers = ({
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    limit?: number
+    offset?: number
+  }) => {
+    return this.knex('user')
+      .select('id', 'userName')
+      .where({ likerId: null })
+      .limit(limit)
+      .offset(offset)
+      .orderBy('id', 'asc')
+  }
+
+  countNoLikerId = async (): Promise<number> => {
+    const result = await this.knex(this.table)
+      .where({ likerId: null })
+      .count()
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   registerLikerId = async ({
     userId,
     userName
@@ -912,6 +935,8 @@ export class UserService extends BaseService {
   }) => {
     // check
     const likerId = await this.likecoin.check({ user: userName })
+
+    return
     const oAuthService = new OAuthService()
 
     // register
@@ -969,5 +994,9 @@ export class UserService extends BaseService {
     }
 
     return this.likecoin.total({ liker })
+  }
+
+  generateTempLikeCoinUsers = async () => {
+    return this.likecoin.generateTempUsers()
   }
 }

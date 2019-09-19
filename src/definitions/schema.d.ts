@@ -1512,6 +1512,7 @@ export interface GQLOSS {
   report: GQLReport
   today: GQLArticleConnection
   oauthClients: GQLOAuthClientConnection
+  noLikerIdCount: number
 }
 
 export interface GQLOSSArticlesInput {
@@ -1872,6 +1873,11 @@ export interface GQLMutation {
   updateUserState: GQLUser
 
   /**
+   * Trigger a LikeCoin action, used in OSS
+   */
+  triggerLikeCoin: boolean
+
+  /**
    * Create or Update an OAuth Client, used in OSS.
    */
   putOAuthClient?: GQLOAuthClient
@@ -2223,6 +2229,15 @@ export interface GQLUpdateUserStateInput {
 }
 
 export type GQLPositiveInt = any
+
+export interface GQLTriggerLikeCoinInput {
+  action: GQLTriggerLikeCoinAction
+}
+
+export enum GQLTriggerLikeCoinAction {
+  generateTempUsers = 'generateTempUsers',
+  transferPendingLIKE = 'transferPendingLIKE'
+}
 
 export interface GQLPutOAuthClientInput {
   id?: string
@@ -6625,6 +6640,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   report?: OSSToReportResolver<TParent>
   today?: OSSToTodayResolver<TParent>
   oauthClients?: OSSToOauthClientsResolver<TParent>
+  noLikerIdCount?: OSSToNoLikerIdCountResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -6718,6 +6734,15 @@ export interface OSSToOauthClientsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToOauthClientsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToNoLikerIdCountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7128,6 +7153,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
+  triggerLikeCoin?: MutationToTriggerLikeCoinResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
@@ -7822,6 +7848,21 @@ export interface MutationToUpdateUserStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserStateArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToTriggerLikeCoinArgs {
+  input: GQLTriggerLikeCoinInput
+}
+export interface MutationToTriggerLikeCoinResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToTriggerLikeCoinArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

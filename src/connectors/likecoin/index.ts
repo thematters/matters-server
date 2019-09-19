@@ -3,11 +3,18 @@ import _ from 'lodash'
 import * as Sentry from '@sentry/node'
 
 import { UserOAuthLikeCoin } from 'definitions'
-import logger from 'common/logger'
 import { environment } from 'common/environment'
-import { BaseService } from '../baseService'
+import { toGlobalId, fromGlobalId } from 'common/utils'
 
-const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
+import { BaseService } from '../baseService'
+import { UserService } from '../userService'
+
+const {
+  likecoinApiURL,
+  likecoinMigrationApiURL,
+  likecoinClientId,
+  likecoinClientSecret
+} = environment
 
 type LikeCoinLocale =
   | 'en'
@@ -33,7 +40,9 @@ const ENDPOINTS = {
   check: '/users/new/check',
   register: '/users/new/matters',
   edit: '/users/edit/matters',
-  total: '/like/info/like/history/total'
+  total: '/like/info/like/history/total',
+  generateTempUsers: '/user',
+  transferPendingLIKE: '/like'
 }
 
 export class LikeCoin extends BaseService {
@@ -63,10 +72,18 @@ export class LikeCoin extends BaseService {
       // Params
       let params = {}
       if (withClientCredential) {
-        params = {
-          ...params,
-          client_id: likecoinClientId,
-          client_secret: likecoinClientSecret
+        if (axiosOptions.method === 'GET') {
+          params = {
+            ...params,
+            client_id: likecoinClientId,
+            client_secret: likecoinClientSecret
+          }
+        } else if (axiosOptions.data) {
+          axiosOptions.data = {
+            ...axiosOptions.data,
+            client_id: likecoinClientId,
+            client_secret: likecoinClientSecret
+          }
         }
       }
 
@@ -223,11 +240,11 @@ export class LikeCoin extends BaseService {
     })
     const data = _.get(res, 'data')
 
-    if (data) {
-      return
-    } else {
+    if (!data) {
       throw res
     }
+
+    return
   }
 
   /**
@@ -241,10 +258,62 @@ export class LikeCoin extends BaseService {
     })
     const data = _.get(res, 'data')
 
-    if (data) {
-      return data.total
-    } else {
+    if (!data) {
       throw res
+    }
+
+    return data.total
+  }
+
+  /**
+   * Migrations
+   */
+  generateTempUsers = async (offset: number = 0) => {
+    const userService = new UserService()
+    const SIZE = 50
+
+    // get first 50 users which haven't Liker ID
+    const users = await userService.findNoLikerIdUsers({ limit: SIZE, offset })
+
+    // normalize users for request body
+    const normalizedUsers = users.map(({ id, userName }) => ({
+      userId: userName,
+      dbId: toGlobalId({ type: 'Article', id })
+    }))
+
+    const res = await this.request({
+      baseURL: likecoinMigrationApiURL,
+      endpoint: ENDPOINTS.generateTempUsers,
+      withClientCredential: true,
+      method: 'POST',
+      data: {
+        users: normalizedUsers
+      }
+    })
+    const data = _.get(res, 'data')
+
+    if (!data || data.length !== users.length) {
+      throw res
+    }
+
+    // save
+    await Promise.all(
+      data.map(async ({ dbId, likerId, accessToken, refreshToken }: any) => {
+        const userId = fromGlobalId(dbId).id
+
+        await userService.saveLiker({
+          userId,
+          likerId,
+          accessToken,
+          refreshToken,
+          accountType: 'temporal'
+        })
+      })
+    )
+
+    // next tick
+    if (users.length > 0) {
+      await this.generateTempUsers(offset + SIZE)
     }
   }
 }

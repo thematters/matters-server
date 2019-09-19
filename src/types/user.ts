@@ -55,6 +55,9 @@ export default /* GraphQL */ `
 
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): User! @authorize
+
+    "Trigger a LikeCoin action, used in OSS"
+    triggerLikeCoin(input: TriggerLikeCoinInput!): Boolean! @authorize
   }
 
   type User implements Node {
@@ -496,6 +499,10 @@ export default /* GraphQL */ `
     banDays: PositiveInt
   }
 
+  input TriggerLikeCoinInput {
+    action: TriggerLikeCoinAction!
+  }
+
   input FollowUserInput {
     id: ID!
   }
@@ -583,5 +590,10 @@ export default /* GraphQL */ `
     joinByTask
     firstPost
     systemSubsidy
+  }
+
+  enum TriggerLikeCoinAction {
+    generateTempUsers
+    transferPendingLIKE
   }
 `

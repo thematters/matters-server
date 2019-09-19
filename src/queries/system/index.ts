@@ -13,17 +13,8 @@ import {
   links,
   placements
 } from './official'
-import {
-  users,
-  articles,
-  comments,
-  tags,
-  reports,
-  report,
-  today,
-  oauthClients
-} from './oss'
 import Report from './report'
+import OSS from './oss'
 
 export default {
   Query: {
@@ -50,15 +41,6 @@ export default {
     links,
     placements // TODO
   },
-  OSS: {
-    users,
-    articles,
-    comments,
-    tags,
-    reports,
-    report,
-    today,
-    oauthClients
-  },
+  OSS,
   Report
 }

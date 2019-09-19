@@ -941,6 +941,9 @@ type Mutation {
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): User!
 
+  """Trigger a LikeCoin action, used in OSS"""
+  triggerLikeCoin(input: TriggerLikeCoinInput!): Boolean!
+
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
 }
@@ -1122,6 +1125,7 @@ type OSS {
   report(input: ReportInput!): Report!
   today(input: ConnectionArgs!): ArticleConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
+  noLikerIdCount: Int!
 }
 
 input OSSArticlesInput {
@@ -1622,6 +1626,15 @@ enum TransactionPurpose {
 enum TransactionUnit {
   mat
   like
+}
+
+enum TriggerLikeCoinAction {
+  generateTempUsers
+  transferPendingLIKE
+}
+
+input TriggerLikeCoinInput {
+  action: TriggerLikeCoinAction!
 }
 
 input UnfollowUserInput {
