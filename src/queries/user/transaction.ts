@@ -8,8 +8,8 @@ import logger from 'common/logger'
 
 const trans = {
   systemSubsidy: i18n({
-    zh_hant: '系統補貼',
-    zh_hans: '系统补贴',
+    zh_hant: '平台補貼',
+    zh_hans: '平台补贴',
     en: 'System subsidy'
   }),
   appreciateComment: i18n({
@@ -83,11 +83,11 @@ export const Transaction: GQLTransactionTypeResolver = {
     }
   },
   sender: (trx, _, { dataSources: { userService } }) =>
-    userService.dataloader.load(trx.senderId),
+    trx.senderId ? userService.dataloader.load(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { userService } }) =>
-    userService.dataloader.load(trx.recipientId),
+    trx.recipientId ? userService.dataloader.load(trx.recipientId) : null,
   target: (trx, _, { dataSources: { articleService } }) =>
-    articleService.dataloader.load(trx.referenceId),
+    trx.referenceId ? articleService.dataloader.load(trx.referenceId) : null,
   // TODO: remove after migration
   unit: ({ unit }) => unit || 'mat'
 }
