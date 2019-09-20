@@ -14,7 +14,7 @@ import unfollowUser from './unfollowUser'
 import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import updateUserState from './updateUserState'
-import triggerLikeCoin from './triggerLikeCoin'
+import generateTempLikerIds from './generateTempLikerIds'
 
 export default {
   Mutation: {
@@ -34,6 +34,6 @@ export default {
     clearReadHistory,
     clearSearchHistory,
     updateUserState,
-    triggerLikeCoin
+    generateTempLikerIds
   }
 }

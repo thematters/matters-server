@@ -1873,9 +1873,9 @@ export interface GQLMutation {
   updateUserState: GQLUser
 
   /**
-   * Trigger a LikeCoin action, used in OSS
+   * Generate temporary LikerIds for users without it, used in OSS
    */
-  triggerLikeCoin: boolean
+  generateTempLikerIds: number
 
   /**
    * Create or Update an OAuth Client, used in OSS.
@@ -2230,13 +2230,8 @@ export interface GQLUpdateUserStateInput {
 
 export type GQLPositiveInt = any
 
-export interface GQLTriggerLikeCoinInput {
-  action: GQLTriggerLikeCoinAction
-}
-
-export enum GQLTriggerLikeCoinAction {
-  generateTempUsers = 'generateTempUsers',
-  transferPendingLIKE = 'transferPendingLIKE'
+export interface GQLGenerateTempLikerIdsInput {
+  step?: number
 }
 
 export interface GQLPutOAuthClientInput {
@@ -2674,6 +2669,11 @@ export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
 }
 
 export type GQLTime = any
+
+export enum GQLTriggerLikeCoinAction {
+  generateTempUsers = 'generateTempUsers',
+  transferPendingLIKE = 'transferPendingLIKE'
+}
 
 export interface GQLUpstreamArticleArchivedNotice extends GQLNotice {
   id: string
@@ -7153,7 +7153,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
-  triggerLikeCoin?: MutationToTriggerLikeCoinResolver<TParent>
+  generateTempLikerIds?: MutationToGenerateTempLikerIdsResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
@@ -7853,16 +7853,16 @@ export interface MutationToUpdateUserStateResolver<
   ): TResult
 }
 
-export interface MutationToTriggerLikeCoinArgs {
-  input: GQLTriggerLikeCoinInput
+export interface MutationToGenerateTempLikerIdsArgs {
+  input?: GQLGenerateTempLikerIdsInput
 }
-export interface MutationToTriggerLikeCoinResolver<
+export interface MutationToGenerateTempLikerIdsResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToTriggerLikeCoinArgs,
+    args: MutationToGenerateTempLikerIdsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

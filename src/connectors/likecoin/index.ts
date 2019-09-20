@@ -41,7 +41,7 @@ const ENDPOINTS = {
   register: '/users/new/matters',
   edit: '/users/edit/matters',
   total: '/like/info/like/history/total',
-  generateTempUsers: '/user',
+  generateTempLikers: '/user',
   transferPendingLIKE: '/like'
 }
 
@@ -268,12 +268,11 @@ export class LikeCoin extends BaseService {
   /**
    * Migrations
    */
-  generateTempUsers = async (offset: number = 0) => {
+  generateTempUsers = async ({ step }: { step: number }) => {
     const userService = new UserService()
-    const SIZE = 50
 
     // get first 50 users which haven't Liker ID
-    const users = await userService.findNoLikerIdUsers({ limit: SIZE, offset })
+    const users = await userService.findNoLikerIdUsers({ limit: step })
 
     // normalize users for request body
     const normalizedUsers = users.map(({ id, userName }) => ({
@@ -283,7 +282,7 @@ export class LikeCoin extends BaseService {
 
     const res = await this.request({
       baseURL: likecoinMigrationApiURL,
-      endpoint: ENDPOINTS.generateTempUsers,
+      endpoint: ENDPOINTS.generateTempLikers,
       withClientCredential: true,
       method: 'POST',
       data: {
@@ -310,11 +309,6 @@ export class LikeCoin extends BaseService {
         })
       })
     )
-
-    // next tick
-    if (users.length > 0) {
-      await this.generateTempUsers(offset + SIZE)
-    }
   }
 }
 

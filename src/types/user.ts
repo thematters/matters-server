@@ -56,8 +56,8 @@ export default /* GraphQL */ `
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): User! @authorize
 
-    "Trigger a LikeCoin action, used in OSS"
-    triggerLikeCoin(input: TriggerLikeCoinInput!): Boolean! @authorize
+    "Generate temporary LikerIds for users without it, used in OSS"
+    generateTempLikerIds(input: GenerateTempLikerIdsInput): Int! @authorize
   }
 
   type User implements Node {
@@ -499,8 +499,8 @@ export default /* GraphQL */ `
     banDays: PositiveInt
   }
 
-  input TriggerLikeCoinInput {
-    action: TriggerLikeCoinAction!
+  input GenerateTempLikerIdsInput {
+    step: Int
   }
 
   input FollowUserInput {
