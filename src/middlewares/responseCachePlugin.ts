@@ -311,11 +311,10 @@ export default function plugin(
             const { cacheKeys, redis } = requestContext.context
             if (cacheKeys && redis) {
               try {
-                cacheKeys
-                  .forEach((cacheKey: string) => {
-                    redis.client.sadd(cacheKey, key)
-                    redis.client.expire(cacheKey, CACHE_TTL.SHORT)
-                  })
+                cacheKeys.forEach((cacheKey: string) => {
+                  redis.client.sadd(cacheKey, key)
+                  redis.client.expire(cacheKey, CACHE_TTL.SHORT)
+                })
               } catch (error) {
                 Sentry.captureException(error)
               }
