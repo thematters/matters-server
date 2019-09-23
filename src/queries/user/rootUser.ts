@@ -5,7 +5,7 @@ import { BLOCK_USERS } from 'common/enums'
 const resolver: QueryToUserResolver = async (
   root,
   { input: { userName } },
-  { viewer, dataSources: { userService }, cacheKey },
+  { viewer, dataSources: { userService } },
   info
 ) => {
   if (!userName || BLOCK_USERS.includes(userName)) {

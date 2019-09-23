@@ -56,7 +56,12 @@ const getUser = async (token: string) => {
       const live = data.accessTokenExpiresAt.getTime() - Date.now()
       if (live > 0) {
         const scope = makeScope(data.scope as string[])
-        return { ...data.user, scopeMode: SCOPE_MODE.oauth, scope }
+        return {
+          ...data.user,
+          scopeMode: SCOPE_MODE.oauth,
+          scope,
+          oauthClient: data.client && data.client.rawClient
+        }
       }
     }
     throw new Error('token invalid')

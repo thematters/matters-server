@@ -54,6 +54,7 @@ export type Viewer = (User | { id: null }) & {
   language: LANGUAGES
   scope: { [key: string]: any }
   scopeMode: ScopeMode
+  oauthClient?: OAuthClient
 }
 
 export type RequestContext = {
