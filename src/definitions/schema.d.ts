@@ -131,9 +131,14 @@ export interface GQLArticle extends GQLNode {
   relatedArticles: GQLArticleConnection
 
   /**
-   * MAT recieved for this article
+   * MAT recieved for this article (will be decrpecated soon)
    */
   MAT: number
+
+  /**
+   * Total appreciations recieved of this article.
+   */
+  appreciationTotal: number
 
   /**
    *
@@ -2961,6 +2966,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   collection?: ArticleToCollectionResolver<TParent>
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>
   MAT?: ArticleToMATResolver<TParent>
+  appreciationTotal?: ArticleToAppreciationTotalResolver<TParent>
   participantCount?: ArticleToParticipantCountResolver<TParent>
   participants?: ArticleToParticipantsResolver<TParent>
   subscribers?: ArticleToSubscribersResolver<TParent>
@@ -3167,6 +3173,18 @@ export interface ArticleToRelatedArticlesResolver<
 }
 
 export interface ArticleToMATResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToAppreciationTotalResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},

@@ -16,6 +16,7 @@ import MAT from './mat'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import hasAppreciate from './hasAppreciate'
+import appreciationTotal from './appreciationTotal'
 import appreciatorCount from './appreciatorCount'
 import appreciateLeft from './appreciateLeft'
 import participants from './participants'
@@ -46,6 +47,7 @@ export default {
     collectedBy,
     relatedArticles,
     MAT,
+    appreciationTotal,
     subscribed,
     subscribers,
     appreciators,
