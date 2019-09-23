@@ -2,7 +2,7 @@ import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    article(input: ArticleInput!): Article @uncacheViewer @recordCache(type: "${NODE_TYPES.article}")
+    article(input: ArticleInput!): Article @privateCache @logCache(type: "${NODE_TYPES.article}")
   }
 
   extend type Mutation {
@@ -190,7 +190,7 @@ export default /* GraphQL */ `
 
   type ArticleEdge {
     cursor: String!
-    node: Article! @recordCache(type: "${NODE_TYPES.article}")
+    node: Article! @logCache(type: "${NODE_TYPES.article}")
   }
 
   type TagConnection implements Connection {
@@ -201,7 +201,7 @@ export default /* GraphQL */ `
 
   type TagEdge {
     cursor: String!
-    node: Tag!
+    node: Tag! @logCache(type: "${NODE_TYPES.tag}")
   }
 
   input TagsInput {

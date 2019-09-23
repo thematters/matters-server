@@ -1,7 +1,5 @@
 directive @cacheControl(maxAge: Int, scope: CacheScope) on OBJECT | FIELD | FIELD_DEFINITION
 
-directive @uncacheViewer on FIELD_DEFINITION
-
 directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
 
 directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION
@@ -12,9 +10,11 @@ directive @private on FIELD_DEFINITION
 
 directive @scope on FIELD_DEFINITION
 
-directive @recordCache(type: String!) on FIELD_DEFINITION
-
 directive @purgeCache on FIELD_DEFINITION
+
+directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
+
+directive @logCache(type: String!) on FIELD_DEFINITION
 
 input AppreciateArticleInput {
   id: ID!

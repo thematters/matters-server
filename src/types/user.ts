@@ -2,8 +2,8 @@ import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    viewer: User @uncacheViewer
-    user(input: UserInput!): User @uncacheViewer @recordCache(type: "${NODE_TYPES.user}")
+    viewer: User @privateCache(strict: true)
+    user(input: UserInput!): User @privateCache @logCache(type: "${NODE_TYPES.user}")
   }
 
   extend type Mutation {
@@ -134,7 +134,7 @@ export default /* GraphQL */ `
     hottest(input: ConnectionArgs!): ArticleConnection!
 
     "'Matters Today' recommendation."
-    today: Article
+    today: Article @logCache(type: "${NODE_TYPES.article}")
 
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection!

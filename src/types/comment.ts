@@ -41,13 +41,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "Article that the comment is belonged to."
-    article: Article!
+    article: Article! @logCache(type: "${NODE_TYPES.article}")
 
     "Content of this comment."
     content: String
 
     "Author of this comment."
-    author: User!
+    author: User! @logCache(type: "${NODE_TYPES.user}")
 
     "This value determines this comment is pinned or not."
     pinned: Boolean!
@@ -66,13 +66,13 @@ export default /* GraphQL */ `
     comments(input: CommentCommentsInput!): CommentConnection!
 
     "Parent comment of this comment."
-    parentComment: Comment
+    parentComment: Comment @logCache(type: "${NODE_TYPES.comment}")
     quotationStart: Int
     quotationEnd: Int
     quotationContent: String
 
     "A Comment that this comment replied to."
-    replyTo: Comment
+    replyTo: Comment @logCache(type: "${NODE_TYPES.comment}")
     remark: String @authorize
   }
 
@@ -104,7 +104,7 @@ export default /* GraphQL */ `
 
   type CommentEdge {
     cursor: String!
-    node: Comment! @recordCache(type: "${NODE_TYPES.comment}")
+    node: Comment! @logCache(type: "${NODE_TYPES.comment}")
   }
 
   input PutCommentInput {
