@@ -110,8 +110,11 @@ export default /* GraphQL */ `
     "Related articles to this articles."
     relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
-    "MAT recieved for this article "
+    "MAT recieved for this article (will be decrpecated soon)"
     MAT: Int!
+
+    "Total appreciations recieved of this article."
+    appreciationTotal: Int!
     participantCount: Int! @deprecated(reason: "not used")
     participants: UserConnection! @deprecated(reason: "not used")
 

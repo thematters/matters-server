@@ -86,8 +86,13 @@ export const Transaction: GQLTransactionTypeResolver = {
     trx.senderId ? userService.dataloader.load(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { userService } }) =>
     trx.recipientId ? userService.dataloader.load(trx.recipientId) : null,
-  target: (trx, _, { dataSources: { articleService } }) =>
-    trx.referenceId ? articleService.dataloader.load(trx.referenceId) : null,
+  target: (trx, _, { dataSources: { articleService } }) => {
+    if (trx.purpose === 'appreciate' && trx.referenceId) {
+      return articleService.dataloader.load(trx.referenceId)
+    } else {
+      return null
+    }
+  },
   // TODO: remove after migration
   unit: ({ unit }) => unit || 'mat'
 }
