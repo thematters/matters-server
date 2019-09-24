@@ -32,8 +32,8 @@ import {
   UserOAuthLikeCoinAccountType
 } from 'definitions'
 
+const { oauthService } = require('./oauthService')
 import { BaseService } from './baseService'
-import { OAuthService } from './oauthService'
 import { likecoin } from './likecoin'
 
 export class UserService extends BaseService {
@@ -936,11 +936,8 @@ export class UserService extends BaseService {
     // check
     const likerId = await this.likecoin.check({ user: userName })
 
-    return
-    const oAuthService = new OAuthService()
-
     // register
-    const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
+    const tokens = await oauthService.generateTokenForLikeCoin({ userId })
     const { accessToken, refreshToken, scope } = await this.likecoin.register({
       user: likerId,
       token: tokens.accessToken
@@ -986,3 +983,5 @@ export class UserService extends BaseService {
     })
   }
 }
+
+export const userService = new UserService()

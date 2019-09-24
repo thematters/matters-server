@@ -7,7 +7,7 @@ import {
   VERIFICATION_CODE_STATUS
 } from 'common/enums'
 import { MaterializedView } from 'definitions'
-import { UserService } from 'connectors'
+import { userService } from 'connectors'
 import { refreshView } from 'connectors/db'
 import {
   defaultTestUser,
@@ -16,12 +16,6 @@ import {
   registerUser,
   getViewerMAT
 } from './utils'
-
-let userService: any
-beforeAll(async () => {
-  userService = new UserService()
-  // await userService.initSearch()
-})
 
 const USER_LOGIN = `
   mutation UserLogin($input: UserLoginInput!) {

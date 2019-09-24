@@ -473,3 +473,5 @@ export class CommentService extends BaseService {
     await this.baseBatchCreate(reportAssets, 'report_asset')
   }
 }
+
+export const commentService = new CommentService()

@@ -275,3 +275,5 @@ export class TagService extends BaseService {
     return newTag
   }
 }
+
+export const tagService = new TagService()

@@ -1,5 +1,5 @@
 import { v4 } from 'uuid'
-import { SystemService } from '../systemService'
+import { systemService } from '../systemService'
 
 const assetValidation = {
   id: expect.any(String),
@@ -11,10 +11,8 @@ const assetValidation = {
   updatedAt: expect.any(Date)
 }
 
-const service = new SystemService()
-
 test('findAssetUrl', async () => {
-  const url = await service.findAssetUrl('1')
+  const url = await systemService.findAssetUrl('1')
   expect(url).toEqual(expect.any(String))
 })
 
@@ -25,10 +23,10 @@ test('create and delete asset', async () => {
     type: 'cover',
     path: 'path/to/file.txt'
   }
-  const asset = await service.baseCreate(data, 'asset')
+  const asset = await systemService.baseCreate(data, 'asset')
   expect(asset).toEqual(expect.objectContaining(assetValidation))
 
-  await service.baseDelete(asset.id, 'asset')
-  const result = await service.baseFindById(asset.id, 'asset')
+  await systemService.baseDelete(asset.id, 'asset')
+  const result = await systemService.baseFindById(asset.id, 'asset')
   expect(result).toBeNull()
 })

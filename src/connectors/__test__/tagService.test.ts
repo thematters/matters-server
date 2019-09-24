@@ -1,6 +1,4 @@
-import { TagService } from '../tagService'
-
-const tagService = new TagService()
+import { tagService } from '../tagService'
 
 test('countArticles', async () => {
   const count = await tagService.countArticles('2')

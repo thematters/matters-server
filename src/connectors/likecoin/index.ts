@@ -7,7 +7,7 @@ import { environment } from 'common/environment'
 import { toGlobalId, fromGlobalId } from 'common/utils'
 
 import { BaseService } from '../baseService'
-import { UserService } from '../userService'
+import { userService } from '../userService'
 
 const {
   likecoinApiURL,
@@ -269,8 +269,6 @@ export class LikeCoin extends BaseService {
    * Migrations
    */
   generateTempUsers = async ({ step }: { step: number }) => {
-    const userService = new UserService()
-
     // get first 50 users which haven't Liker ID
     const users = await userService.findNoLikerIdUsers({ limit: step })
 
