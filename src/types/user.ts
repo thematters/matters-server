@@ -2,7 +2,7 @@ import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    viewer: User @privateCache
+    viewer: User @privateCache @logCache(type: "${NODE_TYPES.user}")
     user(input: UserInput!): User @privateCache @logCache(type: "${NODE_TYPES.user}")
   }
 
