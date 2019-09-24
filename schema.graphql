@@ -676,6 +676,8 @@ type Draft implements Node {
 
   """Content of this draft."""
   content: String
+
+  """Time of this draft was scheduled for publishing."""
   scheduledAt: DateTime
 
   """Time of this draft was created."""
