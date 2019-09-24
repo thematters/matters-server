@@ -2670,11 +2670,6 @@ export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
 
 export type GQLTime = any
 
-export enum GQLTriggerLikeCoinAction {
-  generateTempUsers = 'generateTempUsers',
-  transferPendingLIKE = 'transferPendingLIKE'
-}
-
 export interface GQLUpstreamArticleArchivedNotice extends GQLNotice {
   id: string
   unread: boolean

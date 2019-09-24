@@ -591,9 +591,4 @@ export default /* GraphQL */ `
     firstPost
     systemSubsidy
   }
-
-  enum TriggerLikeCoinAction {
-    generateTempUsers
-    transferPendingLIKE
-  }
 `

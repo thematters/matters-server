@@ -1632,11 +1632,6 @@ enum TransactionUnit {
   like
 }
 
-enum TriggerLikeCoinAction {
-  generateTempUsers
-  transferPendingLIKE
-}
-
 input UnfollowUserInput {
   id: ID!
 }
