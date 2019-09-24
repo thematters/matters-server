@@ -15,7 +15,7 @@ export default /* GraphQL */ `
   """
   This type contains content, collections, assets and related data of a draft.
   """
-  type Draft implements Node @cacheControl(maxAge: "${CACHE_TTL.INSTANT}" scope: PRIVATE) {
+  type Draft implements Node @cacheControl(maxAge: ${CACHE_TTL.INSTANT}){
     "Unique ID of this draft."
     id: ID!
 
