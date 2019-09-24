@@ -4,7 +4,7 @@ export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node @privateCache @logCache(type: "Node")
     frequentSearch(input: FrequentSearchInput!): [String!]
-    search(input: SearchInput!): SearchResultConnection! @privateCache(strict: true)
+    search(input: SearchInput!): SearchResultConnection! @privateCache
     official: Official!
     oss: OSS! @authorize @cacheControl(maxAge: ${CACHE_TTL.INSTANT}, scope: PRIVATE)
   }

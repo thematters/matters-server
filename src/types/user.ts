@@ -2,7 +2,7 @@ import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    viewer: User @privateCache(strict: true)
+    viewer: User @privateCache
     user(input: UserInput!): User @privateCache @logCache(type: "${NODE_TYPES.user}")
   }
 
@@ -208,7 +208,7 @@ export default /* GraphQL */ `
 
   type UserSettings {
     "User language setting."
-    language: UserLanguage! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    language: UserLanguage!
     # Notification settings
     "Notification settings."
     notification: NotificationSetting!
@@ -275,10 +275,10 @@ export default /* GraphQL */ `
       @deprecated(reason: "Use \`User.followers.totalCount\`.")
 
     "Number of unread notices."
-    unreadNoticeCount: Int! @scope
+    unreadNoticeCount: Int! @scope @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Whether there are unread articles from followees."
-    unreadFolloweeArticles: Boolean!
+    unreadFolloweeArticles: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Whether user has read response info or not."
     unreadResponseInfoPopUp: Boolean!

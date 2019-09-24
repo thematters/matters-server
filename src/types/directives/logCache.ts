@@ -21,12 +21,9 @@ export class LogCacheDirective extends SchemaDirectiveVisitor {
         try {
           let cacheType = field._type
           switch (field._type) {
-            case 'Node': {
-              cacheType = result.__type
-              break
-            }
+            case 'Node':
             case 'Response': {
-              cacheType = result.type
+              cacheType = result.__type
               break
             }
           }
