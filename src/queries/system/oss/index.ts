@@ -7,6 +7,7 @@ import { report } from './report'
 import { today } from './today'
 import { oauthClients } from './oauthClients'
 import { noLikerIdCount } from './noLikerIdCount'
+import { noPendingLIKECount } from './noPendingLIKECount'
 
 export default {
   users,
@@ -17,5 +18,6 @@ export default {
   report,
   today,
   oauthClients,
-  noLikerIdCount
+  noLikerIdCount,
+  noPendingLIKECount
 }

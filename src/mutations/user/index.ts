@@ -15,6 +15,7 @@ import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import updateUserState from './updateUserState'
 import generateTempLikerIds from './generateTempLikerIds'
+import transferLIKE from './transferLIKE'
 
 export default {
   Mutation: {
@@ -34,6 +35,7 @@ export default {
     clearReadHistory,
     clearSearchHistory,
     updateUserState,
-    generateTempLikerIds
+    generateTempLikerIds,
+    transferLIKE
   }
 }

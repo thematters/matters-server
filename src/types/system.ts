@@ -64,6 +64,7 @@ export default /* GraphQL */ `
     today(input: ConnectionArgs!): ArticleConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
     noLikerIdCount: Int!
+    noPendingLIKECount: Int!
   }
 
   type Category {

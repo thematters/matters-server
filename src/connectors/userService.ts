@@ -903,6 +903,20 @@ export class UserService extends BaseService {
     return user
   }
 
+  updateLiker = ({
+    likerId,
+    ...data
+  }: {
+    likerId: string
+    [key: string]: any
+  }) => {
+    return this.knex
+      .select()
+      .from('user_oauth_likecoin')
+      .where({ likerId })
+      .update(data)
+  }
+
   findNoLikerIdUsers = ({
     limit = BATCH_SIZE,
     offset = 0
@@ -918,9 +932,56 @@ export class UserService extends BaseService {
       .orderBy('id', 'asc')
   }
 
+  findNoPendingLIKEUsers = ({
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    limit?: number
+    offset?: number
+  }) => {
+    return this.knex
+      .select('user_id', 'mat', 'liker_id')
+      .from(
+        this.knex.raw(/*sql*/ `
+          (SELECT
+            u.id as user_id,
+            mat,
+            user_oauth_likecoin.*
+          FROM
+            user_oauth_likecoin
+            LEFT JOIN (
+              SELECT
+                "user".id,
+                liker_id,
+                coalesce(SUM(delta), 0) AS mat
+              FROM
+                "user"
+                LEFT JOIN transaction_delta_view AS tx ON user_id = "user".id
+              GROUP BY
+                "user".id,
+                liker_id,
+                delta) AS u ON u.liker_id = user_oauth_likecoin.liker_id) AS user_likecon_mat
+      `)
+      )
+      .whereNotNull('likerId')
+      .whereNull('pending_like')
+      .limit(limit)
+      .offset(offset)
+      .orderBy('id', 'asc')
+  }
+
   countNoLikerId = async (): Promise<number> => {
     const result = await this.knex(this.table)
       .where({ likerId: null })
+      .count()
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  countNoPendingLIKE = async (): Promise<number> => {
+    const result = await this.knex('user_oauth_likecoin')
+      .whereNotNull('likerId')
+      .whereNull('pending_like')
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)

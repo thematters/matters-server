@@ -1518,6 +1518,7 @@ export interface GQLOSS {
   today: GQLArticleConnection
   oauthClients: GQLOAuthClientConnection
   noLikerIdCount: number
+  noPendingLIKECount: number
 }
 
 export interface GQLOSSArticlesInput {
@@ -1883,6 +1884,11 @@ export interface GQLMutation {
   generateTempLikerIds: number
 
   /**
+   * Transfer user's MAT to pending LIKE, used in OSS
+   */
+  transferLIKE: number
+
+  /**
    * Create or Update an OAuth Client, used in OSS.
    */
   putOAuthClient?: GQLOAuthClient
@@ -2236,6 +2242,10 @@ export interface GQLUpdateUserStateInput {
 export type GQLPositiveInt = any
 
 export interface GQLGenerateTempLikerIdsInput {
+  step?: number
+}
+
+export interface GQLTransferLIKEInput {
   step?: number
 }
 
@@ -6654,6 +6664,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   today?: OSSToTodayResolver<TParent>
   oauthClients?: OSSToOauthClientsResolver<TParent>
   noLikerIdCount?: OSSToNoLikerIdCountResolver<TParent>
+  noPendingLIKECount?: OSSToNoPendingLIKECountResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -6753,6 +6764,15 @@ export interface OSSToOauthClientsResolver<TParent = any, TResult = any> {
 }
 
 export interface OSSToNoLikerIdCountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToNoPendingLIKECountResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7167,6 +7187,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   generateTempLikerIds?: MutationToGenerateTempLikerIdsResolver<TParent>
+  transferLIKE?: MutationToTransferLIKEResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
@@ -7876,6 +7897,18 @@ export interface MutationToGenerateTempLikerIdsResolver<
   (
     parent: TParent,
     args: MutationToGenerateTempLikerIdsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToTransferLIKEArgs {
+  input?: GQLTransferLIKEInput
+}
+export interface MutationToTransferLIKEResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToTransferLIKEArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
