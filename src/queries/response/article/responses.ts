@@ -64,7 +64,7 @@ const resolver: ArticleToResponsesResolver = async (
     const type = !!item.title ? 'Article' : 'Comment'
     return {
       cursor: toGlobalId({ type, id: item.id }),
-      node: { type, ...item }
+      node: { __type: type, ...item }
     }
   })
 
