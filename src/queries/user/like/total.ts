@@ -5,7 +5,13 @@ const resolver: LIKEToTotalResolver = async (
   _: any,
   { dataSources: { userService } }
 ) => {
-  return await userService.totalLIKE({ userId: id })
+  const liker = await userService.findLiker({ userId: id })
+
+  if (!liker) {
+    return 0
+  }
+
+  return userService.likecoin.total({ liker })
 }
 
 export default resolver

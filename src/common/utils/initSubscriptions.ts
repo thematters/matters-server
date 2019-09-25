@@ -2,13 +2,13 @@ import { RequestHeaders } from 'request-ip'
 
 import { Context } from 'definitions'
 import {
-  ArticleService,
-  CommentService,
-  DraftService,
-  SystemService,
-  TagService,
-  UserService,
-  NotificationService
+  articleService,
+  commentService,
+  draftService,
+  systemService,
+  tagService,
+  userService,
+  notificationService
 } from 'connectors'
 import { getViewerFromReq } from './getViewer'
 
@@ -30,13 +30,13 @@ export const initSubscriptions = (): { onConnect: any } => ({
     return {
       viewer,
       dataSources: {
-        userService: new UserService(),
-        articleService: new ArticleService(),
-        commentService: new CommentService(),
-        draftService: new DraftService(),
-        systemService: new SystemService(),
-        tagService: new TagService(),
-        notificationService: new NotificationService()
+        userService,
+        articleService,
+        commentService,
+        draftService,
+        systemService,
+        tagService,
+        notificationService
       }
     }
   }

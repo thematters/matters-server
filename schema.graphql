@@ -739,6 +739,10 @@ input FrequentSearchInput {
   first: Int
 }
 
+input GenerateTempLikerIdsInput {
+  step: Int
+}
+
 enum GrantType {
   authorization_code
   refresh_token
@@ -944,6 +948,9 @@ type Mutation {
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): User!
 
+  """Generate temporary LikerIds for users without it, used in OSS"""
+  generateTempLikerIds(input: GenerateTempLikerIdsInput): Int!
+
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
 }
@@ -1125,6 +1132,7 @@ type OSS {
   report(input: ReportInput!): Report!
   today(input: ConnectionArgs!): ArticleConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
+  noLikerIdCount: Int!
 }
 
 input OSSArticlesInput {

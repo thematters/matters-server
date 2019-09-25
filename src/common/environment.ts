@@ -35,6 +35,8 @@ export const environment = {
   sentryDsn: process.env['MATTERS_SENTRY_DSN'],
   likecoinOAuthClientName:
     process.env['MATTERS_LIKECOIN_OAUTH_CLIENT_NAME'] || '',
+  likecoinMigrationApiURL:
+    process.env['MATTERS_LIKECOIN_MIGRATION_API_URL'] || '',
   likecoinApiURL: process.env['MATTERS_LIKECOIN_API_URL'] || '',
   likecoinAuthorizationURL: process.env['MATTERS_LIKECOIN_AUTH_URL'] || '',
   likecoinTokenURL: process.env['MATTERS_LIKECOIN_TOKEN_URL'] || '',

@@ -5,7 +5,7 @@ import { i18n } from 'common/utils/i18n'
 import { environment } from 'common/environment'
 import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPES } from 'common/enums'
 import notificationQueue from 'connectors/queue/notification'
-import { UserService, ArticleService, SystemService } from 'connectors'
+import { userService, articleService, systemService } from 'connectors'
 import { makeSummary, toGlobalId } from 'common/utils'
 
 const trans = {
@@ -223,10 +223,6 @@ class Mail {
       comment_mentioned_you: NoticeItem[]
     }
   }) => {
-    const userService = new UserService()
-    const articleService = new ArticleService()
-    const systemService = new SystemService()
-
     const templateId = EMAIL_TEMPLATE_ID.dailySummary[language]
     const subject = trans.dailySummary(language, {
       displayName: recipient.displayName

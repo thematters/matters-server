@@ -73,3 +73,5 @@ export class DraftService extends BaseService {
       .where({ authorId })
       .orderBy('id', 'desc')
 }
+
+export const draftService = new DraftService()
