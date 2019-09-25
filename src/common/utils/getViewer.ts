@@ -5,7 +5,7 @@ import cookie from 'cookie'
 import { Response } from 'express'
 
 import { USER_ROLE, LANGUAGE, SCOPE_MODE, USER_STATE } from 'common/enums'
-import { UserService, OAuthService } from 'connectors'
+import { userService, oauthService } from 'connectors'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { Viewer } from 'definitions'
@@ -13,8 +13,6 @@ import { Viewer } from 'definitions'
 import { getLanguage } from './getLanguage'
 import { clearCookie } from './cookie'
 import { makeScope } from './scope'
-
-const userService = new UserService()
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 export const scopeModes = [
@@ -49,8 +47,7 @@ const getUser = async (token: string) => {
     return { ...user, scopeMode: user.role }
   } catch (error) {
     // get oauth user
-    const oAuthService = new OAuthService()
-    const data = await oAuthService.getAccessToken(token)
+    const data = await oauthService.getAccessToken(token)
     if (data && data.accessTokenExpiresAt) {
       // check it's expired or not
       const live = data.accessTokenExpiresAt.getTime() - Date.now()

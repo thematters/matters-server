@@ -32,8 +32,8 @@ import {
   UserOAuthLikeCoinAccountType
 } from 'definitions'
 
+const { oauthService } = require('./oauthService')
 import { BaseService } from './baseService'
-import { OAuthService } from './oauthService'
 import { likecoin } from './likecoin'
 
 export class UserService extends BaseService {
@@ -903,6 +903,29 @@ export class UserService extends BaseService {
     return user
   }
 
+  findNoLikerIdUsers = ({
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    limit?: number
+    offset?: number
+  }) => {
+    return this.knex('user')
+      .select('id', 'userName')
+      .where({ likerId: null })
+      .limit(limit)
+      .offset(offset)
+      .orderBy('id', 'asc')
+  }
+
+  countNoLikerId = async (): Promise<number> => {
+    const result = await this.knex(this.table)
+      .where({ likerId: null })
+      .count()
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   registerLikerId = async ({
     userId,
     userName
@@ -912,10 +935,9 @@ export class UserService extends BaseService {
   }) => {
     // check
     const likerId = await this.likecoin.check({ user: userName })
-    const oAuthService = new OAuthService()
 
     // register
-    const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
+    const tokens = await oauthService.generateTokenForLikeCoin({ userId })
     const { accessToken, refreshToken, scope } = await this.likecoin.register({
       user: likerId,
       token: tokens.accessToken
@@ -960,14 +982,6 @@ export class UserService extends BaseService {
       }
     })
   }
-
-  totalLIKE = async ({ userId }: { userId: string }) => {
-    const liker = await this.findLiker({ userId })
-
-    if (!liker) {
-      return 0
-    }
-
-    return this.likecoin.total({ liker })
-  }
 }
+
+export const userService = new UserService()

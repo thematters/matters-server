@@ -1,6 +1,4 @@
-import { CommentService } from '../commentService'
-
-const commentService = new CommentService()
+import { commentService } from '../commentService'
 
 test('countByAuthor', async () => {
   const count = await commentService.countByAuthor('1')

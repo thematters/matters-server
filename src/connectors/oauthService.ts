@@ -15,8 +15,8 @@ import {
   OAUTH_REFRESH_TOKEN_EXPIRES_IN
 } from 'common/enums'
 
+const { userService } = require('./userService')
 import { BaseService } from './baseService'
-import { UserService } from './userService'
 
 export class OAuthService extends BaseService {
   constructor() {
@@ -127,7 +127,6 @@ export class OAuthService extends BaseService {
     }
 
     const client = (await this.getClientById(token.clientId)) as OAuthClient
-    const userService = new UserService()
     const user = (await userService.dataloader.load(token.userId)) as User
 
     return {
@@ -191,7 +190,6 @@ export class OAuthService extends BaseService {
       .where({ code: authorizationCode })
       .first()
     const client = (await this.getClientById(code.clientId)) as OAuthClient
-    const userService = new UserService()
     const user = (await userService.dataloader.load(code.userId)) as User
 
     if (!code) {
@@ -275,7 +273,6 @@ export class OAuthService extends BaseService {
       .where({ token: refreshToken })
       .first()
     const client = (await this.getClientById(token.clientId)) as OAuthClient
-    const userService = new UserService()
     const user = (await userService.dataloader.load(token.userId)) as User
 
     if (!token) {
@@ -343,7 +340,6 @@ export class OAuthService extends BaseService {
    *                               *
    *********************************/
   generateTokenForLikeCoin = async ({ userId }: { userId: string }) => {
-    const userService = new UserService()
     const user = (await userService.dataloader.load(userId)) as User
     const name = environment.likecoinOAuthClientName
     const client = await this.findClientByName({ name })
@@ -387,3 +383,5 @@ export class OAuthService extends BaseService {
     )
   }
 }
+
+export const oauthService = new OAuthService()

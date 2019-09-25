@@ -6,7 +6,7 @@ export const toGlobalId = ({
   type,
   id
 }: {
-  type: string
+  type: 'Article' | 'Comment' | 'User' | 'Tag' | 'Draft'
   id: number | string
 }) => Base64.encodeURI(`${type}:${id}`)
 

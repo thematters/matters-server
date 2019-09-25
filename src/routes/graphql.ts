@@ -23,14 +23,14 @@ import { environment, isProd } from 'common/environment'
 import { DataSources } from 'definitions'
 import { makeContext, initSubscriptions } from 'common/utils'
 import {
-  ArticleService,
-  CommentService,
-  DraftService,
-  SystemService,
-  TagService,
-  UserService,
-  NotificationService,
-  OAuthService
+  articleService,
+  commentService,
+  draftService,
+  systemService,
+  tagService,
+  userService,
+  notificationService,
+  oauthService
 } from 'connectors'
 import { ActionLimitExceededError } from 'common/errors'
 import { scopeMiddleware } from 'middlewares/scope'
@@ -92,14 +92,14 @@ const server = new ProtectedApolloServer({
   },
   subscriptions: initSubscriptions(),
   dataSources: (): DataSources => ({
-    userService: new UserService(),
-    articleService: new ArticleService(),
-    commentService: new CommentService(),
-    draftService: new DraftService(),
-    systemService: new SystemService(),
-    tagService: new TagService(),
-    notificationService: new NotificationService(),
-    oauthService: new OAuthService()
+    userService,
+    articleService,
+    commentService,
+    draftService,
+    systemService,
+    tagService,
+    notificationService,
+    oauthService
   }),
   uploads: {
     maxFileSize: UPLOAD_FILE_SIZE_LIMIT,

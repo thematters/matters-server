@@ -1,7 +1,4 @@
-import { ArticleService } from '../articleService'
-import { knex } from 'connectors/db'
-
-const articleService = new ArticleService()
+import { articleService } from '../articleService'
 
 // beforeAll(async () => {
 //   await articleService.es.clear()

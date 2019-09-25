@@ -55,6 +55,9 @@ export default /* GraphQL */ `
 
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): User! @authorize @purgeCache
+
+    "Generate temporary LikerIds for users without it, used in OSS"
+    generateTempLikerIds(input: GenerateTempLikerIdsInput): Int! @authorize
   }
 
   type User implements Node {
@@ -494,6 +497,10 @@ export default /* GraphQL */ `
     id: ID!
     state: UserState!
     banDays: PositiveInt
+  }
+
+  input GenerateTempLikerIdsInput {
+    step: Int
   }
 
   input FollowUserInput {

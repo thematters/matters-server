@@ -11,10 +11,10 @@ import {
 import logger from 'common/logger'
 import { MaterializedView } from 'definitions'
 import {
-  DraftService,
-  UserService,
-  ArticleService,
-  NotificationService
+  draftService,
+  userService,
+  articleService,
+  notificationService
 } from 'connectors'
 import { refreshView } from '../db'
 // local
@@ -23,19 +23,8 @@ import publicationQueue from './publication'
 
 class ScheduleQueue {
   q: InstanceType<typeof Queue>
-  draftService: InstanceType<typeof DraftService>
-  userService: InstanceType<typeof UserService>
-  articleService: InstanceType<typeof ArticleService>
-  notificationService: InstanceType<typeof NotificationService>
 
   private queueName = QUEUE_NAME.schedule
-
-  constructor() {
-    this.notificationService = new NotificationService()
-    this.draftService = new DraftService()
-    this.userService = new UserService()
-    this.articleService = new ArticleService()
-  }
 
   start = async () => {
     this.q = createQueue(this.queueName)
@@ -51,7 +40,7 @@ class ScheduleQueue {
     // publish pending drafs
     this.q.process(QUEUE_JOB.publishPendingDrafts, async (job, done) => {
       try {
-        const drafts = await this.draftService.findByPublishState(
+        const drafts = await draftService.findByPublishState(
           PUBLISH_STATE.pending
         )
         const pendingDraftIds: string[] = []
@@ -77,10 +66,10 @@ class ScheduleQueue {
     // this.q.process(QUEUE_JOB.initializeSearch, async (job, done) => {
     //   logger.info(`[schedule job] initializing search`)
     //   try {
-    //     await this.articleService.es.clear()
-    //     const articleRes = await this.articleService.initSearch()
+    //     await articleService.es.clear()
+    //     const articleRes = await articleService.initSearch()
     //     job.progress(50)
-    //     const userRes = await this.userService.initSearch()
+    //     const userRes = await userService.initSearch()
     //     job.progress(100)
     //     done(null, { articleRes, userRes })
     //   } catch (e) {
@@ -113,10 +102,10 @@ class ScheduleQueue {
     this.q.process(QUEUE_JOB.sendDailySummaryEmail, async (job, done) => {
       try {
         logger.info(`[schedule job] send daily summary email`)
-        const users = await this.notificationService.notice.findDailySummaryUsers()
+        const users = await notificationService.notice.findDailySummaryUsers()
 
         users.forEach(async (user, index) => {
-          const notices = await this.notificationService.notice.findDailySummaryNoticesByUser(
+          const notices = await notificationService.notice.findDailySummaryNoticesByUser(
             user.id
           )
 
@@ -127,7 +116,7 @@ class ScheduleQueue {
           const filterNotices = (type: string) =>
             notices.filter(notice => notice.noticeType === type)
 
-          this.notificationService.mail.sendDailySummary({
+          notificationService.mail.sendDailySummary({
             to: user.email,
             recipient: {
               displayName: user.displayName
