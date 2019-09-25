@@ -414,6 +414,7 @@ export class UserService extends BaseService {
       })
       .limit(limit)
       .offset(offset)
+      .orderBy('id', 'desc')
 
   findTransactionByRecipient = async ({
     recipientId,
@@ -430,6 +431,7 @@ export class UserService extends BaseService {
       })
       .limit(limit)
       .offset(offset)
+      .orderBy('id', 'desc')
 
   findTransactionHistory = async ({
     id: userId,
