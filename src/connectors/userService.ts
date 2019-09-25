@@ -32,15 +32,17 @@ import {
   UserOAuthLikeCoinAccountType
 } from 'definitions'
 
-import { BaseService } from './baseService'
 import { OAuthService } from './oauthService'
-import { likecoin } from './likecoin'
+import { BaseService } from './baseService'
 
 export class UserService extends BaseService {
-  likecoin: typeof likecoin
+  likecoin: any
 
   constructor() {
     super('user')
+
+    const { likecoin } = require('./likecoin')
+
     this.likecoin = likecoin
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
@@ -938,7 +940,6 @@ export class UserService extends BaseService {
     // check
     const likerId = await this.likecoin.check({ user: userName })
 
-    return
     const oAuthService = new OAuthService()
 
     // register

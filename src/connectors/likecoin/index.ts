@@ -6,8 +6,8 @@ import { UserOAuthLikeCoin } from 'definitions'
 import { environment } from 'common/environment'
 import { toGlobalId, fromGlobalId } from 'common/utils'
 
-import { BaseService } from '../baseService'
 import { UserService } from '../userService'
+import { BaseService } from '../baseService'
 
 const {
   likecoinApiURL,

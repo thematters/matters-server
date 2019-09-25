@@ -1,5 +1,4 @@
 import { ArticleService } from '../articleService'
-import { knex } from 'connectors/db'
 
 const articleService = new ArticleService()
 

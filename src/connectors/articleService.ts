@@ -11,7 +11,7 @@ import {
   USER_ACTION,
   TRANSACTION_PURPOSE
 } from 'common/enums'
-import { ItemData, GQLSearchInput, GQLResponsesInput } from 'definitions'
+import { ItemData, GQLSearchInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
 import {
   stripHtml,
@@ -23,9 +23,9 @@ import {
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import { environment } from 'common/environment'
 
-import { BaseService } from './baseService'
 import { UserService } from './userService'
 import { SystemService } from './systemService'
+import { BaseService } from './baseService'
 import logger from 'common/logger'
 
 export class ArticleService extends BaseService {

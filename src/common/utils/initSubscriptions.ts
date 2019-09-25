@@ -1,6 +1,5 @@
 import { RequestHeaders } from 'request-ip'
 
-import { Context } from 'definitions'
 import {
   ArticleService,
   CommentService,

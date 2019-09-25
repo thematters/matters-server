@@ -1,7 +1,5 @@
 import { BaseService } from './baseService'
-import logger from 'common/logger'
-import { BATCH_SIZE, TRANSACTION_PURPOSE, MAT_UNIT } from 'common/enums'
-import { v4 } from 'uuid'
+import { BATCH_SIZE } from 'common/enums'
 
 export class SystemService extends BaseService {
   constructor() {

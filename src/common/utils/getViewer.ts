@@ -4,7 +4,7 @@ import _ from 'lodash'
 import cookie from 'cookie'
 import { Response } from 'express'
 
-import { USER_ROLE, LANGUAGE, SCOPE_MODE, USER_STATE } from 'common/enums'
+import { USER_ROLE, LANGUAGE, SCOPE_MODE } from 'common/enums'
 import { UserService, OAuthService } from 'connectors'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
@@ -13,8 +13,6 @@ import { Viewer } from 'definitions'
 import { getLanguage } from './getLanguage'
 import { clearCookie } from './cookie'
 import { makeScope } from './scope'
-
-const userService = new UserService()
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 export const scopeModes = [
@@ -42,6 +40,8 @@ export const getViewerFromUser = async (user: any) => {
 }
 
 const getUser = async (token: string) => {
+  const userService = new UserService()
+
   try {
     // get general user
     const source = jwt.verify(token, environment.jwtSecret) as { uuid: string }

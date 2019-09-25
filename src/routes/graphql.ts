@@ -20,7 +20,6 @@ import { applyMiddleware } from 'graphql-middleware'
 import logger from 'common/logger'
 import { UPLOAD_FILE_SIZE_LIMIT, CORS_OPTIONS, CACHE_TTL } from 'common/enums'
 import { environment, isProd } from 'common/environment'
-import { DataSources } from 'definitions'
 import { makeContext, initSubscriptions } from 'common/utils'
 import {
   ArticleService,
@@ -91,7 +90,7 @@ const server = new ProtectedApolloServer({
     apiKey: environment.apiKey
   },
   subscriptions: initSubscriptions(),
-  dataSources: (): DataSources => ({
+  dataSources: () => ({
     userService: new UserService(),
     articleService: new ArticleService(),
     commentService: new CommentService(),
