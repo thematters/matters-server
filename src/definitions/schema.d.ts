@@ -2242,10 +2242,12 @@ export interface GQLUpdateUserStateInput {
 export type GQLPositiveInt = any
 
 export interface GQLGenerateTempLikerIdsInput {
+  id?: string
   step?: number
 }
 
 export interface GQLTransferLIKEInput {
+  id?: string
   step?: number
 }
 

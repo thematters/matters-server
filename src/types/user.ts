@@ -503,10 +503,12 @@ export default /* GraphQL */ `
   }
 
   input GenerateTempLikerIdsInput {
+    id: ID
     step: Int
   }
 
   input TransferLIKEInput {
+    id: ID
     step: Int
   }
 

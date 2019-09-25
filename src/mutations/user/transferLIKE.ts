@@ -1,6 +1,7 @@
 import _ from 'lodash'
 
 import { MutationToTransferLIKEResolver } from 'definitions'
+import { fromGlobalId } from 'common/utils'
 
 const resolver: MutationToTransferLIKEResolver = async (
   root,
@@ -8,8 +9,9 @@ const resolver: MutationToTransferLIKEResolver = async (
   { viewer, dataSources: { userService } }
 ) => {
   const step = _.get(input, 'step', 50)
+  const userIds = input && input.id ? [fromGlobalId(input.id).id] : undefined
 
-  await userService.likecoin.generateTempUsers({ step })
+  await userService.likecoin.generateTempUsers({ step, userIds })
 
   return userService.countNoPendingLIKE()
 }

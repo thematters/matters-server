@@ -918,28 +918,38 @@ export class UserService extends BaseService {
   }
 
   findNoLikerIdUsers = ({
+    userIds,
     limit = BATCH_SIZE,
     offset = 0
   }: {
+    userIds?: string[]
     limit?: number
     offset?: number
   }) => {
-    return this.knex('user')
+    let qs = this.knex('user')
       .select('id', 'userName')
       .where({ likerId: null })
       .limit(limit)
       .offset(offset)
       .orderBy('id', 'asc')
+
+    if (userIds) {
+      qs = qs.whereIn('id', userIds)
+    }
+
+    return qs
   }
 
   findNoPendingLIKEUsers = ({
+    userIds,
     limit = BATCH_SIZE,
     offset = 0
   }: {
+    userIds?: string[]
     limit?: number
     offset?: number
   }) => {
-    return this.knex
+    let qs = this.knex
       .select('user_id', 'mat', 'liker_id')
       .from(
         this.knex.raw(/*sql*/ `
@@ -968,6 +978,12 @@ export class UserService extends BaseService {
       .limit(limit)
       .offset(offset)
       .orderBy('id', 'asc')
+
+    if (userIds) {
+      qs = qs.whereIn('user_id', userIds)
+    }
+
+    return qs
   }
 
   countNoLikerId = async (): Promise<number> => {
