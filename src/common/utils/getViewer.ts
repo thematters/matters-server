@@ -74,9 +74,7 @@ export const getViewerFromReq = async ({
 }): Promise<Viewer> => {
   const headers = req ? req.headers : {}
   const isWeb = headers['x-client-name'] === 'web'
-  const language = getLanguage((headers['accept-language'] ||
-    headers['Accept-Language'] ||
-    LANGUAGE.zh_hant) as string)
+  const language = getLanguage(LANGUAGE.zh_hant as string)
 
   // user infomation from request
   let user = {

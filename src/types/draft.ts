@@ -1,3 +1,5 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Mutation {
     putAudiodraft(input: PutAudiodraftInput!): Audiodraft! @authenticate
@@ -15,22 +17,24 @@ export default /* GraphQL */ `
   """
   type Draft implements Node {
     "Unique ID of this draft."
-    id: ID!
+    id: ID! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Collection list of this draft."
     collection(input: ConnectionArgs!): ArticleConnection!
 
     "Draft title."
-    title: String
+    title: String @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Slugified draft title."
     slug: String!
 
     "Summary of this draft."
-    summary: String
+    summary: String @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Content of this draft."
-    content: String
+    content: String @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+
+    "Time of this draft was scheduled for publishing."
     scheduledAt: DateTime
 
     "Time of this draft was created."

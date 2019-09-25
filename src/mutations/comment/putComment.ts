@@ -116,6 +116,18 @@ const resolver: MutationToPutCommentResolver = async (
     }
 
     newComment = await commentService.update({ id: commentDbId, ...data })
+
+    // Add custom data for cache invalidation
+    newComment[CACHE_KEYWORD] = [
+      {
+        id: article.id,
+        type: NODE_TYPES.article
+      },
+      {
+        id: comment.id,
+        type: NODE_TYPES.comment
+      }
+    ]
   }
 
   // Create
