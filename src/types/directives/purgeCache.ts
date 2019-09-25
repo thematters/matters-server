@@ -41,8 +41,8 @@ export class PurgeCacheDirective extends SchemaDirectiveVisitor {
           })
           keys.map(async (key: string) => {
             const hashes = await redis.client.smembers(key)
-            hashes.map((hash: string) => {
-              redis.client
+            hashes.map(async (hash: string) => {
+              await redis.client
                 .pipeline()
                 .del(`fqc:${hash}`)
                 .srem(key, hash)
