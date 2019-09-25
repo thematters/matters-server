@@ -1,4 +1,4 @@
-import { UserInfoToBadgesResolver, Context } from 'definitions'
+import { UserInfoToBadgesResolver } from 'definitions'
 
 const resolver: UserInfoToBadgesResolver = async (
   { id },

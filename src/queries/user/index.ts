@@ -1,5 +1,17 @@
-import { Context } from 'definitions'
 import { toGlobalId, connectionFromArray } from 'common/utils'
+import {
+  GQLQueryTypeResolver,
+  GQLUserTypeResolver,
+  GQLRecommendationTypeResolver,
+  GQLUserInfoTypeResolver,
+  GQLUserSettingsTypeResolver,
+  GQLUserActivityTypeResolver,
+  GQLMATTypeResolver,
+  GQLLIKETypeResolver,
+  GQLTransactionTypeResolver,
+  GQLUserStatusTypeResolver,
+  GQLUserOSSTypeResolver
+} from 'definitions'
 
 import rootUser from './rootUser'
 import subscriptions from './subscriptions'
@@ -30,22 +42,33 @@ import { boost, score } from './oss'
 import profileCover from './profileCover'
 import LIKE from './like'
 
-export default {
+const user: {
+  Query: GQLQueryTypeResolver
+  User: GQLUserTypeResolver
+  Recommendation: GQLRecommendationTypeResolver
+  UserInfo: GQLUserInfoTypeResolver
+  UserSettings: GQLUserSettingsTypeResolver
+  UserActivity: GQLUserActivityTypeResolver
+  MAT: GQLMATTypeResolver
+  LIKE: GQLLIKETypeResolver
+  Transaction: GQLTransactionTypeResolver
+  UserStatus: GQLUserStatusTypeResolver
+  UserOSS: GQLUserOSSTypeResolver
+} = {
   Query: {
-    viewer: (root: any, _: any, { viewer }: Context) => viewer,
+    viewer: (root, _, { viewer }) => viewer,
     user: rootUser
   },
   User: {
-    id: ({ id }: { id: string }) =>
-      id ? toGlobalId({ type: 'User', id }) : '',
+    id: ({ id }) => (id ? toGlobalId({ type: 'User', id }) : ''),
     avatar,
     likerId,
-    info: (root: any) => root,
-    settings: (root: any) => root,
-    status: (root: any) => (root.id ? root : null),
-    activity: (root: any) => root,
-    recommendation: (root: any) => root,
-    oss: (root: any) => root,
+    info: root => root,
+    settings: root => root,
+    status: root => (root.id ? root : null),
+    activity: root => root,
+    recommendation: root => root,
+    oss: root => root,
     // hasFollowed,
     subscriptions,
     // quotations,
@@ -59,16 +82,12 @@ export default {
     avatar,
     badges,
     userNameEditable,
-    email: ({ email }: { email: string }) => email && email.replace(/#/g, '@'),
+    email: ({ email }) => email && email.replace(/#/g, '@'),
     totalWordCount,
     profileCover
   },
   UserSettings: {
-    language: (
-      { language }: { language: string },
-      _: any,
-      { viewer }: Context
-    ) => language,
+    language: ({ language }, _, { viewer }) => language,
     notification
   },
   UserActivity,
@@ -76,8 +95,8 @@ export default {
   LIKE,
   Transaction,
   UserStatus: {
-    MAT: (root: any) => root,
-    LIKE: (root: any) => root,
+    MAT: root => root,
+    LIKE: root => root,
     // TODO: remove field in OSS
     invitation: () => ({
       reward: null,
@@ -102,3 +121,5 @@ export default {
     score
   }
 }
+
+export default user

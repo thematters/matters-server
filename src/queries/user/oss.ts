@@ -1,9 +1,4 @@
-import {
-  Context,
-  UserToOssResolver,
-  UserOSSToBoostResolver,
-  UserOSSToScoreResolver
-} from 'definitions'
+import { UserOSSToBoostResolver, UserOSSToScoreResolver } from 'definitions'
 
 export const boost: UserOSSToBoostResolver = (
   { id },

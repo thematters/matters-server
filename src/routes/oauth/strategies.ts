@@ -7,7 +7,7 @@ import {
 } from 'passport-oauth2'
 
 import { environment } from 'common/environment'
-import { userService } from 'connectors'
+import { UserService } from 'connectors'
 import { OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
 import logger from 'common/logger'
 
@@ -34,6 +34,7 @@ export default () => {
         passReqToCallback: true
       },
       async (req, accessToken, refreshToken, params, profile, done) => {
+        const userService = new UserService()
         const viewer = req.app.locals.viewer
         const userId = _.get(viewer, 'id')
         const likerId = _.get(params, 'user')

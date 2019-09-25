@@ -4,8 +4,8 @@ import _ from 'lodash'
 import cookie from 'cookie'
 import { Response } from 'express'
 
-import { USER_ROLE, LANGUAGE, SCOPE_MODE, USER_STATE } from 'common/enums'
-import { userService, oauthService } from 'connectors'
+import { USER_ROLE, LANGUAGE, SCOPE_MODE } from 'common/enums'
+import { UserService, OAuthService } from 'connectors'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { Viewer } from 'definitions'
@@ -40,6 +40,8 @@ export const getViewerFromUser = async (user: any) => {
 }
 
 const getUser = async (token: string) => {
+  const userService = new UserService()
+
   try {
     // get general user
     const source = jwt.verify(token, environment.jwtSecret) as { uuid: string }
@@ -47,7 +49,8 @@ const getUser = async (token: string) => {
     return { ...user, scopeMode: user.role }
   } catch (error) {
     // get oauth user
-    const data = await oauthService.getAccessToken(token)
+    const oAuthService = new OAuthService()
+    const data = await oAuthService.getAccessToken(token)
     if (data && data.accessTokenExpiresAt) {
       // check it's expired or not
       const live = data.accessTokenExpiresAt.getTime() - Date.now()

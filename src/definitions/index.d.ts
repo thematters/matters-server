@@ -1,5 +1,4 @@
 import { Response } from 'express'
-import { DataSource } from 'apollo-datasource'
 
 import {
   UserService,

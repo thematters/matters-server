@@ -196,5 +196,3 @@ export class NotificationService extends BaseService {
     }
   }
 }
-
-export const notificationService = new NotificationService()
