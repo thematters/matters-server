@@ -1,10 +1,12 @@
-import { oauthService } from '../oauthService'
-import { userService } from '../userService'
+import { OAuthService } from '../oauthService'
+import { UserService } from '../userService'
 
 const getClient = () => {
+  const oauthService = new OAuthService()
   return oauthService.getClient('test-client-id')
 }
 const getUser = () => {
+  const userService = new UserService()
   return userService.dataloader.load('1')
 }
 
@@ -17,6 +19,7 @@ describe('client', () => {
 
 describe('scope', () => {
   test('validateScope', async () => {
+    const oauthService = new OAuthService()
     const client = await getClient()
     const user = await getUser()
 
@@ -32,6 +35,7 @@ describe('scope', () => {
 })
 
 describe('token', () => {
+  const oauthService = new OAuthService()
   let accessToken
   let refreshToken
 
