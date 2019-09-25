@@ -102,7 +102,7 @@ export class LikeCoin extends BaseService {
       })
     } catch (e) {
       // refresh token and retry once
-      if (liker && _.get(e, 'response.data') === 'LOGIN_NEEDED') {
+      if (liker && _.get(e, 'response.data') === 'TOKEN_EXPIRED') {
         const accessToken = await this.refreshToken({ liker })
         return await makeRequest({ accessToken })
       } else {
