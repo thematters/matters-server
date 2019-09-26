@@ -89,53 +89,6 @@ const resolver: GQLUserActivityTypeResolver = {
   },
 
   appreciationsReceivedTotal: ({ id }, _, { dataSources: { userService } }) =>
-    userService.totalRecived(id),
-
-  // TODO: deprecated
-  appreciations: async (
-    { id },
-    { input = {} },
-    { dataSources: { userService } }
-  ) => {
-    const { first, after } = input
-
-    const offset = after ? cursorToIndex(after) + 1 : 0
-    const totalCount = await userService.totalSentTransactionCount(id)
-    return connectionFromPromisedArray(
-      userService.findTransactionBySender({
-        senderId: id,
-        limit: first,
-        offset
-      }),
-      input,
-      totalCount
-    )
-  },
-  // TODO: deprecated
-  totalAppreciation: ({ id }, _, { dataSources: { userService } }) =>
-    userService.totalSent(id),
-  // TODO: deprecated
-  appreciatedBy: async (
-    { id },
-    { input = {} },
-    { dataSources: { userService } }
-  ) => {
-    const { first, after } = input
-
-    const offset = after ? cursorToIndex(after) + 1 : 0
-    const totalCount = await userService.totalRecivedTransactionCount(id)
-    return connectionFromPromisedArray(
-      userService.findTransactionByRecipient({
-        recipientId: id,
-        limit: first,
-        offset
-      }),
-      input,
-      totalCount
-    )
-  },
-  // TODO: deprecated
-  totalAppreciatedBy: ({ id }, _, { dataSources: { userService } }) =>
     userService.totalRecived(id)
 }
 

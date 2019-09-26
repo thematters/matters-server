@@ -878,30 +878,6 @@ export interface GQLUserActivity {
    * Total number of appreciation current user received.
    */
   appreciationsReceivedTotal: number
-
-  /**
-   * Appreciations current user gave.
-   * @deprecated Use 'appreciationSent instead'.
-   */
-  appreciations: GQLTransactionConnection
-
-  /**
-   * Total number of appreciation current user gave.
-   * @deprecated Use 'appreciationsSentTotal instead'.
-   */
-  totalAppreciation: number
-
-  /**
-   * Appreciations current user received.
-   * @deprecated Use 'appreciationsReceived instead'.
-   */
-  appreciatedBy: GQLTransactionConnection
-
-  /**
-   * Total number of appreciation current user received.
-   * @deprecated Use 'appreciationsReceivedTotal instead'.
-   */
-  totalAppreciatedBy: number
 }
 
 export interface GQLReadHistoryConnection extends GQLConnection {
@@ -4928,10 +4904,6 @@ export interface GQLUserActivityTypeResolver<TParent = any> {
   appreciationsReceivedTotal?: UserActivityToAppreciationsReceivedTotalResolver<
     TParent
   >
-  appreciations?: UserActivityToAppreciationsResolver<TParent>
-  totalAppreciation?: UserActivityToTotalAppreciationResolver<TParent>
-  appreciatedBy?: UserActivityToAppreciatedByResolver<TParent>
-  totalAppreciatedBy?: UserActivityToTotalAppreciatedByResolver<TParent>
 }
 
 export interface UserActivityToHistoryArgs {
@@ -5004,60 +4976,6 @@ export interface UserActivityToAppreciationsReceivedResolver<
 }
 
 export interface UserActivityToAppreciationsReceivedTotalResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserActivityToAppreciationsArgs {
-  input?: GQLConnectionArgs
-}
-export interface UserActivityToAppreciationsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: UserActivityToAppreciationsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserActivityToTotalAppreciationResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserActivityToAppreciatedByArgs {
-  input?: GQLConnectionArgs
-}
-export interface UserActivityToAppreciatedByResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: UserActivityToAppreciatedByArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserActivityToTotalAppreciatedByResolver<
   TParent = any,
   TResult = any
 > {
