@@ -58,6 +58,9 @@ export default /* GraphQL */ `
 
     "Generate temporary LikerIds for users without it, used in OSS"
     generateTempLikerIds(input: GenerateTempLikerIdsInput): Int! @authorize
+
+    "Transfer user's MAT to pending LIKE, used in OSS"
+    transferLIKE(input: TransferLIKEInput): Int! @authorize
   }
 
   type User implements Node {
@@ -500,6 +503,12 @@ export default /* GraphQL */ `
   }
 
   input GenerateTempLikerIdsInput {
+    id: ID
+    step: Int
+  }
+
+  input TransferLIKEInput {
+    id: ID
     step: Int
   }
 

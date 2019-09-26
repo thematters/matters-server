@@ -1,9 +1,9 @@
 import _ from 'lodash'
 
-import { MutationToGenerateTempLikerIdsResolver } from 'definitions'
+import { MutationToTransferLIKEResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
 
-const resolver: MutationToGenerateTempLikerIdsResolver = async (
+const resolver: MutationToTransferLIKEResolver = async (
   root,
   { input },
   { viewer, dataSources: { userService } }
@@ -13,7 +13,7 @@ const resolver: MutationToGenerateTempLikerIdsResolver = async (
 
   await userService.likecoin.generateTempUsers({ step, userIds })
 
-  return userService.countNoLikerId()
+  return userService.countNoPendingLIKE()
 }
 
 export default resolver

@@ -744,6 +744,7 @@ input FrequentSearchInput {
 }
 
 input GenerateTempLikerIdsInput {
+  id: ID
   step: Int
 }
 
@@ -955,6 +956,9 @@ type Mutation {
   """Generate temporary LikerIds for users without it, used in OSS"""
   generateTempLikerIds(input: GenerateTempLikerIdsInput): Int!
 
+  """Transfer user's MAT to pending LIKE, used in OSS"""
+  transferLIKE(input: TransferLIKEInput): Int!
+
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
 }
@@ -1137,6 +1141,7 @@ type OSS {
   today(input: ConnectionArgs!): ArticleConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   noLikerIdCount: Int!
+  noPendingLIKECount: Int!
 }
 
 input OSSArticlesInput {
@@ -1637,6 +1642,11 @@ enum TransactionPurpose {
 enum TransactionUnit {
   mat
   like
+}
+
+input TransferLIKEInput {
+  id: ID
+  step: Int
 }
 
 input UnfollowUserInput {
