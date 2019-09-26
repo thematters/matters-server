@@ -954,7 +954,7 @@ export class UserService extends BaseService {
     offset?: number
   }) => {
     let qs = this.knex
-      .select('user_id', 'mat', 'liker_id')
+      .select('user_id', 'mat', 'liker_id', 'pending_like')
       .from(
         this.knex.raw(/*sql*/ `
           (SELECT
@@ -973,8 +973,8 @@ export class UserService extends BaseService {
                 LEFT JOIN transaction_delta_view AS tx ON user_id = "user".id
               GROUP BY
                 "user".id,
-                liker_id,
-                delta) AS u ON u.liker_id = user_oauth_likecoin.liker_id) AS user_likecon_mat
+                liker_id
+              ) AS u ON u.liker_id = user_oauth_likecoin.liker_id) AS user_likecon_mat
       `)
       )
       .whereNotNull('likerId')

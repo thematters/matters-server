@@ -11,7 +11,7 @@ const resolver: MutationToTransferLIKEResolver = async (
   const step = _.get(input, 'step', 50)
   const userIds = input && input.id ? [fromGlobalId(input.id).id] : undefined
 
-  await userService.likecoin.generateTempUsers({ step, userIds })
+  await userService.likecoin.transferLIKE({ step, userIds })
 
   return userService.countNoPendingLIKE()
 }
