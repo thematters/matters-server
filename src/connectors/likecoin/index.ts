@@ -328,6 +328,7 @@ export class LikeCoin extends BaseService {
     step: number
     userIds?: string[]
   }) => {
+    const MAT_TO_LIKE_RATE = 10
     const userService = new UserService()
     const users = await userService.findNoPendingLIKEUsers({
       limit: step,
@@ -337,7 +338,7 @@ export class LikeCoin extends BaseService {
     // normalize users for request body
     const normalizedUsers = users.map(({ mat: MAT, likerId }) => ({
       likerId,
-      pendingLIKE: MAT
+      pendingLIKE: MAT * MAT_TO_LIKE_RATE
     }))
 
     if (normalizedUsers.length <= 0) {

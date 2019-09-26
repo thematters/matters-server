@@ -27,6 +27,7 @@ const resolver: MutationToGenerateLikerIdResolver = async (
     }
 
     await userService.claimLikerId({
+      userId: viewer.id,
       liker
     })
   }
