@@ -3,6 +3,11 @@ import slugify from '@matters/slugify'
 import { toGlobalId, makeSummary } from 'common/utils'
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
 
+import appreciationsReceivedTotal from './appreciationsReceivedTotal'
+import appreciatorCount from './appreciatorCount'
+import appreciateLeft from './appreciateLeft'
+import appreciators from './appreciators'
+import appreciationsReceived from './appreciationsReceived'
 import rootArticle from './rootArticle'
 import userArticles from './user/articles'
 import tagCount from './tag/count'
@@ -16,11 +21,6 @@ import MAT from './mat'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import hasAppreciate from './hasAppreciate'
-import appreciationTotal from './appreciationTotal'
-import appreciatorCount from './appreciatorCount'
-import appreciateLeft from './appreciateLeft'
-import participants from './participants'
-import appreciators from './appreciators'
 import relatedArticles from './relatedArticles'
 import * as articleOSS from './oss'
 import * as tagOSS from './tag/oss'
@@ -33,31 +33,31 @@ export default {
     articles: userArticles
   },
   Article: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
-    topicScore: ({ topicScore }: { topicScore: number }) =>
-      topicScore ? Math.round(topicScore) : null,
-    slug: ({ slug, title }: { slug: string; title: string }) =>
-      slug || slugify(title), // handle missing slug from migration
-    summary: ({ content, cover }: { cover?: string; content: string }) =>
-      makeSummary(content, cover ? 110 : 140),
-    author,
-    cover,
-    tags,
-    collection,
-    collectedBy,
-    relatedArticles,
-    MAT,
-    appreciationTotal,
-    subscribed,
-    subscribers,
+    appreciationsReceived,
+    appreciationsReceivedTotal,
+    appreciationTotal: appreciationsReceivedTotal,
     appreciators,
-    hasAppreciate,
     appreciatorCount,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
     appreciateLeft,
-    participants, // not used anymore
-    participantCount: () => 50, // not used anymore
-    oss: (root: any) => root
+    author,
+    cover,
+    collection,
+    collectedBy,
+    id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
+    hasAppreciate,
+    MAT,
+    oss: (root: any) => root,
+    relatedArticles,
+    slug: ({ slug, title }: { slug: string; title: string }) =>
+      slug || slugify(title), // handle missing slug from migration
+    subscribed,
+    subscribers,
+    summary: ({ content, cover }: { cover?: string; content: string }) =>
+      makeSummary(content, cover ? 110 : 140),
+    tags,
+    topicScore: ({ topicScore }: { topicScore: number }) =>
+      topicScore ? Math.round(topicScore) : null
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),

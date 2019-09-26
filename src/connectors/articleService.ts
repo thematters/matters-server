@@ -786,7 +786,7 @@ export class ArticleService extends BaseService {
   /**
    * Sum total appreciaton by a given article id.
    */
-  totalAppreciation = async (articleId: string): Promise<number> => {
+  sumAppreciation = async (articleId: string): Promise<number> => {
     const result = await this.knex
       .select()
       .from('transaction')
@@ -800,6 +800,19 @@ export class ArticleService extends BaseService {
       .sum('amount')
       .first()
     return parseInt(result.sum || '0', 10)
+  }
+
+  countAppreciation = async (referenceId: string): Promise<number> => {
+    const result = await this.knex
+      .select()
+      .from('transaction')
+      .where({
+        referenceId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
+      .count()
+      .first()
+    return parseInt(result.count || '0', 10)
   }
 
   /**
@@ -839,13 +852,23 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findAppreciations = async (referenceId: string): Promise<any[]> =>
+  findTransactions = async ({
+    referenceId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    referenceId: string
+    limit?: number
+    offset?: number
+  }): Promise<any[]> =>
     await this.knex('transaction')
       .select()
       .where({
         referenceId,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
+      .limit(limit)
+      .offset(offset)
 
   /**
    * Find an article's appreciators by a given article id.

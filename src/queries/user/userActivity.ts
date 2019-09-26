@@ -44,7 +44,8 @@ const resolver: GQLUserActivityTypeResolver = {
       input
     )
   },
-  appreciations: async (
+
+  appreciationsSent: async (
     { id },
     { input = {} },
     { dataSources: { userService } }
@@ -63,9 +64,11 @@ const resolver: GQLUserActivityTypeResolver = {
       totalCount
     )
   },
-  totalAppreciation: ({ id }, _, { dataSources: { userService } }) =>
+
+  appreciationsSentTotal: ({ id }, _, { dataSources: { userService } }) =>
     userService.totalSent(id),
-  appreciatedBy: async (
+
+  appreciationsReceived: async (
     { id },
     { input = {} },
     { dataSources: { userService } }
@@ -84,7 +87,8 @@ const resolver: GQLUserActivityTypeResolver = {
       totalCount
     )
   },
-  totalAppreciatedBy: ({ id }, _, { dataSources: { userService } }) =>
+
+  appreciationsReceivedTotal: ({ id }, _, { dataSources: { userService } }) =>
     userService.totalRecived(id)
 }
 

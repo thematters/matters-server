@@ -228,16 +228,16 @@ export default /* GraphQL */ `
     recentSearches(input: ConnectionArgs!): RecentSearchConnection!
 
     "Appreciations current user gave."
-    appreciations(input: ConnectionArgs): TransactionConnection!
+    appreciationsSent(input: ConnectionArgs!): TransactionConnection!
 
     "Total number of appreciation current user gave."
-    totalAppreciation: Int!
+    appreciationsSentTotal: Int!
 
     "Appreciations current user received."
-    appreciatedBy(input: ConnectionArgs): TransactionConnection!
+    appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
 
     "Total number of appreciation current user received."
-    totalAppreciatedBy: Int!
+    appreciationsReceivedTotal: Int!
   }
 
   type UserStatus {

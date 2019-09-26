@@ -136,21 +136,20 @@ export interface GQLArticle extends GQLNode {
   MAT: number
 
   /**
-   * Total appreciations recieved of this article.
+   * Appreciations history of this article.
+   */
+  appreciationsReceived: GQLTransactionConnection
+
+  /**
+   * Total number of appreciations recieved of this article.
+   * @deprecated Use 'appreciationReceivedTotal instead'.
    */
   appreciationTotal: number
 
   /**
-   *
-   * @deprecated not used
+   * Total number of appreciations recieved of this article.
    */
-  participantCount: number
-
-  /**
-   *
-   * @deprecated not used
-   */
-  participants: GQLUserConnection
+  appreciationsReceivedTotal: number
 
   /**
    * Subscribers of this articles.
@@ -164,7 +163,6 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * Total count of this article's appreciations.
-   * @deprecated Use `appreciators.totalCount`.
    */
   appreciatorCount: number
 
@@ -864,22 +862,22 @@ export interface GQLUserActivity {
   /**
    * Appreciations current user gave.
    */
-  appreciations: GQLTransactionConnection
+  appreciationsSent: GQLTransactionConnection
 
   /**
    * Total number of appreciation current user gave.
    */
-  totalAppreciation: number
+  appreciationsSentTotal: number
 
   /**
    * Appreciations current user received.
    */
-  appreciatedBy: GQLTransactionConnection
+  appreciationsReceived: GQLTransactionConnection
 
   /**
    * Total number of appreciation current user received.
    */
-  totalAppreciatedBy: number
+  appreciationsReceivedTotal: number
 }
 
 export interface GQLReadHistoryConnection extends GQLConnection {
@@ -2992,9 +2990,11 @@ export interface GQLArticleTypeResolver<TParent = any> {
   collection?: ArticleToCollectionResolver<TParent>
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>
   MAT?: ArticleToMATResolver<TParent>
+  appreciationsReceived?: ArticleToAppreciationsReceivedResolver<TParent>
   appreciationTotal?: ArticleToAppreciationTotalResolver<TParent>
-  participantCount?: ArticleToParticipantCountResolver<TParent>
-  participants?: ArticleToParticipantsResolver<TParent>
+  appreciationsReceivedTotal?: ArticleToAppreciationsReceivedTotalResolver<
+    TParent
+  >
   subscribers?: ArticleToSubscribersResolver<TParent>
   appreciators?: ArticleToAppreciatorsResolver<TParent>
   appreciatorCount?: ArticleToAppreciatorCountResolver<TParent>
@@ -3207,6 +3207,21 @@ export interface ArticleToMATResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface ArticleToAppreciationsReceivedArgs {
+  input: GQLConnectionArgs
+}
+export interface ArticleToAppreciationsReceivedResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: ArticleToAppreciationsReceivedArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface ArticleToAppreciationTotalResolver<
   TParent = any,
   TResult = any
@@ -3219,19 +3234,10 @@ export interface ArticleToAppreciationTotalResolver<
   ): TResult
 }
 
-export interface ArticleToParticipantCountResolver<
+export interface ArticleToAppreciationsReceivedTotalResolver<
   TParent = any,
   TResult = any
 > {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleToParticipantsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4904,10 +4910,12 @@ export interface AudiodraftToUpdatedAtResolver<TParent = any, TResult = any> {
 export interface GQLUserActivityTypeResolver<TParent = any> {
   history?: UserActivityToHistoryResolver<TParent>
   recentSearches?: UserActivityToRecentSearchesResolver<TParent>
-  appreciations?: UserActivityToAppreciationsResolver<TParent>
-  totalAppreciation?: UserActivityToTotalAppreciationResolver<TParent>
-  appreciatedBy?: UserActivityToAppreciatedByResolver<TParent>
-  totalAppreciatedBy?: UserActivityToTotalAppreciatedByResolver<TParent>
+  appreciationsSent?: UserActivityToAppreciationsSentResolver<TParent>
+  appreciationsSentTotal?: UserActivityToAppreciationsSentTotalResolver<TParent>
+  appreciationsReceived?: UserActivityToAppreciationsReceivedResolver<TParent>
+  appreciationsReceivedTotal?: UserActivityToAppreciationsReceivedTotalResolver<
+    TParent
+  >
 }
 
 export interface UserActivityToHistoryArgs {
@@ -4937,22 +4945,22 @@ export interface UserActivityToRecentSearchesResolver<
   ): TResult
 }
 
-export interface UserActivityToAppreciationsArgs {
-  input?: GQLConnectionArgs
+export interface UserActivityToAppreciationsSentArgs {
+  input: GQLConnectionArgs
 }
-export interface UserActivityToAppreciationsResolver<
+export interface UserActivityToAppreciationsSentResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: UserActivityToAppreciationsArgs,
+    args: UserActivityToAppreciationsSentArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
-export interface UserActivityToTotalAppreciationResolver<
+export interface UserActivityToAppreciationsSentTotalResolver<
   TParent = any,
   TResult = any
 > {
@@ -4964,22 +4972,22 @@ export interface UserActivityToTotalAppreciationResolver<
   ): TResult
 }
 
-export interface UserActivityToAppreciatedByArgs {
-  input?: GQLConnectionArgs
+export interface UserActivityToAppreciationsReceivedArgs {
+  input: GQLConnectionArgs
 }
-export interface UserActivityToAppreciatedByResolver<
+export interface UserActivityToAppreciationsReceivedResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: UserActivityToAppreciatedByArgs,
+    args: UserActivityToAppreciationsReceivedArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
-export interface UserActivityToTotalAppreciatedByResolver<
+export interface UserActivityToAppreciationsReceivedTotalResolver<
   TParent = any,
   TResult = any
 > {

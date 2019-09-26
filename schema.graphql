@@ -90,10 +90,14 @@ type Article implements Node {
   """MAT recieved for this article (will be decrpecated soon)"""
   MAT: Int!
 
-  """Total appreciations recieved of this article."""
-  appreciationTotal: Int!
-  participantCount: Int! @deprecated(reason: "not used")
-  participants: UserConnection! @deprecated(reason: "not used")
+  """Appreciations history of this article."""
+  appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
+
+  """Total number of appreciations recieved of this article."""
+  appreciationTotal: Int! @deprecated(reason: "Use 'appreciationReceivedTotal instead'.")
+
+  """Total number of appreciations recieved of this article."""
+  appreciationsReceivedTotal: Int!
 
   """Subscribers of this articles."""
   subscribers(input: ConnectionArgs!): UserConnection!
@@ -102,7 +106,7 @@ type Article implements Node {
   appreciators(input: ConnectionArgs!): UserConnection!
 
   """Total count of this article's appreciations."""
-  appreciatorCount: Int! @deprecated(reason: "Use `appreciators.totalCount`.")
+  appreciatorCount: Int!
 
   """Limit the nuhmber of appreciate per user."""
   appreciateLimit: Int!
@@ -1795,16 +1799,16 @@ type UserActivity {
   recentSearches(input: ConnectionArgs!): RecentSearchConnection!
 
   """Appreciations current user gave."""
-  appreciations(input: ConnectionArgs): TransactionConnection!
+  appreciationsSent(input: ConnectionArgs!): TransactionConnection!
 
   """Total number of appreciation current user gave."""
-  totalAppreciation: Int!
+  appreciationsSentTotal: Int!
 
   """Appreciations current user received."""
-  appreciatedBy(input: ConnectionArgs): TransactionConnection!
+  appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
 
   """Total number of appreciation current user received."""
-  totalAppreciatedBy: Int!
+  appreciationsReceivedTotal: Int!
 }
 
 type UserConnection implements Connection {

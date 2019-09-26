@@ -26,8 +26,8 @@ test('countByAuthor', async () => {
   expect(count).toBeDefined()
 })
 
-test('totalAppreciation', async () => {
-  const appreciation = await articleService.totalAppreciation('1')
+test('sumAppreciation', async () => {
+  const appreciation = await articleService.sumAppreciation('1')
   expect(appreciation).toBeDefined()
 })
 
@@ -36,8 +36,10 @@ test('findByAuthor', async () => {
   expect(articles.length).toBeDefined()
 })
 
-test('findAppreciations', async () => {
-  const appreciations = await articleService.findAppreciations('1')
+test('findTransactions', async () => {
+  const appreciations = await articleService.findTransactions({
+    referenceId: '1'
+  })
   expect(appreciations.length).toBe(4)
 })
 

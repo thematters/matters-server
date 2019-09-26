@@ -5,7 +5,7 @@ const resolver: ArticleToAppreciationTotalResolver = async (
   _: any,
   { dataSources: { articleService } }
 ) => {
-  return await articleService.totalAppreciation(id)
+  return await articleService.sumAppreciation(id)
 }
 
 export default resolver
