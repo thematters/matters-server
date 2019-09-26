@@ -235,22 +235,6 @@ export default /* GraphQL */ `
 
     "Total number of appreciation current user received."
     appreciationsReceivedTotal: Int!
-
-    "Appreciations current user gave."
-    appreciations(input: ConnectionArgs): TransactionConnection!
-      @deprecated(reason: "Use 'appreciationSent instead'.")
-
-    "Total number of appreciation current user gave."
-    totalAppreciation: Int!
-      @deprecated(reason: "Use 'appreciationsSentTotal instead'.")
-
-    "Appreciations current user received."
-    appreciatedBy(input: ConnectionArgs): TransactionConnection!
-      @deprecated(reason: "Use 'appreciationsReceived instead'.")
-
-    "Total number of appreciation current user received."
-    totalAppreciatedBy: Int!
-      @deprecated(reason: "Use 'appreciationsReceivedTotal instead'.")
   }
 
   type UserStatus {
