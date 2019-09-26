@@ -91,10 +91,13 @@ type Article implements Node {
   MAT: Int!
 
   """Appreciations history of this article."""
-  appreciations(input: ConnectionArgs!): TransactionConnection!
+  appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
 
   """Total number of appreciations recieved of this article."""
-  appreciationTotal: Int!
+  appreciationTotal: Int! @deprecated(reason: "Use 'appreciationReceivedTotal instead'.")
+
+  """Total number of appreciations recieved of this article."""
+  appreciationsReceivedTotal: Int!
 
   """Subscribers of this articles."""
   subscribers(input: ConnectionArgs!): UserConnection!
@@ -1786,16 +1789,28 @@ type UserActivity {
   recentSearches(input: ConnectionArgs!): RecentSearchConnection!
 
   """Appreciations current user gave."""
-  appreciations(input: ConnectionArgs): TransactionConnection!
+  appreciationsSent(input: ConnectionArgs!): TransactionConnection!
 
   """Total number of appreciation current user gave."""
-  totalAppreciation: Int!
+  appreciationsSentTotal: Int!
 
   """Appreciations current user received."""
-  appreciatedBy(input: ConnectionArgs): TransactionConnection!
+  appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
 
   """Total number of appreciation current user received."""
-  totalAppreciatedBy: Int!
+  appreciationsReceivedTotal: Int!
+
+  """Appreciations current user gave."""
+  appreciations(input: ConnectionArgs): TransactionConnection! @deprecated(reason: "Use 'appreciationSent instead'.")
+
+  """Total number of appreciation current user gave."""
+  totalAppreciation: Int! @deprecated(reason: "Use 'appreciationsSentTotal instead'.")
+
+  """Appreciations current user received."""
+  appreciatedBy(input: ConnectionArgs): TransactionConnection! @deprecated(reason: "Use 'appreciationsReceived instead'.")
+
+  """Total number of appreciation current user received."""
+  totalAppreciatedBy: Int! @deprecated(reason: "Use 'appreciationsReceivedTotal instead'.")
 }
 
 type UserConnection implements Connection {

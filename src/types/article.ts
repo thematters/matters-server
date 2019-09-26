@@ -114,10 +114,14 @@ export default /* GraphQL */ `
     MAT: Int!
 
     "Appreciations history of this article."
-    appreciations(input: ConnectionArgs!): TransactionConnection!
+    appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
 
     "Total number of appreciations recieved of this article."
     appreciationTotal: Int!
+      @deprecated(reason: "Use 'appreciationReceivedTotal instead'.")
+
+    "Total number of appreciations recieved of this article."
+    appreciationsReceivedTotal: Int!
 
     "Subscribers of this articles."
     subscribers(input: ConnectionArgs!): UserConnection!
