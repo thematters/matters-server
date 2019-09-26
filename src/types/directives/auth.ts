@@ -1,7 +1,6 @@
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { GraphQLObjectType, defaultFieldResolver, GraphQLField } from 'graphql'
 import { ForbiddenError } from 'common/errors'
-import { Context } from 'definitions'
 
 type EnhancedObject = GraphQLObjectType & {
   _requiredAuthRole?: string
@@ -50,7 +49,7 @@ export const authDirectiveFactory = (AuthError = ForbiddenError) => {
             return resolve.apply(this, args)
           }
 
-          const context: Context = args[2]
+          const context = args[2]
 
           if (!context.viewer.hasScopeMode(requiredRole)) {
             throw new AuthError(`${context.viewer.scopeMode} is not authorized`)

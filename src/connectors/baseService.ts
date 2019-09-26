@@ -5,11 +5,12 @@ import DataLoader from 'dataloader'
 import Knex from 'knex'
 //local
 import { Item, ItemData, TableName } from 'definitions'
+import logger from 'common/logger'
+import { BATCH_SIZE } from 'common/enums'
+
 import { aws, AWSService } from './aws'
 import { knex } from './db'
 import { es } from './es'
-import logger from 'common/logger'
-import { BATCH_SIZE } from 'common/enums'
 
 export class BaseService extends DataSource {
   es: typeof es

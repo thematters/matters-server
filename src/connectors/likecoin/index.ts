@@ -6,8 +6,8 @@ import { UserOAuthLikeCoin } from 'definitions'
 import { environment } from 'common/environment'
 import { toGlobalId, fromGlobalId } from 'common/utils'
 
+import { UserService } from '../userService'
 import { BaseService } from '../baseService'
-import { userService } from '../userService'
 
 const {
   likecoinApiURL,
@@ -276,6 +276,7 @@ export class LikeCoin extends BaseService {
     step: number
     userIds?: string[]
   }) => {
+    const userService = new UserService()
     const users = await userService.findNoLikerIdUsers({ limit: step, userIds })
 
     // normalize users for request body
@@ -327,6 +328,7 @@ export class LikeCoin extends BaseService {
     step: number
     userIds?: string[]
   }) => {
+    const userService = new UserService()
     const users = await userService.findNoPendingLIKEUsers({
       limit: step,
       userIds

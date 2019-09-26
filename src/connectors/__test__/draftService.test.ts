@@ -1,4 +1,4 @@
-import { draftService } from '../draftService'
+import { DraftService } from '../draftService'
 
 const draftValidation = {
   id: expect.any(String),
@@ -23,23 +23,25 @@ const audioValidation = {
   updatedAt: expect.any(Date)
 }
 
+const service = new DraftService()
+
 test('countByAuthor', async () => {
-  const count = await draftService.countByAuthor('1')
+  const count = await service.countByAuthor('1')
   expect(count).toBeDefined()
 })
 
 test('findByAuthor', async () => {
-  const drafts = await draftService.findByAuthor('1')
+  const drafts = await service.findByAuthor('1')
   expect(drafts[0]).toBeDefined()
 })
 
 test.skip('findAudiodraft', async () => {
-  const audios = await draftService.findAudiodraft('1')
+  const audios = await service.findAudiodraft('1')
   expect(audios.length).toBe(1)
   expect(audios[0]).toEqual(expect.objectContaining(audioValidation))
 })
 
 test.skip('findAudiodraftsByAuthor', async () => {
-  const audios = await draftService.findAudiodraftsByAuthor('1')
+  const audios = await service.findAudiodraftsByAuthor('1')
   expect(audios[0]).toEqual(expect.objectContaining(audioValidation))
 })

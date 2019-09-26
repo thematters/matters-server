@@ -1,5 +1,6 @@
 // forked from https://github.com/apollographql/apollo-server/tree/master/packages/apollo-server-plugin-response-cache
 
+import * as Sentry from '@sentry/node'
 import {
   ApolloServerPlugin,
   GraphQLRequestListener
@@ -14,6 +15,8 @@ import { CacheHint, CacheScope } from 'apollo-cache-control'
 // apollo-server-sha as its own tiny module? apollo-server-env seems bad because
 // that would add sha.js to unnecessary places, I think?
 import { createHash } from 'crypto'
+
+import { CACHE_TTL } from 'common/enums'
 
 interface Options<TContext = Record<string, any>> {
   // Underlying cache used to save results. All writes will be under keys that
@@ -173,7 +176,6 @@ export default function plugin(
             const serializedValue = await cache.get(key)
 
             if (serializedValue === undefined) {
-              requestContext.context.cacheKey = key
               return null
             }
 
@@ -212,6 +214,8 @@ export default function plugin(
           ) {
             return null
           }
+
+          requestContext.context.cacheKeys = new Set()
 
           if (sessionId === null) {
             return cacheGet({ sessionMode: SessionMode.NoSession })
@@ -302,6 +306,19 @@ export default function plugin(
             cache
               .set(key, serializedValue, { ttl: overallCachePolicy!.maxAge })
               .catch(console.warn)
+
+            // retreive all cache-keys
+            const { cacheKeys, redis } = requestContext.context
+            if (cacheKeys && redis) {
+              try {
+                cacheKeys.forEach((cacheKey: string) => {
+                  redis.client.sadd(cacheKey, key)
+                  redis.client.expire(cacheKey, CACHE_TTL.SHORT)
+                })
+              } catch (error) {
+                Sentry.captureException(error)
+              }
+            }
           }
 
           const isPrivate = overallCachePolicy.scope === CacheScope.Private

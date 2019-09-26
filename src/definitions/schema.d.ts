@@ -737,6 +737,10 @@ export interface GQLDraft extends GQLNode {
    * Content of this draft.
    */
   content?: string
+
+  /**
+   * Time of this draft was scheduled for publishing.
+   */
   scheduledAt?: GQLDateTime
 
   /**

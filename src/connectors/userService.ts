@@ -32,15 +32,17 @@ import {
   UserOAuthLikeCoinAccountType
 } from 'definitions'
 
-const { oauthService } = require('./oauthService')
+import { OAuthService } from './oauthService'
 import { BaseService } from './baseService'
-import { likecoin } from './likecoin'
 
 export class UserService extends BaseService {
-  likecoin: typeof likecoin
+  likecoin: any
 
   constructor() {
     super('user')
+
+    const { likecoin } = require('./likecoin')
+
     this.likecoin = likecoin
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
@@ -414,6 +416,7 @@ export class UserService extends BaseService {
       })
       .limit(limit)
       .offset(offset)
+      .orderBy('id', 'desc')
 
   findTransactionByRecipient = async ({
     recipientId,
@@ -430,6 +433,7 @@ export class UserService extends BaseService {
       })
       .limit(limit)
       .offset(offset)
+      .orderBy('id', 'desc')
 
   findTransactionHistory = async ({
     id: userId,
@@ -1013,8 +1017,10 @@ export class UserService extends BaseService {
     // check
     const likerId = await this.likecoin.check({ user: userName })
 
+    const oAuthService = new OAuthService()
+
     // register
-    const tokens = await oauthService.generateTokenForLikeCoin({ userId })
+    const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
     const { accessToken, refreshToken, scope } = await this.likecoin.register({
       user: likerId,
       token: tokens.accessToken
@@ -1060,5 +1066,3 @@ export class UserService extends BaseService {
     })
   }
 }
-
-export const userService = new UserService()

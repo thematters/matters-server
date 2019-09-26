@@ -2,8 +2,8 @@ import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    viewer: User @uncacheViewer
-    user(input: UserInput!): User @uncacheViewer @recordCache(type: "${NODE_TYPES.user}")
+    viewer: User @privateCache @logCache(type: "${NODE_TYPES.user}")
+    user(input: UserInput!): User @privateCache @logCache(type: "${NODE_TYPES.user}")
   }
 
   extend type Mutation {
@@ -17,7 +17,7 @@ export default /* GraphQL */ `
     resetPassword(input: ResetPasswordInput!): Boolean
 
     "Change user email."
-    changeEmail(input: ChangeEmailInput!): User! @authenticate
+    changeEmail(input: ChangeEmailInput!): User! @authenticate @purgeCache
 
     "Verify user email."
     verifyEmail(input: VerifyEmailInput!): Boolean @authenticate
@@ -32,20 +32,20 @@ export default /* GraphQL */ `
     userLogout: Boolean!
 
     "Generate or claim a Liker ID through LikeCoin"
-    generateLikerId: User! @authenticate
+    generateLikerId: User! @authenticate @purgeCache
 
     "Update user information."
-    updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
+    updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate @purgeCache
 
     "Update user notification settings."
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
-      @authenticate
+      @authenticate @purgeCache
 
     "Follow a given user."
-    followUser(input: FollowUserInput!): User! @authenticate
+    followUser(input: FollowUserInput!): User! @authenticate @purgeCache
 
     "Unfollow curent user."
-    unfollowUser(input: UnfollowUserInput!): User! @authenticate
+    unfollowUser(input: UnfollowUserInput!): User! @authenticate @purgeCache
 
     "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
@@ -54,7 +54,7 @@ export default /* GraphQL */ `
     clearSearchHistory: Boolean @authenticate
 
     "Update state of a user, used in OSS."
-    updateUserState(input: UpdateUserStateInput!): User! @authorize
+    updateUserState(input: UpdateUserStateInput!): User! @authorize @purgeCache
 
     "Generate temporary LikerIds for users without it, used in OSS"
     generateTempLikerIds(input: GenerateTempLikerIdsInput): Int! @authorize
@@ -140,7 +140,7 @@ export default /* GraphQL */ `
     hottest(input: ConnectionArgs!): ArticleConnection!
 
     "'Matters Today' recommendation."
-    today: Article
+    today: Article @logCache(type: "${NODE_TYPES.article}")
 
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection!
@@ -214,7 +214,7 @@ export default /* GraphQL */ `
 
   type UserSettings {
     "User language setting."
-    language: UserLanguage! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    language: UserLanguage!
     # Notification settings
     "Notification settings."
     notification: NotificationSetting!
@@ -281,10 +281,10 @@ export default /* GraphQL */ `
       @deprecated(reason: "Use \`User.followers.totalCount\`.")
 
     "Number of unread notices."
-    unreadNoticeCount: Int! @scope
+    unreadNoticeCount: Int! @scope @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Whether there are unread articles from followees."
-    unreadFolloweeArticles: Boolean!
+    unreadFolloweeArticles: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Whether user has read response info or not."
     unreadResponseInfoPopUp: Boolean!

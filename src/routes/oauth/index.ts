@@ -5,7 +5,7 @@ import bodyParser from 'body-parser'
 import passport from 'passport'
 
 // internal
-import { oauthService } from 'connectors'
+import { OAuthService } from 'connectors'
 import { getViewerFromReq } from 'common/utils/getViewer'
 import { environment } from 'common/environment'
 import {
@@ -19,20 +19,21 @@ import initPassportStrategies from './strategies'
 import OAuthServer from './express-oauth-server'
 
 const oAuthRouter = Router()
+const oAuthService = new OAuthService()
 const oAuthServer = new OAuthServer({
   model: {
-    generateAccessToken: oauthService.generateAccessToken,
-    generateRefreshToken: oauthService.generateRefreshToken,
-    getAuthorizationCode: oauthService.getAuthorizationCode,
-    getClient: oauthService.getClient,
-    saveToken: oauthService.saveToken,
-    saveAuthorizationCode: oauthService.saveAuthorizationCode,
-    revokeAuthorizationCode: oauthService.revokeAuthorizationCode,
-    validateScope: oauthService.validateScope,
-    getAccessToken: oauthService.getAccessToken,
-    getRefreshToken: oauthService.getRefreshToken,
-    revokeToken: oauthService.revokeToken,
-    verifyScope: oauthService.verifyScope
+    generateAccessToken: oAuthService.generateAccessToken,
+    generateRefreshToken: oAuthService.generateRefreshToken,
+    getAuthorizationCode: oAuthService.getAuthorizationCode,
+    getClient: oAuthService.getClient,
+    saveToken: oAuthService.saveToken,
+    saveAuthorizationCode: oAuthService.saveAuthorizationCode,
+    revokeAuthorizationCode: oAuthService.revokeAuthorizationCode,
+    validateScope: oAuthService.validateScope,
+    getAccessToken: oAuthService.getAccessToken,
+    getRefreshToken: oAuthService.getRefreshToken,
+    revokeToken: oAuthService.revokeToken,
+    verifyScope: oAuthService.verifyScope
   },
   allowEmptyState: true,
   authenticateHandler: {

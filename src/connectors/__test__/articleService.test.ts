@@ -1,4 +1,6 @@
-import { articleService } from '../articleService'
+import { ArticleService } from '../articleService'
+
+const articleService = new ArticleService()
 
 // beforeAll(async () => {
 //   await articleService.es.clear()

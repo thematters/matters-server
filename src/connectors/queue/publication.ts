@@ -12,31 +12,31 @@ import {
 import { isTest } from 'common/environment'
 import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import {
-  draftService,
-  articleService,
-  tagService,
-  notificationService,
-  systemService
+  DraftService,
+  ArticleService,
+  TagService,
+  NotificationService,
+  SystemService
 } from 'connectors'
 // local
 import { createQueue } from './utils'
 
 class PublicationQueue {
   q: InstanceType<typeof Queue>
-  tagService: typeof tagService
-  articleService: typeof articleService
-  draftService: typeof draftService
-  notificationService: typeof notificationService
-  systemService: typeof systemService
+  tagService: InstanceType<typeof TagService>
+  articleService: InstanceType<typeof ArticleService>
+  draftService: InstanceType<typeof DraftService>
+  notificationService: InstanceType<typeof NotificationService>
+  systemService: InstanceType<typeof SystemService>
 
   private queueName = QUEUE_NAME.publication
 
   constructor() {
-    this.notificationService = notificationService
-    this.tagService = tagService
-    this.articleService = articleService
-    this.draftService = draftService
-    this.systemService = systemService
+    this.notificationService = new NotificationService()
+    this.tagService = new TagService()
+    this.articleService = new ArticleService()
+    this.draftService = new DraftService()
+    this.systemService = new SystemService()
     this.q = createQueue(this.queueName)
     this.addConsumers()
   }

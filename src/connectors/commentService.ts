@@ -1,20 +1,19 @@
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
-import Knex from 'knex'
 
 import {
   USER_ACTION,
   ARTICLE_PIN_COMMENT_LIMIT,
   COMMENT_STATE
 } from 'common/enums'
-import { BaseService } from './baseService'
 import { CommentNotFoundError } from 'common/errors'
-
 import {
   GQLCommentsInput,
   GQLVote,
   GQLCommentCommentsInput
 } from 'definitions/schema'
+
+import { BaseService } from './baseService'
 
 type CommentFilter = {
   articleId?: string
@@ -473,5 +472,3 @@ export class CommentService extends BaseService {
     await this.baseBatchCreate(reportAssets, 'report_asset')
   }
 }
-
-export const commentService = new CommentService()

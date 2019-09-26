@@ -12,13 +12,13 @@ import {
 } from 'definitions'
 
 import {
-  articleService,
-  commentService,
-  draftService,
-  systemService,
-  tagService,
-  userService,
-  notificationService
+  ArticleService,
+  CommentService,
+  DraftService,
+  SystemService,
+  TagService,
+  UserService,
+  NotificationService
 } from 'connectors'
 
 import { roleAccess, scopeModes } from 'common/utils'
@@ -35,6 +35,7 @@ export const adminUser = {
 }
 
 export const getUserContext = async ({ email }: { email: string }) => {
+  const userService = new UserService()
   const user = await userService.findByEmail(email)
   return {
     viewer: user
@@ -93,13 +94,13 @@ export const testClient = async (
       return { req, ..._context }
     },
     dataSources: (): DataSources => ({
-      userService,
-      articleService,
-      commentService,
-      draftService,
-      systemService,
-      tagService,
-      notificationService
+      userService: new UserService(),
+      articleService: new ArticleService(),
+      commentService: new CommentService(),
+      draftService: new DraftService(),
+      systemService: new SystemService(),
+      tagService: new TagService(),
+      notificationService: new NotificationService()
     })
   })
 

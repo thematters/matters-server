@@ -11,7 +11,7 @@ import {
   USER_ACTION,
   TRANSACTION_PURPOSE
 } from 'common/enums'
-import { ItemData, GQLSearchInput, GQLResponsesInput } from 'definitions'
+import { ItemData, GQLSearchInput } from 'definitions'
 import { ipfs } from 'connectors/ipfs'
 import {
   stripHtml,
@@ -23,8 +23,8 @@ import {
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import { environment } from 'common/environment'
 
-const { userService } = require('./userService')
-const { systemService } = require('./systemService')
+import { UserService } from './userService'
+import { SystemService } from './systemService'
 import { BaseService } from './baseService'
 import logger from 'common/logger'
 
@@ -81,6 +81,9 @@ export class ArticleService extends BaseService {
   }: {
     [key: string]: string
   }) => {
+    const userService = new UserService()
+    const systemService = new SystemService()
+
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
     const now = new Date()
@@ -1463,5 +1466,3 @@ export class ArticleService extends BaseService {
     return parseInt(count, 10)
   }
 }
-
-export const articleService = new ArticleService()

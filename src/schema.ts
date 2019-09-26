@@ -10,9 +10,10 @@ import {
   DeprecatedDirective,
   PrivateDirective,
   authDirectiveFactory,
-  UncacheViewerDirective,
   ScopeDirective,
-  RecordCacheDirective
+  PurgeCacheDirective,
+  PrivateCacheDirective,
+  LogCacheDirective
 } from './types/directives'
 
 const schema = makeExecutableSchema({
@@ -22,9 +23,10 @@ const schema = makeExecutableSchema({
     authenticate: authDirectiveFactory(AuthenticationError),
     authorize: authDirectiveFactory(ForbiddenError),
     private: PrivateDirective,
-    uncacheViewer: UncacheViewerDirective,
     scope: ScopeDirective,
-    recordCache: RecordCacheDirective
+    purgeCache: PurgeCacheDirective,
+    privateCache: PrivateCacheDirective,
+    logCache: LogCacheDirective
   },
   resolvers: merge(queries, mutations, subscriptions)
 })

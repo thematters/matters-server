@@ -2,50 +2,50 @@ import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    article(input: ArticleInput!): Article @uncacheViewer @recordCache(type: "${NODE_TYPES.article}")
+    article(input: ArticleInput!): Article @privateCache @logCache(type: "${NODE_TYPES.article}")
   }
 
   extend type Mutation {
     "Publish an article onto IPFS."
-    publishArticle(input: PublishArticleInput!): Draft! @authenticate
+    publishArticle(input: PublishArticleInput!): Draft! @authenticate @purgeCache
 
     "Archive an article and users won't be able to view this article."
-    archiveArticle(input: ArchiveArticleInput!): Article! @authenticate
+    archiveArticle(input: ArchiveArticleInput!): Article! @authenticate @purgeCache
 
     "Subscribe an artcile."
-    subscribeArticle(input: SubscribeArticleInput!): Article! @authenticate
+    subscribeArticle(input: SubscribeArticleInput!): Article! @authenticate @purgeCache
 
     "Unsubscribe an article."
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @authenticate
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @authenticate @purgeCache
 
     "Report an article to team."
     reportArticle(input: ReportArticleInput!): Boolean
 
     "Appreciate an article."
-    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate
+    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate @purgeCache
 
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
 
     "Recall while publishing."
-    recallPublish(input: RecallPublishInput!): Draft! @authenticate
+    recallPublish(input: RecallPublishInput!): Draft! @authenticate @purgeCache
 
     "Set collection of an article."
-    setCollection(input: SetCollectionInput!): Article! @authenticate
+    setCollection(input: SetCollectionInput!): Article! @authenticate @purgeCache
 
     "Update article information."
-    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @authenticate
+    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @authenticate @purgeCache
 
     # OSS
-    toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authorize
-    toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @authorize
-    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article!
+    toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authorize @purgeCache
+    toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @authorize @purgeCache
+    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @purgeCache
       @authorize
-    updateArticleState(input: UpdateArticleStateInput!): Article! @authorize
-    deleteTags(input: DeleteTagsInput!): Boolean @authorize
-    renameTag(input: RenameTagInput!): Tag! @authorize
-    mergeTags(input: MergeTagsInput!): Tag! @authorize
-    updateMattersToday(input: UpdateMattersTodayInput!): Article! @authorize
+    updateArticleState(input: UpdateArticleStateInput!): Article! @authorize @purgeCache
+    deleteTags(input: DeleteTagsInput!): Boolean @authorize @purgeCache
+    renameTag(input: RenameTagInput!): Tag! @authorize @purgeCache
+    mergeTags(input: MergeTagsInput!): Tag! @authorize @purgeCache
+    updateMattersToday(input: UpdateMattersTodayInput!): Article! @authorize @purgeCache
   }
 
   """
@@ -193,7 +193,7 @@ export default /* GraphQL */ `
 
   type ArticleEdge {
     cursor: String!
-    node: Article! @recordCache(type: "${NODE_TYPES.article}")
+    node: Article! @logCache(type: "${NODE_TYPES.article}")
   }
 
   type TagConnection implements Connection {
@@ -204,7 +204,7 @@ export default /* GraphQL */ `
 
   type TagEdge {
     cursor: String!
-    node: Tag!
+    node: Tag! @logCache(type: "${NODE_TYPES.tag}")
   }
 
   input TagsInput {

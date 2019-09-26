@@ -1,6 +1,8 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Query {
-    oauthClient(input: OAuthClientInput!): OAuthClient @uncacheViewer
+    oauthClient(input: OAuthClientInput!): OAuthClient @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
   }
 
   extend type Mutation {

@@ -273,5 +273,3 @@ export class SystemService extends BaseService {
     })
   }
 }
-
-export const systemService = new SystemService()

@@ -1,8 +1,9 @@
 import { NotificationType } from 'definitions'
+import { NotificationService } from '../notificationService'
+import { UserService } from '../userService'
+
 import { knex } from 'connectors/db'
 import { sharedQueueOpts } from 'connectors/queue/utils'
-import { notificationService } from '../notificationService'
-import { userService } from '../userService'
 
 afterAll(async () => {
   await knex.destroy()
@@ -11,6 +12,8 @@ afterAll(async () => {
   redisClient.disconnect()
 })
 
+const notificationService = new NotificationService()
+const userService = new UserService()
 const recipientId = '1'
 
 /**
