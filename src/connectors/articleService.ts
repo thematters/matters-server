@@ -839,13 +839,22 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findAppreciations = async (referenceId: string): Promise<any[]> =>
+  findAppreciations = async ({
+    referenceId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    referenceId: string
+    limit?: number
+    offset?: number
+  }): Promise<any[]> =>
     await this.knex('transaction')
       .select()
       .where({
         referenceId,
         purpose: TRANSACTION_PURPOSE.appreciate
-      })
+      }).limit(limit)
+      .offset(offset)
 
   /**
    * Find an article's appreciators by a given article id.

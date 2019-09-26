@@ -90,10 +90,11 @@ type Article implements Node {
   """MAT recieved for this article (will be decrpecated soon)"""
   MAT: Int!
 
-  """Total appreciations recieved of this article."""
+  """Appreciations history of this article."""
+  appreciations(input: ConnectionArgs!): TransactionConnection!
+
+  """Total number of appreciations recieved of this article."""
   appreciationTotal: Int!
-  participantCount: Int! @deprecated(reason: "not used")
-  participants: UserConnection! @deprecated(reason: "not used")
 
   """Subscribers of this articles."""
   subscribers(input: ConnectionArgs!): UserConnection!
@@ -102,7 +103,7 @@ type Article implements Node {
   appreciators(input: ConnectionArgs!): UserConnection!
 
   """Total count of this article's appreciations."""
-  appreciatorCount: Int! @deprecated(reason: "Use `appreciators.totalCount`.")
+  appreciatorCount: Int!
 
   """Limit the nuhmber of appreciate per user."""
   appreciateLimit: Int!

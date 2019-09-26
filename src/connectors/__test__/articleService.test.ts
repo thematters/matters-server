@@ -37,7 +37,9 @@ test('findByAuthor', async () => {
 })
 
 test('findAppreciations', async () => {
-  const appreciations = await articleService.findAppreciations('1')
+  const appreciations = await articleService.findAppreciations({
+    referenceId: '1'
+  })
   expect(appreciations.length).toBe(4)
 })
 

@@ -136,21 +136,14 @@ export interface GQLArticle extends GQLNode {
   MAT: number
 
   /**
-   * Total appreciations recieved of this article.
+   * Appreciations history of this article.
+   */
+  appreciations: GQLTransactionConnection
+
+  /**
+   * Total number of appreciations recieved of this article.
    */
   appreciationTotal: number
-
-  /**
-   *
-   * @deprecated not used
-   */
-  participantCount: number
-
-  /**
-   *
-   * @deprecated not used
-   */
-  participants: GQLUserConnection
 
   /**
    * Subscribers of this articles.
@@ -164,7 +157,6 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * Total count of this article's appreciations.
-   * @deprecated Use `appreciators.totalCount`.
    */
   appreciatorCount: number
 
@@ -2980,9 +2972,8 @@ export interface GQLArticleTypeResolver<TParent = any> {
   collection?: ArticleToCollectionResolver<TParent>
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>
   MAT?: ArticleToMATResolver<TParent>
+  appreciations?: ArticleToAppreciationsResolver<TParent>
   appreciationTotal?: ArticleToAppreciationTotalResolver<TParent>
-  participantCount?: ArticleToParticipantCountResolver<TParent>
-  participants?: ArticleToParticipantsResolver<TParent>
   subscribers?: ArticleToSubscribersResolver<TParent>
   appreciators?: ArticleToAppreciatorsResolver<TParent>
   appreciatorCount?: ArticleToAppreciatorCountResolver<TParent>
@@ -3195,31 +3186,22 @@ export interface ArticleToMATResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface ArticleToAppreciationsArgs {
+  input: GQLConnectionArgs
+}
+export interface ArticleToAppreciationsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: ArticleToAppreciationsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface ArticleToAppreciationTotalResolver<
   TParent = any,
   TResult = any
 > {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleToParticipantCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleToParticipantsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

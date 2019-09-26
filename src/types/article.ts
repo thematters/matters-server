@@ -113,10 +113,11 @@ export default /* GraphQL */ `
     "MAT recieved for this article (will be decrpecated soon)"
     MAT: Int!
 
-    "Total appreciations recieved of this article."
+    "Appreciations history of this article."
+    appreciations(input: ConnectionArgs!): TransactionConnection!
+
+    "Total number of appreciations recieved of this article."
     appreciationTotal: Int!
-    participantCount: Int! @deprecated(reason: "not used")
-    participants: UserConnection! @deprecated(reason: "not used")
 
     "Subscribers of this articles."
     subscribers(input: ConnectionArgs!): UserConnection!
@@ -126,7 +127,6 @@ export default /* GraphQL */ `
 
     "Total count of this article's appreciations."
     appreciatorCount: Int!
-      @deprecated(reason: "Use \`appreciators.totalCount\`.")
 
     "Limit the nuhmber of appreciate per user."
     appreciateLimit: Int!
