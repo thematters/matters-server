@@ -815,8 +815,6 @@ export class ArticleService extends BaseService {
     return parseInt(result.count || '0', 10)
   }
 
-
-
   /**
    * Count total appreciaton by a given article id and user ids.
    */

@@ -3,7 +3,7 @@ import slugify from '@matters/slugify'
 import { toGlobalId, makeSummary } from 'common/utils'
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
 
-import appreciationTotal from './appreciationTotal'
+import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import appreciatorCount from './appreciatorCount'
 import appreciateLeft from './appreciateLeft'
 import appreciators from './appreciators'
@@ -34,7 +34,8 @@ export default {
   },
   Article: {
     appreciationsReceived,
-    appreciationTotal,
+    appreciationsReceivedTotal,
+    appreciationTotal: appreciationsReceivedTotal,
     appreciators,
     appreciatorCount,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
