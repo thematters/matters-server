@@ -424,3 +424,8 @@ export const NODE_TYPES = {
 }
 
 export const CACHE_KEYWORD = '__cache__'
+
+export const TRANSACTION_TYPES = {
+  like: 'LIKE',
+  mat: 'MAT'
+}

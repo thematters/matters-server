@@ -1,3 +1,6 @@
+import { v4 } from 'uuid'
+
+import { TRANSACTION_TYPES } from 'common/enums'
 import {
   AuthenticationError,
   NotEnoughMatError,
@@ -5,9 +8,8 @@ import {
   ActionLimitExceededError,
   ForbiddenError
 } from 'common/errors'
-import { MutationToAppreciateArticleResolver } from 'definitions'
-import { v4 } from 'uuid'
 import { fromGlobalId } from 'common/utils'
+import { MutationToAppreciateArticleResolver } from 'definitions'
 
 const resolver: MutationToAppreciateArticleResolver = async (
   root,
@@ -18,9 +20,12 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  const viewerTotalMAT = await userService.totalMAT(viewer.id)
-  if (viewerTotalMAT < amount) {
-    throw new NotEnoughMatError('not enough MAT to appreciate')
+  // TODO: Remove it after LikeCoin deployment.
+  if (viewer.likerId) {
+    const viewerTotalMAT = await userService.totalMAT(viewer.id)
+    if (viewerTotalMAT < amount) {
+      throw new NotEnoughMatError('not enough MAT to appreciate')
+    }
   }
 
   const { id: dbId } = fromGlobalId(id)
@@ -46,7 +51,8 @@ const resolver: MutationToAppreciateArticleResolver = async (
     articleId: article.id,
     senderId: viewer.id,
     recipientId: article.authorId,
-    amount
+    amount,
+    type: viewer.likerId ? TRANSACTION_TYPES.like : TRANSACTION_TYPES.mat
   })
 
   // publish a PubSub event
