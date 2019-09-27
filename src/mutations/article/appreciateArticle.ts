@@ -46,6 +46,15 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ActionLimitExceededError('too many appreciations')
   }
 
+  // TODO: Extract safety check to above after LikeCoin deployment.
+  const author = await userService.dataloader.load(article.authorId)
+  if (viewer.likerId && author.likerId) {
+    await userService.likecoin.like({
+      authorLikerId: author.likerId,
+      url: `/@${author.userName}/${author.slug}-${author.mediaHash}`
+    })
+  }
+
   await articleService.appreciate({
     uuid: v4(),
     articleId: article.id,
