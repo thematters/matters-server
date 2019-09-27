@@ -1,28 +1,21 @@
-// external
 import { DataSource } from 'apollo-datasource'
 import _ from 'lodash'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
-//local
+
 import { Item, ItemData, TableName } from 'definitions'
 import logger from 'common/logger'
 import { BATCH_SIZE } from 'common/enums'
-
-import { aws, AWSService } from './aws'
-import { knex } from './db'
-import { es } from './es'
+import { aws } from 'connectors/aws'
+import { knex } from 'connectors/db'
+import { es } from 'connectors/es'
 
 export class BaseService extends DataSource {
   es: typeof es
-
-  aws: InstanceType<typeof AWSService>
-
+  aws: typeof aws
   knex: Knex
-
   dataloader: DataLoader<string, Item>
-
   uuidLoader: DataLoader<string, Item>
-
   table: TableName
 
   constructor(table: TableName) {

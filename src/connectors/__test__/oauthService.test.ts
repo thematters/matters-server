@@ -1,5 +1,4 @@
-import { OAuthService } from '../oauthService'
-import { UserService } from '../userService'
+import { UserService, OAuthService } from 'connectors'
 
 const getClient = () => {
   const oauthService = new OAuthService()

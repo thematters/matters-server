@@ -1,4 +1,4 @@
-import { TableName, User } from './'
+import { TableName, User } from 'definitions'
 
 export type NoticeType =
   // user

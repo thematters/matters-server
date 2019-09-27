@@ -1,5 +1,5 @@
-import { BaseService } from './baseService'
 import { BATCH_SIZE } from 'common/enums'
+import { BaseService } from 'connectors'
 
 export class SystemService extends BaseService {
   constructor() {

@@ -1,11 +1,11 @@
 // external
 import Queue from 'bull'
 import { MailData } from '@sendgrid/helpers/classes/mail'
-// internal
-import { QUEUE_PRIORITY, QUEUE_JOB, QUEUE_NAME } from 'common/enums'
-import mailService from 'connectors/mail'
-import pushService, { PushParams } from 'connectors/push'
 // local
+import { QUEUE_PRIORITY, QUEUE_JOB, QUEUE_NAME } from 'common/enums'
+import { pushService, PushParams } from 'connectors/push'
+import { mailService } from 'connectors/mail'
+
 import { createQueue } from './utils'
 
 class NotificationQueue {
@@ -58,4 +58,4 @@ class NotificationQueue {
   }
 }
 
-export default new NotificationQueue()
+export const notificationQueue = new NotificationQueue()

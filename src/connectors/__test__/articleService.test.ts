@@ -1,4 +1,4 @@
-import { ArticleService } from '../articleService'
+import { ArticleService } from 'connectors'
 
 const articleService = new ArticleService()
 

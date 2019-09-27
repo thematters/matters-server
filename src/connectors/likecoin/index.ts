@@ -1,13 +1,13 @@
 import axios, { AxiosRequestConfig } from 'axios'
 import _ from 'lodash'
 import * as Sentry from '@sentry/node'
+import Knex from 'knex'
 
 import { UserOAuthLikeCoin } from 'definitions'
 import { environment } from 'common/environment'
 import { toGlobalId, fromGlobalId } from 'common/utils'
-
-import { UserService } from '../userService'
-import { BaseService } from '../baseService'
+import { UserService } from 'connectors'
+import { knex } from 'connectors/db'
 
 const {
   likecoinApiURL,
@@ -45,9 +45,11 @@ const ENDPOINTS = {
   transferPendingLIKE: '/like'
 }
 
-export class LikeCoin extends BaseService {
+export class LikeCoin {
+  knex: Knex
+
   constructor() {
-    super('noop')
+    this.knex = knex
   }
 
   /**

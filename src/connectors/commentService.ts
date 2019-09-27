@@ -7,13 +7,8 @@ import {
   COMMENT_STATE
 } from 'common/enums'
 import { CommentNotFoundError } from 'common/errors'
-import {
-  GQLCommentsInput,
-  GQLVote,
-  GQLCommentCommentsInput
-} from 'definitions/schema'
-
-import { BaseService } from './baseService'
+import { GQLCommentsInput, GQLVote, GQLCommentCommentsInput } from 'definitions'
+import { BaseService } from 'connectors'
 
 type CommentFilter = {
   articleId?: string

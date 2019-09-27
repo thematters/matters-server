@@ -1,10 +1,8 @@
-// external
 import querystring from 'querystring'
 import { Router } from 'express'
 import bodyParser from 'body-parser'
 import passport from 'passport'
 
-// internal
 import { OAuthService } from 'connectors'
 import { getViewerFromReq } from 'common/utils/getViewer'
 import { environment } from 'common/environment'
@@ -14,7 +12,6 @@ import {
   OAUTH_REFRESH_TOKEN_EXPIRES_IN
 } from 'common/enums'
 
-// local
 import initPassportStrategies from './strategies'
 import OAuthServer from './express-oauth-server'
 

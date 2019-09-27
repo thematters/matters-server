@@ -1,5 +1,5 @@
 import _ from 'lodash'
-// local
+
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import {
   MAT_UNIT,
@@ -7,8 +7,8 @@ import {
   VERIFICATION_CODE_STATUS
 } from 'common/enums'
 import { MaterializedView } from 'definitions'
-import { UserService } from 'connectors'
-import { refreshView } from 'connectors/db'
+import { UserService, refreshView } from 'connectors'
+
 import {
   defaultTestUser,
   getUserContext,

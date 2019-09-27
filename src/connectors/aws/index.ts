@@ -20,9 +20,7 @@ import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
 
 export class AWSService {
   s3: AWS.S3
-
   s3Bucket: string
-
   s3Endpoint: string
 
   constructor() {

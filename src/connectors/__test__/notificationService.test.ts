@@ -1,9 +1,10 @@
 import { NotificationType } from 'definitions'
-import { NotificationService } from '../notificationService'
-import { UserService } from '../userService'
-
-import { knex } from 'connectors/db'
-import { sharedQueueOpts } from 'connectors/queue/utils'
+import {
+  NotificationService,
+  UserService,
+  knex,
+  sharedQueueOpts
+} from 'connectors'
 
 afterAll(async () => {
   await knex.destroy()

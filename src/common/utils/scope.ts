@@ -1,8 +1,6 @@
-// external
 import _ from 'lodash'
-import { responsePathAsArray } from 'graphql'
-// local
-import { isNotEmptyObject } from './validator'
+
+import { isNotEmptyObject } from 'common/utils'
 
 /**
  * Clean up raw data and split scope string.

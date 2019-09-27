@@ -1,9 +1,7 @@
-//local
 import logger from 'common/logger'
 import { NotificationPrarms, PutNoticeParams, LANGUAGES } from 'definitions'
 import { toGlobalId } from 'common/utils'
-import { USER_ROLE } from 'common/enums'
-import { BaseService } from 'connectors/baseService'
+import { BaseService } from 'connectors'
 
 import { mail } from './mail'
 import { push } from './push'

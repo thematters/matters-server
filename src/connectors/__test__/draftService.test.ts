@@ -1,4 +1,4 @@
-import { DraftService } from '../draftService'
+import { DraftService } from 'connectors'
 
 const draftValidation = {
   id: expect.any(String),

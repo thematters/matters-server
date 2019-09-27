@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader'
 
-import { BaseService } from './baseService'
+import { BaseService } from 'connectors'
 
 export class DraftService extends BaseService {
   constructor() {

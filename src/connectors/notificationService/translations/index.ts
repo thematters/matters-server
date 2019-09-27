@@ -1,4 +1,4 @@
-import { makeSummary, stripHtml } from 'common/utils'
+import { makeSummary } from 'common/utils'
 import { i18n } from 'common/utils/i18n'
 import { MAT_UNIT } from 'common/enums'
 

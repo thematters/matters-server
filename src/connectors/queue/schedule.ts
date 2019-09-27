@@ -1,6 +1,6 @@
 // external
 import Queue from 'bull'
-// internal
+// local
 import {
   QUEUE_JOB,
   QUEUE_PRIORITY,
@@ -16,10 +16,10 @@ import {
   ArticleService,
   NotificationService
 } from 'connectors'
-import { refreshView } from '../db'
-// local
+import { publicationQueue } from 'connectors/queue'
+import { refreshView } from 'connectors/db'
+
 import { createQueue } from './utils'
-import publicationQueue from './publication'
 
 class ScheduleQueue {
   q: InstanceType<typeof Queue>
@@ -249,4 +249,4 @@ class ScheduleQueue {
   }
 }
 
-export default new ScheduleQueue()
+export const scheduleQueue = new ScheduleQueue()

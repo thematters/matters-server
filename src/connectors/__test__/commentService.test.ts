@@ -1,4 +1,4 @@
-import { CommentService } from '../commentService'
+import { CommentService } from 'connectors'
 
 const commentService = new CommentService()
 

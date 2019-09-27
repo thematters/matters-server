@@ -4,7 +4,7 @@ import _ from 'lodash'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 
-const { esHost: host, esPort: port, env } = environment
+const { esHost: host, esPort: port } = environment
 
 type Item = { [key: string]: any; id: string }
 

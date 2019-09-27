@@ -1,13 +1,12 @@
-// external
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 import bodybuilder from 'bodybuilder'
-// internal
+
 import { GQLSearchInput } from 'definitions'
-import { BaseService } from './baseService'
 import { BATCH_SIZE, ARTICLE_STATE } from 'common/enums'
 import logger from 'common/logger'
 import { ServerError } from 'common/errors'
+import { BaseService } from 'connectors'
 
 export class TagService extends BaseService {
   constructor() {

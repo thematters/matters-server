@@ -9,7 +9,7 @@ import {
   UserService,
   NotificationService
 } from 'connectors'
-import { getViewerFromReq } from './getViewer'
+import { getViewerFromReq } from 'common/utils'
 
 export const initSubscriptions = (): { onConnect: any } => ({
   onConnect: async (

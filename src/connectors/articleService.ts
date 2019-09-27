@@ -12,7 +12,6 @@ import {
   TRANSACTION_PURPOSE
 } from 'common/enums'
 import { ItemData, GQLSearchInput } from 'definitions'
-import { ipfs } from 'connectors/ipfs'
 import {
   stripHtml,
   countWords,
@@ -22,11 +21,9 @@ import {
 } from 'common/utils'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import { environment } from 'common/environment'
-
-import { UserService } from './userService'
-import { SystemService } from './systemService'
-import { BaseService } from './baseService'
 import logger from 'common/logger'
+import { BaseService, UserService, SystemService } from 'connectors'
+import { ipfs } from 'connectors/ipfs'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs

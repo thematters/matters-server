@@ -3,8 +3,7 @@ import { Response, Request } from 'express'
 import { cloneDeep } from 'lodash'
 
 import { RequestContext } from 'definitions'
-import { getViewerFromReq } from './getViewer'
-import { toGlobalId } from './globalId'
+import { getViewerFromReq, toGlobalId } from 'common/utils'
 
 const purgeSentryData = (req?: Request): any => {
   const omit = (source: any, target: any) => {

@@ -18,7 +18,7 @@ import {
   NotificationService,
   SystemService
 } from 'connectors'
-// local
+
 import { createQueue } from './utils'
 
 class PublicationQueue {
@@ -254,4 +254,4 @@ class PublicationQueue {
   }
 }
 
-export default new PublicationQueue()
+export const publicationQueue = new PublicationQueue()

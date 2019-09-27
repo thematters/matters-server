@@ -1,5 +1,5 @@
 ///<reference path="./ipfs-http-client.d.ts" />
-// import { cmd } from './ipfs-http-client'
+
 import * as cheerio from 'cheerio'
 import ipfsClient = require('ipfs-http-client')
 import axios from 'axios'

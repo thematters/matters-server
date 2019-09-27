@@ -13,9 +13,9 @@ import {
   NoticeEntitiesMap,
   NoticeItem
 } from 'definitions'
-import { BaseService } from '../baseService'
 import { BATCH_SIZE } from 'common/enums'
 import logger from 'common/logger'
+import { BaseService } from 'connectors'
 
 class Notice extends BaseService {
   constructor() {

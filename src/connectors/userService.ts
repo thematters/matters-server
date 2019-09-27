@@ -31,17 +31,15 @@ import {
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType
 } from 'definitions'
+import { BaseService, OAuthService } from 'connectors'
 
-import { OAuthService } from './oauthService'
-import { BaseService } from './baseService'
+import { likecoin } from './likecoin'
 
 export class UserService extends BaseService {
-  likecoin: any
+  likecoin: typeof likecoin
 
   constructor() {
     super('user')
-
-    const { likecoin } = require('./likecoin')
 
     this.likecoin = likecoin
     this.dataloader = new DataLoader(this.baseFindByIds)

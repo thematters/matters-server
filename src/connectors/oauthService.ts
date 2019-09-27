@@ -15,8 +15,7 @@ import {
   OAUTH_REFRESH_TOKEN_EXPIRES_IN
 } from 'common/enums'
 
-import { UserService } from './userService'
-import { BaseService } from './baseService'
+import { BaseService, UserService } from 'connectors'
 
 export class OAuthService extends BaseService {
   constructor() {

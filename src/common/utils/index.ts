@@ -2,6 +2,8 @@ import _ from 'lodash'
 import * as cheerio from 'cheerio'
 
 export * from './makeContext'
+export * from './getLanguage'
+export * from './getViewer'
 export * from './globalId'
 export * from './initSubscriptions'
 export * from './connections'

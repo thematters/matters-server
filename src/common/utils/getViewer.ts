@@ -5,14 +5,11 @@ import cookie from 'cookie'
 import { Response } from 'express'
 
 import { USER_ROLE, LANGUAGE, SCOPE_MODE } from 'common/enums'
-import { UserService, OAuthService } from 'connectors'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { Viewer } from 'definitions'
-
-import { getLanguage } from './getLanguage'
-import { clearCookie } from './cookie'
-import { makeScope } from './scope'
+import { getLanguage, clearCookie, makeScope } from 'common/utils'
+import { UserService, OAuthService } from 'connectors'
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 export const scopeModes = [

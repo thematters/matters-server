@@ -1,19 +1,18 @@
 require('newrelic')
 require('module-alias/register')
 require('dotenv').config()
-// external
+
 import http from 'http'
 import * as Sentry from '@sentry/node'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 
-// local
-import * as routes from './routes'
-// internal
 import { environment } from 'common/environment'
-import scheduleQueue from 'connectors/queue/schedule'
+import { scheduleQueue } from 'connectors/queue'
 import { CORS_OPTIONS } from 'common/enums'
+
+import * as routes from './routes'
 
 /**
  * Init

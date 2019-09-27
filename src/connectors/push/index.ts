@@ -69,4 +69,4 @@ class PushService {
   }
 }
 
-export default new PushService()
+export const pushService = new PushService()
