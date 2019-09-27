@@ -7,7 +7,8 @@ import {
   NotEnoughMatError,
   ArticleNotFoundError,
   ActionLimitExceededError,
-  ForbiddenError
+  ForbiddenError,
+  LikerNotFoundError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToAppreciateArticleResolver } from 'definitions'
@@ -51,6 +52,9 @@ const resolver: MutationToAppreciateArticleResolver = async (
   const author = await userService.dataloader.load(article.authorId)
   if (viewer.likerId && author.likerId) {
     const liker = await userService.findLiker({ userId: viewer.id })
+    if (!liker) {
+      throw new LikerNotFoundError('liker not found')
+    }
     await userService.likecoin.like({
       authorLikerId: author.likerId,
       liker,
