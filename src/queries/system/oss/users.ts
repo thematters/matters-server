@@ -1,5 +1,4 @@
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
-
 import { OSSToUsersResolver } from 'definitions'
 
 export const users: OSSToUsersResolver = async (

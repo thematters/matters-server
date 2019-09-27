@@ -1,8 +1,8 @@
 require('module-alias/register')
 
+import fs from 'fs'
 import { printSchema } from 'graphql'
 import { makeExecutableSchema } from 'graphql-tools'
-import fs from 'fs'
 
 import logger from 'common/logger'
 import typeDefs from 'types'

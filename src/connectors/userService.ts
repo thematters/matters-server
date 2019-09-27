@@ -1,22 +1,21 @@
-import DataLoader from 'dataloader'
-import { hash, compare } from 'bcrypt'
-import { v4 } from 'uuid'
-import jwt from 'jsonwebtoken'
+import { compare, hash } from 'bcrypt'
 import bodybuilder from 'bodybuilder'
+import DataLoader from 'dataloader'
+import jwt from 'jsonwebtoken'
 import _ from 'lodash'
+import { v4 } from 'uuid'
 
-import logger from 'common/logger'
 import {
+  ARTICLE_STATE,
+  BATCH_SIZE,
   BCRYPT_ROUNDS,
+  BLOCK_USERS,
+  USER_ACCESS_TOKEN_EXPIRES_IN,
   USER_ACTION,
+  USER_STATE,
   VERIFICATION_CODE_EXIPRED_AFTER,
   VERIFICATION_CODE_STATUS,
-  VERIFICATION_CODE_TYPES,
-  USER_STATE,
-  BATCH_SIZE,
-  ARTICLE_STATE,
-  USER_ACCESS_TOKEN_EXPIRES_IN,
-  BLOCK_USERS
+  VERIFICATION_CODE_TYPES
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -24,14 +23,15 @@ import {
   PasswordInvalidError,
   ServerError
 } from 'common/errors'
+import logger from 'common/logger'
+import { BaseService, OAuthService } from 'connectors'
 import {
-  ItemData,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
+  ItemData,
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType
 } from 'definitions'
-import { BaseService, OAuthService } from 'connectors'
 
 import { likecoin } from './likecoin'
 

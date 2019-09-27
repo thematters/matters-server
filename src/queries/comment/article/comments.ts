@@ -1,8 +1,7 @@
-import { toGlobalId } from 'common/utils'
-
-import { ArticleToCommentsResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import { COMMENT_STATE } from 'common/enums'
+import { toGlobalId } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
+import { ArticleToCommentsResolver } from 'definitions'
 
 const resolver: ArticleToCommentsResolver = async (
   { id },

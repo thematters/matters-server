@@ -1,22 +1,21 @@
-// external
 import Queue from 'bull'
-// local
+
 import {
-  QUEUE_JOB,
-  QUEUE_PRIORITY,
-  QUEUE_NAME,
+  MATERIALIZED_VIEW,
   PUBLISH_STATE,
-  MATERIALIZED_VIEW
+  QUEUE_JOB,
+  QUEUE_NAME,
+  QUEUE_PRIORITY
 } from 'common/enums'
 import logger from 'common/logger'
-import { MaterializedView } from 'definitions'
 import {
-  DraftService,
-  UserService,
   ArticleService,
+  DraftService,
   NotificationService,
-  refreshView
+  refreshView,
+  UserService
 } from 'connectors'
+import { MaterializedView } from 'definitions'
 
 import { publicationQueue } from './publication'
 import { createQueue } from './utils'

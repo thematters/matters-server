@@ -1,9 +1,8 @@
-// external
 import get from 'lodash/get'
-// internal
+
 import { SCOPE_MODE } from 'common/enums'
 import { makeScope } from 'common/utils'
-// local
+
 import { adminUser, defaultTestUser, getUserContext, testClient } from './utils'
 
 const testScopes = ['query:viewer:likerId', 'query:viewer:info:email']

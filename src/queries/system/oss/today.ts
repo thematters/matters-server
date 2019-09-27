@@ -1,5 +1,4 @@
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
-
 import { OSSToTodayResolver } from 'definitions'
 
 export const today: OSSToTodayResolver = async (

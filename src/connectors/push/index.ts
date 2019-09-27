@@ -1,7 +1,7 @@
 // @ts-ignore
-import { JPushAsync, JPush } from 'jpush-async'
+import { JPush, JPushAsync } from 'jpush-async'
 
-import { environment, isTest, isDev } from 'common/environment'
+import { environment, isDev, isTest } from 'common/environment'
 import logger from 'common/logger'
 
 export type PushParams = {

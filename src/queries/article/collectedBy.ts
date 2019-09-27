@@ -1,6 +1,6 @@
+import { ARTICLE_STATE } from 'common/enums'
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { ArticleToCollectedByResolver } from 'definitions'
-import { ARTICLE_STATE } from 'common/enums'
 
 const resolver: ArticleToCollectedByResolver = async (
   { id },

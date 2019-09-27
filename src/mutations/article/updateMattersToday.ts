@@ -1,6 +1,6 @@
-import { MutationToUpdateMattersTodayResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import { AssetNotFoundError, MattersTodayNotFoundError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToUpdateMattersTodayResolver } from 'definitions'
 
 const resolver: MutationToUpdateMattersTodayResolver = async (
   root,

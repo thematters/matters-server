@@ -1,5 +1,5 @@
-import { UserToLikerIdResolver } from 'definitions'
 import { environment } from 'common/environment'
+import { UserToLikerIdResolver } from 'definitions'
 
 const resolver: UserToLikerIdResolver = async (
   { likerId },

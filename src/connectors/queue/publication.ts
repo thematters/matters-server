@@ -1,22 +1,22 @@
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
-// internal
+
 import {
+  PUBLISH_ARTICLE_DELAY,
   PUBLISH_STATE,
-  QUEUE_JOB,
-  QUEUE_PRIORITY,
-  QUEUE_NAME,
   QUEUE_CONCURRENCY,
-  PUBLISH_ARTICLE_DELAY
+  QUEUE_JOB,
+  QUEUE_NAME,
+  QUEUE_PRIORITY
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import {
-  DraftService,
   ArticleService,
-  TagService,
+  DraftService,
   NotificationService,
-  SystemService
+  SystemService,
+  TagService
 } from 'connectors'
 
 import { createQueue } from './utils'

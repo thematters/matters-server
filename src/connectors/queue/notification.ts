@@ -1,9 +1,8 @@
-// external
-import Queue from 'bull'
 import { MailData } from '@sendgrid/helpers/classes/mail'
-// local
-import { QUEUE_PRIORITY, QUEUE_JOB, QUEUE_NAME } from 'common/enums'
-import { pushService, PushParams, mailService } from 'connectors'
+import Queue from 'bull'
+
+import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
+import { mailService, PushParams, pushService } from 'connectors'
 
 import { createQueue } from './utils'
 

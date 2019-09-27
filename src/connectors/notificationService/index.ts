@@ -1,12 +1,12 @@
 import logger from 'common/logger'
-import { NotificationPrarms, PutNoticeParams, LANGUAGES } from 'definitions'
 import { toGlobalId } from 'common/utils'
 import { BaseService } from 'connectors'
+import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
 
 import { mail } from './mail'
-import { push } from './push'
 import { notice } from './notice'
 import { pubsub } from './pubsub'
+import { push } from './push'
 import trans from './translations'
 
 export class NotificationService extends BaseService {

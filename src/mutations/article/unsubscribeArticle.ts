@@ -1,10 +1,10 @@
-import { MutationToUnsubscribeArticleResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import {
   ArticleNotFoundError,
-  EntityNotFoundError,
-  AuthenticationError
+  AuthenticationError,
+  EntityNotFoundError
 } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToUnsubscribeArticleResolver } from 'definitions'
 
 const resolver: MutationToUnsubscribeArticleResolver = async (
   root,

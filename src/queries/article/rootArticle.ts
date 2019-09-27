@@ -1,6 +1,5 @@
-import { QueryToArticleResolver } from 'definitions'
-
 import { BLOCK_USERS } from 'common/enums'
+import { QueryToArticleResolver } from 'definitions'
 
 const resolver: QueryToArticleResolver = async (
   root,

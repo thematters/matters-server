@@ -1,5 +1,5 @@
-import { Base64 } from 'js-base64'
 import { connectionFromArraySlice } from 'graphql-relay'
+import { Base64 } from 'js-base64'
 
 export type ConnectionCursor = string
 

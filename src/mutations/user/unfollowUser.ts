@@ -1,6 +1,6 @@
-import { MutationToUnfollowUserResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import { AuthenticationError, UserNotFoundError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToUnfollowUserResolver } from 'definitions'
 
 const resolver: MutationToUnfollowUserResolver = async (
   _,

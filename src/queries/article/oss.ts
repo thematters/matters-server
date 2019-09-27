@@ -1,10 +1,10 @@
 import {
   ArticleOSSToBoostResolver,
-  ArticleOSSToScoreResolver,
   ArticleOSSToInRecommendHottestResolver,
+  ArticleOSSToInRecommendIcymiResolver,
   ArticleOSSToInRecommendNewestResolver,
   ArticleOSSToInRecommendTodayResolver,
-  ArticleOSSToInRecommendIcymiResolver,
+  ArticleOSSToScoreResolver,
   ArticleOSSToTodayCoverResolver
 } from 'definitions'
 

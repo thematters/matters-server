@@ -1,5 +1,5 @@
-import { TagToArticlesResolver } from 'definitions'
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { TagToArticlesResolver } from 'definitions'
 
 const resolver: TagToArticlesResolver = async (
   { id },

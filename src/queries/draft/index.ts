@@ -1,13 +1,13 @@
 import slugify from '@matters/slugify'
 
-import { toGlobalId, countWords, makeSummary } from 'common/utils'
+import { countWords, makeSummary, toGlobalId } from 'common/utils'
 
-import drafts from './drafts'
-import audiodrafts from './audiodrafts'
-import cover from './cover'
-import collection from './collection'
-import audio from './audio'
 import assets from './assets'
+import audio from './audio'
+import audiodrafts from './audiodrafts'
+import collection from './collection'
+import cover from './cover'
+import drafts from './drafts'
 
 export default {
   User: {

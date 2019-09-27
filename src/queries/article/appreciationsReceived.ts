@@ -1,5 +1,4 @@
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
-
 import { ArticleToAppreciationsReceivedResolver } from 'definitions'
 
 const resolver: ArticleToAppreciationsReceivedResolver = async (

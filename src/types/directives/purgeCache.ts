@@ -1,11 +1,10 @@
-// external
 import * as Sentry from '@sentry/node'
-import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { defaultFieldResolver, GraphQLField } from 'graphql'
+import { SchemaDirectiveVisitor } from 'graphql-tools'
 import _compact from 'lodash/compact'
 import _get from 'lodash/get'
 import _replace from 'lodash/replace'
-// internal
+
 import { CACHE_KEYWORD, GQL_OPERATION } from 'common/enums'
 
 type CacheSet = {

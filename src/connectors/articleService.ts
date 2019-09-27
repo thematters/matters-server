@@ -1,28 +1,28 @@
+import slugify from '@matters/slugify'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
-import { v4 } from 'uuid'
-import slugify from '@matters/slugify'
 import _ from 'lodash'
+import { v4 } from 'uuid'
 
 import {
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
-  USER_ACTION,
-  TRANSACTION_PURPOSE
+  TRANSACTION_PURPOSE,
+  USER_ACTION
 } from 'common/enums'
-import { ItemData, GQLSearchInput } from 'definitions'
+import { environment } from 'common/environment'
+import { ArticleNotFoundError, ServerError } from 'common/errors'
+import logger from 'common/logger'
 import {
-  stripHtml,
   countWords,
   makeSummary,
+  outputCleanHTML,
   removeEmpty,
-  outputCleanHTML
+  stripHtml
 } from 'common/utils'
-import { ArticleNotFoundError, ServerError } from 'common/errors'
-import { environment } from 'common/environment'
-import logger from 'common/logger'
-import { BaseService, UserService, SystemService, ipfs } from 'connectors'
+import { BaseService, ipfs, SystemService, UserService } from 'connectors'
+import { GQLSearchInput, ItemData } from 'definitions'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs

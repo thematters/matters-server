@@ -1,7 +1,8 @@
 import { difference } from 'lodash'
-import { MutationToSetCollectionResolver } from 'definitions'
+
 import { EntityNotFoundError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
+import { MutationToSetCollectionResolver } from 'definitions'
 
 const resolver: MutationToSetCollectionResolver = async (
   root,

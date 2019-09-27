@@ -1,13 +1,13 @@
-import { MutationToUpdateArticleInfoResolver } from 'definitions'
 import { isEmpty } from 'lodash'
 
-import { fromGlobalId } from 'common/utils'
 import {
-  AuthenticationError,
   ArticleNotFoundError,
+  AuthenticationError,
   ForbiddenError,
   UserInputError
 } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToUpdateArticleInfoResolver } from 'definitions'
 
 const resolver: MutationToUpdateArticleInfoResolver = async (
   _,

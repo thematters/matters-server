@@ -1,21 +1,21 @@
-import { v4 } from 'uuid'
-import { isEqual, difference } from 'lodash'
 import DataLoader from 'dataloader'
+import { difference, isEqual } from 'lodash'
+import { v4 } from 'uuid'
 
-import {
-  User,
-  NotificationType,
-  NotificationEntity,
-  PutNoticeParams,
-  NoticeUserId,
-  NoticeEntity,
-  NoticeDetail,
-  NoticeEntitiesMap,
-  NoticeItem
-} from 'definitions'
 import { BATCH_SIZE } from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
+import {
+  NoticeDetail,
+  NoticeEntitiesMap,
+  NoticeEntity,
+  NoticeItem,
+  NoticeUserId,
+  NotificationEntity,
+  NotificationType,
+  PutNoticeParams,
+  User
+} from 'definitions'
 
 class Notice extends BaseService {
   constructor() {

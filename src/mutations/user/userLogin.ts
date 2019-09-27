@@ -1,4 +1,4 @@
-import { setCookie, getViewerFromUser } from 'common/utils'
+import { getViewerFromUser, setCookie } from 'common/utils'
 import { MutationToUserLoginResolver, ScopeMode } from 'definitions'
 
 const resolver: MutationToUserLoginResolver = async (

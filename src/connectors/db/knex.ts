@@ -1,9 +1,8 @@
-// external
 import Knex from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
-// internal
+
 const knexConfig = require('../../../knexfile')
-// local
+
 import { environment } from 'common/environment'
 import { MaterializedView } from 'definitions'
 

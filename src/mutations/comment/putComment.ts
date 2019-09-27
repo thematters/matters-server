@@ -1,15 +1,15 @@
 import _ from 'lodash'
 
-import { MutationToPutCommentResolver } from 'definitions'
-import { fromGlobalId, toGlobalId, sanitize, countWords } from 'common/utils'
-import {
-  AuthenticationError,
-  UserInputError,
-  ArticleNotFoundError,
-  CommentNotFoundError,
-  ForbiddenError
-} from 'common/errors'
 import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
+import {
+  ArticleNotFoundError,
+  AuthenticationError,
+  CommentNotFoundError,
+  ForbiddenError,
+  UserInputError
+} from 'common/errors'
+import { countWords, fromGlobalId, sanitize, toGlobalId } from 'common/utils'
+import { MutationToPutCommentResolver } from 'definitions'
 
 const resolver: MutationToPutCommentResolver = async (
   root,

@@ -1,6 +1,6 @@
 import { isNil } from 'lodash'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { OSSToArticlesResolver } from 'definitions'
 
 export const articles: OSSToArticlesResolver = async (

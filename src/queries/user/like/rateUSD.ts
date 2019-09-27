@@ -1,7 +1,8 @@
-import { LIKEToRateUSDResolver } from 'definitions'
 import axiso from 'axios'
 import _ from 'lodash'
+
 import logger from 'common/logger'
+import { LIKEToRateUSDResolver } from 'definitions'
 
 const PRICE_API =
   'https://api.coingecko.com/api/v3/coins/likecoin?localization=false'

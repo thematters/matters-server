@@ -1,12 +1,12 @@
 import { DataSource } from 'apollo-datasource'
-import _ from 'lodash'
 import DataLoader from 'dataloader'
 import Knex from 'knex'
+import _ from 'lodash'
 
-import { Item, ItemData, TableName } from 'definitions'
-import logger from 'common/logger'
 import { BATCH_SIZE } from 'common/enums'
-import { aws, knex, es } from 'connectors'
+import logger from 'common/logger'
+import { aws, es, knex } from 'connectors'
+import { Item, ItemData, TableName } from 'definitions'
 
 export class BaseService extends DataSource {
   es: typeof es

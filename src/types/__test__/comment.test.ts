@@ -1,5 +1,5 @@
 import _get from 'lodash/get'
-// local
+
 import { toGlobalId } from 'common/utils'
 import { testClient } from './utils'
 

@@ -1,5 +1,5 @@
-import { MutationToMarkAllNoticesAsReadResolver } from 'definitions'
 import { AuthenticationError } from 'common/errors'
+import { MutationToMarkAllNoticesAsReadResolver } from 'definitions'
 
 const resolver: MutationToMarkAllNoticesAsReadResolver = async (
   root,

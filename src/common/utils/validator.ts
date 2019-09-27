@@ -1,5 +1,6 @@
 import isPlainObject from 'lodash/isPlainObject'
 import { isEmail } from 'validator'
+
 import { INVALID_NAMES } from 'common/enums'
 
 /**

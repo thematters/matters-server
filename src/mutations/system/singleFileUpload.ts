@@ -1,10 +1,10 @@
+import axios from 'axios'
 import { v4 } from 'uuid'
 
-import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
+import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
 import { UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import axios from 'axios'
-import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
+import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 
 const getFileName = (disposition: string, url: string) => {
   if (disposition) {

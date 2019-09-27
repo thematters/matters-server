@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-import { GQLReportTypeResolver } from 'definitions'
 import { REPORT_CATEGORIES } from 'common/enums'
+import { GQLReportTypeResolver } from 'definitions'
 
 const resolvers: GQLReportTypeResolver = {
   user: ({ userId }, _, { dataSources: { userService } }) =>

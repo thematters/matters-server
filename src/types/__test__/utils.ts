@@ -1,27 +1,23 @@
-// external
-import { createTestClient } from 'apollo-server-testing'
 import { ApolloServer } from 'apollo-server-express'
+import { createTestClient } from 'apollo-server-testing'
 import { Request } from 'express'
 
-// local
+import { roleAccess, scopeModes } from 'common/utils'
+import {
+  ArticleService,
+  CommentService,
+  DraftService,
+  NotificationService,
+  SystemService,
+  TagService,
+  UserService
+} from 'connectors'
 import {
   DataSources,
   GQLPublishArticleInput,
   GQLPutDraftInput,
   GQLUserRegisterInput
 } from 'definitions'
-
-import {
-  ArticleService,
-  CommentService,
-  DraftService,
-  SystemService,
-  TagService,
-  UserService,
-  NotificationService
-} from 'connectors'
-
-import { roleAccess, scopeModes } from 'common/utils'
 
 import schema from '../../schema'
 

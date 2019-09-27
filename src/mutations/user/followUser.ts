@@ -1,10 +1,10 @@
-import { MutationToFollowUserResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import {
   AuthenticationError,
   UserFollowFailedError,
   UserNotFoundError
 } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToFollowUserResolver } from 'definitions'
 
 const resolver: MutationToFollowUserResolver = async (
   _,

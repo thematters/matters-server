@@ -1,21 +1,20 @@
 import nanoid from 'nanoid'
 
 import {
-  OAuthClient,
-  User,
-  OAuthToken,
-  OAuthAuthorizationCode,
-  OAuthRefreshToken,
-  Falsey
-} from 'definitions'
-import logger from 'common/logger'
-import { environment } from 'common/environment'
-import {
   OAUTH_ACCESS_TOKEN_EXPIRES_IN,
   OAUTH_REFRESH_TOKEN_EXPIRES_IN
 } from 'common/enums'
-
+import { environment } from 'common/environment'
+import logger from 'common/logger'
 import { BaseService, UserService } from 'connectors'
+import {
+  Falsey,
+  OAuthAuthorizationCode,
+  OAuthClient,
+  OAuthRefreshToken,
+  OAuthToken,
+  User
+} from 'definitions'
 
 export class OAuthService extends BaseService {
   constructor() {

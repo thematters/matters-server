@@ -1,6 +1,6 @@
-import { MutationToPinCommentResolver } from 'definitions'
+import { AuthenticationError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { ForbiddenError, AuthenticationError } from 'common/errors'
+import { MutationToPinCommentResolver } from 'definitions'
 
 const resolver: MutationToPinCommentResolver = async (
   _,

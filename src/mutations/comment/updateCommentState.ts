@@ -1,5 +1,5 @@
-import { MutationToUpdateCommentStateResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { MutationToUpdateCommentStateResolver } from 'definitions'
 
 const resolver: MutationToUpdateCommentStateResolver = async (
   _,

@@ -1,6 +1,6 @@
+import { MAT_UNIT } from 'common/enums'
 import { makeSummary } from 'common/utils'
 import { i18n } from 'common/utils/i18n'
-import { MAT_UNIT } from 'common/enums'
 
 export default {
   user_new_follower: i18n<{ displayName: string }>({

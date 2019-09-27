@@ -1,15 +1,15 @@
-import jwt from 'jsonwebtoken'
-import requestIp from 'request-ip'
-import _ from 'lodash'
 import cookie from 'cookie'
 import { Response } from 'express'
+import jwt from 'jsonwebtoken'
+import _ from 'lodash'
+import requestIp from 'request-ip'
 
-import { USER_ROLE, LANGUAGE, SCOPE_MODE } from 'common/enums'
+import { LANGUAGE, SCOPE_MODE, USER_ROLE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
+import { clearCookie, getLanguage, makeScope } from 'common/utils'
+import { OAuthService, UserService } from 'connectors'
 import { Viewer } from 'definitions'
-import { getLanguage, clearCookie, makeScope } from 'common/utils'
-import { UserService, OAuthService } from 'connectors'
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
 export const scopeModes = [

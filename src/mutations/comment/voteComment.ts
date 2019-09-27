@@ -1,6 +1,6 @@
-import { MutationToVoteCommentResolver } from 'definitions'
-import { fromGlobalId, toGlobalId } from 'common/utils'
 import { AuthenticationError } from 'common/errors'
+import { fromGlobalId, toGlobalId } from 'common/utils'
+import { MutationToVoteCommentResolver } from 'definitions'
 
 const resolver: MutationToVoteCommentResolver = async (
   _,

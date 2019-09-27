@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-import { MutationToTransferLIKEResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { MutationToTransferLIKEResolver } from 'definitions'
 
 const resolver: MutationToTransferLIKEResolver = async (
   root,

@@ -2,11 +2,11 @@ import article from './article'
 import comment from './comment'
 import draft from './draft'
 import notice from './notice'
+import oauthClient from './oauthClient'
+import response from './response'
 import scalars from './scalars'
 import system from './system'
 import user from './user'
-import response from './response'
-import oauthClient from './oauthClient'
 
 const Root = /* GraphQL */ `
   type Query

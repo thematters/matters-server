@@ -1,9 +1,9 @@
-import { MutationToConfirmVerificationCodeResolver } from 'definitions'
 import {
-  UserInputError,
   CodeExpiredError,
-  CodeInvalidError
+  CodeInvalidError,
+  UserInputError
 } from 'common/errors'
+import { MutationToConfirmVerificationCodeResolver } from 'definitions'
 
 const resolver: MutationToConfirmVerificationCodeResolver = async (
   _,

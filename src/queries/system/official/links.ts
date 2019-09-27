@@ -1,5 +1,5 @@
-import { OfficialToLinksResolver } from 'definitions'
 import { isProd } from 'common/environment'
+import { OfficialToLinksResolver } from 'definitions'
 
 export const links: OfficialToLinksResolver = () => {
   return {

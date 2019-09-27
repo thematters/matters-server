@@ -1,11 +1,12 @@
 import { v4 } from 'uuid'
-import { ItemData, MutationToPutAudiodraftResolver } from 'definitions'
+
 import {
   AssetNotFoundError,
+  AudioDraftNotFoundError,
   AuthenticationError,
-  ForbiddenError,
-  AudioDraftNotFoundError
+  ForbiddenError
 } from 'common/errors'
+import { ItemData, MutationToPutAudiodraftResolver } from 'definitions'
 
 const resolver: MutationToPutAudiodraftResolver = async (
   _,

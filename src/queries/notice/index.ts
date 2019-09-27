@@ -1,23 +1,23 @@
 import {
-  NoticeType,
-  GQLUserNewFollowerNoticeTypeResolver,
-  GQLArticlePublishedNoticeTypeResolver,
-  GQLArticleNewDownstreamNoticeTypeResolver,
-  GQLArticleNewCollectedNoticeTypeResolver,
-  GQLArticleNewAppreciationNoticeTypeResolver,
-  GQLArticleNewSubscriberNoticeTypeResolver,
-  GQLArticleNewCommentNoticeTypeResolver,
   GQLArticleMentionedYouNoticeTypeResolver,
-  GQLUpstreamArticleArchivedNoticeTypeResolver,
-  GQLSubscribedArticleNewCommentNoticeTypeResolver,
-  GQLDownstreamArticleArchivedNoticeTypeResolver,
-  GQLCommentPinnedNoticeTypeResolver,
+  GQLArticleNewAppreciationNoticeTypeResolver,
+  GQLArticleNewCollectedNoticeTypeResolver,
+  GQLArticleNewCommentNoticeTypeResolver,
+  GQLArticleNewDownstreamNoticeTypeResolver,
+  GQLArticleNewSubscriberNoticeTypeResolver,
+  GQLArticlePublishedNoticeTypeResolver,
+  GQLCommentMentionedYouNoticeTypeResolver,
   GQLCommentNewReplyNoticeTypeResolver,
   GQLCommentNewUpvoteNoticeTypeResolver,
-  GQLCommentMentionedYouNoticeTypeResolver,
+  GQLCommentPinnedNoticeTypeResolver,
+  GQLDownstreamArticleArchivedNoticeTypeResolver,
+  GQLNoticeTypeResolver,
   GQLOfficialAnnouncementNoticeTypeResolver,
+  GQLSubscribedArticleNewCommentNoticeTypeResolver,
+  GQLUpstreamArticleArchivedNoticeTypeResolver,
+  GQLUserNewFollowerNoticeTypeResolver,
   GQLUserTypeResolver,
-  GQLNoticeTypeResolver
+  NoticeType
 } from 'definitions'
 
 import notices from './notices'

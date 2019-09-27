@@ -1,10 +1,5 @@
 {
-  "defaultSeverity": "error",
   "extends": [],
-  "jsRules": {},
-  "linterOptions": {
-    "exclude": ["node_modules/**", "src/v1/**"]
-  },
   "rules": {
     "await-promise": true,
     "ban-comma-operator": true,
@@ -25,7 +20,30 @@
     "no-switch-case-fall-through": true,
     "no-var-keyword": true,
     "semicolon": false,
-    "radix": true
-  },
-  "rulesDirectory": []
+    "radix": true,
+    "ordered-imports": [
+      true,
+      {
+        "import-sources-order": "case-insensitive",
+        "named-imports-order": "case-insensitive",
+        "grouped-imports": true,
+        "groups": [{
+            "name": "local",
+            "match": "^[.]",
+            "order": 20
+          },
+          {
+            "name": "internal:others",
+            "match": "^(common|connectors|definitions|middlewares|mutations|queries|routes|subscriptions|types)",
+            "order": 15
+          },
+          {
+            "name": "external",
+            "match": ".*",
+            "order": 5
+          }
+        ]
+      }
+    ]
+  }
 }

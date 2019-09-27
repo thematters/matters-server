@@ -1,9 +1,9 @@
 import _ from 'lodash'
 
-import { ArticleToRelatedArticlesResolver } from 'definitions'
-import { connectionFromArray } from 'common/utils'
-import logger from 'common/logger'
 import { ARTICLE_STATE } from 'common/enums'
+import logger from 'common/logger'
+import { connectionFromArray } from 'common/utils'
+import { ArticleToRelatedArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
   { authorId, id, title },

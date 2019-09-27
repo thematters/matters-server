@@ -1,20 +1,21 @@
-import { ApolloError } from 'apollo-server-express'
-import { GraphQLDate, GraphQLTime, GraphQLDateTime } from 'graphql-iso-date'
-import GraphQLJSON from 'graphql-type-json'
-import * as GraphQLUpload from 'graphql-upload'
-import { GraphQLUUID } from 'graphql-custom-types'
 import {
-  NonPositiveInt,
-  PositiveInt,
-  NonNegativeInt,
-  NegativeInt,
-  NonPositiveFloat,
-  PositiveFloat,
-  NonNegativeFloat,
-  NegativeFloat,
   EmailAddress,
+  NegativeFloat,
+  NegativeInt,
+  NonNegativeFloat,
+  NonNegativeInt,
+  NonPositiveFloat,
+  NonPositiveInt,
+  PositiveFloat,
+  PositiveInt,
   URL
 } from '@okgrow/graphql-scalars'
+import { ApolloError } from 'apollo-server-express'
+import { GraphQLUUID } from 'graphql-custom-types'
+import { GraphQLDate, GraphQLDateTime, GraphQLTime } from 'graphql-iso-date'
+import GraphQLJSON from 'graphql-type-json'
+import * as GraphQLUpload from 'graphql-upload'
+
 import { EmailInvalidError } from 'common/errors'
 
 const errorWrapper = (

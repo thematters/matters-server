@@ -1,13 +1,13 @@
 import _get from 'lodash/get'
-// internal
+
 import { toGlobalId } from 'common/utils'
-// local
+
 import {
-  testClient,
   delay,
   publishArticle,
   putDraft,
   registerUser,
+  testClient,
   updateUserDescription
 } from './utils'
 

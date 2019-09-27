@@ -1,5 +1,5 @@
-import { TableName, MutationToPutRemarkResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { MutationToPutRemarkResolver, TableName } from 'definitions'
 
 const resolver: MutationToPutRemarkResolver = async (
   root,

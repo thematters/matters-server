@@ -1,4 +1,3 @@
-import { MutationToSendVerificationCodeResolver } from 'definitions'
 import {
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_CODE_TYPES
@@ -8,6 +7,7 @@ import {
   EmailExistsError,
   EmailNotFoundError
 } from 'common/errors'
+import { MutationToSendVerificationCodeResolver } from 'definitions'
 
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,

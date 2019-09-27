@@ -2,15 +2,15 @@ require('newrelic')
 require('module-alias/register')
 require('dotenv').config()
 
-import http from 'http'
 import * as Sentry from '@sentry/node'
-import express from 'express'
 import cors from 'cors'
+import express from 'express'
 import helmet from 'helmet'
+import http from 'http'
 
+import { CORS_OPTIONS } from 'common/enums'
 import { environment } from 'common/environment'
 import { scheduleQueue } from 'connectors/queue/schedule'
-import { CORS_OPTIONS } from 'common/enums'
 
 import * as routes from './routes'
 

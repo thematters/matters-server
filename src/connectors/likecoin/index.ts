@@ -1,12 +1,12 @@
-import axios, { AxiosRequestConfig } from 'axios'
-import _ from 'lodash'
 import * as Sentry from '@sentry/node'
+import axios, { AxiosRequestConfig } from 'axios'
 import Knex from 'knex'
+import _ from 'lodash'
 
-import { UserOAuthLikeCoin } from 'definitions'
 import { environment } from 'common/environment'
-import { toGlobalId, fromGlobalId } from 'common/utils'
-import { UserService, knex } from 'connectors'
+import { fromGlobalId, toGlobalId } from 'common/utils'
+import { knex, UserService } from 'connectors'
+import { UserOAuthLikeCoin } from 'definitions'
 
 const {
   likecoinApiURL,

@@ -1,46 +1,46 @@
-import { toGlobalId, connectionFromArray } from 'common/utils'
+import { connectionFromArray, toGlobalId } from 'common/utils'
 import {
-  GQLQueryTypeResolver,
-  GQLUserTypeResolver,
-  GQLRecommendationTypeResolver,
-  GQLUserInfoTypeResolver,
-  GQLUserSettingsTypeResolver,
-  GQLUserActivityTypeResolver,
-  GQLMATTypeResolver,
   GQLLIKETypeResolver,
+  GQLMATTypeResolver,
+  GQLQueryTypeResolver,
+  GQLRecommendationTypeResolver,
   GQLTransactionTypeResolver,
+  GQLUserActivityTypeResolver,
+  GQLUserInfoTypeResolver,
+  GQLUserOSSTypeResolver,
+  GQLUserSettingsTypeResolver,
   GQLUserStatusTypeResolver,
-  GQLUserOSSTypeResolver
+  GQLUserTypeResolver
 } from 'definitions'
 
-import rootUser from './rootUser'
-import subscriptions from './subscriptions'
-import followers from './followers'
-import followees from './followees'
-import isFollower from './isFollower'
-import isFollowee from './isFollowee'
-import likerId from './likerId'
+import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
-import userNameEditable from './userNameEditable'
-import articleCount from './articleCount'
-import draftCount from './draftCount'
 import commentCount from './commentCount'
-// import oauthType from './oauthType'
-import UserActivity from './userActivity'
-import notification from './notification'
-import followerCount from './followerCount'
+import draftCount from './draftCount'
 import followeeCount from './followeeCount'
-import subscriptionCount from './subscriptionCount'
-import totalWordCount from './totalWordCount'
-import unreadNoticeCount from './unreadNoticeCount'
-import unreadFolloweeArticles from './unreadFolloweeArticles'
-import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
-import Recommendation from './recommendation'
-import { MAT, Transaction } from './transaction'
+import followees from './followees'
+import followerCount from './followerCount'
+import followers from './followers'
+import isFollowee from './isFollowee'
+import isFollower from './isFollower'
+import LIKE from './like'
+import likerId from './likerId'
+import notification from './notification'
 import { boost, score } from './oss'
 import profileCover from './profileCover'
-import LIKE from './like'
+import Recommendation from './recommendation'
+import rootUser from './rootUser'
+import subscriptionCount from './subscriptionCount'
+import subscriptions from './subscriptions'
+import totalWordCount from './totalWordCount'
+import { MAT, Transaction } from './transaction'
+import unreadFolloweeArticles from './unreadFolloweeArticles'
+import unreadNoticeCount from './unreadNoticeCount'
+import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
+// import oauthType from './oauthType'
+import UserActivity from './userActivity'
+import userNameEditable from './userNameEditable'
 
 const user: {
   Query: GQLQueryTypeResolver

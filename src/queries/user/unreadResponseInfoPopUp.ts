@@ -1,5 +1,5 @@
-import { UserStatusToUnreadResponseInfoPopUpResolver } from 'definitions'
 import { LOG_RECORD_TYPES } from 'common/enums'
+import { UserStatusToUnreadResponseInfoPopUpResolver } from 'definitions'
 
 const resolver: UserStatusToUnreadResponseInfoPopUpResolver = async (
   { id },

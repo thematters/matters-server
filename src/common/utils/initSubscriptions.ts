@@ -1,15 +1,15 @@
 import { RequestHeaders } from 'request-ip'
 
+import { getViewerFromReq } from 'common/utils'
 import {
   ArticleService,
   CommentService,
   DraftService,
+  NotificationService,
   SystemService,
   TagService,
-  UserService,
-  NotificationService
+  UserService
 } from 'connectors'
-import { getViewerFromReq } from 'common/utils'
 
 export const initSubscriptions = (): { onConnect: any } => ({
   onConnect: async (

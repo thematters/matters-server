@@ -1,8 +1,8 @@
-import { MutationToPublishArticleResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
-import { PUBLISH_STATE, PUBLISH_ARTICLE_DELAY } from 'common/enums'
+import { PUBLISH_ARTICLE_DELAY, PUBLISH_STATE } from 'common/enums'
 import { AuthenticationError, DraftNotFoundError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
 import { publicationQueue } from 'connectors/queue/publication'
+import { MutationToPublishArticleResolver } from 'definitions'
 
 const resolver: MutationToPublishArticleResolver = async (
   _,

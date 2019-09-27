@@ -1,5 +1,5 @@
-import { MutationToGenerateLikerIdResolver } from 'definitions'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
+import { MutationToGenerateLikerIdResolver } from 'definitions'
 
 const resolver: MutationToGenerateLikerIdResolver = async (
   _,

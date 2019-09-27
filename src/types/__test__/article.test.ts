@@ -1,5 +1,5 @@
 import _ from 'lodash'
-// internal
+
 import { toGlobalId } from 'common/utils'
 import { PUBLISH_STATE } from 'common/enums'
 import {
@@ -7,7 +7,7 @@ import {
   GQLPublishArticleInput,
   GQLAppreciateArticleInput
 } from 'definitions'
-// local
+
 import { testClient, publishArticle, putDraft, getViewerMAT } from './utils'
 
 const mediaHash = 'someIpfsMediaHash1'

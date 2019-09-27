@@ -1,5 +1,4 @@
 import { connectionFromPromisedArray } from 'common/utils'
-
 import { UserToAudiodraftsResolver } from 'definitions'
 
 const resolver: UserToAudiodraftsResolver = (

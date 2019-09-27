@@ -1,13 +1,14 @@
 ///<reference path="./ipfs-http-client.d.ts" />
 
+import axios from 'axios'
 import * as cheerio from 'cheerio'
 import ipfsClient = require('ipfs-http-client')
-import axios from 'axios'
-import { resolve as urlResolve } from 'url'
 import { uniqBy } from 'lodash'
+import { resolve as urlResolve } from 'url'
 
-import logger from 'common/logger'
 import { environment } from 'common/environment'
+import logger from 'common/logger'
+
 import ipfsArticleTemplate from './templates/article'
 
 const { ipfsHost, ipfsPort, domain } = environment

@@ -1,10 +1,10 @@
-import { MutationToReportCommentResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import {
-  UserInputError,
+  AssetNotFoundError,
   CommentNotFoundError,
-  AssetNotFoundError
+  UserInputError
 } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToReportCommentResolver } from 'definitions'
 
 const resolver: MutationToReportCommentResolver = async (
   root,

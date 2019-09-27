@@ -1,15 +1,15 @@
-import passport from 'passport'
 import _ from 'lodash'
+import passport from 'passport'
 import {
   Strategy,
   StrategyOptionsWithRequest,
   VerifyFunctionWithRequest
 } from 'passport-oauth2'
 
-import { environment } from 'common/environment'
-import { UserService } from 'connectors'
 import { OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
+import { environment } from 'common/environment'
 import logger from 'common/logger'
+import { UserService } from 'connectors'
 
 class LikeCoinStrategy extends Strategy {
   constructor(

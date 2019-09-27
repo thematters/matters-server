@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { connectionFromArray, cursorToIndex } from 'common/utils'
-import { QueryToSearchResolver, GQLNode } from 'definitions'
+import { GQLNode, QueryToSearchResolver } from 'definitions'
 
 const resolver: QueryToSearchResolver = async (
   root,
