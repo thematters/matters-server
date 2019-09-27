@@ -1,6 +1,7 @@
 import { v4 } from 'uuid'
 
 import { TRANSACTION_TYPES } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AuthenticationError,
   NotEnoughMatError,
@@ -49,9 +50,11 @@ const resolver: MutationToAppreciateArticleResolver = async (
   // TODO: Extract safety check to above after LikeCoin deployment.
   const author = await userService.dataloader.load(article.authorId)
   if (viewer.likerId && author.likerId) {
+    const liker = await userService.findLiker({ userId: viewer.id })
     await userService.likecoin.like({
       authorLikerId: author.likerId,
-      url: `/@${author.userName}/${author.slug}-${author.mediaHash}`
+      liker,
+      url: `${environment.siteDomain}/@${author.userName}/${author.slug}-${author.mediaHash}`
     })
   }
 

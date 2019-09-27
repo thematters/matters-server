@@ -377,9 +377,11 @@ export class LikeCoin extends BaseService {
    */
   like = async ({
     authorLikerId,
+    liker,
     url
   }: {
     authorLikerId: string
+    liker: UserOAuthLikeCoin
     url: string
   }) => {
     try {
@@ -388,6 +390,7 @@ export class LikeCoin extends BaseService {
         endpoint,
         withClientCredential: true,
         method: 'POST',
+        liker,
         data: {
           referrer: encodeURIComponent(url)
         }
