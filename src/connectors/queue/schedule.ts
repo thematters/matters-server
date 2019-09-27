@@ -14,11 +14,11 @@ import {
   DraftService,
   UserService,
   ArticleService,
-  NotificationService
+  NotificationService,
+  refreshView
 } from 'connectors'
-import { publicationQueue } from 'connectors/queue'
-import { refreshView } from 'connectors/db'
 
+import { publicationQueue } from './publication'
 import { createQueue } from './utils'
 
 class ScheduleQueue {

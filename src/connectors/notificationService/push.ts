@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import { NotificationType, PutNoticeParams, LANGUAGES } from 'definitions'
 import { BaseService } from 'connectors'
-import { notificationQueue } from 'connectors/queue'
+import { notificationQueue } from 'connectors/queue/notification'
 
 import trans from './translations'
 

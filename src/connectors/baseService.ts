@@ -6,9 +6,7 @@ import Knex from 'knex'
 import { Item, ItemData, TableName } from 'definitions'
 import logger from 'common/logger'
 import { BATCH_SIZE } from 'common/enums'
-import { aws } from 'connectors/aws'
-import { knex } from 'connectors/db'
-import { es } from 'connectors/es'
+import { aws, knex, es } from 'connectors'
 
 export class BaseService extends DataSource {
   es: typeof es

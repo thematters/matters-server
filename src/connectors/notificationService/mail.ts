@@ -6,7 +6,7 @@ import { i18n } from 'common/utils/i18n'
 import { environment } from 'common/environment'
 import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPES } from 'common/enums'
 import { UserService, ArticleService, SystemService } from 'connectors'
-import { notificationQueue } from 'connectors/queue'
+import { notificationQueue } from 'connectors/queue/notification'
 
 const trans = {
   verificationCode: {

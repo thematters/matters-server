@@ -22,8 +22,7 @@ import {
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { BaseService, UserService, SystemService } from 'connectors'
-import { ipfs } from 'connectors/ipfs'
+import { BaseService, UserService, SystemService, ipfs } from 'connectors'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs

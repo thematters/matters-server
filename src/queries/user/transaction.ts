@@ -1,6 +1,7 @@
 import { camelCase } from 'lodash'
 
-import { connectionFromPromisedArray, cursorToIndex, i18n } from 'common/utils'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { i18n } from 'common/utils/i18n'
 import { GQLMATTypeResolver, GQLTransactionTypeResolver } from 'definitions'
 import { TRANSACTION_PURPOSE } from 'common/enums'
 import { ArticleNotFoundError } from 'common/errors'

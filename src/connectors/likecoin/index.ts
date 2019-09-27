@@ -6,8 +6,7 @@ import Knex from 'knex'
 import { UserOAuthLikeCoin } from 'definitions'
 import { environment } from 'common/environment'
 import { toGlobalId, fromGlobalId } from 'common/utils'
-import { UserService } from 'connectors'
-import { knex } from 'connectors/db'
+import { UserService, knex } from 'connectors'
 
 const {
   likecoinApiURL,

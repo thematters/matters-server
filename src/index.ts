@@ -9,7 +9,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 
 import { environment } from 'common/environment'
-import { scheduleQueue } from 'connectors/queue'
+import { scheduleQueue } from 'connectors/queue/schedule'
 import { CORS_OPTIONS } from 'common/enums'
 
 import * as routes from './routes'
