@@ -21,7 +21,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
   }
 
   // TODO: Remove it after LikeCoin deployment.
-  if (viewer.likerId) {
+  if (!viewer.likerId) {
     const viewerTotalMAT = await userService.totalMAT(viewer.id)
     if (viewerTotalMAT < amount) {
       throw new NotEnoughMatError('not enough MAT to appreciate')
