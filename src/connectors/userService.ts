@@ -1017,9 +1017,8 @@ export class UserService extends BaseService {
     // check
     const likerId = await this.likecoin.check({ user: userName })
 
-    const oAuthService = new OAuthService()
-
     // register
+    const oAuthService = new OAuthService()
     const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
     const { accessToken, refreshToken, scope } = await this.likecoin.register({
       user: likerId,
@@ -1037,11 +1036,20 @@ export class UserService extends BaseService {
     })
   }
 
-  claimLikerId = async ({ liker }: { liker: UserOAuthLikeCoin }) => {
+  claimLikerId = async ({
+    userId,
+    liker
+  }: {
+    userId: string
+    liker: UserOAuthLikeCoin
+  }) => {
+    const oAuthService = new OAuthService()
+    const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
+
     await this.likecoin.edit({
       user: liker.likerId,
       action: 'claim',
-      payload: { token: liker.accessToken }
+      payload: { token: tokens.accessToken }
     })
 
     return await this.knex('user_oauth_likecoin')
