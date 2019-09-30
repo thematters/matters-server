@@ -1,3 +1,4 @@
+import { USER_STATE } from 'common/enums'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
 import { MutationToGenerateLikerIdResolver } from 'definitions'
 
@@ -32,8 +33,10 @@ const resolver: MutationToGenerateLikerIdResolver = async (
     })
   }
 
-  // return latest user object
-  const user = await userService.baseFindById(viewer.id)
+  // activate user
+  const user = await userService.updateInfo(viewer.id, {
+    state: USER_STATE.active
+  })
   return user
 }
 
