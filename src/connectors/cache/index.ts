@@ -39,19 +39,18 @@ export class CacheService {
    */
   invalidate = async (type: string, id: string) => {
     try {
-      if (this.redis && this.redis.client) {
-        const key = this.genKey(type, id)
-        const hashes = await this.redis.client.smembers(key)
-        hashes.map(async (hash: string) => {
-          await this.redis.client
-            .pipeline()
-            .del(`fqc:${hash}`)
-            .srem(key, hash)
-            .exec()
-        })
-      } else {
+      if (!this.redis || !this.redis.client) {
         throw new Error('redis init failed')
       }
+      const key = this.genKey(type, id)
+      const hashes = await this.redis.client.smembers(key)
+      hashes.map(async (hash: string) => {
+        await this.redis.client
+          .pipeline()
+          .del(`fqc:${hash}`)
+          .srem(key, hash)
+          .exec()
+      })
     } catch (error) {
       console.error(error)
     }
