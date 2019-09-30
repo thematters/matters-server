@@ -283,9 +283,7 @@ class Mail {
       }
     }
     const getActors = async (actors: User[]) => {
-      return Promise.all(
-        actors.map(async actor => getUserDigest(actor))
-      )
+      return Promise.all(actors.map(async actor => getUserDigest(actor)))
     }
 
     const user_new_follower = await Promise.all(
