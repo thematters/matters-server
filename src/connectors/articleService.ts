@@ -99,7 +99,7 @@ export class ArticleService extends BaseService {
     const dataHash = await this.ipfs.addHTML(html)
 
     // add meta data to ipfs
-    let mediaObj: { [key: string]: any } = {
+    const mediaObj: { [key: string]: any } = {
       '@context': 'http://schema.org',
       '@type': 'Article',
       '@id': `ipfs://ipfs/${dataHash}`,
@@ -169,7 +169,7 @@ export class ArticleService extends BaseService {
       logger.error(e)
     }
 
-    return await this.baseUpdate(id, {
+    return this.baseUpdate(id, {
       state: ARTICLE_STATE.archived,
       sticky: false,
       updatedAt: new Date()
@@ -201,7 +201,7 @@ export class ArticleService extends BaseService {
    * Find article by media hash
    */
   findByMediaHash = async (mediaHash: string) =>
-    await this.knex
+    this.knex
       .select()
       .from(this.table)
       .where({ mediaHash })
@@ -211,7 +211,7 @@ export class ArticleService extends BaseService {
    * Find article by which set as sticky.
    */
   findBySticky = async (authorId: string, sticky: boolean) =>
-    await this.knex
+    this.knex
       .select('id')
       .from(this.table)
       .where({ authorId, sticky: true })
@@ -497,7 +497,7 @@ export class ArticleService extends BaseService {
   }) => {
     const table = oss ? 'article_count_view' : 'article_count_materialized'
 
-    return await this.knex(`${table} as view`)
+    return this.knex(`${table} as view`)
       .select('view.*', 'article.state', 'article.public', 'article.sticky')
       .join('article', 'view.id', 'article.id')
       .orderByRaw('topic_score DESC NULLS LAST')
@@ -563,7 +563,7 @@ export class ArticleService extends BaseService {
       body
     })
     // add recommendation
-    return relatedResult['hits']['hits'].map(hit => ({ ...hit, id: hit._id }))
+    return relatedResult.hits.hits.map(hit => ({ ...hit, id: hit._id }))
   }
 
   /**
@@ -857,7 +857,7 @@ export class ArticleService extends BaseService {
     limit?: number
     offset?: number
   }): Promise<any[]> =>
-    await this.knex('transaction')
+    this.knex('transaction')
       .select()
       .where({
         referenceId,
@@ -878,7 +878,7 @@ export class ArticleService extends BaseService {
     limit?: number
     offset?: number
   }) =>
-    await this.knex('transaction')
+    this.knex('transaction')
       .distinct('sender_id')
       .select('sender_id')
       .where({
@@ -997,7 +997,7 @@ export class ArticleService extends BaseService {
       .orderBy('id', 'desc')
       .offset(offset)
 
-    return limit ? await query.limit(limit) : await query
+    return limit ? query.limit(limit) : query
   }
 
   countSubscriptions = async (id: string) => {
@@ -1042,7 +1042,7 @@ export class ArticleService extends BaseService {
    * User unsubscribe an article
    */
   unsubscribe = async (targetId: string, userId: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .from('action_article')
       .where({
         targetId,
@@ -1068,7 +1068,7 @@ export class ArticleService extends BaseService {
     userId?: string | null
     ip?: string
   }): Promise<any[]> =>
-    await this.baseCreate(
+    this.baseCreate(
       {
         uuid: v4(),
         articleId,
@@ -1229,7 +1229,7 @@ export class ArticleService extends BaseService {
     entranceId: string | number
     articleId: string
   }) =>
-    await this.knex('collection')
+    this.knex('collection')
       .select()
       .where({ entranceId, articleId })
       .first()
@@ -1270,7 +1270,7 @@ export class ArticleService extends BaseService {
     limit?: number
     offset?: number
   }) =>
-    await this.knex('collection')
+    this.knex('collection')
       .select('entrance_id')
       .where({ articleId })
       .limit(limit)

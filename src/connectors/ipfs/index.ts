@@ -1,5 +1,3 @@
-///<reference path="./ipfs-http-client.d.ts" />
-
 import axios from 'axios'
 import * as cheerio from 'cheerio'
 import ipfsClient = require('ipfs-http-client')
@@ -15,6 +13,8 @@ const { ipfsHost, ipfsPort, domain } = environment
 
 export class IPFS {
   client: IPFS.FilesAPI & ipfsCmds
+
+  makeHTML = ipfsArticleTemplate
 
   constructor() {
     this.client = ipfsClient({
@@ -49,14 +49,12 @@ export class IPFS {
     }
   }
 
-  makeHTML = ipfsArticleTemplate
-
   // add html string and related assets
   addHTML = async (html: string) => {
     const prefix = 'article'
 
     // get image assets
-    let assetsPromises: Array<
+    const assetsPromises: Array<
       Promise<{ path: string; content: Buffer } | undefined>
     > = []
     const $ = cheerio.load(html, { decodeEntities: false })

@@ -187,7 +187,7 @@ export class UserService extends BaseService {
    * Find users by a given user name.
    */
   findByUserName = async (userName: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from(this.table)
       .where({ userName })
@@ -212,7 +212,7 @@ export class UserService extends BaseService {
   }: {
     userId: string
     previous: string
-  }) => await this.baseCreate({ userId, previous }, 'username_edit_history')
+  }) => this.baseCreate({ userId, previous }, 'username_edit_history')
 
   /**
    * Count same user names by a given user name.
@@ -255,7 +255,7 @@ export class UserService extends BaseService {
   }: {
     [key: string]: string
   }) =>
-    await this.es.indexItems({
+    this.es.indexItems({
       index: this.table,
       type: this.table,
       items: [
@@ -313,17 +313,17 @@ export class UserService extends BaseService {
         suggest: { userName: any[]; displayName: any[] }
       }
 
-      let matchIds = hits.hits.map(({ _id }: { _id: any }) => _id)
+      const matchIds = hits.hits.map(({ _id }: { _id: any }) => _id)
 
-      let userNameIds = suggest.userName[0].options.map(
+      const userNameIds = suggest.userName[0].options.map(
         ({ _id }: { _id: any }) => _id
       )
-      let displayNameIds = suggest.displayName[0].options.map(
+      const displayNameIds = suggest.displayName[0].options.map(
         ({ _id }: { _id: any }) => _id
       )
 
       // merge two ID arrays and remove duplicates
-      let ids = [...new Set([...matchIds, ...displayNameIds, ...userNameIds])]
+      const ids = [...new Set([...matchIds, ...displayNameIds, ...userNameIds])]
       const nodes = await this.baseFindByIds(ids)
       return { nodes, totalCount: nodes.length }
     } catch (err) {
@@ -442,7 +442,7 @@ export class UserService extends BaseService {
     limit?: number
     offset?: number
   }) =>
-    await this.knex('transaction_delta_view')
+    this.knex('transaction_delta_view')
       .where({
         userId
       })
@@ -471,7 +471,7 @@ export class UserService extends BaseService {
       targetId,
       action: USER_ACTION.follow
     }
-    return await this.baseUpdateOrCreate({
+    return this.baseUpdateOrCreate({
       where: data,
       data: { updatedAt: new Date(), ...data },
       table: 'action_user'
@@ -479,7 +479,7 @@ export class UserService extends BaseService {
   }
 
   unfollow = async (userId: string, targetId: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .from('action_user')
       .where({
         targetId,
@@ -516,7 +516,7 @@ export class UserService extends BaseService {
     offset?: number
     limit?: number
   }) =>
-    await this.knex('action_user as au')
+    this.knex('action_user as au')
       .select('ar.*')
       .join('article as ar', 'ar.author_id', 'au.target_id')
       .where({ action: 'follow', userId, 'ar.state': ARTICLE_STATE.active })
@@ -559,7 +559,7 @@ export class UserService extends BaseService {
     limit?: number
     offset?: number
   }): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from('action_user')
       .where({ targetId, action: USER_ACTION.follow })
@@ -643,7 +643,7 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
   findNotifySetting = async (userId: string): Promise<any | null> =>
-    await this.knex
+    this.knex
       .select()
       .from('user_notify_setting')
       .where({ userId })
@@ -653,14 +653,14 @@ export class UserService extends BaseService {
     id: string,
     data: ItemData
   ): Promise<any | null> =>
-    await this.baseUpdate(
+    this.baseUpdate(
       id,
       { updatedAt: new Date(), ...data },
       'user_notify_setting'
     )
 
   findBadges = async (userId: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from('user_badge')
       .where({ userId })
@@ -745,7 +745,7 @@ export class UserService extends BaseService {
     articleId: string
     userId: string | null
   }) =>
-    await this.knex('article_read')
+    this.knex('article_read')
       .where({ articleId, userId })
       .update({ archived: true })
 
@@ -804,7 +804,7 @@ export class UserService extends BaseService {
       qs = qs.where(where)
     }
 
-    return await qs
+    return qs
   }
 
   markVerificationCodeAs = ({
@@ -851,7 +851,7 @@ export class UserService extends BaseService {
       return null
     }
 
-    return await this.knex
+    return this.knex
       .select()
       .from('user_oauth_likecoin')
       .where({ likerId: userLikerId })
@@ -1050,7 +1050,7 @@ export class UserService extends BaseService {
       payload: { token: tokens.accessToken }
     })
 
-    return await this.knex('user_oauth_likecoin')
+    return this.knex('user_oauth_likecoin')
       .where({ likerId: liker.likerId })
       .update({ accountType: 'general' })
   }

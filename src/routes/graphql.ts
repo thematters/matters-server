@@ -1,7 +1,3 @@
-require('newrelic')
-require('module-alias/register')
-require('dotenv').config()
-
 import {
   RenderPageOptions as PlaygroundRenderPageOptions,
   renderPlaygroundPage
@@ -14,6 +10,8 @@ import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
 import _ from 'lodash'
+import 'module-alias/register'
+import 'newrelic'
 
 import { CACHE_TTL, CORS_OPTIONS, UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
 import { environment, isProd } from 'common/environment'

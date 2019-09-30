@@ -21,7 +21,7 @@ export const scopeModes = [
 
 export const getViewerFromUser = async (user: any) => {
   // overwrite default by user
-  let viewer = { role: USER_ROLE.visitor, ...user }
+  const viewer = { role: USER_ROLE.visitor, ...user }
 
   // append hepler functions (keep it till we fully utilize scope)
   viewer.hasRole = (requires: string) =>
@@ -85,7 +85,7 @@ export const getViewerFromReq = async ({
 
   // get user from token, use cookie first then 'x-access-token'
   const token =
-    cookie.parse(headers.cookie || '')['token'] ||
+    cookie.parse(headers.cookie || '').token ||
     (headers['x-access-token'] || '')
 
   if (!token) {

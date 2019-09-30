@@ -1,6 +1,5 @@
 import { COMMENT_STATE } from 'common/enums'
-import { toGlobalId } from 'common/utils'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 import { ArticleToCommentsResolver } from 'definitions'
 
 const resolver: ArticleToCommentsResolver = async (
@@ -18,7 +17,8 @@ const resolver: ArticleToCommentsResolver = async (
   }
 
   // handle pagination
-  let before, after
+  let before
+  let after
   if (rest.after) {
     after = fromGlobalId(rest.after).id
   }

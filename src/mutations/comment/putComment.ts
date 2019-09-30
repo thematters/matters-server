@@ -13,7 +13,7 @@ import { MutationToPutCommentResolver } from 'definitions'
 
 const resolver: MutationToPutCommentResolver = async (
   root,
-  { input: { comment, id } },
+  { input: { comment: commentInput, id } },
   {
     viewer,
     dataSources: {
@@ -37,7 +37,7 @@ const resolver: MutationToPutCommentResolver = async (
     quotationEnd,
     quotationContent,
     replyTo
-  } = comment
+  } = commentInput
 
   if (!content || content.length <= 0) {
     throw new UserInputError(
@@ -225,7 +225,7 @@ const resolver: MutationToPutCommentResolver = async (
       id: article.id
     })
     articleSubscribers.forEach((subscriber: any) => {
-      if (subscriber.id == articleAuthor) {
+      if (subscriber.id === articleAuthor) {
         return
       }
       notificationService.trigger({
@@ -267,7 +267,7 @@ const resolver: MutationToPutCommentResolver = async (
 
   // trigger notifications
   // notify mentioned users
-  data.mentionedUserIds &&
+  if (data.mentionedUserIds) {
     data.mentionedUserIds.forEach((userId: string) => {
       notificationService.trigger({
         event: 'comment_mentioned_you',
@@ -282,6 +282,7 @@ const resolver: MutationToPutCommentResolver = async (
         ]
       })
     })
+  }
 
   return newComment
 }

@@ -10,7 +10,8 @@ import {
   NotificationService,
   SystemService,
   TagService,
-  UserService
+  UserService,
+  OAuthService
 } from 'connectors'
 import {
   DataSources,
@@ -96,7 +97,8 @@ export const testClient = async (
       draftService: new DraftService(),
       systemService: new SystemService(),
       tagService: new TagService(),
-      notificationService: new NotificationService()
+      notificationService: new NotificationService(),
+      oauthService: new OAuthService()
     })
   })
 
@@ -159,8 +161,8 @@ export const putDraft = async (draft: GQLPutDraftInput) => {
     variables: { input: draft }
   })
 
-  const putDraft = result && result.data && result.data.putDraft
-  return putDraft
+  const putDraftResult = result && result.data && result.data.putDraft
+  return putDraftResult
 }
 
 export const registerUser = async (user: GQLUserRegisterInput) => {

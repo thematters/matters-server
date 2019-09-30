@@ -24,20 +24,20 @@ const resolver: MutationToSetCollectionResolver = async (
     entranceId,
     limit: null
   })).map(({ articleId }: any) => articleId)
-  const newIds = collection.map(id => fromGlobalId(id).id)
+  const newIds = collection.map(articleId => fromGlobalId(articleId).id)
   const addItems: any[] = []
   const updateItems: any[] = []
   const deleteItems: any[] = []
   const diff = difference(newIds, oldIds)
 
   // Gather data
-  newIds.map((id: string, index: number) => {
-    const indexOf = oldIds.indexOf(id)
+  newIds.map((articleId: string, index: number) => {
+    const indexOf = oldIds.indexOf(articleId)
     if (indexOf < 0) {
-      addItems.push({ entranceId, articleId: id, order: index })
+      addItems.push({ entranceId, articleId, order: index })
     }
     if (indexOf >= 0 && index !== indexOf) {
-      updateItems.push({ entranceId, articleId: id, order: index })
+      updateItems.push({ entranceId, articleId, order: index })
     }
   })
 
@@ -56,17 +56,17 @@ const resolver: MutationToSetCollectionResolver = async (
   })
 
   // trigger notifications
-  diff.forEach(async (id: string) => {
-    const collection = await articleService.baseFindById(id)
+  diff.forEach(async (articleId: string) => {
+    const targetCollection = await articleService.baseFindById(articleId)
     notificationService.trigger({
       event: 'article_new_collected',
-      recipientId: collection.authorId,
+      recipientId: targetCollection.authorId,
       actorId: article.authorId,
       entities: [
         {
           type: 'target',
           entityTable: 'article',
-          entity: collection
+          entity: targetCollection
         },
         {
           type: 'collection',

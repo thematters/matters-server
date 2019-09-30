@@ -15,7 +15,7 @@ const resolver: UserToNoticesResolver = async (
   const totalCount = await notificationService.notice.countNotice({
     userId: id
   })
-  let notices = await notificationService.notice.findByUser({
+  const notices = await notificationService.notice.findByUser({
     userId: id,
     offset,
     limit: first

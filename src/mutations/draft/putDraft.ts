@@ -102,7 +102,7 @@ const resolver: MutationToPutDraftResolver = async (
     }
 
     // check for permission
-    if (draft.authorId != viewer.id) {
+    if (draft.authorId !== viewer.id) {
       throw new ForbiddenError('viewer has no permission')
     }
 
@@ -144,7 +144,7 @@ const resolver: MutationToPutDraftResolver = async (
     }
 
     // update
-    return await draftService.baseUpdate(dbId, {
+    return draftService.baseUpdate(dbId, {
       updatedAt: new Date(),
       ...data
     })

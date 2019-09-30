@@ -42,11 +42,11 @@ const resolver: MutationToPutAudiodraftResolver = async (
     if (draft.authorId !== viewer.id) {
       throw new ForbiddenError('viewer has no permission')
     }
-    return await draftService.baseUpdateByUUID(uuid, data, 'audio_draft')
+    return draftService.baseUpdateByUUID(uuid, data, 'audio_draft')
   }
   // Create
   else {
-    return await draftService.baseCreate({ uuid: v4(), ...data }, 'audio_draft')
+    return draftService.baseCreate({ uuid: v4(), ...data }, 'audio_draft')
   }
 }
 

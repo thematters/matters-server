@@ -73,7 +73,7 @@ const resolver: MutationToUserRegisterResolver = async (
   } else {
     // Programatically generate user name
     let retries = 0
-    let mainName = makeUserName(email)
+    const mainName = makeUserName(email)
     newUserName = mainName
     while (
       !isValidUserName(newUserName) ||

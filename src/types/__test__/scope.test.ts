@@ -1,4 +1,4 @@
-import get from 'lodash/get'
+import _ from 'lodash'
 
 import { SCOPE_MODE } from 'common/enums'
 import { makeScope } from 'common/utils'
@@ -63,11 +63,12 @@ const prepare = async ({
   scope
 }: {
   email: string
-  mode: string
-  scope: { [key: string]: any }
+  mode?: string
+  scope?: { [key: string]: any }
 }) => {
   const context = await getUserContext({ email })
   context.viewer.scopeMode = mode || context.viewer.role
+  // @ts-ignore
   context.viewer.scope = scope || {}
 
   const { mutate, query } = await testClient({ context })
@@ -89,9 +90,10 @@ describe('OAuth viewer qeury and mutation', () => {
       query: QUERY_CASE_1,
       variables: { input: { userName: otherUserName } }
     })
-    expect(data.viewer.displayName).toBe(context.viewer.displayName)
-    expect(data.viewer.info.email).toBe(context.viewer.email)
-    expect(data.user.displayName).toBe(otherUserName)
+
+    expect(data && data.viewer.displayName).toBe(context.viewer.displayName)
+    expect(data && data.viewer.info.email).toBe(context.viewer.email)
+    expect(data && data.user.displayName).toBe(otherUserName)
   })
 
   test('query with no scoped and other private fields', async () => {
@@ -101,20 +103,22 @@ describe('OAuth viewer qeury and mutation', () => {
       scope
     })
     // query no scope field error
-    const error_case1 = await query({ query: QUERY_CASE_2 })
-    expect(error_case1.errors.length).toBe(1)
-    expect(error_case1.errors[0].message).toBe('viewer has no permission')
+    const errorCase1 = await query({ query: QUERY_CASE_2 })
+    expect(errorCase1 && errorCase1.errors && errorCase1.errors.length).toBe(1)
+    expect(
+      errorCase1 && errorCase1.errors && errorCase1.errors[0].message
+    ).toBe('viewer has no permission')
 
     // query other private field error
     const otherUserName = 'test2'
-    const error_case2 = await query({
+    const errorCase2 = await query({
       query: QUERY_CASE_3,
       variables: { input: { userName: otherUserName } }
     })
-    expect(error_case2.errors.length).toBe(1)
-    expect(error_case2.errors[0].message).toBe(
-      'unauthorized user for field email'
-    )
+    expect(errorCase2 && errorCase2.errors && errorCase2.errors.length).toBe(1)
+    expect(
+      errorCase2 && errorCase2.errors && errorCase2.errors[0].message
+    ).toBe('unauthorized user for field email')
   })
 
   test('mutation', async () => {
@@ -128,8 +132,8 @@ describe('OAuth viewer qeury and mutation', () => {
       mutation: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } }
     })
-    expect(errors.length).toBe(1)
-    expect(errors[0].message).toBe('oauth is not authorized')
+    expect(errors && errors.length).toBe(1)
+    expect(errors && errors[0].message).toBe('oauth is not authorized')
   })
 })
 
@@ -142,16 +146,16 @@ describe('General viewer query and mutation', () => {
       query: QUERY_CASE_1,
       variables: { input: { userName: otherUserName } }
     })
-    expect(data.viewer.displayName).toBe(context.viewer.displayName)
-    expect(data.viewer.info.email).toBe(context.viewer.email)
-    expect(data.user.displayName).toBe(otherUserName)
+    expect(_.get(data, 'viewer.displayName')).toBe(context.viewer.displayName)
+    expect(_.get(data, 'viewer.info.email')).toBe(context.viewer.email)
+    expect(_.get(data, 'user.displayName')).toBe(otherUserName)
   })
 
   test('query with private fields', async () => {
     const { context, query } = await prepare({ email: defaultTestUser.email })
     // query no scope field error
     const { data } = await query({ query: QUERY_CASE_2 })
-    expect(data.viewer.info.mobile).toBe(context.viewer.mobile)
+    expect(_.get(data, 'viewer.info.mobile')).toBe(context.viewer.mobile)
 
     // query other private field error
     const otherUserName = 'test2'
@@ -159,8 +163,8 @@ describe('General viewer query and mutation', () => {
       query: QUERY_CASE_3,
       variables: { input: { userName: otherUserName } }
     })
-    expect(error_case.errors.length).toBe(1)
-    expect(error_case.errors[0].message).toBe(
+    expect(_.get(error_case, 'errors.length')).toBe(1)
+    expect(_.get(error_case, 'errors.0.message')).toBe(
       'unauthorized user for field email'
     )
   })
@@ -172,7 +176,7 @@ describe('General viewer query and mutation', () => {
       mutation: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } }
     })
-    expect(data.updateUserInfo.info.description).toEqual(description)
+    expect(_.get(data, 'updateUserInfo.info.description')).toEqual(description)
   })
 })
 
@@ -185,16 +189,16 @@ describe('Admin viewer query and mutation', () => {
       query: QUERY_CASE_1,
       variables: { input: { userName: otherUserName } }
     })
-    expect(data.viewer.displayName).toBe(context.viewer.displayName)
-    expect(data.viewer.info.email).toBe(context.viewer.email)
-    expect(data.user.displayName).toBe(otherUserName)
+    expect(_.get(data, 'viewer.displayName')).toBe(context.viewer.displayName)
+    expect(_.get(data, 'viewer.info.email')).toBe(context.viewer.email)
+    expect(_.get(data, 'user.displayName')).toBe(otherUserName)
   })
 
   test('query with private fields', async () => {
     const { context, query } = await prepare({ email: adminUser.email })
     // query no scope field error
     const { data } = await query({ query: QUERY_CASE_2 })
-    expect(data.viewer.info.mobile).toBe(context.viewer.mobile)
+    expect(_.get(data, 'viewer.info.mobile')).toBe(context.viewer.mobile)
 
     // query other private field error
     const otherUserName = 'test2'
@@ -202,7 +206,7 @@ describe('Admin viewer query and mutation', () => {
       query: QUERY_CASE_3,
       variables: { input: { userName: otherUserName } }
     })
-    expect(data2.user.info.email).toBe('test2@matters.news')
+    expect(_.get(data2, 'user.info.email')).toBe('test2@matters.news')
   })
 
   test('mutation', async () => {
@@ -212,6 +216,6 @@ describe('Admin viewer query and mutation', () => {
       mutation: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } }
     })
-    expect(data.updateUserInfo.info.description).toEqual(description)
+    expect(_.get(data, 'updateUserInfo.info.description')).toEqual(description)
   })
 })

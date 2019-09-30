@@ -75,7 +75,7 @@ const resolvers: GQLRecommendationTypeResolver = {
       }
     }
 
-    let where = { state: ARTICLE_STATE.active } as { [key: string]: any }
+    const where = { state: ARTICLE_STATE.active } as { [key: string]: any }
 
     const { first, after } = input
     const offset = cursorToIndex(after) + 1

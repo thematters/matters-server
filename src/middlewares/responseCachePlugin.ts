@@ -7,8 +7,11 @@ import {
   ApolloServerPlugin,
   GraphQLRequestListener
 } from 'apollo-server-plugin-base'
-import { GraphQLRequestContext, GraphQLResponse } from 'apollo-server-types'
-import { ValueOrPromise } from 'apollo-server-types'
+import {
+  GraphQLRequestContext,
+  GraphQLResponse,
+  ValueOrPromise
+} from 'apollo-server-types'
 import { createHash } from 'crypto'
 
 import { CACHE_TTL } from 'common/enums'

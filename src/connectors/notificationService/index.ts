@@ -23,6 +23,14 @@ export class NotificationService extends BaseService {
     this.pubsub = pubsub
   }
 
+  trigger = (params: NotificationPrarms) => {
+    try {
+      this.__trigger(params)
+    } catch (e) {
+      logger.error('[Notification:trigger]', e)
+    }
+  }
+
   private getNoticeParams = async (
     params: NotificationPrarms,
     language: LANGUAGES
@@ -184,13 +192,5 @@ export class NotificationService extends BaseService {
 
     // Push Notification
     // this.push.push(noticeParams, params.event, recipient.language)
-  }
-
-  trigger = (params: NotificationPrarms) => {
-    try {
-      this.__trigger(params)
-    } catch (e) {
-      logger.error('[Notification:trigger]', e)
-    }
   }
 }

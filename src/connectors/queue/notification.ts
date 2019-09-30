@@ -17,6 +17,21 @@ class NotificationQueue {
   }
 
   /**
+   * Producers
+   */
+  sendMail = (data: MailData) => {
+    return this.q.add(QUEUE_JOB.sendMail, data, {
+      priority: QUEUE_PRIORITY.NORMAL
+    })
+  }
+
+  pushNotification = (data: PushParams) => {
+    return this.q.add(QUEUE_JOB.pushNotification, data, {
+      priority: QUEUE_PRIORITY.NORMAL
+    })
+  }
+
+  /**
    * Cusumers
    */
   private addConsumers = () => {
@@ -37,21 +52,6 @@ class NotificationQueue {
       } catch (e) {
         done(e)
       }
-    })
-  }
-
-  /**
-   * Producers
-   */
-  sendMail = (data: MailData) => {
-    return this.q.add(QUEUE_JOB.sendMail, data, {
-      priority: QUEUE_PRIORITY.NORMAL
-    })
-  }
-
-  pushNotification = (data: PushParams) => {
-    return this.q.add(QUEUE_JOB.pushNotification, data, {
-      priority: QUEUE_PRIORITY.NORMAL
     })
   }
 }

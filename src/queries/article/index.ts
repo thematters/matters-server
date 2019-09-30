@@ -11,7 +11,7 @@ import appreciators from './appreciators'
 import author from './author'
 import collectedBy from './collectedBy'
 import collection from './collection'
-import cover from './cover'
+import articleCover from './cover'
 import hasAppreciate from './hasAppreciate'
 import MAT from './mat'
 import * as articleOSS from './oss'
@@ -41,7 +41,7 @@ export default {
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
     appreciateLeft,
     author,
-    cover,
+    cover: articleCover,
     collection,
     collectedBy,
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),

@@ -157,7 +157,7 @@ export class BaseService extends DataSource {
     dataItems: ItemData[],
     table?: TableName
   ): Promise<any> =>
-    await this.knex.batchInsert(table || this.table, dataItems).returning('*')
+    this.knex.batchInsert(table || this.table, dataItems).returning('*')
 
   /**
    * Create or Update Item
@@ -243,7 +243,7 @@ export class BaseService extends DataSource {
     data: ItemData,
     table?: TableName
   ): Promise<any> =>
-    await this.knex
+    this.knex
       .whereIn('id', ids)
       .update(data)
       .into(table || this.table)
@@ -272,7 +272,7 @@ export class BaseService extends DataSource {
    * Delete an item by a given id.
    */
   baseDelete = async (id: string, table?: TableName): Promise<any> =>
-    await this.knex(table || this.table)
+    this.knex(table || this.table)
       .where({ id })
       .del()
 
@@ -280,7 +280,7 @@ export class BaseService extends DataSource {
    * Delete a batch of items by  given ids.
    */
   baseBatchDelete = async (ids: string[], table?: TableName): Promise<any> =>
-    await this.knex(table || this.table)
+    this.knex(table || this.table)
       .whereIn('id', ids)
       .del()
 
@@ -288,7 +288,7 @@ export class BaseService extends DataSource {
    * Find entity type id by a given type string.
    */
   baseFindEntityTypeId = async (entityType: string): Promise<any> =>
-    await this.knex('entity_type')
+    this.knex('entity_type')
       .select('id')
       .where({ table: entityType })
       .first()

@@ -215,7 +215,7 @@ describe('Feedback', () => {
         }
       }
     })
-    expect(result.data.feedback).toBe(true)
+    expect(result.data && result.data.feedback).toBe(true)
   })
 
   test('submit a feedback with assets', async () => {
@@ -231,6 +231,6 @@ describe('Feedback', () => {
         }
       }
     })
-    expect(result.data.feedback).toBe(true)
+    expect(result.data && result.data.feedback).toBe(true)
   })
 })

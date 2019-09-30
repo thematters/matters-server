@@ -105,7 +105,7 @@ export class LikeCoin {
       // refresh token and retry once
       if (liker && _.get(e, 'response.data') === 'TOKEN_EXPIRED') {
         const accessToken = await this.refreshToken({ liker })
-        return await makeRequest({ accessToken })
+        return makeRequest({ accessToken })
       } else {
         console.error(e)
         Sentry.captureException(e)

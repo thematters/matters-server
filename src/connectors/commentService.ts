@@ -10,7 +10,7 @@ import { CommentNotFoundError } from 'common/errors'
 import { BaseService } from 'connectors'
 import { GQLCommentCommentsInput, GQLCommentsInput, GQLVote } from 'definitions'
 
-type CommentFilter = {
+interface CommentFilter {
   articleId?: string
   authorId?: string
   state?: string
@@ -110,7 +110,7 @@ export class CommentService extends BaseService {
    * Find comments by a given author id (user).
    */
   findByAuthor = async (authorId: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from(this.table)
       .where({ authorId, state: COMMENT_STATE.active })
@@ -141,7 +141,7 @@ export class CommentService extends BaseService {
       where = { ...where, authorId: author }
     }
 
-    if (sort == 'upvotes') {
+    if (sort === 'upvotes') {
       query = this.knex('comment')
         .select('comment.*')
         .countDistinct('votes.user_id as upvotes')
@@ -180,7 +180,7 @@ export class CommentService extends BaseService {
     includeBefore = false
   }: GQLCommentsInput & { filter: CommentFilter; order?: string }) => {
     // build where clause
-    let where = filter
+    const where = filter
 
     const query = this.knex
       .select()
@@ -310,7 +310,7 @@ export class CommentService extends BaseService {
     userId: string
     commentId: string
   }): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from('action_comment')
       .where({
@@ -329,7 +329,7 @@ export class CommentService extends BaseService {
     userId: string
     commentId: string
   }): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from('action_comment')
       .where({
@@ -389,7 +389,7 @@ export class CommentService extends BaseService {
    * Find pinned comments by a given article id.
    */
   findPinnedByArticle = async (articleId: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from(this.table)
       .where({ articleId, pinned: true })
@@ -416,7 +416,7 @@ export class CommentService extends BaseService {
 
   pinLeftByArticle = async (articleId: string) => {
     const pinnedCount = await this.countPinnedByArticle({
-      articleId: articleId,
+      articleId,
       activeOnly: true
     })
     return Math.max(ARTICLE_PIN_COMMENT_LIMIT - pinnedCount, 0)

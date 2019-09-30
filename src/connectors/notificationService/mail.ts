@@ -283,8 +283,8 @@ class Mail {
       }
     }
     const getActors = async (actors: User[]) => {
-      return await Promise.all(
-        actors.map(async actor => await getUserDigest(actor))
+      return Promise.all(
+        actors.map(async actor => getUserDigest(actor))
       )
     }
 

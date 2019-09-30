@@ -7,7 +7,7 @@ import _replace from 'lodash/replace'
 
 import { CACHE_KEYWORD, GQL_OPERATION } from 'common/enums'
 
-type CacheSet = {
+interface CacheSet {
   id: string
   type: string
 }

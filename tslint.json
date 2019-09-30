@@ -1,26 +1,41 @@
 {
-  "extends": [],
+  "extends": ["tslint:latest", "tslint-config-prettier"],
   "rules": {
-    "await-promise": true,
-    "ban-comma-operator": true,
-    "curly": true,
-    "interface-name": [false, "never-prefix"],
-    "max-line-length": [
+    "no-implicit-dependencies": [
       true,
-      {
-        "limit": 120,
-        "ignore-pattern": "^import |^const .*? = /.*?/"
-      }
+      [
+        "common",
+        "connectors",
+        "definitions",
+        "middlewares",
+        "types",
+        "apollo-cache-control",
+        "apollo-datasource",
+        "apollo-server-caching",
+        "apollo-server-plugin-base",
+        "@apollographql/graphql-playground-html",
+        "apollo-server-types",
+        "@sendgrid/helpers",
+        "apollo-server-testing",
+        "body-parser",
+        "ioredis"
+      ]
     ],
-    "no-debugger": true,
-    "no-duplicate-switch-case": true,
-    "no-empty": [true, "allow-empty-functions"],
-    "no-eval": true,
-    "no-invalid-template-strings": true,
-    "no-switch-case-fall-through": true,
-    "no-var-keyword": true,
-    "semicolon": false,
-    "radix": true,
+    "no-console": false,
+    "prefer-for-of": false,
+    "variable-name": {
+      "options": [
+        "allow-leading-underscore",
+        "allow-pascal-case",
+        "allow-snake-case"
+      ]
+    },
+    "no-submodule-imports": [false],
+    "interface-name": false,
+    "object-literal-sort-keys": false,
+    "no-object-literal-type-assertion": false,
+    "member-access": false,
+    "max-classes-per-file": false,
     "ordered-imports": [
       true,
       {

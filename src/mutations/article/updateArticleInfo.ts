@@ -36,7 +36,7 @@ const resolver: MutationToUpdateArticleInfoResolver = async (
       const stickyIds = (await articleService.findBySticky(
         viewer.id,
         true
-      )).map(({ id }) => id)
+      )).map(({ id: articleId }) => articleId)
       await articleService.baseBatchUpdate(stickyIds, {
         sticky: false,
         updatedAt: new Date()

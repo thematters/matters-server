@@ -1,14 +1,14 @@
 import _ from 'lodash'
 
-import { toGlobalId } from 'common/utils'
 import { PUBLISH_STATE } from 'common/enums'
+import { toGlobalId } from 'common/utils'
 import {
+  GQLAppreciateArticleInput,
   GQLNodeInput,
-  GQLPublishArticleInput,
-  GQLAppreciateArticleInput
+  GQLPublishArticleInput
 } from 'definitions'
 
-import { testClient, publishArticle, putDraft, getViewerMAT } from './utils'
+import { getViewerMAT, publishArticle, putDraft, testClient } from './utils'
 
 const mediaHash = 'someIpfsMediaHash1'
 
@@ -135,7 +135,7 @@ describe('query article', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    expect(result.data.oss.articles.edges.length).toBeGreaterThan(1)
+    expect(_.get(result, 'data.oss.articles.edges.length')).toBeGreaterThan(1)
   })
 
   test('query related articles', async () => {
@@ -266,7 +266,7 @@ describe('report article', () => {
         }
       }
     })
-    expect(result.data.reportArticle).toBe(true)
+    expect(_.get(result, 'data.reportArticle')).toBe(true)
   })
 
   test('report a article with assets', async () => {
@@ -283,7 +283,7 @@ describe('report article', () => {
         }
       }
     })
-    expect(result.data.reportArticle).toBe(true)
+    expect(_.get(result, 'data.reportArticle')).toBe(true)
   })
 })
 
@@ -300,7 +300,7 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(result.data.toggleArticleLive.live).toBe(true)
+    expect(_.get(result, 'data.toggleArticleLive.live')).toBe(true)
   })
 
   test('disable article live', async () => {
@@ -315,7 +315,7 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(result.data.toggleArticleLive.live).toBe(false)
+    expect(_.get(result, 'data.toggleArticleLive.live')).toBe(false)
   })
 
   test('enable article public', async () => {
@@ -330,7 +330,7 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(data.toggleArticlePublic.public).toBe(true)
+    expect(_.get(data, 'toggleArticlePublic.public')).toBe(true)
   })
 
   test('disable article public', async () => {
@@ -345,6 +345,6 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(data.toggleArticlePublic.public).toBe(false)
+    expect(_.get(data, 'toggleArticlePublic.public')).toBe(false)
   })
 })

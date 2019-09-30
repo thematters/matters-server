@@ -104,6 +104,7 @@
     "@types/bull": "^3.10.0",
     "@types/cheerio": "^0.22.12",
     "@types/cookie": "^0.3.3",
+    "@types/dotenv": "^6.1.1",
     "@types/elasticsearch": "^5.0.29",
     "@types/graphql": "^14.2.2",
     "@types/graphql-iso-date": "^3.3.1",
@@ -148,7 +149,8 @@
     "rimraf": "^2.6.3",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.3.0",
-    "tslint": "^5.18.0"
+    "tslint": "^5.18.0",
+    "tslint-config-prettier": "^1.18.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.1",

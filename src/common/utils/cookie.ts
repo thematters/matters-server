@@ -5,12 +5,10 @@ import { USER_ACCESS_TOKEN_EXPIRES_IN } from 'common/enums'
 import { environment } from 'common/environment'
 
 const getCookieOption = () => {
-  let domain: string
-  if (environment.env === 'development') {
-    domain = ''
-  } else {
-    domain = `.${psl.get(environment.domain || 'matters.news')}`
-  }
+  const domain =
+    environment.env === 'development'
+      ? ''
+      : `.${psl.get(environment.domain || 'matters.news')}`
 
   return {
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN,

@@ -6,7 +6,10 @@ import logger from 'common/logger'
 
 const { esHost: host, esPort: port } = environment
 
-type Item = { [key: string]: any; id: string }
+interface Item {
+  [key: string]: any
+  id: string
+}
 
 class ElasticSearch {
   client: elasticsearch.Client
@@ -59,22 +62,23 @@ class ElasticSearch {
   }) => {
     // break items into chunks
     const size = 25
-    let chunks: Item[][] = []
+    const chunks: Item[][] = []
     while (items.length) {
       chunks.push(items.splice(0, size))
     }
 
     // index items by chunks
-    const indexItemsByChunk = async (chunks: Item[][]) => {
-      for (let i = 0; i < chunks.length; i++) {
+    const indexItemsByChunk = async (chks: Item[][]) => {
+      for (let i = 0; i < chks.length; i++) {
         await this.indexItems({
           index,
           type: type || index,
-          items: chunks[i]
+          items: chks[i]
         })
-        logger.info(`Indexed ${chunks[i].length} items into ${index}.`)
+        logger.info(`Indexed ${chks[i].length} items into ${index}.`)
       }
     }
+
     return indexItemsByChunk(chunks)
   }
 

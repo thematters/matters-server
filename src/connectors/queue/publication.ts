@@ -42,6 +42,26 @@ class PublicationQueue {
   }
 
   /**
+   * Producers
+   */
+  publishArticle = ({
+    draftId,
+    delay = PUBLISH_ARTICLE_DELAY
+  }: {
+    draftId: string
+    delay?: number
+  }) => {
+    return this.q.add(
+      QUEUE_JOB.publishArticle,
+      { draftId },
+      {
+        delay,
+        priority: QUEUE_PRIORITY.CRITICAL
+      }
+    )
+  }
+
+  /**
    * Cusumers
    */
   private addConsumers = () => {
@@ -229,26 +249,6 @@ class PublicationQueue {
         } catch (e) {
           done(e)
         }
-      }
-    )
-  }
-
-  /**
-   * Producers
-   */
-  publishArticle = ({
-    draftId,
-    delay = PUBLISH_ARTICLE_DELAY
-  }: {
-    draftId: string
-    delay?: number
-  }) => {
-    return this.q.add(
-      QUEUE_JOB.publishArticle,
-      { draftId },
-      {
-        delay,
-        priority: QUEUE_PRIORITY.CRITICAL
       }
     )
   }

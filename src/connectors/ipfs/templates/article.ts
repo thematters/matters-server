@@ -3,7 +3,7 @@ import { environment } from 'common/environment'
 
 const { siteDomain } = environment
 
-type TemplateVars = {
+interface TemplateVars {
   title: string
   author: {
     userName: string

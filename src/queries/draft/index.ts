@@ -6,7 +6,7 @@ import assets from './assets'
 import audio from './audio'
 import audiodrafts from './audiodrafts'
 import collection from './collection'
-import cover from './cover'
+import draftCover from './cover'
 import drafts from './drafts'
 
 export default {
@@ -21,7 +21,7 @@ export default {
       content ? countWords(content) : 0,
     summary: ({ content, cover }: { content?: string; cover?: string }) =>
       content ? makeSummary(content, cover ? 110 : 140) : '',
-    cover,
+    cover: draftCover,
     collection,
     assets
   },

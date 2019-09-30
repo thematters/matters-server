@@ -34,7 +34,7 @@ export class TagService extends BaseService {
         .from(this.table)
         .orderBy('created_at', by)
 
-    if (sort == 'hottest') {
+    if (sort === 'hottest') {
       query = this.knex
         .select('tag_id', 'tag.*')
         .from('article_tag')
@@ -123,7 +123,7 @@ export class TagService extends BaseService {
     oss?: boolean
   }) => {
     const table = oss ? 'tag_count_view' : 'tag_count_materialized'
-    return await this.knex(table)
+    return this.knex(table)
       .select()
       .orderByRaw('tag_score DESC NULLS LAST')
       .orderBy('count', 'desc')

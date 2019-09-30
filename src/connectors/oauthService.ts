@@ -27,14 +27,14 @@ export class OAuthService extends BaseService {
    *                               *
    *********************************/
   findClient = async ({ clientId }: { clientId: string }) => {
-    return await this.knex('oauth_client')
+    return this.knex('oauth_client')
       .select()
       .where({ clientId })
       .first()
   }
 
   findClientByName = async ({ name }: { name: string }) => {
-    return await this.knex('oauth_client')
+    return this.knex('oauth_client')
       .select()
       .where({ name })
       .first()
@@ -52,7 +52,7 @@ export class OAuthService extends BaseService {
     grantTypes?: string[]
     userId: string
   }) => {
-    return await this.baseUpdateOrCreate({
+    return this.baseUpdateOrCreate({
       where: { clientId: params.clientId },
       data: {
         ...params,
@@ -331,7 +331,7 @@ export class OAuthService extends BaseService {
     accessToken: OAuthToken,
     scope: string | string[]
   ): Promise<boolean> => {
-    //TODO: Maybe we don't have to implement this?
+    // TODO: Maybe we don't have to implement this?
     return true
   }
 
@@ -366,7 +366,7 @@ export class OAuthService extends BaseService {
     )
 
     // save token
-    return await this.saveToken(
+    return this.saveToken(
       {
         accessToken,
         accessTokenExpiresAt: new Date(

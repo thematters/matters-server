@@ -5,7 +5,7 @@ import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { CACHE_TTL } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
 
-type Params = {
+interface Params {
   _type: string
 }
 

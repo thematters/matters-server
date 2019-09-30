@@ -81,7 +81,7 @@ const resolver: MutationToPutOAuthClientResolver = async (
     }
   }
 
-  return await oauthService.updateOrCreateClient(oauthClient)
+  return oauthService.updateOrCreateClient(oauthClient)
 }
 
 export default resolver
