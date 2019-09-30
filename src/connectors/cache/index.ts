@@ -32,7 +32,7 @@ export class CacheService {
    *
    * e.g. cache-keys:Article:1510
    */
-  genKey = (type: string , id: string):string => `${this.prefix}:${type}:${id}`
+  genKey = (type: string, id: string): string => `${this.prefix}:${type}:${id}`
 
   /**
    * Invalidate cache by given type and id.
