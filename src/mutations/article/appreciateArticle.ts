@@ -1,12 +1,14 @@
 import { v4 } from 'uuid'
 
 import { TRANSACTION_TYPES } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AuthenticationError,
   NotEnoughMatError,
   ArticleNotFoundError,
   ActionLimitExceededError,
-  ForbiddenError
+  ForbiddenError,
+  LikerNotFoundError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToAppreciateArticleResolver } from 'definitions'
@@ -44,6 +46,20 @@ const resolver: MutationToAppreciateArticleResolver = async (
   })
   if (appreciateLeft <= 0) {
     throw new ActionLimitExceededError('too many appreciations')
+  }
+
+  // TODO: Extract safety check to above after LikeCoin deployment.
+  const author = await userService.dataloader.load(article.authorId)
+  if (viewer.likerId && author.likerId) {
+    const liker = await userService.findLiker({ userId: viewer.id })
+    if (!liker) {
+      throw new LikerNotFoundError('liker not found')
+    }
+    await userService.likecoin.like({
+      authorLikerId: author.likerId,
+      liker,
+      url: `${environment.siteDomain}/@${author.userName}/${author.slug}-${author.mediaHash}`
+    })
   }
 
   await articleService.appreciate({

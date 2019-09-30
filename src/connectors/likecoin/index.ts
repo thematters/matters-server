@@ -42,7 +42,8 @@ const ENDPOINTS = {
   edit: '/users/edit/matters',
   total: '/like/info/like/history/total',
   generateTempLikers: '/user',
-  transferPendingLIKE: '/like'
+  transferPendingLIKE: '/like',
+  like: '/like/likebutton'
 }
 
 export class LikeCoin extends BaseService {
@@ -369,6 +370,40 @@ export class LikeCoin extends BaseService {
         })
       })
     )
+  }
+
+  /**
+   * Like a content.
+   */
+  like = async ({
+    authorLikerId,
+    liker,
+    url
+  }: {
+    authorLikerId: string
+    liker: UserOAuthLikeCoin
+    url: string
+  }) => {
+    try {
+      const endpoint = `${ENDPOINTS.like}/${authorLikerId}/1`
+      const result = await this.request({
+        endpoint,
+        withClientCredential: true,
+        method: 'POST',
+        liker,
+        data: {
+          referrer: encodeURIComponent(url)
+        }
+      })
+      const data = _.get(result, 'data')
+      if (data === 'OK') {
+        return true
+      } else {
+        throw result
+      }
+    } catch (error) {
+      throw error
+    }
   }
 }
 
