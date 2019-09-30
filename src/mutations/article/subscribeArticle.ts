@@ -1,3 +1,4 @@
+import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import { ArticleNotFoundError, AuthenticationError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToSubscribeArticleResolver } from 'definitions'
@@ -32,6 +33,18 @@ const resolver: MutationToSubscribeArticleResolver = async (
       }
     ]
   })
+
+  // Add custom data for cache invalidation
+  article[CACHE_KEYWORD] = [
+    {
+      id: article.id,
+      type: NODE_TYPES.article
+    },
+    {
+      id: article.authorId,
+      type: NODE_TYPES.user
+    }
+  ]
 
   return article
 }
