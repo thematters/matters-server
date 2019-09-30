@@ -2,6 +2,7 @@ import Queue from 'bull'
 import * as cheerio from 'cheerio'
 
 import {
+  NODE_TYPES,
   PUBLISH_ARTICLE_DELAY,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
@@ -13,6 +14,7 @@ import { isTest } from 'common/environment'
 import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import {
   ArticleService,
+  CacheService,
   DraftService,
   NotificationService,
   SystemService,
@@ -25,6 +27,7 @@ class PublicationQueue {
   q: InstanceType<typeof Queue>
   tagService: InstanceType<typeof TagService>
   articleService: InstanceType<typeof ArticleService>
+  cacheService: InstanceType<typeof CacheService>
   draftService: InstanceType<typeof DraftService>
   notificationService: InstanceType<typeof NotificationService>
   systemService: InstanceType<typeof SystemService>
@@ -35,6 +38,7 @@ class PublicationQueue {
     this.notificationService = new NotificationService()
     this.tagService = new TagService()
     this.articleService = new ArticleService()
+    this.cacheService = new CacheService()
     this.draftService = new DraftService()
     this.systemService = new SystemService()
     this.q = createQueue(this.queueName)
@@ -239,6 +243,11 @@ class PublicationQueue {
               }
             ]
           })
+
+          job.progress(95)
+
+          // invalidate user cache
+          await this.cacheService.invalidate(NODE_TYPES.user, article.authorId)
 
           job.progress(100)
 
