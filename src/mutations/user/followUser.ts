@@ -1,3 +1,4 @@
+import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import {
   AuthenticationError,
   UserFollowFailedError,
@@ -34,6 +35,17 @@ const resolver: MutationToFollowUserResolver = async (
     actorId: viewer.id,
     recipientId: user.id
   })
+
+  user[CACHE_KEYWORD] = [
+    {
+      id: viewer.id,
+      type: NODE_TYPES.user
+    },
+    {
+      id: user.id,
+      type: NODE_TYPES.user
+    }
+  ]
 
   return user
 }
