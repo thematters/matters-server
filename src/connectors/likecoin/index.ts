@@ -338,10 +338,12 @@ export class LikeCoin {
     })
 
     // normalize users for request body
-    const normalizedUsers = users.map(({ mat: MAT, likerId }) => ({
-      likerId,
-      pendingLIKE: parseInt(MAT || 0, 10) * MAT_TO_LIKE_RATE
-    }))
+    const normalizedUsers = users
+      .filter(({ mat }) => mat > 0)
+      .map(({ mat: MAT, likerId }) => ({
+        likerId,
+        pendingLIKE: parseInt(MAT || 0, 10) * MAT_TO_LIKE_RATE
+      }))
 
     if (normalizedUsers.length <= 0) {
       return
