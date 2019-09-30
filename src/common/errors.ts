@@ -305,3 +305,16 @@ export class CodeExpiredError extends ApolloError {
     Object.defineProperty(this, 'name', { value: 'CodeExpiredError' })
   }
 }
+
+/*********************************
+ *                               *
+ *            LikeCoin           *
+ *                               *
+ *********************************/
+export class LikerNotFoundError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'LIKER_NOT_FOUND')
+
+    Object.defineProperty(this, 'name', { value: 'LikerNotFoundError' })
+  }
+}

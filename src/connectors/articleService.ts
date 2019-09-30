@@ -930,13 +930,15 @@ export class ArticleService extends BaseService {
     articleId,
     senderId,
     recipientId,
-    amount
+    amount,
+    type
   }: {
     uuid: string
     articleId: string
     senderId: string
     recipientId: string
     amount: number
+    type: string
   }): Promise<any> => {
     const result = await this.knex('transaction')
       .insert({
@@ -945,7 +947,8 @@ export class ArticleService extends BaseService {
         recipientId,
         referenceId: articleId,
         purpose: TRANSACTION_PURPOSE.appreciate,
-        amount
+        amount,
+        type
       })
       .into('transaction')
       .returning('*')

@@ -8,10 +8,10 @@ import {
   CommentService,
   DraftService,
   NotificationService,
+  OAuthService,
   SystemService,
   TagService,
-  UserService,
-  OAuthService
+  UserService
 } from 'connectors'
 import {
   DataSources,
