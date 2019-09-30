@@ -1,11 +1,11 @@
 import Knex from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 
-// @ts-ignore
-const knexConfig = require('../../../knexfile')
-
 import { environment } from 'common/environment'
 import { MaterializedView } from 'definitions'
+
+// @ts-ignore
+import knexConfig from '../../../knexfile'
 
 const { env } = environment
 
