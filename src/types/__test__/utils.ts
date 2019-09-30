@@ -1,27 +1,24 @@
-// external
-import { createTestClient } from 'apollo-server-testing'
 import { ApolloServer } from 'apollo-server-express'
+import { createTestClient } from 'apollo-server-testing'
 import { Request } from 'express'
 
-// local
+import { roleAccess, scopeModes } from 'common/utils'
+import {
+  ArticleService,
+  CommentService,
+  DraftService,
+  NotificationService,
+  OAuthService,
+  SystemService,
+  TagService,
+  UserService
+} from 'connectors'
 import {
   DataSources,
   GQLPublishArticleInput,
   GQLPutDraftInput,
   GQLUserRegisterInput
 } from 'definitions'
-
-import {
-  ArticleService,
-  CommentService,
-  DraftService,
-  SystemService,
-  TagService,
-  UserService,
-  NotificationService
-} from 'connectors'
-
-import { roleAccess, scopeModes } from 'common/utils'
 
 import schema from '../../schema'
 
@@ -100,7 +97,8 @@ export const testClient = async (
       draftService: new DraftService(),
       systemService: new SystemService(),
       tagService: new TagService(),
-      notificationService: new NotificationService()
+      notificationService: new NotificationService(),
+      oauthService: new OAuthService()
     })
   })
 
@@ -163,8 +161,8 @@ export const putDraft = async (draft: GQLPutDraftInput) => {
     variables: { input: draft }
   })
 
-  const putDraft = result && result.data && result.data.putDraft
-  return putDraft
+  const putDraftResult = result && result.data && result.data.putDraft
+  return putDraftResult
 }
 
 export const registerUser = async (user: GQLUserRegisterInput) => {

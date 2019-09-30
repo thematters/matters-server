@@ -1,5 +1,4 @@
 import { connectionFromPromisedArray } from 'common/utils'
-
 import { CommentToCommentsResolver } from 'definitions'
 
 const resolver: CommentToCommentsResolver = (

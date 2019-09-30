@@ -1,10 +1,10 @@
-import { MutationToDeleteDraftResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import {
+  AuthenticationError,
   DraftNotFoundError,
-  ForbiddenError,
-  AuthenticationError
+  ForbiddenError
 } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToDeleteDraftResolver } from 'definitions'
 
 const resolver: MutationToDeleteDraftResolver = async (
   _,

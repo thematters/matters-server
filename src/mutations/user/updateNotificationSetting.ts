@@ -1,5 +1,5 @@
-import { MutationToUpdateNotificationSettingResolver } from 'definitions'
 import { AuthenticationError } from 'common/errors'
+import { MutationToUpdateNotificationSettingResolver } from 'definitions'
 
 const resolver: MutationToUpdateNotificationSettingResolver = async (
   _,

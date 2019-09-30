@@ -10,7 +10,7 @@ steps:
   - name: tslint
     image: node:10.15
     commands:
-      - npm run tslint:production
+      - npm run lint
       - npm run format:check
 
   - name: test

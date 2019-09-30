@@ -1,5 +1,5 @@
-import sgMail from '@sendgrid/mail'
 import { MailData } from '@sendgrid/helpers/classes/mail'
+import sgMail from '@sendgrid/mail'
 
 import { environment, isDev, isTest } from 'common/environment'
 
@@ -31,4 +31,4 @@ class MailService {
   }
 }
 
-export default new MailService()
+export const mailService = new MailService()

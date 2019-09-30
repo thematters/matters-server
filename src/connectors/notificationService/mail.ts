@@ -1,12 +1,12 @@
 import _ from 'lodash'
 
-import { LANGUAGES, NoticeItem, User } from 'definitions'
-import { i18n } from 'common/utils/i18n'
-import { environment } from 'common/environment'
 import { EMAIL_TEMPLATE_ID, VERIFICATION_CODE_TYPES } from 'common/enums'
-import notificationQueue from 'connectors/queue/notification'
-import { UserService, ArticleService, SystemService } from 'connectors'
+import { environment } from 'common/environment'
 import { makeSummary, toGlobalId } from 'common/utils'
+import { i18n } from 'common/utils/i18n'
+import { ArticleService, SystemService, UserService } from 'connectors'
+import { notificationQueue } from 'connectors/queue/notification'
+import { LANGUAGES, NoticeItem, User } from 'definitions'
 
 const trans = {
   verificationCode: {
@@ -283,9 +283,7 @@ class Mail {
       }
     }
     const getActors = async (actors: User[]) => {
-      return await Promise.all(
-        actors.map(async actor => await getUserDigest(actor))
-      )
+      return Promise.all(actors.map(async actor => getUserDigest(actor)))
     }
 
     const user_new_follower = await Promise.all(

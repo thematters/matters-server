@@ -1,5 +1,6 @@
+import { defaultFieldResolver, GraphQLField, GraphQLObjectType } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
-import { GraphQLObjectType, defaultFieldResolver, GraphQLField } from 'graphql'
+
 import { ForbiddenError } from 'common/errors'
 
 type EnhancedObject = GraphQLObjectType & {

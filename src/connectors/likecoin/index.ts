@@ -1,13 +1,12 @@
-import axios, { AxiosRequestConfig } from 'axios'
-import _ from 'lodash'
 import * as Sentry from '@sentry/node'
+import axios, { AxiosRequestConfig } from 'axios'
+import Knex from 'knex'
+import _ from 'lodash'
 
-import { UserOAuthLikeCoin } from 'definitions'
 import { environment } from 'common/environment'
-import { toGlobalId, fromGlobalId } from 'common/utils'
-
-import { UserService } from '../userService'
-import { BaseService } from '../baseService'
+import { fromGlobalId, toGlobalId } from 'common/utils'
+import { knex, UserService } from 'connectors'
+import { UserOAuthLikeCoin } from 'definitions'
 
 const {
   likecoinApiURL,
@@ -46,9 +45,11 @@ const ENDPOINTS = {
   like: '/like/likebutton'
 }
 
-export class LikeCoin extends BaseService {
+export class LikeCoin {
+  knex: Knex
+
   constructor() {
-    super('noop')
+    this.knex = knex
   }
 
   /**
@@ -105,7 +106,7 @@ export class LikeCoin extends BaseService {
       // refresh token and retry once
       if (liker && _.get(e, 'response.data') === 'TOKEN_EXPIRED') {
         const accessToken = await this.refreshToken({ liker })
-        return await makeRequest({ accessToken })
+        return makeRequest({ accessToken })
       } else {
         console.error(e)
         Sentry.captureException(e)

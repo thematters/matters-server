@@ -1,10 +1,9 @@
-// external
 import Queue from 'bull'
 import Redis from 'ioredis'
-// internal
-import logger from 'common/logger'
-import { environment } from 'common/environment'
+
 import { QUEUE_COMPLETED_LIST_SIZE } from 'common/enums'
+import { environment } from 'common/environment'
+import logger from 'common/logger'
 
 export const sharedQueueOpts = {
   // Reusing Redis Connections

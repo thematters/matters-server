@@ -1,5 +1,5 @@
-import { MutationToRenameTagResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { MutationToRenameTagResolver } from 'definitions'
 
 const resolver: MutationToRenameTagResolver = async (
   root,

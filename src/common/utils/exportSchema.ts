@@ -1,8 +1,7 @@
-require('module-alias/register')
-
+import fs from 'fs'
 import { printSchema } from 'graphql'
 import { makeExecutableSchema } from 'graphql-tools'
-import fs from 'fs'
+import 'module-alias/register'
 
 import logger from 'common/logger'
 import typeDefs from 'types'
@@ -16,7 +15,7 @@ const schemaObj = makeExecutableSchema({
 
 const schemaString = printSchema(schemaObj)
 
-fs.writeFile('schema.graphql', schemaString, function(err) {
+fs.writeFile('schema.graphql', schemaString, err => {
   if (err) {
     logger.error(err)
   } else {

@@ -1,6 +1,6 @@
-import { MutationToToggleArticlePublicResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import { ArticleNotFoundError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToToggleArticlePublicResolver } from 'definitions'
 
 const resolver: MutationToToggleArticlePublicResolver = async (
   root,

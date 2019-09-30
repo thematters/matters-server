@@ -1,25 +1,24 @@
-// external
 import Queue from 'bull'
-// internal
+
 import {
-  QUEUE_JOB,
-  QUEUE_PRIORITY,
-  QUEUE_NAME,
+  MATERIALIZED_VIEW,
   PUBLISH_STATE,
-  MATERIALIZED_VIEW
+  QUEUE_JOB,
+  QUEUE_NAME,
+  QUEUE_PRIORITY
 } from 'common/enums'
 import logger from 'common/logger'
-import { MaterializedView } from 'definitions'
 import {
-  DraftService,
-  UserService,
   ArticleService,
-  NotificationService
+  DraftService,
+  NotificationService,
+  refreshView,
+  UserService
 } from 'connectors'
-import { refreshView } from '../db'
-// local
+import { MaterializedView } from 'definitions'
+
+import { publicationQueue } from './publication'
 import { createQueue } from './utils'
-import publicationQueue from './publication'
 
 class ScheduleQueue {
   q: InstanceType<typeof Queue>
@@ -42,6 +41,97 @@ class ScheduleQueue {
     this.addConsumers()
     await this.clearDelayedJobs()
     await this.addRepeatJobs()
+  }
+
+  /**
+   * Producers
+   */
+  clearDelayedJobs = async () => {
+    try {
+      const jobs = await this.q.getDelayed()
+      jobs.forEach(async job => {
+        await job.remove()
+      })
+    } catch (e) {
+      console.error('failed to clear repeat jobs', e)
+    }
+  }
+
+  addRepeatJobs = async () => {
+    // publish pending draft every 20 minutes
+    this.q.add(
+      QUEUE_JOB.publishPendingDrafts,
+      {},
+      {
+        priority: QUEUE_PRIORITY.HIGH,
+        repeat: {
+          every: 1000 * 60 * 20 // every 20 mins
+        }
+      }
+    )
+
+    // initialize search every day at 4am
+    // moved to db pipeline
+    // this.q.add(QUEUE_JOB.initializeSearch, null, {
+    //   priority: QUEUE_PRIORITY.CRITICAL,
+    //   repeat: { cron: '0 4 * * *', tz: 'Asia/Hong_Kong' }
+    // })
+
+    // refresh articleActivityMaterialized every 2 minutes, for hottest recommendation
+    this.q.add(
+      QUEUE_JOB.refreshView,
+      { view: MATERIALIZED_VIEW.articleActivityMaterialized },
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: 1000 * 60 * 2 // every 2 minutes
+        }
+      }
+    )
+
+    // refresh articleCountMaterialized every 2.1 hours, for topics recommendation
+    this.q.add(
+      QUEUE_JOB.refreshView,
+      { view: MATERIALIZED_VIEW.articleCountMaterialized },
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: 1000 * 60 * 60 * 1.1 // every 1 + 0.1 hour
+        }
+      }
+    )
+
+    // refresh tagCountMaterialized every 3.1 hours
+    this.q.add(
+      QUEUE_JOB.refreshView,
+      { view: MATERIALIZED_VIEW.tagCountMaterialized },
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: 1000 * 60 * 60 * 3.1 // every 3 + 0.1 hour
+        }
+      }
+    )
+
+    // refresh userReaderMaterialized every day at 3am
+    this.q.add(
+      QUEUE_JOB.refreshView,
+      { view: MATERIALIZED_VIEW.userReaderMaterialized },
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
+
+    // send daily summary email every day at 7am
+    this.q.add(
+      QUEUE_JOB.sendDailySummaryEmail,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
   }
 
   /**
@@ -156,97 +246,6 @@ class ScheduleQueue {
       }
     })
   }
-
-  /**
-   * Producers
-   */
-  clearDelayedJobs = async () => {
-    try {
-      const jobs = await this.q.getDelayed()
-      jobs.forEach(async job => {
-        await job.remove()
-      })
-    } catch (e) {
-      console.error('failed to clear repeat jobs', e)
-    }
-  }
-
-  addRepeatJobs = async () => {
-    // publish pending draft every 20 minutes
-    this.q.add(
-      QUEUE_JOB.publishPendingDrafts,
-      {},
-      {
-        priority: QUEUE_PRIORITY.HIGH,
-        repeat: {
-          every: 1000 * 60 * 20 // every 20 mins
-        }
-      }
-    )
-
-    // initialize search every day at 4am
-    // moved to db pipeline
-    // this.q.add(QUEUE_JOB.initializeSearch, null, {
-    //   priority: QUEUE_PRIORITY.CRITICAL,
-    //   repeat: { cron: '0 4 * * *', tz: 'Asia/Hong_Kong' }
-    // })
-
-    // refresh articleActivityMaterialized every 2 minutes, for hottest recommendation
-    this.q.add(
-      QUEUE_JOB.refreshView,
-      { view: MATERIALIZED_VIEW.articleActivityMaterialized },
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: 1000 * 60 * 2 // every 2 minutes
-        }
-      }
-    )
-
-    // refresh articleCountMaterialized every 2.1 hours, for topics recommendation
-    this.q.add(
-      QUEUE_JOB.refreshView,
-      { view: MATERIALIZED_VIEW.articleCountMaterialized },
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: 1000 * 60 * 60 * 1.1 // every 1 + 0.1 hour
-        }
-      }
-    )
-
-    // refresh tagCountMaterialized every 3.1 hours
-    this.q.add(
-      QUEUE_JOB.refreshView,
-      { view: MATERIALIZED_VIEW.tagCountMaterialized },
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: 1000 * 60 * 60 * 3.1 // every 3 + 0.1 hour
-        }
-      }
-    )
-
-    // refresh userReaderMaterialized every day at 3am
-    this.q.add(
-      QUEUE_JOB.refreshView,
-      { view: MATERIALIZED_VIEW.userReaderMaterialized },
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
-      }
-    )
-
-    // send daily summary email every day at 7am
-    this.q.add(
-      QUEUE_JOB.sendDailySummaryEmail,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
-      }
-    )
-  }
 }
 
-export default new ScheduleQueue()
+export const scheduleQueue = new ScheduleQueue()

@@ -16,7 +16,8 @@ const resolver: ArticleToResponsesResolver = async (
     first = 8
   }
 
-  let after, before
+  let after
+  let before
   if (restParams.after) {
     after = fromGlobalId(restParams.after).id
   }

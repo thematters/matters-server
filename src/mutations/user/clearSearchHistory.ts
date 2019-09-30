@@ -1,5 +1,5 @@
-import { MutationToClearSearchHistoryResolver } from 'definitions'
 import { AuthenticationError } from 'common/errors'
+import { MutationToClearSearchHistoryResolver } from 'definitions'
 
 const resolver: MutationToClearSearchHistoryResolver = async (
   _,

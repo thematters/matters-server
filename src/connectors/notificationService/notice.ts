@@ -1,21 +1,21 @@
-import { v4 } from 'uuid'
-import { isEqual, difference } from 'lodash'
 import DataLoader from 'dataloader'
+import { difference, isEqual } from 'lodash'
+import { v4 } from 'uuid'
 
-import {
-  User,
-  NotificationType,
-  NotificationEntity,
-  PutNoticeParams,
-  NoticeUserId,
-  NoticeEntity,
-  NoticeDetail,
-  NoticeEntitiesMap,
-  NoticeItem
-} from 'definitions'
-import { BaseService } from '../baseService'
 import { BATCH_SIZE } from 'common/enums'
 import logger from 'common/logger'
+import { BaseService } from 'connectors'
+import {
+  NoticeDetail,
+  NoticeEntitiesMap,
+  NoticeEntity,
+  NoticeItem,
+  NoticeUserId,
+  NotificationEntity,
+  NotificationType,
+  PutNoticeParams,
+  User
+} from 'definitions'
 
 class Notice extends BaseService {
   constructor() {
@@ -73,7 +73,11 @@ class Notice extends BaseService {
       if (entities) {
         await Promise.all(
           entities.map(
-            async ({ type, entityTable, entity }: NotificationEntity) => {
+            async ({
+              type: entityType,
+              entityTable,
+              entity
+            }: NotificationEntity) => {
               const { id: entityTypeId } = await trx
                 .select('id')
                 .from('entity_type')
@@ -81,7 +85,7 @@ class Notice extends BaseService {
                 .first()
               const [{ id: noticeEntityId }] = await trx
                 .insert({
-                  type,
+                  type: entityType,
                   entityTypeId,
                   entityId: entity.id,
                   noticeId
@@ -182,14 +186,14 @@ class Notice extends BaseService {
     }
 
     await Promise.all(
-      notices.map(async notice => {
+      notices.map(async n => {
         // skip if data isn't the same
-        if (!isEqual(notice.data, data)) {
+        if (!isEqual(n.data, data)) {
           return
         }
 
         const targetEntities = (await this.findEntities(
-          notice.id,
+          n.id,
           false
         )) as NoticeEntity[]
 
@@ -198,7 +202,7 @@ class Notice extends BaseService {
           targetEntities && targetEntities.length > 0
         const isSourceEntitiesExists = entities && entities.length > 0
         if (!isTargetEntitiesExists || !isSourceEntitiesExists) {
-          bundleables.push(notice)
+          bundleables.push(n)
           return
         }
         if (
@@ -209,19 +213,19 @@ class Notice extends BaseService {
         }
 
         // compare notice entities
-        let targetEntitiesHashMap: any = {}
-        let sourceEntitiesHashMap: any = {}
+        const targetEntitiesHashMap: any = {}
+        const sourceEntitiesHashMap: any = {}
         const sourceEntities = entities || []
-        targetEntities.forEach(({ type, table, entityId }) => {
-          const hash = `${type}:${table}:${entityId}`
+        targetEntities.forEach(({ type: targetType, table, entityId }) => {
+          const hash = `${targetType}:${table}:${entityId}`
           targetEntitiesHashMap[hash] = true
         })
-        sourceEntities.forEach(({ type, entityTable, entity }) => {
-          const hash = `${type}:${entityTable}:${entity.id}`
+        sourceEntities.forEach(({ type: sourceType, entityTable, entity }) => {
+          const hash = `${sourceType}:${entityTable}:${entity.id}`
           sourceEntitiesHashMap[hash] = true
         })
         if (isEqual(targetEntitiesHashMap, sourceEntitiesHashMap)) {
-          bundleables.push(notice)
+          bundleables.push(n)
           return
         }
       })
@@ -347,16 +351,14 @@ class Notice extends BaseService {
     })
 
     return Promise.all(
-      notices.map(async (notice: NoticeDetail) => {
-        const entities = (await this.findEntities(
-          notice.id
-        )) as NoticeEntitiesMap
-        const actors = await this.findActors(notice.id)
+      notices.map(async (n: NoticeDetail) => {
+        const entities = (await this.findEntities(n.id)) as NoticeEntitiesMap
+        const actors = await this.findActors(n.id)
 
         return {
-          ...notice,
-          createdAt: notice.updatedAt,
-          type: notice.noticeType,
+          ...n,
+          createdAt: n.updatedAt,
+          type: n.noticeType,
           actors,
           entities
         }
@@ -385,16 +387,14 @@ class Notice extends BaseService {
     })
 
     return Promise.all(
-      notices.map(async (notice: NoticeDetail) => {
-        const entities = (await this.findEntities(
-          notice.id
-        )) as NoticeEntitiesMap
-        const actors = await this.findActors(notice.id)
+      notices.map(async (n: NoticeDetail) => {
+        const entities = (await this.findEntities(n.id)) as NoticeEntitiesMap
+        const actors = await this.findActors(n.id)
 
         return {
-          ...notice,
-          createdAt: notice.updatedAt,
-          type: notice.noticeType,
+          ...n,
+          createdAt: n.updatedAt,
+          type: n.noticeType,
           actors,
           entities
         }
@@ -452,16 +452,14 @@ class Notice extends BaseService {
     })
 
     return Promise.all(
-      notices.map(async (notice: NoticeDetail) => {
-        const entities = (await this.findEntities(
-          notice.id
-        )) as NoticeEntitiesMap
-        const actors = await this.findActors(notice.id)
+      notices.map(async (n: NoticeDetail) => {
+        const entities = (await this.findEntities(n.id)) as NoticeEntitiesMap
+        const actors = await this.findActors(n.id)
 
         return {
-          ...notice,
-          createdAt: notice.updatedAt,
-          type: notice.noticeType,
+          ...n,
+          createdAt: n.updatedAt,
+          type: n.noticeType,
           actors,
           entities
         }

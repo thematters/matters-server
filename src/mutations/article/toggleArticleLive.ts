@@ -1,6 +1,6 @@
-import { MutationToToggleArticleLiveResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import { ArticleNotFoundError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToToggleArticleLiveResolver } from 'definitions'
 
 const resolver: MutationToToggleArticleLiveResolver = async (
   root,

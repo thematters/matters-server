@@ -1,23 +1,23 @@
 import {
-  NoticeType,
-  GQLUserNewFollowerNoticeTypeResolver,
-  GQLArticlePublishedNoticeTypeResolver,
-  GQLArticleNewDownstreamNoticeTypeResolver,
-  GQLArticleNewCollectedNoticeTypeResolver,
-  GQLArticleNewAppreciationNoticeTypeResolver,
-  GQLArticleNewSubscriberNoticeTypeResolver,
-  GQLArticleNewCommentNoticeTypeResolver,
   GQLArticleMentionedYouNoticeTypeResolver,
-  GQLUpstreamArticleArchivedNoticeTypeResolver,
-  GQLSubscribedArticleNewCommentNoticeTypeResolver,
-  GQLDownstreamArticleArchivedNoticeTypeResolver,
-  GQLCommentPinnedNoticeTypeResolver,
+  GQLArticleNewAppreciationNoticeTypeResolver,
+  GQLArticleNewCollectedNoticeTypeResolver,
+  GQLArticleNewCommentNoticeTypeResolver,
+  GQLArticleNewDownstreamNoticeTypeResolver,
+  GQLArticleNewSubscriberNoticeTypeResolver,
+  GQLArticlePublishedNoticeTypeResolver,
+  GQLCommentMentionedYouNoticeTypeResolver,
   GQLCommentNewReplyNoticeTypeResolver,
   GQLCommentNewUpvoteNoticeTypeResolver,
-  GQLCommentMentionedYouNoticeTypeResolver,
+  GQLCommentPinnedNoticeTypeResolver,
+  GQLDownstreamArticleArchivedNoticeTypeResolver,
+  GQLNoticeTypeResolver,
   GQLOfficialAnnouncementNoticeTypeResolver,
+  GQLSubscribedArticleNewCommentNoticeTypeResolver,
+  GQLUpstreamArticleArchivedNoticeTypeResolver,
+  GQLUserNewFollowerNoticeTypeResolver,
   GQLUserTypeResolver,
-  GQLNoticeTypeResolver
+  NoticeType
 } from 'definitions'
 
 import notices from './notices'
@@ -77,28 +77,28 @@ const notice: {
   },
   ArticlePublishedNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities['target']
+    target: ({ entities }) => entities.target
   },
   ArticleNewDownstreamNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities['target'],
-    downstream: ({ entities }) => entities['downstream']
+    target: ({ entities }) => entities.target,
+    downstream: ({ entities }) => entities.downstream
   },
   ArticleNewCollectedNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }) => entities['target'],
-    collection: ({ entities }) => entities['collection']
+    target: ({ entities }) => entities.target,
+    collection: ({ entities }) => entities.collection
   },
   ArticleNewAppreciationNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities['target'],
+    target: ({ entities }) => entities.target,
     MAT: (
       { actors, entities }: { actors: any[]; entities: any },
       _: any,
       { dataSources: { articleService } }
     ) => {
-      const target = entities['target']
+      const target = entities.target
       const actorIds = actors.map(actor => actor.id)
       return articleService.countAppreciationByUserIds({
         articleId: target.id,
@@ -108,54 +108,54 @@ const notice: {
   },
   ArticleNewSubscriberNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities['target']
+    target: ({ entities }) => entities.target
   },
   ArticleNewCommentNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities['target'],
-    comment: ({ entities }) => entities['comment']
+    target: ({ entities }) => entities.target,
+    comment: ({ entities }) => entities.comment
   },
   ArticleMentionedYouNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }) => entities['target']
+    target: ({ entities }) => entities.target
   },
   SubscribedArticleNewCommentNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities['target'],
-    comment: ({ entities }) => entities['comment']
+    target: ({ entities }) => entities.target,
+    comment: ({ entities }) => entities.comment
   },
   UpstreamArticleArchivedNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities['target'],
-    upstream: ({ entities }) => entities['upstream']
+    target: ({ entities }) => entities.target,
+    upstream: ({ entities }) => entities.upstream
   },
   DownstreamArticleArchivedNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities['target'],
-    downstream: ({ entities }) => entities['downstream']
+    target: ({ entities }) => entities.target,
+    downstream: ({ entities }) => entities.downstream
   },
   CommentPinnedNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ entities }, _: any, { dataSources: { userService } }) => {
-      const target = entities['target']
+      const target = entities.target
       return userService.dataloader.load(target.authorId)
     },
-    target: ({ entities }) => entities['target']
+    target: ({ entities }) => entities.target
   },
   CommentNewReplyNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities['target'],
-    reply: ({ entities }) => entities['reply']
+    target: ({ entities }) => entities.target,
+    reply: ({ entities }) => entities.reply
   },
   CommentNewUpvoteNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities['target']
+    target: ({ entities }) => entities.target
   },
   CommentMentionedYouNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }) => entities['target']
+    target: ({ entities }) => entities.target
   },
   OfficialAnnouncementNotice: {
     id: ({ uuid }) => uuid,

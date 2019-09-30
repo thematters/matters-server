@@ -1,13 +1,13 @@
 import _ from 'lodash'
 import nanoid from 'nanoid'
-import { fromGlobalId } from 'common/utils'
 
-import { MutationToPutOAuthClientResolver } from 'definitions'
 import {
+  AssetNotFoundError,
   AuthenticationError,
-  UserInputError,
-  AssetNotFoundError
+  UserInputError
 } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToPutOAuthClientResolver } from 'definitions'
 
 const resolver: MutationToPutOAuthClientResolver = async (
   root,
@@ -81,7 +81,7 @@ const resolver: MutationToPutOAuthClientResolver = async (
     }
   }
 
-  return await oauthService.updateOrCreateClient(oauthClient)
+  return oauthService.updateOrCreateClient(oauthClient)
 }
 
 export default resolver

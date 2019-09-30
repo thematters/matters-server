@@ -1,5 +1,4 @@
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
-
 import { OSSToOauthClientsResolver } from 'definitions'
 
 export const oauthClients: OSSToOauthClientsResolver = async (

@@ -1,9 +1,8 @@
 import {
+  connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
-  connectionFromArray
+  cursorToIndex
 } from 'common/utils'
-
 import { GQLUserActivityTypeResolver } from 'definitions'
 
 const resolver: GQLUserActivityTypeResolver = {

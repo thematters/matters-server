@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
-import { MutationToGenerateTempLikerIdsResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { MutationToGenerateTempLikerIdsResolver } from 'definitions'
 
 const resolver: MutationToGenerateTempLikerIdsResolver = async (
   root,

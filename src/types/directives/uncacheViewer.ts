@@ -1,6 +1,7 @@
 import { CacheScope } from 'apollo-cache-control'
-import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { defaultFieldResolver, GraphQLField } from 'graphql'
+import { SchemaDirectiveVisitor } from 'graphql-tools'
+
 import { CACHE_TTL } from 'common/enums'
 
 export class UncacheViewerDirective extends SchemaDirectiveVisitor {

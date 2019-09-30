@@ -1,6 +1,6 @@
-import { MutationToSubscribeArticleResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import { ArticleNotFoundError, AuthenticationError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToSubscribeArticleResolver } from 'definitions'
 
 const resolver: MutationToSubscribeArticleResolver = async (
   root,

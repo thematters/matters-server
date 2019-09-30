@@ -3,12 +3,12 @@ import { v4 } from 'uuid'
 import { TRANSACTION_TYPES } from 'common/enums'
 import { environment } from 'common/environment'
 import {
-  AuthenticationError,
-  NotEnoughMatError,
-  ArticleNotFoundError,
   ActionLimitExceededError,
+  ArticleNotFoundError,
+  AuthenticationError,
   ForbiddenError,
-  LikerNotFoundError
+  LikerNotFoundError,
+  NotEnoughMatError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToAppreciateArticleResolver } from 'definitions'

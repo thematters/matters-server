@@ -1,5 +1,5 @@
-import rootOAuthClient from './rootOAuthClient'
 import avatar from './avatar'
+import rootOAuthClient from './rootOAuthClient'
 import user from './user'
 
 export default {

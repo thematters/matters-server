@@ -1,5 +1,5 @@
-import { MutationToDeleteTagsResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { MutationToDeleteTagsResolver } from 'definitions'
 
 const resolver: MutationToDeleteTagsResolver = async (
   root,

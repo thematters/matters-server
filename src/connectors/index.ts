@@ -1,3 +1,12 @@
+export * from './aws'
+export * from './db'
+export * from './es'
+export * from './ipfs'
+export * from './mail'
+export * from './likecoin'
+export * from './push'
+
+export * from './baseService'
 export * from './articleService'
 export * from './commentService'
 export * from './draftService'

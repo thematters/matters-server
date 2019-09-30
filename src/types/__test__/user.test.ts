@@ -1,20 +1,20 @@
 import _ from 'lodash'
-// local
-import { fromGlobalId, toGlobalId } from 'common/utils'
+
 import {
   MAT_UNIT,
   MATERIALIZED_VIEW,
   VERIFICATION_CODE_STATUS
 } from 'common/enums'
+import { fromGlobalId, toGlobalId } from 'common/utils'
+import { refreshView, UserService } from 'connectors'
 import { MaterializedView } from 'definitions'
-import { UserService } from 'connectors'
-import { refreshView } from 'connectors/db'
+
 import {
   defaultTestUser,
   getUserContext,
-  testClient,
+  getViewerMAT,
   registerUser,
-  getViewerMAT
+  testClient
 } from './utils'
 
 let userService: any
@@ -337,7 +337,6 @@ describe('register and login functionarlities', () => {
     const email = 'test1@matters.news'
     const password = 'wrongPassword'
     const { mutate } = await testClient()
-    let code
 
     const result = await mutate({
       mutation: USER_LOGIN,
@@ -651,7 +650,7 @@ describe('verification code', () => {
       // @ts-ignore
       variables: { input: { type, email } }
     })
-    expect(result.data.sendVerificationCode).toBe(true)
+    expect(result && result.data && result.data.sendVerificationCode).toBe(true)
 
     const [code] = await userService.findVerificationCodes({ email })
     expect(code.status).toBe(VERIFICATION_CODE_STATUS.active)
@@ -663,7 +662,11 @@ describe('verification code', () => {
       // @ts-ignore
       variables: { input: { type, email, code: code.code } }
     })
-    expect(confirmedResult.data.confirmVerificationCode).toBe(code.uuid)
+    expect(
+      confirmedResult &&
+        confirmedResult.data &&
+        confirmedResult.data.confirmVerificationCode
+    ).toBe(code.uuid)
     const [confirmedCode] = await userService.findVerificationCodes({ email })
     expect(confirmedCode.status).toBe(VERIFICATION_CODE_STATUS.verified)
   })

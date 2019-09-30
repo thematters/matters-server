@@ -1,9 +1,9 @@
-import { MutationToDeleteAudiodraftResolver } from 'definitions'
 import {
   AudioDraftNotFoundError,
-  ForbiddenError,
-  AuthenticationError
+  AuthenticationError,
+  ForbiddenError
 } from 'common/errors'
+import { MutationToDeleteAudiodraftResolver } from 'definitions'
 
 const resolver: MutationToDeleteAudiodraftResolver = async (
   _,

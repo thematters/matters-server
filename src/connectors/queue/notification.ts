@@ -1,11 +1,9 @@
-// external
-import Queue from 'bull'
 import { MailData } from '@sendgrid/helpers/classes/mail'
-// internal
-import { QUEUE_PRIORITY, QUEUE_JOB, QUEUE_NAME } from 'common/enums'
-import mailService from 'connectors/mail'
-import pushService, { PushParams } from 'connectors/push'
-// local
+import Queue from 'bull'
+
+import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
+import { mailService, PushParams, pushService } from 'connectors'
+
 import { createQueue } from './utils'
 
 class NotificationQueue {
@@ -16,6 +14,21 @@ class NotificationQueue {
   constructor() {
     this.q = createQueue(this.queueName)
     this.addConsumers()
+  }
+
+  /**
+   * Producers
+   */
+  sendMail = (data: MailData) => {
+    return this.q.add(QUEUE_JOB.sendMail, data, {
+      priority: QUEUE_PRIORITY.NORMAL
+    })
+  }
+
+  pushNotification = (data: PushParams) => {
+    return this.q.add(QUEUE_JOB.pushNotification, data, {
+      priority: QUEUE_PRIORITY.NORMAL
+    })
   }
 
   /**
@@ -41,21 +54,6 @@ class NotificationQueue {
       }
     })
   }
-
-  /**
-   * Producers
-   */
-  sendMail = (data: MailData) => {
-    return this.q.add(QUEUE_JOB.sendMail, data, {
-      priority: QUEUE_PRIORITY.NORMAL
-    })
-  }
-
-  pushNotification = (data: PushParams) => {
-    return this.q.add(QUEUE_JOB.pushNotification, data, {
-      priority: QUEUE_PRIORITY.NORMAL
-    })
-  }
 }
 
-export default new NotificationQueue()
+export const notificationQueue = new NotificationQueue()

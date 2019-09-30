@@ -1,7 +1,7 @@
 import { LANGUAGES } from 'definitions'
 
 type TranslationFn<V> = (vars: V) => string
-type Translations<V> = {
+interface Translations<V> {
   zh_hant: string | TranslationFn<V>
   zh_hans?: string | TranslationFn<V>
   en?: string | TranslationFn<V>
@@ -26,7 +26,7 @@ type TransFn<V> = (lang: LANGUAGES, vars: V) => string
 export const i18n = <V>(translations: Translations<V>): TransFn<V> => {
   return (lang, vars) => {
     // fallback to `zh_hant`
-    const trans = translations[lang] || translations['zh_hant']
+    const trans = translations[lang] || translations.zh_hant
 
     if (typeof trans === 'string') {
       return trans

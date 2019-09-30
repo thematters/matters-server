@@ -1,5 +1,6 @@
-import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { defaultFieldResolver, GraphQLField } from 'graphql'
+import { SchemaDirectiveVisitor } from 'graphql-tools'
+
 import { ForbiddenError } from 'common/errors'
 
 export class PrivateDirective extends SchemaDirectiveVisitor {

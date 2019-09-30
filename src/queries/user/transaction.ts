@@ -1,10 +1,11 @@
 import { camelCase } from 'lodash'
 
-import { connectionFromPromisedArray, cursorToIndex, i18n } from 'common/utils'
-import { GQLMATTypeResolver, GQLTransactionTypeResolver } from 'definitions'
 import { TRANSACTION_PURPOSE } from 'common/enums'
 import { ArticleNotFoundError } from 'common/errors'
 import logger from 'common/logger'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { i18n } from 'common/utils/i18n'
+import { GQLMATTypeResolver, GQLTransactionTypeResolver } from 'definitions'
 
 const trans = {
   systemSubsidy: i18n({
@@ -67,16 +68,16 @@ export const Transaction: GQLTransactionTypeResolver = {
         return article.title
       case TRANSACTION_PURPOSE.appreciateSubsidy:
       case TRANSACTION_PURPOSE.systemSubsidy:
-        return trans['systemSubsidy'](viewer.language, {})
+        return trans.systemSubsidy(viewer.language, {})
       case TRANSACTION_PURPOSE.appreciateComment:
-        return trans['appreciateComment'](viewer.language, {})
+        return trans.appreciateComment(viewer.language, {})
       case TRANSACTION_PURPOSE.invitationAccepted:
-        return trans['invitationAccepted'](viewer.language, {})
+        return trans.invitationAccepted(viewer.language, {})
       case TRANSACTION_PURPOSE.joinByInvitation:
       case TRANSACTION_PURPOSE.joinByTask:
-        return trans['joinByInvitation'](viewer.language, {})
+        return trans.joinByInvitation(viewer.language, {})
       case TRANSACTION_PURPOSE.firstPost:
-        return trans['firstPost'](viewer.language, {})
+        return trans.firstPost(viewer.language, {})
       default:
         logger.error(`transaction purpose ${trx.purpose} no match`)
         return ''

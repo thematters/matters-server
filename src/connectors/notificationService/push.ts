@@ -1,8 +1,8 @@
 import _ from 'lodash'
 
-import { BaseService } from 'connectors/baseService'
-import notificationQueue from 'connectors/queue/notification'
-import { NotificationType, PutNoticeParams, LANGUAGES } from 'definitions'
+import { BaseService } from 'connectors'
+import { notificationQueue } from 'connectors/queue/notification'
+import { LANGUAGES, NotificationType, PutNoticeParams } from 'definitions'
 
 import trans from './translations'
 

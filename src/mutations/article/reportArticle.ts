@@ -1,10 +1,10 @@
-import { MutationToReportArticleResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import {
-  UserInputError,
   ArticleNotFoundError,
-  AssetNotFoundError
+  AssetNotFoundError,
+  UserInputError
 } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToReportArticleResolver } from 'definitions'
 
 const resolver: MutationToReportArticleResolver = async (
   root,

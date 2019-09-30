@@ -1,13 +1,12 @@
-// external
+import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
-import bodybuilder from 'bodybuilder'
-// internal
-import { GQLSearchInput } from 'definitions'
-import { BaseService } from './baseService'
-import { BATCH_SIZE, ARTICLE_STATE } from 'common/enums'
-import logger from 'common/logger'
+
+import { ARTICLE_STATE, BATCH_SIZE } from 'common/enums'
 import { ServerError } from 'common/errors'
+import logger from 'common/logger'
+import { BaseService } from 'connectors'
+import { GQLSearchInput } from 'definitions'
 
 export class TagService extends BaseService {
   constructor() {
@@ -35,7 +34,7 @@ export class TagService extends BaseService {
         .from(this.table)
         .orderBy('created_at', by)
 
-    if (sort == 'hottest') {
+    if (sort === 'hottest') {
       query = this.knex
         .select('tag_id', 'tag.*')
         .from('article_tag')
@@ -124,7 +123,7 @@ export class TagService extends BaseService {
     oss?: boolean
   }) => {
     const table = oss ? 'tag_count_view' : 'tag_count_materialized'
-    return await this.knex(table)
+    return this.knex(table)
       .select()
       .orderByRaw('tag_score DESC NULLS LAST')
       .orderBy('count', 'desc')

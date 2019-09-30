@@ -1,6 +1,6 @@
-import { MutationToReadArticleResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import { ArticleNotFoundError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToReadArticleResolver } from 'definitions'
 
 const resolver: MutationToReadArticleResolver = async (
   root,

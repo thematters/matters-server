@@ -1,24 +1,24 @@
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
-// internal
+
 import {
+  PUBLISH_ARTICLE_DELAY,
   PUBLISH_STATE,
-  QUEUE_JOB,
-  QUEUE_PRIORITY,
-  QUEUE_NAME,
   QUEUE_CONCURRENCY,
-  PUBLISH_ARTICLE_DELAY
+  QUEUE_JOB,
+  QUEUE_NAME,
+  QUEUE_PRIORITY
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import {
-  DraftService,
   ArticleService,
-  TagService,
+  DraftService,
   NotificationService,
-  SystemService
+  SystemService,
+  TagService
 } from 'connectors'
-// local
+
 import { createQueue } from './utils'
 
 class PublicationQueue {
@@ -39,6 +39,26 @@ class PublicationQueue {
     this.systemService = new SystemService()
     this.q = createQueue(this.queueName)
     this.addConsumers()
+  }
+
+  /**
+   * Producers
+   */
+  publishArticle = ({
+    draftId,
+    delay = PUBLISH_ARTICLE_DELAY
+  }: {
+    draftId: string
+    delay?: number
+  }) => {
+    return this.q.add(
+      QUEUE_JOB.publishArticle,
+      { draftId },
+      {
+        delay,
+        priority: QUEUE_PRIORITY.CRITICAL
+      }
+    )
   }
 
   /**
@@ -232,26 +252,6 @@ class PublicationQueue {
       }
     )
   }
-
-  /**
-   * Producers
-   */
-  publishArticle = ({
-    draftId,
-    delay = PUBLISH_ARTICLE_DELAY
-  }: {
-    draftId: string
-    delay?: number
-  }) => {
-    return this.q.add(
-      QUEUE_JOB.publishArticle,
-      { draftId },
-      {
-        delay,
-        priority: QUEUE_PRIORITY.CRITICAL
-      }
-    )
-  }
 }
 
-export default new PublicationQueue()
+export const publicationQueue = new PublicationQueue()

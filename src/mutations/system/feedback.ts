@@ -1,5 +1,5 @@
+import { AssetNotFoundError, UserInputError } from 'common/errors'
 import { MutationToFeedbackResolver } from 'definitions'
-import { UserInputError, AssetNotFoundError } from 'common/errors'
 
 const resolver: MutationToFeedbackResolver = async (
   root,

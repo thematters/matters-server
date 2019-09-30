@@ -1,15 +1,13 @@
-// external
 import * as AWS from 'aws-sdk'
+import sizeOf from 'image-size'
 import imagemin from 'imagemin'
 import imageminGifsicle from 'imagemin-gifsicle'
 import imageminJpegtran from 'imagemin-jpegtran'
 import imageminPngquant from 'imagemin-pngquant'
 import imageminSvgo from 'imagemin-svgo'
-import sizeOf from 'image-size'
 import mime from 'mime-types'
 import sharp from 'sharp'
-//local
-import { GQLAssetType } from 'definitions'
+
 import {
   ACCEPTED_UPLOAD_IMAGE_TYPES,
   IMAGE_DIMENSION_LIMIT,
@@ -17,12 +15,11 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
+import { GQLAssetType } from 'definitions'
 
 export class AWSService {
   s3: AWS.S3
-
   s3Bucket: string
-
   s3Endpoint: string
 
   constructor() {
@@ -122,7 +119,7 @@ export class AWSService {
    * Delete file from AWS S3 by a given path key.
    */
   baseDeleteFile = async (key: string): Promise<any> =>
-    await this.s3
+    this.s3
       .deleteObject({
         Bucket: this.s3Bucket,
         Key: key

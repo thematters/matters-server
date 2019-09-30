@@ -1,5 +1,5 @@
-import { MutationToVerifyEmailResolver } from 'definitions'
 import { CodeInvalidError, UserNotFoundError } from 'common/errors'
+import { MutationToVerifyEmailResolver } from 'definitions'
 
 const resolver: MutationToVerifyEmailResolver = async (
   _,

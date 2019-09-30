@@ -1,7 +1,7 @@
-import { MutationToArchiveArticleResolver } from 'definitions'
 import { ARTICLE_STATE } from 'common/enums'
+import { AuthenticationError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { ForbiddenError, AuthenticationError } from 'common/errors'
+import { MutationToArchiveArticleResolver } from 'definitions'
 
 const resolver: MutationToArchiveArticleResolver = async (
   _,

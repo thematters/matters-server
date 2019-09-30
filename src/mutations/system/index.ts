@@ -1,9 +1,9 @@
-import singleFileUpload from './singleFileUpload'
-import singleFileDelete from './singleFileDelete'
 import feedback from './feedback'
-import setBoost from './setBoost'
-import putRemark from './putRemark'
 import logRecord from './logRecord'
+import putRemark from './putRemark'
+import setBoost from './setBoost'
+import singleFileDelete from './singleFileDelete'
+import singleFileUpload from './singleFileUpload'
 
 export default {
   Mutation: {

@@ -1,4 +1,4 @@
-import { TagService } from '../tagService'
+import { TagService } from 'connectors'
 
 const tagService = new TagService()
 

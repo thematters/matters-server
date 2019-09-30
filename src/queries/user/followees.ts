@@ -1,9 +1,8 @@
 import {
+  connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
-  connectionFromArray
+  cursorToIndex
 } from 'common/utils'
-
 import { UserToFolloweesResolver } from 'definitions'
 
 const resolver: UserToFolloweesResolver = async (

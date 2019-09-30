@@ -1,6 +1,6 @@
-import { MutationToSetBoostResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import { EntityNotFoundError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToSetBoostResolver } from 'definitions'
 
 const resolver: MutationToSetBoostResolver = async (
   root,

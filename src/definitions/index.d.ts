@@ -10,7 +10,6 @@ import {
   NotificationService,
   OAuthService
 } from 'connectors'
-import { LANGUAGE } from 'common/enums'
 
 export * from './schema'
 export * from './notification'
@@ -144,7 +143,7 @@ export type Item = { id: string; [key: string]: any }
 
 export type ItemData = { [key: string]: any }
 
-export type LANGUAGES = keyof typeof LANGUAGE
+export type LANGUAGES = 'zh_hans' | 'zh_hant' | 'en'
 
 export type ResponseType = 'Article' | 'Comment'
 

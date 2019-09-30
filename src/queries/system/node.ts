@@ -1,6 +1,6 @@
-import { QueryToNodeResolver, NodeTypes } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import { ForbiddenError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { NodeTypes, QueryToNodeResolver } from 'definitions'
 
 const resolver: QueryToNodeResolver = async (
   root,

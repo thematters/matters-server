@@ -57,7 +57,7 @@ const messageRequired = {
   official_announcement: true
 }
 
-type NoticeEdges = { node: NoticeItem; cursor: string }[]
+type NoticeEdges = Array<{ node: NoticeItem; cursor: string }>
 export const filterMissingFieldNoticeEdges = (
   edges: NoticeEdges
 ): NoticeEdges => {

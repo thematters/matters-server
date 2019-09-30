@@ -1,20 +1,20 @@
 import {
-  GQLPossibleNodeTypeNames,
-  GQLPossibleConnectionTypeNames
+  GQLPossibleConnectionTypeNames,
+  GQLPossibleNodeTypeNames
 } from 'definitions'
 
-import node from './node'
-import search from './search'
 import frequentSearch from './frequentSearch'
+import node from './node'
 import {
-  reportCategory,
   feedbackCategory,
-  releases,
   links,
-  placements
+  placements,
+  releases,
+  reportCategory
 } from './official'
-import Report from './report'
 import OSS from './oss'
+import Report from './report'
+import search from './search'
 
 export default {
   Query: {

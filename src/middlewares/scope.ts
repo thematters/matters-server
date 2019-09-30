@@ -1,8 +1,7 @@
-// external
-import isObject from 'lodash/isObject'
-import has from 'lodash/has'
 import get from 'lodash/get'
-// internal
+import has from 'lodash/has'
+import isObject from 'lodash/isObject'
+
 import { GQL_OPERATION, SCOPE_MODE } from 'common/enums'
 import { ForbiddenError, UnknownError } from 'common/errors'
 import { isValidReadScope } from 'common/utils/scope'

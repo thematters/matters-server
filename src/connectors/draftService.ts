@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader'
 
-import { BaseService } from './baseService'
+import { BaseService } from 'connectors'
 
 export class DraftService extends BaseService {
   constructor() {
@@ -32,7 +32,7 @@ export class DraftService extends BaseService {
    *  Find drafts by a given author id (user).
    */
   findByAuthor = async (authorId: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from(this.table)
       .where({ authorId, archived: false })
@@ -58,7 +58,7 @@ export class DraftService extends BaseService {
    * Find audio draft by a given id.
    */
   findAudiodraft = async (id: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from('audio_draft')
       .where({ id })
@@ -67,7 +67,7 @@ export class DraftService extends BaseService {
    * Find audio drafts by a given author id (user).
    */
   findAudiodraftsByAuthor = async (authorId: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from('audio_draft')
       .where({ authorId })

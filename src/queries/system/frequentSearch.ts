@@ -1,4 +1,4 @@
-import { QueryToFrequentSearchResolver, GQLNode } from 'definitions'
+import { GQLNode, QueryToFrequentSearchResolver } from 'definitions'
 
 const resolver: QueryToFrequentSearchResolver = (
   _,

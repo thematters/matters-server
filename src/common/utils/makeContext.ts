@@ -1,10 +1,9 @@
 import * as Sentry from '@sentry/node'
-import { Response, Request } from 'express'
+import { Request, Response } from 'express'
 import { cloneDeep } from 'lodash'
 
+import { getViewerFromReq, toGlobalId } from 'common/utils'
 import { RequestContext } from 'definitions'
-import { getViewerFromReq } from './getViewer'
-import { toGlobalId } from './globalId'
 
 const purgeSentryData = (req?: Request): any => {
   const omit = (source: any, target: any) => {

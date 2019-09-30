@@ -1,22 +1,25 @@
 // forked from https://github.com/apollographql/apollo-server/tree/master/packages/apollo-server-plugin-response-cache
 
 import * as Sentry from '@sentry/node'
+import { CacheHint, CacheScope } from 'apollo-cache-control'
+import { KeyValueCache, PrefixingKeyValueCache } from 'apollo-server-caching'
 import {
   ApolloServerPlugin,
   GraphQLRequestListener
 } from 'apollo-server-plugin-base'
-import { GraphQLRequestContext, GraphQLResponse } from 'apollo-server-types'
-import { KeyValueCache, PrefixingKeyValueCache } from 'apollo-server-caching'
-import { ValueOrPromise } from 'apollo-server-types'
-import { CacheHint, CacheScope } from 'apollo-cache-control'
+import {
+  GraphQLRequestContext,
+  GraphQLResponse,
+  ValueOrPromise
+} from 'apollo-server-types'
+import { createHash } from 'crypto'
+
+import { CACHE_TTL } from 'common/enums'
 
 // XXX This should use createSHA from apollo-server-core in order to work on
 // non-Node environments. I'm not sure where that should end up ---
 // apollo-server-sha as its own tiny module? apollo-server-env seems bad because
 // that would add sha.js to unnecessary places, I think?
-import { createHash } from 'crypto'
-
-import { CACHE_TTL } from 'common/enums'
 
 interface Options<TContext = Record<string, any>> {
   // Underlying cache used to save results. All writes will be under keys that
