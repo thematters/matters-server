@@ -36,6 +36,7 @@ const resolver: MutationToFollowUserResolver = async (
     recipientId: user.id
   })
 
+  // Add custom data for cache invalidation
   user[CACHE_KEYWORD] = [
     {
       id: viewer.id,
