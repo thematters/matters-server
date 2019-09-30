@@ -966,10 +966,11 @@ export class UserService extends BaseService {
               SELECT
                 "user".id,
                 liker_id,
-                coalesce(SUM(delta), 0) AS mat
+                SUM(delta) AS mat
               FROM
                 "user"
                 LEFT JOIN transaction_delta_view AS tx ON user_id = "user".id
+              WHERE tx."type" = 'MAT'
               GROUP BY
                 "user".id,
                 liker_id

@@ -340,7 +340,7 @@ export class LikeCoin {
     // normalize users for request body
     const normalizedUsers = users.map(({ mat: MAT, likerId }) => ({
       likerId,
-      pendingLIKE: MAT * MAT_TO_LIKE_RATE
+      pendingLIKE: (MAT || 0) * MAT_TO_LIKE_RATE
     }))
 
     if (normalizedUsers.length <= 0) {
