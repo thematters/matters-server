@@ -58,7 +58,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     await userService.likecoin.like({
       authorLikerId: author.likerId,
       liker,
-      url: `${environment.siteDomain}/@${author.userName}/${author.slug}-${author.mediaHash}`
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
     })
   }
 
