@@ -1,6 +1,6 @@
 import { v4 } from 'uuid'
 
-import { TRANSACTION_TYPES } from 'common/enums'
+import { CACHE_KEYWORD, NODE_TYPES, TRANSACTION_TYPES } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
@@ -88,7 +88,21 @@ const resolver: MutationToAppreciateArticleResolver = async (
     ]
   })
 
-  return articleService.dataloader.load(article.id)
+  const newArticle = await articleService.dataloader.load(article.id)
+
+  // Add custom data for cache invalidation
+  newArticle[CACHE_KEYWORD] = [
+    {
+      id: newArticle.id,
+      type: NODE_TYPES.article
+    },
+    {
+      id: newArticle.authorId,
+      type: NODE_TYPES.user
+    }
+  ]
+
+  return newArticle
 }
 
 export default resolver
