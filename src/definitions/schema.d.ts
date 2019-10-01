@@ -574,7 +574,6 @@ export type GQLPossibleConnectionTypeNames =
   | 'ReadHistoryConnection'
   | 'RecentSearchConnection'
   | 'TransactionConnection'
-  | 'InvitationConnection'
   | 'NoticeConnection'
   | 'CommentConnection'
   | 'ResponseConnection'
@@ -592,7 +591,6 @@ export interface GQLConnectionNameMap {
   ReadHistoryConnection: GQLReadHistoryConnection
   RecentSearchConnection: GQLRecentSearchConnection
   TransactionConnection: GQLTransactionConnection
-  InvitationConnection: GQLInvitationConnection
   NoticeConnection: GQLNoticeConnection
   CommentConnection: GQLCommentConnection
   ResponseConnection: GQLResponseConnection
@@ -993,12 +991,6 @@ export interface GQLUserStatus {
   MAT: GQLMAT
 
   /**
-   * Invitation. Deprecated.
-   * @deprecated removed
-   */
-  invitation?: GQLInvitationStatus
-
-  /**
    * Number of articles published by user
    */
   articleCount: number
@@ -1079,51 +1071,6 @@ export interface GQLLIKE {
 export interface GQLMAT {
   total: number
   history: GQLTransactionConnection
-}
-
-/**
- * # TODO: remove in OSS
- */
-export interface GQLInvitationStatus {
-  reward?: string
-
-  /**
-   * invitation number left
-   */
-  left?: number
-
-  /**
-   * invitations sent
-   */
-  sent?: GQLInvitationConnection
-}
-
-/**
- * # TODO: remove in OSS
- */
-export interface GQLInvitationConnection extends GQLConnection {
-  totalCount: number
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLInvitationEdge>
-}
-
-/**
- * # TODO: remove in OSS
- */
-export interface GQLInvitationEdge {
-  cursor: string
-  node: GQLInvitation
-}
-
-/**
- * # TODO: remove in OSS
- */
-export interface GQLInvitation {
-  id: string
-  user?: GQLUser
-  email?: string
-  accepted: boolean
-  createdAt: GQLDateTime
 }
 
 export interface GQLUserOSS {
@@ -2791,10 +2738,6 @@ export interface GQLResolver {
   UserStatus?: GQLUserStatusTypeResolver
   LIKE?: GQLLIKETypeResolver
   MAT?: GQLMATTypeResolver
-  InvitationStatus?: GQLInvitationStatusTypeResolver
-  InvitationConnection?: GQLInvitationConnectionTypeResolver
-  InvitationEdge?: GQLInvitationEdgeTypeResolver
-  Invitation?: GQLInvitationTypeResolver
   UserOSS?: GQLUserOSSTypeResolver
   NoticeConnection?: GQLNoticeConnectionTypeResolver
   NoticeEdge?: GQLNoticeEdgeTypeResolver
@@ -4221,7 +4164,6 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'ReadHistoryConnection'
     | 'RecentSearchConnection'
     | 'TransactionConnection'
-    | 'InvitationConnection'
     | 'NoticeConnection'
     | 'CommentConnection'
     | 'ResponseConnection'
@@ -5318,7 +5260,6 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   role?: UserStatusToRoleResolver<TParent>
   LIKE?: UserStatusToLIKEResolver<TParent>
   MAT?: UserStatusToMATResolver<TParent>
-  invitation?: UserStatusToInvitationResolver<TParent>
   articleCount?: UserStatusToArticleCountResolver<TParent>
   viewCount?: UserStatusToViewCountResolver<TParent>
   draftCount?: UserStatusToDraftCountResolver<TParent>
@@ -5360,15 +5301,6 @@ export interface UserStatusToLIKEResolver<TParent = any, TResult = any> {
 }
 
 export interface UserStatusToMATResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserStatusToInvitationResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5547,163 +5479,6 @@ export interface MATToHistoryResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MATToHistoryArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLInvitationStatusTypeResolver<TParent = any> {
-  reward?: InvitationStatusToRewardResolver<TParent>
-  left?: InvitationStatusToLeftResolver<TParent>
-  sent?: InvitationStatusToSentResolver<TParent>
-}
-
-export interface InvitationStatusToRewardResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface InvitationStatusToLeftResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface InvitationStatusToSentArgs {
-  input: GQLConnectionArgs
-}
-export interface InvitationStatusToSentResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: InvitationStatusToSentArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLInvitationConnectionTypeResolver<TParent = any> {
-  totalCount?: InvitationConnectionToTotalCountResolver<TParent>
-  pageInfo?: InvitationConnectionToPageInfoResolver<TParent>
-  edges?: InvitationConnectionToEdgesResolver<TParent>
-}
-
-export interface InvitationConnectionToTotalCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface InvitationConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface InvitationConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLInvitationEdgeTypeResolver<TParent = any> {
-  cursor?: InvitationEdgeToCursorResolver<TParent>
-  node?: InvitationEdgeToNodeResolver<TParent>
-}
-
-export interface InvitationEdgeToCursorResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface InvitationEdgeToNodeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLInvitationTypeResolver<TParent = any> {
-  id?: InvitationToIdResolver<TParent>
-  user?: InvitationToUserResolver<TParent>
-  email?: InvitationToEmailResolver<TParent>
-  accepted?: InvitationToAcceptedResolver<TParent>
-  createdAt?: InvitationToCreatedAtResolver<TParent>
-}
-
-export interface InvitationToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface InvitationToUserResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface InvitationToEmailResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface InvitationToAcceptedResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface InvitationToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

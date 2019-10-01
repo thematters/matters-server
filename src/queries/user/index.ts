@@ -97,12 +97,6 @@ const user: {
   UserStatus: {
     MAT: root => root,
     LIKE: root => root,
-    // TODO: remove field in OSS
-    invitation: () => ({
-      reward: null,
-      left: null,
-      sent: connectionFromArray([], {})
-    }),
     articleCount,
     // viewCount,
     draftCount,

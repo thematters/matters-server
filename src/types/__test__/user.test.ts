@@ -1,10 +1,6 @@
 import _ from 'lodash'
 
-import {
-  MAT_UNIT,
-  MATERIALIZED_VIEW,
-  VERIFICATION_CODE_STATUS
-} from 'common/enums'
+import { MATERIALIZED_VIEW, VERIFICATION_CODE_STATUS } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService } from 'connectors'
 import { MaterializedView } from 'definitions'
@@ -154,31 +150,7 @@ const GET_VIEWER_SETTINGS = `
     }
   }
 `
-const GET_USER_INVITATION = `
-  query {
-    viewer {
-      id
-      status {
-        invitation {
-          reward
-          left
-          sent(input:{}) {
-            edges {
-              node {
-                email
-                user {
-                  id
-                }
-                accepted
-                createdAt
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`
+
 const GET_VIEWER_SUBSCRIPTIONS = `
   query ($input: ConnectionArgs!) {
     viewer {
