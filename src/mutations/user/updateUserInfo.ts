@@ -69,7 +69,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
 
   // check user display name
   if (input.displayName) {
-    if (!isValidDisplayName(input.displayName)) {
+    if (!isValidDisplayName(input.displayName) && !viewer.hasRole('admin')) {
       throw new DisplayNameInvalidError('invalid user display name')
     }
     updateParams.displayName = input.displayName
