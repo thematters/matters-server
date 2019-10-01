@@ -26,14 +26,6 @@ const USER_LOGIN = `
     }
   }
 `
-const USER_REGISTER = `
-  mutation UserRegister($input: UserRegisterInput!) {
-    userRegister(input: $input) {
-      auth
-      token
-    }
-  }
-`
 
 const FOLLOW_USER = `
   mutation FollowerUser($input: FollowUserInput!) {
@@ -61,9 +53,8 @@ const UPDATE_USER_INFO_DESCRIPTION = `
 const UPDATE_USER_INFO_AVATAR = `
   mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
     updateUserInfo(input: $input) {
-      info {
-        avatar
-      }
+      id
+      avatar
     }
   }
 `
@@ -81,9 +72,8 @@ const UPDATE_NOTIFICARION_SETTINGS = `
 const GET_USER_BY_USERNAME = `
   query ($input: UserInput!) {
     user(input: $input) {
-      info {
-        userName
-      }
+      id
+      userName
     }
   }
 `
@@ -92,13 +82,11 @@ const GET_VIEWER_INFO = `
   query {
     viewer {
       uuid
+      avatar
+      displayName
       info {
         email
-        displayName
         description
-        avatar
-        mobile
-        readSpeed
         createdAt
         agreeOn
       }
@@ -176,9 +164,6 @@ const GET_VIEWER_STATUS = `
       status {
         articleCount
         commentCount
-        followerCount
-        followeeCount
-        subscriptionCount
       }
     }
   }
@@ -269,8 +254,9 @@ describe('register and login functionarlities', () => {
     const newUserResult = await query({
       query: GET_VIEWER_INFO
     })
+    const displayName = _.get(newUserResult, 'data.viewer.displayName')
     const info = _.get(newUserResult, 'data.viewer.info')
-    expect(info.displayName).toBe(user.displayName)
+    expect(displayName).toBe(user.displayName)
     expect(info.email).toBe(user.email)
   })
 
@@ -323,7 +309,7 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: { userName } }
     })
-    expect(_.get(data, 'user.info.userName')).toBe(userName)
+    expect(_.get(data, 'user.userName')).toBe(userName)
   })
   test('retrive user articles', async () => {
     const { query } = await testClient({
@@ -479,7 +465,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: { avatar: avatarAssetUUID } }
     })
-    const { avatar } = _.get(data, 'updateUserInfo.info')
+    const avatar = _.get(data, 'updateUserInfo.avatar')
     expect(avatar).toEqual(expect.stringContaining('path/to/file.jpg'))
   })
 

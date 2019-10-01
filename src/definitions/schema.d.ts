@@ -132,6 +132,7 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * MAT recieved for this article (will be decrpecated soon)
+   * @deprecated Use 'appreciationsReceived' instead.
    */
   MAT: number
 
@@ -2537,7 +2538,6 @@ export enum GQLUserInfoFields {
   avatar = 'avatar',
   description = 'description',
   email = 'email',
-  mobile = 'mobile',
   agreeOn = 'agreeOn'
 }
 

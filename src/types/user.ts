@@ -471,7 +471,6 @@ export default /* GraphQL */ `
     avatar
     description
     email
-    mobile
     agreeOn
   }
 
