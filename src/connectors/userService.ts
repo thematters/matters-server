@@ -953,28 +953,31 @@ export class UserService extends BaseService {
     offset?: number
   }) => {
     let qs = this.knex
-      .select('user_id', 'mat', 'liker_id', 'pending_like')
+      .select('userId', 'mat', 'likerId', 'pendingLike')
       .from(
         this.knex.raw(/*sql*/ `
-          (SELECT
-            u.id as user_id,
-            mat,
-            user_oauth_likecoin.*
-          FROM
-            user_oauth_likecoin
-            LEFT JOIN (
-              SELECT
-                "user".id,
-                liker_id,
-                SUM(delta) AS mat
-              FROM
-                "user"
-                LEFT JOIN transaction_delta_view AS tx ON user_id = "user".id
-              WHERE tx."type" = 'MAT'
-              GROUP BY
-                "user".id,
-                liker_id
-              ) AS u ON u.liker_id = user_oauth_likecoin.liker_id) AS user_likecon_mat
+          (
+            SELECT
+              u.id as user_id,
+              mat,
+              user_oauth_likecoin.*
+            FROM
+              user_oauth_likecoin
+              LEFT JOIN (
+                SELECT
+                  "user".id,
+                  liker_id,
+                  SUM(delta) AS mat
+                FROM
+                  "user"
+                  LEFT JOIN transaction_delta_view AS tx ON user_id = "user".id
+                WHERE tx."type" = 'MAT'
+                GROUP BY
+                  "user".id,
+                  liker_id
+                ) AS u ON u.liker_id = user_oauth_likecoin.liker_id
+            WHERE mat > 0
+          ) AS user_likecon_mat
       `)
       )
       .whereNotNull('likerId')
@@ -984,7 +987,7 @@ export class UserService extends BaseService {
       .orderBy('id', 'asc')
 
     if (userIds) {
-      qs = qs.whereIn('user_id', userIds)
+      qs = qs.whereIn('userId', userIds)
     }
 
     return qs
