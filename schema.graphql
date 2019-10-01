@@ -94,9 +94,6 @@ type Article implements Node {
   appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
 
   """Total number of appreciations recieved of this article."""
-  appreciationTotal: Int! @deprecated(reason: "Use 'appreciationReceivedTotal instead'.")
-
-  """Total number of appreciations recieved of this article."""
   appreciationsReceivedTotal: Int!
 
   """Subscribers of this articles."""
@@ -104,9 +101,6 @@ type Article implements Node {
 
   """Appreciators of this articles."""
   appreciators(input: ConnectionArgs!): UserConnection!
-
-  """Total count of this article's appreciations."""
-  appreciatorCount: Int!
 
   """Limit the nuhmber of appreciate per user."""
   appreciateLimit: Int!

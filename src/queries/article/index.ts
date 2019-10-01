@@ -6,7 +6,6 @@ import { makeSummary, toGlobalId } from 'common/utils'
 import appreciateLeft from './appreciateLeft'
 import appreciationsReceived from './appreciationsReceived'
 import appreciationsReceivedTotal from './appreciationsReceivedTotal'
-import appreciatorCount from './appreciatorCount'
 import appreciators from './appreciators'
 import author from './author'
 import collectedBy from './collectedBy'
@@ -35,9 +34,7 @@ export default {
   Article: {
     appreciationsReceived,
     appreciationsReceivedTotal,
-    appreciationTotal: appreciationsReceivedTotal,
     appreciators,
-    appreciatorCount,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
     appreciateLeft,
     author,

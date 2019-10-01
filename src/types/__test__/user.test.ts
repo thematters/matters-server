@@ -8,7 +8,6 @@ import { MaterializedView } from 'definitions'
 import {
   defaultTestUser,
   getUserContext,
-  getViewerMAT,
   registerUser,
   testClient
 } from './utils'
@@ -84,25 +83,6 @@ const GET_USER_BY_USERNAME = `
     user(input: $input) {
       info {
         userName
-      }
-    }
-  }
-`
-
-const GET_VIEWER_MAT_HISOTRY = `
-  query ($input: ConnectionArgs!) {
-    viewer {
-      status {
-        MAT {
-          history(input: $input) {
-            edges {
-              node {
-                delta
-                content
-              }
-            }
-          }
-        }
       }
     }
   }
@@ -262,17 +242,6 @@ const CONFIRM_VERIFICATION_CODE = `
   }
 `
 
-export const getViewerMATHistory = async () => {
-  const { query } = await testClient({ isAuth: true })
-  const result = await query({
-    query: GET_VIEWER_MAT_HISOTRY,
-    // @ts-ignore
-    variables: { input: {} }
-  })
-  const { data } = result
-  return _.get(data, 'viewer.status.MAT.history.edges')
-}
-
 describe('register and login functionarlities', () => {
   test('register user and retrieve info', async () => {
     const email = `test-${Math.floor(Math.random() * 100)}@matters.news`
@@ -342,19 +311,6 @@ describe('register and login functionarlities', () => {
     })
     const info = _.get(data, 'viewer.info')
     expect(info.email).toEqual(defaultTestUser.email)
-  })
-})
-
-describe('user mat', () => {
-  test('total', async () => {
-    const mat = await getViewerMAT()
-    expect(typeof mat).toBe('number')
-  })
-
-  test('history', async () => {
-    const history = await getViewerMATHistory()
-    const trx = history && history[0] && history[0].node
-    expect(typeof trx.delta).toBe('number')
   })
 })
 

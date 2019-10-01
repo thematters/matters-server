@@ -142,12 +142,6 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * Total number of appreciations recieved of this article.
-   * @deprecated Use 'appreciationReceivedTotal instead'.
-   */
-  appreciationTotal: number
-
-  /**
-   * Total number of appreciations recieved of this article.
    */
   appreciationsReceivedTotal: number
 
@@ -160,11 +154,6 @@ export interface GQLArticle extends GQLNode {
    * Appreciators of this articles.
    */
   appreciators: GQLUserConnection
-
-  /**
-   * Total count of this article's appreciations.
-   */
-  appreciatorCount: number
 
   /**
    * Limit the nuhmber of appreciate per user.
@@ -2934,13 +2923,11 @@ export interface GQLArticleTypeResolver<TParent = any> {
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>
   MAT?: ArticleToMATResolver<TParent>
   appreciationsReceived?: ArticleToAppreciationsReceivedResolver<TParent>
-  appreciationTotal?: ArticleToAppreciationTotalResolver<TParent>
   appreciationsReceivedTotal?: ArticleToAppreciationsReceivedTotalResolver<
     TParent
   >
   subscribers?: ArticleToSubscribersResolver<TParent>
   appreciators?: ArticleToAppreciatorsResolver<TParent>
-  appreciatorCount?: ArticleToAppreciatorCountResolver<TParent>
   appreciateLimit?: ArticleToAppreciateLimitResolver<TParent>
   appreciateLeft?: ArticleToAppreciateLeftResolver<TParent>
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>
@@ -3165,18 +3152,6 @@ export interface ArticleToAppreciationsReceivedResolver<
   ): TResult
 }
 
-export interface ArticleToAppreciationTotalResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface ArticleToAppreciationsReceivedTotalResolver<
   TParent = any,
   TResult = any
@@ -3208,18 +3183,6 @@ export interface ArticleToAppreciatorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: ArticleToAppreciatorsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleToAppreciatorCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
