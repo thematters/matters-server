@@ -317,11 +317,6 @@ export interface GQLUser extends GQLNode {
   drafts: GQLDraftConnection
 
   /**
-   * Audiodraft by user, currently not used.
-   */
-  audiodrafts: GQLAudiodraftConnection
-
-  /**
    * Articles current user commented on
    */
   commentedArticles: GQLArticleConnection
@@ -517,7 +512,6 @@ export type GQLPossibleConnectionTypeNames =
   | 'TagConnection'
   | 'UserConnection'
   | 'DraftConnection'
-  | 'AudiodraftConnection'
   | 'ReadHistoryConnection'
   | 'RecentSearchConnection'
   | 'TransactionConnection'
@@ -534,7 +528,6 @@ export interface GQLConnectionNameMap {
   TagConnection: GQLTagConnection
   UserConnection: GQLUserConnection
   DraftConnection: GQLDraftConnection
-  AudiodraftConnection: GQLAudiodraftConnection
   ReadHistoryConnection: GQLReadHistoryConnection
   RecentSearchConnection: GQLRecentSearchConnection
   TransactionConnection: GQLTransactionConnection
@@ -764,27 +757,6 @@ export enum GQLAssetType {
   embedaudio = 'embedaudio',
   profileCover = 'profileCover',
   oauthClientAvatar = 'oauthClientAvatar'
-}
-
-export interface GQLAudiodraftConnection extends GQLConnection {
-  totalCount: number
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLAudiodraftEdge>
-}
-
-export interface GQLAudiodraftEdge {
-  cursor: string
-  node: GQLAudiodraft
-}
-
-export interface GQLAudiodraft {
-  id: string
-  authorId: string
-  title?: string
-  audio: GQLURL
-  length: number
-  createdAt: GQLDateTime
-  updatedAt: GQLDateTime
 }
 
 export interface GQLUserActivity {
@@ -1608,8 +1580,6 @@ export interface GQLMutation {
    * Update a comment's state.
    */
   updateCommentState: GQLComment
-  putAudiodraft: GQLAudiodraft
-  deleteAudiodraft?: boolean
 
   /**
    * Create or update a draft.
@@ -1885,17 +1855,6 @@ export interface GQLUnvoteCommentInput {
 export interface GQLUpdateCommentStateInput {
   id: string
   state: GQLCommentState
-}
-
-export interface GQLPutAudiodraftInput {
-  id?: string
-  audioAssetId?: string
-  title?: string
-  length?: number
-}
-
-export interface GQLDeleteAudiodraftInput {
-  id: string
 }
 
 export interface GQLPutDraftInput {
@@ -2611,9 +2570,6 @@ export interface GQLResolver {
   DraftEdge?: GQLDraftEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
   Asset?: GQLAssetTypeResolver
-  AudiodraftConnection?: GQLAudiodraftConnectionTypeResolver
-  AudiodraftEdge?: GQLAudiodraftEdgeTypeResolver
-  Audiodraft?: GQLAudiodraftTypeResolver
   UserActivity?: GQLUserActivityTypeResolver
   ReadHistoryConnection?: GQLReadHistoryConnectionTypeResolver
   ReadHistoryEdge?: GQLReadHistoryEdgeTypeResolver
@@ -3260,7 +3216,6 @@ export interface GQLUserTypeResolver<TParent = any> {
   recommendation?: UserToRecommendationResolver<TParent>
   articles?: UserToArticlesResolver<TParent>
   drafts?: UserToDraftsResolver<TParent>
-  audiodrafts?: UserToAudiodraftsResolver<TParent>
   commentedArticles?: UserToCommentedArticlesResolver<TParent>
   subscriptions?: UserToSubscriptionsResolver<TParent>
   activity?: UserToActivityResolver<TParent>
@@ -3374,18 +3329,6 @@ export interface UserToDraftsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToDraftsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToAudiodraftsArgs {
-  input: GQLConnectionArgs
-}
-export interface UserToAudiodraftsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: UserToAudiodraftsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -3949,7 +3892,6 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'TagConnection'
     | 'UserConnection'
     | 'DraftConnection'
-    | 'AudiodraftConnection'
     | 'ReadHistoryConnection'
     | 'RecentSearchConnection'
     | 'TransactionConnection'
@@ -4482,144 +4424,6 @@ export interface AssetToPathResolver<TParent = any, TResult = any> {
 }
 
 export interface AssetToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLAudiodraftConnectionTypeResolver<TParent = any> {
-  totalCount?: AudiodraftConnectionToTotalCountResolver<TParent>
-  pageInfo?: AudiodraftConnectionToPageInfoResolver<TParent>
-  edges?: AudiodraftConnectionToEdgesResolver<TParent>
-}
-
-export interface AudiodraftConnectionToTotalCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AudiodraftConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AudiodraftConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLAudiodraftEdgeTypeResolver<TParent = any> {
-  cursor?: AudiodraftEdgeToCursorResolver<TParent>
-  node?: AudiodraftEdgeToNodeResolver<TParent>
-}
-
-export interface AudiodraftEdgeToCursorResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AudiodraftEdgeToNodeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLAudiodraftTypeResolver<TParent = any> {
-  id?: AudiodraftToIdResolver<TParent>
-  authorId?: AudiodraftToAuthorIdResolver<TParent>
-  title?: AudiodraftToTitleResolver<TParent>
-  audio?: AudiodraftToAudioResolver<TParent>
-  length?: AudiodraftToLengthResolver<TParent>
-  createdAt?: AudiodraftToCreatedAtResolver<TParent>
-  updatedAt?: AudiodraftToUpdatedAtResolver<TParent>
-}
-
-export interface AudiodraftToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AudiodraftToAuthorIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AudiodraftToTitleResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AudiodraftToAudioResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AudiodraftToLengthResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AudiodraftToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface AudiodraftToUpdatedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6623,8 +6427,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   voteComment?: MutationToVoteCommentResolver<TParent>
   unvoteComment?: MutationToUnvoteCommentResolver<TParent>
   updateCommentState?: MutationToUpdateCommentStateResolver<TParent>
-  putAudiodraft?: MutationToPutAudiodraftResolver<TParent>
-  deleteAudiodraft?: MutationToDeleteAudiodraftResolver<TParent>
   putDraft?: MutationToPutDraftResolver<TParent>
   deleteDraft?: MutationToDeleteDraftResolver<TParent>
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
@@ -7000,33 +6802,6 @@ export interface MutationToUpdateCommentStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateCommentStateArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToPutAudiodraftArgs {
-  input: GQLPutAudiodraftInput
-}
-export interface MutationToPutAudiodraftResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToPutAudiodraftArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToDeleteAudiodraftArgs {
-  input: GQLDeleteAudiodraftInput
-}
-export interface MutationToDeleteAudiodraftResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToDeleteAudiodraftArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -97,9 +97,6 @@ export default /* GraphQL */ `
     "Drafts authored by current user."
     drafts(input: ConnectionArgs!): DraftConnection! @scope
 
-    "Audiodraft by user, currently not used."
-    audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @scope
-
     "Articles current user commented on"
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
 

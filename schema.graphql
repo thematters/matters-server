@@ -346,27 +346,6 @@ enum AssetType {
   oauthClientAvatar
 }
 
-type Audiodraft {
-  id: ID!
-  authorId: ID!
-  title: String
-  audio: URL!
-  length: Int!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-type AudiodraftConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [AudiodraftEdge!]
-}
-
-type AudiodraftEdge {
-  cursor: String!
-  node: Audiodraft!
-}
-
 input AuthorsFilter {
   random: Boolean
   followed: Boolean
@@ -621,10 +600,6 @@ scalar Date
 
 scalar DateTime
 
-input DeleteAudiodraftInput {
-  id: ID!
-}
-
 input DeleteCommentInput {
   id: ID!
 }
@@ -838,8 +813,6 @@ type Mutation {
 
   """Update a comment's state."""
   updateCommentState(input: UpdateCommentStateInput!): Comment!
-  putAudiodraft(input: PutAudiodraftInput!): Audiodraft!
-  deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean
 
   """Create or update a draft."""
   putDraft(input: PutDraftInput!): Draft!
@@ -1151,13 +1124,6 @@ enum PublishState {
   pending
   error
   published
-}
-
-input PutAudiodraftInput {
-  id: ID
-  audioAssetId: ID
-  title: String
-  length: Int
 }
 
 input PutCommentInput {
@@ -1707,9 +1673,6 @@ type User implements Node {
 
   """Drafts authored by current user."""
   drafts(input: ConnectionArgs!): DraftConnection!
-
-  """Audiodraft by user, currently not used."""
-  audiodrafts(input: ConnectionArgs!): AudiodraftConnection!
 
   """Articles current user commented on"""
   commentedArticles(input: ConnectionArgs!): ArticleConnection!
