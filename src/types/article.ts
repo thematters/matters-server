@@ -152,7 +152,6 @@ export default /* GraphQL */ `
 
     "Content of this tag."
     content: String!
-    count: Int! @deprecated(reason: "Use \`articles.totalCount\`.")
 
     "List of how many articles were attached with this tag."
     articles(input: ConnectionArgs!): ArticleConnection!

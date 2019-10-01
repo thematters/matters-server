@@ -381,7 +381,7 @@ input AuthorsInput {
 
 type AuthResult {
   auth: Boolean!
-  token: String @deprecated(reason: "Use cookie for auth.")
+  token: String
 }
 
 type Badge {
@@ -457,16 +457,12 @@ type Comment implements Node {
 
   """The value determines current user's vote."""
   myVote: Vote
-  mentions: [User!] @deprecated(reason: "not used")
 
   """Descendant comments of this comment."""
   comments(input: CommentCommentsInput!): CommentConnection!
 
   """Parent comment of this comment."""
   parentComment: Comment
-  quotationStart: Int
-  quotationEnd: Int
-  quotationContent: String
 
   """A Comment that this comment replied to."""
   replyTo: Comment
@@ -493,9 +489,6 @@ type CommentEdge {
 
 input CommentInput {
   content: String!
-  quotationStart: Int
-  quotationEnd: Int
-  quotationContent: String
   replyTo: ID
   articleId: ID!
   parentId: ID
@@ -593,7 +586,6 @@ input CommentsInput {
 enum CommentSort {
   oldest
   newest
-  upvotes @deprecated(reason: "not used")
 }
 
 """Enums for comment state."""
@@ -987,8 +979,6 @@ type NotificationSetting {
   downstream: Boolean!
   commentPinned: Boolean!
   commentVoted: Boolean!
-
-  """walletUpdate: Boolean!"""
   officialNotice: Boolean!
   reportFeedback: Boolean!
 }
@@ -1500,7 +1490,6 @@ type Tag implements Node {
 
   """Content of this tag."""
   content: String!
-  count: Int! @deprecated(reason: "Use `articles.totalCount`.")
 
   """List of how many articles were attached with this tag."""
   articles(input: ConnectionArgs!): ArticleConnection!
@@ -1787,41 +1776,20 @@ type UserInfo {
   """Timestamp of registration."""
   createdAt: DateTime!
 
-  """Unique user name."""
-  userName: String! @deprecated(reason: "Use `User.userName`.")
-
   """Is user name editable."""
   userNameEditable: Boolean!
-
-  """Display name on profile."""
-  displayName: String! @deprecated(reason: "Use `User.displayName`.")
 
   """User desciption."""
   description: String
 
-  """URL for avatar."""
-  avatar: URL @deprecated(reason: "Use `User.avatar`.")
-
   """User email."""
   email: Email
-
-  """Is email verified."""
-  emailVerified: Boolean
-
-  """Moble number."""
-  mobile: String
-
-  """User reading speed, 500 as default."""
-  readSpeed: Int!
 
   """User badges."""
   badges: [Badge!]
 
   """Timestamp of user agreement."""
   agreeOn: DateTime
-
-  """Number of total written words."""
-  totalWordCount: Int! @deprecated(reason: "Use `User.status.totalWordCount`.")
 
   """Cover of profile page."""
   profileCover: URL
@@ -1912,22 +1880,13 @@ type UserStatus {
   LIKE: LIKE!
 
   """Total MAT left in wallet."""
-  MAT: MAT! @deprecated(reason: "Use 'UserActivity instead'.")
+  MAT: MAT! @deprecated(reason: "Use 'UserActivity.appreciations*' instead.")
 
   """Number of articles published by user"""
   articleCount: Int!
 
-  """Number of views on user articles. Not yet in use."""
-  viewCount: Int!
-
-  """Number of draft of user."""
-  draftCount: Int! @deprecated(reason: "Use `User.drafts.totalCount`.")
-
   """Number of comments posted by user."""
   commentCount: Int!
-  subscriptionCount: Int! @deprecated(reason: "Use `User.subscriptions.totalCount`.")
-  followeeCount: Int! @deprecated(reason: "Use `User.followees.totalCount`.")
-  followerCount: Int! @deprecated(reason: "Use `User.followers.totalCount`.")
 
   """Number of unread notices."""
   unreadNoticeCount: Int!

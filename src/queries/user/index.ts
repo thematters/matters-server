@@ -1,4 +1,4 @@
-import { connectionFromArray, toGlobalId } from 'common/utils'
+import { toGlobalId } from 'common/utils'
 import {
   GQLLIKETypeResolver,
   GQLMATTypeResolver,
@@ -17,10 +17,7 @@ import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
 import commentCount from './commentCount'
-import draftCount from './draftCount'
-import followeeCount from './followeeCount'
 import followees from './followees'
-import followerCount from './followerCount'
 import followers from './followers'
 import isFollowee from './isFollowee'
 import isFollower from './isFollower'
@@ -31,7 +28,6 @@ import { boost, score } from './oss'
 import profileCover from './profileCover'
 import Recommendation from './recommendation'
 import rootUser from './rootUser'
-import subscriptionCount from './subscriptionCount'
 import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
 import { MAT, Transaction } from './transaction'
@@ -71,7 +67,6 @@ const user: {
     oss: root => root,
     // hasFollowed,
     subscriptions,
-    // quotations,
     followers,
     followees,
     isFollower,
@@ -79,11 +74,9 @@ const user: {
   },
   Recommendation,
   UserInfo: {
-    avatar,
     badges,
     userNameEditable,
     email: ({ email }) => email && email.replace(/#/g, '@'),
-    totalWordCount,
     profileCover
   },
   UserSettings: {
@@ -98,13 +91,7 @@ const user: {
     MAT: root => root,
     LIKE: root => root,
     articleCount,
-    // viewCount,
-    draftCount,
     commentCount,
-    // quotationCount
-    followerCount,
-    followeeCount,
-    subscriptionCount,
     unreadNoticeCount,
     unreadFolloweeArticles,
     unreadResponseInfoPopUp,

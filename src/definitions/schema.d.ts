@@ -377,21 +377,9 @@ export interface GQLUserInfo {
   createdAt: GQLDateTime
 
   /**
-   * Unique user name.
-   * @deprecated Use `User.userName`.
-   */
-  userName: string
-
-  /**
    * Is user name editable.
    */
   userNameEditable: boolean
-
-  /**
-   * Display name on profile.
-   * @deprecated Use `User.displayName`.
-   */
-  displayName: string
 
   /**
    * User desciption.
@@ -399,30 +387,9 @@ export interface GQLUserInfo {
   description?: string
 
   /**
-   * URL for avatar.
-   * @deprecated Use `User.avatar`.
-   */
-  avatar?: GQLURL
-
-  /**
    * User email.
    */
   email?: GQLEmail
-
-  /**
-   * Is email verified.
-   */
-  emailVerified?: boolean
-
-  /**
-   * Moble number.
-   */
-  mobile?: string
-
-  /**
-   * User reading speed, 500 as default.
-   */
-  readSpeed: number
 
   /**
    * User badges.
@@ -433,12 +400,6 @@ export interface GQLUserInfo {
    * Timestamp of user agreement.
    */
   agreeOn?: GQLDateTime
-
-  /**
-   * Number of total written words.
-   * @deprecated Use `User.status.totalWordCount`.
-   */
-  totalWordCount: number
 
   /**
    * Cover of profile page.
@@ -486,10 +447,6 @@ export interface GQLNotificationSetting {
   downstream: boolean
   commentPinned: boolean
   commentVoted: boolean
-
-  /**
-   * walletUpdate: Boolean!
-   */
   officialNotice: boolean
   reportFeedback: boolean
 }
@@ -624,12 +581,6 @@ export interface GQLTag extends GQLNode {
    * Content of this tag.
    */
   content: string
-
-  /**
-   *
-   * @deprecated Use `articles.totalCount`.
-   */
-  count: number
 
   /**
    * List of how many articles were attached with this tag.
@@ -975,7 +926,7 @@ export interface GQLUserStatus {
 
   /**
    * Total MAT left in wallet.
-   * @deprecated Use 'UserActivity instead'.
+   * @deprecated Use 'UserActivity.appreciations*' instead.
    */
   MAT: GQLMAT
 
@@ -985,38 +936,9 @@ export interface GQLUserStatus {
   articleCount: number
 
   /**
-   * Number of views on user articles. Not yet in use.
-   */
-  viewCount: number
-
-  /**
-   * Number of draft of user.
-   * @deprecated Use `User.drafts.totalCount`.
-   */
-  draftCount: number
-
-  /**
    * Number of comments posted by user.
    */
   commentCount: number
-
-  /**
-   *
-   * @deprecated Use `User.subscriptions.totalCount`.
-   */
-  subscriptionCount: number
-
-  /**
-   *
-   * @deprecated Use `User.followees.totalCount`.
-   */
-  followeeCount: number
-
-  /**
-   *
-   * @deprecated Use `User.followers.totalCount`.
-   */
-  followerCount: number
 
   /**
    * Number of unread notices.
@@ -1204,12 +1126,6 @@ export interface GQLComment extends GQLNode {
   myVote?: GQLVote
 
   /**
-   *
-   * @deprecated not used
-   */
-  mentions?: Array<GQLUser>
-
-  /**
    * Descendant comments of this comment.
    */
   comments: GQLCommentConnection
@@ -1218,9 +1134,6 @@ export interface GQLComment extends GQLNode {
    * Parent comment of this comment.
    */
   parentComment?: GQLComment
-  quotationStart?: number
-  quotationEnd?: number
-  quotationContent?: string
 
   /**
    * A Comment that this comment replied to.
@@ -1258,13 +1171,7 @@ export interface GQLCommentCommentsInput {
  */
 export enum GQLCommentSort {
   oldest = 'oldest',
-  newest = 'newest',
-
-  /**
-   *
-   * @deprecated not used
-   */
-  upvotes = 'upvotes'
+  newest = 'newest'
 }
 
 export interface GQLCommentConnection extends GQLConnection {
@@ -1939,9 +1846,6 @@ export interface GQLPutCommentInput {
 
 export interface GQLCommentInput {
   content: string
-  quotationStart?: number
-  quotationEnd?: number
-  quotationContent?: string
   replyTo?: string
   articleId: string
   parentId?: string
@@ -2115,11 +2019,6 @@ export interface GQLUserRegisterInput {
 
 export interface GQLAuthResult {
   auth: boolean
-
-  /**
-   *
-   * @deprecated Use cookie for auth.
-   */
   token?: string
 }
 
@@ -3608,31 +3507,15 @@ export interface UserToNoticesResolver<TParent = any, TResult = any> {
 
 export interface GQLUserInfoTypeResolver<TParent = any> {
   createdAt?: UserInfoToCreatedAtResolver<TParent>
-  userName?: UserInfoToUserNameResolver<TParent>
   userNameEditable?: UserInfoToUserNameEditableResolver<TParent>
-  displayName?: UserInfoToDisplayNameResolver<TParent>
   description?: UserInfoToDescriptionResolver<TParent>
-  avatar?: UserInfoToAvatarResolver<TParent>
   email?: UserInfoToEmailResolver<TParent>
-  emailVerified?: UserInfoToEmailVerifiedResolver<TParent>
-  mobile?: UserInfoToMobileResolver<TParent>
-  readSpeed?: UserInfoToReadSpeedResolver<TParent>
   badges?: UserInfoToBadgesResolver<TParent>
   agreeOn?: UserInfoToAgreeOnResolver<TParent>
-  totalWordCount?: UserInfoToTotalWordCountResolver<TParent>
   profileCover?: UserInfoToProfileCoverResolver<TParent>
 }
 
 export interface UserInfoToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserInfoToUserNameResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -3653,15 +3536,6 @@ export interface UserInfoToUserNameEditableResolver<
   ): TResult
 }
 
-export interface UserInfoToDisplayNameResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface UserInfoToDescriptionResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -3671,43 +3545,7 @@ export interface UserInfoToDescriptionResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface UserInfoToAvatarResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface UserInfoToEmailResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserInfoToEmailVerifiedResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserInfoToMobileResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserInfoToReadSpeedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -3726,18 +3564,6 @@ export interface UserInfoToBadgesResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToAgreeOnResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserInfoToTotalWordCountResolver<
-  TParent = any,
-  TResult = any
-> {
   (
     parent: TParent,
     args: {},
@@ -4265,7 +4091,6 @@ export interface TagEdgeToNodeResolver<TParent = any, TResult = any> {
 export interface GQLTagTypeResolver<TParent = any> {
   id?: TagToIdResolver<TParent>
   content?: TagToContentResolver<TParent>
-  count?: TagToCountResolver<TParent>
   articles?: TagToArticlesResolver<TParent>
   createdAt?: TagToCreatedAtResolver<TParent>
   oss?: TagToOssResolver<TParent>
@@ -4282,15 +4107,6 @@ export interface TagToIdResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToContentResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagToCountResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5224,12 +5040,7 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   LIKE?: UserStatusToLIKEResolver<TParent>
   MAT?: UserStatusToMATResolver<TParent>
   articleCount?: UserStatusToArticleCountResolver<TParent>
-  viewCount?: UserStatusToViewCountResolver<TParent>
-  draftCount?: UserStatusToDraftCountResolver<TParent>
   commentCount?: UserStatusToCommentCountResolver<TParent>
-  subscriptionCount?: UserStatusToSubscriptionCountResolver<TParent>
-  followeeCount?: UserStatusToFolloweeCountResolver<TParent>
-  followerCount?: UserStatusToFollowerCountResolver<TParent>
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
   unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
   unreadResponseInfoPopUp?: UserStatusToUnreadResponseInfoPopUpResolver<TParent>
@@ -5284,61 +5095,7 @@ export interface UserStatusToArticleCountResolver<
   ): TResult
 }
 
-export interface UserStatusToViewCountResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserStatusToDraftCountResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface UserStatusToCommentCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserStatusToSubscriptionCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserStatusToFolloweeCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserStatusToFollowerCountResolver<
   TParent = any,
   TResult = any
 > {
@@ -5670,12 +5427,8 @@ export interface GQLCommentTypeResolver<TParent = any> {
   upvotes?: CommentToUpvotesResolver<TParent>
   downvotes?: CommentToDownvotesResolver<TParent>
   myVote?: CommentToMyVoteResolver<TParent>
-  mentions?: CommentToMentionsResolver<TParent>
   comments?: CommentToCommentsResolver<TParent>
   parentComment?: CommentToParentCommentResolver<TParent>
-  quotationStart?: CommentToQuotationStartResolver<TParent>
-  quotationEnd?: CommentToQuotationEndResolver<TParent>
-  quotationContent?: CommentToQuotationContentResolver<TParent>
   replyTo?: CommentToReplyToResolver<TParent>
   remark?: CommentToRemarkResolver<TParent>
 }
@@ -5770,15 +5523,6 @@ export interface CommentToMyVoteResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface CommentToMentionsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface CommentToCommentsArgs {
   input: GQLCommentCommentsInput
 }
@@ -5792,36 +5536,6 @@ export interface CommentToCommentsResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToParentCommentResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToQuotationStartResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToQuotationEndResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToQuotationContentResolver<
-  TParent = any,
-  TResult = any
-> {
   (
     parent: TParent,
     args: {},

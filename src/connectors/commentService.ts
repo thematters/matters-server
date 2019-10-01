@@ -44,9 +44,6 @@ export class CommentService extends BaseService {
     articleId,
     parentCommentId,
     content,
-    quotationStart,
-    quotationEnd,
-    quotationContent,
     replyTo
   }: {
     [key: string]: any
@@ -58,9 +55,6 @@ export class CommentService extends BaseService {
       articleId,
       parentCommentId,
       content,
-      quotationStart,
-      quotationEnd,
-      quotationContent,
       replyTo
     })
     return comemnt
@@ -141,22 +135,7 @@ export class CommentService extends BaseService {
       where = { ...where, authorId: author }
     }
 
-    if (sort === 'upvotes') {
-      query = this.knex('comment')
-        .select('comment.*')
-        .countDistinct('votes.user_id as upvotes')
-        .leftJoin(
-          this.knex
-            .select('target_id', 'user_id')
-            .from('action_comment')
-            .as('votes'),
-          'votes.target_id',
-          'comment.id'
-        )
-        .groupBy('comment.id')
-        .where(where)
-        .orderBy('upvotes', 'desc')
-    } else if (sort === 'oldest') {
+    if (sort === 'oldest') {
       query = sortCreatedAt('asc')
     } else if (sort === 'newest') {
       query = sortCreatedAt('desc')

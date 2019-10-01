@@ -28,16 +28,7 @@ const resolver: MutationToPutCommentResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  const {
-    content,
-    articleId,
-    parentId,
-    mentions,
-    quotationStart,
-    quotationEnd,
-    quotationContent,
-    replyTo
-  } = commentInput
+  const { content, articleId, parentId, mentions, replyTo } = commentInput
 
   if (!content || content.length <= 0) {
     throw new UserInputError(
@@ -45,29 +36,9 @@ const resolver: MutationToPutCommentResolver = async (
     )
   }
 
-  let data: any = {
+  const data: any = {
     content: sanitize(content),
     authorId: viewer.id
-  }
-
-  // check quotation input
-  const quotationInputs = _.filter(
-    [quotationStart, quotationEnd, quotationContent],
-    o => !_.isNil(o)
-  )
-  if (quotationInputs.length > 0) {
-    if (quotationInputs.length < 3) {
-      throw new UserInputError(
-        `Quotation needs fields "quotationStart, quotationEnd, quotationContent"`
-      )
-    }
-
-    data = {
-      ...data,
-      quotationStart,
-      quotationEnd,
-      quotationContent: sanitize(quotationContent || '')
-    }
   }
 
   // check target article
