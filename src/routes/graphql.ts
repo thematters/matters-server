@@ -111,7 +111,7 @@ const server = new ProtectedApolloServer({
     cache: redisCache
   },
   cacheControl: {
-    calculateHttpHeaders: true,
+    calculateHttpHeaders: false,
     defaultMaxAge: CACHE_TTL.DEFAULT,
     stripFormattedExtensions: isProd
   },
