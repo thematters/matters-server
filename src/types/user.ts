@@ -271,9 +271,6 @@ export default /* GraphQL */ `
     "Timestamp of transaction."
     createdAt: DateTime!
 
-    "Unit of transaction used."
-    unit: TransactionUnit!
-
     "Recipient of transaction."
     recipient: User!
 
@@ -504,11 +501,6 @@ export default /* GraphQL */ `
   enum UserRole {
     user
     admin
-  }
-
-  enum TransactionUnit {
-    mat
-    like
   }
 
   enum TransactionPurpose {
