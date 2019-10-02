@@ -84,13 +84,16 @@ export default () => {
           }
 
           // save authorized liker and remove the existing temporary one
-          const user = await userService.saveLiker({
+          await userService.saveLiker({
             userId,
             likerId,
             accessToken,
             refreshToken,
             accountType: 'general'
           })
+
+          // activate user
+          const user = await userService.activate({ id: viewer.id })
 
           return done(null, user)
         } catch (e) {
