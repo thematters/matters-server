@@ -1,6 +1,6 @@
-import { ArticleToAppreciationTotalResolver } from 'definitions'
+import { ArticleToAppreciationsReceivedTotalResolver } from 'definitions'
 
-const resolver: ArticleToAppreciationTotalResolver = async (
+const resolver: ArticleToAppreciationsReceivedTotalResolver = async (
   { id },
   _: any,
   { dataSources: { articleService } }

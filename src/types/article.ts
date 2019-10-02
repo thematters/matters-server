@@ -111,14 +111,10 @@ export default /* GraphQL */ `
     relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
     "MAT recieved for this article (will be decrpecated soon)"
-    MAT: Int!
+    MAT: Int! @deprecated(reason: "Use 'appreciationsReceived' instead.")
 
     "Appreciations history of this article."
     appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
-
-    "Total number of appreciations recieved of this article."
-    appreciationTotal: Int!
-      @deprecated(reason: "Use 'appreciationReceivedTotal instead'.")
 
     "Total number of appreciations recieved of this article."
     appreciationsReceivedTotal: Int!
@@ -128,9 +124,6 @@ export default /* GraphQL */ `
 
     "Appreciators of this articles."
     appreciators(input: ConnectionArgs!): UserConnection!
-
-    "Total count of this article's appreciations."
-    appreciatorCount: Int!
 
     "Limit the nuhmber of appreciate per user."
     appreciateLimit: Int!
@@ -159,7 +152,6 @@ export default /* GraphQL */ `
 
     "Content of this tag."
     content: String!
-    count: Int! @deprecated(reason: "Use \`articles.totalCount\`.")
 
     "List of how many articles were attached with this tag."
     articles(input: ConnectionArgs!): ArticleConnection!

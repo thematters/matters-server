@@ -214,28 +214,3 @@ export const updateUserDescription = async ({
     variables: { input: { description } }
   })
 }
-
-export const getViewerMAT = async () => {
-  const GET_VIEWER_MAT = `
-    query {
-      viewer {
-        status {
-          MAT {
-            total
-          }
-        }
-      }
-    }
-  `
-
-  const { query } = await testClient({ isAuth: true })
-  const result = await query({
-    query: GET_VIEWER_MAT,
-    // @ts-ignore
-    variables: { input: {} }
-  })
-  const { data } = result
-  const { total } =
-    data && data.viewer && data.viewer.status && data.viewer.status.MAT
-  return total
-}

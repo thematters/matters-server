@@ -29,8 +29,6 @@ export type OfficialNoticeExtendType =
   | 'article_banned'
   | 'article_reported'
   | 'comment_reported'
-  | 'user_activated'
-  | 'user_first_post_award'
 
 export type NoticeEntityType =
   | 'target'
@@ -242,17 +240,6 @@ export interface NoticeCommentReportedParams
   recipientId: string
 }
 
-export interface NoticeUserActivatedParams extends NotificationRequiredParams {
-  event: 'user_activated'
-  recipientId: string
-}
-
-export interface NoticeUserFirstPostAwardParams
-  extends NotificationRequiredParams {
-  event: 'user_first_post_award'
-  recipientId: string
-}
-
 export type NotificationPrarms =
   | NoticeUserNewFollowerParams
   | NoticeArticlePublishedParams
@@ -276,8 +263,6 @@ export type NotificationPrarms =
   | NoticeArticleBannedParams
   | NoticeArticleReportedParams
   | NoticeCommentReportedParams
-  | NoticeUserActivatedParams
-  | NoticeUserFirstPostAwardParams
 
 export type NoticeUserId = string
 

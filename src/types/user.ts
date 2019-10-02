@@ -97,9 +97,6 @@ export default /* GraphQL */ `
     "Drafts authored by current user."
     drafts(input: ConnectionArgs!): DraftConnection! @scope
 
-    "Audiodraft by user, currently not used."
-    audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @scope
-
     "Articles current user commented on"
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
 
@@ -171,42 +168,20 @@ export default /* GraphQL */ `
     "Timestamp of registration."
     createdAt: DateTime!
 
-    "Unique user name."
-    userName: String! @deprecated(reason: "Use \`User.userName\`.")
-
     "Is user name editable."
     userNameEditable: Boolean!
-
-    "Display name on profile."
-    displayName: String! @deprecated(reason: "Use \`User.displayName\`.")
 
     "User desciption."
     description: String
 
-    "URL for avatar."
-    avatar: URL @deprecated(reason: "Use \`User.avatar\`.")
-
     "User email."
     email: Email @scope
-
-    "Is email verified."
-    emailVerified: Boolean
-
-    "Moble number."
-    mobile: String @scope
-
-    "User reading speed, 500 as default."
-    readSpeed: Int!
 
     "User badges."
     badges: [Badge!]
 
     "Timestamp of user agreement."
     agreeOn: DateTime
-
-    "Number of total written words."
-    totalWordCount: Int!
-      @deprecated(reason: "Use \`User.status.totalWordCount\`.")
 
     "Cover of profile page."
     profileCover: URL
@@ -251,34 +226,13 @@ export default /* GraphQL */ `
     LIKE: LIKE! @scope
 
     "Total MAT left in wallet."
-    MAT: MAT! @scope @deprecated(reason: "Use 'UserActivity instead'.")
-
-    "Invitation. Deprecated."
-    invitation: InvitationStatus @deprecated(reason: "removed")
+    MAT: MAT! @scope @deprecated(reason: "Use 'UserActivity.appreciations*' instead.")
 
     "Number of articles published by user"
     articleCount: Int!
 
-    "Number of views on user articles. Not yet in use."
-    viewCount: Int! @scope
-
-    "Number of draft of user."
-    draftCount: Int!
-      @scope
-      @deprecated(reason: "Use \`User.drafts.totalCount\`.")
-
     "Number of comments posted by user."
     commentCount: Int!
-
-    subscriptionCount: Int!
-      @scope
-      @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
-
-    followeeCount: Int!
-      @deprecated(reason: "Use \`User.followees.totalCount\`.")
-
-    followerCount: Int!
-      @deprecated(reason: "Use \`User.followers.totalCount\`.")
 
     "Number of unread notices."
     unreadNoticeCount: Int! @scope @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
@@ -291,37 +245,6 @@ export default /* GraphQL */ `
 
     "Number of total written words."
     totalWordCount: Int!
-  }
-
-  ## TODO: remove in OSS
-  type InvitationStatus {
-    reward: String
-    # invitation number left
-    left: Int
-    # invitations sent
-    sent(input: ConnectionArgs!): InvitationConnection
-  }
-
-  ## TODO: remove in OSS
-  type Invitation {
-    id: ID!
-    user: User
-    email: String
-    accepted: Boolean!
-    createdAt: DateTime!
-  }
-
-  ## TODO: remove in OSS
-  type InvitationConnection implements Connection {
-    totalCount: Int!
-    pageInfo: PageInfo!
-    edges: [InvitationEdge!]
-  }
-
-  ## TODO: remove in OSS
-  type InvitationEdge {
-    cursor: String!
-    node: Invitation!
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -340,7 +263,7 @@ export default /* GraphQL */ `
   }
 
   type Transaction {
-    delta: Int!  @deprecated(reason: "use 'amount' instead.")
+    delta: Int! @deprecated(reason: "use 'amount' instead.")
     amount: Int!
     purpose: TransactionPurpose!
     content: String!
@@ -373,7 +296,6 @@ export default /* GraphQL */ `
     downstream: Boolean!
     commentPinned: Boolean!
     commentVoted: Boolean!
-    # walletUpdate: Boolean!
     officialNotice: Boolean!
     reportFeedback: Boolean!
   }
@@ -389,7 +311,7 @@ export default /* GraphQL */ `
 
   type AuthResult {
     auth: Boolean!
-    token: String @deprecated(reason: "Use cookie for auth.")
+    token: String
   }
 
   type UserConnection implements Connection {
@@ -546,7 +468,6 @@ export default /* GraphQL */ `
     avatar
     description
     email
-    mobile
     agreeOn
   }
 

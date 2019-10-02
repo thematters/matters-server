@@ -25,8 +25,10 @@ const QUERY_CASE_1 = `
 const QUERY_CASE_2 = `
   query {
     viewer {
-      info {
-        mobile
+      settings {
+        notification {
+          officialNotice
+        }
       }
     }
   }
@@ -102,6 +104,7 @@ describe('OAuth viewer qeury and mutation', () => {
       mode: SCOPE_MODE.oauth,
       scope
     })
+
     // query no scope field error
     const errorCase1 = await query({ query: QUERY_CASE_2 })
     expect(errorCase1 && errorCase1.errors && errorCase1.errors.length).toBe(1)
@@ -155,7 +158,9 @@ describe('General viewer query and mutation', () => {
     const { context, query } = await prepare({ email: defaultTestUser.email })
     // query no scope field error
     const { data } = await query({ query: QUERY_CASE_2 })
-    expect(_.get(data, 'viewer.info.mobile')).toBe(context.viewer.mobile)
+    expect(_.get(data, 'viewer.settings.notification.officialNotice')).toBe(
+      true
+    )
 
     // query other private field error
     const otherUserName = 'test2'
@@ -198,7 +203,9 @@ describe('Admin viewer query and mutation', () => {
     const { context, query } = await prepare({ email: adminUser.email })
     // query no scope field error
     const { data } = await query({ query: QUERY_CASE_2 })
-    expect(_.get(data, 'viewer.info.mobile')).toBe(context.viewer.mobile)
+    expect(_.get(data, 'viewer.settings.notification.officialNotice')).toBe(
+      true
+    )
 
     // query other private field error
     const otherUserName = 'test2'

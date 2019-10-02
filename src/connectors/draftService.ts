@@ -48,28 +48,4 @@ export class DraftService extends BaseService {
       .where({
         publishState
       })
-
-  /*********************************
-   *                               *
-   *           Audio Draft         *
-   *                               *
-   *********************************/
-  /**
-   * Find audio draft by a given id.
-   */
-  findAudiodraft = async (id: string): Promise<any[]> =>
-    this.knex
-      .select()
-      .from('audio_draft')
-      .where({ id })
-
-  /**
-   * Find audio drafts by a given author id (user).
-   */
-  findAudiodraftsByAuthor = async (authorId: string): Promise<any[]> =>
-    this.knex
-      .select()
-      .from('audio_draft')
-      .where({ authorId })
-      .orderBy('id', 'desc')
 }

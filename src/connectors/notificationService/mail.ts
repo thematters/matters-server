@@ -39,14 +39,6 @@ const trans = {
     zh_hant: 'Matters | 你已註冊成功',
     zh_hans: 'Matters | 你已注册成功'
   }),
-  invitationSuccess: i18n({
-    zh_hant: 'Matters | 你被邀請成為內容創作者',
-    zh_hans: 'Matters | 你被邀请成为内容创作者'
-  }),
-  userActivated: i18n({
-    zh_hant: 'Matters | 你邀請的好友已進站',
-    zh_hans: 'Matters | 你邀请的好友已进站'
-  }),
   dailySummary: i18n<{ displayName: string }>({
     zh_hant: ({ displayName }) =>
       `🐿️ ${displayName}，這是專屬於你的 Matters 日報`,
@@ -118,83 +110,6 @@ class Mail {
             subject: trans.registerSuccess(language, {}),
             siteDomain: environment.siteDomain,
             recipient
-          }
-        }
-      ]
-    })
-  }
-
-  sendInvitationSuccess = async ({
-    to,
-    type,
-    recipient,
-    sender,
-    language = 'zh_hant'
-  }: {
-    to: string
-    type: 'invitation' | 'activation'
-    recipient?: {
-      displayName?: string
-      userName?: string
-    }
-    sender: {
-      displayName?: string
-      userName?: string
-    }
-    language?: LANGUAGES
-  }) => {
-    const templateId = EMAIL_TEMPLATE_ID.invitationSuccess[language]
-    const subject = trans.invitationSuccess(language, {})
-    notificationQueue.sendMail({
-      from: environment.emailFromAsk as string,
-      templateId,
-      personalizations: [
-        {
-          to,
-          // @ts-ignore
-          dynamic_template_data: {
-            subject,
-            siteDomain: environment.siteDomain,
-            recipient,
-            sender,
-            invitation: type === 'invitation',
-            activation: type === 'activation'
-          }
-        }
-      ]
-    })
-  }
-
-  sendUserActivated = async ({
-    to,
-    recipient,
-    email,
-    userName,
-    language = 'zh_hant'
-  }: {
-    to: string
-    recipient?: {
-      displayName?: string
-    }
-    email: string
-    userName: string
-    language?: LANGUAGES
-  }) => {
-    const templateId = EMAIL_TEMPLATE_ID.userActivated[language]
-    const subject = trans.userActivated(language, {})
-    notificationQueue.sendMail({
-      from: environment.emailFromAsk as string,
-      templateId,
-      personalizations: [
-        {
-          to,
-          // @ts-ignore
-          dynamic_template_data: {
-            subject,
-            siteDomain: environment.siteDomain,
-            recipient,
-            email,
-            userName
           }
         }
       ]

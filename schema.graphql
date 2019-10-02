@@ -88,13 +88,10 @@ type Article implements Node {
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
   """MAT recieved for this article (will be decrpecated soon)"""
-  MAT: Int!
+  MAT: Int! @deprecated(reason: "Use 'appreciationsReceived' instead.")
 
   """Appreciations history of this article."""
   appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
-
-  """Total number of appreciations recieved of this article."""
-  appreciationTotal: Int! @deprecated(reason: "Use 'appreciationReceivedTotal instead'.")
 
   """Total number of appreciations recieved of this article."""
   appreciationsReceivedTotal: Int!
@@ -104,9 +101,6 @@ type Article implements Node {
 
   """Appreciators of this articles."""
   appreciators(input: ConnectionArgs!): UserConnection!
-
-  """Total count of this article's appreciations."""
-  appreciatorCount: Int!
 
   """Limit the nuhmber of appreciate per user."""
   appreciateLimit: Int!
@@ -352,27 +346,6 @@ enum AssetType {
   oauthClientAvatar
 }
 
-type Audiodraft {
-  id: ID!
-  authorId: ID!
-  title: String
-  audio: URL!
-  length: Int!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-}
-
-type AudiodraftConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [AudiodraftEdge!]
-}
-
-type AudiodraftEdge {
-  cursor: String!
-  node: Audiodraft!
-}
-
 input AuthorsFilter {
   random: Boolean
   followed: Boolean
@@ -387,7 +360,7 @@ input AuthorsInput {
 
 type AuthResult {
   auth: Boolean!
-  token: String @deprecated(reason: "Use cookie for auth.")
+  token: String
 }
 
 type Badge {
@@ -463,16 +436,12 @@ type Comment implements Node {
 
   """The value determines current user's vote."""
   myVote: Vote
-  mentions: [User!] @deprecated(reason: "not used")
 
   """Descendant comments of this comment."""
   comments(input: CommentCommentsInput!): CommentConnection!
 
   """Parent comment of this comment."""
   parentComment: Comment
-  quotationStart: Int
-  quotationEnd: Int
-  quotationContent: String
 
   """A Comment that this comment replied to."""
   replyTo: Comment
@@ -499,9 +468,6 @@ type CommentEdge {
 
 input CommentInput {
   content: String!
-  quotationStart: Int
-  quotationEnd: Int
-  quotationContent: String
   replyTo: ID
   articleId: ID!
   parentId: ID
@@ -599,7 +565,6 @@ input CommentsInput {
 enum CommentSort {
   oldest
   newest
-  upvotes @deprecated(reason: "not used")
 }
 
 """Enums for comment state."""
@@ -634,10 +599,6 @@ input CostComplexity {
 scalar Date
 
 scalar DateTime
-
-input DeleteAudiodraftInput {
-  id: ID!
-}
 
 input DeleteCommentInput {
   id: ID!
@@ -762,39 +723,6 @@ input ImportArticlesInput {
   token: String
 }
 
-"""# TODO: remove in OSS"""
-type Invitation {
-  id: ID!
-  user: User
-  email: String
-  accepted: Boolean!
-  createdAt: DateTime!
-}
-
-"""# TODO: remove in OSS"""
-type InvitationConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [InvitationEdge!]
-}
-
-"""# TODO: remove in OSS"""
-type InvitationEdge {
-  cursor: String!
-  node: Invitation!
-}
-
-"""# TODO: remove in OSS"""
-type InvitationStatus {
-  reward: String
-
-  """invitation number left"""
-  left: Int
-
-  """invitations sent"""
-  sent(input: ConnectionArgs!): InvitationConnection
-}
-
 scalar JSON
 
 type LIKE {
@@ -885,8 +813,6 @@ type Mutation {
 
   """Update a comment's state."""
   updateCommentState(input: UpdateCommentStateInput!): Comment!
-  putAudiodraft(input: PutAudiodraftInput!): Audiodraft!
-  deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean
 
   """Create or update a draft."""
   putDraft(input: PutDraftInput!): Draft!
@@ -1026,8 +952,6 @@ type NotificationSetting {
   downstream: Boolean!
   commentPinned: Boolean!
   commentVoted: Boolean!
-
-  """walletUpdate: Boolean!"""
   officialNotice: Boolean!
   reportFeedback: Boolean!
 }
@@ -1200,13 +1124,6 @@ enum PublishState {
   pending
   error
   published
-}
-
-input PutAudiodraftInput {
-  id: ID
-  audioAssetId: ID
-  title: String
-  length: Int
 }
 
 input PutCommentInput {
@@ -1539,7 +1456,6 @@ type Tag implements Node {
 
   """Content of this tag."""
   content: String!
-  count: Int! @deprecated(reason: "Use `articles.totalCount`.")
 
   """List of how many articles were attached with this tag."""
   articles(input: ConnectionArgs!): ArticleConnection!
@@ -1758,9 +1674,6 @@ type User implements Node {
   """Drafts authored by current user."""
   drafts(input: ConnectionArgs!): DraftConnection!
 
-  """Audiodraft by user, currently not used."""
-  audiodrafts(input: ConnectionArgs!): AudiodraftConnection!
-
   """Articles current user commented on"""
   commentedArticles(input: ConnectionArgs!): ArticleConnection!
 
@@ -1826,41 +1739,20 @@ type UserInfo {
   """Timestamp of registration."""
   createdAt: DateTime!
 
-  """Unique user name."""
-  userName: String! @deprecated(reason: "Use `User.userName`.")
-
   """Is user name editable."""
   userNameEditable: Boolean!
-
-  """Display name on profile."""
-  displayName: String! @deprecated(reason: "Use `User.displayName`.")
 
   """User desciption."""
   description: String
 
-  """URL for avatar."""
-  avatar: URL @deprecated(reason: "Use `User.avatar`.")
-
   """User email."""
   email: Email
-
-  """Is email verified."""
-  emailVerified: Boolean
-
-  """Moble number."""
-  mobile: String
-
-  """User reading speed, 500 as default."""
-  readSpeed: Int!
 
   """User badges."""
   badges: [Badge!]
 
   """Timestamp of user agreement."""
   agreeOn: DateTime
-
-  """Number of total written words."""
-  totalWordCount: Int! @deprecated(reason: "Use `User.status.totalWordCount`.")
 
   """Cover of profile page."""
   profileCover: URL
@@ -1871,7 +1763,6 @@ enum UserInfoFields {
   avatar
   description
   email
-  mobile
   agreeOn
 }
 
@@ -1951,25 +1842,13 @@ type UserStatus {
   LIKE: LIKE!
 
   """Total MAT left in wallet."""
-  MAT: MAT! @deprecated(reason: "Use 'UserActivity instead'.")
-
-  """Invitation. Deprecated."""
-  invitation: InvitationStatus @deprecated(reason: "removed")
+  MAT: MAT! @deprecated(reason: "Use 'UserActivity.appreciations*' instead.")
 
   """Number of articles published by user"""
   articleCount: Int!
 
-  """Number of views on user articles. Not yet in use."""
-  viewCount: Int!
-
-  """Number of draft of user."""
-  draftCount: Int! @deprecated(reason: "Use `User.drafts.totalCount`.")
-
   """Number of comments posted by user."""
   commentCount: Int!
-  subscriptionCount: Int! @deprecated(reason: "Use `User.subscriptions.totalCount`.")
-  followeeCount: Int! @deprecated(reason: "Use `User.followees.totalCount`.")
-  followerCount: Int! @deprecated(reason: "Use `User.followers.totalCount`.")
 
   """Number of unread notices."""
   unreadNoticeCount: Int!

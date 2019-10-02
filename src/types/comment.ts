@@ -60,19 +60,16 @@ export default /* GraphQL */ `
 
     "The value determines current user's vote."
     myVote: Vote
-    mentions: [User!] @deprecated(reason: "not used")
 
     "Descendant comments of this comment."
     comments(input: CommentCommentsInput!): CommentConnection!
 
     "Parent comment of this comment."
     parentComment: Comment @logCache(type: "${NODE_TYPES.comment}")
-    quotationStart: Int
-    quotationEnd: Int
-    quotationContent: String
 
     "A Comment that this comment replied to."
     replyTo: Comment @logCache(type: "${NODE_TYPES.comment}")
+
     remark: String @authorize
   }
 
@@ -114,9 +111,6 @@ export default /* GraphQL */ `
 
   input CommentInput {
     content: String!
-    quotationStart: Int
-    quotationEnd: Int
-    quotationContent: String
     replyTo: ID
     articleId: ID!
     parentId: ID
@@ -156,7 +150,6 @@ export default /* GraphQL */ `
   enum CommentSort {
     oldest
     newest
-    upvotes @deprecated(reason: "not used")
   }
 
   input PinCommentInput {
