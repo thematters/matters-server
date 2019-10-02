@@ -8,7 +8,7 @@ import {
   GQLPublishArticleInput
 } from 'definitions'
 
-import { getViewerMAT, publishArticle, putDraft, testClient } from './utils'
+import { publishArticle, putDraft, testClient } from './utils'
 
 const mediaHash = 'someIpfsMediaHash1'
 
@@ -48,11 +48,11 @@ const GET_ARTICLE_TAGS = `
     }
   }
 `
-const GET_ARTICLE_MAT = `
+const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = `
   query ($input: NodeInput!) {
     node(input: $input) {
       ... on Article {
-        MAT
+        appreciationsReceivedTotal
       }
     }
   }
@@ -60,7 +60,7 @@ const GET_ARTICLE_MAT = `
 const APPRECIATE_ARTICLE = `
   mutation($input: AppreciateArticleInput!) {
     appreciateArticle(input: $input) {
-      MAT
+      appreciationsReceivedTotal
     }
   }
 `
@@ -98,15 +98,17 @@ const GET_RELATED_ARTICLES = `
   }
 `
 
-export const getArticleMAT = async (input: GQLNodeInput) => {
+export const getArticleAppreciationsReceivedTotal = async (
+  input: GQLNodeInput
+) => {
   const { query } = await testClient()
   const { data } = await query({
-    query: GET_ARTICLE_MAT,
+    query: GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL,
     // @ts-ignore
     variables: { input }
   })
-  const { MAT } = data && data.node && data.node
-  return MAT
+  const { appreciationsReceivedTotal } = data && data.node && data.node
+  return appreciationsReceivedTotal
 }
 
 export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
@@ -224,31 +226,6 @@ describe('publish article', () => {
         ({ node }: { node: { id: string } }) => node.id
       )
     ).toMatchObject(collection)
-  })
-})
-
-describe('appreciate article', () => {
-  test('appreciate success', async () => {
-    const viewerCurrentMAT = await getViewerMAT()
-    const articleCurrentMAT = await getArticleMAT({ id: ARTICLE_ID })
-    const appreciate = { id: ARTICLE_ID, amount: 1 }
-    await appreciateArticle(appreciate)
-    const viewerNewMAT = await getViewerMAT()
-    const articleNewMAT = await getArticleMAT({ id: ARTICLE_ID })
-    expect(viewerNewMAT).toBe(viewerCurrentMAT - appreciate.amount)
-    // expect(articleNewMAT).toBe(articleCurrentMAT + appreciate.amount)
-  })
-
-  test('appreciate failed', async () => {
-    const { totoal: viewerCurrentMAT } = await getViewerMAT()
-    const appreciate = { id: ARTICLE_ID, amount: viewerCurrentMAT + 1 }
-    try {
-      await appreciateArticle(appreciate)
-    } catch (e) {
-      expect(() => {
-        throw e
-      }).toThrowError()
-    }
   })
 })
 

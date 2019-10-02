@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2019-10-03
+
+### Added
+
+- Use `nanoid` to generate oauth access/refresh tokens #454
+- Add handlers for "temporal" liker account #460
+- `Article.featuredComments` API #465
+- Add purge cache middleware #468
+- APIs for likecoin related UI #474
+- Add backdoor for `LikeCoin` OAuth Client to finish `Login with Matters` flow #476
+- Add `GenerateTempLikerIds` mutation to generate temp likerId for users #478
+- Add transaction type #490
+- Add cache service for other async service #495
+
+### Changed
+
+- Alter `changeEmail` mutation to return a user #455
+- Fix `validateScope` #456
+- Create and revise directive for cache #477
+- Sort `appreciatedBy` and `appreciations` by `desc` #483
+- Transfer MAT to pending LIKE #484
+- Update LikeCoin APIs #488
+- Remove unused appreciation related fields #489
+- Alter `transaction_delta_view`; Filter transaction type to transfer LIKE #494
+- Filter out users that MAT <= 0 #496
+- Allow admin to change special display name (e.g. Matty) #498
+- Disable injecting cache control into http header #501
+
 ## [1.10.0] - 2019-09-02
 
 ### Changed

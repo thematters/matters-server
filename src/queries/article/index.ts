@@ -6,7 +6,6 @@ import { makeSummary, toGlobalId } from 'common/utils'
 import appreciateLeft from './appreciateLeft'
 import appreciationsReceived from './appreciationsReceived'
 import appreciationsReceivedTotal from './appreciationsReceivedTotal'
-import appreciatorCount from './appreciatorCount'
 import appreciators from './appreciators'
 import author from './author'
 import collectedBy from './collectedBy'
@@ -20,7 +19,6 @@ import rootArticle from './rootArticle'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import tagArticles from './tag/articles'
-import tagCount from './tag/count'
 import * as tagOSS from './tag/oss'
 import tags from './tags'
 import userArticles from './user/articles'
@@ -35,9 +33,7 @@ export default {
   Article: {
     appreciationsReceived,
     appreciationsReceivedTotal,
-    appreciationTotal: appreciationsReceivedTotal,
     appreciators,
-    appreciatorCount,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
     appreciateLeft,
     author,
@@ -61,7 +57,6 @@ export default {
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
-    count: tagCount,
     articles: tagArticles,
     oss: (root: any) => root
   },

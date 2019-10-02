@@ -34,9 +34,7 @@ const resolver: MutationToGenerateLikerIdResolver = async (
   }
 
   // activate user
-  const user = await userService.updateInfo(viewer.id, {
-    state: USER_STATE.active
-  })
+  const user = await userService.activate({ id: viewer.id })
   return user
 }
 

@@ -1,10 +1,6 @@
 import _ from 'lodash'
 
-import {
-  MAT_UNIT,
-  MATERIALIZED_VIEW,
-  VERIFICATION_CODE_STATUS
-} from 'common/enums'
+import { MATERIALIZED_VIEW, VERIFICATION_CODE_STATUS } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService } from 'connectors'
 import { MaterializedView } from 'definitions'
@@ -12,7 +8,6 @@ import { MaterializedView } from 'definitions'
 import {
   defaultTestUser,
   getUserContext,
-  getViewerMAT,
   registerUser,
   testClient
 } from './utils'
@@ -26,14 +21,6 @@ beforeAll(async () => {
 const USER_LOGIN = `
   mutation UserLogin($input: UserLoginInput!) {
     userLogin(input: $input) {
-      auth
-      token
-    }
-  }
-`
-const USER_REGISTER = `
-  mutation UserRegister($input: UserRegisterInput!) {
-    userRegister(input: $input) {
       auth
       token
     }
@@ -66,9 +53,8 @@ const UPDATE_USER_INFO_DESCRIPTION = `
 const UPDATE_USER_INFO_AVATAR = `
   mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
     updateUserInfo(input: $input) {
-      info {
-        avatar
-      }
+      id
+      avatar
     }
   }
 `
@@ -86,28 +72,8 @@ const UPDATE_NOTIFICARION_SETTINGS = `
 const GET_USER_BY_USERNAME = `
   query ($input: UserInput!) {
     user(input: $input) {
-      info {
-        userName
-      }
-    }
-  }
-`
-
-const GET_VIEWER_MAT_HISOTRY = `
-  query ($input: ConnectionArgs!) {
-    viewer {
-      status {
-        MAT {
-          history(input: $input) {
-            edges {
-              node {
-                delta
-                content
-              }
-            }
-          }
-        }
-      }
+      id
+      userName
     }
   }
 `
@@ -116,13 +82,11 @@ const GET_VIEWER_INFO = `
   query {
     viewer {
       uuid
+      avatar
+      displayName
       info {
         email
-        displayName
         description
-        avatar
-        mobile
-        readSpeed
         createdAt
         agreeOn
       }
@@ -154,31 +118,7 @@ const GET_VIEWER_SETTINGS = `
     }
   }
 `
-const GET_USER_INVITATION = `
-  query {
-    viewer {
-      id
-      status {
-        invitation {
-          reward
-          left
-          sent(input:{}) {
-            edges {
-              node {
-                email
-                user {
-                  id
-                }
-                accepted
-                createdAt
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`
+
 const GET_VIEWER_SUBSCRIPTIONS = `
   query ($input: ConnectionArgs!) {
     viewer {
@@ -224,9 +164,6 @@ const GET_VIEWER_STATUS = `
       status {
         articleCount
         commentCount
-        followerCount
-        followeeCount
-        subscriptionCount
       }
     }
   }
@@ -290,17 +227,6 @@ const CONFIRM_VERIFICATION_CODE = `
   }
 `
 
-export const getViewerMATHistory = async () => {
-  const { query } = await testClient({ isAuth: true })
-  const result = await query({
-    query: GET_VIEWER_MAT_HISOTRY,
-    // @ts-ignore
-    variables: { input: {} }
-  })
-  const { data } = result
-  return _.get(data, 'viewer.status.MAT.history.edges')
-}
-
 describe('register and login functionarlities', () => {
   test('register user and retrieve info', async () => {
     const email = `test-${Math.floor(Math.random() * 100)}@matters.news`
@@ -328,8 +254,9 @@ describe('register and login functionarlities', () => {
     const newUserResult = await query({
       query: GET_VIEWER_INFO
     })
+    const displayName = _.get(newUserResult, 'data.viewer.displayName')
     const info = _.get(newUserResult, 'data.viewer.info')
-    expect(info.displayName).toBe(user.displayName)
+    expect(displayName).toBe(user.displayName)
     expect(info.email).toBe(user.email)
   })
 
@@ -373,19 +300,6 @@ describe('register and login functionarlities', () => {
   })
 })
 
-describe('user mat', () => {
-  test('total', async () => {
-    const mat = await getViewerMAT()
-    expect(typeof mat).toBe('number')
-  })
-
-  test('history', async () => {
-    const history = await getViewerMATHistory()
-    const trx = history && history[0] && history[0].node
-    expect(typeof trx.delta).toBe('number')
-  })
-})
-
 describe('user query fields', () => {
   test('get user by username', async () => {
     const userName = 'test1'
@@ -395,7 +309,7 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: { userName } }
     })
-    expect(_.get(data, 'user.info.userName')).toBe(userName)
+    expect(_.get(data, 'user.userName')).toBe(userName)
   })
   test('retrive user articles', async () => {
     const { query } = await testClient({
@@ -551,7 +465,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: { avatar: avatarAssetUUID } }
     })
-    const { avatar } = _.get(data, 'updateUserInfo.info')
+    const avatar = _.get(data, 'updateUserInfo.avatar')
     expect(avatar).toEqual(expect.stringContaining('path/to/file.jpg'))
   })
 

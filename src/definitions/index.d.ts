@@ -25,9 +25,7 @@ export type User = {
   avatar: string
   email: string
   likerId?: string
-  mobile: string | null
   passwordHash: string
-  readSpead: number
   baseGravity: number
   currGravity: number
   language: LANGUAGES
