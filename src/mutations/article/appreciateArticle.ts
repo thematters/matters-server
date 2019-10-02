@@ -63,7 +63,6 @@ const resolver: MutationToAppreciateArticleResolver = async (
   }
 
   await articleService.appreciate({
-    uuid: v4(),
     articleId: article.id,
     senderId: viewer.id,
     recipientId: article.authorId,

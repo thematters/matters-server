@@ -93,7 +93,5 @@ export const Transaction: GQLTransactionTypeResolver = {
     } else {
       return null
     }
-  },
-  // TODO: remove after migration
-  unit: ({ unit }) => unit || 'mat'
+  }
 }

@@ -348,9 +348,6 @@ export default /* GraphQL */ `
     "Timestamp of transaction."
     createdAt: DateTime!
 
-    "Unit of transaction used."
-    unit: TransactionUnit!
-
     "Recipient of transaction."
     recipient: User!
 

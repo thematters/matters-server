@@ -934,11 +934,6 @@ export interface GQLTransaction {
   createdAt: GQLDateTime
 
   /**
-   * Unit of transaction used.
-   */
-  unit: GQLTransactionUnit
-
-  /**
    * Recipient of transaction.
    */
   recipient: GQLUser
@@ -963,11 +958,6 @@ export enum GQLTransactionPurpose {
   joinByTask = 'joinByTask',
   firstPost = 'firstPost',
   systemSubsidy = 'systemSubsidy'
-}
-
-export enum GQLTransactionUnit {
-  mat = 'mat',
-  like = 'like'
 }
 
 export interface GQLUserStatus {
@@ -2688,6 +2678,11 @@ export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
 }
 
 export type GQLTime = any
+
+export enum GQLTransactionUnit {
+  mat = 'mat',
+  like = 'like'
+}
 
 export interface GQLUpstreamArticleArchivedNotice extends GQLNotice {
   id: string
@@ -5226,7 +5221,6 @@ export interface GQLTransactionTypeResolver<TParent = any> {
   purpose?: TransactionToPurposeResolver<TParent>
   content?: TransactionToContentResolver<TParent>
   createdAt?: TransactionToCreatedAtResolver<TParent>
-  unit?: TransactionToUnitResolver<TParent>
   recipient?: TransactionToRecipientResolver<TParent>
   sender?: TransactionToSenderResolver<TParent>
   target?: TransactionToTargetResolver<TParent>
@@ -5269,15 +5263,6 @@ export interface TransactionToContentResolver<TParent = any, TResult = any> {
 }
 
 export interface TransactionToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TransactionToUnitResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
