@@ -40,7 +40,7 @@ test('findTransactions', async () => {
   const appreciations = await articleService.findTransactions({
     referenceId: '1'
   })
-  expect(appreciations.length).toBe(4)
+  expect(appreciations.length).toBe(3)
 })
 
 test('findTagIds', async () => {
