@@ -944,7 +944,7 @@ export class ArticleService extends BaseService {
     amount: number
     type: string
   }): Promise<any> => {
-    const signiture = {
+    const appreciation = {
       senderId,
       recipientId,
       referenceId: articleId,
@@ -952,9 +952,10 @@ export class ArticleService extends BaseService {
       type
     }
 
+    // find transaction within 1 minutes and bundle
     const bundle = await this.knex('transaction')
       .select()
-      .where(signiture)
+      .where(appreciation)
       .andWhere(
         'created_at',
         '>=',
@@ -966,7 +967,7 @@ export class ArticleService extends BaseService {
     let result
 
     if (bundle) {
-      result = this.knex('transaction')
+      result = await this.knex('transaction')
         .where({ id: bundle.id })
         .update({
           amount: bundle.amount + amount,
@@ -976,7 +977,7 @@ export class ArticleService extends BaseService {
       const uuid = v4()
       result = await this.knex('transaction')
         .insert({
-          ...signiture,
+          ...appreciation,
           uuid,
           amount
         })
