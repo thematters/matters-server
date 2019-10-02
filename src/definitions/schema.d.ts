@@ -2679,11 +2679,6 @@ export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
 
 export type GQLTime = any
 
-export enum GQLTransactionUnit {
-  mat = 'mat',
-  like = 'like'
-}
-
 export interface GQLUpstreamArticleArchivedNotice extends GQLNotice {
   id: string
   unread: boolean

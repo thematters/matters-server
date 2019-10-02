@@ -582,11 +582,6 @@ export default /* GraphQL */ `
     admin
   }
 
-  enum TransactionUnit {
-    mat
-    like
-  }
-
   enum TransactionPurpose {
     appreciate
     appreciateComment

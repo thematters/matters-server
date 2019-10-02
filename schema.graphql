@@ -1640,11 +1640,6 @@ enum TransactionPurpose {
   systemSubsidy
 }
 
-enum TransactionUnit {
-  mat
-  like
-}
-
 input TransferLIKEInput {
   id: ID
   step: Int
