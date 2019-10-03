@@ -77,8 +77,7 @@ export class UserService extends BaseService {
       avatar,
       passwordHash,
       agreeOn: new Date(),
-      // state: USER_STATE.onboarding,
-      state: USER_STATE.active
+      state: USER_STATE.onboarding
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
 
