@@ -340,7 +340,7 @@ export class CommentService extends BaseService {
       .from(
         this.knex.raw(/*sql*/ `
           (select *,
-                  (coalesce(upvote_count, 0) + coalesce(downvote_count, 0) + 1) *
+                  (coalesce(upvote_count, 0) - coalesce(downvote_count, 0) + 1) *
                   sqrt(coalesce(upvote_count, 0) + coalesce(downvote_count, 0)) as score
           from comment
           left join
