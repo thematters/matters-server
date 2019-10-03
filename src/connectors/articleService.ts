@@ -856,15 +856,21 @@ export class ArticleService extends BaseService {
     referenceId: string
     limit?: number
     offset?: number
-  }): Promise<any[]> =>
-    this.knex('transaction')
-      .select()
+  }): Promise<any[]> => {
+    const result = await this.knex('transaction')
+      .select('reference_id', 'sender_id')
       .where({
         referenceId,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
+      .groupBy('sender_id', 'reference_id')
+      .sum('amount as amount')
+      .max('created_at as created_at')
       .limit(limit)
       .offset(offset)
+
+    return result
+  }
 
   /**
    * Find an article's appreciators by a given article id.
@@ -929,32 +935,59 @@ export class ArticleService extends BaseService {
    * User appreciate an article
    */
   appreciate = async ({
-    uuid,
     articleId,
     senderId,
     recipientId,
     amount,
     type
   }: {
-    uuid: string
     articleId: string
     senderId: string
     recipientId: string
     amount: number
     type: string
   }): Promise<any> => {
-    const result = await this.knex('transaction')
-      .insert({
-        uuid,
-        senderId,
-        recipientId,
-        referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate,
-        amount,
-        type
-      })
-      .into('transaction')
-      .returning('*')
+    const appreciation = {
+      senderId,
+      recipientId,
+      referenceId: articleId,
+      purpose: TRANSACTION_PURPOSE.appreciate,
+      type
+    }
+
+    // find transaction within 1 minutes and bundle
+    const bundle = await this.knex('transaction')
+      .select()
+      .where(appreciation)
+      .andWhere(
+        'created_at',
+        '>=',
+        this.knex.raw(`now() - (?*'1 MINUTE'::INTERVAL)`, [1])
+      )
+      .orderBy('created_at')
+      .first()
+
+    let result
+
+    if (bundle) {
+      result = await this.knex('transaction')
+        .where({ id: bundle.id })
+        .update({
+          amount: bundle.amount + amount,
+          createdAt: this.knex.fn.now()
+        })
+    } else {
+      const uuid = v4()
+      result = await this.knex('transaction')
+        .insert({
+          ...appreciation,
+          uuid,
+          amount
+        })
+        .into('transaction')
+        .returning('*')
+    }
+
     return result
   }
 
