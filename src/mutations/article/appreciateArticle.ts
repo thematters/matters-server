@@ -22,12 +22,8 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  // TODO: Remove it after LikeCoin deployment.
   if (!viewer.likerId) {
-    const viewerTotalMAT = await userService.totalMAT(viewer.id)
-    if (viewerTotalMAT < amount) {
-      throw new NotEnoughMatError('not enough MAT to appreciate')
-    }
+    throw new AuthenticationError('viewer has no liker id')
   }
 
   const { id: dbId } = fromGlobalId(id)
@@ -48,19 +44,21 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ActionLimitExceededError('too many appreciations')
   }
 
-  // TODO: Extract safety check to above after LikeCoin deployment.
   const author = await userService.dataloader.load(article.authorId)
-  if (viewer.likerId && author.likerId) {
-    const liker = await userService.findLiker({ userId: viewer.id })
-    if (!liker) {
-      throw new LikerNotFoundError('liker not found')
-    }
-    await userService.likecoin.like({
-      authorLikerId: author.likerId,
-      liker,
-      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
-    })
+  if (!author.likerId) {
+    throw new AuthenticationError('article author has no liker id')
   }
+
+  const liker = await userService.findLiker({ userId: viewer.id })
+  if (!liker) {
+    throw new LikerNotFoundError('liker not found')
+  }
+
+  await userService.likecoin.like({
+    authorLikerId: author.likerId,
+    liker,
+    url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
+  })
 
   await articleService.appreciate({
     articleId: article.id,
