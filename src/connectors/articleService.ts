@@ -909,7 +909,7 @@ export class ArticleService extends BaseService {
         purpose: TRANSACTION_PURPOSE.appreciate
       })
       .sum('amount as total')
-    const total = _.get(appreciations, '0.total')
+    const total = _.get(appreciations, '0.total', 0)
 
     return Math.max(ARTICLE_APPRECIATE_LIMIT - total, 0)
   }
