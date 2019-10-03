@@ -1,7 +1,7 @@
 import _ from 'lodash'
 
 import { connectionFromArray, cursorToIndex } from 'common/utils'
-import { QueryToSearchResolver, GQLNode } from 'definitions'
+import { GQLNode, QueryToSearchResolver } from 'definitions'
 
 const resolver: QueryToSearchResolver = async (
   root,
@@ -26,7 +26,7 @@ const resolver: QueryToSearchResolver = async (
     Tag: tagService
   }
 
-  const { nodes, totalCount } = await serviceMap[input.type]
+  const connection = await serviceMap[input.type]
     .search({ ...input, offset })
     .then(({ nodes, totalCount }) => {
       nodes = _.compact(nodes)
@@ -36,7 +36,7 @@ const resolver: QueryToSearchResolver = async (
       }
     })
 
-  return connectionFromArray(nodes, input, totalCount)
+  return connectionFromArray(connection.nodes, input, connection.totalCount)
 }
 
 export default resolver

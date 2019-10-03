@@ -12,6 +12,7 @@
       "common": ["common/"],
       "connectors": ["connectors/"],
       "definitions": ["definitions/"],
+      "middlewares": ["middlewares"],
       "mutations": ["mutations/"],
       "queries": ["queries/"]
     },
@@ -30,5 +31,5 @@
     "esModuleInterop": true,
     "strictPropertyInitialization": false
   },
-  "exclude": ["node_modules", "**/*.test.ts", "**/__test__/*"]
+  "exclude": ["node_modules"]
 }

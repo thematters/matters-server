@@ -1,10 +1,11 @@
-import { MutationToFollowUserResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import {
   AuthenticationError,
   UserFollowFailedError,
   UserNotFoundError
 } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToFollowUserResolver } from 'definitions'
 
 const resolver: MutationToFollowUserResolver = async (
   _,
@@ -34,6 +35,18 @@ const resolver: MutationToFollowUserResolver = async (
     actorId: viewer.id,
     recipientId: user.id
   })
+
+  // Add custom data for cache invalidation
+  user[CACHE_KEYWORD] = [
+    {
+      id: viewer.id,
+      type: NODE_TYPES.user
+    },
+    {
+      id: user.id,
+      type: NODE_TYPES.user
+    }
+  ]
 
   return user
 }

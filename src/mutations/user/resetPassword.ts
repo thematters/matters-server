@@ -1,5 +1,5 @@
-import { MutationToResetPasswordResolver } from 'definitions'
 import { CodeInvalidError, UserNotFoundError } from 'common/errors'
+import { MutationToResetPasswordResolver } from 'definitions'
 
 const resolver: MutationToResetPasswordResolver = async (
   _,

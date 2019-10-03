@@ -1,32 +1,28 @@
+import slugify from '@matters/slugify'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
-import { v4 } from 'uuid'
-import slugify from '@matters/slugify'
 import _ from 'lodash'
+import { v4 } from 'uuid'
 
 import {
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
-  USER_ACTION,
-  TRANSACTION_PURPOSE
+  TRANSACTION_PURPOSE,
+  USER_ACTION
 } from 'common/enums'
-import { ItemData, GQLSearchInput, GQLResponsesInput } from 'definitions'
-import { ipfs } from 'connectors/ipfs'
+import { environment } from 'common/environment'
+import { ArticleNotFoundError, ServerError } from 'common/errors'
+import logger from 'common/logger'
 import {
-  stripHtml,
   countWords,
   makeSummary,
+  outputCleanHTML,
   removeEmpty,
-  outputCleanHTML
+  stripHtml
 } from 'common/utils'
-import { ArticleNotFoundError, ServerError } from 'common/errors'
-import { environment } from 'common/environment'
-
-import { BaseService } from './baseService'
-import { UserService } from './userService'
-import { SystemService } from './systemService'
-import logger from 'common/logger'
+import { BaseService, ipfs, SystemService, UserService } from 'connectors'
+import { GQLSearchInput, ItemData } from 'definitions'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
@@ -103,7 +99,7 @@ export class ArticleService extends BaseService {
     const dataHash = await this.ipfs.addHTML(html)
 
     // add meta data to ipfs
-    let mediaObj: { [key: string]: any } = {
+    const mediaObj: { [key: string]: any } = {
       '@context': 'http://schema.org',
       '@type': 'Article',
       '@id': `ipfs://ipfs/${dataHash}`,
@@ -173,7 +169,7 @@ export class ArticleService extends BaseService {
       logger.error(e)
     }
 
-    return await this.baseUpdate(id, {
+    return this.baseUpdate(id, {
       state: ARTICLE_STATE.archived,
       sticky: false,
       updatedAt: new Date()
@@ -205,7 +201,7 @@ export class ArticleService extends BaseService {
    * Find article by media hash
    */
   findByMediaHash = async (mediaHash: string) =>
-    await this.knex
+    this.knex
       .select()
       .from(this.table)
       .where({ mediaHash })
@@ -215,7 +211,7 @@ export class ArticleService extends BaseService {
    * Find article by which set as sticky.
    */
   findBySticky = async (authorId: string, sticky: boolean) =>
-    await this.knex
+    this.knex
       .select('id')
       .from(this.table)
       .where({ authorId, sticky: true })
@@ -501,7 +497,7 @@ export class ArticleService extends BaseService {
   }) => {
     const table = oss ? 'article_count_view' : 'article_count_materialized'
 
-    return await this.knex(`${table} as view`)
+    return this.knex(`${table} as view`)
       .select('view.*', 'article.state', 'article.public', 'article.sticky')
       .join('article', 'view.id', 'article.id')
       .orderByRaw('topic_score DESC NULLS LAST')
@@ -567,7 +563,7 @@ export class ArticleService extends BaseService {
       body
     })
     // add recommendation
-    return relatedResult['hits']['hits'].map(hit => ({ ...hit, id: hit._id }))
+    return relatedResult.hits.hits.map(hit => ({ ...hit, id: hit._id }))
   }
 
   /**
@@ -786,7 +782,7 @@ export class ArticleService extends BaseService {
   /**
    * Sum total appreciaton by a given article id.
    */
-  totalAppreciation = async (articleId: string): Promise<number> => {
+  sumAppreciation = async (articleId: string): Promise<number> => {
     const result = await this.knex
       .select()
       .from('transaction')
@@ -800,6 +796,19 @@ export class ArticleService extends BaseService {
       .sum('amount')
       .first()
     return parseInt(result.sum || '0', 10)
+  }
+
+  countAppreciation = async (referenceId: string): Promise<number> => {
+    const result = await this.knex
+      .select()
+      .from('transaction')
+      .where({
+        referenceId,
+        purpose: TRANSACTION_PURPOSE.appreciate
+      })
+      .count()
+      .first()
+    return parseInt(result.count || '0', 10)
   }
 
   /**
@@ -839,13 +848,29 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findAppreciations = async (referenceId: string): Promise<any[]> =>
-    await this.knex('transaction')
-      .select()
+  findTransactions = async ({
+    referenceId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    referenceId: string
+    limit?: number
+    offset?: number
+  }): Promise<any[]> => {
+    const result = await this.knex('transaction')
+      .select('reference_id', 'sender_id')
       .where({
         referenceId,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
+      .groupBy('sender_id', 'reference_id')
+      .sum('amount as amount')
+      .max('created_at as created_at')
+      .limit(limit)
+      .offset(offset)
+
+    return result
+  }
 
   /**
    * Find an article's appreciators by a given article id.
@@ -859,7 +884,7 @@ export class ArticleService extends BaseService {
     limit?: number
     offset?: number
   }) =>
-    await this.knex('transaction')
+    this.knex('transaction')
       .distinct('sender_id')
       .select('sender_id')
       .where({
@@ -907,29 +932,59 @@ export class ArticleService extends BaseService {
    * User appreciate an article
    */
   appreciate = async ({
-    uuid,
     articleId,
     senderId,
     recipientId,
-    amount
+    amount,
+    type
   }: {
-    uuid: string
     articleId: string
     senderId: string
     recipientId: string
     amount: number
+    type: string
   }): Promise<any> => {
-    const result = await this.knex('transaction')
-      .insert({
-        uuid,
-        senderId,
-        recipientId,
-        referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate,
-        amount
-      })
-      .into('transaction')
-      .returning('*')
+    const appreciation = {
+      senderId,
+      recipientId,
+      referenceId: articleId,
+      purpose: TRANSACTION_PURPOSE.appreciate,
+      type
+    }
+
+    // find transaction within 1 minutes and bundle
+    const bundle = await this.knex('transaction')
+      .select()
+      .where(appreciation)
+      .andWhere(
+        'created_at',
+        '>=',
+        this.knex.raw(`now() - (?*'1 MINUTE'::INTERVAL)`, [1])
+      )
+      .orderBy('created_at')
+      .first()
+
+    let result
+
+    if (bundle) {
+      result = await this.knex('transaction')
+        .where({ id: bundle.id })
+        .update({
+          amount: bundle.amount + amount,
+          createdAt: this.knex.fn.now()
+        })
+    } else {
+      const uuid = v4()
+      result = await this.knex('transaction')
+        .insert({
+          ...appreciation,
+          uuid,
+          amount
+        })
+        .into('transaction')
+        .returning('*')
+    }
+
     return result
   }
 
@@ -978,7 +1033,7 @@ export class ArticleService extends BaseService {
       .orderBy('id', 'desc')
       .offset(offset)
 
-    return limit ? await query.limit(limit) : await query
+    return limit ? query.limit(limit) : query
   }
 
   countSubscriptions = async (id: string) => {
@@ -1023,7 +1078,7 @@ export class ArticleService extends BaseService {
    * User unsubscribe an article
    */
   unsubscribe = async (targetId: string, userId: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .from('action_article')
       .where({
         targetId,
@@ -1049,7 +1104,7 @@ export class ArticleService extends BaseService {
     userId?: string | null
     ip?: string
   }): Promise<any[]> =>
-    await this.baseCreate(
+    this.baseCreate(
       {
         uuid: v4(),
         articleId,
@@ -1210,7 +1265,7 @@ export class ArticleService extends BaseService {
     entranceId: string | number
     articleId: string
   }) =>
-    await this.knex('collection')
+    this.knex('collection')
       .select()
       .where({ entranceId, articleId })
       .first()
@@ -1251,7 +1306,7 @@ export class ArticleService extends BaseService {
     limit?: number
     offset?: number
   }) =>
-    await this.knex('collection')
+    this.knex('collection')
       .select('entrance_id')
       .where({ articleId })
       .limit(limit)

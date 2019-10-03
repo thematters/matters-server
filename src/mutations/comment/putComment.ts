@@ -1,19 +1,19 @@
 import _ from 'lodash'
 
-import { MutationToPutCommentResolver } from 'definitions'
-import { fromGlobalId, toGlobalId, sanitize, countWords } from 'common/utils'
+import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
 import {
-  AuthenticationError,
-  UserInputError,
   ArticleNotFoundError,
+  AuthenticationError,
   CommentNotFoundError,
-  ForbiddenError
+  ForbiddenError,
+  UserInputError
 } from 'common/errors'
-import { USER_STATE } from 'common/enums'
+import { countWords, fromGlobalId, sanitize, toGlobalId } from 'common/utils'
+import { MutationToPutCommentResolver } from 'definitions'
 
 const resolver: MutationToPutCommentResolver = async (
   root,
-  { input: { comment, id } },
+  { input: { comment: commentInput, id } },
   {
     viewer,
     dataSources: {
@@ -28,16 +28,7 @@ const resolver: MutationToPutCommentResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  const {
-    content,
-    articleId,
-    parentId,
-    mentions,
-    quotationStart,
-    quotationEnd,
-    quotationContent,
-    replyTo
-  } = comment
+  const { content, articleId, parentId, mentions, replyTo } = commentInput
 
   if (!content || content.length <= 0) {
     throw new UserInputError(
@@ -45,29 +36,9 @@ const resolver: MutationToPutCommentResolver = async (
     )
   }
 
-  let data: any = {
+  const data: any = {
     content: sanitize(content),
     authorId: viewer.id
-  }
-
-  // check quotation input
-  const quotationInputs = _.filter(
-    [quotationStart, quotationEnd, quotationContent],
-    o => !_.isNil(o)
-  )
-  if (quotationInputs.length > 0) {
-    if (quotationInputs.length < 3) {
-      throw new UserInputError(
-        `Quotation needs fields "quotationStart, quotationEnd, quotationContent"`
-      )
-    }
-
-    data = {
-      ...data,
-      quotationStart,
-      quotationEnd,
-      quotationContent: sanitize(quotationContent || '')
-    }
   }
 
   // check target article
@@ -116,6 +87,18 @@ const resolver: MutationToPutCommentResolver = async (
     }
 
     newComment = await commentService.update({ id: commentDbId, ...data })
+
+    // Add custom data for cache invalidation
+    newComment[CACHE_KEYWORD] = [
+      {
+        id: article.id,
+        type: NODE_TYPES.article
+      },
+      {
+        id: comment.id,
+        type: NODE_TYPES.comment
+      }
+    ]
   }
 
   // Create
@@ -213,7 +196,7 @@ const resolver: MutationToPutCommentResolver = async (
       id: article.id
     })
     articleSubscribers.forEach((subscriber: any) => {
-      if (subscriber.id == articleAuthor) {
+      if (subscriber.id === articleAuthor) {
         return
       }
       notificationService.trigger({
@@ -234,6 +217,14 @@ const resolver: MutationToPutCommentResolver = async (
         ]
       })
     })
+
+    // Add custom data for cache invalidation
+    newComment[CACHE_KEYWORD] = [
+      {
+        id: article.id,
+        type: NODE_TYPES.article
+      }
+    ]
   }
 
   // publish a PubSub event
@@ -247,7 +238,7 @@ const resolver: MutationToPutCommentResolver = async (
 
   // trigger notifications
   // notify mentioned users
-  data.mentionedUserIds &&
+  if (data.mentionedUserIds) {
     data.mentionedUserIds.forEach((userId: string) => {
       notificationService.trigger({
         event: 'comment_mentioned_you',
@@ -262,6 +253,7 @@ const resolver: MutationToPutCommentResolver = async (
         ]
       })
     })
+  }
 
   return newComment
 }

@@ -1,22 +1,19 @@
-// external
-import querystring from 'querystring'
-import { Router } from 'express'
 import bodyParser from 'body-parser'
+import { Router } from 'express'
 import passport from 'passport'
+import querystring from 'querystring'
 
-// internal
-import { OAuthService } from 'connectors'
-import { getViewerFromReq } from 'common/utils/getViewer'
-import { environment } from 'common/environment'
 import {
-  OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN,
   OAUTH_ACCESS_TOKEN_EXPIRES_IN,
+  OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN,
   OAUTH_REFRESH_TOKEN_EXPIRES_IN
 } from 'common/enums'
+import { environment } from 'common/environment'
+import { getViewerFromReq } from 'common/utils/getViewer'
+import { OAuthService } from 'connectors'
 
-// local
-import initPassportStrategies from './strategies'
 import OAuthServer from './express-oauth-server'
+import initPassportStrategies from './strategies'
 
 const oAuthRouter = Router()
 const oAuthService = new OAuthService()

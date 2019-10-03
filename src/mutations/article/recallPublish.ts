@@ -1,7 +1,7 @@
-import { MutationToRecallPublishResolver } from 'definitions'
 import { PUBLISH_STATE } from 'common/enums'
-import { fromGlobalId } from 'common/utils'
 import { AuthenticationError, DraftNotFoundError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToRecallPublishResolver } from 'definitions'
 
 const resolver: MutationToRecallPublishResolver = async (
   root,

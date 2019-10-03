@@ -1,5 +1,5 @@
-import { TableName, MutationToPutRemarkResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { MutationToPutRemarkResolver, TableName } from 'definitions'
 
 const resolver: MutationToPutRemarkResolver = async (
   root,
@@ -15,12 +15,9 @@ const resolver: MutationToPutRemarkResolver = async (
     Feedback: 'feedback'
   }
 
-  let dbId
-  if (['Article', 'User', 'Tag', 'Comment'].includes(type)) {
-    dbId = fromGlobalId(id).id
-  } else {
-    dbId = id
-  }
+  const dbId = ['Article', 'User', 'Tag', 'Comment'].includes(type)
+    ? fromGlobalId(id).id
+    : id
   const table = tableMap[type]
 
   const entity = await systemService.baseUpdate(

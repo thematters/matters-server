@@ -1,5 +1,4 @@
 import { connectionFromPromisedArray } from 'common/utils'
-
 import { UserToDraftsResolver } from 'definitions'
 
 const resolver: UserToDraftsResolver = (

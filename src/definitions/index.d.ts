@@ -1,5 +1,4 @@
 import { Response } from 'express'
-import { DataSource } from 'apollo-datasource'
 
 import {
   UserService,
@@ -8,9 +7,9 @@ import {
   DraftService,
   SystemService,
   TagService,
-  NotificationService
+  NotificationService,
+  OAuthService
 } from 'connectors'
-import { LANGUAGE } from 'common/enums'
 
 export * from './schema'
 export * from './notification'
@@ -25,9 +24,8 @@ export type User = {
   description: string
   avatar: string
   email: string
-  mobile: string | null
+  likerId?: string
   passwordHash: string
-  readSpead: number
   baseGravity: number
   currGravity: number
   language: LANGUAGES
@@ -41,13 +39,18 @@ export type User = {
 
 export type Context = RequestContext & {
   dataSources: DataSources
+  cacheKey: string
 }
 
 export type Viewer = (User | { id: null }) & {
   hasRole: (role: string) => boolean
+  hasScopeMode: (mode: string) => boolean
   ip?: string
   role: string
   language: LANGUAGES
+  scope: { [key: string]: any }
+  scopeMode: ScopeMode
+  oauthClient?: OAuthClient
 }
 
 export type RequestContext = {
@@ -63,6 +66,7 @@ export type DataSources = {
   systemService: InstanceType<typeof SystemService>
   tagService: InstanceType<typeof TagService>
   notificationService: InstanceType<typeof NotificationService>
+  oauthService: InstanceType<typeof OAuthService>
 }
 
 export type TableName =
@@ -137,9 +141,20 @@ export type Item = { id: string; [key: string]: any }
 
 export type ItemData = { [key: string]: any }
 
-export type LANGUAGES = keyof typeof LANGUAGE
+export type LANGUAGES = 'zh_hans' | 'zh_hant' | 'en'
 
 export type ResponseType = 'Article' | 'Comment'
+
+export type UserOAuthLikeCoinAccountType = 'temporal' | 'general'
+
+export interface UserOAuthLikeCoin {
+  likerId: string
+  accountType: UserOAuthLikeCoinAccountType
+  accessToken: string
+  refreshToken: string
+  expires: Date
+  scope: string | string[]
+}
 
 export interface OAuthClient {
   id: string
@@ -181,3 +196,5 @@ export interface OAuthRefreshToken {
 }
 
 export type Falsey = '' | 0 | false | null | undefined
+
+export type ScopeMode = 'visitor' | 'oauth' | 'user' | 'admin'

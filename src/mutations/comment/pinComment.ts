@@ -1,10 +1,10 @@
-import { MutationToPinCommentResolver } from 'definitions'
-import { fromGlobalId, toGlobalId } from 'common/utils'
 import {
+  ActionLimitExceededError,
   AuthenticationError,
-  ForbiddenError,
-  ActionLimitExceededError
+  ForbiddenError
 } from 'common/errors'
+import { fromGlobalId, toGlobalId } from 'common/utils'
+import { MutationToPinCommentResolver } from 'definitions'
 
 const resolver: MutationToPinCommentResolver = async (
   _,

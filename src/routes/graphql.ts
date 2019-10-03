@@ -1,41 +1,38 @@
-require('newrelic')
-require('module-alias/register')
-require('dotenv').config()
-
-// external
+import {
+  RenderPageOptions as PlaygroundRenderPageOptions,
+  renderPlaygroundPage
+} from '@apollographql/graphql-playground-html'
 import * as Sentry from '@sentry/node'
-import _ from 'lodash'
-import express, { Express } from 'express'
+import { RedisCache } from 'apollo-server-cache-redis'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
+import express, { Express } from 'express'
 import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
-import { RedisCache } from 'apollo-server-cache-redis'
-import responseCachePlugin from 'apollo-server-plugin-response-cache'
-import {
-  renderPlaygroundPage,
-  RenderPageOptions as PlaygroundRenderPageOptions
-} from '@apollographql/graphql-playground-html'
+import { applyMiddleware } from 'graphql-middleware'
+import _ from 'lodash'
+import 'module-alias/register'
+import 'newrelic'
 
-// internal
-import logger from 'common/logger'
-import { UPLOAD_FILE_SIZE_LIMIT, CORS_OPTIONS, CACHE_TTL } from 'common/enums'
+import { CACHE_TTL, CORS_OPTIONS, UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
 import { environment, isProd } from 'common/environment'
-import { DataSources } from 'definitions'
-import { makeContext, initSubscriptions } from 'common/utils'
+import { ActionLimitExceededError } from 'common/errors'
+import logger from 'common/logger'
+import { initSubscriptions, makeContext } from 'common/utils'
 import {
   ArticleService,
   CommentService,
   DraftService,
+  NotificationService,
+  OAuthService,
   SystemService,
   TagService,
-  UserService,
-  NotificationService
+  UserService
 } from 'connectors'
-import { ActionLimitExceededError } from 'common/errors'
+import responseCachePlugin from 'middlewares/responseCachePlugin'
+import { scopeMiddleware } from 'middlewares/scope'
 
-// local
-import schema from '../schema'
 import costMap from '../costMap'
+import schema from '../schema'
 
 const API_ENDPOINT = '/graphql'
 const PLAYGROUND_ENDPOINT = '/playground'
@@ -78,21 +75,25 @@ const redisCache = new RedisCache({
   host: environment.cacheHost,
   port: environment.cachePort
 })
+
+const composedSchema = applyMiddleware(schema, scopeMiddleware)
+
 const server = new ProtectedApolloServer({
-  schema,
+  schema: composedSchema,
   context: makeContext,
   engine: {
     apiKey: environment.apiKey
   },
   subscriptions: initSubscriptions(),
-  dataSources: (): DataSources => ({
+  dataSources: () => ({
     userService: new UserService(),
     articleService: new ArticleService(),
     commentService: new CommentService(),
     draftService: new DraftService(),
     systemService: new SystemService(),
     tagService: new TagService(),
-    notificationService: new NotificationService()
+    notificationService: new NotificationService(),
+    oauthService: new OAuthService()
   }),
   uploads: {
     maxFileSize: UPLOAD_FILE_SIZE_LIMIT,
@@ -110,7 +111,7 @@ const server = new ProtectedApolloServer({
     cache: redisCache
   },
   cacheControl: {
-    calculateHttpHeaders: true,
+    calculateHttpHeaders: false,
     defaultMaxAge: CACHE_TTL.DEFAULT,
     stripFormattedExtensions: isProd
   },

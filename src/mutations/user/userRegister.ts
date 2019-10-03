@@ -1,22 +1,23 @@
-import { MutationToUserRegisterResolver } from 'definitions'
 import { random } from 'lodash'
+
 import {
-  EmailExistsError,
-  EmailInvalidError,
   CodeInvalidError,
   DisplayNameInvalidError,
+  EmailExistsError,
+  EmailInvalidError,
   PasswordInvalidError,
-  UsernameInvalidError,
-  UsernameExistsError
+  UsernameExistsError,
+  UsernameInvalidError
 } from 'common/errors'
 import {
-  isValidEmail,
-  isValidUserName,
   isValidDisplayName,
+  isValidEmail,
   isValidPassword,
+  isValidUserName,
   makeUserName,
   setCookie
 } from 'common/utils'
+import { MutationToUserRegisterResolver } from 'definitions'
 
 const resolver: MutationToUserRegisterResolver = async (
   root,
@@ -72,7 +73,7 @@ const resolver: MutationToUserRegisterResolver = async (
   } else {
     // Programatically generate user name
     let retries = 0
-    let mainName = makeUserName(email)
+    const mainName = makeUserName(email)
     newUserName = mainName
     while (
       !isValidUserName(newUserName) ||

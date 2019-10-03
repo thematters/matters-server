@@ -1,5 +1,5 @@
-import { MutationToClearReadHistoryResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { MutationToClearReadHistoryResolver } from 'definitions'
 
 const resolver: MutationToClearReadHistoryResolver = async (
   _,

@@ -1,9 +1,6 @@
-import { NotificationType } from 'definitions'
-import { NotificationService } from '../notificationService'
-import { UserService } from '../userService'
-
-import { knex } from 'connectors/db'
+import { knex, NotificationService, UserService } from 'connectors'
 import { sharedQueueOpts } from 'connectors/queue/utils'
+import { NotificationType } from 'definitions'
 
 afterAll(async () => {
   await knex.destroy()
@@ -42,8 +39,7 @@ describe('user notify setting', () => {
     'comment_banned',
     'article_banned',
     'comment_reported',
-    'article_reported',
-    'user_activated'
+    'article_reported'
   ]
   const defaultNoifySetting: { [key in NotificationType]: boolean } = {
     user_new_follower: true,
@@ -67,9 +63,7 @@ describe('user notify setting', () => {
     comment_banned: false,
     article_banned: false,
     comment_reported: false,
-    article_reported: false,
-    user_activated: true,
-    user_first_post_award: true
+    article_reported: false
   }
 
   test('user receives notifications', async () => {

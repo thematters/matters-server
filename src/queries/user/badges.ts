@@ -1,9 +1,14 @@
-import { UserInfoToBadgesResolver, Context } from 'definitions'
+import { UserInfoToBadgesResolver } from 'definitions'
 
 const resolver: UserInfoToBadgesResolver = async (
   { id },
   _,
   { dataSources: { userService } }
-) => userService.findBadges(id)
+) => {
+  if (id === undefined) {
+    return []
+  }
+  return userService.findBadges(id)
+}
 
 export default resolver

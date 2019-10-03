@@ -1,39 +1,39 @@
-import { Base64 } from 'js-base64'
 import { connectionFromArraySlice } from 'graphql-relay'
+import { Base64 } from 'js-base64'
 
 export type ConnectionCursor = string
 
-export type ConnectionArguments = {
+export interface ConnectionArguments {
   before?: ConnectionCursor
   after?: ConnectionCursor
   first?: number
   last?: number
 }
 
-export type ConnectionHelpers = {
+export interface ConnectionHelpers {
   offset: number
   totalCount: number
 }
 
-export type Connection<T> = {
+export interface Connection<T> {
   totalCount?: number
   edges: Array<Edge<T>>
   pageInfo: PageInfo
 }
 
-export type Edge<T> = {
+export interface Edge<T> {
   node: T
   cursor: ConnectionCursor
 }
 
-export type PageInfo = {
+export interface PageInfo {
   startCursor?: ConnectionCursor | null
   endCursor?: ConnectionCursor | null
   hasPreviousPage?: boolean | null
   hasNextPage?: boolean | null
 }
 
-type ArraySliceMetaInfo = {
+interface ArraySliceMetaInfo {
   sliceStart: number
   arrayLength: number
 }
@@ -55,7 +55,7 @@ export const indexToCursor = (index: number): ConnectionCursor => {
 }
 
 export function connectionFromArray<T>(
-  data: Array<T>,
+  data: T[],
   args: ConnectionArguments,
   totalCount?: number
 ): Connection<T> {
@@ -97,7 +97,7 @@ export function connectionFromArray<T>(
 }
 
 export function connectionFromPromisedArray<T>(
-  dataPromise: Promise<Array<T>>,
+  dataPromise: Promise<T[]>,
   args: ConnectionArguments,
   totalCount?: number
 ): Promise<Connection<T>> {

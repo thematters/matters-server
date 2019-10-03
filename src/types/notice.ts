@@ -5,7 +5,7 @@ export default /* GraphQL */ `
   }
 
   extend type User {
-    notices(input: ConnectionArgs!): NoticeConnection! @private
+    notices(input: ConnectionArgs!): NoticeConnection! @scope
   }
 
   """

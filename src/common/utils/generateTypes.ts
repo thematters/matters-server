@@ -1,7 +1,6 @@
-require('module-alias/register')
-
 import fs from 'fs'
 import { generateTypeScriptTypes } from 'graphql-schema-typescript'
+import 'module-alias/register'
 
 import logger from 'common/logger'
 

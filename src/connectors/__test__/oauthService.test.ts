@@ -1,5 +1,7 @@
-import { OAuthService } from '../oauthService'
-import { UserService } from '../userService'
+import _ from 'lodash'
+
+import { OAuthService, UserService } from 'connectors'
+import { OAuthClient, User } from 'definitions'
 
 const getClient = () => {
   const oauthService = new OAuthService()
@@ -7,7 +9,7 @@ const getClient = () => {
 }
 const getUser = () => {
   const userService = new UserService()
-  return userService.dataloader.load('1')
+  return userService.dataloader.load('1') as Promise<User>
 }
 
 describe('client', () => {
@@ -23,23 +25,34 @@ describe('scope', () => {
     const client = await getClient()
     const user = await getUser()
 
+    if (!client) {
+      throw new Error('client not found')
+    }
+
     const validScopes = await oauthService.validateScope(
-      client,
       user,
-      'invalid-scope'
+      client,
+      'query:viewer:likerId'
     )
-    expect(validScopes.length).toBe(0)
+    expect(_.get(validScopes, 'length')).toBe(1)
+
+    // TODO: test invalid scopes
   })
 })
 
 describe('token', () => {
   const oauthService = new OAuthService()
-  let accessToken
-  let refreshToken
+  let accessToken: string
+  let refreshToken: string
 
   test('generate', async () => {
     const client = await getClient()
     const user = await getUser()
+
+    if (!client) {
+      throw new Error('client not found')
+    }
+
     // access token
     accessToken = await oauthService.generateAccessToken(client, user, '')
     expect(typeof accessToken).toEqual('string')
@@ -52,6 +65,11 @@ describe('token', () => {
   test('save', async () => {
     const client = await getClient()
     const user = await getUser()
+
+    if (!client) {
+      throw new Error('client not found')
+    }
+
     const token = await oauthService.saveToken(
       {
         accessToken,
@@ -69,15 +87,20 @@ describe('token', () => {
 
   test('get', async () => {
     const newAccessToken = await oauthService.getAccessToken(accessToken)
-    expect(newAccessToken.accessToken).toEqual(accessToken)
+    expect(_.get(newAccessToken, 'accessToken')).toEqual(accessToken)
 
     const newRefreshToken = await oauthService.getRefreshToken(refreshToken)
-    expect(newRefreshToken.refreshToken).toEqual(refreshToken)
+    expect(_.get(newRefreshToken, 'refreshToken')).toEqual(refreshToken)
   })
 
   test('revoke', async () => {
     const client = await getClient()
     const user = await getUser()
+
+    if (!client) {
+      throw new Error('client not found')
+    }
+
     const revoked = await oauthService.revokeToken({
       refreshToken,
       client,

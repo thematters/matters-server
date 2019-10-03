@@ -10,7 +10,9 @@ exports.seed = function(knex, Promise) {
           client_id: 'test-client-id',
           client_secret: 'test-client-secret',
           redirect_uri: ['https://matters.news'],
-          grant_types: ['authorization_code', 'refresh_token']
+          grant_types: ['authorization_code', 'refresh_token'],
+          name: 'LikeCoin',
+          website_url: 'https://like.co'
         }
       ])
     })

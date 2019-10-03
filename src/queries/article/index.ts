@@ -1,29 +1,27 @@
 import slugify from '@matters/slugify'
 
-import { toGlobalId, stripHtml, makeSummary } from 'common/utils'
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
+import { makeSummary, toGlobalId } from 'common/utils'
 
-import rootArticle from './rootArticle'
-import userArticles from './user/articles'
-import userMAT from './user/mat'
-import tagCount from './tag/count'
-import tagArticles from './tag/articles'
+import appreciateLeft from './appreciateLeft'
+import appreciationsReceived from './appreciationsReceived'
+import appreciationsReceivedTotal from './appreciationsReceivedTotal'
+import appreciators from './appreciators'
 import author from './author'
-import cover from './cover'
-import tags from './tags'
-import collection from './collection'
 import collectedBy from './collectedBy'
+import collection from './collection'
+import articleCover from './cover'
+import hasAppreciate from './hasAppreciate'
 import MAT from './mat'
+import * as articleOSS from './oss'
+import relatedArticles from './relatedArticles'
+import rootArticle from './rootArticle'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
-import hasAppreciate from './hasAppreciate'
-import appreciatorCount from './appreciatorCount'
-import appreciateLeft from './appreciateLeft'
-import participants from './participants'
-import appreciators from './appreciators'
-import relatedArticles from './relatedArticles'
-import * as articleOSS from './oss'
+import tagArticles from './tag/articles'
 import * as tagOSS from './tag/oss'
+import tags from './tags'
+import userArticles from './user/articles'
 
 export default {
   Query: {
@@ -32,38 +30,33 @@ export default {
   User: {
     articles: userArticles
   },
-  UserStatus: {
-    MAT: userMAT
-  },
   Article: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
-    topicScore: ({ topicScore }: { topicScore: number }) =>
-      topicScore ? Math.round(topicScore) : null,
-    slug: ({ slug, title }: { slug: string; title: string }) =>
-      slug || slugify(title), // handle missing slug from migration
-    summary: ({ content, cover }: { cover?: string; content: string }) =>
-      makeSummary(content, cover ? 110 : 140),
-    author,
-    cover,
-    tags,
-    collection,
-    collectedBy,
-    relatedArticles,
-    MAT,
-    subscribed,
-    subscribers,
+    appreciationsReceived,
+    appreciationsReceivedTotal,
     appreciators,
-    hasAppreciate,
-    appreciatorCount,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
     appreciateLeft,
-    participants, // not used anymore
-    participantCount: () => 50, // not used anymore
-    oss: (root: any) => root
+    author,
+    cover: articleCover,
+    collection,
+    collectedBy,
+    id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
+    hasAppreciate,
+    MAT,
+    oss: (root: any) => root,
+    relatedArticles,
+    slug: ({ slug, title }: { slug: string; title: string }) =>
+      slug || slugify(title), // handle missing slug from migration
+    subscribed,
+    subscribers,
+    summary: ({ content, cover }: { cover?: string; content: string }) =>
+      makeSummary(content, cover ? 110 : 140),
+    tags,
+    topicScore: ({ topicScore }: { topicScore: number }) =>
+      topicScore ? Math.round(topicScore) : null
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
-    count: tagCount,
     articles: tagArticles,
     oss: (root: any) => root
   },

@@ -1,5 +1,5 @@
-import { MutationToSingleFileDeleteResolver } from 'definitions'
 import { ForbiddenError } from 'common/errors'
+import { MutationToSingleFileDeleteResolver } from 'definitions'
 
 const resolver: MutationToSingleFileDeleteResolver = async (
   root,

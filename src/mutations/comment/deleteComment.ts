@@ -1,7 +1,7 @@
-import { MutationToDeleteCommentResolver } from 'definitions'
+import { CACHE_KEYWORD, COMMENT_STATE, NODE_TYPES } from 'common/enums'
+import { AuthenticationError, ForbiddenError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { COMMENT_STATE } from 'common/enums'
-import { ForbiddenError, AuthenticationError } from 'common/errors'
+import { MutationToDeleteCommentResolver } from 'definitions'
 
 const resolver: MutationToDeleteCommentResolver = async (
   _,
@@ -36,6 +36,18 @@ const resolver: MutationToDeleteCommentResolver = async (
     }),
     article
   )
+
+  // Add custom data for cache invalidation
+  comment[CACHE_KEYWORD] = [
+    {
+      id: article.id,
+      type: NODE_TYPES.article
+    },
+    {
+      id: comment.id,
+      type: NODE_TYPES.comment
+    }
+  ]
 
   return comment
 }

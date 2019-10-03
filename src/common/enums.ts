@@ -10,6 +10,7 @@ export const MATERIALIZED_VIEW = {
 }
 
 export const CACHE_TTL = {
+  SHORT: 90,
   DEFAULT: 60,
   INSTANT: 0
 }
@@ -18,6 +19,18 @@ export const USER_ROLE = {
   admin: 'admin',
   user: 'user',
   visitor: 'visitor'
+}
+
+export const SCOPE_MODE = {
+  visitor: 'visitor',
+  user: 'user',
+  admin: 'admin',
+  oauth: 'oauth'
+}
+
+export const SCOPE_TYPE = {
+  read: 'read',
+  write: 'write'
 }
 
 export const LANGUAGE = {
@@ -80,18 +93,13 @@ export const PUBLISH_STATE = {
   published: 'published'
 }
 
-export const INVITATION_STATUS = {
-  pending: 'pending',
-  activated: 'activated'
-}
-
 export const BCRYPT_ROUNDS = 12
 
 export const BATCH_SIZE = 10
 
 export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
 
-export const MAT_UNIT = {
+export const APPRECIATION_REWARD = {
   invitationCalculate: 20,
   invitationAccepted: 5,
   joinByInvitation: 5,
@@ -302,16 +310,6 @@ export const EMAIL_TEMPLATE_ID = {
     zh_hans: 'd-30589f459aac4df1ab66e0f8af79fc4d',
     en: 'd-765b335a77d244438891a62f023b8c2e'
   },
-  invitationSuccess: {
-    zh_hant: 'd-daaa0da594034f509cfa01e5ecdb1f77',
-    zh_hans: 'd-1256cd9153204e6c840c2e51eb326f63',
-    en: 'd-daaa0da594034f509cfa01e5ecdb1f77'
-  },
-  userActivated: {
-    zh_hant: 'd-6e0a8f374ed04b068baabaf2db65b945',
-    zh_hans: 'd-b2758620963644ff88f6ec834cb67275',
-    en: 'd-6e0a8f374ed04b068baabaf2db65b945'
-  },
   dailySummary: {
     zh_hant: 'd-047f3359fea54f1bac7f6d6ea4030c4c',
     zh_hans: 'd-8ecc50276ac6412ea4c716971953360a',
@@ -389,11 +387,32 @@ export const CORS_OPTIONS = {
   credentials: true
 }
 
-export const OAUTH_VALID_SCOPES: string[] = []
-
 export const OAUTH_CALLBACK_ERROR_CODE = {
   userNotFound: 1,
-  likerNotFound: 2
+  likerNotFound: 2,
+  likerExists: 3
 }
 
 export const BLOCK_USERS = ['jQwZ2JnYzg3MmdAZw']
+
+export const GQL_OPERATION = {
+  query: 'query',
+  mutation: 'mutation'
+}
+
+export const NODE_TYPES = {
+  article: 'Article',
+  comment: 'Comment',
+  draft: 'Draft',
+  user: 'User',
+  tag: 'Tag'
+}
+
+export const CACHE_KEYWORD = '__cache__'
+
+export const CACHE_PREFIX = 'cache-keys'
+
+export const TRANSACTION_TYPES = {
+  like: 'LIKE',
+  mat: 'MAT'
+}

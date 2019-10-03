@@ -1,6 +1,7 @@
 import _get from 'lodash/get'
-// local
+
 import { toGlobalId } from 'common/utils'
+
 import { testClient } from './utils'
 
 const USER_ID = toGlobalId({ type: 'User', id: 1 })

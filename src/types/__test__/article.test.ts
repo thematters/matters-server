@@ -1,14 +1,14 @@
 import _ from 'lodash'
-// internal
-import { toGlobalId } from 'common/utils'
+
 import { PUBLISH_STATE } from 'common/enums'
+import { toGlobalId } from 'common/utils'
 import {
+  GQLAppreciateArticleInput,
   GQLNodeInput,
-  GQLPublishArticleInput,
-  GQLAppreciateArticleInput
+  GQLPublishArticleInput
 } from 'definitions'
-// local
-import { testClient, publishArticle, putDraft, getViewerMAT } from './utils'
+
+import { publishArticle, putDraft, testClient } from './utils'
 
 const mediaHash = 'someIpfsMediaHash1'
 
@@ -48,11 +48,11 @@ const GET_ARTICLE_TAGS = `
     }
   }
 `
-const GET_ARTICLE_MAT = `
+const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = `
   query ($input: NodeInput!) {
     node(input: $input) {
       ... on Article {
-        MAT
+        appreciationsReceivedTotal
       }
     }
   }
@@ -60,7 +60,7 @@ const GET_ARTICLE_MAT = `
 const APPRECIATE_ARTICLE = `
   mutation($input: AppreciateArticleInput!) {
     appreciateArticle(input: $input) {
-      MAT
+      appreciationsReceivedTotal
     }
   }
 `
@@ -98,15 +98,17 @@ const GET_RELATED_ARTICLES = `
   }
 `
 
-export const getArticleMAT = async (input: GQLNodeInput) => {
+export const getArticleAppreciationsReceivedTotal = async (
+  input: GQLNodeInput
+) => {
   const { query } = await testClient()
   const { data } = await query({
-    query: GET_ARTICLE_MAT,
+    query: GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL,
     // @ts-ignore
     variables: { input }
   })
-  const { MAT } = data && data.node && data.node
-  return MAT
+  const { appreciationsReceivedTotal } = data && data.node && data.node
+  return appreciationsReceivedTotal
 }
 
 export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
@@ -135,7 +137,7 @@ describe('query article', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    expect(result.data.oss.articles.edges.length).toBeGreaterThan(1)
+    expect(_.get(result, 'data.oss.articles.edges.length')).toBeGreaterThan(1)
   })
 
   test('query related articles', async () => {
@@ -227,31 +229,6 @@ describe('publish article', () => {
   })
 })
 
-describe('appreciate article', () => {
-  test('appreciate success', async () => {
-    const viewerCurrentMAT = await getViewerMAT()
-    const articleCurrentMAT = await getArticleMAT({ id: ARTICLE_ID })
-    const appreciate = { id: ARTICLE_ID, amount: 1 }
-    await appreciateArticle(appreciate)
-    const viewerNewMAT = await getViewerMAT()
-    const articleNewMAT = await getArticleMAT({ id: ARTICLE_ID })
-    expect(viewerNewMAT).toBe(viewerCurrentMAT - appreciate.amount)
-    // expect(articleNewMAT).toBe(articleCurrentMAT + appreciate.amount)
-  })
-
-  test('appreciate failed', async () => {
-    const { totoal: viewerCurrentMAT } = await getViewerMAT()
-    const appreciate = { id: ARTICLE_ID, amount: viewerCurrentMAT + 1 }
-    try {
-      await appreciateArticle(appreciate)
-    } catch (e) {
-      expect(() => {
-        throw e
-      }).toThrowError()
-    }
-  })
-})
-
 describe('report article', () => {
   test('report a article without assets', async () => {
     const { mutate } = await testClient({ isAuth: true })
@@ -266,7 +243,7 @@ describe('report article', () => {
         }
       }
     })
-    expect(result.data.reportArticle).toBe(true)
+    expect(_.get(result, 'data.reportArticle')).toBe(true)
   })
 
   test('report a article with assets', async () => {
@@ -283,7 +260,7 @@ describe('report article', () => {
         }
       }
     })
-    expect(result.data.reportArticle).toBe(true)
+    expect(_.get(result, 'data.reportArticle')).toBe(true)
   })
 })
 
@@ -300,7 +277,7 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(result.data.toggleArticleLive.live).toBe(true)
+    expect(_.get(result, 'data.toggleArticleLive.live')).toBe(true)
   })
 
   test('disable article live', async () => {
@@ -315,7 +292,7 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(result.data.toggleArticleLive.live).toBe(false)
+    expect(_.get(result, 'data.toggleArticleLive.live')).toBe(false)
   })
 
   test('enable article public', async () => {
@@ -330,7 +307,7 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(data.toggleArticlePublic.public).toBe(true)
+    expect(_.get(data, 'toggleArticlePublic.public')).toBe(true)
   })
 
   test('disable article public', async () => {
@@ -345,6 +322,6 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(data.toggleArticlePublic.public).toBe(false)
+    expect(_.get(data, 'toggleArticlePublic.public')).toBe(false)
   })
 })

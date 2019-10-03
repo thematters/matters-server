@@ -135,14 +135,6 @@ export class DraftHasNoCoverError extends ApolloError {
   }
 }
 
-export class AudioDraftNotFoundError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'AUDIO_DRAFT_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'AudioDraftNotFoundError' })
-  }
-}
-
 export class TagNotFoundError extends ApolloError {
   constructor(message: string) {
     super(message, 'TAG_NOT_FOUND')
@@ -303,5 +295,18 @@ export class CodeExpiredError extends ApolloError {
     super(message, 'CODE_EXPIRED')
 
     Object.defineProperty(this, 'name', { value: 'CodeExpiredError' })
+  }
+}
+
+/*********************************
+ *                               *
+ *            LikeCoin           *
+ *                               *
+ *********************************/
+export class LikerNotFoundError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'LIKER_NOT_FOUND')
+
+    Object.defineProperty(this, 'name', { value: 'LikerNotFoundError' })
   }
 }

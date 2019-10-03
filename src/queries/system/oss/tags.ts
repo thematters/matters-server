@@ -1,5 +1,4 @@
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
-
 import { OSSToTagsResolver } from 'definitions'
 
 export const tags: OSSToTagsResolver = async (

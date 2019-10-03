@@ -1,6 +1,6 @@
-import { UserInfoToTotalWordCountResolver } from 'definitions'
+import { UserStatusToTotalWordCountResolver } from 'definitions'
 
-const resolver: UserInfoToTotalWordCountResolver = async (
+const resolver: UserStatusToTotalWordCountResolver = async (
   { id },
   _,
   { dataSources: { articleService } }

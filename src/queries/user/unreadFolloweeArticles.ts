@@ -1,5 +1,5 @@
-import { UserStatusToUnreadFolloweeArticlesResolver } from 'definitions'
 import { LOG_RECORD_TYPES } from 'common/enums'
+import { UserStatusToUnreadFolloweeArticlesResolver } from 'definitions'
 
 const resolver: UserStatusToUnreadFolloweeArticlesResolver = async (
   { id },

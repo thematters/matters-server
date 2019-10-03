@@ -1,19 +1,16 @@
-require('newrelic')
-require('module-alias/register')
-require('dotenv').config()
-// external
-import http from 'http'
 import * as Sentry from '@sentry/node'
-import express from 'express'
 import cors from 'cors'
+import express from 'express'
 import helmet from 'helmet'
+import http from 'http'
+import 'module-alias/register'
+import 'newrelic'
 
-// local
-import * as routes from './routes'
-// internal
-import { environment } from 'common/environment'
-import scheduleQueue from 'connectors/queue/schedule'
 import { CORS_OPTIONS } from 'common/enums'
+import { environment } from 'common/environment'
+import { scheduleQueue } from 'connectors/queue/schedule'
+
+import * as routes from './routes'
 
 /**
  * Init
@@ -35,8 +32,9 @@ app.use(cors(CORS_OPTIONS))
  * Routes
  *
  * @see {@url https://www.apollographql.com/docs/apollo-server
-/features/subscriptions/#subscriptions-with-additional-middleware}
+ * /features/subscriptions/#subscriptions-with-additional-middleware}
  */
+
 // GraphQL
 const server = routes.graphql(app)
 server.installSubscriptionHandlers(httpServer)

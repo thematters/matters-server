@@ -73,8 +73,6 @@ exports.up = async knex => {
         .returning(['id', 'recipient_id', 'amount'])
     )
   )
-
-  console.log(result)
 }
 
 exports.down = () => {}

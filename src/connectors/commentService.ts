@@ -1,22 +1,16 @@
 import DataLoader from 'dataloader'
 import { v4 } from 'uuid'
-import { uniq } from 'lodash'
 
 import {
-  USER_ACTION,
   ARTICLE_PIN_COMMENT_LIMIT,
-  COMMENT_STATE
+  COMMENT_STATE,
+  USER_ACTION
 } from 'common/enums'
-import { BaseService } from './baseService'
 import { CommentNotFoundError } from 'common/errors'
+import { BaseService } from 'connectors'
+import { GQLCommentCommentsInput, GQLCommentsInput, GQLVote } from 'definitions'
 
-import {
-  GQLCommentsInput,
-  GQLVote,
-  GQLCommentCommentsInput
-} from 'definitions/schema'
-
-type CommentFilter = {
+interface CommentFilter {
   articleId?: string
   authorId?: string
   state?: string
@@ -50,9 +44,6 @@ export class CommentService extends BaseService {
     articleId,
     parentCommentId,
     content,
-    quotationStart,
-    quotationEnd,
-    quotationContent,
     replyTo
   }: {
     [key: string]: any
@@ -64,9 +55,6 @@ export class CommentService extends BaseService {
       articleId,
       parentCommentId,
       content,
-      quotationStart,
-      quotationEnd,
-      quotationContent,
       replyTo
     })
     return comemnt
@@ -116,7 +104,7 @@ export class CommentService extends BaseService {
    * Find comments by a given author id (user).
    */
   findByAuthor = async (authorId: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from(this.table)
       .where({ authorId, state: COMMENT_STATE.active })
@@ -147,22 +135,7 @@ export class CommentService extends BaseService {
       where = { ...where, authorId: author }
     }
 
-    if (sort == 'upvotes') {
-      query = this.knex('comment')
-        .select('comment.*')
-        .countDistinct('votes.user_id as upvotes')
-        .leftJoin(
-          this.knex
-            .select('target_id', 'user_id')
-            .from('action_comment')
-            .as('votes'),
-          'votes.target_id',
-          'comment.id'
-        )
-        .groupBy('comment.id')
-        .where(where)
-        .orderBy('upvotes', 'desc')
-    } else if (sort === 'oldest') {
+    if (sort === 'oldest') {
       query = sortCreatedAt('asc')
     } else if (sort === 'newest') {
       query = sortCreatedAt('desc')
@@ -186,7 +159,7 @@ export class CommentService extends BaseService {
     includeBefore = false
   }: GQLCommentsInput & { filter: CommentFilter; order?: string }) => {
     // build where clause
-    let where = filter
+    const where = filter
 
     const query = this.knex
       .select()
@@ -316,7 +289,7 @@ export class CommentService extends BaseService {
     userId: string
     commentId: string
   }): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from('action_comment')
       .where({
@@ -335,7 +308,7 @@ export class CommentService extends BaseService {
     userId: string
     commentId: string
   }): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from('action_comment')
       .where({
@@ -347,14 +320,55 @@ export class CommentService extends BaseService {
 
   /*********************************
    *                               *
-   *              Pin              *
+   *           Featured            *
    *                               *
    *********************************/
+
+  /**
+   * Find featured comments by a given article id.
+   */
+  findFeaturedCommentsByArticle = async ({
+    id,
+    first,
+    after
+  }: {
+    [key: string]: string
+  }) => {
+    const threshold = 20
+    const result = await this.knex
+      .select()
+      .from(
+        this.knex.raw(/*sql*/ `
+          (select *,
+                  (coalesce(upvote_count, 0) + coalesce(downvote_count, 0) + 1) *
+                  sqrt(coalesce(upvote_count, 0) + coalesce(downvote_count, 0)) as score
+          from comment
+          left join
+            (select target_id,
+                    count(id) as upvote_count
+              from action_comment as action
+              where action.action = 'up_vote'
+              group by action.target_id) as upvotes on comment.id = upvotes.target_id
+          left join
+            (select target_id,
+                    coalesce(count(id), 0) as downvote_count
+              from action_comment as action
+              where action.action = 'down_vote'
+              group by action.target_id) as downvotes on comment.id = downvotes.target_id
+          where article_id = ${id}) as comment_score
+      `)
+      )
+      .where({ pinned: true, parentCommentId: null })
+      .orWhere('score', '>', threshold)
+      .orderBy('score', 'desc')
+    return result
+  }
+
   /**
    * Find pinned comments by a given article id.
    */
   findPinnedByArticle = async (articleId: string): Promise<any[]> =>
-    await this.knex
+    this.knex
       .select()
       .from(this.table)
       .where({ articleId, pinned: true })
@@ -381,7 +395,7 @@ export class CommentService extends BaseService {
 
   pinLeftByArticle = async (articleId: string) => {
     const pinnedCount = await this.countPinnedByArticle({
-      articleId: articleId,
+      articleId,
       activeOnly: true
     })
     return Math.max(ARTICLE_PIN_COMMENT_LIMIT - pinnedCount, 0)

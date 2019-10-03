@@ -1,5 +1,4 @@
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
-
 import { ArticleToSubscribersResolver } from 'definitions'
 
 const resolver: ArticleToSubscribersResolver = async (

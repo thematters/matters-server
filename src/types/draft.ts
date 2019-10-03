@@ -1,8 +1,7 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Mutation {
-    putAudiodraft(input: PutAudiodraftInput!): Audiodraft! @authenticate
-    deleteAudiodraft(input: DeleteAudiodraftInput!): Boolean @authenticate
-
     "Create or update a draft."
     putDraft(input: PutDraftInput!): Draft! @authenticate
 
@@ -15,22 +14,24 @@ export default /* GraphQL */ `
   """
   type Draft implements Node {
     "Unique ID of this draft."
-    id: ID!
+    id: ID! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Collection list of this draft."
     collection(input: ConnectionArgs!): ArticleConnection!
 
     "Draft title."
-    title: String
+    title: String @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Slugified draft title."
     slug: String!
 
     "Summary of this draft."
-    summary: String
+    summary: String @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Content of this draft."
-    content: String
+    content: String @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+
+    "Time of this draft was scheduled for publishing."
     scheduledAt: DateTime
 
     "Time of this draft was created."
@@ -55,16 +56,6 @@ export default /* GraphQL */ `
     assets: [Asset!]!
   }
 
-  type Audiodraft {
-    id: ID!
-    authorId: ID!
-    title: String
-    audio: URL!
-    length: Int!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-  }
-
   type DraftConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
@@ -74,28 +65,6 @@ export default /* GraphQL */ `
   type DraftEdge {
     cursor: String!
     node: Draft!
-  }
-
-  type AudiodraftConnection implements Connection {
-    totalCount: Int!
-    pageInfo: PageInfo!
-    edges: [AudiodraftEdge!]
-  }
-
-  type AudiodraftEdge {
-    cursor: String!
-    node: Audiodraft!
-  }
-
-  input PutAudiodraftInput {
-    id: ID
-    audioAssetId: ID
-    title: String
-    length: Int
-  }
-
-  input DeleteAudiodraftInput {
-    id: ID!
   }
 
   input PutDraftInput {

@@ -1,5 +1,5 @@
-import { MutationToUpdateArticleStateResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { MutationToUpdateArticleStateResolver } from 'definitions'
 
 const resolver: MutationToUpdateArticleStateResolver = async (
   _,

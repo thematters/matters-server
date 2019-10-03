@@ -1,6 +1,7 @@
-import { MutationToUnfollowUserResolver } from 'definitions'
-import { fromGlobalId } from 'common/utils'
+import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import { AuthenticationError, UserNotFoundError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToUnfollowUserResolver } from 'definitions'
 
 const resolver: MutationToUnfollowUserResolver = async (
   _,
@@ -17,6 +18,19 @@ const resolver: MutationToUnfollowUserResolver = async (
   }
 
   await userService.unfollow(viewer.id, user.id)
+
+  // Add custom data for cache invalidation
+  user[CACHE_KEYWORD] = [
+    {
+      id: viewer.id,
+      type: NODE_TYPES.user
+    },
+    {
+      id: user.id,
+      type: NODE_TYPES.user
+    }
+  ]
+
   return user
 }
 

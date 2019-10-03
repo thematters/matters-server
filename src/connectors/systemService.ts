@@ -1,7 +1,5 @@
-import { BaseService } from './baseService'
-import logger from 'common/logger'
-import { BATCH_SIZE, TRANSACTION_PURPOSE, MAT_UNIT } from 'common/enums'
-import { v4 } from 'uuid'
+import { BATCH_SIZE } from 'common/enums'
+import { BaseService } from 'connectors'
 
 export class SystemService extends BaseService {
   constructor() {
@@ -56,7 +54,7 @@ export class SystemService extends BaseService {
     entityTypeId: string,
     entityId: string
   ): Promise<any> =>
-    await this.knex.transaction(async trx => {
+    this.knex.transaction(async trx => {
       const [newAsset] = await trx
         .insert(asset)
         .into('asset')
@@ -142,7 +140,7 @@ export class SystemService extends BaseService {
    * Delete asset and asset map by a given id
    */
   deleteAssetAndAssetMap = async (ids: string[]) =>
-    await this.knex.transaction(async trx => {
+    this.knex.transaction(async trx => {
       await trx('asset_map')
         .whereIn('asset_id', ids)
         .del()
@@ -268,27 +266,10 @@ export class SystemService extends BaseService {
       .first()
 
   logRecord = async (data: { userId: string; type: string }) => {
-    return await this.baseUpdateOrCreate({
+    return this.baseUpdateOrCreate({
       where: data,
       data: { readAt: new Date(), ...data },
       table: 'log_record'
     })
   }
-
-  /*********************************
-   *                               *
-   *             Award             *
-   *                               *
-   *********************************/
-
-  firstPostAward = (id: string) =>
-    this.knex('transaction')
-      .insert({
-        uuid: v4(),
-        recipientId: id,
-        purpose: TRANSACTION_PURPOSE.firstPost,
-        amount: MAT_UNIT.firstPost
-      })
-      .into('transaction')
-      .returning('*')
 }

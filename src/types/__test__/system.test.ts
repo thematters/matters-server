@@ -1,13 +1,13 @@
 import _get from 'lodash/get'
-// internal
+
 import { toGlobalId } from 'common/utils'
-// local
+
 import {
-  testClient,
   delay,
   publishArticle,
   putDraft,
   registerUser,
+  testClient,
   updateUserDescription
 } from './utils'
 
@@ -215,7 +215,7 @@ describe('Feedback', () => {
         }
       }
     })
-    expect(result.data.feedback).toBe(true)
+    expect(result.data && result.data.feedback).toBe(true)
   })
 
   test('submit a feedback with assets', async () => {
@@ -231,6 +231,6 @@ describe('Feedback', () => {
         }
       }
     })
-    expect(result.data.feedback).toBe(true)
+    expect(result.data && result.data.feedback).toBe(true)
   })
 })

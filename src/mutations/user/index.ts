@@ -1,18 +1,21 @@
-import sendVerificationCode from './sendVerificationCode'
-import confirmVerificationCode from './confirmVerificationCode'
-import resetPassword from './resetPassword'
 import changeEmail from './changeEmail'
-import verifyEmail from './verifyEmail'
-import userRegister from './userRegister'
-import userLogin from './userLogin'
-import userLogout from './userLogout'
-import updateUserInfo from './updateUserInfo'
-import updateNotificationSetting from './updateNotificationSetting'
-import followUser from './followUser'
-import unfollowUser from './unfollowUser'
 import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
+import confirmVerificationCode from './confirmVerificationCode'
+import followUser from './followUser'
+import generateLikerId from './generateLikerId'
+import generateTempLikerIds from './generateTempLikerIds'
+import resetPassword from './resetPassword'
+import sendVerificationCode from './sendVerificationCode'
+import transferLIKE from './transferLIKE'
+import unfollowUser from './unfollowUser'
+import updateNotificationSetting from './updateNotificationSetting'
+import updateUserInfo from './updateUserInfo'
 import updateUserState from './updateUserState'
+import userLogin from './userLogin'
+import userLogout from './userLogout'
+import userRegister from './userRegister'
+import verifyEmail from './verifyEmail'
 
 export default {
   Mutation: {
@@ -24,12 +27,15 @@ export default {
     userRegister,
     userLogin,
     userLogout,
+    generateLikerId,
     updateUserInfo,
     updateNotificationSetting,
     followUser,
     unfollowUser,
     clearReadHistory,
     clearSearchHistory,
-    updateUserState
+    updateUserState,
+    generateTempLikerIds,
+    transferLIKE
   }
 }

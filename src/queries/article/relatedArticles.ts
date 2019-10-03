@@ -1,9 +1,9 @@
 import _ from 'lodash'
 
-import { ArticleToRelatedArticlesResolver } from 'definitions'
-import { connectionFromArray } from 'common/utils'
-import logger from 'common/logger'
 import { ARTICLE_STATE } from 'common/enums'
+import logger from 'common/logger'
+import { connectionFromArray } from 'common/utils'
+import { ArticleToRelatedArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
   { authorId, id, title },
@@ -18,9 +18,9 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
   // helper function to prevent duplicates and origin article
   const addRec = (rec: any[], extra: any[]) =>
-    _.uniqBy(rec.concat(extra), 'id').filter(rec => rec.id !== id)
+    _.uniqBy(rec.concat(extra), 'id').filter(_rec => _rec.id !== id)
 
-  let ids: string[] = []
+  const ids: string[] = []
   let articles: any[] = []
   // get initial recommendation
   try {
@@ -31,13 +31,13 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
     logger.info(
       `[recommendation] article ${id}, title ${title}, ES result ${articles.map(
-        ({ id }) => id
+        ({ id: aid }) => aid
       )} `
     )
 
     // get articles
     articles = await articleService.dataloader
-      .loadMany(relatedArticles.map(({ id }) => id))
+      .loadMany(relatedArticles.map(({ id: aid }) => aid))
       .then(allArticles =>
         allArticles.filter(({ state }) => state === ARTICLE_STATE.active)
       )
@@ -74,12 +74,12 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
   // fall back to author
   if (articles.length < recommendationSize + buffer) {
-    let articlesFromAuthor = await articleService.findByAuthor(authorId, {
+    const articlesFromAuthor = await articleService.findByAuthor(authorId, {
       state: ARTICLE_STATE.active
     })
     logger.info(
       `[recommendation] article ${id}, title ${title}, author result ${articlesFromAuthor.map(
-        ({ id }: { id: string }) => id
+        ({ id: aid }: { id: string }) => aid
       )} `
     )
     articles = addRec(articles, articlesFromAuthor)

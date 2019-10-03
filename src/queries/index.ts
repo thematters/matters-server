@@ -1,13 +1,14 @@
 import { merge } from 'lodash'
-// local
-import scalars from './scalars'
-import user from './user'
+
 import article from './article'
 import comment from './comment'
 import draft from './draft'
 import notice from './notice'
-import system from './system'
+import oauthClient from './oauthClient'
 import response from './response'
+import scalars from './scalars'
+import system from './system'
+import user from './user'
 
 export default merge(
   scalars,
@@ -17,5 +18,6 @@ export default merge(
   draft,
   notice,
   system,
-  response
+  response,
+  oauthClient
 )

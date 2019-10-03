@@ -1,24 +1,24 @@
-import jwt from 'jsonwebtoken'
+import nanoid from 'nanoid'
 
 import {
-  OAuthClient,
-  User,
-  OAuthToken,
-  OAuthAuthorizationCode,
-  OAuthRefreshToken,
-  Falsey
-} from 'definitions'
-import logger from 'common/logger'
+  OAUTH_ACCESS_TOKEN_EXPIRES_IN,
+  OAUTH_REFRESH_TOKEN_EXPIRES_IN
+} from 'common/enums'
 import { environment } from 'common/environment'
-import { OAUTH_ACCESS_TOKEN_EXPIRES_IN, OAUTH_VALID_SCOPES } from 'common/enums'
-import { randomString } from 'common/utils'
-
-import { BaseService } from './baseService'
-import { UserService } from './userService'
+import logger from 'common/logger'
+import { BaseService, UserService } from 'connectors'
+import {
+  Falsey,
+  OAuthAuthorizationCode,
+  OAuthClient,
+  OAuthRefreshToken,
+  OAuthToken,
+  User
+} from 'definitions'
 
 export class OAuthService extends BaseService {
   constructor() {
-    super('noop')
+    super('oauth_client')
   }
 
   /*********************************
@@ -26,6 +26,42 @@ export class OAuthService extends BaseService {
    *             Client            *
    *                               *
    *********************************/
+  findClient = async ({ clientId }: { clientId: string }) => {
+    return this.knex('oauth_client')
+      .select()
+      .where({ clientId })
+      .first()
+  }
+
+  findClientByName = async ({ name }: { name: string }) => {
+    return this.knex('oauth_client')
+      .select()
+      .where({ name })
+      .first()
+  }
+
+  updateOrCreateClient = async (params: {
+    clientId: string
+    clientSecret?: string
+    name?: string
+    description?: string
+    websiteUrl?: string
+    scope?: string[]
+    avatar?: string
+    redirectURIs?: string[]
+    grantTypes?: string[]
+    userId: string
+  }) => {
+    return this.baseUpdateOrCreate({
+      where: { clientId: params.clientId },
+      data: {
+        ...params,
+        updatedAt: new Date()
+      },
+      table: 'oauth_client'
+    })
+  }
+
   getClient = async (
     clientId: string,
     clientSecret?: string
@@ -46,7 +82,9 @@ export class OAuthService extends BaseService {
     return {
       id: dbClient.id,
       redirectUris: dbClient.redirectUri,
-      grants: dbClient.grantTypes
+      grants: dbClient.grantTypes,
+      scope: dbClient.scope,
+      rawClient: dbClient
       // accessTokenLifetime: , // Client-specific lifetime
       // refreshTokenLifetime: , // Client-specific lifetime
     }
@@ -69,16 +107,9 @@ export class OAuthService extends BaseService {
   generateAccessToken = async (
     client: OAuthClient,
     user: User,
-    scope: string
+    scope: string | string[]
   ): Promise<string> => {
-    const token = jwt.sign(
-      { uuid: user.uuid, scope, client_id: client.id, type: 'oauth' },
-      environment.jwtSecret,
-      {
-        expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN
-      }
-    )
-    return token
+    return nanoid(40)
   }
 
   getAccessToken = async (
@@ -229,10 +260,9 @@ export class OAuthService extends BaseService {
   generateRefreshToken = async (
     client: OAuthClient,
     user: User,
-    scope: string
+    scope: string | string[]
   ): Promise<string> => {
-    const token = randomString(40)
-    return token
+    return nanoid(40)
   }
 
   getRefreshToken = async (
@@ -277,24 +307,81 @@ export class OAuthService extends BaseService {
    *             Scope             *
    *                               *
    *********************************/
+  scopeStr2Arr = (scope: string): string[] => {
+    return scope.split(/[,\s]/).filter(s => !!s)
+  }
+
   validateScope = async (
     user: User,
     client: OAuthClient,
-    scope: string
+    scope: string | string[]
   ): Promise<string | string[] | Falsey> => {
-    return (
-      (scope || '')
-        .split(' ')
-        .filter(s => OAUTH_VALID_SCOPES.indexOf(s) >= 0)
-        .join(' ') || []
-    )
+    // Use client's default scope,
+    // if thrid-party app has not specified "scope" query parameter in authorization,
+    if (!scope) {
+      return client.scope
+    }
+
+    // TODO: validate scope with client's scope in DB
+    scope = scope instanceof Array ? scope : this.scopeStr2Arr(scope)
+    return scope
   }
 
   verifyScope = async (
     accessToken: OAuthToken,
-    scope: string
+    scope: string | string[]
   ): Promise<boolean> => {
-    //TODO
+    // TODO: Maybe we don't have to implement this?
     return true
+  }
+
+  /*********************************
+   *                               *
+   *           LikeCoin            *
+   *                               *
+   *********************************/
+  generateTokenForLikeCoin = async ({ userId }: { userId: string }) => {
+    const userService = new UserService()
+    const user = (await userService.dataloader.load(userId)) as User
+    const name = environment.likecoinOAuthClientName
+    const client = await this.findClientByName({ name })
+    const oauthClient = this.toOAuthClient(client)
+
+    if (!client || !oauthClient) {
+      throw new Error(`client of "${name}" does not exists`)
+    }
+
+    // generate access token
+    const accessToken = await this.generateAccessToken(
+      oauthClient,
+      user,
+      client.scope
+    )
+
+    // generate refresh token
+    const refreshToken = await this.generateRefreshToken(
+      oauthClient,
+      user,
+      client.scope
+    )
+
+    // save token
+    return this.saveToken(
+      {
+        accessToken,
+        accessTokenExpiresAt: new Date(
+          Date.now() + OAUTH_ACCESS_TOKEN_EXPIRES_IN
+        ),
+        refreshToken,
+        refreshTokenExpiresAt: new Date(
+          Date.now() + OAUTH_REFRESH_TOKEN_EXPIRES_IN
+        ),
+        scope: client.scope,
+        client,
+        user
+      },
+      client,
+      user
+    )
   }
 }

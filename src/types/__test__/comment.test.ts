@@ -1,6 +1,7 @@
 import _get from 'lodash/get'
-// local
+
 import { toGlobalId } from 'common/utils'
+
 import { testClient } from './utils'
 
 const isDesc = (ints: number[]) =>
@@ -150,7 +151,7 @@ describe('Report comment', () => {
         }
       }
     })
-    expect(result.data.reportComment).toBe(true)
+    expect(_get(result, 'data.reportComment')).toBe(true)
   })
 
   test('report a comment with asset', async () => {
@@ -167,7 +168,7 @@ describe('Report comment', () => {
         }
       }
     })
-    expect(result.data.reportComment).toBe(true)
+    expect(_get(result, 'data.reportComment')).toBe(true)
   })
 })
 

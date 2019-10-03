@@ -1,6 +1,6 @@
-import { MutationToLogRecordResolver } from 'definitions'
 import { LOG_RECORD_TYPES } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
+import { MutationToLogRecordResolver } from 'definitions'
 
 const resolver: MutationToLogRecordResolver = async (
   root,

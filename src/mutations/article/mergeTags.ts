@@ -1,5 +1,5 @@
-import { MutationToMergeTagsResolver } from 'definitions'
 import { fromGlobalId } from 'common/utils'
+import { MutationToMergeTagsResolver } from 'definitions'
 
 const resolver: MutationToMergeTagsResolver = async (
   root,

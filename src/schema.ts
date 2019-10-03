@@ -1,16 +1,20 @@
 import { makeExecutableSchema } from 'graphql-tools'
 import { merge } from 'lodash'
 
-import { ForbiddenError, AuthenticationError } from 'common/errors'
-import typeDefs from './types'
-import queries from './queries'
+import { AuthenticationError, ForbiddenError } from 'common/errors'
+
 import mutations from './mutations'
+import queries from './queries'
 import subscriptions from './subscriptions'
+import typeDefs from './types'
 import {
-  DeprecatedDirective,
-  PrivateDirective,
   authDirectiveFactory,
-  UncacheViewerDirective
+  DeprecatedDirective,
+  LogCacheDirective,
+  PrivateCacheDirective,
+  PrivateDirective,
+  PurgeCacheDirective,
+  ScopeDirective
 } from './types/directives'
 
 const schema = makeExecutableSchema({
@@ -20,7 +24,10 @@ const schema = makeExecutableSchema({
     authenticate: authDirectiveFactory(AuthenticationError),
     authorize: authDirectiveFactory(ForbiddenError),
     private: PrivateDirective,
-    uncacheViewer: UncacheViewerDirective
+    scope: ScopeDirective,
+    purgeCache: PurgeCacheDirective,
+    privateCache: PrivateCacheDirective,
+    logCache: LogCacheDirective
   },
   resolvers: merge(queries, mutations, subscriptions)
 })

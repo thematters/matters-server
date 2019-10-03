@@ -1,30 +1,33 @@
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
-// internal
+
 import {
+  NODE_TYPES,
+  PUBLISH_ARTICLE_DELAY,
   PUBLISH_STATE,
-  QUEUE_JOB,
-  QUEUE_PRIORITY,
-  QUEUE_NAME,
   QUEUE_CONCURRENCY,
-  PUBLISH_ARTICLE_DELAY
+  QUEUE_JOB,
+  QUEUE_NAME,
+  QUEUE_PRIORITY
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import {
-  DraftService,
   ArticleService,
-  TagService,
+  CacheService,
+  DraftService,
   NotificationService,
-  SystemService
+  SystemService,
+  TagService
 } from 'connectors'
-// local
+
 import { createQueue } from './utils'
 
 class PublicationQueue {
   q: InstanceType<typeof Queue>
   tagService: InstanceType<typeof TagService>
   articleService: InstanceType<typeof ArticleService>
+  cacheService: InstanceType<typeof CacheService>
   draftService: InstanceType<typeof DraftService>
   notificationService: InstanceType<typeof NotificationService>
   systemService: InstanceType<typeof SystemService>
@@ -35,23 +38,31 @@ class PublicationQueue {
     this.notificationService = new NotificationService()
     this.tagService = new TagService()
     this.articleService = new ArticleService()
+    this.cacheService = new CacheService()
     this.draftService = new DraftService()
     this.systemService = new SystemService()
     this.q = createQueue(this.queueName)
     this.addConsumers()
   }
 
-  private firstPostAward = async (authorId: string) => {
-    const count = await this.articleService.countByAuthor(authorId, false)
-
-    if (count === 1) {
-      const trx = await this.systemService.firstPostAward(authorId)
-
-      this.notificationService.trigger({
-        event: 'user_first_post_award',
-        recipientId: authorId
-      })
-    }
+  /**
+   * Producers
+   */
+  publishArticle = ({
+    draftId,
+    delay = PUBLISH_ARTICLE_DELAY
+  }: {
+    draftId: string
+    delay?: number
+  }) => {
+    return this.q.add(
+      QUEUE_JOB.publishArticle,
+      { draftId },
+      {
+        delay,
+        priority: QUEUE_PRIORITY.CRITICAL
+      }
+    )
   }
 
   /**
@@ -233,7 +244,10 @@ class PublicationQueue {
             ]
           })
 
-          this.firstPostAward(article.authorId)
+          job.progress(95)
+
+          // invalidate user cache
+          await this.cacheService.invalidate(NODE_TYPES.user, article.authorId)
 
           job.progress(100)
 
@@ -247,26 +261,6 @@ class PublicationQueue {
       }
     )
   }
-
-  /**
-   * Producers
-   */
-  publishArticle = ({
-    draftId,
-    delay = PUBLISH_ARTICLE_DELAY
-  }: {
-    draftId: string
-    delay?: number
-  }) => {
-    return this.q.add(
-      QUEUE_JOB.publishArticle,
-      { draftId },
-      {
-        delay,
-        priority: QUEUE_PRIORITY.CRITICAL
-      }
-    )
-  }
 }
 
-export default new PublicationQueue()
+export const publicationQueue = new PublicationQueue()

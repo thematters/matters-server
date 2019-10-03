@@ -1,6 +1,6 @@
-import { QueryToNodeResolver, Context, NodeTypes } from 'definitions'
-import { fromGlobalId } from 'common/utils'
 import { ForbiddenError } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { NodeTypes, QueryToNodeResolver } from 'definitions'
 
 const resolver: QueryToNodeResolver = async (
   root,
@@ -14,7 +14,7 @@ const resolver: QueryToNodeResolver = async (
       draftService,
       tagService
     }
-  }: Context
+  }
 ) => {
   const serviceMap = {
     Article: articleService,

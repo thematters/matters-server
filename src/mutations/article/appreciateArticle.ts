@@ -1,13 +1,17 @@
-import {
-  AuthenticationError,
-  NotEnoughMatError,
-  ArticleNotFoundError,
-  ActionLimitExceededError,
-  ForbiddenError
-} from 'common/errors'
-import { MutationToAppreciateArticleResolver } from 'definitions'
 import { v4 } from 'uuid'
+
+import { CACHE_KEYWORD, NODE_TYPES, TRANSACTION_TYPES } from 'common/enums'
+import { environment } from 'common/environment'
+import {
+  ActionLimitExceededError,
+  ArticleNotFoundError,
+  AuthenticationError,
+  ForbiddenError,
+  LikerNotFoundError,
+  NotEnoughMatError
+} from 'common/errors'
 import { fromGlobalId } from 'common/utils'
+import { MutationToAppreciateArticleResolver } from 'definitions'
 
 const resolver: MutationToAppreciateArticleResolver = async (
   root,
@@ -18,9 +22,12 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  const viewerTotalMAT = await userService.totalMAT(viewer.id)
-  if (viewerTotalMAT < amount) {
-    throw new NotEnoughMatError('not enough MAT to appreciate')
+  // TODO: Remove it after LikeCoin deployment.
+  if (!viewer.likerId) {
+    const viewerTotalMAT = await userService.totalMAT(viewer.id)
+    if (viewerTotalMAT < amount) {
+      throw new NotEnoughMatError('not enough MAT to appreciate')
+    }
   }
 
   const { id: dbId } = fromGlobalId(id)
@@ -41,12 +48,26 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ActionLimitExceededError('too many appreciations')
   }
 
+  // TODO: Extract safety check to above after LikeCoin deployment.
+  const author = await userService.dataloader.load(article.authorId)
+  if (viewer.likerId && author.likerId) {
+    const liker = await userService.findLiker({ userId: viewer.id })
+    if (!liker) {
+      throw new LikerNotFoundError('liker not found')
+    }
+    await userService.likecoin.like({
+      authorLikerId: author.likerId,
+      liker,
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
+    })
+  }
+
   await articleService.appreciate({
-    uuid: v4(),
     articleId: article.id,
     senderId: viewer.id,
     recipientId: article.authorId,
-    amount
+    amount,
+    type: viewer.likerId ? TRANSACTION_TYPES.like : TRANSACTION_TYPES.mat
   })
 
   // publish a PubSub event
@@ -66,7 +87,21 @@ const resolver: MutationToAppreciateArticleResolver = async (
     ]
   })
 
-  return articleService.dataloader.load(article.id)
+  const newArticle = await articleService.dataloader.load(article.id)
+
+  // Add custom data for cache invalidation
+  newArticle[CACHE_KEYWORD] = [
+    {
+      id: newArticle.id,
+      type: NODE_TYPES.article
+    },
+    {
+      id: newArticle.authorId,
+      type: NODE_TYPES.user
+    }
+  ]
+
+  return newArticle
 }
 
 export default resolver

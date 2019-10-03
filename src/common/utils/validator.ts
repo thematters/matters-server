@@ -1,4 +1,6 @@
+import isPlainObject from 'lodash/isPlainObject'
 import { isEmail } from 'validator'
+
 import { INVALID_NAMES } from 'common/enums'
 
 /**
@@ -60,3 +62,9 @@ export const isEnglish = (str: string): boolean => {
   }
   return /^[a-zA-Z0-9]*$/.test(str)
 }
+
+/**
+ * Validate if a plain object is empty or not.
+ */
+export const isNotEmptyObject = (source: any): boolean =>
+  isPlainObject(source) && Object.keys(source).length > 0

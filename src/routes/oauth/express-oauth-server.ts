@@ -33,7 +33,7 @@ class ExpressOAuthServer {
 
       try {
         const token = await this.server.authenticate(request, response, options)
-        res.locals.oauth = { token: token }
+        res.locals.oauth = { token }
         next()
       } catch (e) {
         return handleError.call(this, e, req, res, null, next)
@@ -59,7 +59,7 @@ class ExpressOAuthServer {
 
       try {
         const code = await this.server.authorize(request, response, options)
-        res.locals.oauth = { code: code }
+        res.locals.oauth = { code }
         return handleResponse.call(this, req, res, response)
       } catch (e) {
         return handleError.call(this, e, req, res, response, next)

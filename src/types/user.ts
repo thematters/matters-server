@@ -1,9 +1,9 @@
-import { CACHE_TTL } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    viewer: User @uncacheViewer
-    user(input: UserInput!): User @uncacheViewer
+    viewer: User @privateCache @logCache(type: "${NODE_TYPES.user}")
+    user(input: UserInput!): User @privateCache @logCache(type: "${NODE_TYPES.user}")
   }
 
   extend type Mutation {
@@ -17,7 +17,7 @@ export default /* GraphQL */ `
     resetPassword(input: ResetPasswordInput!): Boolean
 
     "Change user email."
-    changeEmail(input: ChangeEmailInput!): Boolean @authenticate
+    changeEmail(input: ChangeEmailInput!): User! @authenticate @purgeCache
 
     "Verify user email."
     verifyEmail(input: VerifyEmailInput!): Boolean @authenticate
@@ -31,20 +31,21 @@ export default /* GraphQL */ `
     "Logout user."
     userLogout: Boolean!
 
-    # addOAuth(input: AddOAuthInput!): Boolean
+    "Generate or claim a Liker ID through LikeCoin"
+    generateLikerId: User! @authenticate @purgeCache
 
     "Update user information."
-    updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
+    updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate @purgeCache
 
     "Update user notification settings."
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
-      @authenticate
+      @authenticate @purgeCache
 
     "Follow a given user."
-    followUser(input: FollowUserInput!): User! @authenticate
+    followUser(input: FollowUserInput!): User! @authenticate @purgeCache
 
     "Unfollow curent user."
-    unfollowUser(input: UnfollowUserInput!): User! @authenticate
+    unfollowUser(input: UnfollowUserInput!): User! @authenticate @purgeCache
 
     "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
@@ -53,7 +54,13 @@ export default /* GraphQL */ `
     clearSearchHistory: Boolean @authenticate
 
     "Update state of a user, used in OSS."
-    updateUserState(input: UpdateUserStateInput!): User! @authorize
+    updateUserState(input: UpdateUserStateInput!): User! @authorize @purgeCache
+
+    "Generate temporary LikerIds for users without it, used in OSS"
+    generateTempLikerIds(input: GenerateTempLikerIdsInput): Int! @authorize
+
+    "Transfer user's MAT to pending LIKE, used in OSS"
+    transferLIKE(input: TransferLIKEInput): Int! @authorize
   }
 
   type User implements Node {
@@ -70,7 +77,7 @@ export default /* GraphQL */ `
     displayName: String
 
     "LikerID of LikeCoin"
-    likerId: String @private
+    likerId: String @scope
 
     "URL for user avatar."
     avatar: URL
@@ -79,28 +86,25 @@ export default /* GraphQL */ `
     info: UserInfo!
 
     "User settings."
-    settings: UserSettings! @private
+    settings: UserSettings! @scope
 
     "Article recommendations for current user."
-    recommendation: Recommendation! @private
+    recommendation: Recommendation! @scope
 
     "Articles authored by current user."
     articles(input: ConnectionArgs!): ArticleConnection!
 
     "Drafts authored by current user."
-    drafts(input: ConnectionArgs!): DraftConnection! @private
-
-    "Audiodraft by user, currently not used."
-    audiodrafts(input: ConnectionArgs!): AudiodraftConnection! @private
+    drafts(input: ConnectionArgs!): DraftConnection! @scope
 
     "Articles current user commented on"
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Artilces current user subscribed to."
-    subscriptions(input: ConnectionArgs!): ArticleConnection! @private
+    subscriptions(input: ConnectionArgs!): ArticleConnection! @scope
 
     "Record of user activity, only accessable by current user."
-    activity: UserActivity! @private
+    activity: UserActivity! @scope
 
     "Followers of this user."
     followers(input: ConnectionArgs!): UserConnection!
@@ -133,7 +137,7 @@ export default /* GraphQL */ `
     hottest(input: ConnectionArgs!): ArticleConnection!
 
     "'Matters Today' recommendation."
-    today: Article
+    today: Article @logCache(type: "${NODE_TYPES.article}")
 
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection!
@@ -164,32 +168,14 @@ export default /* GraphQL */ `
     "Timestamp of registration."
     createdAt: DateTime!
 
-    "Unique user name."
-    userName: String! @deprecated(reason: "Use \`User.userName\`.")
-
     "Is user name editable."
     userNameEditable: Boolean!
-
-    "Display name on profile."
-    displayName: String! @deprecated(reason: "Use \`User.displayName\`.")
 
     "User desciption."
     description: String
 
-    "URL for avatar."
-    avatar: URL @deprecated(reason: "Use \`User.avatar\`.")
-
     "User email."
-    email: Email @private
-
-    "Is email verified."
-    emailVerified: Boolean
-
-    "Moble number."
-    mobile: String @private
-
-    "User reading speed, 500 as default."
-    readSpeed: Int!
+    email: Email @scope
 
     "User badges."
     badges: [Badge!]
@@ -197,19 +183,13 @@ export default /* GraphQL */ `
     "Timestamp of user agreement."
     agreeOn: DateTime
 
-    "Number of total written words."
-    totalWordCount: Int!
-      @deprecated(reason: "Use \`User.status.totalWordCount\`.")
-
     "Cover of profile page."
     profileCover: URL
   }
 
   type UserSettings {
     "User language setting."
-    language: UserLanguage! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
-    # Thrid party accounts binded for the user
-    # oauthType: [OAuthType!]
+    language: UserLanguage!
     # Notification settings
     "Notification settings."
     notification: NotificationSetting!
@@ -221,6 +201,18 @@ export default /* GraphQL */ `
 
     "User search history."
     recentSearches(input: ConnectionArgs!): RecentSearchConnection!
+
+    "Appreciations current user gave."
+    appreciationsSent(input: ConnectionArgs!): TransactionConnection!
+
+    "Total number of appreciation current user gave."
+    appreciationsSentTotal: Int!
+
+    "Appreciations current user received."
+    appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
+
+    "Total number of appreciation current user received."
+    appreciationsReceivedTotal: Int!
   }
 
   type UserStatus {
@@ -230,78 +222,29 @@ export default /* GraphQL */ `
     "User role and access level."
     role: UserRole!
 
-    "Total MAT left in wallet."
-    MAT: MAT! @private
+    "Total LIKE left in wallet."
+    LIKE: LIKE! @scope
 
-    "Invitation. Deprecated."
-    invitation: InvitationStatus @deprecated(reason: "removed")
+    "Total MAT left in wallet."
+    MAT: MAT! @scope @deprecated(reason: "Use 'UserActivity.appreciations*' instead.")
 
     "Number of articles published by user"
     articleCount: Int!
 
-    "Number of views on user articles. Not yet in use."
-    viewCount: Int! @private
-
-    "Number of draft of user."
-    draftCount: Int!
-      @private
-      @deprecated(reason: "Use \`User.drafts.totalCount\`.")
-
     "Number of comments posted by user."
     commentCount: Int!
 
-    subscriptionCount: Int!
-      @private
-      @deprecated(reason: "Use \`User.subscriptions.totalCount\`.")
-
-    followeeCount: Int!
-      @deprecated(reason: "Use \`User.followees.totalCount\`.")
-
-    followerCount: Int!
-      @deprecated(reason: "Use \`User.followers.totalCount\`.")
-
     "Number of unread notices."
-    unreadNoticeCount: Int! @private
+    unreadNoticeCount: Int! @scope @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Whether there are unread articles from followees."
-    unreadFolloweeArticles: Boolean!
+    unreadFolloweeArticles: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Whether user has read response info or not."
     unreadResponseInfoPopUp: Boolean!
 
     "Number of total written words."
     totalWordCount: Int!
-  }
-
-  ## TODO: remove in OSS
-  type InvitationStatus {
-    reward: String
-    # invitation number left
-    left: Int
-    # invitations sent
-    sent(input: ConnectionArgs!): InvitationConnection
-  }
-
-  ## TODO: remove in OSS
-  type Invitation {
-    id: ID!
-    user: User
-    email: String
-    accepted: Boolean!
-    createdAt: DateTime!
-  }
-
-  ## TODO: remove in OSS
-  type InvitationConnection implements Connection {
-    totalCount: Int!
-    pageInfo: PageInfo!
-    edges: [InvitationEdge!]
-  }
-
-  ## TODO: remove in OSS
-  type InvitationEdge {
-    cursor: String!
-    node: Invitation!
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -314,11 +257,28 @@ export default /* GraphQL */ `
     history(input: ConnectionArgs!): TransactionConnection!
   }
 
+  type LIKE {
+    total: NonNegativeFloat!
+    rateUSD: NonNegativeFloat
+  }
+
   type Transaction {
-    delta: Int!
+    delta: Int! @deprecated(reason: "use 'amount' instead.")
+    amount: Int!
     purpose: TransactionPurpose!
     content: String!
+
+    "Timestamp of transaction."
     createdAt: DateTime!
+
+    "Recipient of transaction."
+    recipient: User!
+
+    "Sender of transaction."
+    sender: User
+
+    "Object that transaction is meant for."
+    target: Article
   }
 
   type NotificationSetting {
@@ -333,7 +293,6 @@ export default /* GraphQL */ `
     downstream: Boolean!
     commentPinned: Boolean!
     commentVoted: Boolean!
-    # walletUpdate: Boolean!
     officialNotice: Boolean!
     reportFeedback: Boolean!
   }
@@ -349,7 +308,7 @@ export default /* GraphQL */ `
 
   type AuthResult {
     auth: Boolean!
-    token: String @deprecated(reason: "Use cookie for auth.")
+    token: String
   }
 
   type UserConnection implements Connection {
@@ -441,12 +400,6 @@ export default /* GraphQL */ `
     password: String!
   }
 
-  # input AddOAuthInput {
-  #   name: String!
-  #   id: String!
-  #   type: OAuthType
-  # }
-
   input UpdateNotificationSettingInput {
     type: NotificationSettingType!
     enabled: Boolean!
@@ -466,6 +419,16 @@ export default /* GraphQL */ `
     id: ID!
     state: UserState!
     banDays: PositiveInt
+  }
+
+  input GenerateTempLikerIdsInput {
+    id: ID
+    step: Int
+  }
+
+  input TransferLIKEInput {
+    id: ID
+    step: Int
   }
 
   input FollowUserInput {
@@ -502,7 +465,6 @@ export default /* GraphQL */ `
     avatar
     description
     email
-    mobile
     agreeOn
   }
 
@@ -527,12 +489,6 @@ export default /* GraphQL */ `
     officialNotice
     reportFeedback
   }
-
-  # enum OAuthType {
-  #   facebook
-  #   wechat
-  #   google
-  # }
 
   enum UserState {
     active

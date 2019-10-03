@@ -1,27 +1,24 @@
-// external
-import { createTestClient } from 'apollo-server-testing'
 import { ApolloServer } from 'apollo-server-express'
+import { createTestClient } from 'apollo-server-testing'
 import { Request } from 'express'
 
-// local
+import { roleAccess, scopeModes } from 'common/utils'
+import {
+  ArticleService,
+  CommentService,
+  DraftService,
+  NotificationService,
+  OAuthService,
+  SystemService,
+  TagService,
+  UserService
+} from 'connectors'
 import {
   DataSources,
   GQLPublishArticleInput,
   GQLPutDraftInput,
   GQLUserRegisterInput
 } from 'definitions'
-
-import {
-  ArticleService,
-  CommentService,
-  DraftService,
-  SystemService,
-  TagService,
-  UserService,
-  NotificationService
-} from 'connectors'
-
-import { roleAccess } from 'common/utils'
 
 import schema from '../../schema'
 
@@ -71,11 +68,21 @@ export const testClient = async (
     viewer.role = isAdmin ? 'admin' : isAuth ? 'user' : 'visitor'
   }
 
+  if (!viewer.scopeMode) {
+    viewer.scopeMode = viewer.role
+  }
+  if (!viewer.scope) {
+    viewer.scope = {}
+  }
+
   _context.viewer = {
     ...viewer,
     hasRole: (requires: string) =>
       roleAccess.findIndex(role => role === viewer.role) >=
-      roleAccess.findIndex(role => role === requires)
+      roleAccess.findIndex(role => role === requires),
+    hasScopeMode: (requires: string) =>
+      scopeModes.findIndex(mode => mode === viewer.scopeMode) >=
+      scopeModes.findIndex(mode => mode === requires)
   }
 
   const server = new ApolloServer({
@@ -90,7 +97,8 @@ export const testClient = async (
       draftService: new DraftService(),
       systemService: new SystemService(),
       tagService: new TagService(),
-      notificationService: new NotificationService()
+      notificationService: new NotificationService(),
+      oauthService: new OAuthService()
     })
   })
 
@@ -153,8 +161,8 @@ export const putDraft = async (draft: GQLPutDraftInput) => {
     variables: { input: draft }
   })
 
-  const putDraft = result && result.data && result.data.putDraft
-  return putDraft
+  const putDraftResult = result && result.data && result.data.putDraft
+  return putDraftResult
 }
 
 export const registerUser = async (user: GQLUserRegisterInput) => {
@@ -205,29 +213,4 @@ export const updateUserDescription = async ({
     // @ts-ignore
     variables: { input: { description } }
   })
-}
-
-export const getViewerMAT = async () => {
-  const GET_VIEWER_MAT = `
-    query {
-      viewer {
-        status {
-          MAT {
-            total
-          }
-        }
-      }
-    }
-  `
-
-  const { query } = await testClient({ isAuth: true })
-  const result = await query({
-    query: GET_VIEWER_MAT,
-    // @ts-ignore
-    variables: { input: {} }
-  })
-  const { data } = result
-  const { total } =
-    data && data.viewer && data.viewer.status && data.viewer.status.MAT
-  return total
 }

@@ -1,6 +1,6 @@
 import { uniq } from 'lodash'
-import { connectionFromPromisedArray } from 'common/utils'
 
+import { connectionFromPromisedArray } from 'common/utils'
 import { UserToCommentedArticlesResolver } from 'definitions'
 
 const resolver: UserToCommentedArticlesResolver = async (

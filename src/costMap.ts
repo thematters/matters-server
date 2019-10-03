@@ -37,7 +37,6 @@ export default {
   User: {
     articles: CONNECTION_INPUT_COST,
     drafts: CONNECTION_INPUT_COST,
-    audiodrafts: CONNECTION_INPUT_COST,
     commentedArticles: CONNECTION_INPUT_COST,
     subscriptions: CONNECTION_INPUT_COST,
     followers: CONNECTION_INPUT_COST,

@@ -1,28 +1,30 @@
+import { NODE_TYPES } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Mutation {
     "Publish a comment."
-    putComment(input: PutCommentInput!): Comment! @authenticate
+    putComment(input: PutCommentInput!): Comment! @authenticate @purgeCache
 
     "Pin a comment."
-    pinComment(input: PinCommentInput!): Comment! @authenticate
+    pinComment(input: PinCommentInput!): Comment! @authenticate @purgeCache
 
     "Unpin a comment."
-    unpinComment(input: UnpinCommentInput!): Comment! @authenticate
+    unpinComment(input: UnpinCommentInput!): Comment! @authenticate @purgeCache
 
     "Remove a comment."
-    deleteComment(input: DeleteCommentInput!): Comment! @authenticate
+    deleteComment(input: DeleteCommentInput!): Comment! @authenticate @purgeCache
 
     "Report a comment to team."
     reportComment(input: ReportCommentInput!): Boolean
 
     "Upvote or downvote a comment."
-    voteComment(input: VoteCommentInput!): Comment! @authenticate
+    voteComment(input: VoteCommentInput!): Comment! @authenticate @purgeCache
 
     "Unvote a comment."
-    unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate
+    unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate @purgeCache
 
     "Update a comment's state."
-    updateCommentState(input: UpdateCommentStateInput!): Comment! @authorize
+    updateCommentState(input: UpdateCommentStateInput!): Comment! @authorize @purgeCache
   }
 
   """
@@ -39,13 +41,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "Article that the comment is belonged to."
-    article: Article!
+    article: Article! @logCache(type: "${NODE_TYPES.article}")
 
     "Content of this comment."
     content: String
 
     "Author of this comment."
-    author: User!
+    author: User! @logCache(type: "${NODE_TYPES.user}")
 
     "This value determines this comment is pinned or not."
     pinned: Boolean!
@@ -58,19 +60,16 @@ export default /* GraphQL */ `
 
     "The value determines current user's vote."
     myVote: Vote
-    mentions: [User!] @deprecated(reason: "not used")
 
     "Descendant comments of this comment."
     comments(input: CommentCommentsInput!): CommentConnection!
 
     "Parent comment of this comment."
-    parentComment: Comment
-    quotationStart: Int
-    quotationEnd: Int
-    quotationContent: String
+    parentComment: Comment @logCache(type: "${NODE_TYPES.comment}")
 
     "A Comment that this comment replied to."
-    replyTo: Comment
+    replyTo: Comment @logCache(type: "${NODE_TYPES.comment}")
+
     remark: String @authorize
   }
 
@@ -87,6 +86,9 @@ export default /* GraphQL */ `
     "List of pinned comments."
     pinnedComments: [Comment!]
 
+    "List of featured comments of this article."
+    featuredComments(input: FeaturedCommentsInput!): CommentConnection!
+
     "List of comments of this article."
     comments(input: CommentsInput!): CommentConnection!
   }
@@ -99,7 +101,7 @@ export default /* GraphQL */ `
 
   type CommentEdge {
     cursor: String!
-    node: Comment!
+    node: Comment! @logCache(type: "${NODE_TYPES.comment}")
   }
 
   input PutCommentInput {
@@ -109,9 +111,6 @@ export default /* GraphQL */ `
 
   input CommentInput {
     content: String!
-    quotationStart: Int
-    quotationEnd: Int
-    quotationContent: String
     replyTo: ID
     articleId: ID!
     parentId: ID
@@ -135,6 +134,12 @@ export default /* GraphQL */ `
     filter: CommentsFilter
   }
 
+  input FeaturedCommentsInput {
+    sort: CommentSort
+    after: String
+    first: Int
+  }
+
   input CommentsFilter {
     parentComment: ID
     state: CommentState
@@ -145,7 +150,6 @@ export default /* GraphQL */ `
   enum CommentSort {
     oldest
     newest
-    upvotes @deprecated(reason: "not used")
   }
 
   input PinCommentInput {

@@ -1,10 +1,10 @@
 // @ts-ignore
-import { JPushAsync, JPush } from 'jpush-async'
+import { JPush, JPushAsync } from 'jpush-async'
 
-import { environment, isTest, isDev } from 'common/environment'
+import { environment, isDev, isTest } from 'common/environment'
 import logger from 'common/logger'
 
-export type PushParams = {
+export interface PushParams {
   title?: string
   text: string
   recipientUUIDs: [string]
@@ -21,10 +21,6 @@ class PushService {
       environment.jpushKey,
       environment.jpushSecret
     )
-  }
-
-  private __getAlaisByUUID(uuid: string) {
-    return uuid.replace(/-/g, '')
   }
 
   push = async ({
@@ -67,6 +63,10 @@ class PushService {
     // send
     await _push.send()
   }
+
+  private __getAlaisByUUID(uuid: string) {
+    return uuid.replace(/-/g, '')
+  }
 }
 
-export default new PushService()
+export const pushService = new PushService()

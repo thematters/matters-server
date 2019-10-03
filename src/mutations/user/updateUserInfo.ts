@@ -1,15 +1,16 @@
-import { MutationToUpdateUserInfoResolver } from 'definitions'
-import { isEmpty, has } from 'lodash'
-import { isValidUserName, isValidDisplayName } from 'common/utils'
+import { has, isEmpty } from 'lodash'
+
 import {
-  AuthenticationError,
-  ForbiddenError,
   AssetNotFoundError,
+  AuthenticationError,
   DisplayNameInvalidError,
+  ForbiddenError,
+  UserInputError,
   UsernameExistsError,
-  UsernameInvalidError,
-  UserInputError
+  UsernameInvalidError
 } from 'common/errors'
+import { isValidDisplayName, isValidUserName } from 'common/utils'
+import { MutationToUpdateUserInfoResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
@@ -68,7 +69,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
 
   // check user display name
   if (input.displayName) {
-    if (!isValidDisplayName(input.displayName)) {
+    if (!isValidDisplayName(input.displayName) && !viewer.hasRole('admin')) {
       throw new DisplayNameInvalidError('invalid user display name')
     }
     updateParams.displayName = input.displayName

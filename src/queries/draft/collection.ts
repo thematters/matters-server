@@ -1,5 +1,5 @@
+import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
 import { DraftToCollectionResolver } from 'definitions'
-import { connectionFromPromisedArray, connectionFromArray } from 'common/utils'
 
 const resolver: DraftToCollectionResolver = (
   { collection },

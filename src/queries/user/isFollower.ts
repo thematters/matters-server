@@ -8,7 +8,7 @@ const resolver: UserToIsFollowerResolver = async (
   if (!viewer.id) {
     return false
   }
-  return await userService.isFollowing({
+  return userService.isFollowing({
     userId: id,
     targetId: viewer.id
   })

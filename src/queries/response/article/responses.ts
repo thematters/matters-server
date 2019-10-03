@@ -16,7 +16,8 @@ const resolver: ArticleToResponsesResolver = async (
     first = 8
   }
 
-  let after, before
+  let after
+  let before
   if (restParams.after) {
     after = fromGlobalId(restParams.after).id
   }
@@ -64,7 +65,7 @@ const resolver: ArticleToResponsesResolver = async (
     const type = !!item.title ? 'Article' : 'Comment'
     return {
       cursor: toGlobalId({ type, id: item.id }),
-      node: { type, ...item }
+      node: { __type: type, ...item }
     }
   })
 

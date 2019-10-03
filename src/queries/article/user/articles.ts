@@ -1,7 +1,6 @@
-import { connectionFromPromisedArray } from 'common/utils'
-
-import { UserToArticlesResolver } from 'definitions'
 import { ARTICLE_STATE } from 'common/enums'
+import { connectionFromPromisedArray } from 'common/utils'
+import { UserToArticlesResolver } from 'definitions'
 
 const resolver: UserToArticlesResolver = (
   { id },

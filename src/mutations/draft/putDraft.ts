@@ -1,22 +1,22 @@
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
-import { ItemData, MutationToPutDraftResolver } from 'definitions'
+import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
+import {
+  ArticleNotFoundError,
+  AssetNotFoundError,
+  AuthenticationError,
+  DraftNotFoundError,
+  ForbiddenError
+} from 'common/errors'
 import {
   extractAssetDataFromHtml,
   fromGlobalId,
-  stripHtml,
   makeSummary,
-  sanitize
+  sanitize,
+  stripHtml
 } from 'common/utils'
-import {
-  DraftNotFoundError,
-  ForbiddenError,
-  AssetNotFoundError,
-  AuthenticationError,
-  ArticleNotFoundError
-} from 'common/errors'
-import { PUBLISH_STATE, ARTICLE_STATE } from 'common/enums'
+import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const checkAssetValidity = (asset: any, viewer: any) => {
   if (!asset || asset.type !== 'embed' || asset.authorId !== viewer.id) {
@@ -102,7 +102,7 @@ const resolver: MutationToPutDraftResolver = async (
     }
 
     // check for permission
-    if (draft.authorId != viewer.id) {
+    if (draft.authorId !== viewer.id) {
       throw new ForbiddenError('viewer has no permission')
     }
 
@@ -144,7 +144,7 @@ const resolver: MutationToPutDraftResolver = async (
     }
 
     // update
-    return await draftService.baseUpdate(dbId, {
+    return draftService.baseUpdate(dbId, {
       updatedAt: new Date(),
       ...data
     })

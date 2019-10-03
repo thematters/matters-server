@@ -1,7 +1,6 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
-
-import { OSSToReportsResolver } from 'definitions'
 import { UserInputError } from 'common/errors'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import { OSSToReportsResolver } from 'definitions'
 
 export const reports: OSSToReportsResolver = async (
   root,

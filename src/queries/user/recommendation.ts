@@ -1,14 +1,14 @@
-import { sampleSize } from 'lodash'
 import { CacheScope } from 'apollo-cache-control'
+import { sampleSize } from 'lodash'
 
+import { ARTICLE_STATE, CACHE_TTL } from 'common/enums'
+import { AuthenticationError, ForbiddenError } from 'common/errors'
 import {
+  connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
-  connectionFromArray
+  cursorToIndex
 } from 'common/utils'
 import { GQLRecommendationTypeResolver } from 'definitions'
-import { ForbiddenError, AuthenticationError } from 'common/errors'
-import { ARTICLE_STATE, CACHE_TTL } from 'common/enums'
 
 const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles: async (
@@ -75,7 +75,7 @@ const resolvers: GQLRecommendationTypeResolver = {
       }
     }
 
-    let where = { state: ARTICLE_STATE.active } as { [key: string]: any }
+    const where = { state: ARTICLE_STATE.active } as { [key: string]: any }
 
     const { first, after } = input
     const offset = cursorToIndex(after) + 1

@@ -1,13 +1,13 @@
-import { MutationToUpdateArticleInfoResolver } from 'definitions'
 import { isEmpty } from 'lodash'
 
-import { fromGlobalId } from 'common/utils'
 import {
-  AuthenticationError,
   ArticleNotFoundError,
+  AuthenticationError,
   ForbiddenError,
   UserInputError
 } from 'common/errors'
+import { fromGlobalId } from 'common/utils'
+import { MutationToUpdateArticleInfoResolver } from 'definitions'
 
 const resolver: MutationToUpdateArticleInfoResolver = async (
   _,
@@ -36,7 +36,7 @@ const resolver: MutationToUpdateArticleInfoResolver = async (
       const stickyIds = (await articleService.findBySticky(
         viewer.id,
         true
-      )).map(({ id }) => id)
+      )).map(({ id: articleId }) => articleId)
       await articleService.baseBatchUpdate(stickyIds, {
         sticky: false,
         updatedAt: new Date()

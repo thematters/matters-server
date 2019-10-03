@@ -2,11 +2,11 @@ import { CACHE_TTL } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    node(input: NodeInput!): Node @uncacheViewer
+    node(input: NodeInput!): Node @privateCache @logCache(type: "Node")
     frequentSearch(input: FrequentSearchInput!): [String!]
-    search(input: SearchInput!): SearchResultConnection! @uncacheViewer
+    search(input: SearchInput!): SearchResultConnection! @privateCache
     official: Official!
-    oss: OSS! @authorize @uncacheViewer
+    oss: OSS! @authorize @cacheControl(maxAge: ${CACHE_TTL.INSTANT}, scope: PRIVATE)
   }
 
   extend type Mutation {
@@ -62,6 +62,9 @@ export default /* GraphQL */ `
     reports(input: ReportsInput!): ReportConnection!
     report(input: ReportInput!): Report!
     today(input: ConnectionArgs!): ArticleConnection!
+    oauthClients(input: ConnectionArgs!): OAuthClientConnection!
+    noLikerIdCount: Int!
+    noPendingLIKECount: Int!
   }
 
   type Category {
@@ -278,6 +281,7 @@ export default /* GraphQL */ `
     embed
     embedaudio
     profileCover
+    oauthClientAvatar
   }
 
   enum EntityType {
@@ -318,8 +322,6 @@ export default /* GraphQL */ `
     scope: CacheScope
   ) on OBJECT | FIELD | FIELD_DEFINITION
 
-  directive @uncacheViewer on FIELD_DEFINITION
-
   directive @cost(
     multipliers: [String]
     useMultipliers: Boolean
@@ -335,4 +337,12 @@ export default /* GraphQL */ `
   directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
 
   directive @private on FIELD_DEFINITION
+
+  directive @scope on FIELD_DEFINITION
+
+  directive @purgeCache on FIELD_DEFINITION
+
+  directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
+
+  directive @logCache(type: String!) on FIELD_DEFINITION
 `

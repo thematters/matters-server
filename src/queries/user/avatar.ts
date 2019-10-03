@@ -1,6 +1,6 @@
-import { UserInfoToAvatarResolver } from 'definitions'
+import { UserToAvatarResolver } from 'definitions'
 
-const resolver: UserInfoToAvatarResolver = async (
+const resolver: UserToAvatarResolver = async (
   { avatar },
   _,
   { dataSources: { systemService } }

@@ -1,21 +1,21 @@
-import { toGlobalId } from 'common/utils'
 import { ARTICLE_PIN_COMMENT_LIMIT } from 'common/enums'
+import { toGlobalId } from 'common/utils'
 
-import userCommentedArticles from './user/commentedArticles'
-import articleCommentCount from './article/commentCount'
-import articlePinnedComments from './article/pinnedComments'
-import pinCommentLeft from './article/pinCommentLeft'
-import articleComments from './article/comments'
 import article from './article'
-import content from './content'
+import articleCommentCount from './article/commentCount'
+import articleComments from './article/comments'
+import articleFeaturedComments from './article/featuredComments'
+import pinCommentLeft from './article/pinCommentLeft'
+import articlePinnedComments from './article/pinnedComments'
 import author from './author'
-import upvotes from './upvotes'
+import comments from './comments'
+import content from './content'
 import downvotes from './downvotes'
 import myVote from './myVote'
-import mentions from './mentions'
-import comments from './comments'
 import parentComment from './parentComment'
 import replyTo from './replyTo'
+import upvotes from './upvotes'
+import userCommentedArticles from './user/commentedArticles'
 
 export default {
   User: {
@@ -26,6 +26,7 @@ export default {
     pinCommentLimit: () => ARTICLE_PIN_COMMENT_LIMIT,
     pinCommentLeft,
     pinnedComments: articlePinnedComments,
+    featuredComments: articleFeaturedComments,
     comments: articleComments
   },
   Comment: {
@@ -37,7 +38,6 @@ export default {
     upvotes,
     downvotes,
     myVote,
-    mentions,
     comments,
     parentComment
   }

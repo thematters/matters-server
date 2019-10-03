@@ -1,18 +1,15 @@
 import slugify from '@matters/slugify'
 
-import { toGlobalId, countWords, makeSummary } from 'common/utils'
+import { countWords, makeSummary, toGlobalId } from 'common/utils'
 
-import drafts from './drafts'
-import audiodrafts from './audiodrafts'
-import cover from './cover'
-import collection from './collection'
-import audio from './audio'
 import assets from './assets'
+import collection from './collection'
+import draftCover from './cover'
+import drafts from './drafts'
 
 export default {
   User: {
-    drafts,
-    audiodrafts
+    drafts
   },
   Draft: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Draft', id }),
@@ -21,13 +18,8 @@ export default {
       content ? countWords(content) : 0,
     summary: ({ content, cover }: { content?: string; cover?: string }) =>
       content ? makeSummary(content, cover ? 110 : 140) : '',
-    cover,
+    cover: draftCover,
     collection,
     assets
-  },
-  Audiodraft: {
-    id: ({ uuid }: { uuid: string }) => uuid,
-    authorId: ({ id }: { id: string }) => toGlobalId({ type: 'User', id }),
-    audio
   }
 }
