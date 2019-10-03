@@ -23,14 +23,12 @@ const resolver: MutationToGenerateLikerIdResolver = async (
 
   // claim
   else {
-    if (liker.accountType !== 'temporal') {
-      throw new ForbiddenError('viewer aleready has a likerId')
+    if (liker.accountType === 'temporal') {
+      await userService.claimLikerId({
+        userId: viewer.id,
+        liker
+      })
     }
-
-    await userService.claimLikerId({
-      userId: viewer.id,
-      liker
-    })
   }
 
   // activate user
