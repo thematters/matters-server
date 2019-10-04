@@ -962,7 +962,7 @@ export class ArticleService extends BaseService {
       .andWhere(
         'created_at',
         '>=',
-        this.knex.raw(`now() - (?*'1 MINUTE'::INTERVAL)`, [1])
+        this.knex.raw(`now() - INTERVAL '5 minutes'`)
       )
       .orderBy('created_at')
       .first()
