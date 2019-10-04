@@ -59,7 +59,7 @@ export default () => {
             likerId
           })
 
-          if (liker) {
+          if (liker && liker.likerId !== viewer.likerId) {
             return done(null, undefined, {
               code: OAUTH_CALLBACK_ERROR_CODE.likerExists,
               message: 'liker already exists'
