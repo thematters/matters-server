@@ -1,4 +1,4 @@
-import { v4 } from 'uuid'
+import * as Sentry from '@sentry/node'
 
 import { CACHE_KEYWORD, NODE_TYPES, TRANSACTION_TYPES } from 'common/enums'
 import { environment } from 'common/environment'
@@ -54,52 +54,56 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new LikerNotFoundError('liker not found')
   }
 
-  await userService.likecoin.like({
-    authorLikerId: author.likerId,
-    liker,
-    url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
-  })
+  try {
+    await userService.likecoin.like({
+      authorLikerId: author.likerId,
+      liker,
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
+    })
 
-  await articleService.appreciate({
-    articleId: article.id,
-    senderId: viewer.id,
-    recipientId: article.authorId,
-    amount,
-    type: viewer.likerId ? TRANSACTION_TYPES.like : TRANSACTION_TYPES.mat
-  })
+    await articleService.appreciate({
+      articleId: article.id,
+      senderId: viewer.id,
+      recipientId: article.authorId,
+      amount,
+      type: viewer.likerId ? TRANSACTION_TYPES.like : TRANSACTION_TYPES.mat
+    })
 
-  // publish a PubSub event
-  notificationService.pubsub.publish(id, article)
+    // publish a PubSub event
+    notificationService.pubsub.publish(id, article)
 
-  // trigger notifications
-  notificationService.trigger({
-    event: 'article_new_appreciation',
-    actorId: viewer.id,
-    recipientId: article.authorId,
-    entities: [
+    // trigger notifications
+    notificationService.trigger({
+      event: 'article_new_appreciation',
+      actorId: viewer.id,
+      recipientId: article.authorId,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'article',
+          entity: article
+        }
+      ]
+    })
+
+    const newArticle = await articleService.dataloader.load(article.id)
+
+    // Add custom data for cache invalidation
+    newArticle[CACHE_KEYWORD] = [
       {
-        type: 'target',
-        entityTable: 'article',
-        entity: article
+        id: newArticle.id,
+        type: NODE_TYPES.article
+      },
+      {
+        id: newArticle.authorId,
+        type: NODE_TYPES.user
       }
     ]
-  })
 
-  const newArticle = await articleService.dataloader.load(article.id)
-
-  // Add custom data for cache invalidation
-  newArticle[CACHE_KEYWORD] = [
-    {
-      id: newArticle.id,
-      type: NODE_TYPES.article
-    },
-    {
-      id: newArticle.authorId,
-      type: NODE_TYPES.user
-    }
-  ]
-
-  return newArticle
+    return newArticle
+  } catch (error) {
+    Sentry.captureException(error)
+  }
 }
 
 export default resolver
