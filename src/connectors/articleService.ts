@@ -908,7 +908,10 @@ export class ArticleService extends BaseService {
         referenceId: articleId,
         purpose: TRANSACTION_PURPOSE.appreciate
       })
-    return Math.max(ARTICLE_APPRECIATE_LIMIT - appreciations.length, 0)
+      .sum('amount as total')
+    const total = _.get(appreciations, '0.total', 0)
+
+    return Math.max(ARTICLE_APPRECIATE_LIMIT - total, 0)
   }
 
   hasAppreciate = async ({
