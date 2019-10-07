@@ -92,19 +92,7 @@ const notice: {
   },
   ArticleNewAppreciationNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target,
-    MAT: (
-      { actors, entities }: { actors: any[]; entities: any },
-      _: any,
-      { dataSources: { articleService } }
-    ) => {
-      const target = entities.target
-      const actorIds = actors.map(actor => actor.id)
-      return articleService.countAppreciationByUserIds({
-        articleId: target.id,
-        userIds: actorIds
-      })
-    }
+    target: ({ entities }) => entities.target
   },
   ArticleNewSubscriberNotice: {
     id: ({ uuid }) => uuid,

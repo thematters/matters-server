@@ -2117,11 +2117,6 @@ export interface GQLArticleNewAppreciationNotice extends GQLNotice {
    * The article that has been appreciated.
    */
   target?: GQLArticle
-
-  /**
-   * The amount of appreciations.
-   */
-  MAT: number
 }
 
 /**
@@ -7272,7 +7267,6 @@ export interface GQLArticleNewAppreciationNoticeTypeResolver<TParent = any> {
   createdAt?: ArticleNewAppreciationNoticeToCreatedAtResolver<TParent>
   actors?: ArticleNewAppreciationNoticeToActorsResolver<TParent>
   target?: ArticleNewAppreciationNoticeToTargetResolver<TParent>
-  MAT?: ArticleNewAppreciationNoticeToMATResolver<TParent>
 }
 
 export interface ArticleNewAppreciationNoticeToIdResolver<
@@ -7324,18 +7318,6 @@ export interface ArticleNewAppreciationNoticeToActorsResolver<
 }
 
 export interface ArticleNewAppreciationNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewAppreciationNoticeToMATResolver<
   TParent = any,
   TResult = any
 > {
