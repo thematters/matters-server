@@ -44,6 +44,9 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ActionLimitExceededError('too many appreciations')
   }
 
+  // Check if amount exceeded limit. if yes, then use the left amount.
+  const validAmount = Math.min(amount, appreciateLeft)
+
   const author = await userService.dataloader.load(article.authorId)
   if (!author.likerId) {
     throw new AuthenticationError('article author has no liker id')
@@ -58,14 +61,15 @@ const resolver: MutationToAppreciateArticleResolver = async (
     await userService.likecoin.like({
       authorLikerId: author.likerId,
       liker,
-      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+      amount: validAmount
     })
 
     await articleService.appreciate({
       articleId: article.id,
       senderId: viewer.id,
       recipientId: article.authorId,
-      amount,
+      amount: validAmount,
       type: viewer.likerId ? TRANSACTION_TYPES.like : TRANSACTION_TYPES.mat
     })
 
@@ -103,6 +107,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     return newArticle
   } catch (error) {
     Sentry.captureException(error)
+    throw error
   }
 }
 
