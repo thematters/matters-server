@@ -834,17 +834,6 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
-  countAppreciators = async (articleId: string) => {
-    const result = await this.knex('transaction')
-      .where({
-        referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate
-      })
-      .countDistinct('sender_id')
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
   /**
    * Find an article's appreciations by a given articleId.
    */
@@ -871,28 +860,6 @@ export class ArticleService extends BaseService {
 
     return result
   }
-
-  /**
-   * Find an article's appreciators by a given article id.
-   */
-  findAppreciators = async ({
-    id,
-    limit = BATCH_SIZE,
-    offset = 0
-  }: {
-    id: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex('transaction')
-      .distinct('sender_id')
-      .select('sender_id')
-      .where({
-        referenceId: id,
-        purpose: TRANSACTION_PURPOSE.appreciate
-      })
-      .limit(limit)
-      .offset(offset)
 
   appreciateLeftByUser = async ({
     articleId,

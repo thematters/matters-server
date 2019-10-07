@@ -110,9 +110,6 @@ export default /* GraphQL */ `
     "Related articles to this articles."
     relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
-    "MAT recieved for this article (will be decrpecated soon)"
-    MAT: Int! @deprecated(reason: "Use 'appreciationsReceived' instead.")
-
     "Appreciations history of this article."
     appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
 
@@ -121,9 +118,6 @@ export default /* GraphQL */ `
 
     "Subscribers of this articles."
     subscribers(input: ConnectionArgs!): UserConnection!
-
-    "Appreciators of this articles."
-    appreciators(input: ConnectionArgs!): UserConnection!
 
     "Limit the nuhmber of appreciate per user."
     appreciateLimit: Int!
