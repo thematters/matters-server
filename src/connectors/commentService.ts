@@ -355,10 +355,10 @@ export class CommentService extends BaseService {
               from action_comment as action
               where action.action = 'down_vote'
               group by action.target_id) as downvotes on comment.id = downvotes.target_id
-          where article_id = ${id}) as comment_score
+          where article_id = ${id} and parent_comment_id is null) as comment_score
       `)
       )
-      .where({ pinned: true, parentCommentId: null })
+      .where({ pinned: true })
       .orWhere('score', '>', threshold)
       .orderBy('score', 'desc')
     return result
