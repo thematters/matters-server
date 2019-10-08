@@ -381,14 +381,16 @@ export class LikeCoin {
   like = async ({
     authorLikerId,
     liker,
-    url
+    url,
+    amount
   }: {
     authorLikerId: string
     liker: UserOAuthLikeCoin
     url: string
+    amount: number
   }) => {
     try {
-      const endpoint = `${ENDPOINTS.like}/${authorLikerId}/1`
+      const endpoint = `${ENDPOINTS.like}/${authorLikerId}/${amount}`
       const result = await this.request({
         endpoint,
         withClientCredential: true,
