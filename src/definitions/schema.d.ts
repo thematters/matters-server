@@ -131,12 +131,6 @@ export interface GQLArticle extends GQLNode {
   relatedArticles: GQLArticleConnection
 
   /**
-   * MAT recieved for this article (will be decrpecated soon)
-   * @deprecated Use 'appreciationsReceived' instead.
-   */
-  MAT: number
-
-  /**
    * Appreciations history of this article.
    */
   appreciationsReceived: GQLTransactionConnection
@@ -150,11 +144,6 @@ export interface GQLArticle extends GQLNode {
    * Subscribers of this articles.
    */
   subscribers: GQLUserConnection
-
-  /**
-   * Appreciators of this articles.
-   */
-  appreciators: GQLUserConnection
 
   /**
    * Limit the nuhmber of appreciate per user.
@@ -830,11 +819,6 @@ export interface GQLTransactionEdge {
 }
 
 export interface GQLTransaction {
-  /**
-   *
-   * @deprecated use 'amount' instead.
-   */
-  delta: number
   amount: number
   purpose: GQLTransactionPurpose
   content: string
@@ -888,12 +872,6 @@ export interface GQLUserStatus {
   LIKE: GQLLIKE
 
   /**
-   * Total MAT left in wallet.
-   * @deprecated Use 'UserActivity.appreciations*' instead.
-   */
-  MAT: GQLMAT
-
-  /**
    * Number of articles published by user
    */
   articleCount: number
@@ -940,11 +918,6 @@ export enum GQLUserRole {
 export interface GQLLIKE {
   total: GQLNonNegativeFloat
   rateUSD?: GQLNonNegativeFloat
-}
-
-export interface GQLMAT {
-  total: number
-  history: GQLTransactionConnection
 }
 
 export interface GQLUserOSS {
@@ -2381,6 +2354,11 @@ export interface GQLImportArticlesInput {
 
 export type GQLJSON = any
 
+export interface GQLMAT {
+  total: number
+  history: GQLTransactionConnection
+}
+
 export type GQLNegativeFloat = any
 
 export type GQLNegativeInt = any
@@ -2566,7 +2544,6 @@ export interface GQLResolver {
   Transaction?: GQLTransactionTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
   LIKE?: GQLLIKETypeResolver
-  MAT?: GQLMATTypeResolver
   UserOSS?: GQLUserOSSTypeResolver
   NoticeConnection?: GQLNoticeConnectionTypeResolver
   NoticeEdge?: GQLNoticeEdgeTypeResolver
@@ -2618,6 +2595,7 @@ export interface GQLResolver {
   CommentPinnedNotice?: GQLCommentPinnedNoticeTypeResolver
   DownstreamArticleArchivedNotice?: GQLDownstreamArticleArchivedNoticeTypeResolver
   JSON?: GraphQLScalarType
+  MAT?: GQLMATTypeResolver
   NegativeFloat?: GraphQLScalarType
   NegativeInt?: GraphQLScalarType
   NonNegativeInt?: GraphQLScalarType
@@ -2761,13 +2739,11 @@ export interface GQLArticleTypeResolver<TParent = any> {
   collectedBy?: ArticleToCollectedByResolver<TParent>
   collection?: ArticleToCollectionResolver<TParent>
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>
-  MAT?: ArticleToMATResolver<TParent>
   appreciationsReceived?: ArticleToAppreciationsReceivedResolver<TParent>
   appreciationsReceivedTotal?: ArticleToAppreciationsReceivedTotalResolver<
     TParent
   >
   subscribers?: ArticleToSubscribersResolver<TParent>
-  appreciators?: ArticleToAppreciatorsResolver<TParent>
   appreciateLimit?: ArticleToAppreciateLimitResolver<TParent>
   appreciateLeft?: ArticleToAppreciateLeftResolver<TParent>
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>
@@ -2968,15 +2944,6 @@ export interface ArticleToRelatedArticlesResolver<
   ): TResult
 }
 
-export interface ArticleToMATResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface ArticleToAppreciationsReceivedArgs {
   input: GQLConnectionArgs
 }
@@ -3011,18 +2978,6 @@ export interface ArticleToSubscribersResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: ArticleToSubscribersArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleToAppreciatorsArgs {
-  input: GQLConnectionArgs
-}
-export interface ArticleToAppreciatorsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: ArticleToAppreciatorsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -4731,7 +4686,6 @@ export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLTransactionTypeResolver<TParent = any> {
-  delta?: TransactionToDeltaResolver<TParent>
   amount?: TransactionToAmountResolver<TParent>
   purpose?: TransactionToPurposeResolver<TParent>
   content?: TransactionToContentResolver<TParent>
@@ -4739,15 +4693,6 @@ export interface GQLTransactionTypeResolver<TParent = any> {
   recipient?: TransactionToRecipientResolver<TParent>
   sender?: TransactionToSenderResolver<TParent>
   target?: TransactionToTargetResolver<TParent>
-}
-
-export interface TransactionToDeltaResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
 }
 
 export interface TransactionToAmountResolver<TParent = any, TResult = any> {
@@ -4817,7 +4762,6 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   state?: UserStatusToStateResolver<TParent>
   role?: UserStatusToRoleResolver<TParent>
   LIKE?: UserStatusToLIKEResolver<TParent>
-  MAT?: UserStatusToMATResolver<TParent>
   articleCount?: UserStatusToArticleCountResolver<TParent>
   commentCount?: UserStatusToCommentCountResolver<TParent>
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
@@ -4845,15 +4789,6 @@ export interface UserStatusToRoleResolver<TParent = any, TResult = any> {
 }
 
 export interface UserStatusToLIKEResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserStatusToMATResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4952,32 +4887,6 @@ export interface LIKEToRateUSDResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLMATTypeResolver<TParent = any> {
-  total?: MATToTotalResolver<TParent>
-  history?: MATToHistoryResolver<TParent>
-}
-
-export interface MATToTotalResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MATToHistoryArgs {
-  input: GQLConnectionArgs
-}
-export interface MATToHistoryResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MATToHistoryArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8040,6 +7949,32 @@ export interface DownstreamArticleArchivedNoticeToTargetResolver<
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLMATTypeResolver<TParent = any> {
+  total?: MATToTotalResolver<TParent>
+  history?: MATToHistoryResolver<TParent>
+}
+
+export interface MATToTotalResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MATToHistoryArgs {
+  input: GQLConnectionArgs
+}
+export interface MATToHistoryResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MATToHistoryArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

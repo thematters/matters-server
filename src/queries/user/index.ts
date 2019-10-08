@@ -88,7 +88,6 @@ const user: {
   LIKE,
   Transaction,
   UserStatus: {
-    MAT: root => root,
     LIKE: root => root,
     articleCount,
     commentCount,

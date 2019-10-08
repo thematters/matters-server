@@ -21,7 +21,6 @@ export default {
     collection: CONNECTION_INPUT_COST,
     relatedArticles: CONNECTION_INPUT_COST,
     subscribers: CONNECTION_INPUT_COST,
-    appreciators: CONNECTION_INPUT_COST,
     comments: CONNECTION_INPUT_COST,
     responses: CONNECTION_INPUT_COST
   },
