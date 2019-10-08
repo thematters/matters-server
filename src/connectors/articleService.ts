@@ -834,7 +834,6 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
-
   /**
    * Count an article's transactions by a given articleId.
    */
