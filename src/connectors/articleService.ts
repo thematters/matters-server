@@ -509,7 +509,7 @@ export class ArticleService extends BaseService {
 
   related = async ({ id, size }: { id: string; size: number }) => {
     // skip if in test
-    if (['test', 'development'].includes(environment.env)) {
+    if (['test'].includes(environment.env)) {
       return []
     }
 
@@ -520,38 +520,27 @@ export class ArticleService extends BaseService {
       id
     })
 
-    const factorString = _.get(scoreResult, '_source.factor')
+    const factorString = _.get(scoreResult, '_source.embedding_vector')
 
     // return empty list if we don't have any score
     if (!factorString) {
       return []
     }
 
-    // recommend with vector score
-    const factor = factorString
-      .split(' ')
-      .map((s: string) => parseFloat(s.split('|')[1]))
-
-    const q = '*'
     const body = bodybuilder()
       .query('function_score', {
-        query: {
-          query_string: {
-            query: q
-          }
-        },
+        boost_mode: 'replace',
         script_score: {
           script: {
-            inline: 'payload_vector_score',
-            lang: 'native',
+            source: 'binary_vector_score',
+            lang: 'knn',
             params: {
-              field: 'factor',
-              vector: factor,
-              cosine: true
+              cosine: true,
+              field: 'embedding_vector',
+              encoded_vector: factorString
             }
           }
-        },
-        boost_mode: 'replace'
+        }
       })
       .notFilter('ids', { values: [id] })
       .size(size)

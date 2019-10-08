@@ -61,6 +61,7 @@ steps:
       branch:
         - develop
         - feature/develop
+        - feature/es-7.3
       event:
         - push
 
@@ -81,6 +82,7 @@ steps:
       branch:
         - develop
         - feature/develop
+        - feature/es-7.3
       event:
         - push
 
@@ -101,6 +103,7 @@ steps:
       branch:
         - develop
         - feature/develop
+        - feature/es-7.3
       event:
         - push
 
