@@ -835,6 +835,29 @@ export class ArticleService extends BaseService {
   }
 
   /**
+   * Count an article's transactions by a given articleId.
+   */
+  countTransactions = async (referenceId: string): Promise<number> => {
+    const result = await this.knex
+      .select()
+      .from((knex: any) => {
+        const source = knex
+          .select('reference_id', 'sender_id')
+          .from('transaction')
+          .where({
+            referenceId,
+            purpose: TRANSACTION_PURPOSE.appreciate
+          })
+          .groupBy('sender_id', 'reference_id')
+        source.as('source')
+      })
+      .count()
+      .first()
+
+    return parseInt(result.count || '0', 10)
+  }
+
+  /**
    * Find an article's appreciations by a given articleId.
    */
   findTransactions = async ({
