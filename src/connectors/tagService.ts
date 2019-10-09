@@ -92,13 +92,12 @@ export class TagService extends BaseService {
     try {
       const result = await this.es.client.search({
         index: this.table,
-        type: this.table,
         body
       })
 
-      const { hits } = result
+      const { hits } = result.body
 
-      const ids = hits.hits.map(({ _id }) => _id)
+      const ids = hits.hits.map(({ _id }: { _id: any }) => _id)
       const tags = await this.baseFindByIds(ids, this.table)
 
       return { nodes: tags, totalCount: hits.total }

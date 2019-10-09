@@ -159,7 +159,6 @@ export class ArticleService extends BaseService {
     try {
       await this.es.client.update({
         index: this.table,
-        type: this.table,
         id,
         body: {
           doc: { state: ARTICLE_STATE.archived }
@@ -295,7 +294,6 @@ export class ArticleService extends BaseService {
   }) => {
     const result = await this.es.indexItems({
       index: this.table,
-      type: this.table,
       items: [
         {
           id,
@@ -322,7 +320,7 @@ export class ArticleService extends BaseService {
     //     .limit(first)
     // }
 
-    const body = bodybuilder()
+    const searchBody = bodybuilder()
       .query('multi_match', {
         query: key,
         fuzziness: 'AUTO',
@@ -339,17 +337,16 @@ export class ArticleService extends BaseService {
 
     // only return active if not in oss
     if (!oss) {
-      body.notFilter('term', { state: ARTICLE_STATE.archived })
+      searchBody.notFilter('term', { state: ARTICLE_STATE.archived })
     }
 
     try {
-      const result = await this.es.client.search({
+      const { body } = await this.es.client.search({
         index: this.table,
-        type: this.table,
-        body: body.build()
+        body: searchBody.build()
       })
-      const { hits } = result
-      const ids = hits.hits.map(({ _id }) => _id)
+      const { hits } = body
+      const ids = hits.hits.map(({ _id }: { _id: any }) => _id)
       const nodes = await this.baseFindByIds(ids, this.table)
 
       return {
@@ -516,7 +513,6 @@ export class ArticleService extends BaseService {
     // get vector score
     const scoreResult = await this.es.client.get({
       index: this.table,
-      type: this.table,
       id
     })
 
@@ -527,7 +523,7 @@ export class ArticleService extends BaseService {
       return []
     }
 
-    const body = bodybuilder()
+    const searchBody = bodybuilder()
       .query('function_score', {
         boost_mode: 'replace',
         script_score: {
@@ -546,13 +542,12 @@ export class ArticleService extends BaseService {
       .size(size)
       .build()
 
-    const relatedResult = await this.es.client.search({
+    const { body } = await this.es.client.search({
       index: this.table,
-      type: this.table,
-      body
+      body: searchBody
     })
     // add recommendation
-    return relatedResult.hits.hits.map(hit => ({ ...hit, id: hit._id }))
+    return body.hits.hits.map((hit:any) => ({ ...hit, id: hit._id }))
   }
 
   /**

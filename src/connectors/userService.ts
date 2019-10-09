@@ -143,7 +143,6 @@ export class UserService extends BaseService {
     try {
       await this.es.client.update({
         index: this.table,
-        type: this.table,
         id,
         body: {
           doc: searchable
@@ -257,7 +256,6 @@ export class UserService extends BaseService {
   }) =>
     this.es.indexItems({
       index: this.table,
-      type: this.table,
       items: [
         {
           id,
@@ -304,7 +302,6 @@ export class UserService extends BaseService {
     try {
       const result = await this.es.client.search({
         index: this.table,
-        type: this.table,
         body
       })
 

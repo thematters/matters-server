@@ -1,4 +1,4 @@
-import elasticsearch from 'elasticsearch'
+import elasticsearch from '@elastic/elasticsearch'
 import _ from 'lodash'
 
 import { environment } from 'common/environment'
@@ -18,7 +18,7 @@ class ElasticSearch {
 
   constructor() {
     this.client = new elasticsearch.Client({
-      host: { host, port }
+      node: `http://${host}:${port}`
     })
 
     this.init()
@@ -72,7 +72,6 @@ class ElasticSearch {
       for (let i = 0; i < chks.length; i++) {
         await this.indexItems({
           index,
-          type: type || index,
           items: chks[i]
         })
         logger.info(`Indexed ${chks[i].length} items into ${index}.`)
@@ -84,14 +83,11 @@ class ElasticSearch {
 
   indexItems = async ({
     index,
-    items,
-    type
+    items
   }: {
     index: string
-    type?: string
     items: Item[]
   }) => {
-    const _type = type || index
     const exists = await this.client.indices.exists({ index })
     if (!exists) {
       await this.client.indices.create({ index })
@@ -100,7 +96,7 @@ class ElasticSearch {
     try {
       const body = _.flattenDepth(
         items.map(item => [
-          { index: { _index: index, _type, _id: item.id } },
+          { index: { _index: index, _id: item.id } },
           item
         ])
       )
