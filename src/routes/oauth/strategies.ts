@@ -74,14 +74,23 @@ export default () => {
             })
 
             if (fromLiker && fromLiker.accountType === 'temporal') {
+              const newFromLikerAccessToken = await userService.likecoin.refreshToken(
+                { liker: fromLiker }
+              )
               await userService.transferLikerId({
-                fromLiker,
+                fromLiker: {
+                  ...fromLiker,
+                  accessToken: newFromLikerAccessToken
+                },
                 toLiker: {
                   likerId,
                   accessToken
                 }
               })
             }
+          } else {
+            // notify like.co
+            await userService.bindLikerId({ userId, userToken: accessToken })
           }
 
           // save authorized liker and remove the existing temporary one
