@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node'
 import _ from 'lodash'
 import passport from 'passport'
 import {
@@ -98,6 +99,7 @@ export default () => {
           return done(null, user)
         } catch (e) {
           logger.error(e)
+          Sentry.captureException(e)
           return done(null, undefined)
         }
       }
