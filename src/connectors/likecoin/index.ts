@@ -281,7 +281,7 @@ export class LikeCoin {
     // normalize users for request body
     const normalizedUsers = users.map(({ id, userName }) => ({
       userId: userName,
-      dbId: toGlobalId({ type: 'Article', id })
+      dbId: toGlobalId({ type: 'User', id })
     }))
 
     if (normalizedUsers.length <= 0) {
