@@ -2,8 +2,7 @@ import * as Sentry from '@sentry/node'
 import { defaultFieldResolver, GraphQLField } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 
-import { CACHE_TTL } from 'common/enums'
-import { fromGlobalId } from 'common/utils'
+import { CACHE_PREFIX } from 'common/enums'
 
 interface Params {
   _type: string
@@ -26,7 +25,7 @@ export class LogCacheDirective extends SchemaDirectiveVisitor {
               break
             }
           }
-          cacheKeys.add(`cache-keys:${cacheType}:${result.id}`)
+          cacheKeys.add(`${CACHE_PREFIX}:${cacheType}:${result.id}`)
         } catch (error) {
           Sentry.captureException(error)
         }

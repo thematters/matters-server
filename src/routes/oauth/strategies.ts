@@ -7,10 +7,10 @@ import {
   VerifyFunctionWithRequest
 } from 'passport-oauth2'
 
-import { OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
+import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { UserService } from 'connectors'
+import { CacheService, UserService } from 'connectors'
 
 class LikeCoinStrategy extends Strategy {
   constructor(
@@ -36,6 +36,7 @@ export default () => {
       },
       async (req, accessToken, refreshToken, params, profile, done) => {
         const userService = new UserService()
+        const cacheService = new CacheService()
         const viewer = req.app.locals.viewer
         const userId = _.get(viewer, 'id')
         const likerId = _.get(params, 'user')
@@ -107,7 +108,10 @@ export default () => {
           })
 
           // activate user
-          const user = await userService.activate({ id: viewer.id })
+          const user = await userService.activate({ id: userId })
+
+          // invalidate user cache
+          await cacheService.invalidate(NODE_TYPES.user, userId)
 
           return done(null, user)
         } catch (e) {
