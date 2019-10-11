@@ -219,15 +219,13 @@ export class LikeCoin {
   }
 
   /**
-   * Claim or Transfer
+   * Claim, Transfer or Bind
    */
   edit = async ({
-    user,
     action,
     payload
   }: {
-    user: string
-    action: 'claim' | 'transfer'
+    action: 'claim' | 'transfer' | 'bind'
     payload: { [key: string]: any }
   }) => {
     const res = await this.request({
@@ -235,7 +233,6 @@ export class LikeCoin {
       withClientCredential: true,
       method: 'POST',
       data: {
-        user,
         action,
         payload
       }
@@ -284,7 +281,7 @@ export class LikeCoin {
     // normalize users for request body
     const normalizedUsers = users.map(({ id, userName }) => ({
       userId: userName,
-      dbId: toGlobalId({ type: 'Article', id })
+      dbId: toGlobalId({ type: 'User', id })
     }))
 
     if (normalizedUsers.length <= 0) {

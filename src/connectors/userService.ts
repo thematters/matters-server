@@ -1009,6 +1009,7 @@ export class UserService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
+  // register a new LikerId by a given userName
   registerLikerId = async ({
     userId,
     userName
@@ -1038,6 +1039,7 @@ export class UserService extends BaseService {
     })
   }
 
+  // Promote a platform temp LikerID
   claimLikerId = async ({
     userId,
     liker
@@ -1049,9 +1051,8 @@ export class UserService extends BaseService {
     const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
 
     await this.likecoin.edit({
-      user: liker.likerId,
       action: 'claim',
-      payload: { token: tokens.accessToken }
+      payload: { user: liker.likerId, platformToken: tokens.accessToken }
     })
 
     return this.knex('user_oauth_likecoin')
@@ -1059,6 +1060,7 @@ export class UserService extends BaseService {
       .update({ accountType: 'general' })
   }
 
+  // Transfer a platform temp LikerID's LIKE and binding to target LikerID
   transferLikerId = async ({
     fromLiker,
     toLiker
@@ -1067,11 +1069,30 @@ export class UserService extends BaseService {
     toLiker: Pick<UserOAuthLikeCoin, 'likerId' | 'accessToken'>
   }) => {
     return this.likecoin.edit({
-      user: fromLiker.likerId,
       action: 'transfer',
       payload: {
         fromUserToken: fromLiker.accessToken,
         toUserToken: toLiker.accessToken
+      }
+    })
+  }
+
+  // Update the platform ID <-> LikerID binding
+  bindLikerId = async ({
+    userId,
+    userToken
+  }: {
+    userId: string
+    userToken: string
+  }) => {
+    const oAuthService = new OAuthService()
+    const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
+
+    return this.likecoin.edit({
+      action: 'bind',
+      payload: {
+        platformToken: tokens.accessToken,
+        userToken
       }
     })
   }
