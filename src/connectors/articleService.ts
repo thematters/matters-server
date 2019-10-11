@@ -351,7 +351,7 @@ export class ArticleService extends BaseService {
 
       return {
         nodes,
-        totalCount: hits.total
+        totalCount: hits.total.value
       }
     } catch (err) {
       logger.error(err)
