@@ -547,7 +547,7 @@ export class ArticleService extends BaseService {
       body: searchBody
     })
     // add recommendation
-    return body.hits.hits.map((hit:any) => ({ ...hit, id: hit._id }))
+    return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
   }
 
   /**

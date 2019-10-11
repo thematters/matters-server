@@ -81,13 +81,7 @@ class ElasticSearch {
     return indexItemsByChunk(chunks)
   }
 
-  indexItems = async ({
-    index,
-    items
-  }: {
-    index: string
-    items: Item[]
-  }) => {
+  indexItems = async ({ index, items }: { index: string; items: Item[] }) => {
     const exists = await this.client.indices.exists({ index })
     if (!exists) {
       await this.client.indices.create({ index })
@@ -95,10 +89,7 @@ class ElasticSearch {
 
     try {
       const body = _.flattenDepth(
-        items.map(item => [
-          { index: { _index: index, _id: item.id } },
-          item
-        ])
+        items.map(item => [{ index: { _index: index, _id: item.id } }, item])
       )
 
       const res = await this.client.bulk({
