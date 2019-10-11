@@ -73,7 +73,11 @@ export default () => {
               likerId: viewer.likerId
             })
 
-            if (fromLiker && fromLiker.accountType === 'temporal') {
+            if (
+              fromLiker &&
+              fromLiker.accountType === 'temporal' &&
+              fromLiker.likerId !== likerId
+            ) {
               const newFromLikerAccessToken = await userService.likecoin.refreshToken(
                 { liker: fromLiker }
               )
