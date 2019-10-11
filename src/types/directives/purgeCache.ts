@@ -5,7 +5,7 @@ import _compact from 'lodash/compact'
 import _get from 'lodash/get'
 import _replace from 'lodash/replace'
 
-import { CACHE_KEYWORD, GQL_OPERATION } from 'common/enums'
+import { CACHE_KEYWORD, CACHE_PREFIX } from 'common/enums'
 
 interface CacheSet {
   id: string
@@ -17,12 +17,12 @@ const getCacheKeys = (customs: CacheSet[], fallback: CacheSet): string[] => {
     return _compact(
       customs.map((custom: CacheSet) => {
         if (custom && custom.id && custom.type) {
-          return `cache-keys:${custom.type}:${custom.id}`
+          return `${CACHE_PREFIX}:${custom.type}:${custom.id}`
         }
       })
     )
   }
-  return [`cache-keys:${_replace(fallback.type, '!', '')}:${fallback.id}`]
+  return [`${CACHE_PREFIX}:${_replace(fallback.type, '!', '')}:${fallback.id}`]
 }
 
 export class PurgeCacheDirective extends SchemaDirectiveVisitor {
