@@ -1092,7 +1092,7 @@ export class UserService extends BaseService {
     const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
 
     return this.likecoin.edit({
-      action: 'transfer',
+      action: 'bind',
       payload: {
         platformToken: tokens.accessToken,
         userToken
