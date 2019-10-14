@@ -50,7 +50,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     senderId: viewer.id,
     recipientId: article.authorId,
     amount,
-    type: viewer.likerId ? TRANSACTION_TYPES.like : TRANSACTION_TYPES.mat
+    type: TRANSACTION_TYPES.mat
   })
 
   // publish a PubSub event
