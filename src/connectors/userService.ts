@@ -968,7 +968,7 @@ export class UserService extends BaseService {
           mat > 0
           AND account_type = 'temporal'
           AND pending_like IS NULL
-          AND "user_oauth_likecoin".liker_id IS NOT NULL
+          AND u.liker_id IS NOT NULL
       ) AS user_likecon_mat
   `)
   }
