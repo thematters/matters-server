@@ -394,7 +394,7 @@ export class LikeCoin {
         method: 'POST',
         liker,
         data: {
-          referrer: url
+          referrer: encodeURI(url)
         }
       })
       const data = _.get(result, 'data')
