@@ -942,7 +942,7 @@ export class UserService extends BaseService {
     return qs
   }
 
-  __getUserMATLikeCoin = () => {
+  __getNoPendingLIKEUsers = () => {
     return this.knex.raw(/*sql*/ `
       (
         SELECT
@@ -964,7 +964,11 @@ export class UserService extends BaseService {
               "user".id,
               liker_id
             ) AS u ON u.liker_id = user_oauth_likecoin.liker_id
-        WHERE mat > 0
+        WHERE
+          mat > 0
+          AND account_type = 'temporal'
+          AND pending_like IS NULL
+          AND "user_oauth_likecoin".liker_id IS NOT NULL
       ) AS user_likecon_mat
   `)
   }
@@ -980,9 +984,7 @@ export class UserService extends BaseService {
   }) => {
     let qs = this.knex
       .select('userId', 'mat', 'likerId', 'pendingLike')
-      .from(this.__getUserMATLikeCoin())
-      .whereNotNull('likerId')
-      .whereNull('pending_like')
+      .from(this.__getNoPendingLIKEUsers())
       .limit(limit)
       .offset(offset)
       .orderBy('id', 'asc')
@@ -1004,9 +1006,7 @@ export class UserService extends BaseService {
 
   countNoPendingLIKE = async (): Promise<number> => {
     const result = await this.knex
-      .from(this.__getUserMATLikeCoin())
-      .whereNotNull('likerId')
-      .whereNull('pending_like')
+      .from(this.__getNoPendingLIKEUsers())
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
