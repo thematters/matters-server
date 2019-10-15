@@ -117,9 +117,6 @@ export default /* GraphQL */ `
 
     "The article that has been appreciated."
     target: Article
-
-    "The amount of appreciations."
-    MAT: Int!
   }
 
   """

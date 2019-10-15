@@ -6,13 +6,11 @@ import { makeSummary, toGlobalId } from 'common/utils'
 import appreciateLeft from './appreciateLeft'
 import appreciationsReceived from './appreciationsReceived'
 import appreciationsReceivedTotal from './appreciationsReceivedTotal'
-import appreciators from './appreciators'
 import author from './author'
 import collectedBy from './collectedBy'
 import collection from './collection'
 import articleCover from './cover'
 import hasAppreciate from './hasAppreciate'
-import MAT from './mat'
 import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
 import rootArticle from './rootArticle'
@@ -33,7 +31,6 @@ export default {
   Article: {
     appreciationsReceived,
     appreciationsReceivedTotal,
-    appreciators,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
     appreciateLeft,
     author,
@@ -42,7 +39,6 @@ export default {
     collectedBy,
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
     hasAppreciate,
-    MAT,
     oss: (root: any) => root,
     relatedArticles,
     slug: ({ slug, title }: { slug: string; title: string }) =>

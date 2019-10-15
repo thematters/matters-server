@@ -225,9 +225,6 @@ export default /* GraphQL */ `
     "Total LIKE left in wallet."
     LIKE: LIKE! @scope
 
-    "Total MAT left in wallet."
-    MAT: MAT! @scope @deprecated(reason: "Use 'UserActivity.appreciations*' instead.")
-
     "Number of articles published by user"
     articleCount: Int!
 
@@ -263,7 +260,6 @@ export default /* GraphQL */ `
   }
 
   type Transaction {
-    delta: Int! @deprecated(reason: "use 'amount' instead.")
     amount: Int!
     purpose: TransactionPurpose!
     content: String!

@@ -8,7 +8,7 @@ const resolver: ArticleToAppreciationsReceivedResolver = async (
 ) => {
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.countAppreciation(id)
+  const totalCount = await articleService.countTransactions(id)
 
   return connectionFromPromisedArray(
     articleService.findTransactions({

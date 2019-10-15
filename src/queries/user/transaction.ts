@@ -8,9 +8,14 @@ import { i18n } from 'common/utils/i18n'
 import { GQLMATTypeResolver, GQLTransactionTypeResolver } from 'definitions'
 
 const trans = {
-  systemSubsidy: i18n({
+  appreciateSubsidy: i18n({
     zh_hant: '平台補貼',
     zh_hans: '平台补贴',
+    en: 'Appreciate subsidy'
+  }),
+  systemSubsidy: i18n({
+    zh_hant: '種子獎勵',
+    zh_hans: '种子奖励',
     en: 'System subsidy'
   }),
   appreciateComment: i18n({
@@ -51,8 +56,6 @@ export const MAT: GQLMATTypeResolver = {
 }
 
 export const Transaction: GQLTransactionTypeResolver = {
-  // deprecated
-  delta: ({ delta, amount }) => delta || amount,
   purpose: ({ purpose }) => camelCase(purpose),
   content: async (
     trx,
@@ -67,6 +70,7 @@ export const Transaction: GQLTransactionTypeResolver = {
         }
         return article.title
       case TRANSACTION_PURPOSE.appreciateSubsidy:
+        return trans.appreciateSubsidy(viewer.language, {})
       case TRANSACTION_PURPOSE.systemSubsidy:
         return trans.systemSubsidy(viewer.language, {})
       case TRANSACTION_PURPOSE.appreciateComment:

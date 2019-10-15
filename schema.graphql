@@ -87,9 +87,6 @@ type Article implements Node {
   """Related articles to this articles."""
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
-  """MAT recieved for this article (will be decrpecated soon)"""
-  MAT: Int! @deprecated(reason: "Use 'appreciationsReceived' instead.")
-
   """Appreciations history of this article."""
   appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
 
@@ -98,9 +95,6 @@ type Article implements Node {
 
   """Subscribers of this articles."""
   subscribers(input: ConnectionArgs!): UserConnection!
-
-  """Appreciators of this articles."""
-  appreciators(input: ConnectionArgs!): UserConnection!
 
   """Limit the nuhmber of appreciate per user."""
   appreciateLimit: Int!
@@ -202,9 +196,6 @@ type ArticleNewAppreciationNotice implements Notice {
 
   """The article that has been appreciated."""
   target: Article
-
-  """The amount of appreciations."""
-  MAT: Int!
 }
 
 """
@@ -1516,7 +1507,6 @@ input ToggleArticleRecommendInput {
 }
 
 type Transaction {
-  delta: Int! @deprecated(reason: "use 'amount' instead.")
   amount: Int!
   purpose: TransactionPurpose!
   content: String!
@@ -1832,9 +1822,6 @@ type UserStatus {
 
   """Total LIKE left in wallet."""
   LIKE: LIKE!
-
-  """Total MAT left in wallet."""
-  MAT: MAT! @deprecated(reason: "Use 'UserActivity.appreciations*' instead.")
 
   """Number of articles published by user"""
   articleCount: Int!

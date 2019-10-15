@@ -219,15 +219,13 @@ export class LikeCoin {
   }
 
   /**
-   * Claim or Transfer
+   * Claim, Transfer or Bind
    */
   edit = async ({
-    user,
     action,
     payload
   }: {
-    user: string
-    action: 'claim' | 'transfer'
+    action: 'claim' | 'transfer' | 'bind'
     payload: { [key: string]: any }
   }) => {
     const res = await this.request({
@@ -235,7 +233,6 @@ export class LikeCoin {
       withClientCredential: true,
       method: 'POST',
       data: {
-        user,
         action,
         payload
       }
@@ -381,14 +378,16 @@ export class LikeCoin {
   like = async ({
     authorLikerId,
     liker,
-    url
+    url,
+    amount
   }: {
     authorLikerId: string
     liker: UserOAuthLikeCoin
     url: string
+    amount: number
   }) => {
     try {
-      const endpoint = `${ENDPOINTS.like}/${authorLikerId}/1`
+      const endpoint = `${ENDPOINTS.like}/${authorLikerId}/${amount}`
       const result = await this.request({
         endpoint,
         withClientCredential: true,

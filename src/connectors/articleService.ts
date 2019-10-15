@@ -834,15 +834,27 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
-  countAppreciators = async (articleId: string) => {
-    const result = await this.knex('transaction')
-      .where({
-        referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate
+  /**
+   * Count an article's transactions by a given articleId.
+   */
+  countTransactions = async (referenceId: string): Promise<number> => {
+    const result = await this.knex
+      .select()
+      .from((knex: any) => {
+        const source = knex
+          .select('reference_id', 'sender_id')
+          .from('transaction')
+          .where({
+            referenceId,
+            purpose: TRANSACTION_PURPOSE.appreciate
+          })
+          .groupBy('sender_id', 'reference_id')
+        source.as('source')
       })
-      .countDistinct('sender_id')
+      .count()
       .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
+
+    return parseInt(result.count || '0', 10)
   }
 
   /**
@@ -871,28 +883,6 @@ export class ArticleService extends BaseService {
 
     return result
   }
-
-  /**
-   * Find an article's appreciators by a given article id.
-   */
-  findAppreciators = async ({
-    id,
-    limit = BATCH_SIZE,
-    offset = 0
-  }: {
-    id: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex('transaction')
-      .distinct('sender_id')
-      .select('sender_id')
-      .where({
-        referenceId: id,
-        purpose: TRANSACTION_PURPOSE.appreciate
-      })
-      .limit(limit)
-      .offset(offset)
 
   appreciateLeftByUser = async ({
     articleId,
@@ -962,7 +952,7 @@ export class ArticleService extends BaseService {
       .andWhere(
         'created_at',
         '>=',
-        this.knex.raw(`now() - (?*'1 MINUTE'::INTERVAL)`, [1])
+        this.knex.raw(`now() - INTERVAL '5 minutes'`)
       )
       .orderBy('created_at')
       .first()
