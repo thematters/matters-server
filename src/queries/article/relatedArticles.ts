@@ -37,7 +37,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
     // get articles
     articles = await articleService.dataloader
-      .loadMany(relatedArticles.map(({ id: aid }) => aid))
+      .loadMany(relatedArticles.map(({ id: aid }: { id: any }) => aid))
       .then(allArticles =>
         allArticles.filter(({ state }) => state === ARTICLE_STATE.active)
       )

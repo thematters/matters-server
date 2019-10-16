@@ -159,7 +159,6 @@ export class ArticleService extends BaseService {
     try {
       await this.es.client.update({
         index: this.table,
-        type: this.table,
         id,
         body: {
           doc: { state: ARTICLE_STATE.archived }
@@ -295,7 +294,6 @@ export class ArticleService extends BaseService {
   }) => {
     const result = await this.es.indexItems({
       index: this.table,
-      type: this.table,
       items: [
         {
           id,
@@ -322,7 +320,7 @@ export class ArticleService extends BaseService {
     //     .limit(first)
     // }
 
-    const body = bodybuilder()
+    const searchBody = bodybuilder()
       .query('multi_match', {
         query: key,
         fuzziness: 'AUTO',
@@ -339,22 +337,21 @@ export class ArticleService extends BaseService {
 
     // only return active if not in oss
     if (!oss) {
-      body.notFilter('term', { state: ARTICLE_STATE.archived })
+      searchBody.notFilter('term', { state: ARTICLE_STATE.archived })
     }
 
     try {
-      const result = await this.es.client.search({
+      const { body } = await this.es.client.search({
         index: this.table,
-        type: this.table,
-        body: body.build()
+        body: searchBody.build()
       })
-      const { hits } = result
-      const ids = hits.hits.map(({ _id }) => _id)
+      const { hits } = body
+      const ids = hits.hits.map(({ _id }: { _id: any }) => _id)
       const nodes = await this.baseFindByIds(ids, this.table)
 
       return {
         nodes,
-        totalCount: hits.total
+        totalCount: hits.total.value
       }
     } catch (err) {
       logger.error(err)
@@ -509,61 +506,48 @@ export class ArticleService extends BaseService {
 
   related = async ({ id, size }: { id: string; size: number }) => {
     // skip if in test
-    if (['test', 'development'].includes(environment.env)) {
+    if (['test'].includes(environment.env)) {
       return []
     }
 
     // get vector score
     const scoreResult = await this.es.client.get({
       index: this.table,
-      type: this.table,
       id
     })
 
-    const factorString = _.get(scoreResult, '_source.factor')
+    const factorString = _.get(scoreResult, '_source.embedding_vector')
 
     // return empty list if we don't have any score
     if (!factorString) {
       return []
     }
 
-    // recommend with vector score
-    const factor = factorString
-      .split(' ')
-      .map((s: string) => parseFloat(s.split('|')[1]))
-
-    const q = '*'
-    const body = bodybuilder()
+    const searchBody = bodybuilder()
       .query('function_score', {
-        query: {
-          query_string: {
-            query: q
-          }
-        },
+        boost_mode: 'replace',
         script_score: {
           script: {
-            inline: 'payload_vector_score',
-            lang: 'native',
+            source: 'binary_vector_score',
+            lang: 'knn',
             params: {
-              field: 'factor',
-              vector: factor,
-              cosine: true
+              cosine: true,
+              field: 'embedding_vector',
+              encoded_vector: factorString
             }
           }
-        },
-        boost_mode: 'replace'
+        }
       })
       .notFilter('ids', { values: [id] })
       .size(size)
       .build()
 
-    const relatedResult = await this.es.client.search({
+    const { body } = await this.es.client.search({
       index: this.table,
-      type: this.table,
-      body
+      body: searchBody
     })
     // add recommendation
-    return relatedResult.hits.hits.map(hit => ({ ...hit, id: hit._id }))
+    return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
   }
 
   /**
