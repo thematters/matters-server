@@ -4,10 +4,8 @@ import clearSearchHistory from './clearSearchHistory'
 import confirmVerificationCode from './confirmVerificationCode'
 import followUser from './followUser'
 import generateLikerId from './generateLikerId'
-import generateTempLikerIds from './generateTempLikerIds'
 import resetPassword from './resetPassword'
 import sendVerificationCode from './sendVerificationCode'
-import transferLIKE from './transferLIKE'
 import unfollowUser from './unfollowUser'
 import updateNotificationSetting from './updateNotificationSetting'
 import updateUserInfo from './updateUserInfo'
@@ -34,8 +32,6 @@ export default {
     unfollowUser,
     clearReadHistory,
     clearSearchHistory,
-    updateUserState,
-    generateTempLikerIds,
-    transferLIKE
+    updateUserState
   }
 }

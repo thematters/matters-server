@@ -55,12 +55,6 @@ export default /* GraphQL */ `
 
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): User! @authorize @purgeCache
-
-    "Generate temporary LikerIds for users without it, used in OSS"
-    generateTempLikerIds(input: GenerateTempLikerIdsInput): Int! @authorize
-
-    "Transfer user's MAT to pending LIKE, used in OSS"
-    transferLIKE(input: TransferLIKEInput): Int! @authorize
   }
 
   type User implements Node {
@@ -415,16 +409,6 @@ export default /* GraphQL */ `
     id: ID!
     state: UserState!
     banDays: PositiveInt
-  }
-
-  input GenerateTempLikerIdsInput {
-    id: ID
-    step: Int
-  }
-
-  input TransferLIKEInput {
-    id: ID
-    step: Int
   }
 
   input FollowUserInput {

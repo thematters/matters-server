@@ -63,8 +63,6 @@ export default /* GraphQL */ `
     report(input: ReportInput!): Report!
     today(input: ConnectionArgs!): ArticleConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
-    noLikerIdCount: Int!
-    noPendingLIKECount: Int!
   }
 
   type Category {
