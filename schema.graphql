@@ -1686,8 +1686,11 @@ type User implements Node {
   """Users that blocked by current user."""
   blockList(input: ConnectionArgs!): UserConnection!
 
-  """Whether viewer is blocked by current user."""
-  blocked: Boolean!
+  """Whether current user is blocking viewer."""
+  isBlocking: Boolean!
+
+  """Whether current user is blocked by viewer."""
+  isBlocked: Boolean!
 
   """Status of current user."""
   status: UserStatus

@@ -1,6 +1,6 @@
-import { UserToBlockedResolver } from 'definitions'
+import { UserToIsBlockedResolver } from 'definitions'
 
-const resolver: UserToBlockedResolver = async (
+const resolver: UserToIsBlockedResolver = async (
   { id },
   _,
   { viewer, dataSources: { userService } }
@@ -9,8 +9,8 @@ const resolver: UserToBlockedResolver = async (
     return false
   }
   return userService.blocked({
-    userId: viewer.id,
-    targetId: id
+    userId: id,
+    targetId: viewer.id
   })
 }
 

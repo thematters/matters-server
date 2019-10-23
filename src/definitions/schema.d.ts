@@ -346,9 +346,14 @@ export interface GQLUser extends GQLNode {
   blockList: GQLUserConnection
 
   /**
-   * Whether viewer is blocked by current user.
+   * Whether current user is blocking viewer.
    */
-  blocked: boolean
+  isBlocking: boolean
+
+  /**
+   * Whether current user is blocked by viewer.
+   */
+  isBlocked: boolean
 
   /**
    * Status of current user.
@@ -3184,7 +3189,8 @@ export interface GQLUserTypeResolver<TParent = any> {
   isFollower?: UserToIsFollowerResolver<TParent>
   isFollowee?: UserToIsFolloweeResolver<TParent>
   blockList?: UserToBlockListResolver<TParent>
-  blocked?: UserToBlockedResolver<TParent>
+  isBlocking?: UserToIsBlockingResolver<TParent>
+  isBlocked?: UserToIsBlockedResolver<TParent>
   status?: UserToStatusResolver<TParent>
   oss?: UserToOssResolver<TParent>
   remark?: UserToRemarkResolver<TParent>
@@ -3383,7 +3389,16 @@ export interface UserToBlockListResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface UserToBlockedResolver<TParent = any, TResult = any> {
+export interface UserToIsBlockingResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToIsBlockedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

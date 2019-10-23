@@ -624,18 +624,18 @@ export class UserService extends BaseService {
   }
 
   findBlockList = async ({
-    targetId,
+    userId,
     limit = BATCH_SIZE,
     offset = 0
   }: {
-    targetId: string
+    userId: string
     limit?: number
     offset?: number
   }) =>
     this.knex
       .select()
       .from('action_user')
-      .where({ targetId, action: USER_ACTION.block })
+      .where({ userId, action: USER_ACTION.block })
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)

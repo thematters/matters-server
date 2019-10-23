@@ -125,10 +125,13 @@ export default /* GraphQL */ `
     isFollowee: Boolean!
 
     "Users that blocked by current user."
-    blockList(input: ConnectionArgs!): UserConnection!
+    blockList(input: ConnectionArgs!): UserConnection! @scope
 
-    "Whether viewer is blocked by current user."
-    blocked: Boolean!
+    "Whether current user is blocking viewer."
+    isBlocking: Boolean!
+
+    "Whether current user is blocked by viewer."
+    isBlocked: Boolean!
 
     "Status of current user."
     status: UserStatus
