@@ -362,6 +362,10 @@ enum BadgeType {
   seed
 }
 
+input BlockUserInput {
+  id: ID!
+}
+
 enum BoostTypes {
   Article
   User
@@ -863,7 +867,13 @@ type Mutation {
   followUser(input: FollowUserInput!): User!
 
   """Unfollow curent user."""
-  unfollowUser(input: UnfollowUserInput!): User!
+  unfollowUser(input: FollowUserInput!): User!
+
+  """Block a given user."""
+  blockUser(input: BlockUserInput!): User!
+
+  """Unblock a given user."""
+  unblockUser(input: BlockUserInput!): User!
 
   """Clear read history for user."""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
@@ -1551,10 +1561,6 @@ input TransferLIKEInput {
   step: Int
 }
 
-input UnfollowUserInput {
-  id: ID!
-}
-
 input UnpinCommentInput {
   id: ID!
 }
@@ -1676,6 +1682,12 @@ type User implements Node {
 
   """Whether viewer is following current user."""
   isFollowee: Boolean!
+
+  """Users that blocked by current user."""
+  blockList(input: ConnectionArgs!): UserConnection!
+
+  """Whether viewer is blocked by current user."""
+  blocked: Boolean!
 
   """Status of current user."""
   status: UserStatus

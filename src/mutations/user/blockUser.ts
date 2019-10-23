@@ -5,12 +5,12 @@ import {
   UserNotFoundError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToFollowUserResolver } from 'definitions'
+import { MutationToBlockUserResolver } from 'definitions'
 
-const resolver: MutationToFollowUserResolver = async (
+const resolver: MutationToBlockUserResolver = async (
   _,
   { input: { id } },
-  { viewer, dataSources: { userService, notificationService } }
+  { viewer, dataSources: { userService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -19,7 +19,7 @@ const resolver: MutationToFollowUserResolver = async (
   const { id: dbId } = fromGlobalId(id)
 
   if (viewer.id === dbId) {
-    throw new ActionFailedError('cannot follow yourself')
+    throw new ActionFailedError('cannot block yourself')
   }
 
   const user = await userService.dataloader.load(dbId)
@@ -27,14 +27,7 @@ const resolver: MutationToFollowUserResolver = async (
     throw new UserNotFoundError('target user does not exists')
   }
 
-  await userService.follow(viewer.id, user.id)
-
-  // trigger notificaiton
-  notificationService.trigger({
-    event: 'user_new_follower',
-    actorId: viewer.id,
-    recipientId: user.id
-  })
+  await userService.block(viewer.id, user.id)
 
   // Add custom data for cache invalidation
   user[CACHE_KEYWORD] = [

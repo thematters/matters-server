@@ -218,10 +218,7 @@ export class ArticleService extends BaseService {
   /**
    * Count articles by a given authorId (user).
    */
-  countByAuthor = async (
-    authorId: string,
-    activeOnly: boolean = true
-  ): Promise<number> => {
+  countByAuthor = async (authorId: string, activeOnly: boolean = true) => {
     let qs = this.knex(this.table)
       .where({ authorId })
       .count()
@@ -242,7 +239,7 @@ export class ArticleService extends BaseService {
   sumWordCountByAuthor = async (
     authorId: string,
     activeOnly: boolean = true
-  ): Promise<number> => {
+  ) => {
     let query = this.knex(this.table)
       .sum('word_count')
       .where({ authorId })
@@ -766,7 +763,7 @@ export class ArticleService extends BaseService {
   /**
    * Sum total appreciaton by a given article id.
    */
-  sumAppreciation = async (articleId: string): Promise<number> => {
+  sumAppreciation = async (articleId: string) => {
     const result = await this.knex
       .select()
       .from('transaction')
@@ -782,7 +779,7 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
-  countAppreciation = async (referenceId: string): Promise<number> => {
+  countAppreciation = async (referenceId: string) => {
     const result = await this.knex
       .select()
       .from('transaction')
@@ -804,7 +801,7 @@ export class ArticleService extends BaseService {
   }: {
     articleId: string
     userIds: string[]
-  }): Promise<number> => {
+  }) => {
     const result = await this.knex
       .select()
       .from('transaction')
@@ -821,7 +818,7 @@ export class ArticleService extends BaseService {
   /**
    * Count an article's transactions by a given articleId.
    */
-  countTransactions = async (referenceId: string): Promise<number> => {
+  countTransactions = async (referenceId: string) => {
     const result = await this.knex
       .select()
       .from((knex: any) => {
@@ -852,7 +849,7 @@ export class ArticleService extends BaseService {
     referenceId: string
     limit?: number
     offset?: number
-  }): Promise<any[]> => {
+  }) => {
     const result = await this.knex('transaction')
       .select('reference_id', 'sender_id')
       .where({
@@ -874,7 +871,7 @@ export class ArticleService extends BaseService {
   }: {
     articleId: string
     userId: string
-  }): Promise<number> => {
+  }) => {
     const appreciations = await this.knex('transaction')
       .select()
       .where({
@@ -894,7 +891,7 @@ export class ArticleService extends BaseService {
   }: {
     userId: string
     articleId: string
-  }): Promise<boolean> => {
+  }) => {
     const result = await this.knex('transaction')
       .select()
       .where({
@@ -920,7 +917,7 @@ export class ArticleService extends BaseService {
     recipientId: string
     amount: number
     type: string
-  }): Promise<any> => {
+  }) => {
     const appreciation = {
       senderId,
       recipientId,
@@ -1027,7 +1024,7 @@ export class ArticleService extends BaseService {
   }: {
     userId: string
     targetId: string
-  }): Promise<boolean> => {
+  }) => {
     const result = await this.knex
       .select()
       .from('action_article')
@@ -1038,7 +1035,7 @@ export class ArticleService extends BaseService {
   /**
    * User subscribe an article
    */
-  subscribe = async (targetId: string, userId: string): Promise<any[]> => {
+  subscribe = async (targetId: string, userId: string) => {
     const data = {
       targetId,
       userId,
@@ -1054,7 +1051,7 @@ export class ArticleService extends BaseService {
   /**
    * User unsubscribe an article
    */
-  unsubscribe = async (targetId: string, userId: string): Promise<any[]> =>
+  unsubscribe = async (targetId: string, userId: string) =>
     this.knex
       .from('action_article')
       .where({
@@ -1080,7 +1077,7 @@ export class ArticleService extends BaseService {
     articleId: string
     userId?: string | null
     ip?: string
-  }): Promise<any[]> =>
+  }) =>
     this.baseCreate(
       {
         uuid: v4(),

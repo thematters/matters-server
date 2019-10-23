@@ -45,6 +45,14 @@ export class ActionLimitExceededError extends ApolloError {
   }
 }
 
+export class ActionFailedError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'ACTION_FAILED')
+
+    Object.defineProperty(this, 'name', { value: 'ActionFailed' })
+  }
+}
+
 /*********************************
  *                               *
  *             Auth              *
@@ -230,14 +238,6 @@ export class DisplayNameInvalidError extends ApolloError {
     super(message, 'USER_DISPLAYNAME_INVALID')
 
     Object.defineProperty(this, 'name', { value: 'DisplayNameInvalidError' })
-  }
-}
-
-export class UserFollowFailedError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'USER_FOLLOW_FAILED')
-
-    Object.defineProperty(this, 'name', { value: 'UserFollowFailedError' })
   }
 }
 

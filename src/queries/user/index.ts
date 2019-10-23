@@ -16,6 +16,8 @@ import {
 import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
+import blocked from './blocked'
+import blockList from './blockList'
 import commentCount from './commentCount'
 import followees from './followees'
 import followers from './followers'
@@ -70,7 +72,9 @@ const user: {
     followers,
     followees,
     isFollower,
-    isFollowee
+    isFollowee,
+    blockList,
+    blocked
   },
   Recommendation,
   UserInfo: {

@@ -341,6 +341,16 @@ export interface GQLUser extends GQLNode {
   isFollowee: boolean
 
   /**
+   * Users that blocked by current user.
+   */
+  blockList: GQLUserConnection
+
+  /**
+   * Whether viewer is blocked by current user.
+   */
+  blocked: boolean
+
+  /**
    * Status of current user.
    */
   status?: GQLUserStatus
@@ -1643,6 +1653,16 @@ export interface GQLMutation {
   unfollowUser: GQLUser
 
   /**
+   * Block a given user.
+   */
+  blockUser: GQLUser
+
+  /**
+   * Unblock a given user.
+   */
+  unblockUser: GQLUser
+
+  /**
    * Clear read history for user.
    */
   clearReadHistory?: boolean
@@ -1985,7 +2005,7 @@ export interface GQLFollowUserInput {
   id: string
 }
 
-export interface GQLUnfollowUserInput {
+export interface GQLBlockUserInput {
   id: string
 }
 
@@ -3163,6 +3183,8 @@ export interface GQLUserTypeResolver<TParent = any> {
   followees?: UserToFolloweesResolver<TParent>
   isFollower?: UserToIsFollowerResolver<TParent>
   isFollowee?: UserToIsFolloweeResolver<TParent>
+  blockList?: UserToBlockListResolver<TParent>
+  blocked?: UserToBlockedResolver<TParent>
   status?: UserToStatusResolver<TParent>
   oss?: UserToOssResolver<TParent>
   remark?: UserToRemarkResolver<TParent>
@@ -3341,6 +3363,27 @@ export interface UserToIsFollowerResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToIsFolloweeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToBlockListArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToBlockListResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToBlockListArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToBlockedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6335,6 +6378,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   >
   followUser?: MutationToFollowUserResolver<TParent>
   unfollowUser?: MutationToUnfollowUserResolver<TParent>
+  blockUser?: MutationToBlockUserResolver<TParent>
+  unblockUser?: MutationToUnblockUserResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
@@ -6959,12 +7004,36 @@ export interface MutationToFollowUserResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToUnfollowUserArgs {
-  input: GQLUnfollowUserInput
+  input: GQLFollowUserInput
 }
 export interface MutationToUnfollowUserResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUnfollowUserArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToBlockUserArgs {
+  input: GQLBlockUserInput
+}
+export interface MutationToBlockUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToBlockUserArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnblockUserArgs {
+  input: GQLBlockUserInput
+}
+export interface MutationToUnblockUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToUnblockUserArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
