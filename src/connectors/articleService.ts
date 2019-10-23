@@ -516,7 +516,7 @@ export class ArticleService extends BaseService {
       id
     })
 
-    const factorString = _.get(scoreResult, '_source.embedding_vector')
+    const factorString = _.get(scoreResult.body, '_source.embedding_vector')
 
     // return empty list if we don't have any score
     if (!factorString) {
