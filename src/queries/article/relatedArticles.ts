@@ -31,7 +31,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
     logger.info(
       `[recommendation] article ${id}, title ${title}, ES result ${relatedArticles.map(
-        ({ id: aid }: { id: any}) => aid
+        ({ id: aid }: { id: any }) => aid
       )} `
     )
 
