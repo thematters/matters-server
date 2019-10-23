@@ -1,7 +1,5 @@
 import { articles } from './articles'
 import { comments } from './comments'
-import { noLikerIdCount } from './noLikerIdCount'
-import { noPendingLIKECount } from './noPendingLIKECount'
 import { oauthClients } from './oauthClients'
 import { report } from './report'
 import { reports } from './reports'
@@ -17,7 +15,5 @@ export default {
   reports,
   report,
   today,
-  oauthClients,
-  noLikerIdCount,
-  noPendingLIKECount
+  oauthClients
 }
