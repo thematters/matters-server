@@ -16,7 +16,7 @@ const resolver: UserToBlockListResolver = async (
 
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await userService.countFollowers(id)
+  const totalCount = await userService.countBlockList(id)
   const actions = await userService.findBlockList({
     userId: id,
     offset,

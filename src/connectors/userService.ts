@@ -623,6 +623,14 @@ export class UserService extends BaseService {
     return !!result
   }
 
+  countBlockList = async (userId: string) => {
+    const result = await this.knex('action_user')
+      .where({ userId, action: USER_ACTION.block })
+      .count()
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   findBlockList = async ({
     userId,
     limit = BATCH_SIZE,
