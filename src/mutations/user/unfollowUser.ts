@@ -11,8 +11,10 @@ const resolver: MutationToUnfollowUserResolver = async (
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
+
   const { id: dbId } = fromGlobalId(id)
   const user = await userService.dataloader.load(dbId)
+
   if (!user) {
     throw new UserNotFoundError('target user does not exists')
   }

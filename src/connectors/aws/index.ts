@@ -118,7 +118,7 @@ export class AWSService {
   /**
    * Delete file from AWS S3 by a given path key.
    */
-  baseDeleteFile = async (key: string): Promise<any> =>
+  baseDeleteFile = async (key: string) =>
     this.s3
       .deleteObject({
         Bucket: this.s3Bucket,

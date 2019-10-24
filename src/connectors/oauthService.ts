@@ -237,9 +237,7 @@ export class OAuthService extends BaseService {
     }
   }
 
-  revokeAuthorizationCode = async (
-    code: OAuthAuthorizationCode
-  ): Promise<boolean> => {
+  revokeAuthorizationCode = async (code: OAuthAuthorizationCode) => {
     try {
       await this.knex('oauth_authorization_code')
         .select()
@@ -289,7 +287,7 @@ export class OAuthService extends BaseService {
     }
   }
 
-  revokeToken = async (token: OAuthRefreshToken): Promise<boolean> => {
+  revokeToken = async (token: OAuthRefreshToken) => {
     try {
       await this.knex('oauth_refresh_token')
         .select()
@@ -327,10 +325,7 @@ export class OAuthService extends BaseService {
     return scope
   }
 
-  verifyScope = async (
-    accessToken: OAuthToken,
-    scope: string | string[]
-  ): Promise<boolean> => {
+  verifyScope = async (accessToken: OAuthToken, scope: string | string[]) => {
     // TODO: Maybe we don't have to implement this?
     return true
   }

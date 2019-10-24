@@ -25,7 +25,7 @@ export class TagService extends BaseService {
     limit?: number
     offset?: number
     sort?: 'newest' | 'oldest' | 'hottest'
-  }): Promise<any[]> => {
+  }) => {
     let query = null
 
     const sortCreatedAt = (by: 'desc' | 'asc') =>

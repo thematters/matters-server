@@ -57,11 +57,7 @@ export const MAT: GQLMATTypeResolver = {
 
 export const Transaction: GQLTransactionTypeResolver = {
   purpose: ({ purpose }) => camelCase(purpose),
-  content: async (
-    trx,
-    _,
-    { viewer, dataSources: { articleService } }
-  ): Promise<string> => {
+  content: async (trx, _, { viewer, dataSources: { articleService } }) => {
     switch (trx.purpose) {
       case TRANSACTION_PURPOSE.appreciate:
         const article = await articleService.dataloader.load(trx.referenceId)
