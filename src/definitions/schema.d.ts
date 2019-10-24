@@ -1313,8 +1313,6 @@ export interface GQLOSS {
   report: GQLReport
   today: GQLArticleConnection
   oauthClients: GQLOAuthClientConnection
-  noLikerIdCount: number
-  noPendingLIKECount: number
 }
 
 export interface GQLOSSArticlesInput {
@@ -1683,16 +1681,6 @@ export interface GQLMutation {
   updateUserState: GQLUser
 
   /**
-   * Generate temporary LikerIds for users without it, used in OSS
-   */
-  generateTempLikerIds: number
-
-  /**
-   * Transfer user's MAT to pending LIKE, used in OSS
-   */
-  transferLIKE: number
-
-  /**
    * Create or Update an OAuth Client, used in OSS.
    */
   putOAuthClient?: GQLOAuthClient
@@ -2025,16 +2013,6 @@ export interface GQLUpdateUserStateInput {
 }
 
 export type GQLPositiveInt = any
-
-export interface GQLGenerateTempLikerIdsInput {
-  id?: string
-  step?: number
-}
-
-export interface GQLTransferLIKEInput {
-  id?: string
-  step?: number
-}
 
 export interface GQLPutOAuthClientInput {
   id?: string
@@ -5875,8 +5853,6 @@ export interface GQLOSSTypeResolver<TParent = any> {
   report?: OSSToReportResolver<TParent>
   today?: OSSToTodayResolver<TParent>
   oauthClients?: OSSToOauthClientsResolver<TParent>
-  noLikerIdCount?: OSSToNoLikerIdCountResolver<TParent>
-  noPendingLIKECount?: OSSToNoPendingLIKECountResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -5970,24 +5946,6 @@ export interface OSSToOauthClientsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToOauthClientsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface OSSToNoLikerIdCountResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface OSSToNoPendingLIKECountResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6398,8 +6356,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
-  generateTempLikerIds?: MutationToGenerateTempLikerIdsResolver<TParent>
-  transferLIKE?: MutationToTransferLIKEResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
@@ -7091,33 +7047,6 @@ export interface MutationToUpdateUserStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserStateArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToGenerateTempLikerIdsArgs {
-  input?: GQLGenerateTempLikerIdsInput
-}
-export interface MutationToGenerateTempLikerIdsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToGenerateTempLikerIdsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToTransferLIKEArgs {
-  input?: GQLTransferLIKEInput
-}
-export interface MutationToTransferLIKEResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToTransferLIKEArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

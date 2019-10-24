@@ -135,14 +135,6 @@ export class DraftNotFoundError extends ApolloError {
   }
 }
 
-export class DraftHasNoCoverError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'DRAFT_HAS_NO_COVER')
-
-    Object.defineProperty(this, 'name', { value: 'DraftHasNoCoverError' })
-  }
-}
-
 export class TagNotFoundError extends ApolloError {
   constructor(message: string) {
     super(message, 'TAG_NOT_FOUND')
@@ -241,42 +233,13 @@ export class DisplayNameInvalidError extends ApolloError {
   }
 }
 
-export class UserInviteFailedError extends ApolloError {
+export class UserFollowFailedError extends ApolloError {
   constructor(message: string) {
-    super(message, 'USER_INVITE_FAILED')
+    super(message, 'USER_FOLLOW_FAILED')
 
-    Object.defineProperty(this, 'name', { value: 'UserInviteFailedError' })
+    Object.defineProperty(this, 'name', { value: 'UserFollowFailedError' })
   }
 }
-
-export class UserInviteStateFailedError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'USER_INVITE_STATE_INVALID')
-
-    Object.defineProperty(this, 'name', { value: 'UserInviteStateFailedError' })
-  }
-}
-
-export class UserInviteEmailRegisteredFailedError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'USER_INVITE_EMAIL_REGISTERED')
-
-    Object.defineProperty(this, 'name', {
-      value: 'UserInviteEmailRegisteredFailedError'
-    })
-  }
-}
-
-export class UserInviteEmailInvitedFailedError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'USER_INVITE_EMAIL_INVITED')
-
-    Object.defineProperty(this, 'name', {
-      value: 'UserInviteEmailInvitedFailedError'
-    })
-  }
-}
-
 /*********************************
  *                               *
  *      Verification Code        *

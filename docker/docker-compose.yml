@@ -48,11 +48,11 @@ services:
       - '4001:4001'
       - '5001:5001'
   elasticsearch:
-    image: matters/elasticsearch:latest
+    image: matterslab/elasticsearch:latest
     container_name: elasticsearch
-    command: elasticsearch -E network.host=0.0.0.0 -E discovery.zen.minimum_master_nodes=1
     environment:
       - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'
+      - 'discovery.type=single-node'
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     ports:
