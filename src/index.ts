@@ -3,10 +3,9 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import http from 'http'
-import requestIp from 'request-ip'
-
 import 'module-alias/register'
 import 'newrelic'
+import requestIp from 'request-ip'
 
 import { CORS_OPTIONS } from 'common/enums'
 import { environment } from 'common/environment'
