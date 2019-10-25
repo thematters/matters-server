@@ -3,6 +3,8 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import http from 'http'
+import requestIp from 'request-ip'
+
 import 'module-alias/register'
 import 'newrelic'
 
@@ -26,6 +28,7 @@ const httpServer = http.createServer(app)
  */
 
 app.use(helmet())
+app.use(requestIp.mw())
 app.use(cors(CORS_OPTIONS))
 
 /**

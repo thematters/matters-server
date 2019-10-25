@@ -69,7 +69,7 @@ export const getViewerFromReq = async ({
   req,
   res
 }: {
-  req?: requestIp.Request
+  req?: requestIp.Request & { clientIp?: string }
   res?: Response
 }): Promise<Viewer> => {
   const headers = req ? req.headers : {}
@@ -78,6 +78,7 @@ export const getViewerFromReq = async ({
 
   // user infomation from request
   let user = {
+    ip: req.clientIp,
     language,
     scopeMode: SCOPE_MODE.visitor,
     scope: {}
