@@ -78,7 +78,7 @@ export const getViewerFromReq = async ({
 
   // user infomation from request
   let user = {
-    ip: req.clientIp,
+    ip: req && req.clientIp,
     language,
     scopeMode: SCOPE_MODE.visitor,
     scope: {}
