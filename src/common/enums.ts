@@ -42,6 +42,7 @@ export const LANGUAGE = {
 export const USER_ACTION = {
   appreciate: 'appreciate',
   follow: 'follow',
+  block: 'block',
   subscribe: 'subscribe',
   rate: 'rate',
   upVote: 'up_vote',

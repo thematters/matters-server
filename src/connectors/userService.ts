@@ -185,7 +185,7 @@ export class UserService extends BaseService {
   /**
    * Find users by a given user name.
    */
-  findByUserName = async (userName: string): Promise<any[]> =>
+  findByUserName = async (userName: string) =>
     this.knex
       .select()
       .from(this.table)
@@ -216,7 +216,7 @@ export class UserService extends BaseService {
   /**
    * Count same user names by a given user name.
    */
-  countUserNames = async (userName: string): Promise<number> => {
+  countUserNames = async (userName: string) => {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where({ userName })
@@ -462,7 +462,7 @@ export class UserService extends BaseService {
    *             Follow            *
    *                               *
    *********************************/
-  follow = async (userId: string, targetId: string): Promise<any[]> => {
+  follow = async (userId: string, targetId: string) => {
     const data = {
       userId,
       targetId,
@@ -475,7 +475,7 @@ export class UserService extends BaseService {
     })
   }
 
-  unfollow = async (userId: string, targetId: string): Promise<any[]> =>
+  unfollow = async (userId: string, targetId: string) =>
     this.knex
       .from('action_user')
       .where({
@@ -485,7 +485,7 @@ export class UserService extends BaseService {
       })
       .del()
 
-  countFollowees = async (userId: string): Promise<number> => {
+  countFollowees = async (userId: string) => {
     const result = await this.knex('action_user')
       .where({
         userId,
@@ -496,7 +496,7 @@ export class UserService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  countFollowers = async (targetId: string): Promise<number> => {
+  countFollowers = async (targetId: string) => {
     const result = await this.knex('action_user')
       .where({ targetId, action: USER_ACTION.follow })
       .count()
@@ -555,7 +555,7 @@ export class UserService extends BaseService {
     targetId: string
     limit?: number
     offset?: number
-  }): Promise<any[]> =>
+  }) =>
     this.knex
       .select()
       .from('action_user')
@@ -570,7 +570,7 @@ export class UserService extends BaseService {
   }: {
     userId: string
     targetId: string
-  }): Promise<boolean> => {
+  }) => {
     const result = await this.knex
       .select()
       .from('action_user')
@@ -578,6 +578,67 @@ export class UserService extends BaseService {
       .first()
     return !!result
   }
+
+  /*********************************
+   *                               *
+   *             Block             *
+   *                               *
+   *********************************/
+  block = async (userId: string, targetId: string) => {
+    const data = {
+      userId,
+      targetId,
+      action: USER_ACTION.block
+    }
+
+    return this.baseUpdateOrCreate({
+      where: data,
+      data: { updatedAt: new Date(), ...data },
+      table: 'action_user'
+    })
+  }
+
+  unblock = async (userId: string, targetId: string) =>
+    this.knex
+      .from('action_user')
+      .where({
+        targetId,
+        userId,
+        action: USER_ACTION.block
+      })
+      .del()
+
+  blocked = async ({
+    userId,
+    targetId
+  }: {
+    userId: string
+    targetId: string
+  }) => {
+    const result = await this.knex
+      .select()
+      .from('action_user')
+      .where({ userId, targetId, action: USER_ACTION.block })
+      .first()
+    return !!result
+  }
+
+  findBlockList = async ({
+    userId,
+    limit = BATCH_SIZE,
+    offset = 0
+  }: {
+    userId: string
+    limit?: number
+    offset?: number
+  }) =>
+    this.knex
+      .select()
+      .from('action_user')
+      .where({ userId, action: USER_ACTION.block })
+      .orderBy('id', 'desc')
+      .offset(offset)
+      .limit(limit)
 
   /*********************************
    *                               *
@@ -656,7 +717,7 @@ export class UserService extends BaseService {
       'user_notify_setting'
     )
 
-  findBadges = async (userId: string): Promise<any[]> =>
+  findBadges = async (userId: string) =>
     this.knex
       .select()
       .from('user_badge')
@@ -749,7 +810,7 @@ export class UserService extends BaseService {
   /**
    * Activate user
    */
-  activate = async ({ id }: { id: string }): Promise<any> => {
+  activate = async ({ id }: { id: string }) => {
     const result = await this.knex(this.table)
       .where({ id })
       .update({ state: USER_STATE.active })

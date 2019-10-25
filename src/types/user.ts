@@ -45,7 +45,13 @@ export default /* GraphQL */ `
     followUser(input: FollowUserInput!): User! @authenticate @purgeCache
 
     "Unfollow curent user."
-    unfollowUser(input: UnfollowUserInput!): User! @authenticate @purgeCache
+    unfollowUser(input: FollowUserInput!): User! @authenticate @purgeCache
+
+    "Block a given user."
+    blockUser(input: BlockUserInput!): User! @authenticate @purgeCache
+
+    "Unblock a given user."
+    unblockUser(input: BlockUserInput!): User! @authenticate @purgeCache
 
     "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
@@ -111,6 +117,15 @@ export default /* GraphQL */ `
 
     "Whether viewer is following current user."
     isFollowee: Boolean!
+
+    "Users that blocked by current user."
+    blockList(input: ConnectionArgs!): UserConnection! @scope
+
+    "Whether current user is blocking viewer."
+    isBlocking: Boolean!
+
+    "Whether current user is blocked by viewer."
+    isBlocked: Boolean!
 
     "Status of current user."
     status: UserStatus
@@ -415,7 +430,7 @@ export default /* GraphQL */ `
     id: ID!
   }
 
-  input UnfollowUserInput {
+  input BlockUserInput {
     id: ID!
   }
 

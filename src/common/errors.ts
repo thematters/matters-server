@@ -45,6 +45,14 @@ export class ActionLimitExceededError extends ApolloError {
   }
 }
 
+export class ActionFailedError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'ACTION_FAILED')
+
+    Object.defineProperty(this, 'name', { value: 'ActionFailed' })
+  }
+}
+
 /*********************************
  *                               *
  *             Auth              *

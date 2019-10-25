@@ -1,3 +1,4 @@
+import blockUser from './blockUser'
 import changeEmail from './changeEmail'
 import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
@@ -6,6 +7,7 @@ import followUser from './followUser'
 import generateLikerId from './generateLikerId'
 import resetPassword from './resetPassword'
 import sendVerificationCode from './sendVerificationCode'
+import unblockUser from './unblockUser'
 import unfollowUser from './unfollowUser'
 import updateNotificationSetting from './updateNotificationSetting'
 import updateUserInfo from './updateUserInfo'
@@ -29,6 +31,8 @@ export default {
     updateUserInfo,
     updateNotificationSetting,
     followUser,
+    unblockUser,
+    blockUser,
     unfollowUser,
     clearReadHistory,
     clearSearchHistory,
