@@ -42,12 +42,21 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   // check target article
-  const { id: authorDbId } = fromGlobalId(articleId)
-  const article = await articleService.dataloader.load(authorDbId)
+  const { id: articleDbId } = fromGlobalId(articleId)
+  const article = await articleService.dataloader.load(articleDbId)
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
   data.articleId = article.id
+
+  // check whether viewer is blocked by article author
+  const isBlocked = await userService.blocked({
+    userId: article.authorId,
+    targetId: viewer.id
+  })
+  if (isBlocked) {
+    throw new AuthenticationError('viewer is blocked by article author')
+  }
 
   // check parentComment
   let parentComment: any
