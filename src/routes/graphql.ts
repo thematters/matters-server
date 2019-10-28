@@ -120,7 +120,8 @@ const server = new ProtectedApolloServer({
       sessionId: ({ context }) => _.get(context, 'viewer.id', null)
     })
   ],
-  playground: false
+  introspection: true,
+  playground: false // enabled below
 })
 
 export const graphql = (app: Express) => {
