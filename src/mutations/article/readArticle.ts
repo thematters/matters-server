@@ -1,5 +1,7 @@
+import * as Sentry from '@sentry/node'
+
 import { environment } from 'common/environment'
-import { ArticleNotFoundError, LikerNotFoundError } from 'common/errors'
+import { ArticleNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToReadArticleResolver } from 'definitions'
 
@@ -21,17 +23,21 @@ const resolver: MutationToReadArticleResolver = async (
   })
 
   // call like.co count api for like.co analytic pageview
-  let liker
-  if (viewer.id) {
-    liker = await userService.findLiker({ userId: viewer.id })
+  try {
+    let liker
+    if (viewer.id) {
+      liker = await userService.findLiker({ userId: viewer.id })
+    }
+    const author = await userService.dataloader.load(article.authorId)
+    await userService.likecoin.count({
+      authorLikerId: author.likerId,
+      liker: liker || undefined,
+      likerIp: viewer.ip,
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
+    })
+  } catch (error) {
+    Sentry.captureException(error)
   }
-  const author = await userService.dataloader.load(article.authorId)
-  await userService.likecoin.count({
-    authorLikerId: author.likerId,
-    liker: liker || undefined,
-    likerIp: viewer.ip,
-    url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
-  })
 
   return article
 }

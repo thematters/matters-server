@@ -4,16 +4,10 @@ import Knex from 'knex'
 import _ from 'lodash'
 
 import { environment } from 'common/environment'
-import { fromGlobalId, toGlobalId } from 'common/utils'
-import { knex, UserService } from 'connectors'
+import { knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
 
-const {
-  likecoinApiURL,
-  likecoinMigrationApiURL,
-  likecoinClientId,
-  likecoinClientSecret
-} = environment
+const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
 
 type LikeCoinLocale =
   | 'en'
