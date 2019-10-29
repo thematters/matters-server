@@ -20,7 +20,7 @@ export class DraftService extends BaseService {
   /**
    * Count user's drafts by a given author id (user).
    */
-  countByAuthor = async (authorId: string): Promise<number> => {
+  countByAuthor = async (authorId: string) => {
     const result = await this.knex(this.table)
       .where({ authorId, archived: false })
       .count()
@@ -31,7 +31,7 @@ export class DraftService extends BaseService {
   /**
    *  Find drafts by a given author id (user).
    */
-  findByAuthor = async (authorId: string): Promise<any[]> =>
+  findByAuthor = async (authorId: string) =>
     this.knex
       .select()
       .from(this.table)

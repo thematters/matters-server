@@ -45,7 +45,13 @@ export default /* GraphQL */ `
     followUser(input: FollowUserInput!): User! @authenticate @purgeCache
 
     "Unfollow curent user."
-    unfollowUser(input: UnfollowUserInput!): User! @authenticate @purgeCache
+    unfollowUser(input: FollowUserInput!): User! @authenticate @purgeCache
+
+    "Block a given user."
+    blockUser(input: BlockUserInput!): User! @authenticate @purgeCache
+
+    "Unblock a given user."
+    unblockUser(input: BlockUserInput!): User! @authenticate @purgeCache
 
     "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
@@ -55,12 +61,6 @@ export default /* GraphQL */ `
 
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): User! @authorize @purgeCache
-
-    "Generate temporary LikerIds for users without it, used in OSS"
-    generateTempLikerIds(input: GenerateTempLikerIdsInput): Int! @authorize
-
-    "Transfer user's MAT to pending LIKE, used in OSS"
-    transferLIKE(input: TransferLIKEInput): Int! @authorize
   }
 
   type User implements Node {
@@ -117,6 +117,15 @@ export default /* GraphQL */ `
 
     "Whether viewer is following current user."
     isFollowee: Boolean!
+
+    "Users that blocked by current user."
+    blockList(input: ConnectionArgs!): UserConnection! @scope
+
+    "Whether current user is blocking viewer."
+    isBlocking: Boolean!
+
+    "Whether current user is blocked by viewer."
+    isBlocked: Boolean!
 
     "Status of current user."
     status: UserStatus
@@ -417,21 +426,11 @@ export default /* GraphQL */ `
     banDays: PositiveInt
   }
 
-  input GenerateTempLikerIdsInput {
-    id: ID
-    step: Int
-  }
-
-  input TransferLIKEInput {
-    id: ID
-    step: Int
-  }
-
   input FollowUserInput {
     id: ID!
   }
 
-  input UnfollowUserInput {
+  input BlockUserInput {
     id: ID!
   }
 

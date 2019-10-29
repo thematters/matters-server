@@ -265,114 +265,6 @@ export class LikeCoin {
   }
 
   /**
-   * Migrations
-   */
-  // generate temporal likerId for users
-  generateTempUsers = async ({
-    step,
-    userIds
-  }: {
-    step: number
-    userIds?: string[]
-  }) => {
-    const userService = new UserService()
-    const users = await userService.findNoLikerIdUsers({ limit: step, userIds })
-
-    // normalize users for request body
-    const normalizedUsers = users.map(({ id, userName }) => ({
-      userId: userName,
-      dbId: toGlobalId({ type: 'User', id })
-    }))
-
-    if (normalizedUsers.length <= 0) {
-      return
-    }
-
-    const res = await this.request({
-      baseURL: likecoinMigrationApiURL,
-      endpoint: ENDPOINTS.generateTempLikers,
-      withClientCredential: true,
-      method: 'POST',
-      data: {
-        users: normalizedUsers
-      }
-    })
-    const data = _.get(res, 'data')
-
-    if (!data || data.length !== users.length) {
-      throw res
-    }
-
-    // save
-    await Promise.all(
-      data.map(async ({ dbId, likerId, accessToken, refreshToken }: any) => {
-        const userId = fromGlobalId(dbId).id
-
-        await userService.saveLiker({
-          userId,
-          likerId,
-          accessToken,
-          refreshToken,
-          accountType: 'temporal'
-        })
-      })
-    )
-  }
-
-  // transfer user's MAT to pending LIKE
-  transferLIKE = async ({
-    step,
-    userIds
-  }: {
-    step: number
-    userIds?: string[]
-  }) => {
-    const MAT_TO_LIKE_RATE = 10
-    const userService = new UserService()
-    const users = await userService.findNoPendingLIKEUsers({
-      limit: step,
-      userIds
-    })
-
-    // normalize users for request body
-    const normalizedUsers = users
-      .filter(({ mat }) => mat > 0)
-      .map(({ mat: MAT, likerId }) => ({
-        likerId,
-        pendingLIKE: parseInt(MAT || 0, 10) * MAT_TO_LIKE_RATE
-      }))
-
-    if (normalizedUsers.length <= 0) {
-      return
-    }
-
-    const res = await this.request({
-      baseURL: likecoinMigrationApiURL,
-      endpoint: ENDPOINTS.transferPendingLIKE,
-      withClientCredential: true,
-      method: 'POST',
-      data: {
-        users: normalizedUsers
-      }
-    })
-    const data = _.get(res, 'data')
-
-    if (!data || data.length !== users.length) {
-      throw res
-    }
-
-    // save
-    await Promise.all(
-      data.map(async ({ likerId, pendingLIKE }: any) => {
-        await userService.updateLiker({
-          likerId,
-          pendingLike: pendingLIKE
-        })
-      })
-    )
-  }
-
-  /**
    * Like a content.
    */
   like = async ({
@@ -394,7 +286,7 @@ export class LikeCoin {
         method: 'POST',
         liker,
         data: {
-          referrer: encodeURIComponent(url)
+          referrer: encodeURI(url)
         }
       })
       const data = _.get(result, 'data')

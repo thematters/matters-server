@@ -88,10 +88,7 @@ export class BaseService extends DataSource {
   /**
    * Find items by given ids.
    */
-  baseFindByUUIDs = async (
-    uuids: string[],
-    table?: TableName
-  ): Promise<any[]> => {
+  baseFindByUUIDs = async (uuids: string[], table?: TableName) => {
     let rows = await this.knex
       .select()
       .from(table || this.table)
@@ -137,7 +134,7 @@ export class BaseService extends DataSource {
   /**
    * Create item
    */
-  baseCreate = async (data: ItemData, table?: TableName): Promise<any> => {
+  baseCreate = async (data: ItemData, table?: TableName) => {
     try {
       const [result] = await this.knex(table || this.table)
         .returning('*')
@@ -153,10 +150,7 @@ export class BaseService extends DataSource {
   /**
    * Create a batch of items
    */
-  baseBatchCreate = async (
-    dataItems: ItemData[],
-    table?: TableName
-  ): Promise<any> =>
+  baseBatchCreate = async (dataItems: ItemData[], table?: TableName) =>
     this.knex.batchInsert(table || this.table, dataItems).returning('*')
 
   /**
@@ -221,11 +215,7 @@ export class BaseService extends DataSource {
   /**
    * Update an item by a given id.
    */
-  baseUpdate = async (
-    id: string,
-    data: ItemData,
-    table?: TableName
-  ): Promise<any> => {
+  baseUpdate = async (id: string, data: ItemData, table?: TableName) => {
     const [updatedItem] = await this.knex
       .where('id', id)
       .update(data)
@@ -238,11 +228,7 @@ export class BaseService extends DataSource {
   /**
    * Update a batch of items by given ids.
    */
-  baseBatchUpdate = async (
-    ids: string[],
-    data: ItemData,
-    table?: TableName
-  ): Promise<any> =>
+  baseBatchUpdate = async (ids: string[], data: ItemData, table?: TableName) =>
     this.knex
       .whereIn('id', ids)
       .update(data)
@@ -256,7 +242,7 @@ export class BaseService extends DataSource {
     uuid: string,
     data: ItemData,
     table?: TableName
-  ): Promise<any> => {
+  ) => {
     const [updatedItem] = await this.knex
       .where('uuid', uuid)
       .update(data)
@@ -271,7 +257,7 @@ export class BaseService extends DataSource {
   /**
    * Delete an item by a given id.
    */
-  baseDelete = async (id: string, table?: TableName): Promise<any> =>
+  baseDelete = async (id: string, table?: TableName) =>
     this.knex(table || this.table)
       .where({ id })
       .del()
@@ -279,7 +265,7 @@ export class BaseService extends DataSource {
   /**
    * Delete a batch of items by  given ids.
    */
-  baseBatchDelete = async (ids: string[], table?: TableName): Promise<any> =>
+  baseBatchDelete = async (ids: string[], table?: TableName) =>
     this.knex(table || this.table)
       .whereIn('id', ids)
       .del()
@@ -287,7 +273,7 @@ export class BaseService extends DataSource {
   /**
    * Find entity type id by a given type string.
    */
-  baseFindEntityTypeId = async (entityType: string): Promise<any> =>
+  baseFindEntityTypeId = async (entityType: string) =>
     this.knex('entity_type')
       .select('id')
       .where({ table: entityType })

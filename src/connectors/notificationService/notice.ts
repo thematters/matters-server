@@ -473,7 +473,7 @@ class Notice extends BaseService {
   }: {
     event: NotificationType
     userId: string
-  }): Promise<boolean> => {
+  }) => {
     const setting = await this.knex
       .select()
       .where({ userId })
@@ -512,7 +512,7 @@ class Notice extends BaseService {
     return noticeSettingMap[event]
   }
 
-  markAllNoticesAsRead = async (userId: string): Promise<any> =>
+  markAllNoticesAsRead = async (userId: string) =>
     this.knex('notice')
       .where({ recipientId: userId, unread: true })
       .update({ unread: false })
@@ -523,7 +523,7 @@ class Notice extends BaseService {
   }: {
     userId: string
     unread?: boolean
-  }): Promise<number> => {
+  }) => {
     let qs = this.knex('notice')
       .where({ recipientId: userId, deleted: false })
       .count()

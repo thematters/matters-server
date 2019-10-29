@@ -362,6 +362,10 @@ enum BadgeType {
   seed
 }
 
+input BlockUserInput {
+  id: ID!
+}
+
 enum BoostTypes {
   Article
   User
@@ -699,11 +703,6 @@ input FrequentSearchInput {
   first: Int
 }
 
-input GenerateTempLikerIdsInput {
-  id: ID
-  step: Int
-}
-
 enum GrantType {
   authorization_code
   refresh_token
@@ -863,7 +862,13 @@ type Mutation {
   followUser(input: FollowUserInput!): User!
 
   """Unfollow curent user."""
-  unfollowUser(input: UnfollowUserInput!): User!
+  unfollowUser(input: FollowUserInput!): User!
+
+  """Block a given user."""
+  blockUser(input: BlockUserInput!): User!
+
+  """Unblock a given user."""
+  unblockUser(input: BlockUserInput!): User!
 
   """Clear read history for user."""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
@@ -873,12 +878,6 @@ type Mutation {
 
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): User!
-
-  """Generate temporary LikerIds for users without it, used in OSS"""
-  generateTempLikerIds(input: GenerateTempLikerIdsInput): Int!
-
-  """Transfer user's MAT to pending LIKE, used in OSS"""
-  transferLIKE(input: TransferLIKEInput): Int!
 
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
@@ -1059,8 +1058,6 @@ type OSS {
   report(input: ReportInput!): Report!
   today(input: ConnectionArgs!): ArticleConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
-  noLikerIdCount: Int!
-  noPendingLIKECount: Int!
 }
 
 input OSSArticlesInput {
@@ -1546,15 +1543,6 @@ enum TransactionPurpose {
   systemSubsidy
 }
 
-input TransferLIKEInput {
-  id: ID
-  step: Int
-}
-
-input UnfollowUserInput {
-  id: ID!
-}
-
 input UnpinCommentInput {
   id: ID!
 }
@@ -1676,6 +1664,15 @@ type User implements Node {
 
   """Whether viewer is following current user."""
   isFollowee: Boolean!
+
+  """Users that blocked by current user."""
+  blockList(input: ConnectionArgs!): UserConnection!
+
+  """Whether current user is blocking viewer."""
+  isBlocking: Boolean!
+
+  """Whether current user is blocked by viewer."""
+  isBlocked: Boolean!
 
   """Status of current user."""
   status: UserStatus

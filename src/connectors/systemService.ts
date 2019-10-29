@@ -53,7 +53,7 @@ export class SystemService extends BaseService {
     asset: { [key: string]: any },
     entityTypeId: string,
     entityId: string
-  ): Promise<any> =>
+  ) =>
     this.knex.transaction(async trx => {
       const [newAsset] = await trx
         .insert(asset)

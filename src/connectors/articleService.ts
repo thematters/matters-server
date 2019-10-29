@@ -159,7 +159,6 @@ export class ArticleService extends BaseService {
     try {
       await this.es.client.update({
         index: this.table,
-        type: this.table,
         id,
         body: {
           doc: { state: ARTICLE_STATE.archived }
@@ -219,10 +218,7 @@ export class ArticleService extends BaseService {
   /**
    * Count articles by a given authorId (user).
    */
-  countByAuthor = async (
-    authorId: string,
-    activeOnly: boolean = true
-  ): Promise<number> => {
+  countByAuthor = async (authorId: string, activeOnly: boolean = true) => {
     let qs = this.knex(this.table)
       .where({ authorId })
       .count()
@@ -243,7 +239,7 @@ export class ArticleService extends BaseService {
   sumWordCountByAuthor = async (
     authorId: string,
     activeOnly: boolean = true
-  ): Promise<number> => {
+  ) => {
     let query = this.knex(this.table)
       .sum('word_count')
       .where({ authorId })
@@ -295,7 +291,6 @@ export class ArticleService extends BaseService {
   }) => {
     const result = await this.es.indexItems({
       index: this.table,
-      type: this.table,
       items: [
         {
           id,
@@ -322,7 +317,7 @@ export class ArticleService extends BaseService {
     //     .limit(first)
     // }
 
-    const body = bodybuilder()
+    const searchBody = bodybuilder()
       .query('multi_match', {
         query: key,
         fuzziness: 'AUTO',
@@ -339,22 +334,21 @@ export class ArticleService extends BaseService {
 
     // only return active if not in oss
     if (!oss) {
-      body.notFilter('term', { state: ARTICLE_STATE.archived })
+      searchBody.notFilter('term', { state: ARTICLE_STATE.archived })
     }
 
     try {
-      const result = await this.es.client.search({
+      const { body } = await this.es.client.search({
         index: this.table,
-        type: this.table,
-        body: body.build()
+        body: searchBody.build()
       })
-      const { hits } = result
-      const ids = hits.hits.map(({ _id }) => _id)
+      const { hits } = body
+      const ids = hits.hits.map(({ _id }: { _id: any }) => _id)
       const nodes = await this.baseFindByIds(ids, this.table)
 
       return {
         nodes,
-        totalCount: hits.total
+        totalCount: hits.total.value
       }
     } catch (err) {
       logger.error(err)
@@ -509,61 +503,48 @@ export class ArticleService extends BaseService {
 
   related = async ({ id, size }: { id: string; size: number }) => {
     // skip if in test
-    if (['test', 'development'].includes(environment.env)) {
+    if (['test'].includes(environment.env)) {
       return []
     }
 
     // get vector score
     const scoreResult = await this.es.client.get({
       index: this.table,
-      type: this.table,
       id
     })
 
-    const factorString = _.get(scoreResult, '_source.factor')
+    const factorString = _.get(scoreResult.body, '_source.embedding_vector')
 
     // return empty list if we don't have any score
     if (!factorString) {
       return []
     }
 
-    // recommend with vector score
-    const factor = factorString
-      .split(' ')
-      .map((s: string) => parseFloat(s.split('|')[1]))
-
-    const q = '*'
-    const body = bodybuilder()
+    const searchBody = bodybuilder()
       .query('function_score', {
-        query: {
-          query_string: {
-            query: q
-          }
-        },
+        boost_mode: 'replace',
         script_score: {
           script: {
-            inline: 'payload_vector_score',
-            lang: 'native',
+            source: 'binary_vector_score',
+            lang: 'knn',
             params: {
-              field: 'factor',
-              vector: factor,
-              cosine: true
+              cosine: true,
+              field: 'embedding_vector',
+              encoded_vector: factorString
             }
           }
-        },
-        boost_mode: 'replace'
+        }
       })
       .notFilter('ids', { values: [id] })
       .size(size)
       .build()
 
-    const relatedResult = await this.es.client.search({
+    const { body } = await this.es.client.search({
       index: this.table,
-      type: this.table,
-      body
+      body: searchBody
     })
     // add recommendation
-    return relatedResult.hits.hits.map(hit => ({ ...hit, id: hit._id }))
+    return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
   }
 
   /**
@@ -782,7 +763,7 @@ export class ArticleService extends BaseService {
   /**
    * Sum total appreciaton by a given article id.
    */
-  sumAppreciation = async (articleId: string): Promise<number> => {
+  sumAppreciation = async (articleId: string) => {
     const result = await this.knex
       .select()
       .from('transaction')
@@ -798,7 +779,7 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
-  countAppreciation = async (referenceId: string): Promise<number> => {
+  countAppreciation = async (referenceId: string) => {
     const result = await this.knex
       .select()
       .from('transaction')
@@ -820,7 +801,7 @@ export class ArticleService extends BaseService {
   }: {
     articleId: string
     userIds: string[]
-  }): Promise<number> => {
+  }) => {
     const result = await this.knex
       .select()
       .from('transaction')
@@ -837,7 +818,7 @@ export class ArticleService extends BaseService {
   /**
    * Count an article's transactions by a given articleId.
    */
-  countTransactions = async (referenceId: string): Promise<number> => {
+  countTransactions = async (referenceId: string) => {
     const result = await this.knex
       .select()
       .from((knex: any) => {
@@ -868,7 +849,7 @@ export class ArticleService extends BaseService {
     referenceId: string
     limit?: number
     offset?: number
-  }): Promise<any[]> => {
+  }) => {
     const result = await this.knex('transaction')
       .select('reference_id', 'sender_id')
       .where({
@@ -890,7 +871,7 @@ export class ArticleService extends BaseService {
   }: {
     articleId: string
     userId: string
-  }): Promise<number> => {
+  }) => {
     const appreciations = await this.knex('transaction')
       .select()
       .where({
@@ -910,7 +891,7 @@ export class ArticleService extends BaseService {
   }: {
     userId: string
     articleId: string
-  }): Promise<boolean> => {
+  }) => {
     const result = await this.knex('transaction')
       .select()
       .where({
@@ -936,7 +917,7 @@ export class ArticleService extends BaseService {
     recipientId: string
     amount: number
     type: string
-  }): Promise<any> => {
+  }) => {
     const appreciation = {
       senderId,
       recipientId,
@@ -1043,7 +1024,7 @@ export class ArticleService extends BaseService {
   }: {
     userId: string
     targetId: string
-  }): Promise<boolean> => {
+  }) => {
     const result = await this.knex
       .select()
       .from('action_article')
@@ -1054,7 +1035,7 @@ export class ArticleService extends BaseService {
   /**
    * User subscribe an article
    */
-  subscribe = async (targetId: string, userId: string): Promise<any[]> => {
+  subscribe = async (targetId: string, userId: string) => {
     const data = {
       targetId,
       userId,
@@ -1070,7 +1051,7 @@ export class ArticleService extends BaseService {
   /**
    * User unsubscribe an article
    */
-  unsubscribe = async (targetId: string, userId: string): Promise<any[]> =>
+  unsubscribe = async (targetId: string, userId: string) =>
     this.knex
       .from('action_article')
       .where({
@@ -1096,7 +1077,7 @@ export class ArticleService extends BaseService {
     articleId: string
     userId?: string | null
     ip?: string
-  }): Promise<any[]> =>
+  }) =>
     this.baseCreate(
       {
         uuid: v4(),

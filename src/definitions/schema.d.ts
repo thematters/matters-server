@@ -341,6 +341,21 @@ export interface GQLUser extends GQLNode {
   isFollowee: boolean
 
   /**
+   * Users that blocked by current user.
+   */
+  blockList: GQLUserConnection
+
+  /**
+   * Whether current user is blocking viewer.
+   */
+  isBlocking: boolean
+
+  /**
+   * Whether current user is blocked by viewer.
+   */
+  isBlocked: boolean
+
+  /**
    * Status of current user.
    */
   status?: GQLUserStatus
@@ -1298,8 +1313,6 @@ export interface GQLOSS {
   report: GQLReport
   today: GQLArticleConnection
   oauthClients: GQLOAuthClientConnection
-  noLikerIdCount: number
-  noPendingLIKECount: number
 }
 
 export interface GQLOSSArticlesInput {
@@ -1643,6 +1656,16 @@ export interface GQLMutation {
   unfollowUser: GQLUser
 
   /**
+   * Block a given user.
+   */
+  blockUser: GQLUser
+
+  /**
+   * Unblock a given user.
+   */
+  unblockUser: GQLUser
+
+  /**
    * Clear read history for user.
    */
   clearReadHistory?: boolean
@@ -1656,16 +1679,6 @@ export interface GQLMutation {
    * Update state of a user, used in OSS.
    */
   updateUserState: GQLUser
-
-  /**
-   * Generate temporary LikerIds for users without it, used in OSS
-   */
-  generateTempLikerIds: number
-
-  /**
-   * Transfer user's MAT to pending LIKE, used in OSS
-   */
-  transferLIKE: number
 
   /**
    * Create or Update an OAuth Client, used in OSS.
@@ -1985,7 +1998,7 @@ export interface GQLFollowUserInput {
   id: string
 }
 
-export interface GQLUnfollowUserInput {
+export interface GQLBlockUserInput {
   id: string
 }
 
@@ -2000,16 +2013,6 @@ export interface GQLUpdateUserStateInput {
 }
 
 export type GQLPositiveInt = any
-
-export interface GQLGenerateTempLikerIdsInput {
-  id?: string
-  step?: number
-}
-
-export interface GQLTransferLIKEInput {
-  id?: string
-  step?: number
-}
 
 export interface GQLPutOAuthClientInput {
   id?: string
@@ -3163,6 +3166,9 @@ export interface GQLUserTypeResolver<TParent = any> {
   followees?: UserToFolloweesResolver<TParent>
   isFollower?: UserToIsFollowerResolver<TParent>
   isFollowee?: UserToIsFolloweeResolver<TParent>
+  blockList?: UserToBlockListResolver<TParent>
+  isBlocking?: UserToIsBlockingResolver<TParent>
+  isBlocked?: UserToIsBlockedResolver<TParent>
   status?: UserToStatusResolver<TParent>
   oss?: UserToOssResolver<TParent>
   remark?: UserToRemarkResolver<TParent>
@@ -3341,6 +3347,36 @@ export interface UserToIsFollowerResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToIsFolloweeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToBlockListArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToBlockListResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToBlockListArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToIsBlockingResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToIsBlockedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5817,8 +5853,6 @@ export interface GQLOSSTypeResolver<TParent = any> {
   report?: OSSToReportResolver<TParent>
   today?: OSSToTodayResolver<TParent>
   oauthClients?: OSSToOauthClientsResolver<TParent>
-  noLikerIdCount?: OSSToNoLikerIdCountResolver<TParent>
-  noPendingLIKECount?: OSSToNoPendingLIKECountResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -5912,24 +5946,6 @@ export interface OSSToOauthClientsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToOauthClientsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface OSSToNoLikerIdCountResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface OSSToNoPendingLIKECountResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6335,11 +6351,11 @@ export interface GQLMutationTypeResolver<TParent = any> {
   >
   followUser?: MutationToFollowUserResolver<TParent>
   unfollowUser?: MutationToUnfollowUserResolver<TParent>
+  blockUser?: MutationToBlockUserResolver<TParent>
+  unblockUser?: MutationToUnblockUserResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
-  generateTempLikerIds?: MutationToGenerateTempLikerIdsResolver<TParent>
-  transferLIKE?: MutationToTransferLIKEResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
@@ -6959,12 +6975,36 @@ export interface MutationToFollowUserResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToUnfollowUserArgs {
-  input: GQLUnfollowUserInput
+  input: GQLFollowUserInput
 }
 export interface MutationToUnfollowUserResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUnfollowUserArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToBlockUserArgs {
+  input: GQLBlockUserInput
+}
+export interface MutationToBlockUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToBlockUserArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnblockUserArgs {
+  input: GQLBlockUserInput
+}
+export interface MutationToUnblockUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToUnblockUserArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7007,33 +7047,6 @@ export interface MutationToUpdateUserStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserStateArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToGenerateTempLikerIdsArgs {
-  input?: GQLGenerateTempLikerIdsInput
-}
-export interface MutationToGenerateTempLikerIdsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToGenerateTempLikerIdsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToTransferLIKEArgs {
-  input?: GQLTransferLIKEInput
-}
-export interface MutationToTransferLIKEResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToTransferLIKEArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

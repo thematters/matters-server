@@ -30,14 +30,14 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     })
 
     logger.info(
-      `[recommendation] article ${id}, title ${title}, ES result ${articles.map(
-        ({ id: aid }) => aid
+      `[recommendation] article ${id}, title ${title}, ES result ${relatedArticles.map(
+        ({ id: aid }: { id: any }) => aid
       )} `
     )
 
     // get articles
     articles = await articleService.dataloader
-      .loadMany(relatedArticles.map(({ id: aid }) => aid))
+      .loadMany(relatedArticles.map(({ id: aid }: { id: any }) => aid))
       .then(allArticles =>
         allArticles.filter(({ state }) => state === ARTICLE_STATE.active)
       )
