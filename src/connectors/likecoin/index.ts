@@ -30,6 +30,7 @@ type LikeCoinLocale =
 
 type RequestProps = {
   endpoint: string
+  headers?: { [key: string]: any }
   liker?: UserOAuthLikeCoin
   withClientCredential?: boolean
 } & AxiosRequestConfig
@@ -59,11 +60,11 @@ export class LikeCoin {
     endpoint,
     liker,
     withClientCredential,
+    headers = {},
     ...axiosOptions
   }: RequestProps) => {
     const makeRequest = ({ accessToken }: { accessToken?: string }) => {
       // Headers
-      let headers = {}
       if (accessToken) {
         headers = {
           ...headers,
@@ -265,22 +266,59 @@ export class LikeCoin {
   }
 
   /**
+   * current user like count of a content
+   */
+  count = async ({
+    liker,
+    authorLikerId,
+    url,
+    likerIp
+  }: {
+    liker?: UserOAuthLikeCoin
+    authorLikerId: string
+    url: string
+    likerIp?: string
+  }) => {
+    const endpoint = `${ENDPOINTS.like}/${authorLikerId}/self`
+    const res = await this.request({
+      endpoint,
+      method: 'GET',
+      liker,
+      headers: { 'X-LIKECOIN-REAL-IP': likerIp },
+      withClientCredential: true,
+      data: {
+        referrer: encodeURI(url)
+      }
+    })
+    const data = _.get(res, 'data')
+
+    if (!data) {
+      throw res
+    }
+
+    return data.count
+  }
+
+  /**
    * Like a content.
    */
   like = async ({
     authorLikerId,
     liker,
     url,
+    likerIp,
     amount
   }: {
     authorLikerId: string
     liker: UserOAuthLikeCoin
     url: string
+    likerIp?: string
     amount: number
   }) => {
     try {
       const endpoint = `${ENDPOINTS.like}/${authorLikerId}/${amount}`
       const result = await this.request({
+        headers: { 'X-LIKECOIN-REAL-IP': likerIp },
         endpoint,
         withClientCredential: true,
         method: 'POST',

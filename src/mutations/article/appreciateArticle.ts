@@ -7,8 +7,7 @@ import {
   ArticleNotFoundError,
   AuthenticationError,
   ForbiddenError,
-  LikerNotFoundError,
-  NotEnoughMatError
+  LikerNotFoundError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToAppreciateArticleResolver } from 'definitions'
@@ -61,6 +60,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     await userService.likecoin.like({
       authorLikerId: author.likerId,
       liker,
+      likerIp: viewer.ip,
       url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
       amount: validAmount
     })
