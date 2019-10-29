@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2019-10-29
+
+### Added
+
+- Block User #539 #541 #543
+
+### Changed
+
+- Encode URL using encodeURI (ask by LikeCoin team). #536
+- Upgrade es to 7.3 #523
+- Remove LikeCoin migration related mutations; Remove unused error codes; #538
+
 ## [2.0.0] - 2019-10-15
 
 ### Changed
