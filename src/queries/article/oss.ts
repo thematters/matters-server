@@ -50,6 +50,7 @@ export const inRecommendNewest: ArticleOSSToInRecommendNewestResolver = async (
   return recommendSetting.inNewest
 }
 
+// deprecated
 export const todayCover: ArticleOSSToTodayCoverResolver = async (
   { id },
   _,
