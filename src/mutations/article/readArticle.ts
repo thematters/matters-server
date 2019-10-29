@@ -1,7 +1,7 @@
+import { environment } from 'common/environment'
 import { ArticleNotFoundError, LikerNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToReadArticleResolver } from 'definitions'
-import { environment } from 'common/environment'
 
 const resolver: MutationToReadArticleResolver = async (
   root,
