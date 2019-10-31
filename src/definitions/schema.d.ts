@@ -1553,9 +1553,9 @@ export interface GQLMutation {
   unvoteComment: GQLComment
 
   /**
-   * Update a comment's state.
+   * Update a comments' state.
    */
-  updateCommentState: GQLComment
+  updateCommentsState: Array<GQLComment>
 
   /**
    * Create or update a draft.
@@ -1828,8 +1828,8 @@ export interface GQLUnvoteCommentInput {
   id: string
 }
 
-export interface GQLUpdateCommentStateInput {
-  id: string
+export interface GQLUpdateCommentsStateInput {
+  ids: Array<string>
   state: GQLCommentState
 }
 
@@ -6326,7 +6326,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   reportComment?: MutationToReportCommentResolver<TParent>
   voteComment?: MutationToVoteCommentResolver<TParent>
   unvoteComment?: MutationToUnvoteCommentResolver<TParent>
-  updateCommentState?: MutationToUpdateCommentStateResolver<TParent>
+  updateCommentsState?: MutationToUpdateCommentsStateResolver<TParent>
   putDraft?: MutationToPutDraftResolver<TParent>
   deleteDraft?: MutationToDeleteDraftResolver<TParent>
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
@@ -6692,16 +6692,16 @@ export interface MutationToUnvoteCommentResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToUpdateCommentStateArgs {
-  input: GQLUpdateCommentStateInput
+export interface MutationToUpdateCommentsStateArgs {
+  input: GQLUpdateCommentsStateInput
 }
-export interface MutationToUpdateCommentStateResolver<
+export interface MutationToUpdateCommentsStateResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToUpdateCommentStateArgs,
+    args: MutationToUpdateCommentsStateArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
