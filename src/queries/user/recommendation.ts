@@ -100,7 +100,7 @@ const resolvers: GQLRecommendationTypeResolver = {
       offset: 0,
       limit: 1
     })
-    return article
+    return { ...article, cover: article.ossCover || article.cover }
   },
   icymi: async ({ id }, { input }, { dataSources: { articleService } }) => {
     const where = { state: ARTICLE_STATE.active }
