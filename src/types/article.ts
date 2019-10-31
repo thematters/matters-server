@@ -135,7 +135,7 @@ export default /* GraphQL */ `
     sticky: Boolean!
 
     # OSS
-    oss: ArticleOSS!
+    oss: ArticleOSS! @authorize
     remark: String @authorize
   }
 
