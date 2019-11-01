@@ -801,8 +801,8 @@ type Mutation {
   """Unvote a comment."""
   unvoteComment(input: UnvoteCommentInput!): Comment!
 
-  """Update a comment's state."""
-  updateCommentState(input: UpdateCommentStateInput!): Comment!
+  """Update a comments' state."""
+  updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]!
 
   """Create or update a draft."""
   putDraft(input: PutDraftInput!): Draft!
@@ -1565,8 +1565,8 @@ input UpdateArticleStateInput {
   state: ArticleState!
 }
 
-input UpdateCommentStateInput {
-  id: ID!
+input UpdateCommentsStateInput {
+  ids: [ID!]!
   state: CommentState!
 }
 

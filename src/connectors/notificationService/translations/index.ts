@@ -129,7 +129,8 @@ export default {
   comment_banned: i18n<{ content: string }>({
     zh_hant: ({ content }) =>
       `因為違反社區規則，您的評論「${makeSummary(content, 21)}」已被隱藏`,
-    zh_hans: ({ content }) => `您的评论“${makeSummary(content, 21)}”已被隐藏`,
+    zh_hans: ({ content }) =>
+      `因为违反社区规则，您的评论“${makeSummary(content, 21)}”已被隐藏`,
     en: ({ content }) =>
       `You comment "${makeSummary(
         content,

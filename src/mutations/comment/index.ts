@@ -4,7 +4,7 @@ import putComment from './putComment'
 import reportComment from './reportComment'
 import unpinComment from './unpinComment'
 import unvoteComment from './unvoteComment'
-import updateCommentState from './updateCommentState'
+import updateCommentsState from './updateCommentsState'
 import voteComment from './voteComment'
 
 export default {
@@ -16,6 +16,6 @@ export default {
     reportComment,
     voteComment,
     unvoteComment,
-    updateCommentState
+    updateCommentsState
   }
 }
