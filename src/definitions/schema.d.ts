@@ -1681,6 +1681,11 @@ export interface GQLMutation {
   updateUserState: GQLUser
 
   /**
+   * Update state of a user, used in OSS.
+   */
+  updateUserRole: GQLUser
+
+  /**
    * Create or Update an OAuth Client, used in OSS.
    */
   putOAuthClient?: GQLOAuthClient
@@ -2013,6 +2018,11 @@ export interface GQLUpdateUserStateInput {
 }
 
 export type GQLPositiveInt = any
+
+export interface GQLUpdateUserRoleInput {
+  id: string
+  role: GQLUserRole
+}
 
 export interface GQLPutOAuthClientInput {
   id?: string
@@ -6356,6 +6366,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
+  updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
@@ -7047,6 +7058,21 @@ export interface MutationToUpdateUserStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserStateArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateUserRoleArgs {
+  input: GQLUpdateUserRoleInput
+}
+export interface MutationToUpdateUserRoleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateUserRoleArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
