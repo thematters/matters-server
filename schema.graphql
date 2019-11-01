@@ -879,6 +879,9 @@ type Mutation {
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): User!
 
+  """Update state of a user, used in OSS."""
+  updateUserRole(input: UpdateUserRoleInput!): User!
+
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
 }
@@ -1590,6 +1593,11 @@ input UpdateUserInfoInput {
   language: UserLanguage
   agreeOn: Boolean
   profileCover: ID
+}
+
+input UpdateUserRoleInput {
+  id: ID!
+  role: UserRole!
 }
 
 input UpdateUserStateInput {

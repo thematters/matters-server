@@ -11,6 +11,7 @@ import unblockUser from './unblockUser'
 import unfollowUser from './unfollowUser'
 import updateNotificationSetting from './updateNotificationSetting'
 import updateUserInfo from './updateUserInfo'
+import updateUserRole from './updateUserRole'
 import updateUserState from './updateUserState'
 import userLogin from './userLogin'
 import userLogout from './userLogout'
@@ -36,6 +37,7 @@ export default {
     unfollowUser,
     clearReadHistory,
     clearSearchHistory,
-    updateUserState
+    updateUserState,
+    updateUserRole
   }
 }

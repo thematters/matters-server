@@ -30,12 +30,14 @@ export type User = {
   currGravity: number
   language: LANGUAGES
   // oauthType: any
-  role: 'admin' | 'user'
+  role: UserRole
   state: string
   createdAt: string
   updatedAt: string
   agreeOn: string
 }
+
+export type UserRole = 'admin' | 'user'
 
 export type Context = RequestContext & {
   dataSources: DataSources
