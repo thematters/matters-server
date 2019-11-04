@@ -1,10 +1,17 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
+let firebaseCert = {}
+
+if (process.env.MATTERS_FIREBASE_CREDENTIALS) {
+  firebaseCert = require(`../../${process.env.MATTERS_FIREBASE_CREDENTIALS}`)
+}
+
 /**
  * Here are all environment variables that server needs. Please add prefix
  * `MATTERS_` before environment variables.
  */
+
 export const environment = {
   env: process.env.MATTERS_ENV || 'development',
   domain: process.env.MATTERS_DOMAIN,
@@ -36,6 +43,7 @@ export const environment = {
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
   apiKey: process.env.MATTERS_APOLLO_API_KEY,
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
+  firebaseCert,
   likecoinOAuthClientName: process.env.MATTERS_LIKECOIN_OAUTH_CLIENT_NAME || '',
   likecoinMigrationApiURL: process.env.MATTERS_LIKECOIN_MIGRATION_API_URL || '',
   likecoinApiURL: process.env.MATTERS_LIKECOIN_API_URL || '',

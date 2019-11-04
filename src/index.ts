@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/node'
 import cors from 'cors'
 import express from 'express'
+import * as admin from 'firebase-admin'
 import helmet from 'helmet'
 import http from 'http'
 import 'module-alias/register'
@@ -16,8 +17,19 @@ import * as routes from './routes'
 /**
  * Init
  */
+// Sentry
 Sentry.init({ dsn: environment.sentryDsn || '' })
+
+// Scheduled Jobs
 scheduleQueue.start()
+
+// Firebase
+console.log(environment.firebaseCert)
+admin.initializeApp({
+  credential: admin.credential.cert(environment.firebaseCert)
+})
+
+// Express
 const PORT = 4000
 const app = express()
 const httpServer = http.createServer(app)
