@@ -322,7 +322,6 @@ export class ArticleService extends BaseService {
         query: key,
         fuzziness: 'AUTO',
         fields: [
-          'userName^20',
           'displayName^15',
           'title^10',
           'title.synonyms^5',
