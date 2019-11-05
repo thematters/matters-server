@@ -23,8 +23,8 @@ export default /* GraphQL */ `
     "Unvote a comment."
     unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate @purgeCache
 
-    "Update a comment's state."
-    updateCommentState(input: UpdateCommentStateInput!): Comment! @authorize @purgeCache
+    "Update a comments' state."
+    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @authorize @purgeCache
   }
 
   """
@@ -181,8 +181,8 @@ export default /* GraphQL */ `
     id: ID!
   }
 
-  input UpdateCommentStateInput {
-    id: ID!
+  input UpdateCommentsStateInput {
+    ids: [ID!]!
     state: CommentState!
   }
 

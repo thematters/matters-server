@@ -61,6 +61,9 @@ export default /* GraphQL */ `
 
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): User! @authorize @purgeCache
+
+    "Update state of a user, used in OSS."
+    updateUserRole(input: UpdateUserRoleInput!): User! @authorize @purgeCache
   }
 
   type User implements Node {
@@ -424,6 +427,11 @@ export default /* GraphQL */ `
     id: ID!
     state: UserState!
     banDays: PositiveInt
+  }
+
+  input UpdateUserRoleInput {
+    id: ID!
+    role: UserRole!
   }
 
   input FollowUserInput {

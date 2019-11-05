@@ -801,8 +801,8 @@ type Mutation {
   """Unvote a comment."""
   unvoteComment(input: UnvoteCommentInput!): Comment!
 
-  """Update a comment's state."""
-  updateCommentState(input: UpdateCommentStateInput!): Comment!
+  """Update a comments' state."""
+  updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]!
 
   """Create or update a draft."""
   putDraft(input: PutDraftInput!): Draft!
@@ -878,6 +878,9 @@ type Mutation {
 
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): User!
+
+  """Update state of a user, used in OSS."""
+  updateUserRole(input: UpdateUserRoleInput!): User!
 
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
@@ -1565,8 +1568,8 @@ input UpdateArticleStateInput {
   state: ArticleState!
 }
 
-input UpdateCommentStateInput {
-  id: ID!
+input UpdateCommentsStateInput {
+  ids: [ID!]!
   state: CommentState!
 }
 
@@ -1590,6 +1593,11 @@ input UpdateUserInfoInput {
   language: UserLanguage
   agreeOn: Boolean
   profileCover: ID
+}
+
+input UpdateUserRoleInput {
+  id: ID!
+  role: UserRole!
 }
 
 input UpdateUserStateInput {

@@ -1553,9 +1553,9 @@ export interface GQLMutation {
   unvoteComment: GQLComment
 
   /**
-   * Update a comment's state.
+   * Update a comments' state.
    */
-  updateCommentState: GQLComment
+  updateCommentsState: Array<GQLComment>
 
   /**
    * Create or update a draft.
@@ -1679,6 +1679,11 @@ export interface GQLMutation {
    * Update state of a user, used in OSS.
    */
   updateUserState: GQLUser
+
+  /**
+   * Update state of a user, used in OSS.
+   */
+  updateUserRole: GQLUser
 
   /**
    * Create or Update an OAuth Client, used in OSS.
@@ -1828,8 +1833,8 @@ export interface GQLUnvoteCommentInput {
   id: string
 }
 
-export interface GQLUpdateCommentStateInput {
-  id: string
+export interface GQLUpdateCommentsStateInput {
+  ids: Array<string>
   state: GQLCommentState
 }
 
@@ -2013,6 +2018,11 @@ export interface GQLUpdateUserStateInput {
 }
 
 export type GQLPositiveInt = any
+
+export interface GQLUpdateUserRoleInput {
+  id: string
+  role: GQLUserRole
+}
 
 export interface GQLPutOAuthClientInput {
   id?: string
@@ -6326,7 +6336,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   reportComment?: MutationToReportCommentResolver<TParent>
   voteComment?: MutationToVoteCommentResolver<TParent>
   unvoteComment?: MutationToUnvoteCommentResolver<TParent>
-  updateCommentState?: MutationToUpdateCommentStateResolver<TParent>
+  updateCommentsState?: MutationToUpdateCommentsStateResolver<TParent>
   putDraft?: MutationToPutDraftResolver<TParent>
   deleteDraft?: MutationToDeleteDraftResolver<TParent>
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
@@ -6356,6 +6366,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
+  updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
@@ -6692,16 +6703,16 @@ export interface MutationToUnvoteCommentResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToUpdateCommentStateArgs {
-  input: GQLUpdateCommentStateInput
+export interface MutationToUpdateCommentsStateArgs {
+  input: GQLUpdateCommentsStateInput
 }
-export interface MutationToUpdateCommentStateResolver<
+export interface MutationToUpdateCommentsStateResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToUpdateCommentStateArgs,
+    args: MutationToUpdateCommentsStateArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7047,6 +7058,21 @@ export interface MutationToUpdateUserStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserStateArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateUserRoleArgs {
+  input: GQLUpdateUserRoleInput
+}
+export interface MutationToUpdateUserRoleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateUserRoleArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -30,7 +30,8 @@ import {
   GQLUpdateUserInfoInput,
   ItemData,
   UserOAuthLikeCoin,
-  UserOAuthLikeCoinAccountType
+  UserOAuthLikeCoinAccountType,
+  UserRole
 } from 'definitions'
 
 import { likecoin } from './likecoin'
@@ -118,6 +119,10 @@ export class UserService extends BaseService {
       token,
       user
     }
+  }
+
+  updateRole = async (id: string, role: UserRole) => {
+    return this.baseUpdate(id, { updatedAt: new Date(), role })
   }
 
   updateInfo = async (
