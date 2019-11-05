@@ -24,10 +24,13 @@ Sentry.init({ dsn: environment.sentryDsn || '' })
 scheduleQueue.start()
 
 // Firebase
-console.log(environment.firebaseCert)
-admin.initializeApp({
-  credential: admin.credential.cert(environment.firebaseCert)
-})
+try {
+  admin.initializeApp({
+    credential: admin.credential.cert(environment.firebaseCert)
+  })
+} catch (e) {
+  console.error('Failed to initialize admin, skipped')
+}
 
 // Express
 const PORT = 4000
