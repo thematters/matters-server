@@ -21,6 +21,7 @@
         "ioredis"
       ]
     ],
+    "no-var-requires": false,
     "no-console": false,
     "prefer-for-of": false,
     "variable-name": {
