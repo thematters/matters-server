@@ -520,16 +520,32 @@ export class UserService extends BaseService {
   }) =>
     this.knex.select(fields).from((wrapper: any) => {
       wrapper
-        .select(this.knex.raw('row_number() over (order by created_at) as seq, *'))
+        .select(
+          this.knex.raw('row_number() over (order by created_at) as seq, *')
+        )
         .from((knex: any) => {
           const source = knex.union((operator: any) => {
-            operator.select(this.knex.raw("'Article' as type, article.id, article.created_at"))
+            operator
+              .select(
+                this.knex.raw(
+                  "'Article' as type, article.id, article.created_at"
+                )
+              )
               .from('action_user')
-              .innerJoin('article', 'article.author_id', 'action_user.target_id')
+              .innerJoin(
+                'article',
+                'article.author_id',
+                'action_user.target_id'
+              )
               .where({ userId, state })
           })
           source.union((operator: any) => {
-            operator.select(this.knex.raw("'Comment' as type, max(id) as id, max(created_at) created_at"))
+            operator
+              .select(
+                this.knex.raw(
+                  "'Comment' as type, max(id) as id, max(created_at) created_at"
+                )
+              )
               .from(
                 this.knex.raw(`
                   (
@@ -567,7 +583,7 @@ export class UserService extends BaseService {
     first,
     limit = BATCH_SIZE,
     state = 'active',
-    userId,
+    userId
   }: {
     after?: any
     first?: number
