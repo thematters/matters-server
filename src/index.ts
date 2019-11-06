@@ -29,7 +29,7 @@ try {
     credential: admin.credential.cert(environment.firebaseCert)
   })
 } catch (e) {
-  console.error('Failed to initialize admin, skipped')
+  console.error(new Date(), 'Failed to initialize admin, skipped')
 }
 
 // Express

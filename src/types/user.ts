@@ -53,6 +53,12 @@ export default /* GraphQL */ `
     "Unblock a given user."
     unblockUser(input: BlockUserInput!): User! @authenticate @purgeCache
 
+    "Subscribe Push Notification"
+    subscribePush(input: SubscribePushInput!): User! @authenticate @purgeCache
+
+    "Unsubscribe Push Notification"
+    unsubscribePush(input: SubscribePushInput!): User! @authenticate @purgeCache
+
     "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
 
@@ -292,6 +298,7 @@ export default /* GraphQL */ `
   type NotificationSetting {
     enable: Boolean!
     email: Boolean!
+    push: Boolean!
     mention: Boolean!
     follow: Boolean!
     comment: Boolean!
@@ -442,6 +449,10 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  input SubscribePushInput {
+    deviceId: ID!
+  }
+
   input ImportArticlesInput {
     platform: String
     token: String
@@ -480,6 +491,7 @@ export default /* GraphQL */ `
   enum NotificationSettingType {
     enable
     email
+    push
     mention
     follow
     comment

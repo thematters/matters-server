@@ -870,6 +870,12 @@ type Mutation {
   """Unblock a given user."""
   unblockUser(input: BlockUserInput!): User!
 
+  """Subscribe Push Notification"""
+  subscribePush(input: SubscribePushInput!): User!
+
+  """Unsubscribe Push Notification"""
+  unsubscribePush(input: SubscribePushInput!): User!
+
   """Clear read history for user."""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
 
@@ -936,6 +942,7 @@ type NoticeEdge {
 type NotificationSetting {
   enable: Boolean!
   email: Boolean!
+  push: Boolean!
   mention: Boolean!
   follow: Boolean!
   comment: Boolean!
@@ -952,6 +959,7 @@ type NotificationSetting {
 enum NotificationSettingType {
   enable
   email
+  push
   mention
   follow
   comment
@@ -1434,6 +1442,10 @@ type SubscribedArticleNewCommentNotice implements Notice {
 
   """The comment data."""
   comment: Comment
+}
+
+input SubscribePushInput {
+  deviceId: ID!
 }
 
 type Subscription {

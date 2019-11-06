@@ -438,6 +438,7 @@ export enum GQLUserLanguage {
 export interface GQLNotificationSetting {
   enable: boolean
   email: boolean
+  push: boolean
   mention: boolean
   follow: boolean
   comment: boolean
@@ -1666,6 +1667,16 @@ export interface GQLMutation {
   unblockUser: GQLUser
 
   /**
+   * Subscribe Push Notification
+   */
+  subscribePush: GQLUser
+
+  /**
+   * Unsubscribe Push Notification
+   */
+  unsubscribePush: GQLUser
+
+  /**
    * Clear read history for user.
    */
   clearReadHistory?: boolean
@@ -1986,6 +1997,7 @@ export interface GQLUpdateNotificationSettingInput {
 export enum GQLNotificationSettingType {
   enable = 'enable',
   email = 'email',
+  push = 'push',
   mention = 'mention',
   follow = 'follow',
   comment = 'comment',
@@ -2005,6 +2017,10 @@ export interface GQLFollowUserInput {
 
 export interface GQLBlockUserInput {
   id: string
+}
+
+export interface GQLSubscribePushInput {
+  deviceId: string
 }
 
 export interface GQLClearReadHistoryInput {
@@ -3552,6 +3568,7 @@ export interface UserSettingsToNotificationResolver<
 export interface GQLNotificationSettingTypeResolver<TParent = any> {
   enable?: NotificationSettingToEnableResolver<TParent>
   email?: NotificationSettingToEmailResolver<TParent>
+  push?: NotificationSettingToPushResolver<TParent>
   mention?: NotificationSettingToMentionResolver<TParent>
   follow?: NotificationSettingToFollowResolver<TParent>
   comment?: NotificationSettingToCommentResolver<TParent>
@@ -3580,6 +3597,18 @@ export interface NotificationSettingToEnableResolver<
 }
 
 export interface NotificationSettingToEmailResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface NotificationSettingToPushResolver<
   TParent = any,
   TResult = any
 > {
@@ -6363,6 +6392,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   unfollowUser?: MutationToUnfollowUserResolver<TParent>
   blockUser?: MutationToBlockUserResolver<TParent>
   unblockUser?: MutationToUnblockUserResolver<TParent>
+  subscribePush?: MutationToSubscribePushResolver<TParent>
+  unsubscribePush?: MutationToUnsubscribePushResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
@@ -7016,6 +7047,33 @@ export interface MutationToUnblockUserResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToUnblockUserArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSubscribePushArgs {
+  input: GQLSubscribePushInput
+}
+export interface MutationToSubscribePushResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToSubscribePushArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnsubscribePushArgs {
+  input: GQLSubscribePushInput
+}
+export interface MutationToUnsubscribePushResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUnsubscribePushArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

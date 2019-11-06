@@ -161,7 +161,7 @@ export class BaseService extends DataSource {
     data,
     table
   }: {
-    where: { [key: string]: string | boolean }
+    where: { [key: string]: any }
     data: ItemData
     table?: TableName
   }) => {
@@ -193,7 +193,7 @@ export class BaseService extends DataSource {
     data,
     table
   }: {
-    where: { [key: string]: string | boolean }
+    where: { [key: string]: any }
     data: ItemData
     table?: TableName
   }) => {

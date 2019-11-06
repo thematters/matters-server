@@ -655,6 +655,56 @@ export class UserService extends BaseService {
 
   /*********************************
    *                               *
+   *              Push             *
+   *                               *
+   *********************************/
+  subscribePush = async ({
+    userId,
+    deviceId,
+    provider = 'fcm',
+    userAgent,
+    version,
+    platform = 'web'
+  }: {
+    userId: string
+    deviceId: string
+    provider?: 'fcm'
+    userAgent?: string
+    version?: string
+    platform?: 'web' | 'ios' | 'android'
+  }) => {
+    const data = {
+      userId: userId,
+      deviceId,
+      provider,
+      userAgent: userAgent || '',
+      version: version || '',
+      platform: platform || 'web'
+    }
+    return this.baseUpdateOrCreate({
+      where: data,
+      data: { updatedAt: new Date(), ...data },
+      table: 'push_device'
+    })
+  }
+
+  unsubscribePush = async ({
+    userId,
+    deviceId
+  }: {
+    userId: string
+    deviceId: string
+  }) =>
+    this.knex
+      .from('push_device')
+      .where({
+        deviceId,
+        userId: userId
+      })
+      .del()
+
+  /*********************************
+   *                               *
    *           Recommand           *
    *                               *
    *********************************/
