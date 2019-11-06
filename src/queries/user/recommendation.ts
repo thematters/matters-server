@@ -1,12 +1,14 @@
 import { CacheScope } from 'apollo-cache-control'
-import { sampleSize } from 'lodash'
+import { last, sampleSize } from 'lodash'
 
 import { ARTICLE_STATE, CACHE_TTL } from 'common/enums'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex
+  cursorToIndex,
+  fromGlobalId,
+  toGlobalId
 } from 'common/utils'
 import { GQLRecommendationTypeResolver } from 'definitions'
 
@@ -14,19 +16,61 @@ const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles: async (
     { id }: { id: string },
     { input },
-    { dataSources: { userService } }
+    { dataSources: { articleService, commentService, userService } }
   ) => {
     if (!id) {
       throw new AuthenticationError('visitor has no permission')
     }
-    const { first, after } = input
-    const offset = cursorToIndex(after) + 1
-    const totalCount = await userService.countFolloweeArticles(id)
-    return connectionFromPromisedArray(
-      userService.followeeArticles({ userId: id, offset, limit: first }),
-      input,
-      totalCount
+
+    const after = input.after ? fromGlobalId(input.after).id : null
+    const [sources, range] = await Promise.all([
+      userService.findFolloweeWorks({ after, userId: id, limit: input.first }),
+      userService.findFolloweeWorksRange({ userId: id })
+    ])
+
+    // fetch followee works
+    const items = await Promise.all(
+      sources.map((source: { [key: string]: any }) => {
+        switch (source.type) {
+          case 'Article': {
+            return articleService.baseFindById(source.id)
+          }
+          case 'Comment': {
+            return commentService.baseFindById(source.id)
+          }
+        }
+      })
     )
+
+    // re-process items
+    const edges = items.map((item: { [key: string]: any }) => {
+      const type = !!item.title ? 'Article' : 'Comment'
+      return {
+        cursor: toGlobalId({ type, id: item.id }),
+        node: { __type: type, ...item }
+      }
+    })
+
+    // handle page info
+    const head = sources[0] as { [key: string]: any }
+    const headSeq = head && parseInt(head.seq, 10)
+
+    const tail = last(sources) as { [key: string]: any }
+    const tailSeq = tail && parseInt(tail.seq, 10)
+
+    const edgeHead = edges[0]
+    const edgeTail = last(edges)
+
+    return {
+      edges,
+      pageInfo: {
+        startCursor: edgeHead ? edgeHead.cursor : '',
+        endCursor: edgeTail ? edgeTail.cursor : '',
+        hasPreviousPage: headSeq < range.max,
+        hasNextPage: tailSeq > range.min
+      },
+      totalCount: range.count
+    }
   },
   hottest: async (
     { id },
