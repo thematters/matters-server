@@ -4,10 +4,11 @@ dotenv.config()
 let firebaseCert = {}
 
 if (process.env.MATTERS_FIREBASE_CREDENTIALS) {
+  const path = `../${process.env.MATTERS_FIREBASE_CREDENTIALS}`
   try {
-    firebaseCert = require(`../${process.env.MATTERS_FIREBASE_CREDENTIALS}`)
+    firebaseCert = require(path)
   } catch (e) {
-    console.error('Failed to load firebase cerdential')
+    console.error(`Failed to load firebase credentials on ${path}`)
   }
 }
 
