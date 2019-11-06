@@ -674,7 +674,7 @@ export class UserService extends BaseService {
     platform?: 'web' | 'ios' | 'android'
   }) => {
     const data = {
-      userId: userId,
+      userId,
       deviceId,
       provider,
       userAgent: userAgent || '',
@@ -699,7 +699,7 @@ export class UserService extends BaseService {
       .from('push_device')
       .where({
         deviceId,
-        userId: userId
+        userId
       })
       .del()
 
