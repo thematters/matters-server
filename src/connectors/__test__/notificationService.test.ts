@@ -69,9 +69,10 @@ describe('user notify setting', () => {
   test('user receives notifications', async () => {
     await Promise.all(
       noticeTypes.map(async type => {
+        const notifySetting = await userService.findNotifySetting(recipientId)
         const enable = await notificationService.notice.checkUserNotifySetting({
           event: type,
-          userId: recipientId
+          setting: notifySetting
         })
         expect(enable).toBe(defaultNoifySetting[type])
       })
@@ -85,7 +86,7 @@ describe('user notify setting', () => {
       noticeTypes.map(async type => {
         const enable = await notificationService.notice.checkUserNotifySetting({
           event: type,
-          userId: recipientId
+          setting: notifySetting
         })
         expect(enable).toBe(
           type === 'user_new_follower' ? false : defaultNoifySetting[type]

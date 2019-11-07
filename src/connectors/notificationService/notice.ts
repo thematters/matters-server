@@ -469,17 +469,11 @@ class Notice extends BaseService {
 
   checkUserNotifySetting = async ({
     event,
-    userId
+    setting
   }: {
     event: NotificationType
-    userId: string
+    setting: any
   }) => {
-    const setting = await this.knex
-      .select()
-      .where({ userId })
-      .from('user_notify_setting')
-      .first()
-
     if (!setting || !setting.enable) {
       return false
     }

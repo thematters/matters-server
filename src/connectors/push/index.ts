@@ -1,71 +1,98 @@
-// @ts-ignore
-import { JPush, JPushAsync } from 'jpush-async'
+import * as firebase from 'firebase-admin'
 
-import { environment, isDev, isTest } from 'common/environment'
+import { isTest } from 'common/environment'
 import logger from 'common/logger'
+import { UserService } from 'connectors'
 
 export interface PushParams {
-  title?: string
-  text: string
-  recipientUUIDs: [string]
-  topic?: any
+  recipients: string[]
   broadcast?: boolean
-  platform?: 'ios' | 'android'
+
+  title?: string
+  body?: string
+  link?: string
+
+  icon?: string
+  image?: string
 }
 
 class PushService {
-  client: any
-
-  constructor() {
-    this.client = JPushAsync.buildClient(
-      environment.jpushKey,
-      environment.jpushSecret
-    )
-  }
-
   push = async ({
-    title,
-    text,
-    recipientUUIDs,
-    topic,
+    recipients,
     broadcast,
-    platform
+
+    title,
+    body,
+    link,
+
+    icon,
+    image
   }: PushParams) => {
-    if (isTest || isDev) {
-      logger.info(text, recipientUUIDs)
+    if (isTest) {
       return
     }
 
-    let _push = this.client.push()
+    const userService = new UserService()
+    const deviceIds = (await userService.findPushDevices({
+      userIds: recipients
+    })).map(({ deviceId }) => deviceId)
+    const URL_LOGO = 'https://matters.news/static/icon-192x192.png'
 
-    // platform
-    _push = _push.setPlatform(platform || JPush.ALL)
+    /**
+     * Send an FCM message
+     *
+     * https://firebase.google.com/docs/cloud-messaging/send-message#send_to_a_device_group
+     */
+    const messaging = firebase.messaging()
+    console.log({
+      // common fields
+      tokens: deviceIds,
+      notification: {
+        title,
+        body
+      },
+      // platform-specific fields
+      webpush: {
+        fcmOptions: {
+          link
+        },
+        notification: {
+          renotify: true,
+          requireInteraction: true,
 
-    // audience
-    if (broadcast) {
-      _push = _push.setAudience(JPush.ALL)
-    } else if (topic) {
-      _push = _push.setAudience(JPush.tags(topic))
-    } else {
-      const aliasIds = recipientUUIDs.map(uuid => this.__getAlaisByUUID(uuid))
-      _push = _push.setAudience(JPush.alias(aliasIds))
-    }
+          // https://documentation.onesignal.com/docs/web-push-notification-icons
+          badge: URL_LOGO,
+          icon: icon || URL_LOGO,
+          image
+        }
+      }
+    })
 
-    // TODO: extras
-    const extras = {}
+    await messaging.sendMulticast({
+      // common fields
+      tokens: deviceIds,
+      notification: {
+        title,
+        body
+      },
+      // platform-specific fields
+      webpush: {
+        fcmOptions: {
+          link
+        },
+        notification: {
+          renotify: true,
+          requireInteraction: true,
 
-    // notification
-    _push = _push.setNotification(
-      JPush.android(text, title, null, extras),
-      JPush.ios(text, 'default', '+1', null, extras)
-    )
+          // https://documentation.onesignal.com/docs/web-push-notification-icons
+          badge: URL_LOGO,
+          icon: icon || URL_LOGO,
+          image
+        }
+      }
+    })
 
-    // send
-    await _push.send()
-  }
-
-  private __getAlaisByUUID(uuid: string) {
-    return uuid.replace(/-/g, '')
+    logger.info(`Pushed "${body}" to ${recipients.length} recipient(s).`)
   }
 }
 

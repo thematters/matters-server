@@ -7,6 +7,7 @@ if (process.env.MATTERS_FIREBASE_CREDENTIALS) {
   const path = `../../${process.env.MATTERS_FIREBASE_CREDENTIALS}`
   try {
     firebaseCert = require(path)
+    console.log(new Date(), `Succeeded to load firebase credentials on ${path}`)
   } catch (e) {
     console.error(new Date(), `Failed to load firebase credentials on ${path}`)
   }

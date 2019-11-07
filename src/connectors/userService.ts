@@ -703,6 +703,9 @@ export class UserService extends BaseService {
       })
       .del()
 
+  findPushDevices = async ({ userIds }: { userIds: string[] }) =>
+    this.knex.from('push_device').whereIn('userId', userIds)
+
   /*********************************
    *                               *
    *           Recommand           *
