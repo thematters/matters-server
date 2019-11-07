@@ -526,7 +526,7 @@ describe('user recommendations', () => {
         const result = await queryNew({
           query: GET_VIEWER_RECOMMENDATION_FOLLOWEE_ARTICLES,
           // @ts-ignore
-          variables: { input: { first : 1 } }
+          variables: { input: { first: 1 } }
         })
         const { data } = result
         const item = _.get(data, `viewer.recommendation.${list}.edges.0.node`)
@@ -543,7 +543,10 @@ describe('user recommendations', () => {
           variables: { input: { first: 1 } }
         })
         const { data } = result
-        const article = _.get(data, `viewer.recommendation.${list}.edges.0.node`)
+        const article = _.get(
+          data,
+          `viewer.recommendation.${list}.edges.0.node`
+        )
         expect(fromGlobalId(article.id).type).toBe('Article')
       }
     }
