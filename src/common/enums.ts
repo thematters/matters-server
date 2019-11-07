@@ -7,7 +7,7 @@ export const MATERIALIZED_VIEW = {
   tagCountMaterialized: 'tag_count_materialized',
   userReaderMaterialized: 'user_reader_materialized',
   articleActivityMaterialized: 'article_activity_materialized',
-  featuredCommentMaterialized: 'featured_comment'
+  featuredCommentMaterialized: 'featured_comment_materialized'
 }
 
 export const CACHE_TTL = {
