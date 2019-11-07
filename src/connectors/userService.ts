@@ -549,14 +549,14 @@ export class UserService extends BaseService {
               .from(
                 this.knex.raw(`
                   (
-                    select comment.id, comment.created_at, comment.article_id
+                    select comment.id, comment.created_at, comment.article_id, comment.author_id
                     from action_user
                     inner join comment on comment.author_id = action_user.target_id
                     where user_id = ${userId} and state = '${state}'
                   ) as comment_source
                 `)
               )
-              .groupBy('article_id')
+              .groupBy('article_id', 'author_id')
           })
           source.as('base_sources')
           return source
@@ -580,13 +580,11 @@ export class UserService extends BaseService {
 
   findFolloweeWorks = async ({
     after,
-    first,
     limit = BATCH_SIZE,
     state = 'active',
     userId
   }: {
     after?: any
-    first?: number
     limit?: number
     state?: string
     userId: string
@@ -600,8 +598,8 @@ export class UserService extends BaseService {
       })
       query.andWhere('seq', '<', subQuery)
     }
-    if (first) {
-      query.limit(first)
+    if (limit) {
+      query.limit(limit)
     }
     return query
   }
