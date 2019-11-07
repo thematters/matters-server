@@ -3,10 +3,10 @@ import { v4 } from 'uuid'
 
 import {
   ARTICLE_PIN_COMMENT_LIMIT,
-  COMMENT_STATE,
-  USER_ACTION,
   BATCH_SIZE,
-  MATERIALIZED_VIEW
+  COMMENT_STATE,
+  MATERIALIZED_VIEW,
+  USER_ACTION
 } from 'common/enums'
 import { CommentNotFoundError } from 'common/errors'
 import { BaseService } from 'connectors'
