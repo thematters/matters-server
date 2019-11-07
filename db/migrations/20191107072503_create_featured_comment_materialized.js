@@ -1,4 +1,4 @@
-const table = 'featured_comment'
+const table = 'featured_comment_materialized'
 
 exports.up = async knex => {
   await knex.raw(/*sql*/ `

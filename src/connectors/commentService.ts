@@ -5,7 +5,8 @@ import {
   ARTICLE_PIN_COMMENT_LIMIT,
   COMMENT_STATE,
   USER_ACTION,
-  BATCH_SIZE
+  BATCH_SIZE,
+  MATERIALIZED_VIEW
 } from 'common/enums'
 import { CommentNotFoundError } from 'common/errors'
 import { BaseService } from 'connectors'
@@ -339,7 +340,7 @@ export class CommentService extends BaseService {
   }) => {
     const result = await this.knex
       .select('*')
-      .from('featured_comment')
+      .from(MATERIALIZED_VIEW.featuredCommentMaterialized)
       .where({ articleId: id })
       .orderBy('score', 'desc')
       .limit(first)
