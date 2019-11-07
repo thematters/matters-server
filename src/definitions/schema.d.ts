@@ -438,7 +438,6 @@ export enum GQLUserLanguage {
 export interface GQLNotificationSetting {
   enable: boolean
   email: boolean
-  push: boolean
   mention: boolean
   follow: boolean
   comment: boolean
@@ -1997,7 +1996,6 @@ export interface GQLUpdateNotificationSettingInput {
 export enum GQLNotificationSettingType {
   enable = 'enable',
   email = 'email',
-  push = 'push',
   mention = 'mention',
   follow = 'follow',
   comment = 'comment',
@@ -3568,7 +3566,6 @@ export interface UserSettingsToNotificationResolver<
 export interface GQLNotificationSettingTypeResolver<TParent = any> {
   enable?: NotificationSettingToEnableResolver<TParent>
   email?: NotificationSettingToEmailResolver<TParent>
-  push?: NotificationSettingToPushResolver<TParent>
   mention?: NotificationSettingToMentionResolver<TParent>
   follow?: NotificationSettingToFollowResolver<TParent>
   comment?: NotificationSettingToCommentResolver<TParent>
@@ -3597,18 +3594,6 @@ export interface NotificationSettingToEnableResolver<
 }
 
 export interface NotificationSettingToEmailResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface NotificationSettingToPushResolver<
   TParent = any,
   TResult = any
 > {

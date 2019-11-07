@@ -942,7 +942,6 @@ type NoticeEdge {
 type NotificationSetting {
   enable: Boolean!
   email: Boolean!
-  push: Boolean!
   mention: Boolean!
   follow: Boolean!
   comment: Boolean!
@@ -959,7 +958,6 @@ type NotificationSetting {
 enum NotificationSettingType {
   enable
   email
-  push
   mention
   follow
   comment

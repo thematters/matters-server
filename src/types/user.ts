@@ -298,7 +298,6 @@ export default /* GraphQL */ `
   type NotificationSetting {
     enable: Boolean!
     email: Boolean!
-    push: Boolean!
     mention: Boolean!
     follow: Boolean!
     comment: Boolean!
@@ -491,7 +490,6 @@ export default /* GraphQL */ `
   enum NotificationSettingType {
     enable
     email
-    push
     mention
     follow
     comment
