@@ -82,11 +82,12 @@ describe('user notify setting', () => {
   test('user disable "user_new_follower"', async () => {
     const notifySetting = await userService.findNotifySetting(recipientId)
     await userService.updateNotifySetting(notifySetting.id, { follow: false })
+    const newNotifySetting = await userService.findNotifySetting(recipientId)
     await Promise.all(
       noticeTypes.map(async type => {
         const enable = await notificationService.notice.checkUserNotifySetting({
           event: type,
-          setting: notifySetting
+          setting: newNotifySetting
         })
         expect(enable).toBe(
           type === 'user_new_follower' ? false : defaultNoifySetting[type]
