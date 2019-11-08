@@ -49,9 +49,7 @@ exports.up = async knex => {
                date_part('minute', now()-min(created_at)) as since_like
         from transaction
         where purpose = 'appreciate'
-        group by reference_id) as fl on fl.reference_id = article.id) as scores
-  order by score desc,
-           id desc;
+        group by reference_id) as fl on fl.reference_id = article.id) as scores;
 
 
   create materialized view article_activity_materialized as
