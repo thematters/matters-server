@@ -11,7 +11,7 @@ exports.up = async knex => {
          base_score+boost_score_1+boost_score_2 as score
   from
     (select article.id,
-            (coalesce(comment_3_day, 0)+3*coalesce(like_5_day, 0)) * (1+post_days)/post_days as base_score,
+            (coalesce(comment_3_day, 0)+3*coalesce(like_5_day, 0)) * (1+post_days)/(0.01+post_days) as base_score,
             (15*coalesce(comment_30_min, 0) + 80*coalesce(like_30_minute, 0)) as boost_score_1,
             greatest(120-2*since_comment, 0) + greatest(120-2*since_like, 0) as boost_score_2
      from article /* past comment count */
