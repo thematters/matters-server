@@ -184,11 +184,11 @@ query($input: ConnectionArgs!) {
 }
 `
 
-const GET_VIEWER_RECOMMENDATION_FOLLOWEE_ARTICLES = `
+const GET_VIEWER_RECOMMENDATION_FOLLOWEE_WORKS = `
 query($input: ResponsesInput!) {
   viewer {
     recommendation {
-      followeeArticles(input: $input) {
+      followeeWorks(input: $input) {
         edges {
           node {
             __typename
@@ -516,7 +516,7 @@ describe('user recommendations', () => {
       )
     )
 
-    const lists = ['hottest', 'icymi', 'topics', 'followeeArticles', 'newest']
+    const lists = ['hottest', 'icymi', 'topics', 'followeeArticles', 'newest', 'followeeWorks']
     for (const list of lists) {
       const { query: queryNew } = await testClient({
         isAuth: true
@@ -524,7 +524,7 @@ describe('user recommendations', () => {
 
       if (list === 'followeeArticles') {
         const result = await queryNew({
-          query: GET_VIEWER_RECOMMENDATION_FOLLOWEE_ARTICLES,
+          query: GET_VIEWER_RECOMMENDATION_FOLLOWEE_WORKS,
           // @ts-ignore
           variables: { input: { first: 1 } }
         })

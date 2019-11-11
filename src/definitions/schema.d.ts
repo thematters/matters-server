@@ -453,9 +453,15 @@ export interface GQLNotificationSetting {
 
 export interface GQLRecommendation {
   /**
+   * Articles published by user's followees.
+   * @deprecated No longer supported
+   */
+  followeeArticles: GQLArticleConnection
+
+  /**
    * Articles and comments published by user's followees.
    */
-  followeeArticles: GQLResponseConnection
+  followeeWorks: GQLResponseConnection
 
   /**
    * Global articles sort by publish time.
@@ -493,6 +499,68 @@ export interface GQLRecommendation {
   authors: GQLUserConnection
 }
 
+export interface GQLConnectionArgs {
+  after?: string
+  first?: number
+  oss?: boolean
+}
+
+export interface GQLArticleConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLArticleEdge>
+}
+
+export interface GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+}
+
+/** Use this to resolve interface type Connection */
+export type GQLPossibleConnectionTypeNames =
+  | 'ArticleConnection'
+  | 'ResponseConnection'
+  | 'CommentConnection'
+  | 'TagConnection'
+  | 'UserConnection'
+  | 'DraftConnection'
+  | 'ReadHistoryConnection'
+  | 'RecentSearchConnection'
+  | 'TransactionConnection'
+  | 'NoticeConnection'
+  | 'SearchResultConnection'
+  | 'ReportConnection'
+  | 'OAuthClientConnection'
+
+export interface GQLConnectionNameMap {
+  Connection: GQLConnection
+  ArticleConnection: GQLArticleConnection
+  ResponseConnection: GQLResponseConnection
+  CommentConnection: GQLCommentConnection
+  TagConnection: GQLTagConnection
+  UserConnection: GQLUserConnection
+  DraftConnection: GQLDraftConnection
+  ReadHistoryConnection: GQLReadHistoryConnection
+  RecentSearchConnection: GQLRecentSearchConnection
+  TransactionConnection: GQLTransactionConnection
+  NoticeConnection: GQLNoticeConnection
+  SearchResultConnection: GQLSearchResultConnection
+  ReportConnection: GQLReportConnection
+  OAuthClientConnection: GQLOAuthClientConnection
+}
+
+export interface GQLPageInfo {
+  startCursor?: string
+  endCursor?: string
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}
+
+export interface GQLArticleEdge {
+  cursor: string
+  node: GQLArticle
+}
+
 export interface GQLResponsesInput {
   sort?: GQLResponseSort
   after?: string
@@ -515,51 +583,6 @@ export interface GQLResponseConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
   edges?: Array<GQLResponseEdge>
-}
-
-export interface GQLConnection {
-  totalCount: number
-  pageInfo: GQLPageInfo
-}
-
-/** Use this to resolve interface type Connection */
-export type GQLPossibleConnectionTypeNames =
-  | 'ResponseConnection'
-  | 'CommentConnection'
-  | 'ArticleConnection'
-  | 'TagConnection'
-  | 'UserConnection'
-  | 'DraftConnection'
-  | 'ReadHistoryConnection'
-  | 'RecentSearchConnection'
-  | 'TransactionConnection'
-  | 'NoticeConnection'
-  | 'SearchResultConnection'
-  | 'ReportConnection'
-  | 'OAuthClientConnection'
-
-export interface GQLConnectionNameMap {
-  Connection: GQLConnection
-  ResponseConnection: GQLResponseConnection
-  CommentConnection: GQLCommentConnection
-  ArticleConnection: GQLArticleConnection
-  TagConnection: GQLTagConnection
-  UserConnection: GQLUserConnection
-  DraftConnection: GQLDraftConnection
-  ReadHistoryConnection: GQLReadHistoryConnection
-  RecentSearchConnection: GQLRecentSearchConnection
-  TransactionConnection: GQLTransactionConnection
-  NoticeConnection: GQLNoticeConnection
-  SearchResultConnection: GQLSearchResultConnection
-  ReportConnection: GQLReportConnection
-  OAuthClientConnection: GQLOAuthClientConnection
-}
-
-export interface GQLPageInfo {
-  startCursor?: string
-  endCursor?: string
-  hasNextPage: boolean
-  hasPreviousPage: boolean
 }
 
 export interface GQLResponseEdge {
@@ -690,23 +713,6 @@ export interface GQLCommentConnection extends GQLConnection {
 export interface GQLCommentEdge {
   cursor: string
   node: GQLComment
-}
-
-export interface GQLConnectionArgs {
-  after?: string
-  first?: number
-  oss?: boolean
-}
-
-export interface GQLArticleConnection extends GQLConnection {
-  totalCount: number
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLArticleEdge>
-}
-
-export interface GQLArticleEdge {
-  cursor: string
-  node: GQLArticle
 }
 
 export interface GQLTagConnection extends GQLConnection {
@@ -2528,12 +2534,14 @@ export interface GQLResolver {
   UserSettings?: GQLUserSettingsTypeResolver
   NotificationSetting?: GQLNotificationSettingTypeResolver
   Recommendation?: GQLRecommendationTypeResolver
-  ResponseConnection?: GQLResponseConnectionTypeResolver
+  ArticleConnection?: GQLArticleConnectionTypeResolver
   Connection?: {
     __resolveType: GQLConnectionTypeResolver
   }
 
   PageInfo?: GQLPageInfoTypeResolver
+  ArticleEdge?: GQLArticleEdgeTypeResolver
+  ResponseConnection?: GQLResponseConnectionTypeResolver
   ResponseEdge?: GQLResponseEdgeTypeResolver
   Response?: {
     __resolveType: GQLResponseTypeResolver
@@ -2542,8 +2550,6 @@ export interface GQLResolver {
   Comment?: GQLCommentTypeResolver
   CommentConnection?: GQLCommentConnectionTypeResolver
   CommentEdge?: GQLCommentEdgeTypeResolver
-  ArticleConnection?: GQLArticleConnectionTypeResolver
-  ArticleEdge?: GQLArticleEdgeTypeResolver
   TagConnection?: GQLTagConnectionTypeResolver
   TagEdge?: GQLTagEdgeTypeResolver
   Tag?: GQLTagTypeResolver
@@ -3725,6 +3731,7 @@ export interface NotificationSettingToReportFeedbackResolver<
 
 export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
+  followeeWorks?: RecommendationToFolloweeWorksResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   today?: RecommendationToTodayResolver<TParent>
@@ -3735,7 +3742,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
 }
 
 export interface RecommendationToFolloweeArticlesArgs {
-  input: GQLResponsesInput
+  input: GQLConnectionArgs
 }
 export interface RecommendationToFolloweeArticlesResolver<
   TParent = any,
@@ -3744,6 +3751,21 @@ export interface RecommendationToFolloweeArticlesResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFolloweeWorksArgs {
+  input: GQLResponsesInput
+}
+export interface RecommendationToFolloweeWorksResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFolloweeWorksArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -3830,13 +3852,13 @@ export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLResponseConnectionTypeResolver<TParent = any> {
-  totalCount?: ResponseConnectionToTotalCountResolver<TParent>
-  pageInfo?: ResponseConnectionToPageInfoResolver<TParent>
-  edges?: ResponseConnectionToEdgesResolver<TParent>
+export interface GQLArticleConnectionTypeResolver<TParent = any> {
+  totalCount?: ArticleConnectionToTotalCountResolver<TParent>
+  pageInfo?: ArticleConnectionToPageInfoResolver<TParent>
+  edges?: ArticleConnectionToEdgesResolver<TParent>
 }
 
-export interface ResponseConnectionToTotalCountResolver<
+export interface ArticleConnectionToTotalCountResolver<
   TParent = any,
   TResult = any
 > {
@@ -3848,7 +3870,7 @@ export interface ResponseConnectionToTotalCountResolver<
   ): TResult
 }
 
-export interface ResponseConnectionToPageInfoResolver<
+export interface ArticleConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
@@ -3860,7 +3882,7 @@ export interface ResponseConnectionToPageInfoResolver<
   ): TResult
 }
 
-export interface ResponseConnectionToEdgesResolver<
+export interface ArticleConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
@@ -3874,9 +3896,9 @@ export interface ResponseConnectionToEdgesResolver<
 
 export interface GQLConnectionTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
+    | 'ArticleConnection'
     | 'ResponseConnection'
     | 'CommentConnection'
-    | 'ArticleConnection'
     | 'TagConnection'
     | 'UserConnection'
     | 'DraftConnection'
@@ -3923,6 +3945,71 @@ export interface PageInfoToHasNextPageResolver<TParent = any, TResult = any> {
 }
 
 export interface PageInfoToHasPreviousPageResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLArticleEdgeTypeResolver<TParent = any> {
+  cursor?: ArticleEdgeToCursorResolver<TParent>
+  node?: ArticleEdgeToNodeResolver<TParent>
+}
+
+export interface ArticleEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLResponseConnectionTypeResolver<TParent = any> {
+  totalCount?: ResponseConnectionToTotalCountResolver<TParent>
+  pageInfo?: ResponseConnectionToPageInfoResolver<TParent>
+  edges?: ResponseConnectionToEdgesResolver<TParent>
+}
+
+export interface ResponseConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ResponseConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ResponseConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
@@ -4165,71 +4252,6 @@ export interface CommentEdgeToCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentEdgeToNodeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLArticleConnectionTypeResolver<TParent = any> {
-  totalCount?: ArticleConnectionToTotalCountResolver<TParent>
-  pageInfo?: ArticleConnectionToPageInfoResolver<TParent>
-  edges?: ArticleConnectionToEdgesResolver<TParent>
-}
-
-export interface ArticleConnectionToTotalCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLArticleEdgeTypeResolver<TParent = any> {
-  cursor?: ArticleEdgeToCursorResolver<TParent>
-  node?: ArticleEdgeToNodeResolver<TParent>
-}
-
-export interface ArticleEdgeToCursorResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleEdgeToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
