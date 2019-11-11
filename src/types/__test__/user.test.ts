@@ -516,7 +516,14 @@ describe('user recommendations', () => {
       )
     )
 
-    const lists = ['hottest', 'icymi', 'topics', 'followeeArticles', 'newest', 'followeeWorks']
+    const lists = [
+      'hottest',
+      'icymi',
+      'topics',
+      'followeeArticles',
+      'newest',
+      'followeeWorks'
+    ]
     for (const list of lists) {
       const { query: queryNew } = await testClient({
         isAuth: true
