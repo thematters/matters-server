@@ -529,7 +529,7 @@ describe('user recommendations', () => {
         isAuth: true
       })
 
-      if (list === 'followeeArticles') {
+      if (list === 'followeeWorks') {
         const result = await queryNew({
           query: GET_VIEWER_RECOMMENDATION_FOLLOWEE_WORKS,
           // @ts-ignore
