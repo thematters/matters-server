@@ -44,29 +44,6 @@ class PushService {
      * https://firebase.google.com/docs/cloud-messaging/send-message#send_to_a_device_group
      */
     const messaging = firebase.messaging()
-    console.log({
-      // common fields
-      tokens: deviceIds,
-      notification: {
-        title,
-        body
-      },
-      // platform-specific fields
-      webpush: {
-        fcmOptions: {
-          link
-        },
-        notification: {
-          renotify: true,
-          requireInteraction: true,
-
-          // https://documentation.onesignal.com/docs/web-push-notification-icons
-          badge: URL_LOGO,
-          icon: icon || URL_LOGO,
-          image
-        }
-      }
-    })
 
     await messaging.sendMulticast({
       // common fields
@@ -78,9 +55,10 @@ class PushService {
       // platform-specific fields
       webpush: {
         fcmOptions: {
-          link
+          link: link || '/me/notifications'
         },
         notification: {
+          tag: 'renotify',
           renotify: true,
           requireInteraction: true,
 
