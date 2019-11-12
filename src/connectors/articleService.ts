@@ -390,8 +390,10 @@ export class ArticleService extends BaseService {
         'setting.article_id'
       )
       .leftJoin('article', 'view.id', 'article.id')
-      .orderByRaw('score desc')
-      .orderBy('view.id', 'desc')
+      .orderBy([
+        { column: 'score', order: 'desc' },
+        { column: 'view.id', order: 'desc' }
+      ])
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
       .limit(limit)
       .offset(offset)
