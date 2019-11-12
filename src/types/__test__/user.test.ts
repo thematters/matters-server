@@ -184,6 +184,28 @@ query($input: ConnectionArgs!) {
 }
 `
 
+const GET_VIEWER_RECOMMENDATION_FOLLOWEE_WORKS = `
+query($input: ResponsesInput!) {
+  viewer {
+    recommendation {
+      followeeWorks(input: $input) {
+        edges {
+          node {
+            __typename
+            ...on Article {
+              id
+            }
+            ...on Comment {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+}
+`
+
 const GET_AUTHOR_RECOMMENDATION = (list: string) => `
 query($input: AuthorsInput!) {
   viewer {
@@ -494,19 +516,46 @@ describe('user recommendations', () => {
       )
     )
 
-    const lists = ['hottest', 'icymi', 'topics', 'followeeArticles', 'newest']
+    const lists = [
+      'hottest',
+      'icymi',
+      'topics',
+      'followeeArticles',
+      'newest',
+      'followeeWorks'
+    ]
     for (const list of lists) {
       const { query: queryNew } = await testClient({
         isAuth: true
       })
-      const result = await queryNew({
-        query: GET_VIEWER_RECOMMENDATION(list),
-        // @ts-ignore
-        variables: { input: { first: 1 } }
-      })
-      const { data } = result
-      const article = _.get(data, `viewer.recommendation.${list}.edges.0.node`)
-      expect(fromGlobalId(article.id).type).toBe('Article')
+
+      if (list === 'followeeWorks') {
+        const result = await queryNew({
+          query: GET_VIEWER_RECOMMENDATION_FOLLOWEE_WORKS,
+          // @ts-ignore
+          variables: { input: { first: 1 } }
+        })
+        const { data } = result
+        const item = _.get(data, `viewer.recommendation.${list}.edges.0.node`)
+        if (item.__typename === 'Article') {
+          expect(fromGlobalId(item.id).type).toBe('Article')
+        }
+        if (item.__typename === 'Comment') {
+          expect(fromGlobalId(item.id).type).toBe('Comment')
+        }
+      } else {
+        const result = await queryNew({
+          query: GET_VIEWER_RECOMMENDATION(list),
+          // @ts-ignore
+          variables: { input: { first: 1 } }
+        })
+        const { data } = result
+        const article = _.get(
+          data,
+          `viewer.recommendation.${list}.edges.0.node`
+        )
+        expect(fromGlobalId(article.id).type).toBe('Article')
+      }
     }
   })
 
