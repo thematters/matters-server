@@ -1,3 +1,4 @@
+import logger from 'common/logger'
 import { LikerToCivicLikerResolver } from 'definitions'
 
 const resolver: LikerToCivicLikerResolver = async (
@@ -11,7 +12,12 @@ const resolver: LikerToCivicLikerResolver = async (
     return false
   }
 
-  return userService.likecoin.isCivicLiker({ liker })
+  try {
+    return await userService.likecoin.isCivicLiker({ liker })
+  } catch (e) {
+    logger.error(e)
+    return false
+  }
 }
 
 export default resolver

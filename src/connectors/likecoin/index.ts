@@ -280,13 +280,7 @@ export class LikeCoin {
       method: 'GET',
       liker
     })
-    const data = _.get(res, 'data')
-
-    if (!data) {
-      throw res
-    }
-
-    return data.isSubscribedCivicLiker
+    return !!_.get(res, 'data.isSubscribedCivicLiker')
   }
 
   /**
