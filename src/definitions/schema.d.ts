@@ -272,8 +272,14 @@ export interface GQLUser extends GQLNode {
 
   /**
    * LikerID of LikeCoin
+   * @deprecated Use `liker.id`.
    */
   likerId?: string
+
+  /**
+   * Liker info of current user
+   */
+  liker: GQLLiker
 
   /**
    * URL for user avatar.
@@ -368,6 +374,30 @@ export interface GQLUser extends GQLNode {
   notices: GQLNoticeConnection
 }
 
+export interface GQLLiker {
+  /**
+   * Liker ID of LikeCoin
+   */
+  id?: string
+
+  /**
+   * Whether liker is a civic liker
+   */
+  civicLiker: boolean
+
+  /**
+   * Total LIKE left in wallet.
+   */
+  total: GQLNonNegativeFloat
+
+  /**
+   * Rate of LikeCoin/USD
+   */
+  rateUSD?: GQLNonNegativeFloat
+}
+
+export type GQLNonNegativeFloat = any
+
 export type GQLURL = any
 
 export interface GQLUserInfo {
@@ -454,7 +484,7 @@ export interface GQLNotificationSetting {
 export interface GQLRecommendation {
   /**
    * Articles published by user's followees.
-   * @deprecated No longer supported
+   * @deprecated Use `followeeWorks`.
    */
   followeeArticles: GQLArticleConnection
 
@@ -762,8 +792,6 @@ export interface GQLTagOSS {
   score: GQLNonNegativeFloat
 }
 
-export type GQLNonNegativeFloat = any
-
 export interface GQLAuthorsInput {
   after?: string
   first?: number
@@ -1043,6 +1071,7 @@ export interface GQLUserStatus {
 
   /**
    * Total LIKE left in wallet.
+   * @deprecated Use `liker.total` and `liker.rateUSD`.
    */
   LIKE: GQLLIKE
 
@@ -2527,6 +2556,8 @@ export interface GQLResolver {
 
   DateTime?: GraphQLScalarType
   User?: GQLUserTypeResolver
+  Liker?: GQLLikerTypeResolver
+  NonNegativeFloat?: GraphQLScalarType
   URL?: GraphQLScalarType
   UserInfo?: GQLUserInfoTypeResolver
   Email?: GraphQLScalarType
@@ -2554,7 +2585,6 @@ export interface GQLResolver {
   TagEdge?: GQLTagEdgeTypeResolver
   Tag?: GQLTagTypeResolver
   TagOSS?: GQLTagOSSTypeResolver
-  NonNegativeFloat?: GraphQLScalarType
   UserConnection?: GQLUserConnectionTypeResolver
   UserEdge?: GQLUserEdgeTypeResolver
   DraftConnection?: GQLDraftConnectionTypeResolver
@@ -3169,6 +3199,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   userName?: UserToUserNameResolver<TParent>
   displayName?: UserToDisplayNameResolver<TParent>
   likerId?: UserToLikerIdResolver<TParent>
+  liker?: UserToLikerResolver<TParent>
   avatar?: UserToAvatarResolver<TParent>
   info?: UserToInfoResolver<TParent>
   settings?: UserToSettingsResolver<TParent>
@@ -3228,6 +3259,15 @@ export interface UserToDisplayNameResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToLikerIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToLikerResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -3435,6 +3475,49 @@ export interface UserToNoticesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToNoticesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLLikerTypeResolver<TParent = any> {
+  id?: LikerToIdResolver<TParent>
+  civicLiker?: LikerToCivicLikerResolver<TParent>
+  total?: LikerToTotalResolver<TParent>
+  rateUSD?: LikerToRateUSDResolver<TParent>
+}
+
+export interface LikerToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface LikerToCivicLikerResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface LikerToTotalResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface LikerToRateUSDResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

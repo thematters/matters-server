@@ -35,9 +35,8 @@ const ENDPOINTS = {
   register: '/users/new/matters',
   edit: '/users/edit/matters',
   total: '/like/info/like/history/total',
-  generateTempLikers: '/user',
-  transferPendingLIKE: '/like',
-  like: '/like/likebutton'
+  like: '/like/likebutton',
+  rate: '/misc/price'
 }
 
 export class LikeCoin {
@@ -257,6 +256,37 @@ export class LikeCoin {
     }
 
     return data.total
+  }
+
+  rate = async (currency: 'usd' | 'twd' = 'usd') => {
+    const res = await this.request({
+      endpoint: ENDPOINTS.rate,
+      method: 'GET',
+      params: {
+        currency
+      }
+    })
+    const price = _.get(res, 'data.price')
+
+    return price
+  }
+
+  /**
+   * Check if user is a civic liker
+   */
+  isCivicLiker = async ({ liker }: { liker: UserOAuthLikeCoin }) => {
+    const res = await this.request({
+      endpoint: `/users/id/${liker.likerId}/min`,
+      method: 'GET',
+      liker
+    })
+    const data = _.get(res, 'data')
+
+    if (!data) {
+      throw res
+    }
+
+    return data.isSubscribedCivicLiker
   }
 
   /**

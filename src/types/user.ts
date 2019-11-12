@@ -80,7 +80,10 @@ export default /* GraphQL */ `
     displayName: String
 
     "LikerID of LikeCoin"
-    likerId: String @scope
+    likerId: String @scope @deprecated(reason: "Use \`liker.id\`.")
+
+    "Liker info of current user"
+    liker: Liker! @scope
 
     "URL for user avatar."
     avatar: URL
@@ -140,7 +143,7 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection! @deprecated
+    followeeArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Use \`followeeWorks\`.")
 
     "Articles and comments published by user's followees."
     followeeWorks(input: ResponsesInput!): ResponseConnection!
@@ -238,7 +241,7 @@ export default /* GraphQL */ `
     role: UserRole!
 
     "Total LIKE left in wallet."
-    LIKE: LIKE! @scope
+    LIKE: LIKE! @scope @deprecated(reason: "Use \`liker.total\` and \`liker.rateUSD\`.")
 
     "Number of articles published by user"
     articleCount: Int!
@@ -257,6 +260,20 @@ export default /* GraphQL */ `
 
     "Number of total written words."
     totalWordCount: Int!
+  }
+
+  type Liker {
+    "Liker ID of LikeCoin"
+    id: String
+
+    "Whether liker is a civic liker"
+    civicLiker: Boolean!
+
+    "Total LIKE left in wallet."
+    total: NonNegativeFloat!
+
+    "Rate of LikeCoin/USD"
+    rateUSD: NonNegativeFloat
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
