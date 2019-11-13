@@ -1,6 +1,6 @@
-import { LIKEToTotalResolver } from 'definitions'
+import { LikerToTotalResolver } from 'definitions'
 
-const resolver: LIKEToTotalResolver = async (
+const resolver: LikerToTotalResolver = async (
   { id },
   _: any,
   { dataSources: { userService } }
