@@ -1,33 +1,17 @@
-import { AuthenticationError, ForbiddenError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { MutationToPinCommentResolver } from 'definitions'
+import { MutationToUnpinCommentResolver } from 'definitions'
 
-const resolver: MutationToPinCommentResolver = async (
-  _,
+import togglePinCommentResolver from './togglePinComment'
+
+const resolver: MutationToUnpinCommentResolver = async (
+  parent,
   { input: { id } },
-  {
-    viewer,
-    dataSources: { commentService, articleService, notificationService }
-  }
+  ...rest
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
-  const { id: dbId } = fromGlobalId(id)
-  const { articleId } = await commentService.dataloader.load(dbId)
-  const { authorId } = await articleService.dataloader.load(articleId)
-
-  if (authorId !== viewer.id) {
-    throw new ForbiddenError('viewer has no permission')
-  }
-
-  const comment = await commentService.baseUpdate(dbId, {
-    pinned: false,
-    updatedAt: new Date()
-  })
-
-  return comment
+  return togglePinCommentResolver(
+    parent,
+    { input: { id, enabled: false } },
+    ...rest
+  )
 }
 
 export default resolver

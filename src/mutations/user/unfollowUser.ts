@@ -1,39 +1,17 @@
-import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
-import { AuthenticationError, UserNotFoundError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
 import { MutationToUnfollowUserResolver } from 'definitions'
 
+import toggleFollowUserResolver from './toggleFollowUser'
+
 const resolver: MutationToUnfollowUserResolver = async (
-  _,
+  parent,
   { input: { id } },
-  { viewer, dataSources: { userService } }
+  ...rest
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
-  const { id: dbId } = fromGlobalId(id)
-  const user = await userService.dataloader.load(dbId)
-
-  if (!user) {
-    throw new UserNotFoundError('target user does not exists')
-  }
-
-  await userService.unfollow(viewer.id, user.id)
-
-  // Add custom data for cache invalidation
-  user[CACHE_KEYWORD] = [
-    {
-      id: viewer.id,
-      type: NODE_TYPES.user
-    },
-    {
-      id: user.id,
-      type: NODE_TYPES.user
-    }
-  ]
-
-  return user
+  return toggleFollowUserResolver(
+    parent,
+    { input: { id, enabled: false } },
+    ...rest
+  )
 }
 
 export default resolver
