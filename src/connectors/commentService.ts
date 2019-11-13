@@ -376,7 +376,7 @@ export class CommentService extends BaseService {
     this.knex
       .select()
       .from(this.table)
-      .where({ commentId })
+      .where({ id: commentId, pinned: true })
       .first()
 
   /**
