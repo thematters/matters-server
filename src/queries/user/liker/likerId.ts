@@ -1,7 +1,7 @@
 import { environment } from 'common/environment'
-import { UserToLikerIdResolver } from 'definitions'
+import { LikerToIdResolver } from 'definitions'
 
-const resolver: UserToLikerIdResolver = async (
+const resolver: LikerToIdResolver = async (
   { likerId },
   _,
   { viewer, dataSources: { userService } }

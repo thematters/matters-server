@@ -1,5 +1,6 @@
 import { toGlobalId } from 'common/utils'
 import {
+  GQLLikerTypeResolver,
   GQLLIKETypeResolver,
   GQLMATTypeResolver,
   GQLQueryTypeResolver,
@@ -24,8 +25,10 @@ import isBlocked from './isBlocked'
 import isBlocking from './isBlocking'
 import isFollowee from './isFollowee'
 import isFollower from './isFollower'
-import LIKE from './like'
-import likerId from './likerId'
+import Liker from './liker'
+import likerId from './liker/likerId'
+import rateUSD from './liker/rateUSD'
+import total from './liker/total'
 import notification from './notification'
 import { boost, score } from './oss'
 import profileCover from './profileCover'
@@ -49,6 +52,7 @@ const user: {
   UserSettings: GQLUserSettingsTypeResolver
   UserActivity: GQLUserActivityTypeResolver
   MAT: GQLMATTypeResolver
+  Liker: GQLLikerTypeResolver
   LIKE: GQLLIKETypeResolver
   Transaction: GQLTransactionTypeResolver
   UserStatus: GQLUserStatusTypeResolver
@@ -62,6 +66,7 @@ const user: {
     id: ({ id }) => (id ? toGlobalId({ type: 'User', id }) : ''),
     avatar,
     likerId,
+    liker: root => root,
     info: root => root,
     settings: root => root,
     status: root => (root.id ? root : null),
@@ -79,6 +84,7 @@ const user: {
     isBlocked
   },
   Recommendation,
+  Liker,
   UserInfo: {
     badges,
     userNameEditable,
@@ -91,7 +97,10 @@ const user: {
   },
   UserActivity,
   MAT,
-  LIKE,
+  LIKE: {
+    total,
+    rateUSD
+  },
   Transaction,
   UserStatus: {
     LIKE: root => root,

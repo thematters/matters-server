@@ -225,17 +225,17 @@ export interface GQLNode {
 export type GQLPossibleNodeTypeNames =
   | 'Article'
   | 'User'
+  | 'Comment'
   | 'Tag'
   | 'Draft'
-  | 'Comment'
 
 export interface GQLNodeNameMap {
   Node: GQLNode
   Article: GQLArticle
   User: GQLUser
+  Comment: GQLComment
   Tag: GQLTag
   Draft: GQLDraft
-  Comment: GQLComment
 }
 
 export type GQLDateTime = any
@@ -272,8 +272,14 @@ export interface GQLUser extends GQLNode {
 
   /**
    * LikerID of LikeCoin
+   * @deprecated Use `liker.id`.
    */
   likerId?: string
+
+  /**
+   * Liker info of current user
+   */
+  liker: GQLLiker
 
   /**
    * URL for user avatar.
@@ -368,6 +374,30 @@ export interface GQLUser extends GQLNode {
   notices: GQLNoticeConnection
 }
 
+export interface GQLLiker {
+  /**
+   * Liker ID of LikeCoin
+   */
+  id?: string
+
+  /**
+   * Whether liker is a civic liker
+   */
+  civicLiker: boolean
+
+  /**
+   * Total LIKE left in wallet.
+   */
+  total: GQLNonNegativeFloat
+
+  /**
+   * Rate of LikeCoin/USD
+   */
+  rateUSD?: GQLNonNegativeFloat
+}
+
+export type GQLNonNegativeFloat = any
+
 export type GQLURL = any
 
 export interface GQLUserInfo {
@@ -454,8 +484,14 @@ export interface GQLNotificationSetting {
 export interface GQLRecommendation {
   /**
    * Articles published by user's followees.
+   * @deprecated Use `followeeWorks`.
    */
   followeeArticles: GQLArticleConnection
+
+  /**
+   * Articles and comments published by user's followees.
+   */
+  followeeWorks: GQLResponseConnection
 
   /**
    * Global articles sort by publish time.
@@ -513,6 +549,8 @@ export interface GQLConnection {
 /** Use this to resolve interface type Connection */
 export type GQLPossibleConnectionTypeNames =
   | 'ArticleConnection'
+  | 'ResponseConnection'
+  | 'CommentConnection'
   | 'TagConnection'
   | 'UserConnection'
   | 'DraftConnection'
@@ -520,8 +558,6 @@ export type GQLPossibleConnectionTypeNames =
   | 'RecentSearchConnection'
   | 'TransactionConnection'
   | 'NoticeConnection'
-  | 'CommentConnection'
-  | 'ResponseConnection'
   | 'SearchResultConnection'
   | 'ReportConnection'
   | 'OAuthClientConnection'
@@ -529,6 +565,8 @@ export type GQLPossibleConnectionTypeNames =
 export interface GQLConnectionNameMap {
   Connection: GQLConnection
   ArticleConnection: GQLArticleConnection
+  ResponseConnection: GQLResponseConnection
+  CommentConnection: GQLCommentConnection
   TagConnection: GQLTagConnection
   UserConnection: GQLUserConnection
   DraftConnection: GQLDraftConnection
@@ -536,8 +574,6 @@ export interface GQLConnectionNameMap {
   RecentSearchConnection: GQLRecentSearchConnection
   TransactionConnection: GQLTransactionConnection
   NoticeConnection: GQLNoticeConnection
-  CommentConnection: GQLCommentConnection
-  ResponseConnection: GQLResponseConnection
   SearchResultConnection: GQLSearchResultConnection
   ReportConnection: GQLReportConnection
   OAuthClientConnection: GQLOAuthClientConnection
@@ -553,6 +589,160 @@ export interface GQLPageInfo {
 export interface GQLArticleEdge {
   cursor: string
   node: GQLArticle
+}
+
+export interface GQLResponsesInput {
+  sort?: GQLResponseSort
+  after?: string
+  before?: string
+  includeAfter?: boolean
+  includeBefore?: boolean
+  first?: number
+  articleOnly?: boolean
+}
+
+/**
+ * Enums for sorting responses.
+ */
+export enum GQLResponseSort {
+  oldest = 'oldest',
+  newest = 'newest'
+}
+
+export interface GQLResponseConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLResponseEdge>
+}
+
+export interface GQLResponseEdge {
+  cursor: string
+  node: GQLResponse
+}
+
+export type GQLResponse = GQLArticle | GQLComment
+
+/** Use this to resolve union type Response */
+export type GQLPossibleResponseTypeNames = 'Article' | 'Comment'
+
+export interface GQLResponseNameMap {
+  Response: GQLResponse
+  Article: GQLArticle
+  Comment: GQLComment
+}
+
+/**
+ * This type contains content, author, descendant comments and related data of a comment.
+ */
+export interface GQLComment extends GQLNode {
+  /**
+   * Unique ID of this comment.
+   */
+  id: string
+
+  /**
+   * State of this comment.
+   */
+  state: GQLCommentState
+
+  /**
+   * Time of this comment was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * Article that the comment is belonged to.
+   */
+  article: GQLArticle
+
+  /**
+   * Content of this comment.
+   */
+  content?: string
+
+  /**
+   * Author of this comment.
+   */
+  author: GQLUser
+
+  /**
+   * This value determines this comment is pinned or not.
+   */
+  pinned: boolean
+
+  /**
+   * The counting number of upvotes.
+   */
+  upvotes: number
+
+  /**
+   * The counting number of downvotes.
+   */
+  downvotes: number
+
+  /**
+   * The value determines current user's vote.
+   */
+  myVote?: GQLVote
+
+  /**
+   * Descendant comments of this comment.
+   */
+  comments: GQLCommentConnection
+
+  /**
+   * Parent comment of this comment.
+   */
+  parentComment?: GQLComment
+
+  /**
+   * A Comment that this comment replied to.
+   */
+  replyTo?: GQLComment
+  remark?: string
+}
+
+/**
+ * Enums for comment state.
+ */
+export enum GQLCommentState {
+  active = 'active',
+  archived = 'archived',
+  banned = 'banned'
+}
+
+/**
+ * Enums for vote types.
+ */
+export enum GQLVote {
+  up = 'up',
+  down = 'down'
+}
+
+export interface GQLCommentCommentsInput {
+  author?: string
+  sort?: GQLCommentSort
+  after?: string
+  first?: number
+}
+
+/**
+ * Enums for sorting comments by time.
+ */
+export enum GQLCommentSort {
+  oldest = 'oldest',
+  newest = 'newest'
+}
+
+export interface GQLCommentConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLCommentEdge>
+}
+
+export interface GQLCommentEdge {
+  cursor: string
+  node: GQLComment
 }
 
 export interface GQLTagConnection extends GQLConnection {
@@ -601,8 +791,6 @@ export interface GQLTagOSS {
   boost: GQLNonNegativeFloat
   score: GQLNonNegativeFloat
 }
-
-export type GQLNonNegativeFloat = any
 
 export interface GQLAuthorsInput {
   after?: string
@@ -883,6 +1071,7 @@ export interface GQLUserStatus {
 
   /**
    * Total LIKE left in wallet.
+   * @deprecated Use `liker.total` and `liker.rateUSD`.
    */
   LIKE: GQLLIKE
 
@@ -1022,120 +1211,6 @@ export interface GQLArticleOSS {
   todaySummary?: string
 }
 
-/**
- * This type contains content, author, descendant comments and related data of a comment.
- */
-export interface GQLComment extends GQLNode {
-  /**
-   * Unique ID of this comment.
-   */
-  id: string
-
-  /**
-   * State of this comment.
-   */
-  state: GQLCommentState
-
-  /**
-   * Time of this comment was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * Article that the comment is belonged to.
-   */
-  article: GQLArticle
-
-  /**
-   * Content of this comment.
-   */
-  content?: string
-
-  /**
-   * Author of this comment.
-   */
-  author: GQLUser
-
-  /**
-   * This value determines this comment is pinned or not.
-   */
-  pinned: boolean
-
-  /**
-   * The counting number of upvotes.
-   */
-  upvotes: number
-
-  /**
-   * The counting number of downvotes.
-   */
-  downvotes: number
-
-  /**
-   * The value determines current user's vote.
-   */
-  myVote?: GQLVote
-
-  /**
-   * Descendant comments of this comment.
-   */
-  comments: GQLCommentConnection
-
-  /**
-   * Parent comment of this comment.
-   */
-  parentComment?: GQLComment
-
-  /**
-   * A Comment that this comment replied to.
-   */
-  replyTo?: GQLComment
-  remark?: string
-}
-
-/**
- * Enums for comment state.
- */
-export enum GQLCommentState {
-  active = 'active',
-  archived = 'archived',
-  banned = 'banned'
-}
-
-/**
- * Enums for vote types.
- */
-export enum GQLVote {
-  up = 'up',
-  down = 'down'
-}
-
-export interface GQLCommentCommentsInput {
-  author?: string
-  sort?: GQLCommentSort
-  after?: string
-  first?: number
-}
-
-/**
- * Enums for sorting comments by time.
- */
-export enum GQLCommentSort {
-  oldest = 'oldest',
-  newest = 'newest'
-}
-
-export interface GQLCommentConnection extends GQLConnection {
-  totalCount: number
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLCommentEdge>
-}
-
-export interface GQLCommentEdge {
-  cursor: string
-  node: GQLComment
-}
-
 export interface GQLFeaturedCommentsInput {
   sort?: GQLCommentSort
   after?: string
@@ -1156,46 +1231,6 @@ export interface GQLCommentsFilter {
   parentComment?: string
   state?: GQLCommentState
   author?: string
-}
-
-export interface GQLResponsesInput {
-  sort?: GQLResponseSort
-  after?: string
-  before?: string
-  includeAfter?: boolean
-  includeBefore?: boolean
-  first?: number
-  articleOnly?: boolean
-}
-
-/**
- * Enums for sorting responses.
- */
-export enum GQLResponseSort {
-  oldest = 'oldest',
-  newest = 'newest'
-}
-
-export interface GQLResponseConnection extends GQLConnection {
-  totalCount: number
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLResponseEdge>
-}
-
-export interface GQLResponseEdge {
-  cursor: string
-  node: GQLResponse
-}
-
-export type GQLResponse = GQLArticle | GQLComment
-
-/** Use this to resolve union type Response */
-export type GQLPossibleResponseTypeNames = 'Article' | 'Comment'
-
-export interface GQLResponseNameMap {
-  Response: GQLResponse
-  Article: GQLArticle
-  Comment: GQLComment
 }
 
 export interface GQLNodeInput {
@@ -2535,6 +2570,8 @@ export interface GQLResolver {
 
   DateTime?: GraphQLScalarType
   User?: GQLUserTypeResolver
+  Liker?: GQLLikerTypeResolver
+  NonNegativeFloat?: GraphQLScalarType
   URL?: GraphQLScalarType
   UserInfo?: GQLUserInfoTypeResolver
   Email?: GraphQLScalarType
@@ -2549,11 +2586,19 @@ export interface GQLResolver {
 
   PageInfo?: GQLPageInfoTypeResolver
   ArticleEdge?: GQLArticleEdgeTypeResolver
+  ResponseConnection?: GQLResponseConnectionTypeResolver
+  ResponseEdge?: GQLResponseEdgeTypeResolver
+  Response?: {
+    __resolveType: GQLResponseTypeResolver
+  }
+
+  Comment?: GQLCommentTypeResolver
+  CommentConnection?: GQLCommentConnectionTypeResolver
+  CommentEdge?: GQLCommentEdgeTypeResolver
   TagConnection?: GQLTagConnectionTypeResolver
   TagEdge?: GQLTagEdgeTypeResolver
   Tag?: GQLTagTypeResolver
   TagOSS?: GQLTagOSSTypeResolver
-  NonNegativeFloat?: GraphQLScalarType
   UserConnection?: GQLUserConnectionTypeResolver
   UserEdge?: GQLUserEdgeTypeResolver
   DraftConnection?: GQLDraftConnectionTypeResolver
@@ -2579,15 +2624,6 @@ export interface GQLResolver {
   }
 
   ArticleOSS?: GQLArticleOSSTypeResolver
-  Comment?: GQLCommentTypeResolver
-  CommentConnection?: GQLCommentConnectionTypeResolver
-  CommentEdge?: GQLCommentEdgeTypeResolver
-  ResponseConnection?: GQLResponseConnectionTypeResolver
-  ResponseEdge?: GQLResponseEdgeTypeResolver
-  Response?: {
-    __resolveType: GQLResponseTypeResolver
-  }
-
   SearchResultConnection?: GQLSearchResultConnectionTypeResolver
   SearchResultEdge?: GQLSearchResultEdgeTypeResolver
   Official?: GQLOfficialTypeResolver
@@ -3167,9 +3203,9 @@ export interface GQLNodeTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'Article'
     | 'User'
+    | 'Comment'
     | 'Tag'
     | 'Draft'
-    | 'Comment'
 }
 export interface GQLUserTypeResolver<TParent = any> {
   id?: UserToIdResolver<TParent>
@@ -3177,6 +3213,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   userName?: UserToUserNameResolver<TParent>
   displayName?: UserToDisplayNameResolver<TParent>
   likerId?: UserToLikerIdResolver<TParent>
+  liker?: UserToLikerResolver<TParent>
   avatar?: UserToAvatarResolver<TParent>
   info?: UserToInfoResolver<TParent>
   settings?: UserToSettingsResolver<TParent>
@@ -3236,6 +3273,15 @@ export interface UserToDisplayNameResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToLikerIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToLikerResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -3443,6 +3489,49 @@ export interface UserToNoticesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToNoticesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLLikerTypeResolver<TParent = any> {
+  id?: LikerToIdResolver<TParent>
+  civicLiker?: LikerToCivicLikerResolver<TParent>
+  total?: LikerToTotalResolver<TParent>
+  rateUSD?: LikerToRateUSDResolver<TParent>
+}
+
+export interface LikerToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface LikerToCivicLikerResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface LikerToTotalResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface LikerToRateUSDResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -3739,6 +3828,7 @@ export interface NotificationSettingToReportFeedbackResolver<
 
 export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
+  followeeWorks?: RecommendationToFolloweeWorksResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   today?: RecommendationToTodayResolver<TParent>
@@ -3758,6 +3848,21 @@ export interface RecommendationToFolloweeArticlesResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFolloweeWorksArgs {
+  input: GQLResponsesInput
+}
+export interface RecommendationToFolloweeWorksResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFolloweeWorksArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -3889,6 +3994,8 @@ export interface ArticleConnectionToEdgesResolver<
 export interface GQLConnectionTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'ArticleConnection'
+    | 'ResponseConnection'
+    | 'CommentConnection'
     | 'TagConnection'
     | 'UserConnection'
     | 'DraftConnection'
@@ -3896,8 +4003,6 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'RecentSearchConnection'
     | 'TransactionConnection'
     | 'NoticeConnection'
-    | 'CommentConnection'
-    | 'ResponseConnection'
     | 'SearchResultConnection'
     | 'ReportConnection'
     | 'OAuthClientConnection'
@@ -3963,6 +4068,287 @@ export interface ArticleEdgeToCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLResponseConnectionTypeResolver<TParent = any> {
+  totalCount?: ResponseConnectionToTotalCountResolver<TParent>
+  pageInfo?: ResponseConnectionToPageInfoResolver<TParent>
+  edges?: ResponseConnectionToEdgesResolver<TParent>
+}
+
+export interface ResponseConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ResponseConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ResponseConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLResponseEdgeTypeResolver<TParent = any> {
+  cursor?: ResponseEdgeToCursorResolver<TParent>
+  node?: ResponseEdgeToNodeResolver<TParent>
+}
+
+export interface ResponseEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ResponseEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLResponseTypeResolver<TParent = any> {
+  (parent: TParent, context: Context, info: GraphQLResolveInfo):
+    | 'Article'
+    | 'Comment'
+}
+export interface GQLCommentTypeResolver<TParent = any> {
+  id?: CommentToIdResolver<TParent>
+  state?: CommentToStateResolver<TParent>
+  createdAt?: CommentToCreatedAtResolver<TParent>
+  article?: CommentToArticleResolver<TParent>
+  content?: CommentToContentResolver<TParent>
+  author?: CommentToAuthorResolver<TParent>
+  pinned?: CommentToPinnedResolver<TParent>
+  upvotes?: CommentToUpvotesResolver<TParent>
+  downvotes?: CommentToDownvotesResolver<TParent>
+  myVote?: CommentToMyVoteResolver<TParent>
+  comments?: CommentToCommentsResolver<TParent>
+  parentComment?: CommentToParentCommentResolver<TParent>
+  replyTo?: CommentToReplyToResolver<TParent>
+  remark?: CommentToRemarkResolver<TParent>
+}
+
+export interface CommentToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToStateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToArticleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToContentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToAuthorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToPinnedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToUpvotesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToDownvotesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToMyVoteResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToCommentsArgs {
+  input: GQLCommentCommentsInput
+}
+export interface CommentToCommentsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: CommentToCommentsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToParentCommentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToReplyToResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCommentConnectionTypeResolver<TParent = any> {
+  totalCount?: CommentConnectionToTotalCountResolver<TParent>
+  pageInfo?: CommentConnectionToPageInfoResolver<TParent>
+  edges?: CommentConnectionToEdgesResolver<TParent>
+}
+
+export interface CommentConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCommentEdgeTypeResolver<TParent = any> {
+  cursor?: CommentEdgeToCursorResolver<TParent>
+  node?: CommentEdgeToNodeResolver<TParent>
+}
+
+export interface CommentEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentEdgeToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5164,287 +5550,6 @@ export interface ArticleOSSToTodaySummaryResolver<
   ): TResult
 }
 
-export interface GQLCommentTypeResolver<TParent = any> {
-  id?: CommentToIdResolver<TParent>
-  state?: CommentToStateResolver<TParent>
-  createdAt?: CommentToCreatedAtResolver<TParent>
-  article?: CommentToArticleResolver<TParent>
-  content?: CommentToContentResolver<TParent>
-  author?: CommentToAuthorResolver<TParent>
-  pinned?: CommentToPinnedResolver<TParent>
-  upvotes?: CommentToUpvotesResolver<TParent>
-  downvotes?: CommentToDownvotesResolver<TParent>
-  myVote?: CommentToMyVoteResolver<TParent>
-  comments?: CommentToCommentsResolver<TParent>
-  parentComment?: CommentToParentCommentResolver<TParent>
-  replyTo?: CommentToReplyToResolver<TParent>
-  remark?: CommentToRemarkResolver<TParent>
-}
-
-export interface CommentToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToStateResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToArticleResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToContentResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToAuthorResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToPinnedResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToUpvotesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToDownvotesResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToMyVoteResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToCommentsArgs {
-  input: GQLCommentCommentsInput
-}
-export interface CommentToCommentsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: CommentToCommentsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToParentCommentResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToReplyToResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToRemarkResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLCommentConnectionTypeResolver<TParent = any> {
-  totalCount?: CommentConnectionToTotalCountResolver<TParent>
-  pageInfo?: CommentConnectionToPageInfoResolver<TParent>
-  edges?: CommentConnectionToEdgesResolver<TParent>
-}
-
-export interface CommentConnectionToTotalCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLCommentEdgeTypeResolver<TParent = any> {
-  cursor?: CommentEdgeToCursorResolver<TParent>
-  node?: CommentEdgeToNodeResolver<TParent>
-}
-
-export interface CommentEdgeToCursorResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentEdgeToNodeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLResponseConnectionTypeResolver<TParent = any> {
-  totalCount?: ResponseConnectionToTotalCountResolver<TParent>
-  pageInfo?: ResponseConnectionToPageInfoResolver<TParent>
-  edges?: ResponseConnectionToEdgesResolver<TParent>
-}
-
-export interface ResponseConnectionToTotalCountResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ResponseConnectionToPageInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ResponseConnectionToEdgesResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLResponseEdgeTypeResolver<TParent = any> {
-  cursor?: ResponseEdgeToCursorResolver<TParent>
-  node?: ResponseEdgeToNodeResolver<TParent>
-}
-
-export interface ResponseEdgeToCursorResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ResponseEdgeToNodeResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLResponseTypeResolver<TParent = any> {
-  (parent: TParent, context: Context, info: GraphQLResolveInfo):
-    | 'Article'
-    | 'Comment'
-}
 export interface GQLSearchResultConnectionTypeResolver<TParent = any> {
   totalCount?: SearchResultConnectionToTotalCountResolver<TParent>
   pageInfo?: SearchResultConnectionToPageInfoResolver<TParent>

@@ -720,6 +720,20 @@ type LIKE {
   rateUSD: NonNegativeFloat
 }
 
+type Liker {
+  """Liker ID of LikeCoin"""
+  id: String
+
+  """Whether liker is a civic liker"""
+  civicLiker: Boolean!
+
+  """Total LIKE left in wallet."""
+  total: NonNegativeFloat!
+
+  """Rate of LikeCoin/USD"""
+  rateUSD: NonNegativeFloat
+}
+
 input LogRecordInput {
   type: LogRecordTypes!
 }
@@ -1205,7 +1219,10 @@ type RecentSearchEdge {
 
 type Recommendation {
   """Articles published by user's followees."""
-  followeeArticles(input: ConnectionArgs!): ArticleConnection!
+  followeeArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Use `followeeWorks`.")
+
+  """Articles and comments published by user's followees."""
+  followeeWorks(input: ResponsesInput!): ResponseConnection!
 
   """Global articles sort by publish time."""
   newest(input: ConnectionArgs!): ArticleConnection!
@@ -1642,7 +1659,10 @@ type User implements Node {
   displayName: String
 
   """LikerID of LikeCoin"""
-  likerId: String
+  likerId: String @deprecated(reason: "Use `liker.id`.")
+
+  """Liker info of current user"""
+  liker: Liker!
 
   """URL for user avatar."""
   avatar: URL
@@ -1836,7 +1856,7 @@ type UserStatus {
   role: UserRole!
 
   """Total LIKE left in wallet."""
-  LIKE: LIKE!
+  LIKE: LIKE! @deprecated(reason: "Use `liker.total` and `liker.rateUSD`.")
 
   """Number of articles published by user"""
   articleCount: Int!
