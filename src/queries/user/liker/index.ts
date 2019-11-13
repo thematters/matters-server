@@ -4,7 +4,7 @@ import rateUSD from './rateUSD'
 import total from './total'
 
 export default {
-  id: likerId,
+  likerId,
   civicLiker,
   total,
   rateUSD

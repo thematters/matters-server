@@ -378,7 +378,7 @@ export interface GQLLiker {
   /**
    * Liker ID of LikeCoin
    */
-  id?: string
+  likerId?: string
 
   /**
    * Whether liker is a civic liker
@@ -3481,13 +3481,13 @@ export interface UserToNoticesResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLLikerTypeResolver<TParent = any> {
-  id?: LikerToIdResolver<TParent>
+  likerId?: LikerToLikerIdResolver<TParent>
   civicLiker?: LikerToCivicLikerResolver<TParent>
   total?: LikerToTotalResolver<TParent>
   rateUSD?: LikerToRateUSDResolver<TParent>
 }
 
-export interface LikerToIdResolver<TParent = any, TResult = any> {
+export interface LikerToLikerIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

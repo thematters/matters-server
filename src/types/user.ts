@@ -264,7 +264,7 @@ export default /* GraphQL */ `
 
   type Liker {
     "Liker ID of LikeCoin"
-    id: String @scope
+    likerId: String @scope
 
     "Whether liker is a civic liker"
     civicLiker: Boolean!
