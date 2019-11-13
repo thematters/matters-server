@@ -12,14 +12,11 @@ export default /* GraphQL */ `
     "Archive an article and users won't be able to view this article."
     archiveArticle(input: ArchiveArticleInput!): Article! @authenticate @purgeCache
 
-    "Subscribe an artcile."
-    subscribeArticle(input: SubscribeArticleInput!): Article! @authenticate @purgeCache
-
-    "Unsubscribe an article."
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @authenticate @purgeCache
-
     "Report an article to team."
     reportArticle(input: ReportArticleInput!): Boolean
+
+    "Subscribe or Unsubscribe article"
+    toggleSubscribeArticle(input: ToggleItemInput!): Article! @authenticate @purgeCache
 
     "Appreciate an article."
     appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate @purgeCache
@@ -36,9 +33,12 @@ export default /* GraphQL */ `
     "Update article information."
     updateArticleInfo(input: UpdateArticleInfoInput!): Article! @authenticate @purgeCache
 
-    # OSS
-    toggleArticleLive(input: ToggleArticleLiveInput!): Article! @authorize @purgeCache
-    toggleArticlePublic(input: ToggleArticlePublicInput!): Article! @authorize @purgeCache
+
+    ##############
+    #     OSS    #
+    ##############
+    toggleArticleLive(input: ToggleItemInput!): Article! @authorize @purgeCache
+    toggleArticlePublic(input: ToggleItemInput!): Article! @authorize @purgeCache
     toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @purgeCache
       @authorize
     updateArticleState(input: UpdateArticleStateInput!): Article! @authorize @purgeCache
@@ -46,6 +46,17 @@ export default /* GraphQL */ `
     renameTag(input: RenameTagInput!): Tag! @authorize @purgeCache
     mergeTags(input: MergeTagsInput!): Tag! @authorize @purgeCache
     updateMattersToday(input: UpdateMattersTodayInput!): Article! @authorize @purgeCache
+
+
+    ##############
+    # DEPRECATED #
+    ##############
+    "Subscribe an artcile."
+    subscribeArticle(input: SubscribeArticleInput!): Article! @authenticate @purgeCache @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
+
+    "Unsubscribe an article."
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @authenticate @purgeCache
+    @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
   }
 
   """
@@ -254,16 +265,6 @@ export default /* GraphQL */ `
   input UpdateArticleInfoInput {
     id: ID!
     sticky: Boolean
-  }
-
-  input ToggleArticleLiveInput {
-    id: ID!
-    enabled: Boolean!
-  }
-
-  input ToggleArticlePublicInput {
-    id: ID!
-    enabled: Boolean!
   }
 
   input ToggleArticleRecommendInput {

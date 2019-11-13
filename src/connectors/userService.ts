@@ -818,6 +818,21 @@ export class UserService extends BaseService {
       })
       .del()
 
+  findPushDevice = async ({
+    userId,
+    deviceId
+  }: {
+    userId: string
+    deviceId: string
+  }) =>
+    this.knex
+      .from('push_device')
+      .where({
+        deviceId,
+        userId
+      })
+      .first()
+
   findPushDevices = async ({ userIds }: { userIds: string[] }) =>
     this.knex.from('push_device').whereIn('userId', userIds)
 

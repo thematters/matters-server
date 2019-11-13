@@ -41,23 +41,14 @@ export default /* GraphQL */ `
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
       @authenticate @purgeCache
 
-    "Follow a given user."
-    followUser(input: FollowUserInput!): User! @authenticate @purgeCache
+    "Follow or Unfollow current usere."
+    toggleFollowUser(input: ToggleItemInput!): User! @authenticate @purgeCache
 
-    "Unfollow curent user."
-    unfollowUser(input: FollowUserInput!): User! @authenticate @purgeCache
+    "Block or Unblock a given user."
+    toggleBlockUser(input: ToggleItemInput!): User! @authenticate @purgeCache
 
-    "Block a given user."
-    blockUser(input: BlockUserInput!): User! @authenticate @purgeCache
-
-    "Unblock a given user."
-    unblockUser(input: BlockUserInput!): User! @authenticate @purgeCache
-
-    "Subscribe Push Notification"
-    subscribePush(input: SubscribePushInput!): User! @authenticate @purgeCache
-
-    "Unsubscribe Push Notification"
-    unsubscribePush(input: SubscribePushInput!): User! @authenticate @purgeCache
+    "Subscribe/ Unsubscribe Push Notification."
+    toggleSubscribePush(input: ToggleItemInput!): User! @authenticate @purgeCache
 
     "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
@@ -65,11 +56,31 @@ export default /* GraphQL */ `
     "Clear search history for user."
     clearSearchHistory: Boolean @authenticate
 
+
+    ##############
+    #     OSS    #
+    ##############
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): User! @authorize @purgeCache
-
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @authorize @purgeCache
+
+
+    ##############
+    # DEPRECATED #
+    ##############
+    "Block a given user."
+    blockUser(input: BlockUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleBlockUser\`.")
+
+    "Unblock a given user."
+    unblockUser(input: BlockUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleBlockUser\`.")
+
+    "Follow a given user."
+    followUser(input: FollowUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleFollowUser\`.")
+
+    "Unfollow curent user."
+    unfollowUser(input: FollowUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleFollowUser\`.")
+
   }
 
   type User implements Node {
@@ -464,12 +475,9 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+
   input BlockUserInput {
     id: ID!
-  }
-
-  input SubscribePushInput {
-    deviceId: ID!
   }
 
   input ImportArticlesInput {

@@ -5,14 +5,11 @@ export default /* GraphQL */ `
     "Publish a comment."
     putComment(input: PutCommentInput!): Comment! @authenticate @purgeCache
 
-    "Pin a comment."
-    pinComment(input: PinCommentInput!): Comment! @authenticate @purgeCache
-
-    "Unpin a comment."
-    unpinComment(input: UnpinCommentInput!): Comment! @authenticate @purgeCache
-
     "Remove a comment."
     deleteComment(input: DeleteCommentInput!): Comment! @authenticate @purgeCache
+
+    "Pin or Unpin a comment."
+    togglePinComment(input: ToggleItemInput!): Comment! @authenticate @purgeCache
 
     "Report a comment to team."
     reportComment(input: ReportCommentInput!): Boolean
@@ -23,8 +20,23 @@ export default /* GraphQL */ `
     "Unvote a comment."
     unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate @purgeCache
 
+
+    ##############
+    #     OSS    #
+    ##############
     "Update a comments' state."
     updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @authorize @purgeCache
+
+
+    ##############
+    # DEPRECATED #
+    ##############
+    "Pin a comment."
+    pinComment(input: PinCommentInput!): Comment! @authenticate @purgeCache @deprecated(reason: "Use \`togglePinComment\`.")
+
+    "Unpin a comment."
+    unpinComment(input: UnpinCommentInput!): Comment! @authenticate @purgeCache @deprecated(reason: "Use \`togglePinComment\`.")
+
   }
 
   """

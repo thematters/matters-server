@@ -12,6 +12,7 @@ import subscribeArticle from './subscribeArticle'
 import toggleArticleLive from './toggleArticleLive'
 import toggleArticlePublic from './toggleArticlePublic'
 import toggleArticleRecommend from './toggleArticleRecommend'
+import toggleSubscribeArticle from './toggleSubscribeArticle'
 import unsubscribeArticle from './unsubscribeArticle'
 import updateArticleInfo from './updateArticleInfo'
 import updateArticleState from './updateArticleState'
@@ -30,6 +31,7 @@ export default {
     toggleArticleLive,
     toggleArticlePublic,
     toggleArticleRecommend,
+    toggleSubscribeArticle,
     updateArticleState,
     deleteTags,
     renameTag,

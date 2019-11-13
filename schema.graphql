@@ -760,14 +760,11 @@ type Mutation {
   """Archive an article and users won't be able to view this article."""
   archiveArticle(input: ArchiveArticleInput!): Article!
 
-  """Subscribe an artcile."""
-  subscribeArticle(input: SubscribeArticleInput!): Article!
-
-  """Unsubscribe an article."""
-  unsubscribeArticle(input: UnsubscribeArticleInput!): Article!
-
   """Report an article to team."""
   reportArticle(input: ReportArticleInput!): Boolean
+
+  """Subscribe or Unsubscribe article"""
+  toggleSubscribeArticle(input: ToggleItemInput!): Article!
 
   """Appreciate an article."""
   appreciateArticle(input: AppreciateArticleInput!): Article!
@@ -784,9 +781,13 @@ type Mutation {
   """Update article information."""
   updateArticleInfo(input: UpdateArticleInfoInput!): Article!
 
-  """OSS"""
-  toggleArticleLive(input: ToggleArticleLiveInput!): Article!
-  toggleArticlePublic(input: ToggleArticlePublicInput!): Article!
+  """
+  #############
+       OSS    #
+  #############
+  """
+  toggleArticleLive(input: ToggleItemInput!): Article!
+  toggleArticlePublic(input: ToggleItemInput!): Article!
   toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
   deleteTags(input: DeleteTagsInput!): Boolean
@@ -794,17 +795,20 @@ type Mutation {
   mergeTags(input: MergeTagsInput!): Tag!
   updateMattersToday(input: UpdateMattersTodayInput!): Article!
 
+  """Subscribe an artcile."""
+  subscribeArticle(input: SubscribeArticleInput!): Article! @deprecated(reason: "Use `toggleSubscribeArticle`.")
+
+  """Unsubscribe an article."""
+  unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @deprecated(reason: "Use `toggleSubscribeArticle`.")
+
   """Publish a comment."""
   putComment(input: PutCommentInput!): Comment!
 
-  """Pin a comment."""
-  pinComment(input: PinCommentInput!): Comment!
-
-  """Unpin a comment."""
-  unpinComment(input: UnpinCommentInput!): Comment!
-
   """Remove a comment."""
   deleteComment(input: DeleteCommentInput!): Comment!
+
+  """Pin or Unpin a comment."""
+  togglePinComment(input: ToggleItemInput!): Comment!
 
   """Report a comment to team."""
   reportComment(input: ReportCommentInput!): Boolean
@@ -817,6 +821,12 @@ type Mutation {
 
   """Update a comments' state."""
   updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]!
+
+  """Pin a comment."""
+  pinComment(input: PinCommentInput!): Comment! @deprecated(reason: "Use `togglePinComment`.")
+
+  """Unpin a comment."""
+  unpinComment(input: UnpinCommentInput!): Comment! @deprecated(reason: "Use `togglePinComment`.")
 
   """Create or update a draft."""
   putDraft(input: PutDraftInput!): Draft!
@@ -833,11 +843,17 @@ type Mutation {
   """Delete a uploaded file."""
   singleFileDelete(input: SingleFileDeleteInput!): Boolean!
   feedback(input: FeedbackInput!): Boolean
-  setBoost(input: SetBoostInput!): Node!
-  putRemark(input: PutRemarkInput!): String
 
   """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
+
+  """
+  #############
+       OSS    #
+  #############
+  """
+  setBoost(input: SetBoostInput!): Node!
+  putRemark(input: PutRemarkInput!): String
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -872,23 +888,14 @@ type Mutation {
   """Update user notification settings."""
   updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
 
-  """Follow a given user."""
-  followUser(input: FollowUserInput!): User!
+  """Follow or Unfollow current usere."""
+  toggleFollowUser(input: ToggleItemInput!): User!
 
-  """Unfollow curent user."""
-  unfollowUser(input: FollowUserInput!): User!
+  """Block or Unblock a given user."""
+  toggleBlockUser(input: ToggleItemInput!): User!
 
-  """Block a given user."""
-  blockUser(input: BlockUserInput!): User!
-
-  """Unblock a given user."""
-  unblockUser(input: BlockUserInput!): User!
-
-  """Subscribe Push Notification"""
-  subscribePush(input: SubscribePushInput!): User!
-
-  """Unsubscribe Push Notification"""
-  unsubscribePush(input: SubscribePushInput!): User!
+  """Subscribe/ Unsubscribe Push Notification."""
+  toggleSubscribePush(input: ToggleItemInput!): User!
 
   """Clear read history for user."""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
@@ -901,6 +908,18 @@ type Mutation {
 
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
+
+  """Block a given user."""
+  blockUser(input: BlockUserInput!): User! @deprecated(reason: "Use `toggleBlockUser`.")
+
+  """Unblock a given user."""
+  unblockUser(input: BlockUserInput!): User! @deprecated(reason: "Use `toggleBlockUser`.")
+
+  """Follow a given user."""
+  followUser(input: FollowUserInput!): User! @deprecated(reason: "Use `toggleFollowUser`.")
+
+  """Unfollow curent user."""
+  unfollowUser(input: FollowUserInput!): User! @deprecated(reason: "Use `toggleFollowUser`.")
 
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
@@ -1459,10 +1478,6 @@ type SubscribedArticleNewCommentNotice implements Notice {
   comment: Comment
 }
 
-input SubscribePushInput {
-  deviceId: ID!
-}
-
 type Subscription {
   nodeEdited(input: NodeEditedInput!): Node!
 }
@@ -1517,20 +1532,16 @@ enum TagsSort {
 
 scalar Time
 
-input ToggleArticleLiveInput {
-  id: ID!
-  enabled: Boolean!
-}
-
-input ToggleArticlePublicInput {
-  id: ID!
-  enabled: Boolean!
-}
-
 input ToggleArticleRecommendInput {
   id: ID!
   enabled: Boolean!
   type: RecommendTypes!
+}
+
+"""Common input to toggle single item for `toggleXXX` mutations"""
+input ToggleItemInput {
+  id: ID!
+  enabled: Boolean
 }
 
 type Transaction {
