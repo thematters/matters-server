@@ -83,7 +83,7 @@ export default /* GraphQL */ `
     likerId: String @scope @deprecated(reason: "Use \`liker.id\`.")
 
     "Liker info of current user"
-    liker: Liker! @scope
+    liker: Liker!
 
     "URL for user avatar."
     avatar: URL
@@ -264,13 +264,13 @@ export default /* GraphQL */ `
 
   type Liker {
     "Liker ID of LikeCoin"
-    id: String
+    likerId: String @scope
 
     "Whether liker is a civic liker"
     civicLiker: Boolean!
 
     "Total LIKE left in wallet."
-    total: NonNegativeFloat!
+    total: NonNegativeFloat! @scope
 
     "Rate of LikeCoin/USD"
     rateUSD: NonNegativeFloat

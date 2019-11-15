@@ -722,7 +722,7 @@ type LIKE {
 
 type Liker {
   """Liker ID of LikeCoin"""
-  id: String
+  likerId: String
 
   """Whether liker is a civic liker"""
   civicLiker: Boolean!
