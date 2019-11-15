@@ -53,6 +53,14 @@ export class ActionFailedError extends ApolloError {
   }
 }
 
+export class UnableToUploadFromUrl extends ApolloError {
+  constructor(message: string, properties?: Record<string, any>) {
+    super(message, 'UNABLE_TO_UPLOAD_FROM_URL', properties)
+
+    Object.defineProperty(this, 'name', { value: 'UnableToUploadFromUrl' })
+  }
+}
+
 /*********************************
  *                               *
  *             Auth              *

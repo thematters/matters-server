@@ -2,7 +2,7 @@ import axios from 'axios'
 import { v4 } from 'uuid'
 
 import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
-import { UserInputError } from 'common/errors'
+import { UserInputError, UnableToUploadFromUrl } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 
@@ -70,7 +70,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
         filename
       }
     } catch (err) {
-      throw new UserInputError(`Unable to upload from url: ${err}`)
+      throw new UnableToUploadFromUrl(`Unable to upload from url: ${err}`)
     }
   } else {
     upload = await file
