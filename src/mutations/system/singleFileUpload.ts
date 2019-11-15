@@ -2,7 +2,7 @@ import axios from 'axios'
 import { v4 } from 'uuid'
 
 import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
-import { UserInputError, UnableToUploadFromUrl } from 'common/errors'
+import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 
