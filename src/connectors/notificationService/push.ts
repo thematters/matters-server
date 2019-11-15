@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import { BaseService } from 'connectors'
 import { notificationQueue } from 'connectors/queue/notification'
-import { LANGUAGES, NotificationType, PutNoticeParams } from 'definitions'
+import { LANGUAGES, PutNoticeParams, User } from 'definitions'
 
 import trans from './translations'
 
@@ -144,21 +144,25 @@ class Push extends BaseService {
     }
   }
 
-  push = async (
-    noticeParams: PutNoticeParams,
-    event: NotificationType,
-    language: LANGUAGES
-  ) => {
-    const recipient = await this.baseFindById(noticeParams.recipientId, 'user')
-    const text = await this.generatePushText({ ...noticeParams, language })
+  push = async ({
+    noticeParams,
+    recipient
+  }: {
+    noticeParams: PutNoticeParams
+    recipient: User
+  }) => {
+    const text = await this.generatePushText({
+      ...noticeParams,
+      language: recipient.language
+    })
 
     if (!recipient || !text) {
       return
     }
 
     notificationQueue.pushNotification({
-      text,
-      recipientUUIDs: [recipient.uuid]
+      recipients: [recipient.id],
+      body: text
     })
   }
 }

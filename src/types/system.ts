@@ -15,12 +15,17 @@ export default /* GraphQL */ `
 
     "Delete a uploaded file."
     singleFileDelete(input: SingleFileDeleteInput!): Boolean! @authenticate
+
     feedback(input: FeedbackInput!): Boolean
-    setBoost(input: SetBoostInput!): Node! @authorize
-    putRemark(input: PutRemarkInput!): String @authorize
 
     "Add specific user behavior record."
     logRecord(input: LogRecordInput!): Boolean
+
+    ##############
+    #     OSS    #
+    ##############
+    setBoost(input: SetBoostInput!): Node! @authorize
+    putRemark(input: PutRemarkInput!): String @authorize
   }
 
   extend type Subscription {
@@ -241,6 +246,12 @@ export default /* GraphQL */ `
     after: String
     first: Int
     oss: Boolean
+  }
+
+  "Common input to toggle single item for \`toggleXXX\` mutations"
+  input ToggleItemInput {
+    id: ID!
+    enabled: Boolean
   }
 
   enum SearchTypes {

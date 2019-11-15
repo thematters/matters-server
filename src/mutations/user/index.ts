@@ -7,6 +7,9 @@ import followUser from './followUser'
 import generateLikerId from './generateLikerId'
 import resetPassword from './resetPassword'
 import sendVerificationCode from './sendVerificationCode'
+import toggleBlockUser from './toggleBlockUser'
+import toggleFollowUser from './toggleFollowUser'
+import toggleSubscribePush from './toggleSubscribePush'
 import unblockUser from './unblockUser'
 import unfollowUser from './unfollowUser'
 import updateNotificationSetting from './updateNotificationSetting'
@@ -35,6 +38,9 @@ export default {
     unblockUser,
     blockUser,
     unfollowUser,
+    toggleSubscribePush,
+    toggleBlockUser,
+    toggleFollowUser,
     clearReadHistory,
     clearSearchHistory,
     updateUserState,

@@ -1501,19 +1501,14 @@ export interface GQLMutation {
   archiveArticle: GQLArticle
 
   /**
-   * Subscribe an artcile.
-   */
-  subscribeArticle: GQLArticle
-
-  /**
-   * Unsubscribe an article.
-   */
-  unsubscribeArticle: GQLArticle
-
-  /**
    * Report an article to team.
    */
   reportArticle?: boolean
+
+  /**
+   * Subscribe or Unsubscribe article
+   */
+  toggleSubscribeArticle: GQLArticle
 
   /**
    * Appreciate an article.
@@ -1541,7 +1536,9 @@ export interface GQLMutation {
   updateArticleInfo: GQLArticle
 
   /**
-   * OSS
+   * #############
+   *      OSS    #
+   * #############
    */
   toggleArticleLive: GQLArticle
   toggleArticlePublic: GQLArticle
@@ -1553,24 +1550,31 @@ export interface GQLMutation {
   updateMattersToday: GQLArticle
 
   /**
+   * Subscribe an artcile.
+   * @deprecated Use `toggleSubscribeArticle`.
+   */
+  subscribeArticle: GQLArticle
+
+  /**
+   * Unsubscribe an article.
+   * @deprecated Use `toggleSubscribeArticle`.
+   */
+  unsubscribeArticle: GQLArticle
+
+  /**
    * Publish a comment.
    */
   putComment: GQLComment
 
   /**
-   * Pin a comment.
-   */
-  pinComment: GQLComment
-
-  /**
-   * Unpin a comment.
-   */
-  unpinComment: GQLComment
-
-  /**
    * Remove a comment.
    */
   deleteComment: GQLComment
+
+  /**
+   * Pin or Unpin a comment.
+   */
+  togglePinComment: GQLComment
 
   /**
    * Report a comment to team.
@@ -1591,6 +1595,18 @@ export interface GQLMutation {
    * Update a comments' state.
    */
   updateCommentsState: Array<GQLComment>
+
+  /**
+   * Pin a comment.
+   * @deprecated Use `togglePinComment`.
+   */
+  pinComment: GQLComment
+
+  /**
+   * Unpin a comment.
+   * @deprecated Use `togglePinComment`.
+   */
+  unpinComment: GQLComment
 
   /**
    * Create or update a draft.
@@ -1617,13 +1633,19 @@ export interface GQLMutation {
    */
   singleFileDelete: boolean
   feedback?: boolean
-  setBoost: GQLNode
-  putRemark?: string
 
   /**
    * Add specific user behavior record.
    */
   logRecord?: boolean
+
+  /**
+   * #############
+   *      OSS    #
+   * #############
+   */
+  setBoost: GQLNode
+  putRemark?: string
 
   /**
    * Send verification code for email.
@@ -1681,24 +1703,19 @@ export interface GQLMutation {
   updateNotificationSetting: GQLUser
 
   /**
-   * Follow a given user.
+   * Follow or Unfollow current usere.
    */
-  followUser: GQLUser
+  toggleFollowUser: GQLUser
 
   /**
-   * Unfollow curent user.
+   * Block or Unblock a given user.
    */
-  unfollowUser: GQLUser
+  toggleBlockUser: GQLUser
 
   /**
-   * Block a given user.
+   * Subscribe/ Unsubscribe Push Notification.
    */
-  blockUser: GQLUser
-
-  /**
-   * Unblock a given user.
-   */
-  unblockUser: GQLUser
+  toggleSubscribePush: GQLUser
 
   /**
    * Clear read history for user.
@@ -1721,6 +1738,30 @@ export interface GQLMutation {
   updateUserRole: GQLUser
 
   /**
+   * Block a given user.
+   * @deprecated Use `toggleBlockUser`.
+   */
+  blockUser: GQLUser
+
+  /**
+   * Unblock a given user.
+   * @deprecated Use `toggleBlockUser`.
+   */
+  unblockUser: GQLUser
+
+  /**
+   * Follow a given user.
+   * @deprecated Use `toggleFollowUser`.
+   */
+  followUser: GQLUser
+
+  /**
+   * Unfollow curent user.
+   * @deprecated Use `toggleFollowUser`.
+   */
+  unfollowUser: GQLUser
+
+  /**
    * Create or Update an OAuth Client, used in OSS.
    */
   putOAuthClient?: GQLOAuthClient
@@ -1735,20 +1776,20 @@ export interface GQLArchiveArticleInput {
   id: string
 }
 
-export interface GQLSubscribeArticleInput {
-  id: string
-}
-
-export interface GQLUnsubscribeArticleInput {
-  id: string
-}
-
 export interface GQLReportArticleInput {
   id: string
   category: string
   description: string
   assetIds?: Array<string>
   contact?: string
+}
+
+/**
+ * Common input to toggle single item for `toggleXXX` mutations
+ */
+export interface GQLToggleItemInput {
+  id: string
+  enabled?: boolean
 }
 
 export interface GQLAppreciateArticleInput {
@@ -1772,16 +1813,6 @@ export interface GQLSetCollectionInput {
 export interface GQLUpdateArticleInfoInput {
   id: string
   sticky?: boolean
-}
-
-export interface GQLToggleArticleLiveInput {
-  id: string
-  enabled: boolean
-}
-
-export interface GQLToggleArticlePublicInput {
-  id: string
-  enabled: boolean
 }
 
 export interface GQLToggleArticleRecommendInput {
@@ -1826,6 +1857,14 @@ export interface GQLUpdateMattersTodayInput {
   summary?: string
 }
 
+export interface GQLSubscribeArticleInput {
+  id: string
+}
+
+export interface GQLUnsubscribeArticleInput {
+  id: string
+}
+
 export interface GQLPutCommentInput {
   comment: GQLCommentInput
   id?: string
@@ -1837,14 +1876,6 @@ export interface GQLCommentInput {
   articleId: string
   parentId?: string
   mentions?: Array<string>
-}
-
-export interface GQLPinCommentInput {
-  id: string
-}
-
-export interface GQLUnpinCommentInput {
-  id: string
 }
 
 export interface GQLDeleteCommentInput {
@@ -1871,6 +1902,14 @@ export interface GQLUnvoteCommentInput {
 export interface GQLUpdateCommentsStateInput {
   ids: Array<string>
   state: GQLCommentState
+}
+
+export interface GQLPinCommentInput {
+  id: string
+}
+
+export interface GQLUnpinCommentInput {
+  id: string
 }
 
 export interface GQLPutDraftInput {
@@ -1913,6 +1952,15 @@ export interface GQLFeedbackInput {
   contact?: string
 }
 
+export interface GQLLogRecordInput {
+  type: GQLLogRecordTypes
+}
+
+export enum GQLLogRecordTypes {
+  ReadFolloweeArticles = 'ReadFolloweeArticles',
+  ReadResponseInfoPopUp = 'ReadResponseInfoPopUp'
+}
+
 export interface GQLSetBoostInput {
   id: string
   boost: GQLNonNegativeFloat
@@ -1938,15 +1986,6 @@ export enum GQLRemarkTypes {
   Comment = 'Comment',
   Report = 'Report',
   Feedback = 'Feedback'
-}
-
-export interface GQLLogRecordInput {
-  type: GQLLogRecordTypes
-}
-
-export enum GQLLogRecordTypes {
-  ReadFolloweeArticles = 'ReadFolloweeArticles',
-  ReadResponseInfoPopUp = 'ReadResponseInfoPopUp'
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -2034,14 +2073,6 @@ export enum GQLNotificationSettingType {
   reportFeedback = 'reportFeedback'
 }
 
-export interface GQLFollowUserInput {
-  id: string
-}
-
-export interface GQLBlockUserInput {
-  id: string
-}
-
 export interface GQLClearReadHistoryInput {
   id: string
 }
@@ -2057,6 +2088,14 @@ export type GQLPositiveInt = any
 export interface GQLUpdateUserRoleInput {
   id: string
   role: GQLUserRole
+}
+
+export interface GQLBlockUserInput {
+  id: string
+}
+
+export interface GQLFollowUserInput {
+  id: string
 }
 
 export interface GQLPutOAuthClientInput {
@@ -6418,9 +6457,8 @@ export interface OAuthClientToCreatedAtResolver<TParent = any, TResult = any> {
 export interface GQLMutationTypeResolver<TParent = any> {
   publishArticle?: MutationToPublishArticleResolver<TParent>
   archiveArticle?: MutationToArchiveArticleResolver<TParent>
-  subscribeArticle?: MutationToSubscribeArticleResolver<TParent>
-  unsubscribeArticle?: MutationToUnsubscribeArticleResolver<TParent>
   reportArticle?: MutationToReportArticleResolver<TParent>
+  toggleSubscribeArticle?: MutationToToggleSubscribeArticleResolver<TParent>
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
   recallPublish?: MutationToRecallPublishResolver<TParent>
@@ -6434,23 +6472,26 @@ export interface GQLMutationTypeResolver<TParent = any> {
   renameTag?: MutationToRenameTagResolver<TParent>
   mergeTags?: MutationToMergeTagsResolver<TParent>
   updateMattersToday?: MutationToUpdateMattersTodayResolver<TParent>
+  subscribeArticle?: MutationToSubscribeArticleResolver<TParent>
+  unsubscribeArticle?: MutationToUnsubscribeArticleResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
-  pinComment?: MutationToPinCommentResolver<TParent>
-  unpinComment?: MutationToUnpinCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
+  togglePinComment?: MutationToTogglePinCommentResolver<TParent>
   reportComment?: MutationToReportCommentResolver<TParent>
   voteComment?: MutationToVoteCommentResolver<TParent>
   unvoteComment?: MutationToUnvoteCommentResolver<TParent>
   updateCommentsState?: MutationToUpdateCommentsStateResolver<TParent>
+  pinComment?: MutationToPinCommentResolver<TParent>
+  unpinComment?: MutationToUnpinCommentResolver<TParent>
   putDraft?: MutationToPutDraftResolver<TParent>
   deleteDraft?: MutationToDeleteDraftResolver<TParent>
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
   singleFileUpload?: MutationToSingleFileUploadResolver<TParent>
   singleFileDelete?: MutationToSingleFileDeleteResolver<TParent>
   feedback?: MutationToFeedbackResolver<TParent>
+  logRecord?: MutationToLogRecordResolver<TParent>
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
-  logRecord?: MutationToLogRecordResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -6464,14 +6505,17 @@ export interface GQLMutationTypeResolver<TParent = any> {
   updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<
     TParent
   >
-  followUser?: MutationToFollowUserResolver<TParent>
-  unfollowUser?: MutationToUnfollowUserResolver<TParent>
-  blockUser?: MutationToBlockUserResolver<TParent>
-  unblockUser?: MutationToUnblockUserResolver<TParent>
+  toggleFollowUser?: MutationToToggleFollowUserResolver<TParent>
+  toggleBlockUser?: MutationToToggleBlockUserResolver<TParent>
+  toggleSubscribePush?: MutationToToggleSubscribePushResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
+  blockUser?: MutationToBlockUserResolver<TParent>
+  unblockUser?: MutationToUnblockUserResolver<TParent>
+  followUser?: MutationToFollowUserResolver<TParent>
+  unfollowUser?: MutationToUnfollowUserResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
@@ -6505,36 +6549,6 @@ export interface MutationToArchiveArticleResolver<
   ): TResult
 }
 
-export interface MutationToSubscribeArticleArgs {
-  input: GQLSubscribeArticleInput
-}
-export interface MutationToSubscribeArticleResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToSubscribeArticleArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToUnsubscribeArticleArgs {
-  input: GQLUnsubscribeArticleInput
-}
-export interface MutationToUnsubscribeArticleResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToUnsubscribeArticleArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface MutationToReportArticleArgs {
   input: GQLReportArticleInput
 }
@@ -6542,6 +6556,21 @@ export interface MutationToReportArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToReportArticleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleSubscribeArticleArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToToggleSubscribeArticleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleSubscribeArticleArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6614,7 +6643,7 @@ export interface MutationToUpdateArticleInfoResolver<
 }
 
 export interface MutationToToggleArticleLiveArgs {
-  input: GQLToggleArticleLiveInput
+  input: GQLToggleItemInput
 }
 export interface MutationToToggleArticleLiveResolver<
   TParent = any,
@@ -6629,7 +6658,7 @@ export interface MutationToToggleArticleLiveResolver<
 }
 
 export interface MutationToToggleArticlePublicArgs {
-  input: GQLToggleArticlePublicInput
+  input: GQLToggleItemInput
 }
 export interface MutationToToggleArticlePublicResolver<
   TParent = any,
@@ -6724,6 +6753,36 @@ export interface MutationToUpdateMattersTodayResolver<
   ): TResult
 }
 
+export interface MutationToSubscribeArticleArgs {
+  input: GQLSubscribeArticleInput
+}
+export interface MutationToSubscribeArticleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToSubscribeArticleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnsubscribeArticleArgs {
+  input: GQLUnsubscribeArticleInput
+}
+export interface MutationToUnsubscribeArticleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUnsubscribeArticleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface MutationToPutCommentArgs {
   input: GQLPutCommentInput
 }
@@ -6736,30 +6795,6 @@ export interface MutationToPutCommentResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToPinCommentArgs {
-  input: GQLPinCommentInput
-}
-export interface MutationToPinCommentResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToPinCommentArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToUnpinCommentArgs {
-  input: GQLUnpinCommentInput
-}
-export interface MutationToUnpinCommentResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToUnpinCommentArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface MutationToDeleteCommentArgs {
   input: GQLDeleteCommentInput
 }
@@ -6767,6 +6802,21 @@ export interface MutationToDeleteCommentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToDeleteCommentArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToTogglePinCommentArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToTogglePinCommentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToTogglePinCommentArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6818,6 +6868,30 @@ export interface MutationToUpdateCommentsStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateCommentsStateArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPinCommentArgs {
+  input: GQLPinCommentInput
+}
+export interface MutationToPinCommentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPinCommentArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnpinCommentArgs {
+  input: GQLUnpinCommentInput
+}
+export interface MutationToUnpinCommentResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToUnpinCommentArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6901,6 +6975,18 @@ export interface MutationToFeedbackResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface MutationToLogRecordArgs {
+  input: GQLLogRecordInput
+}
+export interface MutationToLogRecordResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToLogRecordArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface MutationToSetBoostArgs {
   input: GQLSetBoostInput
 }
@@ -6920,18 +7006,6 @@ export interface MutationToPutRemarkResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutRemarkArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToLogRecordArgs {
-  input: GQLLogRecordInput
-}
-export interface MutationToLogRecordResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToLogRecordArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7078,49 +7152,46 @@ export interface MutationToUpdateNotificationSettingResolver<
   ): TResult
 }
 
-export interface MutationToFollowUserArgs {
-  input: GQLFollowUserInput
+export interface MutationToToggleFollowUserArgs {
+  input: GQLToggleItemInput
 }
-export interface MutationToFollowUserResolver<TParent = any, TResult = any> {
+export interface MutationToToggleFollowUserResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
-    args: MutationToFollowUserArgs,
+    args: MutationToToggleFollowUserArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
-export interface MutationToUnfollowUserArgs {
-  input: GQLFollowUserInput
+export interface MutationToToggleBlockUserArgs {
+  input: GQLToggleItemInput
 }
-export interface MutationToUnfollowUserResolver<TParent = any, TResult = any> {
+export interface MutationToToggleBlockUserResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
-    args: MutationToUnfollowUserArgs,
+    args: MutationToToggleBlockUserArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
-export interface MutationToBlockUserArgs {
-  input: GQLBlockUserInput
+export interface MutationToToggleSubscribePushArgs {
+  input: GQLToggleItemInput
 }
-export interface MutationToBlockUserResolver<TParent = any, TResult = any> {
+export interface MutationToToggleSubscribePushResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
-    args: MutationToBlockUserArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToUnblockUserArgs {
-  input: GQLBlockUserInput
-}
-export interface MutationToUnblockUserResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToUnblockUserArgs,
+    args: MutationToToggleSubscribePushArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7178,6 +7249,54 @@ export interface MutationToUpdateUserRoleResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserRoleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToBlockUserArgs {
+  input: GQLBlockUserInput
+}
+export interface MutationToBlockUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToBlockUserArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnblockUserArgs {
+  input: GQLBlockUserInput
+}
+export interface MutationToUnblockUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToUnblockUserArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToFollowUserArgs {
+  input: GQLFollowUserInput
+}
+export interface MutationToFollowUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToFollowUserArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnfollowUserArgs {
+  input: GQLFollowUserInput
+}
+export interface MutationToUnfollowUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToUnfollowUserArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

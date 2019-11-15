@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/node'
 import cors from 'cors'
 import express from 'express'
-import * as admin from 'firebase-admin'
+import * as firebase from 'firebase-admin'
 import helmet from 'helmet'
 import http from 'http'
 import 'module-alias/register'
@@ -25,11 +25,11 @@ scheduleQueue.start()
 
 // Firebase
 try {
-  admin.initializeApp({
-    credential: admin.credential.cert(environment.firebaseCert)
+  firebase.initializeApp({
+    credential: firebase.credential.cert(environment.firebaseCert)
   })
 } catch (e) {
-  console.error('Failed to initialize admin, skipped')
+  console.error(new Date(), 'Failed to initialize admin, skipped')
 }
 
 // Express

@@ -1049,6 +1049,16 @@ export class ArticleService extends BaseService {
       })
       .del()
 
+  findUserSubscribe = async (targetId: string, userId: string) =>
+    this.knex
+      .from('action_article')
+      .where({
+        targetId,
+        userId,
+        action: USER_ACTION.subscribe
+      })
+      .first()
+
   /*********************************
    *                               *
    *         Read History          *

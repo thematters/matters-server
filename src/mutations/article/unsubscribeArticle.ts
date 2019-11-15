@@ -1,29 +1,17 @@
-import {
-  ArticleNotFoundError,
-  AuthenticationError,
-  EntityNotFoundError
-} from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { MutationToUnsubscribeArticleResolver } from 'definitions'
+import { MutationToSubscribeArticleResolver } from 'definitions'
 
-const resolver: MutationToUnsubscribeArticleResolver = async (
-  root,
+import toggleSubscribeArticleResolver from './toggleSubscribeArticle'
+
+const resolver: MutationToSubscribeArticleResolver = async (
+  parent,
   { input: { id } },
-  { viewer, dataSources: { articleService } }
+  ...rest
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
-  const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.dataloader.load(dbId)
-  if (!article) {
-    throw new ArticleNotFoundError('target article does not exists')
-  }
-
-  await articleService.unsubscribe(article.id, viewer.id)
-
-  return article
+  return toggleSubscribeArticleResolver(
+    parent,
+    { input: { id, enabled: false } },
+    ...rest
+  )
 }
 
 export default resolver

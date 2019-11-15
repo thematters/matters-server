@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import _get from 'lodash/get'
 
 import { PUBLISH_STATE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
@@ -70,16 +70,23 @@ const REPORT_ARTICLE = `
   }
 `
 const TOGGLE_ARTICLE_LIVE = `
-  mutation($input: ToggleArticleLiveInput!) {
+  mutation($input: ToggleItemInput!) {
     toggleArticleLive(input: $input) {
       live
     }
   }
 `
 const TOGGLE_ARTICLE_PUBLIC = `
-  mutation($input: ToggleArticlePublicInput!) {
+  mutation($input: ToggleItemInput!) {
     toggleArticlePublic(input: $input) {
       public
+    }
+  }
+`
+const TOGGLE_SUBSCRIBE_ARTICLE = `
+  mutation($input: ToggleItemInput!) {
+    toggleSubscribeArticle(input: $input) {
+      subscribed
     }
   }
 `
@@ -137,7 +144,7 @@ describe('query article', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    expect(_.get(result, 'data.oss.articles.edges.length')).toBeGreaterThan(1)
+    expect(_get(result, 'data.oss.articles.edges.length')).toBeGreaterThan(1)
   })
 
   test('query related articles', async () => {
@@ -147,7 +154,7 @@ describe('query article', () => {
       // @ts-ignore
       variables: { input: { mediaHash } }
     })
-    expect(_.get(result, 'data.article.relatedArticles.edges')).toBeDefined()
+    expect(_get(result, 'data.article.relatedArticles.edges')).toBeDefined()
   })
 })
 
@@ -222,7 +229,7 @@ describe('publish article', () => {
     })
 
     expect(
-      _.get(result, 'data.setCollection.collection.edges').map(
+      _get(result, 'data.setCollection.collection.edges').map(
         ({ node }: { node: { id: string } }) => node.id
       )
     ).toMatchObject(collection)
@@ -243,7 +250,7 @@ describe('report article', () => {
         }
       }
     })
-    expect(_.get(result, 'data.reportArticle')).toBe(true)
+    expect(_get(result, 'data.reportArticle')).toBe(true)
   })
 
   test('report a article with assets', async () => {
@@ -260,7 +267,7 @@ describe('report article', () => {
         }
       }
     })
-    expect(_.get(result, 'data.reportArticle')).toBe(true)
+    expect(_get(result, 'data.reportArticle')).toBe(true)
   })
 })
 
@@ -277,7 +284,7 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(_.get(result, 'data.toggleArticleLive.live')).toBe(true)
+    expect(_get(result, 'data.toggleArticleLive.live')).toBe(true)
   })
 
   test('disable article live', async () => {
@@ -292,7 +299,7 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(_.get(result, 'data.toggleArticleLive.live')).toBe(false)
+    expect(_get(result, 'data.toggleArticleLive.live')).toBe(false)
   })
 
   test('enable article public', async () => {
@@ -307,7 +314,7 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(_.get(data, 'toggleArticlePublic.public')).toBe(true)
+    expect(_get(data, 'toggleArticlePublic.public')).toBe(true)
   })
 
   test('disable article public', async () => {
@@ -322,6 +329,36 @@ describe('toggle article state', () => {
         }
       }
     })
-    expect(_.get(data, 'toggleArticlePublic.public')).toBe(false)
+    expect(_get(data, 'toggleArticlePublic.public')).toBe(false)
+  })
+
+  test('subscribe an article', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
+    const { data } = await mutate({
+      mutation: TOGGLE_SUBSCRIBE_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: true
+        }
+      }
+    })
+    expect(_get(data, 'toggleSubscribeArticle.subscribed')).toBe(true)
+  })
+
+  test('unsubscribe an article ', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
+    const { data } = await mutate({
+      mutation: TOGGLE_SUBSCRIBE_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: false
+        }
+      }
+    })
+    expect(_get(data, 'toggleSubscribeArticle.subscribed')).toBe(false)
   })
 })

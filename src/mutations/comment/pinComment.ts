@@ -1,70 +1,17 @@
-import {
-  ActionLimitExceededError,
-  AuthenticationError,
-  ForbiddenError
-} from 'common/errors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
 import { MutationToPinCommentResolver } from 'definitions'
 
+import togglePinCommentResolver from './togglePinComment'
+
 const resolver: MutationToPinCommentResolver = async (
-  _,
+  parent,
   { input: { id } },
-  {
-    viewer,
-    dataSources: { commentService, articleService, notificationService }
-  }
+  ...rest
 ) => {
-  if (!viewer.id) {
-    throw new AuthenticationError('visitor has no permission')
-  }
-
-  const { id: dbId } = fromGlobalId(id)
-  const comment = await commentService.dataloader.load(dbId)
-  const article = await articleService.dataloader.load(comment.articleId)
-
-  if (article.authorId !== viewer.id) {
-    throw new ForbiddenError('viewer has no permission')
-  }
-
-  const pinLeft = await commentService.pinLeftByArticle(comment.articleId)
-  if (pinLeft <= 0) {
-    throw new ActionLimitExceededError('reach pin limit')
-  }
-
-  // check is pinned before
-  if (comment.pinned) {
-    return comment
-  }
-
-  const pinnedComment = await commentService.baseUpdate(dbId, {
-    pinned: true,
-    updatedAt: new Date()
-  })
-
-  // trigger notifications
-  notificationService.trigger({
-    event: 'comment_pinned',
-    actorId: viewer.id,
-    recipientId: comment.authorId,
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'comment',
-        entity: comment
-      }
-    ]
-  })
-
-  // publish a PubSub event
-  notificationService.pubsub.publish(
-    toGlobalId({
-      type: 'Article',
-      id: article.id
-    }),
-    article
+  return togglePinCommentResolver(
+    parent,
+    { input: { id, enabled: true } },
+    ...rest
   )
-
-  return pinnedComment
 }
 
 export default resolver

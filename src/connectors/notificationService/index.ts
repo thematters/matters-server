@@ -1,7 +1,12 @@
 import logger from 'common/logger'
 import { toGlobalId } from 'common/utils'
-import { BaseService } from 'connectors'
-import { LANGUAGES, NotificationPrarms, PutNoticeParams } from 'definitions'
+import { BaseService, UserService } from 'connectors'
+import {
+  LANGUAGES,
+  NotificationPrarms,
+  PutNoticeParams,
+  User
+} from 'definitions'
 
 import { mail } from './mail'
 import { notice } from './notice'
@@ -128,7 +133,10 @@ export class NotificationService extends BaseService {
   }
 
   private async __trigger(params: NotificationPrarms) {
-    const recipient = await this.baseFindById(params.recipientId, 'user')
+    const userService = new UserService()
+    const recipient = (await userService.dataloader.load(
+      params.recipientId
+    )) as User
 
     if (!recipient) {
       logger.info(`recipient ${params.recipientId} not found, skipped`)
@@ -149,14 +157,15 @@ export class NotificationService extends BaseService {
       return
     }
 
-    // skip if user disable push notification
+    // skip if user disable notify
+    const notifySetting = await userService.findNotifySetting(recipient.id)
     const enable = await this.notice.checkUserNotifySetting({
       event: params.event,
-      userId: noticeParams.recipientId
+      setting: notifySetting
     })
     if (!enable) {
       logger.info(
-        `Push ${noticeParams.type} to ${noticeParams.recipientId} skipped`
+        `Send ${noticeParams.type} to ${noticeParams.recipientId} skipped`
       )
       return
     }
@@ -169,7 +178,23 @@ export class NotificationService extends BaseService {
       return
     }
 
-    // Publish a PubSub event due to the recipent has a new unread notice
+    /**
+     * Push Notification
+     */
+    if (!notifySetting.push) {
+      logger.info(
+        `Push ${noticeParams.type} to ${noticeParams.recipientId} skipped`
+      )
+      return
+    }
+    this.push.push({
+      noticeParams,
+      recipient
+    })
+
+    /**
+     * Publish a PubSub event
+     */
     this.pubsub.publish(
       toGlobalId({
         type: 'User',
@@ -177,8 +202,5 @@ export class NotificationService extends BaseService {
       }),
       recipient
     )
-
-    // Push Notification
-    // this.push.push(noticeParams, params.event, recipient.language)
   }
 }
