@@ -4,16 +4,12 @@ exports.up = async knex => {
 
 
   create view article_activity_view as
-  select id,
-    title,
-    created_at,
-    base_score,
-    boost_score_1,
-    boost_score_2,
+  select *,
     base_score+boost_score_1+boost_score_2 as score
   from
    (select article.id,
-    article.title,article.created_at,
+      article.title,
+      article.created_at,
       (0.5*coalesce(comment_12_hrs, 0)+2*coalesce(like_24_hrs, 0)) * (2+post_days)/(1+post_days) as base_score,
       (15*coalesce(comment_30_mins, 0) + 60*coalesce(like_30_mins, 0)) as boost_score_1,
       greatest(120-2*since_comment, 0) + greatest(240-2*since_like, 0) as boost_score_2
