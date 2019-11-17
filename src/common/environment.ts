@@ -43,8 +43,6 @@ export const environment = {
   cacheHost: process.env.MATTERS_CACHE_HOST as string,
   cachePort: (process.env.MATTERS_CACHE_PORT || 6379) as number,
   sgKey: process.env.MATTERS_SENDGRID_API_KEY,
-  jpushKey: process.env.MATTERS_JPUSH_API_KEY,
-  jpushSecret: process.env.MATTERS_JPUSH_API_SECRET,
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
   apiKey: process.env.MATTERS_APOLLO_API_KEY,
