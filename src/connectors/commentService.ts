@@ -342,7 +342,10 @@ export class CommentService extends BaseService {
       .select('*')
       .from(MATERIALIZED_VIEW.featuredCommentMaterialized)
       .where({ articleId: id })
-      .orderBy('score', 'desc')
+      .orderBy([
+        { column: 'pinned', order: 'desc' },
+        { column: 'score', order: 'desc' }
+      ])
       .limit(first)
       .offset(after)
     return result
