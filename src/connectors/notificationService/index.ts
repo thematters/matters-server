@@ -181,12 +181,6 @@ export class NotificationService extends BaseService {
     /**
      * Push Notification
      */
-    if (!notifySetting.push) {
-      logger.info(
-        `Push ${noticeParams.type} to ${noticeParams.recipientId} skipped`
-      )
-      return
-    }
     this.push.push({
       noticeParams,
       recipient
