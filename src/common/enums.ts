@@ -277,7 +277,8 @@ export const QUEUE_JOB = {
   sendMail: 'sendMail',
   pushNotification: 'pushNotification',
   // LikeCoin jobs
-  like: 'like',
+  like: 'likeCoinLike',
+  sendPV: 'likeCoinSendPV',
   // repeat jobs
   publishPendingDrafts: 'publishPendingDrafts',
   refreshView: 'refreshView',

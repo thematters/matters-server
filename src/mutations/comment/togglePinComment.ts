@@ -36,8 +36,6 @@ const resolver: MutationToTogglePinCommentResolver = async (
     action = enabled ? 'pin' : 'unpin'
   }
 
-  console.log(action)
-
   // run action
   if (action === 'pin') {
     const pinLeft = await commentService.pinLeftByArticle(comment.articleId)

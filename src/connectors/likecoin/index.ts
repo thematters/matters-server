@@ -304,7 +304,7 @@ export class LikeCoin {
       liker,
       headers: { 'X-LIKECOIN-REAL-IP': likerIp },
       withClientCredential: true,
-      data: {
+      params: {
         referrer: encodeURI(url)
       }
     })

@@ -13,6 +13,13 @@ interface LikeData {
   amount: number
 }
 
+interface SendPVData {
+  likerId?: string
+  likerIp?: string
+  authorLikerId: string
+  url: string
+}
+
 class LikeCoinQueue {
   q: InstanceType<typeof Queue>
   userService: InstanceType<typeof UserService>
@@ -35,39 +42,73 @@ class LikeCoinQueue {
     })
   }
 
+  sendPV = (data: SendPVData) => {
+    return this.q.add(QUEUE_JOB.sendPV, data, {
+      priority: QUEUE_PRIORITY.NORMAL,
+      attempts: 1
+    })
+  }
+
   /**
    * Cusumers
    */
   private addConsumers = () => {
-    this.q.process(QUEUE_JOB.like, 25, async (job, done) => {
-      try {
-        const {
-          likerId,
-          likerIp,
-          authorLikerId,
-          url,
-          amount
-        } = job.data as LikeData
+    this.q.process(QUEUE_JOB.like, 25, this.handleLike)
+    this.q.process(QUEUE_JOB.sendPV, 25, this.handleSendPV)
+  }
 
-        const liker = await this.userService.findLiker({ likerId: 'asdfadfds' })
+  private handleLike: Queue.ProcessCallbackFunction<unknown> = async (job, done) => {
+    try {
+      const {
+        likerId,
+        likerIp,
+        authorLikerId,
+        url,
+        amount
+      } = job.data as LikeData
 
-        if (!liker) {
-          return done(new Error(`liker (${likerId}) not found.`))
-        }
+      const liker = await this.userService.findLiker({ likerId })
 
-        const result = await this.userService.likecoin.like({
-          authorLikerId,
-          liker,
-          likerIp,
-          url,
-          amount
-        })
-        job.progress(100)
-        done(null, result)
-      } catch (e) {
-        done(e)
+      if (!liker) {
+        return done(new Error(`liker (${likerId}) not found.`))
       }
-    })
+
+      const result = await this.userService.likecoin.like({
+        authorLikerId,
+        liker,
+        likerIp,
+        url,
+        amount
+      })
+      job.progress(100)
+      done(null, result)
+    } catch (e) {
+      done(e)
+    }
+  }
+
+  private handleSendPV: Queue.ProcessCallbackFunction<unknown> = async (job, done) => {
+    try {
+      const { likerId, likerIp, authorLikerId, url } = job.data as SendPVData
+
+      const liker = await this.userService.findLiker({ likerId })
+
+      if (!liker) {
+        return done(new Error(`liker (${likerId}) not found.`))
+      }
+
+      const result = await this.userService.likecoin.count({
+        authorLikerId,
+        liker,
+        likerIp,
+        url
+      })
+
+      job.progress(100)
+      done(null, result)
+    } catch (e) {
+      done(e)
+    }
   }
 }
 
