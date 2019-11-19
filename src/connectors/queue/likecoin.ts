@@ -57,7 +57,10 @@ class LikeCoinQueue {
     this.q.process(QUEUE_JOB.sendPV, 25, this.handleSendPV)
   }
 
-  private handleLike: Queue.ProcessCallbackFunction<unknown> = async (job, done) => {
+  private handleLike: Queue.ProcessCallbackFunction<unknown> = async (
+    job,
+    done
+  ) => {
     try {
       const {
         likerId,
@@ -87,7 +90,10 @@ class LikeCoinQueue {
     }
   }
 
-  private handleSendPV: Queue.ProcessCallbackFunction<unknown> = async (job, done) => {
+  private handleSendPV: Queue.ProcessCallbackFunction<unknown> = async (
+    job,
+    done
+  ) => {
     try {
       const { likerId, likerIp, authorLikerId, url } = job.data as SendPVData
 
