@@ -304,7 +304,7 @@ export class LikeCoin {
       liker,
       headers: { 'X-LIKECOIN-REAL-IP': likerIp },
       withClientCredential: true,
-      data: {
+      params: {
         referrer: encodeURI(url)
       }
     })
@@ -347,7 +347,7 @@ export class LikeCoin {
       })
       const data = _.get(result, 'data')
       if (data === 'OK') {
-        return true
+        return data
       } else {
         throw result
       }
