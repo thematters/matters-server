@@ -87,6 +87,15 @@ const PUT_COMMENT = `
   }
 `
 
+const TOGGLE_PIN_COMMENT = `
+  mutation($input: ToggleItemInput!) {
+    togglePinComment(input: $input) {
+      id
+      pinned
+    }
+  }
+`
+
 const getCommentVotes = async (commentId: string) => {
   const { query } = await testClient()
   const { data } = await query({
@@ -249,5 +258,35 @@ describe('mutations on comment', () => {
       }
     })
     expect(_get(data, 'deleteComment.state')).toBe('archived')
+  })
+
+  test('pin a comment', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const result = await mutate({
+      mutation: TOGGLE_PIN_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: COMMENT_ID,
+          enabled: true
+        }
+      }
+    })
+    expect(_get(result.data, 'togglePinComment.pinned')).toBe(true)
+  })
+
+  test('unpin a comment ', async () => {
+    const { mutate } = await testClient({ isAuth: true })
+    const { data } = await mutate({
+      mutation: TOGGLE_PIN_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: COMMENT_ID,
+          enabled: false
+        }
+      }
+    })
+    expect(_get(data, 'togglePinComment.pinned')).toBe(false)
   })
 })

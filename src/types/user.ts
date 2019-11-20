@@ -41,17 +41,14 @@ export default /* GraphQL */ `
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
       @authenticate @purgeCache
 
-    "Follow a given user."
-    followUser(input: FollowUserInput!): User! @authenticate @purgeCache
+    "Follow or Unfollow current usere."
+    toggleFollowUser(input: ToggleItemInput!): User! @authenticate @purgeCache
 
-    "Unfollow curent user."
-    unfollowUser(input: FollowUserInput!): User! @authenticate @purgeCache
+    "Block or Unblock a given user."
+    toggleBlockUser(input: ToggleItemInput!): User! @authenticate @purgeCache
 
-    "Block a given user."
-    blockUser(input: BlockUserInput!): User! @authenticate @purgeCache
-
-    "Unblock a given user."
-    unblockUser(input: BlockUserInput!): User! @authenticate @purgeCache
+    "Subscribe/ Unsubscribe Push Notification."
+    toggleSubscribePush(input: ToggleItemInput!): User! @authenticate @purgeCache
 
     "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
@@ -59,11 +56,31 @@ export default /* GraphQL */ `
     "Clear search history for user."
     clearSearchHistory: Boolean @authenticate
 
+
+    ##############
+    #     OSS    #
+    ##############
     "Update state of a user, used in OSS."
     updateUserState(input: UpdateUserStateInput!): User! @authorize @purgeCache
-
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @authorize @purgeCache
+
+
+    ##############
+    # DEPRECATED #
+    ##############
+    "Block a given user."
+    blockUser(input: BlockUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleBlockUser\`.")
+
+    "Unblock a given user."
+    unblockUser(input: BlockUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleBlockUser\`.")
+
+    "Follow a given user."
+    followUser(input: FollowUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleFollowUser\`.")
+
+    "Unfollow curent user."
+    unfollowUser(input: FollowUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleFollowUser\`.")
+
   }
 
   type User implements Node {
@@ -80,7 +97,10 @@ export default /* GraphQL */ `
     displayName: String
 
     "LikerID of LikeCoin"
-    likerId: String @scope
+    likerId: String @scope @deprecated(reason: "Use \`liker.id\`.")
+
+    "Liker info of current user"
+    liker: Liker!
 
     "URL for user avatar."
     avatar: URL
@@ -140,7 +160,10 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection!
+    followeeArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Use \`followeeWorks\`.")
+
+    "Articles and comments published by user's followees."
+    followeeWorks(input: ResponsesInput!): ResponseConnection!
 
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection!
@@ -235,7 +258,7 @@ export default /* GraphQL */ `
     role: UserRole!
 
     "Total LIKE left in wallet."
-    LIKE: LIKE! @scope
+    LIKE: LIKE! @scope @deprecated(reason: "Use \`liker.total\` and \`liker.rateUSD\`.")
 
     "Number of articles published by user"
     articleCount: Int!
@@ -254,6 +277,20 @@ export default /* GraphQL */ `
 
     "Number of total written words."
     totalWordCount: Int!
+  }
+
+  type Liker {
+    "Liker ID of LikeCoin"
+    likerId: String @scope
+
+    "Whether liker is a civic liker"
+    civicLiker: Boolean!
+
+    "Total LIKE left in wallet."
+    total: NonNegativeFloat! @scope
+
+    "Rate of LikeCoin/USD"
+    rateUSD: NonNegativeFloat
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -437,6 +474,7 @@ export default /* GraphQL */ `
   input FollowUserInput {
     id: ID!
   }
+
 
   input BlockUserInput {
     id: ID!

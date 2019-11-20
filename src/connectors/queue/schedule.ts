@@ -89,14 +89,26 @@ class ScheduleQueue {
       }
     )
 
-    // refresh articleCountMaterialized every 2.1 hours, for topics recommendation
+    // refresh articleCountMaterialized every 1.1 hours, for topics recommendation
     this.q.add(
       QUEUE_JOB.refreshView,
       { view: MATERIALIZED_VIEW.articleCountMaterialized },
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 60 * 1.1 // every 1 + 0.1 hour
+          every: 1000 * 60 * 60 * 1.1 // every 1.1 hour
+        }
+      }
+    )
+
+    // refresh featuredCommentMaterialized every 2.1 hours, for featured comments
+    this.q.add(
+      QUEUE_JOB.refreshView,
+      { view: MATERIALIZED_VIEW.featuredCommentMaterialized },
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: 1000 * 60 * 60 * 2.1 // every 2.1 hour
         }
       }
     )
@@ -108,7 +120,7 @@ class ScheduleQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 60 * 3.1 // every 3 + 0.1 hour
+          every: 1000 * 60 * 60 * 3.1 // every 3.1 hour
         }
       }
     )

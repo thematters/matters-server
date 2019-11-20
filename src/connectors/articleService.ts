@@ -390,8 +390,10 @@ export class ArticleService extends BaseService {
         'setting.article_id'
       )
       .leftJoin('article', 'view.id', 'article.id')
-      .orderByRaw('latest_activity DESC NULLS LAST')
-      .orderBy('view.id', 'desc')
+      .orderBy([
+        { column: 'score', order: 'desc' },
+        { column: 'view.id', order: 'desc' }
+      ])
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
       .limit(limit)
       .offset(offset)
@@ -564,21 +566,6 @@ export class ArticleService extends BaseService {
       .join('matters_choice as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
       .where({ articleId })
-      .first()
-
-  findRecommendHottest = async (articleId: string) =>
-    this.knex('article_activity_materialized')
-      .where({ id: articleId })
-      .first()
-
-  findRecommendNewset = async (articleId: string) =>
-    this.knex(this.table)
-      .where({ id: articleId })
-      .first()
-
-  findRecommendTopic = async (articleId: string) =>
-    this.knex('article_count_materialized')
-      .where({ id: articleId })
       .first()
 
   /**
@@ -1061,6 +1048,16 @@ export class ArticleService extends BaseService {
         action: USER_ACTION.subscribe
       })
       .del()
+
+  findUserSubscribe = async (targetId: string, userId: string) =>
+    this.knex
+      .from('action_article')
+      .where({
+        targetId,
+        userId,
+        action: USER_ACTION.subscribe
+      })
+      .first()
 
   /*********************************
    *                               *

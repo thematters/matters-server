@@ -509,6 +509,121 @@ export class UserService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
+  makeFolloweeWorksQuery = ({
+    fields = '*',
+    state,
+    userId
+  }: {
+    fields?: string
+    state: string
+    userId: string
+  }) =>
+    this.knex.select(fields).from((wrapper: any) => {
+      wrapper
+        .select(
+          this.knex.raw('row_number() over (order by created_at) as seq, *')
+        )
+        .from((knex: any) => {
+          const source = knex.union((operator: any) => {
+            operator
+              .select(
+                this.knex.raw(
+                  "'Article' as type, article.id, article.created_at"
+                )
+              )
+              .from('action_user')
+              .innerJoin(
+                'article',
+                'article.author_id',
+                'action_user.target_id'
+              )
+              .where({ userId, state })
+          })
+          source.union((operator: any) => {
+            operator
+              .select(
+                this.knex.raw(
+                  "'Comment' as type, max(id) as id, max(created_at) created_at"
+                )
+              )
+              .from(
+                this.knex.raw(`
+                  (
+                    select comment.id, comment.created_at, comment.article_id, comment.author_id
+                    from action_user
+                    inner join comment on comment.author_id = action_user.target_id
+                    where user_id = ${userId} and state = '${state}'
+                  ) as comment_source
+                `)
+              )
+              .groupBy('article_id', 'author_id')
+          })
+          source.as('base_sources')
+          return source
+        })
+        .orderBy('created_at', 'desc')
+        .as('sources')
+    })
+
+  makeFolloweeWorksFilterQuery = ({
+    cursorId,
+    state,
+    userId
+  }: {
+    cursorId: string
+    state: string
+    userId: string
+  }) => {
+    const query = this.makeFolloweeWorksQuery({ fields: 'seq', state, userId })
+    return query.where({ id: cursorId }).first()
+  }
+
+  findFolloweeWorks = async ({
+    after,
+    limit = BATCH_SIZE,
+    state = 'active',
+    userId
+  }: {
+    after?: any
+    limit?: number
+    state?: string
+    userId: string
+  }) => {
+    const query = this.makeFolloweeWorksQuery({ state, userId })
+    if (after) {
+      const subQuery = this.makeFolloweeWorksFilterQuery({
+        cursorId: after,
+        state,
+        userId
+      })
+      query.andWhere('seq', '<', subQuery)
+    }
+    if (limit) {
+      query.limit(limit)
+    }
+    return query
+  }
+
+  findFolloweeWorksRange = async ({
+    state = 'active',
+    userId
+  }: {
+    state?: string
+    userId: string
+  }) => {
+    const query = this.makeFolloweeWorksQuery({ fields: '', state, userId })
+    const { count, max, min } = await query
+      .max('seq')
+      .min('seq')
+      .count()
+      .first()
+    return {
+      count: parseInt(count, 10),
+      max: parseInt(max, 10),
+      min: parseInt(min, 10)
+    }
+  }
+
   followeeArticles = async ({
     userId,
     offset = 0,
@@ -652,6 +767,74 @@ export class UserService extends BaseService {
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+
+  /*********************************
+   *                               *
+   *              Push             *
+   *                               *
+   *********************************/
+  subscribePush = async ({
+    userId,
+    deviceId,
+    provider = 'fcm',
+    userAgent,
+    version,
+    platform = 'web'
+  }: {
+    userId: string
+    deviceId: string
+    provider?: 'fcm'
+    userAgent?: string
+    version?: string
+    platform?: 'web' | 'ios' | 'android'
+  }) => {
+    const data = {
+      userId,
+      deviceId,
+      provider,
+      userAgent: userAgent || '',
+      version: version || '',
+      platform: platform || 'web'
+    }
+    return this.baseUpdateOrCreate({
+      where: data,
+      data: { updatedAt: new Date(), ...data },
+      table: 'push_device'
+    })
+  }
+
+  unsubscribePush = async ({
+    userId,
+    deviceId
+  }: {
+    userId: string
+    deviceId: string
+  }) =>
+    this.knex
+      .from('push_device')
+      .where({
+        deviceId,
+        userId
+      })
+      .del()
+
+  findPushDevice = async ({
+    userId,
+    deviceId
+  }: {
+    userId: string
+    deviceId: string
+  }) =>
+    this.knex
+      .from('push_device')
+      .where({
+        deviceId,
+        userId
+      })
+      .first()
+
+  findPushDevices = async ({ userIds }: { userIds: string[] }) =>
+    this.knex.from('push_device').whereIn('userId', userIds)
 
   /*********************************
    *                               *

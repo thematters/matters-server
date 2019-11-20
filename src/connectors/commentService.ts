@@ -3,7 +3,9 @@ import { v4 } from 'uuid'
 
 import {
   ARTICLE_PIN_COMMENT_LIMIT,
+  BATCH_SIZE,
   COMMENT_STATE,
+  MATERIALIZED_VIEW,
   USER_ACTION
 } from 'common/enums'
 import { CommentNotFoundError } from 'common/errors'
@@ -329,40 +331,56 @@ export class CommentService extends BaseService {
    */
   findFeaturedCommentsByArticle = async ({
     id,
-    first,
-    after
+    first = BATCH_SIZE,
+    after = 0
   }: {
-    [key: string]: string
+    id: string
+    first?: number
+    after?: number
   }) => {
-    const threshold = 20
     const result = await this.knex
-      .select()
-      .from(
-        this.knex.raw(/*sql*/ `
-          (select *,
-                  (coalesce(upvote_count, 0) - coalesce(downvote_count, 0) + 1) *
-                  sqrt(coalesce(upvote_count, 0) + coalesce(downvote_count, 0)) as score
-          from comment
-          left join
-            (select target_id,
-                    count(id) as upvote_count
-              from action_comment as action
-              where action.action = 'up_vote'
-              group by action.target_id) as upvotes on comment.id = upvotes.target_id
-          left join
-            (select target_id,
-                    coalesce(count(id), 0) as downvote_count
-              from action_comment as action
-              where action.action = 'down_vote'
-              group by action.target_id) as downvotes on comment.id = downvotes.target_id
-          where article_id = ${id} and parent_comment_id is null) as comment_score
-      `)
-      )
-      .where({ pinned: true })
-      .orWhere('score', '>', threshold)
-      .orderBy('score', 'desc')
+      .select('*')
+      .from(MATERIALIZED_VIEW.featuredCommentMaterialized)
+      .where({ articleId: id })
+      .orderBy([
+        { column: 'pinned', order: 'desc' },
+        { column: 'score', order: 'desc' }
+      ])
+      .limit(first)
+      .offset(after)
     return result
   }
+
+  /*********************************
+   *                               *
+   *              Pin              *
+   *                               *
+   *********************************/
+
+  /**
+   * Pin or Unpin a comment
+   */
+  togglePinned = async ({
+    commentId,
+    pinned
+  }: {
+    commentId: string
+    pinned: boolean
+  }) =>
+    this.baseUpdate(commentId, {
+      pinned,
+      updatedAt: new Date()
+    })
+
+  /**
+   * Find a pinned comment by a given comment id
+   */
+  findPinned = async (commentId: string) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({ id: commentId, pinned: true })
+      .first()
 
   /**
    * Find pinned comments by a given article id.

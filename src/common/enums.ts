@@ -6,7 +6,8 @@ export const MATERIALIZED_VIEW = {
   articleCountMaterialized: 'article_count_materialized',
   tagCountMaterialized: 'tag_count_materialized',
   userReaderMaterialized: 'user_reader_materialized',
-  articleActivityMaterialized: 'article_activity_materialized'
+  articleActivityMaterialized: 'article_activity_materialized',
+  featuredCommentMaterialized: 'featured_comment_materialized'
 }
 
 export const CACHE_TTL = {
@@ -275,6 +276,9 @@ export const QUEUE_JOB = {
   // notification jobs
   sendMail: 'sendMail',
   pushNotification: 'pushNotification',
+  // LikeCoin jobs
+  like: 'likeCoinLike',
+  sendPV: 'likeCoinSendPV',
   // repeat jobs
   publishPendingDrafts: 'publishPendingDrafts',
   refreshView: 'refreshView',
@@ -284,7 +288,8 @@ export const QUEUE_JOB = {
 export const QUEUE_NAME = {
   notification: 'notification',
   publication: 'publication',
-  schedule: 'schedule'
+  schedule: 'schedule',
+  likecoin: 'likecoin'
 }
 
 export const QUEUE_CONCURRENCY = {

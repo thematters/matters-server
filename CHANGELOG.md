@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2019-11-20
+
+### Added
+
+- Civic Liker #567 #569 #573
+- Web Push Notification #552 #557 #558 #562 #564 #575
+- featured comments materialized view #565 #572
+
+### Changed
+
+- Change followee articles queries #563
+- Update article activity rank #566 #570
+- Add indexes for transaction and comment tables. #568
+- Async LikeCoin API calling with queue #576
+
 ## [2.1.2] - 2019-11-04
 
 ### Added

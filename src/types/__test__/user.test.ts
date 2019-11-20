@@ -1,4 +1,5 @@
-import _ from 'lodash'
+import _get from 'lodash/get'
+import _values from 'lodash/values'
 
 import { MATERIALIZED_VIEW, VERIFICATION_CODE_STATUS } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
@@ -41,6 +42,24 @@ const UNFOLLOW_USER = `
     }
   }
 `
+const TOGGLE_FOLLOW_USER = `
+  mutation($input: ToggleItemInput!) {
+    toggleFollowUser(input: $input) {
+      id
+      isFollowee
+    }
+  }
+`
+
+const TOGGLE_BLOCK_USER = `
+  mutation($input: ToggleItemInput!) {
+    toggleBlockUser(input: $input) {
+      id
+      isBlocked
+    }
+  }
+`
+
 const UPDATE_USER_INFO_DESCRIPTION = `
   mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
     updateUserInfo(input: $input) {
@@ -184,6 +203,28 @@ query($input: ConnectionArgs!) {
 }
 `
 
+const GET_VIEWER_RECOMMENDATION_FOLLOWEE_WORKS = `
+query($input: ResponsesInput!) {
+  viewer {
+    recommendation {
+      followeeWorks(input: $input) {
+        edges {
+          node {
+            __typename
+            ...on Article {
+              id
+            }
+            ...on Comment {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+}
+`
+
 const GET_AUTHOR_RECOMMENDATION = (list: string) => `
 query($input: AuthorsInput!) {
   viewer {
@@ -211,11 +252,7 @@ const GET_VIEWER_BADGES = `
     }
   }
 `
-const INVITE = `
-  mutation Invite($input: InviteInput!) {
-    invite(input: $input)
-  }
-`
+
 const SEND_VERIFICATION_CODE = `
   mutation SendVerificationCode($input: SendVerificationCodeInput!) {
     sendVerificationCode(input: $input)
@@ -245,7 +282,7 @@ describe('register and login functionarlities', () => {
       codeId: code.uuid
     }
     const registerResult = await registerUser(user)
-    expect(_.get(registerResult, 'data.userRegister.token')).toBeTruthy()
+    expect(_get(registerResult, 'data.userRegister.token')).toBeTruthy()
 
     const context = await getUserContext({ email: user.email })
     const { query } = await testClient({
@@ -254,8 +291,8 @@ describe('register and login functionarlities', () => {
     const newUserResult = await query({
       query: GET_VIEWER_INFO
     })
-    const displayName = _.get(newUserResult, 'data.viewer.displayName')
-    const info = _.get(newUserResult, 'data.viewer.info')
+    const displayName = _get(newUserResult, 'data.viewer.displayName')
+    const info = _get(newUserResult, 'data.viewer.info')
     expect(displayName).toBe(user.displayName)
     expect(info.email).toBe(user.email)
   })
@@ -270,7 +307,7 @@ describe('register and login functionarlities', () => {
       // @ts-ignore
       variables: { input: { email, password } }
     })
-    expect(_.get(result, 'errors.0.extensions.code')).toBe(
+    expect(_get(result, 'errors.0.extensions.code')).toBe(
       'USER_PASSWORD_INVALID'
     )
   })
@@ -285,7 +322,7 @@ describe('register and login functionarlities', () => {
       // @ts-ignore
       variables: { input: { email, password } }
     })
-    expect(_.get(result, 'data.userLogin.auth')).toBe(true)
+    expect(_get(result, 'data.userLogin.auth')).toBe(true)
   })
 
   test('retrive user info after login', async () => {
@@ -295,7 +332,7 @@ describe('register and login functionarlities', () => {
     const { data } = await query({
       query: GET_VIEWER_INFO
     })
-    const info = _.get(data, 'viewer.info')
+    const info = _get(data, 'viewer.info')
     expect(info.email).toEqual(defaultTestUser.email)
   })
 })
@@ -309,7 +346,7 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: { userName } }
     })
-    expect(_.get(data, 'user.userName')).toBe(userName)
+    expect(_get(data, 'user.userName')).toBe(userName)
   })
   test('retrive user articles', async () => {
     const { query } = await testClient({
@@ -321,7 +358,7 @@ describe('user query fields', () => {
       variables: { input: { first: 1 } }
     })
     const { data } = result
-    const articles = _.get(data, 'viewer.articles.edges')
+    const articles = _get(data, 'viewer.articles.edges')
     expect(articles.length).toBeDefined()
     expect(articles[0].node.id).toBeDefined()
   })
@@ -334,7 +371,7 @@ describe('user query fields', () => {
       query: GET_VIEWER_SETTINGS
     })
     const { data } = res
-    const settings = _.get(data, 'viewer.settings')
+    const settings = _get(data, 'viewer.settings')
     expect(settings).toBeDefined()
     expect(settings.notification).toBeDefined()
   })
@@ -348,7 +385,7 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const subscriptions = _.get(data, 'viewer.subscriptions.edges')
+    const subscriptions = _get(data, 'viewer.subscriptions.edges')
     expect(subscriptions.length).toBeTruthy()
   })
 
@@ -361,7 +398,7 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followers = _.get(data, 'viewer.followers.edges')
+    const followers = _get(data, 'viewer.followers.edges')
     expect(followers).toBeDefined()
   })
 
@@ -374,7 +411,7 @@ describe('user query fields', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followees = _.get(data, 'viewer.followees.edges')
+    const followees = _get(data, 'viewer.followees.edges')
     expect(followees.length).toBeTruthy()
   })
 
@@ -385,7 +422,7 @@ describe('user query fields', () => {
     const { data } = await query({
       query: GET_VIEWER_STATUS
     })
-    const status = _.get(data, 'viewer.status')
+    const status = _get(data, 'viewer.status')
     expect(status).toBeDefined()
   })
 })
@@ -414,7 +451,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followees = _.get(followeeData, 'viewer.followees.edges')
+    const followees = _get(followeeData, 'viewer.followees.edges')
     expect(
       followees.map(({ node: { id } }: { node: { id: string } }) => id)
     ).toContain(followeeId)
@@ -435,10 +472,74 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: {} }
     })
-    const followeesNew = _.get(followeeDataNew, 'viewer.followees.edges')
+    const followeesNew = _get(followeeDataNew, 'viewer.followees.edges')
     expect(
       followeesNew.filter(({ id }: { id: string }) => id === followeeId).length
     ).toEqual(0)
+  })
+
+  test('follow a user with `toggleFollowUser`', async () => {
+    const followeeId = toGlobalId({ type: 'User', id: '4' })
+    const { mutate } = await testClient({ isAuth: true })
+    const result = await mutate({
+      mutation: TOGGLE_FOLLOW_USER,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: followeeId,
+          enabled: true
+        }
+      }
+    })
+    expect(_get(result.data, 'toggleFollowUser.isFollowee')).toBe(true)
+  })
+
+  test('unfollow a user with `toggleFollowUser`', async () => {
+    const followeeId = toGlobalId({ type: 'User', id: '4' })
+    const { mutate } = await testClient({ isAuth: true })
+    const { data } = await mutate({
+      mutation: TOGGLE_FOLLOW_USER,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: followeeId,
+          enabled: false
+        }
+      }
+    })
+    expect(_get(data, 'toggleFollowUser.isFollowee')).toBe(false)
+  })
+
+  test('block a user with `toggleBlockUser`', async () => {
+    const blockUserId = toGlobalId({ type: 'User', id: '2' })
+    const { mutate } = await testClient({ isAuth: true })
+    const result = await mutate({
+      mutation: TOGGLE_BLOCK_USER,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: blockUserId,
+          enabled: true
+        }
+      }
+    })
+    expect(_get(result.data, 'toggleBlockUser.isBlocked')).toBe(true)
+  })
+
+  test('block a user with `toggleBlockUser`', async () => {
+    const blockUserId = toGlobalId({ type: 'User', id: '2' })
+    const { mutate } = await testClient({ isAuth: true })
+    const result = await mutate({
+      mutation: TOGGLE_BLOCK_USER,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: blockUserId,
+          enabled: false
+        }
+      }
+    })
+    expect(_get(result.data, 'toggleBlockUser.isBlocked')).toBe(false)
   })
 
   test('updateUserInfoDescription', async () => {
@@ -451,7 +552,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: { description } }
     })
-    const info = _.get(data, 'updateUserInfo.info')
+    const info = _get(data, 'updateUserInfo.info')
     expect(info.description).toEqual(description)
   })
 
@@ -465,7 +566,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: { avatar: avatarAssetUUID } }
     })
-    const avatar = _.get(data, 'updateUserInfo.avatar')
+    const avatar = _get(data, 'updateUserInfo.avatar')
     expect(avatar).toEqual(expect.stringContaining('path/to/file.jpg'))
   })
 
@@ -478,7 +579,7 @@ describe('mutations on User object', () => {
       // @ts-ignore
       variables: { input: { type: 'enable', enabled: false } }
     })
-    const enable = _.get(
+    const enable = _get(
       data,
       'updateNotificationSetting.settings.notification.enable'
     )
@@ -489,24 +590,48 @@ describe('mutations on User object', () => {
 describe('user recommendations', () => {
   test('retrive articles from hottest, icymi, topics, followeeArticles and newest', async () => {
     await Promise.all(
-      _.values(MATERIALIZED_VIEW).map(view =>
+      _values(MATERIALIZED_VIEW).map(view =>
         refreshView(view as MaterializedView)
       )
     )
 
-    const lists = ['hottest', 'icymi', 'topics', 'followeeArticles', 'newest']
+    const lists = [
+      'hottest',
+      'icymi',
+      'topics',
+      'followeeArticles',
+      'newest',
+      'followeeWorks'
+    ]
     for (const list of lists) {
       const { query: queryNew } = await testClient({
         isAuth: true
       })
-      const result = await queryNew({
-        query: GET_VIEWER_RECOMMENDATION(list),
-        // @ts-ignore
-        variables: { input: { first: 1 } }
-      })
-      const { data } = result
-      const article = _.get(data, `viewer.recommendation.${list}.edges.0.node`)
-      expect(fromGlobalId(article.id).type).toBe('Article')
+
+      if (list === 'followeeWorks') {
+        const result = await queryNew({
+          query: GET_VIEWER_RECOMMENDATION_FOLLOWEE_WORKS,
+          // @ts-ignore
+          variables: { input: { first: 1 } }
+        })
+        const { data } = result
+        const item = _get(data, `viewer.recommendation.${list}.edges.0.node`)
+        if (item.__typename === 'Article') {
+          expect(fromGlobalId(item.id).type).toBe('Article')
+        }
+        if (item.__typename === 'Comment') {
+          expect(fromGlobalId(item.id).type).toBe('Comment')
+        }
+      } else {
+        const result = await queryNew({
+          query: GET_VIEWER_RECOMMENDATION(list),
+          // @ts-ignore
+          variables: { input: { first: 1 } }
+        })
+        const { data } = result
+        const article = _get(data, `viewer.recommendation.${list}.edges.0.node`)
+        expect(fromGlobalId(article.id).type).toBe('Article')
+      }
     }
   })
 
@@ -519,7 +644,7 @@ describe('user recommendations', () => {
       // @ts-ignore
       variables: { input: { first: 1 } }
     })
-    const tag = _.get(data, 'viewer.recommendation.tags.edges.0.node')
+    const tag = _get(data, 'viewer.recommendation.tags.edges.0.node')
     expect(fromGlobalId(tag.id).type).toBe('Tag')
   })
 
@@ -533,7 +658,7 @@ describe('user recommendations', () => {
       variables: { input: { first: 1 } }
     })
     const { data } = result
-    const author = _.get(data, 'viewer.recommendation.authors.edges.0.node')
+    const author = _get(data, 'viewer.recommendation.authors.edges.0.node')
     expect(fromGlobalId(author.id).type).toBe('User')
   })
 })
@@ -548,7 +673,7 @@ describe('badges', () => {
       // @ts-ignore
       variables: {}
     })
-    expect(_.get(data, 'viewer.info.badges.0.type')).toBe('seed')
+    expect(_get(data, 'viewer.info.badges.0.type')).toBe('seed')
   })
 })
 

@@ -1,10 +1,23 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
+let firebaseCert = {}
+
+if (process.env.MATTERS_FIREBASE_CREDENTIALS) {
+  const path = `../../${process.env.MATTERS_FIREBASE_CREDENTIALS}`
+  try {
+    firebaseCert = require(path)
+    console.log(new Date(), `Succeeded to load firebase credentials on ${path}`)
+  } catch (e) {
+    console.error(new Date(), `Failed to load firebase credentials on ${path}`)
+  }
+}
+
 /**
  * Here are all environment variables that server needs. Please add prefix
  * `MATTERS_` before environment variables.
  */
+
 export const environment = {
   env: process.env.MATTERS_ENV || 'development',
   domain: process.env.MATTERS_DOMAIN,
@@ -30,12 +43,11 @@ export const environment = {
   cacheHost: process.env.MATTERS_CACHE_HOST as string,
   cachePort: (process.env.MATTERS_CACHE_PORT || 6379) as number,
   sgKey: process.env.MATTERS_SENDGRID_API_KEY,
-  jpushKey: process.env.MATTERS_JPUSH_API_KEY,
-  jpushSecret: process.env.MATTERS_JPUSH_API_SECRET,
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
   apiKey: process.env.MATTERS_APOLLO_API_KEY,
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
+  firebaseCert,
   likecoinOAuthClientName: process.env.MATTERS_LIKECOIN_OAUTH_CLIENT_NAME || '',
   likecoinMigrationApiURL: process.env.MATTERS_LIKECOIN_MIGRATION_API_URL || '',
   likecoinApiURL: process.env.MATTERS_LIKECOIN_API_URL || '',

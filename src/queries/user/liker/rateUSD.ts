@@ -2,10 +2,7 @@ import axiso from 'axios'
 import _ from 'lodash'
 
 import logger from 'common/logger'
-import { LIKEToRateUSDResolver } from 'definitions'
-
-const PRICE_API =
-  'https://api.coingecko.com/api/v3/coins/likecoin?localization=false'
+import { LikerToRateUSDResolver } from 'definitions'
 
 const CACHED = {
   price: null,
@@ -13,7 +10,7 @@ const CACHED = {
 }
 const EXPIRES_IN = 1000 * 60 * 60 // 1 hour
 
-const resolver: LIKEToRateUSDResolver = async (
+const resolver: LikerToRateUSDResolver = async (
   { id },
   __: any,
   { dataSources: { userService } }
@@ -24,8 +21,7 @@ const resolver: LIKEToRateUSDResolver = async (
   }
 
   try {
-    const res = await axiso.get(PRICE_API)
-    const price = _.get(res, 'data.market_data.current_price.usd', null)
+    const price = await userService.likecoin.rate()
 
     // save to cache
     CACHED.price = price
