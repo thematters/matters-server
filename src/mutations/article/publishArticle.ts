@@ -16,15 +16,17 @@ const resolver: MutationToPublishArticleResolver = async (
   // retrive data from draft
   const { id: draftDBId } = fromGlobalId(id)
   const draft = await draftService.dataloader.load(draftDBId)
+  const isPublished = draft.publishState === PUBLISH_STATE.published
+
   if (
-    draft.authorId !== viewer.id ||
-    draft.archived ||
-    draft.publishState === PUBLISH_STATE.published
+    draft.authorId !== viewer.id || (draft.archived && !isPublished)
   ) {
     throw new DraftNotFoundError('draft does not exists')
   }
 
-  if (draft.publishState === PUBLISH_STATE.pending) {
+  if (
+    draft.publishState === PUBLISH_STATE.pending || (draft.archived && isPublished)
+  ) {
     return draft
   }
 
