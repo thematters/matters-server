@@ -2,7 +2,6 @@ import {
   RenderPageOptions as PlaygroundRenderPageOptions,
   renderPlaygroundPage
 } from '@apollographql/graphql-playground-html'
-import * as Sentry from '@sentry/node'
 import { RedisCache } from 'apollo-server-cache-redis'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
 import express, { Express } from 'express'
@@ -30,6 +29,7 @@ import {
 } from 'connectors'
 import responseCachePlugin from 'middlewares/responseCachePlugin'
 import { scopeMiddleware } from 'middlewares/scope'
+import { sentryMiddleware } from 'middlewares/sentry'
 
 import costMap from '../costMap'
 import schema from '../schema'
@@ -76,7 +76,7 @@ const redisCache = new RedisCache({
   port: environment.cachePort
 })
 
-const composedSchema = applyMiddleware(schema, scopeMiddleware)
+const composedSchema = applyMiddleware(schema, sentryMiddleware, scopeMiddleware)
 
 const server = new ProtectedApolloServer({
   schema: composedSchema,
@@ -100,11 +100,6 @@ const server = new ProtectedApolloServer({
     maxFiles: 10
   },
   debug: !isProd,
-  formatError: (error: any) => {
-    // catch error globally
-    Sentry.captureException(error)
-    return error
-  },
   validationRules: [depthLimit(15)],
   cache: redisCache,
   persistedQueries: {

@@ -1,6 +1,5 @@
 // forked from https://github.com/apollographql/apollo-server/tree/master/packages/apollo-server-plugin-response-cache
 
-import * as Sentry from '@sentry/node'
 import { CacheHint, CacheScope } from 'apollo-cache-control'
 import { KeyValueCache, PrefixingKeyValueCache } from 'apollo-server-caching'
 import {
@@ -15,6 +14,7 @@ import {
 import { createHash } from 'crypto'
 
 import { CACHE_TTL } from 'common/enums'
+import logger from 'common/logger'
 
 // XXX This should use createSHA from apollo-server-core in order to work on
 // non-Node environments. I'm not sure where that should end up ---
@@ -319,7 +319,7 @@ export default function plugin(
                   redis.client.expire(cacheKey, CACHE_TTL.SHORT)
                 })
               } catch (error) {
-                Sentry.captureException(error)
+                logger.error(error)
               }
             }
           }
