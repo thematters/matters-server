@@ -3,6 +3,7 @@ import * as path from 'path'
 import { createLogger, format, transports } from 'winston'
 
 import { isProd } from 'common/environment'
+import { pushErrorToSentry } from 'common/utils/sentry'
 
 const logPath = 'logs'
 
@@ -11,19 +12,29 @@ if (!fs.existsSync(logPath)) {
   fs.mkdirSync(logPath)
 }
 
+const sentryLogFilter = format((info, opts) => {
+  if (info.level === 'error') {
+    pushErrorToSentry(info)
+  }
+  return info
+})
+
+/**
+ * Simple format outputs:
+ *
+ * YYYY-MM-DD HH:mm:ss `${level}: ${message} ${[object]}`
+ *
+ */
 const logger = createLogger({
   level: 'info',
   format: format.combine(
     format.timestamp({
       format: 'YYYY-MM-DD HH:mm:ss'
     }),
-    //
-    // The simple format outputs
-    // `${level}: ${message} ${[Object with everything else]}`
-    //
     format.printf(
       info => `${info.timestamp} ${info.level}: ${JSON.stringify(info.message)}`
-    )
+    ),
+    sentryLogFilter()
   ),
   transports: [
     new transports.File({
