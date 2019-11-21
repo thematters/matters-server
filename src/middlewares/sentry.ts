@@ -1,5 +1,5 @@
 import logger from 'common/logger'
-import { pushErrorToSentry }from 'common/utils/sentry'
+import { pushErrorToSentry } from 'common/utils/sentry'
 
 export const sentryMiddleware = async (
   resolve: any,

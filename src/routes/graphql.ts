@@ -76,7 +76,11 @@ const redisCache = new RedisCache({
   port: environment.cachePort
 })
 
-const composedSchema = applyMiddleware(schema, sentryMiddleware, scopeMiddleware)
+const composedSchema = applyMiddleware(
+  schema,
+  sentryMiddleware,
+  scopeMiddleware
+)
 
 const server = new ProtectedApolloServer({
   schema: composedSchema,
