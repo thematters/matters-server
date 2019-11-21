@@ -99,13 +99,9 @@ class LikeCoinQueue {
 
       const liker = await this.userService.findLiker({ likerId })
 
-      if (!liker) {
-        return done(new Error(`liker (${likerId}) not found.`))
-      }
-
       const result = await this.userService.likecoin.count({
         authorLikerId,
-        liker,
+        liker: liker || undefined,
         likerIp,
         url
       })
