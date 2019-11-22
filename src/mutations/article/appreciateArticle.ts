@@ -1,5 +1,3 @@
-import * as Sentry from '@sentry/node'
-
 import { CACHE_KEYWORD, NODE_TYPES, TRANSACTION_TYPES } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -109,7 +107,6 @@ const resolver: MutationToAppreciateArticleResolver = async (
 
     return newArticle
   } catch (error) {
-    Sentry.captureException(error)
     throw error
   }
 }

@@ -1,7 +1,6 @@
-import * as Sentry from '@sentry/node'
-
 import { environment } from 'common/environment'
 import { ArticleNotFoundError } from 'common/errors'
+import logger from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 import { likeCoinQueue } from 'connectors/queue'
 import { MutationToReadArticleResolver } from 'definitions'
@@ -39,7 +38,7 @@ const resolver: MutationToReadArticleResolver = async (
       url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
     })
   } catch (error) {
-    Sentry.captureException(error)
+    logger.error(error)
   }
 
   return article

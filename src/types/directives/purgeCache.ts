@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/node'
 import { defaultFieldResolver, GraphQLField } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 import _compact from 'lodash/compact'
@@ -6,6 +5,7 @@ import _get from 'lodash/get'
 import _replace from 'lodash/replace'
 
 import { CACHE_KEYWORD, CACHE_PREFIX } from 'common/enums'
+import logger from 'common/logger'
 
 interface CacheSet {
   id: string
@@ -49,7 +49,7 @@ export class PurgeCacheDirective extends SchemaDirectiveVisitor {
             })
           })
         } catch (error) {
-          Sentry.captureException(error)
+          logger.error(error)
         }
       }
       return result
