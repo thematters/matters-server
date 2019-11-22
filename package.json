@@ -96,6 +96,7 @@
     "uuid": "^3.3.2",
     "validator": "^10.11.0",
     "winston": "^3.2.1",
+    "winston-transport": "^4.3.0",
     "xss": "^1.0.3"
   },
   "devDependencies": {
