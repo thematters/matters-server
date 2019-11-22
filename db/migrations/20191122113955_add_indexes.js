@@ -9,7 +9,6 @@ const table_action_comment = 'action_comment'
 const table_action_user = 'action_user'
 const table_log_record = 'log_record'
 
-
 exports.up = async knex => {
   // article
   await knex.schema.table(table_article, t => {
@@ -25,7 +24,6 @@ exports.up = async knex => {
       .index('order')
   })
 
-
   // draft
   await knex.schema.table(table_draft, t => {
     t.index('publish_state')
@@ -35,8 +33,7 @@ exports.up = async knex => {
 
   // comment
   await knex.schema.table(table_comment, t => {
-    t.index(['parent_comment_id', 'state'])
-      .index('state')
+    t.index(['parent_comment_id', 'state']).index('state')
   })
 
   // user
@@ -80,7 +77,6 @@ exports.down = async knex => {
       .dropIndex('author_id')
   })
 
-
   // collection
   await knex.schema.table(table_collection, t => {
     t.dropIndex('entrance_id')
@@ -97,8 +93,7 @@ exports.down = async knex => {
 
   // comment
   await knex.schema.table(table_comment, t => {
-    t.dropIndex(['parent_comment_id', 'state'])
-      .dropIndex('state')
+    t.dropIndex(['parent_comment_id', 'state']).dropIndex('state')
   })
 
   // user
