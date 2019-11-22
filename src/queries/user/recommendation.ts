@@ -45,22 +45,38 @@ const resolvers: GQLRecommendationTypeResolver = {
       userService.findFolloweeWorksRange({ userId: id })
     ])
 
+    const cleanedSources = sources.filter(source => source) as Array<{
+      [key: string]: any
+    }>
+
     // fetch followee works
-    const items = await Promise.all(
-      sources.map((source: { [key: string]: any }) => {
+    const items = (await Promise.all(
+      cleanedSources.map((source: { [key: string]: any }) => {
         switch (source.type) {
           case 'Article': {
-            return articleService.baseFindById(source.id)
+            return articleService.dataloader.load(source.id)
           }
           case 'Comment': {
-            return commentService.baseFindById(source.id)
+            return commentService.dataloader.load(source.id)
+          }
+          default: {
+            return new Promise(resolve => resolve(undefined))
           }
         }
       })
-    )
+    )) as Array<
+      | {
+          [key: string]: any
+        }
+      | undefined
+    >
 
     // re-process items
-    const edges = items.map((item: { [key: string]: any }) => {
+    const cleanedItems = items.filter(item => item) as Array<{
+      [key: string]: any
+    }>
+
+    const edges = cleanedItems.map(item => {
       const type = !!item.title ? 'Article' : 'Comment'
       return {
         cursor: toGlobalId({ type, id: item.id }),
