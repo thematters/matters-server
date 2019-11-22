@@ -45,13 +45,9 @@ const resolvers: GQLRecommendationTypeResolver = {
       userService.findFolloweeWorksRange({ userId: id })
     ])
 
-    const cleanedSources = sources.filter(source => source) as Array<{
-      [key: string]: any
-    }>
-
     // fetch followee works
     const items = (await Promise.all(
-      cleanedSources.map((source: { [key: string]: any }) => {
+      sources.map((source: { [key: string]: any }) => {
         switch (source.type) {
           case 'Article': {
             return articleService.dataloader.load(source.id)
