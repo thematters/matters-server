@@ -1,9 +1,11 @@
+import * as Sentry from '@sentry/node'
 import * as fs from 'fs'
+import _get from 'lodash/get'
 import * as path from 'path'
 import { createLogger, format, transports } from 'winston'
+import Transport from 'winston-transport'
 
 import { isProd } from 'common/environment'
-import { pushErrorToSentry } from 'common/utils/sentry'
 
 const logPath = 'logs'
 
@@ -12,12 +14,39 @@ if (!fs.existsSync(logPath)) {
   fs.mkdirSync(logPath)
 }
 
-const sentryLogFilter = format((info, opts) => {
-  if (info.level === 'error') {
-    pushErrorToSentry(info)
+/**
+ * Custom winston transport for Sentry.
+ *
+ */
+class SentryTransport extends Transport {
+  constructor(opts?: Transport.TransportStreamOptions) {
+    super(opts)
   }
-  return info
-})
+
+  log(info: any, next: () => void) {
+
+    if (info.level === 'error') {
+      const code = _get(info, 'extensions.code')
+
+      switch (code) {
+        case 'CODE_EXPIRED':
+        case 'UNAUTHENTICATED':
+        case 'USER_USERNAME_EXISTS':
+        case 'USER_PASSWORD_INVALID': {
+          // Ingore errors
+          break
+        }
+        default: {
+          const sentryError = new Error(info.message)
+          sentryError.stack = info.stack
+          Sentry.captureException(sentryError)
+          break
+        }
+      }
+    }
+    next()
+  }
+}
 
 /**
  * Simple format outputs:
@@ -28,20 +57,21 @@ const sentryLogFilter = format((info, opts) => {
 const logger = createLogger({
   level: 'info',
   format: format.combine(
+    format.errors({ stack: true }),
     format.timestamp({
       format: 'YYYY-MM-DD HH:mm:ss'
     }),
     format.printf(
       info => `${info.timestamp} ${info.level}: ${JSON.stringify(info.message)}`
-    ),
-    sentryLogFilter()
+    )
   ),
   transports: [
     new transports.File({
       filename: path.join(logPath, 'error.log'),
       level: 'error'
     }),
-    new transports.File({ filename: path.join(logPath, 'combined.log') })
+    new transports.File({ filename: path.join(logPath, 'combined.log') }),
+    new SentryTransport({ level: 'error' })
   ]
 })
 
