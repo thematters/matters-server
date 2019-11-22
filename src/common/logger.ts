@@ -24,7 +24,6 @@ class SentryTransport extends Transport {
   }
 
   log(info: any, next: () => void) {
-
     if (info.level === 'error') {
       const code = _get(info, 'extensions.code')
 
