@@ -708,7 +708,8 @@ export interface GQLComment extends GQLNode {
 export enum GQLCommentState {
   active = 'active',
   archived = 'archived',
-  banned = 'banned'
+  banned = 'banned',
+  collapsed = 'collapsed'
 }
 
 /**

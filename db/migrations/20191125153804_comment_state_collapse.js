@@ -8,7 +8,7 @@ exports.up = async knex => {
       'active',
       'archived',
       'banned',
-      'collapse'
+      'collapsed'
     ])
   )
 }

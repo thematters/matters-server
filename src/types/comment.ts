@@ -209,5 +209,6 @@ export default /* GraphQL */ `
     active
     archived
     banned
+    collapsed
   }
 `
