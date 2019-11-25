@@ -20,12 +20,8 @@ export default /* GraphQL */ `
     "Unvote a comment."
     unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate @purgeCache
 
-
-    ##############
-    #     OSS    #
-    ##############
     "Update a comments' state."
-    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @authorize @purgeCache
+    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @authenticate @purgeCache
 
 
     ##############
