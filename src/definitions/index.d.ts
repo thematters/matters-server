@@ -24,6 +24,7 @@ export type User = {
   description: string
   avatar: string
   email: string
+  emailVerified: string
   likerId?: string
   passwordHash: string
   baseGravity: number

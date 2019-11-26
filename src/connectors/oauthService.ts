@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken'
 import nanoid from 'nanoid'
 
 import {
@@ -165,6 +166,16 @@ export class OAuthService extends BaseService {
       'oauth_refresh_token'
     )
 
+    const payload = {
+      sub: user.id,
+      name: user.userName,
+      email: user.email,
+      emailVerified: user.emailVerified
+    }
+    const idToken = jwt.sign(payload, environment.jwtSecret, {
+      expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN
+    })
+
     return {
       accessToken: accessToken.token,
       accessTokenExpiresAt: new Date(accessToken.expires),
@@ -172,7 +183,8 @@ export class OAuthService extends BaseService {
       refreshTokenExpiresAt: new Date(refreshToken.expires),
       scope: accessToken.scope,
       client,
-      user
+      user,
+      idToken
     }
   }
 
