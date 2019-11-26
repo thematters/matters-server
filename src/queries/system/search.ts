@@ -1,8 +1,8 @@
 import _ from 'lodash'
 
+import { TRUNCATE_LENGTH } from 'common/enums'
 import { connectionFromArray, cursorToIndex } from 'common/utils'
 import { GQLNode, QueryToSearchResolver } from 'definitions'
-import { TRUNCATE_LENGTH } from 'common/enums'
 
 const resolver: QueryToSearchResolver = async (
   root,
