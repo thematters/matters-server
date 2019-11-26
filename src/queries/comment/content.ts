@@ -6,9 +6,10 @@ const resolver: CommentToContentResolver = (
   { viewer }
 ) => {
   const isActive = state === 'active'
+  const isCollapsed = state === 'collapsed'
   const isAdmin = viewer && viewer.id && viewer.role === 'admin'
 
-  if (isActive || isAdmin) {
+  if (isActive || isCollapsed || isAdmin) {
     return content
   }
 

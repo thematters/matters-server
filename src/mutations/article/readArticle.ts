@@ -1,8 +1,8 @@
-import * as Sentry from '@sentry/node'
-
 import { environment } from 'common/environment'
 import { ArticleNotFoundError } from 'common/errors'
+import logger from 'common/logger'
 import { fromGlobalId } from 'common/utils'
+import { likeCoinQueue } from 'connectors/queue'
 import { MutationToReadArticleResolver } from 'definitions'
 
 const resolver: MutationToReadArticleResolver = async (
@@ -28,15 +28,17 @@ const resolver: MutationToReadArticleResolver = async (
     if (viewer.id) {
       liker = await userService.findLiker({ userId: viewer.id })
     }
+
     const author = await userService.dataloader.load(article.authorId)
-    await userService.likecoin.count({
-      authorLikerId: author.likerId,
-      liker: liker || undefined,
+
+    likeCoinQueue.sendPV({
+      likerId: liker ? liker.likerId : undefined,
       likerIp: viewer.ip,
+      authorLikerId: author.likerId,
       url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
     })
   } catch (error) {
-    Sentry.captureException(error)
+    logger.error(error)
   }
 
   return article

@@ -1,5 +1,3 @@
-import * as Sentry from '@sentry/node'
-
 import { CACHE_KEYWORD, NODE_TYPES, TRANSACTION_TYPES } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -10,6 +8,7 @@ import {
   LikerNotFoundError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
+import { likeCoinQueue } from 'connectors/queue/likecoin'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 
 const resolver: MutationToAppreciateArticleResolver = async (
@@ -57,20 +56,22 @@ const resolver: MutationToAppreciateArticleResolver = async (
   }
 
   try {
-    await userService.likecoin.like({
-      authorLikerId: author.likerId,
-      liker,
-      likerIp: viewer.ip,
-      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
-      amount: validAmount
-    })
-
+    // record to DB
     await articleService.appreciate({
       articleId: article.id,
       senderId: viewer.id,
       recipientId: article.authorId,
       amount: validAmount,
       type: TRANSACTION_TYPES.like
+    })
+
+    // record to LikeCoin
+    likeCoinQueue.like({
+      likerId: liker.likerId,
+      likerIp: viewer.ip,
+      authorLikerId: author.likerId,
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+      amount: validAmount
     })
 
     // publish a PubSub event
@@ -106,7 +107,6 @@ const resolver: MutationToAppreciateArticleResolver = async (
 
     return newArticle
   } catch (error) {
-    Sentry.captureException(error)
     throw error
   }
 }

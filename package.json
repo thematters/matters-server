@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "Matters Server",
   "main": "build/index.js",
   "engines": {
@@ -96,6 +96,7 @@
     "uuid": "^3.3.2",
     "validator": "^10.11.0",
     "winston": "^3.2.1",
+    "winston-transport": "^4.3.0",
     "xss": "^1.0.3"
   },
   "devDependencies": {

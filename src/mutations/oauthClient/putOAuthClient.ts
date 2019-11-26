@@ -36,7 +36,6 @@ const resolver: MutationToPutOAuthClientResolver = async (
     clientSecret: secret,
     name,
     description,
-    avatar,
     scope,
     websiteUrl: website,
     grantTypes,
@@ -45,15 +44,19 @@ const resolver: MutationToPutOAuthClientResolver = async (
   }
 
   if (avatar) {
-    const asset = await systemService.findAssetByUUID(avatar)
-    if (
-      !asset ||
-      asset.type !== 'oauthClientAvatar' ||
-      asset.authorId !== viewer.id
-    ) {
-      throw new AssetNotFoundError('avatar asset does not exists')
+    try {
+      const asset = await systemService.findAssetByUUID(avatar)
+      if (
+        !asset ||
+        asset.type !== 'oauthClientAvatar' ||
+        asset.authorId !== viewer.id
+      ) {
+        throw new AssetNotFoundError('avatar asset does not exists')
+      }
+      oauthClient.avatar = asset.id
+    } catch (e) {
+      console.error(`asset ${avatar} doesn't exists.`)
     }
-    oauthClient.avatar = asset.id
   }
 
   /**

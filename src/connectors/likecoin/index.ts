@@ -1,9 +1,9 @@
-import * as Sentry from '@sentry/node'
 import axios, { AxiosRequestConfig } from 'axios'
 import Knex from 'knex'
 import _ from 'lodash'
 
 import { environment } from 'common/environment'
+import logger from 'common/logger'
 import { knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
 
@@ -102,8 +102,7 @@ export class LikeCoin {
         const accessToken = await this.refreshToken({ liker })
         return makeRequest({ accessToken })
       } else {
-        console.error(e)
-        Sentry.captureException(e)
+        logger.error(e)
         throw e
       }
     }
@@ -136,8 +135,7 @@ export class LikeCoin {
           updatedAt: new Date()
         })
     } catch (e) {
-      console.error(e)
-      Sentry.captureException(e)
+      logger.error(e)
     }
 
     return data.access_token
@@ -304,7 +302,7 @@ export class LikeCoin {
       liker,
       headers: { 'X-LIKECOIN-REAL-IP': likerIp },
       withClientCredential: true,
-      data: {
+      params: {
         referrer: encodeURI(url)
       }
     })
@@ -347,7 +345,7 @@ export class LikeCoin {
       })
       const data = _.get(result, 'data')
       if (data === 'OK') {
-        return true
+        return data
       } else {
         throw result
       }

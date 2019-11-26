@@ -543,7 +543,7 @@ export class UserService extends BaseService {
                 'article.author_id',
                 'action_user.target_id'
               )
-              .where({ userId, state })
+              .where({ userId, state, action: 'follow' })
           })
           source.union((operator: any) => {
             operator
@@ -558,7 +558,7 @@ export class UserService extends BaseService {
                     select comment.id, comment.created_at, comment.article_id, comment.author_id
                     from action_user
                     inner join comment on comment.author_id = action_user.target_id
-                    where user_id = ${userId} and state = '${state}'
+                    where user_id = ${userId} and state = '${state}' and action = 'follow'
                   ) as comment_source
                 `)
               )
