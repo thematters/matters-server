@@ -121,8 +121,7 @@ export class CommentService extends BaseService {
     sort
   }: GQLCommentCommentsInput & { id: string }) => {
     let where: { [key: string]: string | boolean } = {
-      parentCommentId: id,
-      state: COMMENT_STATE.active // filter inactive descendant comments
+      parentCommentId: id
     }
 
     let query = null
