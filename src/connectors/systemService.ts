@@ -40,10 +40,12 @@ export class SystemService extends BaseService {
 
     const result = await query
 
-    return result.map(({ searchKey }) => _.truncate(searchKey as string, {
-      'length': TRUNCATE_LENGTH,
-      'omission': ''
-    }))
+    return result.map(({ searchKey }) =>
+      _.truncate(searchKey as string, {
+        length: TRUNCATE_LENGTH,
+        omission: ''
+      })
+    )
   }
 
   /*********************************

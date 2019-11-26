@@ -14,8 +14,8 @@ const resolver: QueryToSearchResolver = async (
 ) => {
   if (input.type !== 'User' && input.key) {
     const inputKey = _.truncate(input.key, {
-      'length': TRUNCATE_LENGTH,
-      'omission': ''
+      length: TRUNCATE_LENGTH,
+      omission: ''
     })
     systemService.baseCreate(
       { userId: viewer ? viewer.id : null, searchKey: inputKey },
