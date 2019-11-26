@@ -1,4 +1,6 @@
-import { BATCH_SIZE } from 'common/enums'
+import _ from 'lodash'
+
+import { BATCH_SIZE, TRUNCATE_LENGTH } from 'common/enums'
 import { BaseService } from 'connectors'
 
 export class SystemService extends BaseService {
@@ -38,7 +40,10 @@ export class SystemService extends BaseService {
 
     const result = await query
 
-    return result.map(({ searchKey }) => searchKey)
+    return result.map(({ searchKey }) => _.truncate(searchKey as string, {
+      'length': TRUNCATE_LENGTH,
+      'omission': ''
+    }))
   }
 
   /*********************************
