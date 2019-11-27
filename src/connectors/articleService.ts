@@ -216,6 +216,19 @@ export class ArticleService extends BaseService {
       .where({ authorId, sticky: true })
 
   /**
+   * Find articles by which commented by author.
+   */
+  findByCommentedAuthor = async (authorId: string) =>
+    this.knex
+      .select('article.*')
+      .max('comment.id', { as: '_comment_id_' })
+      .from('comment')
+      .innerJoin(this.table, 'comment.article_id', 'article.id')
+      .where({ 'comment.author_id': authorId })
+      .groupBy('article.id')
+      .orderBy('_comment_id_', 'desc')
+
+  /**
    * Count articles by a given authorId (user).
    */
   countByAuthor = async (authorId: string, activeOnly: boolean = true) => {

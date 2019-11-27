@@ -22,11 +22,6 @@ test('countDownVote', async () => {
   expect(count).toBe(0)
 })
 
-test('findByAuthor', async () => {
-  const comments = await commentService.findByAuthor('1')
-  expect(comments.length).toBe(2)
-})
-
 test('findPinnedByArticle', async () => {
   const comments = await commentService.findPinnedByArticle('3')
   expect(comments.length).toBe(1)
