@@ -344,7 +344,7 @@ export class UserService extends BaseService {
       .groupBy('search_key')
       .orderBy('search_at', 'desc')
     return result.map(({ searchKey }) =>
-      searchKey.slices(0, SEARCH_KEY_TRUNCATE_LENGTH)
+      searchKey.slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
     )
   }
 
