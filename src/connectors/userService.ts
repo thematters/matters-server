@@ -10,7 +10,7 @@ import {
   BATCH_SIZE,
   BCRYPT_ROUNDS,
   BLOCK_USERS,
-  TRUNCATE_LENGTH,
+  SEARCH_KEY_TRUNCATE_LENGTH,
   USER_ACCESS_TOKEN_EXPIRES_IN,
   USER_ACTION,
   USER_STATE,
@@ -344,10 +344,7 @@ export class UserService extends BaseService {
       .groupBy('search_key')
       .orderBy('search_at', 'desc')
     return result.map(({ searchKey }) =>
-      _.truncate(searchKey as string, {
-        length: TRUNCATE_LENGTH,
-        omission: ''
-      })
+      searchKey.slices(0, SEARCH_KEY_TRUNCATE_LENGTH)
     )
   }
 

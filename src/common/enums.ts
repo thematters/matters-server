@@ -423,4 +423,4 @@ export const TRANSACTION_TYPES = {
   mat: 'MAT'
 }
 
-export const TRUNCATE_LENGTH = 100
+export const SEARCH_KEY_TRUNCATE_LENGTH = 100

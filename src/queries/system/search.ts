@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { TRUNCATE_LENGTH } from 'common/enums'
+import { SEARCH_KEY_TRUNCATE_LENGTH } from 'common/enums'
 import { connectionFromArray, cursorToIndex } from 'common/utils'
 import { GQLNode, QueryToSearchResolver } from 'definitions'
 
@@ -12,13 +12,13 @@ const resolver: QueryToSearchResolver = async (
     viewer
   }
 ) => {
+  if (input.key) {
+    input.key = input.key.slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
+  }
+
   if (input.type !== 'User' && input.key) {
-    const inputKey = _.truncate(input.key, {
-      length: TRUNCATE_LENGTH,
-      omission: ''
-    })
     systemService.baseCreate(
-      { userId: viewer ? viewer.id : null, searchKey: inputKey },
+      { userId: viewer ? viewer.id : null, searchKey: input.key },
       'search_history'
     )
   }
