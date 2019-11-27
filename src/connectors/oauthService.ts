@@ -172,7 +172,7 @@ export class OAuthService extends BaseService {
       email: user.email,
       emailVerified: user.emailVerified
     }
-    const idToken = jwt.sign(payload, environment.jwtSecret, {
+    const id_token = jwt.sign(payload, environment.jwtSecret, {
       expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN
     })
 
@@ -182,9 +182,9 @@ export class OAuthService extends BaseService {
       refreshToken: refreshToken.token,
       refreshTokenExpiresAt: new Date(refreshToken.expires),
       scope: accessToken.scope,
+      id_token,
       client,
-      user,
-      idToken
+      user
     }
   }
 
