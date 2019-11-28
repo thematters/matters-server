@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Return proper response when doing publish #583
 - Use winston transport instead of format pipe for Sentry. #587
+- Add option to disable `+` sign in `isValidateEmail` #597
 
 ## [2.2.0] - 2019-11-20
 
