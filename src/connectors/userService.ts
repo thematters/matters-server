@@ -10,6 +10,7 @@ import {
   BATCH_SIZE,
   BCRYPT_ROUNDS,
   BLOCK_USERS,
+  SEARCH_KEY_TRUNCATE_LENGTH,
   USER_ACCESS_TOKEN_EXPIRES_IN,
   USER_ACTION,
   USER_STATE,
@@ -342,7 +343,9 @@ export class UserService extends BaseService {
       .max('created_at as search_at')
       .groupBy('search_key')
       .orderBy('search_at', 'desc')
-    return result.map(({ searchKey }) => searchKey)
+    return result.map(({ searchKey }) =>
+      searchKey.slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
+    )
   }
 
   clearSearches = (userId: string) =>

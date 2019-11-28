@@ -422,3 +422,5 @@ export const TRANSACTION_TYPES = {
   like: 'LIKE',
   mat: 'MAT'
 }
+
+export const SEARCH_KEY_TRUNCATE_LENGTH = 100
