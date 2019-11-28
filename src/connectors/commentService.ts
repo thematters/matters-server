@@ -103,16 +103,6 @@ export class CommentService extends BaseService {
   }
 
   /**
-   * Find comments by a given author id (user).
-   */
-  findByAuthor = async (authorId: string) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .where({ authorId, state: COMMENT_STATE.active })
-      .orderBy('id', 'desc')
-
-  /**
    * Find comments by a given comment id.
    */
   findByParent = async ({
@@ -121,8 +111,7 @@ export class CommentService extends BaseService {
     sort
   }: GQLCommentCommentsInput & { id: string }) => {
     let where: { [key: string]: string | boolean } = {
-      parentCommentId: id,
-      state: COMMENT_STATE.active // filter inactive descendant comments
+      parentCommentId: id
     }
 
     let query = null

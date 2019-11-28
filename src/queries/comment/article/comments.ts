@@ -39,7 +39,6 @@ const resolver: ArticleToCommentsResolver = async (
     if (author) {
       filter = {
         authorId: fromGlobalId(author).id,
-        state: COMMENT_STATE.active, // will be overwrite by sate in input if specified
         ...filter
       }
     }

@@ -47,7 +47,6 @@ const resolver: MutationToPutCommentResolver = async (
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
-  data.articleId = article.id
 
   // check whether viewer is blocked by article author
   const isBlocked = await userService.blocked({
@@ -55,7 +54,7 @@ const resolver: MutationToPutCommentResolver = async (
     targetId: viewer.id
   })
   if (isBlocked) {
-    throw new AuthenticationError('viewer is blocked by article author')
+    throw new ForbiddenError('viewer is blocked by article author')
   }
 
   // check parentComment
@@ -112,7 +111,7 @@ const resolver: MutationToPutCommentResolver = async (
 
   // Create
   else {
-    newComment = await commentService.create(data)
+    newComment = await commentService.create({ ...data, articleId: article.id })
 
     /**
      * Notifications

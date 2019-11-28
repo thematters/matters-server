@@ -33,6 +33,7 @@ const oAuthServer = new OAuthServer({
     verifyScope: oAuthService.verifyScope
   },
   allowEmptyState: true,
+  allowExtendedTokenAttributes: true,
   authenticateHandler: {
     handle: async (req: any, res: any) => {
       const viewer = await getViewerFromReq({ req, res })
