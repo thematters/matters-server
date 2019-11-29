@@ -1,5 +1,5 @@
-import { CommentToContentResolver } from 'definitions'
 import { ARTICLE_STATE } from 'common/enums'
+import { CommentToContentResolver } from 'definitions'
 
 const resolver: CommentToContentResolver = (
   { content, state },
