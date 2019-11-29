@@ -1,4 +1,4 @@
-import { BATCH_SIZE } from 'common/enums'
+import { BATCH_SIZE, SEARCH_KEY_TRUNCATE_LENGTH } from 'common/enums'
 import { BaseService } from 'connectors'
 
 export class SystemService extends BaseService {
@@ -38,7 +38,9 @@ export class SystemService extends BaseService {
 
     const result = await query
 
-    return result.map(({ searchKey }) => searchKey)
+    return result.map(({ searchKey }) =>
+      (searchKey as string).slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
+    )
   }
 
   /*********************************
