@@ -7,8 +7,7 @@ const table_notice_actor = 'notice_actor'
 exports.up = async knex => {
   // article_tag
   await knex.schema.table(table_article_tag, t => {
-    t.index('article_id')
-      .index('tag_id')
+    t.index('article_id').index('tag_id')
   })
 
   // notice
@@ -26,8 +25,7 @@ exports.up = async knex => {
 
   // notice entity
   await knex.schema.table(table_notice_entity, t => {
-    t.index('entity_type_id')
-      .index('notice_id')
+    t.index('entity_type_id').index('notice_id')
   })
 
   // notice actor
@@ -39,8 +37,7 @@ exports.up = async knex => {
 exports.down = async knex => {
   // article_tag
   await knex.schema.table(table_article_tag, t => {
-    t.dropIndex('article_id')
-      .dropIndex('tag_id')
+    t.dropIndex('article_id').dropIndex('tag_id')
   })
 
   // notice
@@ -58,8 +55,7 @@ exports.down = async knex => {
 
   // notice entity
   await knex.schema.table(table_notice_entity, t => {
-    t.dropIndex('entity_type_id')
-      .dropIndex('notice_id')
+    t.dropIndex('entity_type_id').dropIndex('notice_id')
   })
 
   // notice actor
