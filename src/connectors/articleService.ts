@@ -1418,7 +1418,7 @@ export class ArticleService extends BaseService {
   findResponses = ({
     id,
     order = 'desc',
-    state = 'active',
+    state = ARTICLE_STATE.active,
     after,
     before,
     first,
@@ -1495,7 +1495,7 @@ export class ArticleService extends BaseService {
   countByResponses = async ({
     id,
     order = 'desc',
-    state = 'active'
+    state = ARTICLE_STATE.active
   }: {
     id: string
     order?: string

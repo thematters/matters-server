@@ -46,7 +46,7 @@ export type Context = RequestContext & {
 }
 
 export type Viewer = (User | { id: null }) & {
-  hasRole: (role: string) => boolean
+  hasRole: (role: UserRole) => boolean
   hasScopeMode: (mode: string) => boolean
   ip?: string
   role: string

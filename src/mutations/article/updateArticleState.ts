@@ -1,3 +1,4 @@
+import { ARTICLE_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
 import { MutationToUpdateArticleStateResolver } from 'definitions'
 
@@ -14,7 +15,7 @@ const resolver: MutationToUpdateArticleStateResolver = async (
   })
 
   // trigger notification
-  if (state === 'banned') {
+  if (state === ARTICLE_STATE.banned) {
     const user = await userService.dataloader.load(article.authorId)
     notificationService.trigger({
       event: 'article_banned',
