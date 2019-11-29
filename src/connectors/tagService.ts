@@ -244,10 +244,10 @@ export class TagService extends BaseService {
     return result.map(({ articleId }: { articleId: string }) => articleId)
   }
 
-  deleteArticleTagsByArticleIds = async({
+  deleteArticleTagsByArticleIds = async ({
     articleIds,
     tagId
-  } : {
+  }: {
     articleIds: string[]
     tagId: string
   }) =>
