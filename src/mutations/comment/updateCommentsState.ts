@@ -18,7 +18,7 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
   const dbIds = (ids || []).map(id => fromGlobalId(id).id)
 
   // bulk update to active or collapsed for article author
-  if (viewer.role !== 'admin') {
+  if (!viewer.hasRole('admin')) {
     return Promise.all(
       dbIds.map(async commentDbId => {
         const comment = await commentService.dataloader.load(commentDbId)

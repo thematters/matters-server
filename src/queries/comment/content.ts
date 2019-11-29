@@ -7,7 +7,7 @@ const resolver: CommentToContentResolver = (
 ) => {
   const isActive = state === 'active'
   const isCollapsed = state === 'collapsed'
-  const isAdmin = viewer && viewer.id && viewer.role === 'admin'
+  const isAdmin = viewer.hasRole('admin')
 
   if (isActive || isCollapsed || isAdmin) {
     return content

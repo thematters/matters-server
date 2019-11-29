@@ -7,10 +7,10 @@ const resolver: UserToArticlesResolver = (
   { input },
   { dataSources: { articleService }, viewer }
 ) => {
+  const isViewer = viewer.id === id
   const filter =
-    viewer.id === id || viewer.role === 'admin'
-      ? {}
-      : { state: ARTICLE_STATE.active }
+    isViewer || viewer.hasRole('admin') ? {} : { state: ARTICLE_STATE.active }
+
   return connectionFromPromisedArray(
     articleService.findByAuthor(id, filter, true),
     input
