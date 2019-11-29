@@ -290,7 +290,6 @@ export class LikerEmailExistsError extends ApolloError {
   }
 }
 
-
 export class LikerUserIdExistsError extends ApolloError {
   constructor(message: string) {
     super(message, 'LIKER_USER_ID_EXISTS')

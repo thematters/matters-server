@@ -3,10 +3,7 @@ import Knex from 'knex'
 import _ from 'lodash'
 
 import { environment } from 'common/environment'
-import {
-  LikerEmailExistsError,
-  LikerUserIdExistsError
-} from 'common/errors'
+import { LikerEmailExistsError, LikerUserIdExistsError } from 'common/errors'
 import logger from 'common/logger'
 import { knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
