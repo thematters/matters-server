@@ -13,7 +13,11 @@ const resolver: MutationToMergeTagsResolver = async (
     throw new UserNotFoundError('could not find Matty')
   }
   const tagDdIds = ids.map(id => fromGlobalId(id).id)
-  const newTag = await tagService.mergeTags({ tagIds: tagDdIds, content, editors: [mattyUser.id] })
+  const newTag = await tagService.mergeTags({
+    tagIds: tagDdIds,
+    content,
+    editors: [mattyUser.id]
+  })
   return newTag
 }
 

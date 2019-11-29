@@ -39,8 +39,11 @@ const resolver: MutationToPutTagResolver = async (
     if (tags.length > 0) {
       throw new DuplicateTagError(`dulpicate tag content: ${tagContent}`)
     }
-    return tagService.create({ content: tagContent, description, editors: [viewer.id] })
-
+    return tagService.create({
+      content: tagContent,
+      description,
+      editors: [viewer.id]
+    })
   } else {
     // update tag
     const { id: dbId } = fromGlobalId(id)
