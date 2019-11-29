@@ -70,7 +70,8 @@ export const VOTE = {
 export const COMMENT_STATE = {
   active: 'active',
   archived: 'archived',
-  banned: 'banned'
+  banned: 'banned',
+  collapsed: 'collapsed'
 }
 
 export const USER_STATE = {

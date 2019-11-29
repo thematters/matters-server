@@ -1,3 +1,4 @@
+import { USER_STATE } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
 import { MutationToUpdateUserStateResolver } from 'definitions'
 
@@ -13,12 +14,12 @@ const resolver: MutationToUpdateUserStateResolver = async (
   })
 
   // trigger notification
-  if (state === 'banned') {
+  if (state === USER_STATE.banned) {
     notificationService.trigger({
       event: 'user_banned',
       recipientId: user.id
     })
-  } else if (state === 'frozen') {
+  } else if (state === USER_STATE.frozen) {
     notificationService.trigger({
       event: 'user_frozen',
       recipientId: user.id

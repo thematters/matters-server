@@ -1,3 +1,4 @@
+import { COMMENT_STATE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { MutationToUpdateCommentsStateResolver } from 'definitions'
@@ -25,8 +26,11 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
         const article = await articleService.dataloader.load(comment.articleId)
         const isArticleAuthor = viewer.id === article.authorId
         const isValidFromState =
-          ['active', 'collapsed'].indexOf(comment.state) >= 0
-        const isValidToState = ['active', 'collapsed'].indexOf(state) >= 0
+          [COMMENT_STATE.active, COMMENT_STATE.collapsed].indexOf(
+            comment.state
+          ) >= 0
+        const isValidToState =
+          [COMMENT_STATE.active, COMMENT_STATE.collapsed].indexOf(state) >= 0
 
         if (!isArticleAuthor || !isValidFromState || !isValidToState) {
           throw new ForbiddenError(
@@ -54,7 +58,7 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
   })
 
   // trigger notification
-  if (state === 'banned') {
+  if (state === COMMENT_STATE.banned) {
     await Promise.all(
       comments.map(async comment => {
         const user = await userService.dataloader.load(comment.authorId)

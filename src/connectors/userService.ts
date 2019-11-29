@@ -584,7 +584,7 @@ export class UserService extends BaseService {
   findFolloweeWorks = async ({
     after,
     limit = BATCH_SIZE,
-    state = 'active',
+    state = USER_STATE.active,
     userId
   }: {
     after?: any
@@ -608,7 +608,7 @@ export class UserService extends BaseService {
   }
 
   findFolloweeWorksRange = async ({
-    state = 'active',
+    state = USER_STATE.active,
     userId
   }: {
     state?: string
