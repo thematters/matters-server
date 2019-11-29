@@ -36,6 +36,8 @@ export default /* GraphQL */ `
     "Create or update tag."
     putTag(input: PutTagInput!): Tag! @authorize @purgeCache
 
+    "Add one tag to articles."
+    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authorize @purgeCache
 
     ##############
     #     OSS    #
@@ -315,6 +317,11 @@ export default /* GraphQL */ `
     id: ID
     content: String
     description: String
+  }
+
+  input UpdateArticlesTagsInput {
+    id: ID!
+    articles: [ID!]
   }
 
   "Enums for an article state."

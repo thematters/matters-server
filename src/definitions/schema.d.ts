@@ -1557,6 +1557,11 @@ export interface GQLMutation {
   putTag: GQLTag
 
   /**
+   * Add one tag to articles.
+   */
+  updateArticlesTags: GQLTag
+
+  /**
    * #############
    *      OSS    #
    * #############
@@ -1840,6 +1845,11 @@ export interface GQLPutTagInput {
   id?: string
   content?: string
   description?: string
+}
+
+export interface GQLUpdateArticlesTagsInput {
+  id: string
+  articles?: Array<string>
 }
 
 export interface GQLToggleArticleRecommendInput {
@@ -6522,6 +6532,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   setCollection?: MutationToSetCollectionResolver<TParent>
   updateArticleInfo?: MutationToUpdateArticleInfoResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
+  updateArticlesTags?: MutationToUpdateArticlesTagsResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
@@ -6707,6 +6718,21 @@ export interface MutationToPutTagResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutTagArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateArticlesTagsArgs {
+  input: GQLUpdateArticlesTagsInput
+}
+export interface MutationToUpdateArticlesTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateArticlesTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

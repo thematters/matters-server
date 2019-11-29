@@ -785,6 +785,9 @@ type Mutation {
   """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
 
+  """Add one tag to articles."""
+  updateArticlesTags(input: UpdateArticlesTagsInput!): Tag!
+
   """
   #############
        OSS    #
@@ -1618,6 +1621,11 @@ input UnvoteCommentInput {
 input UpdateArticleInfoInput {
   id: ID!
   sticky: Boolean
+}
+
+input UpdateArticlesTagsInput {
+  id: ID!
+  articles: [ID!]
 }
 
 input UpdateArticleStateInput {

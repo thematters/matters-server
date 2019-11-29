@@ -61,6 +61,8 @@ const notice: {
         subscribed_article_new_comment: 'SubscribedArticleNewCommentNotice',
         upstream_article_archived: 'UpstreamArticleArchivedNotice',
         downstream_article_archived: 'DownstreamArticleArchivedNotice',
+        article_tag_has_been_added: 'ArticleTagHasBeenAdded',
+        article_tag_has_been_removed: 'ArticleTagHasBeenRemoved',
         // comment
         comment_pinned: 'CommentPinnedNotice',
         comment_new_reply: 'CommentNewReplyNotice',

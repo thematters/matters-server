@@ -244,6 +244,18 @@ export class TagService extends BaseService {
     return result.map(({ articleId }: { articleId: string }) => articleId)
   }
 
+  deleteArticleTagsByArticleIds = async({
+    articleIds,
+    tagId
+  } : {
+    articleIds: string[]
+    tagId: string
+  }) =>
+    this.knex('article_tag')
+      .whereIn('article_id', articleIds)
+      .andWhere({ tagId })
+      .del()
+
   /*********************************
    *                               *
    *              OSS              *
