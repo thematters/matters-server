@@ -182,6 +182,19 @@ export class NotEnoughMatError extends ApolloError {
 
 /*********************************
  *                               *
+ *              Tag              *
+ *                               *
+ *********************************/
+export class DuplicateTagError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'DUPLICATE_TAG')
+
+    Object.defineProperty(this, 'name', { value: 'DuplicateTagError' })
+  }
+}
+
+/*********************************
+ *                               *
  *             User              *
  *                               *
  *********************************/

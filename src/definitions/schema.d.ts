@@ -782,6 +782,21 @@ export interface GQLTag extends GQLNode {
   createdAt: GQLDateTime
 
   /**
+   * Tag's cover link.
+   */
+  cover?: GQLURL
+
+  /**
+   * Description of this tag.
+   */
+  description?: string
+
+  /**
+   * Editors of this tag.
+   */
+  editors?: Array<GQLUser>
+
+  /**
    * OSS
    */
   oss: GQLTagOSS
@@ -1537,6 +1552,11 @@ export interface GQLMutation {
   updateArticleInfo: GQLArticle
 
   /**
+   * Create or update tag.
+   */
+  putTag: GQLTag
+
+  /**
    * #############
    *      OSS    #
    * #############
@@ -1814,6 +1834,12 @@ export interface GQLSetCollectionInput {
 export interface GQLUpdateArticleInfoInput {
   id: string
   sticky?: boolean
+}
+
+export interface GQLPutTagInput {
+  id?: string
+  content?: string
+  description?: string
 }
 
 export interface GQLToggleArticleRecommendInput {
@@ -4447,6 +4473,9 @@ export interface GQLTagTypeResolver<TParent = any> {
   content?: TagToContentResolver<TParent>
   articles?: TagToArticlesResolver<TParent>
   createdAt?: TagToCreatedAtResolver<TParent>
+  cover?: TagToCoverResolver<TParent>
+  description?: TagToDescriptionResolver<TParent>
+  editors?: TagToEditorsResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
 }
@@ -4482,6 +4511,33 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToEditorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6465,6 +6521,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   recallPublish?: MutationToRecallPublishResolver<TParent>
   setCollection?: MutationToSetCollectionResolver<TParent>
   updateArticleInfo?: MutationToUpdateArticleInfoResolver<TParent>
+  putTag?: MutationToPutTagResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
@@ -6638,6 +6695,18 @@ export interface MutationToUpdateArticleInfoResolver<
   (
     parent: TParent,
     args: MutationToUpdateArticleInfoArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutTagArgs {
+  input: GQLPutTagInput
+}
+export interface MutationToPutTagResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPutTagArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

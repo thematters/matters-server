@@ -18,7 +18,8 @@ import {
   DraftService,
   NotificationService,
   SystemService,
-  TagService
+  TagService,
+  UserService
 } from 'connectors'
 
 import { createQueue } from './utils'
@@ -31,6 +32,7 @@ class PublicationQueue {
   draftService: InstanceType<typeof DraftService>
   notificationService: InstanceType<typeof NotificationService>
   systemService: InstanceType<typeof SystemService>
+  userService: InstanceType<typeof UserService>
 
   private queueName = QUEUE_NAME.publication
 
@@ -41,6 +43,7 @@ class PublicationQueue {
     this.cacheService = new CacheService()
     this.draftService = new DraftService()
     this.systemService = new SystemService()
+    this.userService = new UserService()
     this.q = createQueue(this.queueName)
     this.addConsumers()
   }
@@ -180,10 +183,14 @@ class PublicationQueue {
           // handle tags
           let tags = draft.tags
           if (tags && tags.length > 0) {
+            // get tag editor
+            const mattyUser = await this.userService.findByEmail('hi@matters.news')
+            const tagEditors =  mattyUser ? [mattyUser.id] : []
+
             // create tag records, return tag record if already exists
             const dbTags = ((await Promise.all(
               tags.map((tag: string) =>
-                this.tagService.create({ content: tag })
+                this.tagService.create({ content: tag, editors: tagEditors })
               )
             )) as unknown) as [{ id: string; content: string }]
             // create article_tag record

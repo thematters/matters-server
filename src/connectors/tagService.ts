@@ -53,14 +53,28 @@ export class TagService extends BaseService {
     return query.limit(limit).offset(offset)
   }
 
+  /**
+   * Find tags by a given content.
+   *
+   */
+  findByContent = async ({ content }: { content: string }) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({ content })
+
   create = async ({
-    content
+    content,
+    description,
+    editors
   }: {
     content: string
+    description?: string
+    editors: string[]
   }): Promise<{ id: string; content: string }> =>
     this.baseFindOrCreate({
       where: { content },
-      data: { content }
+      data: { content, description, editors }
     })
 
   /*********************************
@@ -250,13 +264,15 @@ export class TagService extends BaseService {
 
   mergeTags = async ({
     tagIds,
-    content
+    content,
+    editors
   }: {
     tagIds: string[]
     content: string
+    editors: string[]
   }) => {
     // create new tag
-    const newTag = await this.create({ content })
+    const newTag = await this.create({ content, editors })
 
     // move article tags to new tag
     const articleIds = await this.findArticleIdsByTagIds(tagIds)

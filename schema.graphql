@@ -782,6 +782,9 @@ type Mutation {
   """Update article information."""
   updateArticleInfo(input: UpdateArticleInfoInput!): Article!
 
+  """Create or update tag."""
+  putTag(input: PutTagInput!): Tag!
+
   """
   #############
        OSS    #
@@ -1190,6 +1193,12 @@ input PutRemarkInput {
   type: RemarkTypes!
 }
 
+input PutTagInput {
+  id: ID
+  content: String
+  description: String
+}
+
 type Query {
   article(input: ArticleInput!): Article
   node(input: NodeInput!): Node
@@ -1496,6 +1505,15 @@ type Tag implements Node {
 
   """Time of this tag was created."""
   createdAt: DateTime!
+
+  """Tag's cover link."""
+  cover: URL
+
+  """Description of this tag."""
+  description: String
+
+  """Editors of this tag."""
+  editors: [User!]
 
   """OSS"""
   oss: TagOSS!
