@@ -27,7 +27,7 @@ steps:
       MATTERS_CACHE_HOST: redis
       MATTERS_JWT_SECRET: QsNmu9
       MATTERS_ELASTICSEARCH_HOST: elasticsearch
-      MATTERS_ELASTICSEARCH_PORT: 9300
+      MATTERS_ELASTICSEARCH_PORT: 9200
       MATTERS_IPFS_HOST: ipfs
       MATTERS_IPFS_PORT: 5001
     commands:
@@ -248,9 +248,9 @@ services:
   - name: redis
     image: redis
   - name: elasticsearch
-    image: elasticsearch:6.8.5
+    image: elasticsearch:7.4.0
     ports:
-      - 9300
+      - 9200
   - name: ipfs
     image: ipfs/go-ipfs:latest
     ports:
