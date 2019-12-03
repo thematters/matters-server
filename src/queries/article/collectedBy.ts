@@ -1,5 +1,9 @@
 import { ARTICLE_STATE } from 'common/enums'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  cursorToIndex,
+  loadManyFilterError
+} from 'common/utils'
 import { ArticleToCollectedByResolver } from 'definitions'
 
 const resolver: ArticleToCollectedByResolver = async (
@@ -21,6 +25,7 @@ const resolver: ArticleToCollectedByResolver = async (
       .loadMany(
         collections.map(({ entranceId }: { entranceId: string }) => entranceId)
       )
+      .then(loadManyFilterError)
       .then(articles =>
         articles.filter(({ state }) => state === ARTICLE_STATE.active)
       ),

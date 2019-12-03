@@ -54,11 +54,12 @@ export class BaseService extends DataSource {
   /**
    * Find items by given ids.
    */
-  baseFindByIds = async (ids: string[], table?: TableName) => {
+
+  baseFindByIds = async (ids: readonly string[], table?: TableName) => {
     let rows = await this.knex
       .select()
       .from(table || this.table)
-      .whereIn('id', ids)
+      .whereIn('id', ids as string[])
 
     rows = ids.map(id => rows.find((r: any) => r.id === id))
 
@@ -88,11 +89,11 @@ export class BaseService extends DataSource {
   /**
    * Find items by given ids.
    */
-  baseFindByUUIDs = async (uuids: string[], table?: TableName) => {
+  baseFindByUUIDs = async (uuids: readonly string[], table?: TableName) => {
     let rows = await this.knex
       .select()
       .from(table || this.table)
-      .whereIn('uuid', uuids)
+      .whereIn('uuid', uuids as string[])
 
     rows = uuids.map(uuid => rows.find((r: any) => r.uuid === uuid))
 

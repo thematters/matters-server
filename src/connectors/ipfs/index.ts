@@ -54,9 +54,9 @@ export class IPFS {
     const prefix = 'article'
 
     // get image assets
-    const assetsPromises: Array<
-      Promise<{ path: string; content: Buffer } | undefined>
-    > = []
+    const assetsPromises: Array<Promise<
+      { path: string; content: Buffer } | undefined
+    >> = []
     const $ = cheerio.load(html, { decodeEntities: false })
 
     const getSrc = (index: number, element: CheerioElement) => {
@@ -90,7 +90,10 @@ export class IPFS {
         path: `${prefix}/index.html`,
         content: Buffer.from($.html())
       },
-      ...uniqBy(assets.filter(asset => asset), 'path')
+      ...uniqBy(
+        assets.filter(asset => asset),
+        'path'
+      )
     ]
     const result = await this.client.add(htmlBundle, { pin: true })
 
