@@ -36,7 +36,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "@elastic/elasticsearch": "^7.4",
+    "@elastic/elasticsearch": "^7.3",
     "@matters/slugify": "^0.7.3",
     "@okgrow/graphql-scalars": "^0.4.6",
     "@sendgrid/mail": "^6.4.0",
@@ -75,7 +75,7 @@
     "imagemin-jpegtran": "^6.0.0",
     "imagemin-pngquant": "^8.0.0",
     "imagemin-svgo": "^7.0.0",
-    "ipfs-http-client": "^40.0.1",
+    "ipfs-http-client": "^28.1.0",
     "js-base64": "^2.5.1",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.20.3",

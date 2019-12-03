@@ -248,7 +248,7 @@ services:
   - name: redis
     image: redis
   - name: elasticsearch
-    image: elasticsearch:7.4.0
+    image: elasticsearch:5-alpine
     ports:
       - 9200
   - name: ipfs
