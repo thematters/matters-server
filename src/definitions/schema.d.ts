@@ -1559,7 +1559,12 @@ export interface GQLMutation {
   /**
    * Add one tag to articles.
    */
-  updateArticlesTags: GQLTag
+  addArticlesTags: GQLTag
+
+  /**
+   * Delete one tag from articles
+   */
+  deleteArticlesTags: GQLTag
 
   /**
    * #############
@@ -6532,7 +6537,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   setCollection?: MutationToSetCollectionResolver<TParent>
   updateArticleInfo?: MutationToUpdateArticleInfoResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
-  updateArticlesTags?: MutationToUpdateArticlesTagsResolver<TParent>
+  addArticlesTags?: MutationToAddArticlesTagsResolver<TParent>
+  deleteArticlesTags?: MutationToDeleteArticlesTagsResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
@@ -6723,16 +6729,31 @@ export interface MutationToPutTagResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToUpdateArticlesTagsArgs {
+export interface MutationToAddArticlesTagsArgs {
   input: GQLUpdateArticlesTagsInput
 }
-export interface MutationToUpdateArticlesTagsResolver<
+export interface MutationToAddArticlesTagsResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToUpdateArticlesTagsArgs,
+    args: MutationToAddArticlesTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToDeleteArticlesTagsArgs {
+  input: GQLUpdateArticlesTagsInput
+}
+export interface MutationToDeleteArticlesTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToDeleteArticlesTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

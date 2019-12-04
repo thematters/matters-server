@@ -786,7 +786,10 @@ type Mutation {
   putTag(input: PutTagInput!): Tag!
 
   """Add one tag to articles."""
-  updateArticlesTags(input: UpdateArticlesTagsInput!): Tag!
+  addArticlesTags(input: UpdateArticlesTagsInput!): Tag!
+
+  """Delete one tag from articles"""
+  deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag!
 
   """
   #############

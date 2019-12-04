@@ -1,5 +1,7 @@
+import addArticlesTags from './addArticlesTags'
 import appreciateArticle from './appreciateArticle'
 import archiveArticle from './archiveArticle'
+import deleteArticlesTags from './deleteArticlesTags'
 import deleteTags from './deleteTags'
 import mergeTags from './mergeTags'
 import publishArticle from './publishArticle'
@@ -16,7 +18,6 @@ import toggleArticleRecommend from './toggleArticleRecommend'
 import toggleSubscribeArticle from './toggleSubscribeArticle'
 import unsubscribeArticle from './unsubscribeArticle'
 import updateArticleInfo from './updateArticleInfo'
-import updateArticlesTags from './updateArticlesTags'
 import updateArticleState from './updateArticleState'
 import updateMattersToday from './updateMattersToday'
 
@@ -42,6 +43,7 @@ export default {
     setCollection,
     updateArticleInfo,
     putTag,
-    updateArticlesTags
+    addArticlesTags,
+    deleteArticlesTags
   }
 }
