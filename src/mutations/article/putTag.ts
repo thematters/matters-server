@@ -57,7 +57,7 @@ const resolver: MutationToPutTagResolver = async (
     if (tagContent) {
       updateParams.content = tagContent
     }
-    if (description != null) {
+    if (typeof description !== 'undefined' && description !== null) {
       updateParams.description = description
     }
     if (Object.keys(updateParams).length === 0) {

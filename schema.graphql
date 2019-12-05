@@ -832,10 +832,10 @@ type Mutation {
   putTag(input: PutTagInput!): Tag!
 
   """Add one tag to articles."""
-  addArticlesTags(input: UpdateArticlesTagsInput!): Tag!
+  addArticleTags(input: UpdateArticleTagsInput!): Tag!
 
   """Delete one tag from articles"""
-  deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag!
+  deleteArticleTags(input: UpdateArticleTagsInput!): Tag!
 
   """
   #############
@@ -1672,14 +1672,14 @@ input UpdateArticleInfoInput {
   sticky: Boolean
 }
 
-input UpdateArticlesTagsInput {
-  id: ID!
-  articles: [ID!]
-}
-
 input UpdateArticleStateInput {
   id: ID!
   state: ArticleState!
+}
+
+input UpdateArticleTagsInput {
+  id: ID!
+  articles: [ID!]
 }
 
 input UpdateCommentsStateInput {

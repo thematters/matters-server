@@ -7,9 +7,9 @@ import {
   UserInputError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToDeleteArticlesTagsResolver } from 'definitions'
+import { MutationToDeleteArticleTagsResolver } from 'definitions'
 
-const resolver: MutationToDeleteArticlesTagsResolver = async (
+const resolver: MutationToDeleteArticleTagsResolver = async (
   root,
   { input: { id, articles } },
   { viewer, dataSources: { articleService, notificationService, tagService } }

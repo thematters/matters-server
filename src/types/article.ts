@@ -37,10 +37,10 @@ export default /* GraphQL */ `
     putTag(input: PutTagInput!): Tag! @authorize @purgeCache
 
     "Add one tag to articles."
-    addArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authorize @purgeCache
+    addArticleTags(input: UpdateArticleTagsInput!): Tag! @authorize @purgeCache
 
     "Delete one tag from articles"
-    deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authorize @purgeCache
+    deleteArticleTags(input: UpdateArticleTagsInput!): Tag! @authorize @purgeCache
 
     ##############
     #     OSS    #
@@ -322,7 +322,7 @@ export default /* GraphQL */ `
     description: String
   }
 
-  input UpdateArticlesTagsInput {
+  input UpdateArticleTagsInput {
     id: ID!
     articles: [ID!]
   }
