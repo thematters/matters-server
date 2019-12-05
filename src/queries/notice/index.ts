@@ -6,6 +6,8 @@ import {
   GQLArticleNewDownstreamNoticeTypeResolver,
   GQLArticleNewSubscriberNoticeTypeResolver,
   GQLArticlePublishedNoticeTypeResolver,
+  GQLArticleTagHasBeenAddedNoticeTypeResolver,
+  GQLArticleTagHasBeenRemovedNoticeTypeResolver,
   GQLCommentMentionedYouNoticeTypeResolver,
   GQLCommentNewReplyNoticeTypeResolver,
   GQLCommentNewUpvoteNoticeTypeResolver,
@@ -41,6 +43,8 @@ const notice: {
   CommentNewUpvoteNotice: GQLCommentNewUpvoteNoticeTypeResolver
   CommentMentionedYouNotice: GQLCommentMentionedYouNoticeTypeResolver
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeTypeResolver
+  ArticleTagHasBeenAddedNotice: GQLArticleTagHasBeenAddedNoticeTypeResolver
+  ArticleTagHasBeenRemovedNotice: GQLArticleTagHasBeenRemovedNoticeTypeResolver
 } = {
   User: {
     notices
@@ -61,8 +65,8 @@ const notice: {
         subscribed_article_new_comment: 'SubscribedArticleNewCommentNotice',
         upstream_article_archived: 'UpstreamArticleArchivedNotice',
         downstream_article_archived: 'DownstreamArticleArchivedNotice',
-        article_tag_has_been_added: 'ArticleTagHasBeenAdded',
-        article_tag_has_been_removed: 'ArticleTagHasBeenRemoved',
+        article_tag_has_been_added: 'ArticleTagHasBeenAddedNotice',
+        article_tag_has_been_removed: 'ArticleTagHasBeenRemovedNotice',
         // comment
         comment_pinned: 'CommentPinnedNotice',
         comment_new_reply: 'CommentNewReplyNotice',
@@ -150,6 +154,18 @@ const notice: {
   OfficialAnnouncementNotice: {
     id: ({ uuid }) => uuid,
     link: ({ data }: { data: any }) => data && data.link
+  },
+  ArticleTagHasBeenAddedNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    target: ({ entities }) => entities.target,
+    tag: ({ entities }) => entities.tag
+  },
+  ArticleTagHasBeenRemovedNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    target: ({ entities }) => entities.target,
+    tag: ({ entities }) => entities.tag
   }
 }
 

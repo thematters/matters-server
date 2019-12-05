@@ -66,6 +66,8 @@ export class NotificationService extends BaseService {
       case 'article_new_comment':
       case 'subscribed_article_new_comment':
       case 'comment_new_reply':
+      case 'article_tag_has_been_added':
+      case 'article_tag_has_been_removed':
         return {
           type: params.event,
           recipientId: params.recipientId,

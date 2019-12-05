@@ -326,7 +326,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user who replied current user's comment."
-    actors: [User]
+    actor: User!
 
     "The article has a new tag."
     target: Article
@@ -349,7 +349,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user who replied current user's comment."
-    actors: [User]
+    actor: User!
 
     "The article loses a tag."
     target: Article

@@ -2381,7 +2381,7 @@ export interface GQLArticleTagHasBeenAddedNotice extends GQLNotice {
   /**
    * The user who replied current user's comment.
    */
-  actors?: Array<GQLUser | null>
+  actor: GQLUser
 
   /**
    * The article has a new tag.
@@ -2416,7 +2416,7 @@ export interface GQLArticleTagHasBeenRemovedNotice extends GQLNotice {
   /**
    * The user who replied current user's comment.
    */
-  actors?: Array<GQLUser | null>
+  actor: GQLUser
 
   /**
    * The article loses a tag.
@@ -8066,7 +8066,7 @@ export interface GQLArticleTagHasBeenAddedNoticeTypeResolver<TParent = any> {
   id?: ArticleTagHasBeenAddedNoticeToIdResolver<TParent>
   unread?: ArticleTagHasBeenAddedNoticeToUnreadResolver<TParent>
   createdAt?: ArticleTagHasBeenAddedNoticeToCreatedAtResolver<TParent>
-  actors?: ArticleTagHasBeenAddedNoticeToActorsResolver<TParent>
+  actor?: ArticleTagHasBeenAddedNoticeToActorResolver<TParent>
   target?: ArticleTagHasBeenAddedNoticeToTargetResolver<TParent>
   tag?: ArticleTagHasBeenAddedNoticeToTagResolver<TParent>
 }
@@ -8107,7 +8107,7 @@ export interface ArticleTagHasBeenAddedNoticeToCreatedAtResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenAddedNoticeToActorsResolver<
+export interface ArticleTagHasBeenAddedNoticeToActorResolver<
   TParent = any,
   TResult = any
 > {
@@ -8147,7 +8147,7 @@ export interface GQLArticleTagHasBeenRemovedNoticeTypeResolver<TParent = any> {
   id?: ArticleTagHasBeenRemovedNoticeToIdResolver<TParent>
   unread?: ArticleTagHasBeenRemovedNoticeToUnreadResolver<TParent>
   createdAt?: ArticleTagHasBeenRemovedNoticeToCreatedAtResolver<TParent>
-  actors?: ArticleTagHasBeenRemovedNoticeToActorsResolver<TParent>
+  actor?: ArticleTagHasBeenRemovedNoticeToActorResolver<TParent>
   target?: ArticleTagHasBeenRemovedNoticeToTargetResolver<TParent>
   tag?: ArticleTagHasBeenRemovedNoticeToTagResolver<TParent>
 }
@@ -8188,7 +8188,7 @@ export interface ArticleTagHasBeenRemovedNoticeToCreatedAtResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenRemovedNoticeToActorsResolver<
+export interface ArticleTagHasBeenRemovedNoticeToActorResolver<
   TParent = any,
   TResult = any
 > {
