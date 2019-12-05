@@ -204,13 +204,15 @@ exports.seed = async knex => {
       data: notice.data
     })
     // create notice
-    const { id: notice_id } = (await knex(table.notice)
-      .insert({
-        uuid: v4(),
-        notice_detail_id: id,
-        recipient_id: notice.recipient_id
-      })
-      .returning('*'))[0]
+    const { id: notice_id } = (
+      await knex(table.notice)
+        .insert({
+          uuid: v4(),
+          notice_detail_id: id,
+          recipient_id: notice.recipient_id
+        })
+        .returning('*')
+    )[0]
     // create notice actor
     await Promise.all(
       (notice.actors || []).map(async actor_id => {

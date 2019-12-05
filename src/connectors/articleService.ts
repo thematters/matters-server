@@ -31,7 +31,7 @@ export class ArticleService extends BaseService {
     super('article')
     this.ipfs = ipfs
 
-    this.dataloader = new DataLoader(async (ids: string[]) => {
+    this.dataloader = new DataLoader(async (ids: readonly string[]) => {
       const result = await this.baseFindByIds(ids)
 
       if (result.findIndex((item: any) => !item) >= 0) {
@@ -41,7 +41,7 @@ export class ArticleService extends BaseService {
       return result
     })
 
-    this.uuidLoader = new DataLoader(async (uuids: string[]) => {
+    this.uuidLoader = new DataLoader(async (uuids: readonly string[]) => {
       const result = await this.baseFindByUUIDs(uuids)
 
       if (result.findIndex((item: any) => !item) >= 0) {

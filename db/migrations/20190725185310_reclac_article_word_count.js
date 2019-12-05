@@ -20,7 +20,10 @@ exports.up = async knex => {
     // Gather items for update
     const items = await knex(table)
       .select('id', 'content')
-      .whereIn('id', ids.map(({ id }) => id))
+      .whereIn(
+        'id',
+        ids.map(({ id }) => id)
+      )
 
     // Generate new word counts
     const params = items.map(({ id, content }) => ({

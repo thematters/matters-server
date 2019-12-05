@@ -345,9 +345,9 @@ class Notice extends BaseService {
   /**
    * Find notices by given ids.
    */
-  findByIds = async (ids: string[]): Promise<NoticeItem[]> => {
+  findByIds = async (ids: readonly string[]): Promise<NoticeItem[]> => {
     const notices = await this.findDetail({
-      whereIn: ['notice.id', ids]
+      whereIn: ['notice.id', ids as string[]]
     })
 
     return Promise.all(
