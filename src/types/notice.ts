@@ -311,4 +311,50 @@ export default /* GraphQL */ `
     "The link to a specific page if provided."
     link: URL
   }
+
+  """
+  This notice type contains info about one user has added a tag to current user's article.
+  """
+  type ArticleTagHasBeenAddedNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "The user who replied current user's comment."
+    actors: [User]
+
+    "The article has a new tag."
+    target: Article
+
+    "The tag has been attached to an article."
+    tag: Tag
+  }
+
+  """
+  This notice type contains info about one uer has removed a tag from current user's article.
+  """
+  type ArticleTagHasBeenRemovedNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "The user who replied current user's comment."
+    actors: [User]
+
+    "The article loses a tag."
+    target: Article
+
+    "The tag has been deattached from an article."
+    tag: Tag
+  }
 `
