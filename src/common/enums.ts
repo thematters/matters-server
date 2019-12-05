@@ -70,7 +70,8 @@ export const VOTE = {
 export const COMMENT_STATE = {
   active: 'active',
   archived: 'archived',
-  banned: 'banned'
+  banned: 'banned',
+  collapsed: 'collapsed'
 }
 
 export const USER_STATE = {
@@ -422,3 +423,5 @@ export const TRANSACTION_TYPES = {
   like: 'LIKE',
   mat: 'MAT'
 }
+
+export const SEARCH_KEY_TRUNCATE_LENGTH = 100

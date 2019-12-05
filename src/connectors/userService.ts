@@ -11,6 +11,7 @@ import {
   BCRYPT_ROUNDS,
   BLOCK_USERS,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
+  SEARCH_KEY_TRUNCATE_LENGTH,
   USER_ACTION,
   USER_STATE,
   VERIFICATION_CODE_EXIPRED_AFTER,
@@ -342,7 +343,9 @@ export class UserService extends BaseService {
       .max('created_at as search_at')
       .groupBy('search_key')
       .orderBy('search_at', 'desc')
-    return result.map(({ searchKey }) => searchKey)
+    return result.map(({ searchKey }) =>
+      searchKey.slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
+    )
   }
 
   clearSearches = (userId: string) =>
@@ -581,7 +584,7 @@ export class UserService extends BaseService {
   findFolloweeWorks = async ({
     after,
     limit = BATCH_SIZE,
-    state = 'active',
+    state = USER_STATE.active,
     userId
   }: {
     after?: any
@@ -605,7 +608,7 @@ export class UserService extends BaseService {
   }
 
   findFolloweeWorksRange = async ({
-    state = 'active',
+    state = USER_STATE.active,
     userId
   }: {
     state?: string

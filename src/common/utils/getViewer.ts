@@ -86,8 +86,7 @@ export const getViewerFromReq = async ({
 
   // get user from token, use cookie first then 'x-access-token'
   const token =
-    cookie.parse(headers.cookie || '').token ||
-    (headers['x-access-token'] || '')
+    cookie.parse(headers.cookie || '').token || headers['x-access-token'] || ''
 
   if (!token) {
     logger.info('User is not logged in, viewing as guest')
