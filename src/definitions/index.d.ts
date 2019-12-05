@@ -32,13 +32,15 @@ export type User = {
   language: LANGUAGES
   // oauthType: any
   role: UserRole
-  state: string
+  state: UserState
   createdAt: string
   updatedAt: string
   agreeOn: string
 }
 
 export type UserRole = 'admin' | 'user'
+
+export type UserState = 'active' | 'banned' | 'frozen' | 'archived'
 
 export type Context = RequestContext & {
   dataSources: DataSources

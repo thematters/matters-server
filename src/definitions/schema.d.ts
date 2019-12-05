@@ -1690,6 +1690,11 @@ export interface GQLMutation {
   userLogout: boolean
 
   /**
+   * Delete user.
+   */
+  userDelete: boolean
+
+  /**
    * Generate or claim a Liker ID through LikeCoin
    */
   generateLikerId: GQLUser
@@ -6502,6 +6507,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
   userLogout?: MutationToUserLogoutResolver<TParent>
+  userDelete?: MutationToUserDeleteResolver<TParent>
   generateLikerId?: MutationToGenerateLikerIdResolver<TParent>
   updateUserInfo?: MutationToUpdateUserInfoResolver<TParent>
   updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<
@@ -7104,6 +7110,15 @@ export interface MutationToUserLoginResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToUserLogoutResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUserDeleteResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
