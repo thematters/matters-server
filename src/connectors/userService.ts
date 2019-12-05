@@ -11,7 +11,7 @@ import {
   BCRYPT_ROUNDS,
   BLOCK_USERS,
   SEARCH_KEY_TRUNCATE_LENGTH,
-  USER_ACCESS_TOKEN_EXPIRES_IN,
+  USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
   USER_STATE,
   VERIFICATION_CODE_EXIPRED_AFTER,
@@ -112,7 +112,7 @@ export class UserService extends BaseService {
     }
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
-      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN
+      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000
     })
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
