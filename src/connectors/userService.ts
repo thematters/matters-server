@@ -264,20 +264,15 @@ export class UserService extends BaseService {
       await trx('article')
         .where({ authorId: id })
         .update({ state: ARTICLE_STATE.archived, updatedAt: new Date() })
+      await trx('draft')
+        .where({ authorId: id })
+        .update({ archived: true, updatedAt: new Date() })
       await trx('comment')
         .where({ authorId: id })
         .update({ state: COMMENT_STATE.archived, updatedAt: new Date() })
       await trx('notice')
         .where({ recipientId: id })
         .update({ deleted: true, updatedAt: new Date() })
-
-      // delete drafts
-      await trx('draft')
-        .where({ authorId: id })
-        .del()
-      await trx('audio_draft')
-        .where({ authorId: id })
-        .del()
 
       // delete behavioral data
       await trx('search_history')
