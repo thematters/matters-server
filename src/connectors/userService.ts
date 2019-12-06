@@ -92,6 +92,20 @@ export class UserService extends BaseService {
     return user
   }
 
+  verifyPassword = async ({
+    password,
+    hash: passwordHash
+  }: {
+    password: string
+    hash: string
+  }) => {
+    const auth = await compare(password, passwordHash)
+
+    if (!auth) {
+      throw new PasswordInvalidError('Password incorrect, login failed.')
+    }
+  }
+
   /**
    * Login user and return jwt token. Default to expires in 24 * 90 hours
    */
@@ -106,10 +120,7 @@ export class UserService extends BaseService {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 
-    const auth = await compare(password, user.passwordHash)
-    if (!auth) {
-      throw new PasswordInvalidError('Password incorrect, login failed.')
-    }
+    await this.verifyPassword({ password, hash: user.passwordHash })
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
       expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000

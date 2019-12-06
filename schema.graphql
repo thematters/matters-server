@@ -880,9 +880,6 @@ type Mutation {
   """Logout user."""
   userLogout: Boolean!
 
-  """Delete user."""
-  userDelete: Boolean!
-
   """Generate or claim a Liker ID through LikeCoin"""
   generateLikerId: User!
 
@@ -1646,6 +1643,7 @@ input UpdateUserStateInput {
   id: ID!
   state: UserState!
   banDays: PositiveInt
+  password: String
 }
 
 scalar Upload
