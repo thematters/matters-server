@@ -39,6 +39,7 @@ const resolver: MutationToPutTagResolver = async (
     if (tags.length > 0) {
       throw new DuplicateTagError(`dulpicate tag content: ${tagContent}`)
     }
+
     return tagService.create({
       content: tagContent,
       description,
@@ -54,7 +55,14 @@ const resolver: MutationToPutTagResolver = async (
 
     // gather tag update params
     const updateParams: { [key: string]: any } = {}
+
     if (tagContent) {
+      if (tagContent !== tag.content) {
+        const tags = await tagService.findByContent({ content: tagContent })
+        if (tags.length > 0) {
+          throw new DuplicateTagError(`dulpicate tag content: ${tagContent}`)
+        }
+      }
       updateParams.content = tagContent
     }
     if (typeof description !== 'undefined' && description !== null) {
