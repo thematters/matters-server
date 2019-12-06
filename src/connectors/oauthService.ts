@@ -2,8 +2,8 @@ import jwt from 'jsonwebtoken'
 import nanoid from 'nanoid'
 
 import {
-  OAUTH_ACCESS_TOKEN_EXPIRES_IN,
-  OAUTH_REFRESH_TOKEN_EXPIRES_IN
+  OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS,
+  OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
@@ -173,7 +173,7 @@ export class OAuthService extends BaseService {
       emailVerified: user.emailVerified
     }
     const id_token = jwt.sign(payload, environment.jwtSecret, {
-      expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN
+      expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS / 1000
     })
 
     return {
@@ -377,11 +377,11 @@ export class OAuthService extends BaseService {
       {
         accessToken,
         accessTokenExpiresAt: new Date(
-          Date.now() + OAUTH_ACCESS_TOKEN_EXPIRES_IN
+          Date.now() + OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS
         ),
         refreshToken,
         refreshTokenExpiresAt: new Date(
-          Date.now() + OAUTH_REFRESH_TOKEN_EXPIRES_IN
+          Date.now() + OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS
         ),
         scope: client.scope,
         client,

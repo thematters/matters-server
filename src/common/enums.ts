@@ -70,7 +70,8 @@ export const VOTE = {
 export const COMMENT_STATE = {
   active: 'active',
   archived: 'archived',
-  banned: 'banned'
+  banned: 'banned',
+  collapsed: 'collapsed'
 }
 
 export const USER_STATE = {
@@ -348,10 +349,10 @@ export const INVALID_NAMES = [
   'matters管理员'
 ]
 
-export const USER_ACCESS_TOKEN_EXPIRES_IN = 1000 * 60 * 60 * 24 * 90 // 90 days
-export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN = 1000 * 60 * 10 // 10 mins
-export const OAUTH_ACCESS_TOKEN_EXPIRES_IN = 1000 * 60 * 60 * 24 * 30 // 30 days
-export const OAUTH_REFRESH_TOKEN_EXPIRES_IN = 1000 * 60 * 60 * 24 * 90 // 90 days
+export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 60 * 24 * 90 // 90 days
+export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 10 // 10 mins
+export const OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 60 * 24 * 30 // 30 days
+export const OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 60 * 24 * 90 // 90 days
 
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
   'image/gif',

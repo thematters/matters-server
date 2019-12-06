@@ -20,10 +20,12 @@ const resolver: MutationToSetCollectionResolver = async (
   }
 
   // Compare new and old collections
-  const oldIds = (await articleService.findCollections({
-    entranceId,
-    limit: null
-  })).map(({ articleId }: any) => articleId)
+  const oldIds = (
+    await articleService.findCollections({
+      entranceId,
+      limit: null
+    })
+  ).map(({ articleId }: any) => articleId)
   const newIds = collection.map(articleId => fromGlobalId(articleId).id)
   const addItems: any[] = []
   const updateItems: any[] = []

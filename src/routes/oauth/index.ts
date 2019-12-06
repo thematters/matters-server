@@ -4,9 +4,9 @@ import passport from 'passport'
 import querystring from 'querystring'
 
 import {
-  OAUTH_ACCESS_TOKEN_EXPIRES_IN,
-  OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN,
-  OAUTH_REFRESH_TOKEN_EXPIRES_IN
+  OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS,
+  OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS,
+  OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { getViewerFromReq } from 'common/utils/getViewer'
@@ -45,9 +45,9 @@ const oAuthServer = new OAuthServer({
       return viewer
     }
   },
-  authorizationCodeLifetime: OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN / 1000,
-  accessTokenLifetime: OAUTH_ACCESS_TOKEN_EXPIRES_IN / 1000,
-  refreshTokenLifetime: OAUTH_REFRESH_TOKEN_EXPIRES_IN / 1000
+  authorizationCodeLifetime: OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS / 1000,
+  accessTokenLifetime: OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
+  refreshTokenLifetime: OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS / 1000
 })
 
 /**

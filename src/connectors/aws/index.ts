@@ -1,5 +1,5 @@
 import * as AWS from 'aws-sdk'
-import sizeOf from 'image-size'
+import { imageSize } from 'image-size'
 import imagemin from 'imagemin'
 import imageminGifsicle from 'imagemin-gifsicle'
 import imageminJpegtran from 'imagemin-jpegtran'
@@ -85,8 +85,8 @@ export class AWSService {
     // Reduce image size
     if (mimetype && ACCEPTED_UPLOAD_IMAGE_TYPES.includes(mimetype)) {
       // Detect image dimension
-      const { width, height } = sizeOf(buffer)
-      if (width > IMAGE_DIMENSION_LIMIT) {
+      const { width, height } = imageSize(buffer)
+      if (width && width > IMAGE_DIMENSION_LIMIT) {
         buffer = await this.resizeImage(buffer, IMAGE_DIMENSION_LIMIT, null)
       }
 

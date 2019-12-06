@@ -1,7 +1,7 @@
 import { Response } from 'express'
 import psl from 'psl'
 
-import { USER_ACCESS_TOKEN_EXPIRES_IN } from 'common/enums'
+import { USER_ACCESS_TOKEN_EXPIRES_IN_MS } from 'common/enums'
 import { environment } from 'common/environment'
 
 const getCookieOption = () => {
@@ -11,7 +11,7 @@ const getCookieOption = () => {
       : `.${psl.get(environment.domain || 'matters.news')}`
 
   return {
-    maxAge: USER_ACCESS_TOKEN_EXPIRES_IN,
+    maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     httpOnly: true,
     domain
   }

@@ -11,7 +11,7 @@ import {
   BCRYPT_ROUNDS,
   BLOCK_USERS,
   SEARCH_KEY_TRUNCATE_LENGTH,
-  USER_ACCESS_TOKEN_EXPIRES_IN,
+  USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
   USER_STATE,
   VERIFICATION_CODE_EXIPRED_AFTER,
@@ -112,7 +112,7 @@ export class UserService extends BaseService {
     }
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
-      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN
+      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000
     })
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
@@ -311,7 +311,7 @@ export class UserService extends BaseService {
         body
       })
 
-      const { hits, suggest } = result.body as (typeof result) & {
+      const { hits, suggest } = result.body as typeof result & {
         hits: { hits: any[] }
         suggest: { userName: any[]; displayName: any[] }
       }
@@ -584,7 +584,7 @@ export class UserService extends BaseService {
   findFolloweeWorks = async ({
     after,
     limit = BATCH_SIZE,
-    state = 'active',
+    state = USER_STATE.active,
     userId
   }: {
     after?: any
@@ -608,7 +608,7 @@ export class UserService extends BaseService {
   }
 
   findFolloweeWorksRange = async ({
-    state = 'active',
+    state = USER_STATE.active,
     userId
   }: {
     state?: string
