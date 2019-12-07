@@ -46,8 +46,8 @@ const trans = {
       `🐿️ ${displayName}，这是专属于你的 Matters 日报`
   }),
   userDeleted: i18n({
-    zh_hant: 'Matters | 通知：你的 Matters 賬號已被註銷',
-    zh_hans: 'Matters | 通知：你的 Matters 账号已被注销'
+    zh_hant: 'Matters | 你的賬號已被註銷',
+    zh_hans: 'Matters | 你的账号已被注销'
   })
 }
 

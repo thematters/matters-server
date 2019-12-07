@@ -22,14 +22,15 @@ const resolver: MutationToUpdateUserStateResolver = async (
       await userService.verifyPassword({ password, hash: viewer.passwordHash })
     }
 
+    const oldUser = await userService.dataloader.load(dbId)
     const archivedUser = await userService.archive(dbId)
 
     notificationService.mail.sendUserDeletedByAdmin({
-      to: archivedUser.email,
+      to: oldUser.email,
       recipient: {
-        displayName: archivedUser.displayName
+        displayName: oldUser.displayName
       },
-      language: archivedUser.language
+      language: oldUser.language
     })
 
     return archivedUser
