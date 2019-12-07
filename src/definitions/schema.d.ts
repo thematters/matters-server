@@ -802,6 +802,7 @@ export interface GQLTag extends GQLNode {
    */
   oss: GQLTagOSS
   remark?: string
+  deleted: boolean
 }
 
 export interface GQLTagOSS {
@@ -4570,6 +4571,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   editors?: TagToEditorsResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
+  deleted?: TagToDeletedResolver<TParent>
 }
 
 export interface TagToIdResolver<TParent = any, TResult = any> {
@@ -4648,6 +4650,15 @@ export interface TagToOssResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToDeletedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

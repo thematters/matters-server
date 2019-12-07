@@ -184,6 +184,7 @@ export default /* GraphQL */ `
     # OSS
     oss: TagOSS! @authorize
     remark: String @authorize
+    deleted: Boolean! @authorize
   }
 
   type ArticleOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
