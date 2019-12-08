@@ -18,7 +18,9 @@ const actorsRequired = {
   comment_new_reply: true,
   comment_new_upvote: true,
   comment_mentioned_you: true,
-  official_announcement: false
+  official_announcement: false,
+  article_tag_has_been_added: true,
+  article_tag_has_been_removed: true
 }
 const entitiesRequired = {
   user_new_follower: false,
@@ -36,7 +38,9 @@ const entitiesRequired = {
   comment_new_reply: true,
   comment_new_upvote: true,
   comment_mentioned_you: true,
-  official_announcement: false
+  official_announcement: false,
+  article_tag_has_been_added: true,
+  article_tag_has_been_removed: true
 }
 const messageRequired = {
   user_new_follower: false,
@@ -54,7 +58,9 @@ const messageRequired = {
   comment_new_reply: false,
   comment_new_upvote: false,
   comment_mentioned_you: false,
-  official_announcement: true
+  official_announcement: true,
+  article_tag_has_been_added: false,
+  article_tag_has_been_removed: false
 }
 
 type NoticeEdges = Array<{ node: NoticeItem; cursor: string }>

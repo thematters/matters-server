@@ -1,8 +1,11 @@
+import addArticleTags from './addArticleTags'
 import appreciateArticle from './appreciateArticle'
 import archiveArticle from './archiveArticle'
+import deleteArticleTags from './deleteArticleTags'
 import deleteTags from './deleteTags'
 import mergeTags from './mergeTags'
 import publishArticle from './publishArticle'
+import putTag from './putTag'
 import readArticle from './readArticle'
 import recallPublish from './recallPublish'
 import renameTag from './renameTag'
@@ -38,6 +41,9 @@ export default {
     mergeTags,
     updateMattersToday,
     setCollection,
-    updateArticleInfo
+    updateArticleInfo,
+    putTag,
+    addArticleTags,
+    deleteArticleTags
   }
 }

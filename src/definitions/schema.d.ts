@@ -783,6 +783,21 @@ export interface GQLTag extends GQLNode {
   createdAt: GQLDateTime
 
   /**
+   * Tag's cover link.
+   */
+  cover?: GQLURL
+
+  /**
+   * Description of this tag.
+   */
+  description?: string
+
+  /**
+   * Editors of this tag.
+   */
+  editors?: Array<GQLUser>
+
+  /**
    * OSS
    */
   oss: GQLTagOSS
@@ -1171,6 +1186,8 @@ export type GQLPossibleNoticeTypeNames =
   | 'ArticleNewDownstreamNotice'
   | 'ArticleNewSubscriberNotice'
   | 'ArticlePublishedNotice'
+  | 'ArticleTagHasBeenAddedNotice'
+  | 'ArticleTagHasBeenRemovedNotice'
   | 'CommentMentionedYouNotice'
   | 'CommentNewReplyNotice'
   | 'CommentNewUpvoteNotice'
@@ -1190,6 +1207,8 @@ export interface GQLNoticeNameMap {
   ArticleNewDownstreamNotice: GQLArticleNewDownstreamNotice
   ArticleNewSubscriberNotice: GQLArticleNewSubscriberNotice
   ArticlePublishedNotice: GQLArticlePublishedNotice
+  ArticleTagHasBeenAddedNotice: GQLArticleTagHasBeenAddedNotice
+  ArticleTagHasBeenRemovedNotice: GQLArticleTagHasBeenRemovedNotice
   CommentMentionedYouNotice: GQLCommentMentionedYouNotice
   CommentNewReplyNotice: GQLCommentNewReplyNotice
   CommentNewUpvoteNotice: GQLCommentNewUpvoteNotice
@@ -1538,6 +1557,21 @@ export interface GQLMutation {
   updateArticleInfo: GQLArticle
 
   /**
+   * Create or update tag.
+   */
+  putTag: GQLTag
+
+  /**
+   * Add one tag to articles.
+   */
+  addArticleTags: GQLTag
+
+  /**
+   * Delete one tag from articles
+   */
+  deleteArticleTags: GQLTag
+
+  /**
    * #############
    *      OSS    #
    * #############
@@ -1815,6 +1849,17 @@ export interface GQLSetCollectionInput {
 export interface GQLUpdateArticleInfoInput {
   id: string
   sticky?: boolean
+}
+
+export interface GQLPutTagInput {
+  id?: string
+  content?: string
+  description?: string
+}
+
+export interface GQLUpdateArticleTagsInput {
+  id: string
+  articles?: Array<string>
 }
 
 export interface GQLToggleArticleRecommendInput {
@@ -2316,6 +2361,76 @@ export interface GQLArticlePublishedNotice extends GQLNotice {
   target?: GQLArticle
 }
 
+/**
+ * This notice type contains info about one user has added a tag to current user's article.
+ */
+export interface GQLArticleTagHasBeenAddedNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The user who replied current user's comment.
+   */
+  actor: GQLUser
+
+  /**
+   * The article has a new tag.
+   */
+  target?: GQLArticle
+
+  /**
+   * The tag has been attached to an article.
+   */
+  tag?: GQLTag
+}
+
+/**
+ * This notice type contains info about one uer has removed a tag from current user's article.
+ */
+export interface GQLArticleTagHasBeenRemovedNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The user who replied current user's comment.
+   */
+  actor: GQLUser
+
+  /**
+   * The article loses a tag.
+   */
+  target?: GQLArticle
+
+  /**
+   * The tag has been deattached from an article.
+   */
+  tag?: GQLTag
+}
+
 export const enum GQLCacheScope {
   PUBLIC = 'PUBLIC',
   PRIVATE = 'PRIVATE'
@@ -2680,6 +2795,8 @@ export interface GQLResolver {
   ArticleNewDownstreamNotice?: GQLArticleNewDownstreamNoticeTypeResolver
   ArticleNewSubscriberNotice?: GQLArticleNewSubscriberNoticeTypeResolver
   ArticlePublishedNotice?: GQLArticlePublishedNoticeTypeResolver
+  ArticleTagHasBeenAddedNotice?: GQLArticleTagHasBeenAddedNoticeTypeResolver
+  ArticleTagHasBeenRemovedNotice?: GQLArticleTagHasBeenRemovedNoticeTypeResolver
   CommentMentionedYouNotice?: GQLCommentMentionedYouNoticeTypeResolver
   CommentNewReplyNotice?: GQLCommentNewReplyNoticeTypeResolver
   CommentNewUpvoteNotice?: GQLCommentNewUpvoteNoticeTypeResolver
@@ -4449,6 +4566,9 @@ export interface GQLTagTypeResolver<TParent = any> {
   content?: TagToContentResolver<TParent>
   articles?: TagToArticlesResolver<TParent>
   createdAt?: TagToCreatedAtResolver<TParent>
+  cover?: TagToCoverResolver<TParent>
+  description?: TagToDescriptionResolver<TParent>
+  editors?: TagToEditorsResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
 }
@@ -4484,6 +4604,33 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToEditorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5460,6 +5607,8 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'ArticleNewDownstreamNotice'
     | 'ArticleNewSubscriberNotice'
     | 'ArticlePublishedNotice'
+    | 'ArticleTagHasBeenAddedNotice'
+    | 'ArticleTagHasBeenRemovedNotice'
     | 'CommentMentionedYouNotice'
     | 'CommentNewReplyNotice'
     | 'CommentNewUpvoteNotice'
@@ -6467,6 +6616,9 @@ export interface GQLMutationTypeResolver<TParent = any> {
   recallPublish?: MutationToRecallPublishResolver<TParent>
   setCollection?: MutationToSetCollectionResolver<TParent>
   updateArticleInfo?: MutationToUpdateArticleInfoResolver<TParent>
+  putTag?: MutationToPutTagResolver<TParent>
+  addArticleTags?: MutationToAddArticleTagsResolver<TParent>
+  deleteArticleTags?: MutationToDeleteArticleTagsResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
@@ -6640,6 +6792,48 @@ export interface MutationToUpdateArticleInfoResolver<
   (
     parent: TParent,
     args: MutationToUpdateArticleInfoArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutTagArgs {
+  input: GQLPutTagInput
+}
+export interface MutationToPutTagResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPutTagArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToAddArticleTagsArgs {
+  input: GQLUpdateArticleTagsInput
+}
+export interface MutationToAddArticleTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToAddArticleTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToDeleteArticleTagsArgs {
+  input: GQLUpdateArticleTagsInput
+}
+export interface MutationToDeleteArticleTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToDeleteArticleTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7859,6 +8053,168 @@ export interface ArticlePublishedNoticeToCreatedAtResolver<
 }
 
 export interface ArticlePublishedNoticeToTargetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLArticleTagHasBeenAddedNoticeTypeResolver<TParent = any> {
+  id?: ArticleTagHasBeenAddedNoticeToIdResolver<TParent>
+  unread?: ArticleTagHasBeenAddedNoticeToUnreadResolver<TParent>
+  createdAt?: ArticleTagHasBeenAddedNoticeToCreatedAtResolver<TParent>
+  actor?: ArticleTagHasBeenAddedNoticeToActorResolver<TParent>
+  target?: ArticleTagHasBeenAddedNoticeToTargetResolver<TParent>
+  tag?: ArticleTagHasBeenAddedNoticeToTagResolver<TParent>
+}
+
+export interface ArticleTagHasBeenAddedNoticeToIdResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTagHasBeenAddedNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTagHasBeenAddedNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTagHasBeenAddedNoticeToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTagHasBeenAddedNoticeToTargetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTagHasBeenAddedNoticeToTagResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLArticleTagHasBeenRemovedNoticeTypeResolver<TParent = any> {
+  id?: ArticleTagHasBeenRemovedNoticeToIdResolver<TParent>
+  unread?: ArticleTagHasBeenRemovedNoticeToUnreadResolver<TParent>
+  createdAt?: ArticleTagHasBeenRemovedNoticeToCreatedAtResolver<TParent>
+  actor?: ArticleTagHasBeenRemovedNoticeToActorResolver<TParent>
+  target?: ArticleTagHasBeenRemovedNoticeToTargetResolver<TParent>
+  tag?: ArticleTagHasBeenRemovedNoticeToTagResolver<TParent>
+}
+
+export interface ArticleTagHasBeenRemovedNoticeToIdResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTagHasBeenRemovedNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTagHasBeenRemovedNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTagHasBeenRemovedNoticeToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTagHasBeenRemovedNoticeToTargetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTagHasBeenRemovedNoticeToTagResolver<
   TParent = any,
   TResult = any
 > {

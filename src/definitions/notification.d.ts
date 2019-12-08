@@ -14,6 +14,8 @@ export type NoticeType =
   | 'subscribed_article_new_comment'
   | 'upstream_article_archived'
   | 'downstream_article_archived'
+  | 'article_tag_has_been_added'
+  | 'article_tag_has_been_removed'
   // comment
   | 'comment_pinned'
   | 'comment_new_reply'
@@ -37,6 +39,7 @@ export type NoticeEntityType =
   | 'comment'
   | 'reply'
   | 'collection'
+  | 'tag'
 
 export type NotificationType = NoticeType | OfficialNoticeExtendType
 
@@ -198,6 +201,28 @@ export interface NoticeOfficialAnnouncementParams
   data: { url: string }
 }
 
+export interface NoticeArticleTagHasBeenAddedParams
+  extends NotificationRequiredParams {
+  event: 'article_tag_has_been_added'
+  recipientId: string
+  actorId: string
+  entities: [
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'tag', 'tag'>
+  ]
+}
+
+export interface NoticeArticleTagHasBeenRemovedParams
+  extends NotificationRequiredParams {
+  event: 'article_tag_has_been_removed'
+  recipientId: string
+  actorId: string
+  entities: [
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'tag', 'tag'>
+  ]
+}
+
 /**
  * Punish
  */
@@ -263,6 +288,8 @@ export type NotificationPrarms =
   | NoticeArticleBannedParams
   | NoticeArticleReportedParams
   | NoticeCommentReportedParams
+  | NoticeArticleTagHasBeenAddedParams
+  | NoticeArticleTagHasBeenRemovedParams
 
 export type NoticeUserId = string
 

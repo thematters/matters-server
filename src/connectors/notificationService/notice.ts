@@ -500,7 +500,9 @@ class Notice extends BaseService {
       comment_banned: setting.reportFeedback,
       article_banned: setting.reportFeedback,
       comment_reported: setting.reportFeedback,
-      article_reported: setting.reportFeedback
+      article_reported: setting.reportFeedback,
+      article_tag_has_been_added: setting.tag,
+      article_tag_has_been_removed: setting.tag
     }
 
     return noticeSettingMap[event]
