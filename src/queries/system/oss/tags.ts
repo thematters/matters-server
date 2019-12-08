@@ -7,9 +7,8 @@ export const tags: OSSToTagsResolver = async (
   { viewer, dataSources: { tagService } }
 ) => {
   const { first, after, sort = 'newest' } = input
-  const where = { deleted: false }
   const offset = cursorToIndex(after) + 1
-  const totalCount = await tagService.baseCount(where)
+  const totalCount = await tagService.baseCount()
 
   return connectionFromPromisedArray(
     tagService.find({
