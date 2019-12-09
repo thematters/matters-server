@@ -255,7 +255,10 @@ export class UserService extends BaseService {
         .update({
           state: USER_STATE.archived,
           displayName: '已註銷用戶',
-          updatedAt: new Date()
+          updatedAt: new Date(),
+          avatar: null,
+          profile_cover: null,
+          description: ''
         })
         .into(this.table)
         .returning('*')
