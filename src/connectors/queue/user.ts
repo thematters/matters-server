@@ -1,15 +1,15 @@
 import Queue from 'bull'
 
 import {
+  ARTICLE_STATE,
   QUEUE_JOB,
   QUEUE_NAME,
-  QUEUE_PRIORITY,
-  ARTICLE_STATE
+  QUEUE_PRIORITY
 } from 'common/enums'
-import { UserService, SystemService, DraftService } from 'connectors'
+import logger from 'common/logger'
+import { DraftService, SystemService, UserService } from 'connectors'
 
 import { createQueue } from './utils'
-import logger from 'common/logger'
 
 interface ArchiveUserData {
   userId: string
