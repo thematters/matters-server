@@ -1,10 +1,7 @@
 import _get from 'lodash/get'
 
 import { toGlobalId } from 'common/utils'
-import {
-  GQLNodeInput,
-  GQLPutTagInput
-} from 'definitions'
+import { GQLNodeInput, GQLPutTagInput } from 'definitions'
 
 import { testClient } from './utils'
 
@@ -87,7 +84,11 @@ describe('put tag', () => {
     expect(createTagId).toBeDefined()
 
     // query
-    const { query } = await testClient({ isAuth: true, isAdmin: true, isMatty: true })
+    const { query } = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      isMatty: true
+    })
     const queryResult = await query({
       query: QUERY_TAG,
       // @ts-ignore
@@ -116,7 +117,11 @@ describe('manage tag', () => {
     const createTagId = createResult?.id
     expect(createTagId).toBeDefined()
 
-    const { mutate, query } = await testClient({ isAuth: true, isAdmin: true, isMatty: true })
+    const { mutate, query } = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      isMatty: true
+    })
     // rename
     const renameContent = 'Rename tag'
     const renameResult = await mutate({

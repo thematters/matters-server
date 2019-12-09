@@ -48,7 +48,12 @@ export const testClient = async (
     isAdmin,
     isMatty,
     context
-  }: { isAuth?: boolean; isAdmin?: boolean; isMatty?: boolean; context?: any } = {
+  }: {
+    isAuth?: boolean
+    isAdmin?: boolean
+    isMatty?: boolean
+    context?: any
+  } = {
     isAuth: false,
     isAdmin: false,
     isMatty: false,
