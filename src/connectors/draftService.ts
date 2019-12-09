@@ -58,10 +58,5 @@ export class DraftService extends BaseService {
       .from(this.table)
       .leftOuterJoin('article', 'article.draft_id', 'draft.id')
       .whereNull('draft_id')
-      .andWhere({ authorId })
-
-  deleteUnlinkedDraftsByAuthor = (authorId: string) => {
-    const query = this.findUnlinkedDraftsByAuthor(authorId)
-    return query.del()
-  }
+      .andWhere({ 'draft.author_id': authorId })
 }

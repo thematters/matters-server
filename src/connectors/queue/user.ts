@@ -57,9 +57,11 @@ class UserQueue {
 
       // delete unlinked drafts
       await this.deleteUnlinkedDrafts(userId)
+      job.progress(30)
 
       // delete assets
       await this.deleteMiscAssets(userId)
+      job.progress(70)
 
       // update search
       try {
@@ -73,8 +75,8 @@ class UserQueue {
       } catch (e) {
         logger.error(e)
       }
-
       job.progress(100)
+
       done(null)
     } catch (e) {
       done(e)
@@ -86,9 +88,9 @@ class UserQueue {
    */
   private deleteUnlinkedDrafts = async (authorId: string) => {
     const drafts = await this.draftService.findUnlinkedDraftsByAuthor(authorId)
-    const draftEntityTypeId = await this.systemService.baseFindEntityTypeId(
-      'draft'
-    )
+    const {
+      id: draftEntityTypeId
+    } = await this.systemService.baseFindEntityTypeId('draft')
 
     // delete assets
     await Promise.all(
@@ -114,7 +116,7 @@ class UserQueue {
     )
 
     // delete drafts
-    await this.draftService.deleteUnlinkedDraftsByAuthor(authorId)
+    await this.draftService.baseBatchDelete(drafts.map(draft => draft.id))
   }
 
   /**
