@@ -2,6 +2,7 @@ import { RedisCache } from 'apollo-server-cache-redis'
 
 import { CACHE_PREFIX } from 'common/enums'
 import { environment } from 'common/environment'
+import logger from 'common/logger'
 
 /**
  * Service for managing cache for other async services. Resolvers and middlewares
@@ -52,7 +53,7 @@ export class CacheService {
           .exec()
       })
     } catch (error) {
-      console.error(error)
+      logger.error(error)
     }
   }
 }

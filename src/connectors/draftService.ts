@@ -48,4 +48,20 @@ export class DraftService extends BaseService {
       .where({
         publishState
       })
+
+  /**
+   * Find or Delete drafts that aren't linked to articles by a given author id (user).
+   */
+  findUnlinkedDraftsByAuthor = (authorId: string) =>
+    this.knex
+      .select('draft.*', 'article.draft_id')
+      .from(this.table)
+      .leftOuterJoin('article', 'article.draft_id', 'draft.id')
+      .whereNull('draft_id')
+      .andWhere({ authorId })
+
+  deleteUnlinkedDraftsByAuthor = (authorId: string) => {
+    const query = this.findUnlinkedDraftsByAuthor(authorId)
+    return query.del()
+  }
 }

@@ -280,6 +280,8 @@ export const QUEUE_JOB = {
   // LikeCoin jobs
   like: 'likeCoinLike',
   sendPV: 'likeCoinSendPV',
+  // User jobs
+  archiveUser: 'userArchive',
   // repeat jobs
   publishPendingDrafts: 'publishPendingDrafts',
   refreshView: 'refreshView',
@@ -290,7 +292,8 @@ export const QUEUE_NAME = {
   notification: 'notification',
   publication: 'publication',
   schedule: 'schedule',
-  likecoin: 'likecoin'
+  likecoin: 'likecoin',
+  user: 'user'
 }
 
 export const QUEUE_CONCURRENCY = {

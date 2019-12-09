@@ -1,7 +1,8 @@
 import { USER_STATE } from 'common/enums'
-import { UserInputError } from 'common/errors'
+import { ActionFailedError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToUpdateUserStateResolver, User } from 'definitions'
+import { userQueue } from 'connectors/queue/user'
+import { MutationToUpdateUserStateResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserStateResolver = async (
   _,
@@ -10,6 +11,12 @@ const resolver: MutationToUpdateUserStateResolver = async (
 ) => {
   const { id: dbId } = fromGlobalId(id)
   const isArchived = state === USER_STATE.archived
+  const user = await userService.dataloader.load(dbId)
+
+  // check
+  if (user.state === USER_STATE.archived) {
+    throw new ActionFailedError('user has already been archived')
+  }
 
   /**
    * Archive
@@ -22,15 +29,18 @@ const resolver: MutationToUpdateUserStateResolver = async (
       await userService.verifyPassword({ password, hash: viewer.passwordHash })
     }
 
-    const oldUser = await userService.dataloader.load(dbId)
+    // sync
     const archivedUser = await userService.archive(dbId)
 
+    // async
+    userQueue.archiveUser({ userId: archivedUser.id })
+
     notificationService.mail.sendUserDeletedByAdmin({
-      to: oldUser.email,
+      to: user.email,
       recipient: {
-        displayName: oldUser.displayName
+        displayName: user.displayName
       },
-      language: oldUser.language
+      language: user.language
     })
 
     return archivedUser
@@ -39,7 +49,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
   /**
    * Active, Banned, Frozen
    */
-  const user = await userService.updateInfo(dbId, {
+  const updatedUser = await userService.updateInfo(dbId, {
     state
   })
 
@@ -47,16 +57,16 @@ const resolver: MutationToUpdateUserStateResolver = async (
   if (state === USER_STATE.banned) {
     notificationService.trigger({
       event: 'user_banned',
-      recipientId: user.id
+      recipientId: updatedUser.id
     })
   } else if (state === USER_STATE.frozen) {
     notificationService.trigger({
       event: 'user_frozen',
-      recipientId: user.id
+      recipientId: updatedUser.id
     })
   }
 
-  return user
+  return updatedUser
 }
 
 export default resolver

@@ -152,6 +152,19 @@ export class SystemService extends BaseService {
         .del()
     })
 
+  /**
+   * Find or Delete assets by given author id and types
+   */
+  findAssetsByAuthorAndTypes = (authorId: string, types: string[]) =>
+    this.knex('asset')
+      .whereIn('type', types)
+      .andWhere({ authorId })
+
+  deleteAssetsByAuthorAndTypes = async (authorId: string, types: string[]) => {
+    const query = this.findAssetsByAuthorAndTypes(authorId, types)
+    return query.del()
+  }
+
   /*********************************
    *                               *
    *             Report            *

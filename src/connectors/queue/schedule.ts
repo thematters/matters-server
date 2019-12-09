@@ -53,7 +53,7 @@ class ScheduleQueue {
         await job.remove()
       })
     } catch (e) {
-      console.error('failed to clear repeat jobs', e)
+      logger.error('failed to clear repeat jobs', e)
     }
   }
 
