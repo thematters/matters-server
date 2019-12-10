@@ -87,7 +87,6 @@ const DELETE_ARTICLE_TAGS = `
   }
 `
 
-
 export const putTag = async (tag: GQLPutTagInput) => {
   const { mutate } = await testClient({
     isAdmin: true,
@@ -203,7 +202,7 @@ describe('manage article tag', () => {
       variables: {
         input: {
           id: createTagId,
-          articles: articleIds,
+          articles: articleIds
         }
       }
     })
@@ -219,6 +218,8 @@ describe('manage article tag', () => {
         }
       }
     })
-    expect(deleteResult?.data?.deleteArticleTags?.articles?.edges.length).toBe(0)
+    expect(deleteResult?.data?.deleteArticleTags?.articles?.edges.length).toBe(
+      0
+    )
   })
 })

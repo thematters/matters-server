@@ -65,7 +65,11 @@ export const testClient = async (
     _context = context
   } else if (isAuth) {
     _context = await getUserContext({
-      email: isMatty ? 'hi@matters.news' : isAdmin ? adminUser.email : defaultTestUser.email
+      email: isMatty
+        ? 'hi@matters.news'
+        : isAdmin
+        ? adminUser.email
+        : defaultTestUser.email
     })
   }
 
