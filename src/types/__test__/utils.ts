@@ -65,7 +65,7 @@ export const testClient = async (
     _context = context
   } else if (isAuth) {
     _context = await getUserContext({
-      email: isAdmin ? adminUser.email : defaultTestUser.email
+      email: isMatty ? 'hi@matters.news' : isAdmin ? adminUser.email : defaultTestUser.email
     })
   }
 
@@ -80,9 +80,6 @@ export const testClient = async (
   }
   if (!viewer.scope) {
     viewer.scope = {}
-  }
-  if (isMatty) {
-    viewer.email = 'hi@matters.news'
   }
 
   _context.viewer = {
