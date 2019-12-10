@@ -113,14 +113,14 @@ class ScheduleQueue {
       }
     )
 
-    // refresh tagCountMaterialized every 2 minutes
+    // refresh tagCountMaterialized every 2.5 minutes
     this.q.add(
       QUEUE_JOB.refreshView,
       { view: MATERIALIZED_VIEW.tagCountMaterialized },
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 2 // every 2 minutes
+          every: 1000 * 60 * 2.5 // every 2.5 minutes
         }
       }
     )
