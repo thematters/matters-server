@@ -9,6 +9,7 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import author from './author'
 import collectedBy from './collectedBy'
 import collection from './collection'
+import content from './content'
 import articleCover from './cover'
 import hasAppreciate from './hasAppreciate'
 import * as articleOSS from './oss'
@@ -29,6 +30,7 @@ export default {
     articles: userArticles
   },
   Article: {
+    content,
     appreciationsReceived,
     appreciationsReceivedTotal,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
@@ -45,8 +47,13 @@ export default {
       slug || slugify(title), // handle missing slug from migration
     subscribed,
     subscribers,
-    summary: ({ content, cover }: { cover?: string; content: string }) =>
-      makeSummary(content, cover ? 110 : 140),
+    summary: ({
+      content: articleContent,
+      cover
+    }: {
+      cover?: string
+      content: string
+    }) => makeSummary(articleContent, cover ? 110 : 140),
     tags,
     topicScore: ({ topicScore }: { topicScore: number }) =>
       topicScore ? Math.round(topicScore) : null
