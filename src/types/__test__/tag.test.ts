@@ -14,7 +14,6 @@ const QUERY_TAG = `
         id
         content
         description
-        deleted
       }
     }
   }
@@ -26,7 +25,6 @@ const PUT_TAG = `
       id
       content
       description
-      deleted
     }
   }
 `
@@ -131,15 +129,10 @@ describe('manage tag', () => {
     expect(renameResult?.data?.renameTag?.content).toBe(renameContent)
 
     // delete
-    const test = await mutate({
+    const deleteResult = await mutate({
       mutation: DELETE_TAG,
       variables: { input: { ids: [createTagId] } }
     })
-    const queryResult = await query({
-      query: QUERY_TAG,
-      // @ts-ignore
-      variables: { input: { id: createTagId } }
-    })
-    expect(queryResult?.data?.node?.deleted).toBe(true)
+    expect(deleteResult?.data?.deleteTags).toBe(true)
   })
 })
