@@ -1,3 +1,4 @@
+import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import { UserNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToMergeTagsResolver } from 'definitions'
@@ -12,12 +13,15 @@ const resolver: MutationToMergeTagsResolver = async (
   if (!mattyUser) {
     throw new UserNotFoundError('could not find Matty')
   }
-  const tagDdIds = ids.map(id => fromGlobalId(id).id)
+  const tagDbIds = ids.map(id => fromGlobalId(id).id)
   const newTag = await tagService.mergeTags({
-    tagIds: tagDdIds,
+    tagIds: tagDbIds,
     content,
     editors: [mattyUser.id]
   })
+
+  // Add custom data for cache invalidation
+  newTag[CACHE_KEYWORD] = tagDbIds.map(id => ({ id, type: NODE_TYPES.tag }))
   return newTag
 }
 
