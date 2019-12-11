@@ -15,7 +15,9 @@ const resolver: MutationToDeleteTagsResolver = async (
   // manually invalidate cache since it returns nothing
   if (redis && redis.client) {
     const cacheService = new CacheService(redis)
-    await Promise.all(tagDbIds.map(id => cacheService.invalidate(NODE_TYPES.tag, id)))
+    await Promise.all(
+      tagDbIds.map(id => cacheService.invalidate(NODE_TYPES.tag, id))
+    )
   }
 
   return true
