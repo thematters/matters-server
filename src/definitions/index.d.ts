@@ -1,3 +1,4 @@
+import { RedisCache } from 'apollo-server-cache-redis'
 import { Response } from 'express'
 
 import {
@@ -43,6 +44,7 @@ export type UserRole = 'admin' | 'user'
 export type Context = RequestContext & {
   dataSources: DataSources
   cacheKey: string
+  redis: RedisCache
 }
 
 export type Viewer = (User | { id: null }) & {

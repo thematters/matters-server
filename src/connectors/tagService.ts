@@ -71,12 +71,7 @@ export class TagService extends BaseService {
     content: string
     description?: string
     editors: string[]
-  }): Promise<{
-    id: string
-    content: string
-    description?: string
-    editors: string[]
-  }> =>
+  }) =>
     this.baseFindOrCreate({
       where: { content },
       data: { content, description, editors }
