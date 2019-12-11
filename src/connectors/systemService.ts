@@ -1,6 +1,6 @@
 import { BATCH_SIZE, SEARCH_KEY_TRUNCATE_LENGTH } from 'common/enums'
-import { BaseService } from 'connectors'
 import logger from 'common/logger'
+import { BaseService } from 'connectors'
 
 export class SystemService extends BaseService {
   constructor() {
