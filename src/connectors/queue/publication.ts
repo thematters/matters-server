@@ -186,7 +186,7 @@ class PublicationQueue {
   }
 
   /**
-   * Delete collections
+   * Create collections
    */
   private handleCollection = async ({
     draft,
@@ -324,12 +324,7 @@ class PublicationQueue {
       }, {})
 
       if (assets && Object.keys(assets).length > 0) {
-        await this.systemService.deleteAssetAndAssetMap(Object.keys(assets))
-        await Promise.all(
-          Object.values(assets).map((key: any) => {
-            this.systemService.aws.baseDeleteFile(key)
-          })
-        )
+        await this.systemService.deleteAssetAndAssetMap(assets)
       }
     } catch (e) {
       logger.error(e)

@@ -105,12 +105,7 @@ class UserQueue {
         }, {})
 
         if (assets && Object.keys(assets).length > 0) {
-          await this.systemService.deleteAssetAndAssetMap(Object.keys(assets))
-          await Promise.all(
-            Object.values(assets).map((key: any) => {
-              this.systemService.aws.baseDeleteFile(key)
-            })
-          )
+          await this.systemService.deleteAssetAndAssetMap(assets)
         }
       })
     )

@@ -63,7 +63,7 @@ const getUser = async (token: string) => {
       }
 
       if (data.user.state === USER_STATE.archived) {
-        throw new Error('user has deleted')
+        throw new Error('user has been deleted')
       }
 
       const scope = makeScope(data.scope as string[])
