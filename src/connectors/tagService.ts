@@ -71,7 +71,12 @@ export class TagService extends BaseService {
     content: string
     description?: string
     editors: string[]
-  }): Promise<{ id: string; content: string }> =>
+  }): Promise<{
+    id: string
+    content: string
+    description?: string
+    editors: string[]
+  }> =>
     this.baseFindOrCreate({
       where: { content },
       data: { content, description, editors }
@@ -83,20 +88,69 @@ export class TagService extends BaseService {
    *                               *
    *********************************/
 
+  addToSearch = async ({
+    id,
+    content,
+    description
+  }: {
+    [key: string]: any
+  }) => {
+    try {
+      const result = await this.es.indexItems({
+        index: this.table,
+        items: [
+          {
+            id,
+            content,
+            description
+          }
+        ]
+      })
+      return result
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
+  updateSearch = async ({
+    id,
+    content,
+    description
+  }: {
+    [key: string]: any
+  }) => {
+    try {
+      const result = await this.es.client.update({
+        index: this.table,
+        id,
+        body: {
+          doc: { content, description }
+        }
+      })
+      return result
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
+  deleteSearch = async ({ id }: { [key: string]: any }) => {
+    try {
+      const result = await this.es.client.delete({
+        index: this.table,
+        id
+      })
+      return result
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
   search = async ({
     key,
     first = 20,
     offset,
     oss = false
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
-    // for local dev
-    // if (environment.env === 'development') {
-    //   return this.knex(this.table)
-    //     .where('content', 'ilike', `%${key}%`)
-    //     .offset(offset)
-    //     .limit(first)
-    // }
-
     const body = bodybuilder()
       .query('match', 'content', key)
       .from(offset)
@@ -286,6 +340,13 @@ export class TagService extends BaseService {
     // create new tag
     const newTag = await this.create({ content, editors })
 
+    // add tag into search engine
+    this.addToSearch({
+      id: newTag.id,
+      content: newTag.content,
+      description: newTag.description
+    })
+
     // move article tags to new tag
     const articleIds = await this.findArticleIdsByTagIds(tagIds)
     await this.createArticleTags({ articleIds, tagIds: [newTag.id] })
@@ -297,6 +358,8 @@ export class TagService extends BaseService {
 
     // delete tags
     await this.baseBatchDelete(tagIds)
+
+    Promise.all(tagIds.map((id: string) => this.deleteSearch({ id })))
 
     return newTag
   }

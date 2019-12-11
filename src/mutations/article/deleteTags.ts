@@ -6,8 +6,9 @@ const resolver: MutationToDeleteTagsResolver = async (
   { input: { ids } },
   { viewer, dataSources: { tagService } }
 ) => {
-  const tagDdIds = ids.map(id => fromGlobalId(id).id)
-  await tagService.deleteTags(tagDdIds)
+  const tagDbIds = ids.map(id => fromGlobalId(id).id)
+  await tagService.deleteTags(tagDbIds)
+  Promise.all(tagDbIds.map((id: string) => tagService.deleteSearch({ id })))
   return true
 }
 
