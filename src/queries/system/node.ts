@@ -1,4 +1,4 @@
-import { ForbiddenError } from 'common/errors'
+import { EntityNotFoundError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { NodeTypes, QueryToNodeResolver } from 'definitions'
 
@@ -29,6 +29,10 @@ const resolver: QueryToNodeResolver = async (
     id: string
   }
   const node = await serviceMap[type].dataloader.load(dbId)
+
+  if (!node) {
+    throw new EntityNotFoundError('target does not exist')
+  }
 
   if (type === 'Draft' && viewer.id !== node.authorId) {
     throw new ForbiddenError('only author is allowed to view draft')

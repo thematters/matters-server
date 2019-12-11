@@ -5,8 +5,6 @@ import { GQLNodeInput, GQLPutTagInput } from 'definitions'
 
 import { testClient } from './utils'
 
-const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
-
 const QUERY_TAG = `
   query ($input: NodeInput!) {
     node(input: $input) {
@@ -14,7 +12,6 @@ const QUERY_TAG = `
         id
         content
         description
-        deleted
       }
     }
   }
@@ -26,7 +23,6 @@ const PUT_TAG = `
       id
       content
       description
-      deleted
     }
   }
 `
@@ -54,6 +50,40 @@ const MERGE_TAG = `
 const DELETE_TAG = `
   mutation ($input: DeleteTagsInput!) {
     deleteTags(input: $input)
+  }
+`
+
+const ADD_ARTICLE_TAGS = `
+  mutation ($input: UpdateArticleTagsInput!) {
+    addArticleTags(input: $input) {
+      id
+      articles(input: { after: null, first: null, oss: true }) {
+        edges {
+          node {
+            ... on Article {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+const DELETE_ARTICLE_TAGS = `
+  mutation ($input: UpdateArticleTagsInput!) {
+    deleteArticleTags(input: $input) {
+      id
+      articles(input: { after: null, first: null, oss: true }) {
+        edges {
+          node {
+            ... on Article {
+              id
+            }
+          }
+        }
+      }
+    }
   }
 `
 
@@ -130,16 +160,66 @@ describe('manage tag', () => {
     })
     expect(renameResult?.data?.renameTag?.content).toBe(renameContent)
 
+    // merge
+    const mergeContent = 'Merge tag'
+    const mergeResult = await mutate({
+      mutation: MERGE_TAG,
+      variables: { input: { ids: [createTagId], content: mergeContent } }
+    })
+    const mergeTagId = mergeResult?.data?.mergeTags?.id
+    expect(mergeResult?.data?.mergeTags?.content).toBe(mergeContent)
+
     // delete
-    const test = await mutate({
+    const deleteResult = await mutate({
       mutation: DELETE_TAG,
-      variables: { input: { ids: [createTagId] } }
+      variables: { input: { ids: [mergeTagId] } }
     })
-    const queryResult = await query({
-      query: QUERY_TAG,
-      // @ts-ignore
-      variables: { input: { id: createTagId } }
+    expect(deleteResult?.data?.deleteTags).toBe(true)
+  })
+})
+
+describe('manage article tag', () => {
+  test('add and delete article tag', async () => {
+    // create
+    const createResult = await putTag({ content: 'Test tag #1' })
+    const createTagId = createResult?.id
+    expect(createTagId).toBeDefined()
+
+    const { mutate, query } = await testClient({
+      isAuth: true,
+      isAdmin: true,
+      isMatty: true
     })
-    expect(queryResult?.data?.node?.deleted).toBe(true)
+
+    const articleIds = [
+      toGlobalId({ type: 'Article', id: 1 }),
+      toGlobalId({ type: 'Article', id: 2 })
+    ]
+
+    // add
+    const addResult = await mutate({
+      mutation: ADD_ARTICLE_TAGS,
+      variables: {
+        input: {
+          id: createTagId,
+          articles: articleIds
+        }
+      }
+    })
+    expect(addResult?.data?.addArticleTags?.articles?.edges.length).toBe(2)
+
+    // remove
+    const deleteResult = await mutate({
+      mutation: DELETE_ARTICLE_TAGS,
+      variables: {
+        input: {
+          id: createTagId,
+          articles: articleIds
+        }
+      }
+    })
+    expect(deleteResult?.data?.deleteArticleTags?.articles?.edges.length).toBe(
+      0
+    )
   })
 })
