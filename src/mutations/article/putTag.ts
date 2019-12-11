@@ -47,7 +47,7 @@ const resolver: MutationToPutTagResolver = async (
     })
 
     // add tag into search engine
-    tagService.addToSearch({
+    await tagService.addToSearch({
       id: newTag.id,
       content: newTag.content,
       description: newTag.description
@@ -82,7 +82,7 @@ const resolver: MutationToPutTagResolver = async (
     const updateTag = await tagService.baseUpdate(dbId, updateParams)
 
     // update tag for search engine
-    tagService.updateSearch({
+    await tagService.updateSearch({
       id: updateTag.id,
       content: updateTag.content,
       description: updateTag.description

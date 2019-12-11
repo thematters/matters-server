@@ -336,7 +336,7 @@ export class TagService extends BaseService {
     const newTag = await this.create({ content, editors })
 
     // add tag into search engine
-    this.addToSearch({
+    await this.addToSearch({
       id: newTag.id,
       content: newTag.content,
       description: newTag.description
@@ -354,7 +354,7 @@ export class TagService extends BaseService {
     // delete tags
     await this.baseBatchDelete(tagIds)
 
-    Promise.all(tagIds.map((id: string) => this.deleteSearch({ id })))
+    await Promise.all(tagIds.map((id: string) => this.deleteSearch({ id })))
 
     return newTag
   }
