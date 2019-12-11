@@ -267,7 +267,7 @@ export class TagService extends BaseService {
       .del()
 
     // delete tags
-    await this.baseBatchUpdate(tagIds, { deleted: true })
+    await this.baseBatchDelete(tagIds)
   }
 
   renameTag = async ({ tagId, content }: { tagId: string; content: string }) =>
@@ -295,7 +295,7 @@ export class TagService extends BaseService {
       .del()
 
     // delete tags
-    await this.baseBatchUpdate(tagIds, { deleted: true })
+    await this.baseBatchDelete(tagIds)
 
     return newTag
   }
