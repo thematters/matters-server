@@ -14,9 +14,9 @@ export class CacheService {
   prefix: string
   redis: RedisCache
 
-  constructor() {
+  constructor(instance?: RedisCache) {
     this.prefix = CACHE_PREFIX
-    this.redis = this.init()
+    this.redis = instance || this.init()
   }
 
   /**

@@ -40,11 +40,19 @@ const resolver: MutationToPutTagResolver = async (
       throw new DuplicateTagError(`dulpicate tag content: ${tagContent}`)
     }
 
-    return tagService.create({
+    const newTag = await tagService.create({
       content: tagContent,
       description,
       editors: [viewer.id]
     })
+
+    // add tag into search engine
+    tagService.addToSearch({
+      id: newTag.id,
+      content: newTag.content,
+      description: newTag.description
+    })
+    return newTag
   } else {
     // update tag
     const { id: dbId } = fromGlobalId(id)
@@ -71,7 +79,15 @@ const resolver: MutationToPutTagResolver = async (
     if (Object.keys(updateParams).length === 0) {
       throw new UserInputError('bad request')
     }
-    return tagService.baseUpdate(dbId, updateParams)
+    const updateTag = await tagService.baseUpdate(dbId, updateParams)
+
+    // update tag for search engine
+    tagService.updateSearch({
+      id: updateTag.id,
+      content: updateTag.content,
+      description: updateTag.description
+    })
+    return updateTag
   }
 }
 

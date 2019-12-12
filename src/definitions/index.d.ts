@@ -1,3 +1,4 @@
+import { RedisCache } from 'apollo-server-cache-redis'
 import { Response } from 'express'
 
 import {
@@ -45,6 +46,7 @@ export type UserState = 'active' | 'banned' | 'frozen' | 'archived'
 export type Context = RequestContext & {
   dataSources: DataSources
   cacheKey: string
+  redis: RedisCache
 }
 
 export type Viewer = (User | { id: null }) & {
