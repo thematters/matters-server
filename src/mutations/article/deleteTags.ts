@@ -10,7 +10,9 @@ const resolver: MutationToDeleteTagsResolver = async (
 ) => {
   const tagDbIds = ids.map(id => fromGlobalId(id).id)
   await tagService.deleteTags(tagDbIds)
-  Promise.all(tagDbIds.map((id: string) => tagService.deleteSearch({ id })))
+  await Promise.all(
+    tagDbIds.map((id: string) => tagService.deleteSearch({ id }))
+  )
 
   // manually invalidate cache since it returns nothing
   if (redis && redis.client) {
