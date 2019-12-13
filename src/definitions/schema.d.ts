@@ -2129,6 +2129,7 @@ export interface GQLUpdateUserStateInput {
   id: string
   state: GQLUserState
   banDays?: GQLPositiveInt
+  password?: string
 }
 
 export type GQLPositiveInt = any

@@ -44,6 +44,10 @@ const trans = {
       `🐿️ ${displayName}，這是專屬於你的 Matters 日報`,
     zh_hans: ({ displayName }) =>
       `🐿️ ${displayName}，这是专属于你的 Matters 日报`
+  }),
+  userDeleted: i18n({
+    zh_hant: 'Matters | 你的賬號已被註銷',
+    zh_hans: 'Matters | 你的账号已被注销'
   })
 }
 
@@ -291,6 +295,35 @@ class Mail {
             siteDomain: environment.siteDomain,
             recipient,
             ...data
+          }
+        }
+      ]
+    })
+  }
+
+  sendUserDeletedByAdmin = async ({
+    to,
+    recipient,
+    language = 'zh_hant'
+  }: {
+    to: string
+    recipient: {
+      displayName: string
+    }
+    language?: LANGUAGES
+  }) => {
+    const templateId = EMAIL_TEMPLATE_ID.userDeleted[language]
+    notificationQueue.sendMail({
+      from: environment.emailFromAsk as string,
+      templateId,
+      personalizations: [
+        {
+          to,
+          // @ts-ignore
+          dynamic_template_data: {
+            subject: trans.userDeleted(language, {}),
+            siteDomain: environment.siteDomain,
+            recipient
           }
         }
       ]

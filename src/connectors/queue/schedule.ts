@@ -53,7 +53,7 @@ class ScheduleQueue {
         await job.remove()
       })
     } catch (e) {
-      console.error('failed to clear repeat jobs', e)
+      logger.error('failed to clear repeat jobs', e)
     }
   }
 
@@ -245,7 +245,8 @@ class ScheduleQueue {
               article_mentioned_you: filterNotices('article_mentioned_you'),
               comment_new_reply: filterNotices('comment_new_reply'),
               comment_mentioned_you: filterNotices('comment_mentioned_you')
-            }
+            },
+            language: user.language
           })
 
           job.progress(((index + 1) / users.length) * 100)

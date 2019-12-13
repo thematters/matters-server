@@ -1268,14 +1268,16 @@ export class ArticleService extends BaseService {
     offset?: number
   }) => {
     const query = this.knex('collection')
-      .select('article_id')
-      .where({ entranceId })
+      .select('article_id', 'state')
+      .innerJoin('article', 'article.id', 'article_id')
+      .where({ entranceId, state: ARTICLE_STATE.active })
       .offset(offset)
       .orderBy('order', 'asc')
 
     if (limit) {
       query.limit(limit)
     }
+
     return query
   }
 
@@ -1302,8 +1304,9 @@ export class ArticleService extends BaseService {
    */
   countCollections = async (id: string) => {
     const result = await this.knex('collection')
-      .where({ entranceId: id })
-      .countDistinct('article_id')
+      .countDistinct('article_id', 'state')
+      .innerJoin('article', 'article.id', 'article_id')
+      .where({ entranceId: id, state: ARTICLE_STATE.active })
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
   }
