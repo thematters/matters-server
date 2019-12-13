@@ -80,7 +80,6 @@ class ScheduleQueue {
       }
     )
 
-
     /**
      * Refresh Views
      */
