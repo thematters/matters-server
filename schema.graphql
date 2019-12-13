@@ -790,11 +790,6 @@ enum LogRecordTypes {
   ReadResponseInfoPopUp
 }
 
-type MAT {
-  total: Int!
-  history(input: ConnectionArgs!): TransactionConnection!
-}
-
 input MergeTagsInput {
   ids: [ID!]!
   content: String!

@@ -168,6 +168,12 @@ class ScheduleQueue {
       this.handleSendDailySummaryEmail
     )
 
+    // activate onboarding users
+    this.q.process(
+      QUEUE_JOB.activateOnboardingUsers,
+      this.handleActivateOnboardingUsers
+    )
+
     // refresh view
     this.q.process(
       QUEUE_JOB.refreshArticleActivityView,
@@ -262,6 +268,22 @@ class ScheduleQueue {
     } catch (e) {
       done(e)
     }
+  }
+
+  private handleActivateOnboardingUsers = (): Queue.ProcessCallbackFunction<
+    unknown
+  > => async (job, done) => {
+    const activatableUsers = await this.userService.findActivatableUsers()
+
+    await Promise.all(
+      activatableUsers.map(async user => {
+        try {
+          await this.userService.activate({ id: user.id })
+        } catch (e) {
+          logger.error(e)
+        }
+      })
+    )
   }
 
   private handleRefreshView = (

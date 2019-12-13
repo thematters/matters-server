@@ -11,14 +11,14 @@ import {
   BCRYPT_ROUNDS,
   BLOCK_USERS,
   COMMENT_STATE,
+  MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
   USER_STATE,
   VERIFICATION_CODE_EXIPRED_AFTER,
   VERIFICATION_CODE_STATUS,
-  VERIFICATION_CODE_TYPES,
-  MATERIALIZED_VIEW
+  VERIFICATION_CODE_TYPES
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -248,6 +248,9 @@ export class UserService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
+  /**
+   * Archive User by a given user id
+   */
   archive = async (id: string) => {
     return this.knex.transaction(async trx => {
       // archive user
@@ -314,6 +317,34 @@ export class UserService extends BaseService {
       return user
     })
   }
+
+  /**
+   * Find activatable users
+   */
+  findActivatableUsers = () =>
+    this.knex
+      .select('user.*')
+      .from(this.table)
+      .innerJoin(
+        'user_oauth_likecoin',
+        'user_oauth_likecoin.liker_id',
+        'user.liker_id'
+      )
+      .innerJoin(
+        this.knex
+          .select('recipient_id')
+          .sum('amount')
+          .from('transaction')
+          .where('amount', '>=', 30)
+          .groupBy('recipient_id')
+          .as('tx'),
+        'tx.recipient_id',
+        'user.id'
+      )
+      .where({
+        state: USER_STATE.onboarding,
+        accountType: 'general'
+      })
 
   /*********************************
    *                               *
