@@ -284,8 +284,13 @@ export const QUEUE_JOB = {
   archiveUser: 'userArchive',
   // repeat jobs
   publishPendingDrafts: 'publishPendingDrafts',
-  refreshView: 'refreshView',
-  sendDailySummaryEmail: 'sendDailySummaryEmail'
+  sendDailySummaryEmail: 'sendDailySummaryEmail',
+  // refresh views
+  refreshArticleCountView: 'refreshArticleCountView',
+  refreshTagCountMaterialView: 'refreshTagCountMaterialView',
+  refreshUserReaderView: 'refreshUserReaderView',
+  refreshArticleActivityView: 'refreshArticleActivityView',
+  refreshFeaturedCommentView: 'refreshFeaturedCommentView'
 }
 
 export const QUEUE_NAME = {

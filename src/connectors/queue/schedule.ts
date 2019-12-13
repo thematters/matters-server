@@ -70,17 +70,24 @@ class ScheduleQueue {
       }
     )
 
-    // initialize search every day at 4am
-    // moved to db pipeline
-    // this.q.add(QUEUE_JOB.initializeSearch, null, {
-    //   priority: QUEUE_PRIORITY.CRITICAL,
-    //   repeat: { cron: '0 4 * * *', tz: 'Asia/Hong_Kong' }
-    // })
+    // send daily summary email every day at 09:00
+    this.q.add(
+      QUEUE_JOB.sendDailySummaryEmail,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
 
+
+    /**
+     * Refresh Views
+     */
     // refresh articleActivityMaterialized every 2 minutes, for hottest recommendation
     this.q.add(
-      QUEUE_JOB.refreshView,
-      { view: MATERIALIZED_VIEW.articleActivityMaterialized },
+      QUEUE_JOB.refreshArticleActivityView,
+      {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
@@ -91,8 +98,8 @@ class ScheduleQueue {
 
     // refresh articleCountMaterialized every 1.1 hours, for topics recommendation
     this.q.add(
-      QUEUE_JOB.refreshView,
-      { view: MATERIALIZED_VIEW.articleCountMaterialized },
+      QUEUE_JOB.refreshArticleCountView,
+      {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
@@ -103,8 +110,8 @@ class ScheduleQueue {
 
     // refresh featuredCommentMaterialized every 2.1 hours, for featured comments
     this.q.add(
-      QUEUE_JOB.refreshView,
-      { view: MATERIALIZED_VIEW.featuredCommentMaterialized },
+      QUEUE_JOB.refreshFeaturedCommentView,
+      {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
@@ -115,8 +122,8 @@ class ScheduleQueue {
 
     // refresh tagCountMaterialized every 2.5 minutes
     this.q.add(
-      QUEUE_JOB.refreshView,
-      { view: MATERIALIZED_VIEW.tagCountMaterialized },
+      QUEUE_JOB.refreshTagCountMaterialView,
+      {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
@@ -127,21 +134,11 @@ class ScheduleQueue {
 
     // refresh userReaderMaterialized every day at 3am
     this.q.add(
-      QUEUE_JOB.refreshView,
-      { view: MATERIALIZED_VIEW.userReaderMaterialized },
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
-      }
-    )
-
-    // send daily summary email every day at 7am
-    this.q.add(
-      QUEUE_JOB.sendDailySummaryEmail,
+      QUEUE_JOB.refreshUserReaderView,
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
+        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
   }
@@ -151,113 +148,127 @@ class ScheduleQueue {
    */
   private addConsumers = () => {
     // publish pending drafs
-    this.q.process(QUEUE_JOB.publishPendingDrafts, async (job, done) => {
-      try {
-        const drafts = await this.draftService.findByPublishState(
-          PUBLISH_STATE.pending
-        )
-        const pendingDraftIds: string[] = []
-
-        drafts.forEach((draft: any, index: number) => {
-          // skip if draft was scheduled and later than now
-          if (draft.scheduledAt && draft.scheduledAt > new Date()) {
-            return
-          }
-          publicationQueue.publishArticle({ draftId: draft.id, delay: 0 })
-          pendingDraftIds.push(draft.id)
-          job.progress(((index + 1) / drafts.length) * 100)
-        })
-
-        job.progress(100)
-        done(null, pendingDraftIds)
-      } catch (e) {
-        done(e)
-      }
-    })
-
-    // initialize search
-    // this.q.process(QUEUE_JOB.initializeSearch, async (job, done) => {
-    //   logger.info(`[schedule job] initializing search`)
-    //   try {
-    //     await this.articleService.es.clear()
-    //     const articleRes = await this.articleService.initSearch()
-    //     job.progress(50)
-    //     const userRes = await this.userService.initSearch()
-    //     job.progress(100)
-    //     done(null, { articleRes, userRes })
-    //   } catch (e) {
-    //     logger.error(
-    //       `[schedule job] error in initializing search: ${JSON.stringify(e)}`
-    //     )
-    //     done(e)
-    //   }
-    // })
-
-    // refresh view
-    this.q.process(QUEUE_JOB.refreshView, async (job, done) => {
-      const { view } = job.data as { view: MaterializedView }
-      try {
-        logger.info(`[schedule job] refreshing view ${view}`)
-        await refreshView(view)
-        job.progress(100)
-        done(null)
-      } catch (e) {
-        logger.error(
-          `[schedule job] error in refreshing view ${view}: ${JSON.stringify(
-            e
-          )}`
-        )
-        done(e)
-      }
-    })
+    this.q.process(
+      QUEUE_JOB.publishPendingDrafts,
+      this.handlePublishPendingDrafts
+    )
 
     // send daily summary email
-    this.q.process(QUEUE_JOB.sendDailySummaryEmail, async (job, done) => {
-      try {
-        logger.info(`[schedule job] send daily summary email`)
-        const users = await this.notificationService.notice.findDailySummaryUsers()
+    this.q.process(
+      QUEUE_JOB.sendDailySummaryEmail,
+      this.handleSendDailySummaryEmail
+    )
 
-        users.forEach(async (user, index) => {
-          const notices = await this.notificationService.notice.findDailySummaryNoticesByUser(
-            user.id
-          )
+    // refresh view
+    this.q.process(
+      QUEUE_JOB.refreshArticleActivityView,
+      this.handleRefreshView('article_activity_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshArticleCountView,
+      this.handleRefreshView('article_count_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshFeaturedCommentView,
+      this.handleRefreshView('featured_comment_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshTagCountMaterialView,
+      this.handleRefreshView('tag_count_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshUserReaderView,
+      this.handleRefreshView('user_reader_materialized')
+    )
+  }
 
-          if (!notices || notices.length <= 0) {
-            return
-          }
+  private handlePublishPendingDrafts: Queue.ProcessCallbackFunction<
+    unknown
+  > = async (job, done) => {
+    try {
+      const drafts = await this.draftService.findByPublishState(
+        PUBLISH_STATE.pending
+      )
+      const pendingDraftIds: string[] = []
 
-          const filterNotices = (type: string) =>
-            notices.filter(notice => notice.noticeType === type)
+      drafts.forEach((draft: any, index: number) => {
+        // skip if draft was scheduled and later than now
+        if (draft.scheduledAt && draft.scheduledAt > new Date()) {
+          return
+        }
+        publicationQueue.publishArticle({ draftId: draft.id, delay: 0 })
+        pendingDraftIds.push(draft.id)
+        job.progress(((index + 1) / drafts.length) * 100)
+      })
 
-          this.notificationService.mail.sendDailySummary({
-            to: user.email,
-            recipient: {
-              displayName: user.displayName
-            },
-            notices: {
-              user_new_follower: filterNotices('user_new_follower'),
-              article_new_collected: filterNotices('article_new_collected'),
-              article_new_appreciation: filterNotices(
-                'article_new_appreciation'
-              ),
-              article_new_subscriber: filterNotices('article_new_subscriber'),
-              article_new_comment: filterNotices('article_new_comment'),
-              article_mentioned_you: filterNotices('article_mentioned_you'),
-              comment_new_reply: filterNotices('comment_new_reply'),
-              comment_mentioned_you: filterNotices('comment_mentioned_you')
-            },
-            language: user.language
-          })
+      job.progress(100)
+      done(null, pendingDraftIds)
+    } catch (e) {
+      done(e)
+    }
+  }
 
-          job.progress(((index + 1) / users.length) * 100)
+  private handleSendDailySummaryEmail: Queue.ProcessCallbackFunction<
+    unknown
+  > = async (job, done) => {
+    try {
+      logger.info(`[schedule job] send daily summary email`)
+      const users = await this.notificationService.notice.findDailySummaryUsers()
+
+      users.forEach(async (user, index) => {
+        const notices = await this.notificationService.notice.findDailySummaryNoticesByUser(
+          user.id
+        )
+
+        if (!notices || notices.length <= 0) {
+          return
+        }
+
+        const filterNotices = (type: string) =>
+          notices.filter(notice => notice.noticeType === type)
+
+        this.notificationService.mail.sendDailySummary({
+          to: user.email,
+          recipient: {
+            displayName: user.displayName
+          },
+          notices: {
+            user_new_follower: filterNotices('user_new_follower'),
+            article_new_collected: filterNotices('article_new_collected'),
+            article_new_appreciation: filterNotices('article_new_appreciation'),
+            article_new_subscriber: filterNotices('article_new_subscriber'),
+            article_new_comment: filterNotices('article_new_comment'),
+            article_mentioned_you: filterNotices('article_mentioned_you'),
+            comment_new_reply: filterNotices('comment_new_reply'),
+            comment_mentioned_you: filterNotices('comment_mentioned_you')
+          },
+          language: user.language
         })
 
-        job.progress(100)
-        done(null)
-      } catch (e) {
-        done(e)
-      }
-    })
+        job.progress(((index + 1) / users.length) * 100)
+      })
+
+      job.progress(100)
+      done(null)
+    } catch (e) {
+      done(e)
+    }
+  }
+
+  private handleRefreshView = (
+    view: MaterializedView
+  ): Queue.ProcessCallbackFunction<unknown> => async (job, done) => {
+    try {
+      logger.info(`[schedule job] refreshing view ${view}`)
+      await refreshView(view)
+      job.progress(100)
+      done(null)
+    } catch (e) {
+      logger.error(
+        `[schedule job] error in refreshing view ${view}: ${JSON.stringify(e)}`
+      )
+      done(e)
+    }
   }
 }
 

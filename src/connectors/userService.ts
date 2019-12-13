@@ -17,7 +17,8 @@ import {
   USER_STATE,
   VERIFICATION_CODE_EXIPRED_AFTER,
   VERIFICATION_CODE_STATUS,
-  VERIFICATION_CODE_TYPES
+  VERIFICATION_CODE_TYPES,
+  MATERIALIZED_VIEW
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -939,7 +940,9 @@ export class UserService extends BaseService {
     notIn?: string[]
     oss?: boolean
   }) => {
-    const table = oss ? 'user_reader_view' : 'user_reader_materialized'
+    const table = oss
+      ? 'user_reader_view'
+      : MATERIALIZED_VIEW.userReaderMaterialized
     const result = await this.knex(table)
       .select()
       .orderByRaw('author_score DESC NULLS LAST')
