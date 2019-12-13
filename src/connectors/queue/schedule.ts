@@ -80,6 +80,15 @@ class ScheduleQueue {
       }
     )
 
+    // activate onboarding users every day at 00:00
+    this.q.add(
+      QUEUE_JOB.activateOnboardingUsers,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 0 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
 
     /**
      * Refresh Views
