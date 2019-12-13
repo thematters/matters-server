@@ -495,6 +495,7 @@ class Notice extends BaseService {
       comment_new_upvote: setting.commentVoted,
       comment_mentioned_you: setting.mention,
       official_announcement: setting.officialNotice,
+      user_activated: true,
       user_banned: true,
       user_frozen: true,
       comment_banned: setting.reportFeedback,

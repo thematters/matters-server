@@ -106,6 +106,12 @@ export default {
     zh_hans: ({ message }) => message,
     en: ({ message }) => message
   }),
+  user_activiated: i18n({
+    zh_hant:
+      '恭喜！你的作品在社區內大獲好評，現在你暢行無阻啦。快去讚賞他人並參與討論吧。',
+    zh_hans:
+      '恭喜！你的作品在社区内大获好评，现在你畅行无阻啦。快去赞赏他人并参与讨论吧。'
+  }),
   user_banned: i18n<{ banDays?: number }>({
     zh_hant: ({ banDays }) =>
       banDays

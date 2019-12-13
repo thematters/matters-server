@@ -25,6 +25,7 @@ export type NoticeType =
   | 'official_announcement'
 
 export type OfficialNoticeExtendType =
+  | 'user_activated'
   | 'user_banned'
   | 'user_frozen'
   | 'comment_banned'
@@ -223,6 +224,11 @@ export interface NoticeArticleTagHasBeenRemovedParams
   ]
 }
 
+export interface NoticeUserActivatedParams extends NotificationRequiredParams {
+  event: 'user_activated'
+  recipientId: string
+}
+
 /**
  * Punish
  */
@@ -282,6 +288,7 @@ export type NotificationPrarms =
   | NoticeCommentNewUpvoteParams
   | NoticeCommentMentionedYouParams
   | NoticeOfficialAnnouncementParams
+  | NoticeUserActivatedParams
   | NoticeUserBannedParams
   | NoticeUserFrozenParams
   | NoticeCommentBannedParams

@@ -270,20 +270,33 @@ class ScheduleQueue {
     }
   }
 
-  private handleActivateOnboardingUsers = (): Queue.ProcessCallbackFunction<
+  private handleActivateOnboardingUsers: Queue.ProcessCallbackFunction<
     unknown
-  > => async (job, done) => {
-    const activatableUsers = await this.userService.findActivatableUsers()
+  > = async (job, done) => {
+    try {
+      const activatableUsers = await this.userService.findActivatableUsers()
+      const activatedUsers: Array<string | number> = []
 
-    await Promise.all(
-      activatableUsers.map(async user => {
-        try {
-          await this.userService.activate({ id: user.id })
-        } catch (e) {
-          logger.error(e)
-        }
-      })
-    )
+      await Promise.all(
+        activatableUsers.map(async (user, index) => {
+          try {
+            await this.userService.activate({ id: user.id })
+            this.notificationService.trigger({
+              event: 'user_activated',
+              recipientId: user.id
+            })
+            activatedUsers.push(user.id)
+            job.progress(((index + 1) / activatableUsers.length) * 100)
+          } catch (e) {
+            logger.error(e)
+          }
+        })
+      )
+
+      done(null, activatedUsers)
+    } catch (e) {
+      done(e)
+    }
   }
 
   private handleRefreshView = (
