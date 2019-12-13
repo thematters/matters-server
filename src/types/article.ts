@@ -33,6 +33,14 @@ export default /* GraphQL */ `
     "Update article information."
     updateArticleInfo(input: UpdateArticleInfoInput!): Article! @authenticate @purgeCache
 
+    "Create or update tag."
+    putTag(input: PutTagInput!): Tag! @authorize @purgeCache
+
+    "Add one tag to articles."
+    addArticleTags(input: UpdateArticleTagsInput!): Tag! @authorize @purgeCache
+
+    "Delete one tag from articles"
+    deleteArticleTags(input: UpdateArticleTagsInput!): Tag! @authorize @purgeCache
 
     ##############
     #     OSS    #
@@ -164,9 +172,19 @@ export default /* GraphQL */ `
     "Time of this tag was created."
     createdAt: DateTime!
 
+    "Tag's cover link."
+    cover: URL
+
+    "Description of this tag."
+    description: String
+
+    "Editors of this tag."
+    editors: [User!]
+
     # OSS
     oss: TagOSS! @authorize
     remark: String @authorize
+    deleted: Boolean! @authorize
   }
 
   type ArticleOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -297,6 +315,17 @@ export default /* GraphQL */ `
     cover: String
     title: String
     summary: String
+  }
+
+  input PutTagInput {
+    id: ID
+    content: String
+    description: String
+  }
+
+  input UpdateArticleTagsInput {
+    id: ID!
+    articles: [ID!]
   }
 
   "Enums for an article state."

@@ -1,5 +1,5 @@
 import * as AWS from 'aws-sdk'
-import sizeOf from 'image-size'
+import { imageSize } from 'image-size'
 import imagemin from 'imagemin'
 import imageminGifsicle from 'imagemin-gifsicle'
 import imageminJpegtran from 'imagemin-jpegtran'
@@ -80,13 +80,20 @@ export class AWSService {
   ): Promise<string> => {
     const { createReadStream, mimetype, encoding } = upload
     const stream = createReadStream()
+    let finalMimeType = mimetype
     let buffer = await makeStreamToBuffer(stream)
 
     // Reduce image size
     if (mimetype && ACCEPTED_UPLOAD_IMAGE_TYPES.includes(mimetype)) {
+      if (mimetype === 'image/webp') {
+        // convert to jpeg
+        buffer = await this.convertToJPEG(buffer)
+        finalMimeType = 'image/jpeg'
+      }
+
       // Detect image dimension
-      const { width, height } = sizeOf(buffer)
-      if (width > IMAGE_DIMENSION_LIMIT) {
+      const { width, height } = imageSize(buffer)
+      if (width && width > IMAGE_DIMENSION_LIMIT) {
         buffer = await this.resizeImage(buffer, IMAGE_DIMENSION_LIMIT, null)
       }
 
@@ -102,13 +109,14 @@ export class AWSService {
     }
 
     const extension =
-      mime.extension(mimetype) || upload.filename.split('.').pop()
+      mime.extension(finalMimeType) || upload.filename.split('.').pop()
+
     const key = `${folder}/${uuid}.${extension}`
     const result = await this.s3
       .upload({
         Body: buffer,
         Bucket: this.s3Bucket,
-        ContentType: mimetype,
+        ContentType: finalMimeType,
         Key: key
       })
       .promise()
@@ -136,6 +144,15 @@ export class AWSService {
   ): Promise<Buffer> => {
     return sharp(buffer)
       .resize(width, height)
+      .toBuffer()
+  }
+
+  /**
+   * Convert buffer to jpeg
+   */
+  convertToJPEG = async (buffer: Buffer): Promise<Buffer> => {
+    return sharp(buffer)
+      .jpeg()
       .toBuffer()
   }
 }

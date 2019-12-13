@@ -1,3 +1,4 @@
+import { COMMENT_STATE } from 'common/enums'
 import { CommentToContentResolver } from 'definitions'
 
 const resolver: CommentToContentResolver = (
@@ -5,9 +6,9 @@ const resolver: CommentToContentResolver = (
   _,
   { viewer }
 ) => {
-  const isActive = state === 'active'
+  const isActive = state === COMMENT_STATE.active
   const isCollapsed = state === 'collapsed'
-  const isAdmin = viewer && viewer.id && viewer.role === 'admin'
+  const isAdmin = viewer.hasRole('admin')
 
   if (isActive || isCollapsed || isAdmin) {
     return content

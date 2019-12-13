@@ -30,9 +30,11 @@ const ignoreTagProcessor = (
   }
 }
 
-export const sanitize = (string: string) =>
-  xss(string, {
-    whiteList: { ...xss.whiteList, ...CUSTOM_WHITE_LISTS },
-    onIgnoreTagAttr,
-    onIgnoreTag: ignoreTagProcessor
-  })
+const xssOptions = {
+  whiteList: { ...xss.whiteList, ...CUSTOM_WHITE_LISTS },
+  onIgnoreTagAttr,
+  onIgnoreTag: ignoreTagProcessor
+}
+const customXSS = new xss.FilterXSS(xssOptions)
+
+export const sanitize = (string: string) => customXSS.process(string)

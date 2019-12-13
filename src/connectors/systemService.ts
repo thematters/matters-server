@@ -1,4 +1,5 @@
-import { BATCH_SIZE } from 'common/enums'
+import { BATCH_SIZE, SEARCH_KEY_TRUNCATE_LENGTH } from 'common/enums'
+import logger from 'common/logger'
 import { BaseService } from 'connectors'
 
 export class SystemService extends BaseService {
@@ -38,7 +39,9 @@ export class SystemService extends BaseService {
 
     const result = await query
 
-    return result.map(({ searchKey }) => searchKey)
+    return result.map(({ searchKey }) =>
+      (searchKey as string).slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
+    )
   }
 
   /*********************************
@@ -139,8 +142,10 @@ export class SystemService extends BaseService {
   /**
    * Delete asset and asset map by a given id
    */
-  deleteAssetAndAssetMap = async (ids: string[]) =>
-    this.knex.transaction(async trx => {
+  deleteAssetAndAssetMap = async (assets: Array<{ [key: string]: string }>) => {
+    const ids = Object.keys(assets)
+
+    await this.knex.transaction(async trx => {
       await trx('asset_map')
         .whereIn('asset_id', ids)
         .del()
@@ -149,6 +154,30 @@ export class SystemService extends BaseService {
         .whereIn('id', ids)
         .del()
     })
+
+    try {
+      await Promise.all(
+        Object.values(assets).map((key: any) => {
+          this.aws.baseDeleteFile(key)
+        })
+      )
+    } catch (e) {
+      logger.error(e)
+    }
+  }
+
+  /**
+   * Find or Delete assets by given author id and types
+   */
+  findAssetsByAuthorAndTypes = (authorId: string, types: string[]) =>
+    this.knex('asset')
+      .whereIn('type', types)
+      .andWhere({ authorId })
+
+  deleteAssetsByAuthorAndTypes = async (authorId: string, types: string[]) => {
+    const query = this.findAssetsByAuthorAndTypes(authorId, types)
+    return query.del()
+  }
 
   /*********************************
    *                               *

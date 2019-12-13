@@ -1,6 +1,8 @@
 import { connectionFromArraySlice } from 'graphql-relay'
 import { Base64 } from 'js-base64'
 
+import { Item } from 'definitions'
+
 export type ConnectionCursor = string
 
 export interface ConnectionArguments {
@@ -102,4 +104,14 @@ export function connectionFromPromisedArray<T>(
   totalCount?: number
 ): Promise<Connection<T>> {
   return dataPromise.then(data => connectionFromArray(data, args, totalCount))
+}
+
+export const loadManyFilterError = (items: Array<Item | Error>) => {
+  return items.filter((item: Item | Error) => {
+    if (item instanceof Error) {
+      return false
+    }
+
+    return true
+  }) as Item[]
 }

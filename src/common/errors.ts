@@ -182,6 +182,19 @@ export class NotEnoughMatError extends ApolloError {
 
 /*********************************
  *                               *
+ *              Tag              *
+ *                               *
+ *********************************/
+export class DuplicateTagError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'DUPLICATE_TAG')
+
+    Object.defineProperty(this, 'name', { value: 'DuplicateTagError' })
+  }
+}
+
+/*********************************
+ *                               *
  *             User              *
  *                               *
  *********************************/
@@ -279,5 +292,21 @@ export class LikerNotFoundError extends ApolloError {
     super(message, 'LIKER_NOT_FOUND')
 
     Object.defineProperty(this, 'name', { value: 'LikerNotFoundError' })
+  }
+}
+
+export class LikerEmailExistsError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'LIKER_EMAIL_EXISTS')
+
+    Object.defineProperty(this, 'name', { value: 'LikerEmailExistsError' })
+  }
+}
+
+export class LikerUserIdExistsError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'LIKER_USER_ID_EXISTS')
+
+    Object.defineProperty(this, 'name', { value: 'LikerUserIdExistsError' })
   }
 }

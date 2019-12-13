@@ -3,11 +3,18 @@ import Knex from 'knex'
 import _ from 'lodash'
 
 import { environment } from 'common/environment'
+import { LikerEmailExistsError, LikerUserIdExistsError } from 'common/errors'
 import logger from 'common/logger'
 import { knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
 
 const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
+
+const ERROR_CODES = {
+  TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+  EMAIL_ALREADY_USED: 'EMAIL_ALREADY_USED',
+  OAUTH_USER_ID_ALREADY_USED: 'OAUTH_USER_ID_ALREADY_USED'
+}
 
 type LikeCoinLocale =
   | 'en'
@@ -97,14 +104,24 @@ export class LikeCoin {
         accessToken: liker ? liker.accessToken : undefined
       })
     } catch (e) {
+      const data = _.get(e, 'response.data')
+
       // refresh token and retry once
-      if (liker && _.get(e, 'response.data') === 'TOKEN_EXPIRED') {
+      if (liker && data === ERROR_CODES.TOKEN_EXPIRED) {
         const accessToken = await this.refreshToken({ liker })
         return makeRequest({ accessToken })
-      } else {
-        logger.error(e)
-        throw e
       }
+
+      if (data === ERROR_CODES.EMAIL_ALREADY_USED) {
+        throw new LikerEmailExistsError('email already used')
+      }
+
+      if (data === ERROR_CODES.OAUTH_USER_ID_ALREADY_USED) {
+        throw new LikerUserIdExistsError('user id already used')
+      }
+
+      logger.error(e)
+      throw e
     }
   }
 

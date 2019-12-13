@@ -53,7 +53,7 @@ class ScheduleQueue {
         await job.remove()
       })
     } catch (e) {
-      console.error('failed to clear repeat jobs', e)
+      logger.error('failed to clear repeat jobs', e)
     }
   }
 
@@ -113,14 +113,14 @@ class ScheduleQueue {
       }
     )
 
-    // refresh tagCountMaterialized every 3.1 hours
+    // refresh tagCountMaterialized every 2.5 minutes
     this.q.add(
       QUEUE_JOB.refreshView,
       { view: MATERIALIZED_VIEW.tagCountMaterialized },
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 60 * 3.1 // every 3.1 hour
+          every: 1000 * 60 * 2.5 // every 2.5 minutes
         }
       }
     )
@@ -245,7 +245,8 @@ class ScheduleQueue {
               article_mentioned_you: filterNotices('article_mentioned_you'),
               comment_new_reply: filterNotices('comment_new_reply'),
               comment_mentioned_you: filterNotices('comment_mentioned_you')
-            }
+            },
+            language: user.language
           })
 
           job.progress(((index + 1) / users.length) * 100)

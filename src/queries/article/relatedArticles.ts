@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import { ARTICLE_STATE } from 'common/enums'
 import logger from 'common/logger'
-import { connectionFromArray } from 'common/utils'
+import { connectionFromArray, loadManyFilterError } from 'common/utils'
 import { ArticleToRelatedArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
@@ -38,6 +38,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     // get articles
     articles = await articleService.dataloader
       .loadMany(relatedArticles.map(({ id: aid }: { id: any }) => aid))
+      .then(loadManyFilterError)
       .then(allArticles =>
         allArticles.filter(({ state }) => state === ARTICLE_STATE.active)
       )

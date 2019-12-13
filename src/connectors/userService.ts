@@ -10,6 +10,8 @@ import {
   BATCH_SIZE,
   BCRYPT_ROUNDS,
   BLOCK_USERS,
+  COMMENT_STATE,
+  SEARCH_KEY_TRUNCATE_LENGTH,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
   USER_STATE,
@@ -31,7 +33,8 @@ import {
   ItemData,
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType,
-  UserRole
+  UserRole,
+  UserState
 } from 'definitions'
 
 import { likecoin } from './likecoin'
@@ -47,6 +50,11 @@ export class UserService extends BaseService {
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
 
+  /*********************************
+   *                               *
+   *            Account            *
+   *                               *
+   *********************************/
   /**
    * Create a new user.
    */
@@ -91,6 +99,20 @@ export class UserService extends BaseService {
     return user
   }
 
+  verifyPassword = async ({
+    password,
+    hash: passwordHash
+  }: {
+    password: string
+    hash: string
+  }) => {
+    const auth = await compare(password, passwordHash)
+
+    if (!auth) {
+      throw new PasswordInvalidError('Password incorrect, login failed.')
+    }
+  }
+
   /**
    * Login user and return jwt token. Default to expires in 24 * 90 hours
    */
@@ -105,10 +127,7 @@ export class UserService extends BaseService {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 
-    const auth = await compare(password, user.passwordHash)
-    if (!auth) {
-      throw new PasswordInvalidError('Password incorrect, login failed.')
-    }
+    await this.verifyPassword({ password, hash: user.passwordHash })
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
       expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000
@@ -121,25 +140,24 @@ export class UserService extends BaseService {
     }
   }
 
-  updateRole = async (id: string, role: UserRole) => {
-    return this.baseUpdate(id, { updatedAt: new Date(), role })
-  }
-
   updateInfo = async (
     id: string,
     input: GQLUpdateUserInfoInput & {
       email?: string
       emailVerified?: boolean
       state?: string
+      role?: UserRole
     }
   ) => {
     const user = await this.baseUpdate(id, { updatedAt: new Date(), ...input })
 
     // remove null and undefined, and write into search
-    const { description, displayName, userName, state } = input
-    if (!(description || displayName || userName || state)) {
+    const { description, displayName, userName, state, role } = input
+
+    if (!(description || displayName || userName || state || role)) {
       return user
     }
+
     const searchable = _.omitBy(
       { description, displayName, userName, state },
       _.isNil
@@ -227,6 +245,73 @@ export class UserService extends BaseService {
       .where({ userName })
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  archive = async (id: string) => {
+    return this.knex.transaction(async trx => {
+      // archive user
+      const [user] = await trx
+        .where('id', id)
+        .update({
+          state: USER_STATE.archived,
+          displayName: '已註銷用戶',
+          updatedAt: new Date(),
+          avatar: null,
+          profile_cover: null,
+          description: ''
+        })
+        .into(this.table)
+        .returning('*')
+
+      // archive comments, articles and notices
+      await trx('article')
+        .where({ authorId: id })
+        .update({ state: ARTICLE_STATE.archived, updatedAt: new Date() })
+      await trx('draft')
+        .where({ authorId: id })
+        .update({ archived: true, updatedAt: new Date() })
+      await trx('comment')
+        .where({ authorId: id })
+        .update({ state: COMMENT_STATE.archived, updatedAt: new Date() })
+      await trx('notice')
+        .where({ recipientId: id })
+        .update({ deleted: true, updatedAt: new Date() })
+
+      // delete behavioral data
+      await trx('search_history')
+        .where({ userId: id })
+        .del()
+      await trx('action_article')
+        .where({ userId: id })
+        .del()
+      await trx('action_user')
+        .where({ userId: id })
+        .del()
+      await trx('article_read')
+        .where({ userId: id })
+        .del()
+      await trx('log_record')
+        .where({ userId: id })
+        .del()
+
+      // delete oauths
+      await trx('oauth_client')
+        .where({ userId: id })
+        .del()
+      await trx('oauth_access_token')
+        .where({ userId: id })
+        .del()
+      await trx('oauth_refresh_token')
+        .where({ userId: id })
+        .del()
+
+      // delete push devices
+      await trx('push_device')
+        .where({ userId: id })
+        .del()
+
+      return user
+    })
   }
 
   /*********************************
@@ -342,7 +427,9 @@ export class UserService extends BaseService {
       .max('created_at as search_at')
       .groupBy('search_key')
       .orderBy('search_at', 'desc')
-    return result.map(({ searchKey }) => searchKey)
+    return result.map(({ searchKey }) =>
+      searchKey.slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
+    )
   }
 
   clearSearches = (userId: string) =>
@@ -581,7 +668,7 @@ export class UserService extends BaseService {
   findFolloweeWorks = async ({
     after,
     limit = BATCH_SIZE,
-    state = 'active',
+    state = USER_STATE.active,
     userId
   }: {
     after?: any
@@ -605,7 +692,7 @@ export class UserService extends BaseService {
   }
 
   findFolloweeWorksRange = async ({
-    state = 'active',
+    state = USER_STATE.active,
     userId
   }: {
     state?: string

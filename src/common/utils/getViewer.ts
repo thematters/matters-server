@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 import _ from 'lodash'
 import requestIp from 'request-ip'
 
-import { LANGUAGE, SCOPE_MODE, USER_ROLE } from 'common/enums'
+import { LANGUAGE, SCOPE_MODE, USER_ROLE, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { clearCookie, getLanguage, makeScope } from 'common/utils'
@@ -43,24 +43,39 @@ const getUser = async (token: string) => {
     // get general user
     const source = jwt.verify(token, environment.jwtSecret) as { uuid: string }
     const user = await userService.baseFindByUUID(source.uuid)
+
+    if (user.state === USER_STATE.archived) {
+      throw new Error('user has deleted')
+    }
+
     return { ...user, scopeMode: user.role }
   } catch (error) {
     // get oauth user
     const oAuthService = new OAuthService()
     const data = await oAuthService.getAccessToken(token)
+
     if (data && data.accessTokenExpiresAt) {
       // check it's expired or not
-      const live = data.accessTokenExpiresAt.getTime() - Date.now()
-      if (live > 0) {
-        const scope = makeScope(data.scope as string[])
-        return {
-          ...data.user,
-          scopeMode: SCOPE_MODE.oauth,
-          scope,
-          oauthClient: data.client && data.client.rawClient
-        }
+      const live = data.accessTokenExpiresAt.getTime() - Date.now() > 0
+
+      if (!live) {
+        throw new Error('token expired')
+      }
+
+      if (data.user.state === USER_STATE.archived) {
+        throw new Error('user has been deleted')
+      }
+
+      const scope = makeScope(data.scope as string[])
+
+      return {
+        ...data.user,
+        scopeMode: SCOPE_MODE.oauth,
+        scope,
+        oauthClient: data.client && data.client.rawClient
       }
     }
+
     throw new Error('token invalid')
   }
 }
@@ -86,18 +101,19 @@ export const getViewerFromReq = async ({
 
   // get user from token, use cookie first then 'x-access-token'
   const token =
-    cookie.parse(headers.cookie || '').token ||
-    (headers['x-access-token'] || '')
+    cookie.parse(headers.cookie || '').token || headers['x-access-token'] || ''
 
   if (!token) {
     logger.info('User is not logged in, viewing as guest')
   } else {
     try {
       const userDB = await getUser(token as string)
+
       // overwrite request by user settings
       user = { ...user, ...userDB }
     } catch (err) {
-      logger.info('token invalid')
+      logger.info(err)
+
       if (res) {
         clearCookie(res)
       }

@@ -6,6 +6,7 @@ import {
   AuthenticationError,
   UserInputError
 } from 'common/errors'
+import logger from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 import { MutationToPutOAuthClientResolver } from 'definitions'
 
@@ -55,7 +56,7 @@ const resolver: MutationToPutOAuthClientResolver = async (
       }
       oauthClient.avatar = asset.id
     } catch (e) {
-      console.error(`asset ${avatar} doesn't exists.`)
+      logger.error(`asset ${avatar} doesn't exists.`)
     }
   }
 

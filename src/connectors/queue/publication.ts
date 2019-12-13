@@ -11,6 +11,7 @@ import {
   QUEUE_PRIORITY
 } from 'common/enums'
 import { isTest } from 'common/environment'
+import logger from 'common/logger'
 import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 import {
   ArticleService,
@@ -18,7 +19,8 @@ import {
   DraftService,
   NotificationService,
   SystemService,
-  TagService
+  TagService,
+  UserService
 } from 'connectors'
 
 import { createQueue } from './utils'
@@ -31,6 +33,7 @@ class PublicationQueue {
   draftService: InstanceType<typeof DraftService>
   notificationService: InstanceType<typeof NotificationService>
   systemService: InstanceType<typeof SystemService>
+  userService: InstanceType<typeof UserService>
 
   private queueName = QUEUE_NAME.publication
 
@@ -41,6 +44,7 @@ class PublicationQueue {
     this.cacheService = new CacheService()
     this.draftService = new DraftService()
     this.systemService = new SystemService()
+    this.userService = new UserService()
     this.q = createQueue(this.queueName)
     this.addConsumers()
   }
@@ -81,6 +85,7 @@ class PublicationQueue {
           const { draftId } = job.data as { draftId: string }
           const draft = await this.draftService.baseFindById(draftId)
 
+          // checks
           if (draft.publishState !== PUBLISH_STATE.pending) {
             job.progress(100)
             done(null, `Publication of draft ${draftId} is not pending.`)
@@ -92,6 +97,7 @@ class PublicationQueue {
             done(null, `Draft's (${draftId}) scheduledAt is greater than now`)
             return
           }
+          job.progress(5)
 
           // publish to IPFS
           let article: any
@@ -103,6 +109,7 @@ class PublicationQueue {
             })
             throw e
           }
+          job.progress(10)
 
           // mark draft as published
           await this.draftService.baseUpdate(draft.id, {
@@ -113,36 +120,9 @@ class PublicationQueue {
           job.progress(20)
 
           // handle collection
-          if (draft.collection && draft.collection.length > 0) {
-            // create collection records
-            await this.articleService.createCollection({
-              entranceId: article.id,
-              articleIds: draft.collection
-            })
-            draft.collection.forEach(async (id: string) => {
-              const collection = await this.articleService.baseFindById(id)
-              this.notificationService.trigger({
-                event: 'article_new_collected',
-                recipientId: collection.authorId,
-                actorId: article.authorId,
-                entities: [
-                  {
-                    type: 'target',
-                    entityTable: 'article',
-                    entity: collection
-                  },
-                  {
-                    type: 'collection',
-                    entityTable: 'article',
-                    entity: article
-                  }
-                ]
-              })
-            })
-          }
+          await this.handleCollection({ draft, article })
           job.progress(40)
 
-          // Remove unused assets and assets_map
           const [
             { id: draftEntityTypeId },
             { id: articleEntityTypeId }
@@ -150,25 +130,12 @@ class PublicationQueue {
             this.systemService.baseFindEntityTypeId('draft'),
             this.systemService.baseFindEntityTypeId('article')
           ])
-          const [assetMap, uuids] = await Promise.all([
-            this.systemService.findAssetMap(draftEntityTypeId, draft.id),
-            extractAssetDataFromHtml(draft.content)
-          ])
-          const assets = assetMap.reduce((data: any, asset: any) => {
-            if (uuids && !uuids.includes(asset.uuid)) {
-              data[`${asset.assetId}`] = asset.path
-            }
-            return data
-          }, {})
 
-          if (assets && Object.keys(assets).length > 0) {
-            await this.systemService.deleteAssetAndAssetMap(Object.keys(assets))
-            await Promise.all(
-              Object.values(assets).map((key: any) => {
-                this.systemService.aws.baseDeleteFile(key)
-              })
-            )
-          }
+          // Remove unused assets
+          await this.deleteUnusedAssets({ draftEntityTypeId, draft })
+          job.progress(45)
+
+          // Swap assets from draft to article
           await this.systemService.replaceAssetMapEntityTypeAndId(
             draftEntityTypeId,
             draft.id,
@@ -178,22 +145,7 @@ class PublicationQueue {
           job.progress(50)
 
           // handle tags
-          let tags = draft.tags
-          if (tags && tags.length > 0) {
-            // create tag records, return tag record if already exists
-            const dbTags = ((await Promise.all(
-              tags.map((tag: string) =>
-                this.tagService.create({ content: tag })
-              )
-            )) as unknown) as [{ id: string; content: string }]
-            // create article_tag record
-            await this.tagService.createArticleTags({
-              articleIds: [article.id],
-              tagIds: dbTags.map(({ id }) => id)
-            })
-          } else {
-            tags = []
-          }
+          const tags = await this.handleTags({ draft, article })
           job.progress(60)
 
           // add to search
@@ -201,34 +153,7 @@ class PublicationQueue {
           job.progress(80)
 
           // handle mentions
-          const $ = cheerio.load(article.content)
-          const mentionIds = $('a.mention')
-            .map((index: number, node: any) => {
-              const id = $(node).attr('data-id')
-              if (id) {
-                return id
-              }
-            })
-            .get()
-
-          mentionIds.forEach((id: string) => {
-            const mentionId = fromGlobalId(id).id
-            if (!mentionId) {
-              return false
-            }
-            this.notificationService.trigger({
-              event: 'article_mentioned_you',
-              actorId: article.authorId,
-              recipientId: mentionId,
-              entities: [
-                {
-                  type: 'target',
-                  entityTable: 'article',
-                  entity: article
-                }
-              ]
-            })
-          })
+          await this.handleMentions({ article })
           job.progress(90)
 
           // trigger notifications
@@ -243,12 +168,10 @@ class PublicationQueue {
               }
             ]
           })
-
           job.progress(95)
 
           // invalidate user cache
           await this.cacheService.invalidate(NODE_TYPES.user, article.authorId)
-
           job.progress(100)
 
           done(null, {
@@ -260,6 +183,152 @@ class PublicationQueue {
         }
       }
     )
+  }
+
+  /**
+   * Create collections
+   */
+  private handleCollection = async ({
+    draft,
+    article
+  }: {
+    draft: any
+    article: any
+  }) => {
+    if (!draft.collection || draft.collection.length <= 0) {
+      return
+    }
+
+    // create collection records
+    await this.articleService.createCollection({
+      entranceId: article.id,
+      articleIds: draft.collection
+    })
+
+    // trigger notifications
+    draft.collection.forEach(async (id: string) => {
+      const collection = await this.articleService.baseFindById(id)
+      this.notificationService.trigger({
+        event: 'article_new_collected',
+        recipientId: collection.authorId,
+        actorId: article.authorId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'article',
+            entity: collection
+          },
+          {
+            type: 'collection',
+            entityTable: 'article',
+            entity: article
+          }
+        ]
+      })
+    })
+  }
+
+  /**
+   * Create tags
+   */
+  private handleTags = async ({
+    draft,
+    article
+  }: {
+    draft: any
+    article: any
+  }) => {
+    let tags = draft.tags
+
+    if (tags && tags.length > 0) {
+      // get tag editor
+      const mattyUser = await this.userService.findByEmail('hi@matters.news')
+      const tagEditors = mattyUser ? [mattyUser.id] : []
+
+      // create tag records, return tag record if already exists
+      const dbTags = ((await Promise.all(
+        tags.map((tag: string) =>
+          this.tagService.create({ content: tag, editors: tagEditors })
+        )
+      )) as unknown) as [{ id: string; content: string }]
+
+      // create article_tag record
+      await this.tagService.createArticleTags({
+        articleIds: [article.id],
+        tagIds: dbTags.map(({ id }) => id)
+      })
+    } else {
+      tags = []
+    }
+
+    return tags
+  }
+
+  /**
+   * Notice mentioned users
+   */
+  private handleMentions = async ({ article }: { article: any }) => {
+    const $ = cheerio.load(article.content)
+    const mentionIds = $('a.mention')
+      .map((index: number, node: any) => {
+        const id = $(node).attr('data-id')
+        if (id) {
+          return id
+        }
+      })
+      .get()
+
+    mentionIds.forEach((id: string) => {
+      const { id: recipientId } = fromGlobalId(id)
+
+      if (!recipientId) {
+        return false
+      }
+
+      this.notificationService.trigger({
+        event: 'article_mentioned_you',
+        actorId: article.authorId,
+        recipientId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'article',
+            entity: article
+          }
+        ]
+      })
+    })
+  }
+
+  /**
+   * Delete unused assets from S3 and DB, skip if error is thrown.
+   *
+   */
+  private deleteUnusedAssets = async ({
+    draftEntityTypeId,
+    draft
+  }: {
+    draftEntityTypeId: string
+    draft: any
+  }) => {
+    try {
+      const [assetMap, uuids] = await Promise.all([
+        this.systemService.findAssetMap(draftEntityTypeId, draft.id),
+        extractAssetDataFromHtml(draft.content)
+      ])
+      const assets = assetMap.reduce((data: any, asset: any) => {
+        if (uuids && !uuids.includes(asset.uuid)) {
+          data[`${asset.assetId}`] = asset.path
+        }
+        return data
+      }, {})
+
+      if (assets && Object.keys(assets).length > 0) {
+        await this.systemService.deleteAssetAndAssetMap(assets)
+      }
+    } catch (e) {
+      logger.error(e)
+    }
   }
 }
 
