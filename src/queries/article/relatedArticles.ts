@@ -20,6 +20,11 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   const addRec = (rec: any[], extra: any[]) =>
     _.uniqBy(rec.concat(extra), 'id').filter(_rec => _rec.id !== id)
 
+  // articles in collection for this article as the entrance
+  const entranceId = id
+  const collection = (await articleService.findCollections({ entranceId })).map(
+    ({ articleId: aid }: { articleId: any }) => aid
+  )
   const ids: string[] = []
   let articles: any[] = []
   // get initial recommendation
@@ -29,6 +34,11 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       size: recommendationSize + buffer
     })
 
+    // articles in collection shall be excluded from recommendation
+    const relatedArticleIds = relatedArticles
+      .map(({ id: aid }: { id: any }) => aid)
+      .filter((aid: any) => !collection.includes(aid))
+
     logger.info(
       `[recommendation] article ${id}, title ${title}, ES result ${relatedArticles.map(
         ({ id: aid }: { id: any }) => aid
@@ -37,7 +47,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
     // get articles
     articles = await articleService.dataloader
-      .loadMany(relatedArticles.map(({ id: aid }: { id: any }) => aid))
+      .loadMany(relatedArticleIds)
       .then(loadManyFilterError)
       .then(allArticles =>
         allArticles.filter(({ state }) => state === ARTICLE_STATE.active)
