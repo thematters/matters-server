@@ -1,4 +1,9 @@
-import { CACHE_KEYWORD, NODE_TYPES, TRANSACTION_TYPES } from 'common/enums'
+import {
+  CACHE_KEYWORD,
+  NODE_TYPES,
+  TRANSACTION_TYPES,
+  USER_STATE
+} from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
@@ -21,7 +26,11 @@ const resolver: MutationToAppreciateArticleResolver = async (
   }
 
   if (!viewer.likerId) {
-    throw new AuthenticationError('viewer has no liker id')
+    throw new ForbiddenError('viewer has no liker id')
+  }
+
+  if (viewer.state !== USER_STATE.active) {
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
@@ -47,7 +56,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
 
   const author = await userService.dataloader.load(article.authorId)
   if (!author.likerId) {
-    throw new AuthenticationError('article author has no liker id')
+    throw new ForbiddenError('article author has no liker id')
   }
 
   const liker = await userService.findLiker({ userId: viewer.id })

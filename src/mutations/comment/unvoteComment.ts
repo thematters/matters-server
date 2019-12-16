@@ -1,4 +1,5 @@
-import { AuthenticationError } from 'common/errors'
+import { USER_STATE } from 'common/enums'
+import { AuthenticationError, ForbiddenError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { MutationToUnvoteCommentResolver } from 'definitions'
 
@@ -12,6 +13,10 @@ const resolver: MutationToUnvoteCommentResolver = async (
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  if (viewer.state !== USER_STATE.active) {
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
