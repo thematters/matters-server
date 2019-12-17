@@ -894,12 +894,20 @@ export class UserService extends BaseService {
     return author.authorScore || 0
   }
 
-  recommendItems = async ({userId, itemIndex, size}: {userId: string, itemIndex: string, size: number}) => {
+  recommendItems = async ({
+    userId,
+    itemIndex,
+    size
+  }: {
+    userId: string
+    itemIndex: string
+    size: number
+  }) => {
     // skip if in test
     if (['test'].includes(environment.env)) {
-      return []      
+      return []
     }
-    
+
     // get user vector score
     const scoreResult = await this.es.client.get({
       index: this.table,
@@ -908,7 +916,9 @@ export class UserService extends BaseService {
 
     const factorString = _.get(scoreResult.body, '_source.embedding_vector')
 
-    if (!factorString) { return [] }
+    if (!factorString) {
+      return []
+    }
 
     const searchBody = bodybuilder()
       .query('function_score', {
