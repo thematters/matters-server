@@ -1719,6 +1719,7 @@ input UpdateUserStateInput {
   id: ID!
   state: UserState!
   banDays: PositiveInt
+  password: String
 }
 
 scalar Upload

@@ -464,6 +464,7 @@ export default /* GraphQL */ `
     id: ID!
     state: UserState!
     banDays: PositiveInt
+    password: String
   }
 
   input UpdateUserRoleInput {

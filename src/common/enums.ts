@@ -140,7 +140,7 @@ export const VERIFICATION_CODE_PROTECTED_TYPES = [
  */
 const __REPORT_CATEGORIES = [
   {
-    id: '1',
+    id: 'report-1',
     name: i18n({
       zh_hant: '侵權、抄襲',
       zh_hans: '侵权、抄袭',
@@ -280,17 +280,25 @@ export const QUEUE_JOB = {
   // LikeCoin jobs
   like: 'likeCoinLike',
   sendPV: 'likeCoinSendPV',
+  // User jobs
+  archiveUser: 'userArchive',
   // repeat jobs
   publishPendingDrafts: 'publishPendingDrafts',
-  refreshView: 'refreshView',
-  sendDailySummaryEmail: 'sendDailySummaryEmail'
+  sendDailySummaryEmail: 'sendDailySummaryEmail',
+  // refresh views
+  refreshArticleCountView: 'refreshArticleCountView',
+  refreshTagCountMaterialView: 'refreshTagCountMaterialView',
+  refreshUserReaderView: 'refreshUserReaderView',
+  refreshArticleActivityView: 'refreshArticleActivityView',
+  refreshFeaturedCommentView: 'refreshFeaturedCommentView'
 }
 
 export const QUEUE_NAME = {
   notification: 'notification',
   publication: 'publication',
   schedule: 'schedule',
-  likecoin: 'likecoin'
+  likecoin: 'likecoin',
+  user: 'user'
 }
 
 export const QUEUE_CONCURRENCY = {
@@ -321,6 +329,11 @@ export const EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-047f3359fea54f1bac7f6d6ea4030c4c',
     zh_hans: 'd-8ecc50276ac6412ea4c716971953360a',
     en: 'd-047f3359fea54f1bac7f6d6ea4030c4c'
+  },
+  userDeleted: {
+    zh_hant: 'd-231ada8640374adb9d79a0130480c801',
+    zh_hans: 'd-cce84e261e0f4e47a2f1e2296b784230',
+    en: 'd-231ada8640374adb9d79a0130480c801'
   }
 }
 

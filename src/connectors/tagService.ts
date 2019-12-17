@@ -2,7 +2,7 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 
-import { ARTICLE_STATE, BATCH_SIZE } from 'common/enums'
+import { ARTICLE_STATE, BATCH_SIZE, MATERIALIZED_VIEW } from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
@@ -71,7 +71,7 @@ export class TagService extends BaseService {
     content: string
     description?: string
     editors: string[]
-  }): Promise<{ id: string; content: string }> =>
+  }) =>
     this.baseFindOrCreate({
       where: { content },
       data: { content, description, editors }
@@ -83,20 +83,69 @@ export class TagService extends BaseService {
    *                               *
    *********************************/
 
+  addToSearch = async ({
+    id,
+    content,
+    description
+  }: {
+    [key: string]: any
+  }) => {
+    try {
+      const result = await this.es.indexItems({
+        index: this.table,
+        items: [
+          {
+            id,
+            content,
+            description
+          }
+        ]
+      })
+      return result
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
+  updateSearch = async ({
+    id,
+    content,
+    description
+  }: {
+    [key: string]: any
+  }) => {
+    try {
+      const result = await this.es.client.update({
+        index: this.table,
+        id,
+        body: {
+          doc: { content, description }
+        }
+      })
+      return result
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
+  deleteSearch = async ({ id }: { [key: string]: any }) => {
+    try {
+      const result = await this.es.client.delete({
+        index: this.table,
+        id
+      })
+      return result
+    } catch (error) {
+      logger.error(error)
+    }
+  }
+
   search = async ({
     key,
     first = 20,
     offset,
     oss = false
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
-    // for local dev
-    // if (environment.env === 'development') {
-    //   return this.knex(this.table)
-    //     .where('content', 'ilike', `%${key}%`)
-    //     .offset(offset)
-    //     .limit(first)
-    // }
-
     const body = bodybuilder()
       .query('match', 'content', key)
       .from(offset)
@@ -135,7 +184,9 @@ export class TagService extends BaseService {
     offset?: number
     oss?: boolean
   }) => {
-    const table = oss ? 'tag_count_view' : 'tag_count_materialized'
+    const table = oss
+      ? 'tag_count_view'
+      : MATERIALIZED_VIEW.tagCountMaterialized
     return this.knex(table)
       .select()
       .orderByRaw('tag_score DESC NULLS LAST')
@@ -268,7 +319,7 @@ export class TagService extends BaseService {
       .del()
 
     // delete tags
-    await this.baseBatchUpdate(tagIds, { deleted: true })
+    await this.baseBatchDelete(tagIds)
   }
 
   renameTag = async ({ tagId, content }: { tagId: string; content: string }) =>
@@ -286,6 +337,13 @@ export class TagService extends BaseService {
     // create new tag
     const newTag = await this.create({ content, editors })
 
+    // add tag into search engine
+    await this.addToSearch({
+      id: newTag.id,
+      content: newTag.content,
+      description: newTag.description
+    })
+
     // move article tags to new tag
     const articleIds = await this.findArticleIdsByTagIds(tagIds)
     await this.createArticleTags({ articleIds, tagIds: [newTag.id] })
@@ -296,7 +354,9 @@ export class TagService extends BaseService {
       .del()
 
     // delete tags
-    await this.baseBatchUpdate(tagIds, { deleted: true })
+    await this.baseBatchDelete(tagIds)
+
+    await Promise.all(tagIds.map((id: string) => this.deleteSearch({ id })))
 
     return newTag
   }

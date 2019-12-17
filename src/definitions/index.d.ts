@@ -1,3 +1,4 @@
+import { RedisCache } from 'apollo-server-cache-redis'
 import { Response } from 'express'
 
 import {
@@ -32,7 +33,7 @@ export type User = {
   language: LANGUAGES
   // oauthType: any
   role: UserRole
-  state: string
+  state: UserState
   createdAt: string
   updatedAt: string
   agreeOn: string
@@ -40,9 +41,12 @@ export type User = {
 
 export type UserRole = 'admin' | 'user'
 
+export type UserState = 'active' | 'banned' | 'frozen' | 'archived'
+
 export type Context = RequestContext & {
   dataSources: DataSources
   cacheKey: string
+  redis: RedisCache
 }
 
 export type Viewer = (User | { id: null }) & {
@@ -122,6 +126,7 @@ export type MaterializedView =
   | 'tag_count_materialized'
   | 'user_reader_materialized'
   | 'article_activity_materialized'
+  | 'featured_comment_materialized'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'

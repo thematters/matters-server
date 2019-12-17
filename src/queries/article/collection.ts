@@ -25,10 +25,7 @@ const resolver: ArticleToCollectionResolver = async (
       .loadMany(
         collections.map(({ articleId }: { articleId: string }) => articleId)
       )
-      .then(loadManyFilterError)
-      .then(articles =>
-        articles.filter(({ state }) => state === ARTICLE_STATE.active)
-      ),
+      .then(loadManyFilterError),
     input,
     totalCount
   )

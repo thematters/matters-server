@@ -8,7 +8,7 @@ const resolver: MutationToUpdateUserRoleResolver = async (
 ) => {
   const { id: dbId } = fromGlobalId(id)
 
-  const user = await userService.updateRole(dbId, role)
+  const user = await userService.updateInfo(dbId, { role })
 
   return user
 }

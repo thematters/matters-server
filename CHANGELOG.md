@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2019-12-13
+
+### Added
+
+- Add more indexes #601
+- Delete user #605
+- Convert webp to jpeg #608
+- Test case of managing tag #610
+- Update search document after tag management action #612
+- Update tags' cache after management actions #613
+
+### Changed
+
+- Add `LIKER_EMAIL_EXISTS` and `LIKER_USER_ID_EXISTS` errors #599
+- Reduce interval of tag refresh from 3.1 hours to 2 minutes #609
+
 ## [2.3.0] - 2019-11-28
 
 ### Added

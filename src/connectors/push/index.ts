@@ -40,6 +40,10 @@ class PushService {
     ).map(({ deviceId }) => deviceId)
     const URL_LOGO = 'https://matters.news/static/icon-192x192.png'
 
+    if (!deviceIds || deviceIds.length <= 0) {
+      return
+    }
+
     /**
      * Send an FCM message
      *
