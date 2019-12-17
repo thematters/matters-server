@@ -8,6 +8,7 @@ import {
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
+  MATERIALIZED_VIEW,
   TRANSACTION_PURPOSE,
   USER_ACTION
 } from 'common/enums'
@@ -393,7 +394,7 @@ export class ArticleService extends BaseService {
     // use materialized in other cases
     const table = oss
       ? 'article_activity_view'
-      : 'article_activity_materialized'
+      : MATERIALIZED_VIEW.articleActivityMaterialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
@@ -505,7 +506,9 @@ export class ArticleService extends BaseService {
     where?: { [key: string]: any }
     oss?: boolean
   }) => {
-    const table = oss ? 'article_count_view' : 'article_count_materialized'
+    const table = oss
+      ? 'article_count_view'
+      : MATERIALIZED_VIEW.articleCountMaterialized
 
     return this.knex(`${table} as view`)
       .select('view.*', 'article.state', 'article.public', 'article.sticky')
@@ -613,7 +616,7 @@ export class ArticleService extends BaseService {
     // use materialized in other cases
     const table = oss
       ? 'article_activity_view'
-      : 'article_activity_materialized'
+      : MATERIALIZED_VIEW.articleActivityMaterialized
 
     let qs = this.knex(`${table} as view`)
       .leftJoin(

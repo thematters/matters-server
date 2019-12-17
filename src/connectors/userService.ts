@@ -11,6 +11,7 @@ import {
   BCRYPT_ROUNDS,
   BLOCK_USERS,
   COMMENT_STATE,
+  MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
@@ -939,7 +940,9 @@ export class UserService extends BaseService {
     notIn?: string[]
     oss?: boolean
   }) => {
-    const table = oss ? 'user_reader_view' : 'user_reader_materialized'
+    const table = oss
+      ? 'user_reader_view'
+      : MATERIALIZED_VIEW.userReaderMaterialized
     const result = await this.knex(table)
       .select()
       .orderByRaw('author_score DESC NULLS LAST')
