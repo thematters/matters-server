@@ -1022,7 +1022,7 @@ export class UserService extends BaseService {
           }
         }
       })
-      .notFilter('term', 'userName', '')
+      .notFilter('term', { state: ARTICLE_STATE.archived })
       .size(size)
       .build()
 

@@ -3,11 +3,13 @@ import { last, sampleSize } from 'lodash'
 
 import { ARTICLE_STATE, CACHE_TTL } from 'common/enums'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
+import logger from 'common/logger'
 import {
   connectionFromArray,
   connectionFromPromisedArray,
   cursorToIndex,
   fromGlobalId,
+  loadManyFilterError,
   toGlobalId
 } from 'common/utils'
 import { GQLRecommendationTypeResolver } from 'definitions'
@@ -296,24 +298,48 @@ const resolvers: GQLRecommendationTypeResolver = {
       input,
       totalCount
     )
+  },
+  recommendArticles: async (
+    { id }: { id: string },
+    { input },
+    { dataSources: { userService, articleService } }
+  ) => {
+    const size = 100
+    if (!id) {
+      throw new AuthenticationError('visitor has no permission')
+    }
+
+    let articles: any = []
+
+    // exclude last 100 articles already read by this user
+    const readHistory = await userService.findReadHistory({
+      userId: id,
+      limit: size
+    })
+    const readHistoryIds = readHistory.map(({ article }) => article.id)
+    try {
+      const recommendedArtices = await userService.recommendItems({
+        userId: id,
+        itemIndex: 'article',
+        size
+      })
+      const ids = recommendedArtices
+        .map(({ id: aid }: { id: any }) => aid)
+        .filter((aid: any) => !readHistoryIds.includes(aid))
+      logger.info(`[recommendation] user ${id}, ES result ${ids}`)
+
+      // get articles
+      articles = await articleService.dataloader
+        .loadMany(ids)
+        .then(loadManyFilterError)
+        .then(allArticles =>
+          allArticles.filter(({ state }) => state === ARTICLE_STATE.active)
+        )
+    } catch (err) {
+      logger.error(`error in recommendation via ES: ${JSON.stringify(err)}`)
+    }
+    return connectionFromArray(articles, input)
   }
-  // recommendItems: async (
-  //   { id }: { id: string },
-  //   { input },
-  //   { dataSources: { userService } }
-  // ) => {
-  //   if (!id) {
-  //     throw new AuthenticationError('visitor has no permission')
-  //   }
-  //   const { first, after } = input
-  //   const offset = cursorToIndex(after) + 1
-  //   const totalCount = await userService.countFolloweeArticles(id)
-  //   return connectionFromPromisedArray(
-  //     userService.followeeArticles({ userId: id, offset, limit: first }),
-  //     input,
-  //     totalCount
-  //   )
-  // }
 }
 
 export default resolvers

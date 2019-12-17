@@ -40,9 +40,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       .filter((aid: any) => !collection.includes(aid))
 
     logger.info(
-      `[recommendation] article ${id}, title ${title}, ES result ${relatedArticles.map(
-        ({ id: aid }: { id: any }) => aid
-      )} `
+      `[recommendation] article ${id}, title ${title}, ES result ${relatedArticleIds}`
     )
 
     // get articles
