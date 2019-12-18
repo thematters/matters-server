@@ -174,11 +174,6 @@ export class SystemService extends BaseService {
       .whereIn('type', types)
       .andWhere({ authorId })
 
-  deleteAssetsByAuthorAndTypes = async (authorId: string, types: string[]) => {
-    const query = this.findAssetsByAuthorAndTypes(authorId, types)
-    return query.del()
-  }
-
   /*********************************
    *                               *
    *             Report            *

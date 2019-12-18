@@ -54,7 +54,7 @@ class UserQueue {
       job.progress(50)
 
       // delete assets
-      await this.deleteMiscAssets(userId)
+      await this.deleteUserAssets(userId)
       job.progress(100)
 
       done(null, { userId })
@@ -95,28 +95,24 @@ class UserQueue {
   }
 
   /**
-   * Delete miscellaneous assets:
+   * Delete user assets:
    * - avatar
    * - profileCover
    * - oauthClientAvatar
    *
    */
-  private deleteMiscAssets = async (userId: string) => {
+  private deleteUserAssets = async (userId: string) => {
     const types = ['avatar', 'profileCover', 'oauthClientAvatar']
-    const assets = await this.systemService.findAssetsByAuthorAndTypes(
-      userId,
-      types
-    )
+    const assets = (
+      await this.systemService.findAssetsByAuthorAndTypes(userId, types)
+    ).reduce((data: any, asset: any) => {
+      data[`${asset.id}`] = asset.path
+      return data
+    }, {})
 
-    // delete from S3
-    await Promise.all(
-      assets.map(({ path }) => {
-        this.systemService.aws.baseDeleteFile(path)
-      })
-    )
-
-    // delete from DB
-    await this.systemService.deleteAssetsByAuthorAndTypes(userId, types)
+    if (assets && Object.keys(assets).length > 0) {
+      await this.systemService.deleteAssetAndAssetMap(assets)
+    }
   }
 }
 
