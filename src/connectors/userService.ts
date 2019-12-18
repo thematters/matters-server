@@ -9,7 +9,6 @@ import {
   ARTICLE_STATE,
   BATCH_SIZE,
   BCRYPT_ROUNDS,
-  BLOCK_USERS,
   COMMENT_STATE,
   MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
@@ -120,11 +119,9 @@ export class UserService extends BaseService {
   login = async ({ email, password }: { email: string; password: string }) => {
     const user = await this.findByEmail(email)
 
-    if (!user) {
-      throw new EmailNotFoundError('Cannot find user with email, login failed.')
-    }
+    const isArchived = user.state === USER_STATE.archived
 
-    if (BLOCK_USERS.includes(user.userName)) {
+    if (!user || isArchived) {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 

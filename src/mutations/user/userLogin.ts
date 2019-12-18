@@ -1,5 +1,3 @@
-import { USER_STATE } from 'common/enums'
-import { UserNotFoundError } from 'common/errors'
 import { getViewerFromUser, setCookie } from 'common/utils'
 import { MutationToUserLoginResolver, ScopeMode } from 'definitions'
 
@@ -16,10 +14,6 @@ const resolver: MutationToUserLoginResolver = async (
     ...input,
     email: input.email ? input.email.toLowerCase() : null
   })
-
-  if (user.state === USER_STATE.archived) {
-    throw new UserNotFoundError('login user does not exists')
-  }
 
   setCookie({ res, token })
 

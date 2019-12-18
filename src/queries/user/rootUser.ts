@@ -1,4 +1,3 @@
-import { BLOCK_USERS } from 'common/enums'
 import { QueryToUserResolver } from 'definitions'
 
 const resolver: QueryToUserResolver = async (
@@ -7,10 +6,13 @@ const resolver: QueryToUserResolver = async (
   { viewer, dataSources: { userService } },
   info
 ) => {
-  if (!userName || BLOCK_USERS.includes(userName)) {
+  if (!userName) {
     return
   }
-  return userService.findByUserName(userName)
+
+  const user = await userService.findByUserName(userName)
+
+  return user
 }
 
 export default resolver
