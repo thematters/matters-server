@@ -249,7 +249,7 @@ export class UserService extends BaseService {
    * Archive User by a given user id
    */
   archive = async (id: string) => {
-    return this.knex.transaction(async trx => {
+    const archivedUser = await this.knex.transaction(async trx => {
       // archive user
       const [user] = await trx
         .where('id', id)
@@ -313,6 +313,21 @@ export class UserService extends BaseService {
 
       return user
     })
+
+    // update search
+    try {
+      await this.es.client.update({
+        index: this.table,
+        id,
+        body: {
+          doc: { state: USER_STATE.archived }
+        }
+      })
+    } catch (e) {
+      logger.error(e)
+    }
+
+    return archivedUser
   }
 
   /**

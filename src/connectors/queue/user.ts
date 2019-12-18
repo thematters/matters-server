@@ -1,12 +1,6 @@
 import Queue from 'bull'
 
-import {
-  ARTICLE_STATE,
-  QUEUE_JOB,
-  QUEUE_NAME,
-  QUEUE_PRIORITY
-} from 'common/enums'
-import logger from 'common/logger'
+import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import { DraftService, SystemService, UserService } from 'connectors'
 
 import { createQueue } from './utils'
@@ -57,27 +51,13 @@ class UserQueue {
 
       // delete unlinked drafts
       await this.deleteUnlinkedDrafts(userId)
-      job.progress(30)
+      job.progress(50)
 
       // delete assets
       await this.deleteMiscAssets(userId)
-      job.progress(70)
-
-      // update search
-      try {
-        await this.userService.es.client.update({
-          index: this.userService.table,
-          id: userId,
-          body: {
-            doc: { state: ARTICLE_STATE.archived }
-          }
-        })
-      } catch (e) {
-        logger.error(e)
-      }
       job.progress(100)
 
-      done(null)
+      done(null, { userId })
     } catch (e) {
       done(e)
     }
