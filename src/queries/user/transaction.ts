@@ -3,9 +3,8 @@ import { camelCase } from 'lodash'
 import { TRANSACTION_PURPOSE } from 'common/enums'
 import { ArticleNotFoundError } from 'common/errors'
 import logger from 'common/logger'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { i18n } from 'common/utils/i18n'
-import { GQLMATTypeResolver, GQLTransactionTypeResolver } from 'definitions'
+import { GQLTransactionTypeResolver } from 'definitions'
 
 const trans = {
   appreciateSubsidy: i18n({
@@ -38,21 +37,6 @@ const trans = {
     zh_hans: '首发奖励',
     en: 'First post reward'
   })
-}
-
-export const MAT: GQLMATTypeResolver = {
-  total: ({ id }, _, { dataSources: { userService } }) =>
-    userService.totalMAT(id),
-  history: async ({ id }, { input }, { dataSources: { userService } }) => {
-    const { first, after } = input
-    const offset = cursorToIndex(after) + 1
-    const totalCount = await userService.countTransaction(id)
-    return connectionFromPromisedArray(
-      userService.findTransactionHistory({ id, offset, limit: first }),
-      input,
-      totalCount
-    )
-  }
 }
 
 export const Transaction: GQLTransactionTypeResolver = {

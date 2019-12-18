@@ -2560,11 +2560,6 @@ export interface GQLImportArticlesInput {
 
 export type GQLJSON = any
 
-export interface GQLMAT {
-  total: number
-  history: GQLTransactionConnection
-}
-
 export type GQLNegativeFloat = any
 
 export type GQLNegativeInt = any
@@ -2804,7 +2799,6 @@ export interface GQLResolver {
   CommentPinnedNotice?: GQLCommentPinnedNoticeTypeResolver
   DownstreamArticleArchivedNotice?: GQLDownstreamArticleArchivedNoticeTypeResolver
   JSON?: GraphQLScalarType
-  MAT?: GQLMATTypeResolver
   NegativeFloat?: GraphQLScalarType
   NegativeInt?: GraphQLScalarType
   NonNegativeInt?: GraphQLScalarType
@@ -8582,32 +8576,6 @@ export interface DownstreamArticleArchivedNoticeToTargetResolver<
   (
     parent: TParent,
     args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLMATTypeResolver<TParent = any> {
-  total?: MATToTotalResolver<TParent>
-  history?: MATToHistoryResolver<TParent>
-}
-
-export interface MATToTotalResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MATToHistoryArgs {
-  input: GQLConnectionArgs
-}
-export interface MATToHistoryResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MATToHistoryArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

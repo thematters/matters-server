@@ -285,6 +285,7 @@ export const QUEUE_JOB = {
   // repeat jobs
   publishPendingDrafts: 'publishPendingDrafts',
   sendDailySummaryEmail: 'sendDailySummaryEmail',
+  activateOnboardingUsers: 'activateOnboardingUsers',
   // refresh views
   refreshArticleCountView: 'refreshArticleCountView',
   refreshTagCountMaterialView: 'refreshTagCountMaterialView',

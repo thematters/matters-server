@@ -298,11 +298,6 @@ export default /* GraphQL */ `
     score: NonNegativeFloat!
   }
 
-  type MAT {
-    total: Int!
-    history(input: ConnectionArgs!): TransactionConnection!
-  }
-
   type LIKE {
     total: NonNegativeFloat!
     rateUSD: NonNegativeFloat

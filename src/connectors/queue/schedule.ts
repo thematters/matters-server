@@ -80,6 +80,16 @@ class ScheduleQueue {
       }
     )
 
+    // activate onboarding users every day at 00:00
+    this.q.add(
+      QUEUE_JOB.activateOnboardingUsers,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 0 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
+
     /**
      * Refresh Views
      */
@@ -156,6 +166,12 @@ class ScheduleQueue {
     this.q.process(
       QUEUE_JOB.sendDailySummaryEmail,
       this.handleSendDailySummaryEmail
+    )
+
+    // activate onboarding users
+    this.q.process(
+      QUEUE_JOB.activateOnboardingUsers,
+      this.handleActivateOnboardingUsers
     )
 
     // refresh view
@@ -249,6 +265,35 @@ class ScheduleQueue {
 
       job.progress(100)
       done(null)
+    } catch (e) {
+      done(e)
+    }
+  }
+
+  private handleActivateOnboardingUsers: Queue.ProcessCallbackFunction<
+    unknown
+  > = async (job, done) => {
+    try {
+      const activatableUsers = await this.userService.findActivatableUsers()
+      const activatedUsers: Array<string | number> = []
+
+      await Promise.all(
+        activatableUsers.map(async (user, index) => {
+          try {
+            await this.userService.activate({ id: user.id })
+            this.notificationService.trigger({
+              event: 'user_activated',
+              recipientId: user.id
+            })
+            activatedUsers.push(user.id)
+            job.progress(((index + 1) / activatableUsers.length) * 100)
+          } catch (e) {
+            logger.error(e)
+          }
+        })
+      )
+
+      done(null, activatedUsers)
     } catch (e) {
       done(e)
     }
