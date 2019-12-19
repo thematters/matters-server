@@ -32,7 +32,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     const relatedArticles = await articleService.related({
       id,
       size: recommendationSize + buffer,
-      exclude: collection
+      notIn: collection
     })
 
     // articles in collection shall be excluded from recommendation

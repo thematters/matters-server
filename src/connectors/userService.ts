@@ -985,12 +985,12 @@ export class UserService extends BaseService {
     userId,
     itemIndex,
     size,
-    exclude
+    notIn
   }: {
     userId: string
     itemIndex: string
     size: number
-    exclude: string[]
+    notIn: string[]
   }) => {
     // skip if in test
     if (['test'].includes(environment.env)) {
@@ -1025,7 +1025,7 @@ export class UserService extends BaseService {
         }
       })
       .notFilter('term', { state: ARTICLE_STATE.archived })
-      .notFilter('ids', { values: exclude })
+      .notFilter('ids', { values: notIn })
       .size(size)
       .build()
 

@@ -322,7 +322,7 @@ const resolvers: GQLRecommendationTypeResolver = {
         userId: id,
         itemIndex: 'article',
         size,
-        exclude: readHistoryIds
+        notIn: readHistoryIds
       })
       const ids = recommendedArtices.map(({ id: aid }: { id: any }) => aid)
       logger.info(`[recommendation] user ${id}, ES result ${ids}`)

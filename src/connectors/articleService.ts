@@ -523,11 +523,11 @@ export class ArticleService extends BaseService {
   related = async ({
     id,
     size,
-    exclude
+    notIn
   }: {
     id: string
     size: number
-    exclude: string[]
+    notIn: string[]
   }) => {
     // skip if in test
     if (['test'].includes(environment.env)) {
@@ -563,7 +563,7 @@ export class ArticleService extends BaseService {
         }
       })
       .notFilter('term', { state: ARTICLE_STATE.archived })
-      .notFilter('ids', { values: exclude.concat([id]) })
+      .notFilter('ids', { values: notIn.concat([id]) })
       .size(size)
       .build()
 
