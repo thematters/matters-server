@@ -31,13 +31,14 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   try {
     const relatedArticles = await articleService.related({
       id,
-      size: recommendationSize + buffer
+      size: recommendationSize + buffer,
+      exclude: collection
     })
 
     // articles in collection shall be excluded from recommendation
-    const relatedArticleIds = relatedArticles
-      .map(({ id: aid }: { id: any }) => aid)
-      .filter((aid: any) => !collection.includes(aid))
+    const relatedArticleIds = relatedArticles.map(
+      ({ id: aid }: { id: any }) => aid
+    )
 
     logger.info(
       `[recommendation] article ${id}, title ${title}, ES result ${relatedArticleIds}`

@@ -321,11 +321,10 @@ const resolvers: GQLRecommendationTypeResolver = {
       const recommendedArtices = await userService.recommendItems({
         userId: id,
         itemIndex: 'article',
-        size
+        size,
+        exclude: readHistoryIds
       })
-      const ids = recommendedArtices
-        .map(({ id: aid }: { id: any }) => aid)
-        .filter((aid: any) => !readHistoryIds.includes(aid))
+      const ids = recommendedArtices.map(({ id: aid }: { id: any }) => aid)
       logger.info(`[recommendation] user ${id}, ES result ${ids}`)
 
       // get articles

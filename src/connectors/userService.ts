@@ -984,11 +984,13 @@ export class UserService extends BaseService {
   recommendItems = async ({
     userId,
     itemIndex,
-    size
+    size,
+    exclude
   }: {
     userId: string
     itemIndex: string
     size: number
+    exclude: string[]
   }) => {
     // skip if in test
     if (['test'].includes(environment.env)) {
@@ -1023,6 +1025,7 @@ export class UserService extends BaseService {
         }
       })
       .notFilter('term', { state: ARTICLE_STATE.archived })
+      .notFilter('ids', { values: exclude })
       .size(size)
       .build()
 
