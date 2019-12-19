@@ -1,4 +1,3 @@
-import { BLOCK_USERS } from 'common/enums'
 import { QueryToArticleResolver } from 'definitions'
 
 const resolver: QueryToArticleResolver = async (
@@ -17,12 +16,6 @@ const resolver: QueryToArticleResolver = async (
     article = await articleService.baseFindByUUID(uuid)
   }
 
-  if (article) {
-    const user = await userService.dataloader.load(article.authorId)
-    if (user && BLOCK_USERS.includes(user.userName)) {
-      return
-    }
-  }
   return article
 }
 

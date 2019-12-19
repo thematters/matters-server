@@ -1,12 +1,6 @@
 import Queue from 'bull'
 
-import {
-  ARTICLE_STATE,
-  QUEUE_JOB,
-  QUEUE_NAME,
-  QUEUE_PRIORITY
-} from 'common/enums'
-import logger from 'common/logger'
+import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import { DraftService, SystemService, UserService } from 'connectors'
 
 import { createQueue } from './utils'
@@ -57,27 +51,13 @@ class UserQueue {
 
       // delete unlinked drafts
       await this.deleteUnlinkedDrafts(userId)
-      job.progress(30)
+      job.progress(50)
 
       // delete assets
-      await this.deleteMiscAssets(userId)
-      job.progress(70)
-
-      // update search
-      try {
-        await this.userService.es.client.update({
-          index: this.userService.table,
-          id: userId,
-          body: {
-            doc: { state: ARTICLE_STATE.archived }
-          }
-        })
-      } catch (e) {
-        logger.error(e)
-      }
+      await this.deleteUserAssets(userId)
       job.progress(100)
 
-      done(null)
+      done(null, { userId })
     } catch (e) {
       done(e)
     }
@@ -115,28 +95,24 @@ class UserQueue {
   }
 
   /**
-   * Delete miscellaneous assets:
+   * Delete user assets:
    * - avatar
    * - profileCover
    * - oauthClientAvatar
    *
    */
-  private deleteMiscAssets = async (userId: string) => {
+  private deleteUserAssets = async (userId: string) => {
     const types = ['avatar', 'profileCover', 'oauthClientAvatar']
-    const assets = await this.systemService.findAssetsByAuthorAndTypes(
-      userId,
-      types
-    )
+    const assets = (
+      await this.systemService.findAssetsByAuthorAndTypes(userId, types)
+    ).reduce((data: any, asset: any) => {
+      data[`${asset.id}`] = asset.path
+      return data
+    }, {})
 
-    // delete from S3
-    await Promise.all(
-      assets.map(({ path }) => {
-        this.systemService.aws.baseDeleteFile(path)
-      })
-    )
-
-    // delete from DB
-    await this.systemService.deleteAssetsByAuthorAndTypes(userId, types)
+    if (assets && Object.keys(assets).length > 0) {
+      await this.systemService.deleteAssetAndAssetMap(assets)
+    }
   }
 }
 

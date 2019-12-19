@@ -31,6 +31,7 @@
           <mj-text>
             如果無法進入你的郵箱，請聯繫 <a class="link" href="https://like.co">like.co</a> 客服。
           </mj-text>
+          <mj-spacer height="16px" />
           <mj-text>
             對此處罰有任何疑問，可發郵件至 ask@matters.news。
           </mj-text>

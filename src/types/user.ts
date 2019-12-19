@@ -97,7 +97,7 @@ export default /* GraphQL */ `
     displayName: String
 
     "LikerID of LikeCoin"
-    likerId: String @scope @deprecated(reason: "Use \`liker.id\`.")
+    likerId: String @scope @deprecated(reason: "Use \`liker.likerId\`.")
 
     "Liker info of current user"
     liker: Liker!

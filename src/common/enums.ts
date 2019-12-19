@@ -414,8 +414,6 @@ export const OAUTH_CALLBACK_ERROR_CODE = {
   likerExists: 3
 }
 
-export const BLOCK_USERS = ['jQwZ2JnYzg3MmdAZw']
-
 export const GQL_OPERATION = {
   query: 'query',
   mutation: 'mutation'
