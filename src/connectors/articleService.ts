@@ -523,11 +523,11 @@ export class ArticleService extends BaseService {
   related = async ({
     id,
     size,
-    notIn
+    notIn = []
   }: {
     id: string
     size: number
-    notIn: string[]
+    notIn?: string[]
   }) => {
     // skip if in test
     if (['test'].includes(environment.env)) {

@@ -985,12 +985,12 @@ export class UserService extends BaseService {
     userId,
     itemIndex,
     size,
-    notIn
+    notIn = []
   }: {
     userId: string
     itemIndex: string
     size: number
-    notIn: string[]
+    notIn?: string[]
   }) => {
     // skip if in test
     if (['test'].includes(environment.env)) {
