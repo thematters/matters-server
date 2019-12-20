@@ -5,6 +5,7 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ALS_DEFAULT_VECTOR,
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
@@ -278,18 +279,24 @@ export class ArticleService extends BaseService {
    * Dump all data to ES (Currently only used in test)
    */
   initSearch = async () => {
-    const articles = await this.knex(this.table).select(
-      'content',
-      'title',
-      'id'
-    )
+    const articles = await this.knex(this.table)
+      .innerJoin('user', `${this.table}.author_id`, 'user.id')
+      .select(
+        `${this.table}.id as id`,
+        'title',
+        'content',
+        'user.user_name as userName',
+        'user.display_name as displayName'
+      )
 
     return this.es.indexManyItems({
       index: this.table,
       items: articles.map(
         (article: { content: string; title: string; id: string }) => ({
           ...article,
-          content: stripHtml(article.content)
+          content: stripHtml(article.content),
+          factor: ALS_DEFAULT_VECTOR.factor,
+          embedding_vector: ALS_DEFAULT_VECTOR.embedding
         })
       )
     })
@@ -299,6 +306,8 @@ export class ArticleService extends BaseService {
     id,
     title,
     content,
+    userName,
+    displayName,
     tags
   }: {
     [key: string]: string
@@ -310,7 +319,11 @@ export class ArticleService extends BaseService {
           id,
           title,
           content: stripHtml(content),
-          tags
+          userName,
+          displayName,
+          tags,
+          factor: ALS_DEFAULT_VECTOR.factor,
+          embedding_vector: ALS_DEFAULT_VECTOR.embedding
         }
       ]
     })

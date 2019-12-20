@@ -6,6 +6,7 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ALS_DEFAULT_VECTOR,
   ARTICLE_STATE,
   BATCH_SIZE,
   BCRYPT_ROUNDS,
@@ -376,7 +377,11 @@ export class UserService extends BaseService {
 
     return this.es.indexManyItems({
       index: this.table,
-      items: users
+      items: users.map(user => ({
+        ...user,
+        factor: ALS_DEFAULT_VECTOR.factor,
+        embedding_vector: ALS_DEFAULT_VECTOR.embedding
+      }))
     })
   }
 
@@ -395,7 +400,9 @@ export class UserService extends BaseService {
           id,
           userName,
           displayName,
-          description
+          description,
+          factor: ALS_DEFAULT_VECTOR.factor,
+          embedding_vector: ALS_DEFAULT_VECTOR.embedding
         }
       ]
     })
