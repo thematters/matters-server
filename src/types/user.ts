@@ -185,6 +185,9 @@ export default /* GraphQL */ `
 
     "Global user list, sort by activities in recent 6 month."
     authors(input: AuthorsInput!): UserConnection!
+
+    "Recommend articles usings collaborative filtering"
+    recommendArticles(input: ConnectionArgs!): ArticleConnection!
   }
 
   input AuthorsInput {
