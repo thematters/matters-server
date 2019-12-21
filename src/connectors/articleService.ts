@@ -556,7 +556,7 @@ export class ArticleService extends BaseService {
     const factorString = _.get(scoreResult.body, '_source.embedding_vector')
 
     // return empty list if we don't have any score
-    if (!factorString) {
+    if (!factorString || factorString === ALS_DEFAULT_VECTOR.embedding) {
       return []
     }
 
@@ -575,6 +575,7 @@ export class ArticleService extends BaseService {
           }
         }
       })
+      .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor})
       .notFilter('term', { state: ARTICLE_STATE.archived })
       .notFilter('ids', { values: notIn.concat([id]) })
       .size(size)
