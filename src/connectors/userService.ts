@@ -1024,6 +1024,62 @@ export class UserService extends BaseService {
     return author.authorScore || 0
   }
 
+  recommendItems = async ({
+    userId,
+    itemIndex,
+    size,
+    notIn = []
+  }: {
+    userId: string
+    itemIndex: string
+    size: number
+    notIn?: string[]
+  }) => {
+    // skip if in test
+    if (['test'].includes(environment.env)) {
+      return []
+    }
+
+    // get user vector score
+    const scoreResult = await this.es.client.get({
+      index: this.table,
+      id: userId
+    })
+
+    const factorString = _.get(scoreResult.body, '_source.embedding_vector')
+
+    if (!factorString) {
+      return []
+    }
+
+    const searchBody = bodybuilder()
+      .query('function_score', {
+        boost_mode: 'replace',
+        script_score: {
+          script: {
+            source: 'binary_vector_score',
+            lang: 'knn',
+            params: {
+              cosine: true,
+              field: 'embedding_vector',
+              encoded_vector: factorString
+            }
+          }
+        }
+      })
+      .notFilter('term', { state: ARTICLE_STATE.archived })
+      .notFilter('ids', { values: notIn })
+      .size(size)
+      .build()
+
+    const { body } = await this.es.client.search({
+      index: itemIndex,
+      body: searchBody
+    })
+    // add recommendation
+    return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
+  }
+
   /*********************************
    *                               *
    *         Notify Setting        *

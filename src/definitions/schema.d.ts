@@ -528,6 +528,11 @@ export interface GQLRecommendation {
    * Global user list, sort by activities in recent 6 month.
    */
   authors: GQLUserConnection
+
+  /**
+   * Recommend articles usings collaborative filtering
+   */
+  recommendArticles: GQLArticleConnection
 }
 
 export interface GQLConnectionArgs {
@@ -3976,6 +3981,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   tags?: RecommendationToTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
   authors?: RecommendationToAuthorsResolver<TParent>
+  recommendArticles?: RecommendationToRecommendArticlesResolver<TParent>
 }
 
 export interface RecommendationToFolloweeArticlesArgs {
@@ -4084,6 +4090,21 @@ export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToAuthorsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToRecommendArticlesArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToRecommendArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToRecommendArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
