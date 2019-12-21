@@ -575,7 +575,7 @@ export class ArticleService extends BaseService {
           }
         }
       })
-      .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor})
+      .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor })
       .notFilter('term', { state: ARTICLE_STATE.archived })
       .notFilter('ids', { values: notIn.concat([id]) })
       .size(size)
