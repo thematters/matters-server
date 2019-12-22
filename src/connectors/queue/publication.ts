@@ -149,7 +149,14 @@ class PublicationQueue {
           job.progress(60)
 
           // add to search
-          await this.articleService.addToSearch({ ...article, tags })
+          const author = await this.userService.baseFindById(article.authorId)
+          const { userName, displayName } = author
+          await this.articleService.addToSearch({
+            ...article,
+            userName,
+            displayName,
+            tags
+          })
           job.progress(80)
 
           // handle mentions

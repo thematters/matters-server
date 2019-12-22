@@ -6,6 +6,7 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ALS_DEFAULT_VECTOR,
   ARTICLE_STATE,
   BATCH_SIZE,
   BCRYPT_ROUNDS,
@@ -376,7 +377,11 @@ export class UserService extends BaseService {
 
     return this.es.indexManyItems({
       index: this.table,
-      items: users
+      items: users.map(user => ({
+        ...user,
+        factor: ALS_DEFAULT_VECTOR.factor,
+        embedding_vector: ALS_DEFAULT_VECTOR.embedding
+      }))
     })
   }
 
@@ -395,7 +400,9 @@ export class UserService extends BaseService {
           id,
           userName,
           displayName,
-          description
+          description,
+          factor: ALS_DEFAULT_VECTOR.factor,
+          embedding_vector: ALS_DEFAULT_VECTOR.embedding
         }
       ]
     })
@@ -1048,7 +1055,7 @@ export class UserService extends BaseService {
 
     const factorString = _.get(scoreResult.body, '_source.embedding_vector')
 
-    if (!factorString) {
+    if (!factorString || factorString === ALS_DEFAULT_VECTOR.embedding) {
       return []
     }
 
@@ -1067,6 +1074,7 @@ export class UserService extends BaseService {
           }
         }
       })
+      .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor })
       .notFilter('term', { state: ARTICLE_STATE.archived })
       .notFilter('ids', { values: notIn })
       .size(size)
