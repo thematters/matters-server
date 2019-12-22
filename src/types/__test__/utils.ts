@@ -47,16 +47,19 @@ export const testClient = async (
     isAuth,
     isAdmin,
     isMatty,
+    isOnboarding,
     context
   }: {
     isAuth?: boolean
     isAdmin?: boolean
     isMatty?: boolean
+    isOnboarding?: boolean
     context?: any
   } = {
     isAuth: false,
     isAdmin: false,
     isMatty: false,
+    isOnboarding: false,
     context: null
   }
 ) => {
@@ -67,6 +70,8 @@ export const testClient = async (
     _context = await getUserContext({
       email: isMatty
         ? 'hi@matters.news'
+        : isOnboarding
+        ? 'onboarding@matters.news'
         : isAdmin
         ? adminUser.email
         : defaultTestUser.email
@@ -94,6 +99,10 @@ export const testClient = async (
     hasScopeMode: (requires: string) =>
       scopeModes.findIndex(mode => mode === viewer.scopeMode) >=
       scopeModes.findIndex(mode => mode === requires)
+  }
+
+  if (isOnboarding) {
+    console.log('isOnboarding', _context.viewer)
   }
 
   const server = new ApolloServer({

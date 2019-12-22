@@ -28,10 +28,6 @@ const resolver: MutationToPutCommentResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  if (viewer.state !== USER_STATE.active) {
-    throw new ForbiddenError('viewer has no permission')
-  }
-
   const { content, articleId, parentId, mentions, replyTo } = commentInput
 
   if (!content || content.length <= 0) {
@@ -50,6 +46,10 @@ const resolver: MutationToPutCommentResolver = async (
   const article = await articleService.dataloader.load(articleDbId)
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
+  }
+
+  if (article.authorId !== viewer.id && viewer.state !== USER_STATE.active) {
+    throw new ForbiddenError('viewer has no permission')
   }
 
   // check whether viewer is blocked by article author

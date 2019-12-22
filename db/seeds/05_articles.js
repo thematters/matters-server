@@ -1,11 +1,10 @@
 const table = 'article'
 
-exports.seed = function(knex, Promise) {
+exports.seed = function (knex, Promise) {
   return knex(table)
     .del()
-    .then(function() {
-      return knex(table).insert([
-        {
+    .then(function () {
+      return knex(table).insert([{
           uuid: '00000000-0000-0000-0000-000000000001',
           author_id: 1,
           draft_id: 1,
@@ -50,6 +49,19 @@ exports.seed = function(knex, Promise) {
           author_id: 1,
           title: 'test article 4',
           slug: 'test-article-4',
+          summary: 'Some text',
+          word_count: '1000',
+          data_hash: 'someIpfsMediaHash4',
+          media_hash: 'someIpfsMediaHash4',
+          content: '<div>some html string</div>',
+          state: 'active',
+          public: true
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000004',
+          author_id: 7,
+          title: 'test article 5 onboarding user',
+          slug: 'test-article-5-onboarding-user',
           summary: 'Some text',
           word_count: '1000',
           data_hash: 'someIpfsMediaHash4',

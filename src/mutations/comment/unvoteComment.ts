@@ -15,15 +15,15 @@ const resolver: MutationToUnvoteCommentResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  if (viewer.state !== USER_STATE.active) {
+  const { id: dbId } = fromGlobalId(id)
+  const comment = await commentService.dataloader.load(dbId)
+  const article = await articleService.dataloader.load(comment.articleId)
+
+  if (article.authorId !== viewer.id && viewer.state !== USER_STATE.active) {
     throw new ForbiddenError('viewer has no permission')
   }
 
-  const { id: dbId } = fromGlobalId(id)
-
   await commentService.unvote({ commentId: dbId, userId: viewer.id })
-  const comment = await commentService.dataloader.load(dbId)
-  const article = await articleService.dataloader.load(comment.articleId)
 
   // publish a PubSub event
   notificationService.pubsub.publish(

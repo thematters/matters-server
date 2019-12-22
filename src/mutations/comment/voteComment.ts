@@ -15,11 +15,13 @@ const resolver: MutationToVoteCommentResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  if (viewer.state !== USER_STATE.active) {
+  const { id: dbId } = fromGlobalId(id)
+  const comment = await commentService.dataloader.load(dbId)
+  const article = await articleService.dataloader.load(comment.articleId)
+
+  if (article.authorId !== viewer.id && viewer.state !== USER_STATE.active) {
     throw new ForbiddenError('viewer has no permission')
   }
-
-  const { id: dbId } = fromGlobalId(id)
 
   // check is voted before
   const voted = await commentService.findVotesByUserId({
@@ -34,8 +36,6 @@ const resolver: MutationToVoteCommentResolver = async (
   }
 
   await commentService.vote({ commentId: dbId, vote, userId: viewer.id })
-  const comment = await commentService.dataloader.load(dbId)
-  const article = await articleService.dataloader.load(comment.articleId)
 
   // trigger notifications
   if (vote === 'up') {
