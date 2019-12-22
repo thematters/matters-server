@@ -3,11 +3,12 @@ const BCRYPT_ROUNDS = 12
 
 const table = 'user'
 
-exports.seed = function (knex, Promise) {
+exports.seed = function(knex, Promise) {
   return knex(table)
     .del()
-    .then(function () {
-      return knex(table).insert([{
+    .then(function() {
+      return knex(table).insert([
+        {
           uuid: '00000000-0000-0000-0000-000000000001',
           user_name: 'test1',
           display_name: 'test1',
@@ -69,7 +70,7 @@ exports.seed = function (knex, Promise) {
           role: 'user',
           state: 'onboarding',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS)
-        },
+        }
       ])
     })
 }
