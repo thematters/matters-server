@@ -101,10 +101,6 @@ export const testClient = async (
       scopeModes.findIndex(mode => mode === requires)
   }
 
-  if (isOnboarding) {
-    console.log('isOnboarding', _context.viewer)
-  }
-
   const server = new ApolloServer({
     schema,
     context: ({ req }: { req: Request }) => {
