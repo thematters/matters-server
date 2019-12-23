@@ -29,18 +29,18 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ForbiddenError('viewer has no liker id')
   }
 
-  if (viewer.state !== USER_STATE.active) {
-    throw new ForbiddenError('viewer has no permission')
-  }
-
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
 
-  if (article.author_id === viewer.id) {
+  if (article.authorId === viewer.id) {
     throw new ForbiddenError('cannot appreciate your own article')
+  } else {
+    if (viewer.state !== USER_STATE.active) {
+      throw new ForbiddenError('viewer has no permission')
+    }
   }
 
   const appreciateLeft = await articleService.appreciateLeftByUser({
