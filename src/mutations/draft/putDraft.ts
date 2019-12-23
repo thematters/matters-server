@@ -119,7 +119,7 @@ const resolver: MutationToPutDraftResolver = async (
     // handle cover
     if (content || content === '') {
       const uuids = (extractAssetDataFromHtml(content, 'image') || []).filter(
-        uuid => uuid &&  uuid !== 'embed'
+        uuid => uuid && uuid !== 'embed'
       )
       // check if cover needs to be removed forcely
       if (uuids.length === 0) {
