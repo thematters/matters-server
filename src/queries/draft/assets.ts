@@ -7,7 +7,9 @@ const resolver: DraftToAssetsResolver = async (
   { dataSources: { systemService } }
 ) => {
   // gather assets from raw content
-  const uuids = (extractAssetDataFromHtml(content) || []).filter(uuid => uuid && uuid !== 'embed')
+  const uuids = (extractAssetDataFromHtml(content) || []).filter(
+    uuid => uuid && uuid !== 'embed'
+  )
   return (await systemService.baseFindByUUIDs(uuids, 'asset')).map(
     (item: any) => {
       const { path } = item
