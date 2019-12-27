@@ -123,7 +123,7 @@ const resolvers: GQLRecommendationTypeResolver = {
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.countRecommendHottest({
-      where: id ? {} : { 'article.public': true },
+      where: id ? {} : where,
       oss
     })
     return connectionFromPromisedArray(
