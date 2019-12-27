@@ -123,7 +123,7 @@ export class UserService extends BaseService {
     if (!user || user.state === USER_STATE.archived) {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
-    
+
     await this.verifyPassword({ password, hash: user.passwordHash })
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
@@ -334,7 +334,7 @@ export class UserService extends BaseService {
    */
   findActivatableUsers = () =>
     this.knex
-      .select('user.*')
+      .select('user.*', 'total')
       .from(this.table)
       .innerJoin(
         'user_oauth_likecoin',
@@ -344,9 +344,8 @@ export class UserService extends BaseService {
       .innerJoin(
         this.knex
           .select('recipient_id')
-          .sum('amount')
+          .sum('amount as total')
           .from('transaction')
-          .where('amount', '>=', 30)
           .groupBy('recipient_id')
           .as('tx'),
         'tx.recipient_id',
@@ -356,6 +355,7 @@ export class UserService extends BaseService {
         state: USER_STATE.onboarding,
         accountType: 'general'
       })
+      .andWhere('total', '>=', 30)
 
   /*********************************
    *                               *

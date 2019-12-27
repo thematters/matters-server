@@ -86,7 +86,9 @@ class ScheduleQueue {
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 0 * * *', tz: 'Asia/Hong_Kong' }
+        repeat: {
+          every: 1000 * 60 * 60 * 3 // every 3 hour
+        }
       }
     )
 
