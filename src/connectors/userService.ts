@@ -120,12 +120,10 @@ export class UserService extends BaseService {
   login = async ({ email, password }: { email: string; password: string }) => {
     const user = await this.findByEmail(email)
 
-    const isArchived = user.state === USER_STATE.archived
-
-    if (!user || isArchived) {
+    if (!user || user.state === USER_STATE.archived) {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
-
+    
     await this.verifyPassword({ password, hash: user.passwordHash })
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
