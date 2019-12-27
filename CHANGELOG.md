@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2019-12-27
+
+### Added
+
+- Onboarding User Restrictions #618 #622
+
+### Changed
+
+- Fix refresh view by renaming queue jobs #617
+- Bug Fixes of user deletion #620
+- Enhancement of recommendation #619 #621
+  - exclude collection articles from related articles
+  - add query for recommendation articles for user
+  - add default vector score
+- Allow "@matters.news" to use "+" sign #624
+
 ## [2.4.0] - 2019-12-13
 
 ### Added
