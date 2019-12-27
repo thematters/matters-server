@@ -120,12 +120,10 @@ export class UserService extends BaseService {
   login = async ({ email, password }: { email: string; password: string }) => {
     const user = await this.findByEmail(email)
 
-    const isArchived = user.state === USER_STATE.archived
-
-    if (!user || isArchived) {
+    if (!user || user.state === USER_STATE.archived) {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
-
+    
     await this.verifyPassword({ password, hash: user.passwordHash })
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
@@ -979,6 +977,24 @@ export class UserService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
+  countAuthor = async ({
+    notIn = [],
+    oss = false
+  }: {
+    notIn?: string[]
+    oss?: boolean
+  }) => {
+    const table = oss
+      ? 'user_reader_view'
+      : MATERIALIZED_VIEW.userReaderMaterialized
+    const result = await this.knex(table)
+      .where({ state: USER_STATE.active })
+      .whereNotIn('id', notIn)
+      .count()
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   recommendAuthor = async ({
     limit = BATCH_SIZE,
     offset = 0,
@@ -999,6 +1015,7 @@ export class UserService extends BaseService {
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+      .where({ state: USER_STATE.active })
       .whereNotIn('id', notIn)
     return result
   }

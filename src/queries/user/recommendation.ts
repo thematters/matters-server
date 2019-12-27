@@ -287,7 +287,9 @@ const resolvers: GQLRecommendationTypeResolver = {
     }
 
     const offset = cursorToIndex(after) + 1
-    const totalCount = await userService.baseCount()
+    const totalCount = await userService.countAuthor({
+      notIn
+    })
 
     return connectionFromPromisedArray(
       userService.recommendAuthor({
