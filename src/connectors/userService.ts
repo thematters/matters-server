@@ -979,6 +979,24 @@ export class UserService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
+  countAuthor = async({
+    notIn = [],
+    oss = false
+  }: {
+    notIn?: string[]
+    oss?: boolean
+  }) => {
+    const table = oss
+    ? 'user_reader_view'
+    : MATERIALIZED_VIEW.userReaderMaterialized
+  const result = await this.knex(table)
+    .where({ state: USER_STATE.active })
+    .whereNotIn('id', notIn)
+    .count()
+    .first()
+  return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   recommendAuthor = async ({
     limit = BATCH_SIZE,
     offset = 0,
@@ -999,6 +1017,7 @@ export class UserService extends BaseService {
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+      .where({ state: USER_STATE.active })
       .whereNotIn('id', notIn)
     return result
   }
