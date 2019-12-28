@@ -60,6 +60,7 @@ describe('user notify setting', () => {
     comment_new_upvote: false,
     comment_mentioned_you: true,
     official_announcement: true,
+    user_activated: true,
     user_banned: true,
     user_frozen: true,
     comment_banned: false,

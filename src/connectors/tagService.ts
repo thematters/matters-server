@@ -2,7 +2,7 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 
-import { ARTICLE_STATE, BATCH_SIZE } from 'common/enums'
+import { ARTICLE_STATE, BATCH_SIZE, MATERIALIZED_VIEW } from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
@@ -184,7 +184,9 @@ export class TagService extends BaseService {
     offset?: number
     oss?: boolean
   }) => {
-    const table = oss ? 'tag_count_view' : 'tag_count_materialized'
+    const table = oss
+      ? 'tag_count_view'
+      : MATERIALIZED_VIEW.tagCountMaterialized
     return this.knex(table)
       .select()
       .orderByRaw('tag_score DESC NULLS LAST')

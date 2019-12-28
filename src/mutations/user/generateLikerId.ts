@@ -31,8 +31,7 @@ const resolver: MutationToGenerateLikerIdResolver = async (
     }
   }
 
-  // activate user
-  const user = await userService.activate({ id: viewer.id })
+  const user = await userService.baseFindById(viewer.id)
   return user
 }
 

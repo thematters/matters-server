@@ -273,7 +273,7 @@ export interface GQLUser extends GQLNode {
 
   /**
    * LikerID of LikeCoin
-   * @deprecated Use `liker.id`.
+   * @deprecated Use `liker.likerId`.
    */
   likerId?: string
 
@@ -528,6 +528,11 @@ export interface GQLRecommendation {
    * Global user list, sort by activities in recent 6 month.
    */
   authors: GQLUserConnection
+
+  /**
+   * Recommend articles usings collaborative filtering
+   */
+  recommendArticles: GQLArticleConnection
 }
 
 export interface GQLConnectionArgs {
@@ -2560,11 +2565,6 @@ export interface GQLImportArticlesInput {
 
 export type GQLJSON = any
 
-export interface GQLMAT {
-  total: number
-  history: GQLTransactionConnection
-}
-
 export type GQLNegativeFloat = any
 
 export type GQLNegativeInt = any
@@ -2804,7 +2804,6 @@ export interface GQLResolver {
   CommentPinnedNotice?: GQLCommentPinnedNoticeTypeResolver
   DownstreamArticleArchivedNotice?: GQLDownstreamArticleArchivedNoticeTypeResolver
   JSON?: GraphQLScalarType
-  MAT?: GQLMATTypeResolver
   NegativeFloat?: GraphQLScalarType
   NegativeInt?: GraphQLScalarType
   NonNegativeInt?: GraphQLScalarType
@@ -3982,6 +3981,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   tags?: RecommendationToTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
   authors?: RecommendationToAuthorsResolver<TParent>
+  recommendArticles?: RecommendationToRecommendArticlesResolver<TParent>
 }
 
 export interface RecommendationToFolloweeArticlesArgs {
@@ -4090,6 +4090,21 @@ export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToAuthorsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToRecommendArticlesArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToRecommendArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToRecommendArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8582,32 +8597,6 @@ export interface DownstreamArticleArchivedNoticeToTargetResolver<
   (
     parent: TParent,
     args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLMATTypeResolver<TParent = any> {
-  total?: MATToTotalResolver<TParent>
-  history?: MATToHistoryResolver<TParent>
-}
-
-export interface MATToTotalResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MATToHistoryArgs {
-  input: GQLConnectionArgs
-}
-export interface MATToHistoryResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MATToHistoryArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

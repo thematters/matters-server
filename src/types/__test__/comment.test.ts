@@ -220,6 +220,53 @@ describe('mutations on comment', () => {
     expect(_get(data, 'voteComment.upvotes')).toBe(upvotes + 1)
   })
 
+  test('onboarding user vote a comment', async () => {
+    const onboardingCommentId = toGlobalId({ type: 'Comment', id: 6 })
+    const { mutate } = await testClient({ isAuth: true, isOnboarding: true })
+
+    // upvote
+    const upvoteResult = await mutate({
+      mutation: VOTE_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: { id: commentId, vote: 'up' }
+      }
+    })
+    expect(_get(upvoteResult, 'errors.0.extensions.code')).toBe('FORBIDDEN')
+
+    // upvote comment that article published by viewer
+    const upvoteSuccuessResult = await mutate({
+      mutation: VOTE_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: { id: onboardingCommentId, vote: 'up' }
+      }
+    })
+    expect(_get(upvoteSuccuessResult, 'data.voteComment.upvotes')).toBeDefined()
+
+    // downvote
+    const downvoteResult = await mutate({
+      mutation: VOTE_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: { id: commentId, vote: 'down' }
+      }
+    })
+    expect(_get(downvoteResult, 'errors.0.extensions.code')).toBe('FORBIDDEN')
+
+    // downvote comment that article published by viewer
+    const downvoteSuccuessResult = await mutate({
+      mutation: VOTE_COMMENT,
+      // @ts-ignore
+      variables: {
+        input: { id: onboardingCommentId, vote: 'up' }
+      }
+    })
+    expect(
+      _get(downvoteSuccuessResult, 'data.voteComment.downvotes')
+    ).toBeDefined()
+  })
+
   test('downvote a comment', async () => {
     const { mutate } = await testClient({ isAuth: true })
     const { upvotes, downvotes } = await getCommentVotes(commentId)

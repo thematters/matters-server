@@ -48,6 +48,10 @@ const resolver: MutationToPutCommentResolver = async (
     throw new ArticleNotFoundError('target article does not exists')
   }
 
+  if (article.authorId !== viewer.id && viewer.state !== USER_STATE.active) {
+    throw new ForbiddenError('viewer has no permission')
+  }
+
   // check whether viewer is blocked by article author
   const isBlocked = await userService.blocked({
     userId: article.authorId,

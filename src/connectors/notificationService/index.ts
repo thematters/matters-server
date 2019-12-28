@@ -81,6 +81,12 @@ export class NotificationService extends BaseService {
           message: params.message,
           data: params.data
         }
+      case 'user_activated':
+        return {
+          type: 'official_announcement',
+          recipientId: params.recipientId,
+          message: trans.user_activiated(language, {})
+        }
       case 'user_banned':
         return {
           type: 'official_announcement',

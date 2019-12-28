@@ -6,11 +6,12 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ALS_DEFAULT_VECTOR,
   ARTICLE_STATE,
   BATCH_SIZE,
   BCRYPT_ROUNDS,
-  BLOCK_USERS,
   COMMENT_STATE,
+  MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
@@ -119,11 +120,7 @@ export class UserService extends BaseService {
   login = async ({ email, password }: { email: string; password: string }) => {
     const user = await this.findByEmail(email)
 
-    if (!user) {
-      throw new EmailNotFoundError('Cannot find user with email, login failed.')
-    }
-
-    if (BLOCK_USERS.includes(user.userName)) {
+    if (!user || user.state === USER_STATE.archived) {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 
@@ -247,8 +244,11 @@ export class UserService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
+  /**
+   * Archive User by a given user id
+   */
   archive = async (id: string) => {
-    return this.knex.transaction(async trx => {
+    const archivedUser = await this.knex.transaction(async trx => {
       // archive user
       const [user] = await trx
         .where('id', id)
@@ -312,7 +312,50 @@ export class UserService extends BaseService {
 
       return user
     })
+
+    // update search
+    try {
+      await this.es.client.update({
+        index: this.table,
+        id,
+        body: {
+          doc: { state: USER_STATE.archived }
+        }
+      })
+    } catch (e) {
+      logger.error(e)
+    }
+
+    return archivedUser
   }
+
+  /**
+   * Find activatable users
+   */
+  findActivatableUsers = () =>
+    this.knex
+      .select('user.*', 'total')
+      .from(this.table)
+      .innerJoin(
+        'user_oauth_likecoin',
+        'user_oauth_likecoin.liker_id',
+        'user.liker_id'
+      )
+      .innerJoin(
+        this.knex
+          .select('recipient_id')
+          .sum('amount as total')
+          .from('transaction')
+          .groupBy('recipient_id')
+          .as('tx'),
+        'tx.recipient_id',
+        'user.id'
+      )
+      .where({
+        state: USER_STATE.onboarding,
+        accountType: 'general'
+      })
+      .andWhere('total', '>=', 30)
 
   /*********************************
    *                               *
@@ -332,7 +375,11 @@ export class UserService extends BaseService {
 
     return this.es.indexManyItems({
       index: this.table,
-      items: users
+      items: users.map(user => ({
+        ...user,
+        factor: ALS_DEFAULT_VECTOR.factor,
+        embedding_vector: ALS_DEFAULT_VECTOR.embedding
+      }))
     })
   }
 
@@ -351,7 +398,9 @@ export class UserService extends BaseService {
           id,
           userName,
           displayName,
-          description
+          description,
+          factor: ALS_DEFAULT_VECTOR.factor,
+          embedding_vector: ALS_DEFAULT_VECTOR.embedding
         }
       ]
     })
@@ -928,6 +977,24 @@ export class UserService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
+  countAuthor = async ({
+    notIn = [],
+    oss = false
+  }: {
+    notIn?: string[]
+    oss?: boolean
+  }) => {
+    const table = oss
+      ? 'user_reader_view'
+      : MATERIALIZED_VIEW.userReaderMaterialized
+    const result = await this.knex(table)
+      .where({ state: USER_STATE.active })
+      .whereNotIn('id', notIn)
+      .count()
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   recommendAuthor = async ({
     limit = BATCH_SIZE,
     offset = 0,
@@ -939,13 +1006,16 @@ export class UserService extends BaseService {
     notIn?: string[]
     oss?: boolean
   }) => {
-    const table = oss ? 'user_reader_view' : 'user_reader_materialized'
+    const table = oss
+      ? 'user_reader_view'
+      : MATERIALIZED_VIEW.userReaderMaterialized
     const result = await this.knex(table)
       .select()
       .orderByRaw('author_score DESC NULLS LAST')
       .orderBy('id', 'desc')
       .offset(offset)
       .limit(limit)
+      .where({ state: USER_STATE.active })
       .whereNotIn('id', notIn)
     return result
   }
@@ -976,6 +1046,63 @@ export class UserService extends BaseService {
       .where({ id: userId })
       .first()
     return author.authorScore || 0
+  }
+
+  recommendItems = async ({
+    userId,
+    itemIndex,
+    size,
+    notIn = []
+  }: {
+    userId: string
+    itemIndex: string
+    size: number
+    notIn?: string[]
+  }) => {
+    // skip if in test
+    if (['test'].includes(environment.env)) {
+      return []
+    }
+
+    // get user vector score
+    const scoreResult = await this.es.client.get({
+      index: this.table,
+      id: userId
+    })
+
+    const factorString = _.get(scoreResult.body, '_source.embedding_vector')
+
+    if (!factorString || factorString === ALS_DEFAULT_VECTOR.embedding) {
+      return []
+    }
+
+    const searchBody = bodybuilder()
+      .query('function_score', {
+        boost_mode: 'replace',
+        script_score: {
+          script: {
+            source: 'binary_vector_score',
+            lang: 'knn',
+            params: {
+              cosine: true,
+              field: 'embedding_vector',
+              encoded_vector: factorString
+            }
+          }
+        }
+      })
+      .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor })
+      .notFilter('term', { state: ARTICLE_STATE.archived })
+      .notFilter('ids', { values: notIn })
+      .size(size)
+      .build()
+
+    const { body } = await this.es.client.search({
+      index: itemIndex,
+      body: searchBody
+    })
+    // add recommendation
+    return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
   }
 
   /*********************************

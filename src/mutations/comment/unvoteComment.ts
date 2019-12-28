@@ -1,4 +1,5 @@
-import { AuthenticationError } from 'common/errors'
+import { USER_STATE } from 'common/enums'
+import { AuthenticationError, ForbiddenError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { MutationToUnvoteCommentResolver } from 'definitions'
 
@@ -15,10 +16,14 @@ const resolver: MutationToUnvoteCommentResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-
-  await commentService.unvote({ commentId: dbId, userId: viewer.id })
   const comment = await commentService.dataloader.load(dbId)
   const article = await articleService.dataloader.load(comment.articleId)
+
+  if (article.authorId !== viewer.id && viewer.state !== USER_STATE.active) {
+    throw new ForbiddenError('viewer has no permission')
+  }
+
+  await commentService.unvote({ commentId: dbId, userId: viewer.id })
 
   // publish a PubSub event
   notificationService.pubsub.publish(

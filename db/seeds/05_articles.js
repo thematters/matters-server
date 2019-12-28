@@ -57,6 +57,19 @@ exports.seed = function(knex, Promise) {
           content: '<div>some html string</div>',
           state: 'active',
           public: true
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000004',
+          author_id: 7,
+          title: 'test article 5 onboarding user',
+          slug: 'test-article-5-onboarding-user',
+          summary: 'Some text',
+          word_count: '1000',
+          data_hash: 'someIpfsMediaHash4',
+          media_hash: 'someIpfsMediaHash4',
+          content: '<div>some html string</div>',
+          state: 'active',
+          public: true
         }
       ])
     })

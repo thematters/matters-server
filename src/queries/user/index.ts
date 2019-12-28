@@ -2,7 +2,6 @@ import { toGlobalId } from 'common/utils'
 import {
   GQLLikerTypeResolver,
   GQLLIKETypeResolver,
-  GQLMATTypeResolver,
   GQLQueryTypeResolver,
   GQLRecommendationTypeResolver,
   GQLTransactionTypeResolver,
@@ -36,7 +35,7 @@ import Recommendation from './recommendation'
 import rootUser from './rootUser'
 import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
-import { MAT, Transaction } from './transaction'
+import { Transaction } from './transaction'
 import unreadFolloweeArticles from './unreadFolloweeArticles'
 import unreadNoticeCount from './unreadNoticeCount'
 import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
@@ -51,7 +50,6 @@ const user: {
   UserInfo: GQLUserInfoTypeResolver
   UserSettings: GQLUserSettingsTypeResolver
   UserActivity: GQLUserActivityTypeResolver
-  MAT: GQLMATTypeResolver
   Liker: GQLLikerTypeResolver
   LIKE: GQLLIKETypeResolver
   Transaction: GQLTransactionTypeResolver
@@ -96,7 +94,6 @@ const user: {
     notification
   },
   UserActivity,
-  MAT,
   LIKE: {
     total,
     rateUSD

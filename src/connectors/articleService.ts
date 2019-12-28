@@ -5,9 +5,11 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ALS_DEFAULT_VECTOR,
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
+  MATERIALIZED_VIEW,
   TRANSACTION_PURPOSE,
   USER_ACTION
 } from 'common/enums'
@@ -277,18 +279,24 @@ export class ArticleService extends BaseService {
    * Dump all data to ES (Currently only used in test)
    */
   initSearch = async () => {
-    const articles = await this.knex(this.table).select(
-      'content',
-      'title',
-      'id'
-    )
+    const articles = await this.knex(this.table)
+      .innerJoin('user', `${this.table}.author_id`, 'user.id')
+      .select(
+        `${this.table}.id as id`,
+        'title',
+        'content',
+        'user.user_name as userName',
+        'user.display_name as displayName'
+      )
 
     return this.es.indexManyItems({
       index: this.table,
       items: articles.map(
         (article: { content: string; title: string; id: string }) => ({
           ...article,
-          content: stripHtml(article.content)
+          content: stripHtml(article.content),
+          factor: ALS_DEFAULT_VECTOR.factor,
+          embedding_vector: ALS_DEFAULT_VECTOR.embedding
         })
       )
     })
@@ -298,6 +306,8 @@ export class ArticleService extends BaseService {
     id,
     title,
     content,
+    userName,
+    displayName,
     tags
   }: {
     [key: string]: string
@@ -309,7 +319,11 @@ export class ArticleService extends BaseService {
           id,
           title,
           content: stripHtml(content),
-          tags
+          userName,
+          displayName,
+          tags,
+          factor: ALS_DEFAULT_VECTOR.factor,
+          embedding_vector: ALS_DEFAULT_VECTOR.embedding
         }
       ]
     })
@@ -393,7 +407,7 @@ export class ArticleService extends BaseService {
     // use materialized in other cases
     const table = oss
       ? 'article_activity_view'
-      : 'article_activity_materialized'
+      : MATERIALIZED_VIEW.articleActivityMaterialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
@@ -505,7 +519,9 @@ export class ArticleService extends BaseService {
     where?: { [key: string]: any }
     oss?: boolean
   }) => {
-    const table = oss ? 'article_count_view' : 'article_count_materialized'
+    const table = oss
+      ? 'article_count_view'
+      : MATERIALIZED_VIEW.articleCountMaterialized
 
     return this.knex(`${table} as view`)
       .select('view.*', 'article.state', 'article.public', 'article.sticky')
@@ -517,7 +533,15 @@ export class ArticleService extends BaseService {
       .offset(offset)
   }
 
-  related = async ({ id, size }: { id: string; size: number }) => {
+  related = async ({
+    id,
+    size,
+    notIn = []
+  }: {
+    id: string
+    size: number
+    notIn?: string[]
+  }) => {
     // skip if in test
     if (['test'].includes(environment.env)) {
       return []
@@ -532,7 +556,7 @@ export class ArticleService extends BaseService {
     const factorString = _.get(scoreResult.body, '_source.embedding_vector')
 
     // return empty list if we don't have any score
-    if (!factorString) {
+    if (!factorString || factorString === ALS_DEFAULT_VECTOR.embedding) {
       return []
     }
 
@@ -551,7 +575,9 @@ export class ArticleService extends BaseService {
           }
         }
       })
-      .notFilter('ids', { values: [id] })
+      .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor })
+      .notFilter('term', { state: ARTICLE_STATE.archived })
+      .notFilter('ids', { values: notIn.concat([id]) })
       .size(size)
       .build()
 
@@ -613,7 +639,7 @@ export class ArticleService extends BaseService {
     // use materialized in other cases
     const table = oss
       ? 'article_activity_view'
-      : 'article_activity_materialized'
+      : MATERIALIZED_VIEW.articleActivityMaterialized
 
     let qs = this.knex(`${table} as view`)
       .leftJoin(

@@ -106,8 +106,7 @@ export default () => {
             accountType: 'general'
           })
 
-          // activate user
-          const user = await userService.activate({ id: userId })
+          const user = await userService.dataloader.load(viewer.id)
 
           // invalidate user cache
           await cacheService.invalidate(NODE_TYPES.user, userId)

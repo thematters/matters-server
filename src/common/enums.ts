@@ -284,8 +284,14 @@ export const QUEUE_JOB = {
   archiveUser: 'userArchive',
   // repeat jobs
   publishPendingDrafts: 'publishPendingDrafts',
-  refreshView: 'refreshView',
-  sendDailySummaryEmail: 'sendDailySummaryEmail'
+  sendDailySummaryEmail: 'sendDailySummaryEmail',
+  activateOnboardingUsers: 'activateOnboardingUsers',
+  // refresh views
+  refreshArticleCountView: 'refreshArticleCountView',
+  refreshTagCountMaterialView: 'refreshTagCountMaterialView',
+  refreshUserReaderView: 'refreshUserReaderView',
+  refreshArticleActivityView: 'refreshArticleActivityView',
+  refreshFeaturedCommentView: 'refreshFeaturedCommentView'
 }
 
 export const QUEUE_NAME = {
@@ -408,8 +414,6 @@ export const OAUTH_CALLBACK_ERROR_CODE = {
   likerExists: 3
 }
 
-export const BLOCK_USERS = ['jQwZ2JnYzg3MmdAZw']
-
 export const GQL_OPERATION = {
   query: 'query',
   mutation: 'mutation'
@@ -433,3 +437,15 @@ export const TRANSACTION_TYPES = {
 }
 
 export const SEARCH_KEY_TRUNCATE_LENGTH = 100
+
+/**
+ * Recommendation
+ */
+
+// this is the base64 representation of a vector of [0] * 20, the rank of our ALS model is 20
+export const ALS_DEFAULT_VECTOR = {
+  factor:
+    '0|0 1|0 2|0 3|0 4|0 5|0 6|0 7|0 8|0 9|0 10|0 11|0 12|0 13|0 14|0 15|0 16|0 17|0 18|0 19|0',
+  embedding:
+    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+}

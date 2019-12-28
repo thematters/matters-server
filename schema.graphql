@@ -790,11 +790,6 @@ enum LogRecordTypes {
   ReadResponseInfoPopUp
 }
 
-type MAT {
-  total: Int!
-  history(input: ConnectionArgs!): TransactionConnection!
-}
-
 input MergeTagsInput {
   ids: [ID!]!
   content: String!
@@ -1325,6 +1320,9 @@ type Recommendation {
 
   """Global user list, sort by activities in recent 6 month."""
   authors(input: AuthorsInput!): UserConnection!
+
+  """Recommend articles usings collaborative filtering"""
+  recommendArticles(input: ConnectionArgs!): ArticleConnection!
 }
 
 """Enums for types of recommend articles."""
@@ -1748,7 +1746,7 @@ type User implements Node {
   displayName: String
 
   """LikerID of LikeCoin"""
-  likerId: String @deprecated(reason: "Use `liker.id`.")
+  likerId: String @deprecated(reason: "Use `liker.likerId`.")
 
   """Liker info of current user"""
   liker: Liker!

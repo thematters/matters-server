@@ -97,7 +97,7 @@ export default /* GraphQL */ `
     displayName: String
 
     "LikerID of LikeCoin"
-    likerId: String @scope @deprecated(reason: "Use \`liker.id\`.")
+    likerId: String @scope @deprecated(reason: "Use \`liker.likerId\`.")
 
     "Liker info of current user"
     liker: Liker!
@@ -185,6 +185,9 @@ export default /* GraphQL */ `
 
     "Global user list, sort by activities in recent 6 month."
     authors(input: AuthorsInput!): UserConnection!
+
+    "Recommend articles usings collaborative filtering"
+    recommendArticles(input: ConnectionArgs!): ArticleConnection!
   }
 
   input AuthorsInput {
@@ -296,11 +299,6 @@ export default /* GraphQL */ `
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
-  }
-
-  type MAT {
-    total: Int!
-    history(input: ConnectionArgs!): TransactionConnection!
   }
 
   type LIKE {
