@@ -1,5 +1,6 @@
 import { random } from 'lodash'
 
+import { USER_STATE } from 'common/enums'
 import {
   CodeInvalidError,
   DisplayNameInvalidError,
@@ -97,6 +98,15 @@ const resolver: MutationToUserRegisterResolver = async (
   await userService.markVerificationCodeAs({
     codeId: code.id,
     status: 'used'
+  })
+
+  // send email
+  notificationService.mail.sendRegisterSuccess({
+    to: email,
+    recipient: {
+      displayName
+    },
+    language: viewer.language
   })
 
   const { token } = await userService.login({ ...input, email })
