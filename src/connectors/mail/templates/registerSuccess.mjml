@@ -1,8 +1,8 @@
 <mjml>
   <mj-head>
     <mj-include path="./partials/head.mjml" />
-    <mj-title>Matters | 你已註冊成功</mj-title>
-    <mj-preview>歡迎成爲 Matters 創作者，這是一封新手必讀</mj-preview>
+    <mj-title>歡迎成爲 Matters 創作者，這是一封新手必讀</mj-title>
+    <mj-preview>恭喜你，你已成功加入 Matters</mj-preview>
   </mj-head>
 
   <mj-body mj-class="body" css-class="body">
@@ -22,7 +22,7 @@
           </mj-text>
           <mj-spacer height="16px" />
           <mj-text>
-            若有更多問題，可以透過 email 聯絡我們：ask@matters.news
+            若有更多問題，可以透過 email 聯絡我們：<a class="link" href="mailto:ask@matters.news">ask@matters.news</a>
           </mj-text>
           <mj-spacer height="16px" />
           <mj-text>
