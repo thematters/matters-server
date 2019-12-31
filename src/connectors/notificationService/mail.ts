@@ -36,8 +36,8 @@ const trans = {
     })
   },
   registerSuccess: i18n({
-    zh_hant: 'Matters | 你已註冊成功',
-    zh_hans: 'Matters | 你已注册成功'
+    zh_hant: '歡迎成爲 Matters 創作者，這是一封新手必讀',
+    zh_hans: '欢迎成为 Matters 创作者，这是一封新手必读'
   }),
   dailySummary: i18n<{ displayName: string }>({
     zh_hant: ({ displayName }) =>

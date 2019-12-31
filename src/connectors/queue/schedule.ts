@@ -80,14 +80,14 @@ class ScheduleQueue {
       }
     )
 
-    // activate onboarding users every day at 00:00
+    // activate onboarding users every 2 minutes
     this.q.add(
       QUEUE_JOB.activateOnboardingUsers,
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 60 * 3 // every 3 hour
+          every: 1000 * 60 * 2 // every 2 minutes
         }
       }
     )
