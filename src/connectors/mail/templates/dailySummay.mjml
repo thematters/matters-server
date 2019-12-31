@@ -352,7 +352,7 @@
       <mj-section padding="24px 0">
         <mj-column>
           <mj-text css-class="footer" font-size="12px" mj-class="color-grey">想要變更郵件接收設定，請前往 Matters 主站進行<a class="link-underline" href="{{siteDomain}}/me/settings/notification?utm_medium=email">設置</a>。</mj-text>
-          <mj-text css-class="footer" font-size="12px" mj-class="color-grey">Copyright © 2019 Matters, All rights reserved.</mj-text>
+          <mj-text css-class="footer" font-size="12px" mj-class="color-grey">Copyright © 2020 Matters, All rights reserved.</mj-text>
         </mj-column>
       </mj-section>
     </mj-wrapper>

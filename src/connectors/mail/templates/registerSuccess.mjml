@@ -1,8 +1,8 @@
 <mjml>
   <mj-head>
     <mj-include path="./partials/head.mjml" />
-    <mj-title>Matters | 你已註冊成功</mj-title>
-    <mj-preview>恭喜你，你已經成功註冊了 Matters 賬號</mj-preview>
+    <mj-title>歡迎成爲 Matters 創作者，這是一封新手必讀</mj-title>
+    <mj-preview>恭喜你，你已成功加入 Matters</mj-preview>
   </mj-head>
 
   <mj-body mj-class="body" css-class="body">
@@ -14,15 +14,19 @@
           <mj-include path="./partials/greeting.mjml" />
           <mj-spacer height="16px" />
           <mj-text>
-            恭喜你，你已成功註冊 Matters 帳號，歡迎<a class="link" href="{{siteDomain}}?utm_medium=email">瀏覽站上精彩內容 →</a>
+            恭喜你，你已成功加入 Matters。
           </mj-text>
           <mj-spacer height="16px" />
           <mj-text>
-            由於 Matters 目前處於邀請制階段，你的帳號尚需要獲得老用戶激活，才能解鎖全部的創作功能。你可以透過各種社交工具尋找你可能認識的 Matters 老用戶（加入<a class="link" href="https://t.me/joinchat/BXzlWUhXaWNZ-TXJZJCzDQ">官方 Telegram 群組</a>尋找老用戶），也可以關注 <a class="link" href="https://www.facebook.com/MattersLab2018">Matters 臉書</a>和<a class="link" href="https://weibo.com/6695370718/profile?topnav=1&wvr=6">微博帳號 MattersLab</a>，即時了解激活權限新玩法。
+            瞭解 Matters 玩法，請查看「<a class="link" href="https://matters.news/faq">新手指南</a>」。歡迎加入官方 <a class="link" href="https://t.me/joinchat/BXzlWUhXaWNZ-TXJZJCzDQ">Telegram 羣組</a>，或關注 <a class="link" href="https://www.facebook.com/MattersLab2018">Matters 臉書</a>，參與更多社羣連結，隨時掌握新玩法。每週推送的 newsletter 將向你推薦一週社區精彩作品，敬請關注。
           </mj-text>
           <mj-spacer height="16px" />
           <mj-text>
-            若有更多問題，可以透過 email 聯絡我們：ask@matters.news
+            若有更多問題，可以透過 email 聯絡我們：<a class="link" href="mailto:ask@matters.news">ask@matters.news</a>
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-text>
+            創作愉快！
           </mj-text>
         </mj-column>
       </mj-section>
