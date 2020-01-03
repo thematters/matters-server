@@ -2,14 +2,15 @@ import { ARTICLE_STATE } from 'common/enums'
 import { ArticleToContentResolver } from 'definitions'
 
 const resolver: ArticleToContentResolver = (
-  { content, state },
+  { content, state, authorId },
   _,
   { viewer }
 ) => {
   const isActive = state === ARTICLE_STATE.active
   const isAdmin = viewer.hasRole('admin')
+  const isAuthor = authorId === viewer.id
 
-  if (isActive || isAdmin) {
+  if (isActive || isAdmin || isAuthor) {
     return content
   }
 
