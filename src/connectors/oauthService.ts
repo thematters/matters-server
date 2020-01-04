@@ -172,10 +172,8 @@ export class OAuthService extends BaseService {
       email: user.email,
       emailVerified: user.emailVerified
     }
-    const id_token = jwt.sign(payload, environment.OICDPrivateKey, {
-      expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
-      issuer: 'matters.news',
-      algorithm: 'RS256'
+    const id_token = jwt.sign(payload, environment.jwtSecret, {
+      expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS / 1000
     })
 
     return {
