@@ -71,14 +71,14 @@ class ScheduleQueue {
     )
 
     // send daily summary email every day at 09:00
-    // this.q.add(
-    //   QUEUE_JOB.sendDailySummaryEmail,
-    //   {},
-    //   {
-    //     priority: QUEUE_PRIORITY.MEDIUM,
-    //     repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
-    //   }
-    // )
+    this.q.add(
+      QUEUE_JOB.sendDailySummaryEmail,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
 
     // activate onboarding users every 2 minutes
     this.q.add(
@@ -165,10 +165,10 @@ class ScheduleQueue {
     )
 
     // send daily summary email
-    // this.q.process(
-    //   QUEUE_JOB.sendDailySummaryEmail,
-    //   this.handleSendDailySummaryEmail
-    // )
+    this.q.process(
+      QUEUE_JOB.sendDailySummaryEmail,
+      this.handleSendDailySummaryEmail
+    )
 
     // activate onboarding users
     this.q.process(
