@@ -327,9 +327,9 @@ export const EMAIL_TEMPLATE_ID = {
     en: 'd-765b335a77d244438891a62f023b8c2e'
   },
   dailySummary: {
-    zh_hant: 'd-047f3359fea54f1bac7f6d6ea4030c4c',
-    zh_hans: 'd-8ecc50276ac6412ea4c716971953360a',
-    en: 'd-047f3359fea54f1bac7f6d6ea4030c4c'
+    zh_hant: 'd-4a5a938cdc0c4020a1e2feb67a553946',
+    zh_hans: 'd-7f4276f1b32f48a4a51df90cbbb1447a',
+    en: 'd-4a5a938cdc0c4020a1e2feb67a553946'
   },
   userDeleted: {
     zh_hant: 'd-231ada8640374adb9d79a0130480c801',

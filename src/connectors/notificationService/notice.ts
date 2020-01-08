@@ -1,5 +1,5 @@
 import DataLoader from 'dataloader'
-import { difference, isEqual } from 'lodash'
+import { difference, isEqual, uniqBy } from 'lodash'
 import { v4 } from 'uuid'
 
 import { BATCH_SIZE } from 'common/enums'
@@ -442,7 +442,7 @@ class Notice extends BaseService {
       'comment_new_reply',
       'comment_mentioned_you'
     ]
-    const notices = await this.findDetail({
+    const noticeDetails = await this.findDetail({
       where: [
         [{ recipientId: userId, deleted: false, unread: true }],
         ['notice.updated_at', '>=', from],
@@ -451,8 +451,8 @@ class Notice extends BaseService {
       whereIn: ['notice_detail.notice_type', validNoticeTypes]
     })
 
-    return Promise.all(
-      notices.map(async (n: NoticeDetail) => {
+    const notices = await Promise.all(
+      noticeDetails.map(async (n: NoticeDetail) => {
         const entities = (await this.findEntities(n.id)) as NoticeEntitiesMap
         const actors = await this.findActors(n.id)
 
@@ -465,6 +465,16 @@ class Notice extends BaseService {
         }
       })
     )
+
+    const uniqNotices = uniqBy(notices, n => {
+      const actors = n.actors.map(({ id }) => id).join('')
+      const entities = `${n?.entities?.target?.id || ''}`
+      const uniqId = `type:${n.type}::actors:${actors}::entities:${entities}`
+
+      return uniqId
+    })
+
+    return uniqNotices
   }
 
   checkUserNotifySetting = async ({
