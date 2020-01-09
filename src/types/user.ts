@@ -231,6 +231,7 @@ export default /* GraphQL */ `
     # Notification settings
     "Notification settings."
     notification: NotificationSetting!
+    oauthTypes: [OAuthType!]
   }
 
   type UserActivity {
@@ -528,6 +529,13 @@ export default /* GraphQL */ `
     commentVoted
     officialNotice
     reportFeedback
+  }
+
+  enum OAuthType {
+    facebook
+    wechat
+    google
+    medium
   }
 
   enum UserState {
