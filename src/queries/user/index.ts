@@ -92,7 +92,7 @@ const user: {
   UserSettings: {
     language: ({ language }, _, { viewer }) => language,
     notification,
-    oauthTypes,
+    oauthTypes
   },
   UserActivity,
   LIKE: {
