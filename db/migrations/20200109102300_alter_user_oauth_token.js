@@ -4,7 +4,7 @@ exports.up = async knex => {
   await knex.schema.table(table, function(t) {
     t.renameColumn('token', 'access_token')
     t.string('refresh_token').notNullable()
-    t.enu('provider', ['medium']).notNullable()
+    t.enu('provider', ['facebook', 'google', 'medium']).notNullable()
   })
 }
 
