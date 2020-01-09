@@ -1105,6 +1105,13 @@ input OAuthClientInput {
   id: ID!
 }
 
+enum OAuthType {
+  facebook
+  wechat
+  google
+  medium
+}
+
 """This type contains system-wise settings."""
 type Official {
   reportCategory: [Category!]!
@@ -1925,6 +1932,7 @@ type UserSettings {
 
   """Notification settings."""
   notification: NotificationSetting!
+  oauthTypes: [OAuthType!]
 }
 
 enum UserState {

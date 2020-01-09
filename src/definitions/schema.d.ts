@@ -458,6 +458,7 @@ export interface GQLUserSettings {
    * Notification settings.
    */
   notification: GQLNotificationSetting
+  oauthTypes?: Array<GQLOAuthType>
 }
 
 export const enum GQLUserLanguage {
@@ -480,6 +481,13 @@ export interface GQLNotificationSetting {
   commentVoted: boolean
   officialNotice: boolean
   reportFeedback: boolean
+}
+
+export const enum GQLOAuthType {
+  facebook = 'facebook',
+  wechat = 'wechat',
+  google = 'google',
+  medium = 'medium'
 }
 
 export interface GQLRecommendation {
@@ -3774,6 +3782,7 @@ export interface BadgeToTypeResolver<TParent = any, TResult = any> {
 export interface GQLUserSettingsTypeResolver<TParent = any> {
   language?: UserSettingsToLanguageResolver<TParent>
   notification?: UserSettingsToNotificationResolver<TParent>
+  oauthTypes?: UserSettingsToOauthTypesResolver<TParent>
 }
 
 export interface UserSettingsToLanguageResolver<TParent = any, TResult = any> {
@@ -3786,6 +3795,18 @@ export interface UserSettingsToLanguageResolver<TParent = any, TResult = any> {
 }
 
 export interface UserSettingsToNotificationResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserSettingsToOauthTypesResolver<
   TParent = any,
   TResult = any
 > {

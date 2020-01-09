@@ -1474,4 +1474,16 @@ export class UserService extends BaseService {
       }
     })
   }
+
+  findOAuthTypes = async ({
+    userId
+  }: {
+    userId: string
+  }) => {
+    return this.knex
+      .select('provider')
+      .from('user_oauth')
+      .where({ userId })
+      .groupBy('provider')
+  }
 }
