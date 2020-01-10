@@ -32,7 +32,8 @@ class MediumStrategy extends Strategy {
     verify: VerifyFunctionWithRequest
   ) {
     options = options || {}
-    options.scope = options.scope || ['basicProfile', 'listPublications'].join(',')
+    options.scope =
+      options.scope || ['basicProfile', 'listPublications'].join(',')
     super(options, verify)
     this.name = OAUTH_TYPES.medium
   }
