@@ -163,7 +163,9 @@ export default () => {
             })
           }
           const userOAuthTypes = await userService.findOAuthTypes({ userId })
-          const hasMediumOAuth = (userOAuthTypes || []).includes(OAUTH_TYPES.medium)
+          const hasMediumOAuth = (userOAuthTypes || []).includes(
+            OAUTH_TYPES.medium
+          )
 
           if (!hasMediumOAuth) {
             await userService.saveOAuth({
