@@ -37,10 +37,6 @@ const resolver: MutationToAppreciateArticleResolver = async (
 
   if (article.authorId === viewer.id) {
     throw new ForbiddenError('cannot appreciate your own article')
-  } else {
-    if (viewer.state !== USER_STATE.active) {
-      throw new ForbiddenError('viewer has no permission')
-    }
   }
 
   const appreciateLeft = await articleService.appreciateLeftByUser({
