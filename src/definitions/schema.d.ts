@@ -1778,6 +1778,11 @@ export interface GQLMutation {
   clearSearchHistory?: boolean
 
   /**
+   * Migrate articles from other service provider.
+   */
+  migration?: boolean
+
+  /**
    * Update state of a user, used in OSS.
    */
   updateUserState: GQLUser
@@ -2136,6 +2141,10 @@ export const enum GQLNotificationSettingType {
 
 export interface GQLClearReadHistoryInput {
   id: string
+}
+
+export interface GQLMigrationInput {
+  oauthType: GQLOAuthType
 }
 
 export interface GQLUpdateUserStateInput {
@@ -6712,6 +6721,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleSubscribePush?: MutationToToggleSubscribePushResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
+  migration?: MutationToMigrationResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
   blockUser?: MutationToBlockUserResolver<TParent>
@@ -7463,6 +7473,18 @@ export interface MutationToClearSearchHistoryResolver<
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToMigrationArgs {
+  input: GQLMigrationInput
+}
+export interface MutationToMigrationResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToMigrationArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

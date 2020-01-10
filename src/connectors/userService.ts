@@ -1482,4 +1482,36 @@ export class UserService extends BaseService {
       .where({ userId })
       .groupBy('provider')
   }
+
+  saveOAuth = async ({
+    userId,
+    provider,
+    accessToken,
+    refreshToken,
+    expires,
+    scope,
+    createdAt
+  }: {
+    userId: string
+    provider: string
+    accessToken: string
+    refreshToken: string
+    expires: number
+    scope: string
+    createdAt?: Date
+  }) => {
+    await this.baseUpdateOrCreate({
+      where: { userId, provider },
+      data: {
+        userId,
+        provider,
+        accessToken,
+        refreshToken,
+        expires,
+        scope,
+        ...(createdAt ? { createdAt } : { updatedAt: new Date() })
+      },
+      table: 'user_oauth'
+    })
+  }
 }

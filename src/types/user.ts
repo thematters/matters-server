@@ -56,6 +56,9 @@ export default /* GraphQL */ `
     "Clear search history for user."
     clearSearchHistory: Boolean @authenticate
 
+    "Migrate articles from other service provider."
+    migration(input: MigrationInput!): Boolean @authenticate
+
 
     ##############
     #     OSS    #
@@ -487,6 +490,10 @@ export default /* GraphQL */ `
 
   input ClearReadHistoryInput {
     id: ID!
+  }
+
+  input MigrationInput {
+    oauthType: OAuthType!
   }
 
   enum BadgeType {
