@@ -82,7 +82,14 @@ export const environment = {
   likecoinTokenURL: process.env.MATTERS_LIKECOIN_TOKEN_URL || '',
   likecoinClientId: process.env.MATTERS_LIKECOIN_CLIENT_ID || '',
   likecoinClientSecret: process.env.MATTERS_LIKECOIN_CLIENT_SECRET || '',
-  likecoinCallbackURL: process.env.MATTERS_LIKECOIN_CALLBACK_URL || ''
+  likecoinCallbackURL: process.env.MATTERS_LIKECOIN_CALLBACK_URL || '',
+  mediumAuthState: process.env.MATTERS_MEDIUM_AUTH_STATE || '',
+  mediumAuthorizationURL: process.env.MATTERS_MEDIUM_AUTH_URL || '',
+  mediumApiMeURL: process.env.MATTERS_MEDIUM_API_ME_URL || '',
+  mediumTokenURL: process.env.MATTERS_MEDIUM_TOKEN_URL || '',
+  mediumClientId: process.env.MATTERS_MEDIUM_CLIENT_ID || '',
+  mediumSecret: process.env.MATTERS_MEDIUM_CLIENT_SECRET || '',
+  mediumCallbackURL: process.env.MATTERS_MEDIUM_CALLBACK_URL || ''
 }
 
 export const isDev = environment.env.includes('dev')

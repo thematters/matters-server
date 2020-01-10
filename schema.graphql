@@ -795,6 +795,10 @@ input MergeTagsInput {
   content: String!
 }
 
+input MigrationInput {
+  oauthType: OAuthType!
+}
+
 type Mutation {
   """Publish an article onto IPFS."""
   publishArticle(input: PublishArticleInput!): Draft!
@@ -953,6 +957,9 @@ type Mutation {
 
   """Clear search history for user."""
   clearSearchHistory: Boolean
+
+  """Migrate articles from other service provider."""
+  migration(input: MigrationInput!): Boolean
 
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): User!
