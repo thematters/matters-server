@@ -59,7 +59,6 @@ export default /* GraphQL */ `
     "Migrate articles from other service provider."
     migration(input: MigrationInput!): Boolean @authenticate
 
-
     ##############
     #     OSS    #
     ##############
@@ -234,7 +233,7 @@ export default /* GraphQL */ `
     # Notification settings
     "Notification settings."
     notification: NotificationSetting!
-    oauthTypes: [OAuthType!]
+    oauthProviders: [OAuthProvider!]
   }
 
   type UserActivity {
@@ -493,7 +492,7 @@ export default /* GraphQL */ `
   }
 
   input MigrationInput {
-    oauthType: OAuthType!
+    provider: OAuthProvider!
   }
 
   enum BadgeType {
@@ -538,7 +537,7 @@ export default /* GraphQL */ `
     reportFeedback
   }
 
-  enum OAuthType {
+  enum OAuthProvider {
     facebook
     wechat
     google

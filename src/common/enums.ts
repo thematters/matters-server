@@ -340,6 +340,11 @@ export const EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-231ada8640374adb9d79a0130480c801',
     zh_hans: 'd-cce84e261e0f4e47a2f1e2296b784230',
     en: 'd-231ada8640374adb9d79a0130480c801'
+  },
+  migrationSuccess: {
+    zh_hant: '',
+    zh_hans: '',
+    en: ''
   }
 }
 
@@ -455,7 +460,7 @@ export const ALS_DEFAULT_VECTOR = {
     'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
 }
 
-export const OAUTH_TYPES = {
+export const OAUTH_PROVIDER = {
   facebbook: 'facebook',
   google: 'google',
   medium: 'medium'
