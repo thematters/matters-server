@@ -56,7 +56,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-session": "^1.17.0",
-    "firebase-admin": "^8.8.0",
+    "firebase-admin": "^8.9.0",
     "graphql": "^14.5.8",
     "graphql-cost-analysis": "^1.0.3",
     "graphql-custom-types": "^1.5.1",
