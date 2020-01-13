@@ -5,6 +5,7 @@ import clearSearchHistory from './clearSearchHistory'
 import confirmVerificationCode from './confirmVerificationCode'
 import followUser from './followUser'
 import generateLikerId from './generateLikerId'
+import migration from './migration'
 import resetPassword from './resetPassword'
 import sendVerificationCode from './sendVerificationCode'
 import toggleBlockUser from './toggleBlockUser'
@@ -44,6 +45,7 @@ export default {
     clearReadHistory,
     clearSearchHistory,
     updateUserState,
-    updateUserRole
+    updateUserRole,
+    migration
   }
 }
