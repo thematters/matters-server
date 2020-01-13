@@ -307,7 +307,7 @@ export const QUEUE_NAME = {
 
 export const QUEUE_CONCURRENCY = {
   publishArticle: 100,
-  migration: 5
+  migration: 2
 }
 
 export const QUEUE_COMPLETED_LIST_SIZE = {

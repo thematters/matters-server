@@ -212,8 +212,8 @@ export class Medium {
    * Generate figure block.
    *
    */
-  generateFigureBlock = (type: string, data: {[key: string]: any}) => {
-    switch(type) {
+  generateFigureBlock = (type: string, data: { [key: string]: any }) => {
+    switch (type) {
       case 'IMG':
         const { url, uuid, text } = data
         return `<figure class="image"><img src="${url}" data-asset-id="${uuid}"><figcaption><span>${text}</span></figcaption></figure>`
@@ -244,7 +244,13 @@ export class Medium {
           const result = await this.fetchAssetAndUpload(metadata.id)
           const url = `${this.aws.s3Endpoint}/${result.key}`
           assets.push(result)
-          html.push(this.generateFigureBlock(paragraph.type, { url, uuid: result.uuid, text }))
+          html.push(
+            this.generateFigureBlock(paragraph.type, {
+              url,
+              uuid: result.uuid,
+              text
+            })
+          )
           break
         case 'PRE':
           html.push(`<pre class="ql-syntax">${text}</pre>`)
@@ -254,7 +260,9 @@ export class Medium {
           break
         case 'MIXTAPE_EMBED':
           const { mixtapeMetadata } = paragraph
-          html.push(`<p><a href="${mixtapeMetadata.href}" rel="noopener noreferrer" target="_blank">${text}</a></p>`)
+          html.push(
+            `<p><a href="${mixtapeMetadata.href}" rel="noopener noreferrer" target="_blank">${text}</a></p>`
+          )
           break
         default:
           html.push(`<p>${text}</p>`)
