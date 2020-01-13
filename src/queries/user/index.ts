@@ -29,7 +29,7 @@ import likerId from './liker/likerId'
 import rateUSD from './liker/rateUSD'
 import total from './liker/total'
 import notification from './notification'
-import oauthTypes from './oauthTypes'
+import oauthProviders from './oauthProviders'
 import { boost, score } from './oss'
 import profileCover from './profileCover'
 import Recommendation from './recommendation'
@@ -92,7 +92,7 @@ const user: {
   UserSettings: {
     language: ({ language }, _, { viewer }) => language,
     notification,
-    oauthTypes
+    oauthProviders
   },
   UserActivity,
   LIKE: {

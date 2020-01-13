@@ -1475,13 +1475,25 @@ export class UserService extends BaseService {
     })
   }
 
-  findOAuthTypes = async ({ userId }: { userId: string }) => {
-    return this.knex
+  findOAuthProviders = async ({ userId }: { userId: string }) =>
+    this.knex
       .select('provider')
       .from('user_oauth')
       .where({ userId })
       .groupBy('provider')
-  }
+
+  findOAuthToken = async ({
+    userId,
+    provider
+  }: {
+    userId: string
+    provider: string
+  }) =>
+    this.knex
+      .select('*')
+      .from('user_oauth')
+      .where({ userId, provider })
+      .first()
 
   saveOAuth = async ({
     userId,

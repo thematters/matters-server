@@ -458,7 +458,7 @@ export interface GQLUserSettings {
    * Notification settings.
    */
   notification: GQLNotificationSetting
-  oauthTypes?: Array<GQLOAuthType>
+  oauthProviders?: Array<GQLOAuthProvider>
 }
 
 export const enum GQLUserLanguage {
@@ -483,7 +483,7 @@ export interface GQLNotificationSetting {
   reportFeedback: boolean
 }
 
-export const enum GQLOAuthType {
+export const enum GQLOAuthProvider {
   facebook = 'facebook',
   wechat = 'wechat',
   google = 'google',
@@ -2144,7 +2144,7 @@ export interface GQLClearReadHistoryInput {
 }
 
 export interface GQLMigrationInput {
-  oauthType: GQLOAuthType
+  provider: GQLOAuthProvider
 }
 
 export interface GQLUpdateUserStateInput {
@@ -3791,7 +3791,7 @@ export interface BadgeToTypeResolver<TParent = any, TResult = any> {
 export interface GQLUserSettingsTypeResolver<TParent = any> {
   language?: UserSettingsToLanguageResolver<TParent>
   notification?: UserSettingsToNotificationResolver<TParent>
-  oauthTypes?: UserSettingsToOauthTypesResolver<TParent>
+  oauthProviders?: UserSettingsToOauthProvidersResolver<TParent>
 }
 
 export interface UserSettingsToLanguageResolver<TParent = any, TResult = any> {
@@ -3815,7 +3815,7 @@ export interface UserSettingsToNotificationResolver<
   ): TResult
 }
 
-export interface UserSettingsToOauthTypesResolver<
+export interface UserSettingsToOauthProvidersResolver<
   TParent = any,
   TResult = any
 > {

@@ -9,7 +9,7 @@ import {
 import {
   NODE_TYPES,
   OAUTH_CALLBACK_ERROR_CODE,
-  OAUTH_TYPES
+  OAUTH_PROVIDER
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
@@ -33,10 +33,9 @@ class MediumStrategy extends Strategy {
   ) {
     options = options || {}
     options.scope =
-      options.scope ||
-      ['basicProfile', 'listPublications', 'publishPost'].join(',')
+      options.scope || ['basicProfile', 'listPublications'].join(',')
     super(options, verify)
-    this.name = OAUTH_TYPES.medium
+    this.name = OAUTH_PROVIDER.medium
   }
 }
 
@@ -144,9 +143,9 @@ export default () => {
         authorizationURL: environment.mediumAuthorizationURL,
         tokenURL: environment.mediumTokenURL,
         clientID: environment.mediumClientId,
-        clientSecret: environment.mediumSecret,
+        clientSecret: environment.mediumClientSecret,
         callbackURL: environment.mediumCallbackURL,
-        state: environment.mediumAuthState,
+        state: environment.oAuthSecret,
         passReqToCallback: true
       },
       async (req, accessToken, refreshToken, params, profile, done) => {
@@ -162,15 +161,17 @@ export default () => {
               message: 'viewer not found.'
             })
           }
-          const userOAuthTypes = await userService.findOAuthTypes({ userId })
-          const hasMediumOAuth = (userOAuthTypes || []).includes(
-            OAUTH_TYPES.medium
+          const userOAuthProviders = await userService.findOAuthProviders({
+            userId
+          })
+          const hasMediumOAuth = (userOAuthProviders || []).includes(
+            OAUTH_PROVIDER.medium
           )
 
           if (!hasMediumOAuth) {
             await userService.saveOAuth({
               userId,
-              provider: OAUTH_TYPES.medium,
+              provider: OAUTH_PROVIDER.medium,
               accessToken,
               refreshToken,
               expires: params.expires_at,
