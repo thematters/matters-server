@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2020-01-13
+
+### Added
+
+- Add Medium strategy and API for migration. #662 #664
+
+### Changed
+
+- Allow onboarding users to appreciate articles #663
+- Alter `user_oauth` table #660 #661
+- Bump deps #653
+
 ## [2.5.1] - 2019-12-31
 
 ### Changed
