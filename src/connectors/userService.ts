@@ -414,7 +414,7 @@ export class UserService extends BaseService {
     const body = bodybuilder()
       .from(offset)
       .size(first)
-      .query('match', 'displayName', key)
+      .query('match', 'displayName.raw', key)
       .filter('term', 'state', USER_STATE.active)
       .build() as { [key: string]: any }
 
