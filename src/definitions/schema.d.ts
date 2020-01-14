@@ -1315,6 +1315,11 @@ export interface GQLOfficial {
    */
   links: GQLOfficialLinks
   placements: GQLPlacements
+
+  /**
+   * IPFS node address
+   */
+  ipfsAddress: string
 }
 
 export interface GQLCategory {
@@ -5857,6 +5862,7 @@ export interface GQLOfficialTypeResolver<TParent = any> {
   releases?: OfficialToReleasesResolver<TParent>
   links?: OfficialToLinksResolver<TParent>
   placements?: OfficialToPlacementsResolver<TParent>
+  ipfsAddress?: OfficialToIpfsAddressResolver<TParent>
 }
 
 export interface OfficialToReportCategoryResolver<
@@ -5905,6 +5911,15 @@ export interface OfficialToLinksResolver<TParent = any, TResult = any> {
 }
 
 export interface OfficialToPlacementsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OfficialToIpfsAddressResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

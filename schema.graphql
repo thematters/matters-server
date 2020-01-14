@@ -1128,6 +1128,9 @@ type Official {
   """Links of specific pages on Matters site."""
   links: OfficialLinks!
   placements: Placements!
+
+  """IPFS node address"""
+  ipfsAddress: String!
 }
 
 """The notice type contains info about official announcement."""

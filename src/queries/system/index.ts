@@ -15,6 +15,7 @@ import {
 import OSS from './oss'
 import Report from './report'
 import search from './search'
+import ipfsAddress from './ipfsAddress'
 
 export default {
   Query: {
@@ -35,6 +36,7 @@ export default {
     id: ({ uuid }: { uuid: string }) => uuid
   },
   Official: {
+    ipfsAddress,
     reportCategory,
     feedbackCategory,
     releases, // TODO
