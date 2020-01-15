@@ -209,26 +209,14 @@ export class Medium {
   }
 
   /**
-   * Generate figure block.
-   *
-   */
-  generateFigureBlock = (type: string, data: { [key: string]: any }) => {
-    switch (type) {
-      case 'IMG':
-        const { url, uuid, text } = data
-        return `<figure class="image"><img src="${url}" data-asset-id="${uuid}"><figcaption><span>${text}</span></figcaption></figure>`
-      default:
-        return ''
-    }
-  }
-
-  /**
    * Convert post paragraphs into HTML string.
    *
    */
   convertPostParagraphsToHTML = async ({
+    title,
     paragraphs
   }: {
+    title: string
     paragraphs: any[]
   }) => {
     const assets: Array<{ uuid: string; key: string }> = []
@@ -236,37 +224,61 @@ export class Medium {
     for (const paragraph of paragraphs) {
       const { type, text } = paragraph
       switch (type) {
+        case 'BQ': {
+          html.push(`<blockquote>${text}</blockquote>`)
+          break
+        }
         case 'H3':
+        case 'H4': {
+          if (text === title) {
+            break
+          }
           html.push(`<h2>${text}</h2>`)
           break
-        case 'IMG':
+        }
+        case 'IMG': {
           const { metadata } = paragraph
           const result = await this.fetchAssetAndUpload(metadata.id)
           const url = `${this.aws.s3Endpoint}/${result.key}`
           assets.push(result)
           html.push(
-            this.generateFigureBlock(paragraph.type, {
+            this.createFigureBlock(paragraph.type, {
               url,
               uuid: result.uuid,
               text
             })
           )
           break
-        case 'PRE':
+        }
+        case 'PRE': {
           html.push(`<pre class="ql-syntax">${text}</pre>`)
           break
-        case 'IFRAME':
-          html.push('')
+        }
+        case 'IFRAME': {
+          const src = _.get(paragraph, 'iframe.mediaResource.iframeSrc', '')
+          const url = this.processEmbedURL(src)
+          if (url) {
+            html.push(this.createFigureBlock(paragraph.type, { url, text }))
+          }
           break
-        case 'MIXTAPE_EMBED':
+        }
+        case 'MIXTAPE_EMBED': {
           const { mixtapeMetadata } = paragraph
           html.push(
             `<p><a href="${mixtapeMetadata.href}" rel="noopener noreferrer" target="_blank">${text}</a></p>`
           )
           break
-        default:
-          html.push(`<p>${text}</p>`)
+        }
+        case 'ULI': {
+          html.push(`<ul><li>${text}</li></ul>`)
           break
+        }
+        default: {
+          const processedText = this.processBreakInText(text)
+          console.log(processedText)
+          html.push(`<p>${processedText}</p>`)
+          break
+        }
       }
     }
     return { html: html.join(''), assets }
@@ -301,6 +313,60 @@ export class Medium {
     } catch (error) {
       throw new Error(`Unable to upload from url: ${error}`)
     }
+  }
+
+  /**
+   * Generate figure block.
+   *
+   */
+  createFigureBlock = (type: string, data: { [key: string]: any }) => {
+    switch (type) {
+      case 'IMG': {
+        const { url, uuid, text } = data
+        return (
+          `<figure class="image"><img src="${url}" data-asset-id="${uuid}">` +
+          `<figcaption><span>${text}</span></figcaption></figure>`
+        )
+      }
+      case 'IFRAME': {
+        const { url, text } = data
+        return (
+          `<figure class="embed-video"><div class="iframe-container">` +
+          `<iframe src="${url}" frameborder="0" allowfullscreen="true" sandbox="allow-scripts allow-same-origin allow-popups">` +
+          `</iframe></div><figcaption><span>${text}</span></figcaption></figure>`
+        )
+      }
+      default: {
+        return ''
+      }
+    }
+  }
+
+  /**
+   * Process embed url.
+   *
+   */
+  processEmbedURL = (src: string) => {
+    const url = new URL(src)
+    const params = new URLSearchParams(url.search)
+    if (params.get('src')) {
+      const rawURL = params.get('src') || ''
+      if (rawURL.match('/(http(s)?://)?(www.)?youtube|youtu.be/')) {
+        const id = rawURL.match('embed')
+          ? rawURL.split(/embed\//)[1].split('"')[0]
+          : rawURL.split(/v\/|v=|youtu\.be\//)[1].split(/[?&]/)[0]
+        return 'https://www.youtube.com/embed/' + id + '?rel=0'
+      }
+    }
+    return
+  }
+
+  /**
+   * Replace `\n` due to Medium does not change it to HTML tag.
+   *
+   */
+  processBreakInText = (text: string) => {
+    return text.replace(/\n/g, '<br class="smart">')
   }
 }
 
