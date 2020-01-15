@@ -334,14 +334,14 @@ export class UserService extends BaseService {
    */
   findActivatableUsers = () =>
     this.knex
-      .select('user.*', 'total')
+      .select('user.*', 'total', 'read_count')
       .from(this.table)
       .innerJoin(
         'user_oauth_likecoin',
         'user_oauth_likecoin.liker_id',
         'user.liker_id'
       )
-      .innerJoin(
+      .leftJoin(
         this.knex
           .select('recipient_id')
           .sum('amount as total')
@@ -351,11 +351,31 @@ export class UserService extends BaseService {
         'tx.recipient_id',
         'user.id'
       )
+      .leftJoin(
+        this.knex
+          .select('user_id')
+          .from(
+            this.knex
+              .select('user_id', 'article_id')
+              .from('article_read')
+              .groupBy(['user_id', 'article_id'])
+              .as('read_source')
+          )
+          .groupBy(['user_id'])
+          .count('article_id', { as: 'read_count' })
+          .as('read'),
+        'read.user_id',
+        'user.id'
+      )
       .where({
         state: USER_STATE.onboarding,
         accountType: 'general'
       })
-      .andWhere('total', '>=', 30)
+      .andWhere(
+        this.knex.raw(
+          '2 * COALESCE("total", 0) + COALESCE("read_count", 0) >= 30'
+        )
+      )
 
   /*********************************
    *                               *
