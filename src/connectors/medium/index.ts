@@ -275,7 +275,6 @@ export class Medium {
         }
         default: {
           const processedText = this.processBreakInText(text)
-          console.log(processedText)
           html.push(`<p>${processedText}</p>`)
           break
         }
