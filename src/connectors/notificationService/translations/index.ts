@@ -108,9 +108,9 @@ export default {
   }),
   user_activiated: i18n({
     zh_hant:
-      '恭喜！你的作品在社區內大獲好評，現在你暢行無阻啦。快去讚賞他人並參與討論吧。',
+      '恭喜！你已解鎖評論權限，快去參與討論吧。謝謝你喜歡Matters 💗',
     zh_hans:
-      '恭喜！你的作品在社区内大获好评，现在你畅行无阻啦。快去赞赏他人并参与讨论吧。'
+      '恭喜！你已解锁评论权限，快去参与讨论吧。谢谢你喜欢Matters 💗'
   }),
   user_banned: i18n<{ banDays?: number }>({
     zh_hant: ({ banDays }) =>
