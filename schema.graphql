@@ -795,6 +795,10 @@ input MergeTagsInput {
   content: String!
 }
 
+input MigrationInput {
+  provider: OAuthProvider!
+}
+
 type Mutation {
   """Publish an article onto IPFS."""
   publishArticle(input: PublishArticleInput!): Draft!
@@ -954,6 +958,9 @@ type Mutation {
   """Clear search history for user."""
   clearSearchHistory: Boolean
 
+  """Migrate articles from other service provider."""
+  migration(input: MigrationInput!): Boolean
+
   """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): User!
 
@@ -1103,6 +1110,13 @@ type OAuthClientEdge {
 
 input OAuthClientInput {
   id: ID!
+}
+
+enum OAuthProvider {
+  facebook
+  wechat
+  google
+  medium
 }
 
 """This type contains system-wise settings."""
@@ -1925,6 +1939,7 @@ type UserSettings {
 
   """Notification settings."""
   notification: NotificationSetting!
+  oauthProviders: [OAuthProvider!]
 }
 
 enum UserState {

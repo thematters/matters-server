@@ -1,15 +1,41 @@
 import dotenv from 'dotenv'
+import fs from 'fs'
+import path from 'path'
 dotenv.config()
 
 let firebaseCert = {}
-
 if (process.env.MATTERS_FIREBASE_CREDENTIALS) {
-  const path = `../../${process.env.MATTERS_FIREBASE_CREDENTIALS}`
+  const filePath = path.resolve(
+    __dirname,
+    `../../${process.env.MATTERS_FIREBASE_CREDENTIALS}`
+  )
+
   try {
-    firebaseCert = require(path)
-    console.log(new Date(), `Succeeded to load firebase credentials on ${path}`)
+    firebaseCert = require(filePath)
+    console.log(
+      new Date(),
+      `Succeeded to load firebase credentials on ${filePath}`
+    )
   } catch (e) {
-    console.error(new Date(), `Failed to load firebase credentials on ${path}`)
+    console.error(
+      new Date(),
+      `Failed to load firebase credentials on ${filePath}`
+    )
+  }
+}
+
+let OICDPrivateKey = ''
+if (process.env.MATTERS_OICD_PRIVATE_KEY) {
+  const filePath = path.resolve(
+    __dirname,
+    `../../${process.env.MATTERS_OICD_PRIVATE_KEY}`
+  )
+
+  try {
+    OICDPrivateKey = fs.readFileSync(filePath, { encoding: 'utf8' })
+    console.log(new Date(), `Succeeded to load OICD private key on ${filePath}`)
+  } catch (e) {
+    console.error(new Date(), `Failed to load OICD private key on ${filePath}`)
   }
 }
 
@@ -48,6 +74,7 @@ export const environment = {
   apiKey: process.env.MATTERS_APOLLO_API_KEY,
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
   firebaseCert,
+  OICDPrivateKey,
   likecoinOAuthClientName: process.env.MATTERS_LIKECOIN_OAUTH_CLIENT_NAME || '',
   likecoinMigrationApiURL: process.env.MATTERS_LIKECOIN_MIGRATION_API_URL || '',
   likecoinApiURL: process.env.MATTERS_LIKECOIN_API_URL || '',
@@ -55,7 +82,16 @@ export const environment = {
   likecoinTokenURL: process.env.MATTERS_LIKECOIN_TOKEN_URL || '',
   likecoinClientId: process.env.MATTERS_LIKECOIN_CLIENT_ID || '',
   likecoinClientSecret: process.env.MATTERS_LIKECOIN_CLIENT_SECRET || '',
-  likecoinCallbackURL: process.env.MATTERS_LIKECOIN_CALLBACK_URL || ''
+  likecoinCallbackURL: process.env.MATTERS_LIKECOIN_CALLBACK_URL || '',
+  mediumAuthorizationURL: process.env.MATTERS_MEDIUM_AUTH_URL || '',
+  mediumApiMeURL: process.env.MATTERS_MEDIUM_API_ME_URL || '',
+  mediumGQLURL: process.env.MATTERS_MEDIUM_GQL_URL || '',
+  mediumImgURL: process.env.MATTERS_MEDIUM_IMG_URL || '',
+  mediumTokenURL: process.env.MATTERS_MEDIUM_TOKEN_URL || '',
+  mediumClientId: process.env.MATTERS_MEDIUM_CLIENT_ID || '',
+  mediumClientSecret: process.env.MATTERS_MEDIUM_CLIENT_SECRET || '',
+  mediumCallbackURL: process.env.MATTERS_MEDIUM_CALLBACK_URL || '',
+  oAuthSecret: process.env.MATTERS_OAUTH_SECRET || ''
 }
 
 export const isDev = environment.env.includes('dev')

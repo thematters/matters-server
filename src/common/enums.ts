@@ -291,7 +291,9 @@ export const QUEUE_JOB = {
   refreshTagCountMaterialView: 'refreshTagCountMaterialView',
   refreshUserReaderView: 'refreshUserReaderView',
   refreshArticleActivityView: 'refreshArticleActivityView',
-  refreshFeaturedCommentView: 'refreshFeaturedCommentView'
+  refreshFeaturedCommentView: 'refreshFeaturedCommentView',
+  // migration
+  migration: 'migration'
 }
 
 export const QUEUE_NAME = {
@@ -299,11 +301,13 @@ export const QUEUE_NAME = {
   publication: 'publication',
   schedule: 'schedule',
   likecoin: 'likecoin',
-  user: 'user'
+  user: 'user',
+  migration: 'migration'
 }
 
 export const QUEUE_CONCURRENCY = {
-  publishArticle: 100
+  publishArticle: 100,
+  migration: 5
 }
 
 export const QUEUE_COMPLETED_LIST_SIZE = {
@@ -314,6 +318,7 @@ export const QUEUE_COMPLETED_LIST_SIZE = {
 }
 
 export const PUBLISH_ARTICLE_DELAY = 1000
+export const MIGRATION_DELAY = 1000
 
 export const EMAIL_TEMPLATE_ID = {
   verificationCode: {
@@ -335,6 +340,11 @@ export const EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-231ada8640374adb9d79a0130480c801',
     zh_hans: 'd-cce84e261e0f4e47a2f1e2296b784230',
     en: 'd-231ada8640374adb9d79a0130480c801'
+  },
+  migrationSuccess: {
+    zh_hant: '',
+    zh_hans: '',
+    en: ''
   }
 }
 
@@ -448,4 +458,10 @@ export const ALS_DEFAULT_VECTOR = {
     '0|0 1|0 2|0 3|0 4|0 5|0 6|0 7|0 8|0 9|0 10|0 11|0 12|0 13|0 14|0 15|0 16|0 17|0 18|0 19|0',
   embedding:
     'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+}
+
+export const OAUTH_PROVIDER = {
+  facebbook: 'facebook',
+  google: 'google',
+  medium: 'medium'
 }

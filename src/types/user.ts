@@ -56,6 +56,8 @@ export default /* GraphQL */ `
     "Clear search history for user."
     clearSearchHistory: Boolean @authenticate
 
+    "Migrate articles from other service provider."
+    migration(input: MigrationInput!): Boolean @authenticate
 
     ##############
     #     OSS    #
@@ -231,6 +233,7 @@ export default /* GraphQL */ `
     # Notification settings
     "Notification settings."
     notification: NotificationSetting!
+    oauthProviders: [OAuthProvider!]
   }
 
   type UserActivity {
@@ -488,6 +491,10 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  input MigrationInput {
+    provider: OAuthProvider!
+  }
+
   enum BadgeType {
     seed
   }
@@ -528,6 +535,13 @@ export default /* GraphQL */ `
     commentVoted
     officialNotice
     reportFeedback
+  }
+
+  enum OAuthProvider {
+    facebook
+    wechat
+    google
+    medium
   }
 
   enum UserState {

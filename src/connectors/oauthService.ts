@@ -7,6 +7,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
+import { toGlobalId } from 'common/utils'
 import { BaseService, UserService } from 'connectors'
 import {
   Falsey,
@@ -167,13 +168,15 @@ export class OAuthService extends BaseService {
     )
 
     const payload = {
-      sub: user.id,
+      sub: toGlobalId({ type: 'User', id: user.id }),
       name: user.userName,
       email: user.email,
       emailVerified: user.emailVerified
     }
-    const id_token = jwt.sign(payload, environment.jwtSecret, {
-      expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS / 1000
+    const id_token = jwt.sign(payload, environment.OICDPrivateKey, {
+      expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
+      issuer: 'matters.news',
+      algorithm: 'RS256'
     })
 
     return {

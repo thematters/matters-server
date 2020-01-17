@@ -458,6 +458,7 @@ export interface GQLUserSettings {
    * Notification settings.
    */
   notification: GQLNotificationSetting
+  oauthProviders?: Array<GQLOAuthProvider>
 }
 
 export const enum GQLUserLanguage {
@@ -480,6 +481,13 @@ export interface GQLNotificationSetting {
   commentVoted: boolean
   officialNotice: boolean
   reportFeedback: boolean
+}
+
+export const enum GQLOAuthProvider {
+  facebook = 'facebook',
+  wechat = 'wechat',
+  google = 'google',
+  medium = 'medium'
 }
 
 export interface GQLRecommendation {
@@ -1770,6 +1778,11 @@ export interface GQLMutation {
   clearSearchHistory?: boolean
 
   /**
+   * Migrate articles from other service provider.
+   */
+  migration?: boolean
+
+  /**
    * Update state of a user, used in OSS.
    */
   updateUserState: GQLUser
@@ -2128,6 +2141,10 @@ export const enum GQLNotificationSettingType {
 
 export interface GQLClearReadHistoryInput {
   id: string
+}
+
+export interface GQLMigrationInput {
+  provider: GQLOAuthProvider
 }
 
 export interface GQLUpdateUserStateInput {
@@ -3774,6 +3791,7 @@ export interface BadgeToTypeResolver<TParent = any, TResult = any> {
 export interface GQLUserSettingsTypeResolver<TParent = any> {
   language?: UserSettingsToLanguageResolver<TParent>
   notification?: UserSettingsToNotificationResolver<TParent>
+  oauthProviders?: UserSettingsToOauthProvidersResolver<TParent>
 }
 
 export interface UserSettingsToLanguageResolver<TParent = any, TResult = any> {
@@ -3786,6 +3804,18 @@ export interface UserSettingsToLanguageResolver<TParent = any, TResult = any> {
 }
 
 export interface UserSettingsToNotificationResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserSettingsToOauthProvidersResolver<
   TParent = any,
   TResult = any
 > {
@@ -6691,6 +6721,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleSubscribePush?: MutationToToggleSubscribePushResolver<TParent>
   clearReadHistory?: MutationToClearReadHistoryResolver<TParent>
   clearSearchHistory?: MutationToClearSearchHistoryResolver<TParent>
+  migration?: MutationToMigrationResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
   blockUser?: MutationToBlockUserResolver<TParent>
@@ -7442,6 +7473,18 @@ export interface MutationToClearSearchHistoryResolver<
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToMigrationArgs {
+  input: GQLMigrationInput
+}
+export interface MutationToMigrationResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToMigrationArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
