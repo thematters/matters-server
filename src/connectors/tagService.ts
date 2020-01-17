@@ -6,7 +6,7 @@ import { ARTICLE_STATE, BATCH_SIZE, MATERIALIZED_VIEW } from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
-import { GQLSearchInput } from 'definitions'
+import { GQLSearchInput, ItemData } from 'definitions'
 
 export class TagService extends BaseService {
   constructor() {
@@ -245,6 +245,23 @@ export class TagService extends BaseService {
     )
     return this.baseBatchCreate(items, 'article_tag')
   }
+
+  /**
+   * Update article tag.
+   */
+  putArticleTag = async ({
+    articleId,
+    tagId,
+    data
+  }: {
+    articleId: string
+    tagId: string
+    data: ItemData
+  }) =>
+    this.knex('article_tag')
+      .where({ articleId, tagId })
+      .update(data)
+      .returning('*')
 
   /**
    * Count tags by a given tag text.

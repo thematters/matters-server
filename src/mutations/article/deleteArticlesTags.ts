@@ -7,9 +7,9 @@ import {
   UserInputError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { MutationToAddArticleTagsResolver } from 'definitions'
+import { MutationToDeleteArticlesTagsResolver } from 'definitions'
 
-const resolver: MutationToAddArticleTagsResolver = async (
+const resolver: MutationToDeleteArticlesTagsResolver = async (
   root,
   { input: { id, articles } },
   { viewer, dataSources: { articleService, notificationService, tagService } }
@@ -34,17 +34,19 @@ const resolver: MutationToAddArticleTagsResolver = async (
   }
 
   // compare new and old article ids which have this tag
-  const oldIds = await tagService.findArticleIdsByTagIds([dbId])
-  const newIds = articles.map(articleId => fromGlobalId(articleId).id)
-  const addIds = _difference(newIds, oldIds)
+  const deleteIds = articles.map(articleId => fromGlobalId(articleId).id)
 
-  await tagService.createArticleTags({ articleIds: addIds, tagIds: [dbId] })
+  // delete unwanted
+  await tagService.deleteArticleTagsByArticleIds({
+    articleIds: deleteIds,
+    tagId: dbId
+  })
 
-  // trigger notification for adding article tag
-  addIds.forEach(async (articleId: string) => {
+  // trigger notification for deleting article tag
+  deleteIds.forEach(async (articleId: string) => {
     const article = await articleService.baseFindById(articleId)
     notificationService.trigger({
-      event: 'article_tag_has_been_added',
+      event: 'article_tag_has_been_removed',
       recipientId: article.authorId,
       actorId: viewer.id,
       entities: [
