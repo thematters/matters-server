@@ -33,7 +33,7 @@ const resolver: MutationToPutArticlesTagsResolver = async (
     throw new TagNotFoundError('tag not found')
   }
 
-  if (typeof selected === 'boolean' && articles.length === 1) {
+  if (typeof selected === 'boolean') {
     // set article as selected
     const { id: articleId } = fromGlobalId(articles[0])
     await tagService.putArticleTag({
