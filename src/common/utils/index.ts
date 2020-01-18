@@ -2,6 +2,7 @@ import * as cheerio from 'cheerio'
 import _ from 'lodash'
 
 export * from './makeContext'
+export * from './getFileName'
 export * from './getLanguage'
 export * from './getViewer'
 export * from './globalId'

@@ -48,6 +48,10 @@ const trans = {
   userDeleted: i18n({
     zh_hant: 'Matters | 你的賬號已被註銷',
     zh_hans: 'Matters | 你的账号已被注销'
+  }),
+  migration: i18n({
+    zh_hant: '搬家完成啦，立刻回到 Matters 進行宇宙傳輸吧！',
+    zh_hans: '搬家完成啦，立刻回到 Matters 进行宇宙传输吧！'
   })
 }
 
@@ -323,6 +327,40 @@ class Mail {
           dynamic_template_data: {
             subject: trans.userDeleted(language, {}),
             siteDomain: environment.siteDomain,
+            recipient
+          }
+        }
+      ]
+    })
+  }
+
+  /**
+   * Send migration success email to user.
+   *
+   */
+  sendMigrationSuccess = async ({
+    to,
+    language = 'zh_hant',
+    recipient
+  }: {
+    to: string
+    language?: LANGUAGES
+    recipient: {
+      displayName: string
+      userName: string
+    }
+  }) => {
+    const templateId = EMAIL_TEMPLATE_ID.migrationSuccess[language]
+    notificationQueue.sendMail({
+      from: environment.emailFromAsk as string,
+      templateId,
+      personalizations: [
+        {
+          to,
+          // @ts-ignore
+          dynamic_template_data: {
+            subject: trans.migration(language, {}),
+            siteDomin: environment.siteDomain,
             recipient
           }
         }
