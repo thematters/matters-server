@@ -1,10 +1,10 @@
-import addArticleTags from './addArticleTags'
 import appreciateArticle from './appreciateArticle'
 import archiveArticle from './archiveArticle'
-import deleteArticleTags from './deleteArticleTags'
+import deleteArticlesTags from './deleteArticlesTags'
 import deleteTags from './deleteTags'
 import mergeTags from './mergeTags'
 import publishArticle from './publishArticle'
+import putArticlesTags from './putArticlesTags'
 import putTag from './putTag'
 import readArticle from './readArticle'
 import recallPublish from './recallPublish'
@@ -43,7 +43,7 @@ export default {
     setCollection,
     updateArticleInfo,
     putTag,
-    addArticleTags,
-    deleteArticleTags
+    putArticlesTags,
+    deleteArticlesTags
   }
 }
