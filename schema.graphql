@@ -830,11 +830,11 @@ type Mutation {
   """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
 
-  """Add one tag to articles."""
-  addArticleTags(input: UpdateArticleTagsInput!): Tag!
+  """Add or update one tag to articles."""
+  putArticlesTags(input: PutArticlesTagsInput!): Tag!
 
   """Delete one tag from articles"""
-  deleteArticleTags(input: UpdateArticleTagsInput!): Tag!
+  deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag!
 
   """
   #############
@@ -1222,6 +1222,12 @@ enum PublishState {
   pending
   error
   published
+}
+
+input PutArticlesTagsInput {
+  id: ID!
+  articles: [ID!]
+  selected: Boolean
 }
 
 input PutCommentInput {
@@ -1688,14 +1694,14 @@ input UpdateArticleInfoInput {
   sticky: Boolean
 }
 
+input UpdateArticlesTagsInput {
+  id: ID!
+  articles: [ID!]
+}
+
 input UpdateArticleStateInput {
   id: ID!
   state: ArticleState!
-}
-
-input UpdateArticleTagsInput {
-  id: ID!
-  articles: [ID!]
 }
 
 input UpdateCommentsStateInput {

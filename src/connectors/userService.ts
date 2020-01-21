@@ -39,14 +39,17 @@ import {
 } from 'definitions'
 
 import { likecoin } from './likecoin'
+import { medium } from './medium'
 
 export class UserService extends BaseService {
   likecoin: typeof likecoin
+  medium: typeof medium
 
   constructor() {
     super('user')
 
     this.likecoin = likecoin
+    this.medium = medium
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
@@ -334,14 +337,14 @@ export class UserService extends BaseService {
    */
   findActivatableUsers = () =>
     this.knex
-      .select('user.*', 'total')
+      .select('user.*', 'total', 'read_count')
       .from(this.table)
       .innerJoin(
         'user_oauth_likecoin',
         'user_oauth_likecoin.liker_id',
         'user.liker_id'
       )
-      .innerJoin(
+      .leftJoin(
         this.knex
           .select('recipient_id')
           .sum('amount as total')
@@ -351,11 +354,31 @@ export class UserService extends BaseService {
         'tx.recipient_id',
         'user.id'
       )
+      .leftJoin(
+        this.knex
+          .select('user_id')
+          .from(
+            this.knex
+              .select('user_id', 'article_id')
+              .from('article_read')
+              .groupBy(['user_id', 'article_id'])
+              .as('read_source')
+          )
+          .groupBy(['user_id'])
+          .count('article_id', { as: 'read_count' })
+          .as('read'),
+        'read.user_id',
+        'user.id'
+      )
       .where({
         state: USER_STATE.onboarding,
         accountType: 'general'
       })
-      .andWhere('total', '>=', 30)
+      .andWhere(
+        this.knex.raw(
+          '2 * COALESCE("total", 0) + COALESCE("read_count", 0) >= 30'
+        )
+      )
 
   /*********************************
    *                               *
@@ -414,7 +437,7 @@ export class UserService extends BaseService {
     const body = bodybuilder()
       .from(offset)
       .size(first)
-      .query('match', 'displayName', key)
+      .query('match', 'displayName.raw', key)
       .filter('term', 'state', USER_STATE.active)
       .build() as { [key: string]: any }
 

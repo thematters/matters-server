@@ -1,0 +1,47 @@
+<mjml>
+  <mj-head>
+    <mj-include path="../partials/head.mjml" />
+    <mj-title>歡迎成爲 Matters 創作者，這是一封新手必讀</mj-title>
+    <mj-preview>恭喜你，你已成功加入 Matters</mj-preview>
+  </mj-head>
+
+  <mj-body mj-class="body" css-class="body">
+    <mj-wrapper mj-class="wrapper">
+      <mj-include path="../partials/header.mjml" />
+
+      <mj-section css-class="card bottom-clear">
+        <mj-column>
+          <mj-include path="../partials/greeting.mjml" />
+          <mj-spacer height="16px" />
+          <mj-text>
+            恭喜你，你已成功加入 Matters。
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-text>
+            瞭解 Matters 玩法，請查看「<a class="link" href="https://matters.news/faq">新手指南</a>」。歡迎加入官方 <a class="link" href="https://t.me/joinchat/BXzlWUhXaWNZ-TXJZJCzDQ">Telegram 群組</a>，或關注 <a class="link" href="https://www.facebook.com/MattersLab2018">Matters 臉書</a>，隨時掌握 Matters 最新資訊。想讓更多讀者看到你的大作，或者尋找好作品，可以加入 <a class="link" href="https://www.facebook.com/groups/matters.news/">Matters 寫作者聯誼會</a>。每週推送的 newsletter 將向你推薦一週社區精彩作品，敬請關注。
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-text>
+            若有更多問題，可以透過 email 聯絡我們：<a class="link" href="mailto:ask@matters.news">ask@matters.news</a>
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-text>
+            創作愉快！
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <!-- <mj-section css-class="card bottom-clear" padding-top="24px">
+        <mj-include path="../partials/download.mjml" />
+      </mj-section> -->
+
+      <mj-section css-class="card top-clear">
+        <mj-column>
+          <mj-include path="../partials/ending.mjml" />
+        </mj-column>
+      </mj-section>
+
+      <mj-include path="../partials/footer.mjml" />
+    </mj-wrapper>
+  </mj-body>
+</mjml>
