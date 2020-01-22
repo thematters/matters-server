@@ -1074,19 +1074,16 @@ export class UserService extends BaseService {
   recommendItems = async ({
     userId,
     itemIndex,
-    size,
+    first = 20,
+    offset = 0,
     notIn = []
   }: {
     userId: string
     itemIndex: string
-    size: number
+    first?: number
+    offset?: number
     notIn?: string[]
   }) => {
-    // skip if in test
-    if (['test'].includes(environment.env)) {
-      return []
-    }
-
     // get user vector score
     const scoreResult = await this.es.client.get({
       index: this.table,
@@ -1117,7 +1114,8 @@ export class UserService extends BaseService {
       .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor })
       .notFilter('term', { state: ARTICLE_STATE.archived })
       .notFilter('ids', { values: notIn })
-      .size(size)
+      .from(offset)
+      .size(first)
       .build()
 
     const { body } = await this.es.client.search({

@@ -493,18 +493,16 @@ export class ArticleService extends BaseService {
 
   recommendIcymi = async ({
     limit = BATCH_SIZE,
-    offset = 0,
-    where = {}
+    offset = 0
   }: {
     limit?: number
     offset?: number
-    where?: { [key: string]: any }
   }) =>
     this.knex('article')
       .select('article.*', 'c.updated_at as chose_at')
       .join('matters_choice as c', 'c.article_id', 'article.id')
       .orderBy('chose_at', 'desc')
-      .where(where)
+      .where({ state: ARTICLE_STATE.active })
       .offset(offset)
       .limit(limit)
 
@@ -619,10 +617,10 @@ export class ArticleService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  countRecommendIcymi = async (where: { [key: string]: any } = {}) => {
+  countRecommendIcymi = async () => {
     const result = await this.knex('article')
       .join('matters_choice as c', 'c.article_id', 'article.id')
-      .where(where)
+      .where({ state: ARTICLE_STATE.active })
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
