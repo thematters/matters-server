@@ -1,3 +1,4 @@
+import LikeCoinStrategy from '@matters/passport-likecoin'
 import _ from 'lodash'
 import passport from 'passport'
 import {
@@ -14,17 +15,6 @@ import {
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { CacheService, UserService } from 'connectors'
-
-class LikeCoinStrategy extends Strategy {
-  constructor(
-    options: StrategyOptionsWithRequest,
-    verify: VerifyFunctionWithRequest
-  ) {
-    options = options || {}
-    super(options, verify)
-    this.name = 'likecoin'
-  }
-}
 
 class MediumStrategy extends Strategy {
   constructor(
