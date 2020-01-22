@@ -4,6 +4,7 @@ import {
 } from 'definitions'
 
 import frequentSearch from './frequentSearch'
+import ipfsAddress from './ipfsAddress'
 import node from './node'
 import {
   feedbackCategory,
@@ -15,7 +16,6 @@ import {
 import OSS from './oss'
 import Report from './report'
 import search from './search'
-import ipfsAddress from './ipfsAddress'
 
 export default {
   Query: {
