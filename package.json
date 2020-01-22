@@ -119,7 +119,7 @@
     "@types/imagemin-gifsicle": "^5.2.0",
     "@types/imagemin-jpegtran": "^5.0.0",
     "@types/imagemin-svgo": "^7.0.0",
-    "@types/ioredis": "^4.0.21",
+    "@types/ioredis": "^4.14.4",
     "@types/jest": "^24.9.0",
     "@types/js-base64": "^2.3.1",
     "@types/jsonwebtoken": "^8.3.5",
