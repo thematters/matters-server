@@ -143,7 +143,7 @@
     "apollo-server-testing": "^2.9.12",
     "chokidar": "^3.3.1",
     "chokidar-cli": "^2.1.0",
-    "codecov": "^3.6.1",
+    "codecov": "^3.6.2",
     "husky": "^4.2.0",
     "jest": "^24.9.0",
     "knex-migrate": "^1.7.4",
