@@ -167,7 +167,7 @@ export default /* GraphQL */ `
     content: String!
 
     "List of how many articles were attached with this tag."
-    articles(input: ConnectionArgs!): ArticleConnection!
+    articles(input: TagArticlesInput!): ArticleConnection!
 
     "Time of this tag was created."
     createdAt: DateTime!
@@ -332,6 +332,13 @@ export default /* GraphQL */ `
   input UpdateArticlesTagsInput {
     id: ID!
     articles: [ID!]
+  }
+
+  input TagArticlesInput {
+    after: String
+    first: Int
+    oss: Boolean
+    selected: Boolean
   }
 
   "Enums for an article state."

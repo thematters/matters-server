@@ -230,17 +230,23 @@ export class TagService extends BaseService {
    *********************************/
   createArticleTags = async ({
     articleIds,
-    tagIds
+    tagIds,
+    selected
   }: {
     articleIds: string[]
     tagIds: string[]
+    selected?: boolean
   }) => {
     articleIds = _.uniq(articleIds)
     tagIds = _.uniq(tagIds)
 
     const items = _.flatten(
       articleIds.map(articleId => {
-        return tagIds.map(tagId => ({ articleId, tagId }))
+        return tagIds.map(tagId => ({
+          articleId,
+          tagId,
+          ...(selected === true ? { selected } : {})
+        }))
       })
     )
     return this.baseBatchCreate(items, 'article_tag')
@@ -266,11 +272,15 @@ export class TagService extends BaseService {
   /**
    * Count tags by a given tag text.
    */
-  countArticles = async (id: string) => {
+  countArticles = async ({ id, selected }: { id: string, selected?: boolean }) => {
     const result = await this.knex('article_tag')
       .join('article', 'article_id', 'article.id')
       .countDistinct('article_id')
-      .where({ tagId: id, state: ARTICLE_STATE.active })
+      .where({
+        tagId: id,
+        state: ARTICLE_STATE.active,
+        ...(selected === true ? { selected } : {})
+      })
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
   }
@@ -281,18 +291,24 @@ export class TagService extends BaseService {
   findArticleIds = async ({
     id: tagId,
     offset = 0,
-    limit = BATCH_SIZE
+    limit = BATCH_SIZE,
+    selected
   }: {
     id: string
     offset?: number
     limit?: number
     filter?: { [key: string]: any }
+    selected?: boolean
   }) => {
     const result = await this.knex
       .select('article_id')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')
-      .where({ tagId, state: ARTICLE_STATE.active })
+      .where({
+        tagId,
+        state: ARTICLE_STATE.active,
+        ...(selected === true ? { selected } : {})
+      })
       .limit(limit)
       .offset(offset)
       .orderBy('article_tag.id', 'desc')

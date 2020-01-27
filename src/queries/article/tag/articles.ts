@@ -6,14 +6,15 @@ const resolver: TagToArticlesResolver = async (
   { input },
   { dataSources: { tagService, articleService } }
 ) => {
-  const { first, after } = input
+  const { first, after, selected } = input
   const offset = cursorToIndex(after) + 1
 
-  const totalCount = await tagService.countArticles(id)
+  const totalCount = await tagService.countArticles({ id, selected })
   const articleIds = await tagService.findArticleIds({
     id,
     offset,
-    limit: first
+    limit: first,
+    selected
   })
   return connectionFromPromisedArray(
     articleService.dataloader.loadMany(articleIds),

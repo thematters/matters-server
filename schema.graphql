@@ -1571,7 +1571,7 @@ type Tag implements Node {
   content: String!
 
   """List of how many articles were attached with this tag."""
-  articles(input: ConnectionArgs!): ArticleConnection!
+  articles(input: TagArticlesInput!): ArticleConnection!
 
   """Time of this tag was created."""
   createdAt: DateTime!
@@ -1589,6 +1589,13 @@ type Tag implements Node {
   oss: TagOSS!
   remark: String
   deleted: Boolean!
+}
+
+input TagArticlesInput {
+  after: String
+  first: Int
+  oss: Boolean
+  selected: Boolean
 }
 
 type TagConnection implements Connection {

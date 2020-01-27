@@ -818,6 +818,13 @@ export interface GQLTag extends GQLNode {
   deleted: boolean
 }
 
+export interface GQLTagArticlesInput {
+  after?: string
+  first?: number
+  oss?: boolean
+  selected?: boolean
+}
+
 export interface GQLTagOSS {
   boost: GQLNonNegativeFloat
   score: GQLNonNegativeFloat
@@ -4645,7 +4652,7 @@ export interface TagToContentResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToArticlesArgs {
-  input: GQLConnectionArgs
+  input: GQLTagArticlesInput
 }
 export interface TagToArticlesResolver<TParent = any, TResult = any> {
   (
