@@ -272,7 +272,13 @@ export class TagService extends BaseService {
   /**
    * Count tags by a given tag text.
    */
-  countArticles = async ({ id, selected }: { id: string, selected?: boolean }) => {
+  countArticles = async ({
+    id,
+    selected
+  }: {
+    id: string
+    selected?: boolean
+  }) => {
     const result = await this.knex('article_tag')
       .join('article', 'article_id', 'article.id')
       .countDistinct('article_id')

@@ -48,7 +48,11 @@ const resolver: MutationToPutArticlesTagsResolver = async (
     const addIds = _difference(newIds, oldIds)
 
     // article will be selected by default if the article tag created by admin
-    await tagService.createArticleTags({ articleIds: addIds, tagIds: [dbId], selected: true })
+    await tagService.createArticleTags({
+      articleIds: addIds,
+      tagIds: [dbId],
+      selected: true
+    })
 
     // trigger notification for adding article tag
     addIds.forEach(async (articleId: string) => {
