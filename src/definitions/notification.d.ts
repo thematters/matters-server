@@ -16,6 +16,7 @@ export type NoticeType =
   | 'downstream_article_archived'
   | 'article_tag_has_been_added'
   | 'article_tag_has_been_removed'
+  | 'article_tag_has_been_unselected'
   // comment
   | 'comment_pinned'
   | 'comment_new_reply'
@@ -224,6 +225,17 @@ export interface NoticeArticleTagHasBeenRemovedParams
   ]
 }
 
+export interface NoticeArticleTagHasBeenUnselectedParams
+  extends NotificationRequiredParams {
+  event: 'article_tag_has_been_unselected'
+  recipientId: string
+  actorId: string
+  entities: [
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'tag', 'tag'>
+  ]
+}
+
 export interface NoticeUserActivatedParams extends NotificationRequiredParams {
   event: 'user_activated'
   recipientId: string
@@ -297,6 +309,7 @@ export type NotificationPrarms =
   | NoticeCommentReportedParams
   | NoticeArticleTagHasBeenAddedParams
   | NoticeArticleTagHasBeenRemovedParams
+  | NoticeArticleTagHasBeenUnselectedParams
 
 export type NoticeUserId = string
 
