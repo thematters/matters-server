@@ -2400,7 +2400,7 @@ export interface GQLArticlePublishedNotice extends GQLNotice {
 }
 
 /**
- * This notice type contains info about one user has added curremt user's article, and set it as selected.
+ * This notice type contains info about one user has added current user's article, and set it as selected.
  */
 export interface GQLArticleTagHasBeenAddedNotice extends GQLNotice {
   /**

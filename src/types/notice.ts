@@ -313,7 +313,7 @@ export default /* GraphQL */ `
   }
 
   """
-  This notice type contains info about one user has added curremt user's article, and set it as selected.
+  This notice type contains info about one user has added current user's article, and set it as selected.
   """
   type ArticleTagHasBeenAddedNotice implements Notice {
     "Unique ID of this notice."
