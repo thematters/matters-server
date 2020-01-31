@@ -313,7 +313,7 @@ export default /* GraphQL */ `
   }
 
   """
-  This notice type contains info about one user has added a tag to current user's article.
+  This notice type contains info about one user has added current user's article, and set it as selected.
   """
   type ArticleTagHasBeenAddedNotice implements Notice {
     "Unique ID of this notice."
@@ -355,6 +355,29 @@ export default /* GraphQL */ `
     target: Article
 
     "The tag has been deattached from an article."
+    tag: Tag
+  }
+
+  """
+  This notice type contains info about one user has set current user's article unselected.
+  """
+  type ArticleTagHasBeenUnselectedNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "The user who replied current user's comment."
+    actor: User!
+
+    "The article has a new tag."
+    target: Article
+
+    "The tag has been attached to an article."
     tag: Tag
   }
 `
