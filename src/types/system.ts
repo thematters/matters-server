@@ -59,7 +59,7 @@ export default /* GraphQL */ `
     placements: Placements!
 
     "IPFS node address"
-    ipfsAddress: String!
+    ipfsAddress: [String!]!
   }
 
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {

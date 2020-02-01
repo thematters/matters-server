@@ -1319,7 +1319,7 @@ export interface GQLOfficial {
   /**
    * IPFS node address
    */
-  ipfsAddress: string
+  ipfsAddress: Array<string>
 }
 
 export interface GQLCategory {

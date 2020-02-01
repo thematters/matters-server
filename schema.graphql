@@ -1130,7 +1130,7 @@ type Official {
   placements: Placements!
 
   """IPFS node address"""
-  ipfsAddress: String!
+  ipfsAddress: [String!]!
 }
 
 """The notice type contains info about official announcement."""
