@@ -178,19 +178,17 @@ const resolvers: GQLRecommendationTypeResolver = {
     return { ...article, cover: article.ossCover || article.cover }
   },
   icymi: async ({ id }, { input }, { dataSources: { articleService } }) => {
-    const where = { state: ARTICLE_STATE.active }
     const { first, after } = input
     const offset = cursorToIndex(after) + 1
-    const totalCount = await articleService.countRecommendIcymi(where)
-    return connectionFromPromisedArray(
+
+    const [totalCount, articles] = await Promise.all([
+      articleService.countRecommendIcymi(),
       articleService.recommendIcymi({
         offset,
-        limit: first,
-        where
-      }),
-      input,
-      totalCount
-    )
+        limit: first
+      })
+    ])
+    return connectionFromArray(articles, input, totalCount)
   },
   topics: async (
     { id },
@@ -306,40 +304,59 @@ const resolvers: GQLRecommendationTypeResolver = {
     { input },
     { dataSources: { userService, articleService } }
   ) => {
-    const size = 100
-    if (!id) {
-      throw new AuthenticationError('visitor has no permission')
+    const { first, after } = input
+    const offset = cursorToIndex(after) + 1
+
+    // fallback to icymi
+    const fallback = async () => {
+      const [totalCount, articles] = await Promise.all([
+        articleService.countRecommendIcymi(),
+        articleService.recommendIcymi({
+          offset,
+          limit: first
+        })
+      ])
+      return connectionFromArray(articles, input, totalCount)
     }
 
-    let articles: any = []
+    // fallback for visitors
+    if (!id) {
+      return fallback
+    }
 
-    // exclude last 100 articles already read by this user
+    // exclude last 10000 articles already read by this user
     const readHistory = await userService.findReadHistory({
       userId: id,
-      limit: size
+      limit: 10000
     })
     const readHistoryIds = readHistory.map(({ article }) => article.id)
     try {
       const recommendedArtices = await userService.recommendItems({
         userId: id,
         itemIndex: 'article',
-        size,
+        first,
+        offset,
         notIn: readHistoryIds
       })
+
       const ids = recommendedArtices.map(({ id: aid }: { id: any }) => aid)
-      logger.info(`[recommendation] user ${id}, ES result ${ids}`)
 
       // get articles
-      articles = await articleService.dataloader
-        .loadMany(ids)
-        .then(loadManyFilterError)
-        .then(allArticles =>
-          allArticles.filter(({ state }) => state === ARTICLE_STATE.active)
-        )
+      const [totalCount, articles] = await Promise.all([
+        articleService.baseCount({ state: ARTICLE_STATE.active }),
+        articleService.dataloader.loadMany(ids).then(loadManyFilterError)
+      ])
+
+      if (!articles || articles.length === 0) {
+        return fallback
+      }
+      return connectionFromArray(articles, input, totalCount)
     } catch (err) {
-      logger.error(`error in recommendation via ES: ${JSON.stringify(err)}`)
+      logger.error(
+        `error in recommendation to user via ES: ${JSON.stringify(err)}`
+      )
+      return fallback
     }
-    return connectionFromArray(articles, input)
   }
 }
 
