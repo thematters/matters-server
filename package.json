@@ -97,7 +97,7 @@
     "sharp": "^0.24.0",
     "typescript": "^3.7.5",
     "uuid": "^3.4.0",
-    "validator": "^12.1.0",
+    "validator": "^12.2.0",
     "winston": "^3.2.1",
     "winston-transport": "^4.3.0",
     "xss": "^1.0.6"
