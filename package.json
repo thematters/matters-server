@@ -37,7 +37,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@elastic/elasticsearch": "^7.5.0",
-    "@matters/passport-likecoin": "^0.1.4",
+    "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
     "@okgrow/graphql-scalars": "^0.4.6",
     "@sendgrid/mail": "^6.4.0",
