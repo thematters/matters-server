@@ -39,14 +39,17 @@ import {
 } from 'definitions'
 
 import { likecoin } from './likecoin'
+import { medium } from './medium'
 
 export class UserService extends BaseService {
   likecoin: typeof likecoin
+  medium: typeof medium
 
   constructor() {
     super('user')
 
     this.likecoin = likecoin
+    this.medium = medium
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
@@ -434,7 +437,7 @@ export class UserService extends BaseService {
     const body = bodybuilder()
       .from(offset)
       .size(first)
-      .query('match', 'displayName', key)
+      .query('match', 'displayName.raw', key)
       .filter('term', 'state', USER_STATE.active)
       .build() as { [key: string]: any }
 
@@ -1071,19 +1074,16 @@ export class UserService extends BaseService {
   recommendItems = async ({
     userId,
     itemIndex,
-    size,
+    first = 20,
+    offset = 0,
     notIn = []
   }: {
     userId: string
     itemIndex: string
-    size: number
+    first?: number
+    offset?: number
     notIn?: string[]
   }) => {
-    // skip if in test
-    if (['test'].includes(environment.env)) {
-      return []
-    }
-
     // get user vector score
     const scoreResult = await this.es.client.get({
       index: this.table,
@@ -1114,7 +1114,8 @@ export class UserService extends BaseService {
       .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor })
       .notFilter('term', { state: ARTICLE_STATE.archived })
       .notFilter('ids', { values: notIn })
-      .size(size)
+      .from(offset)
+      .size(first)
       .build()
 
     const { body } = await this.es.client.search({

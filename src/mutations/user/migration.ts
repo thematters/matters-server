@@ -1,6 +1,6 @@
 import { OAUTH_PROVIDER } from 'common/enums'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
-// import { migrationQueue } from 'connectors/queue/migration'
+import { migrationQueue } from 'connectors/queue/migration'
 import { MutationToMigrationResolver } from 'definitions'
 
 const resolver: MutationToMigrationResolver = async (
@@ -18,10 +18,10 @@ const resolver: MutationToMigrationResolver = async (
   const hasOAuthProvider = (oauthProviders || []).includes(provider)
 
   if (!hasOAuthProvider) {
-    throw new ForbiddenError(`viewer has no specific oauth ${provider}.`)
+    throw new ForbiddenError(`viewer has no specific ${provider} oauth.`)
   }
 
-  // migrationQueue.migrate({ userId: viewer.id, provider })
+  migrationQueue.migrate({ userId: viewer.id, provider })
   return true
 }
 

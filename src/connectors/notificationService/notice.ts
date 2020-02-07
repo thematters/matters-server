@@ -513,7 +513,8 @@ class Notice extends BaseService {
       comment_reported: setting.reportFeedback,
       article_reported: setting.reportFeedback,
       article_tag_has_been_added: setting.tag,
-      article_tag_has_been_removed: setting.tag
+      article_tag_has_been_removed: setting.tag,
+      article_tag_has_been_unselected: setting.tag
     }
 
     return noticeSettingMap[event]

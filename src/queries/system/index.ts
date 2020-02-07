@@ -4,6 +4,7 @@ import {
 } from 'definitions'
 
 import frequentSearch from './frequentSearch'
+import ipfsAddress from './ipfsAddress'
 import node from './node'
 import {
   feedbackCategory,
@@ -35,6 +36,7 @@ export default {
     id: ({ uuid }: { uuid: string }) => uuid
   },
   Official: {
+    ipfsAddress,
     reportCategory,
     feedbackCategory,
     releases, // TODO

@@ -57,6 +57,9 @@ export default /* GraphQL */ `
     "Links of specific pages on Matters site."
     links: OfficialLinks!
     placements: Placements!
+
+    "IPFS node address"
+    ipfsAddress: [String!]!
   }
 
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {

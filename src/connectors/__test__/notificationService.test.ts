@@ -41,7 +41,8 @@ describe('user notify setting', () => {
     'comment_reported',
     'article_reported',
     'article_tag_has_been_added',
-    'article_tag_has_been_removed'
+    'article_tag_has_been_removed',
+    'article_tag_has_been_unselected'
   ]
   const defaultNoifySetting: { [key in NotificationType]: boolean } = {
     user_new_follower: true,
@@ -68,7 +69,8 @@ describe('user notify setting', () => {
     comment_reported: false,
     article_reported: false,
     article_tag_has_been_added: true,
-    article_tag_has_been_removed: true
+    article_tag_has_been_removed: true,
+    article_tag_has_been_unselected: true
   }
 
   test('user receives notifications', async () => {

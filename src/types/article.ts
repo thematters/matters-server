@@ -36,11 +36,11 @@ export default /* GraphQL */ `
     "Create or update tag."
     putTag(input: PutTagInput!): Tag! @authorize @purgeCache
 
-    "Add one tag to articles."
-    addArticleTags(input: UpdateArticleTagsInput!): Tag! @authorize @purgeCache
+    "Add or update one tag to articles."
+    putArticlesTags(input: PutArticlesTagsInput!): Tag! @authorize @purgeCache
 
     "Delete one tag from articles"
-    deleteArticleTags(input: UpdateArticleTagsInput!): Tag! @authorize @purgeCache
+    deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authorize @purgeCache
 
     ##############
     #     OSS    #
@@ -167,7 +167,7 @@ export default /* GraphQL */ `
     content: String!
 
     "List of how many articles were attached with this tag."
-    articles(input: ConnectionArgs!): ArticleConnection!
+    articles(input: TagArticlesInput!): ArticleConnection!
 
     "Time of this tag was created."
     createdAt: DateTime!
@@ -323,9 +323,22 @@ export default /* GraphQL */ `
     description: String
   }
 
-  input UpdateArticleTagsInput {
+  input PutArticlesTagsInput {
     id: ID!
     articles: [ID!]
+    selected: Boolean
+  }
+
+  input UpdateArticlesTagsInput {
+    id: ID!
+    articles: [ID!]
+  }
+
+  input TagArticlesInput {
+    after: String
+    first: Int
+    oss: Boolean
+    selected: Boolean
   }
 
   "Enums for an article state."

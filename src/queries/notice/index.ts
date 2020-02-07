@@ -8,6 +8,7 @@ import {
   GQLArticlePublishedNoticeTypeResolver,
   GQLArticleTagHasBeenAddedNoticeTypeResolver,
   GQLArticleTagHasBeenRemovedNoticeTypeResolver,
+  GQLArticleTagHasBeenUnselectedNoticeTypeResolver,
   GQLCommentMentionedYouNoticeTypeResolver,
   GQLCommentNewReplyNoticeTypeResolver,
   GQLCommentNewUpvoteNoticeTypeResolver,
@@ -45,6 +46,7 @@ const notice: {
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeTypeResolver
   ArticleTagHasBeenAddedNotice: GQLArticleTagHasBeenAddedNoticeTypeResolver
   ArticleTagHasBeenRemovedNotice: GQLArticleTagHasBeenRemovedNoticeTypeResolver
+  ArticleTagHasBeenUnselectedNotice: GQLArticleTagHasBeenUnselectedNoticeTypeResolver
 } = {
   User: {
     notices
@@ -67,6 +69,7 @@ const notice: {
         downstream_article_archived: 'DownstreamArticleArchivedNotice',
         article_tag_has_been_added: 'ArticleTagHasBeenAddedNotice',
         article_tag_has_been_removed: 'ArticleTagHasBeenRemovedNotice',
+        article_tag_has_been_unselected: 'ArticleTagHasBeenUnselectedNotice',
         // comment
         comment_pinned: 'CommentPinnedNotice',
         comment_new_reply: 'CommentNewReplyNotice',
@@ -162,6 +165,12 @@ const notice: {
     tag: ({ entities }) => entities.tag
   },
   ArticleTagHasBeenRemovedNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    target: ({ entities }) => entities.target,
+    tag: ({ entities }) => entities.tag
+  },
+  ArticleTagHasBeenUnselectedNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
     target: ({ entities }) => entities.target,
