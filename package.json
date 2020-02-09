@@ -36,7 +36,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "@elastic/elasticsearch": "^7.5.0",
+    "@elastic/elasticsearch": "^7.5.1",
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
     "@okgrow/graphql-scalars": "^0.4.6",
