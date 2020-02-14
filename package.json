@@ -128,7 +128,7 @@
     "@types/lodash": "^4.14.149",
     "@types/mime-types": "^2.1.0",
     "@types/nanoid": "^2.1.0",
-    "@types/newrelic": "^5.11.2",
+    "@types/newrelic": "^6.2.0",
     "@types/node-fetch": "^2.5.4",
     "@types/oauth2-server": "^3.0.12",
     "@types/passport": "^1.0.2",
