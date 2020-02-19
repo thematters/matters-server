@@ -8,6 +8,7 @@ const size = 100
 exports.up = async knex => {
   const querySource = knex(source)
     .select('user_id', 'article_id')
+    .where({ archived: false })
     .groupBy('user_id', 'article_id')
 
   // get total count of collapesed records

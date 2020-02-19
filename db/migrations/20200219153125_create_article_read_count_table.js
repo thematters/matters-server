@@ -14,6 +14,7 @@ exports.up = async knex => {
       .unsigned()
       .notNullable()
     t.bigInteger('count').notNullable()
+    t.boolean('archived').defaultTo(false)
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
