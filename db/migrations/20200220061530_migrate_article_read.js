@@ -15,7 +15,7 @@ exports.up = async knex => {
     .from(querySource.as('source'))
     .count()
     .first()
-  const count = parseInt(temp ? (temp.count) : '0', 10)
+  const count = parseInt(temp ? temp.count : '0', 10)
   console.log('source count', count)
 
   // process data batch by batch
@@ -31,21 +31,24 @@ exports.up = async knex => {
       ])
 
     await Promise.all(
-      data.map((item) =>
-        knex.insert({
-          uuid: uuid.v4(),
-          ...item
-        })
-        .into(target)
-        .returning('*')
+      data.map(item =>
+        knex
+          .insert({
+            uuid: uuid.v4(),
+            ...item
+          })
+          .into(target)
+          .returning('*')
       )
     )
 
     offset = offset + size
   }
 
-  const result = await knex(target).count().first()
-  const check = parseInt(result ? (result.count) : '0', 10)
+  const result = await knex(target)
+    .count()
+    .first()
+  const check = parseInt(result ? result.count : '0', 10)
   console.log('migrated count', check)
 }
 
