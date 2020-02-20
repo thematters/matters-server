@@ -1112,16 +1112,28 @@ export class ArticleService extends BaseService {
     articleId: string
     userId?: string | null
     ip?: string
-  }) =>
-    this.baseCreate(
-      {
-        uuid: v4(),
-        articleId,
-        userId,
-        ip
-      },
-      'article_read'
-    )
+  }) => {
+    const result = await this.knex
+      .select()
+      .from('article_read_count')
+      .where({ articleId, userId })
+
+    if (result?.length === 1) {
+      await this.knex('article_read_count')
+        .where({ articleId, userId })
+        .increment('count', 1)
+    } else {
+      await this.baseCreate(
+        {
+          uuid: v4(),
+          articleId,
+          userId,
+          count: 1
+        },
+        'article_read_count'
+      )
+    }
+  }
 
   /*********************************
    *                               *

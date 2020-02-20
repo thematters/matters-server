@@ -290,7 +290,7 @@ export class UserService extends BaseService {
       await trx('action_user')
         .where({ userId: id })
         .del()
-      await trx('article_read')
+      await trx('article_read_count')
         .where({ userId: id })
         .del()
       await trx('log_record')
@@ -357,15 +357,9 @@ export class UserService extends BaseService {
       .leftJoin(
         this.knex
           .select('user_id')
-          .from(
-            this.knex
-              .select('user_id', 'article_id')
-              .from('article_read')
-              .groupBy(['user_id', 'article_id'])
-              .as('read_source')
-          )
-          .groupBy(['user_id'])
-          .count('article_id', { as: 'read_count' })
+          .sum('count as read_count')
+          .from('article_read_count')
+          .groupBy('user_id')
           .as('read'),
         'read.user_id',
         'user.id'
@@ -1190,7 +1184,7 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
   countReadHistory = async (userId: string) => {
-    const result = await this.knex('article_read')
+    const result = await this.knex('article_read_count')
       .where({ userId, archived: false })
       .countDistinct('article_id')
       .first()
@@ -1210,10 +1204,8 @@ export class UserService extends BaseService {
       .select('read.read_at', 'article.*')
       .rightJoin(
         this.knex
-          .select('read.article_id')
-          .max('read.created_at as read_at')
-          .from('article_read as read')
-          .groupBy('read.article_id')
+          .select('read.article_id', 'read.updated_at as read_at')
+          .from('article_read_count as read')
           .where({ userId, archived: false })
           .as('read'),
         'article.id',
@@ -1234,7 +1226,7 @@ export class UserService extends BaseService {
     articleId: string
     userId: string | null
   }) =>
-    this.knex('article_read')
+    this.knex('article_read_count')
       .where({ articleId, userId })
       .update({ archived: true })
 

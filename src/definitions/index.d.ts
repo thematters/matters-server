@@ -85,7 +85,7 @@ export type TableName =
   | 'transaction'
   | 'asset'
   | 'article'
-  | 'article_read'
+  | 'article_read_count'
   | 'article_tag'
   | 'audio_draft'
   | 'comment'
