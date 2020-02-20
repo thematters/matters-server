@@ -1121,7 +1121,10 @@ export class ArticleService extends BaseService {
     if (result?.length === 1) {
       await this.knex('article_read_count')
         .where({ articleId, userId })
-        .increment('count', 1)
+        .update({
+          'updated_at': new Date(),
+          'count': this.knex.raw('count + 1')
+        })
     } else {
       await this.baseCreate(
         {
