@@ -357,7 +357,7 @@ export class UserService extends BaseService {
       .leftJoin(
         this.knex
           .select('user_id')
-          .sum('count as read_count')
+          .countDistinct('article_id as read_count')
           .from('article_read_count')
           .groupBy('user_id')
           .as('read'),
