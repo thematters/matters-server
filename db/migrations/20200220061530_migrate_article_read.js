@@ -1,3 +1,4 @@
+const lodash = require('lodash')
 const uuid = require('uuid')
 
 const source = 'article_read'
@@ -34,19 +35,17 @@ exports.up = async knex => {
         { column: 'article_id', order: 'asc' }
       ])
 
-    await Promise.all(
-      data.map(item =>
-        knex
-          .insert({
-            uuid: uuid.v4(),
-            ...item
-          })
-          .into(target)
-          .returning('*')
-      )
-    )
+    const updateData = data.map(item => ({ uuid: uuid.v4(), ...item }))
+    const processedData = await knex
+      .batchInsert(target, updateData, size)
+      .returning('id')
 
     offset = offset + size
+    console.log(
+      'batch',
+      lodash.padStart(offset, 20, ' '),
+      lodash.padStart(processedData.length, 5, ' ')
+    )
   }
 
   const result = await knex(target)
