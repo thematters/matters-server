@@ -43,7 +43,7 @@ exports.up = async knex => {
     offset = offset + size
     console.log(
       'batch',
-      lodash.padStart(offset, 20,' '),
+      lodash.padStart(offset, 20, ' '),
       lodash.padStart(processedData.length, 5, ' ')
     )
   }
