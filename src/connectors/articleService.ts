@@ -3,6 +3,7 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 import { v4 } from 'uuid'
+import { v2 as TranslateAPI } from '@google-cloud/translate'
 
 import {
   ALS_DEFAULT_VECTOR,
@@ -336,14 +337,6 @@ export class ArticleService extends BaseService {
     offset,
     oss = false
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
-    // for local dev
-    // if (environment.env === 'development') {
-    //   return this.knex(this.table)
-    //     .where('title', 'like', `%${key}%`)
-    //     .offset(offset)
-    //     .limit(first)
-    // }
-
     const searchBody = bodybuilder()
       .query('multi_match', {
         query: key,
@@ -585,6 +578,41 @@ export class ArticleService extends BaseService {
     })
     // add recommendation
     return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
+  }
+
+  /*********************************
+   *                               *
+   *           Translate           *
+   *                               *
+   *********************************/
+
+  translate = async (content: string, target: string) => {
+    try {
+      const translate = new TranslateAPI.Translate({
+        projectId: environment.gcpProjectId,
+        keyFilename: environment.translateCertPath
+      })
+
+      const [translation] = await translate.translate(content, target)
+      return translation
+    } catch (err) {
+      logger.error(err)
+    }
+  }
+
+  detectLanguage = async (content: string) => {
+    try {
+      const translate = new TranslateAPI.Translate({
+        projectId: environment.gcpProjectId,
+        keyFilename: environment.translateCertPath
+      })
+
+      const result = await translate.detect(content)
+      const [{ language }] = result
+      return language
+    } catch (err) {
+      logger.error(err)
+    }
   }
 
   /**

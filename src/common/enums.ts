@@ -12,7 +12,9 @@ export const MATERIALIZED_VIEW = {
   featuredCommentMaterialized: 'featured_comment_materialized'
 }
 
+// cache ttl in seconds
 export const CACHE_TTL = {
+  STATIC: 60 * 60 * 24 * 30, // 30 days for static data
   SHORT: 90,
   DEFAULT: 60,
   INSTANT: 0
@@ -37,8 +39,8 @@ export const SCOPE_TYPE = {
 }
 
 export const LANGUAGE = {
-  zh_hans: 'zh_hans',
-  zh_hant: 'zh_hant',
+  zh_hans: 'zh-CN',
+  zh_hant: 'zh-TW',
   en: 'en'
 }
 

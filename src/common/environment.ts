@@ -74,6 +74,8 @@ export const environment = {
   apiKey: process.env.MATTERS_APOLLO_API_KEY,
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
   firebaseCert,
+  gcpProjectId: process.env.MATTERS_GCP_PROJECT_ID,
+  translateCertPath: process.env.MATTERS_TRANSLATE_CREDENTIAL_PATH,
   OICDPrivateKey,
   likecoinOAuthClientName: process.env.MATTERS_LIKECOIN_OAUTH_CLIENT_NAME || '',
   likecoinMigrationApiURL: process.env.MATTERS_LIKECOIN_MIGRATION_API_URL || '',
