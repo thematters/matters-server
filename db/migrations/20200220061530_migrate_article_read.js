@@ -4,7 +4,7 @@ const uuid = require('uuid')
 const source = 'article_read'
 const target = 'article_read_count'
 
-const size = 300
+const size = 500
 
 exports.up = async knex => {
   const querySource = knex(source)
