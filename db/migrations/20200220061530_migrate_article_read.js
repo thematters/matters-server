@@ -28,6 +28,8 @@ exports.up = async knex => {
       .where({ archived: false })
       .groupBy('user_id', 'article_id')
       .count('article_id', { as: 'count' })
+      .min('created_at', { as: 'created_at' })
+      .max('created_at', { as: 'updated_at' })
       .limit(size)
       .offset(offset)
       .orderBy([
