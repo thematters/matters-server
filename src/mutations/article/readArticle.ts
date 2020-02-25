@@ -20,7 +20,7 @@ const resolver: MutationToReadArticleResolver = async (
   if (viewer.id !== article.authorId) {
     await articleService.read({
       articleId: article.id,
-      userId: viewer.id,
+      userId: viewer.id || null,
       ip: viewer.ip
     })
   }
