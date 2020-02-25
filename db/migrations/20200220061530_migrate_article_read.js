@@ -3,7 +3,7 @@ const uuid = require('uuid')
 const source = 'article_read'
 const target = 'article_read_count'
 
-const size = 100
+const size = 300
 
 exports.up = async knex => {
   const querySource = knex(source)
@@ -22,7 +22,10 @@ exports.up = async knex => {
   // process data batch by batch
   let offset = 0
   while (offset < count) {
-    const data = await querySource
+    const data = await knex(source)
+      .select('user_id', 'article_id')
+      .where({ archived: false })
+      .groupBy('user_id', 'article_id')
       .count('article_id', { as: 'count' })
       .limit(size)
       .offset(offset)
