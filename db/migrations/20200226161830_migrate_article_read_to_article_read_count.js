@@ -37,7 +37,9 @@ exports.up = async knex => {
   `)
 
   // get total count of migrated records
-  const result = await knex(target).count().first()
+  const result = await knex(target)
+    .count()
+    .first()
   const check = parseInt(result ? result.count : '0', 10)
   console.log('migrated count', check)
 }
