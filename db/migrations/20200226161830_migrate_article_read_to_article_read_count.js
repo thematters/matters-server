@@ -5,8 +5,7 @@ exports.up = async knex => {
   // get total count of collapesed records
   const querySource = knex(source)
     .select('user_id', 'article_id')
-    .where({ archived: false })
-    .groupBy('user_id', 'article_id')
+    .groupBy('user_id', 'article_id', 'archived')
 
   const temp = await knex(source)
     .from(querySource.as('source'))
@@ -17,21 +16,18 @@ exports.up = async knex => {
 
   // migrate
   await knex.raw(`
-    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
     INSERT INTO ${target}
-      (uuid, user_id, article_id, count, created_at, updated_at)
+      (user_id, article_id, count, archived, created_at, updated_at)
     SELECT
-      uuid_generate_v4() as uuid,
       user_id,
       article_id,
       count(article_id) as count,
+      archived,
       min(created_at) as created_at,
       max(created_at) as updated_at
     FROM ${source}
-    WHERE archived = false
     GROUP BY
-      user_id, article_id
+      user_id, article_id, archived
     ORDER BY
       user_id, article_id;
   `)
