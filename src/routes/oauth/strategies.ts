@@ -103,7 +103,7 @@ export default () => {
           const user = await userService.dataloader.load(viewer.id)
 
           // invalidate user cache
-          await cacheService.invalidate(NODE_TYPES.user, userId)
+          await cacheService.invalidateFQC(NODE_TYPES.user, userId)
 
           return done(null, user)
         } catch (e) {

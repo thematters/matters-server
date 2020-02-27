@@ -178,7 +178,10 @@ class PublicationQueue {
           job.progress(95)
 
           // invalidate user cache
-          await this.cacheService.invalidate(NODE_TYPES.user, article.authorId)
+          await this.cacheService.invalidateFQC(
+            NODE_TYPES.user,
+            article.authorId
+          )
           job.progress(100)
 
           done(null, {

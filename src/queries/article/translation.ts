@@ -22,7 +22,8 @@ const resolver: GQLArticleTranslationTypeResolver = {
         _,
         {
           dataSources: { articleService },
-          viewer: { language }
+          viewer: { language },
+          redis
         }
       ] = args
       return articleService.translate(content, language)
