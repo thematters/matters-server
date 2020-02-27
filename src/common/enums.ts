@@ -441,9 +441,14 @@ export const NODE_TYPES = {
   tag: 'Tag'
 }
 
+// keyword notating for cache invalidation
 export const CACHE_KEYWORD = '__cache__'
 
-export const CACHE_PREFIX = 'cache-keys'
+//
+export const CACHE_PREFIX = {
+  KEYS: 'cache-keys',
+  OBJECTS: 'cache-objects'
+}
 
 export const TRANSACTION_TYPES = {
   like: 'LIKE',

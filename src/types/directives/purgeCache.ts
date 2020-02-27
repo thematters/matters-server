@@ -17,12 +17,14 @@ const getCacheKeys = (customs: CacheSet[], fallback: CacheSet): string[] => {
     return _compact(
       customs.map((custom: CacheSet) => {
         if (custom && custom.id && custom.type) {
-          return `${CACHE_PREFIX}:${custom.type}:${custom.id}`
+          return `${CACHE_PREFIX.KEYS}:${custom.type}:${custom.id}`
         }
       })
     )
   }
-  return [`${CACHE_PREFIX}:${_replace(fallback.type, '!', '')}:${fallback.id}`]
+  return [
+    `${CACHE_PREFIX.KEYS}:${_replace(fallback.type, '!', '')}:${fallback.id}`
+  ]
 }
 
 export class PurgeCacheDirective extends SchemaDirectiveVisitor {

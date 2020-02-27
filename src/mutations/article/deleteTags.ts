@@ -1,4 +1,4 @@
-import { CACHE_PREFIX, NODE_TYPES } from 'common/enums'
+import { NODE_TYPES } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
 import { MutationToDeleteTagsResolver } from 'definitions'
