@@ -125,6 +125,24 @@ const resolver: MutationToPutDraftResolver = async (
       if (uuids.length === 0) {
         data.cover = null
       }
+
+      // If no cover is specified
+      if (!coverAssetUUID) {
+        const isCurrentCoverInvalid =
+          draft.cover &&
+          uuids.length > 0 &&
+          !uuids.includes(
+            (await systemService.baseFindById(draft.cover, 'asset')).uuid
+          )
+        const needSetCandidateCover = !draft.cover && uuids.length >= 1
+
+        // fallback to set candidate cover
+        if (isCurrentCoverInvalid || needSetCandidateCover) {
+          const coverCandidate = await systemService.findAssetByUUID(uuids[0])
+          checkAssetValidity(coverCandidate, viewer)
+          data.cover = coverCandidate.id
+        }
+      }
     }
 
     // update
