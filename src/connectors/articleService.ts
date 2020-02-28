@@ -1115,11 +1115,11 @@ export class ArticleService extends BaseService {
   }) =>
     this.baseUpdateOrCreate({
       data: {
-        uuid: v4(),
         articleId,
         userId,
         updated_at: new Date(),
         count: this.knex.raw('count + 1'),
+        archived: false,
         ip
       },
       where: { articleId, userId },
