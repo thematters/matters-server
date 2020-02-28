@@ -1113,15 +1113,19 @@ export class ArticleService extends BaseService {
     userId?: string | null
     ip?: string
   }) =>
-    this.baseCreate(
-      {
-        uuid: v4(),
+    this.baseUpdateOrCreate({
+      data: {
         articleId,
         userId,
+        updated_at: new Date(),
+        count: this.knex.raw('count + 1'),
+        archived: false,
         ip
       },
-      'article_read'
-    )
+      where: { articleId, userId },
+      table: 'article_read_count',
+      createOptions: { count: 1 }
+    })
 
   /*********************************
    *                               *

@@ -160,11 +160,13 @@ export class BaseService extends DataSource {
   baseUpdateOrCreate = async ({
     where,
     data,
-    table
+    table,
+    createOptions
   }: {
     where: { [key: string]: any }
     data: ItemData
     table?: TableName
+    createOptions?: { [key: string]: any }
   }) => {
     const tableName = table || this.table
     const item = await this.knex(tableName)
@@ -174,7 +176,11 @@ export class BaseService extends DataSource {
 
     // create
     if (!item) {
-      return this.baseCreate(data, tableName)
+      let createData = data
+      if (createOptions) {
+        createData = { ...createData, ...createOptions }
+      }
+      return this.baseCreate(createData, tableName)
     }
 
     // update

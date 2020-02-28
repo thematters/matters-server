@@ -16,11 +16,14 @@ const resolver: MutationToReadArticleResolver = async (
     throw new ArticleNotFoundError('target article does not exists')
   }
 
-  await articleService.read({
-    articleId: article.id,
-    userId: viewer.id,
-    ip: viewer.ip
-  })
+  // only record if viewer read others articles
+  if (viewer.id !== article.authorId) {
+    await articleService.read({
+      articleId: article.id,
+      userId: viewer.id || null,
+      ip: viewer.ip
+    })
+  }
 
   // call like.co count api for like.co analytic pageview
   try {
