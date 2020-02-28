@@ -1,32 +1,64 @@
+import { CACHE_PREFIX, CACHE_TTL } from 'common/enums'
+import { CacheService } from 'connectors'
 import { GQLArticleTranslationTypeResolver } from 'definitions'
 
 import contentResolver from './content'
 
+const type = 'ArticleTranslation'
+
+const cacheService = new CacheService(undefined, CACHE_PREFIX.OBJECTS)
+
 const resolver: GQLArticleTranslationTypeResolver = {
   originalLanguage: async (
-    { content },
+    { content, id },
     _,
     { dataSources: { articleService } }
-  ) => articleService.detectLanguage(content),
+  ) =>
+    cacheService.getObject({
+      type,
+      id,
+      field: 'originalLanguage',
+      getter: () => articleService.detectLanguage(content),
+      expire: CACHE_TTL.STATIC
+    }),
+
   title: async (
-    { title },
+    { title, id },
     _,
     { dataSources: { articleService }, viewer: { language } }
-  ) => articleService.translate(title, language),
+  ) =>
+    cacheService.getObject({
+      type,
+      id,
+      field: 'title',
+      args: JSON.stringify({ language }),
+      getter: () => articleService.translate(title, language),
+      expire: CACHE_TTL.STATIC,
+      fallbackValue: title
+    }),
+
   content: async (...args) => {
     // for ACL
     const content = contentResolver(...args)
     if (content) {
       const [
-        root,
+        { id },
         _,
         {
           dataSources: { articleService },
-          viewer: { language },
-          redis
+          viewer: { language }
         }
       ] = args
-      return articleService.translate(content, language)
+
+      return cacheService.getObject({
+        type,
+        id,
+        field: 'content',
+        args: JSON.stringify({ language }),
+        getter: () => articleService.translate(content, language),
+        expire: CACHE_TTL.STATIC,
+        fallbackValue: content
+      })
     } else {
       return ''
     }

@@ -14,7 +14,7 @@ export const MATERIALIZED_VIEW = {
 
 // cache ttl in seconds
 export const CACHE_TTL = {
-  STATIC: 60 * 60 * 24 * 30, // 30 days for static data
+  STATIC: 60 * 60 * 24 * 10, // 10 days for static data
   SHORT: 90,
   DEFAULT: 60,
   INSTANT: 0

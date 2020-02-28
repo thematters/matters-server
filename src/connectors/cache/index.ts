@@ -33,18 +33,29 @@ export class CacheService {
    *
    * e.g. cache-keys:Article:1510
    */
-  genKey = (type: string, id: string, args?: string): string =>
-    [this.prefix, type, id, args].filter(el => el).join(':')
+  genKey = ({
+    type,
+    id,
+    field,
+    args
+  }: {
+    type: string
+    id: string
+    args?: string
+    field?: string
+  }): string => [this.prefix, type, id, field, args].filter(el => el).join(':')
 
   storeObject = ({
     type,
     id,
+    field,
     args,
     data,
     expire = CACHE_TTL.SHORT
   }: {
     type: string
     id: string
+    field?: string
     args?: string
     data: string
     expire?: number
@@ -52,21 +63,46 @@ export class CacheService {
     if (!this.redis || !this.redis.client) {
       throw new Error('redis init failed')
     }
-    const key = this.genKey(type, id, args)
+    const key = this.genKey({ type, id, args, field })
     return this.redis.client.set(key, data, 'EX', expire)
   }
 
-  getObject = ({
+  getObject = async ({
     type,
     id,
-    args
+    field,
+    args,
+    getter,
+    fallbackValue = '',
+    expire = CACHE_TTL.SHORT
   }: {
     type: string
     id: string
+    field?: string
     args?: string
+    getter?: () => Promise<string | undefined>
+    fallbackValue?: string
+    expire?: number
   }) => {
-    const key = this.genKey(type, id, args)
-    return this.redis.client.get(key)
+    const key = this.genKey({ type, id, field, args })
+
+    let data = await this.redis.client.get(key)
+
+    if (!data && getter) {
+      data = await getter()
+      if (data) {
+        this.storeObject({
+          type,
+          id,
+          field,
+          args,
+          data,
+          expire
+        })
+      }
+    }
+
+    return data || fallbackValue
   }
 
   /**
@@ -77,7 +113,7 @@ export class CacheService {
       if (!this.redis || !this.redis.client) {
         throw new Error('redis init failed')
       }
-      const key = this.genKey(type, id)
+      const key = this.genKey({ type, id })
       const hashes = await this.redis.client.smembers(key)
       hashes.map(async (hash: string) => {
         await this.redis.client

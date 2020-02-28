@@ -1,9 +1,9 @@
+import { v2 as TranslateAPI } from '@google-cloud/translate'
 import slugify from '@matters/slugify'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 import { v4 } from 'uuid'
-import { v2 as TranslateAPI } from '@google-cloud/translate'
 
 import {
   ALS_DEFAULT_VECTOR,

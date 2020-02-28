@@ -20,8 +20,8 @@ import subscribers from './subscribers'
 import tagArticles from './tag/articles'
 import * as tagOSS from './tag/oss'
 import tags from './tags'
-import userArticles from './user/articles'
 import ArticleTranslation from './translation'
+import userArticles from './user/articles'
 
 export default {
   Query: {
