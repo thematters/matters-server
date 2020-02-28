@@ -1119,9 +1119,10 @@ export class ArticleService extends BaseService {
         userId,
         updated_at: new Date(),
         count: this.knex.raw('count + 1'),
+        archvied: false,
         ip
       },
-      where: { articleId, userId, archived: false },
+      where: { articleId, userId },
       table: 'article_read_count',
       createOptions: { count: 1 }
     })
