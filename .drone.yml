@@ -40,6 +40,21 @@ steps:
       - npm run build
 
   # === CI tasks for `develop` branch ===
+  - name: develop:update-mail-templates
+    image: node:10.15
+    environment:
+      MATTERS_ENV: development
+      MATTERS_SENDGRID_API_KEY:
+        from_secret: DEVELOP_SENDGRID_API_KEY
+    commands:
+      - npm run update:mail
+    when:
+      branch:
+        - develop
+        - feature/mail-template-deployment
+      event:
+        - push
+
   - name: develop:db-migrate
     image: node:10.15
     environment:
