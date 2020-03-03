@@ -15,6 +15,7 @@
     "db:seed:make": "knex seed:make",
     "clean": "rimraf build",
     "build:email": "mjml src/connectors/mail/templates/*.mjml -o src/connectors/mail/templates/build/",
+    "update:email": "ts-node --files src/common/utils/updateMailTemplates.ts",
     "build": "tsc -p .",
     "watch:build": "tsc -p . --watch",
     "watch:server": "nodemon build/index.js",
@@ -31,8 +32,7 @@
     "gen:schema": "ts-node --files src/common/utils/exportSchema.ts",
     "gen:types": "ts-node --files src/common/utils/generateTypes.ts",
     "gen": "npm run gen:schema && npm run gen:types",
-    "schema:push": "apollo service:push --key=$MATTERS_APOLLO_API_KEY --localSchemaFile=schema.graphql",
-    "update:mail": "ts-node --files src/common/utils/updateMailTemplates.ts"
+    "schema:push": "apollo service:push --key=$MATTERS_APOLLO_API_KEY --localSchemaFile=schema.graphql"
   },
   "author": "",
   "license": "UNLICENSED",

@@ -47,7 +47,8 @@ steps:
       MATTERS_SENDGRID_API_KEY:
         from_secret: DEVELOP_SENDGRID_API_KEY
     commands:
-      - npm run update:mail
+      - npm run build:email
+      - npm run update:email
     when:
       branch:
         - develop
