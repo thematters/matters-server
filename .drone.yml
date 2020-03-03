@@ -47,6 +47,7 @@ steps:
       MATTERS_SENDGRID_API_KEY:
         from_secret: DEVELOP_SENDGRID_API_KEY
     commands:
+      - mkdir -p src/connectors/mail/templates/build/
       - npm run build:email
       - npm run update:email
     when:
