@@ -70,7 +70,7 @@
     "graphql-tools": "^4.0.6",
     "graphql-type-json": "^0.3.1",
     "graphql-upload": "^9.0.0",
-    "helmet": "^3.21.2",
+    "helmet": "^3.21.3",
     "image-size": "^0.8.3",
     "imagemin": "^7.0.1",
     "imagemin-gifsicle": "^7.0.0",
