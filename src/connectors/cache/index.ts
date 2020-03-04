@@ -88,6 +88,7 @@ export class CacheService {
 
     let data = await this.redis.client.get(key)
 
+    // get the data if there is none
     if (!data && getter) {
       data = await getter()
       if (data) {
