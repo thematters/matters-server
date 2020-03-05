@@ -83,14 +83,6 @@ export const environment = {
   likecoinClientId: process.env.MATTERS_LIKECOIN_CLIENT_ID || '',
   likecoinClientSecret: process.env.MATTERS_LIKECOIN_CLIENT_SECRET || '',
   likecoinCallbackURL: process.env.MATTERS_LIKECOIN_CALLBACK_URL || '',
-  mediumAuthorizationURL: process.env.MATTERS_MEDIUM_AUTH_URL || '',
-  mediumApiMeURL: process.env.MATTERS_MEDIUM_API_ME_URL || '',
-  mediumGQLURL: process.env.MATTERS_MEDIUM_GQL_URL || '',
-  mediumImgURL: process.env.MATTERS_MEDIUM_IMG_URL || '',
-  mediumTokenURL: process.env.MATTERS_MEDIUM_TOKEN_URL || '',
-  mediumClientId: process.env.MATTERS_MEDIUM_CLIENT_ID || '',
-  mediumClientSecret: process.env.MATTERS_MEDIUM_CLIENT_SECRET || '',
-  mediumCallbackURL: process.env.MATTERS_MEDIUM_CALLBACK_URL || '',
   oAuthSecret: process.env.MATTERS_OAUTH_SECRET || ''
 }
 
