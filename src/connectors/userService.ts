@@ -39,17 +39,14 @@ import {
 } from 'definitions'
 
 import { likecoin } from './likecoin'
-import { medium } from './medium'
 
 export class UserService extends BaseService {
   likecoin: typeof likecoin
-  medium: typeof medium
 
   constructor() {
     super('user')
 
     this.likecoin = likecoin
-    this.medium = medium
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }

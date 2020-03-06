@@ -95,85 +95,11 @@ class MigrationQueue {
           }
 
           // get and check oauth
-          const tokenData = await this.userService.findOAuthToken({
-            userId,
-            provider
-          })
-          if (!tokenData || !tokenData.accessToken || !tokenData.refreshToken) {
-            job.progress(100)
-            done(new Error(`user ${userId} has no ${provider} OAuth token`))
-            return
-          }
 
-          const { accessToken, refreshToken } = tokenData
+          // put draft
 
-          switch (provider) {
-            case OAUTH_PROVIDER.medium:
-              // get user info
-              const userInfo = await this.userService.medium.getUserInfo({
-                userId,
-                accessToken,
-                refreshToken
-              })
-              if (!userInfo.data || !userInfo.data.id) {
-                job.progress(100)
-                done(new Error(`user ${userId} ${provider} id is invalid`))
-                return
-              }
+          // put assets
 
-              // fetch postIds from Medium
-              const postIds = await this.userService.medium.getUserPostIds({
-                userId: userInfo.data.id
-              })
-
-              const {
-                id: entityTypeId
-              } = await this.systemService.baseFindEntityTypeId('draft')
-              if (!entityTypeId) {
-                throw new Error('Entity type is incorrect.')
-              }
-
-              // process all posts
-              for (const postId of postIds) {
-                const post = await this.userService.medium.getUserPostParagraphs(
-                  { postId }
-                )
-
-                // generate html and extract images need to store in db
-                const {
-                  html,
-                  assets
-                } = await this.userService.medium.convertPostParagraphsToHTML(
-                  post
-                )
-
-                // put draft
-                const draft = await this.draftService.baseCreate({
-                  authorId: userId,
-                  uuid: v4(),
-                  title: post.title,
-                  summary: html && makeSummary(html),
-                  content: html && sanitize(html)
-                })
-
-                // add asset and assetmap
-                const result = await Promise.all(
-                  assets.map(asset =>
-                    this.systemService.createAssetAndAssetMap(
-                      {
-                        uuid: asset.uuid,
-                        authorId: userId,
-                        type: 'embed',
-                        path: asset.key
-                      },
-                      entityTypeId,
-                      draft.id
-                    )
-                  )
-                )
-              }
-              break
-          }
           job.progress(90)
 
           // add email task
