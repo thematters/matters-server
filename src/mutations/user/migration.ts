@@ -23,7 +23,7 @@ const resolver: MutationToMigrationResolver = async (
     throw new UserInputError('migration files are not provided.')
   }
 
-  // dummy safty checker
+  // dummy safety checker
   if (files.length > 100) {
     throw new UserInputError('migration files are too many.')
   }
