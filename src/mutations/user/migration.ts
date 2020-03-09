@@ -40,10 +40,10 @@ const resolver: MutationToMigrationResolver = async (
       }
 
       const stream = createReadStream()
-      const buffer = await getStream.buffer(
-        stream,
-        { encoding: 'utf8', maxBuffer: UPLOAD_MIGRATION_FILE_SIZE_LIMIT }
-      )
+      const buffer = await getStream.buffer(stream, {
+        encoding: 'utf8',
+        maxBuffer: UPLOAD_MIGRATION_FILE_SIZE_LIMIT
+      })
       totalSize = totalSize + buffer.byteLength
 
       if (totalSize > UPLOAD_MIGRATION_FILE_SIZE_LIMIT) {
@@ -61,7 +61,6 @@ const resolver: MutationToMigrationResolver = async (
       $('section.p-summary, footer').remove()
 
       htmls.push($('article').html() || '')
-
     } catch (error) {
       if (error.name === 'MaxBufferError') {
         throw new UserInputError('migration file size reaches limit.')
