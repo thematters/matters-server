@@ -36,7 +36,7 @@ const resolver: MutationToMigrationResolver = async (
       const content = await getStream(stream)
       const $ = cheerio.load(content || '', { decodeEntities: false })
 
-      // cleanup unnecessary elements
+      // cleanup unnecessary attributes and elements
       $('*')
         .removeAttr('id')
         .removeAttr('name')
