@@ -819,7 +819,12 @@ input MergeTagsInput {
 }
 
 input MigrationInput {
-  provider: OAuthProvider!
+  type: MigrationType
+  files: [Upload]!
+}
+
+enum MigrationType {
+  medium
 }
 
 type Mutation {
@@ -1139,7 +1144,6 @@ enum OAuthProvider {
   facebook
   wechat
   google
-  medium
 }
 
 """This type contains system-wise settings."""

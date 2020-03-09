@@ -462,6 +462,9 @@ export const ALS_DEFAULT_VECTOR = {
 
 export const OAUTH_PROVIDER = {
   facebbook: 'facebook',
-  google: 'google',
+  google: 'google'
+}
+
+export const MIGTATION_SOURCE = {
   medium: 'medium'
 }
