@@ -57,7 +57,7 @@ export class Medium {
   }
 
   /**
-   * Fetch and uploaded assets embedded in post.
+   * Fetch and upload assets embedded in post.
    *
    */
   fetchAndUploadAsset = async (url: string) => {
