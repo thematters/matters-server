@@ -2,7 +2,7 @@ import * as cheerio from 'cheerio'
 import getStream from 'get-stream'
 
 import { OAUTH_PROVIDER, UPLOAD_MIGRATION_FILE_SIZE_LIMIT } from 'common/enums'
-import { AuthenticationError, UserInputError } from 'common/errors'
+import { AuthenticationError, MigrationReachLimitError, UserInputError } from 'common/errors'
 import { migrationQueue } from 'connectors/queue/migration'
 import { MutationToMigrationResolver } from 'definitions'
 
@@ -47,7 +47,7 @@ const resolver: MutationToMigrationResolver = async (
       totalSize = totalSize + buffer.byteLength
 
       if (totalSize > UPLOAD_MIGRATION_FILE_SIZE_LIMIT) {
-        throw new UserInputError('total size of migration files reaches limit.')
+        throw new MigrationReachLimitError('total size of migration files reaches limit.')
       }
 
       const content = buffer.toString('utf8')
@@ -63,7 +63,7 @@ const resolver: MutationToMigrationResolver = async (
       htmls.push($('article').html() || '')
     } catch (error) {
       if (error.name === 'MaxBufferError') {
-        throw new UserInputError('migration file size reaches limit.')
+        throw new MigrationReachLimitError('migration file size reaches limit.')
       } else {
         throw error
       }
