@@ -486,8 +486,7 @@ export interface GQLNotificationSetting {
 export const enum GQLOAuthProvider {
   facebook = 'facebook',
   wechat = 'wechat',
-  google = 'google',
-  medium = 'medium'
+  google = 'google'
 }
 
 export interface GQLRecommendation {
@@ -2164,7 +2163,12 @@ export interface GQLClearReadHistoryInput {
 }
 
 export interface GQLMigrationInput {
-  provider: GQLOAuthProvider
+  type?: GQLMigrationType
+  files: Array<GQLUpload | null>
+}
+
+export const enum GQLMigrationType {
+  medium = 'medium'
 }
 
 export interface GQLUpdateUserStateInput {

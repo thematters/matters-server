@@ -310,3 +310,16 @@ export class LikerUserIdExistsError extends ApolloError {
     Object.defineProperty(this, 'name', { value: 'LikerUserIdExistsError' })
   }
 }
+
+/*********************************
+ *                               *
+ *            Migration          *
+ *                               *
+ *********************************/
+export class MigrationReachLimitError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'MIGRATION_REACH_LIMIT')
+
+    Object.defineProperty(this, 'name', { value: 'MigrationReachLimit' })
+  }
+}

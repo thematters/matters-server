@@ -1,21 +1,17 @@
-import { MailData } from '@sendgrid/helpers/classes/mail'
 import Queue from 'bull'
 import { v4 } from 'uuid'
 
 import {
-  EMAIL_TEMPLATE_ID,
   MIGRATION_DELAY,
-  NODE_TYPES,
-  OAUTH_PROVIDER,
+  MIGTATION_SOURCE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY
 } from 'common/enums'
-import { environment, isTest } from 'common/environment'
+import { isTest } from 'common/environment'
 import logger from 'common/logger'
 import { makeSummary, sanitize } from 'common/utils'
-import { i18n } from 'common/utils/i18n'
 import {
   CacheService,
   DraftService,
@@ -29,7 +25,6 @@ import { createQueue } from './utils'
 
 class MigrationQueue {
   q: InstanceType<typeof Queue>
-  cacheService: InstanceType<typeof CacheService>
   draftService: InstanceType<typeof DraftService>
   notificationService: InstanceType<typeof NotificationService>
   systemService: InstanceType<typeof SystemService>
@@ -38,7 +33,6 @@ class MigrationQueue {
   private queueName = QUEUE_NAME.migration
 
   constructor() {
-    this.cacheService = new CacheService()
     this.draftService = new DraftService()
     this.notificationService = new NotificationService()
     this.systemService = new SystemService()
@@ -51,17 +45,19 @@ class MigrationQueue {
    * Producers
    */
   migrate = ({
+    type,
     userId,
-    provider,
+    htmls,
     delay = MIGRATION_DELAY
   }: {
+    type: string
     userId: string
-    provider: string
+    htmls: string[]
     delay?: number
   }) => {
     return this.q.add(
       QUEUE_JOB.migration,
-      { userId, provider },
+      { type, userId, htmls },
       {
         delay,
         priority: QUEUE_PRIORITY.NORMAL
@@ -82,9 +78,10 @@ class MigrationQueue {
       QUEUE_CONCURRENCY.migration,
       async (job, done) => {
         try {
-          const { userId, provider } = job.data as {
+          const { type, userId, htmls } = job.data as {
+            type: string
             userId: string
-            provider: string
+            htmls: string[]
           }
 
           const user = await this.userService.baseFindById(userId)
@@ -94,11 +91,62 @@ class MigrationQueue {
             return
           }
 
-          // get and check oauth
+          const {
+            id: entityTypeId
+          } = await this.systemService.baseFindEntityTypeId('draft')
+          if (!entityTypeId) {
+            job.progress(100)
+            throw new Error('entity type is incorrect.')
+            return
+          }
 
-          // put draft
+          if (!htmls || htmls.length === 0) {
+            job.progress(100)
+            done(new Error(`html files are not provided`))
+            return
+          }
 
-          // put assets
+          switch (type) {
+            case MIGTATION_SOURCE.medium:
+              for (const html of htmls) {
+                if (!html) {
+                  continue
+                }
+
+                // process raw html
+                const {
+                  title,
+                  content,
+                  assets
+                } = await this.userService.medium.convertRawHTML(html)
+
+                // put draft
+                const draft = await this.draftService.baseCreate({
+                  authorId: userId,
+                  uuid: v4(),
+                  title,
+                  summary: content && makeSummary(content),
+                  content: content && sanitize(content)
+                })
+
+                // add asset and assetmap
+                const result = await Promise.all(
+                  assets.map(asset =>
+                    this.systemService.createAssetAndAssetMap(
+                      {
+                        uuid: asset.uuid,
+                        authorId: userId,
+                        type: 'embed',
+                        path: asset.key
+                      },
+                      entityTypeId,
+                      draft.id
+                    )
+                  )
+                )
+              }
+              break
+          }
 
           job.progress(90)
 

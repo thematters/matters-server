@@ -2,6 +2,8 @@ import { i18n } from 'common/utils/i18n'
 
 export const UPLOAD_FILE_SIZE_LIMIT = 100 * 1024 * 1024
 
+export const UPLOAD_MIGRATION_FILE_SIZE_LIMIT = 1 * 1024 * 1024
+
 export const MATERIALIZED_VIEW = {
   articleCountMaterialized: 'article_count_materialized',
   tagCountMaterialized: 'tag_count_materialized',
@@ -462,6 +464,9 @@ export const ALS_DEFAULT_VECTOR = {
 
 export const OAUTH_PROVIDER = {
   facebbook: 'facebook',
-  google: 'google',
+  google: 'google'
+}
+
+export const MIGTATION_SOURCE = {
   medium: 'medium'
 }
