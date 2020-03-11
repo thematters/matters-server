@@ -344,9 +344,9 @@ export const EMAIL_TEMPLATE_ID = {
     en: 'd-231ada8640374adb9d79a0130480c801'
   },
   migrationSuccess: {
-    zh_hant: '',
-    zh_hans: '',
-    en: ''
+    zh_hant: 'd-47b788ce3754426fb2a6d3c80b9872eb',
+    zh_hans: 'd-2e7d84cd2965426b80eafcfdcd18776c',
+    en: 'd-47b788ce3754426fb2a6d3c80b9872eb'
   }
 }
 
