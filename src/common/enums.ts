@@ -14,7 +14,9 @@ export const MATERIALIZED_VIEW = {
   featuredCommentMaterialized: 'featured_comment_materialized'
 }
 
+// cache ttl in seconds
 export const CACHE_TTL = {
+  STATIC: 60 * 60 * 24 * 10, // 10 days for static data
   SHORT: 90,
   DEFAULT: 60,
   INSTANT: 0
@@ -441,9 +443,14 @@ export const NODE_TYPES = {
   tag: 'Tag'
 }
 
+// keyword notating for cache invalidation
 export const CACHE_KEYWORD = '__cache__'
 
-export const CACHE_PREFIX = 'cache-keys'
+// redis cache for apq keys or resolver returned objects
+export const CACHE_PREFIX = {
+  KEYS: 'cache-keys',
+  OBJECTS: 'cache-objects'
+}
 
 export const TRANSACTION_TYPES = {
   like: 'LIKE',

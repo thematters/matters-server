@@ -172,6 +172,11 @@ export interface GQLArticle extends GQLNode {
   sticky: boolean
 
   /**
+   * Translation of article title and content.
+   */
+  translation?: GQLArticleTranslation
+
+  /**
    * OSS
    */
   oss: GQLArticleOSS
@@ -1240,6 +1245,12 @@ export interface GQLNoticeNameMap {
   SubscribedArticleNewCommentNotice: GQLSubscribedArticleNewCommentNotice
   UpstreamArticleArchivedNotice: GQLUpstreamArticleArchivedNotice
   UserNewFollowerNotice: GQLUserNewFollowerNotice
+}
+
+export interface GQLArticleTranslation {
+  originalLanguage: string
+  title: string
+  content: string
 }
 
 export interface GQLArticleOSS {
@@ -2843,6 +2854,7 @@ export interface GQLResolver {
     __resolveType: GQLNoticeTypeResolver
   }
 
+  ArticleTranslation?: GQLArticleTranslationTypeResolver
   ArticleOSS?: GQLArticleOSSTypeResolver
   SearchResultConnection?: GQLSearchResultConnectionTypeResolver
   SearchResultEdge?: GQLSearchResultEdgeTypeResolver
@@ -3034,6 +3046,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>
   subscribed?: ArticleToSubscribedResolver<TParent>
   sticky?: ArticleToStickyResolver<TParent>
+  translation?: ArticleToTranslationResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
@@ -3308,6 +3321,15 @@ export interface ArticleToSubscribedResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToStickyResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToTranslationResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5736,6 +5758,48 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'UpstreamArticleArchivedNotice'
     | 'UserNewFollowerNotice'
 }
+export interface GQLArticleTranslationTypeResolver<TParent = any> {
+  originalLanguage?: ArticleTranslationToOriginalLanguageResolver<TParent>
+  title?: ArticleTranslationToTitleResolver<TParent>
+  content?: ArticleTranslationToContentResolver<TParent>
+}
+
+export interface ArticleTranslationToOriginalLanguageResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTranslationToTitleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleTranslationToContentResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLArticleOSSTypeResolver<TParent = any> {
   boost?: ArticleOSSToBoostResolver<TParent>
   score?: ArticleOSSToScoreResolver<TParent>

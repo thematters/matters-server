@@ -113,6 +113,9 @@ type Article implements Node {
   """
   sticky: Boolean!
 
+  """Translation of article title and content."""
+  translation: ArticleTranslation
+
   """OSS"""
   oss: ArticleOSS!
   remark: String
@@ -376,6 +379,12 @@ type ArticleTagHasBeenUnselectedNotice implements Notice {
 
   """The tag has been attached to an article."""
   tag: Tag
+}
+
+type ArticleTranslation {
+  originalLanguage: String!
+  title: String!
+  content: String!
 }
 
 """This type contains type, link and related data of an asset."""

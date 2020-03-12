@@ -6,6 +6,7 @@ export * from './ipfs'
 export * from './mail'
 export * from './likecoin'
 export * from './push'
+export * from './gcp'
 
 export * from './baseService'
 export * from './articleService'

@@ -37,6 +37,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@elastic/elasticsearch": "^7.6.0",
+    "@google-cloud/translate": "^5.1.6",
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
     "@okgrow/graphql-scalars": "^0.4.6",

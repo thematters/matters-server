@@ -25,7 +25,7 @@ export class LogCacheDirective extends SchemaDirectiveVisitor {
               break
             }
           }
-          cacheKeys.add(`${CACHE_PREFIX}:${cacheType}:${result.id}`)
+          cacheKeys.add(`${CACHE_PREFIX.KEYS}:${cacheType}:${result.id}`)
         } catch (error) {
           logger.error(error)
         }
