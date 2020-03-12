@@ -36,7 +36,7 @@
           </mj-text>
           <mj-spacer height="16px" />
           <mj-text>
-            点击<a class="link" href="{{siteDomain}}/@{{recipient.userName}}/drafts?utm_medium=email">这里</a>准备好发布你的第一篇作品吧。记得邀请读者追踪<a class="link" href="{{siteDomain}}/a{{recipient.userName}}">你的 Matters 个人空间站</a>，为你点赞赢得更多创作收入喔！
+            点击<a class="link" href="{{siteDomain}}/me/drafts?utm_medium=email">这里</a>准备好发布你的第一篇作品吧。记得邀请读者追踪<a class="link" href="{{siteDomain}}/@{{recipient.userName}}">你的 Matters 个人空间站</a>，为你点赞赢得更多创作收入喔！
           </mj-text>
           <mj-spacer height="16px" />
           <mj-text>

@@ -27,11 +27,6 @@ const resolver: MutationToMigrationResolver = async (
     throw new UserInputError('migration files are not provided.')
   }
 
-  // dummy safety checker
-  if (files.length > 100) {
-    throw new UserInputError('migration files are too many.')
-  }
-
   // pre-process uploaded migration data
   let totalSize = 0
   const uploads = await Promise.all(files.map(file => file))
