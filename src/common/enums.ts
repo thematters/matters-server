@@ -39,8 +39,8 @@ export const SCOPE_TYPE = {
 }
 
 export const LANGUAGE = {
-  zh_hans: 'zh-CN',
-  zh_hant: 'zh-TW',
+  zh_hans: 'zh_hans',
+  zh_hant: 'zh_hant',
   en: 'en'
 }
 

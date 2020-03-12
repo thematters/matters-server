@@ -1,4 +1,3 @@
-import { v2 as TranslateAPI } from '@google-cloud/translate'
 import slugify from '@matters/slugify'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
@@ -586,24 +585,10 @@ export class ArticleService extends BaseService {
    *                               *
    *********************************/
 
-  translate = async (content: string, target: string) => {
-    try {
-      const [translation] = await gcp.translate.translate(content, target)
-      return translation
-    } catch (err) {
-      logger.error(err)
-    }
-  }
+  translate = (content: string, target: string) =>
+    gcp.translate(content, target)
 
-  detectLanguage = async (content: string) => {
-    try {
-      const result = await gcp.translate.detect(content)
-      const [{ language }] = result
-      return language
-    } catch (err) {
-      logger.error(err)
-    }
-  }
+  detectLanguage = (content: string) => gcp.detectLanguage(content)
 
   /**
    * Find One
