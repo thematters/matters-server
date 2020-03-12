@@ -12,7 +12,7 @@ import _ from 'lodash'
 import 'module-alias/register'
 import 'newrelic'
 
-import { CACHE_TTL, CORS_OPTIONS, UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
+import { CACHE_TTL, CORS_OPTIONS, UPLOAD_FILE_COUNT_LIMIT, UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import { ActionLimitExceededError } from 'common/errors'
 import logger from 'common/logger'
@@ -101,7 +101,7 @@ const server = new ProtectedApolloServer({
   }),
   uploads: {
     maxFileSize: UPLOAD_FILE_SIZE_LIMIT,
-    maxFiles: 10
+    maxFiles: UPLOAD_FILE_COUNT_LIMIT
   },
   debug: !isProd,
   validationRules: [depthLimit(15)],

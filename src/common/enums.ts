@@ -1,5 +1,7 @@
 import { i18n } from 'common/utils/i18n'
 
+export const UPLOAD_FILE_COUNT_LIMIT = 50
+
 export const UPLOAD_FILE_SIZE_LIMIT = 100 * 1024 * 1024
 
 export const UPLOAD_MIGRATION_FILE_SIZE_LIMIT = 1 * 1024 * 1024
