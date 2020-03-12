@@ -1,0 +1,61 @@
+<mjml>
+  <mj-head>
+    <mj-include path="../partials/head.mjml" />
+    <mj-title>Matters | 搬家完成啦，立刻回到 Matters 进行宇宙传输吧！</mj-title>
+    <mj-preview>欢迎你搬家来 Matters。现在，你的全部作品均已存在草稿箱内。</mj-preview>
+  </mj-head>
+
+  <mj-body mj-class="body" css-class="body">
+    <mj-wrapper mj-class="wrapper">
+      <mj-include path="../partials/header.mjml" />
+
+      <mj-section css-class="card bottom-clear">
+        <mj-column>
+          <mj-include path="../partials/greeting.mjml" />
+          <mj-spacer height="16px" />
+          <mj-text>
+            欢迎你搬家来 Matters。现在，你的全部作品均已存在草稿箱内。
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-text>
+            由于平台显示不同，作品可能会有不同呈现。其中需要特别注意两点：
+          </mj-text>
+          <mj-text>
+            1、若你的原作品中有内嵌文章网址，文章网址可能存在部分没有被成功搬移的情况；
+          </mj-text>
+          <mj-text>
+            2、若你搬运的 Medium 作品中有音频文件和视频网页链接，此音频文件和视频网页在 Matters 可能需要重新上传。
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-text>
+            除此之外，Matters 的編輯器為所見即所得，你可以在修訂草稿時著手調整。順便，Matters 的讚賞按鈕已內嵌 LikeButton，你原作品中的讚賞插件會被移除。
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-text>
+            謝謝你願意來到 Matters，為了幫助讀者循序漸進了解你的創作，我們建議每篇文章間隔一定的發佈時間，每天一到兩篇的發佈頻率是較為合適的。如果短時間內大量發佈作品，可能不利於你獲得讚賞與高質量評論。
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-text>
+            点击<a class="link" href="{{siteDomain}}/@{{recipient.userName}}/drafts?utm_medium=email">这里</a>准备好发布你的第一篇作品吧。记得邀请读者追踪<a class="link" href="{{siteDomain}}/a{{recipient.userName}}">你的 Matters 个人空间站</a>，为你点赞赢得更多创作收入喔！
+          </mj-text>
+          <mj-spacer height="16px" />
+          <mj-text>
+            遇到任何问题，随时联系我们：ask@matters.news
+          </mj-text>
+        </mj-column>
+      </mj-section>
+
+      <!-- <mj-section css-class="card bottom-clear" padding-top="24px">
+        <mj-include path="../partials/download.mjml" />
+      </mj-section> -->
+
+      <mj-section css-class="card top-clear">
+        <mj-column>
+          <mj-include path="../partials/ending.mjml" />
+        </mj-column>
+      </mj-section>
+
+      <mj-include path="../partials/footer.mjml" />
+    </mj-wrapper>
+  </mj-body>
+</mjml>
