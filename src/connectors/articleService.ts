@@ -24,7 +24,7 @@ import {
   removeEmpty,
   stripHtml
 } from 'common/utils'
-import { BaseService, ipfs, SystemService, UserService } from 'connectors'
+import { BaseService, gcp, ipfs, SystemService, UserService } from 'connectors'
 import { GQLSearchInput, ItemData } from 'definitions'
 
 export class ArticleService extends BaseService {
@@ -588,12 +588,7 @@ export class ArticleService extends BaseService {
 
   translate = async (content: string, target: string) => {
     try {
-      const translate = new TranslateAPI.Translate({
-        projectId: environment.gcpProjectId,
-        keyFilename: environment.translateCertPath
-      })
-
-      const [translation] = await translate.translate(content, target)
+      const [translation] = await gcp.translate.translate(content, target)
       return translation
     } catch (err) {
       logger.error(err)
@@ -602,12 +597,7 @@ export class ArticleService extends BaseService {
 
   detectLanguage = async (content: string) => {
     try {
-      const translate = new TranslateAPI.Translate({
-        projectId: environment.gcpProjectId,
-        keyFilename: environment.translateCertPath
-      })
-
-      const result = await translate.detect(content)
+      const result = await gcp.translate.detect(content)
       const [{ language }] = result
       return language
     } catch (err) {
