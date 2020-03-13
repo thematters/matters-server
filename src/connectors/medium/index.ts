@@ -117,8 +117,9 @@ export class Medium {
    * Replace `\n` due to Medium does not change it to HTML tag.
    *
    */
-  processBreakInText = (text: string) => {
-    return text.replace(/\n/g, '<br class="smart">')
+  processBreakInText = (dom: Cheerio) => {
+    dom.find('br').replaceWith('<br class="smart">')
+    return (dom.html() || '').replace(/\n/g, '<br class="smart">')
   }
 
   /**
@@ -178,7 +179,7 @@ export class Medium {
           contents.push(`<ul>${dom.html()}</ul>`)
           break
         default:
-          const processedText = this.processBreakInText(dom.html() || '')
+          const processedText = this.processBreakInText(dom || '')
           if (processedText) {
             contents.push(`<p>${processedText}</p>`)
           }
