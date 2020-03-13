@@ -795,6 +795,11 @@ export interface GQLTag extends GQLNode {
   articles: GQLArticleConnection
 
   /**
+   * This value determines if this article is an selected article in this tag or not.
+   */
+  selected: boolean
+
+  /**
    * Time of this tag was created.
    */
   createdAt: GQLDateTime
@@ -827,6 +832,10 @@ export interface GQLTagArticlesInput {
   first?: number
   oss?: boolean
   selected?: boolean
+}
+
+export interface GQLTagSelectedInput {
+  id: string
 }
 
 export interface GQLTagOSS {
@@ -4693,6 +4702,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   id?: TagToIdResolver<TParent>
   content?: TagToContentResolver<TParent>
   articles?: TagToArticlesResolver<TParent>
+  selected?: TagToSelectedResolver<TParent>
   createdAt?: TagToCreatedAtResolver<TParent>
   cover?: TagToCoverResolver<TParent>
   description?: TagToDescriptionResolver<TParent>
@@ -4727,6 +4737,18 @@ export interface TagToArticlesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: TagToArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToSelectedArgs {
+  input: GQLTagSelectedInput
+}
+export interface TagToSelectedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: TagToSelectedArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

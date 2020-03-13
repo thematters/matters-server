@@ -172,6 +172,9 @@ export default /* GraphQL */ `
     "List of how many articles were attached with this tag."
     articles(input: TagArticlesInput!): ArticleConnection!
 
+    "This value determines if this article is selected by this tag or not."
+    selected(input: TagSelectedInput!): Boolean!
+
     "Time of this tag was created."
     createdAt: DateTime!
 
@@ -350,6 +353,9 @@ export default /* GraphQL */ `
     selected: Boolean
   }
 
+  input TagSelectedInput {
+    id: ID!
+  }
 
   "Enums for an article state."
   enum ArticleState {
