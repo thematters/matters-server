@@ -1,12 +1,24 @@
+import { ArticleNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { TagToSelectedArgs } from 'definitions'
+import { TagToSelectedResolver } from 'definitions'
 
-const resolver: TagToSelectedArgs = async (
+const resolver: TagToSelectedResolver = async (
   { id },
   { input },
   { dataSources: { tagService, articleService } }
 ) => {
-  const articleId = fromGlobalId(input.id).id
+  let articleId: string | undefined
+
+  if (input.id) {
+    articleId = fromGlobalId(input.id).id
+  } else if (input.mediaHash) {
+    const article = await articleService.findByMediaHash(input.mediaHash)
+    articleId = article.id
+  }
+
+  if (!articleId) {
+    throw new ArticleNotFoundError('cannot find article by mediaHash')
+  }
 
   return tagService.isArticleSelected({
     articleId,

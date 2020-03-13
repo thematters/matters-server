@@ -354,7 +354,8 @@ export default /* GraphQL */ `
   }
 
   input TagSelectedInput {
-    id: ID!
+    id: ID
+    mediaHash: String
   }
 
   "Enums for an article state."
