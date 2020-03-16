@@ -346,6 +346,21 @@ export class TagService extends BaseService {
       .andWhere({ tagId })
       .del()
 
+  isArticleSelected = async ({
+    articleId,
+    tagId
+  }: {
+    articleId: string
+    tagId: string
+  }) => {
+    const result = await this.knex('article_tag').where({
+      articleId,
+      tagId,
+      selected: true
+    })
+    return result.length > 0
+  }
+
   /*********************************
    *                               *
    *              OSS              *
