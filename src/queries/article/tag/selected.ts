@@ -17,7 +17,7 @@ const resolver: TagToSelectedResolver = async (
   }
 
   if (!articleId) {
-    throw new ArticleNotFoundError('cannot find article by mediaHash')
+    throw new ArticleNotFoundError('Cannot find article by a given input')
   }
 
   return tagService.isArticleSelected({
