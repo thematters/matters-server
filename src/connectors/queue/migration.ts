@@ -60,7 +60,8 @@ class MigrationQueue {
       { type, userId, htmls },
       {
         delay,
-        priority: QUEUE_PRIORITY.NORMAL
+        priority: QUEUE_PRIORITY.NORMAL,
+        removeOnComplete: true
       }
     )
   }
