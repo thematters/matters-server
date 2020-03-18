@@ -1,21 +1,17 @@
-import { MailData } from '@sendgrid/helpers/classes/mail'
 import Queue from 'bull'
 import { v4 } from 'uuid'
 
 import {
-  EMAIL_TEMPLATE_ID,
   MIGRATION_DELAY,
-  NODE_TYPES,
-  OAUTH_PROVIDER,
+  MIGTATION_SOURCE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY
 } from 'common/enums'
-import { environment, isTest } from 'common/environment'
+import { isTest } from 'common/environment'
 import logger from 'common/logger'
 import { makeSummary, sanitize } from 'common/utils'
-import { i18n } from 'common/utils/i18n'
 import {
   CacheService,
   DraftService,
@@ -29,7 +25,6 @@ import { createQueue } from './utils'
 
 class MigrationQueue {
   q: InstanceType<typeof Queue>
-  cacheService: InstanceType<typeof CacheService>
   draftService: InstanceType<typeof DraftService>
   notificationService: InstanceType<typeof NotificationService>
   systemService: InstanceType<typeof SystemService>
@@ -38,7 +33,6 @@ class MigrationQueue {
   private queueName = QUEUE_NAME.migration
 
   constructor() {
-    this.cacheService = new CacheService()
     this.draftService = new DraftService()
     this.notificationService = new NotificationService()
     this.systemService = new SystemService()
@@ -51,20 +45,23 @@ class MigrationQueue {
    * Producers
    */
   migrate = ({
+    type,
     userId,
-    provider,
+    htmls,
     delay = MIGRATION_DELAY
   }: {
+    type: string
     userId: string
-    provider: string
+    htmls: string[]
     delay?: number
   }) => {
     return this.q.add(
       QUEUE_JOB.migration,
-      { userId, provider },
+      { type, userId, htmls },
       {
         delay,
-        priority: QUEUE_PRIORITY.NORMAL
+        priority: QUEUE_PRIORITY.NORMAL,
+        removeOnComplete: true
       }
     )
   }
@@ -82,9 +79,10 @@ class MigrationQueue {
       QUEUE_CONCURRENCY.migration,
       async (job, done) => {
         try {
-          const { userId, provider } = job.data as {
+          const { type, userId, htmls } = job.data as {
+            type: string
             userId: string
-            provider: string
+            htmls: string[]
           }
 
           const user = await this.userService.baseFindById(userId)
@@ -94,66 +92,42 @@ class MigrationQueue {
             return
           }
 
-          // get and check oauth
-          const tokenData = await this.userService.findOAuthToken({
-            userId,
-            provider
-          })
-          if (!tokenData || !tokenData.accessToken || !tokenData.refreshToken) {
+          const {
+            id: entityTypeId
+          } = await this.systemService.baseFindEntityTypeId('draft')
+          if (!entityTypeId) {
             job.progress(100)
-            done(new Error(`user ${userId} has no ${provider} OAuth token`))
+            throw new Error('entity type is incorrect.')
             return
           }
 
-          const { accessToken, refreshToken } = tokenData
+          if (!htmls || htmls.length === 0) {
+            job.progress(100)
+            done(new Error(`html files are not provided`))
+            return
+          }
 
-          switch (provider) {
-            case OAUTH_PROVIDER.medium:
-              // get user info
-              const userInfo = await this.userService.medium.getUserInfo({
-                userId,
-                accessToken,
-                refreshToken
-              })
-              if (!userInfo.data || !userInfo.data.id) {
-                job.progress(100)
-                done(new Error(`user ${userId} ${provider} id is invalid`))
-                return
-              }
+          switch (type) {
+            case MIGTATION_SOURCE.medium:
+              for (const html of htmls) {
+                if (!html) {
+                  continue
+                }
 
-              // fetch postIds from Medium
-              const postIds = await this.userService.medium.getUserPostIds({
-                userId: userInfo.data.id
-              })
-
-              const {
-                id: entityTypeId
-              } = await this.systemService.baseFindEntityTypeId('draft')
-              if (!entityTypeId) {
-                throw new Error('Entity type is incorrect.')
-              }
-
-              // process all posts
-              for (const postId of postIds) {
-                const post = await this.userService.medium.getUserPostParagraphs(
-                  { postId }
-                )
-
-                // generate html and extract images need to store in db
+                // process raw html
                 const {
-                  html,
+                  title,
+                  content,
                   assets
-                } = await this.userService.medium.convertPostParagraphsToHTML(
-                  post
-                )
+                } = await this.userService.medium.convertRawHTML(html)
 
                 // put draft
                 const draft = await this.draftService.baseCreate({
                   authorId: userId,
                   uuid: v4(),
-                  title: post.title,
-                  summary: html && makeSummary(html),
-                  content: html && sanitize(html)
+                  title,
+                  summary: content && makeSummary(content),
+                  content: content && sanitize(content)
                 })
 
                 // add asset and assetmap
@@ -174,6 +148,7 @@ class MigrationQueue {
               }
               break
           }
+
           job.progress(90)
 
           // add email task

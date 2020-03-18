@@ -1,6 +1,7 @@
 import { ARTICLE_STATE } from 'common/enums'
 import { ArticleToContentResolver } from 'definitions'
 
+// ACL for article content
 const resolver: ArticleToContentResolver = (
   { content, state, authorId },
   _,

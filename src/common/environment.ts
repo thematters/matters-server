@@ -74,6 +74,8 @@ export const environment = {
   apiKey: process.env.MATTERS_APOLLO_API_KEY,
   sentryDsn: process.env.MATTERS_SENTRY_DSN,
   firebaseCert,
+  gcpProjectId: process.env.MATTERS_GCP_PROJECT_ID,
+  translateCertPath: process.env.MATTERS_TRANSLATE_CREDENTIAL_PATH,
   OICDPrivateKey,
   likecoinOAuthClientName: process.env.MATTERS_LIKECOIN_OAUTH_CLIENT_NAME || '',
   likecoinMigrationApiURL: process.env.MATTERS_LIKECOIN_MIGRATION_API_URL || '',
@@ -83,14 +85,6 @@ export const environment = {
   likecoinClientId: process.env.MATTERS_LIKECOIN_CLIENT_ID || '',
   likecoinClientSecret: process.env.MATTERS_LIKECOIN_CLIENT_SECRET || '',
   likecoinCallbackURL: process.env.MATTERS_LIKECOIN_CALLBACK_URL || '',
-  mediumAuthorizationURL: process.env.MATTERS_MEDIUM_AUTH_URL || '',
-  mediumApiMeURL: process.env.MATTERS_MEDIUM_API_ME_URL || '',
-  mediumGQLURL: process.env.MATTERS_MEDIUM_GQL_URL || '',
-  mediumImgURL: process.env.MATTERS_MEDIUM_IMG_URL || '',
-  mediumTokenURL: process.env.MATTERS_MEDIUM_TOKEN_URL || '',
-  mediumClientId: process.env.MATTERS_MEDIUM_CLIENT_ID || '',
-  mediumClientSecret: process.env.MATTERS_MEDIUM_CLIENT_SECRET || '',
-  mediumCallbackURL: process.env.MATTERS_MEDIUM_CALLBACK_URL || '',
   oAuthSecret: process.env.MATTERS_OAUTH_SECRET || ''
 }
 

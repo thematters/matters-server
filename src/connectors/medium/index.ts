@@ -1,29 +1,19 @@
 import axios, { AxiosRequestConfig } from 'axios'
+import * as cheerio from 'cheerio'
 import Knex from 'knex'
-import _ from 'lodash'
-import qs from 'qs'
 import { v4 } from 'uuid'
 
-import { OAUTH_PROVIDER, UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
-import { environment } from 'common/environment'
-import logger from 'common/logger'
+import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
 import { getFileName } from 'common/utils'
 import { aws, knex } from 'connectors'
 import { AWSService } from 'connectors/aws'
 import { GQLAssetType } from 'definitions'
 
-import { postQuery, postsQuery } from './graphql'
-
-type RequestProps = {
-  endpoint: string
-  headers?: { [key: string]: any }
-  withClientCredential?: boolean
-  mediumData: { [key: string]: any }
-} & AxiosRequestConfig
-
 export class Medium {
   aws: AWSService
   knex: Knex
+
+  private section = 'section.section--body'
 
   constructor() {
     this.aws = aws
@@ -31,265 +21,47 @@ export class Medium {
   }
 
   /**
-   * Base Request
+   * Convert html downloaded from Medium into draft format.
+   *
    */
-  request = async ({
-    endpoint,
-    headers = {},
-    withClientCredential,
-    mediumData,
-    ...axiosOptions
-  }: RequestProps) => {
-    const makeRequest = ({ accessToken }: { accessToken?: string }) => {
-      // Headers
-      if (accessToken) {
-        headers = {
-          ...headers,
-          Authorization: `Bearer ${accessToken}`
-        }
-      }
-      return axios({
-        url: endpoint,
-        headers,
-        ...axiosOptions
-      })
-    }
+  convertRawHTML = async (html: string) => {
+    const $ = cheerio.load(html || '', { decodeEntities: false })
+    const title = this.getTitle($)
+    const { content, assets } = await this.getContent($)
+    return { title, content, assets }
+  }
 
+  /**
+   * Create custom image block.
+   *
+   */
+  createImageBlock = async (url: string, caption: string) => {
+    const asset = await this.fetchAndUploadAsset(url)
+    const src = `${this.aws.s3Endpoint}/${asset.key}`
+    const content =
+      `<figure class="image"><img src="${src}" data-asset-id="${asset.uuid}">` +
+      `<figcaption><span>${caption}</span></figcaption></figure>`
+    return { content, asset }
+  }
+
+  /**
+   * Create custom iframe block.
+   *
+   */
+  createIFrameBlock = (url: string, caption: string) => {
+    const content =
+      `<figure class="embed-video"><div class="iframe-container">` +
+      `<iframe src="${url}" frameborder="0" allowfullscreen="true" sandbox="allow-scripts allow-same-origin allow-popups">` +
+      `</iframe></div><figcaption><span>${caption}</span></figcaption></figure>`
+    return { content }
+  }
+
+  /**
+   * Fetch and upload assets embedded in post.
+   *
+   */
+  fetchAndUploadAsset = async (url: string) => {
     try {
-      return await makeRequest({
-        accessToken: mediumData.accessToken
-      })
-    } catch (error) {
-      // refresh token and retry
-      if (mediumData.accessToken && error.code === 'expired') {
-        const accessToken = await this.refreshToken({
-          userId: mediumData.userId,
-          refreshToken: mediumData.refreshToken
-        })
-        return makeRequest({ accessToken })
-      }
-
-      // below are other error code handler
-
-      logger.error(error)
-      throw error
-    }
-  }
-
-  /**
-   * Refresh access token by using refresh_token.
-   *
-   */
-  refreshToken = async ({
-    userId,
-    refreshToken
-  }: {
-    userId: string
-    refreshToken: string
-  }): Promise<string> => {
-    // fetch new access_token
-    const response = await this.request({
-      endpoint: environment.mediumTokenURL,
-      withClientCredential: true,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      mediumData: {},
-      method: 'POST',
-      data: qs.stringify({
-        client_id: environment.mediumClientId,
-        client_secret: environment.mediumClientSecret,
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken
-      })
-    })
-
-    // update user_oauth
-    const data = response?.data
-    try {
-      await this.knex('user_oauth')
-        .where({ userId, provider: OAUTH_PROVIDER.medium })
-        .update({
-          accessToken: data.access_token,
-          updatedAt: new Date()
-        })
-    } catch (error) {
-      logger.error(error)
-    }
-    return data.access_token
-  }
-
-  /**
-   * Get basic user info.
-   *
-   */
-  getUserInfo = async ({
-    userId,
-    accessToken,
-    refreshToken
-  }: {
-    userId: string
-    accessToken: string
-    refreshToken: string
-  }): Promise<any> => {
-    return this.request({
-      endpoint: environment.mediumApiMeURL,
-      withClientCredential: true,
-      mediumData: { userId, accessToken, refreshToken },
-      method: 'GET'
-    })
-  }
-
-  /**
-   * Get user's all post ids through Medium's GQL API.
-   *
-   */
-  getUserPostIds = async ({ userId }: { userId: string }) => {
-    let ids: any[] = []
-    let variables: any = {
-      userId,
-      pagingOptions: {
-        limit: 25,
-        page: null,
-        source: null,
-        to: null,
-        ignoredIds: null
-      }
-    }
-
-    while (variables) {
-      const response = await axios.post(environment.mediumGQLURL, {
-        query: postsQuery,
-        variables,
-        headers: { 'Content-Type': 'application/json' }
-      })
-      const data = _.get(response, 'data.data.user.profileStreamConnection')
-
-      variables = null
-
-      if (data) {
-        const posts = _.get(data, 'stream', [])
-        const page = _.get(data, 'pagingInfo.next', null)
-
-        const postIds = posts
-          .map((item: any) => item?.itemType?.post?.id)
-          .filter((id: any) => id)
-        ids = [...ids, ...postIds]
-
-        if (page) {
-          delete page.__typename
-          variables = { userId, pagingOptions: page }
-        }
-      }
-    }
-    return ids
-  }
-
-  /**
-   * Get contents of a user's post through Medium's GQL API.
-   *
-   */
-  getUserPostParagraphs = async ({ postId }: { postId: string }) => {
-    const variables = {
-      postId,
-      showHighlights: false,
-      showNotes: false
-    }
-    const response = await axios.post(environment.mediumGQLURL, {
-      query: postQuery,
-      variables,
-      headers: { 'Content-Type': 'application/json' }
-    })
-    return {
-      title: _.get(response, 'data.data.post.title', null),
-      paragraphs: _.get(
-        response,
-        'data.data.post.content.bodyModel.paragraphs',
-        null
-      )
-    }
-  }
-
-  /**
-   * Convert post paragraphs into HTML string.
-   *
-   */
-  convertPostParagraphsToHTML = async ({
-    title,
-    paragraphs
-  }: {
-    title: string
-    paragraphs: any[]
-  }) => {
-    const assets: Array<{ uuid: string; key: string }> = []
-    const html: string[] = []
-    for (const paragraph of paragraphs) {
-      const { type, text } = paragraph
-      switch (type) {
-        case 'BQ': {
-          html.push(`<blockquote>${text}</blockquote>`)
-          break
-        }
-        case 'H3':
-        case 'H4': {
-          if (text === title) {
-            break
-          }
-          html.push(`<h2>${text}</h2>`)
-          break
-        }
-        case 'IMG': {
-          const { metadata } = paragraph
-          const result = await this.fetchAssetAndUpload(metadata.id)
-          const url = `${this.aws.s3Endpoint}/${result.key}`
-          assets.push(result)
-          html.push(
-            this.createFigureBlock(paragraph.type, {
-              url,
-              uuid: result.uuid,
-              text
-            })
-          )
-          break
-        }
-        case 'PRE': {
-          html.push(`<pre class="ql-syntax">${text}</pre>`)
-          break
-        }
-        case 'IFRAME': {
-          const src = _.get(paragraph, 'iframe.mediaResource.iframeSrc', '')
-          const url = this.processEmbedURL(src)
-          if (url) {
-            html.push(this.createFigureBlock(paragraph.type, { url, text }))
-          }
-          break
-        }
-        case 'MIXTAPE_EMBED': {
-          const { mixtapeMetadata } = paragraph
-          html.push(
-            `<p><a href="${mixtapeMetadata.href}" rel="noopener noreferrer" target="_blank">${text}</a></p>`
-          )
-          break
-        }
-        case 'ULI': {
-          html.push(`<ul><li>${text}</li></ul>`)
-          break
-        }
-        default: {
-          const processedText = this.processBreakInText(text)
-          html.push(`<p>${processedText}</p>`)
-          break
-        }
-      }
-    }
-    return { html: html.join(''), assets }
-  }
-
-  /**
-   * Fetch assets from Medium.
-   *
-   */
-  fetchAssetAndUpload = async (id: string) => {
-    try {
-      const url = `${environment.mediumImgURL}/${id}`
       const response = await axios.get(url, {
         responseType: 'stream',
         maxContentLength: UPLOAD_FILE_SIZE_LIMIT
@@ -315,57 +87,106 @@ export class Medium {
   }
 
   /**
-   * Generate figure block.
+   * Get real content of post. Also fetch and upload images embeded in post.
    *
    */
-  createFigureBlock = (type: string, data: { [key: string]: any }) => {
-    switch (type) {
-      case 'IMG': {
-        const { url, uuid, text } = data
-        return (
-          `<figure class="image"><img src="${url}" data-asset-id="${uuid}">` +
-          `<figcaption><span>${text}</span></figcaption></figure>`
-        )
+  getContent = async ($: CheerioStatic) => {
+    // purge unnecessary elements
+    $(`${this.section} > div`).each((index, element) => {
+      const dom = $(element)
+      if (dom.hasClass('section-divider')) {
+        dom.replaceWith('<hr />')
       }
-      case 'IFRAME': {
-        const { url, text } = data
-        return (
-          `<figure class="embed-video"><div class="iframe-container">` +
-          `<iframe src="${url}" frameborder="0" allowfullscreen="true" sandbox="allow-scripts allow-same-origin allow-popups">` +
-          `</iframe></div><figcaption><span>${text}</span></figcaption></figure>`
-        )
+      if (dom.hasClass('section-content')) {
+        dom.replaceWith(dom.find('div.section-inner').children())
       }
-      default: {
-        return ''
-      }
-    }
+    })
+    $('*:not(section)').removeAttr('class')
+    return this.restructureContent($)
   }
 
   /**
-   * Process embed url.
+   * Get post title.
    *
    */
-  processEmbedURL = (src: string) => {
-    const url = new URL(src)
-    const params = new URLSearchParams(url.search)
-    if (params.get('src')) {
-      const rawURL = params.get('src') || ''
-      if (rawURL.match('/(http(s)?://)?(www.)?youtube|youtu.be/')) {
-        const id = rawURL.match('embed')
-          ? rawURL.split(/embed\//)[1].split('"')[0]
-          : rawURL.split(/v\/|v=|youtu\.be\//)[1].split(/[?&]/)[0]
-        return 'https://www.youtube.com/embed/' + id + '?rel=0'
-      }
-    }
-    return
+  getTitle = ($: CheerioStatic) => {
+    return $('header > h1').text()
   }
 
   /**
    * Replace `\n` due to Medium does not change it to HTML tag.
    *
    */
-  processBreakInText = (text: string) => {
-    return text.replace(/\n/g, '<br class="smart">')
+  processBreakInText = (dom: Cheerio) => {
+    dom.find('br').replaceWith('<br class="smart">')
+    return (dom.html() || '').replace(/\n/g, '<br class="smart">')
+  }
+
+  /**
+   * Restructure HTML elements in order to fit our formats.
+   *
+   */
+  restructureContent = async ($: CheerioStatic) => {
+    const assets: Array<Record<string, any>> = []
+    const contents: string[] = []
+    const elements = $(this.section)
+      .children()
+      .toArray()
+
+    for (const [index, element] of elements.entries()) {
+      const dom = $(element)
+      const name = element.name
+      switch (name) {
+        case 'blockquote':
+          contents.push(`<blockquote>${dom.text()}</blockquote>`)
+          break
+        case 'figure':
+          const caption = dom.find('figcaption').text() || ''
+          const image = dom.find('img')
+          if (image && image.attr('src')) {
+            const url = image.attr('src')
+            const { content, asset } = await this.createImageBlock(
+              url || '',
+              caption
+            )
+            contents.push(content)
+            assets.push(asset)
+            break
+          }
+          break
+        case 'h3':
+        case 'h4':
+          if (index === 1 && name === 'h3') {
+            // skip duplicated title
+            break
+          }
+          contents.push(`<h2>${dom.text()}</h2>`)
+          break
+        case 'hr':
+          if (index === 0) {
+            // skip medium extra divider
+            break
+          }
+          contents.push(dom.html() || '<hr/>')
+          break
+        case 'pre':
+          contents.push(`<pre class="ql-syntax">${dom.text()}</pre>`)
+          break
+        case 'ol':
+          contents.push(`<ol>${dom.html()}</ol>`)
+          break
+        case 'ul':
+          contents.push(`<ul>${dom.html()}</ul>`)
+          break
+        default:
+          const processedText = this.processBreakInText(dom || '')
+          if (processedText) {
+            contents.push(`<p>${processedText}</p>`)
+          }
+          break
+      }
+    }
+    return { content: contents.join(''), assets }
   }
 }
 

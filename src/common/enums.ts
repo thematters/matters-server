@@ -1,6 +1,10 @@
 import { i18n } from 'common/utils/i18n'
 
+export const UPLOAD_FILE_COUNT_LIMIT = 50
+
 export const UPLOAD_FILE_SIZE_LIMIT = 100 * 1024 * 1024
+
+export const UPLOAD_MIGRATION_FILE_SIZE_LIMIT = 1 * 1024 * 1024
 
 export const MATERIALIZED_VIEW = {
   articleCountMaterialized: 'article_count_materialized',
@@ -10,7 +14,9 @@ export const MATERIALIZED_VIEW = {
   featuredCommentMaterialized: 'featured_comment_materialized'
 }
 
+// cache ttl in seconds
 export const CACHE_TTL = {
+  STATIC: 60 * 60 * 24 * 10, // 10 days for static data
   SHORT: 90,
   DEFAULT: 60,
   INSTANT: 0
@@ -342,9 +348,9 @@ export const EMAIL_TEMPLATE_ID = {
     en: 'd-231ada8640374adb9d79a0130480c801'
   },
   migrationSuccess: {
-    zh_hant: '',
-    zh_hans: '',
-    en: ''
+    zh_hant: 'd-47b788ce3754426fb2a6d3c80b9872eb',
+    zh_hans: 'd-2e7d84cd2965426b80eafcfdcd18776c',
+    en: 'd-47b788ce3754426fb2a6d3c80b9872eb'
   }
 }
 
@@ -437,9 +443,14 @@ export const NODE_TYPES = {
   tag: 'Tag'
 }
 
+// keyword notating for cache invalidation
 export const CACHE_KEYWORD = '__cache__'
 
-export const CACHE_PREFIX = 'cache-keys'
+// redis cache for apq keys or resolver returned objects
+export const CACHE_PREFIX = {
+  KEYS: 'cache-keys',
+  OBJECTS: 'cache-objects'
+}
 
 export const TRANSACTION_TYPES = {
   like: 'LIKE',
@@ -462,6 +473,9 @@ export const ALS_DEFAULT_VECTOR = {
 
 export const OAUTH_PROVIDER = {
   facebbook: 'facebook',
-  google: 'google',
+  google: 'google'
+}
+
+export const MIGTATION_SOURCE = {
   medium: 'medium'
 }

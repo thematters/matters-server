@@ -4,7 +4,7 @@ import { LANGUAGE } from 'common/enums'
 
 // map supported language to header language
 export const langMap = {
-  [LANGUAGE.zh_hant]: [LANGUAGE.zh_hant, 'zh-HK', 'zh'],
+  [LANGUAGE.zh_hant]: [LANGUAGE.zh_hant, 'zh-HK', 'zh', 'zh-TW'],
   [LANGUAGE.zh_hans]: [LANGUAGE.zh_hans, 'zh-CN'],
   [LANGUAGE.en]: [LANGUAGE.en, 'en-US']
 }

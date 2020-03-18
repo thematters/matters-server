@@ -254,9 +254,9 @@ const resolvers: GQLRecommendationTypeResolver = {
       }
     }
 
-    const randomDraw = 5
-
     const { first, after, filter } = input
+
+    const randomDraw = first || 5
 
     let notIn: any[] = id ? [id] : []
     if (filter && filter.followed === false) {

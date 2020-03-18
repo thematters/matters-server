@@ -153,6 +153,9 @@ export default /* GraphQL */ `
     "This value determines if this article is an author selected article or not."
     sticky: Boolean!
 
+    "Translation of article title and content."
+    translation: ArticleTranslation
+
     # OSS
     oss: ArticleOSS! @authorize
     remark: String @authorize
@@ -168,6 +171,9 @@ export default /* GraphQL */ `
 
     "List of how many articles were attached with this tag."
     articles(input: TagArticlesInput!): ArticleConnection!
+
+    "This value determines if this article is selected by this tag or not."
+    selected(input: TagSelectedInput!): Boolean!
 
     "Time of this tag was created."
     createdAt: DateTime!
@@ -197,6 +203,12 @@ export default /* GraphQL */ `
     todayCover: String
     todayTitle: String
     todaySummary: String
+  }
+
+  type ArticleTranslation {
+    originalLanguage: String!
+    title: String!
+    content: String!
   }
 
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -339,6 +351,11 @@ export default /* GraphQL */ `
     first: Int
     oss: Boolean
     selected: Boolean
+  }
+
+  input TagSelectedInput {
+    id: ID
+    mediaHash: String
   }
 
   "Enums for an article state."

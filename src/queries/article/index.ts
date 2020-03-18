@@ -19,7 +19,9 @@ import subscribed from './subscribed'
 import subscribers from './subscribers'
 import tagArticles from './tag/articles'
 import * as tagOSS from './tag/oss'
+import tagSelected from './tag/selected'
 import tags from './tags'
+import ArticleTranslation from './translation'
 import userArticles from './user/articles'
 
 export default {
@@ -55,12 +57,15 @@ export default {
       content: string
     }) => makeSummary(articleContent, cover ? 110 : 140),
     tags,
+    translation: (root: any) => root,
     topicScore: ({ topicScore }: { topicScore: number }) =>
       topicScore ? Math.round(topicScore) : null
   },
+  ArticleTranslation,
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
     articles: tagArticles,
+    selected: tagSelected,
     oss: (root: any) => root
   },
   ArticleOSS: {

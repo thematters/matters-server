@@ -113,6 +113,9 @@ type Article implements Node {
   """
   sticky: Boolean!
 
+  """Translation of article title and content."""
+  translation: ArticleTranslation
+
   """OSS"""
   oss: ArticleOSS!
   remark: String
@@ -376,6 +379,12 @@ type ArticleTagHasBeenUnselectedNotice implements Notice {
 
   """The tag has been attached to an article."""
   tag: Tag
+}
+
+type ArticleTranslation {
+  originalLanguage: String!
+  title: String!
+  content: String!
 }
 
 """This type contains type, link and related data of an asset."""
@@ -819,7 +828,12 @@ input MergeTagsInput {
 }
 
 input MigrationInput {
-  provider: OAuthProvider!
+  type: MigrationType
+  files: [Upload]!
+}
+
+enum MigrationType {
+  medium
 }
 
 type Mutation {
@@ -1139,7 +1153,6 @@ enum OAuthProvider {
   facebook
   wechat
   google
-  medium
 }
 
 """This type contains system-wise settings."""
@@ -1599,6 +1612,9 @@ type Tag implements Node {
   """List of how many articles were attached with this tag."""
   articles(input: TagArticlesInput!): ArticleConnection!
 
+  """This value determines if this article is selected by this tag or not."""
+  selected(input: TagSelectedInput!): Boolean!
+
   """Time of this tag was created."""
   createdAt: DateTime!
 
@@ -1638,6 +1654,11 @@ type TagEdge {
 type TagOSS {
   boost: NonNegativeFloat!
   score: NonNegativeFloat!
+}
+
+input TagSelectedInput {
+  id: ID
+  mediaHash: String
 }
 
 input TagsInput {

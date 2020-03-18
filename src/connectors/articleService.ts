@@ -23,7 +23,7 @@ import {
   removeEmpty,
   stripHtml
 } from 'common/utils'
-import { BaseService, ipfs, SystemService, UserService } from 'connectors'
+import { BaseService, gcp, ipfs, SystemService, UserService } from 'connectors'
 import { GQLSearchInput, ItemData } from 'definitions'
 
 export class ArticleService extends BaseService {
@@ -336,14 +336,6 @@ export class ArticleService extends BaseService {
     offset,
     oss = false
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
-    // for local dev
-    // if (environment.env === 'development') {
-    //   return this.knex(this.table)
-    //     .where('title', 'like', `%${key}%`)
-    //     .offset(offset)
-    //     .limit(first)
-    // }
-
     const searchBody = bodybuilder()
       .query('multi_match', {
         query: key,
@@ -586,6 +578,17 @@ export class ArticleService extends BaseService {
     // add recommendation
     return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
   }
+
+  /*********************************
+   *                               *
+   *           Translate           *
+   *                               *
+   *********************************/
+
+  translate = (content: string, target: string) =>
+    gcp.translate(content, target)
+
+  detectLanguage = (content: string) => gcp.detectLanguage(content)
 
   /**
    * Find One

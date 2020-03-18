@@ -492,7 +492,8 @@ export default /* GraphQL */ `
   }
 
   input MigrationInput {
-    provider: OAuthProvider!
+    type: MigrationType
+    files: [Upload]!
   }
 
   enum BadgeType {
@@ -541,7 +542,6 @@ export default /* GraphQL */ `
     facebook
     wechat
     google
-    medium
   }
 
   enum UserState {
@@ -566,5 +566,9 @@ export default /* GraphQL */ `
     joinByTask
     firstPost
     systemSubsidy
+  }
+
+  enum MigrationType {
+    medium
   }
 `

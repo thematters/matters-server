@@ -1,5 +1,0 @@
-<mj-section padding="24px 0">
-  <mj-column>
-    <mj-text mj-class="color-grey" css-class="footer" font-size="12px">Copyright © 2020 Matters, All rights reserved.</mj-text>
-  </mj-column>
-</mj-section>

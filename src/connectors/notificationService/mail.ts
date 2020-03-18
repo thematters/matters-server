@@ -360,7 +360,7 @@ class Mail {
           // @ts-ignore
           dynamic_template_data: {
             subject: trans.migration(language, {}),
-            siteDomin: environment.siteDomain,
+            siteDomain: environment.siteDomain,
             recipient
           }
         }
