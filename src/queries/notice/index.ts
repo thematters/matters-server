@@ -1,4 +1,5 @@
 import {
+  DBNoticeType,
   GQLArticleMentionedYouNoticeTypeResolver,
   GQLArticleNewAppreciationNoticeTypeResolver,
   GQLArticleNewCollectedNoticeTypeResolver,
@@ -13,13 +14,11 @@ import {
   GQLCommentNewReplyNoticeTypeResolver,
   GQLCommentPinnedNoticeTypeResolver,
   GQLDownstreamArticleArchivedNoticeTypeResolver,
-  GQLNoticeTypeResolver,
   GQLOfficialAnnouncementNoticeTypeResolver,
   GQLSubscribedArticleNewCommentNoticeTypeResolver,
   GQLUpstreamArticleArchivedNoticeTypeResolver,
   GQLUserNewFollowerNoticeTypeResolver,
-  GQLUserTypeResolver,
-  NoticeType
+  GQLUserTypeResolver
 } from 'definitions'
 
 import notices from './notices'
@@ -50,7 +49,7 @@ const notice: {
     notices
   },
   Notice: {
-    __resolveType: ({ type }: { type: NoticeType }) => {
+    __resolveType: ({ type }: { type: DBNoticeType }) => {
       const noticeTypeMap = {
         // user
         user_new_follower: 'UserNewFollowerNotice',

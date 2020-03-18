@@ -1,6 +1,6 @@
 import { TableName, User } from 'definitions'
 
-export type NoticeType =
+export type DBNoticeType =
   // user
   | 'user_new_follower'
   // article
@@ -42,7 +42,7 @@ export type NoticeEntityType =
   | 'collection'
   | 'tag'
 
-export type NotificationType = NoticeType | OfficialNoticeExtendType
+export type NotificationType = DBNoticeType | OfficialNoticeExtendType
 
 export interface NotificationRequiredParams {
   event: NotificationType
@@ -322,20 +322,20 @@ export type NoticeDetail = {
   unread: boolean
   deleted: boolean
   updatedAt: Date
-  noticeType: NoticeType
+  noticeType: DBNoticeType
   message?: NoticeMessage
   data?: NoticeData
 }
 
 export type NoticeItem = NoticeDetail & {
   createdAt: Date
-  type: NoticeType
+  type: DBNoticeType
   actors?: User[]
   entities?: NoticeEntitiesMap
 }
 
 export type PutNoticeParams = {
-  type: NoticeType
+  type: DBNoticeType
   actorId?: NoticeUserId
   recipientId: NoticeUserId
   entities?: NotificationEntity[]

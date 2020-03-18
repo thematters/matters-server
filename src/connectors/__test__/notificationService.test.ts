@@ -1,3 +1,4 @@
+import { NOTIFICATION_TYPES } from 'common/enums'
 import { knex, NotificationService, UserService } from 'connectors'
 import { sharedQueueOpts } from 'connectors/queue/utils'
 import { NotificationType } from 'definitions'
@@ -17,32 +18,6 @@ const recipientId = '1'
  * Notification Service
  */
 describe('user notify setting', () => {
-  const noticeTypes: NotificationType[] = [
-    'user_new_follower',
-    'article_published',
-    'article_new_downstream',
-    'article_new_collected',
-    'article_new_appreciation',
-    'article_new_subscriber',
-    'article_new_comment',
-    'article_mentioned_you',
-    'subscribed_article_new_comment',
-    'upstream_article_archived',
-    'downstream_article_archived',
-    'comment_pinned',
-    'comment_new_reply',
-    'comment_mentioned_you',
-    'official_announcement',
-    'user_banned',
-    'user_frozen',
-    'comment_banned',
-    'article_banned',
-    'comment_reported',
-    'article_reported',
-    'article_tag_has_been_added',
-    'article_tag_has_been_removed',
-    'article_tag_has_been_unselected'
-  ]
   const defaultNoifySetting: { [key in NotificationType]: boolean } = {
     user_new_follower: true,
     article_published: true,
@@ -73,7 +48,7 @@ describe('user notify setting', () => {
 
   test('user receives notifications', async () => {
     await Promise.all(
-      noticeTypes.map(async type => {
+      NOTIFICATION_TYPES.map(async type => {
         const notifySetting = await userService.findNotifySetting(recipientId)
         const enable = await notificationService.notice.checkUserNotifySetting({
           event: type,
@@ -89,7 +64,7 @@ describe('user notify setting', () => {
     await userService.updateNotifySetting(notifySetting.id, { follow: false })
     const newNotifySetting = await userService.findNotifySetting(recipientId)
     await Promise.all(
-      noticeTypes.map(async type => {
+      NOTIFICATION_TYPES.map(async type => {
         const enable = await notificationService.notice.checkUserNotifySetting({
           event: type,
           setting: newNotifySetting
