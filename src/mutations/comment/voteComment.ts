@@ -37,16 +37,6 @@ const resolver: MutationToVoteCommentResolver = async (
 
   await commentService.vote({ commentId: dbId, vote, userId: viewer.id })
 
-  // trigger notifications
-  if (vote === 'up') {
-    notificationService.trigger({
-      event: 'comment_new_upvote',
-      recipientId: comment.authorId,
-      actorId: viewer.id,
-      entities: [{ type: 'target', entityTable: 'comment', entity: comment }]
-    })
-  }
-
   // publish a PubSub event
   notificationService.pubsub.publish(
     toGlobalId({

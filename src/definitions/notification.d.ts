@@ -20,7 +20,6 @@ export type NoticeType =
   // comment
   | 'comment_pinned'
   | 'comment_new_reply'
-  | 'comment_new_upvote'
   | 'comment_mentioned_you'
   // official
   | 'official_announcement'
@@ -179,14 +178,6 @@ export interface NoticeCommentNewReplyParams
   ]
 }
 
-export interface NoticeCommentNewUpvoteParams
-  extends NotificationRequiredParams {
-  event: 'comment_new_upvote'
-  recipientId: string
-  actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
-}
-
 export interface NoticeCommentMentionedYouParams
   extends NotificationRequiredParams {
   event: 'comment_mentioned_you'
@@ -297,7 +288,6 @@ export type NotificationPrarms =
   | NoticeDownstreamArticleArchivedParams
   | NoticeCommentPinnedParams
   | NoticeCommentNewReplyParams
-  | NoticeCommentNewUpvoteParams
   | NoticeCommentMentionedYouParams
   | NoticeOfficialAnnouncementParams
   | NoticeUserActivatedParams

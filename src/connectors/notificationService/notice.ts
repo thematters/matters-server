@@ -502,7 +502,6 @@ class Notice extends BaseService {
       downstream_article_archived: setting.downstream,
       comment_pinned: setting.commentPinned,
       comment_new_reply: setting.comment,
-      comment_new_upvote: setting.commentVoted,
       comment_mentioned_you: setting.mention,
       official_announcement: setting.officialNotice,
       user_activated: true,

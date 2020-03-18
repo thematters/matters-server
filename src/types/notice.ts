@@ -264,26 +264,6 @@ export default /* GraphQL */ `
     reply: Comment
   }
 
-  """
-  The notice type contains info about current user's comment has new vote.
-  """
-  type CommentNewUpvoteNotice implements Notice {
-    "Unique ID of this notice."
-    id: ID!
-
-    "The value determines if the notice is unread or not."
-    unread: Boolean!
-
-    "Time of this notice was created."
-    createdAt: DateTime!
-
-    "The user who vote current user's comment."
-    actors: [User]
-
-    "The comment that has new vote."
-    target: Comment
-  }
-
   type CommentMentionedYouNotice implements Notice {
     id: ID!
     unread: Boolean!

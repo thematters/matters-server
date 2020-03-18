@@ -11,7 +11,6 @@ import {
   GQLArticleTagHasBeenUnselectedNoticeTypeResolver,
   GQLCommentMentionedYouNoticeTypeResolver,
   GQLCommentNewReplyNoticeTypeResolver,
-  GQLCommentNewUpvoteNoticeTypeResolver,
   GQLCommentPinnedNoticeTypeResolver,
   GQLDownstreamArticleArchivedNoticeTypeResolver,
   GQLNoticeTypeResolver,
@@ -41,7 +40,6 @@ const notice: {
   DownstreamArticleArchivedNotice: GQLDownstreamArticleArchivedNoticeTypeResolver
   CommentPinnedNotice: GQLCommentPinnedNoticeTypeResolver
   CommentNewReplyNotice: GQLCommentNewReplyNoticeTypeResolver
-  CommentNewUpvoteNotice: GQLCommentNewUpvoteNoticeTypeResolver
   CommentMentionedYouNotice: GQLCommentMentionedYouNoticeTypeResolver
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeTypeResolver
   ArticleTagHasBeenAddedNotice: GQLArticleTagHasBeenAddedNoticeTypeResolver
@@ -73,7 +71,6 @@ const notice: {
         // comment
         comment_pinned: 'CommentPinnedNotice',
         comment_new_reply: 'CommentNewReplyNotice',
-        comment_new_upvote: 'CommentNewUpvoteNotice',
         comment_mentioned_you: 'CommentMentionedYouNotice',
         // official
         official_announcement: 'OfficialAnnouncementNotice'
@@ -144,10 +141,6 @@ const notice: {
     id: ({ uuid }) => uuid,
     target: ({ entities }) => entities.target,
     reply: ({ entities }) => entities.reply
-  },
-  CommentNewUpvoteNotice: {
-    id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target
   },
   CommentMentionedYouNotice: {
     id: ({ uuid }) => uuid,
