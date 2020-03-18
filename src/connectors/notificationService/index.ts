@@ -42,7 +42,6 @@ export class NotificationService extends BaseService {
   ): Promise<PutNoticeParams | undefined> => {
     switch (params.event) {
       case 'user_new_follower':
-      case 'comment_new_upvote':
         return {
           type: params.event,
           recipientId: params.recipientId,

@@ -1226,7 +1226,6 @@ export type GQLPossibleNoticeTypeNames =
   | 'ArticleTagHasBeenUnselectedNotice'
   | 'CommentMentionedYouNotice'
   | 'CommentNewReplyNotice'
-  | 'CommentNewUpvoteNotice'
   | 'CommentPinnedNotice'
   | 'DownstreamArticleArchivedNotice'
   | 'OfficialAnnouncementNotice'
@@ -1248,7 +1247,6 @@ export interface GQLNoticeNameMap {
   ArticleTagHasBeenUnselectedNotice: GQLArticleTagHasBeenUnselectedNotice
   CommentMentionedYouNotice: GQLCommentMentionedYouNotice
   CommentNewReplyNotice: GQLCommentNewReplyNotice
-  CommentNewUpvoteNotice: GQLCommentNewUpvoteNotice
   CommentPinnedNotice: GQLCommentPinnedNotice
   DownstreamArticleArchivedNotice: GQLDownstreamArticleArchivedNotice
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
@@ -2583,36 +2581,6 @@ export interface GQLCommentNewReplyNotice extends GQLNotice {
 }
 
 /**
- * The notice type contains info about current user's comment has new vote.
- */
-export interface GQLCommentNewUpvoteNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The user who vote current user's comment.
-   */
-  actors?: Array<GQLUser | null>
-
-  /**
-   * The comment that has new vote.
-   */
-  target?: GQLComment
-}
-
-/**
  * This notice type contains info about current user's comment has been pinned.
  */
 export interface GQLCommentPinnedNotice extends GQLNotice {
@@ -2899,7 +2867,6 @@ export interface GQLResolver {
   ArticleTagHasBeenUnselectedNotice?: GQLArticleTagHasBeenUnselectedNoticeTypeResolver
   CommentMentionedYouNotice?: GQLCommentMentionedYouNoticeTypeResolver
   CommentNewReplyNotice?: GQLCommentNewReplyNoticeTypeResolver
-  CommentNewUpvoteNotice?: GQLCommentNewUpvoteNoticeTypeResolver
   CommentPinnedNotice?: GQLCommentPinnedNoticeTypeResolver
   DownstreamArticleArchivedNotice?: GQLDownstreamArticleArchivedNoticeTypeResolver
   JSON?: GraphQLScalarType
@@ -5773,7 +5740,6 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'ArticleTagHasBeenUnselectedNotice'
     | 'CommentMentionedYouNotice'
     | 'CommentNewReplyNotice'
-    | 'CommentNewUpvoteNotice'
     | 'CommentPinnedNotice'
     | 'DownstreamArticleArchivedNotice'
     | 'OfficialAnnouncementNotice'
@@ -8674,74 +8640,6 @@ export interface CommentNewReplyNoticeToTargetResolver<
 }
 
 export interface CommentNewReplyNoticeToReplyResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLCommentNewUpvoteNoticeTypeResolver<TParent = any> {
-  id?: CommentNewUpvoteNoticeToIdResolver<TParent>
-  unread?: CommentNewUpvoteNoticeToUnreadResolver<TParent>
-  createdAt?: CommentNewUpvoteNoticeToCreatedAtResolver<TParent>
-  actors?: CommentNewUpvoteNoticeToActorsResolver<TParent>
-  target?: CommentNewUpvoteNoticeToTargetResolver<TParent>
-}
-
-export interface CommentNewUpvoteNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentNewUpvoteNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentNewUpvoteNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentNewUpvoteNoticeToActorsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentNewUpvoteNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {

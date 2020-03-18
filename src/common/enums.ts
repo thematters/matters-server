@@ -1,4 +1,9 @@
 import { i18n } from 'common/utils/i18n'
+import {
+  DBNoticeType,
+  NotificationType,
+  OfficialNoticeExtendType
+} from 'definitions/notification'
 
 export const UPLOAD_FILE_COUNT_LIMIT = 50
 
@@ -479,3 +484,45 @@ export const OAUTH_PROVIDER = {
 export const MIGTATION_SOURCE = {
   medium: 'medium'
 }
+
+/**
+ * Notification
+ */
+export const DB_NOTICE_TYPES: DBNoticeType[] = [
+  'user_new_follower',
+  // article
+  'article_published',
+  'article_new_downstream',
+  'article_new_collected',
+  'article_new_appreciation',
+  'article_new_subscriber',
+  'article_new_comment',
+  'article_mentioned_you',
+  'subscribed_article_new_comment',
+  'upstream_article_archived',
+  'downstream_article_archived',
+  'article_tag_has_been_added',
+  'article_tag_has_been_removed',
+  'article_tag_has_been_unselected',
+  // comment
+  'comment_pinned',
+  'comment_new_reply',
+  'comment_mentioned_you',
+  // official
+  'official_announcement'
+]
+
+export const OFFICIAL_NOTICE_EXTEND_TYPES: OfficialNoticeExtendType[] = [
+  'user_activated',
+  'user_banned',
+  'user_frozen',
+  'comment_banned',
+  'article_banned',
+  'article_reported',
+  'comment_reported'
+]
+
+export const NOTIFICATION_TYPES: NotificationType[] = [
+  ...DB_NOTICE_TYPES,
+  ...OFFICIAL_NOTICE_EXTEND_TYPES
+]
