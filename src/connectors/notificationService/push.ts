@@ -125,13 +125,6 @@ class Push extends BaseService {
             displayName: actor.displayName
           })
         )
-      case 'comment_new_upvote':
-        return (
-          actor &&
-          trans.comment_new_upvote(language, {
-            displayName: actor.displayName
-          })
-        )
       case 'comment_mentioned_you':
         return (
           actor &&

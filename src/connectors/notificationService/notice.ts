@@ -1,8 +1,8 @@
 import DataLoader from 'dataloader'
-import { difference, isEqual, uniqBy } from 'lodash'
+import { isEqual, uniqBy } from 'lodash'
 import { v4 } from 'uuid'
 
-import { BATCH_SIZE } from 'common/enums'
+import { BATCH_SIZE, DB_NOTICE_TYPES } from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import {
@@ -267,6 +267,7 @@ class Notice extends BaseService {
         'notice_detail.id'
       )
       .orderBy('updated_at', 'desc')
+      .whereIn('notice_detail.notice_type', DB_NOTICE_TYPES)
 
     if (where) {
       where.forEach(w => {
@@ -502,7 +503,6 @@ class Notice extends BaseService {
       downstream_article_archived: setting.downstream,
       comment_pinned: setting.commentPinned,
       comment_new_reply: setting.comment,
-      comment_new_upvote: setting.commentVoted,
       comment_mentioned_you: setting.mention,
       official_announcement: setting.officialNotice,
       user_activated: true,

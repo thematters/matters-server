@@ -74,13 +74,20 @@ export class IPFS {
       }
     }
 
+    // handle images
     $('img').each((index, image) => {
       getSrc(index, image)
     })
 
+    // handle audios
     $('audio source').each((index, audio) => {
       getSrc(index, audio)
     })
+
+    // add segment
+    $('head').append(
+      `<script type="text/javascript" src="//static.matters.news/analytics.js"></script>`
+    )
 
     const assets = await Promise.all(assetsPromises)
 

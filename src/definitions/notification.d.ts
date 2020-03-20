@@ -1,6 +1,6 @@
 import { TableName, User } from 'definitions'
 
-export type NoticeType =
+export type DBNoticeType =
   // user
   | 'user_new_follower'
   // article
@@ -20,7 +20,6 @@ export type NoticeType =
   // comment
   | 'comment_pinned'
   | 'comment_new_reply'
-  | 'comment_new_upvote'
   | 'comment_mentioned_you'
   // official
   | 'official_announcement'
@@ -43,7 +42,7 @@ export type NoticeEntityType =
   | 'collection'
   | 'tag'
 
-export type NotificationType = NoticeType | OfficialNoticeExtendType
+export type NotificationType = DBNoticeType | OfficialNoticeExtendType
 
 export interface NotificationRequiredParams {
   event: NotificationType
@@ -179,14 +178,6 @@ export interface NoticeCommentNewReplyParams
   ]
 }
 
-export interface NoticeCommentNewUpvoteParams
-  extends NotificationRequiredParams {
-  event: 'comment_new_upvote'
-  recipientId: string
-  actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
-}
-
 export interface NoticeCommentMentionedYouParams
   extends NotificationRequiredParams {
   event: 'comment_mentioned_you'
@@ -297,7 +288,6 @@ export type NotificationPrarms =
   | NoticeDownstreamArticleArchivedParams
   | NoticeCommentPinnedParams
   | NoticeCommentNewReplyParams
-  | NoticeCommentNewUpvoteParams
   | NoticeCommentMentionedYouParams
   | NoticeOfficialAnnouncementParams
   | NoticeUserActivatedParams
@@ -332,20 +322,20 @@ export type NoticeDetail = {
   unread: boolean
   deleted: boolean
   updatedAt: Date
-  noticeType: NoticeType
+  noticeType: DBNoticeType
   message?: NoticeMessage
   data?: NoticeData
 }
 
 export type NoticeItem = NoticeDetail & {
   createdAt: Date
-  type: NoticeType
+  type: DBNoticeType
   actors?: User[]
   entities?: NoticeEntitiesMap
 }
 
 export type PutNoticeParams = {
-  type: NoticeType
+  type: DBNoticeType
   actorId?: NoticeUserId
   recipientId: NoticeUserId
   entities?: NotificationEntity[]

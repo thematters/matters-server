@@ -1,4 +1,5 @@
 import {
+  DBNoticeType,
   GQLArticleMentionedYouNoticeTypeResolver,
   GQLArticleNewAppreciationNoticeTypeResolver,
   GQLArticleNewCollectedNoticeTypeResolver,
@@ -11,16 +12,13 @@ import {
   GQLArticleTagHasBeenUnselectedNoticeTypeResolver,
   GQLCommentMentionedYouNoticeTypeResolver,
   GQLCommentNewReplyNoticeTypeResolver,
-  GQLCommentNewUpvoteNoticeTypeResolver,
   GQLCommentPinnedNoticeTypeResolver,
   GQLDownstreamArticleArchivedNoticeTypeResolver,
-  GQLNoticeTypeResolver,
   GQLOfficialAnnouncementNoticeTypeResolver,
   GQLSubscribedArticleNewCommentNoticeTypeResolver,
   GQLUpstreamArticleArchivedNoticeTypeResolver,
   GQLUserNewFollowerNoticeTypeResolver,
-  GQLUserTypeResolver,
-  NoticeType
+  GQLUserTypeResolver
 } from 'definitions'
 
 import notices from './notices'
@@ -41,7 +39,6 @@ const notice: {
   DownstreamArticleArchivedNotice: GQLDownstreamArticleArchivedNoticeTypeResolver
   CommentPinnedNotice: GQLCommentPinnedNoticeTypeResolver
   CommentNewReplyNotice: GQLCommentNewReplyNoticeTypeResolver
-  CommentNewUpvoteNotice: GQLCommentNewUpvoteNoticeTypeResolver
   CommentMentionedYouNotice: GQLCommentMentionedYouNoticeTypeResolver
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeTypeResolver
   ArticleTagHasBeenAddedNotice: GQLArticleTagHasBeenAddedNoticeTypeResolver
@@ -52,7 +49,7 @@ const notice: {
     notices
   },
   Notice: {
-    __resolveType: ({ type }: { type: NoticeType }) => {
+    __resolveType: ({ type }: { type: DBNoticeType }) => {
       const noticeTypeMap = {
         // user
         user_new_follower: 'UserNewFollowerNotice',
@@ -73,7 +70,6 @@ const notice: {
         // comment
         comment_pinned: 'CommentPinnedNotice',
         comment_new_reply: 'CommentNewReplyNotice',
-        comment_new_upvote: 'CommentNewUpvoteNotice',
         comment_mentioned_you: 'CommentMentionedYouNotice',
         // official
         official_announcement: 'OfficialAnnouncementNotice'
@@ -144,10 +140,6 @@ const notice: {
     id: ({ uuid }) => uuid,
     target: ({ entities }) => entities.target,
     reply: ({ entities }) => entities.reply
-  },
-  CommentNewUpvoteNotice: {
-    id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target
   },
   CommentMentionedYouNotice: {
     id: ({ uuid }) => uuid,

@@ -91,11 +91,6 @@ export default {
     zh_hans: ({ displayName }) => `${displayName} 回复了你的评论`,
     en: ({ displayName }) => `${displayName} replied your comment`
   }),
-  comment_new_upvote: i18n<{ displayName: string }>({
-    zh_hant: ({ displayName }) => `${displayName} 讚了你的評論`,
-    zh_hans: ({ displayName }) => `${displayName} 赞了你的评论`,
-    en: ({ displayName }) => `${displayName} liked your comment`
-  }),
   comment_mentioned_you: i18n<{ displayName: string }>({
     zh_hant: ({ displayName }) => `${displayName} 在評論中提及了你`,
     zh_hans: ({ displayName }) => `${displayName} 在评论中提及了你`,
