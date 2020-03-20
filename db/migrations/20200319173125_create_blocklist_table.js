@@ -1,6 +1,6 @@
 const { baseDown } = require('../utils')
 
-const table = 'blacklist'
+const table = 'blocklist'
 
 exports.up = async knex => {
   await knex('entity_type').insert({ table })

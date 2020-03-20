@@ -120,6 +120,7 @@ export type TableName =
   | 'oauth_authorization_code'
   | 'oauth_refresh_token'
   | 'user_oauth_likecoin'
+  | 'blocklist'
 
 export type MaterializedView =
   | 'article_count_materialized'
