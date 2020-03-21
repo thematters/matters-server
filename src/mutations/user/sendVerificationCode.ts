@@ -4,7 +4,7 @@ import {
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_CODE_TYPES
 } from 'common/enums'
-import { environment } from 'common/environment'
+import { environment, isTest } from 'common/environment'
 import {
   ActionFailedError,
   AuthenticationError,
@@ -12,7 +12,6 @@ import {
   EmailNotFoundError,
   UserInputError
 } from 'common/errors'
-import logger from 'common/logger'
 import { MutationToSendVerificationCodeResolver } from 'definitions'
 
 const resolver: MutationToSendVerificationCodeResolver = async (
@@ -41,7 +40,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     // check token for Turing test
     if (!token) {
       throw new UserInputError('please register on matters.news')
-    } else {
+    } else if (!isTest) {
       // Turing test with recaptcha
       const {
         data: { success, score }
