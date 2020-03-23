@@ -8,6 +8,7 @@ import {
   EmailExistsError,
   EmailNotFoundError
 } from 'common/errors'
+import logger from 'common/logger'
 import { MutationToSendVerificationCodeResolver } from 'definitions'
 
 const resolver: MutationToSendVerificationCodeResolver = async (
@@ -47,6 +48,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     email
   )
   if (blockEmail) {
+    logger.info(new Error('email is in blocklist'))
     return true
   }
 
@@ -54,6 +56,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   if (viewer.agentHash) {
     const verified = await userService.verifyAgentHash(viewer.agentHash, email)
     if (verified) {
+      logger.info(new Error('agent hash is in blocklist'))
       return true
     }
   }
