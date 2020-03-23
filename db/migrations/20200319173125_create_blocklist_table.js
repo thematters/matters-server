@@ -15,14 +15,13 @@ exports.up = async knex => {
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
     // composite unique key
-    t.unique(['type', 'value']);
+    t.unique(['type', 'value'])
   })
 
   // add index
   await knex.schema.table(table, t => {
     t.index(['type', 'value', 'archived'])
   })
-
 }
 
 exports.down = baseDown(table)
