@@ -1342,7 +1342,7 @@ export class UserService extends BaseService {
   }
 
   verifyAgentHash = async (agentHash: string, email: string) => {
-    if (!agentHash && !email) {
+    if (!agentHash || !email) {
       return
     }
     const active = await this.findBlockValue(
