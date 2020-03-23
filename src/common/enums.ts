@@ -1,4 +1,5 @@
 import { i18n } from 'common/utils/i18n'
+import { BlockListType } from 'definitions'
 import {
   DBNoticeType,
   NotificationType,
@@ -526,3 +527,8 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
   ...DB_NOTICE_TYPES,
   ...OFFICIAL_NOTICE_EXTEND_TYPES
 ]
+
+export const BLOCKLIST_TYPES: Record<string, BlockListType> = {
+  AGENT_HASH: 'agent_hash',
+  EMAIL: 'email'
+}

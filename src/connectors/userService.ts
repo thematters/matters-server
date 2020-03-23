@@ -10,6 +10,7 @@ import {
   ARTICLE_STATE,
   BATCH_SIZE,
   BCRYPT_ROUNDS,
+  BLOCKLIST_TYPES,
   COMMENT_STATE,
   MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
@@ -29,6 +30,7 @@ import {
 import logger from 'common/logger'
 import { BaseService, OAuthService } from 'connectors'
 import {
+  BlockListType,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
   ItemData,
@@ -1308,6 +1310,55 @@ export class UserService extends BaseService {
       { updatedAt: new Date(), ...data },
       'verification_code'
     )
+  }
+
+  /*********************************
+   *                               *
+   *              Ban              *
+   *                               *
+   *********************************/
+
+  findBlockValue = async (type: BlockListType, value: string) => {
+    return this.knex('blocklist')
+      .where({ type, value, archived: false })
+      .first()
+  }
+
+  recordAgentHash = async(value: string) => {
+    if (!value) {
+      return
+    }
+    const active = await this.findBlockValue(BLOCKLIST_TYPES.AGENT_HASH, value)
+    if (!active) {
+      return this.baseCreate(
+        {
+          uuid: v4(),
+          type: BLOCKLIST_TYPES.AGENT_HASH,
+          value
+        },
+        'blocklist'
+      )
+    }
+  }
+
+  verifyAgentHash = async (agentHash: string, email: string) => {
+    if (!agentHash && !email) {
+      return
+    }
+    const active = await this.findBlockValue(
+      BLOCKLIST_TYPES.AGENT_HASH,
+      agentHash
+    )
+    if (active) {
+      return this.baseCreate(
+        {
+          uuid: active.uuid,
+          type: BLOCKLIST_TYPES.EMAIL,
+          value: email
+        },
+        'blocklist'
+      )
+    }
   }
 
   /*********************************

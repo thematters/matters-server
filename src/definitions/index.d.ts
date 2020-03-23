@@ -58,6 +58,7 @@ export type Viewer = (User | { id: null }) & {
   scope: { [key: string]: any }
   scopeMode: ScopeMode
   oauthClient?: OAuthClient
+  agentHash: string
 }
 
 export type RequestContext = {
@@ -207,3 +208,5 @@ export interface OAuthRefreshToken {
 export type Falsey = '' | 0 | false | null | undefined
 
 export type ScopeMode = 'visitor' | 'oauth' | 'user' | 'admin'
+
+export type BlockListType = 'agent_hash' | 'email'

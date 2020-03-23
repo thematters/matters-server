@@ -1,4 +1,5 @@
 import {
+  BLOCKLIST_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_CODE_TYPES
 } from 'common/enums'
@@ -39,6 +40,27 @@ const resolver: MutationToSendVerificationCodeResolver = async (
       throw new EmailNotFoundError('cannot find email')
     }
   }
+
+  // verify email if has been blocked or not
+  const blockEmail = await userService.findBlockValue(
+    BLOCKLIST_TYPES.EMAIL,
+    email
+  )
+  if (blockEmail) {
+    return true
+  }
+
+  // verify agent hash
+  if (viewer.agentHash) {
+    const verified = await userService.verifyAgentHash(
+      viewer.agentHash,
+      email
+    )
+    if (verified) {
+      return true
+    }
+  }
+
 
   // insert record
   const { code } = await userService.createVerificationCode({

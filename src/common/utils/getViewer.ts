@@ -4,7 +4,13 @@ import jwt from 'jsonwebtoken'
 import _ from 'lodash'
 import requestIp from 'request-ip'
 
-import { LANGUAGE, SCOPE_MODE, USER_ROLE, USER_STATE } from 'common/enums'
+import {
+  BLOCKLIST_TYPES,
+  LANGUAGE,
+  SCOPE_MODE,
+  USER_ROLE,
+  USER_STATE
+} from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { clearCookie, getLanguage, makeScope } from 'common/utils'
@@ -36,7 +42,7 @@ export const getViewerFromUser = async (user: any) => {
   return viewer
 }
 
-const getUser = async (token: string) => {
+const getUser = async (token: string, agentHash: string) => {
   const userService = new UserService()
 
   try {
@@ -46,6 +52,12 @@ const getUser = async (token: string) => {
 
     if (user.state === USER_STATE.archived) {
       throw new Error('user has deleted')
+    }
+
+    if (user.state === USER_STATE.banned) {
+      await userService
+        .recordAgentHash(agentHash)
+        .catch(error => logger.error)
     }
 
     return { ...user, scopeMode: user.role }
@@ -90,13 +102,15 @@ export const getViewerFromReq = async ({
   const headers = req ? req.headers : {}
   const isWeb = headers['x-client-name'] === 'web'
   const language = getLanguage(LANGUAGE.zh_hant as string)
+  const agentHash = (headers['x-user-agent-hash'] || '') as string
 
   // user infomation from request
   let user = {
     ip: req && req.clientIp,
     language,
     scopeMode: SCOPE_MODE.visitor,
-    scope: {}
+    scope: {},
+    agentHash
   }
 
   // get user from token, use cookie first then 'x-access-token'
@@ -107,7 +121,7 @@ export const getViewerFromReq = async ({
     logger.info('User is not logged in, viewing as guest')
   } else {
     try {
-      const userDB = await getUser(token as string)
+      const userDB = await getUser(token as string, agentHash)
 
       // overwrite request by user settings
       user = { ...user, ...userDB }
