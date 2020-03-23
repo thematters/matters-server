@@ -2095,6 +2095,7 @@ export const enum GQLRemarkTypes {
 export interface GQLSendVerificationCodeInput {
   email: GQLEmail
   type: GQLVerificationCodeType
+  token?: string
 }
 
 export const enum GQLVerificationCodeType {

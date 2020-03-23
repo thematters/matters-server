@@ -687,7 +687,7 @@ describe('verification code', () => {
     const result = await mutate({
       mutation: SEND_VERIFICATION_CODE,
       // @ts-ignore
-      variables: { input: { type, email } }
+      variables: { input: { type, email, token: 'some-test-token' } }
     })
     expect(result && result.data && result.data.sendVerificationCode).toBe(true)
 
