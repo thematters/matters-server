@@ -52,15 +52,11 @@ const resolver: MutationToSendVerificationCodeResolver = async (
 
   // verify agent hash
   if (viewer.agentHash) {
-    const verified = await userService.verifyAgentHash(
-      viewer.agentHash,
-      email
-    )
+    const verified = await userService.verifyAgentHash(viewer.agentHash, email)
     if (verified) {
       return true
     }
   }
-
 
   // insert record
   const { code } = await userService.createVerificationCode({

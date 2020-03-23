@@ -1324,7 +1324,7 @@ export class UserService extends BaseService {
       .first()
   }
 
-  recordAgentHash = async(value: string) => {
+  recordAgentHash = async (value: string) => {
     if (!value) {
       return
     }

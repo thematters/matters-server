@@ -55,9 +55,7 @@ const getUser = async (token: string, agentHash: string) => {
     }
 
     if (user.state === USER_STATE.banned) {
-      await userService
-        .recordAgentHash(agentHash)
-        .catch(error => logger.error)
+      await userService.recordAgentHash(agentHash).catch(error => logger.error)
     }
 
     return { ...user, scopeMode: user.role }
