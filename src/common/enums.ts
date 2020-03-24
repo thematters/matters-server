@@ -1,4 +1,4 @@
-import { isDev } from 'common/environment'
+import { isProd } from 'common/environment'
 import { i18n } from 'common/utils/i18n'
 import {
   DBNoticeType,
@@ -388,9 +388,9 @@ const PROD_EMAIL_TEMPLATE_ID = {
   }
 }
 
-export const EMAIL_TEMPLATE_ID = isDev
-  ? DEV_EMAIL_TEMPLATE_ID
-  : PROD_EMAIL_TEMPLATE_ID
+export const EMAIL_TEMPLATE_ID = isProd
+  ? PROD_EMAIL_TEMPLATE_ID
+  : DEV_EMAIL_TEMPLATE_ID
 
 export const INVALID_NAMES = [
   'administrator',
