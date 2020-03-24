@@ -408,6 +408,7 @@ export default /* GraphQL */ `
   input SendVerificationCodeInput {
     email: Email!
     type: VerificationCodeType!
+    token: String
   }
 
   input ConfirmVerificationCodeInput {

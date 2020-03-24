@@ -1525,6 +1525,7 @@ enum SearchTypes {
 input SendVerificationCodeInput {
   email: Email!
   type: VerificationCodeType!
+  token: String
 }
 
 input SetBoostInput {
