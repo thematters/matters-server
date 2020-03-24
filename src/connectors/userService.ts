@@ -1318,47 +1318,27 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
 
-  findBlockValue = async (type: BlockListType, value: string) => {
+  findBanValue = async (type: BlockListType, value: string) => {
     return this.knex('blocklist')
       .where({ type, value, archived: false })
       .first()
   }
 
-  recordAgentHash = async (value: string) => {
-    if (!value) {
+  saveBanValue = async (type: BlockListType, uuid: string, value: string) => {
+    if (!type || !uuid || !value) {
       return
     }
-    const active = await this.findBlockValue(BLOCKLIST_TYPES.AGENT_HASH, value)
+    const active = await this.findBanValue(type, value)
     if (!active) {
-      return this.baseCreate(
-        {
-          uuid: v4(),
-          type: BLOCKLIST_TYPES.AGENT_HASH,
-          value
-        },
-        'blocklist'
-      )
+      return this.baseCreate({ uuid, type, value }, 'blocklist')
     }
   }
 
-  verifyAgentHash = async (agentHash: string, email: string) => {
-    if (!agentHash || !email) {
+  saveAgentHash = async (value: string) => {
+    if (!value) {
       return
     }
-    const active = await this.findBlockValue(
-      BLOCKLIST_TYPES.AGENT_HASH,
-      agentHash
-    )
-    if (active) {
-      return this.baseCreate(
-        {
-          uuid: active.uuid,
-          type: BLOCKLIST_TYPES.EMAIL,
-          value: email
-        },
-        'blocklist'
-      )
-    }
+    return this.saveBanValue(BLOCKLIST_TYPES.AGENT_HASH, v4(), value)
   }
 
   /*********************************

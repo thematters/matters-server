@@ -54,8 +54,8 @@ const getUser = async (token: string, agentHash: string) => {
       throw new Error('user has deleted')
     }
 
-    if (user.state === USER_STATE.banned) {
-      await userService.recordAgentHash(agentHash).catch(error => logger.error)
+    if (user.state === USER_STATE.banned && agentHash) {
+      await userService.saveAgentHash(agentHash).catch(error => logger.error)
     }
 
     return { ...user, scopeMode: user.role }
@@ -100,7 +100,7 @@ export const getViewerFromReq = async ({
   const headers = req ? req.headers : {}
   const isWeb = headers['x-client-name'] === 'web'
   const language = getLanguage(LANGUAGE.zh_hant as string)
-  const agentHash = (headers['x-user-agent-hash'] || '') as string
+  const agentHash = headers['x-user-agent-hash'] as string
 
   // user infomation from request
   let user = {

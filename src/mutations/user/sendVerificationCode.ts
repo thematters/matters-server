@@ -42,23 +42,27 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     }
   }
 
-  // verify email if has been blocked or not
-  const blockEmail = await userService.findBlockValue(
-    BLOCKLIST_TYPES.EMAIL,
-    email
-  )
-  if (blockEmail) {
+  const { agentHash } = viewer
+  const { AGENT_HASH: TYPE_HASH, EMAIL: TYPE_EMAIL } = BLOCKLIST_TYPES
+
+  // verify email if it's in blocklist
+  const banEmail = await userService.findBanValue(TYPE_EMAIL, email)
+  if (banEmail) {
+    if (agentHash) {
+      await userService.saveBanValue(TYPE_HASH, banEmail.uuid, agentHash)
+    }
     logger.info(new Error('email is in blocklist'))
     return true
   }
 
-  // verify agent hash
-  if (viewer.agentHash) {
-    const verified = await userService.verifyAgentHash(viewer.agentHash, email)
-    if (verified) {
-      logger.info(new Error('agent hash is in blocklist'))
-      return true
+  // verify agent hash if it's in blocklist
+  if (agentHash) {
+    const banAgentHash = await userService.findBanValue(TYPE_HASH, agentHash)
+    if (banAgentHash) {
+      await userService.saveBanValue(TYPE_EMAIL, banAgentHash.uuid, email)
     }
+    logger.info(new Error('agent hash is in blocklist'))
+    return true
   }
 
   // insert record
