@@ -58,6 +58,7 @@ export type Viewer = (User | { id: null }) & {
   scope: { [key: string]: any }
   scopeMode: ScopeMode
   oauthClient?: OAuthClient
+  agentHash?: string
 }
 
 export type RequestContext = {
@@ -120,6 +121,7 @@ export type TableName =
   | 'oauth_authorization_code'
   | 'oauth_refresh_token'
   | 'user_oauth_likecoin'
+  | 'blocklist'
 
 export type MaterializedView =
   | 'article_count_materialized'
@@ -206,3 +208,5 @@ export interface OAuthRefreshToken {
 export type Falsey = '' | 0 | false | null | undefined
 
 export type ScopeMode = 'visitor' | 'oauth' | 'user' | 'admin'
+
+export type BlockListType = 'agent_hash' | 'email'
