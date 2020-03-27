@@ -1,4 +1,6 @@
+import { isProd } from 'common/environment'
 import { i18n } from 'common/utils/i18n'
+import { BlockListType } from 'definitions'
 import {
   DBNoticeType,
   NotificationType,
@@ -331,7 +333,35 @@ export const QUEUE_COMPLETED_LIST_SIZE = {
 export const PUBLISH_ARTICLE_DELAY = 1000
 export const MIGRATION_DELAY = 1000
 
-export const EMAIL_TEMPLATE_ID = {
+const DEV_EMAIL_TEMPLATE_ID = {
+  verificationCode: {
+    zh_hant: 'd-250ba94c759948cbb2bd9f94089d13b8',
+    zh_hans: 'd-92b184faf2aa48fb8645600f2540cfb4',
+    en: 'd-250ba94c759948cbb2bd9f94089d13b8'
+  },
+  registerSuccess: {
+    zh_hant: 'd-06a6075fefe54a0f96157f69a726e46e',
+    zh_hans: 'd-0be942cd60ff4082b35ab836b60a728f',
+    en: 'd-06a6075fefe54a0f96157f69a726e46e'
+  },
+  dailySummary: {
+    zh_hant: 'd-805ccf4182244f59a5388b581df1eeab',
+    zh_hans: 'd-e242f3e39f014279966e43425b208cbe',
+    en: 'd-805ccf4182244f59a5388b581df1eeab'
+  },
+  userDeleted: {
+    zh_hant: 'd-b370a6eddc394814959b49db1ba4cfec',
+    zh_hans: 'd-9774a8882f914afaa43e2634a234762b',
+    en: 'd-b370a6eddc394814959b49db1ba4cfec'
+  },
+  migrationSuccess: {
+    zh_hant: 'd-a86e6f1c1fc24379b4b21244f111161b',
+    zh_hans: 'd-c0b89ae6e8fe4eed8f05277853561976',
+    en: 'd-a86e6f1c1fc24379b4b21244f111161b'
+  }
+}
+
+const PROD_EMAIL_TEMPLATE_ID = {
   verificationCode: {
     zh_hant: 'd-df196f90da7743f6900906fc18487953',
     zh_hans: 'd-f9373c61bdac43e1a24f221ceba4c61c',
@@ -358,6 +388,10 @@ export const EMAIL_TEMPLATE_ID = {
     en: 'd-47b788ce3754426fb2a6d3c80b9872eb'
   }
 }
+
+export const EMAIL_TEMPLATE_ID = isProd
+  ? PROD_EMAIL_TEMPLATE_ID
+  : DEV_EMAIL_TEMPLATE_ID
 
 export const INVALID_NAMES = [
   'administrator',
@@ -526,3 +560,8 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
   ...DB_NOTICE_TYPES,
   ...OFFICIAL_NOTICE_EXTEND_TYPES
 ]
+
+export const BLOCKLIST_TYPES: Record<string, BlockListType> = {
+  AGENT_HASH: 'agent_hash',
+  EMAIL: 'email'
+}

@@ -76,6 +76,7 @@ export const environment = {
   firebaseCert,
   gcpProjectId: process.env.MATTERS_GCP_PROJECT_ID,
   translateCertPath: process.env.MATTERS_TRANSLATE_CREDENTIAL_PATH,
+  recaptchaSecret: process.env.MATTERS_RECAPTCHA_KEY,
   OICDPrivateKey,
   likecoinOAuthClientName: process.env.MATTERS_LIKECOIN_OAUTH_CLIENT_NAME || '',
   likecoinMigrationApiURL: process.env.MATTERS_LIKECOIN_MIGRATION_API_URL || '',
