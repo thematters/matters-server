@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0] - 2020-03-27
+
+### Added
+
+- ReCaptcha #815
+- Add blocklist table and related methods #814
+
+### Changed
+
+- Add development email template ids #817
+- Change node version of Drone CI & Dockerfile to 12.16 #819
+- Fix ES search filter #820
+
 ## [2.10.0] - 2020-03-20
 
 ### Added
