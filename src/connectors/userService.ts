@@ -36,8 +36,7 @@ import {
   ItemData,
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType,
-  UserRole,
-  UserState
+  UserRole
 } from 'definitions'
 
 import { likecoin } from './likecoin'
@@ -1107,8 +1106,8 @@ export class UserService extends BaseService {
           }
         }
       })
+      .filter('term', { state: ARTICLE_STATE.active })
       .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor })
-      .notFilter('term', { state: ARTICLE_STATE.archived })
       .notFilter('ids', { values: notIn })
       .from(offset)
       .size(first)

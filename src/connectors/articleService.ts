@@ -354,7 +354,7 @@ export class ArticleService extends BaseService {
 
     // only return active if not in oss
     if (!oss) {
-      searchBody.notFilter('term', { state: ARTICLE_STATE.archived })
+      searchBody.filter('term', { state: ARTICLE_STATE.active })
     }
 
     try {
@@ -565,8 +565,8 @@ export class ArticleService extends BaseService {
           }
         }
       })
+      .filter('term', { state: ARTICLE_STATE.active })
       .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor })
-      .notFilter('term', { state: ARTICLE_STATE.archived })
       .notFilter('ids', { values: notIn.concat([id]) })
       .size(size)
       .build()
