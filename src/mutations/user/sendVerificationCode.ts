@@ -40,31 +40,31 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     }
 
     // check token for Turing test
-    if (!token) {
-      throw new UserInputError('please register on matters.news')
-    } else if (!isTest) {
-      // Turing test with recaptcha
-      const {
-        data: { success, score }
-      } = await axios({
-        method: 'post',
-        url: 'https://www.google.com/recaptcha/api/siteverify',
-        params: {
-          secret: environment.recaptchaSecret,
-          response: token,
-          remoteip: viewer.ip
-        }
-      })
+    // if (!token) {
+    //   throw new UserInputError('please register on matters.news')
+    // } else if (!isTest) {
+    //   // Turing test with recaptcha
+    //   const {
+    //     data: { success, score }
+    //   } = await axios({
+    //     method: 'post',
+    //     url: 'https://www.google.com/recaptcha/api/siteverify',
+    //     params: {
+    //       secret: environment.recaptchaSecret,
+    //       response: token,
+    //       remoteip: viewer.ip
+    //     }
+    //   })
 
-      if (!success) {
-        throw new ActionFailedError('please try again')
-      }
+    //   if (!success) {
+    //     throw new ActionFailedError('please try again')
+    //   }
 
-      // use 0.5 for Turing test
-      if (score < 0.5) {
-        throw new ActionFailedError('cannot verify human')
-      }
-    }
+    //   // use 0.5 for Turing test
+    //   if (score < 0.5) {
+    //     throw new ActionFailedError('cannot verify human')
+    //   }
+    // }
   }
 
   if (
