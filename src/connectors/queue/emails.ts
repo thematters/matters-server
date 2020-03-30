@@ -3,7 +3,7 @@ import Queue from 'bull'
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import logger from 'common/logger'
 
-import { BaseQueue } from './BaseQueue'
+import { BaseQueue } from './baseQueue'
 
 class EmailsQueue extends BaseQueue {
   constructor() {
