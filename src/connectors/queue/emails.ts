@@ -104,14 +104,14 @@ class EmailsQueue extends BaseQueue {
     try {
       logger.info(`[schedule job] send churn emails`)
 
-      const lostNewRegisterUsers = await this.userService.findLost({
-        type: 'new-registered'
+      const newRegisterUsers = await this.userService.findLost({
+        type: 'new-register'
       })
-      const lostMidTermUsers = await this.userService.findLost({
+      const mediumTermUsers = await this.userService.findLost({
         type: 'medium-term'
       })
 
-      console.log({ lostNewRegisterUsers, lostMidTermUsers })
+      console.log({ newRegisterUsers, mediumTermUsers })
 
       job.progress(100)
       done(null)

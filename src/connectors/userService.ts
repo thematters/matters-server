@@ -13,6 +13,7 @@ import {
   BLOCKLIST_TYPES,
   COMMENT_STATE,
   DAY,
+  LOG_RECORD_TYPES,
   MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
@@ -1576,10 +1577,10 @@ export class UserService extends BaseService {
    *             Churn             *
    *                               *
    *********************************/
-  findLost = ({ type }: { type: 'new-registered' | 'medium-term' }) => {
+  findLost = ({ type }: { type: 'new-register' | 'medium-term' }) => {
     const readWeekAgo = new Date(Date.now() - DAY * 7).toISOString()
     const readTwoWeekAgo = new Date(Date.now() - DAY * 14).toISOString()
-    const readSixMonthsAgo = new Date(Date.now() - DAY * 30).toISOString()
+    const readSixMonthsAgo = new Date(Date.now() - DAY * 180).toISOString()
     const registeredMonthAgo = new Date(Date.now() - DAY * 30).toISOString()
 
     const userLastReadQuery = this.knex('article_read_count')
@@ -1590,24 +1591,42 @@ export class UserService extends BaseService {
       .as('user_last_read')
 
     // registered within one month and last read a week ago
-    if (type === 'new-registered') {
+    if (type === 'new-register') {
       return this.knex
-        .select('user.id', 'last_read')
+        .select('user.id', 'last_read', 'sent_record.type')
         .from('user')
-        .leftJoin(userLastReadQuery, 'user.id', 'user_id')
+        .leftJoin(userLastReadQuery, 'user.id', 'user_last_read.user_id')
+        .leftJoin(
+          this.knex('log_record')
+            .select('user_id', 'type')
+            .where('type', LOG_RECORD_TYPES.SentNewRegisterChurnEmail)
+            .as('sent_record'),
+          'user.id',
+          'sent_record.user_id'
+        )
         .where('user.created_at', '>=', registeredMonthAgo)
         .where(builder =>
           builder.whereNull('last_read').orWhere('last_read', '<', readWeekAgo)
         )
+        .whereNull('sent_record.type')
     }
 
     // read within six months and last read two weeks ago
     if (type === 'medium-term') {
       return this.knex
-        .select('user_id', 'last_read')
+        .select('user_last_read.user_id', 'last_read')
         .from(userLastReadQuery)
+        .leftJoin(
+          this.knex('log_record')
+            .select('user_id', 'type')
+            .where('type', LOG_RECORD_TYPES.SentMediumTermChurnEmail)
+            .as('sent_record'),
+          'user_last_read.user_id',
+          'sent_record.user_id'
+        )
         .where('last_read', '>=', readSixMonthsAgo)
-        .andWhere('last_read', '<', readTwoWeekAgo)
+        .where('last_read', '<', readTwoWeekAgo)
+        .whereNull('sent_record.type')
     }
   }
 }
