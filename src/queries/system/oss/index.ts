@@ -1,3 +1,4 @@
+import { agentHashes } from './agentHashes'
 import { articles } from './articles'
 import { comments } from './comments'
 import { oauthClients } from './oauthClients'
@@ -15,5 +16,6 @@ export default {
   reports,
   report,
   today,
-  oauthClients
+  oauthClients,
+  agentHashes
 }

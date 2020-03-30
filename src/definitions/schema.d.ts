@@ -579,6 +579,7 @@ export type GQLPossibleConnectionTypeNames =
   | 'SearchResultConnection'
   | 'ReportConnection'
   | 'OAuthClientConnection'
+  | 'AgentHashConnection'
 
 export interface GQLConnectionNameMap {
   Connection: GQLConnection
@@ -595,6 +596,7 @@ export interface GQLConnectionNameMap {
   SearchResultConnection: GQLSearchResultConnection
   ReportConnection: GQLReportConnection
   OAuthClientConnection: GQLOAuthClientConnection
+  AgentHashConnection: GQLAgentHashConnection
 }
 
 export interface GQLPageInfo {
@@ -1415,6 +1417,7 @@ export interface GQLOSS {
   report: GQLReport
   today: GQLArticleConnection
   oauthClients: GQLOAuthClientConnection
+  agentHashes: GQLAgentHashConnection
 }
 
 export interface GQLOSSArticlesInput {
@@ -1547,6 +1550,31 @@ export const enum GQLGrantType {
 }
 
 export type GQLDate = any
+
+export interface GQLAgentHashConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLAgentHashEdge>
+}
+
+export interface GQLAgentHashEdge {
+  cursor: string
+  node?: GQLAgentHash
+}
+
+export interface GQLAgentHash {
+  id: string
+  uuid: GQLUUID
+  type: GQLAgentHashType
+  value: string
+  archived: boolean
+  createdAt: GQLDateTime
+}
+
+export const enum GQLAgentHashType {
+  agent_hash = 'agent_hash',
+  email = 'email'
+}
 
 export interface GQLUserInput {
   userName: string
@@ -1728,6 +1756,7 @@ export interface GQLMutation {
    */
   setBoost: GQLNode
   putRemark?: string
+  putAgentHash?: boolean
 
   /**
    * Send verification code for email.
@@ -2090,6 +2119,12 @@ export const enum GQLRemarkTypes {
   Comment = 'Comment',
   Report = 'Report',
   Feedback = 'Feedback'
+}
+
+export interface GQLPutAgentHashInput {
+  id: string
+  type: GQLAgentHashType
+  value: string
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -2851,6 +2886,9 @@ export interface GQLResolver {
   OAuthClientEdge?: GQLOAuthClientEdgeTypeResolver
   OAuthClient?: GQLOAuthClientTypeResolver
   Date?: GraphQLScalarType
+  AgentHashConnection?: GQLAgentHashConnectionTypeResolver
+  AgentHashEdge?: GQLAgentHashEdgeTypeResolver
+  AgentHash?: GQLAgentHashTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
   AuthResult?: GQLAuthResultTypeResolver
@@ -4257,6 +4295,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'SearchResultConnection'
     | 'ReportConnection'
     | 'OAuthClientConnection'
+    | 'AgentHashConnection'
 }
 export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
@@ -6340,6 +6379,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   report?: OSSToReportResolver<TParent>
   today?: OSSToTodayResolver<TParent>
   oauthClients?: OSSToOauthClientsResolver<TParent>
+  agentHashes?: OSSToAgentHashesResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -6433,6 +6473,18 @@ export interface OSSToOauthClientsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToOauthClientsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToAgentHashesArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToAgentHashesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToAgentHashesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6787,6 +6839,134 @@ export interface OAuthClientToCreatedAtResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface GQLAgentHashConnectionTypeResolver<TParent = any> {
+  totalCount?: AgentHashConnectionToTotalCountResolver<TParent>
+  pageInfo?: AgentHashConnectionToPageInfoResolver<TParent>
+  edges?: AgentHashConnectionToEdgesResolver<TParent>
+}
+
+export interface AgentHashConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AgentHashConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AgentHashConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLAgentHashEdgeTypeResolver<TParent = any> {
+  cursor?: AgentHashEdgeToCursorResolver<TParent>
+  node?: AgentHashEdgeToNodeResolver<TParent>
+}
+
+export interface AgentHashEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AgentHashEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLAgentHashTypeResolver<TParent = any> {
+  id?: AgentHashToIdResolver<TParent>
+  uuid?: AgentHashToUuidResolver<TParent>
+  type?: AgentHashToTypeResolver<TParent>
+  value?: AgentHashToValueResolver<TParent>
+  archived?: AgentHashToArchivedResolver<TParent>
+  createdAt?: AgentHashToCreatedAtResolver<TParent>
+}
+
+export interface AgentHashToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AgentHashToUuidResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AgentHashToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AgentHashToValueResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AgentHashToArchivedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface AgentHashToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLMutationTypeResolver<TParent = any> {
   publishArticle?: MutationToPublishArticleResolver<TParent>
   archiveArticle?: MutationToArchiveArticleResolver<TParent>
@@ -6828,6 +7008,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   logRecord?: MutationToLogRecordResolver<TParent>
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
+  putAgentHash?: MutationToPutAgentHashResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -7385,6 +7566,18 @@ export interface MutationToPutRemarkResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutRemarkArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutAgentHashArgs {
+  input: GQLPutAgentHashInput
+}
+export interface MutationToPutAgentHashResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPutAgentHashArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

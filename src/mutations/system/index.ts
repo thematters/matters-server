@@ -1,5 +1,6 @@
 import feedback from './feedback'
 import logRecord from './logRecord'
+import putAgentHash from './putAgentHash'
 import putRemark from './putRemark'
 import setBoost from './setBoost'
 import singleFileDelete from './singleFileDelete'
@@ -12,6 +13,7 @@ export default {
     feedback,
     setBoost,
     putRemark,
-    logRecord
+    logRecord,
+    putAgentHash
   }
 }

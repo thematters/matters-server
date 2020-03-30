@@ -26,6 +26,7 @@ export default /* GraphQL */ `
     ##############
     setBoost(input: SetBoostInput!): Node! @authorize
     putRemark(input: PutRemarkInput!): String @authorize
+    putAgentHash(input: PutAgentHashInput!): Boolean @authorize
   }
 
   extend type Subscription {
@@ -71,6 +72,7 @@ export default /* GraphQL */ `
     report(input: ReportInput!): Report!
     today(input: ConnectionArgs!): ArticleConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
+    agentHashes(input: ConnectionArgs!): AgentHashConnection!
   }
 
   type Category {
@@ -166,6 +168,26 @@ export default /* GraphQL */ `
     node: Report!
   }
 
+  type AgentHashConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [AgentHashEdge!]
+  }
+
+  type AgentHashEdge {
+    cursor: String!
+    node: AgentHash
+  }
+
+  type AgentHash {
+    id: ID!
+    uuid: UUID!
+    type: AgentHashType!
+    value: String!
+    archived: Boolean!
+    createdAt: DateTime!
+  }
+
   input NodeInput {
     id: ID!
   }
@@ -239,6 +261,12 @@ export default /* GraphQL */ `
     id: ID!
     remark: String!
     type: RemarkTypes!
+  }
+
+  input PutAgentHashInput {
+    id: ID!
+    type: AgentHashType!
+    value: String!
   }
 
   input LogRecordInput {
@@ -322,6 +350,11 @@ export default /* GraphQL */ `
   enum CacheScope {
     PUBLIC
     PRIVATE
+  }
+
+  enum AgentHashType {
+    agentHash
+    email
   }
 
   input CostComplexity {
