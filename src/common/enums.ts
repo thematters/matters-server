@@ -7,6 +7,10 @@ import {
   OfficialNoticeExtendType
 } from 'definitions/notification'
 
+export const MINUTE = 1000 * 60
+export const HOUR = MINUTE * 60
+export const DAY = HOUR * 24
+
 export const UPLOAD_FILE_COUNT_LIMIT = 50
 
 export const UPLOAD_FILE_SIZE_LIMIT = 100 * 1024 * 1024
@@ -126,7 +130,7 @@ export const APPRECIATION_REWARD = {
 export const ARTICLE_APPRECIATE_LIMIT = 5
 export const ARTICLE_PIN_COMMENT_LIMIT = 3
 
-export const VERIFICATION_CODE_EXIPRED_AFTER = 1000 * 60 * 5 // 5 mins
+export const VERIFICATION_CODE_EXIPRED_AFTER = MINUTE * 5 // 5 mins
 export const VERIFICATION_CODE_STATUS = {
   active: 'active',
   inactive: 'inactive',
@@ -302,8 +306,8 @@ export const QUEUE_JOB = {
   activateOnboardingUsers: 'activateOnboardingUsers',
 
   // Emails
-  sendDailySummaryEmail: 'sendDailySummaryEmail',
-  sendReturningEmails: 'sendReturningEmails',
+  sendDailySummaryEmails: 'sendDailySummaryEmails',
+  sendChurnEmails: 'sendChurnEmails',
 
   // Refresh Views
   refreshArticleCountView: 'refreshArticleCountView',
@@ -426,10 +430,10 @@ export const INVALID_NAMES = [
   'matters管理员'
 ]
 
-export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 60 * 24 * 90 // 90 days
-export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 10 // 10 mins
-export const OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 60 * 24 * 30 // 30 days
-export const OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 60 * 24 * 90 // 90 days
+export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
+export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS = MINUTE * 10 // 10 mins
+export const OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 30 // 30 days
+export const OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
 
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
   'image/gif',

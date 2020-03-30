@@ -17,11 +17,21 @@ class EmailsQueue extends BaseQueue {
   addRepeatJobs = async () => {
     // send daily summary email every day at 09:00
     this.q.add(
-      QUEUE_JOB.sendDailySummaryEmail,
+      QUEUE_JOB.sendDailySummaryEmails,
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
+      }
+    )
+
+    // send churn emails, check every day at 00:00
+    this.q.add(
+      QUEUE_JOB.sendChurnEmails,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 0 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
   }
@@ -32,12 +42,15 @@ class EmailsQueue extends BaseQueue {
   private addConsumers = () => {
     // send daily summary email
     this.q.process(
-      QUEUE_JOB.sendDailySummaryEmail,
-      this.handleSendDailySummaryEmail
+      QUEUE_JOB.sendDailySummaryEmails,
+      this.sendDailySummaryEmails
     )
+
+    // send churn emails
+    this.q.process(QUEUE_JOB.sendChurnEmails, this.sendChurnEmails)
   }
 
-  private handleSendDailySummaryEmail: Queue.ProcessCallbackFunction<
+  private sendDailySummaryEmails: Queue.ProcessCallbackFunction<
     unknown
   > = async (job, done) => {
     try {
@@ -76,6 +89,29 @@ class EmailsQueue extends BaseQueue {
 
         job.progress(((index + 1) / users.length) * 100)
       })
+
+      job.progress(100)
+      done(null)
+    } catch (e) {
+      done(e)
+    }
+  }
+
+  private sendChurnEmails: Queue.ProcessCallbackFunction<unknown> = async (
+    job,
+    done
+  ) => {
+    try {
+      logger.info(`[schedule job] send churn emails`)
+
+      const lostNewRegisterUsers = await this.userService.findLost({
+        type: 'new-registered'
+      })
+      const lostMidTermUsers = await this.userService.findLost({
+        type: 'medium-term'
+      })
+
+      console.log({ lostNewRegisterUsers, lostMidTermUsers })
 
       job.progress(100)
       done(null)

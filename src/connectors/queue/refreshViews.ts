@@ -1,6 +1,12 @@
 import Queue from 'bull'
 
-import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
+import {
+  HOUR,
+  MINUTE,
+  QUEUE_JOB,
+  QUEUE_NAME,
+  QUEUE_PRIORITY
+} from 'common/enums'
 import logger from 'common/logger'
 import { refreshView } from 'connectors'
 import { MaterializedView } from 'definitions'
@@ -24,7 +30,7 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 2 // every 2 minutes
+          every: MINUTE * 2 // every 2 minutes
         }
       }
     )
@@ -36,7 +42,7 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 60 * 1.1 // every 1.1 hour
+          every: HOUR * 1.1 // every 1.1 hour
         }
       }
     )
@@ -48,7 +54,7 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 60 * 2.1 // every 2.1 hour
+          every: HOUR * 2.1 // every 2.1 hour
         }
       }
     )
@@ -60,7 +66,7 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 2.5 // every 2.5 minutes
+          every: MINUTE * 2.5 // every 2.5 minutes
         }
       }
     )

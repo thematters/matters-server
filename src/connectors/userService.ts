@@ -12,6 +12,7 @@ import {
   BCRYPT_ROUNDS,
   BLOCKLIST_TYPES,
   COMMENT_STATE,
+  DAY,
   MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
@@ -1568,5 +1569,45 @@ export class UserService extends BaseService {
       },
       table: 'user_oauth'
     })
+  }
+
+  /*********************************
+   *                               *
+   *             Churn             *
+   *                               *
+   *********************************/
+  findLost = ({ type }: { type: 'new-registered' | 'medium-term' }) => {
+    const readWeekAgo = new Date(Date.now() - DAY * 7).toISOString()
+    const readTwoWeekAgo = new Date(Date.now() - DAY * 14).toISOString()
+    const readSixMonthsAgo = new Date(Date.now() - DAY * 30).toISOString()
+    const registeredMonthAgo = new Date(Date.now() - DAY * 30).toISOString()
+
+    const userLastReadQuery = this.knex('article_read_count')
+      .select('user_id')
+      .max('article_read_count.updated_at', { as: 'last_read' })
+      .groupBy('user_id')
+      .orderBy('last_read', 'desc')
+      .as('user_last_read')
+
+    // registered within one month and last read a week ago
+    if (type === 'new-registered') {
+      return this.knex
+        .select('user.id', 'last_read')
+        .from('user')
+        .leftJoin(userLastReadQuery, 'user.id', 'user_id')
+        .where('user.created_at', '>=', registeredMonthAgo)
+        .where(builder =>
+          builder.whereNull('last_read').orWhere('last_read', '<', readWeekAgo)
+        )
+    }
+
+    // read within six months and last read two weeks ago
+    if (type === 'medium-term') {
+      return this.knex
+        .select('user_id', 'last_read')
+        .from(userLastReadQuery)
+        .where('last_read', '>=', readSixMonthsAgo)
+        .andWhere('last_read', '<', readTwoWeekAgo)
+    }
   }
 }

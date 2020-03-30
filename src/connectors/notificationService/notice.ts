@@ -2,7 +2,7 @@ import DataLoader from 'dataloader'
 import { isEqual, uniqBy } from 'lodash'
 import { v4 } from 'uuid'
 
-import { BATCH_SIZE, DB_NOTICE_TYPES } from 'common/enums'
+import { BATCH_SIZE, DAY, DB_NOTICE_TYPES } from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import {
@@ -404,9 +404,7 @@ class Notice extends BaseService {
   }
 
   findDailySummaryUsers = async (): Promise<User[]> => {
-    const from = new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString()
-    const to = new Date(Date.now()).toISOString()
-
+    const from = new Date(Date.now() - DAY * 1).toISOString()
     const recipients = await this.knex('notice')
       .select('user.*')
       .where({
@@ -416,7 +414,6 @@ class Notice extends BaseService {
         'user_notify_setting.email': true
       })
       .where('notice.updated_at', '>=', from)
-      .where('notice.updated_at', '<=', to)
       .join('user', 'user.id', 'recipient_id')
       .join(
         'user_notify_setting',
@@ -431,8 +428,7 @@ class Notice extends BaseService {
   findDailySummaryNoticesByUser = async (
     userId: string
   ): Promise<NoticeItem[]> => {
-    const from = new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString()
-    const to = new Date(Date.now()).toISOString()
+    const from = new Date(Date.now() - DAY * 1).toISOString()
     const validNoticeTypes = [
       'user_new_follower',
       'article_new_collected',
@@ -446,8 +442,7 @@ class Notice extends BaseService {
     const noticeDetails = await this.findDetail({
       where: [
         [{ recipientId: userId, deleted: false, unread: true }],
-        ['notice.updated_at', '>=', from],
-        ['notice.updated_at', '<=', to]
+        ['notice.updated_at', '>=', from]
       ],
       whereIn: ['notice_detail.notice_type', validNoticeTypes]
     })
