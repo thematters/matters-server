@@ -353,7 +353,7 @@ export default /* GraphQL */ `
   }
 
   enum AgentHashType {
-    agentHash
+    agent_hash
     email
   }
 
