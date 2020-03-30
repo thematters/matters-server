@@ -34,6 +34,8 @@ export class BaseQueue {
     this.systemService = new SystemService()
     this.notificationService = new NotificationService()
     this.cacheService = new CacheService()
+
+    this.startScheduledJobs()
   }
 
   /**

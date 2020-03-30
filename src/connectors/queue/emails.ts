@@ -86,5 +86,3 @@ class EmailsQueue extends BaseQueue {
 }
 
 export const emailsQueue = new EmailsQueue()
-
-emailsQueue.startScheduledJobs()

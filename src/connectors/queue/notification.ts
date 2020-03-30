@@ -1,13 +1,25 @@
 import { MailData } from '@sendgrid/helpers/classes/mail'
+import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import { mailService, PushParams, pushService } from 'connectors'
 
-import { BaseQueue } from './baseQueue'
+import { createQueue } from './utils'
 
-class NotificationQueue extends BaseQueue {
+/**
+ * Note:
+ *
+ * Since it's only used by NotificationService,
+ * and easy to cause circular import issues,
+ * NotificationQueue isn't inherit from BaseQueue,
+ * and will not be exported at "index.ts".
+ *
+ */
+class NotificationQueue {
+  q: InstanceType<typeof Queue>
+
   constructor() {
-    super(QUEUE_NAME.notification)
+    this.q = createQueue(QUEUE_NAME.notification)
     this.addConsumers()
   }
 
@@ -39,6 +51,7 @@ class NotificationQueue extends BaseQueue {
         done(e)
       }
     })
+
     this.q.process(QUEUE_JOB.pushNotification, async (job, done) => {
       try {
         const result = await pushService.push(job.data as PushParams)

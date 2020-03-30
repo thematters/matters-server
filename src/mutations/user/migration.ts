@@ -7,7 +7,7 @@ import {
   MigrationReachLimitError,
   UserInputError
 } from 'common/errors'
-import { migrationQueue } from 'connectors/queue/migration'
+import { migrationQueue } from 'connectors/queue'
 import { MutationToMigrationResolver } from 'definitions'
 
 const resolver: MutationToMigrationResolver = async (

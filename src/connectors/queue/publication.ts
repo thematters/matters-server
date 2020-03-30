@@ -356,5 +356,3 @@ class PublicationQueue extends BaseQueue {
 }
 
 export const publicationQueue = new PublicationQueue()
-
-publicationQueue.startScheduledJobs()

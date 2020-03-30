@@ -162,5 +162,3 @@ class UserQueue extends BaseQueue {
 }
 
 export const userQueue = new UserQueue()
-
-userQueue.startScheduledJobs()

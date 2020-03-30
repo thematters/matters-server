@@ -285,27 +285,34 @@ export const QUEUE_PRIORITY = {
 }
 
 export const QUEUE_JOB = {
-  // publication job
+  // Publication
   publishArticle: 'publishArticle',
-  // notification jobs
+  publishPendingDrafts: 'publishPendingDrafts',
+
+  // Notification
   sendMail: 'sendMail',
   pushNotification: 'pushNotification',
-  // LikeCoin jobs
+
+  // LikeCoin
   like: 'likeCoinLike',
   sendPV: 'likeCoinSendPV',
-  // User jobs
+
+  // User
   archiveUser: 'userArchive',
-  // repeat jobs
-  publishPendingDrafts: 'publishPendingDrafts',
-  sendDailySummaryEmail: 'sendDailySummaryEmail',
   activateOnboardingUsers: 'activateOnboardingUsers',
-  // refresh views
+
+  // Emails
+  sendDailySummaryEmail: 'sendDailySummaryEmail',
+  sendReturningEmails: 'sendReturningEmails',
+
+  // Refresh Views
   refreshArticleCountView: 'refreshArticleCountView',
   refreshTagCountMaterialView: 'refreshTagCountMaterialView',
   refreshUserReaderView: 'refreshUserReaderView',
   refreshArticleActivityView: 'refreshArticleActivityView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
-  // migration
+
+  // Migration
   migration: 'migration'
 }
 

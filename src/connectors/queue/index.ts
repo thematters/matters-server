@@ -1,6 +1,6 @@
 export * from './migration'
-export * from './notification'
 export * from './publication'
 export * from './likecoin'
 export * from './user'
 export * from './refreshViews'
+export * from './emails'

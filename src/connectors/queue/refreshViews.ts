@@ -120,5 +120,3 @@ class RefreshViewsQueue extends BaseQueue {
 }
 
 export const refreshViewsQueue = new RefreshViewsQueue()
-
-refreshViewsQueue.startScheduledJobs()
