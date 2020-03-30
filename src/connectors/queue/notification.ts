@@ -1,18 +1,13 @@
 import { MailData } from '@sendgrid/helpers/classes/mail'
-import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import { mailService, PushParams, pushService } from 'connectors'
 
-import { createQueue } from './utils'
+import { BaseQueue } from './baseQueue'
 
-class NotificationQueue {
-  q: InstanceType<typeof Queue>
-
-  private queueName = QUEUE_NAME.notification
-
+class NotificationQueue extends BaseQueue {
   constructor() {
-    this.q = createQueue(this.queueName)
+    super(QUEUE_NAME.notification)
     this.addConsumers()
   }
 

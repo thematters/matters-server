@@ -1,9 +1,8 @@
 import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
-import { UserService } from 'connectors'
 
-import { createQueue } from './utils'
+import { BaseQueue } from './baseQueue'
 
 interface LikeData {
   likerId: string
@@ -20,18 +19,11 @@ interface SendPVData {
   url: string
 }
 
-class LikeCoinQueue {
-  q: InstanceType<typeof Queue>
-  userService: InstanceType<typeof UserService>
-
-  private queueName = QUEUE_NAME.likecoin
-
+class LikeCoinQueue extends BaseQueue {
   constructor() {
-    this.userService = new UserService()
-    this.q = createQueue(this.queueName)
+    super(QUEUE_NAME.likecoin)
     this.addConsumers()
   }
-
   /**
    * Producers
    */

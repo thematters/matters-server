@@ -1,4 +1,3 @@
-import Queue from 'bull'
 import { v4 } from 'uuid'
 
 import {
@@ -12,32 +11,12 @@ import {
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
 import { makeSummary, sanitize } from 'common/utils'
-import {
-  CacheService,
-  DraftService,
-  mailService,
-  NotificationService,
-  SystemService,
-  UserService
-} from 'connectors'
 
-import { createQueue } from './utils'
+import { BaseQueue } from './baseQueue'
 
-class MigrationQueue {
-  q: InstanceType<typeof Queue>
-  draftService: InstanceType<typeof DraftService>
-  notificationService: InstanceType<typeof NotificationService>
-  systemService: InstanceType<typeof SystemService>
-  userService: InstanceType<typeof UserService>
-
-  private queueName = QUEUE_NAME.migration
-
+class MigrationQueue extends BaseQueue {
   constructor() {
-    this.draftService = new DraftService()
-    this.notificationService = new NotificationService()
-    this.systemService = new SystemService()
-    this.userService = new UserService()
-    this.q = createQueue(this.queueName)
+    super(QUEUE_NAME.migration)
     this.addConsumers()
   }
 

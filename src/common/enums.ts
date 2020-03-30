@@ -312,7 +312,8 @@ export const QUEUE_JOB = {
 export const QUEUE_NAME = {
   notification: 'notification',
   publication: 'publication',
-  schedule: 'schedule',
+  emails: 'emails',
+  refreshViews: 'refreshViews',
   likecoin: 'likecoin',
   user: 'user',
   migration: 'migration'

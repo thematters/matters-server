@@ -10,7 +10,6 @@ import requestIp from 'request-ip'
 
 import { CORS_OPTIONS } from 'common/enums'
 import { environment } from 'common/environment'
-import { scheduleQueue } from 'connectors/queue/schedule'
 
 import * as routes from './routes'
 
@@ -19,9 +18,6 @@ import * as routes from './routes'
  */
 // Sentry
 Sentry.init({ dsn: environment.sentryDsn || '' })
-
-// Scheduled Jobs
-scheduleQueue.start()
 
 // Firebase
 try {
