@@ -1,7 +1,14 @@
 import Queue from 'bull'
 
-import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
+import {
+  DAY,
+  QUEUE_JOB,
+  QUEUE_NAME,
+  QUEUE_PRIORITY,
+  USER_STATE
+} from 'common/enums'
 import logger from 'common/logger'
+import { getArticleDigest } from 'connectors/notificationService/mail/utils'
 
 import { BaseQueue } from './baseQueue'
 
@@ -102,16 +109,74 @@ class EmailsQueue extends BaseQueue {
     done
   ) => {
     try {
-      logger.info(`[schedule job] send churn emails`)
+      logger.info(`[schedule job] start send churn emails`)
 
+      // churn users
       const newRegisterUsers = await this.userService.findLost({
         type: 'new-register'
       })
       const mediumTermUsers = await this.userService.findLost({
         type: 'medium-term'
       })
+      const totalUsers = newRegisterUsers.length + mediumTermUsers.length
 
-      console.log({ newRegisterUsers, mediumTermUsers })
+      logger.info(`[schedule job] send churn emails to ${totalUsers} users`)
+
+      // top appreciation articles last 30 days
+      const monthAgo = new Date(Date.now() - DAY * 30).toISOString()
+      const topArticles = await this.articleService.findTopAppreciations({
+        limit: 6,
+        since: monthAgo
+      })
+      const topArticleDigests = await Promise.all(
+        topArticles.map(async article => getArticleDigest(article))
+      )
+
+      if (topArticleDigests.length <= 0) {
+        return
+      }
+
+      newRegisterUsers.forEach(async (user, index) => {
+        const isCommentable = user.state !== USER_STATE.onboarding
+
+        this.notificationService.mail.sendChurn({
+          to: user.email,
+          recipient: {
+            displayName: user.displayName
+          },
+          language: user.language,
+          type: isCommentable
+            ? 'newRegisterCommentable'
+            : 'newRegisterUncommentable',
+          articles: topArticleDigests
+        })
+
+        job.progress(((index + 1) / totalUsers) * 100)
+      })
+
+      mediumTermUsers.forEach(async (user, index) => {
+        const hasFollowee =
+          (
+            await this.userService.findFollowees({
+              userId: user.id,
+              limit: 1
+            })
+          ).length >= 1
+
+        this.notificationService.mail.sendChurn({
+          to: user.email,
+          recipient: {
+            displayName: user.displayName
+          },
+          language: user.language,
+          type: hasFollowee
+            ? 'mediumTermHasFollowees'
+            : 'mediumTermHasNotFollowees',
+          articles: topArticleDigests
+        })
+
+        job.progress(((index + newRegisterUsers.length + 1) / totalUsers) * 100)
+      })
 
       job.progress(100)
       done(null)

@@ -9,7 +9,8 @@ export const sendChurn = async ({
   to,
   language = 'zh_hant',
   recipient,
-  type
+  type,
+  articles
 }: {
   to: string
   language?: LANGUAGES
@@ -21,21 +22,16 @@ export const sendChurn = async ({
     | 'newRegisterUncommentable'
     | 'mediumTermHasFollowees'
     | 'mediumTermHasNotFollowees'
+  articles: any[]
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.churn[language]
+  const subject = trans.churn[type](language, {
+    displayName: recipient.displayName
+  })
 
-  const articles = []
-  switch (type) {
-    case 'newRegisterCommentable':
-      break
-    case 'newRegisterUncommentable':
-      break
-    case 'mediumTermHasFollowees':
-      break
-    case 'mediumTermHasNotFollowees':
-      break
-  }
+  console.log(articles, subject)
 
+  return
   notificationQueue.sendMail({
     from: environment.emailFromAsk as string,
     templateId,
@@ -44,9 +40,7 @@ export const sendChurn = async ({
         to,
         // @ts-ignore
         dynamic_template_data: {
-          subject: trans.churn[type](language, {
-            displayName: recipient.displayName
-          }),
+          subject,
           siteDomain: environment.siteDomain,
           recipient,
           articles

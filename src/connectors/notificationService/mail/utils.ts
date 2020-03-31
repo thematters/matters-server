@@ -53,27 +53,27 @@ export const trans = {
   churn: {
     newRegisterCommentable: i18n<{ displayName: string }>({
       zh_hant: ({ displayName }) =>
-        `🐿️ ${displayName}，上萬名作者正在 Matters 期待你的讚賞與討論！`,
+        `${displayName}，上萬名作者正在 Matters 期待你的讚賞與討論！`,
       zh_hans: ({ displayName }) =>
-        `🐿️ ${displayName}，上万名作者正在 Matters 期待你的赞赏与讨论！`
+        `${displayName}，上万名作者正在 Matters 期待你的赞赏与讨论！`
     }),
     newRegisterUncommentable: i18n<{ displayName: string }>({
       zh_hant: ({ displayName }) =>
-        `🐿️ ${displayName}，你即將解鎖評論權限，上萬名作者正在 Matters 等待你參與討論！`,
+        `${displayName}，你即將解鎖評論權限，上萬名作者正在 Matters 等待你參與討論！`,
       zh_hans: ({ displayName }) =>
-        `🐿️ ${displayName}，你即将解锁评论权限，上万名作者正在 Matters 等待你参与讨论！`
+        `${displayName}，你即将解锁评论权限，上万名作者正在 Matters 等待你参与讨论！`
     }),
     mediumTermHasFollowees: i18n<{ displayName: string }>({
       zh_hant: ({ displayName }) =>
-        `🐿️ ${displayName}，你喜歡的作者回來了，還記得在 Matters 的舊時光嗎？`,
+        `${displayName}，你喜歡的作者回來了，還記得在 Matters 的舊時光嗎？`,
       zh_hans: ({ displayName }) =>
-        `🐿️ ${displayName}，你喜欢的作者回来了，还记得在 Matters 的旧时光吗？`
+        `${displayName}，你喜欢的作者回来了，还记得在 Matters 的旧时光吗？`
     }),
     mediumTermHasNotFollowees: i18n<{ displayName: string }>({
       zh_hant: ({ displayName }) =>
-        `🐿️ ${displayName}，在你離開的日子裡，Matters 有很多話想和你說`,
+        `${displayName}，在你離開的日子裡，Matters 有很多話想和你說`,
       zh_hans: ({ displayName }) =>
-        `🐿️ ${displayName}，在你离开的日子里，Matters 有很多话想和你说`
+        `${displayName}，在你离开的日子里，Matters 有很多话想和你说`
     })
   }
 }
@@ -107,6 +107,7 @@ export const getArticleDigest = async (article: any | undefined) => {
   if (!article) {
     return
   }
+
   return {
     id: article.id,
     author: await getUserDigest(
