@@ -163,6 +163,17 @@ class EmailsQueue extends BaseQueue {
             })
           ).length >= 1
 
+        let followeeArticles: any[] = []
+        if (hasFollowee) {
+          followeeArticles = await this.userService.followeeArticles({
+            userId: user.id,
+            limit: 6
+          })
+        }
+        if (followeeArticles.length <= 0) {
+          followeeArticles = topArticleDigests
+        }
+
         this.notificationService.mail.sendChurn({
           to: user.email,
           recipient: {
@@ -172,7 +183,7 @@ class EmailsQueue extends BaseQueue {
           type: hasFollowee
             ? 'mediumTermHasFollowees'
             : 'mediumTermHasNotFollowees',
-          articles: topArticleDigests
+          articles: hasFollowee ? followeeArticles : topArticleDigests
         })
 
         job.progress(((index + newRegisterUsers.length + 1) / totalUsers) * 100)
