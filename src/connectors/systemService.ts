@@ -1,6 +1,13 @@
-import { BATCH_SIZE, SEARCH_KEY_TRUNCATE_LENGTH } from 'common/enums'
+import { v4 } from 'uuid'
+
+import {
+  BATCH_SIZE,
+  SEARCH_KEY_TRUNCATE_LENGTH,
+  SKIPPED_LIST_ITEM_TYPES
+} from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
+import { SkippedListItemType } from 'definitions'
 
 export class SystemService extends BaseService {
   constructor() {
@@ -295,5 +302,53 @@ export class SystemService extends BaseService {
       data: { readAt: new Date(), ...data },
       table: 'log_record'
     })
+  }
+
+  /*********************************
+   *                               *
+   *           Skipped             *
+   *                               *
+   *********************************/
+  findSkippedItem = async (type: SkippedListItemType, value: string) => {
+    return this.knex('blocklist')
+      .where({ type, value })
+      .first()
+  }
+
+  createSkippedItem = async (
+    type: SkippedListItemType,
+    uuid: string,
+    value: string
+  ) => {
+    if (!type || !uuid || !value) {
+      return
+    }
+    const item = await this.findSkippedItem(type, value)
+    if (!item) {
+      return this.baseCreate({ uuid, type, value }, 'blocklist')
+    }
+  }
+
+  saveAgentHash = async (value: string) => {
+    if (!value) {
+      return
+    }
+    return this.createSkippedItem(
+      SKIPPED_LIST_ITEM_TYPES.AGENT_HASH,
+      v4(),
+      value
+    )
+  }
+
+  updateSkippedItem = async (
+    where: Record<string, any>,
+    data: Record<string, any>
+  ) => {
+    const [updateItem] = await this.knex
+      .where(where)
+      .update(data)
+      .into('blocklist')
+      .returning('*')
+    return updateItem
   }
 }
