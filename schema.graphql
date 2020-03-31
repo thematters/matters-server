@@ -16,31 +16,6 @@ directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 
 directive @logCache(type: String!) on FIELD_DEFINITION
 
-type AgentHash {
-  id: ID!
-  uuid: UUID!
-  type: AgentHashType!
-  value: String!
-  archived: Boolean!
-  createdAt: DateTime!
-}
-
-type AgentHashConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [AgentHashEdge!]
-}
-
-type AgentHashEdge {
-  cursor: String!
-  node: AgentHash
-}
-
-enum AgentHashType {
-  agent_hash
-  email
-}
-
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
@@ -951,7 +926,7 @@ type Mutation {
   """
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
-  putAgentHash(input: PutAgentHashInput!): Boolean
+  putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1210,7 +1185,7 @@ type OSS {
   report(input: ReportInput!): Report!
   today(input: ConnectionArgs!): ArticleConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
-  agentHashes(input: ConnectionArgs!): AgentHashConnection!
+  skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
 }
 
 input OSSArticlesInput {
@@ -1267,12 +1242,6 @@ enum PublishState {
   published
 }
 
-input PutAgentHashInput {
-  id: ID!
-  type: AgentHashType!
-  value: String!
-}
-
 input PutArticlesTagsInput {
   id: ID!
   articles: [ID!]
@@ -1310,6 +1279,11 @@ input PutRemarkInput {
   id: ID!
   remark: String!
   type: RemarkTypes!
+}
+
+input PutSkippedListItemInput {
+  id: ID!
+  archived: Boolean!
 }
 
 input PutTagInput {
@@ -1582,6 +1556,32 @@ input SingleFileUploadInput {
   url: URL
   entityType: EntityType!
   entityId: ID
+}
+
+type SkippedListItem {
+  id: ID!
+  uuid: UUID!
+  type: SkippedListItemType!
+  value: String!
+  archived: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type SkippedListItemEdge {
+  cursor: String!
+  node: SkippedListItem
+}
+
+type SkippedListItemsConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [SkippedListItemEdge!]
+}
+
+enum SkippedListItemType {
+  agent_hash
+  email
 }
 
 input SubscribeArticleInput {

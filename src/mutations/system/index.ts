@@ -1,7 +1,7 @@
 import feedback from './feedback'
 import logRecord from './logRecord'
-import putAgentHash from './putAgentHash'
 import putRemark from './putRemark'
+import putSkippedListItem from './putSkippedListItem'
 import setBoost from './setBoost'
 import singleFileDelete from './singleFileDelete'
 import singleFileUpload from './singleFileUpload'
@@ -14,6 +14,6 @@ export default {
     setBoost,
     putRemark,
     logRecord,
-    putAgentHash
+    putSkippedListItem
   }
 }

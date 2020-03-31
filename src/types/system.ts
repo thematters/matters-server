@@ -26,7 +26,7 @@ export default /* GraphQL */ `
     ##############
     setBoost(input: SetBoostInput!): Node! @authorize
     putRemark(input: PutRemarkInput!): String @authorize
-    putAgentHash(input: PutAgentHashInput!): Boolean @authorize
+    putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @authorize
   }
 
   extend type Subscription {
@@ -72,7 +72,7 @@ export default /* GraphQL */ `
     report(input: ReportInput!): Report!
     today(input: ConnectionArgs!): ArticleConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
-    agentHashes(input: ConnectionArgs!): AgentHashConnection!
+    skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
   }
 
   type Category {
@@ -168,24 +168,25 @@ export default /* GraphQL */ `
     node: Report!
   }
 
-  type AgentHashConnection implements Connection {
+  type SkippedListItemsConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
-    edges: [AgentHashEdge!]
+    edges: [SkippedListItemEdge!]
   }
 
-  type AgentHashEdge {
+  type SkippedListItemEdge {
     cursor: String!
-    node: AgentHash
+    node: SkippedListItem
   }
 
-  type AgentHash {
+  type SkippedListItem {
     id: ID!
     uuid: UUID!
-    type: AgentHashType!
+    type: SkippedListItemType!
     value: String!
     archived: Boolean!
     createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   input NodeInput {
@@ -263,10 +264,9 @@ export default /* GraphQL */ `
     type: RemarkTypes!
   }
 
-  input PutAgentHashInput {
+  input PutSkippedListItemInput {
     id: ID!
-    type: AgentHashType!
-    value: String!
+    archived: Boolean!
   }
 
   input LogRecordInput {
@@ -352,7 +352,7 @@ export default /* GraphQL */ `
     PRIVATE
   }
 
-  enum AgentHashType {
+  enum SkippedListItemType {
     agent_hash
     email
   }

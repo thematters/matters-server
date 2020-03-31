@@ -579,7 +579,7 @@ export type GQLPossibleConnectionTypeNames =
   | 'SearchResultConnection'
   | 'ReportConnection'
   | 'OAuthClientConnection'
-  | 'AgentHashConnection'
+  | 'SkippedListItemsConnection'
 
 export interface GQLConnectionNameMap {
   Connection: GQLConnection
@@ -596,7 +596,7 @@ export interface GQLConnectionNameMap {
   SearchResultConnection: GQLSearchResultConnection
   ReportConnection: GQLReportConnection
   OAuthClientConnection: GQLOAuthClientConnection
-  AgentHashConnection: GQLAgentHashConnection
+  SkippedListItemsConnection: GQLSkippedListItemsConnection
 }
 
 export interface GQLPageInfo {
@@ -1417,7 +1417,7 @@ export interface GQLOSS {
   report: GQLReport
   today: GQLArticleConnection
   oauthClients: GQLOAuthClientConnection
-  agentHashes: GQLAgentHashConnection
+  skippedListItems: GQLSkippedListItemsConnection
 }
 
 export interface GQLOSSArticlesInput {
@@ -1551,27 +1551,28 @@ export const enum GQLGrantType {
 
 export type GQLDate = any
 
-export interface GQLAgentHashConnection extends GQLConnection {
+export interface GQLSkippedListItemsConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
-  edges?: Array<GQLAgentHashEdge>
+  edges?: Array<GQLSkippedListItemEdge>
 }
 
-export interface GQLAgentHashEdge {
+export interface GQLSkippedListItemEdge {
   cursor: string
-  node?: GQLAgentHash
+  node?: GQLSkippedListItem
 }
 
-export interface GQLAgentHash {
+export interface GQLSkippedListItem {
   id: string
   uuid: GQLUUID
-  type: GQLAgentHashType
+  type: GQLSkippedListItemType
   value: string
   archived: boolean
   createdAt: GQLDateTime
+  updatedAt: GQLDateTime
 }
 
-export const enum GQLAgentHashType {
+export const enum GQLSkippedListItemType {
   agent_hash = 'agent_hash',
   email = 'email'
 }
@@ -1756,7 +1757,7 @@ export interface GQLMutation {
    */
   setBoost: GQLNode
   putRemark?: string
-  putAgentHash?: boolean
+  putSkippedListItem?: Array<GQLSkippedListItem>
 
   /**
    * Send verification code for email.
@@ -2121,10 +2122,9 @@ export const enum GQLRemarkTypes {
   Feedback = 'Feedback'
 }
 
-export interface GQLPutAgentHashInput {
+export interface GQLPutSkippedListItemInput {
   id: string
-  type: GQLAgentHashType
-  value: string
+  archived: boolean
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -2886,9 +2886,9 @@ export interface GQLResolver {
   OAuthClientEdge?: GQLOAuthClientEdgeTypeResolver
   OAuthClient?: GQLOAuthClientTypeResolver
   Date?: GraphQLScalarType
-  AgentHashConnection?: GQLAgentHashConnectionTypeResolver
-  AgentHashEdge?: GQLAgentHashEdgeTypeResolver
-  AgentHash?: GQLAgentHashTypeResolver
+  SkippedListItemsConnection?: GQLSkippedListItemsConnectionTypeResolver
+  SkippedListItemEdge?: GQLSkippedListItemEdgeTypeResolver
+  SkippedListItem?: GQLSkippedListItemTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
   AuthResult?: GQLAuthResultTypeResolver
@@ -4295,7 +4295,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'SearchResultConnection'
     | 'ReportConnection'
     | 'OAuthClientConnection'
-    | 'AgentHashConnection'
+    | 'SkippedListItemsConnection'
 }
 export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
@@ -6379,7 +6379,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   report?: OSSToReportResolver<TParent>
   today?: OSSToTodayResolver<TParent>
   oauthClients?: OSSToOauthClientsResolver<TParent>
-  agentHashes?: OSSToAgentHashesResolver<TParent>
+  skippedListItems?: OSSToSkippedListItemsResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -6478,13 +6478,13 @@ export interface OSSToOauthClientsResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface OSSToAgentHashesArgs {
+export interface OSSToSkippedListItemsArgs {
   input: GQLConnectionArgs
 }
-export interface OSSToAgentHashesResolver<TParent = any, TResult = any> {
+export interface OSSToSkippedListItemsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: OSSToAgentHashesArgs,
+    args: OSSToSkippedListItemsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6839,13 +6839,13 @@ export interface OAuthClientToCreatedAtResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLAgentHashConnectionTypeResolver<TParent = any> {
-  totalCount?: AgentHashConnectionToTotalCountResolver<TParent>
-  pageInfo?: AgentHashConnectionToPageInfoResolver<TParent>
-  edges?: AgentHashConnectionToEdgesResolver<TParent>
+export interface GQLSkippedListItemsConnectionTypeResolver<TParent = any> {
+  totalCount?: SkippedListItemsConnectionToTotalCountResolver<TParent>
+  pageInfo?: SkippedListItemsConnectionToPageInfoResolver<TParent>
+  edges?: SkippedListItemsConnectionToEdgesResolver<TParent>
 }
 
-export interface AgentHashConnectionToTotalCountResolver<
+export interface SkippedListItemsConnectionToTotalCountResolver<
   TParent = any,
   TResult = any
 > {
@@ -6857,7 +6857,7 @@ export interface AgentHashConnectionToTotalCountResolver<
   ): TResult
 }
 
-export interface AgentHashConnectionToPageInfoResolver<
+export interface SkippedListItemsConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
@@ -6869,7 +6869,7 @@ export interface AgentHashConnectionToPageInfoResolver<
   ): TResult
 }
 
-export interface AgentHashConnectionToEdgesResolver<
+export interface SkippedListItemsConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
@@ -6881,12 +6881,15 @@ export interface AgentHashConnectionToEdgesResolver<
   ): TResult
 }
 
-export interface GQLAgentHashEdgeTypeResolver<TParent = any> {
-  cursor?: AgentHashEdgeToCursorResolver<TParent>
-  node?: AgentHashEdgeToNodeResolver<TParent>
+export interface GQLSkippedListItemEdgeTypeResolver<TParent = any> {
+  cursor?: SkippedListItemEdgeToCursorResolver<TParent>
+  node?: SkippedListItemEdgeToNodeResolver<TParent>
 }
 
-export interface AgentHashEdgeToCursorResolver<TParent = any, TResult = any> {
+export interface SkippedListItemEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -6895,7 +6898,10 @@ export interface AgentHashEdgeToCursorResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface AgentHashEdgeToNodeResolver<TParent = any, TResult = any> {
+export interface SkippedListItemEdgeToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -6904,16 +6910,17 @@ export interface AgentHashEdgeToNodeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLAgentHashTypeResolver<TParent = any> {
-  id?: AgentHashToIdResolver<TParent>
-  uuid?: AgentHashToUuidResolver<TParent>
-  type?: AgentHashToTypeResolver<TParent>
-  value?: AgentHashToValueResolver<TParent>
-  archived?: AgentHashToArchivedResolver<TParent>
-  createdAt?: AgentHashToCreatedAtResolver<TParent>
+export interface GQLSkippedListItemTypeResolver<TParent = any> {
+  id?: SkippedListItemToIdResolver<TParent>
+  uuid?: SkippedListItemToUuidResolver<TParent>
+  type?: SkippedListItemToTypeResolver<TParent>
+  value?: SkippedListItemToValueResolver<TParent>
+  archived?: SkippedListItemToArchivedResolver<TParent>
+  createdAt?: SkippedListItemToCreatedAtResolver<TParent>
+  updatedAt?: SkippedListItemToUpdatedAtResolver<TParent>
 }
 
-export interface AgentHashToIdResolver<TParent = any, TResult = any> {
+export interface SkippedListItemToIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6922,7 +6929,7 @@ export interface AgentHashToIdResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface AgentHashToUuidResolver<TParent = any, TResult = any> {
+export interface SkippedListItemToUuidResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6931,7 +6938,7 @@ export interface AgentHashToUuidResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface AgentHashToTypeResolver<TParent = any, TResult = any> {
+export interface SkippedListItemToTypeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6940,7 +6947,7 @@ export interface AgentHashToTypeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface AgentHashToValueResolver<TParent = any, TResult = any> {
+export interface SkippedListItemToValueResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6949,7 +6956,10 @@ export interface AgentHashToValueResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface AgentHashToArchivedResolver<TParent = any, TResult = any> {
+export interface SkippedListItemToArchivedResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -6958,7 +6968,22 @@ export interface AgentHashToArchivedResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface AgentHashToCreatedAtResolver<TParent = any, TResult = any> {
+export interface SkippedListItemToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SkippedListItemToUpdatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -7008,7 +7033,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   logRecord?: MutationToLogRecordResolver<TParent>
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
-  putAgentHash?: MutationToPutAgentHashResolver<TParent>
+  putSkippedListItem?: MutationToPutSkippedListItemResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -7571,13 +7596,16 @@ export interface MutationToPutRemarkResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToPutAgentHashArgs {
-  input: GQLPutAgentHashInput
+export interface MutationToPutSkippedListItemArgs {
+  input: GQLPutSkippedListItemInput
 }
-export interface MutationToPutAgentHashResolver<TParent = any, TResult = any> {
+export interface MutationToPutSkippedListItemResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
-    args: MutationToPutAgentHashArgs,
+    args: MutationToPutSkippedListItemArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

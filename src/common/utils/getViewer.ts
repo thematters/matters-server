@@ -5,16 +5,16 @@ import _ from 'lodash'
 import requestIp from 'request-ip'
 
 import {
-  BLOCKLIST_TYPES,
   LANGUAGE,
   SCOPE_MODE,
+  SKIPPED_LIST_ITEM_TYPES,
   USER_ROLE,
   USER_STATE
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { clearCookie, getLanguage, makeScope } from 'common/utils'
-import { OAuthService, UserService } from 'connectors'
+import { OAuthService, SystemService, UserService } from 'connectors'
 import { Viewer } from 'definitions'
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
@@ -44,6 +44,7 @@ export const getViewerFromUser = async (user: any) => {
 
 const getUser = async (token: string, agentHash: string) => {
   const userService = new UserService()
+  const systemService = new SystemService()
 
   try {
     // get general user
@@ -55,7 +56,7 @@ const getUser = async (token: string, agentHash: string) => {
     }
 
     if (user.state === USER_STATE.banned && agentHash) {
-      await userService.saveAgentHash(agentHash).catch(error => logger.error)
+      await systemService.saveAgentHash(agentHash).catch(error => logger.error)
     }
 
     return { ...user, scopeMode: user.role }
