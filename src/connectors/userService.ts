@@ -1593,7 +1593,7 @@ export class UserService extends BaseService {
     // registered within one month and last read a week ago
     if (type === 'new-register') {
       return this.knex
-        .select('user.id', 'last_read', 'sent_record.type')
+        .select('user.*', 'last_read')
         .from('user')
         .leftJoin(userLastReadQuery, 'user.id', 'user_last_read.user_id')
         .leftJoin(
@@ -1605,6 +1605,7 @@ export class UserService extends BaseService {
           'sent_record.user_id'
         )
         .where('user.created_at', '>=', registeredMonthAgo)
+        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
         .where(builder =>
           builder.whereNull('last_read').orWhere('last_read', '<', readWeekAgo)
         )
@@ -1614,8 +1615,9 @@ export class UserService extends BaseService {
     // read within six months and last read two weeks ago
     if (type === 'medium-term') {
       return this.knex
-        .select('user_last_read.user_id', 'last_read')
+        .select('user.*', 'last_read')
         .from(userLastReadQuery)
+        .leftJoin('user', 'user_last_read.user_id', 'user.id')
         .leftJoin(
           this.knex('log_record')
             .select('user_id', 'type')
@@ -1626,7 +1628,10 @@ export class UserService extends BaseService {
         )
         .where('last_read', '>=', readSixMonthsAgo)
         .where('last_read', '<', readTwoWeekAgo)
+        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
         .whereNull('sent_record.type')
     }
+
+    return []
   }
 }
