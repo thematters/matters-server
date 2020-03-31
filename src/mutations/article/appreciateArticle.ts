@@ -13,7 +13,7 @@ import {
   LikerNotFoundError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { likeCoinQueue } from 'connectors/queue/likecoin'
+import { likeCoinQueue } from 'connectors/queue'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 
 const resolver: MutationToAppreciateArticleResolver = async (

@@ -13,45 +13,29 @@ import {
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
 import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
-import {
-  ArticleService,
-  CacheService,
-  DraftService,
-  NotificationService,
-  SystemService,
-  TagService,
-  UserService
-} from 'connectors'
 
-import { createQueue } from './utils'
+import { BaseQueue } from './baseQueue'
 
-class PublicationQueue {
-  q: InstanceType<typeof Queue>
-  tagService: InstanceType<typeof TagService>
-  articleService: InstanceType<typeof ArticleService>
-  cacheService: InstanceType<typeof CacheService>
-  draftService: InstanceType<typeof DraftService>
-  notificationService: InstanceType<typeof NotificationService>
-  systemService: InstanceType<typeof SystemService>
-  userService: InstanceType<typeof UserService>
-
-  private queueName = QUEUE_NAME.publication
-
+class PublicationQueue extends BaseQueue {
   constructor() {
-    this.notificationService = new NotificationService()
-    this.tagService = new TagService()
-    this.articleService = new ArticleService()
-    this.cacheService = new CacheService()
-    this.draftService = new DraftService()
-    this.systemService = new SystemService()
-    this.userService = new UserService()
-    this.q = createQueue(this.queueName)
+    super(QUEUE_NAME.publication)
     this.addConsumers()
   }
 
-  /**
-   * Producers
-   */
+  addRepeatJobs = async () => {
+    // publish pending draft every 20 minutes
+    this.q.add(
+      QUEUE_JOB.publishPendingDrafts,
+      {},
+      {
+        priority: QUEUE_PRIORITY.HIGH,
+        repeat: {
+          every: 1000 * 60 * 20 // every 20 mins
+        }
+      }
+    )
+  }
+
   publishArticle = ({
     draftId,
     delay = PUBLISH_ARTICLE_DELAY
@@ -77,127 +61,133 @@ class PublicationQueue {
       return
     }
 
+    // publish article
     this.q.process(
       QUEUE_JOB.publishArticle,
       QUEUE_CONCURRENCY.publishArticle,
-      async (job, done) => {
-        try {
-          const { draftId } = job.data as { draftId: string }
-          const draft = await this.draftService.baseFindById(draftId)
-
-          // checks
-          if (draft.publishState !== PUBLISH_STATE.pending) {
-            job.progress(100)
-            done(null, `Publication of draft ${draftId} is not pending.`)
-            return
-          }
-
-          if (draft.scheduledAt && draft.scheduledAt > new Date()) {
-            job.progress(100)
-            done(null, `Draft's (${draftId}) scheduledAt is greater than now`)
-            return
-          }
-          job.progress(5)
-
-          // publish to IPFS
-          let article: any
-          try {
-            article = await this.articleService.publish(draft)
-          } catch (e) {
-            await this.draftService.baseUpdate(draft.id, {
-              publishState: PUBLISH_STATE.error
-            })
-            throw e
-          }
-          job.progress(10)
-
-          // mark draft as published
-          await this.draftService.baseUpdate(draft.id, {
-            archived: true,
-            publishState: PUBLISH_STATE.published,
-            updatedAt: new Date()
-          })
-          job.progress(20)
-
-          // handle collection
-          await this.handleCollection({ draft, article })
-          job.progress(40)
-
-          const [
-            { id: draftEntityTypeId },
-            { id: articleEntityTypeId }
-          ] = await Promise.all([
-            this.systemService.baseFindEntityTypeId('draft'),
-            this.systemService.baseFindEntityTypeId('article')
-          ])
-
-          // Remove unused assets
-          await this.deleteUnusedAssets({ draftEntityTypeId, draft })
-          job.progress(45)
-
-          // Swap assets from draft to article
-          await this.systemService.replaceAssetMapEntityTypeAndId(
-            draftEntityTypeId,
-            draft.id,
-            articleEntityTypeId,
-            article.id
-          )
-          job.progress(50)
-
-          // handle tags
-          const tags = await this.handleTags({ draft, article })
-          job.progress(60)
-
-          // add to search
-          const author = await this.userService.baseFindById(article.authorId)
-          const { userName, displayName } = author
-          await this.articleService.addToSearch({
-            ...article,
-            userName,
-            displayName,
-            tags
-          })
-          job.progress(80)
-
-          // handle mentions
-          await this.handleMentions({ article })
-          job.progress(90)
-
-          // trigger notifications
-          this.notificationService.trigger({
-            event: 'article_published',
-            recipientId: article.authorId,
-            entities: [
-              {
-                type: 'target',
-                entityTable: 'article',
-                entity: article
-              }
-            ]
-          })
-          job.progress(95)
-
-          // invalidate user cache
-          await this.cacheService.invalidateFQC(
-            NODE_TYPES.user,
-            article.authorId
-          )
-          job.progress(100)
-
-          done(null, {
-            dataHash: article.dataHash,
-            mediaHash: article.mediaHash
-          })
-        } catch (e) {
-          done(e)
-        }
-      }
+      this.handlePublishArticle
     )
+
+    // publish pending drafts
+    this.q.process(QUEUE_JOB.publishPendingDrafts, this.publishPendingDrafts)
   }
 
   /**
-   * Create collections
+   * Publish Article
    */
+  private handlePublishArticle: Queue.ProcessCallbackFunction<unknown> = async (
+    job,
+    done
+  ) => {
+    try {
+      const { draftId } = job.data as { draftId: string }
+      const draft = await this.draftService.baseFindById(draftId)
+
+      // checks
+      if (draft.publishState !== PUBLISH_STATE.pending) {
+        job.progress(100)
+        done(null, `Publication of draft ${draftId} is not pending.`)
+        return
+      }
+
+      if (draft.scheduledAt && draft.scheduledAt > new Date()) {
+        job.progress(100)
+        done(null, `Draft's (${draftId}) scheduledAt is greater than now`)
+        return
+      }
+      job.progress(5)
+
+      // publish to IPFS
+      let article: any
+      try {
+        article = await this.articleService.publish(draft)
+      } catch (e) {
+        await this.draftService.baseUpdate(draft.id, {
+          publishState: PUBLISH_STATE.error
+        })
+        throw e
+      }
+      job.progress(10)
+
+      // mark draft as published
+      await this.draftService.baseUpdate(draft.id, {
+        archived: true,
+        publishState: PUBLISH_STATE.published,
+        updatedAt: new Date()
+      })
+      job.progress(20)
+
+      // handle collection
+      await this.handleCollection({ draft, article })
+      job.progress(40)
+
+      const [
+        { id: draftEntityTypeId },
+        { id: articleEntityTypeId }
+      ] = await Promise.all([
+        this.systemService.baseFindEntityTypeId('draft'),
+        this.systemService.baseFindEntityTypeId('article')
+      ])
+
+      // Remove unused assets
+      await this.deleteUnusedAssets({ draftEntityTypeId, draft })
+      job.progress(45)
+
+      // Swap assets from draft to article
+      await this.systemService.replaceAssetMapEntityTypeAndId(
+        draftEntityTypeId,
+        draft.id,
+        articleEntityTypeId,
+        article.id
+      )
+      job.progress(50)
+
+      // handle tags
+      const tags = await this.handleTags({ draft, article })
+      job.progress(60)
+
+      // add to search
+      const author = await this.userService.baseFindById(article.authorId)
+      const { userName, displayName } = author
+      await this.articleService.addToSearch({
+        ...article,
+        userName,
+        displayName,
+        tags
+      })
+      job.progress(80)
+
+      // handle mentions
+      await this.handleMentions({ article })
+      job.progress(90)
+
+      // trigger notifications
+      this.notificationService.trigger({
+        event: 'article_published',
+        recipientId: article.authorId,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'article',
+            entity: article
+          }
+        ]
+      })
+      job.progress(95)
+
+      // invalidate user cache
+      await this.cacheService.invalidateFQC(NODE_TYPES.user, article.authorId)
+      job.progress(100)
+
+      done(null, {
+        dataHash: article.dataHash,
+        mediaHash: article.mediaHash
+      })
+    } catch (e) {
+      done(e)
+    }
+  }
+
   private handleCollection = async ({
     draft,
     article
@@ -238,9 +228,6 @@ class PublicationQueue {
     })
   }
 
-  /**
-   * Create tags
-   */
   private handleTags = async ({
     draft,
     article
@@ -274,9 +261,6 @@ class PublicationQueue {
     return tags
   }
 
-  /**
-   * Notice mentioned users
-   */
   private handleMentions = async ({ article }: { article: any }) => {
     const $ = cheerio.load(article.content)
     const mentionIds = $('a.mention')
@@ -312,7 +296,6 @@ class PublicationQueue {
 
   /**
    * Delete unused assets from S3 and DB, skip if error is thrown.
-   *
    */
   private deleteUnusedAssets = async ({
     draftEntityTypeId,
@@ -338,6 +321,36 @@ class PublicationQueue {
       }
     } catch (e) {
       logger.error(e)
+    }
+  }
+
+  /**
+   * Publish pending drafts
+   */
+  private publishPendingDrafts: Queue.ProcessCallbackFunction<unknown> = async (
+    job,
+    done
+  ) => {
+    try {
+      const drafts = await this.draftService.findByPublishState(
+        PUBLISH_STATE.pending
+      )
+      const pendingDraftIds: string[] = []
+
+      drafts.forEach((draft: any, index: number) => {
+        // skip if draft was scheduled and later than now
+        if (draft.scheduledAt && draft.scheduledAt > new Date()) {
+          return
+        }
+        publicationQueue.publishArticle({ draftId: draft.id, delay: 0 })
+        pendingDraftIds.push(draft.id)
+        job.progress(((index + 1) / drafts.length) * 100)
+      })
+
+      job.progress(100)
+      done(null, pendingDraftIds)
+    } catch (e) {
+      done(e)
     }
   }
 }
