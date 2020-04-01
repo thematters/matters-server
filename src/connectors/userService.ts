@@ -12,7 +12,6 @@ import {
   BCRYPT_ROUNDS,
   BLOCKLIST_TYPES,
   COMMENT_STATE,
-  DAY,
   LOG_RECORD_TYPES,
   MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
@@ -1578,11 +1577,6 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
   findLost = ({ type }: { type: 'new-register' | 'medium-term' }) => {
-    const readWeekAgo = new Date(Date.now() - DAY * 7).toISOString()
-    const readTwoWeekAgo = new Date(Date.now() - DAY * 14).toISOString()
-    const readSixMonthsAgo = new Date(Date.now() - DAY * 180).toISOString()
-    const registeredMonthAgo = new Date(Date.now() - DAY * 30).toISOString()
-
     const userLastReadQuery = this.knex('article_read_count')
       .select('user_id')
       .max('article_read_count.updated_at', { as: 'last_read' })
@@ -1604,10 +1598,20 @@ export class UserService extends BaseService {
           'user.id',
           'sent_record.user_id'
         )
-        .where('user.created_at', '>=', registeredMonthAgo)
+        .where(
+          'user.created_at',
+          '>=',
+          this.knex.raw(`now() -  interval '30 days'`)
+        )
         .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
         .where(builder =>
-          builder.whereNull('last_read').orWhere('last_read', '<', readWeekAgo)
+          builder
+            .whereNull('last_read')
+            .orWhere(
+              'last_read',
+              '<',
+              this.knex.raw(`now() -  interval '7 days'`)
+            )
         )
         .whereNull('sent_record.type')
     }
@@ -1626,8 +1630,8 @@ export class UserService extends BaseService {
           'user_last_read.user_id',
           'sent_record.user_id'
         )
-        .where('last_read', '>=', readSixMonthsAgo)
-        .where('last_read', '<', readTwoWeekAgo)
+        .where('last_read', '>=', this.knex.raw(`now() -  interval '180 days'`))
+        .where('last_read', '<', this.knex.raw(`now() -  interval '14 days'`))
         .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
         .whereNull('sent_record.type')
     }

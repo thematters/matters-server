@@ -2,7 +2,12 @@ import _ from 'lodash'
 
 import { makeSummary, toGlobalId } from 'common/utils'
 import { i18n } from 'common/utils/i18n'
-import { ArticleService, SystemService, UserService } from 'connectors'
+import {
+  ArticleService,
+  CommentService,
+  SystemService,
+  UserService
+} from 'connectors'
 import { User } from 'definitions'
 
 export const trans = {
@@ -80,6 +85,7 @@ export const trans = {
 
 const userService = new UserService()
 const articleService = new ArticleService()
+const commentService = new CommentService()
 const systemService = new SystemService()
 
 export const getUserDigest = async (user: User | undefined) => {
@@ -108,14 +114,26 @@ export const getArticleDigest = async (article: any | undefined) => {
     return
   }
 
+  const author = await getUserDigest(
+    await userService.baseFindById(article.authorId)
+  )
+  const appreciationsReceivedTotal = await articleService.sumAppreciation(
+    article.id
+  )
+  const [articleCount, commentCount] = await Promise.all([
+    articleService.countActiveCollectedBy(article.id),
+    commentService.countByArticle(article.id)
+  ])
+  const responseCount = articleCount + commentCount
+
   return {
     id: article.id,
-    author: await getUserDigest(
-      await userService.baseFindById(article.authorId)
-    ),
+    author,
     title: article.title,
     slug: encodeURIComponent(article.slug),
-    mediaHash: article.mediaHash
+    mediaHash: article.mediaHash,
+    appreciationsReceivedTotal,
+    responseCount
   }
 }
 

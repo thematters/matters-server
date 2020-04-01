@@ -142,6 +142,7 @@ class EmailsQueue extends BaseQueue {
         this.notificationService.mail.sendChurn({
           to: user.email,
           recipient: {
+            id: user.id,
             displayName: user.displayName
           },
           language: user.language,
@@ -163,27 +164,35 @@ class EmailsQueue extends BaseQueue {
             })
           ).length >= 1
 
-        let followeeArticles: any[] = []
+        // retrieve followeeArticles, or fallbakc to top appreciation articles
+        let articles: any[] = []
+
         if (hasFollowee) {
-          followeeArticles = await this.userService.followeeArticles({
+          articles = await this.userService.followeeArticles({
             userId: user.id,
             limit: 6
           })
         }
-        if (followeeArticles.length <= 0) {
-          followeeArticles = topArticleDigests
+
+        if (articles.length <= 0) {
+          articles = topArticles
         }
+
+        const articleDigests = await Promise.all(
+          articles.map(async article => getArticleDigest(article))
+        )
 
         this.notificationService.mail.sendChurn({
           to: user.email,
           recipient: {
+            id: user.id,
             displayName: user.displayName
           },
           language: user.language,
           type: hasFollowee
             ? 'mediumTermHasFollowees'
             : 'mediumTermHasNotFollowees',
-          articles: hasFollowee ? followeeArticles : topArticleDigests
+          articles: articleDigests
         })
 
         job.progress(((index + newRegisterUsers.length + 1) / totalUsers) * 100)
