@@ -137,7 +137,7 @@
     "@types/qs": "^6.9.1",
     "@types/request-ip": "0.0.35",
     "@types/sharp": "^0.24.0",
-    "@types/uuid": "^3.4.6",
+    "@types/uuid": "^7.0.2",
     "@types/validator": "^12.0.1",
     "@types/winston": "^2.4.4",
     "@types/ws": "^7.2.1",
