@@ -1539,4 +1539,48 @@ export class ArticleService extends BaseService {
     const { count } = await query.count().first()
     return parseInt(count, 10)
   }
+
+  /*********************************
+   *                               *
+   *             Churn             *
+   *                               *
+   *********************************/
+  /**
+   * Find top appreciations articles in a range of time
+   */
+  findTopAppreciations = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    since
+  }: {
+    limit?: number
+    offset?: number
+    since?: Date | string
+  }) => {
+    let qs = this.knex
+      .select('article.*')
+      .from('article')
+      .rightJoin(
+        this.knex
+          .select('referenceId')
+          .sum('amount', { as: 'total' })
+          .from('transaction')
+          .whereIn('purpose', [
+            TRANSACTION_PURPOSE.appreciate,
+            TRANSACTION_PURPOSE.appreciateSubsidy
+          ])
+          .groupBy('referenceId')
+          .orderBy('total', 'desc')
+          .as('tx'),
+        'tx.referenceId',
+        'article.id'
+      )
+      .offset(offset)
+      .limit(limit)
+
+    if (since) {
+      qs = qs.where('createdAt', '>=', since)
+    }
+    return qs
+  }
 }

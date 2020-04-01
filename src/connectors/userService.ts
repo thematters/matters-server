@@ -11,6 +11,7 @@ import {
   BATCH_SIZE,
   BCRYPT_ROUNDS,
   COMMENT_STATE,
+  LOG_RECORD_TYPES,
   MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
@@ -1537,5 +1538,77 @@ export class UserService extends BaseService {
       },
       table: 'user_oauth'
     })
+  }
+
+  /*********************************
+   *                               *
+   *             Churn             *
+   *                               *
+   *********************************/
+  findLost = ({ type }: { type: 'new-register' | 'medium-term' }) => {
+    const userLastReadQuery = this.knex('article_read_count')
+      .select('user_id')
+      .max('article_read_count.updated_at', { as: 'last_read' })
+      .groupBy('user_id')
+      .orderBy('last_read', 'desc')
+      .as('user_last_read')
+
+    // registered within one month and last read a week ago
+    if (type === 'new-register') {
+      return this.knex
+        .select('user.*', 'last_read')
+        .from('user')
+        .leftJoin(userLastReadQuery, 'user.id', 'user_last_read.user_id')
+        .leftJoin(
+          this.knex('log_record')
+            .select('user_id', 'type')
+            .where('type', LOG_RECORD_TYPES.SentNewRegisterChurnEmail)
+            .as('sent_record'),
+          'user.id',
+          'sent_record.user_id'
+        )
+        .where(
+          'user.created_at',
+          '>=',
+          this.knex.raw(`now() -  interval '30 days'`)
+        )
+        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
+        .where(builder =>
+          builder
+            .whereNull('last_read')
+            .orWhere(
+              'last_read',
+              '<',
+              this.knex.raw(`now() -  interval '7 days'`)
+            )
+        )
+        .whereNull('sent_record.type')
+    }
+
+    // read within six months and last read two weeks ago
+    if (type === 'medium-term') {
+      return this.knex
+        .select('user.*', 'last_read')
+        .from(userLastReadQuery)
+        .leftJoin('user', 'user_last_read.user_id', 'user.id')
+        .leftJoin(
+          this.knex('log_record')
+            .select('user_id', 'type')
+            .where('type', LOG_RECORD_TYPES.SentMediumTermChurnEmail)
+            .as('sent_record'),
+          'user_last_read.user_id',
+          'sent_record.user_id'
+        )
+        .where('last_read', '>=', this.knex.raw(`now() -  interval '180 days'`))
+        .where(
+          'last_read',
+          '<',
+          this.knex.raw(`now() -  interval '14 minutes'`)
+        )
+        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
+        .whereNull('sent_record.type')
+    }
+
+    return []
   }
 }

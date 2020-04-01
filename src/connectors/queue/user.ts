@@ -1,6 +1,6 @@
 import Queue from 'bull'
 
-import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
+import { MINUTE, QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import logger from 'common/logger'
 
 import { BaseQueue } from './baseQueue'
@@ -26,7 +26,7 @@ class UserQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: 1000 * 60 * 2 // every 2 minutes
+          every: MINUTE * 2 // every 2 minutes
         }
       }
     )

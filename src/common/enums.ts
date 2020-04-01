@@ -7,6 +7,10 @@ import {
   OfficialNoticeExtendType
 } from 'definitions/notification'
 
+export const MINUTE = 1000 * 60
+export const HOUR = MINUTE * 60
+export const DAY = HOUR * 24
+
 export const UPLOAD_FILE_COUNT_LIMIT = 50
 
 export const UPLOAD_FILE_SIZE_LIMIT = 100 * 1024 * 1024
@@ -126,7 +130,7 @@ export const APPRECIATION_REWARD = {
 export const ARTICLE_APPRECIATE_LIMIT = 5
 export const ARTICLE_PIN_COMMENT_LIMIT = 3
 
-export const VERIFICATION_CODE_EXIPRED_AFTER = 1000 * 60 * 5 // 5 mins
+export const VERIFICATION_CODE_EXIPRED_AFTER = MINUTE * 5 // 5 mins
 export const VERIFICATION_CODE_STATUS = {
   active: 'active',
   inactive: 'inactive',
@@ -302,8 +306,8 @@ export const QUEUE_JOB = {
   activateOnboardingUsers: 'activateOnboardingUsers',
 
   // Emails
-  sendDailySummaryEmail: 'sendDailySummaryEmail',
-  sendReturningEmails: 'sendReturningEmails',
+  sendDailySummaryEmails: 'sendDailySummaryEmails',
+  sendChurnEmails: 'sendChurnEmails',
 
   // Refresh Views
   refreshArticleCountView: 'refreshArticleCountView',
@@ -366,6 +370,11 @@ const DEV_EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-a86e6f1c1fc24379b4b21244f111161b',
     zh_hans: 'd-c0b89ae6e8fe4eed8f05277853561976',
     en: 'd-a86e6f1c1fc24379b4b21244f111161b'
+  },
+  churn: {
+    zh_hant: 'd-f2df8dd4f3e24c7981ec152ccf6eb2ec',
+    zh_hans: 'd-0e2daefb95214cf9ad0f9cd0d2957636',
+    en: 'd-f2df8dd4f3e24c7981ec152ccf6eb2ec'
   }
 }
 
@@ -394,6 +403,11 @@ const PROD_EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-47b788ce3754426fb2a6d3c80b9872eb',
     zh_hans: 'd-2e7d84cd2965426b80eafcfdcd18776c',
     en: 'd-47b788ce3754426fb2a6d3c80b9872eb'
+  },
+  churn: {
+    zh_hant: 'd-0b1612857f9b474aba91679c8e0994d8',
+    zh_hans: 'd-d397d5ae9264436bb1e65a202174e6a9',
+    en: 'd-0b1612857f9b474aba91679c8e0994d8'
   }
 }
 
@@ -426,10 +440,10 @@ export const INVALID_NAMES = [
   'matters管理员'
 ]
 
-export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 60 * 24 * 90 // 90 days
-export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 10 // 10 mins
-export const OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 60 * 24 * 30 // 30 days
-export const OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS = 1000 * 60 * 60 * 24 * 90 // 90 days
+export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
+export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS = MINUTE * 10 // 10 mins
+export const OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 30 // 30 days
+export const OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
 
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
   'image/gif',
@@ -444,7 +458,9 @@ export const IMAGE_DIMENSION_LIMIT = 1400
 
 export const LOG_RECORD_TYPES = {
   ReadFolloweeArticles: 'read_followee_articles',
-  ReadResponseInfoPopUp: 'read_response_info_pop_up'
+  ReadResponseInfoPopUp: 'read_response_info_pop_up',
+  SentNewRegisterChurnEmail: 'sent_new_register_churn_email',
+  SentMediumTermChurnEmail: 'sent_medium_term_churn_email'
 }
 
 export const UTM_PARAMETER = {
