@@ -87,7 +87,7 @@
     "nanoid": "^2.1.11",
     "newrelic": "^6.3.0",
     "oauth2-server": "^3.0.1",
-    "objection": "^2.1.2",
+    "objection": "^2.1.3",
     "passport": "^0.4.1",
     "passport-oauth2": "^1.5.0",
     "pg": "^7.18.2",
