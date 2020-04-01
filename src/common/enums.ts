@@ -1,6 +1,6 @@
 import { isProd } from 'common/environment'
 import { i18n } from 'common/utils/i18n'
-import { BlockListType } from 'definitions'
+import { SkippedListItemType } from 'definitions'
 import {
   DBNoticeType,
   NotificationType,
@@ -585,7 +585,7 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
   ...OFFICIAL_NOTICE_EXTEND_TYPES
 ]
 
-export const BLOCKLIST_TYPES: Record<string, BlockListType> = {
+export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
   AGENT_HASH: 'agent_hash',
   EMAIL: 'email'
 }

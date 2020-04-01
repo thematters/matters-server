@@ -10,7 +10,6 @@ import {
   ARTICLE_STATE,
   BATCH_SIZE,
   BCRYPT_ROUNDS,
-  BLOCKLIST_TYPES,
   COMMENT_STATE,
   LOG_RECORD_TYPES,
   MATERIALIZED_VIEW,
@@ -31,7 +30,6 @@ import {
 import logger from 'common/logger'
 import { BaseService, OAuthService } from 'connectors'
 import {
-  BlockListType,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
   ItemData,
@@ -1310,35 +1308,6 @@ export class UserService extends BaseService {
       { updatedAt: new Date(), ...data },
       'verification_code'
     )
-  }
-
-  /*********************************
-   *                               *
-   *              Ban              *
-   *                               *
-   *********************************/
-
-  findBanValue = async (type: BlockListType, value: string) => {
-    return this.knex('blocklist')
-      .where({ type, value, archived: false })
-      .first()
-  }
-
-  saveBanValue = async (type: BlockListType, uuid: string, value: string) => {
-    if (!type || !uuid || !value) {
-      return
-    }
-    const active = await this.findBanValue(type, value)
-    if (!active) {
-      return this.baseCreate({ uuid, type, value }, 'blocklist')
-    }
-  }
-
-  saveAgentHash = async (value: string) => {
-    if (!value) {
-      return
-    }
-    return this.saveBanValue(BLOCKLIST_TYPES.AGENT_HASH, v4(), value)
   }
 
   /*********************************

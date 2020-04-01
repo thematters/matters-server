@@ -1,6 +1,7 @@
 import feedback from './feedback'
 import logRecord from './logRecord'
 import putRemark from './putRemark'
+import putSkippedListItem from './putSkippedListItem'
 import setBoost from './setBoost'
 import singleFileDelete from './singleFileDelete'
 import singleFileUpload from './singleFileUpload'
@@ -12,6 +13,7 @@ export default {
     feedback,
     setBoost,
     putRemark,
-    logRecord
+    logRecord,
+    putSkippedListItem
   }
 }

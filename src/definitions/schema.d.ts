@@ -579,6 +579,7 @@ export type GQLPossibleConnectionTypeNames =
   | 'SearchResultConnection'
   | 'ReportConnection'
   | 'OAuthClientConnection'
+  | 'SkippedListItemsConnection'
 
 export interface GQLConnectionNameMap {
   Connection: GQLConnection
@@ -595,6 +596,7 @@ export interface GQLConnectionNameMap {
   SearchResultConnection: GQLSearchResultConnection
   ReportConnection: GQLReportConnection
   OAuthClientConnection: GQLOAuthClientConnection
+  SkippedListItemsConnection: GQLSkippedListItemsConnection
 }
 
 export interface GQLPageInfo {
@@ -1415,6 +1417,7 @@ export interface GQLOSS {
   report: GQLReport
   today: GQLArticleConnection
   oauthClients: GQLOAuthClientConnection
+  skippedListItems: GQLSkippedListItemsConnection
 }
 
 export interface GQLOSSArticlesInput {
@@ -1547,6 +1550,32 @@ export const enum GQLGrantType {
 }
 
 export type GQLDate = any
+
+export interface GQLSkippedListItemsConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLSkippedListItemEdge>
+}
+
+export interface GQLSkippedListItemEdge {
+  cursor: string
+  node?: GQLSkippedListItem
+}
+
+export interface GQLSkippedListItem {
+  id: string
+  uuid: GQLUUID
+  type: GQLSkippedListItemType
+  value: string
+  archived: boolean
+  createdAt: GQLDateTime
+  updatedAt: GQLDateTime
+}
+
+export const enum GQLSkippedListItemType {
+  agent_hash = 'agent_hash',
+  email = 'email'
+}
 
 export interface GQLUserInput {
   userName: string
@@ -1728,6 +1757,7 @@ export interface GQLMutation {
    */
   setBoost: GQLNode
   putRemark?: string
+  putSkippedListItem?: Array<GQLSkippedListItem>
 
   /**
    * Send verification code for email.
@@ -2090,6 +2120,11 @@ export const enum GQLRemarkTypes {
   Comment = 'Comment',
   Report = 'Report',
   Feedback = 'Feedback'
+}
+
+export interface GQLPutSkippedListItemInput {
+  id: string
+  archived: boolean
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -2851,6 +2886,9 @@ export interface GQLResolver {
   OAuthClientEdge?: GQLOAuthClientEdgeTypeResolver
   OAuthClient?: GQLOAuthClientTypeResolver
   Date?: GraphQLScalarType
+  SkippedListItemsConnection?: GQLSkippedListItemsConnectionTypeResolver
+  SkippedListItemEdge?: GQLSkippedListItemEdgeTypeResolver
+  SkippedListItem?: GQLSkippedListItemTypeResolver
   Mutation?: GQLMutationTypeResolver
   Upload?: GraphQLScalarType
   AuthResult?: GQLAuthResultTypeResolver
@@ -4257,6 +4295,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'SearchResultConnection'
     | 'ReportConnection'
     | 'OAuthClientConnection'
+    | 'SkippedListItemsConnection'
 }
 export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
@@ -6340,6 +6379,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   report?: OSSToReportResolver<TParent>
   today?: OSSToTodayResolver<TParent>
   oauthClients?: OSSToOauthClientsResolver<TParent>
+  skippedListItems?: OSSToSkippedListItemsResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -6433,6 +6473,18 @@ export interface OSSToOauthClientsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToOauthClientsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToSkippedListItemsArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToSkippedListItemsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToSkippedListItemsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6787,6 +6839,159 @@ export interface OAuthClientToCreatedAtResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface GQLSkippedListItemsConnectionTypeResolver<TParent = any> {
+  totalCount?: SkippedListItemsConnectionToTotalCountResolver<TParent>
+  pageInfo?: SkippedListItemsConnectionToPageInfoResolver<TParent>
+  edges?: SkippedListItemsConnectionToEdgesResolver<TParent>
+}
+
+export interface SkippedListItemsConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SkippedListItemsConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SkippedListItemsConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLSkippedListItemEdgeTypeResolver<TParent = any> {
+  cursor?: SkippedListItemEdgeToCursorResolver<TParent>
+  node?: SkippedListItemEdgeToNodeResolver<TParent>
+}
+
+export interface SkippedListItemEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SkippedListItemEdgeToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLSkippedListItemTypeResolver<TParent = any> {
+  id?: SkippedListItemToIdResolver<TParent>
+  uuid?: SkippedListItemToUuidResolver<TParent>
+  type?: SkippedListItemToTypeResolver<TParent>
+  value?: SkippedListItemToValueResolver<TParent>
+  archived?: SkippedListItemToArchivedResolver<TParent>
+  createdAt?: SkippedListItemToCreatedAtResolver<TParent>
+  updatedAt?: SkippedListItemToUpdatedAtResolver<TParent>
+}
+
+export interface SkippedListItemToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SkippedListItemToUuidResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SkippedListItemToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SkippedListItemToValueResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SkippedListItemToArchivedResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SkippedListItemToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface SkippedListItemToUpdatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLMutationTypeResolver<TParent = any> {
   publishArticle?: MutationToPublishArticleResolver<TParent>
   archiveArticle?: MutationToArchiveArticleResolver<TParent>
@@ -6828,6 +7033,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   logRecord?: MutationToLogRecordResolver<TParent>
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
+  putSkippedListItem?: MutationToPutSkippedListItemResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -7385,6 +7591,21 @@ export interface MutationToPutRemarkResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutRemarkArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutSkippedListItemArgs {
+  input: GQLPutSkippedListItemInput
+}
+export interface MutationToPutSkippedListItemResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToPutSkippedListItemArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

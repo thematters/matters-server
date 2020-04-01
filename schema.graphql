@@ -926,6 +926,7 @@ type Mutation {
   """
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
+  putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1184,6 +1185,7 @@ type OSS {
   report(input: ReportInput!): Report!
   today(input: ConnectionArgs!): ArticleConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
+  skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
 }
 
 input OSSArticlesInput {
@@ -1277,6 +1279,11 @@ input PutRemarkInput {
   id: ID!
   remark: String!
   type: RemarkTypes!
+}
+
+input PutSkippedListItemInput {
+  id: ID!
+  archived: Boolean!
 }
 
 input PutTagInput {
@@ -1549,6 +1556,32 @@ input SingleFileUploadInput {
   url: URL
   entityType: EntityType!
   entityId: ID
+}
+
+type SkippedListItem {
+  id: ID!
+  uuid: UUID!
+  type: SkippedListItemType!
+  value: String!
+  archived: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type SkippedListItemEdge {
+  cursor: String!
+  node: SkippedListItem
+}
+
+type SkippedListItemsConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [SkippedListItemEdge!]
+}
+
+enum SkippedListItemType {
+  agent_hash
+  email
 }
 
 input SubscribeArticleInput {

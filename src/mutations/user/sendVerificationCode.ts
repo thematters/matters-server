@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 import {
-  BLOCKLIST_TYPES,
+  SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_CODE_TYPES
 } from 'common/enums'
@@ -19,7 +19,7 @@ import { MutationToSendVerificationCodeResolver } from 'definitions'
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,
   { input: { email: rawEmail, type, token } },
-  { viewer, dataSources: { userService, notificationService } }
+  { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
   const email = rawEmail ? rawEmail.toLowerCase() : null
 
@@ -78,13 +78,13 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   }
 
   const { agentHash } = viewer
-  const { AGENT_HASH: TYPE_HASH, EMAIL: TYPE_EMAIL } = BLOCKLIST_TYPES
+  const { AGENT_HASH: TYPE_HASH, EMAIL: TYPE_EMAIL } = SKIPPED_LIST_ITEM_TYPES
 
   // verify email if it's in blocklist
-  const banEmail = await userService.findBanValue(TYPE_EMAIL, email)
-  if (banEmail) {
+  const banEmail = await systemService.findSkippedItem(TYPE_EMAIL, email)
+  if (banEmail && banEmail.archived === false) {
     if (agentHash) {
-      await userService.saveBanValue(TYPE_HASH, banEmail.uuid, agentHash)
+      await systemService.createSkippedItem(TYPE_HASH, banEmail.uuid, agentHash)
     }
     logger.info(new Error('email is in blocklist'))
     return true
@@ -92,12 +92,19 @@ const resolver: MutationToSendVerificationCodeResolver = async (
 
   // verify agent hash if it's in blocklist
   if (agentHash) {
-    const banAgentHash = await userService.findBanValue(TYPE_HASH, agentHash)
-    if (banAgentHash) {
-      await userService.saveBanValue(TYPE_EMAIL, banAgentHash.uuid, email)
+    const banAgentHash = await systemService.findSkippedItem(
+      TYPE_HASH,
+      agentHash
+    )
+    if (banAgentHash && banAgentHash.archived === false) {
+      await systemService.createSkippedItem(
+        TYPE_EMAIL,
+        banAgentHash.uuid,
+        email
+      )
+      logger.info(new Error('agent hash is in blocklist'))
+      return true
     }
-    logger.info(new Error('agent hash is in blocklist'))
-    return true
   }
 
   // insert record
