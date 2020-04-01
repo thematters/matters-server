@@ -1600,11 +1600,7 @@ export class UserService extends BaseService {
           'sent_record.user_id'
         )
         .where('last_read', '>=', this.knex.raw(`now() -  interval '180 days'`))
-        .where(
-          'last_read',
-          '<',
-          this.knex.raw(`now() -  interval '14 minutes'`)
-        )
+        .where('last_read', '<', this.knex.raw(`now() -  interval '14 days'`))
         .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
         .whereNull('sent_record.type')
     }
