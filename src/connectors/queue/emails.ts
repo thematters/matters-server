@@ -98,7 +98,7 @@ class EmailsQueue extends BaseQueue {
       })
 
       job.progress(100)
-      done(null)
+      done(null, `send daily emails to ${users.length} users`)
     } catch (e) {
       done(e)
     }
@@ -119,8 +119,6 @@ class EmailsQueue extends BaseQueue {
         type: 'medium-term'
       })
       const totalUsers = newRegisterUsers.length + mediumTermUsers.length
-
-      logger.info(`[schedule job] send churn emails to ${totalUsers} users`)
 
       // top appreciation articles last 30 days
       const monthAgo = new Date(Date.now() - DAY * 30).toISOString()
@@ -199,7 +197,7 @@ class EmailsQueue extends BaseQueue {
       })
 
       job.progress(100)
-      done(null)
+      done(null, `Sent churn emails to ${totalUsers} users`)
     } catch (e) {
       done(e)
     }
