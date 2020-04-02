@@ -108,7 +108,7 @@
     "@types/cheerio": "^0.22.17",
     "@types/cookie": "^0.3.3",
     "@types/dotenv": "^8.2.0",
-    "@types/express-session": "^1.15.16",
+    "@types/express-session": "^1.17.0",
     "@types/graphql": "^14.5.0",
     "@types/graphql-bigint": "^1.0.0",
     "@types/graphql-depth-limit": "^1.1.2",
