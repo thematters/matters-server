@@ -27,7 +27,7 @@ const purgeSentryData = (req?: Request): any => {
 export const makeContext = async ({
   req,
   res,
-  connection
+  connection,
 }: {
   req?: Request
   res: Response
@@ -52,12 +52,12 @@ export const makeContext = async ({
     scope.setUser({
       id: viewer.id ? toGlobalId({ type: 'User', id: viewer.id }) : viewer.id,
       role: viewer.role,
-      language: viewer.language
+      language: viewer.language,
     })
   })
 
   return {
     viewer,
-    res
+    res,
   }
 }

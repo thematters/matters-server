@@ -13,7 +13,7 @@ const resolver: MutationToRenameTagResolver = async (
   tagService.updateSearch({
     id: newTag.id,
     content: newTag.content,
-    description: newTag.description
+    description: newTag.description,
   })
   return newTag
 }

@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex
+  cursorToIndex,
 } from 'common/utils'
 import { UserToFolloweesResolver } from 'definitions'
 
@@ -20,7 +20,7 @@ const resolver: UserToFolloweesResolver = async (
   const actions = await userService.findFollowees({
     userId: id,
     offset,
-    limit: first
+    limit: first,
   })
 
   return connectionFromPromisedArray(

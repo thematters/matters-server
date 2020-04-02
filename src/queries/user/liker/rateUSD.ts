@@ -7,7 +7,7 @@ import { LikerToRateUSDResolver } from 'definitions'
 
 const CACHED = {
   price: null,
-  expiredAt: 0
+  expiredAt: 0,
 }
 const EXPIRES_IN = HOUR * 1 // 1 hour
 

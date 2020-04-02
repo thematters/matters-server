@@ -3,7 +3,7 @@ import axios from 'axios'
 import {
   SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
-  VERIFICATION_CODE_TYPES
+  VERIFICATION_CODE_TYPES,
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import {
@@ -11,7 +11,7 @@ import {
   AuthenticationError,
   EmailExistsError,
   EmailNotFoundError,
-  UserInputError
+  UserInputError,
 } from 'common/errors'
 import logger from 'common/logger'
 import { MutationToSendVerificationCodeResolver } from 'definitions'
@@ -50,8 +50,8 @@ const resolver: MutationToSendVerificationCodeResolver = async (
         params: {
           secret: environment.recaptchaSecret,
           response: token,
-          remoteip: viewer.ip
-        }
+          remoteip: viewer.ip,
+        },
       })
 
       const { success, score } = data
@@ -111,7 +111,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   const { code } = await userService.createVerificationCode({
     userId: viewer.id,
     email,
-    type
+    type,
   })
 
   // send verification email
@@ -120,9 +120,9 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     type,
     code,
     recipient: {
-      displayName: user && user.displayName
+      displayName: user && user.displayName,
     },
-    language: viewer.language
+    language: viewer.language,
   })
 
   return true

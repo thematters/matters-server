@@ -14,7 +14,7 @@ const resolver: ArticleToAppreciationsReceivedResolver = async (
     articleService.findTransactions({
       referenceId: id,
       offset,
-      limit: first
+      limit: first,
     }),
     input,
     totalCount

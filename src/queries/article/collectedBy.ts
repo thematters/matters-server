@@ -2,7 +2,7 @@ import { ARTICLE_STATE } from 'common/enums'
 import {
   connectionFromPromisedArray,
   cursorToIndex,
-  loadManyFilterError
+  loadManyFilterError,
 } from 'common/utils'
 import { ArticleToCollectedByResolver } from 'definitions'
 
@@ -17,7 +17,7 @@ const resolver: ArticleToCollectedByResolver = async (
   const collections = await articleService.findCollectedBy({
     articleId: id,
     limit: first,
-    offset
+    offset,
   })
 
   return connectionFromPromisedArray(
@@ -26,7 +26,7 @@ const resolver: ArticleToCollectedByResolver = async (
         collections.map(({ entranceId }: { entranceId: string }) => entranceId)
       )
       .then(loadManyFilterError)
-      .then(articles =>
+      .then((articles) =>
         articles.filter(({ state }) => state === ARTICLE_STATE.active)
       ),
     input,

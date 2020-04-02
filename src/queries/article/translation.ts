@@ -19,7 +19,7 @@ const resolver: GQLArticleTranslationTypeResolver = {
       id,
       field: 'originalLanguage',
       getter: () => articleService.detectLanguage(content),
-      expire: CACHE_TTL.STATIC
+      expire: CACHE_TTL.STATIC,
     }),
 
   title: async (
@@ -34,7 +34,7 @@ const resolver: GQLArticleTranslationTypeResolver = {
       args: JSON.stringify({ language }),
       getter: () => articleService.translate(title, language),
       expire: CACHE_TTL.STATIC,
-      fallbackValue: title
+      fallbackValue: title,
     }),
 
   content: async (...args) => {
@@ -46,8 +46,8 @@ const resolver: GQLArticleTranslationTypeResolver = {
         _,
         {
           dataSources: { articleService },
-          viewer: { language }
-        }
+          viewer: { language },
+        },
       ] = args
 
       return cacheService.getObject({
@@ -57,12 +57,12 @@ const resolver: GQLArticleTranslationTypeResolver = {
         args: JSON.stringify({ language }),
         getter: () => articleService.translate(content, language),
         expire: CACHE_TTL.STATIC,
-        fallbackValue: content
+        fallbackValue: content,
       })
     } else {
       return ''
     }
-  }
+  },
 }
 
 export default resolver

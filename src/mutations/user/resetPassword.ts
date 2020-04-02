@@ -10,8 +10,8 @@ const resolver: MutationToResetPasswordResolver = async (
     where: {
       uuid,
       type: 'password_reset',
-      status: 'verified'
-    }
+      status: 'verified',
+    },
   })
 
   // check code
@@ -31,7 +31,7 @@ const resolver: MutationToResetPasswordResolver = async (
   // mark code status as used
   await userService.markVerificationCodeAs({
     codeId: code.id,
-    status: 'used'
+    status: 'used',
   })
 
   return true

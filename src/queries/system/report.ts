@@ -15,7 +15,7 @@ const resolvers: GQLReportTypeResolver = {
   category: ({ category }, args, { viewer }) => {
     const matched = _.find(REPORT_CATEGORIES[viewer.language], { id: category })
     return _.get(matched, 'name', 'UNKNOWN')
-  }
+  },
 }
 
 export default resolvers

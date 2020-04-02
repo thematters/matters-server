@@ -128,7 +128,7 @@ const template = ({
   author,
   summary,
   content,
-  publishedAt
+  publishedAt,
 }: TemplateVars) =>
   // prettier-ignore
   /*html*/ `

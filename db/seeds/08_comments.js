@@ -1,9 +1,9 @@
 const table = 'comment'
 
-exports.seed = function(knex, Promise) {
+exports.seed = function (knex, Promise) {
   return knex(table)
     .del()
-    .then(function() {
+    .then(function () {
       return knex(table).insert([
         {
           uuid: '00000000-0000-0000-0000-000000000011',
@@ -12,19 +12,19 @@ exports.seed = function(knex, Promise) {
           quotation_start: 1,
           quotation_end: 10,
           quotation_content: 'some quotation',
-          content: '<div>Test comment 1</div>'
+          content: '<div>Test comment 1</div>',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000012',
           author_id: 2,
           article_id: 2,
-          content: '<div>Test comment 2</div>'
+          content: '<div>Test comment 2</div>',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000013',
           author_id: 3,
           article_id: 3,
-          content: '<div>Test comment 3</div>'
+          content: '<div>Test comment 3</div>',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000014',
@@ -32,7 +32,7 @@ exports.seed = function(knex, Promise) {
           author_id: 1,
           article_id: 3,
           pinned: true,
-          content: '<div>Test comment 4</div>'
+          content: '<div>Test comment 4</div>',
         },
         {
           uuid: '00000000-0000-0000-0000-000000000015',
@@ -40,14 +40,14 @@ exports.seed = function(knex, Promise) {
           author_id: 2,
           article_id: 1,
           content: '<div>Test comment 4</div>',
-          reply_to: 1
+          reply_to: 1,
         },
         {
           uuid: '00000000-0000-0000-0000-000000000016',
           author_id: 2,
           article_id: 5,
-          content: '<div>Test comment 4</div>'
-        }
+          content: '<div>Test comment 4</div>',
+        },
       ])
     })
 }

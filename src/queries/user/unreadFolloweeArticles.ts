@@ -8,12 +8,12 @@ const resolver: UserStatusToUnreadFolloweeArticlesResolver = async (
 ) => {
   const readFolloweeArticlesLog = await systemService.findLogRecord({
     userId: id,
-    type: LOG_RECORD_TYPES.ReadFolloweeArticles
+    type: LOG_RECORD_TYPES.ReadFolloweeArticles,
   })
   const [latestFolloweeArticle] = await userService.followeeArticles({
     userId: id,
     offset: 0,
-    limit: 1
+    limit: 1,
   })
 
   if (!readFolloweeArticlesLog || !latestFolloweeArticle) {

@@ -1,13 +1,13 @@
 const table = 'matters_today'
 
-exports.seed = function(knex, Promise) {
+exports.seed = function (knex, Promise) {
   return knex(table)
     .del()
-    .then(function() {
+    .then(function () {
       return knex(table).insert([
         {
-          article_id: 2
-        }
+          article_id: 2,
+        },
       ])
     })
 }

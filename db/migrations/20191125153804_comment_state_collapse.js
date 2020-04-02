@@ -2,18 +2,18 @@ const { alterEnumString } = require('../utils')
 
 const table = 'comment'
 
-exports.up = async knex => {
+exports.up = async (knex) => {
   await knex.raw(
     alterEnumString(table, 'state', [
       'active',
       'archived',
       'banned',
-      'collapsed'
+      'collapsed',
     ])
   )
 }
 
-exports.down = async knex => {
+exports.down = async (knex) => {
   await knex.raw(
     alterEnumString(table, 'state', ['active', 'archived', 'banned'])
   )

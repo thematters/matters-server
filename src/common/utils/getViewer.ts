@@ -9,7 +9,7 @@ import {
   SCOPE_MODE,
   SKIPPED_LIST_ITEM_TYPES,
   USER_ROLE,
-  USER_STATE
+  USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
@@ -22,7 +22,7 @@ export const scopeModes = [
   SCOPE_MODE.visitor,
   SCOPE_MODE.oauth,
   SCOPE_MODE.user,
-  SCOPE_MODE.admin
+  SCOPE_MODE.admin,
 ]
 
 export const getViewerFromUser = async (user: any) => {
@@ -31,13 +31,13 @@ export const getViewerFromUser = async (user: any) => {
 
   // append hepler functions (keep it till we fully utilize scope)
   viewer.hasRole = (requires: string) =>
-    roleAccess.findIndex(role => role === viewer.role) >=
-    roleAccess.findIndex(role => role === requires)
+    roleAccess.findIndex((role) => role === viewer.role) >=
+    roleAccess.findIndex((role) => role === requires)
 
   // append helper functions
   viewer.hasScopeMode = (requires: string) =>
-    scopeModes.findIndex(mode => mode === viewer.scopeMode) >=
-    scopeModes.findIndex(mode => mode === requires)
+    scopeModes.findIndex((mode) => mode === viewer.scopeMode) >=
+    scopeModes.findIndex((mode) => mode === requires)
 
   return viewer
 }
@@ -56,7 +56,9 @@ const getUser = async (token: string, agentHash: string) => {
     }
 
     if (user.state === USER_STATE.banned && agentHash) {
-      await systemService.saveAgentHash(agentHash).catch(error => logger.error)
+      await systemService
+        .saveAgentHash(agentHash)
+        .catch((error) => logger.error)
     }
 
     return { ...user, scopeMode: user.role }
@@ -83,7 +85,7 @@ const getUser = async (token: string, agentHash: string) => {
         ...data.user,
         scopeMode: SCOPE_MODE.oauth,
         scope,
-        oauthClient: data.client && data.client.rawClient
+        oauthClient: data.client && data.client.rawClient,
       }
     }
 
@@ -93,7 +95,7 @@ const getUser = async (token: string, agentHash: string) => {
 
 export const getViewerFromReq = async ({
   req,
-  res
+  res,
 }: {
   req?: requestIp.Request & { clientIp?: string }
   res?: Response
@@ -109,7 +111,7 @@ export const getViewerFromReq = async ({
     language,
     scopeMode: SCOPE_MODE.visitor,
     scope: {},
-    agentHash
+    agentHash,
   }
 
   // get user from token, use cookie first then 'x-access-token'

@@ -1,10 +1,10 @@
 const table = 'transaction'
 
-exports.seed = function(knex, Promise) {
+exports.seed = function (knex, Promise) {
   // Deletes ALL existing entries
   return knex(table)
     .del()
-    .then(function() {
+    .then(function () {
       // Inserts seed entries
       return knex(table).insert([
         {
@@ -13,7 +13,7 @@ exports.seed = function(knex, Promise) {
           amount: 10,
           purpose: 'appreciate',
           reference_id: 1,
-          recipient_id: 1
+          recipient_id: 1,
         },
         {
           uuid: '00000000-0000-0000-0000-000000000002',
@@ -21,7 +21,7 @@ exports.seed = function(knex, Promise) {
           amount: 10,
           purpose: 'appreciate',
           reference_id: 1,
-          recipient_id: 1
+          recipient_id: 1,
         },
         {
           uuid: '00000000-0000-0000-0000-000000000003',
@@ -29,7 +29,7 @@ exports.seed = function(knex, Promise) {
           amount: 30,
           purpose: 'appreciate',
           reference_id: 1,
-          recipient_id: 1
+          recipient_id: 1,
         },
         {
           uuid: '00000000-0000-0000-0000-000000000004',
@@ -37,7 +37,7 @@ exports.seed = function(knex, Promise) {
           amount: 10,
           purpose: 'appreciate',
           reference_id: 2,
-          recipient_id: 2
+          recipient_id: 2,
         },
         {
           uuid: '00000000-0000-0000-0000-000000000005',
@@ -45,7 +45,7 @@ exports.seed = function(knex, Promise) {
           amount: 50,
           purpose: 'appreciate',
           reference_id: 3,
-          recipient_id: 3
+          recipient_id: 3,
         },
         {
           uuid: '00000000-0000-0000-0000-000000000006',
@@ -53,8 +53,8 @@ exports.seed = function(knex, Promise) {
           amount: 100,
           purpose: 'appreciate',
           reference_id: 1,
-          recipient_id: 1
-        }
+          recipient_id: 1,
+        },
       ])
     })
 }

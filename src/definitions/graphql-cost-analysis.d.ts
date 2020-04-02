@@ -1,12 +1,12 @@
 declare module 'graphql-cost-analysis' {
-  export default function({
+  export default function ({
     maximumCost,
     variables,
     defaultCost,
     costMap,
     complexityRange,
     onComplete,
-    createError
+    createError,
   }: {
     maximumCost: number
     variables?: any

@@ -10,33 +10,33 @@ const trans = {
   appreciateSubsidy: i18n({
     zh_hant: '平台補貼',
     zh_hans: '平台补贴',
-    en: 'Appreciate subsidy'
+    en: 'Appreciate subsidy',
   }),
   systemSubsidy: i18n({
     zh_hant: '種子獎勵',
     zh_hans: '种子奖励',
-    en: 'System subsidy'
+    en: 'System subsidy',
   }),
   appreciateComment: i18n({
     zh_hant: '評論讚賞',
     zh_hans: '评论赞赏',
-    en: 'Comment appreciation'
+    en: 'Comment appreciation',
   }),
   invitationAccepted: i18n({
     zh_hant: '邀請獎勵',
     zh_hans: '邀请奖励',
-    en: 'Invitation reward'
+    en: 'Invitation reward',
   }),
   joinByInvitation: i18n({
     zh_hant: '激活獎勵',
     zh_hans: '激活奖励',
-    en: 'Activation reward'
+    en: 'Activation reward',
   }),
   firstPost: i18n({
     zh_hant: '首發獎勵',
     zh_hans: '首发奖励',
-    en: 'First post reward'
-  })
+    en: 'First post reward',
+  }),
 }
 
 export const Transaction: GQLTransactionTypeResolver = {
@@ -77,5 +77,5 @@ export const Transaction: GQLTransactionTypeResolver = {
     } else {
       return null
     }
-  }
+  },
 }

@@ -6,7 +6,7 @@ import querystring from 'querystring'
 import {
   OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS,
   OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS,
-  OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS
+  OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { getViewerFromReq } from 'common/utils/getViewer'
@@ -30,7 +30,7 @@ const oAuthServer = new OAuthServer({
     getAccessToken: oAuthService.getAccessToken,
     getRefreshToken: oAuthService.getRefreshToken,
     revokeToken: oAuthService.revokeToken,
-    verifyScope: oAuthService.verifyScope
+    verifyScope: oAuthService.verifyScope,
   },
   allowEmptyState: true,
   allowExtendedTokenAttributes: true,
@@ -43,11 +43,11 @@ const oAuthServer = new OAuthServer({
       }
 
       return viewer
-    }
+    },
   },
   authorizationCodeLifetime: OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS / 1000,
   accessTokenLifetime: OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
-  refreshTokenLifetime: OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS / 1000
+  refreshTokenLifetime: OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS / 1000,
 })
 
 /**
@@ -69,7 +69,7 @@ oAuthRouter.use('/authorize', async (req, res, next) => {
   const qs = querystring.stringify(req.query)
   const grantUrl = `${environment.siteDomain}/oauth/authorize?${qs}`
   const loginUrl = `${environment.siteDomain}/login?${querystring.stringify({
-    target: grantUrl
+    target: grantUrl,
   })}`
   let redirectUrl = ''
 
@@ -96,7 +96,7 @@ initPassportStrategies()
 oAuthRouter.use('/:provider', (req, res, next) => {
   const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl
   const qs = querystring.stringify({
-    target: fullUrl
+    target: fullUrl,
   })
   const loginUrl = `${environment.siteDomain}/login?${qs}`
   let redirectUrl = ''

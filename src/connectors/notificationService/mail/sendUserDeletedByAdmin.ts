@@ -8,7 +8,7 @@ import { trans } from './utils'
 export const sendUserDeletedByAdmin = async ({
   to,
   recipient,
-  language = 'zh_hant'
+  language = 'zh_hant',
 }: {
   to: string
   recipient: {
@@ -27,9 +27,9 @@ export const sendUserDeletedByAdmin = async ({
         dynamic_template_data: {
           subject: trans.userDeleted(language, {}),
           siteDomain: environment.siteDomain,
-          recipient
-        }
-      }
-    ]
+          recipient,
+        },
+      },
+    ],
   })
 }

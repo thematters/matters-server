@@ -13,15 +13,15 @@ const resolver: MutationToMergeTagsResolver = async (
   if (!mattyUser) {
     throw new UserNotFoundError('could not find Matty')
   }
-  const tagDbIds = ids.map(id => fromGlobalId(id).id)
+  const tagDbIds = ids.map((id) => fromGlobalId(id).id)
   const newTag = await tagService.mergeTags({
     tagIds: tagDbIds,
     content,
-    editors: [mattyUser.id]
+    editors: [mattyUser.id],
   })
 
   // Add custom data for cache invalidation
-  newTag[CACHE_KEYWORD] = tagDbIds.map(id => ({ id, type: NODE_TYPES.tag }))
+  newTag[CACHE_KEYWORD] = tagDbIds.map((id) => ({ id, type: NODE_TYPES.tag }))
   return newTag
 }
 

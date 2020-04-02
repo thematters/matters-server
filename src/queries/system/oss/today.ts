@@ -13,7 +13,7 @@ export const today: OSSToTodayResolver = async (
   return connectionFromPromisedArray(
     articleService.recommendToday({
       offset,
-      limit: first
+      limit: first,
     }),
     input,
     totalCount

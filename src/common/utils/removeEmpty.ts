@@ -1,7 +1,7 @@
 export const removeEmpty = (o: { [key: string]: any }) => {
   const obj = JSON.parse(JSON.stringify(o))
 
-  Object.keys(obj).forEach(key => {
+  Object.keys(obj).forEach((key) => {
     if (typeof obj[key] === 'object' && obj[key] !== null) {
       const cleaned = removeEmpty(obj[key])
       if (Object.keys(cleaned).length === 0) {

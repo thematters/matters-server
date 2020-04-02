@@ -8,7 +8,7 @@ import {
   NotificationService,
   SystemService,
   TagService,
-  UserService
+  UserService,
 } from 'connectors'
 
 import { createQueue } from './utils'
@@ -52,7 +52,7 @@ export class BaseQueue {
   clearDelayedJobs = async () => {
     try {
       const jobs = await this.q.getDelayed()
-      jobs.forEach(async job => {
+      jobs.forEach(async (job) => {
         await job.remove()
       })
     } catch (e) {

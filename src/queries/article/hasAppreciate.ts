@@ -11,7 +11,7 @@ const resolver: ArticleToHasAppreciateResolver = (
 
   return articleService.hasAppreciate({
     userId: viewer.id,
-    articleId: id
+    articleId: id,
   })
 }
 

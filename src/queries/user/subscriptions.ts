@@ -12,7 +12,7 @@ const resolver: UserToSubscriptionsResolver = async (
   const actions = await userService.findSubscriptions({
     userId: id,
     offset,
-    limit: first
+    limit: first,
   })
 
   return connectionFromPromisedArray(

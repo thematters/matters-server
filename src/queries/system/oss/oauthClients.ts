@@ -13,7 +13,7 @@ export const oauthClients: OSSToOauthClientsResolver = async (
   return connectionFromPromisedArray(
     oauthService.baseFind({
       offset,
-      limit: first
+      limit: first,
     }),
     input,
     totalCount
