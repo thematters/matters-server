@@ -1,6 +1,5 @@
 export * from './deprecated'
 export * from './auth'
-export * from './private'
 export * from './scope'
 export * from './purgeCache'
 export * from './privateCache'
