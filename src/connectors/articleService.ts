@@ -1575,6 +1575,7 @@ export class ArticleService extends BaseService {
         'tx.referenceId',
         'article.id'
       )
+      .where('state', ARTICLE_STATE.active)
       .offset(offset)
       .limit(limit)
 
