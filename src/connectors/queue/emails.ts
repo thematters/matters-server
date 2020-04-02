@@ -38,7 +38,7 @@ class EmailsQueue extends BaseQueue {
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 0 * * *', tz: 'Asia/Hong_Kong' }
+        repeat: { cron: '0 20 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
   }
