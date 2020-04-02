@@ -38,8 +38,8 @@ export const trans = {
     })
   },
   registerSuccess: i18n({
-    zh_hant: '歡迎成爲 Matters 創作者，這是一封新手必讀',
-    zh_hans: '欢迎成为 Matters 创作者，这是一封新手必读'
+    zh_hant: '歡迎來到 Matters 宇宙航艦，這是為你準備的登船指南',
+    zh_hans: '欢迎来到 Matters 宇宙航舰，这是为你准备的登船指南'
   }),
   dailySummary: i18n<{ displayName: string }>({
     zh_hant: ({ displayName }) =>
