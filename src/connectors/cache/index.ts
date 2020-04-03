@@ -46,6 +46,9 @@ export class CacheService {
   }): string =>
     [this.prefix, type, id, field, args].filter((el) => el).join(':')
 
+  /**
+   * Store gql returned object in cache.
+   */
   storeObject = ({
     type,
     id,
@@ -68,6 +71,9 @@ export class CacheService {
     return this.redis.client.set(key, data, 'EX', expire)
   }
 
+  /**
+   * Get object from cache, or get object then cache.
+   */
   getObject = async ({
     type,
     id,
@@ -127,5 +133,60 @@ export class CacheService {
     } catch (error) {
       logger.error(error)
     }
+  }
+
+  checkOperationLimit = async ({
+    user,
+    operation,
+    limit,
+    period
+  }: {
+    user: string
+    operation: string
+    limit: number
+    period: number
+  }) => {
+    const cacheKey = this.genKey({
+      type: 'OperationLog',
+      id: user,
+      field: operation
+    })
+    const operationLog = await this.redis.client.get(cacheKey)
+    const current = Date.now()
+
+    // no record
+    if (!operationLog) {
+      // create
+      this.redis.client.lpush(cacheKey, current).then(() => {
+        this.redis.client.expire(cacheKey, period)
+      })
+
+      // pass
+      return true
+    }
+
+    // within period
+    const valid = operationLog.map(
+      (timestamp: number) => timestamp >= current - period
+    )
+
+    // count
+    const times = valid.reduce(
+      (a: boolean, b: boolean) => (a ? 1 : 0) + (b ? 1 : 0),
+      0
+    )
+
+    // over limit
+    if (times >= limit) {
+      return false
+    }
+
+    // add and trim
+    this.redis.client.lpush(cacheKey, current)
+    this.redis.client.ltrim(cacheKey, 0, times)
+    this.redis.client.expire(cacheKey, period)
+
+    // pass
+    return true
   }
 }
