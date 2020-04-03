@@ -123,7 +123,7 @@
     "@types/ioredis": "^4.14.9",
     "@types/jest": "^25.1.5",
     "@types/js-base64": "^2.3.1",
-    "@types/jsonwebtoken": "^8.3.7",
+    "@types/jsonwebtoken": "^8.3.8",
     "@types/knex": "^0.16.1",
     "@types/lodash": "^4.14.149",
     "@types/mime-types": "^2.1.0",
