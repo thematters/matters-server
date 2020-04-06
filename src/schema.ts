@@ -13,7 +13,8 @@ import {
   LogCacheDirective,
   PrivateCacheDirective,
   PurgeCacheDirective,
-  ScopeDirective,
+  RateLimitDirective,
+  ScopeDirective
 } from './types/directives'
 
 const schema = makeExecutableSchema({
@@ -26,8 +27,9 @@ const schema = makeExecutableSchema({
     purgeCache: PurgeCacheDirective,
     privateCache: PrivateCacheDirective,
     logCache: LogCacheDirective,
+    rateLimit: RateLimitDirective
   },
-  resolvers: merge(queries, mutations, subscriptions),
+  resolvers: merge(queries, mutations, subscriptions)
 })
 
 export default schema

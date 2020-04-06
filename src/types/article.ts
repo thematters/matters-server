@@ -7,7 +7,7 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     "Publish an article onto IPFS."
-    publishArticle(input: PublishArticleInput!): Draft! @authenticate @purgeCache
+    publishArticle(input: PublishArticleInput!): Draft! @authenticate @purgeCache @rateLimit(limit:10, period:7200)
 
     "Archive an article and users won't be able to view this article."
     archiveArticle(input: ArchiveArticleInput!): Article! @authenticate @purgeCache
@@ -19,7 +19,7 @@ export default /* GraphQL */ `
     toggleSubscribeArticle(input: ToggleItemInput!): Article! @authenticate @purgeCache
 
     "Appreciate an article."
-    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate @purgeCache
+    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate @purgeCache @rateLimit(limit:5, period:60)
 
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!

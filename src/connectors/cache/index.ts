@@ -39,7 +39,7 @@ export class CacheService {
     field,
     args,
   }: {
-    type: string
+    type?: string
     id: string
     args?: string
     field?: string
@@ -147,12 +147,14 @@ export class CacheService {
     period: number
   }) => {
     const cacheKey = this.genKey({
-      type: 'OperationLog',
       id: user,
       field: operation
     })
-    const operationLog = await this.redis.client.get(cacheKey)
-    const current = Date.now()
+
+    const operationLog = await this.redis.client.lrange(cacheKey, 0, -1)
+
+    // timestamp in seconds
+    const current = Math.floor(Date.now() / 1000)
 
     // no record
     if (!operationLog) {
@@ -181,7 +183,7 @@ export class CacheService {
       return false
     }
 
-    // add and trim
+    // add ,trim, update expiration
     this.redis.client.lpush(cacheKey, current)
     this.redis.client.ltrim(cacheKey, 0, times)
     this.redis.client.expire(cacheKey, period)

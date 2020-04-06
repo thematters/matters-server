@@ -4,7 +4,8 @@ import { makeExecutableSchema } from 'graphql-tools'
 import 'module-alias/register'
 
 import logger from 'common/logger'
-import typeDefs from 'types'
+
+import typeDefs from '../../types'
 
 const schemaObj = makeExecutableSchema({
   typeDefs,
