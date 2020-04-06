@@ -98,6 +98,7 @@ export const USER_STATE = {
   banned: 'banned',
   frozen: 'frozen',
   archived: 'archived',
+  forbidden: 'forbidden',
 }
 
 export const ARTICLE_STATE = {

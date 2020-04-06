@@ -123,7 +123,7 @@ export class UserService extends BaseService {
   login = async ({ email, password }: { email: string; password: string }) => {
     const user = await this.findByEmail(email)
 
-    if (!user || user.state === USER_STATE.archived) {
+    if (!user || user.state === USER_STATE.archived || user.state === USER_STATE.forbidden) {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 
@@ -242,13 +242,15 @@ export class UserService extends BaseService {
   /**
    * Archive User by a given user id
    */
-  archive = async (id: string) => {
+  archive = async (id: string, force: boolean) => {
+    const userState = force ? USER_STATE.forbidden : USER_STATE.archived
+
     const archivedUser = await this.knex.transaction(async (trx) => {
       // archive user
       const [user] = await trx
         .where('id', id)
         .update({
-          state: USER_STATE.archived,
+          state: userState,
           displayName: '已註銷用戶',
           updatedAt: new Date(),
           avatar: null,
@@ -296,7 +298,7 @@ export class UserService extends BaseService {
         index: this.table,
         id,
         body: {
-          doc: { state: USER_STATE.archived },
+          doc: { state: userState },
         },
       })
     } catch (e) {
@@ -1532,7 +1534,7 @@ export class UserService extends BaseService {
           '>=',
           this.knex.raw(`now() -  interval '30 days'`)
         )
-        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
+        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned, USER_STATE.forbidden])
         .where((builder) =>
           builder
             .whereNull('last_read')
@@ -1561,7 +1563,7 @@ export class UserService extends BaseService {
         )
         .where('last_read', '>=', this.knex.raw(`now() -  interval '180 days'`))
         .where('last_read', '<', this.knex.raw(`now() -  interval '14 days'`))
-        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
+        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned, USER_STATE.forbidden])
         .whereNull('sent_record.type')
         .whereNotNull('user.id')
     }

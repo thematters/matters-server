@@ -51,14 +51,14 @@ const getUser = async (token: string, agentHash: string) => {
     const source = jwt.verify(token, environment.jwtSecret) as { uuid: string }
     const user = await userService.baseFindByUUID(source.uuid)
 
-    if (user.state === USER_STATE.archived) {
-      throw new Error('user has deleted')
-    }
-
-    if (user.state === USER_STATE.banned && agentHash) {
+    if (user.state === USER_STATE.forbidden && agentHash) {
       await systemService
         .saveAgentHash(agentHash)
         .catch((error) => logger.error)
+    }
+
+    if (user.state === USER_STATE.archived || user.state === USER_STATE.forbidden) {
+      throw new Error('user has deleted')
     }
 
     return { ...user, scopeMode: user.role }
@@ -75,7 +75,7 @@ const getUser = async (token: string, agentHash: string) => {
         throw new Error('token expired')
       }
 
-      if (data.user.state === USER_STATE.archived) {
+      if (data.user.state === USER_STATE.archived || data.user.state === USER_STATE.forbidden) {
         throw new Error('user has been deleted')
       }
 

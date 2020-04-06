@@ -21,10 +21,11 @@ exports.baseDown = (table) => async (knex) => {
 }
 
 exports.alterEnumString = (table, column, enums) => {
+  const tableName = table === 'user' ? `"${table}"` : table
   const constraints = `${table}_${column}_check`
   const enumValues = enums.join("'::text, '")
   return [
-    `ALTER TABLE ${table} DROP CONSTRAINT IF EXISTS ${constraints};`,
-    `ALTER TABLE ${table} ADD CONSTRAINT ${constraints} CHECK (${column} = ANY (ARRAY['${enumValues}'::text]));`,
+    `ALTER TABLE ${tableName} DROP CONSTRAINT IF EXISTS ${constraints};`,
+    `ALTER TABLE ${tableName} ADD CONSTRAINT ${constraints} CHECK (${column} = ANY (ARRAY['${enumValues}'::text]));`,
   ].join('\n')
 }

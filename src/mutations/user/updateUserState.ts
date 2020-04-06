@@ -1,5 +1,5 @@
 import { USER_STATE } from 'common/enums'
-import { ActionFailedError, UserInputError } from 'common/errors'
+import { ActionFailedError, ForbiddenError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { userQueue } from 'connectors/queue'
 import { MutationToUpdateUserStateResolver } from 'definitions'
@@ -11,6 +11,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
 ) => {
   const { id: dbId } = fromGlobalId(id)
   const isArchived = state === USER_STATE.archived
+  const isForbidden = state === USER_STATE.forbidden
   const user = await userService.dataloader.load(dbId)
 
   // check
@@ -18,10 +19,18 @@ const resolver: MutationToUpdateUserStateResolver = async (
     throw new ActionFailedError('user has already been archived')
   }
 
+  if (user.state === USER_STATE.forbidden) {
+    throw new ActionFailedError('user has already been forbidden')
+  }
+
+  if (isForbidden && !viewer.hasRole('admin')) {
+    throw new ForbiddenError('viewer has no permission')
+  }
+
   /**
-   * Archive
+   * Archive, Forbid
    */
-  if (isArchived) {
+  if (isArchived || isForbidden) {
     // verify password if target state is `archived`
     if (!password || !viewer.id) {
       throw new UserInputError('`password` is required for archiving user')
@@ -30,7 +39,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
     }
 
     // sync
-    const archivedUser = await userService.archive(dbId)
+    const archivedUser = await userService.archive(dbId, isForbidden)
 
     // async
     userQueue.archiveUser({ userId: archivedUser.id })
