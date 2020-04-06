@@ -551,6 +551,7 @@ export default /* GraphQL */ `
     banned
     frozen
     archived
+    forbidden
   }
 
   enum UserRole {
