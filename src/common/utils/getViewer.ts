@@ -57,7 +57,10 @@ const getUser = async (token: string, agentHash: string) => {
         .catch((error) => logger.error)
     }
 
-    if (user.state === USER_STATE.archived || user.state === USER_STATE.forbidden) {
+    if (
+      user.state === USER_STATE.archived ||
+      user.state === USER_STATE.forbidden
+    ) {
       throw new Error('user has deleted')
     }
 
@@ -75,7 +78,10 @@ const getUser = async (token: string, agentHash: string) => {
         throw new Error('token expired')
       }
 
-      if (data.user.state === USER_STATE.archived || data.user.state === USER_STATE.forbidden) {
+      if (
+        data.user.state === USER_STATE.archived ||
+        data.user.state === USER_STATE.forbidden
+      ) {
         throw new Error('user has been deleted')
       }
 

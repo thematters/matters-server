@@ -1,5 +1,9 @@
 import { USER_STATE } from 'common/enums'
-import { ActionFailedError, ForbiddenError, UserInputError } from 'common/errors'
+import {
+  ActionFailedError,
+  ForbiddenError,
+  UserInputError,
+} from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { userQueue } from 'connectors/queue'
 import { MutationToUpdateUserStateResolver } from 'definitions'

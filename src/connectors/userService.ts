@@ -123,7 +123,11 @@ export class UserService extends BaseService {
   login = async ({ email, password }: { email: string; password: string }) => {
     const user = await this.findByEmail(email)
 
-    if (!user || user.state === USER_STATE.archived || user.state === USER_STATE.forbidden) {
+    if (
+      !user ||
+      user.state === USER_STATE.archived ||
+      user.state === USER_STATE.forbidden
+    ) {
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 
@@ -1534,7 +1538,11 @@ export class UserService extends BaseService {
           '>=',
           this.knex.raw(`now() -  interval '30 days'`)
         )
-        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned, USER_STATE.forbidden])
+        .whereNotIn('user.state', [
+          USER_STATE.archived,
+          USER_STATE.banned,
+          USER_STATE.forbidden,
+        ])
         .where((builder) =>
           builder
             .whereNull('last_read')
@@ -1563,7 +1571,11 @@ export class UserService extends BaseService {
         )
         .where('last_read', '>=', this.knex.raw(`now() -  interval '180 days'`))
         .where('last_read', '<', this.knex.raw(`now() -  interval '14 days'`))
-        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned, USER_STATE.forbidden])
+        .whereNotIn('user.state', [
+          USER_STATE.archived,
+          USER_STATE.banned,
+          USER_STATE.forbidden,
+        ])
         .whereNull('sent_record.type')
         .whereNotNull('user.id')
     }

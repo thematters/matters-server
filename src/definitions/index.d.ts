@@ -41,7 +41,12 @@ export type User = {
 
 export type UserRole = 'admin' | 'user'
 
-export type UserState = 'active' | 'banned' | 'frozen' | 'archived' | 'forbidden'
+export type UserState =
+  | 'active'
+  | 'banned'
+  | 'frozen'
+  | 'archived'
+  | 'forbidden'
 
 export type Context = RequestContext & {
   dataSources: DataSources
