@@ -8,11 +8,11 @@ const resolver: MutationToUserLoginResolver = async (
 ) => {
   const {
     dataSources: { userService },
-    res
+    res,
   } = context
   const { token, user } = await userService.login({
     ...input,
-    email: input.email ? input.email.toLowerCase() : null
+    email: input.email ? input.email.toLowerCase() : null,
   })
 
   setCookie({ res, token })

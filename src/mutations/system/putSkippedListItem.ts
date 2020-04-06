@@ -26,7 +26,7 @@ const resolver: MutationToPutSkippedListItemResolver = async (
     if (relatedItem) {
       updatedItems.push({
         ...relatedItem,
-        id: toGlobalId({ type: 'SkippedListItem', id: relatedItem.id })
+        id: toGlobalId({ type: 'SkippedListItem', id: relatedItem.id }),
       })
     }
   }

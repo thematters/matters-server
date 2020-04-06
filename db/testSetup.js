@@ -29,7 +29,7 @@ module.exports = async () => {
     host: process.env['MATTERS_PG_HOST'],
     user: process.env['MATTERS_PG_USER'],
     password: process.env['MATTERS_PG_PASSWORD'],
-    database: 'postgres'
+    database: 'postgres',
   })
 
   // create test db if it does not exist

@@ -18,6 +18,6 @@ export default {
     voteComment,
     unvoteComment,
     updateCommentsState,
-    togglePinComment
-  }
+    togglePinComment,
+  },
 }

@@ -10,7 +10,7 @@ const resolver: UserToIsBlockedResolver = async (
   }
   return userService.blocked({
     userId: viewer.id,
-    targetId: id
+    targetId: id,
   })
 }
 

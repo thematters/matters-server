@@ -8,7 +8,7 @@ const resolver: UserStatusToUnreadResponseInfoPopUpResolver = async (
 ) => {
   const readResponseInfoPopUpLog = await systemService.findLogRecord({
     userId: id,
-    type: LOG_RECORD_TYPES.ReadResponseInfoPopUp
+    type: LOG_RECORD_TYPES.ReadResponseInfoPopUp,
   })
 
   if (!readResponseInfoPopUpLog) {

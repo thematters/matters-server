@@ -23,14 +23,14 @@ const getCacheKeys = (customs: CacheSet[], fallback: CacheSet): string[] => {
     )
   }
   return [
-    `${CACHE_PREFIX.KEYS}:${_replace(fallback.type, '!', '')}:${fallback.id}`
+    `${CACHE_PREFIX.KEYS}:${_replace(fallback.type, '!', '')}:${fallback.id}`,
   ]
 }
 
 export class PurgeCacheDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field: GraphQLField<any, any>) {
     const { resolve = defaultFieldResolver } = field
-    field.resolve = async function(...args) {
+    field.resolve = async function (...args) {
       const [root, _, { redis }, { returnType }] = args
       const result = await resolve.apply(this, args)
       if (result && result.id && redis && returnType) {
@@ -38,7 +38,7 @@ export class PurgeCacheDirective extends SchemaDirectiveVisitor {
           const cache = _get(result, CACHE_KEYWORD, [])
           const keys = getCacheKeys(cache, {
             id: result.id,
-            type: `${returnType}`
+            type: `${returnType}`,
           })
           keys.map(async (key: string) => {
             const hashes = await redis.client.smembers(key)

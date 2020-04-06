@@ -10,14 +10,14 @@ import {
   getArticleDigest,
   getCommentDigest,
   getUserDigest,
-  trans
+  trans,
 } from './utils'
 
 export const sendDailySummary = async ({
   to,
   recipient,
   language = 'zh_hant',
-  notices
+  notices,
 }: {
   to: string
   recipient: {
@@ -37,55 +37,55 @@ export const sendDailySummary = async ({
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.dailySummary[language]
   const subject = trans.dailySummary(language, {
-    displayName: recipient.displayName
+    displayName: recipient.displayName,
   })
 
   const user_new_follower = await Promise.all(
     notices.user_new_follower.map(async ({ actors = [] }) => ({
       actors: await getActors(actors),
-      actorCount: actors.length > 3 ? actors.length : false
+      actorCount: actors.length > 3 ? actors.length : false,
     }))
   )
   const article_new_collected = await Promise.all(
     notices.article_new_collected.map(async ({ actors = [], entities }) => ({
       actor: await getUserDigest(actors[0]),
-      article: await getArticleDigest(entities && entities.target)
+      article: await getArticleDigest(entities && entities.target),
     }))
   )
   const article_new_appreciation = await Promise.all(
     notices.article_new_appreciation.map(async ({ actors = [], entities }) => ({
       actors: await getActors(actors),
-      article: await getArticleDigest(entities && entities.target)
+      article: await getArticleDigest(entities && entities.target),
     }))
   )
   const article_mentioned_you = await Promise.all(
     notices.article_mentioned_you.map(async ({ actors = [], entities }) => ({
       actor: await getUserDigest(actors[0]),
-      article: await getArticleDigest(entities && entities.target)
+      article: await getArticleDigest(entities && entities.target),
     }))
   )
   const article_new_subscriber = await Promise.all(
     notices.article_new_subscriber.map(async ({ actors = [], entities }) => ({
       actors: await getActors(actors),
-      article: await getArticleDigest(entities && entities.target)
+      article: await getArticleDigest(entities && entities.target),
     }))
   )
   const article_new_comment = await Promise.all(
     notices.article_new_comment.map(async ({ actors = [], entities }) => ({
       actors: await getActors(actors),
-      article: await getArticleDigest(entities && entities.target)
+      article: await getArticleDigest(entities && entities.target),
     }))
   )
   const comment_new_reply = await Promise.all(
     notices.comment_new_reply.map(async ({ actors = [], entities }) => ({
       actor: await getUserDigest(actors[0]),
-      comment: await getCommentDigest(entities && entities.target)
+      comment: await getCommentDigest(entities && entities.target),
     }))
   )
   const comment_mentioned_you = await Promise.all(
     notices.comment_mentioned_you.map(async ({ actors = [], entities }) => ({
       actor: await getUserDigest(actors[0]),
-      comment: await getCommentDigest(entities && entities.target)
+      comment: await getCommentDigest(entities && entities.target),
     }))
   )
 
@@ -106,13 +106,13 @@ export const sendDailySummary = async ({
               'article_new_collected',
               'article_new_appreciation',
               'article_new_subscriber',
-              'article_new_comment'
-            ].some(type => _.get(notices, `${type}.0`)),
+              'article_new_comment',
+            ].some((type) => _.get(notices, `${type}.0`)),
             mention: [
               'article_mentioned_you',
               'comment_mentioned_you',
-              'comment_new_reply'
-            ].some(type => _.get(notices, `${type}.0`))
+              'comment_new_reply',
+            ].some((type) => _.get(notices, `${type}.0`)),
           },
           notices: {
             user_new_follower,
@@ -122,10 +122,10 @@ export const sendDailySummary = async ({
             article_new_comment,
             article_mentioned_you,
             comment_new_reply,
-            comment_mentioned_you
-          }
-        }
-      }
-    ]
+            comment_mentioned_you,
+          },
+        },
+      },
+    ],
   })
 }

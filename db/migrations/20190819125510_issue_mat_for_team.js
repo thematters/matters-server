@@ -6,43 +6,43 @@ const table = 'transaction'
 
 const purpose = 'system-subsidy'
 
-exports.up = async knex => {
+exports.up = async (knex) => {
   const items = [
     {
       userName: 'lalaland',
       role: 'admin',
-      amount: 2000
+      amount: 2000,
     },
     {
       userName: 'yingshinlee',
       role: 'admin',
-      amount: 2000
+      amount: 2000,
     },
     {
       userName: 'satsuki',
       role: 'admin',
-      amount: 2000
+      amount: 2000,
     },
     {
       userName: 'robertu',
       role: 'user',
-      amount: 2000
+      amount: 2000,
     },
     {
       userName: 'guo',
       role: 'admin',
-      amount: 2000
+      amount: 2000,
     },
     {
       userName: 'baize417',
       role: 'admin',
-      amount: 1000
+      amount: 1000,
     },
     {
       userName: 'andyischaos',
       role: 'admin',
-      amount: 500
-    }
+      amount: 500,
+    },
   ]
 
   const users = compact(
@@ -67,7 +67,7 @@ exports.up = async knex => {
           recipient_id: id,
           reference_id: id,
           purpose,
-          amount
+          amount,
         })
         .into(table)
         .returning(['id', 'recipient_id', 'amount'])

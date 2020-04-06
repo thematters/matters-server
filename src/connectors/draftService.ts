@@ -42,12 +42,9 @@ export class DraftService extends BaseService {
    * Find drafts by publish state
    */
   findByPublishState = async (publishState: string) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .where({
-        publishState
-      })
+    this.knex.select().from(this.table).where({
+      publishState,
+    })
 
   /**
    * Find or Delete drafts that aren't linked to articles by a given author id (user).

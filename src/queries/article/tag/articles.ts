@@ -14,7 +14,7 @@ const resolver: TagToArticlesResolver = async (
     id,
     offset,
     limit: first,
-    selected
+    selected,
   })
   return connectionFromPromisedArray(
     articleService.dataloader.loadMany(articleIds),

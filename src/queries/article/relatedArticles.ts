@@ -18,7 +18,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
   // helper function to prevent duplicates and origin article
   const addRec = (rec: any[], extra: any[]) =>
-    _.uniqBy(rec.concat(extra), 'id').filter(_rec => _rec.id !== id)
+    _.uniqBy(rec.concat(extra), 'id').filter((_rec) => _rec.id !== id)
 
   // articles in collection for this article as the entrance
   const entranceId = id
@@ -32,7 +32,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     const relatedArticles = await articleService.related({
       id,
       size: recommendationSize + buffer,
-      notIn: collection
+      notIn: collection,
     })
 
     // articles in collection shall be excluded from recommendation
@@ -48,7 +48,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     articles = await articleService.dataloader
       .loadMany(relatedArticleIds)
       .then(loadManyFilterError)
-      .then(allArticles =>
+      .then((allArticles) =>
         allArticles.filter(({ state }) => state === ARTICLE_STATE.active)
       )
   } catch (err) {
@@ -66,7 +66,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
       const articleIds = await tagService.findArticleIds({
         id: tagId,
-        limit: recommendationSize - ids.length
+        limit: recommendationSize - ids.length,
       })
 
       logger.info(
@@ -85,7 +85,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   // fall back to author
   if (articles.length < recommendationSize + buffer) {
     const articlesFromAuthor = await articleService.findByAuthor(authorId, {
-      state: ARTICLE_STATE.active
+      state: ARTICLE_STATE.active,
     })
     logger.info(
       `[recommendation] article ${id}, title ${title}, author result ${articlesFromAuthor.map(

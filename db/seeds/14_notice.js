@@ -4,10 +4,10 @@ const table = {
   notice: 'notice',
   notice_detail: 'notice_detail',
   notice_actor: 'notice_actor',
-  notice_entity: 'notice_entity'
+  notice_entity: 'notice_entity',
 }
 
-exports.seed = async knex => {
+exports.seed = async (knex) => {
   /**
    * prepare seeds
    */
@@ -15,14 +15,14 @@ exports.seed = async knex => {
     .select('id')
     .from('entity_type')
     .where({
-      table: 'article'
+      table: 'article',
     })
     .first()
   const { id: commentTypeId } = await knex
     .select('id')
     .from('entity_type')
     .where({
-      table: 'comment'
+      table: 'comment',
     })
     .first()
   const notices = [
@@ -30,7 +30,7 @@ exports.seed = async knex => {
     {
       notice_type: 'user_new_follower',
       actors: ['2', '3'],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // recipient_id (1) 's article (1) was published
     {
@@ -39,10 +39,10 @@ exports.seed = async knex => {
         {
           type: 'target',
           entity_type_id: articleTypeId,
-          entity_id: '1'
-        }
+          entity_id: '1',
+        },
       ],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // recipient_id (1)'s article (1) has a new downstream article (2) by actor (2)
     {
@@ -52,15 +52,15 @@ exports.seed = async knex => {
         {
           type: 'target',
           entity_type_id: articleTypeId,
-          entity_id: '1'
+          entity_id: '1',
         },
         {
           type: 'downstream',
           entity_type_id: articleTypeId,
-          entity_id: '2'
-        }
+          entity_id: '2',
+        },
       ],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // recipient_id (1)'s article (1) has new appreciations by actors (2, 3)
     {
@@ -70,10 +70,10 @@ exports.seed = async knex => {
         {
           type: 'target',
           entity_type_id: articleTypeId,
-          entity_id: '1'
-        }
+          entity_id: '1',
+        },
       ],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // recipient_id (1)'s article (1) has new subscribebrs (2, 3)
     {
@@ -83,10 +83,10 @@ exports.seed = async knex => {
         {
           type: 'target',
           entity_type_id: articleTypeId,
-          entity_id: '1'
-        }
+          entity_id: '1',
+        },
       ],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // recipient_id (1)'s article (1) has a new comment by actor (3)
     {
@@ -96,15 +96,15 @@ exports.seed = async knex => {
         {
           type: 'target',
           entity_type_id: articleTypeId,
-          entity_id: '1'
+          entity_id: '1',
         },
         {
           type: 'comment',
           entity_type_id: commentTypeId,
-          entity_id: '1'
-        }
+          entity_id: '1',
+        },
       ],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // recipient_id (1)'s subscribed article (2) has a new comment by actor (3)
     {
@@ -114,15 +114,15 @@ exports.seed = async knex => {
         {
           type: 'target',
           entity_type_id: articleTypeId,
-          entity_id: '2'
+          entity_id: '2',
         },
         {
           type: 'comment',
           entity_type_id: commentTypeId,
-          entity_id: '2'
-        }
+          entity_id: '2',
+        },
       ],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // upstream (2) of article (4) was archived
     {
@@ -131,15 +131,15 @@ exports.seed = async knex => {
         {
           type: 'target',
           entity_type_id: articleTypeId,
-          entity_id: '4'
+          entity_id: '4',
         },
         {
           type: 'upstream',
           entity_type_id: articleTypeId,
-          entity_id: '1'
-        }
+          entity_id: '1',
+        },
       ],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // downstream (2) of article (1) was archived
     {
@@ -148,15 +148,15 @@ exports.seed = async knex => {
         {
           type: 'target',
           entity_type_id: articleTypeId,
-          entity_id: '1'
+          entity_id: '1',
         },
         {
           type: 'downstream',
           entity_type_id: articleTypeId,
-          entity_id: '2'
-        }
+          entity_id: '2',
+        },
       ],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // recipient_id (1)'s comment (4) was pinned
     {
@@ -165,11 +165,11 @@ exports.seed = async knex => {
         {
           type: 'target',
           entity_type_id: commentTypeId,
-          entity_id: '4'
-        }
+          entity_id: '4',
+        },
       ],
       actors: ['3'],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // recipient_id (1)'s comment (4) has a new reply by actor (2)
     {
@@ -179,15 +179,15 @@ exports.seed = async knex => {
         {
           type: 'target',
           entity_type_id: commentTypeId,
-          entity_id: '1'
+          entity_id: '1',
         },
         {
           type: 'reply',
           entity_type_id: commentTypeId,
-          entity_id: '4'
-        }
+          entity_id: '4',
+        },
       ],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // recipient_id (1) was mentioned by actir (2)'s comment (2)
     {
@@ -197,10 +197,10 @@ exports.seed = async knex => {
         {
           type: 'target',
           entity_type_id: commentTypeId,
-          entity_id: '2'
-        }
+          entity_id: '2',
+        },
       ],
-      recipient_id: '1'
+      recipient_id: '1',
     },
     // Official Announcement
     {
@@ -208,61 +208,61 @@ exports.seed = async knex => {
       recipient_id: '1',
       message: 'Click to update the latest version of Matters!',
       data: {
-        link: 'https://matters.news/download/'
-      }
+        link: 'https://matters.news/download/',
+      },
     },
     // Official Announcement - User Banned
     {
       notice_type: 'official_announcement',
       recipient_id: '1',
       message:
-        '因為違反社區規則，Matters 決定將您禁言 7 天，期間無法發佈作品、評論和讚賞'
+        '因為違反社區規則，Matters 決定將您禁言 7 天，期間無法發佈作品、評論和讚賞',
     },
     // Official Announcement - User Frozen
     {
       notice_type: 'official_announcement',
       recipient_id: '1',
       message:
-        '因為違反社區規則，Matters 決定將您的賬戶凍結，無法在站上進行互動'
+        '因為違反社區規則，Matters 決定將您的賬戶凍結，無法在站上進行互動',
     },
     // Official Announcement - Article Violation
     {
       notice_type: 'official_announcement',
       recipient_id: '1',
       data: {
-        link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1'
+        link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1',
       },
       message:
-        '因為違反社區規則，Matters 決定將您的作品《改革開放四十週年大會看點》隱藏'
+        '因為違反社區規則，Matters 決定將您的作品《改革開放四十週年大會看點》隱藏',
     },
     {
       notice_type: 'official_announcement',
       recipient_id: '1',
       data: {
-        link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1'
+        link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1',
       },
       message:
-        '因為未違反社區規則， Matters 對您的作品《改革開放四十週年大會看點》將不做任何處理'
+        '因為未違反社區規則， Matters 對您的作品《改革開放四十週年大會看點》將不做任何處理',
     },
     // Official Announcement - Article Report Feedback
     {
       notice_type: 'official_announcement',
       recipient_id: '1',
       data: {
-        link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1'
+        link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1',
       },
       message:
-        '你舉報的作品《改革開放四十週年大會看點》已被刪除！感謝你對 Matters 的支持！'
+        '你舉報的作品《改革開放四十週年大會看點》已被刪除！感謝你對 Matters 的支持！',
     },
     {
       notice_type: 'official_announcement',
       recipient_id: '1',
       data: {
-        link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1'
+        link: 'https://matters.news/@test1/slug-some-ipfs-media-hash-1',
       },
       message:
-        '您舉報的作品《改革開放四十週年大會看點》經查並未違反社區規則，將不做處理'
-    }
+        '您舉報的作品《改革開放四十週年大會看點》經查並未違反社區規則，將不做處理',
+    },
   ]
 
   /**
@@ -274,7 +274,7 @@ exports.seed = async knex => {
     await knex(table.notice_detail).insert({
       notice_type: notice.notice_type,
       message: notice.message,
-      data: notice.data
+      data: notice.data,
     })
     // create notice
     const { id: notice_id } = (
@@ -282,16 +282,16 @@ exports.seed = async knex => {
         .insert({
           uuid: v4(),
           notice_detail_id: id,
-          recipient_id: notice.recipient_id
+          recipient_id: notice.recipient_id,
         })
         .returning('*')
     )[0]
     // create notice actor
     await Promise.all(
-      (notice.actors || []).map(async actor_id => {
+      (notice.actors || []).map(async (actor_id) => {
         await knex(table.notice_actor).insert({
           notice_id,
-          actor_id
+          actor_id,
         })
       })
     )
@@ -303,7 +303,7 @@ exports.seed = async knex => {
             type,
             entity_type_id,
             entity_id,
-            notice_id
+            notice_id,
           })
         }
       )

@@ -7,7 +7,7 @@ export class PrivateDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field: GraphQLField<any, any>) {
     const { resolve = defaultFieldResolver, name } = field
 
-    field.resolve = async function(...args) {
+    field.resolve = async function (...args) {
       const [{ id }, _, { viewer }] = args
 
       if (id === viewer.id || viewer.hasScopeMode('admin')) {

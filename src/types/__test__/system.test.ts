@@ -8,13 +8,13 @@ import {
   putDraft,
   registerUser,
   testClient,
-  updateUserDescription
+  updateUserDescription,
 } from './utils'
 
 const draft = {
   title: `test-${Math.floor(Math.random() * 100)}`,
   content: `test-${Math.floor(Math.random() * 100)}`,
-  tags: [`test-${Math.floor(Math.random() * 100)}`]
+  tags: [`test-${Math.floor(Math.random() * 100)}`],
 }
 
 const userDescription = `test-${Math.floor(Math.random() * 100)}`
@@ -23,7 +23,7 @@ const user = {
   email: `test-${Math.floor(Math.random() * 100)}@matters.news`,
   displayName: 'testUser',
   password: '12345678',
-  codeId: '123'
+  codeId: '123',
 }
 
 beforeAll(async () => {
@@ -33,7 +33,7 @@ beforeAll(async () => {
     await registerUser(user)
     await updateUserDescription({
       email: user.email,
-      description: userDescription
+      description: userDescription,
     })
   } catch (err) {
     throw err
@@ -107,7 +107,7 @@ describe('query nodes of different type', () => {
     const result = await query({
       query: GET_USER,
       // @ts-ignore
-      variables: { input: { id } }
+      variables: { input: { id } },
     })
     const { data } = result
     const node = data && data.node
@@ -120,7 +120,7 @@ describe('query nodes of different type', () => {
     const { data } = await query({
       query: GET_ARTICLE,
       // @ts-ignore
-      variables: { input: { id } }
+      variables: { input: { id } },
     })
     const node = data && data.node
     expect(node).toEqual({ id, title: 'test article 1' })
@@ -132,7 +132,7 @@ describe('query nodes of different type', () => {
     const { data } = await query({
       query: GET_COMMENT,
       // @ts-ignore
-      variables: { input: { id } }
+      variables: { input: { id } },
     })
     const node = data && data.node
     expect(node.id).toBe(id)
@@ -151,9 +151,9 @@ describe.skip('Search', () => {
         input: {
           key: draft.title,
           type: 'Article',
-          first: 1
-        }
-      }
+          first: 1,
+        },
+      },
     })
 
     const title = _get(result, 'data.search.edges.0.node.title')
@@ -170,9 +170,9 @@ describe.skip('Search', () => {
         input: {
           key: draft.tags[0],
           type: 'Tag',
-          first: 1
-        }
-      }
+          first: 1,
+        },
+      },
     })
 
     const content = _get(result, 'data.search.edges.0.node.content')
@@ -190,9 +190,9 @@ describe.skip('Search', () => {
         input: {
           key: userDescription,
           type: 'User',
-          first: 1
-        }
-      }
+          first: 1,
+        },
+      },
     })
     const description = _get(
       result,
@@ -211,9 +211,9 @@ describe('Feedback', () => {
       variables: {
         input: {
           category: 'product',
-          description: 'authed description'
-        }
-      }
+          description: 'authed description',
+        },
+      },
     })
     expect(result.data && result.data.feedback).toBe(true)
   })
@@ -227,9 +227,9 @@ describe('Feedback', () => {
         input: {
           category: 'product',
           description: 'authed description',
-          assetIds: ['00000000-0000-0000-0000-000000000010']
-        }
-      }
+          assetIds: ['00000000-0000-0000-0000-000000000010'],
+        },
+      },
     })
     expect(result.data && result.data.feedback).toBe(true)
   })

@@ -1,6 +1,6 @@
 const table = 'user_reader_view'
 
-exports.up = async knex =>
+exports.up = async (knex) =>
   knex.raw(/*sql*/ `
     create view ${table} as
         select
@@ -47,6 +47,6 @@ exports.up = async knex =>
                     user_boost) as b on "user".id = b.user_id
   `)
 
-exports.down = function(knex, Promise) {
+exports.down = function (knex, Promise) {
   return knex.raw(/*sql*/ `drop view ${table}`)
 }

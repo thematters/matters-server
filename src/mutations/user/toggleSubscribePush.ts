@@ -15,7 +15,7 @@ const resolver: MutationToToggleSubscribePushResolver = async (
   if (enabled === undefined) {
     const device = await userService.findPushDevice({
       userId: viewer.id,
-      deviceId: id
+      deviceId: id,
     })
     action = !!device ? 'unsubscribePush' : 'subscribePush'
   } else {
@@ -25,7 +25,7 @@ const resolver: MutationToToggleSubscribePushResolver = async (
   // run action
   await userService[action]({
     userId: viewer.id,
-    deviceId: id
+    deviceId: id,
   })
 
   return viewer

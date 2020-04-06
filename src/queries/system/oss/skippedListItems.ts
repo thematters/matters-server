@@ -14,11 +14,11 @@ export const skippedListItems: OSSToSkippedListItemsResolver = async (
     await systemService.baseFind({
       offset,
       limit: first,
-      table: 'blocklist'
+      table: 'blocklist',
     })
-  ).map(item => ({
+  ).map((item) => ({
     ...item,
-    id: toGlobalId({ type: 'SkippedListItem', id: item.id })
+    id: toGlobalId({ type: 'SkippedListItem', id: item.id }),
   }))
 
   return connectionFromArray(items, connectionArgs, totalCount)

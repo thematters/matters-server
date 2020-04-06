@@ -5,7 +5,7 @@ import {
   ArticleOSSToInRecommendNewestResolver,
   ArticleOSSToInRecommendTodayResolver,
   ArticleOSSToScoreResolver,
-  ArticleOSSToTodayCoverResolver
+  ArticleOSSToTodayCoverResolver,
 } from 'definitions'
 
 export const boost: ArticleOSSToBoostResolver = (

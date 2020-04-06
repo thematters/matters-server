@@ -19,13 +19,13 @@ import {
   USER_STATE,
   VERIFICATION_CODE_EXIPRED_AFTER,
   VERIFICATION_CODE_STATUS,
-  VERIFICATION_CODE_TYPES
+  VERIFICATION_CODE_TYPES,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   EmailNotFoundError,
   PasswordInvalidError,
-  ServerError
+  ServerError,
 } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService, OAuthService } from 'connectors'
@@ -35,7 +35,7 @@ import {
   ItemData,
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType,
-  UserRole
+  UserRole,
 } from 'definitions'
 
 import { likecoin } from './likecoin'
@@ -67,7 +67,7 @@ export class UserService extends BaseService {
     userName,
     displayName,
     description,
-    password
+    password,
   }: {
     email: string
     userName: string
@@ -90,7 +90,7 @@ export class UserService extends BaseService {
       avatar,
       passwordHash,
       agreeOn: new Date(),
-      state: USER_STATE.onboarding
+      state: USER_STATE.onboarding,
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
 
@@ -105,7 +105,7 @@ export class UserService extends BaseService {
 
   verifyPassword = async ({
     password,
-    hash: passwordHash
+    hash: passwordHash,
   }: {
     password: string
     hash: string
@@ -130,13 +130,13 @@ export class UserService extends BaseService {
     await this.verifyPassword({ password, hash: user.passwordHash })
 
     const token = jwt.sign({ uuid: user.uuid }, environment.jwtSecret, {
-      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000
+      expiresIn: USER_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
     })
 
     logger.info(`User logged in with uuid ${user.uuid}.`)
     return {
       token,
-      user
+      user,
     }
   }
 
@@ -168,8 +168,8 @@ export class UserService extends BaseService {
         index: this.table,
         id,
         body: {
-          doc: searchable
-        }
+          doc: searchable,
+        },
       })
     } catch (e) {
       logger.error(e)
@@ -180,7 +180,7 @@ export class UserService extends BaseService {
 
   changePassword = async ({
     userId,
-    password
+    password,
   }: {
     userId: string
     password: string
@@ -188,7 +188,7 @@ export class UserService extends BaseService {
     const passwordHash = await hash(password, BCRYPT_ROUNDS)
     const user = await this.baseUpdate(userId, {
       passwordHash,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
     return user
   }
@@ -199,21 +199,13 @@ export class UserService extends BaseService {
   findByEmail = async (
     email: string
   ): Promise<{ uuid: string; [key: string]: string }> =>
-    this.knex
-      .select()
-      .from(this.table)
-      .where({ email })
-      .first()
+    this.knex.select().from(this.table).where({ email }).first()
 
   /**
    * Find users by a given user name.
    */
   findByUserName = async (userName: string) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .where({ userName })
-      .first()
+    this.knex.select().from(this.table).where({ userName }).first()
 
   /**
    * Check is username editable
@@ -230,7 +222,7 @@ export class UserService extends BaseService {
    */
   addUserNameEditHistory = async ({
     userId,
-    previous
+    previous,
   }: {
     userId: string
     previous: string
@@ -251,7 +243,7 @@ export class UserService extends BaseService {
    * Archive User by a given user id
    */
   archive = async (id: string) => {
-    const archivedUser = await this.knex.transaction(async trx => {
+    const archivedUser = await this.knex.transaction(async (trx) => {
       // archive user
       const [user] = await trx
         .where('id', id)
@@ -261,7 +253,7 @@ export class UserService extends BaseService {
           updatedAt: new Date(),
           avatar: null,
           profile_cover: null,
-          description: ''
+          description: '',
         })
         .into(this.table)
         .returning('*')
@@ -281,37 +273,19 @@ export class UserService extends BaseService {
         .update({ deleted: true, updatedAt: new Date() })
 
       // delete behavioral data
-      await trx('search_history')
-        .where({ userId: id })
-        .del()
-      await trx('action_article')
-        .where({ userId: id })
-        .del()
-      await trx('action_user')
-        .where({ userId: id })
-        .del()
-      await trx('article_read_count')
-        .where({ userId: id })
-        .del()
-      await trx('log_record')
-        .where({ userId: id })
-        .del()
+      await trx('search_history').where({ userId: id }).del()
+      await trx('action_article').where({ userId: id }).del()
+      await trx('action_user').where({ userId: id }).del()
+      await trx('article_read_count').where({ userId: id }).del()
+      await trx('log_record').where({ userId: id }).del()
 
       // delete oauths
-      await trx('oauth_client')
-        .where({ userId: id })
-        .del()
-      await trx('oauth_access_token')
-        .where({ userId: id })
-        .del()
-      await trx('oauth_refresh_token')
-        .where({ userId: id })
-        .del()
+      await trx('oauth_client').where({ userId: id }).del()
+      await trx('oauth_access_token').where({ userId: id }).del()
+      await trx('oauth_refresh_token').where({ userId: id }).del()
 
       // delete push devices
-      await trx('push_device')
-        .where({ userId: id })
-        .del()
+      await trx('push_device').where({ userId: id }).del()
 
       return user
     })
@@ -322,8 +296,8 @@ export class UserService extends BaseService {
         index: this.table,
         id,
         body: {
-          doc: { state: USER_STATE.archived }
-        }
+          doc: { state: USER_STATE.archived },
+        },
       })
     } catch (e) {
       logger.error(e)
@@ -366,7 +340,7 @@ export class UserService extends BaseService {
       )
       .where({
         state: USER_STATE.onboarding,
-        accountType: 'general'
+        accountType: 'general',
       })
       .andWhere(
         this.knex.raw(
@@ -392,11 +366,11 @@ export class UserService extends BaseService {
 
     return this.es.indexManyItems({
       index: this.table,
-      items: users.map(user => ({
+      items: users.map((user) => ({
         ...user,
         factor: ALS_DEFAULT_VECTOR.factor,
-        embedding_vector: ALS_DEFAULT_VECTOR.embedding
-      }))
+        embedding_vector: ALS_DEFAULT_VECTOR.embedding,
+      })),
     })
   }
 
@@ -404,7 +378,7 @@ export class UserService extends BaseService {
     id,
     userName,
     displayName,
-    description
+    description,
   }: {
     [key: string]: string
   }) =>
@@ -417,16 +391,16 @@ export class UserService extends BaseService {
           displayName,
           description,
           factor: ALS_DEFAULT_VECTOR.factor,
-          embedding_vector: ALS_DEFAULT_VECTOR.embedding
-        }
-      ]
+          embedding_vector: ALS_DEFAULT_VECTOR.embedding,
+        },
+      ],
     })
 
   search = async ({
     key,
     first = 20,
     offset,
-    oss = false
+    oss = false,
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
     const body = bodybuilder()
       .from(offset)
@@ -440,25 +414,25 @@ export class UserService extends BaseService {
         prefix: key,
         completion: {
           field: 'userName',
-          size: first
-        }
+          size: first,
+        },
       },
       displayName: {
         prefix: key,
         completion: {
           field: 'displayName',
           fuzzy: {
-            fuzziness: 0
+            fuzziness: 0,
           },
-          size: first
-        }
-      }
+          size: first,
+        },
+      },
     }
 
     try {
       const result = await this.es.client.search({
         index: this.table,
-        body
+        body,
       })
 
       const { hits, suggest } = result.body as typeof result & {
@@ -511,7 +485,7 @@ export class UserService extends BaseService {
   totalMAT = async (userId: string) => {
     const result = await this.knex('transaction_delta_view')
       .where({
-        userId
+        userId,
       })
       .sum('delta as total')
     return Math.max(parseInt(result[0].total || 0, 10), 0)
@@ -520,7 +494,7 @@ export class UserService extends BaseService {
   totalRecived = async (recipientId: string) => {
     const result = await this.knex('transaction')
       .where({
-        recipientId
+        recipientId,
       })
       .sum('amount as total')
 
@@ -530,7 +504,7 @@ export class UserService extends BaseService {
   totalRecivedTransactionCount = async (recipientId: string) => {
     const result = await this.knex('transaction')
       .where({
-        recipientId
+        recipientId,
       })
       .count()
     return parseInt(`${result[0].count}` || '0', 10)
@@ -539,7 +513,7 @@ export class UserService extends BaseService {
   totalSentTransactionCount = async (senderId: string) => {
     const result = await this.knex('transaction')
       .where({
-        senderId
+        senderId,
       })
       .count()
     return parseInt(`${result[0].count}` || '0', 10)
@@ -548,7 +522,7 @@ export class UserService extends BaseService {
   totalSent = async (senderId: string) => {
     const result = await this.knex('transaction')
       .where({
-        senderId
+        senderId,
       })
       .sum('amount as total')
     return Math.max(parseInt(result[0].total || 0, 10), 0)
@@ -557,7 +531,7 @@ export class UserService extends BaseService {
   findTransactionBySender = async ({
     senderId,
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     senderId: string
     limit?: number
@@ -565,7 +539,7 @@ export class UserService extends BaseService {
   }) =>
     this.knex('transaction')
       .where({
-        senderId
+        senderId,
       })
       .limit(limit)
       .offset(offset)
@@ -574,7 +548,7 @@ export class UserService extends BaseService {
   findTransactionByRecipient = async ({
     recipientId,
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     recipientId: string
     limit?: number
@@ -582,7 +556,7 @@ export class UserService extends BaseService {
   }) =>
     this.knex('transaction')
       .where({
-        recipientId
+        recipientId,
       })
       .limit(limit)
       .offset(offset)
@@ -591,7 +565,7 @@ export class UserService extends BaseService {
   findTransactionHistory = async ({
     id: userId,
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     id: string
     limit?: number
@@ -599,7 +573,7 @@ export class UserService extends BaseService {
   }) =>
     this.knex('transaction_delta_view')
       .where({
-        userId
+        userId,
       })
       .orderBy('created_at', 'desc')
       .limit(limit)
@@ -608,7 +582,7 @@ export class UserService extends BaseService {
   countTransaction = async (id: string) => {
     const result = await this.knex('transaction_delta_view')
       .where({
-        userId: id
+        userId: id,
       })
       .count()
       .first()
@@ -624,12 +598,12 @@ export class UserService extends BaseService {
     const data = {
       userId,
       targetId,
-      action: USER_ACTION.follow
+      action: USER_ACTION.follow,
     }
     return this.baseUpdateOrCreate({
       where: data,
       data: { updatedAt: new Date(), ...data },
-      table: 'action_user'
+      table: 'action_user',
     })
   }
 
@@ -639,7 +613,7 @@ export class UserService extends BaseService {
       .where({
         targetId,
         userId,
-        action: USER_ACTION.follow
+        action: USER_ACTION.follow,
       })
       .del()
 
@@ -647,7 +621,7 @@ export class UserService extends BaseService {
     const result = await this.knex('action_user')
       .where({
         userId,
-        action: USER_ACTION.follow
+        action: USER_ACTION.follow,
       })
       .count()
       .first()
@@ -665,7 +639,7 @@ export class UserService extends BaseService {
   makeFolloweeWorksQuery = ({
     fields = '*',
     state,
-    userId
+    userId,
   }: {
     fields?: string
     state: string
@@ -721,7 +695,7 @@ export class UserService extends BaseService {
   makeFolloweeWorksFilterQuery = ({
     cursorId,
     state,
-    userId
+    userId,
   }: {
     cursorId: string
     state: string
@@ -735,7 +709,7 @@ export class UserService extends BaseService {
     after,
     limit = BATCH_SIZE,
     state = USER_STATE.active,
-    userId
+    userId,
   }: {
     after?: any
     limit?: number
@@ -747,7 +721,7 @@ export class UserService extends BaseService {
       const subQuery = this.makeFolloweeWorksFilterQuery({
         cursorId: after,
         state,
-        userId
+        userId,
       })
       query.andWhere('seq', '<', subQuery)
     }
@@ -759,7 +733,7 @@ export class UserService extends BaseService {
 
   findFolloweeWorksRange = async ({
     state = USER_STATE.active,
-    userId
+    userId,
   }: {
     state?: string
     userId: string
@@ -773,14 +747,14 @@ export class UserService extends BaseService {
     return {
       count: parseInt(count, 10),
       max: parseInt(max, 10),
-      min: parseInt(min, 10)
+      min: parseInt(min, 10),
     }
   }
 
   followeeArticles = async ({
     userId,
     offset = 0,
-    limit = BATCH_SIZE
+    limit = BATCH_SIZE,
   }: {
     userId: string
     offset?: number
@@ -806,7 +780,7 @@ export class UserService extends BaseService {
   findFollowees = async ({
     userId,
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     userId: string
     limit?: number
@@ -823,7 +797,7 @@ export class UserService extends BaseService {
   findFollowers = async ({
     targetId,
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     targetId: string
     limit?: number
@@ -839,7 +813,7 @@ export class UserService extends BaseService {
 
   isFollowing = async ({
     userId,
-    targetId
+    targetId,
   }: {
     userId: string
     targetId: string
@@ -861,13 +835,13 @@ export class UserService extends BaseService {
     const data = {
       userId,
       targetId,
-      action: USER_ACTION.block
+      action: USER_ACTION.block,
     }
 
     return this.baseUpdateOrCreate({
       where: data,
       data: { updatedAt: new Date(), ...data },
-      table: 'action_user'
+      table: 'action_user',
     })
   }
 
@@ -877,13 +851,13 @@ export class UserService extends BaseService {
       .where({
         targetId,
         userId,
-        action: USER_ACTION.block
+        action: USER_ACTION.block,
       })
       .del()
 
   blocked = async ({
     userId,
-    targetId
+    targetId,
   }: {
     userId: string
     targetId: string
@@ -907,7 +881,7 @@ export class UserService extends BaseService {
   findBlockList = async ({
     userId,
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     userId: string
     limit?: number
@@ -932,7 +906,7 @@ export class UserService extends BaseService {
     provider = 'fcm',
     userAgent,
     version,
-    platform = 'web'
+    platform = 'web',
   }: {
     userId: string
     deviceId: string
@@ -947,18 +921,18 @@ export class UserService extends BaseService {
       provider,
       userAgent: userAgent || '',
       version: version || '',
-      platform: platform || 'web'
+      platform: platform || 'web',
     }
     return this.baseUpdateOrCreate({
       where: data,
       data: { updatedAt: new Date(), ...data },
-      table: 'push_device'
+      table: 'push_device',
     })
   }
 
   unsubscribePush = async ({
     userId,
-    deviceId
+    deviceId,
   }: {
     userId: string
     deviceId: string
@@ -967,13 +941,13 @@ export class UserService extends BaseService {
       .from('push_device')
       .where({
         deviceId,
-        userId
+        userId,
       })
       .del()
 
   findPushDevice = async ({
     userId,
-    deviceId
+    deviceId,
   }: {
     userId: string
     deviceId: string
@@ -982,7 +956,7 @@ export class UserService extends BaseService {
       .from('push_device')
       .where({
         deviceId,
-        userId
+        userId,
       })
       .first()
 
@@ -996,7 +970,7 @@ export class UserService extends BaseService {
    *********************************/
   countAuthor = async ({
     notIn = [],
-    oss = false
+    oss = false,
   }: {
     notIn?: string[]
     oss?: boolean
@@ -1016,7 +990,7 @@ export class UserService extends BaseService {
     limit = BATCH_SIZE,
     offset = 0,
     notIn = [],
-    oss = false
+    oss = false,
   }: {
     limit?: number
     offset?: number
@@ -1054,7 +1028,7 @@ export class UserService extends BaseService {
     this.baseUpdateOrCreate({
       where: { userId: id },
       data: { userId: id, boost, updatedAt: new Date() },
-      table: 'user_boost'
+      table: 'user_boost',
     })
 
   findScore = async (userId: string) => {
@@ -1070,7 +1044,7 @@ export class UserService extends BaseService {
     itemIndex,
     first = 20,
     offset = 0,
-    notIn = []
+    notIn = [],
   }: {
     userId: string
     itemIndex: string
@@ -1081,7 +1055,7 @@ export class UserService extends BaseService {
     // get user vector score
     const scoreResult = await this.es.client.get({
       index: this.table,
-      id: userId
+      id: userId,
     })
 
     const factorString = _.get(scoreResult.body, '_source.embedding_vector')
@@ -1100,10 +1074,10 @@ export class UserService extends BaseService {
             params: {
               cosine: true,
               field: 'embedding_vector',
-              encoded_vector: factorString
-            }
-          }
-        }
+              encoded_vector: factorString,
+            },
+          },
+        },
       })
       .filter('term', { state: ARTICLE_STATE.active })
       .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor })
@@ -1114,7 +1088,7 @@ export class UserService extends BaseService {
 
     const { body } = await this.es.client.search({
       index: itemIndex,
-      body: searchBody
+      body: searchBody,
     })
     // add recommendation
     return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
@@ -1126,11 +1100,7 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
   findNotifySetting = async (userId: string): Promise<any | null> =>
-    this.knex
-      .select()
-      .from('user_notify_setting')
-      .where({ userId })
-      .first()
+    this.knex.select().from('user_notify_setting').where({ userId }).first()
 
   updateNotifySetting = async (
     id: string,
@@ -1143,10 +1113,7 @@ export class UserService extends BaseService {
     )
 
   findBadges = async (userId: string) =>
-    this.knex
-      .select()
-      .from('user_badge')
-      .where({ userId })
+    this.knex.select().from('user_badge').where({ userId })
 
   /*********************************
    *                               *
@@ -1164,7 +1131,7 @@ export class UserService extends BaseService {
   findSubscriptions = async ({
     userId,
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     userId: string
     limit?: number
@@ -1194,7 +1161,7 @@ export class UserService extends BaseService {
   findReadHistory = async ({
     userId,
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     userId: string
     limit?: number
@@ -1221,7 +1188,7 @@ export class UserService extends BaseService {
 
   clearReadHistory = async ({
     articleId,
-    userId
+    userId,
   }: {
     articleId: string
     userId: string | null
@@ -1249,7 +1216,7 @@ export class UserService extends BaseService {
   createVerificationCode = ({
     userId,
     email,
-    type
+    type,
   }: {
     userId?: string | null
     email: string
@@ -1262,13 +1229,13 @@ export class UserService extends BaseService {
         email,
         type,
         code: _.random(100000, 999999),
-        expiredAt: new Date(Date.now() + VERIFICATION_CODE_EXIPRED_AFTER)
+        expiredAt: new Date(Date.now() + VERIFICATION_CODE_EXIPRED_AFTER),
       },
       'verification_code'
     )
 
   findVerificationCodes = async ({
-    where
+    where,
   }: {
     where?: {
       type?: keyof typeof VERIFICATION_CODE_TYPES
@@ -1276,10 +1243,7 @@ export class UserService extends BaseService {
       [key: string]: any
     }
   }) => {
-    let qs = this.knex
-      .select()
-      .from('verification_code')
-      .orderBy('id', 'desc')
+    let qs = this.knex.select().from('verification_code').orderBy('id', 'desc')
 
     if (where) {
       qs = qs.where(where)
@@ -1290,7 +1254,7 @@ export class UserService extends BaseService {
 
   markVerificationCodeAs = ({
     codeId,
-    status
+    status,
   }: {
     codeId: string
     status: keyof typeof VERIFICATION_CODE_STATUS
@@ -1317,7 +1281,7 @@ export class UserService extends BaseService {
    *********************************/
   findLiker = async ({
     userId,
-    likerId
+    likerId,
   }: {
     userId?: string
     likerId?: string
@@ -1346,7 +1310,7 @@ export class UserService extends BaseService {
     accessToken,
     refreshToken,
     expires,
-    scope
+    scope,
   }: {
     userId: string
     likerId: string
@@ -1366,7 +1330,7 @@ export class UserService extends BaseService {
 
     user = await this.baseUpdate(userId, {
       updatedAt: new Date(),
-      likerId
+      likerId,
     })
 
     await this.baseUpdateOrCreate({
@@ -1378,9 +1342,9 @@ export class UserService extends BaseService {
         accessToken,
         refreshToken,
         expires,
-        scope
+        scope,
       },
-      table: 'user_oauth_likecoin'
+      table: 'user_oauth_likecoin',
     })
 
     return user
@@ -1403,7 +1367,7 @@ export class UserService extends BaseService {
   // register a new LikerId by a given userName
   registerLikerId = async ({
     userId,
-    userName
+    userName,
   }: {
     userId: string
     userName: string
@@ -1416,7 +1380,7 @@ export class UserService extends BaseService {
     const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
     const { accessToken, refreshToken, scope } = await this.likecoin.register({
       user: likerId,
-      token: tokens.accessToken
+      token: tokens.accessToken,
     })
 
     // save to db
@@ -1426,14 +1390,14 @@ export class UserService extends BaseService {
       accountType: 'general',
       accessToken,
       refreshToken,
-      scope
+      scope,
     })
   }
 
   // Promote a platform temp LikerID
   claimLikerId = async ({
     userId,
-    liker
+    liker,
   }: {
     userId: string
     liker: UserOAuthLikeCoin
@@ -1443,7 +1407,7 @@ export class UserService extends BaseService {
 
     await this.likecoin.edit({
       action: 'claim',
-      payload: { user: liker.likerId, platformToken: tokens.accessToken }
+      payload: { user: liker.likerId, platformToken: tokens.accessToken },
     })
 
     return this.knex('user_oauth_likecoin')
@@ -1454,7 +1418,7 @@ export class UserService extends BaseService {
   // Transfer a platform temp LikerID's LIKE and binding to target LikerID
   transferLikerId = async ({
     fromLiker,
-    toLiker
+    toLiker,
   }: {
     fromLiker: UserOAuthLikeCoin
     toLiker: Pick<UserOAuthLikeCoin, 'likerId' | 'accessToken'>
@@ -1463,15 +1427,15 @@ export class UserService extends BaseService {
       action: 'transfer',
       payload: {
         fromUserToken: fromLiker.accessToken,
-        toUserToken: toLiker.accessToken
-      }
+        toUserToken: toLiker.accessToken,
+      },
     })
   }
 
   // Update the platform ID <-> LikerID binding
   bindLikerId = async ({
     userId,
-    userToken
+    userToken,
   }: {
     userId: string
     userToken: string
@@ -1483,8 +1447,8 @@ export class UserService extends BaseService {
       action: 'bind',
       payload: {
         platformToken: tokens.accessToken,
-        userToken
-      }
+        userToken,
+      },
     })
   }
 
@@ -1497,16 +1461,12 @@ export class UserService extends BaseService {
 
   findOAuthToken = async ({
     userId,
-    provider
+    provider,
   }: {
     userId: string
     provider: string
   }) =>
-    this.knex
-      .select('*')
-      .from('user_oauth')
-      .where({ userId, provider })
-      .first()
+    this.knex.select('*').from('user_oauth').where({ userId, provider }).first()
 
   saveOAuth = async ({
     userId,
@@ -1515,7 +1475,7 @@ export class UserService extends BaseService {
     refreshToken,
     expires,
     scope,
-    createdAt
+    createdAt,
   }: {
     userId: string
     provider: string
@@ -1534,9 +1494,9 @@ export class UserService extends BaseService {
         refreshToken,
         expires,
         scope,
-        ...(createdAt ? { createdAt } : { updatedAt: new Date() })
+        ...(createdAt ? { createdAt } : { updatedAt: new Date() }),
       },
-      table: 'user_oauth'
+      table: 'user_oauth',
     })
   }
 
@@ -1573,7 +1533,7 @@ export class UserService extends BaseService {
           this.knex.raw(`now() -  interval '30 days'`)
         )
         .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
-        .where(builder =>
+        .where((builder) =>
           builder
             .whereNull('last_read')
             .orWhere(

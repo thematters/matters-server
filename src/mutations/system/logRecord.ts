@@ -13,7 +13,7 @@ const resolver: MutationToLogRecordResolver = async (
 
   await systemService.logRecord({
     userId: viewer.id,
-    type: LOG_RECORD_TYPES[type]
+    type: LOG_RECORD_TYPES[type],
   })
 
   return true

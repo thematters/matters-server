@@ -4,7 +4,7 @@ import {
   AuthenticationError,
   ForbiddenError,
   TagNotFoundError,
-  UserInputError
+  UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToDeleteArticlesTagsResolver } from 'definitions'
@@ -34,12 +34,12 @@ const resolver: MutationToDeleteArticlesTagsResolver = async (
   }
 
   // compare new and old article ids which have this tag
-  const deleteIds = articles.map(articleId => fromGlobalId(articleId).id)
+  const deleteIds = articles.map((articleId) => fromGlobalId(articleId).id)
 
   // delete unwanted
   await tagService.deleteArticleTagsByArticleIds({
     articleIds: deleteIds,
-    tagId: dbId
+    tagId: dbId,
   })
 
   // trigger notification for deleting article tag
@@ -53,14 +53,14 @@ const resolver: MutationToDeleteArticlesTagsResolver = async (
         {
           type: 'target',
           entityTable: 'article',
-          entity: article
+          entity: article,
         },
         {
           type: 'tag',
           entityTable: 'tag',
-          entity: tag
-        }
-      ]
+          entity: tag,
+        },
+      ],
     })
   })
   return tag

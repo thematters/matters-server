@@ -18,7 +18,7 @@ import {
   GQLSubscribedArticleNewCommentNoticeTypeResolver,
   GQLUpstreamArticleArchivedNoticeTypeResolver,
   GQLUserNewFollowerNoticeTypeResolver,
-  GQLUserTypeResolver
+  GQLUserTypeResolver,
 } from 'definitions'
 
 import notices from './notices'
@@ -46,7 +46,7 @@ const notice: {
   ArticleTagHasBeenUnselectedNotice: GQLArticleTagHasBeenUnselectedNoticeTypeResolver
 } = {
   User: {
-    notices
+    notices,
   },
   Notice: {
     __resolveType: ({ type }: { type: DBNoticeType }) => {
@@ -72,61 +72,61 @@ const notice: {
         comment_new_reply: 'CommentNewReplyNotice',
         comment_mentioned_you: 'CommentMentionedYouNotice',
         // official
-        official_announcement: 'OfficialAnnouncementNotice'
+        official_announcement: 'OfficialAnnouncementNotice',
       }
       return noticeTypeMap[type]
-    }
+    },
   },
   UserNewFollowerNotice: {
-    id: ({ uuid }) => uuid
+    id: ({ uuid }) => uuid,
   },
   ArticlePublishedNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target
+    target: ({ entities }) => entities.target,
   },
   ArticleNewDownstreamNotice: {
     id: ({ uuid }) => uuid,
     target: ({ entities }) => entities.target,
-    downstream: ({ entities }) => entities.downstream
+    downstream: ({ entities }) => entities.downstream,
   },
   ArticleNewCollectedNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
     target: ({ entities }) => entities.target,
-    collection: ({ entities }) => entities.collection
+    collection: ({ entities }) => entities.collection,
   },
   ArticleNewAppreciationNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target
+    target: ({ entities }) => entities.target,
   },
   ArticleNewSubscriberNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target
+    target: ({ entities }) => entities.target,
   },
   ArticleNewCommentNotice: {
     id: ({ uuid }) => uuid,
     target: ({ entities }) => entities.target,
-    comment: ({ entities }) => entities.comment
+    comment: ({ entities }) => entities.comment,
   },
   ArticleMentionedYouNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }) => entities.target
+    target: ({ entities }) => entities.target,
   },
   SubscribedArticleNewCommentNotice: {
     id: ({ uuid }) => uuid,
     target: ({ entities }) => entities.target,
-    comment: ({ entities }) => entities.comment
+    comment: ({ entities }) => entities.comment,
   },
   UpstreamArticleArchivedNotice: {
     id: ({ uuid }) => uuid,
     target: ({ entities }) => entities.target,
-    upstream: ({ entities }) => entities.upstream
+    upstream: ({ entities }) => entities.upstream,
   },
   DownstreamArticleArchivedNotice: {
     id: ({ uuid }) => uuid,
     target: ({ entities }) => entities.target,
-    downstream: ({ entities }) => entities.downstream
+    downstream: ({ entities }) => entities.downstream,
   },
   CommentPinnedNotice: {
     id: ({ uuid }) => uuid,
@@ -134,40 +134,40 @@ const notice: {
       const target = entities.target
       return userService.dataloader.load(target.authorId)
     },
-    target: ({ entities }) => entities.target
+    target: ({ entities }) => entities.target,
   },
   CommentNewReplyNotice: {
     id: ({ uuid }) => uuid,
     target: ({ entities }) => entities.target,
-    reply: ({ entities }) => entities.reply
+    reply: ({ entities }) => entities.reply,
   },
   CommentMentionedYouNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }) => entities.target
+    target: ({ entities }) => entities.target,
   },
   OfficialAnnouncementNotice: {
     id: ({ uuid }) => uuid,
-    link: ({ data }: { data: any }) => data && data.link
+    link: ({ data }: { data: any }) => data && data.link,
   },
   ArticleTagHasBeenAddedNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
     target: ({ entities }) => entities.target,
-    tag: ({ entities }) => entities.tag
+    tag: ({ entities }) => entities.tag,
   },
   ArticleTagHasBeenRemovedNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
     target: ({ entities }) => entities.target,
-    tag: ({ entities }) => entities.tag
+    tag: ({ entities }) => entities.tag,
   },
   ArticleTagHasBeenUnselectedNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
     target: ({ entities }) => entities.target,
-    tag: ({ entities }) => entities.tag
-  }
+    tag: ({ entities }) => entities.tag,
+  },
 }
 
 export default notice

@@ -2,7 +2,7 @@ import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import {
   ActionFailedError,
   AuthenticationError,
-  UserNotFoundError
+  UserNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToToggleBlockUserResolver } from 'definitions'
@@ -33,7 +33,7 @@ const resolver: MutationToToggleBlockUserResolver = async (
   if (enabled === undefined) {
     const blocked = await userService.blocked({
       userId: viewer.id,
-      targetId: user.id
+      targetId: user.id,
     })
     action = !!blocked ? 'unblock' : 'block'
   } else {
@@ -51,12 +51,12 @@ const resolver: MutationToToggleBlockUserResolver = async (
   user[CACHE_KEYWORD] = [
     {
       id: viewer.id,
-      type: NODE_TYPES.user
+      type: NODE_TYPES.user,
     },
     {
       id: user.id,
-      type: NODE_TYPES.user
-    }
+      type: NODE_TYPES.user,
+    },
   ]
 
   return user
