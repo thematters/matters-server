@@ -252,7 +252,7 @@ export type GQLDateTime = any
 export const enum GQLArticleState {
   active = 'active',
   archived = 'archived',
-  banned = 'banned',
+  banned = 'banned'
 }
 
 export interface GQLUser extends GQLNode {
@@ -450,7 +450,7 @@ export interface GQLBadge {
 }
 
 export const enum GQLBadgeType {
-  seed = 'seed',
+  seed = 'seed'
 }
 
 export interface GQLUserSettings {
@@ -469,7 +469,7 @@ export interface GQLUserSettings {
 export const enum GQLUserLanguage {
   en = 'en',
   zh_hans = 'zh_hans',
-  zh_hant = 'zh_hant',
+  zh_hant = 'zh_hant'
 }
 
 export interface GQLNotificationSetting {
@@ -491,7 +491,7 @@ export interface GQLNotificationSetting {
 export const enum GQLOAuthProvider {
   facebook = 'facebook',
   wechat = 'wechat',
-  google = 'google',
+  google = 'google'
 }
 
 export interface GQLRecommendation {
@@ -626,7 +626,7 @@ export interface GQLResponsesInput {
  */
 export const enum GQLResponseSort {
   oldest = 'oldest',
-  newest = 'newest',
+  newest = 'newest'
 }
 
 export interface GQLResponseConnection extends GQLConnection {
@@ -729,7 +729,7 @@ export const enum GQLCommentState {
   active = 'active',
   archived = 'archived',
   banned = 'banned',
-  collapsed = 'collapsed',
+  collapsed = 'collapsed'
 }
 
 /**
@@ -737,7 +737,7 @@ export const enum GQLCommentState {
  */
 export const enum GQLVote {
   up = 'up',
-  down = 'down',
+  down = 'down'
 }
 
 export interface GQLCommentCommentsInput {
@@ -752,7 +752,7 @@ export interface GQLCommentCommentsInput {
  */
 export const enum GQLCommentSort {
   oldest = 'oldest',
-  newest = 'newest',
+  newest = 'newest'
 }
 
 export interface GQLCommentConnection extends GQLConnection {
@@ -962,7 +962,7 @@ export const enum GQLPublishState {
   unpublished = 'unpublished',
   pending = 'pending',
   error = 'error',
-  published = 'published',
+  published = 'published'
 }
 
 /**
@@ -1002,7 +1002,7 @@ export const enum GQLAssetType {
   embed = 'embed',
   embedaudio = 'embedaudio',
   profileCover = 'profileCover',
-  oauthClientAvatar = 'oauthClientAvatar',
+  oauthClientAvatar = 'oauthClientAvatar'
 }
 
 export interface GQLUserActivity {
@@ -1109,7 +1109,7 @@ export const enum GQLTransactionPurpose {
   joinByInvitation = 'joinByInvitation',
   joinByTask = 'joinByTask',
   firstPost = 'firstPost',
-  systemSubsidy = 'systemSubsidy',
+  systemSubsidy = 'systemSubsidy'
 }
 
 export interface GQLUserStatus {
@@ -1166,11 +1166,12 @@ export const enum GQLUserState {
   banned = 'banned',
   frozen = 'frozen',
   archived = 'archived',
+  forbidden = 'forbidden'
 }
 
 export const enum GQLUserRole {
   user = 'user',
-  admin = 'admin',
+  admin = 'admin'
 }
 
 export interface GQLLIKE {
@@ -1317,7 +1318,7 @@ export interface GQLSearchInput {
 export const enum GQLSearchTypes {
   Article = 'Article',
   User = 'User',
-  Tag = 'Tag',
+  Tag = 'Tag'
 }
 
 export interface GQLSearchResultConnection extends GQLConnection {
@@ -1364,12 +1365,12 @@ export interface GQLReleasesInput {
 
 export const enum GQLPlatformType {
   ios = 'ios',
-  android = 'android',
+  android = 'android'
 }
 
 export const enum GQLChannelType {
   appStore = 'appStore',
-  googlePlay = 'googlePlay',
+  googlePlay = 'googlePlay'
 }
 
 export interface GQLRelease {
@@ -1438,7 +1439,7 @@ export interface GQLTagsInput {
 export const enum GQLTagsSort {
   newest = 'newest',
   oldest = 'oldest',
-  hottest = 'hottest',
+  hottest = 'hottest'
 }
 
 export interface GQLReportsInput {
@@ -1546,7 +1547,7 @@ export interface GQLOAuthClient {
 
 export const enum GQLGrantType {
   authorization_code = 'authorization_code',
-  refresh_token = 'refresh_token',
+  refresh_token = 'refresh_token'
 }
 
 export type GQLDate = any
@@ -1574,7 +1575,7 @@ export interface GQLSkippedListItem {
 
 export const enum GQLSkippedListItemType {
   agent_hash = 'agent_hash',
-  email = 'email',
+  email = 'email'
 }
 
 export interface GQLUserInput {
@@ -1962,7 +1963,7 @@ export const enum GQLRecommendTypes {
   today = 'today',
   icymi = 'icymi',
   hottest = 'hottest',
-  newest = 'newest',
+  newest = 'newest'
 }
 
 export interface GQLUpdateArticleStateInput {
@@ -2072,7 +2073,7 @@ export type GQLUpload = any
 export const enum GQLEntityType {
   article = 'article',
   draft = 'draft',
-  user = 'user',
+  user = 'user'
 }
 
 export interface GQLSingleFileDeleteInput {
@@ -2092,7 +2093,7 @@ export interface GQLLogRecordInput {
 
 export const enum GQLLogRecordTypes {
   ReadFolloweeArticles = 'ReadFolloweeArticles',
-  ReadResponseInfoPopUp = 'ReadResponseInfoPopUp',
+  ReadResponseInfoPopUp = 'ReadResponseInfoPopUp'
 }
 
 export interface GQLSetBoostInput {
@@ -2104,7 +2105,7 @@ export interface GQLSetBoostInput {
 export const enum GQLBoostTypes {
   Article = 'Article',
   User = 'User',
-  Tag = 'Tag',
+  Tag = 'Tag'
 }
 
 export interface GQLPutRemarkInput {
@@ -2119,7 +2120,7 @@ export const enum GQLRemarkTypes {
   Tag = 'Tag',
   Comment = 'Comment',
   Report = 'Report',
-  Feedback = 'Feedback',
+  Feedback = 'Feedback'
 }
 
 export interface GQLPutSkippedListItemInput {
@@ -2138,7 +2139,7 @@ export const enum GQLVerificationCodeType {
   email_reset = 'email_reset',
   email_reset_confirm = 'email_reset_confirm',
   password_reset = 'password_reset',
-  email_verify = 'email_verify',
+  email_verify = 'email_verify'
 }
 
 export interface GQLConfirmVerificationCodeInput {
@@ -2210,7 +2211,7 @@ export const enum GQLNotificationSettingType {
   commentPinned = 'commentPinned',
   commentVoted = 'commentVoted',
   officialNotice = 'officialNotice',
-  reportFeedback = 'reportFeedback',
+  reportFeedback = 'reportFeedback'
 }
 
 export interface GQLClearReadHistoryInput {
@@ -2223,7 +2224,7 @@ export interface GQLMigrationInput {
 }
 
 export const enum GQLMigrationType {
-  medium = 'medium',
+  medium = 'medium'
 }
 
 export interface GQLUpdateUserStateInput {
@@ -2570,7 +2571,7 @@ export interface GQLArticleTagHasBeenUnselectedNotice extends GQLNotice {
 
 export const enum GQLCacheScope {
   PUBLIC = 'PUBLIC',
-  PRIVATE = 'PRIVATE',
+  PRIVATE = 'PRIVATE'
 }
 
 export interface GQLCommentMentionedYouNotice extends GQLNotice {
@@ -2714,7 +2715,7 @@ export type GQLPositiveFloat = any
 export const enum GQLRole {
   vistor = 'vistor',
   user = 'user',
-  admin = 'admin',
+  admin = 'admin'
 }
 
 /**
@@ -2767,7 +2768,7 @@ export const enum GQLUserInfoFields {
   avatar = 'avatar',
   description = 'description',
   email = 'email',
-  agreeOn = 'agreeOn',
+  agreeOn = 'agreeOn'
 }
 
 /**

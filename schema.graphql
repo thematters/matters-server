@@ -2022,6 +2022,7 @@ enum UserState {
   banned
   frozen
   archived
+  forbidden
 }
 
 type UserStatus {
