@@ -27,10 +27,6 @@ const resolver: MutationToUpdateUserStateResolver = async (
     throw new ActionFailedError('user has already been forbidden')
   }
 
-  if (isForbidden && !viewer.hasRole('admin')) {
-    throw new ForbiddenError('viewer has no permission')
-  }
-
   /**
    * Archive, Forbid
    */
