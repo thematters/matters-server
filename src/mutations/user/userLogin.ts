@@ -7,12 +7,14 @@ const resolver: MutationToUserLoginResolver = async (
   context
 ) => {
   const {
-    dataSources: { userService },
+    dataSources: { userService, systemService },
     res,
   } = context
+  const archivedCallback = async () => systemService.saveAgentHash(context.viewer.agentHash || '')
   const { token, user } = await userService.login({
     ...input,
     email: input.email ? input.email.toLowerCase() : null,
+    archivedCallback,
   })
 
   setCookie({ res, token })

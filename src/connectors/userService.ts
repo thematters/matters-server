@@ -120,10 +120,22 @@ export class UserService extends BaseService {
   /**
    * Login user and return jwt token. Default to expires in 24 * 90 hours
    */
-  login = async ({ email, password }: { email: string; password: string }) => {
+  login = async ({
+    email,
+    password,
+    archivedCallback
+  }: {
+    email: string
+    password: string
+    archivedCallback?: () => Promise<any>
+  }) => {
     const user = await this.findByEmail(email)
 
     if (!user || user.state === USER_STATE.archived) {
+      // record agent hash if state is archived
+      if (user && user.state === USER_STATE.archived && archivedCallback) {
+        await archivedCallback().catch((error) => logger.error)
+      }
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 
