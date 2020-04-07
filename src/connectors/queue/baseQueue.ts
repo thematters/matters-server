@@ -53,7 +53,11 @@ export class BaseQueue {
     try {
       const jobs = await this.q.getDelayed()
       jobs.forEach(async (job) => {
-        await job.remove()
+        try {
+          await job.remove()
+        } catch (e) {
+          logger.error('failed to clear repeat jobs', e)
+        }
       })
     } catch (e) {
       logger.error('failed to clear repeat jobs', e)
