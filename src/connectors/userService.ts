@@ -40,16 +40,19 @@ import {
 
 import { likecoin } from './likecoin'
 import { medium } from './medium'
+import { payment } from './payment'
 
 export class UserService extends BaseService {
   likecoin: typeof likecoin
   medium: typeof medium
+  payment: typeof payment
 
   constructor() {
     super('user')
 
     this.likecoin = likecoin
     this.medium = medium
+    this.payment = payment
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
@@ -1568,4 +1571,10 @@ export class UserService extends BaseService {
 
     return []
   }
+
+  /*********************************
+   *                               *
+   *            Payments           *
+   *                               *
+   *********************************/
 }

@@ -11,6 +11,7 @@ import {
   GQLUserSettingsTypeResolver,
   GQLUserStatusTypeResolver,
   GQLUserTypeResolver,
+  GQLWalletTypeResolver,
 } from 'definitions'
 
 import { Appreciation } from './appreciation'
@@ -42,6 +43,7 @@ import unreadNoticeCount from './unreadNoticeCount'
 import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
 import UserActivity from './userActivity'
 import userNameEditable from './userNameEditable'
+import Wallet from './wallet'
 
 const user: {
   Query: GQLQueryTypeResolver
@@ -51,6 +53,7 @@ const user: {
   UserSettings: GQLUserSettingsTypeResolver
   UserActivity: GQLUserActivityTypeResolver
   Liker: GQLLikerTypeResolver
+  Wallet: GQLWalletTypeResolver
   LIKE: GQLLIKETypeResolver
   Appreciation: GQLAppreciationTypeResolver
   UserStatus: GQLUserStatusTypeResolver
@@ -66,6 +69,7 @@ const user: {
     likerId,
     liker: (root) => root,
     info: (root) => root,
+    wallet: (root) => root,
     settings: (root) => root,
     status: (root) => (root.id ? root : null),
     activity: (root) => root,
@@ -89,6 +93,7 @@ const user: {
     email: ({ email }) => email && email.replace(/#/g, '@'),
     profileCover,
   },
+  Wallet,
   UserSettings: {
     language: ({ language }, _, { viewer }) => language,
     notification,
