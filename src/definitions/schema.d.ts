@@ -134,7 +134,7 @@ export interface GQLArticle extends GQLNode {
   /**
    * Appreciations history of this article.
    */
-  appreciationsReceived: GQLTransactionConnection
+  appreciationsReceived: GQLAppreciationConnection
 
   /**
    * Total number of appreciations recieved of this article.
@@ -574,7 +574,7 @@ export type GQLPossibleConnectionTypeNames =
   | 'DraftConnection'
   | 'ReadHistoryConnection'
   | 'RecentSearchConnection'
-  | 'TransactionConnection'
+  | 'AppreciationConnection'
   | 'NoticeConnection'
   | 'SearchResultConnection'
   | 'ReportConnection'
@@ -591,7 +591,7 @@ export interface GQLConnectionNameMap {
   DraftConnection: GQLDraftConnection
   ReadHistoryConnection: GQLReadHistoryConnection
   RecentSearchConnection: GQLRecentSearchConnection
-  TransactionConnection: GQLTransactionConnection
+  AppreciationConnection: GQLAppreciationConnection
   NoticeConnection: GQLNoticeConnection
   SearchResultConnection: GQLSearchResultConnection
   ReportConnection: GQLReportConnection
@@ -1019,7 +1019,7 @@ export interface GQLUserActivity {
   /**
    * Appreciations current user gave.
    */
-  appreciationsSent: GQLTransactionConnection
+  appreciationsSent: GQLAppreciationConnection
 
   /**
    * Total number of appreciation current user gave.
@@ -1029,7 +1029,7 @@ export interface GQLUserActivity {
   /**
    * Appreciations current user received.
    */
-  appreciationsReceived: GQLTransactionConnection
+  appreciationsReceived: GQLAppreciationConnection
 
   /**
    * Total number of appreciation current user received.
@@ -1064,44 +1064,44 @@ export interface GQLRecentSearchEdge {
   node: string
 }
 
-export interface GQLTransactionConnection extends GQLConnection {
+export interface GQLAppreciationConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
-  edges?: Array<GQLTransactionEdge>
+  edges?: Array<GQLAppreciationEdge>
 }
 
-export interface GQLTransactionEdge {
+export interface GQLAppreciationEdge {
   cursor: string
-  node: GQLTransaction
+  node: GQLAppreciation
 }
 
-export interface GQLTransaction {
+export interface GQLAppreciation {
   amount: number
-  purpose: GQLTransactionPurpose
+  purpose: GQLAppreciationPurpose
   content: string
 
   /**
-   * Timestamp of transaction.
+   * Timestamp of appreciation.
    */
   createdAt: GQLDateTime
 
   /**
-   * Recipient of transaction.
+   * Recipient of appreciation.
    */
   recipient: GQLUser
 
   /**
-   * Sender of transaction.
+   * Sender of appreciation.
    */
   sender?: GQLUser
 
   /**
-   * Object that transaction is meant for.
+   * Object that appreciation is meant for.
    */
   target?: GQLArticle
 }
 
-export const enum GQLTransactionPurpose {
+export const enum GQLAppreciationPurpose {
   appreciate = 'appreciate',
   appreciateComment = 'appreciateComment',
   appreciateSubsidy = 'appreciateSubsidy',
@@ -2856,9 +2856,9 @@ export interface GQLResolver {
   ReadHistory?: GQLReadHistoryTypeResolver
   RecentSearchConnection?: GQLRecentSearchConnectionTypeResolver
   RecentSearchEdge?: GQLRecentSearchEdgeTypeResolver
-  TransactionConnection?: GQLTransactionConnectionTypeResolver
-  TransactionEdge?: GQLTransactionEdgeTypeResolver
-  Transaction?: GQLTransactionTypeResolver
+  AppreciationConnection?: GQLAppreciationConnectionTypeResolver
+  AppreciationEdge?: GQLAppreciationEdgeTypeResolver
+  Appreciation?: GQLAppreciationTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
   LIKE?: GQLLIKETypeResolver
   UserOSS?: GQLUserOSSTypeResolver
@@ -4290,7 +4290,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'DraftConnection'
     | 'ReadHistoryConnection'
     | 'RecentSearchConnection'
-    | 'TransactionConnection'
+    | 'AppreciationConnection'
     | 'NoticeConnection'
     | 'SearchResultConnection'
     | 'ReportConnection'
@@ -5409,13 +5409,13 @@ export interface RecentSearchEdgeToNodeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLTransactionConnectionTypeResolver<TParent = any> {
-  totalCount?: TransactionConnectionToTotalCountResolver<TParent>
-  pageInfo?: TransactionConnectionToPageInfoResolver<TParent>
-  edges?: TransactionConnectionToEdgesResolver<TParent>
+export interface GQLAppreciationConnectionTypeResolver<TParent = any> {
+  totalCount?: AppreciationConnectionToTotalCountResolver<TParent>
+  pageInfo?: AppreciationConnectionToPageInfoResolver<TParent>
+  edges?: AppreciationConnectionToEdgesResolver<TParent>
 }
 
-export interface TransactionConnectionToTotalCountResolver<
+export interface AppreciationConnectionToTotalCountResolver<
   TParent = any,
   TResult = any
 > {
@@ -5427,7 +5427,7 @@ export interface TransactionConnectionToTotalCountResolver<
   ): TResult
 }
 
-export interface TransactionConnectionToPageInfoResolver<
+export interface AppreciationConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
@@ -5439,7 +5439,7 @@ export interface TransactionConnectionToPageInfoResolver<
   ): TResult
 }
 
-export interface TransactionConnectionToEdgesResolver<
+export interface AppreciationConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
@@ -5451,12 +5451,15 @@ export interface TransactionConnectionToEdgesResolver<
   ): TResult
 }
 
-export interface GQLTransactionEdgeTypeResolver<TParent = any> {
-  cursor?: TransactionEdgeToCursorResolver<TParent>
-  node?: TransactionEdgeToNodeResolver<TParent>
+export interface GQLAppreciationEdgeTypeResolver<TParent = any> {
+  cursor?: AppreciationEdgeToCursorResolver<TParent>
+  node?: AppreciationEdgeToNodeResolver<TParent>
 }
 
-export interface TransactionEdgeToCursorResolver<TParent = any, TResult = any> {
+export interface AppreciationEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -5465,7 +5468,7 @@ export interface TransactionEdgeToCursorResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
+export interface AppreciationEdgeToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5474,17 +5477,17 @@ export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLTransactionTypeResolver<TParent = any> {
-  amount?: TransactionToAmountResolver<TParent>
-  purpose?: TransactionToPurposeResolver<TParent>
-  content?: TransactionToContentResolver<TParent>
-  createdAt?: TransactionToCreatedAtResolver<TParent>
-  recipient?: TransactionToRecipientResolver<TParent>
-  sender?: TransactionToSenderResolver<TParent>
-  target?: TransactionToTargetResolver<TParent>
+export interface GQLAppreciationTypeResolver<TParent = any> {
+  amount?: AppreciationToAmountResolver<TParent>
+  purpose?: AppreciationToPurposeResolver<TParent>
+  content?: AppreciationToContentResolver<TParent>
+  createdAt?: AppreciationToCreatedAtResolver<TParent>
+  recipient?: AppreciationToRecipientResolver<TParent>
+  sender?: AppreciationToSenderResolver<TParent>
+  target?: AppreciationToTargetResolver<TParent>
 }
 
-export interface TransactionToAmountResolver<TParent = any, TResult = any> {
+export interface AppreciationToAmountResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5493,7 +5496,7 @@ export interface TransactionToAmountResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface TransactionToPurposeResolver<TParent = any, TResult = any> {
+export interface AppreciationToPurposeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5502,7 +5505,7 @@ export interface TransactionToPurposeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface TransactionToContentResolver<TParent = any, TResult = any> {
+export interface AppreciationToContentResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5511,7 +5514,7 @@ export interface TransactionToContentResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface TransactionToCreatedAtResolver<TParent = any, TResult = any> {
+export interface AppreciationToCreatedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5520,7 +5523,7 @@ export interface TransactionToCreatedAtResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface TransactionToRecipientResolver<TParent = any, TResult = any> {
+export interface AppreciationToRecipientResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5529,7 +5532,7 @@ export interface TransactionToRecipientResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface TransactionToSenderResolver<TParent = any, TResult = any> {
+export interface AppreciationToSenderResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5538,7 +5541,7 @@ export interface TransactionToSenderResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface TransactionToTargetResolver<TParent = any, TResult = any> {
+export interface AppreciationToTargetResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
