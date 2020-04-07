@@ -132,7 +132,7 @@
     "@types/node-fetch": "^2.5.5",
     "@types/oauth2-server": "^3.0.12",
     "@types/passport": "^1.0.3",
-    "@types/passport-oauth2": "^1.4.8",
+    "@types/passport-oauth2": "^1.4.9",
     "@types/psl": "^1.1.0",
     "@types/qs": "^6.9.1",
     "@types/request-ip": "0.0.35",
