@@ -7,7 +7,7 @@ import {
   ForbiddenError,
   UserInputError,
   UsernameExistsError,
-  UsernameInvalidError,
+  UsernameInvalidError
 } from 'common/errors'
 import { isValidDisplayName, isValidUserName } from 'common/utils'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
@@ -23,7 +23,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
 
   const updateParams: { [key: string]: any } = {
     ...(has(input, 'description') ? { description: input.description } : {}),
-    ...(has(input, 'language') ? { language: input.language } : {}),
+    ...(has(input, 'language') ? { language: input.language } : {})
   }
 
   // check avatar
@@ -91,7 +91,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   if (input.userName) {
     await userService.addUserNameEditHistory({
       userId: viewer.id,
-      previous: viewer.userName,
+      previous: viewer.userName
     })
   }
 

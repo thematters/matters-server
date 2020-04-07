@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  cursorToIndex
 } from 'common/utils'
 import { GQLUserActivityTypeResolver } from 'definitions'
 
@@ -23,7 +23,7 @@ const resolver: GQLUserActivityTypeResolver = {
       userService.findReadHistory({
         userId: id,
         offset,
-        limit: first,
+        limit: first
       }),
       input,
       totalCount
@@ -57,7 +57,7 @@ const resolver: GQLUserActivityTypeResolver = {
       userService.findTransactionBySender({
         senderId: id,
         limit: first,
-        offset,
+        offset
       }),
       input,
       totalCount
@@ -80,7 +80,7 @@ const resolver: GQLUserActivityTypeResolver = {
       userService.findTransactionByRecipient({
         recipientId: id,
         limit: first,
-        offset,
+        offset
       }),
       input,
       totalCount
@@ -88,7 +88,7 @@ const resolver: GQLUserActivityTypeResolver = {
   },
 
   appreciationsReceivedTotal: ({ id }, _, { dataSources: { userService } }) =>
-    userService.totalRecived(id),
+    userService.totalRecived(id)
 }
 
 export default resolver

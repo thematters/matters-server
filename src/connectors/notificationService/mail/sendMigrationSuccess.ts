@@ -8,7 +8,7 @@ import { trans } from './utils'
 export const sendMigrationSuccess = async ({
   to,
   language = 'zh_hant',
-  recipient,
+  recipient
 }: {
   to: string
   language?: LANGUAGES
@@ -28,9 +28,9 @@ export const sendMigrationSuccess = async ({
         dynamic_template_data: {
           subject: trans.migration(language, {}),
           siteDomain: environment.siteDomain,
-          recipient,
-        },
-      },
-    ],
+          recipient
+        }
+      }
+    ]
   })
 }

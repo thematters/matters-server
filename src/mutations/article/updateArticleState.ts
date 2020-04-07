@@ -11,7 +11,7 @@ const resolver: MutationToUpdateArticleStateResolver = async (
 
   const article = await articleService.baseUpdate(dbId, {
     state,
-    updatedAt: new Date(),
+    updatedAt: new Date()
   })
 
   // trigger notification
@@ -20,7 +20,7 @@ const resolver: MutationToUpdateArticleStateResolver = async (
     notificationService.trigger({
       event: 'article_banned',
       entities: [{ type: 'target', entityTable: 'article', entity: article }],
-      recipientId: user.id,
+      recipientId: user.id
     })
   }
 

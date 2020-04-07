@@ -30,14 +30,14 @@ class LikeCoinQueue extends BaseQueue {
   like = (data: LikeData) => {
     return this.q.add(QUEUE_JOB.like, data, {
       priority: QUEUE_PRIORITY.NORMAL,
-      attempts: 1,
+      attempts: 1
     })
   }
 
   sendPV = (data: SendPVData) => {
     return this.q.add(QUEUE_JOB.sendPV, data, {
       priority: QUEUE_PRIORITY.NORMAL,
-      attempts: 1,
+      attempts: 1
     })
   }
 
@@ -59,7 +59,7 @@ class LikeCoinQueue extends BaseQueue {
         likerIp,
         authorLikerId,
         url,
-        amount,
+        amount
       } = job.data as LikeData
 
       const liker = await this.userService.findLiker({ likerId })
@@ -73,7 +73,7 @@ class LikeCoinQueue extends BaseQueue {
         liker,
         likerIp,
         url,
-        amount,
+        amount
       })
       job.progress(100)
       done(null, result)
@@ -95,7 +95,7 @@ class LikeCoinQueue extends BaseQueue {
         authorLikerId,
         liker: liker || undefined,
         likerIp,
-        url,
+        url
       })
 
       job.progress(100)

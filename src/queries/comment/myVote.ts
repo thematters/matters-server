@@ -2,7 +2,7 @@ import { CommentToMyVoteResolver } from 'definitions'
 
 const voteMap = {
   up_vote: 'up',
-  down_vote: 'down',
+  down_vote: 'down'
 }
 
 const resolver: CommentToMyVoteResolver = async (
@@ -16,7 +16,7 @@ const resolver: CommentToMyVoteResolver = async (
 
   const votes = await commentService.findVotesByUserId({
     userId: viewer.id,
-    commentId: id,
+    commentId: id
   })
   const action: 'up_vote' | 'down_vote' = votes[0] && votes[0].action
 

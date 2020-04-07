@@ -6,11 +6,11 @@ import articleResponses from './article/responses'
 export default {
   Article: {
     responseCount: articleResponseCount,
-    responses: articleResponses,
+    responses: articleResponses
   },
   Response: {
     __resolveType: ({ __type }: { __type: ResponseType }) => {
       return __type
-    },
-  },
+    }
+  }
 }

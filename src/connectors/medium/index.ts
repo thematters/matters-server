@@ -64,7 +64,7 @@ export class Medium {
     try {
       const response = await axios.get(url, {
         responseType: 'stream',
-        maxContentLength: UPLOAD_FILE_SIZE_LIMIT,
+        maxContentLength: UPLOAD_FILE_SIZE_LIMIT
       })
       const disposition = response.headers['content-disposition']
       const filename = getFileName(disposition, url)
@@ -72,7 +72,7 @@ export class Medium {
         createReadStream: () => response.data,
         mimetype: response.headers['content-type'],
         encoding: 'utf8',
-        filename,
+        filename
       }
       const uuid = v4()
       const key = await this.aws.baseUploadFile(
@@ -129,7 +129,9 @@ export class Medium {
   restructureContent = async ($: CheerioStatic) => {
     const assets: Array<Record<string, any>> = []
     const contents: string[] = []
-    const elements = $(this.section).children().toArray()
+    const elements = $(this.section)
+      .children()
+      .toArray()
 
     for (const [index, element] of elements.entries()) {
       const dom = $(element)

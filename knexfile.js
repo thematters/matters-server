@@ -5,15 +5,15 @@ module.exports = {
       host: process.env['MATTERS_PG_HOST'],
       user: process.env['MATTERS_PG_USER'],
       password: process.env['MATTERS_PG_PASSWORD'],
-      database: 'test_' + process.env['MATTERS_PG_DATABASE'], // always prefix test db with 'test_'
+      database: 'test_' + process.env['MATTERS_PG_DATABASE'] // always prefix test db with 'test_'
     },
     migrations: {
       tableName: 'knex_migrations',
-      directory: './db/migrations',
+      directory: './db/migrations'
     },
     seeds: {
-      directory: './db/seeds',
-    },
+      directory: './db/seeds'
+    }
   },
 
   development: {
@@ -22,15 +22,15 @@ module.exports = {
       host: process.env['MATTERS_PG_HOST'],
       user: process.env['MATTERS_PG_USER'],
       password: process.env['MATTERS_PG_PASSWORD'],
-      database: process.env['MATTERS_PG_DATABASE'],
+      database: process.env['MATTERS_PG_DATABASE']
     },
     migrations: {
       tableName: 'knex_migrations',
-      directory: './db/migrations',
+      directory: './db/migrations'
     },
     seeds: {
-      directory: './db/seeds',
-    },
+      directory: './db/seeds'
+    }
   },
 
   staging: {
@@ -39,19 +39,19 @@ module.exports = {
       host: process.env['MATTERS_PG_HOST'],
       user: process.env['MATTERS_PG_USER'],
       password: process.env['MATTERS_PG_PASSWORD'],
-      database: process.env['MATTERS_PG_DATABASE'],
+      database: process.env['MATTERS_PG_DATABASE']
     },
     pool: {
       min: 2,
-      max: 10,
+      max: 10
     },
     migrations: {
       tableName: 'knex_migrations',
-      directory: './db/migrations',
+      directory: './db/migrations'
     },
     seeds: {
-      directory: './db/seeds',
-    },
+      directory: './db/seeds'
+    }
   },
 
   production: {
@@ -60,18 +60,18 @@ module.exports = {
       host: process.env['MATTERS_PG_HOST'],
       user: process.env['MATTERS_PG_USER'],
       password: process.env['MATTERS_PG_PASSWORD'],
-      database: process.env['MATTERS_PG_DATABASE'],
+      database: process.env['MATTERS_PG_DATABASE']
     },
     pool: {
       min: 2,
-      max: 10,
+      max: 10
     },
     migrations: {
       tableName: 'knex_migrations',
-      directory: './db/migrations',
+      directory: './db/migrations'
     },
     seeds: {
-      directory: './db/seeds',
-    },
-  },
+      directory: './db/seeds'
+    }
+  }
 }

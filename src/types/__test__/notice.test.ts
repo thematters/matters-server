@@ -30,8 +30,8 @@ test('query notices', async () => {
     query: GET_NOTICES,
     // @ts-ignore
     variables: {
-      nodeInput: { id: USER_ID },
-    },
+      nodeInput: { id: USER_ID }
+    }
   })
   const notices = _get(data, 'node.notices.edges')
   expect(notices.length).toBeGreaterThan(0)

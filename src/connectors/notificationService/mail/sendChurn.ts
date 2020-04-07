@@ -11,7 +11,7 @@ export const sendChurn = async ({
   language = 'zh_hant',
   recipient,
   type,
-  articles,
+  articles
 }: {
   to: string
   language?: LANGUAGES
@@ -29,7 +29,7 @@ export const sendChurn = async ({
   const systemService = new SystemService()
   const templateId = EMAIL_TEMPLATE_ID.churn[language]
   const subject = trans.churn[type](language, {
-    displayName: recipient.displayName,
+    displayName: recipient.displayName
   })
 
   notificationQueue.sendMail({
@@ -47,12 +47,12 @@ export const sendChurn = async ({
             newRegisterCommentable: type === 'newRegisterCommentable',
             newRegisterUncommentable: type === 'newRegisterUncommentable',
             mediumTermHasFollowees: type === 'mediumTermHasFollowees',
-            mediumTermHasNotFollowees: type === 'mediumTermHasNotFollowees',
+            mediumTermHasNotFollowees: type === 'mediumTermHasNotFollowees'
           },
-          articles,
-        },
-      },
-    ],
+          articles
+        }
+      }
+    ]
   })
 
   // Mark as sent

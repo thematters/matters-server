@@ -16,9 +16,9 @@ const resolver: {
         { dataSources: { notificationService } }
       ) => {
         return notificationService.pubsub.engine.asyncIterator([id])
-      },
-    },
-  },
+      }
+    }
+  }
 }
 
 export default resolver

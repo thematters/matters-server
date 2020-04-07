@@ -2,10 +2,10 @@ const { baseDown } = require('../utils')
 
 const table = 'blocklist'
 
-exports.up = async (knex) => {
+exports.up = async knex => {
   // create table
   await knex('entity_type').insert({ table })
-  await knex.schema.createTable(table, (t) => {
+  await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
     t.uuid('uuid').notNullable()
     t.enu('type', ['agent_hash', 'email']).notNullable()
@@ -19,7 +19,7 @@ exports.up = async (knex) => {
   })
 
   // add index
-  await knex.schema.table(table, (t) => {
+  await knex.schema.table(table, t => {
     t.index(['type', 'value', 'archived'])
   })
 }

@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
   cursorToIndex,
-  filterMissingFieldNoticeEdges,
+  filterMissingFieldNoticeEdges
 } from 'common/utils'
 import { UserToNoticesResolver } from 'definitions'
 
@@ -13,12 +13,12 @@ const resolver: UserToNoticesResolver = async (
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
   const totalCount = await notificationService.notice.countNotice({
-    userId: id,
+    userId: id
   })
   const notices = await notificationService.notice.findByUser({
     userId: id,
     offset,
-    limit: first,
+    limit: first
   })
 
   const result = connectionFromArray(notices, input, totalCount)
@@ -26,7 +26,7 @@ const resolver: UserToNoticesResolver = async (
 
   return {
     ...result,
-    edges,
+    edges
   }
 }
 

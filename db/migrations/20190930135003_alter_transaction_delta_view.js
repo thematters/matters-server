@@ -1,6 +1,6 @@
 const table = 'transaction_delta_view'
 
-exports.up = async (knex) => {
+exports.up = async knex => {
   await knex.raw(/*sql*/ `drop view ${table}`)
 
   await knex.raw(/*sql*/ `
@@ -37,7 +37,7 @@ exports.up = async (knex) => {
   `)
 }
 
-exports.down = async (knex) => {
+exports.down = async knex => {
   await knex.raw(/*sql*/ `drop view ${table}`)
 
   await knex.raw(/*sql*/ `

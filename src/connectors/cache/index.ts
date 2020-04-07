@@ -25,7 +25,7 @@ export class CacheService {
   init = (): RedisCache =>
     new RedisCache({
       host: environment.cacheHost,
-      port: environment.cachePort,
+      port: environment.cachePort
     })
 
   /**
@@ -37,14 +37,13 @@ export class CacheService {
     type,
     id,
     field,
-    args,
+    args
   }: {
     type?: string
     id: string
     args?: string
     field?: string
-  }): string =>
-    [this.prefix, type, id, field, args].filter((el) => el).join(':')
+  }): string => [this.prefix, type, id, field, args].filter(el => el).join(':')
 
   /**
    * Store gql returned object in cache.
@@ -55,7 +54,7 @@ export class CacheService {
     field,
     args,
     data,
-    expire = CACHE_TTL.SHORT,
+    expire = CACHE_TTL.SHORT
   }: {
     type: string
     id: string
@@ -81,7 +80,7 @@ export class CacheService {
     args,
     getter,
     fallbackValue = '',
-    expire = CACHE_TTL.SHORT,
+    expire = CACHE_TTL.SHORT
   }: {
     type: string
     id: string
@@ -105,7 +104,7 @@ export class CacheService {
           field,
           args,
           data,
-          expire,
+          expire
         })
       }
     }

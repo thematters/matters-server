@@ -75,7 +75,7 @@ describe('token', () => {
         accessToken,
         refreshToken,
         client,
-        user,
+        user
       },
       client,
       user
@@ -104,7 +104,7 @@ describe('token', () => {
     const revoked = await oauthService.revokeToken({
       refreshToken,
       client,
-      user,
+      user
     })
     expect(revoked).toEqual(true)
   })

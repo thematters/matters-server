@@ -5,7 +5,7 @@ import {
   MINUTE,
   QUEUE_JOB,
   QUEUE_NAME,
-  QUEUE_PRIORITY,
+  QUEUE_PRIORITY
 } from 'common/enums'
 import logger from 'common/logger'
 import { refreshView } from 'connectors'
@@ -30,8 +30,8 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: MINUTE * 2, // every 2 minutes
-        },
+          every: MINUTE * 2 // every 2 minutes
+        }
       }
     )
 
@@ -42,8 +42,8 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: HOUR * 1.1, // every 1.1 hour
-        },
+          every: HOUR * 1.1 // every 1.1 hour
+        }
       }
     )
 
@@ -54,8 +54,8 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: HOUR * 2.1, // every 2.1 hour
-        },
+          every: HOUR * 2.1 // every 2.1 hour
+        }
       }
     )
 
@@ -66,8 +66,8 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: MINUTE * 2.5, // every 2.5 minutes
-        },
+          every: MINUTE * 2.5 // every 2.5 minutes
+        }
       }
     )
 
@@ -77,7 +77,7 @@ class RefreshViewsQueue extends BaseQueue {
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' },
+        repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
   }

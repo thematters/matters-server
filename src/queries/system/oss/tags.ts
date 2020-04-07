@@ -14,7 +14,7 @@ export const tags: OSSToTagsResolver = async (
     tagService.find({
       sort,
       offset,
-      limit: first,
+      limit: first
     }),
     input,
     totalCount

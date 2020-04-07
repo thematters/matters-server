@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex,
+  cursorToIndex
 } from 'common/utils'
 import { UserToBlockListResolver } from 'definitions'
 
@@ -20,7 +20,7 @@ const resolver: UserToBlockListResolver = async (
   const actions = await userService.findBlockList({
     userId: id,
     offset,
-    limit: first,
+    limit: first
   })
 
   return connectionFromPromisedArray(

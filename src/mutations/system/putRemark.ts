@@ -12,7 +12,7 @@ const resolver: MutationToPutRemarkResolver = async (
     Tag: 'tag',
     Comment: 'comment',
     Report: 'report',
-    Feedback: 'feedback',
+    Feedback: 'feedback'
   }
 
   const dbId = ['Article', 'User', 'Tag', 'Comment'].includes(type)

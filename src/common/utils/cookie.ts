@@ -13,7 +13,7 @@ const getCookieOption = () => {
   return {
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     httpOnly: true,
-    domain,
+    domain
   }
 }
 

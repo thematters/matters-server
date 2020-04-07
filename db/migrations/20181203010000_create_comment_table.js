@@ -2,13 +2,19 @@ const { baseDown } = require('../utils')
 
 const table = 'comment'
 
-exports.up = async (knex) => {
+exports.up = async knex => {
   await knex('entity_type').insert({ table })
-  await knex.schema.createTable(table, (t) => {
+  await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
-    t.uuid('uuid').notNullable().unique()
-    t.bigInteger('author_id').unsigned().notNullable()
-    t.bigInteger('article_id').unsigned().notNullable()
+    t.uuid('uuid')
+      .notNullable()
+      .unique()
+    t.bigInteger('author_id')
+      .unsigned()
+      .notNullable()
+    t.bigInteger('article_id')
+      .unsigned()
+      .notNullable()
     t.bigInteger('parent_comment_id').unsigned()
     t.text('content')
     t.enu('state', ['active', 'archived', 'banned'])
@@ -20,9 +26,15 @@ exports.up = async (knex) => {
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
     // Setup foreign key
-    t.foreign('author_id').references('id').inTable('user')
-    t.foreign('article_id').references('id').inTable('article')
-    t.foreign('parent_comment_id').references('id').inTable('comment')
+    t.foreign('author_id')
+      .references('id')
+      .inTable('user')
+    t.foreign('article_id')
+      .references('id')
+      .inTable('article')
+    t.foreign('parent_comment_id')
+      .references('id')
+      .inTable('comment')
   })
 }
 

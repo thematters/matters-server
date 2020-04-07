@@ -5,7 +5,7 @@ const CUSTOM_WHITE_LISTS = {
   figure: [],
   figcaption: [],
   source: ['src', 'type'],
-  iframe: ['src', 'frameborder', 'allowfullscreen', 'sandbox'],
+  iframe: ['src', 'frameborder', 'allowfullscreen', 'sandbox']
 }
 
 const onIgnoreTagAttr = (tag: string, name: string, value: string) => {
@@ -33,7 +33,7 @@ const ignoreTagProcessor = (
 const xssOptions = {
   whiteList: { ...xss.whiteList, ...CUSTOM_WHITE_LISTS },
   onIgnoreTagAttr,
-  onIgnoreTag: ignoreTagProcessor,
+  onIgnoreTag: ignoreTagProcessor
 }
 const customXSS = new xss.FilterXSS(xssOptions)
 

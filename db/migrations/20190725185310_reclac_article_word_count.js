@@ -3,17 +3,17 @@ const pick = require('lodash/pick')
 
 const table = 'article'
 
-const stripHtml = (html) =>
+const stripHtml = html =>
   (String(html) || '')
     .replace(/(<\/p><p>|&nbsp;)/g, ' ')
     .replace(/(<([^>]+)>)/gi, ' ')
 
-const countWords = (html) => {
+const countWords = html => {
   const matches = stripHtml(html).match(/[\u4e00-\u9fcc]|\w+/g)
   return matches ? matches.length : 0
 }
 
-exports.up = async (knex) => {
+exports.up = async knex => {
   // Gather ids
   const chunks = chunk(await knex(table).select('id'), 5)
   for (const ids of chunks) {
@@ -28,16 +28,18 @@ exports.up = async (knex) => {
     // Generate new word counts
     const params = items.map(({ id, content }) => ({
       id,
-      word_count: countWords(content),
+      word_count: countWords(content)
     }))
 
     // Update
     await Promise.all(
       params.map(({ id, word_count }) =>
-        knex(table).where({ id }).update({ word_count })
+        knex(table)
+          .where({ id })
+          .update({ word_count })
       )
     )
   }
 }
 
-exports.down = async (knex) => {}
+exports.down = async knex => {}

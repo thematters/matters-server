@@ -15,7 +15,7 @@ const resolver: MutationToToggleArticleLiveResolver = async (
 
   const updatedArticle = await articleService.baseUpdate(dbId, {
     live: enabled,
-    updatedAt: new Date(),
+    updatedAt: new Date()
   })
 
   return updatedArticle

@@ -1,7 +1,9 @@
-exports.baseDown = (table) => async (knex) => {
-  const _tables = await knex('pg_catalog.pg_tables').select('tablename').where({
-    schemaname: 'public',
-  })
+exports.baseDown = table => async knex => {
+  const _tables = await knex('pg_catalog.pg_tables')
+    .select('tablename')
+    .where({
+      schemaname: 'public'
+    })
 
   if (_tables.length <= 0) {
     throw new Error('no tables')
@@ -10,7 +12,7 @@ exports.baseDown = (table) => async (knex) => {
   try {
     await knex('entity_type')
       .where({
-        table,
+        table
       })
       .del()
   } catch (e) {
@@ -25,6 +27,6 @@ exports.alterEnumString = (table, column, enums) => {
   const enumValues = enums.join("'::text, '")
   return [
     `ALTER TABLE ${table} DROP CONSTRAINT IF EXISTS ${constraints};`,
-    `ALTER TABLE ${table} ADD CONSTRAINT ${constraints} CHECK (${column} = ANY (ARRAY['${enumValues}'::text]));`,
+    `ALTER TABLE ${table} ADD CONSTRAINT ${constraints} CHECK (${column} = ANY (ARRAY['${enumValues}'::text]));`
   ].join('\n')
 }

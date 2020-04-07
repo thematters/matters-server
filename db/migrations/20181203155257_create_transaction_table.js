@@ -2,13 +2,15 @@ const { baseDown } = require('../utils')
 
 const table = 'transaction'
 
-exports.up = async (knex) => {
+exports.up = async knex => {
   await knex('entity_type').insert({ table })
-  await knex.schema.createTable(table, (t) => {
+  await knex.schema.createTable(table, t => {
     t.bigIncrements('id').primary()
     t.uuid('uuid').notNullable()
     t.bigInteger('sender_id').unsigned()
-    t.bigInteger('recipient_id').unsigned().notNullable()
+    t.bigInteger('recipient_id')
+      .unsigned()
+      .notNullable()
     t.integer('amount').notNullable()
     t.enu('purpose', [
       'appreciate',
@@ -16,7 +18,7 @@ exports.up = async (knex) => {
       'join-by-invitation',
       'join-by-task',
       'first-post',
-      'system-subsidy',
+      'system-subsidy'
     ])
       .notNullable()
       .defaultTo('appreciate')
@@ -24,8 +26,12 @@ exports.up = async (knex) => {
     t.timestamp('created_at').defaultTo(knex.fn.now())
 
     // Setup foreign key
-    t.foreign('sender_id').references('id').inTable('user')
-    t.foreign('recipient_id').references('id').inTable('user')
+    t.foreign('sender_id')
+      .references('id')
+      .inTable('user')
+    t.foreign('recipient_id')
+      .references('id')
+      .inTable('user')
   })
 }
 

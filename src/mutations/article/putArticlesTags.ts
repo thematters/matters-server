@@ -4,7 +4,7 @@ import {
   AuthenticationError,
   ForbiddenError,
   TagNotFoundError,
-  UserInputError,
+  UserInputError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { ArticleService, NotificationService } from 'connectors'
@@ -16,7 +16,7 @@ const triggerNotice = async ({
   notificationService,
   selected,
   tag,
-  viewerId,
+  viewerId
 }: {
   articleId: string
   articleService: InstanceType<typeof ArticleService>
@@ -37,14 +37,14 @@ const triggerNotice = async ({
       {
         type: 'target',
         entityTable: 'article',
-        entity: article,
+        entity: article
       },
       {
         type: 'tag',
         entityTable: 'tag',
-        entity: tag,
-      },
-    ],
+        entity: tag
+      }
+    ]
   })
 }
 
@@ -78,7 +78,7 @@ const resolver: MutationToPutArticlesTagsResolver = async (
     await tagService.putArticleTag({
       articleId,
       tagId: dbId,
-      data: { selected },
+      data: { selected }
     })
 
     // trigger notification for adding article tag
@@ -88,19 +88,19 @@ const resolver: MutationToPutArticlesTagsResolver = async (
       notificationService,
       selected,
       tag,
-      viewerId: viewer.id,
+      viewerId: viewer.id
     })
   } else {
     // compare new and old article ids which have this tag
     const oldIds = await tagService.findArticleIdsByTagIds([dbId])
-    const newIds = articles.map((articleId) => fromGlobalId(articleId).id)
+    const newIds = articles.map(articleId => fromGlobalId(articleId).id)
     const addIds = _difference(newIds, oldIds)
 
     // article will be selected by default if the article tag created by admin
     await tagService.createArticleTags({
       articleIds: addIds,
       tagIds: [dbId],
-      selected: true,
+      selected: true
     })
 
     // trigger notification for adding article tag
@@ -111,7 +111,7 @@ const resolver: MutationToPutArticlesTagsResolver = async (
         notificationService,
         selected: true,
         tag,
-        viewerId: viewer.id,
+        viewerId: viewer.id
       })
     })
   }

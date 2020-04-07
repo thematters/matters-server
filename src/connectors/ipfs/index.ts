@@ -20,7 +20,7 @@ export class IPFS {
     this.client = ipfsClient({
       host: ipfsHost || '',
       port: ipfsPort,
-      protocol: 'http',
+      protocol: 'http'
     })
   }
 
@@ -95,12 +95,12 @@ export class IPFS {
     const htmlBundle = [
       {
         path: `${prefix}/index.html`,
-        content: Buffer.from($.html()),
+        content: Buffer.from($.html())
       },
       ...uniqBy(
-        assets.filter((asset) => asset),
+        assets.filter(asset => asset),
         'path'
-      ),
+      )
     ]
     const result = await this.client.add(htmlBundle, { pin: true })
 

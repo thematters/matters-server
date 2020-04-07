@@ -8,7 +8,7 @@ import {
   NotificationService,
   SystemService,
   TagService,
-  UserService,
+  UserService
 } from 'connectors'
 
 export const initSubscriptions = (): { onConnect: any } => ({
@@ -22,8 +22,8 @@ export const initSubscriptions = (): { onConnect: any } => ({
     const viewer = await getViewerFromReq({
       req: {
         headers: { ...connectionParams, ...context.request.headers },
-        connection: {},
-      },
+        connection: {}
+      }
     })
 
     return {
@@ -35,8 +35,8 @@ export const initSubscriptions = (): { onConnect: any } => ({
         draftService: new DraftService(),
         systemService: new SystemService(),
         tagService: new TagService(),
-        notificationService: new NotificationService(),
-      },
+        notificationService: new NotificationService()
+      }
     }
-  },
+  }
 })

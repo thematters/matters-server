@@ -1,9 +1,9 @@
 const table = 'oauth_client'
 
-exports.seed = function (knex, Promise) {
+exports.seed = function(knex, Promise) {
   return knex(table)
     .del()
-    .then(function () {
+    .then(function() {
       return knex(table).insert([
         {
           user_id: 1,
@@ -12,8 +12,8 @@ exports.seed = function (knex, Promise) {
           redirect_uri: ['https://matters.news'],
           grant_types: ['authorization_code', 'refresh_token'],
           name: 'LikeCoin',
-          website_url: 'https://like.co',
-        },
+          website_url: 'https://like.co'
+        }
       ])
     })
 }

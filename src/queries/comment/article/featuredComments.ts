@@ -7,7 +7,7 @@ const resolver: ArticleToFeaturedCommentsResolver = async (
   { dataSources: { commentService } }
 ) => {
   const featureComments = await commentService.findFeaturedCommentsByArticle({
-    id,
+    id
   })
 
   // use simple pagination for now

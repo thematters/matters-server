@@ -20,7 +20,7 @@ exports.config = {
      * issues with the agent, 'info' and higher will impose the least overhead on
      * production applications.
      */
-    level: 'info',
+    level: 'info'
   },
   /**
    * When true, all request headers except for those listed in attributes.exclude
@@ -47,7 +47,7 @@ exports.config = {
       'response.headers.authorization',
       'response.headers.proxyAuthorization',
       'response.headers.setCookie*',
-      'response.headers.x*',
-    ],
-  },
+      'response.headers.x*'
+    ]
+  }
 }

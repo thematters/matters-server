@@ -10,7 +10,7 @@ import {
   cursorToIndex,
   fromGlobalId,
   loadManyFilterError,
-  toGlobalId,
+  toGlobalId
 } from 'common/utils'
 import { GQLRecommendationTypeResolver } from 'definitions'
 
@@ -44,7 +44,7 @@ const resolvers: GQLRecommendationTypeResolver = {
     const after = input.after ? fromGlobalId(input.after).id : null
     const [sources, range] = await Promise.all([
       userService.findFolloweeWorks({ after, userId: id, limit: input.first }),
-      userService.findFolloweeWorksRange({ userId: id }),
+      userService.findFolloweeWorksRange({ userId: id })
     ])
 
     // fetch followee works
@@ -58,7 +58,7 @@ const resolvers: GQLRecommendationTypeResolver = {
             return commentService.dataloader.load(source.id)
           }
           default: {
-            return new Promise((resolve) => resolve(undefined))
+            return new Promise(resolve => resolve(undefined))
           }
         }
       })
@@ -70,15 +70,15 @@ const resolvers: GQLRecommendationTypeResolver = {
     >
 
     // re-process items
-    const cleanedItems = items.filter((item) => item) as Array<{
+    const cleanedItems = items.filter(item => item) as Array<{
       [key: string]: any
     }>
 
-    const edges = cleanedItems.map((item) => {
+    const edges = cleanedItems.map(item => {
       const type = !!item.title ? 'Article' : 'Comment'
       return {
         cursor: toGlobalId({ type, id: item.id }),
-        node: { __type: type, ...item },
+        node: { __type: type, ...item }
       }
     })
 
@@ -98,9 +98,9 @@ const resolvers: GQLRecommendationTypeResolver = {
         startCursor: edgeHead ? edgeHead.cursor : '',
         endCursor: edgeTail ? edgeTail.cursor : '',
         hasPreviousPage: headSeq < range.max,
-        hasNextPage: tailSeq > range.min,
+        hasNextPage: tailSeq > range.min
       },
-      totalCount: range.count,
+      totalCount: range.count
     }
   },
   hottest: async (
@@ -124,14 +124,14 @@ const resolvers: GQLRecommendationTypeResolver = {
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.countRecommendHottest({
       where: id ? {} : where,
-      oss,
+      oss
     })
     return connectionFromPromisedArray(
       articleService.recommendHottest({
         offset,
         limit: first,
         where,
-        oss,
+        oss
       }),
       input,
       totalCount
@@ -156,7 +156,7 @@ const resolvers: GQLRecommendationTypeResolver = {
     const offset = cursorToIndex(after) + 1
     const totalCount = await articleService.countRecommendNewest({
       where,
-      oss,
+      oss
     })
 
     return connectionFromPromisedArray(
@@ -164,7 +164,7 @@ const resolvers: GQLRecommendationTypeResolver = {
         offset,
         limit: first,
         where,
-        oss,
+        oss
       }),
       input,
       totalCount
@@ -173,7 +173,7 @@ const resolvers: GQLRecommendationTypeResolver = {
   today: async (_, __, { dataSources: { articleService } }) => {
     const [article] = await articleService.recommendToday({
       offset: 0,
-      limit: 1,
+      limit: 1
     })
     return { ...article, cover: article.ossCover || article.cover }
   },
@@ -185,8 +185,8 @@ const resolvers: GQLRecommendationTypeResolver = {
       articleService.countRecommendIcymi(),
       articleService.recommendIcymi({
         offset,
-        limit: first,
-      }),
+        limit: first
+      })
     ])
     return connectionFromArray(articles, input, totalCount)
   },
@@ -212,7 +212,7 @@ const resolvers: GQLRecommendationTypeResolver = {
         offset,
         limit: first,
         where,
-        oss,
+        oss
       }),
       input,
       totalCount
@@ -234,7 +234,7 @@ const resolvers: GQLRecommendationTypeResolver = {
       tagService.recommendTags({
         offset,
         limit: first,
-        oss,
+        oss
       }),
       input,
       totalCount
@@ -264,7 +264,7 @@ const resolvers: GQLRecommendationTypeResolver = {
       if (id) {
         const followees = await userService.findFollowees({
           userId: id,
-          limit: 999,
+          limit: 999
         })
         notIn = [...notIn, ...followees.map(({ targetId }: any) => targetId)]
       }
@@ -273,12 +273,12 @@ const resolvers: GQLRecommendationTypeResolver = {
     if (filter && filter.random) {
       cacheControl.setCacheHint({
         maxAge: CACHE_TTL.INSTANT,
-        scope: CacheScope.Private,
+        scope: CacheScope.Private
       })
       const authors = await userService.recommendAuthor({
         limit: 50,
         notIn,
-        oss,
+        oss
       })
 
       return connectionFromArray(sampleSize(authors, randomDraw), input)
@@ -286,14 +286,14 @@ const resolvers: GQLRecommendationTypeResolver = {
 
     const offset = cursorToIndex(after) + 1
     const totalCount = await userService.countAuthor({
-      notIn,
+      notIn
     })
 
     return connectionFromPromisedArray(
       userService.recommendAuthor({
         offset,
         notIn,
-        limit: first,
+        limit: first
       }),
       input,
       totalCount
@@ -313,8 +313,8 @@ const resolvers: GQLRecommendationTypeResolver = {
         articleService.countRecommendIcymi(),
         articleService.recommendIcymi({
           offset,
-          limit: first,
-        }),
+          limit: first
+        })
       ])
       return connectionFromArray(articles, input, totalCount)
     }
@@ -327,7 +327,7 @@ const resolvers: GQLRecommendationTypeResolver = {
     // exclude last 10000 articles already read by this user
     const readHistory = await userService.findReadHistory({
       userId: id,
-      limit: 10000,
+      limit: 10000
     })
     const readHistoryIds = readHistory.map(({ article }) => article.id)
     try {
@@ -336,7 +336,7 @@ const resolvers: GQLRecommendationTypeResolver = {
         itemIndex: 'article',
         first,
         offset,
-        notIn: readHistoryIds,
+        notIn: readHistoryIds
       })
 
       const ids = recommendedArtices.map(({ id: aid }: { id: any }) => aid)
@@ -344,7 +344,7 @@ const resolvers: GQLRecommendationTypeResolver = {
       // get articles
       const [totalCount, articles] = await Promise.all([
         articleService.baseCount({ state: ARTICLE_STATE.active }),
-        articleService.dataloader.loadMany(ids).then(loadManyFilterError),
+        articleService.dataloader.loadMany(ids).then(loadManyFilterError)
       ])
 
       if (!articles || articles.length === 0) {
@@ -357,7 +357,7 @@ const resolvers: GQLRecommendationTypeResolver = {
       )
       return fallback
     }
-  },
+  }
 }
 
 export default resolvers

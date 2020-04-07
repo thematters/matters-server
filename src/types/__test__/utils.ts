@@ -11,36 +11,36 @@ import {
   OAuthService,
   SystemService,
   TagService,
-  UserService,
+  UserService
 } from 'connectors'
 import {
   DataSources,
   GQLPublishArticleInput,
   GQLPutDraftInput,
-  GQLUserRegisterInput,
+  GQLUserRegisterInput
 } from 'definitions'
 
 import schema from '../../schema'
 
 export const defaultTestUser = {
   email: 'test1@matters.news',
-  password: '123',
+  password: '123'
 }
 export const adminUser = {
   email: 'admin1@matters.news',
-  password: '123',
+  password: '123'
 }
 
 export const getUserContext = async ({ email }: { email: string }) => {
   const userService = new UserService()
   const user = await userService.findByEmail(email)
   return {
-    viewer: user,
+    viewer: user
   }
 }
 
 export const delay = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms))
+  new Promise(resolve => setTimeout(resolve, ms))
 
 export const testClient = async (
   {
@@ -48,7 +48,7 @@ export const testClient = async (
     isAdmin,
     isMatty,
     isOnboarding,
-    context,
+    context
   }: {
     isAuth?: boolean
     isAdmin?: boolean
@@ -60,7 +60,7 @@ export const testClient = async (
     isAdmin: false,
     isMatty: false,
     isOnboarding: false,
-    context: null,
+    context: null
   }
 ) => {
   let _context: any = {}
@@ -74,7 +74,7 @@ export const testClient = async (
         ? 'onboarding@matters.news'
         : isAdmin
         ? adminUser.email
-        : defaultTestUser.email,
+        : defaultTestUser.email
     })
   }
 
@@ -94,11 +94,11 @@ export const testClient = async (
   _context.viewer = {
     ...viewer,
     hasRole: (requires: string) =>
-      roleAccess.findIndex((role) => role === viewer.role) >=
-      roleAccess.findIndex((role) => role === requires),
+      roleAccess.findIndex(role => role === viewer.role) >=
+      roleAccess.findIndex(role => role === requires),
     hasScopeMode: (requires: string) =>
-      scopeModes.findIndex((mode) => mode === viewer.scopeMode) >=
-      scopeModes.findIndex((mode) => mode === requires),
+      scopeModes.findIndex(mode => mode === viewer.scopeMode) >=
+      scopeModes.findIndex(mode => mode === requires)
   }
 
   const server = new ApolloServer({
@@ -114,8 +114,8 @@ export const testClient = async (
       systemService: new SystemService(),
       tagService: new TagService(),
       notificationService: new NotificationService(),
-      oauthService: new OAuthService(),
-    }),
+      oauthService: new OAuthService()
+    })
   })
 
   return createTestClient(server)
@@ -135,13 +135,13 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
   `
 
   const { mutate } = await testClient({
-    isAuth: true,
+    isAuth: true
   })
 
   const result = await mutate({
     mutation: PUBLISH_ARTICLE,
     // @ts-ignore
-    variables: { input },
+    variables: { input }
   })
 
   const draft = result && result.data && result.data.publishArticle
@@ -169,12 +169,12 @@ export const putDraft = async (draft: GQLPutDraftInput) => {
     }
   `
   const { mutate } = await testClient({
-    isAuth: true,
+    isAuth: true
   })
   const result = await mutate({
     mutation: PUT_DRAFT,
     // @ts-ignore
-    variables: { input: draft },
+    variables: { input: draft }
   })
 
   const putDraftResult = result && result.data && result.data.putDraft
@@ -195,13 +195,13 @@ export const registerUser = async (user: GQLUserRegisterInput) => {
   return mutate({
     mutation: USER_REGISTER,
     // @ts-ignore
-    variables: { input: user },
+    variables: { input: user }
   })
 }
 
 export const updateUserDescription = async ({
   email,
-  description,
+  description
 }: {
   email?: string
   description: string
@@ -222,11 +222,11 @@ export const updateUserDescription = async ({
   }
   const context = await getUserContext({ email: _email })
   const { mutate } = await testClient({
-    context,
+    context
   })
   return mutate({
     mutation: UPDATE_USER_INFO_DESCRIPTION,
     // @ts-ignore
-    variables: { input: { description } },
+    variables: { input: { description } }
   })
 }

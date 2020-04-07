@@ -11,5 +11,5 @@ export const mail = {
   sendMigrationSuccess,
   sendRegisterSuccess,
   sendUserDeletedByAdmin,
-  sendVerificationCode,
+  sendVerificationCode
 }

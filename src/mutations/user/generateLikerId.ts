@@ -17,7 +17,7 @@ const resolver: MutationToGenerateLikerIdResolver = async (
   if (!liker || !liker.likerId) {
     await userService.registerLikerId({
       userId: viewer.id,
-      userName: viewer.userName,
+      userName: viewer.userName
     })
   }
 
@@ -26,7 +26,7 @@ const resolver: MutationToGenerateLikerIdResolver = async (
     if (liker.accountType === 'temporal') {
       await userService.claimLikerId({
         userId: viewer.id,
-        liker,
+        liker
       })
     }
   }

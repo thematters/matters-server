@@ -33,19 +33,19 @@ const resolver: ArticleToCommentsResolver = async (
     if (parentComment || parentComment === null) {
       filter = {
         parentCommentId: parentComment ? fromGlobalId(parentComment).id : null,
-        ...filter,
+        ...filter
       }
     }
     if (author) {
       filter = {
         authorId: fromGlobalId(author).id,
-        ...filter,
+        ...filter
       }
     }
     if (state) {
       filter = {
         state,
-        ...filter,
+        ...filter
       }
     }
   }
@@ -59,14 +59,14 @@ const resolver: ArticleToCommentsResolver = async (
       filter,
       order,
       includeAfter: rest.includeAfter,
-      includeBefore: rest.includeBefore,
+      includeBefore: rest.includeBefore
     }),
-    commentService.range(filter),
+    commentService.range(filter)
   ])
 
   const edges = comments.map((comment: { [key: string]: string }) => ({
     cursor: toGlobalId({ type: 'Comment', id: comment.id }),
-    node: comment,
+    node: comment
   }))
 
   const firstEdge = edges[0]
@@ -83,8 +83,8 @@ const resolver: ArticleToCommentsResolver = async (
       endCursor: lastEdge ? lastEdge.cursor : '',
       hasPreviousPage:
         order === 'asc' ? firstId > range.min : firstId < range.max,
-      hasNextPage: order === 'asc' ? lastId < range.max : lastId > range.min,
-    },
+      hasNextPage: order === 'asc' ? lastId < range.max : lastId > range.min
+    }
   }
 }
 

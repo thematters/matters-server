@@ -5,32 +5,32 @@ export const placements: OfficialToPlacementsResolver = () => {
     webAsideTop: {
       image: 'https://via.placeholder.com/640x320',
       link: 'https://matters.news',
-      adLabel: false,
+      adLabel: false
     },
     appSplash: {
       image: 'https://via.placeholder.com/640x320',
       link: 'https://matters.news',
-      adLabel: true,
+      adLabel: true
     },
     appInStreamTop: {
       image: 'https://via.placeholder.com/640x1280',
       link: 'https://matters.news',
-      adLabel: false,
+      adLabel: false
     },
     appInStreamMiddle: {
       image: 'https://via.placeholder.com/640x320',
       link: 'https://matters.news',
-      adLabel: false,
+      adLabel: false
     },
     appInStreamBottom: {
       image: 'https://via.placeholder.com/640x320',
       link: 'https://matters.news',
-      adLabel: false,
+      adLabel: false
     },
     appInvitationTop: {
       image: 'https://via.placeholder.com/640x320',
       link: 'https://matters.news',
-      adLabel: false,
-    },
+      adLabel: false
+    }
   }
 }

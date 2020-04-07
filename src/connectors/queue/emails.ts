@@ -5,7 +5,7 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-  USER_STATE,
+  USER_STATE
 } from 'common/enums'
 import logger from 'common/logger'
 import { getArticleDigest } from 'connectors/notificationService/mail/utils'
@@ -28,7 +28,7 @@ class EmailsQueue extends BaseQueue {
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' },
+        repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
 
@@ -38,7 +38,7 @@ class EmailsQueue extends BaseQueue {
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 20 * * *', tz: 'Asia/Hong_Kong' },
+        repeat: { cron: '0 20 * * *', tz: 'Asia/Hong_Kong' }
       }
     )
   }
@@ -74,12 +74,12 @@ class EmailsQueue extends BaseQueue {
         }
 
         const filterNotices = (type: string) =>
-          notices.filter((notice) => notice.noticeType === type)
+          notices.filter(notice => notice.noticeType === type)
 
         this.notificationService.mail.sendDailySummary({
           to: user.email,
           recipient: {
-            displayName: user.displayName,
+            displayName: user.displayName
           },
           notices: {
             user_new_follower: filterNotices('user_new_follower'),
@@ -89,9 +89,9 @@ class EmailsQueue extends BaseQueue {
             article_new_comment: filterNotices('article_new_comment'),
             article_mentioned_you: filterNotices('article_mentioned_you'),
             comment_new_reply: filterNotices('comment_new_reply'),
-            comment_mentioned_you: filterNotices('comment_mentioned_you'),
+            comment_mentioned_you: filterNotices('comment_mentioned_you')
           },
-          language: user.language,
+          language: user.language
         })
 
         job.progress(((index + 1) / users.length) * 100)
@@ -113,10 +113,10 @@ class EmailsQueue extends BaseQueue {
 
       // churn users
       const newRegisterUsers = await this.userService.findLost({
-        type: 'new-register',
+        type: 'new-register'
       })
       const mediumTermUsers = await this.userService.findLost({
-        type: 'medium-term',
+        type: 'medium-term'
       })
       const totalUsers = newRegisterUsers.length + mediumTermUsers.length
 
@@ -124,10 +124,10 @@ class EmailsQueue extends BaseQueue {
       const monthAgo = new Date(Date.now() - DAY * 30).toISOString()
       const topArticles = await this.articleService.findTopAppreciations({
         limit: 6,
-        since: monthAgo,
+        since: monthAgo
       })
       const topArticleDigests = await Promise.all(
-        topArticles.map(async (article) => getArticleDigest(article))
+        topArticles.map(async article => getArticleDigest(article))
       )
 
       if (topArticleDigests.length <= 0) {
@@ -141,13 +141,13 @@ class EmailsQueue extends BaseQueue {
           to: user.email,
           recipient: {
             id: user.id,
-            displayName: user.displayName,
+            displayName: user.displayName
           },
           language: user.language,
           type: isCommentable
             ? 'newRegisterCommentable'
             : 'newRegisterUncommentable',
-          articles: topArticleDigests,
+          articles: topArticleDigests
         })
 
         job.progress(((index + 1) / totalUsers) * 100)
@@ -158,7 +158,7 @@ class EmailsQueue extends BaseQueue {
           (
             await this.userService.findFollowees({
               userId: user.id,
-              limit: 1,
+              limit: 1
             })
           ).length >= 1
 
@@ -168,7 +168,7 @@ class EmailsQueue extends BaseQueue {
         if (hasFollowee) {
           articles = await this.userService.followeeArticles({
             userId: user.id,
-            limit: 6,
+            limit: 6
           })
         }
 
@@ -177,20 +177,20 @@ class EmailsQueue extends BaseQueue {
         }
 
         const articleDigests = await Promise.all(
-          articles.map(async (article) => getArticleDigest(article))
+          articles.map(async article => getArticleDigest(article))
         )
 
         this.notificationService.mail.sendChurn({
           to: user.email,
           recipient: {
             id: user.id,
-            displayName: user.displayName,
+            displayName: user.displayName
           },
           language: user.language,
           type: hasFollowee
             ? 'mediumTermHasFollowees'
             : 'mediumTermHasNotFollowees',
-          articles: articleDigests,
+          articles: articleDigests
         })
 
         job.progress(((index + newRegisterUsers.length + 1) / totalUsers) * 100)

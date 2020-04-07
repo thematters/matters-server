@@ -2,7 +2,7 @@ const { alterEnumString } = require('../utils')
 
 const table = 'transaction'
 
-exports.up = async (knex) => {
+exports.up = async knex => {
   await knex.raw(
     alterEnumString(table, 'purpose', [
       'appreciate',
@@ -12,12 +12,12 @@ exports.up = async (knex) => {
       'join-by-invitation',
       'join-by-task',
       'first-post',
-      'system-subsidy',
+      'system-subsidy'
     ])
   )
 }
 
-exports.down = async (knex) => {
+exports.down = async knex => {
   await knex.raw(
     alterEnumString(table, 'purpose', [
       'appreciate',
@@ -26,7 +26,7 @@ exports.down = async (knex) => {
       'join-by-invitation',
       'join-by-task',
       'first-post',
-      'system-subsidy',
+      'system-subsidy'
     ])
   )
 }

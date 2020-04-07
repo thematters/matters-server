@@ -8,7 +8,7 @@ const resolver: MutationToDeleteCommentResolver = async (
   { input: { id } },
   {
     viewer,
-    dataSources: { commentService, articleService, notificationService },
+    dataSources: { commentService, articleService, notificationService }
   }
 ) => {
   if (!viewer.id) {
@@ -24,7 +24,7 @@ const resolver: MutationToDeleteCommentResolver = async (
 
   const comment = await commentService.baseUpdate(dbId, {
     state: COMMENT_STATE.archived,
-    updatedAt: new Date(),
+    updatedAt: new Date()
   })
 
   // publish a PubSub event
@@ -32,7 +32,7 @@ const resolver: MutationToDeleteCommentResolver = async (
   notificationService.pubsub.publish(
     toGlobalId({
       type: 'Article',
-      id: article.id,
+      id: article.id
     }),
     article
   )
@@ -41,12 +41,12 @@ const resolver: MutationToDeleteCommentResolver = async (
   comment[CACHE_KEYWORD] = [
     {
       id: article.id,
-      type: NODE_TYPES.article,
+      type: NODE_TYPES.article
     },
     {
       id: comment.id,
-      type: NODE_TYPES.comment,
-    },
+      type: NODE_TYPES.comment
+    }
   ]
 
   return comment

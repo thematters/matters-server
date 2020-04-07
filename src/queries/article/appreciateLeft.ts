@@ -11,7 +11,7 @@ const resolver: ArticleToAppreciateLeftResolver = async (
 
   return articleService.appreciateLeftByUser({
     articleId: id,
-    userId: viewer.id,
+    userId: viewer.id
   })
 }
 

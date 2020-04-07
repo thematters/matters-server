@@ -5,7 +5,7 @@ import {
   LANGUAGES,
   NotificationPrarms,
   PutNoticeParams,
-  User,
+  User
 } from 'definitions'
 
 import { mail } from './mail'
@@ -45,7 +45,7 @@ export class NotificationService extends BaseService {
         return {
           type: params.event,
           recipientId: params.recipientId,
-          actorId: params.actorId,
+          actorId: params.actorId
         }
       case 'article_published':
       case 'comment_pinned':
@@ -54,7 +54,7 @@ export class NotificationService extends BaseService {
         return {
           type: params.event,
           recipientId: params.recipientId,
-          entities: params.entities,
+          entities: params.entities
         }
       case 'article_new_downstream':
       case 'article_new_collected':
@@ -72,68 +72,68 @@ export class NotificationService extends BaseService {
           type: params.event,
           recipientId: params.recipientId,
           actorId: params.actorId,
-          entities: params.entities,
+          entities: params.entities
         }
       case 'official_announcement':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
           message: params.message,
-          data: params.data,
+          data: params.data
         }
       case 'user_activated':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
-          message: trans.user_activiated(language, {}),
+          message: trans.user_activiated(language, {})
         }
       case 'user_banned':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
-          message: trans.user_banned(language, {}),
+          message: trans.user_banned(language, {})
         }
       case 'user_frozen':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
-          message: trans.user_frozen(language, {}),
+          message: trans.user_frozen(language, {})
         }
       case 'comment_banned':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
           message: trans.comment_banned(language, {
-            content: params.entities[0].entity.content,
+            content: params.entities[0].entity.content
           }),
-          entities: params.entities,
+          entities: params.entities
         }
       case 'article_banned':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
           message: trans.article_banned(language, {
-            title: params.entities[0].entity.title,
+            title: params.entities[0].entity.title
           }),
-          entities: params.entities,
+          entities: params.entities
         }
       case 'comment_reported':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
           message: trans.comment_reported(language, {
-            content: params.entities[0].entity.content,
+            content: params.entities[0].entity.content
           }),
-          entities: params.entities,
+          entities: params.entities
         }
       case 'article_reported':
         return {
           type: 'official_announcement',
           recipientId: params.recipientId,
           message: trans.article_reported(language, {
-            title: params.entities[0].entity.title,
+            title: params.entities[0].entity.title
           }),
-          entities: params.entities,
+          entities: params.entities
         }
       default:
         return
@@ -169,7 +169,7 @@ export class NotificationService extends BaseService {
     const notifySetting = await userService.findNotifySetting(recipient.id)
     const enable = await this.notice.checkUserNotifySetting({
       event: params.event,
-      setting: notifySetting,
+      setting: notifySetting
     })
     if (!enable) {
       logger.info(
@@ -191,7 +191,7 @@ export class NotificationService extends BaseService {
      */
     this.push.push({
       noticeParams,
-      recipient,
+      recipient
     })
 
     /**
@@ -200,7 +200,7 @@ export class NotificationService extends BaseService {
     this.pubsub.publish(
       toGlobalId({
         type: 'User',
-        id: noticeParams.recipientId,
+        id: noticeParams.recipientId
       }),
       recipient
     )

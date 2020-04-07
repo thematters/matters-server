@@ -12,7 +12,7 @@ class GCP {
   constructor() {
     this.translateAPI = new TranslateAPI.Translate({
       projectId: environment.gcpProjectId,
-      keyFilename: environment.translateCertPath,
+      keyFilename: environment.translateCertPath
     })
   }
 
@@ -20,7 +20,7 @@ class GCP {
   toInternalLanguage = (externalLang: string) => {
     const langMap: { [key: string]: string } = {
       'zh-CN': zh_hans,
-      'zh-TW': zh_hant,
+      'zh-TW': zh_hant
     }
 
     return langMap[externalLang] || zh_hant
@@ -29,7 +29,7 @@ class GCP {
   fromInteralLanguage = (internalLang: string) => {
     const langMap: { [key: string]: string } = {
       [zh_hans]: 'zh-CN',
-      [zh_hant]: 'zh-TW',
+      [zh_hant]: 'zh-TW'
     }
 
     return langMap[internalLang] || 'zh-TW'

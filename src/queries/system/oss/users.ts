@@ -13,7 +13,7 @@ export const users: OSSToUsersResolver = async (
   return connectionFromPromisedArray(
     userService.baseFind({
       offset,
-      limit: first,
+      limit: first
     }),
     input,
     totalCount

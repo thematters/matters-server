@@ -13,7 +13,7 @@ const resolver: MutationToUpdateNotificationSettingResolver = async (
   const notifySetting = await userService.findNotifySetting(viewer.id)
 
   await userService.updateNotifySetting(notifySetting.id, {
-    [type]: enabled,
+    [type]: enabled
   })
 
   return viewer

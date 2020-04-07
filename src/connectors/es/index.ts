@@ -18,7 +18,7 @@ class ElasticSearch {
 
   constructor() {
     this.client = new elasticsearch.Client({
-      node: `http://${host}:${port}`,
+      node: `http://${host}:${port}`
     })
 
     this.init()
@@ -54,7 +54,7 @@ class ElasticSearch {
   indexManyItems = async ({
     index,
     items,
-    type,
+    type
   }: {
     index: string
     type?: string
@@ -72,7 +72,7 @@ class ElasticSearch {
       for (let i = 0; i < chks.length; i++) {
         await this.indexItems({
           index,
-          items: chks[i],
+          items: chks[i]
         })
         logger.info(`Indexed ${chks[i].length} items into ${index}.`)
       }
@@ -89,11 +89,11 @@ class ElasticSearch {
 
     try {
       const body = _.flattenDepth(
-        items.map((item) => [{ index: { _index: index, _id: item.id } }, item])
+        items.map(item => [{ index: { _index: index, _id: item.id } }, item])
       )
 
       const res = await this.client.bulk({
-        body,
+        body
       })
       return res
     } catch (err) {

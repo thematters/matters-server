@@ -17,5 +17,5 @@ export default {
   report,
   today,
   oauthClients,
-  skippedListItems,
+  skippedListItems
 }

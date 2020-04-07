@@ -12,8 +12,8 @@ const resolver: QueryToNodeResolver = async (
       userService,
       commentService,
       draftService,
-      tagService,
-    },
+      tagService
+    }
   }
 ) => {
   const serviceMap = {
@@ -21,7 +21,7 @@ const resolver: QueryToNodeResolver = async (
     User: userService,
     Comment: commentService,
     Draft: draftService,
-    Tag: tagService,
+    Tag: tagService
   }
 
   const { type, id: dbId } = fromGlobalId(id) as {

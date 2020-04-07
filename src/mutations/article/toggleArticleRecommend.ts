@@ -27,13 +27,13 @@ const resolver: MutationToToggleArticleRecommendResolver = async (
     case 'hottest':
       await articleService.updateRecommendSetting({
         articleId: dbId,
-        data: { inHottest: enabled },
+        data: { inHottest: enabled }
       })
       break
     case 'newest':
       await articleService.updateRecommendSetting({
         articleId: dbId,
-        data: { inNewest: enabled },
+        data: { inNewest: enabled }
       })
       break
   }

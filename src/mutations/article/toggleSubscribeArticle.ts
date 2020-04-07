@@ -44,21 +44,21 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
         {
           type: 'target',
           entityTable: 'article',
-          entity: article,
-        },
-      ],
+          entity: article
+        }
+      ]
     })
 
     // Add custom data for cache invalidation
     article[CACHE_KEYWORD] = [
       {
         id: article.id,
-        type: NODE_TYPES.article,
+        type: NODE_TYPES.article
       },
       {
         id: article.authorId,
-        type: NODE_TYPES.user,
-      },
+        type: NODE_TYPES.user
+      }
     ]
   } else {
     await articleService.unsubscribe(article.id, viewer.id)

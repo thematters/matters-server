@@ -6,7 +6,7 @@ import {
   BATCH_SIZE,
   COMMENT_STATE,
   MATERIALIZED_VIEW,
-  USER_ACTION,
+  USER_ACTION
 } from 'common/enums'
 import { CommentNotFoundError } from 'common/errors'
 import { BaseService } from 'connectors'
@@ -46,7 +46,7 @@ export class CommentService extends BaseService {
     articleId,
     parentCommentId,
     content,
-    replyTo,
+    replyTo
   }: {
     [key: string]: any
   }) => {
@@ -57,7 +57,7 @@ export class CommentService extends BaseService {
       articleId,
       parentCommentId,
       content,
-      replyTo,
+      replyTo
     })
     return comemnt
   }
@@ -66,7 +66,7 @@ export class CommentService extends BaseService {
     id,
     articleId,
     parentCommentId,
-    content,
+    content
   }: {
     [key: string]: any
   }) => {
@@ -75,7 +75,7 @@ export class CommentService extends BaseService {
       articleId,
       parentCommentId,
       content,
-      updatedAt: new Date(),
+      updatedAt: new Date()
     })
     return comemnt
   }
@@ -108,15 +108,19 @@ export class CommentService extends BaseService {
   findByParent = async ({
     id,
     author,
-    sort,
+    sort
   }: GQLCommentCommentsInput & { id: string }) => {
     let where: { [key: string]: string | boolean } = {
-      parentCommentId: id,
+      parentCommentId: id
     }
 
     let query = null
     const sortCreatedAt = (by: 'desc' | 'asc') =>
-      this.knex.select().from(this.table).where(where).orderBy('created_at', by)
+      this.knex
+        .select()
+        .from(this.table)
+        .where(where)
+        .orderBy('created_at', by)
 
     if (author) {
       where = { ...where, authorId: author }
@@ -143,7 +147,7 @@ export class CommentService extends BaseService {
     first,
     before,
     includeAfter = false,
-    includeBefore = false,
+    includeBefore = false
   }: GQLCommentsInput & { filter: CommentFilter; order?: string }) => {
     // build where clause
     const where = filter
@@ -193,7 +197,7 @@ export class CommentService extends BaseService {
     return {
       count: parseInt(count, 10),
       min: parseInt(min, 10),
-      max: parseInt(max, 10),
+      max: parseInt(max, 10)
     }
   }
 
@@ -205,7 +209,7 @@ export class CommentService extends BaseService {
   vote = async ({
     userId,
     commentId,
-    vote,
+    vote
   }: {
     userId: string
     commentId: string
@@ -214,19 +218,19 @@ export class CommentService extends BaseService {
     const data = {
       userId,
       targetId: commentId,
-      action: `${vote}_vote`,
+      action: `${vote}_vote`
     }
 
     return this.baseUpdateOrCreate({
       where: data,
       data: { updatedAt: new Date(), ...data },
-      table: 'action_comment',
+      table: 'action_comment'
     })
   }
 
   unvote = async ({
     userId,
-    commentId,
+    commentId
   }: {
     userId: string
     commentId: string
@@ -234,7 +238,7 @@ export class CommentService extends BaseService {
     this.knex('action_comment')
       .where({
         userId,
-        targetId: commentId,
+        targetId: commentId
       })
       .del()
 
@@ -245,7 +249,7 @@ export class CommentService extends BaseService {
     const result = await this.knex('action_comment')
       .where({
         targetId,
-        action: USER_ACTION.upVote,
+        action: USER_ACTION.upVote
       })
       .count()
       .first()
@@ -259,7 +263,7 @@ export class CommentService extends BaseService {
     const result = await this.knex('action_comment')
       .where({
         target_id: targetId,
-        action: USER_ACTION.downVote,
+        action: USER_ACTION.downVote
       })
       .count()
       .first()
@@ -271,7 +275,7 @@ export class CommentService extends BaseService {
    */
   findVotesByUserId = async ({
     userId,
-    commentId: targetId,
+    commentId: targetId
   }: {
     userId: string
     commentId: string
@@ -281,7 +285,7 @@ export class CommentService extends BaseService {
       .from('action_comment')
       .where({
         userId,
-        targetId,
+        targetId
       })
       .whereIn('action', [USER_ACTION.upVote, USER_ACTION.downVote])
 
@@ -290,7 +294,7 @@ export class CommentService extends BaseService {
    */
   removeVotesByUserId = async ({
     userId,
-    commentId: targetId,
+    commentId: targetId
   }: {
     userId: string
     commentId: string
@@ -300,7 +304,7 @@ export class CommentService extends BaseService {
       .from('action_comment')
       .where({
         userId,
-        targetId,
+        targetId
       })
       .whereIn('action', [USER_ACTION.upVote, USER_ACTION.downVote])
       .del()
@@ -317,7 +321,7 @@ export class CommentService extends BaseService {
   findFeaturedCommentsByArticle = async ({
     id,
     first = BATCH_SIZE,
-    after = 0,
+    after = 0
   }: {
     id: string
     first?: number
@@ -329,7 +333,7 @@ export class CommentService extends BaseService {
       .where({ articleId: id })
       .orderBy([
         { column: 'pinned', order: 'desc' },
-        { column: 'score', order: 'desc' },
+        { column: 'score', order: 'desc' }
       ])
       .limit(first)
       .offset(after)
@@ -347,14 +351,14 @@ export class CommentService extends BaseService {
    */
   togglePinned = async ({
     commentId,
-    pinned,
+    pinned
   }: {
     commentId: string
     pinned: boolean
   }) =>
     this.baseUpdate(commentId, {
       pinned,
-      updatedAt: new Date(),
+      updatedAt: new Date()
     })
 
   /**
@@ -371,11 +375,14 @@ export class CommentService extends BaseService {
    * Find pinned comments by a given article id.
    */
   findPinnedByArticle = async (articleId: string) =>
-    this.knex.select().from(this.table).where({ articleId, pinned: true })
+    this.knex
+      .select()
+      .from(this.table)
+      .where({ articleId, pinned: true })
 
   countPinnedByArticle = async ({
     articleId,
-    activeOnly,
+    activeOnly
   }: {
     articleId: string
     activeOnly?: boolean
@@ -396,7 +403,7 @@ export class CommentService extends BaseService {
   pinLeftByArticle = async (articleId: string) => {
     const pinnedCount = await this.countPinnedByArticle({
       articleId,
-      activeOnly: true,
+      activeOnly: true
     })
     return Math.max(ARTICLE_PIN_COMMENT_LIMIT - pinnedCount, 0)
   }
@@ -415,7 +422,7 @@ export class CommentService extends BaseService {
     category,
     description,
     contact,
-    assetIds,
+    assetIds
   }: {
     commentId: string
     userId?: string | null
@@ -431,7 +438,7 @@ export class CommentService extends BaseService {
         commentId,
         category,
         description,
-        contact,
+        contact
       },
       'report'
     )
@@ -439,9 +446,9 @@ export class CommentService extends BaseService {
     if (!assetIds || assetIds.length <= 0) {
       return
     }
-    const reportAssets = assetIds.map((assetId) => ({
+    const reportAssets = assetIds.map(assetId => ({
       reportId,
-      assetId,
+      assetId
     }))
     await this.baseBatchCreate(reportAssets, 'report_asset')
   }

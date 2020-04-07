@@ -10,8 +10,8 @@ const resolver: MutationToVerifyEmailResolver = async (
     where: {
       uuid,
       type: 'email_verify',
-      status: 'verified',
-    },
+      status: 'verified'
+    }
   })
 
   // check code
@@ -31,7 +31,7 @@ const resolver: MutationToVerifyEmailResolver = async (
   // mark code status as used
   await userService.markVerificationCodeAs({
     codeId: code.id,
-    status: 'used',
+    status: 'used'
   })
 
   return true

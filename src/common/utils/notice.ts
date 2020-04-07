@@ -20,7 +20,7 @@ const actorsRequired = {
   official_announcement: false,
   article_tag_has_been_added: true,
   article_tag_has_been_removed: true,
-  article_tag_has_been_unselected: true,
+  article_tag_has_been_unselected: true
 }
 const entitiesRequired = {
   user_new_follower: false,
@@ -40,7 +40,7 @@ const entitiesRequired = {
   official_announcement: false,
   article_tag_has_been_added: true,
   article_tag_has_been_removed: true,
-  article_tag_has_been_unselected: true,
+  article_tag_has_been_unselected: true
 }
 const messageRequired = {
   user_new_follower: false,
@@ -60,7 +60,7 @@ const messageRequired = {
   official_announcement: true,
   article_tag_has_been_added: false,
   article_tag_has_been_removed: false,
-  article_tag_has_been_unselected: false,
+  article_tag_has_been_unselected: false
 }
 
 type NoticeEdges = Array<{ node: NoticeItem; cursor: string }>

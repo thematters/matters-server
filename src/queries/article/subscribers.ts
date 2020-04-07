@@ -12,7 +12,7 @@ const resolver: ArticleToSubscribersResolver = async (
   const actions = await articleService.findSubscriptions({
     id,
     offset,
-    limit: first,
+    limit: first
   })
 
   return connectionFromPromisedArray(

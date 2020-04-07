@@ -11,7 +11,7 @@ const resolver: ArticleToSubscribedResolver = (
 
   return articleService.isSubscribed({
     userId: viewer.id,
-    targetId: id,
+    targetId: id
   })
 }
 

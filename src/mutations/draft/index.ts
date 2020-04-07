@@ -4,6 +4,6 @@ import putDraft from './putDraft'
 export default {
   Mutation: {
     putDraft,
-    deleteDraft,
-  },
+    deleteDraft
+  }
 }

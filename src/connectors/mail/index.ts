@@ -21,7 +21,7 @@ class MailService {
     }
 
     await this.mail.send({
-      ...params,
+      ...params
       // mailSettings: {
       //   sandboxMode: {
       //     enable: isDev

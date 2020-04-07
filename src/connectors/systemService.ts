@@ -3,7 +3,7 @@ import { v4 } from 'uuid'
 import {
   BATCH_SIZE,
   SEARCH_KEY_TRUNCATE_LENGTH,
-  SKIPPED_LIST_ITEM_TYPES,
+  SKIPPED_LIST_ITEM_TYPES
 } from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
@@ -21,7 +21,7 @@ export class SystemService extends BaseService {
    *********************************/
   frequentSearch = async ({
     key = '',
-    first = 5,
+    first = 5
   }: {
     key?: string
     first?: number
@@ -64,14 +64,17 @@ export class SystemService extends BaseService {
     entityTypeId: string,
     entityId: string
   ) =>
-    this.knex.transaction(async (trx) => {
-      const [newAsset] = await trx.insert(asset).into('asset').returning('*')
+    this.knex.transaction(async trx => {
+      const [newAsset] = await trx
+        .insert(asset)
+        .into('asset')
+        .returning('*')
 
       await trx
         .insert({
           assetId: newAsset.id,
           entityTypeId,
-          entityId,
+          entityId
         })
         .into('asset_map')
 
@@ -136,11 +139,11 @@ export class SystemService extends BaseService {
     this.knex('asset_map')
       .where({
         entityTypeId: oldEntityTypeId,
-        entityId: oldEntityId,
+        entityId: oldEntityId
       })
       .update({
         entityTypeId: newEntityTypeId,
-        entityId: newEntityId,
+        entityId: newEntityId
       })
 
   /**
@@ -149,10 +152,14 @@ export class SystemService extends BaseService {
   deleteAssetAndAssetMap = async (assets: Array<{ [key: string]: string }>) => {
     const ids = Object.keys(assets)
 
-    await this.knex.transaction(async (trx) => {
-      await trx('asset_map').whereIn('asset_id', ids).del()
+    await this.knex.transaction(async trx => {
+      await trx('asset_map')
+        .whereIn('asset_id', ids)
+        .del()
 
-      await trx('asset').whereIn('id', ids).del()
+      await trx('asset')
+        .whereIn('id', ids)
+        .del()
     })
 
     try {
@@ -170,7 +177,9 @@ export class SystemService extends BaseService {
    * Find or Delete assets by given author id and types
    */
   findAssetsByAuthorAndTypes = (authorId: string, types: string[]) =>
-    this.knex('asset').whereIn('type', types).andWhere({ authorId })
+    this.knex('asset')
+      .whereIn('type', types)
+      .andWhere({ authorId })
 
   /*********************************
    *                               *
@@ -178,20 +187,25 @@ export class SystemService extends BaseService {
    *                               *
    *********************************/
   findReportById = async (reportId: string) =>
-    this.knex('report').select().where({ id: reportId }).first()
+    this.knex('report')
+      .select()
+      .where({ id: reportId })
+      .first()
 
   findReports = async ({
     comment,
     article,
     offset = 0,
-    limit = BATCH_SIZE,
+    limit = BATCH_SIZE
   }: {
     comment: boolean
     article: boolean
     offset?: number
     limit?: number
   }) => {
-    let qs = this.knex('report').select().orderBy('id', 'desc')
+    let qs = this.knex('report')
+      .select()
+      .orderBy('id', 'desc')
 
     if (comment) {
       qs = qs.whereNotNull('comment_id')
@@ -211,12 +225,14 @@ export class SystemService extends BaseService {
 
   countReports = async ({
     comment,
-    article,
+    article
   }: {
     comment: boolean
     article: boolean
   }) => {
-    let qs = this.knex('report').count().first()
+    let qs = this.knex('report')
+      .count()
+      .first()
 
     if (comment) {
       qs = qs.whereNotNull('comment_id')
@@ -239,7 +255,7 @@ export class SystemService extends BaseService {
     category,
     description,
     contact,
-    assetIds,
+    assetIds
   }: {
     userId?: string | null
     category: string
@@ -253,7 +269,7 @@ export class SystemService extends BaseService {
         userId,
         category,
         description,
-        contact,
+        contact
       },
       'feedback'
     )
@@ -261,9 +277,9 @@ export class SystemService extends BaseService {
     if (!assetIds || assetIds.length <= 0) {
       return
     }
-    const reportAssets = assetIds.map((assetId) => ({
+    const reportAssets = assetIds.map(assetId => ({
       feedbackId,
-      assetId,
+      assetId
     }))
     await this.baseBatchCreate(reportAssets, 'feedback_asset')
   }
@@ -274,13 +290,17 @@ export class SystemService extends BaseService {
    *                               *
    *********************************/
   findLogRecord = async (where: { [key: string]: string | boolean }) =>
-    this.knex.select().from('log_record').where(where).first()
+    this.knex
+      .select()
+      .from('log_record')
+      .where(where)
+      .first()
 
   logRecord = async (data: { userId: string; type: string }) => {
     return this.baseUpdateOrCreate({
       where: data,
       data: { readAt: new Date(), ...data },
-      table: 'log_record',
+      table: 'log_record'
     })
   }
 
@@ -290,7 +310,9 @@ export class SystemService extends BaseService {
    *                               *
    *********************************/
   findSkippedItem = async (type: SkippedListItemType, value: string) => {
-    return this.knex('blocklist').where({ type, value }).first()
+    return this.knex('blocklist')
+      .where({ type, value })
+      .first()
   }
 
   createSkippedItem = async (

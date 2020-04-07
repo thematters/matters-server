@@ -3,7 +3,7 @@ import nanoid from 'nanoid'
 
 import {
   OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS,
-  OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS,
+  OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
@@ -15,7 +15,7 @@ import {
   OAuthClient,
   OAuthRefreshToken,
   OAuthToken,
-  User,
+  User
 } from 'definitions'
 
 export class OAuthService extends BaseService {
@@ -29,11 +29,17 @@ export class OAuthService extends BaseService {
    *                               *
    *********************************/
   findClient = async ({ clientId }: { clientId: string }) => {
-    return this.knex('oauth_client').select().where({ clientId }).first()
+    return this.knex('oauth_client')
+      .select()
+      .where({ clientId })
+      .first()
   }
 
   findClientByName = async ({ name }: { name: string }) => {
-    return this.knex('oauth_client').select().where({ name }).first()
+    return this.knex('oauth_client')
+      .select()
+      .where({ name })
+      .first()
   }
 
   updateOrCreateClient = async (params: {
@@ -52,9 +58,9 @@ export class OAuthService extends BaseService {
       where: { clientId: params.clientId },
       data: {
         ...params,
-        updatedAt: new Date(),
+        updatedAt: new Date()
       },
-      table: 'oauth_client',
+      table: 'oauth_client'
     })
   }
 
@@ -80,7 +86,7 @@ export class OAuthService extends BaseService {
       redirectUris: dbClient.redirectUri,
       grants: dbClient.grantTypes,
       scope: dbClient.scope,
-      rawClient: dbClient,
+      rawClient: dbClient
       // accessTokenLifetime: , // Client-specific lifetime
       // refreshTokenLifetime: , // Client-specific lifetime
     }
@@ -129,7 +135,7 @@ export class OAuthService extends BaseService {
       accessTokenExpiresAt: new Date(token.expires),
       scope: token.scope,
       client,
-      user,
+      user
     }
   }
 
@@ -146,7 +152,7 @@ export class OAuthService extends BaseService {
         expires: token.accessTokenExpiresAt,
         clientId: client.id,
         userId: user.id,
-        scope,
+        scope
       },
       'oauth_access_token'
     )
@@ -156,7 +162,7 @@ export class OAuthService extends BaseService {
         expires: token.refreshTokenExpiresAt,
         clientId: client.id,
         userId: user.id,
-        scope,
+        scope
       },
       'oauth_refresh_token'
     )
@@ -165,12 +171,12 @@ export class OAuthService extends BaseService {
       sub: toGlobalId({ type: 'User', id: user.id }),
       name: user.userName,
       email: user.email,
-      emailVerified: user.emailVerified,
+      emailVerified: user.emailVerified
     }
     const id_token = jwt.sign(payload, environment.OICDPrivateKey, {
       expiresIn: OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS / 1000,
       issuer: 'matters.news',
-      algorithm: 'RS256',
+      algorithm: 'RS256'
     })
 
     return {
@@ -181,7 +187,7 @@ export class OAuthService extends BaseService {
       scope: accessToken.scope,
       id_token,
       client,
-      user,
+      user
     }
   }
 
@@ -211,7 +217,7 @@ export class OAuthService extends BaseService {
       redirectUri: code.redirectUri,
       scope: code.scope,
       client,
-      user,
+      user
     }
   }
 
@@ -227,7 +233,7 @@ export class OAuthService extends BaseService {
         redirect_uri: code.redirectUri,
         scope: code.scope,
         clientId: client.id,
-        userId: user.id,
+        userId: user.id
       },
       'oauth_authorization_code'
     )
@@ -242,7 +248,7 @@ export class OAuthService extends BaseService {
       redirectUri: authorizationCode.redirectUri,
       scope: authorizationCode.scope,
       client,
-      user,
+      user
     }
   }
 
@@ -292,7 +298,7 @@ export class OAuthService extends BaseService {
       refreshTokenExpiresAt: new Date(token.expires),
       scope: token.scope,
       client,
-      user,
+      user
     }
   }
 
@@ -315,7 +321,7 @@ export class OAuthService extends BaseService {
    *                               *
    *********************************/
   scopeStr2Arr = (scope: string): string[] => {
-    return scope.split(/[,\s]/).filter((s) => !!s)
+    return scope.split(/[,\s]/).filter(s => !!s)
   }
 
   validateScope = async (
@@ -382,7 +388,7 @@ export class OAuthService extends BaseService {
         ),
         scope: client.scope,
         client,
-        user,
+        user
       },
       client,
       user

@@ -1,18 +1,18 @@
 const table = 'user_boost'
 
-exports.seed = function (knex, Promise) {
+exports.seed = function(knex, Promise) {
   return knex(table)
     .del()
-    .then(function () {
+    .then(function() {
       return knex(table).insert([
         {
           user_id: 2,
-          boost: 10,
+          boost: 10
         },
         {
           user_id: 1,
-          boost: 0.1,
-        },
+          boost: 0.1
+        }
       ])
     })
 }

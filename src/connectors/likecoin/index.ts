@@ -13,7 +13,7 @@ const { likecoinApiURL, likecoinClientId, likecoinClientSecret } = environment
 const ERROR_CODES = {
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   EMAIL_ALREADY_USED: 'EMAIL_ALREADY_USED',
-  OAUTH_USER_ID_ALREADY_USED: 'OAUTH_USER_ID_ALREADY_USED',
+  OAUTH_USER_ID_ALREADY_USED: 'OAUTH_USER_ID_ALREADY_USED'
 }
 
 type LikeCoinLocale =
@@ -43,7 +43,7 @@ const ENDPOINTS = {
   edit: '/users/edit/matters',
   total: '/like/info/like/history/total',
   like: '/like/likebutton',
-  rate: '/misc/price',
+  rate: '/misc/price'
 }
 
 export class LikeCoin {
@@ -68,7 +68,7 @@ export class LikeCoin {
       if (accessToken) {
         headers = {
           ...headers,
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`
         }
       }
 
@@ -79,13 +79,13 @@ export class LikeCoin {
           params = {
             ...params,
             client_id: likecoinClientId,
-            client_secret: likecoinClientSecret,
+            client_secret: likecoinClientSecret
           }
         } else if (axiosOptions.data) {
           axiosOptions.data = {
             ...axiosOptions.data,
             client_id: likecoinClientId,
-            client_secret: likecoinClientSecret,
+            client_secret: likecoinClientSecret
           }
         }
       }
@@ -95,13 +95,13 @@ export class LikeCoin {
         baseURL: likecoinApiURL,
         params,
         headers,
-        ...axiosOptions,
+        ...axiosOptions
       })
     }
 
     try {
       return await makeRequest({
-        accessToken: liker ? liker.accessToken : undefined,
+        accessToken: liker ? liker.accessToken : undefined
       })
     } catch (e) {
       const data = _.get(e, 'response.data')
@@ -126,7 +126,7 @@ export class LikeCoin {
   }
 
   refreshToken = async ({
-    liker,
+    liker
   }: {
     liker: UserOAuthLikeCoin
   }): Promise<string> => {
@@ -136,8 +136,8 @@ export class LikeCoin {
       method: 'POST',
       data: {
         grant_type: 'refresh_token',
-        refresh_token: liker.refreshToken,
-      },
+        refresh_token: liker.refreshToken
+      }
     })
 
     // update db
@@ -149,7 +149,7 @@ export class LikeCoin {
           accessToken: data.access_token,
           refreshToken: data.refresh_token,
           scope: data.scope,
-          updatedAt: new Date(),
+          updatedAt: new Date()
         })
     } catch (e) {
       logger.error(e)
@@ -168,8 +168,8 @@ export class LikeCoin {
         method: 'POST',
         data: {
           user,
-          email,
-        },
+          email
+        }
       })
       const data = _.get(res, 'data')
 
@@ -196,7 +196,7 @@ export class LikeCoin {
     displayName,
     email,
     locale = 'zh',
-    isEmailEnabled,
+    isEmailEnabled
   }: {
     user: string
     token: string
@@ -215,8 +215,8 @@ export class LikeCoin {
         displayName,
         email,
         locale,
-        isEmailEnabled,
-      },
+        isEmailEnabled
+      }
     })
     const data = _.get(res, 'data')
 
@@ -232,7 +232,7 @@ export class LikeCoin {
    */
   edit = async ({
     action,
-    payload,
+    payload
   }: {
     action: 'claim' | 'transfer' | 'bind'
     payload: { [key: string]: any }
@@ -243,8 +243,8 @@ export class LikeCoin {
       method: 'POST',
       data: {
         action,
-        payload,
-      },
+        payload
+      }
     })
     const data = _.get(res, 'data')
 
@@ -262,7 +262,7 @@ export class LikeCoin {
     const res = await this.request({
       endpoint: ENDPOINTS.total,
       method: 'GET',
-      liker,
+      liker
     })
     const data = _.get(res, 'data')
 
@@ -278,8 +278,8 @@ export class LikeCoin {
       endpoint: ENDPOINTS.rate,
       method: 'GET',
       params: {
-        currency,
-      },
+        currency
+      }
     })
     const price = _.get(res, 'data.price')
 
@@ -293,7 +293,7 @@ export class LikeCoin {
     const res = await this.request({
       endpoint: `/users/id/${liker.likerId}/min`,
       method: 'GET',
-      liker,
+      liker
     })
     return !!_.get(res, 'data.isSubscribedCivicLiker')
   }
@@ -305,7 +305,7 @@ export class LikeCoin {
     liker,
     authorLikerId,
     url,
-    likerIp,
+    likerIp
   }: {
     liker?: UserOAuthLikeCoin
     authorLikerId: string
@@ -320,8 +320,8 @@ export class LikeCoin {
       headers: { 'X-LIKECOIN-REAL-IP': likerIp },
       withClientCredential: true,
       params: {
-        referrer: encodeURI(url),
-      },
+        referrer: encodeURI(url)
+      }
     })
     const data = _.get(res, 'data')
 
@@ -340,7 +340,7 @@ export class LikeCoin {
     liker,
     url,
     likerIp,
-    amount,
+    amount
   }: {
     authorLikerId: string
     liker: UserOAuthLikeCoin
@@ -357,8 +357,8 @@ export class LikeCoin {
         method: 'POST',
         liker,
         data: {
-          referrer: encodeURI(url),
-        },
+          referrer: encodeURI(url)
+        }
       })
       const data = _.get(result, 'data')
       if (data === 'OK') {

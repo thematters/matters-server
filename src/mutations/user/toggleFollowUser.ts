@@ -2,7 +2,7 @@ import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import {
   ActionFailedError,
   AuthenticationError,
-  UserNotFoundError,
+  UserNotFoundError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToToggleFollowUserResolver } from 'definitions'
@@ -33,7 +33,7 @@ const resolver: MutationToToggleFollowUserResolver = async (
   if (enabled === undefined) {
     const isFollowing = await userService.isFollowing({
       userId: viewer.id,
-      targetId: user.id,
+      targetId: user.id
     })
     action = !!isFollowing ? 'unfollow' : 'follow'
   } else {
@@ -48,7 +48,7 @@ const resolver: MutationToToggleFollowUserResolver = async (
     notificationService.trigger({
       event: 'user_new_follower',
       actorId: viewer.id,
-      recipientId: user.id,
+      recipientId: user.id
     })
   } else {
     await userService.unfollow(viewer.id, user.id)
@@ -58,12 +58,12 @@ const resolver: MutationToToggleFollowUserResolver = async (
   user[CACHE_KEYWORD] = [
     {
       id: viewer.id,
-      type: NODE_TYPES.user,
+      type: NODE_TYPES.user
     },
     {
       id: user.id,
-      type: NODE_TYPES.user,
-    },
+      type: NODE_TYPES.user
+    }
   ]
 
   return user

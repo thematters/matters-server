@@ -1,7 +1,7 @@
 import {
   AssetNotFoundError,
   CommentNotFoundError,
-  UserInputError,
+  UserInputError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToReportCommentResolver } from 'definitions'
@@ -15,8 +15,8 @@ const resolver: MutationToReportCommentResolver = async (
       userService,
       commentService,
       systemService,
-      notificationService,
-    },
+      notificationService
+    }
   }
 ) => {
   if (!viewer.id && !contact) {
@@ -45,7 +45,7 @@ const resolver: MutationToReportCommentResolver = async (
     category,
     description,
     contact,
-    assetIds,
+    assetIds
   })
 
   // trigger notification
@@ -53,7 +53,7 @@ const resolver: MutationToReportCommentResolver = async (
   notificationService.trigger({
     event: 'comment_reported',
     entities: [{ type: 'target', entityTable: 'comment', entity: comment }],
-    recipientId: commentAuthor.id,
+    recipientId: commentAuthor.id
   })
 
   return true

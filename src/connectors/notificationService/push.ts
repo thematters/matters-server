@@ -16,7 +16,7 @@ class Push extends BaseService {
     actorId,
     entities,
     message,
-    language,
+    language
   }: PutNoticeParams & { language: LANGUAGES }): Promise<
     string | null | undefined
   > => {
@@ -33,7 +33,7 @@ class Push extends BaseService {
         return (
           actor &&
           trans.user_new_follower(language, {
-            displayName: actor.displayName,
+            displayName: actor.displayName
           })
         )
       case 'article_published':
@@ -47,7 +47,7 @@ class Push extends BaseService {
           target &&
           trans.article_new_downstream(language, {
             displayName: actor.displayName,
-            title: target.entity.title,
+            title: target.entity.title
           })
         )
       case 'article_new_collected':
@@ -58,14 +58,14 @@ class Push extends BaseService {
           trans.article_new_collected(language, {
             displayName: actor.displayName,
             collectionTitle: collection.entity.title,
-            title: target.entity.title,
+            title: target.entity.title
           })
         )
       case 'article_new_appreciation':
         return (
           actor &&
           trans.article_new_appreciation(language, {
-            displayName: actor.displayName,
+            displayName: actor.displayName
           })
         )
       case 'article_new_subscriber':
@@ -74,7 +74,7 @@ class Push extends BaseService {
           target &&
           trans.article_new_subscriber(language, {
             displayName: actor.displayName,
-            title: target.entity.title,
+            title: target.entity.title
           })
         )
       case 'article_new_comment':
@@ -83,7 +83,7 @@ class Push extends BaseService {
           target &&
           trans.article_new_comment(language, {
             displayName: actor.displayName,
-            title: target.entity.title,
+            title: target.entity.title
           })
         )
       case 'article_mentioned_you':
@@ -92,7 +92,7 @@ class Push extends BaseService {
           target &&
           trans.article_mentioned_you(language, {
             displayName: actor.displayName,
-            title: target.entity.title,
+            title: target.entity.title
           })
         )
       case 'subscribed_article_new_comment':
@@ -101,7 +101,7 @@ class Push extends BaseService {
           target &&
           trans.subscribed_article_new_comment(language, {
             displayName: actor.displayName,
-            title: target.entity.title,
+            title: target.entity.title
           })
         )
       case 'upstream_article_archived':
@@ -110,7 +110,7 @@ class Push extends BaseService {
         return (
           downstream &&
           trans.downstream_article_archived(language, {
-            title: downstream.entity.title,
+            title: downstream.entity.title
           })
         )
       case 'comment_pinned':
@@ -122,14 +122,14 @@ class Push extends BaseService {
         return (
           actor &&
           trans.comment_new_reply(language, {
-            displayName: actor.displayName,
+            displayName: actor.displayName
           })
         )
       case 'comment_mentioned_you':
         return (
           actor &&
           trans.comment_mentioned_you(language, {
-            displayName: actor.displayName,
+            displayName: actor.displayName
           })
         )
       case 'official_announcement':
@@ -139,14 +139,14 @@ class Push extends BaseService {
 
   push = async ({
     noticeParams,
-    recipient,
+    recipient
   }: {
     noticeParams: PutNoticeParams
     recipient: User
   }) => {
     const text = await this.generatePushText({
       ...noticeParams,
-      language: recipient.language,
+      language: recipient.language
     })
 
     if (!recipient || !text) {
@@ -155,7 +155,7 @@ class Push extends BaseService {
 
     notificationQueue.pushNotification({
       recipients: [recipient.id],
-      body: text,
+      body: text
     })
   }
 }

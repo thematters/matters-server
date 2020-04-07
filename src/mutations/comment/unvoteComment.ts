@@ -8,7 +8,7 @@ const resolver: MutationToUnvoteCommentResolver = async (
   { input: { id } },
   {
     viewer,
-    dataSources: { articleService, commentService, notificationService },
+    dataSources: { articleService, commentService, notificationService }
   }
 ) => {
   if (!viewer.id) {
@@ -29,7 +29,7 @@ const resolver: MutationToUnvoteCommentResolver = async (
   notificationService.pubsub.publish(
     toGlobalId({
       type: 'Article',
-      id: article.id,
+      id: article.id
     }),
     article
   )

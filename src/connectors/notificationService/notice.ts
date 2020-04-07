@@ -14,7 +14,7 @@ import {
   NotificationEntity,
   NotificationType,
   PutNoticeParams,
-  User,
+  User
 } from 'definitions'
 
 class Notice extends BaseService {
@@ -32,15 +32,15 @@ class Notice extends BaseService {
     recipientId,
     entities,
     message,
-    data,
+    data
   }: PutNoticeParams): Promise<void> {
-    await this.knex.transaction(async (trx) => {
+    await this.knex.transaction(async trx => {
       // create notice detail
       const [{ id: noticeDetailId }] = await trx
         .insert({
           noticeType: type,
           message,
-          data,
+          data
         })
         .into('notice_detail')
         .returning('*')
@@ -51,7 +51,7 @@ class Notice extends BaseService {
         .insert({
           uuid: v4(),
           noticeDetailId,
-          recipientId,
+          recipientId
         })
         .into('notice')
         .returning('*')
@@ -62,7 +62,7 @@ class Notice extends BaseService {
         const [{ id: noticeActorId }] = await trx
           .insert({
             noticeId,
-            actorId,
+            actorId
           })
           .into('notice_actor')
           .returning('*')
@@ -76,7 +76,7 @@ class Notice extends BaseService {
             async ({
               type: entityType,
               entityTable,
-              entity,
+              entity
             }: NotificationEntity) => {
               const { id: entityTypeId } = await trx
                 .select('id')
@@ -88,7 +88,7 @@ class Notice extends BaseService {
                   type: entityType,
                   entityTypeId,
                   entityId: entity.id,
-                  noticeId,
+                  noticeId
                 })
                 .into('notice_entity')
                 .returning('*')
@@ -105,17 +105,17 @@ class Notice extends BaseService {
    */
   async addNoticeActor({
     noticeId,
-    actorId,
+    actorId
   }: {
     noticeId: string
     actorId: NoticeUserId
   }): Promise<void> {
-    await this.knex.transaction(async (trx) => {
+    await this.knex.transaction(async trx => {
       // add actor
       const [{ id: noticeActorId }] = await trx
         .insert({
           noticeId,
-          actorId,
+          actorId
         })
         .into('notice_actor')
         .returning('*')
@@ -144,7 +144,7 @@ class Notice extends BaseService {
     if (bundleables[0] && params.actorId) {
       await this.addNoticeActor({
         noticeId: bundleables[0].id,
-        actorId: params.actorId,
+        actorId: params.actorId
       })
       return { created: false, bundled: true }
     }
@@ -163,7 +163,7 @@ class Notice extends BaseService {
     recipientId,
     entities,
     message = null,
-    data = null,
+    data = null
   }: PutNoticeParams): Promise<NoticeDetail[]> => {
     const notices = await this.findDetail({
       where: [
@@ -173,10 +173,10 @@ class Notice extends BaseService {
             unread: true,
             deleted: false,
             recipientId,
-            message,
-          },
-        ],
-      ],
+            message
+          }
+        ]
+      ]
     })
     const bundleables: NoticeDetail[] = []
 
@@ -186,7 +186,7 @@ class Notice extends BaseService {
     }
 
     await Promise.all(
-      notices.map(async (n) => {
+      notices.map(async n => {
         // skip if data isn't the same
         if (!isEqual(n.data, data)) {
           return
@@ -241,7 +241,7 @@ class Notice extends BaseService {
     where,
     whereIn,
     offset,
-    limit,
+    limit
   }: {
     where?: any[][]
     whereIn?: [string, any[]]
@@ -257,7 +257,7 @@ class Notice extends BaseService {
         'notice.updated_at',
         'notice_detail.notice_type',
         'notice_detail.message',
-        'notice_detail.data',
+        'notice_detail.data'
       ])
       .from('notice')
       .innerJoin(
@@ -270,7 +270,7 @@ class Notice extends BaseService {
       .whereIn('notice_detail.notice_type', DB_NOTICE_TYPES)
 
     if (where) {
-      where.forEach((w) => {
+      where.forEach(w => {
         query = query.where(w[0], w[1], w[2])
       })
     }
@@ -303,7 +303,7 @@ class Notice extends BaseService {
       .select([
         'notice_entity.type',
         'notice_entity.entity_id',
-        'entity_type.table',
+        'entity_type.table'
       ])
       .from('notice_entity')
       .innerJoin(
@@ -348,7 +348,7 @@ class Notice extends BaseService {
    */
   findByIds = async (ids: readonly string[]): Promise<NoticeItem[]> => {
     const notices = await this.findDetail({
-      whereIn: ['notice.id', ids as string[]],
+      whereIn: ['notice.id', ids as string[]]
     })
 
     return Promise.all(
@@ -361,7 +361,7 @@ class Notice extends BaseService {
           createdAt: n.updatedAt,
           type: n.noticeType,
           actors,
-          entities,
+          entities
         }
       })
     )
@@ -375,7 +375,7 @@ class Notice extends BaseService {
   findByUser = async ({
     userId,
     limit = BATCH_SIZE,
-    offset = 0,
+    offset = 0
   }: {
     userId: string
     limit?: number
@@ -384,7 +384,7 @@ class Notice extends BaseService {
     const notices = await this.findDetail({
       where: [[{ recipientId: userId, deleted: false }]],
       offset,
-      limit,
+      limit
     })
 
     return Promise.all(
@@ -397,7 +397,7 @@ class Notice extends BaseService {
           createdAt: n.updatedAt,
           type: n.noticeType,
           actors,
-          entities,
+          entities
         }
       })
     )
@@ -410,7 +410,7 @@ class Notice extends BaseService {
         unread: true,
         deleted: false,
         'user_notify_setting.enable': true,
-        'user_notify_setting.email': true,
+        'user_notify_setting.email': true
       })
       .where(
         'notice.updated_at',
@@ -439,18 +439,14 @@ class Notice extends BaseService {
       'article_new_comment',
       'article_mentioned_you',
       'comment_new_reply',
-      'comment_mentioned_you',
+      'comment_mentioned_you'
     ]
     const noticeDetails = await this.findDetail({
       where: [
         [{ recipientId: userId, deleted: false, unread: true }],
-        [
-          'notice.updated_at',
-          '>=',
-          this.knex.raw(`now() -  interval '1 days'`),
-        ],
+        ['notice.updated_at', '>=', this.knex.raw(`now() -  interval '1 days'`)]
       ],
-      whereIn: ['notice_detail.notice_type', validNoticeTypes],
+      whereIn: ['notice_detail.notice_type', validNoticeTypes]
     })
 
     const notices = await Promise.all(
@@ -463,12 +459,12 @@ class Notice extends BaseService {
           createdAt: n.updatedAt,
           type: n.noticeType,
           actors,
-          entities,
+          entities
         }
       })
     )
 
-    const uniqNotices = uniqBy(notices, (n) => {
+    const uniqNotices = uniqBy(notices, n => {
       const actors = n.actors.map(({ id }) => id).join('')
       const entities = `${n?.entities?.target?.id || ''}`
       const uniqId = `type:${n.type}::actors:${actors}::entities:${entities}`
@@ -481,7 +477,7 @@ class Notice extends BaseService {
 
   checkUserNotifySetting = async ({
     event,
-    setting,
+    setting
   }: {
     event: NotificationType
     setting: any
@@ -515,7 +511,7 @@ class Notice extends BaseService {
       article_reported: setting.reportFeedback,
       article_tag_has_been_added: setting.tag,
       article_tag_has_been_removed: setting.tag,
-      article_tag_has_been_unselected: setting.tag,
+      article_tag_has_been_unselected: setting.tag
     }
 
     return noticeSettingMap[event]
@@ -528,7 +524,7 @@ class Notice extends BaseService {
 
   countNotice = async ({
     userId,
-    unread,
+    unread
   }: {
     userId: string
     unread?: boolean

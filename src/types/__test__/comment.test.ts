@@ -8,7 +8,7 @@ const isDesc = (ints: number[]) =>
   ints
     .slice(1)
     .map((e, i) => e <= ints[i])
-    .every((x) => x)
+    .every(x => x)
 
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
 const COMMENT_ID = toGlobalId({ type: 'Comment', id: 1 })
@@ -102,8 +102,8 @@ const getCommentVotes = async (commentId: string) => {
     query: GET_COMMENT,
     // @ts-ignore
     variables: {
-      input: { id: commentId },
-    },
+      input: { id: commentId }
+    }
   })
   return data && data.node
 }
@@ -117,8 +117,8 @@ describe('query comment list on article', () => {
       // @ts-ignore
       variables: {
         nodeInput: { id: ARTICLE_ID },
-        commentsInput: { filter: { author: authorId } },
-      },
+        commentsInput: { filter: { author: authorId } }
+      }
     })
     const comments = _get(result, 'data.node.comments.edges')
     for (const comment of comments) {
@@ -133,8 +133,8 @@ describe('query comment list on article', () => {
       // @ts-ignore
       variables: {
         nodeInput: { id: ARTICLE_ID },
-        commentsInput: { sort: 'newest' },
-      },
+        commentsInput: { sort: 'newest' }
+      }
     })
     const comments = _get(data, 'node.comments.edges')
 
@@ -156,9 +156,9 @@ describe('Report comment', () => {
         input: {
           id: COMMENT_ID,
           category: 'spam',
-          description: 'desc',
-        },
-      },
+          description: 'desc'
+        }
+      }
     })
     expect(_get(result, 'data.reportComment')).toBe(true)
   })
@@ -173,9 +173,9 @@ describe('Report comment', () => {
           id: COMMENT_ID,
           category: 'spam',
           description: 'desc',
-          assetIds: ['00000000-0000-0000-0000-000000000011'],
-        },
-      },
+          assetIds: ['00000000-0000-0000-0000-000000000011']
+        }
+      }
     })
     expect(_get(result, 'data.reportComment')).toBe(true)
   })
@@ -196,10 +196,10 @@ describe('mutations on comment', () => {
             content: 'test',
             parentId: COMMENT_ID,
             replyTo: COMMENT_ID,
-            articleId: ARTICLE_ID,
-          },
-        },
-      },
+            articleId: ARTICLE_ID
+          }
+        }
+      }
     })
 
     expect(_get(result, 'data.putComment.replyTo.id')).toBe(COMMENT_ID)
@@ -214,8 +214,8 @@ describe('mutations on comment', () => {
       mutation: VOTE_COMMENT,
       // @ts-ignore
       variables: {
-        input: { id: commentId, vote: 'up' },
-      },
+        input: { id: commentId, vote: 'up' }
+      }
     })
     expect(_get(data, 'voteComment.upvotes')).toBe(upvotes + 1)
   })
@@ -229,8 +229,8 @@ describe('mutations on comment', () => {
       mutation: VOTE_COMMENT,
       // @ts-ignore
       variables: {
-        input: { id: commentId, vote: 'up' },
-      },
+        input: { id: commentId, vote: 'up' }
+      }
     })
     expect(_get(upvoteResult, 'errors.0.extensions.code')).toBe('FORBIDDEN')
 
@@ -239,8 +239,8 @@ describe('mutations on comment', () => {
       mutation: VOTE_COMMENT,
       // @ts-ignore
       variables: {
-        input: { id: onboardingCommentId, vote: 'up' },
-      },
+        input: { id: onboardingCommentId, vote: 'up' }
+      }
     })
     expect(_get(upvoteSuccuessResult, 'data.voteComment.upvotes')).toBeDefined()
 
@@ -249,8 +249,8 @@ describe('mutations on comment', () => {
       mutation: VOTE_COMMENT,
       // @ts-ignore
       variables: {
-        input: { id: commentId, vote: 'down' },
-      },
+        input: { id: commentId, vote: 'down' }
+      }
     })
     expect(_get(downvoteResult, 'errors.0.extensions.code')).toBe('FORBIDDEN')
 
@@ -259,8 +259,8 @@ describe('mutations on comment', () => {
       mutation: VOTE_COMMENT,
       // @ts-ignore
       variables: {
-        input: { id: onboardingCommentId, vote: 'up' },
-      },
+        input: { id: onboardingCommentId, vote: 'up' }
+      }
     })
     expect(
       _get(downvoteSuccuessResult, 'data.voteComment.downvotes')
@@ -274,8 +274,8 @@ describe('mutations on comment', () => {
       mutation: VOTE_COMMENT,
       // @ts-ignore
       variables: {
-        input: { id: commentId, vote: 'down' },
-      },
+        input: { id: commentId, vote: 'down' }
+      }
     })
     expect(_get(downvoteData, 'voteComment.upvotes')).toBe(upvotes - 1)
     expect(_get(downvoteData, 'voteComment.downvotes')).toBe(downvotes + 1)
@@ -288,8 +288,8 @@ describe('mutations on comment', () => {
       mutation: UNVOTE_COMMENT,
       // @ts-ignore
       variables: {
-        input: { id: commentId },
-      },
+        input: { id: commentId }
+      }
     })
     expect(_get(unvoteData, 'unvoteComment.upvotes')).toBe(upvotes)
     expect(_get(unvoteData, 'unvoteComment.downvotes')).toBe(downvotes - 1)
@@ -301,8 +301,8 @@ describe('mutations on comment', () => {
       mutation: DELETE_COMMENT,
       // @ts-ignore
       variables: {
-        input: { id: toGlobalId({ type: 'Comment', id: 1 }) },
-      },
+        input: { id: toGlobalId({ type: 'Comment', id: 1 }) }
+      }
     })
     expect(_get(data, 'deleteComment.state')).toBe('archived')
   })
@@ -315,9 +315,9 @@ describe('mutations on comment', () => {
       variables: {
         input: {
           id: COMMENT_ID,
-          enabled: true,
-        },
-      },
+          enabled: true
+        }
+      }
     })
     expect(_get(result.data, 'togglePinComment.pinned')).toBe(true)
   })
@@ -330,9 +330,9 @@ describe('mutations on comment', () => {
       variables: {
         input: {
           id: COMMENT_ID,
-          enabled: false,
-        },
-      },
+          enabled: false
+        }
+      }
     })
     expect(_get(data, 'togglePinComment.pinned')).toBe(false)
   })

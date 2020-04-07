@@ -1,6 +1,6 @@
 import {
   RenderPageOptions as PlaygroundRenderPageOptions,
-  renderPlaygroundPage,
+  renderPlaygroundPage
 } from '@apollographql/graphql-playground-html'
 import { RedisCache } from 'apollo-server-cache-redis'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
@@ -16,7 +16,7 @@ import {
   CACHE_TTL,
   CORS_OPTIONS,
   UPLOAD_FILE_COUNT_LIMIT,
-  UPLOAD_FILE_SIZE_LIMIT,
+  UPLOAD_FILE_SIZE_LIMIT
 } from 'common/enums'
 import { environment, isProd } from 'common/environment'
 import { ActionLimitExceededError } from 'common/errors'
@@ -30,7 +30,7 @@ import {
   OAuthService,
   SystemService,
   TagService,
-  UserService,
+  UserService
 } from 'connectors'
 import responseCachePlugin from 'middlewares/responseCachePlugin'
 import { scopeMiddleware } from 'middlewares/scope'
@@ -69,16 +69,16 @@ class ProtectedApolloServer extends ApolloServer {
           onComplete: (costs: number) =>
             logger.info(
               `[graphql-cost-analysis] costs: ${costs} (max: ${maximumCost})`
-            ),
-        }),
-      ],
+            )
+        })
+      ]
     }
   }
 }
 
 const redisCache = new RedisCache({
   host: environment.cacheHost,
-  port: environment.cachePort,
+  port: environment.cachePort
 })
 
 const composedSchema = applyMiddleware(
@@ -91,7 +91,7 @@ const server = new ProtectedApolloServer({
   schema: composedSchema,
   context: makeContext,
   engine: {
-    apiKey: environment.apiKey,
+    apiKey: environment.apiKey
   },
   subscriptions: initSubscriptions(),
   dataSources: () => ({
@@ -102,30 +102,30 @@ const server = new ProtectedApolloServer({
     systemService: new SystemService(),
     tagService: new TagService(),
     notificationService: new NotificationService(),
-    oauthService: new OAuthService(),
+    oauthService: new OAuthService()
   }),
   uploads: {
     maxFileSize: UPLOAD_FILE_SIZE_LIMIT,
-    maxFiles: UPLOAD_FILE_COUNT_LIMIT,
+    maxFiles: UPLOAD_FILE_COUNT_LIMIT
   },
   debug: !isProd,
   validationRules: [depthLimit(15)],
   cache: redisCache,
   persistedQueries: {
-    cache: redisCache,
+    cache: redisCache
   },
   cacheControl: {
     calculateHttpHeaders: false,
     defaultMaxAge: CACHE_TTL.DEFAULT,
-    stripFormattedExtensions: isProd,
+    stripFormattedExtensions: isProd
   },
   plugins: [
     responseCachePlugin({
-      sessionId: ({ context }) => _.get(context, 'viewer.id', null),
-    }),
+      sessionId: ({ context }) => _.get(context, 'viewer.id', null)
+    })
   ],
   introspection: true,
-  playground: false, // enabled below
+  playground: false // enabled below
 })
 
 export const graphql = (app: Express) => {
@@ -133,13 +133,13 @@ export const graphql = (app: Express) => {
   server.applyMiddleware({
     app,
     path: API_ENDPOINT,
-    cors: CORS_OPTIONS,
+    cors: CORS_OPTIONS
   })
 
   // Playground
   app.get(PLAYGROUND_ENDPOINT, (req, res, next) => {
     const playgroundRenderPageOptions: PlaygroundRenderPageOptions = {
-      endpoint: API_ENDPOINT,
+      endpoint: API_ENDPOINT
     }
     res.setHeader('Content-Type', 'text/html')
     const playground = renderPlaygroundPage(playgroundRenderPageOptions)

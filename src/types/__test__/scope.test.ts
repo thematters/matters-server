@@ -62,7 +62,7 @@ const UPDATE_USER_INFO_DESCRIPTION = `
 const prepare = async ({
   email,
   mode,
-  scope,
+  scope
 }: {
   email: string
   mode?: string
@@ -85,12 +85,12 @@ describe('OAuth viewer qeury and mutation', () => {
     const { context, query } = await prepare({
       email: defaultTestUser.email,
       mode: SCOPE_MODE.oauth,
-      scope,
+      scope
     })
     const otherUserName = 'test2'
     const { data } = await query({
       query: QUERY_CASE_1,
-      variables: { input: { userName: otherUserName } },
+      variables: { input: { userName: otherUserName } }
     })
 
     expect(data && data.viewer.displayName).toBe(context.viewer.displayName)
@@ -102,7 +102,7 @@ describe('OAuth viewer qeury and mutation', () => {
     const { context, query } = await prepare({
       email: defaultTestUser.email,
       mode: SCOPE_MODE.oauth,
-      scope,
+      scope
     })
 
     // query no scope field error
@@ -116,7 +116,7 @@ describe('OAuth viewer qeury and mutation', () => {
     const otherUserName = 'test2'
     const errorCase2 = await query({
       query: QUERY_CASE_3,
-      variables: { input: { userName: otherUserName } },
+      variables: { input: { userName: otherUserName } }
     })
     expect(errorCase2 && errorCase2.errors && errorCase2.errors.length).toBe(1)
     expect(
@@ -128,12 +128,12 @@ describe('OAuth viewer qeury and mutation', () => {
     const { context, mutate } = await prepare({
       email: defaultTestUser.email,
       mode: SCOPE_MODE.oauth,
-      scope,
+      scope
     })
     const description = 'foo bar'
     const { errors } = await mutate({
       mutation: UPDATE_USER_INFO_DESCRIPTION,
-      variables: { input: { description } },
+      variables: { input: { description } }
     })
     expect(errors && errors.length).toBe(1)
     expect(errors && errors[0].message).toBe('oauth is not authorized')
@@ -147,7 +147,7 @@ describe('General viewer query and mutation', () => {
     const otherUserName = 'test2'
     const { data } = await query({
       query: QUERY_CASE_1,
-      variables: { input: { userName: otherUserName } },
+      variables: { input: { userName: otherUserName } }
     })
     expect(_.get(data, 'viewer.displayName')).toBe(context.viewer.displayName)
     expect(_.get(data, 'viewer.info.email')).toBe(context.viewer.email)
@@ -166,7 +166,7 @@ describe('General viewer query and mutation', () => {
     const otherUserName = 'test2'
     const error_case = await query({
       query: QUERY_CASE_3,
-      variables: { input: { userName: otherUserName } },
+      variables: { input: { userName: otherUserName } }
     })
     expect(_.get(error_case, 'errors.length')).toBe(1)
     expect(_.get(error_case, 'errors.0.message')).toBe(
@@ -179,7 +179,7 @@ describe('General viewer query and mutation', () => {
     const { context, mutate } = await prepare({ email: defaultTestUser.email })
     const { data } = await mutate({
       mutation: UPDATE_USER_INFO_DESCRIPTION,
-      variables: { input: { description } },
+      variables: { input: { description } }
     })
     expect(_.get(data, 'updateUserInfo.info.description')).toEqual(description)
   })
@@ -192,7 +192,7 @@ describe('Admin viewer query and mutation', () => {
     const otherUserName = 'test2'
     const { data } = await query({
       query: QUERY_CASE_1,
-      variables: { input: { userName: otherUserName } },
+      variables: { input: { userName: otherUserName } }
     })
     expect(_.get(data, 'viewer.displayName')).toBe(context.viewer.displayName)
     expect(_.get(data, 'viewer.info.email')).toBe(context.viewer.email)
@@ -211,7 +211,7 @@ describe('Admin viewer query and mutation', () => {
     const otherUserName = 'test2'
     const { data: data2 } = await query({
       query: QUERY_CASE_3,
-      variables: { input: { userName: otherUserName } },
+      variables: { input: { userName: otherUserName } }
     })
     expect(_.get(data2, 'user.info.email')).toBe('test2@matters.news')
   })
@@ -221,7 +221,7 @@ describe('Admin viewer query and mutation', () => {
     const { context, mutate } = await prepare({ email: defaultTestUser.email })
     const { data } = await mutate({
       mutation: UPDATE_USER_INFO_DESCRIPTION,
-      variables: { input: { description } },
+      variables: { input: { description } }
     })
     expect(_.get(data, 'updateUserInfo.info.description')).toEqual(description)
   })

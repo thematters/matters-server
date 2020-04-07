@@ -21,7 +21,7 @@ export const articles: OSSToArticlesResolver = async (
     articleService.baseFind({
       where,
       offset,
-      limit: first,
+      limit: first
     }),
     connectionArgs,
     totalCount

@@ -44,6 +44,6 @@ export default {
     updateArticleInfo,
     putTag,
     putArticlesTags,
-    deleteArticlesTags,
-  },
+    deleteArticlesTags
+  }
 }

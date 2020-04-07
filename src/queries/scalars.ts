@@ -8,7 +8,7 @@ import {
   NonPositiveInt,
   PositiveFloat,
   PositiveInt,
-  URL,
+  URL
 } from '@okgrow/graphql-scalars'
 import { ApolloError } from 'apollo-server-express'
 import { GraphQLUUID } from 'graphql-custom-types'
@@ -36,7 +36,7 @@ const CustomEmailAddress = {
     EmailAddress.parseLiteral as (args: any) => any,
     EmailInvalidError
   ),
-  ...EmailAddress,
+  ...EmailAddress
 }
 
 export default {
@@ -55,5 +55,5 @@ export default {
   NonPositiveFloat,
   PositiveFloat,
   NonNegativeFloat,
-  NegativeFloat,
+  NegativeFloat
 }

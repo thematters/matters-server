@@ -4,7 +4,7 @@ import { UserInputError } from 'common/errors'
 
 export const toGlobalId = ({
   type,
-  id,
+  id
 }: {
   type: 'Article' | 'Comment' | 'User' | 'Tag' | 'Draft' | 'SkippedListItem'
   id: number | string

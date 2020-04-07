@@ -1,7 +1,7 @@
 module.exports = {
   roots: ['<rootDir>/src'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.tsx?$': 'ts-jest'
   },
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
@@ -10,7 +10,7 @@ module.exports = {
     '^connectors(.*)$': '<rootDir>/src/connectors$1',
     '^definitions(.*)$': '<rootDir>/src/definitions$1',
     '^mutations(.*)$': '<rootDir>/src/mutations$1',
-    '^queries(.*)$': '<rootDir>/src/queries$1',
+    '^queries(.*)$': '<rootDir>/src/queries$1'
   },
   globalSetup: '<rootDir>/db/testSetup.js',
   globalTeardown: '<rootDir>/db/testTeardown.js',
@@ -18,7 +18,7 @@ module.exports = {
   collectCoverage: true,
   globals: {
     'ts-jest': {
-      diagnostics: false,
-    },
-  },
+      diagnostics: false
+    }
+  }
 }

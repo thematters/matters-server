@@ -9,7 +9,7 @@ import {
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
   QUEUE_NAME,
-  QUEUE_PRIORITY,
+  QUEUE_PRIORITY
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
@@ -31,15 +31,15 @@ class PublicationQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.HIGH,
         repeat: {
-          every: MINUTE * 20, // every 20 mins
-        },
+          every: MINUTE * 20 // every 20 mins
+        }
       }
     )
   }
 
   publishArticle = ({
     draftId,
-    delay = PUBLISH_ARTICLE_DELAY,
+    delay = PUBLISH_ARTICLE_DELAY
   }: {
     draftId: string
     delay?: number
@@ -49,7 +49,7 @@ class PublicationQueue extends BaseQueue {
       { draftId },
       {
         delay,
-        priority: QUEUE_PRIORITY.CRITICAL,
+        priority: QUEUE_PRIORITY.CRITICAL
       }
     )
   }
@@ -104,7 +104,7 @@ class PublicationQueue extends BaseQueue {
         article = await this.articleService.publish(draft)
       } catch (e) {
         await this.draftService.baseUpdate(draft.id, {
-          publishState: PUBLISH_STATE.error,
+          publishState: PUBLISH_STATE.error
         })
         throw e
       }
@@ -114,7 +114,7 @@ class PublicationQueue extends BaseQueue {
       await this.draftService.baseUpdate(draft.id, {
         archived: true,
         publishState: PUBLISH_STATE.published,
-        updatedAt: new Date(),
+        updatedAt: new Date()
       })
       job.progress(20)
 
@@ -124,10 +124,10 @@ class PublicationQueue extends BaseQueue {
 
       const [
         { id: draftEntityTypeId },
-        { id: articleEntityTypeId },
+        { id: articleEntityTypeId }
       ] = await Promise.all([
         this.systemService.baseFindEntityTypeId('draft'),
-        this.systemService.baseFindEntityTypeId('article'),
+        this.systemService.baseFindEntityTypeId('article')
       ])
 
       // Remove unused assets
@@ -154,7 +154,7 @@ class PublicationQueue extends BaseQueue {
         ...article,
         userName,
         displayName,
-        tags,
+        tags
       })
       job.progress(80)
 
@@ -170,9 +170,9 @@ class PublicationQueue extends BaseQueue {
           {
             type: 'target',
             entityTable: 'article',
-            entity: article,
-          },
-        ],
+            entity: article
+          }
+        ]
       })
       job.progress(95)
 
@@ -182,7 +182,7 @@ class PublicationQueue extends BaseQueue {
 
       done(null, {
         dataHash: article.dataHash,
-        mediaHash: article.mediaHash,
+        mediaHash: article.mediaHash
       })
     } catch (e) {
       done(e)
@@ -191,7 +191,7 @@ class PublicationQueue extends BaseQueue {
 
   private handleCollection = async ({
     draft,
-    article,
+    article
   }: {
     draft: any
     article: any
@@ -203,7 +203,7 @@ class PublicationQueue extends BaseQueue {
     // create collection records
     await this.articleService.createCollection({
       entranceId: article.id,
-      articleIds: draft.collection,
+      articleIds: draft.collection
     })
 
     // trigger notifications
@@ -217,21 +217,21 @@ class PublicationQueue extends BaseQueue {
           {
             type: 'target',
             entityTable: 'article',
-            entity: collection,
+            entity: collection
           },
           {
             type: 'collection',
             entityTable: 'article',
-            entity: article,
-          },
-        ],
+            entity: article
+          }
+        ]
       })
     })
   }
 
   private handleTags = async ({
     draft,
-    article,
+    article
   }: {
     draft: any
     article: any
@@ -253,7 +253,7 @@ class PublicationQueue extends BaseQueue {
       // create article_tag record
       await this.tagService.createArticleTags({
         articleIds: [article.id],
-        tagIds: dbTags.map(({ id }) => id),
+        tagIds: dbTags.map(({ id }) => id)
       })
     } else {
       tags = []
@@ -288,9 +288,9 @@ class PublicationQueue extends BaseQueue {
           {
             type: 'target',
             entityTable: 'article',
-            entity: article,
-          },
-        ],
+            entity: article
+          }
+        ]
       })
     })
   }
@@ -300,7 +300,7 @@ class PublicationQueue extends BaseQueue {
    */
   private deleteUnusedAssets = async ({
     draftEntityTypeId,
-    draft,
+    draft
   }: {
     draftEntityTypeId: string
     draft: any
@@ -308,7 +308,7 @@ class PublicationQueue extends BaseQueue {
     try {
       const [assetMap, uuids] = await Promise.all([
         this.systemService.findAssetMap(draftEntityTypeId, draft.id),
-        extractAssetDataFromHtml(draft.content),
+        extractAssetDataFromHtml(draft.content)
       ])
       const assets = assetMap.reduce((data: any, asset: any) => {
         if (uuids && !uuids.includes(asset.uuid)) {

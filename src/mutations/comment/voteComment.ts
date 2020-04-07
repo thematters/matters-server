@@ -8,7 +8,7 @@ const resolver: MutationToVoteCommentResolver = async (
   { input: { id, vote } },
   {
     viewer,
-    dataSources: { articleService, commentService, notificationService },
+    dataSources: { articleService, commentService, notificationService }
   }
 ) => {
   if (!viewer.id) {
@@ -26,12 +26,12 @@ const resolver: MutationToVoteCommentResolver = async (
   // check is voted before
   const voted = await commentService.findVotesByUserId({
     userId: viewer.id,
-    commentId: dbId,
+    commentId: dbId
   })
   if (voted && voted.length > 0) {
     await commentService.removeVotesByUserId({
       userId: viewer.id,
-      commentId: dbId,
+      commentId: dbId
     })
   }
 
@@ -41,7 +41,7 @@ const resolver: MutationToVoteCommentResolver = async (
   notificationService.pubsub.publish(
     toGlobalId({
       type: 'Article',
-      id: article.id,
+      id: article.id
     }),
     article
   )

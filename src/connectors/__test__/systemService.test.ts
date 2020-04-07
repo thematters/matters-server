@@ -9,7 +9,7 @@ const assetValidation = {
   type: expect.any(String),
   path: expect.any(String),
   createdAt: expect.any(Date),
-  updatedAt: expect.any(Date),
+  updatedAt: expect.any(Date)
 }
 
 const service = new SystemService()
@@ -24,7 +24,7 @@ test('create and delete asset', async () => {
     uuid: v4(),
     authorId: 1,
     type: 'cover',
-    path: 'path/to/file.txt',
+    path: 'path/to/file.txt'
   }
   const asset = await service.baseCreate(data, 'asset')
   expect(asset).toEqual(expect.objectContaining(assetValidation))

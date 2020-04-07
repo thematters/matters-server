@@ -8,7 +8,7 @@ import {
   EmailInvalidError,
   PasswordInvalidError,
   UsernameExistsError,
-  UsernameInvalidError,
+  UsernameInvalidError
 } from 'common/errors'
 import {
   isValidDisplayName,
@@ -16,7 +16,7 @@ import {
   isValidPassword,
   isValidUserName,
   makeUserName,
-  setCookie,
+  setCookie
 } from 'common/utils'
 import { MutationToUserRegisterResolver } from 'definitions'
 
@@ -37,8 +37,8 @@ const resolver: MutationToUserRegisterResolver = async (
       uuid: codeId,
       email,
       type: 'register',
-      status: 'verified',
-    },
+      status: 'verified'
+    }
   })
   if (!code) {
     throw new CodeInvalidError('code does not exists')
@@ -91,22 +91,22 @@ const resolver: MutationToUserRegisterResolver = async (
   await userService.create({
     ...input,
     email,
-    userName: newUserName,
+    userName: newUserName
   })
 
   // mark code status as used
   await userService.markVerificationCodeAs({
     codeId: code.id,
-    status: 'used',
+    status: 'used'
   })
 
   // send email
   notificationService.mail.sendRegisterSuccess({
     to: email,
     recipient: {
-      displayName,
+      displayName
     },
-    language: viewer.language,
+    language: viewer.language
   })
 
   const { token } = await userService.login({ ...input, email })

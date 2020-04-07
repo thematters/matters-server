@@ -26,10 +26,10 @@ import userArticles from './user/articles'
 
 export default {
   Query: {
-    article: rootArticle,
+    article: rootArticle
   },
   User: {
-    articles: userArticles,
+    articles: userArticles
   },
   Article: {
     content,
@@ -51,7 +51,7 @@ export default {
     subscribers,
     summary: ({
       content: articleContent,
-      cover,
+      cover
     }: {
       cover?: string
       content: string
@@ -59,14 +59,14 @@ export default {
     tags,
     translation: (root: any) => root,
     topicScore: ({ topicScore }: { topicScore: number }) =>
-      topicScore ? Math.round(topicScore) : null,
+      topicScore ? Math.round(topicScore) : null
   },
   ArticleTranslation,
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
     articles: tagArticles,
     selected: tagSelected,
-    oss: (root: any) => root,
+    oss: (root: any) => root
   },
   ArticleOSS: {
     boost: articleOSS.boost,
@@ -75,10 +75,10 @@ export default {
     inRecommendIcymi: articleOSS.inRecommendIcymi,
     inRecommendHottest: articleOSS.inRecommendHottest,
     inRecommendNewest: articleOSS.inRecommendNewest,
-    todayCover: articleOSS.todayCover,
+    todayCover: articleOSS.todayCover
   },
   TagOSS: {
     boost: tagOSS.boost,
-    score: tagOSS.score,
-  },
+    score: tagOSS.score
+  }
 }

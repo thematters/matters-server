@@ -86,7 +86,7 @@ export const environment = {
   likecoinClientId: process.env.MATTERS_LIKECOIN_CLIENT_ID || '',
   likecoinClientSecret: process.env.MATTERS_LIKECOIN_CLIENT_SECRET || '',
   likecoinCallbackURL: process.env.MATTERS_LIKECOIN_CALLBACK_URL || '',
-  oAuthSecret: process.env.MATTERS_OAUTH_SECRET || '',
+  oAuthSecret: process.env.MATTERS_OAUTH_SECRET || ''
 }
 
 export const isDev = environment.env.includes('dev')

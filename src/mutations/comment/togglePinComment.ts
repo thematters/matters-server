@@ -1,7 +1,7 @@
 import {
   ActionLimitExceededError,
   AuthenticationError,
-  ForbiddenError,
+  ForbiddenError
 } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { MutationToTogglePinCommentResolver } from 'definitions'
@@ -11,7 +11,7 @@ const resolver: MutationToTogglePinCommentResolver = async (
   { input: { id, enabled } },
   {
     viewer,
-    dataSources: { commentService, articleService, notificationService },
+    dataSources: { commentService, articleService, notificationService }
   }
 ) => {
   // checks
@@ -50,7 +50,7 @@ const resolver: MutationToTogglePinCommentResolver = async (
 
     const pinnedComment = await commentService.togglePinned({
       commentId: dbId,
-      pinned: true,
+      pinned: true
     })
 
     // trigger notifications
@@ -62,16 +62,16 @@ const resolver: MutationToTogglePinCommentResolver = async (
         {
           type: 'target',
           entityTable: 'comment',
-          entity: comment,
-        },
-      ],
+          entity: comment
+        }
+      ]
     })
 
     // publish a PubSub event
     notificationService.pubsub.publish(
       toGlobalId({
         type: 'Article',
-        id: article.id,
+        id: article.id
       }),
       article
     )
@@ -80,7 +80,7 @@ const resolver: MutationToTogglePinCommentResolver = async (
   } else {
     return commentService.togglePinned({
       commentId: dbId,
-      pinned: false,
+      pinned: false
     })
   }
 }

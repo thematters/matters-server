@@ -7,14 +7,14 @@ import {
   AssetNotFoundError,
   AuthenticationError,
   DraftNotFoundError,
-  ForbiddenError,
+  ForbiddenError
 } from 'common/errors'
 import {
   extractAssetDataFromHtml,
   fromGlobalId,
   makeSummary,
   sanitize,
-  stripHtml,
+  stripHtml
 } from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
@@ -35,7 +35,7 @@ const resolver: MutationToPutDraftResolver = async (
     content,
     tags,
     coverAssetId: coverAssetUUID,
-    collection: collectionGlobalIds,
+    collection: collectionGlobalIds
   } = input
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -54,7 +54,7 @@ const resolver: MutationToPutDraftResolver = async (
   let collection = null
   if (collectionGlobalIds) {
     collection = await Promise.all(
-      collectionGlobalIds.map(async (articleGlobalId) => {
+      collectionGlobalIds.map(async articleGlobalId => {
         if (!articleGlobalId) {
           throw new ArticleNotFoundError(
             `Cannot find article ${articleGlobalId}`
@@ -86,7 +86,7 @@ const resolver: MutationToPutDraftResolver = async (
       content: content && sanitize(content),
       tags,
       cover: coverAssetId,
-      collection,
+      collection
     },
     _.isNil
   )
@@ -119,7 +119,7 @@ const resolver: MutationToPutDraftResolver = async (
     // handle cover
     if (content || content === '') {
       const uuids = (extractAssetDataFromHtml(content, 'image') || []).filter(
-        (uuid) => uuid && uuid !== 'embed'
+        uuid => uuid && uuid !== 'embed'
       )
       // check if cover needs to be removed forcely
       if (uuids.length === 0) {
@@ -148,7 +148,7 @@ const resolver: MutationToPutDraftResolver = async (
     // update
     return draftService.baseUpdate(dbId, {
       updatedAt: new Date(),
-      ...data,
+      ...data
     })
   }
 

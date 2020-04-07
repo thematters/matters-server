@@ -19,7 +19,7 @@ import userCommentedArticles from './user/commentedArticles'
 
 export default {
   User: {
-    commentedArticles: userCommentedArticles,
+    commentedArticles: userCommentedArticles
   },
   Article: {
     commentCount: articleCommentCount,
@@ -27,7 +27,7 @@ export default {
     pinCommentLeft,
     pinnedComments: articlePinnedComments,
     featuredComments: articleFeaturedComments,
-    comments: articleComments,
+    comments: articleComments
   },
   Comment: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Comment', id }),
@@ -39,6 +39,6 @@ export default {
     downvotes,
     myVote,
     comments,
-    parentComment,
-  },
+    parentComment
+  }
 }

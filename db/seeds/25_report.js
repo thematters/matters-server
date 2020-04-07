@@ -1,9 +1,9 @@
 const table = {
   report: 'report',
-  report_asset: 'report_asset',
+  report_asset: 'report_asset'
 }
 
-exports.seed = async (knex) => {
+exports.seed = async knex => {
   // create report
   await knex(table.report).insert([
     // article
@@ -11,22 +11,22 @@ exports.seed = async (knex) => {
       user_id: '3',
       category: '1',
       article_id: '1',
-      description: 'description',
+      description: 'description'
     },
     // comment
     {
       user_id: '3',
       category: '2',
       comment_id: '1',
-      description: 'description',
-    },
+      description: 'description'
+    }
   ])
 
   // create report asset
   await knex(table.report_asset).insert([
     {
       report_id: '1',
-      asset_id: '11',
-    },
+      asset_id: '11'
+    }
   ])
 }

@@ -4,13 +4,13 @@ import passport from 'passport'
 import {
   Strategy,
   StrategyOptionsWithRequest,
-  VerifyFunctionWithRequest,
+  VerifyFunctionWithRequest
 } from 'passport-oauth2'
 
 import {
   NODE_TYPES,
   OAUTH_CALLBACK_ERROR_CODE,
-  OAUTH_PROVIDER,
+  OAUTH_PROVIDER
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
@@ -25,7 +25,7 @@ export default () => {
         clientID: environment.likecoinClientId,
         clientSecret: environment.likecoinClientSecret,
         callbackURL: environment.likecoinCallbackURL,
-        passReqToCallback: true,
+        passReqToCallback: true
       },
       async (req, accessToken, refreshToken, params, profile, done) => {
         const userService = new UserService()
@@ -37,34 +37,34 @@ export default () => {
         if (!userId) {
           return done(null, undefined, {
             code: OAUTH_CALLBACK_ERROR_CODE.userNotFound,
-            message: 'viewer not found.',
+            message: 'viewer not found.'
           })
         }
 
         if (!likerId) {
           return done(null, undefined, {
             code: OAUTH_CALLBACK_ERROR_CODE.likerNotFound,
-            message: 'liker not found.',
+            message: 'liker not found.'
           })
         }
 
         try {
           // check if likerId is already exists
           const liker = await userService.findLiker({
-            likerId,
+            likerId
           })
 
           if (liker && liker.likerId !== viewer.likerId) {
             return done(null, undefined, {
               code: OAUTH_CALLBACK_ERROR_CODE.likerExists,
-              message: 'liker already exists',
+              message: 'liker already exists'
             })
           }
 
           // transfer viewer's temporary LikerID to his own LikerID
           if (viewer.likerId) {
             const fromLiker = await userService.findLiker({
-              likerId: viewer.likerId,
+              likerId: viewer.likerId
             })
 
             if (
@@ -78,12 +78,12 @@ export default () => {
               await userService.transferLikerId({
                 fromLiker: {
                   ...fromLiker,
-                  accessToken: newFromLikerAccessToken,
+                  accessToken: newFromLikerAccessToken
                 },
                 toLiker: {
                   likerId,
-                  accessToken,
-                },
+                  accessToken
+                }
               })
             }
           } else {
@@ -97,7 +97,7 @@ export default () => {
             likerId,
             accessToken,
             refreshToken,
-            accountType: 'general',
+            accountType: 'general'
           })
 
           const user = await userService.dataloader.load(viewer.id)

@@ -67,7 +67,7 @@ export function connectionFromArray<T>(
 
     const edges = data.map((value, index) => ({
       cursor: indexToCursor(index + offset),
-      node: value,
+      node: value
     }))
 
     const firstEdge = edges[0]
@@ -82,19 +82,19 @@ export function connectionFromArray<T>(
         hasPreviousPage: after ? cursorToIndex(after) >= 0 : false,
         hasNextPage: lastEdge
           ? cursorToIndex(lastEdge.cursor) + 1 < totalCount
-          : false,
-      },
+          : false
+      }
     }
   }
 
   const connections = connectionFromArraySlice(data, args, {
     sliceStart: 0,
-    arrayLength: data.length,
+    arrayLength: data.length
   })
 
   return {
     ...connections,
-    totalCount: data.length,
+    totalCount: data.length
   }
 }
 
@@ -103,7 +103,7 @@ export function connectionFromPromisedArray<T>(
   args: ConnectionArguments,
   totalCount?: number
 ): Promise<Connection<T>> {
-  return dataPromise.then((data) => connectionFromArray(data, args, totalCount))
+  return dataPromise.then(data => connectionFromArray(data, args, totalCount))
 }
 
 export const loadManyFilterError = (items: Array<Item | Error>) => {

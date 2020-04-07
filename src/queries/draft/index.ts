@@ -9,7 +9,7 @@ import drafts from './drafts'
 
 export default {
   User: {
-    drafts,
+    drafts
   },
   Draft: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Draft', id }),
@@ -20,6 +20,6 @@ export default {
       content ? makeSummary(content, cover ? 110 : 140) : '',
     cover: draftCover,
     collection,
-    assets,
-  },
+    assets
+  }
 }

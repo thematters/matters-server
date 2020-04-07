@@ -1,9 +1,9 @@
 const table = 'article'
 
-exports.seed = function (knex, Promise) {
+exports.seed = function(knex, Promise) {
   return knex(table)
     .del()
-    .then(function () {
+    .then(function() {
       return knex(table).insert([
         {
           uuid: '00000000-0000-0000-0000-000000000001',
@@ -16,7 +16,7 @@ exports.seed = function (knex, Promise) {
           data_hash: 'someIpfsDataHash1',
           media_hash: 'someIpfsMediaHash1',
           content: '<div>some html string</div>',
-          state: 'active',
+          state: 'active'
         },
         {
           uuid: '00000000-0000-0000-0000-000000000002',
@@ -29,7 +29,7 @@ exports.seed = function (knex, Promise) {
           data_hash: 'someIpfsDataHash2',
           media_hash: 'someIpfsMediaHash2',
           content: '<div>some html string</div>',
-          state: 'active',
+          state: 'active'
         },
         {
           uuid: '00000000-0000-0000-0000-000000000003',
@@ -43,7 +43,7 @@ exports.seed = function (knex, Promise) {
           media_hash: 'someIpfsMediaHash3',
           content: '<div>some html string</div>',
           state: 'active',
-          public: true,
+          public: true
         },
         {
           uuid: '00000000-0000-0000-0000-000000000004',
@@ -56,7 +56,7 @@ exports.seed = function (knex, Promise) {
           media_hash: 'someIpfsMediaHash4',
           content: '<div>some html string</div>',
           state: 'active',
-          public: true,
+          public: true
         },
         {
           uuid: '00000000-0000-0000-0000-000000000004',
@@ -69,8 +69,8 @@ exports.seed = function (knex, Promise) {
           media_hash: 'someIpfsMediaHash4',
           content: '<div>some html string</div>',
           state: 'active',
-          public: true,
-        },
+          public: true
+        }
       ])
     })
 }

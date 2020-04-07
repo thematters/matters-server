@@ -10,7 +10,7 @@ import {
   GQLUserOSSTypeResolver,
   GQLUserSettingsTypeResolver,
   GQLUserStatusTypeResolver,
-  GQLUserTypeResolver,
+  GQLUserTypeResolver
 } from 'definitions'
 
 import articleCount from './articleCount'
@@ -58,19 +58,19 @@ const user: {
 } = {
   Query: {
     viewer: (root, _, { viewer }) => viewer,
-    user: rootUser,
+    user: rootUser
   },
   User: {
     id: ({ id }) => (id ? toGlobalId({ type: 'User', id }) : ''),
     avatar,
     likerId,
-    liker: (root) => root,
-    info: (root) => root,
-    settings: (root) => root,
-    status: (root) => (root.id ? root : null),
-    activity: (root) => root,
-    recommendation: (root) => root,
-    oss: (root) => root,
+    liker: root => root,
+    info: root => root,
+    settings: root => root,
+    status: root => (root.id ? root : null),
+    activity: root => root,
+    recommendation: root => root,
+    oss: root => root,
     // hasFollowed,
     subscriptions,
     followers,
@@ -79,7 +79,7 @@ const user: {
     isFollowee,
     blockList,
     isBlocking,
-    isBlocked,
+    isBlocked
   },
   Recommendation,
   Liker,
@@ -87,32 +87,32 @@ const user: {
     badges,
     userNameEditable,
     email: ({ email }) => email && email.replace(/#/g, '@'),
-    profileCover,
+    profileCover
   },
   UserSettings: {
     language: ({ language }, _, { viewer }) => language,
     notification,
-    oauthProviders,
+    oauthProviders
   },
   UserActivity,
   LIKE: {
     total,
-    rateUSD,
+    rateUSD
   },
   Transaction,
   UserStatus: {
-    LIKE: (root) => root,
+    LIKE: root => root,
     articleCount,
     commentCount,
     unreadNoticeCount,
     unreadFolloweeArticles,
     unreadResponseInfoPopUp,
-    totalWordCount,
+    totalWordCount
   },
   UserOSS: {
     boost,
-    score,
-  },
+    score
+  }
 }
 
 export default user

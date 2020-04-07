@@ -4,12 +4,12 @@ import { CacheHint, CacheScope } from 'apollo-cache-control'
 import { KeyValueCache, PrefixingKeyValueCache } from 'apollo-server-caching'
 import {
   ApolloServerPlugin,
-  GraphQLRequestListener,
+  GraphQLRequestListener
 } from 'apollo-server-plugin-base'
 import {
   GraphQLRequestContext,
   GraphQLResponse,
-  ValueOrPromise,
+  ValueOrPromise
 } from 'apollo-server-types'
 import { createHash } from 'crypto'
 
@@ -92,11 +92,13 @@ interface Options<TContext = Record<string, any>> {
 enum SessionMode {
   NoSession,
   Private,
-  AuthenticatedPublic,
+  AuthenticatedPublic
 }
 
 function sha(s: string) {
-  return createHash('sha256').update(s).digest('hex')
+  return createHash('sha256')
+    .update(s)
+    .digest('hex')
 }
 
 interface BaseCacheKey {
@@ -172,7 +174,7 @@ export default function plugin(
           ): Promise<GraphQLResponse | null> {
             const key = cacheKeyString({
               ...baseCacheKey!,
-              ...contextualCacheKeyFields,
+              ...contextualCacheKeyFields
             })
             const serializedValue = await cache.get(key)
 
@@ -203,7 +205,7 @@ export default function plugin(
             operationName: requestContext.operationName,
             // Defensive copy just in case it somehow gets mutated.
             variables: { ...(requestContext.request.variables || {}) },
-            extra: extraCacheKeyData,
+            extra: extraCacheKeyData
           }
 
           // Note that we set up sessionId and baseCacheKey before doing this
@@ -223,7 +225,7 @@ export default function plugin(
           } else {
             const privateResponse = await cacheGet({
               sessionId,
-              sessionMode: SessionMode.Private,
+              sessionMode: SessionMode.Private
             })
             if (privateResponse !== null) {
               return privateResponse
@@ -289,12 +291,12 @@ export default function plugin(
           ) {
             const key = cacheKeyString({
               ...baseCacheKey!,
-              ...contextualCacheKeyFields,
+              ...contextualCacheKeyFields
             })
             const value: CacheValue = {
               data,
               cachePolicy: overallCachePolicy!,
-              cacheTime: +new Date(),
+              cacheTime: +new Date()
             }
             const serializedValue = JSON.stringify(value)
             // Note that this function converts key and response to strings before
@@ -338,18 +340,18 @@ export default function plugin(
             }
             cacheSetInBackground({
               sessionId,
-              sessionMode: SessionMode.Private,
+              sessionMode: SessionMode.Private
             })
           } else {
             cacheSetInBackground({
               sessionMode:
                 sessionId === null
                   ? SessionMode.NoSession
-                  : SessionMode.AuthenticatedPublic,
+                  : SessionMode.AuthenticatedPublic
             })
           }
-        },
+        }
       }
-    },
+    }
   }
 }

@@ -21,7 +21,7 @@ const resolver: MutationToReadArticleResolver = async (
     await articleService.read({
       articleId: article.id,
       userId: viewer.id || null,
-      ip: viewer.ip,
+      ip: viewer.ip
     })
   }
 
@@ -38,7 +38,7 @@ const resolver: MutationToReadArticleResolver = async (
       likerId: liker ? liker.likerId : undefined,
       likerIp: viewer.ip,
       authorLikerId: author.likerId,
-      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`
     })
   } catch (error) {
     logger.error(error)

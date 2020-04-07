@@ -4,7 +4,7 @@ import {
   ArticleNotFoundError,
   AuthenticationError,
   ForbiddenError,
-  UserInputError,
+  UserInputError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToUpdateArticleInfoResolver } from 'definitions'
@@ -38,7 +38,7 @@ const resolver: MutationToUpdateArticleInfoResolver = async (
       ).map(({ id: articleId }) => articleId)
       await articleService.baseBatchUpdate(stickyIds, {
         sticky: false,
-        updatedAt: new Date(),
+        updatedAt: new Date()
       })
     }
   }
@@ -49,7 +49,7 @@ const resolver: MutationToUpdateArticleInfoResolver = async (
 
   return articleService.baseUpdate(dbId, {
     ...params,
-    updatedAt: new Date(),
+    updatedAt: new Date()
   })
 }
 

@@ -37,13 +37,13 @@ const resolver: ArticleToResponsesResolver = async (
       first,
       includeAfter,
       includeBefore,
-      articleOnly,
+      articleOnly
     }),
     articleService.responseRange({
       id,
       order,
-      state,
-    }),
+      state
+    })
   ])
 
   // fetch responses
@@ -65,7 +65,7 @@ const resolver: ArticleToResponsesResolver = async (
     const type = !!item.title ? 'Article' : 'Comment'
     return {
       cursor: toGlobalId({ type, id: item.id }),
-      node: { __type: type, ...item },
+      node: { __type: type, ...item }
     }
   })
 
@@ -87,8 +87,8 @@ const resolver: ArticleToResponsesResolver = async (
       endCursor: edgeTail ? edgeTail.cursor : '',
       hasPreviousPage:
         order === 'asc' ? headSeq > range.min : headSeq < range.max,
-      hasNextPage: order === 'asc' ? tailSeq < range.max : tailSeq > range.min,
-    },
+      hasNextPage: order === 'asc' ? tailSeq < range.max : tailSeq > range.min
+    }
   }
 }
 

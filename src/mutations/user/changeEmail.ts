@@ -1,7 +1,7 @@
 import {
   CodeInvalidError,
   EmailExistsError,
-  UserNotFoundError,
+  UserNotFoundError
 } from 'common/errors'
 import { MutationToChangeEmailResolver } from 'definitions'
 
@@ -12,8 +12,8 @@ const resolver: MutationToChangeEmailResolver = async (
       oldEmail: rawOldEmail,
       oldEmailCodeId,
       newEmail: rawNewEmail,
-      newEmailCodeId,
-    },
+      newEmailCodeId
+    }
   },
   { viewer, dataSources: { userService } }
 ) => {
@@ -25,16 +25,16 @@ const resolver: MutationToChangeEmailResolver = async (
       uuid: oldEmailCodeId,
       email: oldEmail,
       type: 'email_reset',
-      status: 'verified',
-    },
+      status: 'verified'
+    }
   })
   const [newCode] = await userService.findVerificationCodes({
     where: {
       uuid: newEmailCodeId,
       email: newEmail,
       type: 'email_reset_confirm',
-      status: 'verified',
-    },
+      status: 'verified'
+    }
   })
 
   // check codes
@@ -56,17 +56,17 @@ const resolver: MutationToChangeEmailResolver = async (
 
   // update email
   const newUser = await userService.updateInfo(user.id, {
-    email: newCode.email,
+    email: newCode.email
   })
 
   // mark code status as used
   await userService.markVerificationCodeAs({
     codeId: oldCode.id,
-    status: 'used',
+    status: 'used'
   })
   await userService.markVerificationCodeAs({
     codeId: newCode.id,
-    status: 'used',
+    status: 'used'
   })
 
   return newUser

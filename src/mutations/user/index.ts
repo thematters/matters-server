@@ -46,6 +46,6 @@ export default {
     clearSearchHistory,
     updateUserState,
     updateUserRole,
-    migration,
-  },
+    migration
+  }
 }

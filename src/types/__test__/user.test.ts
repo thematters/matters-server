@@ -10,7 +10,7 @@ import {
   defaultTestUser,
   getUserContext,
   registerUser,
-  testClient,
+  testClient
 } from './utils'
 
 let userService: any
@@ -269,27 +269,27 @@ describe('register and login functionarlities', () => {
     const email = `test-${Math.floor(Math.random() * 100)}@matters.news`
     const code = await userService.createVerificationCode({
       type: 'register',
-      email,
+      email
     })
     await userService.markVerificationCodeAs({
       codeId: code.id,
-      status: 'verified',
+      status: 'verified'
     })
     const user = {
       email,
       displayName: 'testUser',
       password: 'Abcd1234',
-      codeId: code.uuid,
+      codeId: code.uuid
     }
     const registerResult = await registerUser(user)
     expect(_get(registerResult, 'data.userRegister.token')).toBeTruthy()
 
     const context = await getUserContext({ email: user.email })
     const { query } = await testClient({
-      context,
+      context
     })
     const newUserResult = await query({
-      query: GET_VIEWER_INFO,
+      query: GET_VIEWER_INFO
     })
     const displayName = _get(newUserResult, 'data.viewer.displayName')
     const info = _get(newUserResult, 'data.viewer.info')
@@ -305,7 +305,7 @@ describe('register and login functionarlities', () => {
     const result = await mutate({
       mutation: USER_LOGIN,
       // @ts-ignore
-      variables: { input: { email, password } },
+      variables: { input: { email, password } }
     })
     expect(_get(result, 'errors.0.extensions.code')).toBe(
       'USER_PASSWORD_INVALID'
@@ -320,17 +320,17 @@ describe('register and login functionarlities', () => {
     const result = await mutate({
       mutation: USER_LOGIN,
       // @ts-ignore
-      variables: { input: { email, password } },
+      variables: { input: { email, password } }
     })
     expect(_get(result, 'data.userLogin.auth')).toBe(true)
   })
 
   test('retrive user info after login', async () => {
     const { query } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const { data } = await query({
-      query: GET_VIEWER_INFO,
+      query: GET_VIEWER_INFO
     })
     const info = _get(data, 'viewer.info')
     expect(info.email).toEqual(defaultTestUser.email)
@@ -344,18 +344,18 @@ describe('user query fields', () => {
     const { data } = await query({
       query: GET_USER_BY_USERNAME,
       // @ts-ignore
-      variables: { input: { userName } },
+      variables: { input: { userName } }
     })
     expect(_get(data, 'user.userName')).toBe(userName)
   })
   test('retrive user articles', async () => {
     const { query } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const result = await query({
       query: GET_VIEW_ARTICLES,
       // @ts-ignore
-      variables: { input: { first: 1 } },
+      variables: { input: { first: 1 } }
     })
     const { data } = result
     const articles = _get(data, 'viewer.articles.edges')
@@ -365,10 +365,10 @@ describe('user query fields', () => {
 
   test('retrive UserSettings', async () => {
     const { query } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const res = await query({
-      query: GET_VIEWER_SETTINGS,
+      query: GET_VIEWER_SETTINGS
     })
     const { data } = res
     const settings = _get(data, 'viewer.settings')
@@ -378,12 +378,12 @@ describe('user query fields', () => {
 
   test('retrive subscriptions', async () => {
     const { query } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const { data } = await query({
       query: GET_VIEWER_SUBSCRIPTIONS,
       // @ts-ignore
-      variables: { input: {} },
+      variables: { input: {} }
     })
     const subscriptions = _get(data, 'viewer.subscriptions.edges')
     expect(subscriptions.length).toBeTruthy()
@@ -391,12 +391,12 @@ describe('user query fields', () => {
 
   test('retrive followers', async () => {
     const { query } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const { data } = await query({
       query: GET_VIEWER_FOLLOWERS,
       // @ts-ignore
-      variables: { input: {} },
+      variables: { input: {} }
     })
     const followers = _get(data, 'viewer.followers.edges')
     expect(followers).toBeDefined()
@@ -404,12 +404,12 @@ describe('user query fields', () => {
 
   test('retrive followees', async () => {
     const { query } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const { data } = await query({
       query: GET_VIEWER_FOLLOWEES,
       // @ts-ignore
-      variables: { input: {} },
+      variables: { input: {} }
     })
     const followees = _get(data, 'viewer.followees.edges')
     expect(followees.length).toBeTruthy()
@@ -417,10 +417,10 @@ describe('user query fields', () => {
 
   test('retrive UserStatus', async () => {
     const { query } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const { data } = await query({
-      query: GET_VIEWER_STATUS,
+      query: GET_VIEWER_STATUS
     })
     const status = _get(data, 'viewer.status')
     expect(status).toBeDefined()
@@ -433,12 +433,12 @@ describe('mutations on User object', () => {
 
     // follow
     const { mutate } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const { data: followData } = await mutate({
       mutation: FOLLOW_USER,
       // @ts-ignore
-      variables: { input: { id: followeeId } },
+      variables: { input: { id: followeeId } }
     })
     expect(
       followData && followData.followUser && followData.followUser.isFollowee
@@ -449,7 +449,7 @@ describe('mutations on User object', () => {
     const { data: followeeData } = await query({
       query: GET_VIEWER_FOLLOWEES,
       // @ts-ignore
-      variables: { input: {} },
+      variables: { input: {} }
     })
     const followees = _get(followeeData, 'viewer.followees.edges')
     expect(
@@ -461,7 +461,7 @@ describe('mutations on User object', () => {
     const { data: unfollowData } = await mutateNew({
       mutation: UNFOLLOW_USER,
       // @ts-ignore
-      variables: { input: { id: followeeId } },
+      variables: { input: { id: followeeId } }
     })
     expect(unfollowData && unfollowData.unfollowUser.isFollowee).toBeFalsy()
 
@@ -470,7 +470,7 @@ describe('mutations on User object', () => {
     const { data: followeeDataNew } = await queryNew({
       query: GET_VIEWER_FOLLOWEES,
       // @ts-ignore
-      variables: { input: {} },
+      variables: { input: {} }
     })
     const followeesNew = _get(followeeDataNew, 'viewer.followees.edges')
     expect(
@@ -487,9 +487,9 @@ describe('mutations on User object', () => {
       variables: {
         input: {
           id: followeeId,
-          enabled: true,
-        },
-      },
+          enabled: true
+        }
+      }
     })
     expect(_get(result.data, 'toggleFollowUser.isFollowee')).toBe(true)
   })
@@ -503,9 +503,9 @@ describe('mutations on User object', () => {
       variables: {
         input: {
           id: followeeId,
-          enabled: false,
-        },
-      },
+          enabled: false
+        }
+      }
     })
     expect(_get(data, 'toggleFollowUser.isFollowee')).toBe(false)
   })
@@ -519,9 +519,9 @@ describe('mutations on User object', () => {
       variables: {
         input: {
           id: blockUserId,
-          enabled: true,
-        },
-      },
+          enabled: true
+        }
+      }
     })
     expect(_get(result.data, 'toggleBlockUser.isBlocked')).toBe(true)
   })
@@ -535,9 +535,9 @@ describe('mutations on User object', () => {
       variables: {
         input: {
           id: blockUserId,
-          enabled: false,
-        },
-      },
+          enabled: false
+        }
+      }
     })
     expect(_get(result.data, 'toggleBlockUser.isBlocked')).toBe(false)
   })
@@ -545,12 +545,12 @@ describe('mutations on User object', () => {
   test('updateUserInfoDescription', async () => {
     const description = 'foo bar'
     const { mutate } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const { data } = await mutate({
       mutation: UPDATE_USER_INFO_DESCRIPTION,
       // @ts-ignore
-      variables: { input: { description } },
+      variables: { input: { description } }
     })
     const info = _get(data, 'updateUserInfo.info')
     expect(info.description).toEqual(description)
@@ -559,12 +559,12 @@ describe('mutations on User object', () => {
   test('updateUserInfoAvatar', async () => {
     const avatarAssetUUID = '00000000-0000-0000-0000-000000000001'
     const { mutate } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const { data } = await mutate({
       mutation: UPDATE_USER_INFO_AVATAR,
       // @ts-ignore
-      variables: { input: { avatar: avatarAssetUUID } },
+      variables: { input: { avatar: avatarAssetUUID } }
     })
     const avatar = _get(data, 'updateUserInfo.avatar')
     expect(avatar).toEqual(expect.stringContaining('path/to/file.jpg'))
@@ -572,12 +572,12 @@ describe('mutations on User object', () => {
 
   test('updateNotificationSetting', async () => {
     const { mutate } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const { data } = await mutate({
       mutation: UPDATE_NOTIFICARION_SETTINGS,
       // @ts-ignore
-      variables: { input: { type: 'enable', enabled: false } },
+      variables: { input: { type: 'enable', enabled: false } }
     })
     const enable = _get(
       data,
@@ -590,7 +590,7 @@ describe('mutations on User object', () => {
 describe('user recommendations', () => {
   test('retrive articles from hottest, icymi, topics, followeeArticles and newest', async () => {
     await Promise.all(
-      _values(MATERIALIZED_VIEW).map((view) =>
+      _values(MATERIALIZED_VIEW).map(view =>
         refreshView(view as MaterializedView)
       )
     )
@@ -601,18 +601,18 @@ describe('user recommendations', () => {
       'topics',
       'followeeArticles',
       'newest',
-      'followeeWorks',
+      'followeeWorks'
     ]
     for (const list of lists) {
       const { query: queryNew } = await testClient({
-        isAuth: true,
+        isAuth: true
       })
 
       if (list === 'followeeWorks') {
         const result = await queryNew({
           query: GET_VIEWER_RECOMMENDATION_FOLLOWEE_WORKS,
           // @ts-ignore
-          variables: { input: { first: 1 } },
+          variables: { input: { first: 1 } }
         })
         const { data } = result
         const item = _get(data, `viewer.recommendation.${list}.edges.0.node`)
@@ -626,7 +626,7 @@ describe('user recommendations', () => {
         const result = await queryNew({
           query: GET_VIEWER_RECOMMENDATION(list),
           // @ts-ignore
-          variables: { input: { first: 1 } },
+          variables: { input: { first: 1 } }
         })
         const { data } = result
         const article = _get(data, `viewer.recommendation.${list}.edges.0.node`)
@@ -637,12 +637,12 @@ describe('user recommendations', () => {
 
   test('retrive tags from tags', async () => {
     const { query: queryNew } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const { data } = await queryNew({
       query: GET_VIEWER_RECOMMENDATION('tags'),
       // @ts-ignore
-      variables: { input: { first: 1 } },
+      variables: { input: { first: 1 } }
     })
     const tag = _get(data, 'viewer.recommendation.tags.edges.0.node')
     expect(fromGlobalId(tag.id).type).toBe('Tag')
@@ -650,12 +650,12 @@ describe('user recommendations', () => {
 
   test('retrive users from authors', async () => {
     const { query: queryNew } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const result = await queryNew({
       query: GET_AUTHOR_RECOMMENDATION('authors'),
       // @ts-ignore
-      variables: { input: { first: 1 } },
+      variables: { input: { first: 1 } }
     })
     const { data } = result
     const author = _get(data, 'viewer.recommendation.authors.edges.0.node')
@@ -666,12 +666,12 @@ describe('user recommendations', () => {
 describe('badges', () => {
   test('get user badges', async () => {
     const { query } = await testClient({
-      isAuth: true,
+      isAuth: true
     })
     const { data } = await query({
       query: GET_VIEWER_BADGES,
       // @ts-ignore
-      variables: {},
+      variables: {}
     })
     expect(_get(data, 'viewer.info.badges.0.type')).toBe('seed')
   })
@@ -687,7 +687,7 @@ describe('verification code', () => {
     const result = await mutate({
       mutation: SEND_VERIFICATION_CODE,
       // @ts-ignore
-      variables: { input: { type, email, token: 'some-test-token' } },
+      variables: { input: { type, email, token: 'some-test-token' } }
     })
     expect(result && result.data && result.data.sendVerificationCode).toBe(true)
 
@@ -699,7 +699,7 @@ describe('verification code', () => {
     const confirmedResult = await confirmMutate({
       mutation: CONFIRM_VERIFICATION_CODE,
       // @ts-ignore
-      variables: { input: { type, email, code: code.code } },
+      variables: { input: { type, email, code: code.code } }
     })
     expect(
       confirmedResult &&

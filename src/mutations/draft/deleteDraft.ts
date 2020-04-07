@@ -1,7 +1,7 @@
 import {
   AuthenticationError,
   DraftNotFoundError,
-  ForbiddenError,
+  ForbiddenError
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToDeleteDraftResolver } from 'definitions'

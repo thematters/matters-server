@@ -1,25 +1,33 @@
 const table = 'oauth_client'
 
-exports.up = async (knex) => {
-  await knex.schema.table(table, function (t) {
-    t.bigInteger('user_id').nullable().alter()
+exports.up = async knex => {
+  await knex.schema.table(table, function(t) {
+    t.bigInteger('user_id')
+      .nullable()
+      .alter()
 
-    t.string('name').notNullable().unique()
+    t.string('name')
+      .notNullable()
+      .unique()
     t.text('description')
     t.text('website_url')
     t.bigInteger('avatar')
 
-    t.foreign('avatar').references('id').inTable('asset')
+    t.foreign('avatar')
+      .references('id')
+      .inTable('asset')
   })
 }
 
-exports.down = async (knex) => {
-  await knex.schema.table(table, function (t) {
+exports.down = async knex => {
+  await knex.schema.table(table, function(t) {
     t.dropColumn('avatar')
     t.dropColumn('website_url')
     t.dropColumn('description')
     t.dropColumn('name')
 
-    t.bigInteger('user_id').notNullable().alter()
+    t.bigInteger('user_id')
+      .notNullable()
+      .alter()
   })
 }

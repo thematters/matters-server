@@ -4,7 +4,7 @@ import user from './user'
 
 export default {
   Query: {
-    oauthClient: rootOAuthClient,
+    oauthClient: rootOAuthClient
   },
   OAuthClient: {
     id: ({ clientId }: { clientId: string }) => clientId,
@@ -13,6 +13,6 @@ export default {
     redirectURIs: ({ redirectUri }: { redirectUri: string }) => redirectUri,
     avatar,
     user,
-    website: ({ websiteUrl }: { websiteUrl: string }) => websiteUrl || null,
-  },
+    website: ({ websiteUrl }: { websiteUrl: string }) => websiteUrl || null
+  }
 }

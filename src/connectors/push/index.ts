@@ -26,7 +26,7 @@ class PushService {
     link,
 
     icon,
-    image,
+    image
   }: PushParams) => {
     if (isTest) {
       return
@@ -35,7 +35,7 @@ class PushService {
     const userService = new UserService()
     const deviceIds = (
       await userService.findPushDevices({
-        userIds: recipients,
+        userIds: recipients
       })
     ).map(({ deviceId }) => deviceId)
     const URL_LOGO = 'https://matters.news/static/icon-192x192.png'
@@ -56,12 +56,12 @@ class PushService {
       tokens: deviceIds,
       notification: {
         title,
-        body,
+        body
       },
       // platform-specific fields
       webpush: {
         fcmOptions: {
-          link: link || '/me/notifications',
+          link: link || '/me/notifications'
         },
         notification: {
           tag: 'renotify',
@@ -71,9 +71,9 @@ class PushService {
           // https://documentation.onesignal.com/docs/web-push-notification-icons
           badge: URL_LOGO,
           icon: icon || URL_LOGO,
-          image,
-        },
-      },
+          image
+        }
+      }
     })
 
     logger.info(`Pushed "${body}" to ${recipients.length} recipient(s).`)

@@ -33,7 +33,7 @@ const resolver: MutationToPublishArticleResolver = async (
   const draftPending = await draftService.baseUpdate(draft.id, {
     publishState: PUBLISH_STATE.pending,
     scheduledAt,
-    updatedAt: new Date(),
+    updatedAt: new Date()
   })
 
   // add job to queue
