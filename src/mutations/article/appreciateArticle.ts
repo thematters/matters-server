@@ -1,7 +1,7 @@
 import {
+  APPRECIATION_TYPES,
   CACHE_KEYWORD,
   NODE_TYPES,
-  TRANSACTION_TYPES,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -67,7 +67,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
       senderId: viewer.id,
       recipientId: article.authorId,
       amount: validAmount,
-      type: TRANSACTION_TYPES.like,
+      type: APPRECIATION_TYPES.like,
     })
 
     // record to LikeCoin

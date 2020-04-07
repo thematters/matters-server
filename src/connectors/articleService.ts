@@ -6,11 +6,11 @@ import { v4 } from 'uuid'
 
 import {
   ALS_DEFAULT_VECTOR,
+  APPRECIATION_PURPOSE,
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
   MATERIALIZED_VIEW,
-  TRANSACTION_PURPOSE,
   USER_ACTION,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -784,8 +784,8 @@ export class ArticleService extends BaseService {
       .whereIn(
         ['reference_id', 'purpose'],
         [
-          [articleId, TRANSACTION_PURPOSE.appreciate],
-          [articleId, TRANSACTION_PURPOSE.appreciateSubsidy],
+          [articleId, APPRECIATION_PURPOSE.appreciate],
+          [articleId, APPRECIATION_PURPOSE.appreciateSubsidy],
         ]
       )
       .sum('amount')
@@ -799,7 +799,7 @@ export class ArticleService extends BaseService {
       .from('transaction')
       .where({
         referenceId,
-        purpose: TRANSACTION_PURPOSE.appreciate,
+        purpose: APPRECIATION_PURPOSE.appreciate,
       })
       .count()
       .first()
@@ -821,7 +821,7 @@ export class ArticleService extends BaseService {
       .from('transaction')
       .where({
         referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate,
+        purpose: APPRECIATION_PURPOSE.appreciate,
       })
       .whereIn('senderId', userIds)
       .sum('amount')
@@ -830,9 +830,9 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Count an article's transactions by a given articleId.
+   * Count an article's appreciations by a given articleId.
    */
-  countTransactions = async (referenceId: string) => {
+  countAppreciations = async (referenceId: string) => {
     const result = await this.knex
       .select()
       .from((knex: any) => {
@@ -841,7 +841,7 @@ export class ArticleService extends BaseService {
           .from('transaction')
           .where({
             referenceId,
-            purpose: TRANSACTION_PURPOSE.appreciate,
+            purpose: APPRECIATION_PURPOSE.appreciate,
           })
           .groupBy('sender_id', 'reference_id')
         source.as('source')
@@ -855,7 +855,7 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findTransactions = async ({
+  findAppreciations = async ({
     referenceId,
     limit = BATCH_SIZE,
     offset = 0,
@@ -868,7 +868,7 @@ export class ArticleService extends BaseService {
       .select('reference_id', 'sender_id')
       .where({
         referenceId,
-        purpose: TRANSACTION_PURPOSE.appreciate,
+        purpose: APPRECIATION_PURPOSE.appreciate,
       })
       .groupBy('sender_id', 'reference_id')
       .sum('amount as amount')
@@ -891,7 +891,7 @@ export class ArticleService extends BaseService {
       .where({
         senderId: userId,
         referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate,
+        purpose: APPRECIATION_PURPOSE.appreciate,
       })
       .sum('amount as total')
     const total = _.get(appreciations, '0.total', 0)
@@ -909,7 +909,7 @@ export class ArticleService extends BaseService {
     const result = await this.knex('transaction').select().where({
       senderId,
       referenceId: articleId,
-      purpose: TRANSACTION_PURPOSE.appreciate,
+      purpose: APPRECIATION_PURPOSE.appreciate,
     })
     return result.length > 0
   }
@@ -934,7 +934,7 @@ export class ArticleService extends BaseService {
       senderId,
       recipientId,
       referenceId: articleId,
-      purpose: TRANSACTION_PURPOSE.appreciate,
+      purpose: APPRECIATION_PURPOSE.appreciate,
       type,
     }
 
@@ -1547,8 +1547,8 @@ export class ArticleService extends BaseService {
           .sum('amount', { as: 'total' })
           .from('transaction')
           .whereIn('purpose', [
-            TRANSACTION_PURPOSE.appreciate,
-            TRANSACTION_PURPOSE.appreciateSubsidy,
+            APPRECIATION_PURPOSE.appreciate,
+            APPRECIATION_PURPOSE.appreciateSubsidy,
           ])
           .groupBy('referenceId')
           .orderBy('total', 'desc')

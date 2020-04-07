@@ -479,7 +479,7 @@ export class UserService extends BaseService {
 
   /*********************************
    *                               *
-   *        Transaction            *
+   *        Appreciation           *
    *                               *
    *********************************/
   totalMAT = async (userId: string) => {
@@ -501,7 +501,7 @@ export class UserService extends BaseService {
     return Math.max(parseInt(result[0].total || 0, 10), 0)
   }
 
-  totalRecivedTransactionCount = async (recipientId: string) => {
+  totalRecivedAppreciationCount = async (recipientId: string) => {
     const result = await this.knex('transaction')
       .where({
         recipientId,
@@ -510,7 +510,7 @@ export class UserService extends BaseService {
     return parseInt(`${result[0].count}` || '0', 10)
   }
 
-  totalSentTransactionCount = async (senderId: string) => {
+  totalSentAppreciationCount = async (senderId: string) => {
     const result = await this.knex('transaction')
       .where({
         senderId,
@@ -528,7 +528,7 @@ export class UserService extends BaseService {
     return Math.max(parseInt(result[0].total || 0, 10), 0)
   }
 
-  findTransactionBySender = async ({
+  findAppreciationBySender = async ({
     senderId,
     limit = BATCH_SIZE,
     offset = 0,
@@ -545,7 +545,7 @@ export class UserService extends BaseService {
       .offset(offset)
       .orderBy('id', 'desc')
 
-  findTransactionByRecipient = async ({
+  findAppreciationByRecipient = async ({
     recipientId,
     limit = BATCH_SIZE,
     offset = 0,
@@ -562,7 +562,7 @@ export class UserService extends BaseService {
       .offset(offset)
       .orderBy('id', 'desc')
 
-  findTransactionHistory = async ({
+  findAppreciationHistory = async ({
     id: userId,
     limit = BATCH_SIZE,
     offset = 0,
@@ -579,7 +579,7 @@ export class UserService extends BaseService {
       .limit(limit)
       .offset(offset)
 
-  countTransaction = async (id: string) => {
+  countAppreciation = async (id: string) => {
     const result = await this.knex('transaction_delta_view')
       .where({
         userId: id,
