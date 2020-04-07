@@ -52,13 +52,12 @@ const getUser = async (token: string, agentHash: string) => {
     const user = await userService.baseFindByUUID(source.uuid)
 
     if (user.state === USER_STATE.archived) {
+      if (agentHash) {
+        await systemService
+          .saveAgentHash(agentHash)
+          .catch((error) => logger.error)
+      }
       throw new Error('user has deleted')
-    }
-
-    if (user.state === USER_STATE.banned && agentHash) {
-      await systemService
-        .saveAgentHash(agentHash)
-        .catch((error) => logger.error)
     }
 
     return { ...user, scopeMode: user.role }
