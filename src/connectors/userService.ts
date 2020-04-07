@@ -123,7 +123,7 @@ export class UserService extends BaseService {
   login = async ({
     email,
     password,
-    archivedCallback
+    archivedCallback,
   }: {
     email: string
     password: string

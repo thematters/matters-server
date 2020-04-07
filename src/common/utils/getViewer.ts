@@ -53,7 +53,9 @@ const getUser = async (token: string, agentHash: string) => {
 
     if (user.state === USER_STATE.archived) {
       if (agentHash) {
-        await systemService.saveAgentHash(agentHash).catch((error) => logger.error)
+        await systemService
+          .saveAgentHash(agentHash)
+          .catch((error) => logger.error)
       }
       throw new Error('user has deleted')
     }

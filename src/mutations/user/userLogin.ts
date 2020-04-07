@@ -10,7 +10,8 @@ const resolver: MutationToUserLoginResolver = async (
     dataSources: { userService, systemService },
     res,
   } = context
-  const archivedCallback = async () => systemService.saveAgentHash(context.viewer.agentHash || '')
+  const archivedCallback = async () =>
+    systemService.saveAgentHash(context.viewer.agentHash || '')
   const { token, user } = await userService.login({
     ...input,
     email: input.email ? input.email.toLowerCase() : null,
