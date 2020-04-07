@@ -12,14 +12,14 @@ export class RateLimitDirective extends SchemaDirectiveVisitor {
     const { resolve = defaultFieldResolver, name } = field
     const { limit, period } = this.args
 
-    field.resolve = async function(...args) {
+    field.resolve = async function (...args) {
       const [root, _, { viewer }] = args
 
       const pass = await cacheService.checkOperationLimit({
         user: viewer.id || viewer.ip,
         operation: name,
         limit,
-        period
+        period,
       })
 
       if (!pass) {
