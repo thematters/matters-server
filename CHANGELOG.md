@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - BlockList API #826
 - ReCaptcha #850
+- Operation Limits #880
 - Churn Emails #828 #844 #851 #806
 
 ### Changed
