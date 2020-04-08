@@ -41,8 +41,8 @@ test('findByCommentedAuthor', async () => {
   expect(articles.length).toBeDefined()
 })
 
-test('findTransactions', async () => {
-  const appreciations = await articleService.findTransactions({
+test('findAppreciations', async () => {
+  const appreciations = await articleService.findAppreciations({
     referenceId: '1',
   })
   expect(appreciations.length).toBe(3)

@@ -1,6 +1,6 @@
 import { camelCase } from 'lodash'
 
-import { TRANSACTION_PURPOSE } from 'common/enums'
+import { APPRECIATION_PURPOSE } from 'common/enums'
 import { ArticleNotFoundError } from 'common/errors'
 import logger from 'common/logger'
 import { i18n } from 'common/utils/i18n'
@@ -43,24 +43,24 @@ export const Transaction: GQLTransactionTypeResolver = {
   purpose: ({ purpose }) => camelCase(purpose),
   content: async (trx, _, { viewer, dataSources: { articleService } }) => {
     switch (trx.purpose) {
-      case TRANSACTION_PURPOSE.appreciate:
+      case APPRECIATION_PURPOSE.appreciate:
         const article = await articleService.dataloader.load(trx.referenceId)
         if (!article) {
           throw new ArticleNotFoundError('reference article not found')
         }
         return article.title
-      case TRANSACTION_PURPOSE.appreciateSubsidy:
+      case APPRECIATION_PURPOSE.appreciateSubsidy:
         return trans.appreciateSubsidy(viewer.language, {})
-      case TRANSACTION_PURPOSE.systemSubsidy:
+      case APPRECIATION_PURPOSE.systemSubsidy:
         return trans.systemSubsidy(viewer.language, {})
-      case TRANSACTION_PURPOSE.appreciateComment:
+      case APPRECIATION_PURPOSE.appreciateComment:
         return trans.appreciateComment(viewer.language, {})
-      case TRANSACTION_PURPOSE.invitationAccepted:
+      case APPRECIATION_PURPOSE.invitationAccepted:
         return trans.invitationAccepted(viewer.language, {})
-      case TRANSACTION_PURPOSE.joinByInvitation:
-      case TRANSACTION_PURPOSE.joinByTask:
+      case APPRECIATION_PURPOSE.joinByInvitation:
+      case APPRECIATION_PURPOSE.joinByTask:
         return trans.joinByInvitation(viewer.language, {})
-      case TRANSACTION_PURPOSE.firstPost:
+      case APPRECIATION_PURPOSE.firstPost:
         return trans.firstPost(viewer.language, {})
       default:
         logger.error(`transaction purpose ${trx.purpose} no match`)

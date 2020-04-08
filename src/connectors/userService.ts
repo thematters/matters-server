@@ -334,7 +334,7 @@ export class UserService extends BaseService {
         this.knex
           .select('recipient_id')
           .sum('amount as total')
-          .from('transaction')
+          .from('appreciation')
           .groupBy('recipient_id')
           .as('tx'),
         'tx.recipient_id',
@@ -491,20 +491,12 @@ export class UserService extends BaseService {
 
   /*********************************
    *                               *
-   *        Transaction            *
+   *        Appreciation           *
    *                               *
    *********************************/
-  totalMAT = async (userId: string) => {
-    const result = await this.knex('transaction_delta_view')
-      .where({
-        userId,
-      })
-      .sum('delta as total')
-    return Math.max(parseInt(result[0].total || 0, 10), 0)
-  }
 
   totalRecived = async (recipientId: string) => {
-    const result = await this.knex('transaction')
+    const result = await this.knex('appreciation')
       .where({
         recipientId,
       })
@@ -513,8 +505,8 @@ export class UserService extends BaseService {
     return Math.max(parseInt(result[0].total || 0, 10), 0)
   }
 
-  totalRecivedTransactionCount = async (recipientId: string) => {
-    const result = await this.knex('transaction')
+  totalRecivedAppreciationCount = async (recipientId: string) => {
+    const result = await this.knex('appreciation')
       .where({
         recipientId,
       })
@@ -522,8 +514,8 @@ export class UserService extends BaseService {
     return parseInt(`${result[0].count}` || '0', 10)
   }
 
-  totalSentTransactionCount = async (senderId: string) => {
-    const result = await this.knex('transaction')
+  totalSentAppreciationCount = async (senderId: string) => {
+    const result = await this.knex('appreciation')
       .where({
         senderId,
       })
@@ -532,7 +524,7 @@ export class UserService extends BaseService {
   }
 
   totalSent = async (senderId: string) => {
-    const result = await this.knex('transaction')
+    const result = await this.knex('appreciation')
       .where({
         senderId,
       })
@@ -540,7 +532,7 @@ export class UserService extends BaseService {
     return Math.max(parseInt(result[0].total || 0, 10), 0)
   }
 
-  findTransactionBySender = async ({
+  findAppreciationBySender = async ({
     senderId,
     limit = BATCH_SIZE,
     offset = 0,
@@ -549,7 +541,7 @@ export class UserService extends BaseService {
     limit?: number
     offset?: number
   }) =>
-    this.knex('transaction')
+    this.knex('appreciation')
       .where({
         senderId,
       })
@@ -557,7 +549,7 @@ export class UserService extends BaseService {
       .offset(offset)
       .orderBy('id', 'desc')
 
-  findTransactionByRecipient = async ({
+  findAppreciationByRecipient = async ({
     recipientId,
     limit = BATCH_SIZE,
     offset = 0,
@@ -566,40 +558,13 @@ export class UserService extends BaseService {
     limit?: number
     offset?: number
   }) =>
-    this.knex('transaction')
+    this.knex('appreciation')
       .where({
         recipientId,
       })
       .limit(limit)
       .offset(offset)
       .orderBy('id', 'desc')
-
-  findTransactionHistory = async ({
-    id: userId,
-    limit = BATCH_SIZE,
-    offset = 0,
-  }: {
-    id: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex('transaction_delta_view')
-      .where({
-        userId,
-      })
-      .orderBy('created_at', 'desc')
-      .limit(limit)
-      .offset(offset)
-
-  countTransaction = async (id: string) => {
-    const result = await this.knex('transaction_delta_view')
-      .where({
-        userId: id,
-      })
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
 
   /*********************************
    *                               *
