@@ -26,16 +26,8 @@ const schema = makeExecutableSchema({
     scope: ScopeDirective,
     purgeCache: PurgeCacheDirective,
     privateCache: PrivateCacheDirective,
-<<<<<<< HEAD
-<<<<<<< HEAD
     logCache: LogCacheDirective,
     rateLimit: RateLimitDirective,
-=======
-    logCache: LogCacheDirective
->>>>>>> add db migration file
-=======
-    logCache: LogCacheDirective,
->>>>>>> update dataService naming
   },
   resolvers: merge(queries, mutations, subscriptions),
 })
