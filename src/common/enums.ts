@@ -513,6 +513,7 @@ export const CACHE_KEYWORD = '__cache__'
 export const CACHE_PREFIX = {
   KEYS: 'cache-keys',
   OBJECTS: 'cache-objects',
+  OPERATION_LOG: 'operation-log',
 }
 
 export const TRANSACTION_TYPES = {
