@@ -240,7 +240,7 @@ export class PaymentService extends BaseService {
     userId?: string
     customerId?: string
   }) => {
-    if (!userId || !customerId) {
+    if (!userId && !customerId) {
       throw new ServerError('userId/customerId is required')
     }
 
