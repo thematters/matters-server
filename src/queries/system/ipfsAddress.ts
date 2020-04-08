@@ -6,7 +6,7 @@ const resolver: OfficialToIpfsAddressResolver = async (
   { dataSources: { articleService } }
 ) => {
   const addresses = await articleService.ipfs.client.swarm.localAddrs()
-  return addresses.map(addres => addres.toString())
+  return addresses.map((addres) => addres.toString())
 }
 
 export default resolver

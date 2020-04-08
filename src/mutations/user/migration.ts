@@ -5,7 +5,7 @@ import { OAUTH_PROVIDER, UPLOAD_MIGRATION_FILE_SIZE_LIMIT } from 'common/enums'
 import {
   AuthenticationError,
   MigrationReachLimitError,
-  UserInputError
+  UserInputError,
 } from 'common/errors'
 import { migrationQueue } from 'connectors/queue'
 import { MutationToMigrationResolver } from 'definitions'
@@ -29,7 +29,7 @@ const resolver: MutationToMigrationResolver = async (
 
   // pre-process uploaded migration data
   let totalSize = 0
-  const uploads = await Promise.all(files.map(file => file))
+  const uploads = await Promise.all(files.map((file) => file))
   const htmls: string[] = []
   for (const upload of uploads) {
     try {
@@ -41,7 +41,7 @@ const resolver: MutationToMigrationResolver = async (
       const stream = createReadStream()
       const buffer = await getStream.buffer(stream, {
         encoding: 'utf8',
-        maxBuffer: UPLOAD_MIGRATION_FILE_SIZE_LIMIT
+        maxBuffer: UPLOAD_MIGRATION_FILE_SIZE_LIMIT,
       })
       totalSize = totalSize + buffer.byteLength
 
@@ -55,10 +55,7 @@ const resolver: MutationToMigrationResolver = async (
       const $ = cheerio.load(content || '', { decodeEntities: false })
 
       // cleanup unnecessary attributes and elements
-      $('*')
-        .removeAttr('id')
-        .removeAttr('name')
-        .removeAttr('style')
+      $('*').removeAttr('id').removeAttr('name').removeAttr('style')
       $('section.p-summary, footer').remove()
 
       htmls.push($('article').html() || '')

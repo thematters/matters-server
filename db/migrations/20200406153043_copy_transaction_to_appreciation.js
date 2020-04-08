@@ -1,6 +1,6 @@
 const { baseDown } = require('../utils')
 
-exports.up = async knex => {
+exports.up = async (knex) => {
   // copy transaction table
   await knex.raw(/*sql*/ `
   create table appreciation as
@@ -68,8 +68,7 @@ exports.up = async knex => {
 
   create materialized view article_activity_materialized as
   select *
-  from article_activity_view
-  `)
+  from article_activity_view`)
 }
 
-exports.down = baseDown(table)
+exports.down = async () => {}

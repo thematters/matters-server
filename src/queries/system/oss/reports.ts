@@ -20,7 +20,7 @@ export const reports: OSSToReportsResolver = async (
       comment,
       article,
       offset,
-      limit: first
+      limit: first,
     }),
     connectionArgs,
     totalCount

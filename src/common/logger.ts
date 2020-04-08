@@ -58,20 +58,21 @@ const logger = createLogger({
   format: format.combine(
     format.errors({ stack: true }),
     format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss'
+      format: 'YYYY-MM-DD HH:mm:ss',
     }),
     format.printf(
-      info => `${info.timestamp} ${info.level}: ${JSON.stringify(info.message)}`
+      (info) =>
+        `${info.timestamp} ${info.level}: ${JSON.stringify(info.message)}`
     )
   ),
   transports: [
     new transports.File({
       filename: path.join(logPath, 'error.log'),
-      level: 'error'
+      level: 'error',
     }),
     new transports.File({ filename: path.join(logPath, 'combined.log') }),
-    new SentryTransport({ level: 'error' })
-  ]
+    new SentryTransport({ level: 'error' }),
+  ],
 })
 
 if (!isProd) {

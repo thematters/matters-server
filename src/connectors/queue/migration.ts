@@ -6,7 +6,7 @@ import {
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
   QUEUE_NAME,
-  QUEUE_PRIORITY
+  QUEUE_PRIORITY,
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
@@ -27,7 +27,7 @@ class MigrationQueue extends BaseQueue {
     type,
     userId,
     htmls,
-    delay = MIGRATION_DELAY
+    delay = MIGRATION_DELAY,
   }: {
     type: string
     userId: string
@@ -40,7 +40,7 @@ class MigrationQueue extends BaseQueue {
       {
         delay,
         priority: QUEUE_PRIORITY.NORMAL,
-        removeOnComplete: true
+        removeOnComplete: true,
       }
     )
   }
@@ -72,7 +72,7 @@ class MigrationQueue extends BaseQueue {
           }
 
           const {
-            id: entityTypeId
+            id: entityTypeId,
           } = await this.systemService.baseFindEntityTypeId('draft')
           if (!entityTypeId) {
             job.progress(100)
@@ -97,7 +97,7 @@ class MigrationQueue extends BaseQueue {
                 const {
                   title,
                   content,
-                  assets
+                  assets,
                 } = await this.userService.medium.convertRawHTML(html)
 
                 // put draft
@@ -106,18 +106,18 @@ class MigrationQueue extends BaseQueue {
                   uuid: v4(),
                   title,
                   summary: content && makeSummary(content),
-                  content: content && sanitize(content)
+                  content: content && sanitize(content),
                 })
 
                 // add asset and assetmap
                 const result = await Promise.all(
-                  assets.map(asset =>
+                  assets.map((asset) =>
                     this.systemService.createAssetAndAssetMap(
                       {
                         uuid: asset.uuid,
                         authorId: userId,
                         type: 'embed',
-                        path: asset.key
+                        path: asset.key,
                       },
                       entityTypeId,
                       draft.id
@@ -136,8 +136,8 @@ class MigrationQueue extends BaseQueue {
             language: user.language,
             recipient: {
               displayName: user.displayName,
-              userName: user.userName
-            }
+              userName: user.userName,
+            },
           })
 
           job.progress(100)

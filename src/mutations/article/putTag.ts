@@ -6,7 +6,7 @@ import {
   DuplicateTagError,
   ForbiddenError,
   TagNotFoundError,
-  UserInputError
+  UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToPutTagResolver } from 'definitions'
@@ -43,14 +43,14 @@ const resolver: MutationToPutTagResolver = async (
     const newTag = await tagService.create({
       content: tagContent,
       description,
-      editors: [viewer.id]
+      editors: [viewer.id],
     })
 
     // add tag into search engine
     await tagService.addToSearch({
       id: newTag.id,
       content: newTag.content,
-      description: newTag.description
+      description: newTag.description,
     })
     return newTag
   } else {
@@ -85,7 +85,7 @@ const resolver: MutationToPutTagResolver = async (
     await tagService.updateSearch({
       id: updateTag.id,
       content: updateTag.content,
-      description: updateTag.description
+      description: updateTag.description,
     })
     return updateTag
   }

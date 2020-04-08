@@ -1,7 +1,7 @@
 import {
   defaultFieldResolver,
   GraphQLField,
-  responsePathAsArray
+  responsePathAsArray,
 } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 
@@ -13,7 +13,7 @@ export class ScopeDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field: GraphQLField<any, any>) {
     const { resolve = defaultFieldResolver, name } = field
 
-    field.resolve = async function(...args) {
+    field.resolve = async function (...args) {
       const [{ id }, _, { viewer }, { path }] = args
 
       switch (viewer.scopeMode) {

@@ -209,10 +209,10 @@ const incorrectLikerIds = [
   'Natsuki',
   'EndlessLine',
   'Vincent',
-  'JChan-matters'
+  'JChan-matters',
 ]
 
-exports.up = async knex => {
+exports.up = async (knex) => {
   /**
    * delete incorrect likers to re-generate
    */
@@ -225,17 +225,15 @@ exports.up = async knex => {
     .select()
     .whereIn('liker_id', incorrectLikerIds)
     .update({
-      liker_id: null
+      liker_id: null,
     })
 
   /**
    * delete all `pending_like` to re-transfer
    */
-  await knex(likecoin_table)
-    .select()
-    .update({
-      pending_like: null
-    })
+  await knex(likecoin_table).select().update({
+    pending_like: null,
+  })
 }
 
 exports.down = () => {}

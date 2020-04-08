@@ -10,7 +10,7 @@ export const sendVerificationCode = async ({
   type,
   code,
   recipient,
-  language = 'zh_hant'
+  language = 'zh_hant',
 }: {
   to: string
   type: keyof typeof VERIFICATION_CODE_TYPES
@@ -23,7 +23,7 @@ export const sendVerificationCode = async ({
   const templateId = EMAIL_TEMPLATE_ID.verificationCode[language]
   const codeTypeStr = trans.verificationCode[type](language, {})
   const subject = trans.verificationCode.subject(language, {
-    type: codeTypeStr
+    type: codeTypeStr,
   })
   notificationQueue.sendMail({
     from: environment.emailFromAsk as string,
@@ -37,9 +37,9 @@ export const sendVerificationCode = async ({
           siteDomain: environment.siteDomain,
           code,
           type: codeTypeStr,
-          recipient
-        }
-      }
-    ]
+          recipient,
+        },
+      },
+    ],
   })
 }

@@ -14,6 +14,6 @@ export default {
     setBoost,
     putRemark,
     logRecord,
-    putSkippedListItem
-  }
+    putSkippedListItem,
+  },
 }

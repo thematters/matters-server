@@ -58,7 +58,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
       // TODO: resize image if too large
       const res = await axios.get(url, {
         responseType: 'stream',
-        maxContentLength: UPLOAD_FILE_SIZE_LIMIT
+        maxContentLength: UPLOAD_FILE_SIZE_LIMIT,
       })
       const disposition = res.headers['content-disposition']
       const filename = getFileName(disposition, url)
@@ -67,7 +67,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
         createReadStream: () => res.data,
         mimetype: res.headers['content-type'],
         encoding: 'utf8',
-        filename
+        filename,
       }
     } catch (err) {
       throw new UnableToUploadFromUrl(`Unable to upload from url: ${err}`)
@@ -82,7 +82,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
     uuid,
     authorId: viewer.id,
     type,
-    path: key
+    path: key,
   }
 
   const newAsset = await systemService.createAssetAndAssetMap(
@@ -93,7 +93,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
 
   return {
     ...newAsset,
-    path: `${systemService.aws.s3Endpoint}/${newAsset.path}`
+    path: `${systemService.aws.s3Endpoint}/${newAsset.path}`,
   }
 }
 

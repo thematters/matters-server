@@ -20,7 +20,7 @@ export class TagService extends BaseService {
   find = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    sort
+    sort,
   }: {
     limit?: number
     offset?: number
@@ -29,10 +29,7 @@ export class TagService extends BaseService {
     let query = null
 
     const sortCreatedAt = (by: 'desc' | 'asc') =>
-      this.knex
-        .select()
-        .from(this.table)
-        .orderBy('created_at', by)
+      this.knex.select().from(this.table).orderBy('created_at', by)
 
     if (sort === 'hottest') {
       query = this.knex
@@ -58,15 +55,12 @@ export class TagService extends BaseService {
    *
    */
   findByContent = async ({ content }: { content: string }) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .where({ content })
+    this.knex.select().from(this.table).where({ content })
 
   create = async ({
     content,
     description,
-    editors
+    editors,
   }: {
     content: string
     description?: string
@@ -74,7 +68,7 @@ export class TagService extends BaseService {
   }) =>
     this.baseFindOrCreate({
       where: { content },
-      data: { content, description, editors }
+      data: { content, description, editors },
     })
 
   /*********************************
@@ -86,7 +80,7 @@ export class TagService extends BaseService {
   addToSearch = async ({
     id,
     content,
-    description
+    description,
   }: {
     [key: string]: any
   }) => {
@@ -97,9 +91,9 @@ export class TagService extends BaseService {
           {
             id,
             content,
-            description
-          }
-        ]
+            description,
+          },
+        ],
       })
       return result
     } catch (error) {
@@ -110,7 +104,7 @@ export class TagService extends BaseService {
   updateSearch = async ({
     id,
     content,
-    description
+    description,
   }: {
     [key: string]: any
   }) => {
@@ -119,8 +113,8 @@ export class TagService extends BaseService {
         index: this.table,
         id,
         body: {
-          doc: { content, description }
-        }
+          doc: { content, description },
+        },
       })
       return result
     } catch (error) {
@@ -132,7 +126,7 @@ export class TagService extends BaseService {
     try {
       const result = await this.es.client.delete({
         index: this.table,
-        id
+        id,
       })
       return result
     } catch (error) {
@@ -144,7 +138,7 @@ export class TagService extends BaseService {
     key,
     first = 20,
     offset,
-    oss = false
+    oss = false,
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
     const body = bodybuilder()
       .query('match', 'content', key)
@@ -155,7 +149,7 @@ export class TagService extends BaseService {
     try {
       const result = await this.es.client.search({
         index: this.table,
-        body
+        body,
       })
 
       const { hits } = result.body
@@ -178,7 +172,7 @@ export class TagService extends BaseService {
   recommendTags = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    oss = false
+    oss = false,
   }: {
     limit?: number
     offset?: number
@@ -212,7 +206,7 @@ export class TagService extends BaseService {
     this.baseUpdateOrCreate({
       where: { tagId: id },
       data: { tagId: id, boost, updatedAt: new Date() },
-      table: 'tag_boost'
+      table: 'tag_boost',
     })
 
   findScore = async (tagId: string) => {
@@ -231,7 +225,7 @@ export class TagService extends BaseService {
   createArticleTags = async ({
     articleIds,
     tagIds,
-    selected
+    selected,
   }: {
     articleIds: string[]
     tagIds: string[]
@@ -241,11 +235,11 @@ export class TagService extends BaseService {
     tagIds = _.uniq(tagIds)
 
     const items = _.flatten(
-      articleIds.map(articleId => {
-        return tagIds.map(tagId => ({
+      articleIds.map((articleId) => {
+        return tagIds.map((tagId) => ({
           articleId,
           tagId,
-          ...(selected === true ? { selected } : {})
+          ...(selected === true ? { selected } : {}),
         }))
       })
     )
@@ -258,7 +252,7 @@ export class TagService extends BaseService {
   putArticleTag = async ({
     articleId,
     tagId,
-    data
+    data,
   }: {
     articleId: string
     tagId: string
@@ -274,7 +268,7 @@ export class TagService extends BaseService {
    */
   countArticles = async ({
     id,
-    selected
+    selected,
   }: {
     id: string
     selected?: boolean
@@ -285,7 +279,7 @@ export class TagService extends BaseService {
       .where({
         tagId: id,
         state: ARTICLE_STATE.active,
-        ...(selected === true ? { selected } : {})
+        ...(selected === true ? { selected } : {}),
       })
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -298,7 +292,7 @@ export class TagService extends BaseService {
     id: tagId,
     offset = 0,
     limit = BATCH_SIZE,
-    selected
+    selected,
   }: {
     id: string
     offset?: number
@@ -313,7 +307,7 @@ export class TagService extends BaseService {
       .where({
         tagId,
         state: ARTICLE_STATE.active,
-        ...(selected === true ? { selected } : {})
+        ...(selected === true ? { selected } : {}),
       })
       .limit(limit)
       .offset(offset)
@@ -336,7 +330,7 @@ export class TagService extends BaseService {
 
   deleteArticleTagsByArticleIds = async ({
     articleIds,
-    tagId
+    tagId,
   }: {
     articleIds: string[]
     tagId: string
@@ -348,7 +342,7 @@ export class TagService extends BaseService {
 
   isArticleSelected = async ({
     articleId,
-    tagId
+    tagId,
   }: {
     articleId: string
     tagId: string
@@ -356,7 +350,7 @@ export class TagService extends BaseService {
     const result = await this.knex('article_tag').where({
       articleId,
       tagId,
-      selected: true
+      selected: true,
     })
     return result.length > 0
   }
@@ -368,9 +362,7 @@ export class TagService extends BaseService {
    *********************************/
   deleteTags = async (tagIds: string[]) => {
     // delete article tags
-    await this.knex('article_tag')
-      .whereIn('tag_id', tagIds)
-      .del()
+    await this.knex('article_tag').whereIn('tag_id', tagIds).del()
 
     // delete tags
     await this.baseBatchDelete(tagIds)
@@ -382,7 +374,7 @@ export class TagService extends BaseService {
   mergeTags = async ({
     tagIds,
     content,
-    editors
+    editors,
   }: {
     tagIds: string[]
     content: string
@@ -395,7 +387,7 @@ export class TagService extends BaseService {
     await this.addToSearch({
       id: newTag.id,
       content: newTag.content,
-      description: newTag.description
+      description: newTag.description,
     })
 
     // move article tags to new tag
@@ -403,9 +395,7 @@ export class TagService extends BaseService {
     await this.createArticleTags({ articleIds, tagIds: [newTag.id] })
 
     // delete article tags
-    await this.knex('article_tag')
-      .whereIn('tag_id', tagIds)
-      .del()
+    await this.knex('article_tag').whereIn('tag_id', tagIds).del()
 
     // delete tags
     await this.baseBatchDelete(tagIds)

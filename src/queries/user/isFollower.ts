@@ -10,7 +10,7 @@ const resolver: UserToIsFollowerResolver = async (
   }
   return userService.isFollowing({
     userId: id,
-    targetId: viewer.id
+    targetId: viewer.id,
   })
 }
 

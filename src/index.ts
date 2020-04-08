@@ -22,7 +22,7 @@ Sentry.init({ dsn: environment.sentryDsn || '' })
 // Firebase
 try {
   firebase.initializeApp({
-    credential: firebase.credential.cert(environment.firebaseCert)
+    credential: firebase.credential.cert(environment.firebaseCert),
   })
 } catch (e) {
   console.error(new Date(), 'Failed to initialize admin, skipped')

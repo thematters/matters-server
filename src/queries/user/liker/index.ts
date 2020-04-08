@@ -7,5 +7,5 @@ export default {
   likerId,
   civicLiker,
   total,
-  rateUSD
+  rateUSD,
 }

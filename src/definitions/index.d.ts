@@ -9,7 +9,7 @@ import {
   SystemService,
   TagService,
   NotificationService,
-  OAuthService
+  OAuthService,
 } from 'connectors'
 
 export * from './schema'

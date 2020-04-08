@@ -4,7 +4,7 @@ import nanoid from 'nanoid'
 import {
   AssetNotFoundError,
   AuthenticationError,
-  UserInputError
+  UserInputError,
 } from 'common/errors'
 import logger from 'common/logger'
 import { fromGlobalId } from 'common/utils'
@@ -23,8 +23,8 @@ const resolver: MutationToPutOAuthClientResolver = async (
       grantTypes,
       website,
       redirectURIs,
-      user
-    }
+      user,
+    },
   },
   { viewer, dataSources: { oauthService, systemService } }
 ) => {
@@ -41,7 +41,7 @@ const resolver: MutationToPutOAuthClientResolver = async (
     websiteUrl: website,
     grantTypes,
     redirectUri: redirectURIs,
-    userId: user ? fromGlobalId(user).id : user
+    userId: user ? fromGlobalId(user).id : user,
   }
 
   if (avatar) {
@@ -72,7 +72,7 @@ const resolver: MutationToPutOAuthClientResolver = async (
     if (!secret) {
       oauthClient = {
         ...oauthClient,
-        clientSecret: nanoid(64)
+        clientSecret: nanoid(64),
       }
     }
 
@@ -80,7 +80,7 @@ const resolver: MutationToPutOAuthClientResolver = async (
     if (!grantTypes) {
       oauthClient = {
         ...oauthClient,
-        grantTypes: ['refresh_token', 'authorization_code']
+        grantTypes: ['refresh_token', 'authorization_code'],
       }
     }
   }

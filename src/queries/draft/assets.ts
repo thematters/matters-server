@@ -8,14 +8,14 @@ const resolver: DraftToAssetsResolver = async (
 ) => {
   // gather assets from raw content
   const uuids = (extractAssetDataFromHtml(content) || []).filter(
-    uuid => uuid && uuid !== 'embed'
+    (uuid) => uuid && uuid !== 'embed'
   )
   return (await systemService.baseFindByUUIDs(uuids, 'asset')).map(
     (item: any) => {
       const { path } = item
       return {
         ...item,
-        path: path ? `${systemService.aws.s3Endpoint}/${path}` : null
+        path: path ? `${systemService.aws.s3Endpoint}/${path}` : null,
       }
     }
   )

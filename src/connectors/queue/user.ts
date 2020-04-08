@@ -26,8 +26,8 @@ class UserQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: MINUTE * 2 // every 2 minutes
-        }
+          every: MINUTE * 2, // every 2 minutes
+        },
       }
     )
   }
@@ -38,7 +38,7 @@ class UserQueue extends BaseQueue {
   archiveUser = (data: ArchiveUserData) => {
     return this.q.add(QUEUE_JOB.archiveUser, data, {
       priority: QUEUE_PRIORITY.NORMAL,
-      attempts: 1
+      attempts: 1,
     })
   }
 
@@ -82,12 +82,12 @@ class UserQueue extends BaseQueue {
   private deleteUnlinkedDrafts = async (authorId: string) => {
     const drafts = await this.draftService.findUnlinkedDraftsByAuthor(authorId)
     const {
-      id: draftEntityTypeId
+      id: draftEntityTypeId,
     } = await this.systemService.baseFindEntityTypeId('draft')
 
     // delete assets
     await Promise.all(
-      drafts.map(async draft => {
+      drafts.map(async (draft) => {
         const assetMap = await this.systemService.findAssetMap(
           draftEntityTypeId,
           draft.id
@@ -104,7 +104,7 @@ class UserQueue extends BaseQueue {
     )
 
     // delete drafts
-    await this.draftService.baseBatchDelete(drafts.map(draft => draft.id))
+    await this.draftService.baseBatchDelete(drafts.map((draft) => draft.id))
   }
 
   /**
@@ -144,7 +144,7 @@ class UserQueue extends BaseQueue {
             await this.userService.activate({ id: user.id })
             this.notificationService.trigger({
               event: 'user_activated',
-              recipientId: user.id
+              recipientId: user.id,
             })
             activatedUsers.push(user.id)
             job.progress(((index + 1) / activatableUsers.length) * 100)

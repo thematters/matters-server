@@ -25,12 +25,12 @@ const resolver: MutationToArchiveArticleResolver = async (
   article[CACHE_KEYWORD] = [
     {
       id: article.id,
-      type: NODE_TYPES.article
+      type: NODE_TYPES.article,
     },
     {
       id: article.authorId,
-      type: NODE_TYPES.user
-    }
+      type: NODE_TYPES.user,
+    },
   ]
 
   return article

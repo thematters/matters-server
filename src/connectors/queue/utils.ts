@@ -10,24 +10,24 @@ export const sharedQueueOpts = {
   createClient() {
     return new Redis({
       host: environment.queueHost,
-      port: environment.queuePort
+      port: environment.queuePort,
     })
   },
   defaultJobOptions: {
-    removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small
-  }
+    removeOnComplete: QUEUE_COMPLETED_LIST_SIZE.small,
+  },
 }
 
 export const createQueue = (queueName: string) => {
   const queue = new Queue(queueName, sharedQueueOpts)
 
-  queue.on('error', error => {
+  queue.on('error', (error) => {
     // An error occured.
     logger.error(`Job errored.`)
     logger.info(error)
   })
 
-  queue.on('waiting', jobId => {
+  queue.on('waiting', (jobId) => {
     // A Job is waiting to be processed as soon as a worker is idling.
     logger.info(`Job#${jobId} is waiting.`)
   })
@@ -37,7 +37,7 @@ export const createQueue = (queueName: string) => {
     logger.info(`Job#${job.id} has started.`)
   })
 
-  queue.on('stalled', job => {
+  queue.on('stalled', (job) => {
     // A job has been marked as stalled. This is useful for debugging job
     // workers that crash or pause the event loop.
     logger.error(`Job#${job.id} stalled, processing again.`)
@@ -73,7 +73,7 @@ export const createQueue = (queueName: string) => {
   queue.on('cleaned', (jobs, type) => {
     // Old jobs have been cleaned from the queue. `jobs` is an array of cleaned
     // jobs, and `type` is the type of jobs cleaned.
-    logger.info(`Jobs (${jobs.map(job => `#${job.id}`)} have been cleaned.`)
+    logger.info(`Jobs (${jobs.map((job) => `#${job.id}`)} have been cleaned.`)
   })
 
   queue.on('drained', () => {
@@ -81,7 +81,7 @@ export const createQueue = (queueName: string) => {
     // (even if there can be some delayed jobs not yet processed)
   })
 
-  queue.on('removed', job => {
+  queue.on('removed', (job) => {
     // A job successfully removed.
     logger.info(`Job#${job.id} has been removed.`)
   })

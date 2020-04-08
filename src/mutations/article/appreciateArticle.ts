@@ -1,8 +1,8 @@
 import {
   CACHE_KEYWORD,
   NODE_TYPES,
-  TRANSACTION_TYPES,
-  USER_STATE
+  APPRECIATION_TYPES,
+  USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -10,7 +10,7 @@ import {
   ArticleNotFoundError,
   AuthenticationError,
   ForbiddenError,
-  LikerNotFoundError
+  LikerNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { likeCoinQueue } from 'connectors/queue'
@@ -41,7 +41,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
 
   const appreciateLeft = await articleService.appreciateLeftByUser({
     articleId: dbId,
-    userId: viewer.id
+    userId: viewer.id,
   })
   if (appreciateLeft <= 0) {
     throw new ActionLimitExceededError('too many appreciations')
@@ -67,7 +67,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
       senderId: viewer.id,
       recipientId: article.authorId,
       amount: validAmount,
-      type: TRANSACTION_TYPES.like
+      type: APPRECIATION_TYPES.like,
     })
 
     // record to LikeCoin
@@ -76,7 +76,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
       likerIp: viewer.ip,
       authorLikerId: author.likerId,
       url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
-      amount: validAmount
+      amount: validAmount,
     })
 
     // publish a PubSub event
@@ -91,9 +91,9 @@ const resolver: MutationToAppreciateArticleResolver = async (
         {
           type: 'target',
           entityTable: 'article',
-          entity: article
-        }
-      ]
+          entity: article,
+        },
+      ],
     })
 
     const newArticle = await articleService.dataloader.load(article.id)
@@ -102,12 +102,12 @@ const resolver: MutationToAppreciateArticleResolver = async (
     newArticle[CACHE_KEYWORD] = [
       {
         id: newArticle.id,
-        type: NODE_TYPES.article
+        type: NODE_TYPES.article,
       },
       {
         id: newArticle.authorId,
-        type: NODE_TYPES.user
-      }
+        type: NODE_TYPES.user,
+      },
     ]
 
     return newArticle

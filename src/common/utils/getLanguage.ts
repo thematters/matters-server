@@ -6,14 +6,14 @@ import { LANGUAGE } from 'common/enums'
 export const langMap = {
   [LANGUAGE.zh_hant]: [LANGUAGE.zh_hant, 'zh-HK', 'zh', 'zh-TW'],
   [LANGUAGE.zh_hans]: [LANGUAGE.zh_hans, 'zh-CN'],
-  [LANGUAGE.en]: [LANGUAGE.en, 'en-US']
+  [LANGUAGE.en]: [LANGUAGE.en, 'en-US'],
 }
 
 const langList = _.keys(langMap)
 
 const reverseList = _(langMap)
   .values()
-  .map((list, i) => list.map(lang => ({ [lang]: langList[i] })))
+  .map((list, i) => list.map((lang) => ({ [lang]: langList[i] })))
   .flatten()
   // @ts-ignore
   .merge()
@@ -25,9 +25,13 @@ export const supportList = _.keys(reverseMap)
 
 export const getLanguage = (acceptLanguage: string) => {
   // parse quality values
-  const requestList = acceptLanguage.split(',').map(lang => lang.split(';')[0])
+  const requestList = acceptLanguage
+    .split(',')
+    .map((lang) => lang.split(';')[0])
 
-  const supportIndex = requestList.findIndex(lang => supportList.includes(lang))
+  const supportIndex = requestList.findIndex((lang) =>
+    supportList.includes(lang)
+  )
 
   if (supportIndex >= 0) {
     return reverseMap[requestList[supportIndex]]

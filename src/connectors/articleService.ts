@@ -10,8 +10,8 @@ import {
   ARTICLE_STATE,
   BATCH_SIZE,
   MATERIALIZED_VIEW,
-  TRANSACTION_PURPOSE,
-  USER_ACTION
+  APPRECIATION_PURPOSE,
+  USER_ACTION,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
@@ -21,7 +21,7 @@ import {
   makeSummary,
   outputCleanHTML,
   removeEmpty,
-  stripHtml
+  stripHtml,
 } from 'common/utils'
 import { BaseService, gcp, ipfs, SystemService, UserService } from 'connectors'
 import { GQLSearchInput, ItemData } from 'definitions'
@@ -62,7 +62,7 @@ export class ArticleService extends BaseService {
     const article = await this.baseCreate({
       uuid: v4(),
       wordCount: countWords(articleData.content),
-      ...articleData
+      ...articleData,
     })
     return article
   }
@@ -75,7 +75,7 @@ export class ArticleService extends BaseService {
     title,
     cover,
     summary: draftSummary,
-    content
+    content,
   }: {
     [key: string]: string
   }) => {
@@ -96,7 +96,7 @@ export class ArticleService extends BaseService {
       author: { userName: author.userName, displayName: author.displayName },
       summary,
       content: outputCleanHTML(content),
-      publishedAt: now
+      publishedAt: now,
     })
     const dataHash = await this.ipfs.addHTML(html)
 
@@ -109,11 +109,11 @@ export class ArticleService extends BaseService {
         name: author.userName,
         image: userImg,
         url: `https://matters.news/@${author.userName}`,
-        description: author.description
+        description: author.description,
       },
       dateCreated: now.toISOString(),
       description: summary,
-      image: articleImg
+      image: articleImg,
     }
 
     // add cover to ipfs
@@ -122,7 +122,7 @@ export class ArticleService extends BaseService {
       const coverData = await this.ipfs.getDataAsFile(articleImg, '/')
       if (coverData && coverData.content) {
         const [{ hash }] = await this.ipfs.client.add(coverData.content, {
-          pin: true
+          pin: true,
         })
         mediaObj.cover = { '/': hash }
       }
@@ -133,7 +133,7 @@ export class ArticleService extends BaseService {
     const cid = await this.ipfs.client.dag.put(mediaObjectCleaned, {
       format: 'dag-cbor',
       pin: true,
-      hashAlg: 'sha2-256'
+      hashAlg: 'sha2-256',
     })
     const mediaHash = cid.toBaseEncodedString()
 
@@ -147,7 +147,7 @@ export class ArticleService extends BaseService {
       cover,
       dataHash,
       mediaHash,
-      state: ARTICLE_STATE.active
+      state: ARTICLE_STATE.active,
     })
 
     return article
@@ -163,8 +163,8 @@ export class ArticleService extends BaseService {
         index: this.table,
         id,
         body: {
-          doc: { state: ARTICLE_STATE.archived }
-        }
+          doc: { state: ARTICLE_STATE.archived },
+        },
       })
     } catch (e) {
       logger.error(e)
@@ -173,7 +173,7 @@ export class ArticleService extends BaseService {
     return this.baseUpdate(id, {
       state: ARTICLE_STATE.archived,
       sticky: false,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
   }
 
@@ -189,7 +189,7 @@ export class ArticleService extends BaseService {
     if (stickyFirst === true) {
       query.orderBy([
         { column: 'sticky', order: 'desc' },
-        { column: 'id', order: 'desc' }
+        { column: 'id', order: 'desc' },
       ])
     } else {
       query.orderBy('id', 'desc')
@@ -202,20 +202,13 @@ export class ArticleService extends BaseService {
    * Find article by media hash
    */
   findByMediaHash = async (mediaHash: string) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .where({ mediaHash })
-      .first()
+    this.knex.select().from(this.table).where({ mediaHash }).first()
 
   /**
    * Find article by which set as sticky.
    */
   findBySticky = async (authorId: string, sticky: boolean) =>
-    this.knex
-      .select('id')
-      .from(this.table)
-      .where({ authorId, sticky: true })
+    this.knex.select('id').from(this.table).where({ authorId, sticky: true })
 
   /**
    * Find articles by which commented by author.
@@ -234,10 +227,7 @@ export class ArticleService extends BaseService {
    * Count articles by a given authorId (user).
    */
   countByAuthor = async (authorId: string, activeOnly: boolean = true) => {
-    let qs = this.knex(this.table)
-      .where({ authorId })
-      .count()
-      .first()
+    let qs = this.knex(this.table).where({ authorId }).count().first()
 
     if (activeOnly) {
       qs = qs.where({ state: ARTICLE_STATE.active })
@@ -296,9 +286,9 @@ export class ArticleService extends BaseService {
           ...article,
           content: stripHtml(article.content),
           factor: ALS_DEFAULT_VECTOR.factor,
-          embedding_vector: ALS_DEFAULT_VECTOR.embedding
+          embedding_vector: ALS_DEFAULT_VECTOR.embedding,
         })
-      )
+      ),
     })
   }
 
@@ -308,7 +298,7 @@ export class ArticleService extends BaseService {
     content,
     userName,
     displayName,
-    tags
+    tags,
   }: {
     [key: string]: string
   }) => {
@@ -323,9 +313,9 @@ export class ArticleService extends BaseService {
           displayName,
           tags,
           factor: ALS_DEFAULT_VECTOR.factor,
-          embedding_vector: ALS_DEFAULT_VECTOR.embedding
-        }
-      ]
+          embedding_vector: ALS_DEFAULT_VECTOR.embedding,
+        },
+      ],
     })
     return result
   }
@@ -334,7 +324,7 @@ export class ArticleService extends BaseService {
     key,
     first = 20,
     offset,
-    oss = false
+    oss = false,
   }: GQLSearchInput & { offset: number; oss?: boolean }) => {
     const searchBody = bodybuilder()
       .query('multi_match', {
@@ -345,9 +335,9 @@ export class ArticleService extends BaseService {
           'title^10',
           'title.synonyms^5',
           'content^2',
-          'content.synonyms'
+          'content.synonyms',
         ],
-        type: 'most_fields'
+        type: 'most_fields',
       })
       .from(offset)
       .size(first)
@@ -360,7 +350,7 @@ export class ArticleService extends BaseService {
     try {
       const { body } = await this.es.client.search({
         index: this.table,
-        body: searchBody.build()
+        body: searchBody.build(),
       })
       const { hits } = body
       const ids = hits.hits.map(({ _id }: { _id: any }) => _id)
@@ -368,7 +358,7 @@ export class ArticleService extends BaseService {
 
       return {
         nodes,
-        totalCount: hits.total.value
+        totalCount: hits.total.value,
       }
     } catch (err) {
       logger.error(err)
@@ -388,7 +378,7 @@ export class ArticleService extends BaseService {
     limit = BATCH_SIZE,
     offset = 0,
     where = {},
-    oss = false
+    oss = false,
   }: {
     limit?: number
     offset?: number
@@ -411,14 +401,14 @@ export class ArticleService extends BaseService {
       .leftJoin('article', 'view.id', 'article.id')
       .orderBy([
         { column: 'score', order: 'desc' },
-        { column: 'view.id', order: 'desc' }
+        { column: 'view.id', order: 'desc' },
       ])
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
       .limit(limit)
       .offset(offset)
 
     if (!oss) {
-      qs = qs.andWhere(function() {
+      qs = qs.andWhere(function () {
         this.where({ inHottest: true }).orWhereNull('in_hottest')
       })
     }
@@ -431,7 +421,7 @@ export class ArticleService extends BaseService {
     limit = BATCH_SIZE,
     offset = 0,
     where = {},
-    oss = false
+    oss = false,
   }: {
     limit?: number
     offset?: number
@@ -451,7 +441,7 @@ export class ArticleService extends BaseService {
       .offset(offset)
 
     if (!oss) {
-      qs = qs.andWhere(function() {
+      qs = qs.andWhere(function () {
         this.where({ inNewest: true }).orWhereNull('in_newest')
       })
     }
@@ -463,7 +453,7 @@ export class ArticleService extends BaseService {
   recommendToday = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    where = {}
+    where = {},
   }: {
     limit?: number
     offset?: number
@@ -485,7 +475,7 @@ export class ArticleService extends BaseService {
 
   recommendIcymi = async ({
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     limit?: number
     offset?: number
@@ -502,7 +492,7 @@ export class ArticleService extends BaseService {
     limit = BATCH_SIZE,
     offset = 0,
     where = {},
-    oss = false
+    oss = false,
   }: {
     limit?: number
     offset?: number
@@ -526,7 +516,7 @@ export class ArticleService extends BaseService {
   related = async ({
     id,
     size,
-    notIn = []
+    notIn = [],
   }: {
     id: string
     size: number
@@ -540,7 +530,7 @@ export class ArticleService extends BaseService {
     // get vector score
     const scoreResult = await this.es.client.get({
       index: this.table,
-      id
+      id,
     })
 
     const factorString = _.get(scoreResult.body, '_source.embedding_vector')
@@ -560,10 +550,10 @@ export class ArticleService extends BaseService {
             params: {
               cosine: true,
               field: 'embedding_vector',
-              encoded_vector: factorString
-            }
-          }
-        }
+              encoded_vector: factorString,
+            },
+          },
+        },
       })
       .filter('term', { state: ARTICLE_STATE.active })
       .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor })
@@ -573,7 +563,7 @@ export class ArticleService extends BaseService {
 
     const { body } = await this.es.client.search({
       index: this.table,
-      body: searchBody
+      body: searchBody,
     })
     // add recommendation
     return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
@@ -631,7 +621,7 @@ export class ArticleService extends BaseService {
 
   countRecommendHottest = async ({
     where = {},
-    oss = false
+    oss = false,
   }: {
     where?: { [key: string]: any }
     oss?: boolean
@@ -654,7 +644,7 @@ export class ArticleService extends BaseService {
       .first()
 
     if (!oss) {
-      qs = qs.andWhere(function() {
+      qs = qs.andWhere(function () {
         this.where({ inHottest: true }).orWhereNull('in_hottest')
       })
     }
@@ -664,7 +654,7 @@ export class ArticleService extends BaseService {
 
   countRecommendNewest = async ({
     where = {},
-    oss = false
+    oss = false,
   }: {
     where?: { [key: string]: any }
     oss?: boolean
@@ -680,7 +670,7 @@ export class ArticleService extends BaseService {
       .first()
 
     if (!oss) {
-      qs = qs.andWhere(function() {
+      qs = qs.andWhere(function () {
         this.where({ inNewest: true }).orWhereNull('in_newest')
       })
     }
@@ -709,7 +699,7 @@ export class ArticleService extends BaseService {
     this.baseUpdateOrCreate({
       where: { articleId: id },
       data: { articleId: id, boost, updatedAt: new Date() },
-      table: 'article_boost'
+      table: 'article_boost',
     })
 
   findScore = async (articleId: string) => {
@@ -727,7 +717,7 @@ export class ArticleService extends BaseService {
     this.baseFindOrCreate({
       where: { articleId },
       data: { articleId },
-      table: 'matters_today'
+      table: 'matters_today',
     })
 
   updateRecommendToday = async (
@@ -737,25 +727,21 @@ export class ArticleService extends BaseService {
     this.baseUpdateOrCreate({
       where: { articleId },
       data,
-      table: 'matters_today'
+      table: 'matters_today',
     })
 
   removeRecommendToday = async (articleId: string) =>
-    this.knex('matters_today')
-      .where({ articleId })
-      .del()
+    this.knex('matters_today').where({ articleId }).del()
 
   addRecommendIcymi = async (articleId: string) =>
     this.baseFindOrCreate({
       where: { articleId },
       data: { articleId },
-      table: 'matters_choice'
+      table: 'matters_choice',
     })
 
   removeRecommendIcymi = async (articleId: string) =>
-    this.knex('matters_choice')
-      .where({ articleId })
-      .del()
+    this.knex('matters_choice').where({ articleId }).del()
 
   findRecommendSetting = async (articleId: string) => {
     const setting = await this.knex('article_recommend_setting')
@@ -772,7 +758,7 @@ export class ArticleService extends BaseService {
 
   updateRecommendSetting = async ({
     articleId,
-    data
+    data,
   }: {
     articleId: string
     data: { [key in 'inHottest' | 'inNewest']?: boolean }
@@ -780,7 +766,7 @@ export class ArticleService extends BaseService {
     this.baseUpdateOrCreate({
       where: { articleId },
       data: { ...data, articleId },
-      table: 'article_recommend_setting'
+      table: 'article_recommend_setting',
     })
 
   /*********************************
@@ -794,12 +780,12 @@ export class ArticleService extends BaseService {
   sumAppreciation = async (articleId: string) => {
     const result = await this.knex
       .select()
-      .from('transaction')
+      .from('appreciation')
       .whereIn(
         ['reference_id', 'purpose'],
         [
-          [articleId, TRANSACTION_PURPOSE.appreciate],
-          [articleId, TRANSACTION_PURPOSE.appreciateSubsidy]
+          [articleId, APPRECIATION_PURPOSE.appreciate],
+          [articleId, APPRECIATION_PURPOSE.appreciateSubsidy],
         ]
       )
       .sum('amount')
@@ -810,10 +796,10 @@ export class ArticleService extends BaseService {
   countAppreciation = async (referenceId: string) => {
     const result = await this.knex
       .select()
-      .from('transaction')
+      .from('appreciation')
       .where({
         referenceId,
-        purpose: TRANSACTION_PURPOSE.appreciate
+        purpose: APPRECIATION_PURPOSE.appreciate,
       })
       .count()
       .first()
@@ -825,17 +811,17 @@ export class ArticleService extends BaseService {
    */
   countAppreciationByUserIds = async ({
     articleId,
-    userIds
+    userIds,
   }: {
     articleId: string
     userIds: string[]
   }) => {
     const result = await this.knex
       .select()
-      .from('transaction')
+      .from('appreciation')
       .where({
         referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate
+        purpose: APPRECIATION_PURPOSE.appreciate,
       })
       .whereIn('senderId', userIds)
       .sum('amount')
@@ -844,18 +830,18 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Count an article's transactions by a given articleId.
+   * Count an article's appreciations by a given articleId.
    */
-  countTransactions = async (referenceId: string) => {
+  countAppreciations = async (referenceId: string) => {
     const result = await this.knex
       .select()
       .from((knex: any) => {
         const source = knex
           .select('reference_id', 'sender_id')
-          .from('transaction')
+          .from('appreciation')
           .where({
             referenceId,
-            purpose: TRANSACTION_PURPOSE.appreciate
+            purpose: APPRECIATION_PURPOSE.appreciate,
           })
           .groupBy('sender_id', 'reference_id')
         source.as('source')
@@ -869,20 +855,20 @@ export class ArticleService extends BaseService {
   /**
    * Find an article's appreciations by a given articleId.
    */
-  findTransactions = async ({
+  findAppreciations = async ({
     referenceId,
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     referenceId: string
     limit?: number
     offset?: number
   }) => {
-    const result = await this.knex('transaction')
+    const result = await this.knex('appreciation')
       .select('reference_id', 'sender_id')
       .where({
         referenceId,
-        purpose: TRANSACTION_PURPOSE.appreciate
+        purpose: APPRECIATION_PURPOSE.appreciate,
       })
       .groupBy('sender_id', 'reference_id')
       .sum('amount as amount')
@@ -895,17 +881,17 @@ export class ArticleService extends BaseService {
 
   appreciateLeftByUser = async ({
     articleId,
-    userId
+    userId,
   }: {
     articleId: string
     userId: string
   }) => {
-    const appreciations = await this.knex('transaction')
+    const appreciations = await this.knex('appreciation')
       .select()
       .where({
         senderId: userId,
         referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate
+        purpose: APPRECIATION_PURPOSE.appreciate,
       })
       .sum('amount as total')
     const total = _.get(appreciations, '0.total', 0)
@@ -915,18 +901,16 @@ export class ArticleService extends BaseService {
 
   hasAppreciate = async ({
     userId: senderId,
-    articleId
+    articleId,
   }: {
     userId: string
     articleId: string
   }) => {
-    const result = await this.knex('transaction')
-      .select()
-      .where({
-        senderId,
-        referenceId: articleId,
-        purpose: TRANSACTION_PURPOSE.appreciate
-      })
+    const result = await this.knex('appreciation').select().where({
+      senderId,
+      referenceId: articleId,
+      purpose: APPRECIATION_PURPOSE.appreciate,
+    })
     return result.length > 0
   }
 
@@ -938,7 +922,7 @@ export class ArticleService extends BaseService {
     senderId,
     recipientId,
     amount,
-    type
+    type,
   }: {
     articleId: string
     senderId: string
@@ -950,12 +934,12 @@ export class ArticleService extends BaseService {
       senderId,
       recipientId,
       referenceId: articleId,
-      purpose: TRANSACTION_PURPOSE.appreciate,
-      type
+      purpose: APPRECIATION_PURPOSE.appreciate,
+      type,
     }
 
-    // find transaction within 1 minutes and bundle
-    const bundle = await this.knex('transaction')
+    // find appreciations within 1 minutes and bundle
+    const bundle = await this.knex('appreciation')
       .select()
       .where(appreciation)
       .andWhere(
@@ -969,21 +953,21 @@ export class ArticleService extends BaseService {
     let result
 
     if (bundle) {
-      result = await this.knex('transaction')
+      result = await this.knex('appreciation')
         .where({ id: bundle.id })
         .update({
           amount: bundle.amount + amount,
-          createdAt: this.knex.fn.now()
+          createdAt: this.knex.fn.now(),
         })
     } else {
       const uuid = v4()
-      result = await this.knex('transaction')
+      result = await this.knex('appreciation')
         .insert({
           ...appreciation,
           uuid,
-          amount
+          amount,
         })
-        .into('transaction')
+        .into('appreciation')
         .returning('*')
     }
 
@@ -999,7 +983,7 @@ export class ArticleService extends BaseService {
    * Find tages by a given article id.
    */
   findTagIds = async ({
-    id: articleId
+    id: articleId,
   }: {
     id: string
   }): Promise<any | null> => {
@@ -1022,7 +1006,7 @@ export class ArticleService extends BaseService {
   findSubscriptions = async ({
     id: targetId,
     limit,
-    offset = 0
+    offset = 0,
   }: {
     id: string
     limit?: number
@@ -1048,7 +1032,7 @@ export class ArticleService extends BaseService {
 
   isSubscribed = async ({
     userId,
-    targetId
+    targetId,
   }: {
     userId: string
     targetId: string
@@ -1067,12 +1051,12 @@ export class ArticleService extends BaseService {
     const data = {
       targetId,
       userId,
-      action: USER_ACTION.subscribe
+      action: USER_ACTION.subscribe,
     }
     return this.baseUpdateOrCreate({
       where: data,
       data: { updatedAt: new Date(), ...data },
-      table: 'action_article'
+      table: 'action_article',
     })
   }
 
@@ -1085,7 +1069,7 @@ export class ArticleService extends BaseService {
       .where({
         targetId,
         userId,
-        action: USER_ACTION.subscribe
+        action: USER_ACTION.subscribe,
       })
       .del()
 
@@ -1095,7 +1079,7 @@ export class ArticleService extends BaseService {
       .where({
         targetId,
         userId,
-        action: USER_ACTION.subscribe
+        action: USER_ACTION.subscribe,
       })
       .first()
 
@@ -1110,7 +1094,7 @@ export class ArticleService extends BaseService {
   read = async ({
     articleId,
     userId,
-    ip
+    ip,
   }: {
     articleId: string
     userId?: string | null
@@ -1123,11 +1107,11 @@ export class ArticleService extends BaseService {
         updated_at: new Date(),
         count: this.knex.raw('count + 1'),
         archived: false,
-        ip
+        ip,
       },
       where: { articleId, userId },
       table: 'article_read_count',
-      createOptions: { count: 1 }
+      createOptions: { count: 1 },
     })
 
   /*********************************
@@ -1144,7 +1128,7 @@ export class ArticleService extends BaseService {
     category,
     description,
     contact,
-    assetIds
+    assetIds,
   }: {
     articleId?: string
     userId?: string | null
@@ -1160,7 +1144,7 @@ export class ArticleService extends BaseService {
         articleId,
         category,
         description,
-        contact
+        contact,
       },
       'report'
     )
@@ -1168,9 +1152,9 @@ export class ArticleService extends BaseService {
     if (!assetIds || assetIds.length <= 0) {
       return
     }
-    const reportAssets = assetIds.map(assetId => ({
+    const reportAssets = assetIds.map((assetId) => ({
       reportId,
-      assetId
+      assetId,
     }))
     await this.baseBatchCreate(reportAssets, 'report_asset')
   }
@@ -1186,7 +1170,7 @@ export class ArticleService extends BaseService {
    */
   createCollection = async ({
     entranceId,
-    articleIds
+    articleIds,
   }: {
     articleIds: string[]
     entranceId: string
@@ -1196,7 +1180,7 @@ export class ArticleService extends BaseService {
       articleId,
       order: index,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     }))
     return this.baseBatchCreate(items, 'collection')
   }
@@ -1207,7 +1191,7 @@ export class ArticleService extends BaseService {
   insertCollection = async ({
     entranceId,
     articleId,
-    order
+    order,
   }: {
     entranceId: string
     articleId: string
@@ -1219,7 +1203,7 @@ export class ArticleService extends BaseService {
         articleId,
         order,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       'collection'
     )
@@ -1230,7 +1214,7 @@ export class ArticleService extends BaseService {
   updateCollectionOrder = async ({
     entranceId,
     articleId,
-    order
+    order,
   }: {
     entranceId: string
     articleId: string
@@ -1261,7 +1245,7 @@ export class ArticleService extends BaseService {
    */
   deleteCollectionByArticleIds = async ({
     entranceId,
-    articleIds
+    articleIds,
   }: {
     entranceId: string
     articleIds: string[]
@@ -1276,15 +1260,12 @@ export class ArticleService extends BaseService {
    */
   findCollection = async ({
     entranceId,
-    articleId
+    articleId,
   }: {
     entranceId: string | number
     articleId: string
   }) =>
-    this.knex('collection')
-      .select()
-      .where({ entranceId, articleId })
-      .first()
+    this.knex('collection').select().where({ entranceId, articleId }).first()
 
   /**
    * Find an article's collections by a given article id.
@@ -1292,7 +1273,7 @@ export class ArticleService extends BaseService {
   findCollections = async ({
     entranceId,
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     entranceId: string
     limit?: number | null
@@ -1318,7 +1299,7 @@ export class ArticleService extends BaseService {
   findCollectedBy = async ({
     articleId,
     limit = BATCH_SIZE,
-    offset = 0
+    offset = 0,
   }: {
     articleId: string
     limit?: number
@@ -1361,7 +1342,7 @@ export class ArticleService extends BaseService {
       .rightJoin('article', 'collection.entrance_id', 'article.id')
       .where({
         'collection.article_id': id,
-        'article.state': ARTICLE_STATE.active
+        'article.state': ARTICLE_STATE.active,
       })
       .countDistinct('entrance_id')
       .first()
@@ -1380,7 +1361,7 @@ export class ArticleService extends BaseService {
     order,
     state,
     fields = '*',
-    articleOnly = false
+    articleOnly = false,
   }: {
     id: string
     order: string
@@ -1431,7 +1412,7 @@ export class ArticleService extends BaseService {
     entityId,
     order,
     state,
-    articleOnly
+    articleOnly,
   }: {
     id: string
     entityId: string
@@ -1444,7 +1425,7 @@ export class ArticleService extends BaseService {
       order,
       state,
       fields: 'seq',
-      articleOnly
+      articleOnly,
     })
     return query.where({ entityId }).first()
   }
@@ -1458,7 +1439,7 @@ export class ArticleService extends BaseService {
     first,
     includeAfter = false,
     includeBefore = false,
-    articleOnly = false
+    articleOnly = false,
   }: {
     id: string
     order?: string
@@ -1477,7 +1458,7 @@ export class ArticleService extends BaseService {
         order,
         state,
         entityId: after,
-        articleOnly
+        articleOnly,
       })
       if (includeAfter) {
         query.andWhere('seq', order === 'asc' ? '>=' : '<=', subQuery)
@@ -1490,7 +1471,7 @@ export class ArticleService extends BaseService {
         id,
         order,
         state,
-        entityId: before
+        entityId: before,
       })
       if (includeBefore) {
         query.andWhere('seq', order === 'asc' ? '<=' : '>=', subQuery)
@@ -1507,7 +1488,7 @@ export class ArticleService extends BaseService {
   responseRange = async ({
     id,
     order,
-    state
+    state,
   }: {
     id: string
     order: string
@@ -1522,14 +1503,14 @@ export class ArticleService extends BaseService {
     return {
       count: parseInt(count, 10),
       max: parseInt(max, 10),
-      min: parseInt(min, 10)
+      min: parseInt(min, 10),
     }
   }
 
   countByResponses = async ({
     id,
     order = 'desc',
-    state = ARTICLE_STATE.active
+    state = ARTICLE_STATE.active,
   }: {
     id: string
     order?: string
@@ -1551,7 +1532,7 @@ export class ArticleService extends BaseService {
   findTopAppreciations = async ({
     limit = BATCH_SIZE,
     offset = 0,
-    since
+    since,
   }: {
     limit?: number
     offset?: number
@@ -1564,10 +1545,10 @@ export class ArticleService extends BaseService {
         this.knex
           .select('referenceId')
           .sum('amount', { as: 'total' })
-          .from('transaction')
+          .from('appreciation')
           .whereIn('purpose', [
-            TRANSACTION_PURPOSE.appreciate,
-            TRANSACTION_PURPOSE.appreciateSubsidy
+            APPRECIATION_PURPOSE.appreciate,
+            APPRECIATION_PURPOSE.appreciateSubsidy,
           ])
           .groupBy('referenceId')
           .orderBy('total', 'desc')

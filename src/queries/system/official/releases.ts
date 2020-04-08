@@ -15,7 +15,7 @@ export const releases: OfficialToReleasesResolver = (
       version: '1.0.0',
       latest: true,
       forceUpdate: true,
-      releasedAt: new Date()
-    }
+      releasedAt: new Date(),
+    },
   ]
 }

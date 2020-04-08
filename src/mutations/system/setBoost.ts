@@ -10,7 +10,7 @@ const resolver: MutationToSetBoostResolver = async (
   const serviceMap = {
     Article: articleService,
     User: userService,
-    Tag: tagService
+    Tag: tagService,
   }
 
   const { id: dbId } = fromGlobalId(id)

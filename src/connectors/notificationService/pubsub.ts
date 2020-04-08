@@ -14,8 +14,8 @@ class PubSub {
         retryStrategy: (times: number) => {
           // reconnect after
           return Math.max(times * 100, 3000)
-        }
-      }
+        },
+      },
     })
   }
 

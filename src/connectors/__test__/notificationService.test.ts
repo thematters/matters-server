@@ -43,16 +43,16 @@ describe('user notify setting', () => {
     article_reported: false,
     article_tag_has_been_added: true,
     article_tag_has_been_removed: true,
-    article_tag_has_been_unselected: true
+    article_tag_has_been_unselected: true,
   }
 
   test('user receives notifications', async () => {
     await Promise.all(
-      NOTIFICATION_TYPES.map(async type => {
+      NOTIFICATION_TYPES.map(async (type) => {
         const notifySetting = await userService.findNotifySetting(recipientId)
         const enable = await notificationService.notice.checkUserNotifySetting({
           event: type,
-          setting: notifySetting
+          setting: notifySetting,
         })
         expect(enable).toBe(defaultNoifySetting[type])
       })
@@ -64,10 +64,10 @@ describe('user notify setting', () => {
     await userService.updateNotifySetting(notifySetting.id, { follow: false })
     const newNotifySetting = await userService.findNotifySetting(recipientId)
     await Promise.all(
-      NOTIFICATION_TYPES.map(async type => {
+      NOTIFICATION_TYPES.map(async (type) => {
         const enable = await notificationService.notice.checkUserNotifySetting({
           event: type,
-          setting: newNotifySetting
+          setting: newNotifySetting,
         })
         expect(enable).toBe(
           type === 'user_new_follower' ? false : defaultNoifySetting[type]
@@ -84,7 +84,7 @@ const getBundleableUserNewFollowerNotice = async () => {
   const bundleables = await notificationService.notice.findBundleables({
     type: 'user_new_follower',
     actorId: '4',
-    recipientId
+    recipientId,
   })
   return bundleables[0]
 }
@@ -95,7 +95,7 @@ describe('find notice', () => {
   })
   test('find many notices', async () => {
     const notices = await notificationService.notice.findByUser({
-      userId: recipientId
+      userId: recipientId,
     })
     expect(notices.length).toBeGreaterThan(5)
   })
@@ -115,8 +115,8 @@ describe('bundle notices', () => {
       recipientId,
       entities: [
         { type: 'target', entityTable: 'article', entity: { id: '1' } },
-        { type: 'downstream', entityTable: 'article', entity: { id: '3' } }
-      ]
+        { type: 'downstream', entityTable: 'article', entity: { id: '3' } },
+      ],
     })
     expect(bundleables.length).toBe(0)
   })
@@ -130,9 +130,9 @@ describe('bundle notices', () => {
     expect(noticeActors.length).toBe(2)
     await notificationService.notice.addNoticeActor({
       noticeId: notice.id,
-      actorId: '4'
+      actorId: '4',
     })
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
     const notice2Actors = await notificationService.notice.findActors(notice.id)
     expect(notice2Actors.length).toBe(3)
   })
@@ -145,7 +145,7 @@ describe('bundle notices', () => {
     try {
       await notificationService.notice.addNoticeActor({
         noticeId: notice.id,
-        actorId: '2'
+        actorId: '2',
       })
     } catch (e) {
       expect(() => {

@@ -68,7 +68,7 @@ export const USER_ACTION = {
   finish: 'finish',
 }
 
-export const TRANSACTION_PURPOSE = {
+export const APPRECIATION_PURPOSE = {
   appreciate: 'appreciate',
   appreciateComment: 'appreciate-comment',
   appreciateSubsidy: 'appreciate-subsidy',
@@ -516,7 +516,7 @@ export const CACHE_PREFIX = {
   OPERATION_LOG: 'operation-log',
 }
 
-export const TRANSACTION_TYPES = {
+export const APPRECIATION_TYPES = {
   like: 'LIKE',
   mat: 'MAT',
 }

@@ -1,7 +1,7 @@
 import {
   ArticleNotFoundError,
   AssetNotFoundError,
-  UserInputError
+  UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToReportArticleResolver } from 'definitions'
@@ -15,8 +15,8 @@ const resolver: MutationToReportArticleResolver = async (
       userService,
       articleService,
       systemService,
-      notificationService
-    }
+      notificationService,
+    },
   }
 ) => {
   if (!viewer.id && !contact) {
@@ -45,7 +45,7 @@ const resolver: MutationToReportArticleResolver = async (
     category,
     description,
     contact,
-    assetIds
+    assetIds,
   })
 
   // trigger notification
@@ -53,7 +53,7 @@ const resolver: MutationToReportArticleResolver = async (
   notificationService.trigger({
     event: 'article_reported',
     entities: [{ type: 'target', entityTable: 'article', entity: article }],
-    recipientId: articleAuthor.id
+    recipientId: articleAuthor.id,
   })
 
   return true

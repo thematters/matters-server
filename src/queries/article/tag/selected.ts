@@ -22,7 +22,7 @@ const resolver: TagToSelectedResolver = async (
 
   return tagService.isArticleSelected({
     articleId,
-    tagId: id
+    tagId: id,
   })
 }
 

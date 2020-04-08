@@ -2,7 +2,7 @@ const { v4 } = require('uuid')
 
 const table = 'asset_map'
 
-exports.seed = async knex => {
+exports.seed = async (knex) => {
   /**
    * prepare seeds
    */
@@ -22,32 +22,32 @@ exports.seed = async knex => {
     {
       asset_id: '1',
       entity_type_id: userTypeId,
-      entity_id: '1'
+      entity_id: '1',
     },
     {
       asset_id: '2',
       entity_type_id: userTypeId,
-      entity_id: '2'
+      entity_id: '2',
     },
     {
       asset_id: '3',
       entity_type_id: userTypeId,
-      entity_id: '3'
+      entity_id: '3',
     },
     {
       asset_id: '4',
       entity_type_id: articleTypeId,
-      entity_id: '1'
+      entity_id: '1',
     },
     {
       asset_id: '5',
       entity_type_id: articleTypeId,
-      entity_id: '2'
+      entity_id: '2',
     },
     {
       asset_id: '6',
       entity_type_id: articleTypeId,
-      entity_id: '3'
-    }
+      entity_id: '3',
+    },
   ])
 }

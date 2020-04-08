@@ -8,13 +8,13 @@ const schema = fs.readFileSync('schema.graphql', { encoding: 'utf8' })
 
 generateTypeScriptTypes(schema, 'src/definitions/schema.d.ts', {
   contextType: 'Context',
-  importStatements: ["import { Context } from './index'"]
+  importStatements: ["import { Context } from './index'"],
 })
   .then(() => {
     logger.info('DONE')
     process.exit(0)
   })
-  .catch(err => {
+  .catch((err) => {
     logger.error(err)
     process.exit(1)
   })

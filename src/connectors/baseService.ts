@@ -61,7 +61,7 @@ export class BaseService extends DataSource {
       .from(table || this.table)
       .whereIn('id', ids as string[])
 
-    rows = ids.map(id => rows.find((r: any) => r.id === id))
+    rows = ids.map((id) => rows.find((r: any) => r.id === id))
 
     return rows
   }
@@ -95,7 +95,7 @@ export class BaseService extends DataSource {
       .from(table || this.table)
       .whereIn('uuid', uuids as string[])
 
-    rows = uuids.map(uuid => rows.find((r: any) => r.uuid === uuid))
+    rows = uuids.map((uuid) => rows.find((r: any) => r.uuid === uuid))
 
     return rows
   }
@@ -107,7 +107,7 @@ export class BaseService extends DataSource {
     where,
     offset = 0,
     limit = BATCH_SIZE,
-    table
+    table,
   }: {
     where?: { [key: string]: any }
     offset?: number
@@ -161,7 +161,7 @@ export class BaseService extends DataSource {
     where,
     data,
     table,
-    createOptions
+    createOptions,
   }: {
     where: { [key: string]: any }
     data: ItemData
@@ -169,10 +169,7 @@ export class BaseService extends DataSource {
     createOptions?: { [key: string]: any }
   }) => {
     const tableName = table || this.table
-    const item = await this.knex(tableName)
-      .select()
-      .where(where)
-      .first()
+    const item = await this.knex(tableName).select().where(where).first()
 
     // create
     if (!item) {
@@ -198,17 +195,14 @@ export class BaseService extends DataSource {
   baseFindOrCreate = async ({
     where,
     data,
-    table
+    table,
   }: {
     where: { [key: string]: any }
     data: ItemData
     table?: TableName
   }) => {
     const tableName = table || this.table
-    const item = await this.knex(tableName)
-      .select()
-      .where(where)
-      .first()
+    const item = await this.knex(tableName).select().where(where).first()
 
     // create
     if (!item) {
@@ -281,8 +275,5 @@ export class BaseService extends DataSource {
    * Find entity type id by a given type string.
    */
   baseFindEntityTypeId = async (entityType: string) =>
-    this.knex('entity_type')
-      .select('id')
-      .where({ table: entityType })
-      .first()
+    this.knex('entity_type').select('id').where({ table: entityType }).first()
 }

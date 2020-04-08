@@ -15,7 +15,7 @@ export const comments: OSSToCommentsResolver = async (
   return connectionFromPromisedArray(
     commentService.baseFind({
       offset,
-      limit: first
+      limit: first,
     }),
     connectionArgs,
     totalCount
