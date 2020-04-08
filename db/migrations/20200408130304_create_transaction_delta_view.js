@@ -1,11 +1,8 @@
 const table = 'transaction_delta_view'
 
 exports.up = async (knex) => {
-  try {
-    await knex.raw( /*sql*/ `drop view ${table}`)
-  } catch (e) {
-    console.error(`failed to drop view ${table}`)
-  }
+  await knex.raw( /*sql*/ `DROP view IF EXISTS ${table}`)
+
 
   await knex.raw( /*sql*/ `
     create view ${table} as

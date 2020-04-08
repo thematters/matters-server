@@ -2,14 +2,98 @@ import bodyParser from 'body-parser'
 import { Router } from 'express'
 import Stripe from 'stripe'
 
-import { TRANSACTION_STATE } from 'common/enums'
+import {
+  PAYMENT_CURRENCY,
+  PAYMENT_PROVIDER,
+  TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import { PaymentService } from 'connectors'
+
+const paymentService = new PaymentService()
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-03-02',
 })
+
 const stripeRouter = Router()
+
+const updateTxState = async (
+  paymentIntent: Stripe.PaymentIntent,
+  eventType:
+    | 'payment_intent.canceled'
+    | 'payment_intent.payment_failed'
+    | 'payment_intent.processing'
+    | 'payment_intent.succeeded'
+) => {
+  // find transaction by payment intent id
+  const transaction = (
+    await paymentService.findTransactions({
+      providerTxId: paymentIntent.id,
+    })
+  )[0]
+
+  if (!transaction) {
+    return
+  }
+
+  // update transaction's state
+  const eventStateMap = {
+    'payment_intent.canceled': TRANSACTION_STATE.canceled,
+    'payment_intent.payment_failed': TRANSACTION_STATE.failed,
+    'payment_intent.processing': TRANSACTION_STATE.pending,
+    'payment_intent.succeeded': TRANSACTION_STATE.succeeded,
+  }
+
+  await paymentService.updateTransaction({
+    id: transaction.id,
+    state: eventStateMap[eventType],
+  })
+}
+
+const createRefundTxs = async (refunds: Stripe.ApiList<Stripe.Refund>) => {
+  await Promise.all(
+    refunds.data.map(async (refund) => {
+      const refundTx = (
+        await paymentService.findTransactions({
+          providerTxId: refund.id,
+        })
+      )[0]
+
+      // skip if refund transaction exists
+      if (refundTx) {
+        return
+      }
+
+      const paymentTx = (
+        await paymentService.findTransactions({
+          providerTxId: refund.payment_intent as string,
+        })
+      )[0]
+
+      // skip if payment transaction exists
+      if (!paymentTx) {
+        return
+      }
+
+      // create a refund transaction,
+      // and link with payment intent transaction
+      await paymentService.createTransaction({
+        amount: refund.amount,
+        currency: refund.currency as PAYMENT_CURRENCY,
+        purpose: TRANSACTION_PURPOSE.refund,
+
+        provider: PAYMENT_PROVIDER.stripe,
+        providerTxId: refund.id,
+        refundedId: paymentTx.id,
+
+        recipientId: undefined,
+        senderId: paymentTx.recipientId,
+      })
+    })
+  )
+}
 
 /**
  * Handling Incoming Stripe Events
@@ -38,8 +122,6 @@ stripeRouter.post('/', async (req, res) => {
     return res.status(400).send(`Webhook Error: empty event object`)
   }
 
-  const paymentService = new PaymentService()
-
   // Handle the event
   switch (event.type) {
     case 'payment_intent.canceled':
@@ -47,34 +129,11 @@ stripeRouter.post('/', async (req, res) => {
     case 'payment_intent.processing':
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object as Stripe.PaymentIntent
-
-      // find transaction by payment intent id
-      const transaction = (
-        await paymentService.findTransactions({
-          providerTxId: paymentIntent.id,
-        })
-      )[0]
-
-      if (!transaction) {
-        break
-      }
-
-      // update transaction's state
-      const eventStateMap = {
-        'payment_intent.canceled': TRANSACTION_STATE.canceled,
-        'payment_intent.payment_failed': TRANSACTION_STATE.failed,
-        'payment_intent.processing': TRANSACTION_STATE.pending,
-        'payment_intent.succeeded': TRANSACTION_STATE.succeeded,
-      }
-      await paymentService.updateTransaction({
-        id: transaction.id,
-        state: eventStateMap[event.type],
-      })
-
+      await updateTxState(paymentIntent, event.type)
       break
     case 'charge.refunded':
       const charge = event.data.object as Stripe.Charge
-      // TODO
+      await createRefundTxs(charge.refunds)
       break
     case 'customer.deleted':
       const customer = event.data.object as Stripe.Customer

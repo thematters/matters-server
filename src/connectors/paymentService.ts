@@ -2,8 +2,8 @@ import { v4 } from 'uuid'
 
 import {
   BATCH_SIZE,
-  PAYMENT_PROVIDER,
   PAYMENT_CURRENCY,
+  PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
 } from 'common/enums'
@@ -108,21 +108,31 @@ export class PaymentService extends BaseService {
   }
 
   createTransaction = async ({
-    recipientId,
     amount,
     state = TRANSACTION_STATE.pending,
     purpose,
-    currency,
+    currency = PAYMENT_CURRENCY.HKD,
+
     provider,
     providerTxId,
+    refundedId,
+
+    recipientId,
+    senderId,
+    targetId,
   }: {
-    recipientId: string
     amount: number
     state?: TRANSACTION_STATE
     purpose: TRANSACTION_PURPOSE
-    currency: PAYMENT_CURRENCY
+    currency?: PAYMENT_CURRENCY
+
     provider: PAYMENT_PROVIDER
     providerTxId: string
+    refundedId?: string
+
+    recipientId?: string
+    senderId?: string
+    targetId?: string
   }) => {
     const uuid = v4()
 
@@ -133,9 +143,14 @@ export class PaymentService extends BaseService {
         state,
         currency,
         purpose,
+
         provider,
         providerTxId,
+        refundedId,
+
+        senderId,
         recipientId,
+        targetId,
       },
       'payment_transaction'
     )
