@@ -602,7 +602,7 @@ export const TRANSACTION_STATE = {
 
 export const TRANSACTION_PURPOSE = {
   donation: 'donation',
-  addCredit: 'add-credit',
+  'add-credit': 'add-credit',
   refund: 'refund',
   fee: 'fee',
 }
@@ -610,4 +610,8 @@ export const TRANSACTION_PURPOSE = {
 export const TRANSACTION_CURRENCY = {
   HKD: 'HKD',
   LIKE: 'LIKE',
+}
+
+export const PAYMENT_PROVIDER = {
+  stripe: 'stripe',
 }

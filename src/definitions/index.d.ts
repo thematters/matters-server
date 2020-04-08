@@ -122,6 +122,8 @@ export type TableName =
   | 'oauth_refresh_token'
   | 'user_oauth_likecoin'
   | 'blocklist'
+  | 'payment_transaction'
+  | 'customer'
 
 export type MaterializedView =
   | 'article_count_materialized'
@@ -210,3 +212,12 @@ export type Falsey = '' | 0 | false | null | undefined
 export type ScopeMode = 'visitor' | 'oauth' | 'user' | 'admin'
 
 export type SkippedListItemType = 'agent_hash' | 'email'
+
+/**
+ * Payment
+ */
+export type Customer = {
+  userId: string
+  provider: string
+  customerId: string
+}

@@ -1,8 +1,4 @@
-import {
-  connectionFromArray,
-  connectionFromPromisedArray,
-  cursorToIndex,
-} from 'common/utils'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { WalletToTransactionsResolver } from 'definitions'
 
 const resolver: WalletToTransactionsResolver = async (
@@ -18,6 +14,7 @@ const resolver: WalletToTransactionsResolver = async (
     uuid,
     states,
   })
+
   return connectionFromPromisedArray(
     userService.findTransactions({
       userId: id,

@@ -13,8 +13,10 @@ import {
   COMMENT_STATE,
   LOG_RECORD_TYPES,
   MATERIALIZED_VIEW,
+  PAYMENT_PROVIDER,
   SEARCH_KEY_TRUNCATE_LENGTH,
   TRANSACTION_CURRENCY,
+  TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
@@ -35,6 +37,7 @@ import {
   GQLSearchInput,
   GQLUpdateUserInfoInput,
   ItemData,
+  User,
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType,
   UserRole,
@@ -42,19 +45,19 @@ import {
 
 import { likecoin } from './likecoin'
 import { medium } from './medium'
-import { payment } from './payment'
+import { stripe } from './stripe'
 
 export class UserService extends BaseService {
   likecoin: typeof likecoin
   medium: typeof medium
-  payment: typeof payment
+  stripe: typeof stripe
 
   constructor() {
     super('user')
 
     this.likecoin = likecoin
     this.medium = medium
-    this.payment = payment
+    this.stripe = stripe
     this.dataloader = new DataLoader(this.baseFindByIds)
     this.uuidLoader = new DataLoader(this.baseFindByUUIDs)
   }
@@ -80,7 +83,6 @@ export class UserService extends BaseService {
     description?: string
     password: string
   }) => {
-    // TODO:
     const avatar = null
 
     const uuid = v4()
@@ -1540,7 +1542,7 @@ export class UserService extends BaseService {
 
   /*********************************
    *                               *
-   *            Payments           *
+   *             Wallet            *
    *                               *
    *********************************/
   countBalance = async ({
@@ -1611,5 +1613,109 @@ export class UserService extends BaseService {
     }
 
     return qs.orderBy('created_at', 'desc').offset(offset).limit(limit)
+  }
+
+  /*********************************
+   *                               *
+   *            Payment            *
+   *                               *
+   *********************************/
+  findCustomer = async ({
+    userId,
+    customerId,
+    provider,
+  }: {
+    userId?: string
+    customerId?: string
+    provider?: keyof typeof PAYMENT_PROVIDER
+  }) => {
+    let qs = this.knex('customer')
+
+    if (userId) {
+      qs = qs.where({ userId })
+    }
+
+    if (customerId) {
+      qs = qs.where({ customerId })
+    }
+
+    if (provider) {
+      qs = qs.where({ provider })
+    }
+
+    return qs
+  }
+
+  createCustomer = async ({
+    user,
+    provider,
+  }: {
+    user: User
+    provider: keyof typeof PAYMENT_PROVIDER
+  }) => {
+    if (provider === PAYMENT_PROVIDER.stripe) {
+      const customer = await this.stripe.createCustomer({
+        user,
+      })
+
+      if (!customer || !customer.id) {
+        throw new ServerError('failed to create customer')
+      }
+
+      return this.baseCreate(
+        {
+          userId: user.id,
+          provider,
+          customerId: customer.id,
+        },
+        'customer'
+      )
+    }
+  }
+
+  createPayment = async ({
+    userId,
+    customerId,
+    amount,
+    purpose,
+    currency,
+    provider,
+  }: {
+    userId: string
+    customerId: string
+    amount: number
+    purpose: keyof typeof TRANSACTION_PURPOSE
+    currency: keyof typeof TRANSACTION_CURRENCY
+    provider: keyof typeof PAYMENT_PROVIDER
+  }) => {
+    if (provider === PAYMENT_PROVIDER.stripe) {
+      // create from Stripe
+      const payment = await this.stripe.createPaymentIntent({
+        customerId,
+        amount,
+        currency,
+      })
+
+      // create a pending transaction from DB
+      const uuid = v4()
+      const transaction = await this.baseCreate(
+        {
+          uuid,
+          amount,
+          state: TRANSACTION_STATE.pending,
+          currency,
+          purpose,
+          provider,
+          providerTxId: payment.id,
+          recipientId: userId,
+        },
+        'payment_transaction'
+      )
+
+      return {
+        client_secret: payment.client_secret,
+        transaction,
+      }
+    }
   }
 }
