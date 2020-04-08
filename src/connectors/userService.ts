@@ -485,15 +485,6 @@ export class UserService extends BaseService {
    *        Appreciation           *
    *                               *
    *********************************/
-  totalMAT = async (userId: string) => {
-    const result = await this.knex('transaction_delta_view')
-      .where({
-        userId,
-      })
-      .sum('delta as total')
-    return Math.max(parseInt(result[0].total || 0, 10), 0)
-  }
-
   totalRecived = async (recipientId: string) => {
     const result = await this.knex('transaction')
       .where({
@@ -564,33 +555,6 @@ export class UserService extends BaseService {
       .limit(limit)
       .offset(offset)
       .orderBy('id', 'desc')
-
-  findAppreciationHistory = async ({
-    id: userId,
-    limit = BATCH_SIZE,
-    offset = 0,
-  }: {
-    id: string
-    limit?: number
-    offset?: number
-  }) =>
-    this.knex('transaction_delta_view')
-      .where({
-        userId,
-      })
-      .orderBy('created_at', 'desc')
-      .limit(limit)
-      .offset(offset)
-
-  countAppreciation = async (id: string) => {
-    const result = await this.knex('transaction_delta_view')
-      .where({
-        userId: id,
-      })
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
 
   /*********************************
    *                               *
