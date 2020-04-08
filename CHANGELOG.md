@@ -5,13 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.12.0] - 2020-04-02
+## [2.12.0] - 2020-04-09
 
 ### Added
 
 - BlockList API #826
 - ReCaptcha #850
 - Churn Emails #828 #844 #851 #806
+
+### Changed
+
+- Revise logics of saving agent hash for archived user #881
+- Upgrade to Prettier 2.0 #853
 
 ## [2.11.0] - 2020-03-27
 
