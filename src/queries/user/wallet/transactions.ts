@@ -4,22 +4,22 @@ import { WalletToTransactionsResolver } from 'definitions'
 const resolver: WalletToTransactionsResolver = async (
   { id },
   { input },
-  { viewer, dataSources: { userService } }
+  { viewer, dataSources: { paymentService } }
 ) => {
   const { first, after, uuid, states } = input
 
   const offset = after ? cursorToIndex(after) + 1 : 0
-  const totalCount = await userService.totalTransactionCount({
+  const totalCount = await paymentService.totalTransactionCount({
     userId: id,
     uuid,
-    states,
+    states: states as any,
   })
 
   return connectionFromPromisedArray(
-    userService.findTransactions({
+    paymentService.findTransactions({
       userId: id,
       uuid,
-      states,
+      states: states as any,
       limit: first,
       offset,
     }),

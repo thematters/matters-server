@@ -1,13 +1,14 @@
+import { PAYMENT_CURRENCY } from 'common/enums'
 import { WalletToBalanceResolver } from 'definitions'
 
 const resolver: WalletToBalanceResolver = async (
   { id },
   _,
-  { dataSources: { userService } }
+  { dataSources: { paymentService } }
 ) => {
-  const HKD = await userService.countBalance({
+  const HKD = await paymentService.countBalance({
     userId: id,
-    currency: 'HKD',
+    currency: PAYMENT_CURRENCY.HKD,
   })
 
   return {

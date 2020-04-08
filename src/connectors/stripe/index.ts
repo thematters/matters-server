@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 
-import { TRANSACTION_CURRENCY } from 'common/enums'
+import { PAYMENT_CURRENCY } from 'common/enums'
 import { environment } from 'common/environment'
 import { User } from 'definitions'
 
@@ -29,7 +29,7 @@ class StripeService {
   }: {
     customerId: string
     amount: number
-    currency: keyof typeof TRANSACTION_CURRENCY
+    currency: PAYMENT_CURRENCY
   }) {
     return this.stripe.paymentIntents.create({
       customer: customerId,

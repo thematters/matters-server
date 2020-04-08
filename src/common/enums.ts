@@ -591,27 +591,27 @@ export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
 }
 
 /**
- * Payments
+ * Payment
  */
-export const TRANSACTION_STATE = {
-  pending: 'pending',
-  succeeded: 'succeeded',
-  failed: 'failed',
-  canceled: 'canceled',
+export enum TRANSACTION_STATE {
+  pending = 'pending',
+  succeeded = 'succeeded',
+  failed = 'failed',
+  canceled = 'canceled',
 }
 
-export const TRANSACTION_PURPOSE = {
-  donation: 'donation',
-  'add-credit': 'add-credit',
-  refund: 'refund',
-  fee: 'fee',
+export enum TRANSACTION_PURPOSE {
+  donation = 'donation',
+  addCredit = 'add-credit',
+  refund = 'refund',
+  fee = 'fee',
 }
 
-export const TRANSACTION_CURRENCY = {
-  HKD: 'HKD',
-  LIKE: 'LIKE',
+export enum PAYMENT_CURRENCY {
+  HKD = 'hkd',
+  LIKE = 'like',
 }
 
-export const PAYMENT_PROVIDER = {
-  stripe: 'stripe',
+export enum PAYMENT_PROVIDER {
+  stripe = 'stripe',
 }

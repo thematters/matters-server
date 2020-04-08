@@ -1,8 +1,9 @@
-import { camelCase } from 'lodash'
+import { camelCase, upperCase } from 'lodash'
 
 import { GQLTransactionTypeResolver } from 'definitions'
 
 export const Transaction: GQLTransactionTypeResolver = {
+  currency: ({ currency }) => upperCase(currency),
   purpose: ({ purpose }) => camelCase(purpose),
   sender: (trx, _, { dataSources: { userService } }) =>
     trx.senderId ? userService.dataloader.load(trx.senderId) : null,

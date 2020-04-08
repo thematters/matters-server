@@ -28,6 +28,7 @@ import {
   DraftService,
   NotificationService,
   OAuthService,
+  PaymentService,
   SystemService,
   TagService,
   UserService,
@@ -103,6 +104,7 @@ const server = new ProtectedApolloServer({
     tagService: new TagService(),
     notificationService: new NotificationService(),
     oauthService: new OAuthService(),
+    paymentService: new PaymentService(),
   }),
   uploads: {
     maxFileSize: UPLOAD_FILE_SIZE_LIMIT,

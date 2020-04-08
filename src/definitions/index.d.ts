@@ -10,6 +10,7 @@ import {
   TagService,
   NotificationService,
   OAuthService,
+  PaymentService,
 } from 'connectors'
 
 export * from './schema'
@@ -75,6 +76,7 @@ export type DataSources = {
   tagService: InstanceType<typeof TagService>
   notificationService: InstanceType<typeof NotificationService>
   oauthService: InstanceType<typeof OAuthService>
+  paymentService: InstanceType<typeof PaymentService>
 }
 
 export type TableName =
