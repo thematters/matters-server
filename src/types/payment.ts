@@ -19,7 +19,6 @@ export default /* GraphQL */ `
 
   type Balance {
     HKD: Int!
-    LIKE: Int!
   }
 
   type Transaction {
@@ -61,6 +60,7 @@ export default /* GraphQL */ `
     after: String
     first: Int
     uuid: UUID
+    states: [TransactionState!]
   }
 
   enum TransactionState {

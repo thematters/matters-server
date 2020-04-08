@@ -1,12 +1,18 @@
-import { environment } from 'common/environment'
 import { WalletToBalanceResolver } from 'definitions'
 
 const resolver: WalletToBalanceResolver = async (
-  root,
+  { id },
   _,
-  { viewer, dataSources: { userService } }
+  { dataSources: { userService } }
 ) => {
-  return null
+  const HKD = await userService.countBalance({
+    userId: id,
+    currency: 'HKD',
+  })
+
+  return {
+    HKD,
+  }
 }
 
 export default resolver

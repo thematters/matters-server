@@ -1,39 +1,22 @@
-const {
-  baseDown
-} = require('../utils')
+const { baseDown } = require('../utils')
 
 // TODO: rename to `transaction`
 const table = 'payment_transaction'
 
 exports.up = async (knex) => {
   await knex('entity_type').insert({
-    table
+    table,
   })
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
     t.uuid('uuid').notNullable()
     t.integer('amount').notNullable()
-    t.enu('state', [
-        'pending',
-        'succeeded',
-        'failed',
-        'canceled'
-      ])
+    t.enu('state', ['pending', 'succeeded', 'failed', 'canceled'])
       .notNullable()
       .defaultTo('pending')
-    t.enu('currency', [
-        'HKD',
-        'LIKE'
-      ])
-      .notNullable()
+    t.enu('currency', ['HKD', 'LIKE']).notNullable()
 
-    t.enu('purpose', [
-        'donation',
-        'add-credit',
-        'refund',
-        'fee'
-      ])
-      .notNullable()
+    t.enu('purpose', ['donation', 'add-credit', 'refund', 'fee']).notNullable()
 
     t.enu('provider', ['stripe']).notNullable().defaultTo('stripe')
     t.string('provider_tx_id').notNullable().unique()

@@ -1,12 +1,10 @@
-const {
-  baseDown
-} = require('../utils')
+const { baseDown } = require('../utils')
 
 const table = 'customer'
 
 exports.up = async (knex) => {
   await knex('entity_type').insert({
-    table: table
+    table: table,
   })
 
   await knex.schema.createTable(table, (t) => {

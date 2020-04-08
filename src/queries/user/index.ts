@@ -5,6 +5,7 @@ import {
   GQLLIKETypeResolver,
   GQLQueryTypeResolver,
   GQLRecommendationTypeResolver,
+  GQLTransactionTypeResolver,
   GQLUserActivityTypeResolver,
   GQLUserInfoTypeResolver,
   GQLUserOSSTypeResolver,
@@ -38,6 +39,7 @@ import Recommendation from './recommendation'
 import rootUser from './rootUser'
 import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
+import { Transaction } from './transaction'
 import unreadFolloweeArticles from './unreadFolloweeArticles'
 import unreadNoticeCount from './unreadNoticeCount'
 import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
@@ -56,6 +58,7 @@ const user: {
   Wallet: GQLWalletTypeResolver
   LIKE: GQLLIKETypeResolver
   Appreciation: GQLAppreciationTypeResolver
+  Transaction: GQLTransactionTypeResolver
   UserStatus: GQLUserStatusTypeResolver
   UserOSS: GQLUserOSSTypeResolver
 } = {
@@ -105,6 +108,7 @@ const user: {
     rateUSD,
   },
   Appreciation,
+  Transaction,
   UserStatus: {
     LIKE: (root) => root,
     articleCount,

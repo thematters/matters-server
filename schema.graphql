@@ -494,7 +494,6 @@ enum BadgeType {
 
 type Balance {
   HKD: Int!
-  LIKE: Int!
 }
 
 input BlockUserInput {
@@ -1829,6 +1828,7 @@ input TransactionsArgs {
   after: String
   first: Int
   uuid: UUID
+  states: [TransactionState!]
 }
 
 enum TransactionState {

@@ -14,6 +14,8 @@ import {
   LOG_RECORD_TYPES,
   MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
+  TRANSACTION_CURRENCY,
+  TRANSACTION_STATE,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
   USER_STATE,
@@ -1541,4 +1543,73 @@ export class UserService extends BaseService {
    *            Payments           *
    *                               *
    *********************************/
+  countBalance = async ({
+    userId,
+    currency,
+  }: {
+    userId: string
+    currency: keyof typeof TRANSACTION_CURRENCY
+  }) => {
+    const result = await this.knex('transaction_delta_view')
+      .where({
+        userId,
+        currency,
+        state: TRANSACTION_STATE.succeeded,
+      })
+      .sum('delta as total')
+    return Math.max(parseInt(result[0].total || 0, 10), 0)
+  }
+
+  totalTransactionCount = async ({
+    userId,
+    uuid,
+    states,
+  }: {
+    userId: string
+    uuid?: string
+    states?: Array<keyof typeof TRANSACTION_STATE>
+  }) => {
+    let qs = this.knex('transaction_delta_view').where({
+      userId,
+    })
+
+    if (uuid) {
+      qs = qs.where({ uuid })
+    }
+
+    if (states) {
+      qs = qs.whereIn('state', states)
+    }
+
+    const result = await qs.count()
+    return parseInt(`${result[0].count}` || '0', 10)
+  }
+
+  findTransactions = async ({
+    userId,
+    uuid,
+    states,
+    offset = 0,
+    limit = BATCH_SIZE,
+  }: {
+    userId: string
+    uuid?: string
+    states?: Array<keyof typeof TRANSACTION_STATE>
+    offset?: number
+    limit?: number
+  }) => {
+    let qs = this.knex('transaction_delta_view').where({
+      userId,
+    })
+
+    if (uuid) {
+      qs = qs.where({ uuid })
+    }
+
+    if (states) {
+      qs = qs.whereIn('state', states)
+    }
+
+    return qs.orderBy('created_at', 'desc').offset(offset).limit(limit)
+  }
 }
