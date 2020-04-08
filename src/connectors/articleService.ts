@@ -6,11 +6,11 @@ import { v4 } from 'uuid'
 
 import {
   ALS_DEFAULT_VECTOR,
+  APPRECIATION_PURPOSE,
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
   MATERIALIZED_VIEW,
-  APPRECIATION_PURPOSE,
   USER_ACTION,
 } from 'common/enums'
 import { environment } from 'common/environment'

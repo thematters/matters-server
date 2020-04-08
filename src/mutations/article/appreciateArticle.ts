@@ -1,7 +1,7 @@
 import {
+  APPRECIATION_TYPES,
   CACHE_KEYWORD,
   NODE_TYPES,
-  APPRECIATION_TYPES,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
