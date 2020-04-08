@@ -157,7 +157,7 @@ export class PaymentService extends BaseService {
   }
 
   // Update transaction's state by given id
-  updateTransaction = async ({
+  markTransactionStateAs = async ({
     id,
     state,
   }: {

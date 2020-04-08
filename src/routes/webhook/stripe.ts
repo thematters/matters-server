@@ -46,7 +46,7 @@ const updateTxState = async (
     'payment_intent.succeeded': TRANSACTION_STATE.succeeded,
   }
 
-  await paymentService.updateTransaction({
+  await paymentService.markTransactionStateAs({
     id: transaction.id,
     state: eventStateMap[eventType],
   })
