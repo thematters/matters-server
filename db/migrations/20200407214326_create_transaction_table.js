@@ -10,15 +10,20 @@ exports.up = async (knex) => {
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
     t.uuid('uuid').notNullable().unique()
+
+    // https://stripe.com/docs/currencies#zero-decimal
     t.integer('amount').notNullable()
+
     t.enu('state', ['pending', 'succeeded', 'failed', 'canceled'])
       .notNullable()
       .defaultTo('pending')
+
     t.enu('currency', ['hkd', 'like']).notNullable()
     t.enu('purpose', ['donation', 'add-credit', 'refund', 'fee']).notNullable()
 
     t.enu('provider', ['stripe']).notNullable().defaultTo('stripe')
     t.string('provider_tx_id').notNullable().unique()
+
     t.bigInteger('refunded_id').unsigned()
 
     t.timestamp('created_at').defaultTo(knex.fn.now())
