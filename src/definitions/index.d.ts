@@ -124,7 +124,7 @@ export type TableName =
   | 'oauth_refresh_token'
   | 'user_oauth_likecoin'
   | 'blocklist'
-  | 'payment_transaction'
+  | 'transaction'
   | 'customer'
 
 export type MaterializedView =

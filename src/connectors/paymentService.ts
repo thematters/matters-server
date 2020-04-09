@@ -152,7 +152,7 @@ export class PaymentService extends BaseService {
         recipientId,
         targetId,
       },
-      'payment_transaction'
+      'transaction'
     )
   }
 
@@ -171,7 +171,7 @@ export class PaymentService extends BaseService {
     return this.baseUpdate(
       id,
       { updatedAt: new Date(), ...data },
-      'payment_transaction'
+      'transaction'
     )
   }
 

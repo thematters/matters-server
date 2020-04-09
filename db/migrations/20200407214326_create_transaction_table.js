@@ -1,14 +1,12 @@
-const {
-  baseDown
-} = require('../utils')
+const { baseDown } = require('../utils')
 
-// TODO: rename to `transaction`
-const table = 'payment_transaction'
+const table = 'transaction'
 
 exports.up = async (knex) => {
-  await knex('entity_type').insert({
-    table,
-  })
+  // rename old transaction table
+  await knex.schema.renameTable(table, 'transaction_obsolete')
+
+  // new transaction table
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
     t.uuid('uuid').notNullable().unique()

@@ -1,10 +1,9 @@
 const table = 'transaction_delta_view'
 
 exports.up = async (knex) => {
-  await knex.raw( /*sql*/ `DROP view IF EXISTS ${table}`)
+  await knex.raw(/*sql*/ `DROP view IF EXISTS ${table}`)
 
-
-  await knex.raw( /*sql*/ `
+  await knex.raw(/*sql*/ `
     create view ${table} as
         select
             "user".id as user_id,
@@ -16,7 +15,7 @@ exports.up = async (knex) => {
                 select
                     *
                 from
-                    payment_transaction) as trx1 on trx1.recipient_id = "user".id
+                    transaction) as trx1 on trx1.recipient_id = "user".id
         union
         select
             "user".id,
@@ -28,10 +27,10 @@ exports.up = async (knex) => {
                 select
                     *
                 from
-                    payment_transaction) as trx2 on trx2.sender_id = "user".id
+                    transaction) as trx2 on trx2.sender_id = "user".id
   `)
 }
 
 exports.down = function (knex, Promise) {
-  return knex.raw( /*sql*/ `drop view ${table}`)
+  return knex.raw(/*sql*/ `drop view ${table}`)
 }
