@@ -1,6 +1,6 @@
 exports.up = async (knex) => {
   await knex.raw(/*sql*/ `
-  drop view article_activity_view cascade;
+  drop view if exists article_activity_view cascade;
 
 
   create view article_activity_view as

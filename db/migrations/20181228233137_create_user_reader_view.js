@@ -48,5 +48,5 @@ exports.up = async (knex) =>
   `)
 
 exports.down = function (knex, Promise) {
-  return knex.raw(/*sql*/ `drop view ${table}`)
+  return knex.raw(/*sql*/ `drop view if exists ${table}`)
 }

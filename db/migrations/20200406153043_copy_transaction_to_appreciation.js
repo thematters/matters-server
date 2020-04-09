@@ -9,7 +9,7 @@ exports.up = async (knex) => {
 
   // update article activity view and article activity materialized
   return knex.raw(/*sql*/ `
-  drop view article_activity_view cascade;
+  drop view if exists article_activity_view cascade;
 
 
   create view article_activity_view as
