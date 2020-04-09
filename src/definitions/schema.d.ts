@@ -1785,7 +1785,7 @@ export interface GQLMutation {
   verifyEmail?: boolean
 
   /**
-   * Register user.
+   * Register user, can only be used on matters.news website.
    */
   userRegister: GQLAuthResult
 

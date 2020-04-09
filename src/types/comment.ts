@@ -3,7 +3,7 @@ import { NODE_TYPES } from 'common/enums'
 export default /* GraphQL */ `
   extend type Mutation {
     "Publish a comment."
-    putComment(input: PutCommentInput!): Comment! @authenticate @purgeCache
+    putComment(input: PutCommentInput!): Comment! @authenticate @purgeCache @rateLimit(limit:3, period:120)
 
     "Remove a comment."
     deleteComment(input: DeleteCommentInput!): Comment! @authenticate @purgeCache
@@ -207,4 +207,7 @@ export default /* GraphQL */ `
     banned
     collapsed
   }
+
+  "Rate limit within a given period of time, in seconds"
+  directive @rateLimit(period: Int!, limit: Int!) on FIELD_DEFINITION
 `

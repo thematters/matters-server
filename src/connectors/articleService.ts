@@ -780,7 +780,7 @@ export class ArticleService extends BaseService {
   sumAppreciation = async (articleId: string) => {
     const result = await this.knex
       .select()
-      .from('transaction')
+      .from('appreciation')
       .whereIn(
         ['reference_id', 'purpose'],
         [
@@ -796,7 +796,7 @@ export class ArticleService extends BaseService {
   countAppreciation = async (referenceId: string) => {
     const result = await this.knex
       .select()
-      .from('transaction')
+      .from('appreciation')
       .where({
         referenceId,
         purpose: APPRECIATION_PURPOSE.appreciate,
@@ -818,7 +818,7 @@ export class ArticleService extends BaseService {
   }) => {
     const result = await this.knex
       .select()
-      .from('transaction')
+      .from('appreciation')
       .where({
         referenceId: articleId,
         purpose: APPRECIATION_PURPOSE.appreciate,
@@ -838,7 +838,7 @@ export class ArticleService extends BaseService {
       .from((knex: any) => {
         const source = knex
           .select('reference_id', 'sender_id')
-          .from('transaction')
+          .from('appreciation')
           .where({
             referenceId,
             purpose: APPRECIATION_PURPOSE.appreciate,
@@ -864,7 +864,7 @@ export class ArticleService extends BaseService {
     limit?: number
     offset?: number
   }) => {
-    const result = await this.knex('transaction')
+    const result = await this.knex('appreciation')
       .select('reference_id', 'sender_id')
       .where({
         referenceId,
@@ -886,7 +886,7 @@ export class ArticleService extends BaseService {
     articleId: string
     userId: string
   }) => {
-    const appreciations = await this.knex('transaction')
+    const appreciations = await this.knex('appreciation')
       .select()
       .where({
         senderId: userId,
@@ -906,7 +906,7 @@ export class ArticleService extends BaseService {
     userId: string
     articleId: string
   }) => {
-    const result = await this.knex('transaction').select().where({
+    const result = await this.knex('appreciation').select().where({
       senderId,
       referenceId: articleId,
       purpose: APPRECIATION_PURPOSE.appreciate,
@@ -938,8 +938,8 @@ export class ArticleService extends BaseService {
       type,
     }
 
-    // find transaction within 1 minutes and bundle
-    const bundle = await this.knex('transaction')
+    // find appreciations within 1 minutes and bundle
+    const bundle = await this.knex('appreciation')
       .select()
       .where(appreciation)
       .andWhere(
@@ -953,7 +953,7 @@ export class ArticleService extends BaseService {
     let result
 
     if (bundle) {
-      result = await this.knex('transaction')
+      result = await this.knex('appreciation')
         .where({ id: bundle.id })
         .update({
           amount: bundle.amount + amount,
@@ -961,13 +961,13 @@ export class ArticleService extends BaseService {
         })
     } else {
       const uuid = v4()
-      result = await this.knex('transaction')
+      result = await this.knex('appreciation')
         .insert({
           ...appreciation,
           uuid,
           amount,
         })
-        .into('transaction')
+        .into('appreciation')
         .returning('*')
     }
 
@@ -1545,7 +1545,7 @@ export class ArticleService extends BaseService {
         this.knex
           .select('referenceId')
           .sum('amount', { as: 'total' })
-          .from('transaction')
+          .from('appreciation')
           .whereIn('purpose', [
             APPRECIATION_PURPOSE.appreciate,
             APPRECIATION_PURPOSE.appreciateSubsidy,
