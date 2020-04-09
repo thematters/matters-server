@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Add appreciation table and update SQL queries #896
+- Increase TTL value for general cache. #898
 - Revise logics of saving agent hash for archived user #881
 - Upgrade to Prettier 2.0 #853
 
