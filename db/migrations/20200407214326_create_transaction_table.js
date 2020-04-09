@@ -40,4 +40,4 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = baseDown(table)
+exports.down = () => {}
