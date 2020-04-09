@@ -4,7 +4,7 @@ const table = 'transaction'
 
 exports.up = async (knex) => {
   // drop transaction_delta_view
-  await knex.raw(/*sql*/ `drop view transaction_delta_view`)
+  await knex.raw(/*sql*/ `drop view if exists transaction_delta_view`)
 
   // rename old transaction table
   await knex.schema.renameTable(table, 'transaction_obsolete')
