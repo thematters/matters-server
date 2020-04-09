@@ -3,6 +3,9 @@ const { baseDown } = require('../utils')
 const table = 'transaction'
 
 exports.up = async (knex) => {
+  // drop transaction_delta_view
+  await knex.raw(/*sql*/ `drop view transaction_delta_view`)
+
   // rename old transaction table
   await knex.schema.renameTable(table, 'transaction_obsolete')
 
@@ -35,9 +38,12 @@ exports.up = async (knex) => {
   })
 
   // add index
-  await knex.schema.table(table, (t) => {
+  return knex.schema.table(table, (t) => {
     t.index(['currency', 'state', 'uuid', 'sender', 'recipient'])
   })
 }
 
-exports.down = baseDown(table)
+exports.down = async (knex) => {
+  await baseDown(table)(knex)
+  return knex.schema.renameTable('transaction_obsolete', table)
+}
