@@ -118,7 +118,7 @@ const server = new ProtectedApolloServer({
   },
   cacheControl: {
     calculateHttpHeaders: false,
-    defaultMaxAge: CACHE_TTL.DEFAULT,
+    defaultMaxAge: CACHE_TTL.SHORT,
     stripFormattedExtensions: isProd,
   },
   plugins: [

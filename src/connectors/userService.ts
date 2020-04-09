@@ -119,10 +119,22 @@ export class UserService extends BaseService {
   /**
    * Login user and return jwt token. Default to expires in 24 * 90 hours
    */
-  login = async ({ email, password }: { email: string; password: string }) => {
+  login = async ({
+    email,
+    password,
+    archivedCallback,
+  }: {
+    email: string
+    password: string
+    archivedCallback?: () => Promise<any>
+  }) => {
     const user = await this.findByEmail(email)
 
     if (!user || user.state === USER_STATE.archived) {
+      // record agent hash if state is archived
+      if (user && user.state === USER_STATE.archived && archivedCallback) {
+        await archivedCallback().catch((error) => logger.error)
+      }
       throw new EmailNotFoundError('Cannot find user with email, login failed.')
     }
 
@@ -321,7 +333,7 @@ export class UserService extends BaseService {
         this.knex
           .select('recipient_id')
           .sum('amount as total')
-          .from('transaction')
+          .from('appreciation')
           .groupBy('recipient_id')
           .as('tx'),
         'tx.recipient_id',
@@ -482,7 +494,7 @@ export class UserService extends BaseService {
    *                               *
    *********************************/
   totalRecived = async (recipientId: string) => {
-    const result = await this.knex('transaction')
+    const result = await this.knex('appreciation')
       .where({
         recipientId,
       })
@@ -492,7 +504,7 @@ export class UserService extends BaseService {
   }
 
   totalRecivedAppreciationCount = async (recipientId: string) => {
-    const result = await this.knex('transaction')
+    const result = await this.knex('appreciation')
       .where({
         recipientId,
       })
@@ -501,7 +513,7 @@ export class UserService extends BaseService {
   }
 
   totalSentAppreciationCount = async (senderId: string) => {
-    const result = await this.knex('transaction')
+    const result = await this.knex('appreciation')
       .where({
         senderId,
       })
@@ -510,7 +522,7 @@ export class UserService extends BaseService {
   }
 
   totalSent = async (senderId: string) => {
-    const result = await this.knex('transaction')
+    const result = await this.knex('appreciation')
       .where({
         senderId,
       })
@@ -527,7 +539,7 @@ export class UserService extends BaseService {
     limit?: number
     offset?: number
   }) =>
-    this.knex('transaction')
+    this.knex('appreciation')
       .where({
         senderId,
       })
@@ -544,7 +556,7 @@ export class UserService extends BaseService {
     limit?: number
     offset?: number
   }) =>
-    this.knex('transaction')
+    this.knex('appreciation')
       .where({
         recipientId,
       })
