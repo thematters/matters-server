@@ -40,4 +40,7 @@ exports.up = async (knex) => {
   })
 }
 
-exports.down = () => {}
+exports.down = async (knex) => {
+  await baseDown(table)(knex)
+  await knex.schema.renameTable('transaction_obsolete', table)
+}
