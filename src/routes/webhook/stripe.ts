@@ -9,6 +9,7 @@ import {
   TRANSACTION_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
+import logger from 'common/logger'
 import { PaymentService } from 'connectors'
 
 const paymentService = new PaymentService()
@@ -116,6 +117,7 @@ stripeRouter.post('/', async (req, res) => {
       environment.stripeWebhookSecret
     )
   } catch (err) {
+    logger.error(err)
     res.status(400).send(`Webhook Error: ${err.message}`)
   }
 
@@ -141,8 +143,8 @@ stripeRouter.post('/', async (req, res) => {
       await paymentService.deleteCustomer({ customerId: customer.id })
       break
     default:
-      // Unexpected event type
-      return res.status(400).end()
+      logger.error('Unexpected event type', event.type)
+      break
   }
 
   // Return a 200 res to acknowledge receipt of the event
