@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "2.11.0",
+  "version": "2.12.0",
   "description": "Matters Server",
   "main": "build/index.js",
   "engines": {
@@ -44,7 +44,7 @@
     "apollo-server-cache-redis": "^1.1.6",
     "apollo-server-express": "^2.9.12",
     "apollo-server-plugin-response-cache": "^0.4.1",
-    "aws-sdk": "^2.655.0",
+    "aws-sdk": "^2.656.0",
     "axios": "^0.19.2",
     "bcrypt": "^4.0.1",
     "bodybuilder": "^2.2.20",
@@ -147,9 +147,9 @@
     "chokidar-cli": "^2.1.0",
     "codecov": "^3.6.5",
     "husky": "^4.2.3",
-    "jest": "^25.2.6",
+    "jest": "^25.3.0",
     "knex-migrate": "^1.7.4",
-    "nodemon": "^2.0.2",
+    "nodemon": "^2.0.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.0.4",
     "rimraf": "^3.0.1",
