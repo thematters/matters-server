@@ -1,8 +1,10 @@
 import { camelCase } from 'lodash'
 
+import { toGlobalId } from 'common/utils'
 import { GQLTransactionTypeResolver, TransactionTargetType } from 'definitions'
 
 export const Transaction: GQLTransactionTypeResolver = {
+  id: ({ id }) => toGlobalId({ type: 'Transaction', id }),
   purpose: ({ purpose }) => camelCase(purpose),
   sender: (trx, _, { dataSources: { userService } }) =>
     trx.senderId ? userService.dataloader.load(trx.senderId) : null,

@@ -48,6 +48,6 @@ exports.up = async (knex) => {
 }
 
 exports.down = async (knex) => {
-  await baseDown(table)(knex)
+  await knex.schema.dropTable(table)
   await knex.schema.renameTable('transaction_obsolete', table)
 }

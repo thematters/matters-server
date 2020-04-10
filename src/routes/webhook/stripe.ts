@@ -1,5 +1,6 @@
 import bodyParser from 'body-parser'
 import { Router } from 'express'
+import _ from 'lodash'
 import Stripe from 'stripe'
 
 import {
@@ -75,7 +76,7 @@ const createRefundTxs = async (refunds: Stripe.ApiList<Stripe.Refund>) => {
         })
       )[0]
 
-      // skip if payment transaction exists
+      // skip if related payment transaction doesn't exists
       if (!paymentTx) {
         return
       }
@@ -85,7 +86,7 @@ const createRefundTxs = async (refunds: Stripe.ApiList<Stripe.Refund>) => {
       await paymentService.createTransaction({
         amount: toDBAmount({ amount: refund.amount }),
         state: TRANSACTION_STATE.succeeded,
-        currency: refund.currency as PAYMENT_CURRENCY,
+        currency: _.upperCase(refund.currency) as PAYMENT_CURRENCY,
         purpose: TRANSACTION_PURPOSE.refund,
 
         provider: PAYMENT_PROVIDER.stripe,

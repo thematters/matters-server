@@ -89,7 +89,7 @@ export class PaymentService extends BaseService {
     offset?: number
     limit?: number
   }) => {
-    let qs = this.knex('transaction_delta_view')
+    let qs = this.knex('transaction_delta_view').select()
 
     if (userId) {
       qs = qs.where({ userId })

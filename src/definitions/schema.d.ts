@@ -2354,8 +2354,10 @@ export interface GQLFollowUserInput {
  * Add Credit
  */
 export interface GQLAddCreditInput {
-  amount: GQLPositiveInt
+  amount: GQLPositiveFloat
 }
+
+export type GQLPositiveFloat = any
 
 export interface GQLAddCreditResult {
   transaction: GQLTransaction
@@ -2370,7 +2372,7 @@ export interface GQLAddCreditResult {
  * Pay To
  */
 export interface GQLPayToInput {
-  amount: GQLPositiveInt
+  amount: GQLPositiveFloat
   currency: GQLTransactionCurrency
   purpose: GQLTransactionPurpose
   recipientId?: string
@@ -2845,8 +2847,6 @@ export interface GQLOfficialAnnouncementNotice extends GQLNotice {
   link?: GQLURL
 }
 
-export type GQLPositiveFloat = any
-
 /**
  * Enums for user roles.
  */
@@ -3041,6 +3041,7 @@ export interface GQLResolver {
   Upload?: GraphQLScalarType
   AuthResult?: GQLAuthResultTypeResolver
   PositiveInt?: GraphQLScalarType
+  PositiveFloat?: GraphQLScalarType
   AddCreditResult?: GQLAddCreditResultTypeResolver
   PayToResult?: GQLPayToResultTypeResolver
   Subscription?: GQLSubscriptionTypeResolver
@@ -3065,7 +3066,6 @@ export interface GQLResolver {
   NonPositiveFloat?: GraphQLScalarType
   NonPositiveInt?: GraphQLScalarType
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
-  PositiveFloat?: GraphQLScalarType
   SubscribedArticleNewCommentNotice?: GQLSubscribedArticleNewCommentNoticeTypeResolver
   Time?: GraphQLScalarType
   UpstreamArticleArchivedNotice?: GQLUpstreamArticleArchivedNoticeTypeResolver

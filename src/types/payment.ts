@@ -86,7 +86,7 @@ export default /* GraphQL */ `
 
   # Add Credit
   input AddCreditInput {
-    amount: PositiveInt!
+    amount: PositiveFloat!
   }
 
   type AddCreditResult {
@@ -98,7 +98,7 @@ export default /* GraphQL */ `
 
   # Pay To
   input PayToInput {
-    amount: PositiveInt!
+    amount: PositiveFloat!
     currency: TransactionCurrency!
     purpose: TransactionPurpose!
     recipientId: ID
