@@ -2,6 +2,7 @@ import Stripe from 'stripe'
 
 import { PAYMENT_CURRENCY } from 'common/enums'
 import { environment } from 'common/environment'
+import { toProviderAmount } from 'common/utils'
 import { User } from 'definitions'
 
 class StripeService {
@@ -33,7 +34,7 @@ class StripeService {
   }) {
     return this.stripe.paymentIntents.create({
       customer: customerId,
-      amount,
+      amount: toProviderAmount({ amount }),
       currency,
     })
   }

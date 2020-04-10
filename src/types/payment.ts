@@ -20,7 +20,7 @@ export default /* GraphQL */ `
   }
 
   type Balance {
-    HKD: Float!!
+    HKD: Float!
   }
 
   type Transaction {
@@ -38,7 +38,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "Recipient of transaction."
-    recipient: User!
+    recipient: User
 
     "Sender of transaction."
     sender: User

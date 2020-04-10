@@ -496,7 +496,7 @@ enum BadgeType {
 }
 
 type Balance {
-  HKD: Int!
+  HKD: Float!
 }
 
 input BlockUserInput {
@@ -1785,23 +1785,23 @@ input ToggleItemInput {
 }
 
 type Transaction {
-  uuid: UUID!
+  id: ID!
   state: TransactionState!
   purpose: TransactionPurpose!
-  amount: Int!
+  amount: Float!
   currency: TransactionCurrency!
 
   """Timestamp of transaction."""
   createdAt: DateTime!
 
   """Recipient of transaction."""
-  recipient: User!
+  recipient: User
 
   """Sender of transaction."""
   sender: User
 
-  """Article that transaction pay for."""
-  target: Article
+  """Related target article or transaction."""
+  target: TransactionTarget
 }
 
 type TransactionConnection implements Connection {
@@ -1830,7 +1830,7 @@ enum TransactionPurpose {
 input TransactionsArgs {
   after: String
   first: Int
-  uuid: UUID
+  id: ID
   states: [TransactionState!]
 }
 
@@ -1840,6 +1840,8 @@ enum TransactionState {
   failed
   canceled
 }
+
+union TransactionTarget = Article | Transaction
 
 input UnpinCommentInput {
   id: ID!

@@ -1276,7 +1276,7 @@ export interface GQLBalance {
 export interface GQLTransactionsArgs {
   after?: string
   first?: number
-  uuid?: GQLUUID
+  id?: string
   states?: Array<GQLTransactionState>
 }
 
@@ -1299,7 +1299,7 @@ export interface GQLTransactionEdge {
 }
 
 export interface GQLTransaction {
-  uuid: GQLUUID
+  id: string
   state: GQLTransactionState
   purpose: GQLTransactionPurpose
   amount: number
@@ -1313,7 +1313,7 @@ export interface GQLTransaction {
   /**
    * Recipient of transaction.
    */
-  recipient: GQLUser
+  recipient?: GQLUser
 
   /**
    * Sender of transaction.
@@ -1321,9 +1321,9 @@ export interface GQLTransaction {
   sender?: GQLUser
 
   /**
-   * Article that transaction pay for.
+   * Related target article or transaction.
    */
-  target?: GQLArticle
+  target?: GQLTransactionTarget
 }
 
 export const enum GQLTransactionPurpose {
@@ -1336,6 +1336,17 @@ export const enum GQLTransactionPurpose {
 export const enum GQLTransactionCurrency {
   HKD = 'HKD',
   LIKE = 'LIKE',
+}
+
+export type GQLTransactionTarget = GQLArticle | GQLTransaction
+
+/** Use this to resolve union type TransactionTarget */
+export type GQLPossibleTransactionTargetTypeNames = 'Article' | 'Transaction'
+
+export interface GQLTransactionTargetNameMap {
+  TransactionTarget: GQLTransactionTarget
+  Article: GQLArticle
+  Transaction: GQLTransaction
 }
 
 export interface GQLArticleTranslation {
@@ -3001,6 +3012,10 @@ export interface GQLResolver {
   TransactionConnection?: GQLTransactionConnectionTypeResolver
   TransactionEdge?: GQLTransactionEdgeTypeResolver
   Transaction?: GQLTransactionTypeResolver
+  TransactionTarget?: {
+    __resolveType: GQLTransactionTargetTypeResolver
+  }
+
   ArticleTranslation?: GQLArticleTranslationTypeResolver
   ArticleOSS?: GQLArticleOSSTypeResolver
   SearchResultConnection?: GQLSearchResultConnectionTypeResolver
@@ -6041,7 +6056,7 @@ export interface TransactionEdgeToNodeResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLTransactionTypeResolver<TParent = any> {
-  uuid?: TransactionToUuidResolver<TParent>
+  id?: TransactionToIdResolver<TParent>
   state?: TransactionToStateResolver<TParent>
   purpose?: TransactionToPurposeResolver<TParent>
   amount?: TransactionToAmountResolver<TParent>
@@ -6052,7 +6067,7 @@ export interface GQLTransactionTypeResolver<TParent = any> {
   target?: TransactionToTargetResolver<TParent>
 }
 
-export interface TransactionToUuidResolver<TParent = any, TResult = any> {
+export interface TransactionToIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6133,6 +6148,11 @@ export interface TransactionToTargetResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface GQLTransactionTargetTypeResolver<TParent = any> {
+  (parent: TParent, context: Context, info: GraphQLResolveInfo):
+    | 'Article'
+    | 'Transaction'
+}
 export interface GQLArticleTranslationTypeResolver<TParent = any> {
   originalLanguage?: ArticleTranslationToOriginalLanguageResolver<TParent>
   title?: ArticleTranslationToTitleResolver<TParent>

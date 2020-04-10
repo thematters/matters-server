@@ -11,6 +11,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
+import { toDBAmount } from 'common/utils'
 import { PaymentService } from 'connectors'
 
 const paymentService = new PaymentService()
@@ -82,7 +83,7 @@ const createRefundTxs = async (refunds: Stripe.ApiList<Stripe.Refund>) => {
       // create a refund transaction,
       // and link with payment intent transaction
       await paymentService.createTransaction({
-        amount: refund.amount,
+        amount: toDBAmount({ amount: refund.amount }),
         state: TRANSACTION_STATE.succeeded,
         currency: refund.currency as PAYMENT_CURRENCY,
         purpose: TRANSACTION_PURPOSE.refund,

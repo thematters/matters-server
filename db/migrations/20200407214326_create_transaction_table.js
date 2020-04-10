@@ -38,6 +38,7 @@ exports.up = async (knex) => {
       .index('purpose')
       .index('sender_id')
       .index('recipient_id')
+      .index('created_at')
 
     // Setup foreign key
     t.foreign('sender_id').references('id').inTable('user')

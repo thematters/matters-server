@@ -614,8 +614,8 @@ export enum TRANSACTION_TARGET_TYPE {
 }
 
 export enum PAYMENT_CURRENCY {
-  HKD = 'hkd',
-  LIKE = 'like',
+  HKD = 'HKD',
+  LIKE = 'LIKE',
 }
 
 export enum PAYMENT_PROVIDER {

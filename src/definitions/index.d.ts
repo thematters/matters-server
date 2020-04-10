@@ -159,6 +159,8 @@ export type LANGUAGES = 'zh_hans' | 'zh_hant' | 'en'
 
 export type ResponseType = 'Article' | 'Comment'
 
+export type TransactionTargetType = 'Article' | 'Transaction'
+
 export type UserOAuthLikeCoinAccountType = 'temporal' | 'general'
 
 export interface UserOAuthLikeCoin {

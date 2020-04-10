@@ -1,3 +1,5 @@
+import DataLoader from 'dataloader'
+
 import {
   BATCH_SIZE,
   PAYMENT_CURRENCY,
@@ -19,6 +21,8 @@ export class PaymentService extends BaseService {
     super('transaction')
 
     this.stripe = stripe
+
+    this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
   /*********************************
@@ -135,7 +139,11 @@ export class PaymentService extends BaseService {
     targetId?: string
     targetType?: TRANSACTION_TARGET_TYPE
   }) => {
-    // TODO: target type in entity type table
+    let targetTypeId
+    if (targetId && targetType) {
+      const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
+      targetTypeId = entityTypeId
+    }
 
     return this.baseCreate({
       amount,
@@ -149,7 +157,7 @@ export class PaymentService extends BaseService {
       senderId,
       recipientId,
       targetId,
-      targetType,
+      targetType: targetTypeId,
     })
   }
 

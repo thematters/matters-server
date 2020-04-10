@@ -1,24 +1,33 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  cursorToIndex,
+  fromGlobalId,
+} from 'common/utils'
 import { WalletToTransactionsResolver } from 'definitions'
 
 const resolver: WalletToTransactionsResolver = async (
-  { id },
+  { id: userId },
   { input },
-  { viewer, dataSources: { paymentService } }
+  { dataSources: { paymentService } }
 ) => {
-  const { first, after, uuid, states } = input
+  const { first, after, id, states } = input
+
+  let txId
+  if (id) {
+    txId = fromGlobalId(id).id
+  }
 
   const offset = after ? cursorToIndex(after) + 1 : 0
   const totalCount = await paymentService.totalTransactionCount({
-    userId: id,
-    uuid,
+    userId,
+    id: txId,
     states: states as any,
   })
 
   return connectionFromPromisedArray(
     paymentService.findTransactions({
-      userId: id,
-      uuid,
+      userId,
+      id: txId,
       states: states as any,
       limit: first,
       offset,

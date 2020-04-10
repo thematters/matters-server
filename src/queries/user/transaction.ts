@@ -1,6 +1,6 @@
 import { camelCase } from 'lodash'
 
-import { GQLTransactionTypeResolver } from 'definitions'
+import { GQLTransactionTypeResolver, TransactionTargetType } from 'definitions'
 
 export const Transaction: GQLTransactionTypeResolver = {
   purpose: ({ purpose }) => camelCase(purpose),
@@ -8,11 +8,40 @@ export const Transaction: GQLTransactionTypeResolver = {
     trx.senderId ? userService.dataloader.load(trx.senderId) : null,
   recipient: (trx, _, { dataSources: { userService } }) =>
     trx.recipientId ? userService.dataloader.load(trx.recipientId) : null,
-  target: (trx, _, { dataSources: { articleService } }) => {
-    if (trx.targetId) {
-      return articleService.dataloader.load(trx.targetId)
-    } else {
+  target: async (
+    trx,
+    _,
+    { dataSources: { articleService, paymentService } }
+  ) => {
+    if (!trx.targetId || !trx.targetType) {
       return null
     }
+
+    const tableTypeMap = {
+      article: 'Article',
+      transaction: 'Transaction',
+    }
+
+    const { table } = (await paymentService.baseFindEntityTypeTable(
+      trx.targetType
+    )) as { table: keyof typeof tableTypeMap }
+
+    let target
+    if (table === 'article') {
+      target = await articleService.dataloader.load(trx.targetId)
+    } else if (table === 'transaction') {
+      target = await paymentService.dataloader.load(trx.targetId)
+    }
+
+    return {
+      ...target,
+      __type: tableTypeMap[table],
+    }
+  },
+}
+
+export const TransactionTarget = {
+  __resolveType: ({ __type }: { __type: TransactionTargetType }) => {
+    return __type
   },
 }

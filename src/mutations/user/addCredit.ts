@@ -15,7 +15,6 @@ const resolver: MutationToAddCreditResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  // TODO: set provider based on currency
   const provider = PAYMENT_PROVIDER.stripe
   const currency = PAYMENT_CURRENCY.HKD
 
