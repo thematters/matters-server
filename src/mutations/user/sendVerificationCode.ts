@@ -1,9 +1,9 @@
 import axios from 'axios'
 
 import {
-  BLOCKLIST_TYPES,
+  SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
-  VERIFICATION_CODE_TYPES
+  VERIFICATION_CODE_TYPES,
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import {
@@ -11,7 +11,7 @@ import {
   AuthenticationError,
   EmailExistsError,
   EmailNotFoundError,
-  UserInputError
+  UserInputError,
 } from 'common/errors'
 import logger from 'common/logger'
 import { MutationToSendVerificationCodeResolver } from 'definitions'
@@ -19,7 +19,7 @@ import { MutationToSendVerificationCodeResolver } from 'definitions'
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,
   { input: { email: rawEmail, type, token } },
-  { viewer, dataSources: { userService, notificationService } }
+  { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
   const email = rawEmail ? rawEmail.toLowerCase() : null
 
@@ -40,31 +40,31 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     }
 
     // check token for Turing test
-    // if (!token) {
-    //   throw new UserInputError('please register on matters.news')
-    // } else if (!isTest) {
-    //   // Turing test with recaptcha
-    //   const {
-    //     data: { success, score }
-    //   } = await axios({
-    //     method: 'post',
-    //     url: 'https://www.google.com/recaptcha/api/siteverify',
-    //     params: {
-    //       secret: environment.recaptchaSecret,
-    //       response: token,
-    //       remoteip: viewer.ip
-    //     }
-    //   })
+    if (!token) {
+      throw new UserInputError('please register on matters.news')
+    } else if (!isTest) {
+      // Turing test with recaptcha
+      const { data } = await axios({
+        method: 'post',
+        url: 'https://www.google.com/recaptcha/api/siteverify',
+        params: {
+          secret: environment.recaptchaSecret,
+          response: token,
+          remoteip: viewer.ip,
+        },
+      })
 
-    //   if (!success) {
-    //     throw new ActionFailedError('please try again')
-    //   }
+      const { success, score } = data
 
-    //   // use 0.5 for Turing test
-    //   if (score < 0.5) {
-    //     throw new ActionFailedError('cannot verify human')
-    //   }
-    // }
+      if (!success) {
+        throw new ActionFailedError(`please try again: ${data['error-codes']}`)
+      }
+
+      // use 0.5 for Turing test
+      if (score < 0.5) {
+        throw new ActionFailedError('cannot verify human')
+      }
+    }
   }
 
   if (
@@ -78,13 +78,13 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   }
 
   const { agentHash } = viewer
-  const { AGENT_HASH: TYPE_HASH, EMAIL: TYPE_EMAIL } = BLOCKLIST_TYPES
+  const { AGENT_HASH: TYPE_HASH, EMAIL: TYPE_EMAIL } = SKIPPED_LIST_ITEM_TYPES
 
   // verify email if it's in blocklist
-  const banEmail = await userService.findBanValue(TYPE_EMAIL, email)
-  if (banEmail) {
+  const banEmail = await systemService.findSkippedItem(TYPE_EMAIL, email)
+  if (banEmail && banEmail.archived === false) {
     if (agentHash) {
-      await userService.saveBanValue(TYPE_HASH, banEmail.uuid, agentHash)
+      await systemService.createSkippedItem(TYPE_HASH, banEmail.uuid, agentHash)
     }
     logger.info(new Error('email is in blocklist'))
     return true
@@ -92,19 +92,26 @@ const resolver: MutationToSendVerificationCodeResolver = async (
 
   // verify agent hash if it's in blocklist
   if (agentHash) {
-    const banAgentHash = await userService.findBanValue(TYPE_HASH, agentHash)
-    if (banAgentHash) {
-      await userService.saveBanValue(TYPE_EMAIL, banAgentHash.uuid, email)
+    const banAgentHash = await systemService.findSkippedItem(
+      TYPE_HASH,
+      agentHash
+    )
+    if (banAgentHash && banAgentHash.archived === false) {
+      await systemService.createSkippedItem(
+        TYPE_EMAIL,
+        banAgentHash.uuid,
+        email
+      )
+      logger.info(new Error('agent hash is in blocklist'))
+      return true
     }
-    logger.info(new Error('agent hash is in blocklist'))
-    return true
   }
 
   // insert record
   const { code } = await userService.createVerificationCode({
     userId: viewer.id,
     email,
-    type
+    type,
   })
 
   // send verification email
@@ -113,9 +120,9 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     type,
     code,
     recipient: {
-      displayName: user && user.displayName
+      displayName: user && user.displayName,
     },
-    language: viewer.language
+    language: viewer.language,
   })
 
   return true

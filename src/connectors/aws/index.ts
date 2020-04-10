@@ -11,7 +11,7 @@ import sharp from 'sharp'
 import {
   ACCEPTED_UPLOAD_IMAGE_TYPES,
   IMAGE_DIMENSION_LIMIT,
-  LOCAL_S3_ENDPOINT
+  LOCAL_S3_ENDPOINT,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
@@ -40,7 +40,7 @@ export class AWSService {
       secretAccessKey: awsAccessKey || '',
       ...(env === 'development'
         ? { s3BucketEndpoint: true, endpoint: LOCAL_S3_ENDPOINT }
-        : {})
+        : {}),
     }
   }
 
@@ -53,8 +53,9 @@ export class AWSService {
     switch (env) {
       case 'staging':
       case 'production': {
-        return `https://${awsCloudFrontEndpoint ||
-          `${this.s3Bucket}.${awsS3Endpoint}`}`
+        return `https://${
+          awsCloudFrontEndpoint || `${this.s3Bucket}.${awsS3Endpoint}`
+        }`
       }
       default: {
         return `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
@@ -103,8 +104,8 @@ export class AWSService {
           imageminGifsicle(),
           imageminJpegtran(),
           imageminPngquant(),
-          imageminSvgo()
-        ]
+          imageminSvgo(),
+        ],
       })
     }
 
@@ -117,7 +118,7 @@ export class AWSService {
         Body: buffer,
         Bucket: this.s3Bucket,
         ContentType: finalMimeType,
-        Key: key
+        Key: key,
       })
       .promise()
     return key
@@ -130,7 +131,7 @@ export class AWSService {
     this.s3
       .deleteObject({
         Bucket: this.s3Bucket,
-        Key: key
+        Key: key,
       })
       .promise()
 
@@ -142,18 +143,14 @@ export class AWSService {
     width: number | null,
     height: number | null
   ): Promise<Buffer> => {
-    return sharp(buffer)
-      .resize(width, height)
-      .toBuffer()
+    return sharp(buffer).resize(width, height).toBuffer()
   }
 
   /**
    * Convert buffer to jpeg
    */
   convertToJPEG = async (buffer: Buffer): Promise<Buffer> => {
-    return sharp(buffer)
-      .jpeg()
-      .toBuffer()
+    return sharp(buffer).jpeg().toBuffer()
   }
 }
 

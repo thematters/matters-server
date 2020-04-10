@@ -91,13 +91,13 @@ export const putTag = async (tag: GQLPutTagInput) => {
   const { mutate } = await testClient({
     isAdmin: true,
     isAuth: true,
-    isMatty: true
+    isMatty: true,
   })
 
   const result = await mutate({
     mutation: PUT_TAG,
     // @ts-ignore
-    variables: { input: tag }
+    variables: { input: tag },
   })
   const data = result?.data?.putTag
   return data
@@ -117,12 +117,12 @@ describe('put tag', () => {
     const { query } = await testClient({
       isAuth: true,
       isAdmin: true,
-      isMatty: true
+      isMatty: true,
     })
     const queryResult = await query({
       query: QUERY_TAG,
       // @ts-ignore
-      variables: { input: { id: createTagId } }
+      variables: { input: { id: createTagId } },
     })
     expect(_get(queryResult, 'data.node.content')).toBe(content)
     expect(_get(queryResult, 'data.node.description')).toBe(description)
@@ -133,7 +133,7 @@ describe('put tag', () => {
     const updateResult = await putTag({
       id: createTagId,
       content: updateContent,
-      description: updateDescription
+      description: updateDescription,
     })
     expect(updateResult?.content).toBe(updateContent)
     expect(updateResult?.description).toBe(updateDescription)
@@ -150,13 +150,13 @@ describe('manage tag', () => {
     const { mutate, query } = await testClient({
       isAuth: true,
       isAdmin: true,
-      isMatty: true
+      isMatty: true,
     })
     // rename
     const renameContent = 'Rename tag'
     const renameResult = await mutate({
       mutation: RENAME_TAG,
-      variables: { input: { id: createTagId, content: renameContent } }
+      variables: { input: { id: createTagId, content: renameContent } },
     })
     expect(renameResult?.data?.renameTag?.content).toBe(renameContent)
 
@@ -164,7 +164,7 @@ describe('manage tag', () => {
     const mergeContent = 'Merge tag'
     const mergeResult = await mutate({
       mutation: MERGE_TAG,
-      variables: { input: { ids: [createTagId], content: mergeContent } }
+      variables: { input: { ids: [createTagId], content: mergeContent } },
     })
     const mergeTagId = mergeResult?.data?.mergeTags?.id
     expect(mergeResult?.data?.mergeTags?.content).toBe(mergeContent)
@@ -172,7 +172,7 @@ describe('manage tag', () => {
     // delete
     const deleteResult = await mutate({
       mutation: DELETE_TAG,
-      variables: { input: { ids: [mergeTagId] } }
+      variables: { input: { ids: [mergeTagId] } },
     })
     expect(deleteResult?.data?.deleteTags).toBe(true)
   })
@@ -188,12 +188,12 @@ describe('manage article tag', () => {
     const { mutate, query } = await testClient({
       isAuth: true,
       isAdmin: true,
-      isMatty: true
+      isMatty: true,
     })
 
     const articleIds = [
       toGlobalId({ type: 'Article', id: 1 }),
-      toGlobalId({ type: 'Article', id: 2 })
+      toGlobalId({ type: 'Article', id: 2 }),
     ]
 
     // add
@@ -202,9 +202,9 @@ describe('manage article tag', () => {
       variables: {
         input: {
           id: createTagId,
-          articles: articleIds
-        }
-      }
+          articles: articleIds,
+        },
+      },
     })
     expect(addResult?.data?.putArticlesTags?.articles?.edges.length).toBe(2)
 
@@ -214,9 +214,9 @@ describe('manage article tag', () => {
       variables: {
         input: {
           id: createTagId,
-          articles: articleIds
-        }
-      }
+          articles: articleIds,
+        },
+      },
     })
     expect(deleteResult?.data?.deleteArticlesTags?.articles?.edges.length).toBe(
       0

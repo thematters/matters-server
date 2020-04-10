@@ -1,3 +1,6 @@
+"""Rate limit within a given period of time, in seconds"""
+directive @rateLimit(period: Int!, limit: Int!) on FIELD_DEFINITION
+
 directive @cacheControl(maxAge: Int, scope: CacheScope) on OBJECT | FIELD | FIELD_DEFINITION
 
 directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
@@ -926,6 +929,7 @@ type Mutation {
   """
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
+  putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -942,7 +946,7 @@ type Mutation {
   """Verify user email."""
   verifyEmail(input: VerifyEmailInput!): Boolean
 
-  """Register user."""
+  """Register user, can only be used on matters.news website."""
   userRegister(input: UserRegisterInput!): AuthResult!
 
   """Login user."""
@@ -1184,6 +1188,7 @@ type OSS {
   report(input: ReportInput!): Report!
   today(input: ConnectionArgs!): ArticleConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
+  skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
 }
 
 input OSSArticlesInput {
@@ -1277,6 +1282,11 @@ input PutRemarkInput {
   id: ID!
   remark: String!
   type: RemarkTypes!
+}
+
+input PutSkippedListItemInput {
+  id: ID!
+  archived: Boolean!
 }
 
 input PutTagInput {
@@ -1549,6 +1559,32 @@ input SingleFileUploadInput {
   url: URL
   entityType: EntityType!
   entityId: ID
+}
+
+type SkippedListItem {
+  id: ID!
+  uuid: UUID!
+  type: SkippedListItemType!
+  value: String!
+  archived: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type SkippedListItemEdge {
+  cursor: String!
+  node: SkippedListItem
+}
+
+type SkippedListItemsConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [SkippedListItemEdge!]
+}
+
+enum SkippedListItemType {
+  agent_hash
+  email
 }
 
 input SubscribeArticleInput {

@@ -1,7 +1,7 @@
 import { USER_STATE } from 'common/enums'
 import { ActionFailedError, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { userQueue } from 'connectors/queue/user'
+import { userQueue } from 'connectors/queue'
 import { MutationToUpdateUserStateResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserStateResolver = async (
@@ -38,9 +38,9 @@ const resolver: MutationToUpdateUserStateResolver = async (
     notificationService.mail.sendUserDeletedByAdmin({
       to: user.email,
       recipient: {
-        displayName: user.displayName
+        displayName: user.displayName,
       },
-      language: user.language
+      language: user.language,
     })
 
     return archivedUser
@@ -50,19 +50,19 @@ const resolver: MutationToUpdateUserStateResolver = async (
    * Active, Banned, Frozen
    */
   const updatedUser = await userService.updateInfo(dbId, {
-    state
+    state,
   })
 
   // trigger notification
   if (state === USER_STATE.banned) {
     notificationService.trigger({
       event: 'user_banned',
-      recipientId: updatedUser.id
+      recipientId: updatedUser.id,
     })
   } else if (state === USER_STATE.frozen) {
     notificationService.trigger({
       event: 'user_frozen',
-      recipientId: updatedUser.id
+      recipientId: updatedUser.id,
     })
   }
 

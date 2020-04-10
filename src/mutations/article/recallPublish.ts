@@ -24,7 +24,7 @@ const resolver: MutationToRecallPublishResolver = async (
 
   const draftRecalled = await draftService.baseUpdate(draftDBId, {
     publishState: PUBLISH_STATE.unpublished,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   })
 
   return draftRecalled

@@ -12,10 +12,10 @@ export class PrivateCacheDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field: GraphQLField<any, any> & Params) {
     const { resolve = defaultFieldResolver } = field
     field._strict = this.args.strict
-    field.resolve = async function(...args) {
+    field.resolve = async function (...args) {
       const [root, _, { viewer }, { fieldName, cacheControl }] = args
       const logged = viewer.id && viewer.hasRole('user')
-      let maxAge = CACHE_TTL.DEFAULT
+      let maxAge = CACHE_TTL.SHORT
       if (field._strict === true && logged) {
         maxAge = CACHE_TTL.INSTANT
       }

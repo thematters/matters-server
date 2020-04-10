@@ -14,7 +14,7 @@ test('publish', async () => {
     cover: '1',
     summary: 'test-summary',
     content: '<div>test-html-string</div>',
-    draftId: '1'
+    draftId: '1',
   })
   expect(articlePublished.mediaHash).toBeDefined()
   expect(articlePublished.dataHash).toBeDefined()
@@ -41,9 +41,9 @@ test('findByCommentedAuthor', async () => {
   expect(articles.length).toBeDefined()
 })
 
-test('findTransactions', async () => {
-  const appreciations = await articleService.findTransactions({
-    referenceId: '1'
+test('findAppreciations', async () => {
+  const appreciations = await articleService.findAppreciations({
+    referenceId: '1',
   })
   expect(appreciations.length).toBe(3)
 })
@@ -60,7 +60,7 @@ test('findSubscriptions', async () => {
 
 test('update', async () => {
   const article = await articleService.baseUpdate('1', {
-    state: 'archived'
+    state: 'archived',
   })
   expect(article.state).toEqual('archived')
 })

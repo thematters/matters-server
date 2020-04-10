@@ -12,7 +12,7 @@ const resolver: MutationToClearReadHistoryResolver = async (
 
   await userService.clearReadHistory({
     articleId: fromGlobalId(id).id,
-    userId: viewer.id
+    userId: viewer.id,
   })
 
   return true

@@ -1,4 +1,3 @@
-import Queue from 'bull'
 import { v4 } from 'uuid'
 
 import {
@@ -7,37 +6,17 @@ import {
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
   QUEUE_NAME,
-  QUEUE_PRIORITY
+  QUEUE_PRIORITY,
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
 import { makeSummary, sanitize } from 'common/utils'
-import {
-  CacheService,
-  DraftService,
-  mailService,
-  NotificationService,
-  SystemService,
-  UserService
-} from 'connectors'
 
-import { createQueue } from './utils'
+import { BaseQueue } from './baseQueue'
 
-class MigrationQueue {
-  q: InstanceType<typeof Queue>
-  draftService: InstanceType<typeof DraftService>
-  notificationService: InstanceType<typeof NotificationService>
-  systemService: InstanceType<typeof SystemService>
-  userService: InstanceType<typeof UserService>
-
-  private queueName = QUEUE_NAME.migration
-
+class MigrationQueue extends BaseQueue {
   constructor() {
-    this.draftService = new DraftService()
-    this.notificationService = new NotificationService()
-    this.systemService = new SystemService()
-    this.userService = new UserService()
-    this.q = createQueue(this.queueName)
+    super(QUEUE_NAME.migration)
     this.addConsumers()
   }
 
@@ -48,7 +27,7 @@ class MigrationQueue {
     type,
     userId,
     htmls,
-    delay = MIGRATION_DELAY
+    delay = MIGRATION_DELAY,
   }: {
     type: string
     userId: string
@@ -61,7 +40,7 @@ class MigrationQueue {
       {
         delay,
         priority: QUEUE_PRIORITY.NORMAL,
-        removeOnComplete: true
+        removeOnComplete: true,
       }
     )
   }
@@ -93,7 +72,7 @@ class MigrationQueue {
           }
 
           const {
-            id: entityTypeId
+            id: entityTypeId,
           } = await this.systemService.baseFindEntityTypeId('draft')
           if (!entityTypeId) {
             job.progress(100)
@@ -118,7 +97,7 @@ class MigrationQueue {
                 const {
                   title,
                   content,
-                  assets
+                  assets,
                 } = await this.userService.medium.convertRawHTML(html)
 
                 // put draft
@@ -127,18 +106,18 @@ class MigrationQueue {
                   uuid: v4(),
                   title,
                   summary: content && makeSummary(content),
-                  content: content && sanitize(content)
+                  content: content && sanitize(content),
                 })
 
                 // add asset and assetmap
                 const result = await Promise.all(
-                  assets.map(asset =>
+                  assets.map((asset) =>
                     this.systemService.createAssetAndAssetMap(
                       {
                         uuid: asset.uuid,
                         authorId: userId,
                         type: 'embed',
-                        path: asset.key
+                        path: asset.key,
                       },
                       entityTypeId,
                       draft.id
@@ -157,8 +136,8 @@ class MigrationQueue {
             language: user.language,
             recipient: {
               displayName: user.displayName,
-              userName: user.userName
-            }
+              userName: user.userName,
+            },
           })
 
           job.progress(100)

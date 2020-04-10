@@ -1,14 +1,15 @@
 import axiso from 'axios'
 import _ from 'lodash'
 
+import { HOUR } from 'common/enums'
 import logger from 'common/logger'
 import { LikerToRateUSDResolver } from 'definitions'
 
 const CACHED = {
   price: null,
-  expiredAt: 0
+  expiredAt: 0,
 }
-const EXPIRES_IN = 1000 * 60 * 60 // 1 hour
+const EXPIRES_IN = HOUR * 1 // 1 hour
 
 const resolver: LikerToRateUSDResolver = async (
   { id },

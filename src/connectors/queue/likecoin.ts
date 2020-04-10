@@ -1,9 +1,8 @@
 import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
-import { UserService } from 'connectors'
 
-import { createQueue } from './utils'
+import { BaseQueue } from './baseQueue'
 
 interface LikeData {
   likerId: string
@@ -20,32 +19,25 @@ interface SendPVData {
   url: string
 }
 
-class LikeCoinQueue {
-  q: InstanceType<typeof Queue>
-  userService: InstanceType<typeof UserService>
-
-  private queueName = QUEUE_NAME.likecoin
-
+class LikeCoinQueue extends BaseQueue {
   constructor() {
-    this.userService = new UserService()
-    this.q = createQueue(this.queueName)
+    super(QUEUE_NAME.likecoin)
     this.addConsumers()
   }
-
   /**
    * Producers
    */
   like = (data: LikeData) => {
     return this.q.add(QUEUE_JOB.like, data, {
       priority: QUEUE_PRIORITY.NORMAL,
-      attempts: 1
+      attempts: 1,
     })
   }
 
   sendPV = (data: SendPVData) => {
     return this.q.add(QUEUE_JOB.sendPV, data, {
       priority: QUEUE_PRIORITY.NORMAL,
-      attempts: 1
+      attempts: 1,
     })
   }
 
@@ -67,7 +59,7 @@ class LikeCoinQueue {
         likerIp,
         authorLikerId,
         url,
-        amount
+        amount,
       } = job.data as LikeData
 
       const liker = await this.userService.findLiker({ likerId })
@@ -81,7 +73,7 @@ class LikeCoinQueue {
         liker,
         likerIp,
         url,
-        amount
+        amount,
       })
       job.progress(100)
       done(null, result)
@@ -103,7 +95,7 @@ class LikeCoinQueue {
         authorLikerId,
         liker: liker || undefined,
         likerIp,
-        url
+        url,
       })
 
       job.progress(100)

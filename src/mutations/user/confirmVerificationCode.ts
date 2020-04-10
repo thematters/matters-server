@@ -1,7 +1,7 @@
 import {
   CodeExpiredError,
   CodeInvalidError,
-  UserInputError
+  UserInputError,
 } from 'common/errors'
 import { MutationToConfirmVerificationCodeResolver } from 'definitions'
 
@@ -13,7 +13,7 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
   const { email: rawEmail } = input
   const email = rawEmail ? rawEmail.toLowerCase() : null
   const [code] = await userService.findVerificationCodes({
-    where: { ...input, email, status: 'active' }
+    where: { ...input, email, status: 'active' },
   })
 
   if (!code) {
@@ -24,7 +24,7 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
     // mark code status as expired
     await userService.markVerificationCodeAs({
       codeId: code.id,
-      status: 'expired'
+      status: 'expired',
     })
     throw new CodeExpiredError('code is exipred')
   }
@@ -32,7 +32,7 @@ const resolver: MutationToConfirmVerificationCodeResolver = async (
   // mark code status as verified
   await userService.markVerificationCodeAs({
     codeId: code.id,
-    status: 'verified'
+    status: 'verified',
   })
 
   return code.uuid

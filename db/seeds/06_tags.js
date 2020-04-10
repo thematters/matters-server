@@ -1,16 +1,16 @@
 const table = 'tag'
 
-exports.seed = function(knex, Promise) {
+exports.seed = function (knex, Promise) {
   return knex(table)
     .del()
-    .then(function() {
+    .then(function () {
       return knex(table).insert([
         {
-          content: 'test'
+          content: 'test',
         },
         {
-          content: 'article'
-        }
+          content: 'article',
+        },
       ])
     })
 }

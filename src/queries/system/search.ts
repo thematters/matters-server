@@ -9,7 +9,7 @@ const resolver: QueryToSearchResolver = async (
   { input },
   {
     dataSources: { systemService, articleService, userService, tagService },
-    viewer
+    viewer,
   }
 ) => {
   if (input.key) {
@@ -28,7 +28,7 @@ const resolver: QueryToSearchResolver = async (
   const serviceMap = {
     Article: articleService,
     User: userService,
-    Tag: tagService
+    Tag: tagService,
   }
 
   const connection = await serviceMap[input.type]
@@ -37,7 +37,7 @@ const resolver: QueryToSearchResolver = async (
       nodes = _.compact(nodes)
       return {
         nodes: nodes.map((node: GQLNode) => ({ ...node, __type: input.type })),
-        totalCount
+        totalCount,
       }
     })
 

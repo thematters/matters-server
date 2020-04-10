@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
   connectionFromPromisedArray,
-  cursorToIndex
+  cursorToIndex,
 } from 'common/utils'
 import { GQLUserActivityTypeResolver } from 'definitions'
 
@@ -23,7 +23,7 @@ const resolver: GQLUserActivityTypeResolver = {
       userService.findReadHistory({
         userId: id,
         offset,
-        limit: first
+        limit: first,
       }),
       input,
       totalCount
@@ -52,12 +52,12 @@ const resolver: GQLUserActivityTypeResolver = {
     const { first, after } = input
 
     const offset = after ? cursorToIndex(after) + 1 : 0
-    const totalCount = await userService.totalSentTransactionCount(id)
+    const totalCount = await userService.totalSentAppreciationCount(id)
     return connectionFromPromisedArray(
-      userService.findTransactionBySender({
+      userService.findAppreciationBySender({
         senderId: id,
         limit: first,
-        offset
+        offset,
       }),
       input,
       totalCount
@@ -75,12 +75,12 @@ const resolver: GQLUserActivityTypeResolver = {
     const { first, after } = input
 
     const offset = after ? cursorToIndex(after) + 1 : 0
-    const totalCount = await userService.totalRecivedTransactionCount(id)
+    const totalCount = await userService.totalRecivedAppreciationCount(id)
     return connectionFromPromisedArray(
-      userService.findTransactionByRecipient({
+      userService.findAppreciationByRecipient({
         recipientId: id,
         limit: first,
-        offset
+        offset,
       }),
       input,
       totalCount
@@ -88,7 +88,7 @@ const resolver: GQLUserActivityTypeResolver = {
   },
 
   appreciationsReceivedTotal: ({ id }, _, { dataSources: { userService } }) =>
-    userService.totalRecived(id)
+    userService.totalRecived(id),
 }
 
 export default resolver

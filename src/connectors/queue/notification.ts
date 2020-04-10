@@ -6,13 +6,20 @@ import { mailService, PushParams, pushService } from 'connectors'
 
 import { createQueue } from './utils'
 
+/**
+ * Note:
+ *
+ * Since it's only used by NotificationService,
+ * and easy to cause circular import issues,
+ * NotificationQueue isn't inherit from BaseQueue,
+ * and will not be exported at "index.ts".
+ *
+ */
 class NotificationQueue {
   q: InstanceType<typeof Queue>
 
-  private queueName = QUEUE_NAME.notification
-
   constructor() {
-    this.q = createQueue(this.queueName)
+    this.q = createQueue(QUEUE_NAME.notification)
     this.addConsumers()
   }
 
@@ -21,13 +28,13 @@ class NotificationQueue {
    */
   sendMail = (data: MailData) => {
     return this.q.add(QUEUE_JOB.sendMail, data, {
-      priority: QUEUE_PRIORITY.NORMAL
+      priority: QUEUE_PRIORITY.NORMAL,
     })
   }
 
   pushNotification = (data: PushParams) => {
     return this.q.add(QUEUE_JOB.pushNotification, data, {
-      priority: QUEUE_PRIORITY.NORMAL
+      priority: QUEUE_PRIORITY.NORMAL,
     })
   }
 
@@ -44,6 +51,7 @@ class NotificationQueue {
         done(e)
       }
     })
+
     this.q.process(QUEUE_JOB.pushNotification, async (job, done) => {
       try {
         const result = await pushService.push(job.data as PushParams)

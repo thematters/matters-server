@@ -5,7 +5,7 @@ import { toGlobalId } from 'common/utils'
 import {
   GQLAppreciateArticleInput,
   GQLNodeInput,
-  GQLPublishArticleInput
+  GQLPublishArticleInput,
 } from 'definitions'
 
 import { publishArticle, putDraft, testClient } from './utils'
@@ -112,7 +112,7 @@ export const getArticleAppreciationsReceivedTotal = async (
   const { data } = await query({
     query: GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL,
     // @ts-ignore
-    variables: { input }
+    variables: { input },
   })
   const { appreciationsReceivedTotal } = data && data.node && data.node
   return appreciationsReceivedTotal
@@ -120,12 +120,12 @@ export const getArticleAppreciationsReceivedTotal = async (
 
 export const appreciateArticle = async (input: GQLAppreciateArticleInput) => {
   const { mutate } = await testClient({
-    isAuth: true
+    isAuth: true,
   })
   const result = await mutate({
     mutation: APPRECIATE_ARTICLE,
     // @ts-ignore
-    variables: { input }
+    variables: { input },
   })
 
   if (result.errors) {
@@ -142,7 +142,7 @@ describe('query article', () => {
     const result = await query({
       query: GET_ARTICLES,
       // @ts-ignore
-      variables: { input: {} }
+      variables: { input: {} },
     })
     expect(_get(result, 'data.oss.articles.edges.length')).toBeGreaterThan(1)
   })
@@ -152,7 +152,7 @@ describe('query article', () => {
     const result = await query({
       query: GET_RELATED_ARTICLES,
       // @ts-ignore
-      variables: { input: { mediaHash } }
+      variables: { input: { mediaHash } },
     })
     expect(_get(result, 'data.article.relatedArticles.edges')).toBeDefined()
   })
@@ -165,7 +165,7 @@ describe('query tag on article', () => {
     const { data } = await query({
       query: GET_ARTICLE_TAGS,
       // @ts-ignore
-      variables: { input: { id } }
+      variables: { input: { id } },
     })
     const tags = data && data.node && data.node.tags
     expect(
@@ -179,19 +179,19 @@ describe('publish article', () => {
     jest.setTimeout(10000)
     const draft = {
       title: Math.random().toString(),
-      content: Math.random().toString()
+      content: Math.random().toString(),
     }
     const { id } = await putDraft(draft)
     const { publishState } = await publishArticle({ id })
     expect(publishState).toBe(PUBLISH_STATE.pending)
 
     const { mutate } = await testClient({
-      isAuth: true
+      isAuth: true,
     })
     const result = await mutate({
       mutation: RECALL_PUBLISH,
       // @ts-ignore
-      variables: { input: { id } }
+      variables: { input: { id } },
     })
     const draftRecalled = result && result.data && result.data.recallPublish
     expect(draftRecalled.publishState).toBe(PUBLISH_STATE.unpublished)
@@ -199,12 +199,12 @@ describe('publish article', () => {
 
   test('add collection to article and query', async () => {
     const { mutate } = await testClient({
-      isAuth: true
+      isAuth: true,
     })
 
     const collection = [
       toGlobalId({ type: 'Article', id: 1 }),
-      toGlobalId({ type: 'Article', id: 2 })
+      toGlobalId({ type: 'Article', id: 2 }),
     ]
 
     const result = await mutate({
@@ -224,8 +224,8 @@ describe('publish article', () => {
       // @ts-ignore
       variables: {
         id: toGlobalId({ type: 'Article', id: 4 }),
-        collection
-      }
+        collection,
+      },
     })
 
     expect(
@@ -246,9 +246,9 @@ describe('report article', () => {
         input: {
           id: ARTICLE_ID,
           category: 'spam',
-          description: 'desc'
-        }
-      }
+          description: 'desc',
+        },
+      },
     })
     expect(_get(result, 'data.reportArticle')).toBe(true)
   })
@@ -263,9 +263,9 @@ describe('report article', () => {
           id: ARTICLE_ID,
           category: 'spam',
           description: 'desc',
-          assetIds: ['00000000-0000-0000-0000-000000000011']
-        }
-      }
+          assetIds: ['00000000-0000-0000-0000-000000000011'],
+        },
+      },
     })
     expect(_get(result, 'data.reportArticle')).toBe(true)
   })
@@ -280,9 +280,9 @@ describe('toggle article state', () => {
       variables: {
         input: {
           id: ARTICLE_ID,
-          enabled: true
-        }
-      }
+          enabled: true,
+        },
+      },
     })
     expect(_get(result, 'data.toggleArticleLive.live')).toBe(true)
   })
@@ -295,9 +295,9 @@ describe('toggle article state', () => {
       variables: {
         input: {
           id: ARTICLE_ID,
-          enabled: false
-        }
-      }
+          enabled: false,
+        },
+      },
     })
     expect(_get(result, 'data.toggleArticleLive.live')).toBe(false)
   })
@@ -310,9 +310,9 @@ describe('toggle article state', () => {
       variables: {
         input: {
           id: ARTICLE_ID,
-          enabled: true
-        }
-      }
+          enabled: true,
+        },
+      },
     })
     expect(_get(data, 'toggleArticlePublic.public')).toBe(true)
   })
@@ -325,9 +325,9 @@ describe('toggle article state', () => {
       variables: {
         input: {
           id: ARTICLE_ID,
-          enabled: false
-        }
-      }
+          enabled: false,
+        },
+      },
     })
     expect(_get(data, 'toggleArticlePublic.public')).toBe(false)
   })
@@ -340,9 +340,9 @@ describe('toggle article state', () => {
       variables: {
         input: {
           id: ARTICLE_ID,
-          enabled: true
-        }
-      }
+          enabled: true,
+        },
+      },
     })
     expect(_get(data, 'toggleSubscribeArticle.subscribed')).toBe(true)
   })
@@ -355,9 +355,9 @@ describe('toggle article state', () => {
       variables: {
         input: {
           id: ARTICLE_ID,
-          enabled: false
-        }
-      }
+          enabled: false,
+        },
+      },
     })
     expect(_get(data, 'toggleSubscribeArticle.subscribed')).toBe(false)
   })

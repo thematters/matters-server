@@ -1,7 +1,7 @@
 import { PUBLISH_ARTICLE_DELAY, PUBLISH_STATE } from 'common/enums'
 import { AuthenticationError, DraftNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { publicationQueue } from 'connectors/queue/publication'
+import { publicationQueue } from 'connectors/queue'
 import { MutationToPublishArticleResolver } from 'definitions'
 
 const resolver: MutationToPublishArticleResolver = async (
@@ -33,7 +33,7 @@ const resolver: MutationToPublishArticleResolver = async (
   const draftPending = await draftService.baseUpdate(draft.id, {
     publishState: PUBLISH_STATE.pending,
     scheduledAt,
-    updatedAt: new Date()
+    updatedAt: new Date(),
   })
 
   // add job to queue

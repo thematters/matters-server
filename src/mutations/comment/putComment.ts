@@ -6,7 +6,7 @@ import {
   AuthenticationError,
   CommentNotFoundError,
   ForbiddenError,
-  UserInputError
+  UserInputError,
 } from 'common/errors'
 import { countWords, fromGlobalId, sanitize, toGlobalId } from 'common/utils'
 import { MutationToPutCommentResolver } from 'definitions'
@@ -20,8 +20,8 @@ const resolver: MutationToPutCommentResolver = async (
       commentService,
       articleService,
       notificationService,
-      userService
-    }
+      userService,
+    },
   }
 ) => {
   if (!viewer.id) {
@@ -38,7 +38,7 @@ const resolver: MutationToPutCommentResolver = async (
 
   const data: any = {
     content: sanitize(content),
-    authorId: viewer.id
+    authorId: viewer.id,
   }
 
   // check target article
@@ -55,7 +55,7 @@ const resolver: MutationToPutCommentResolver = async (
   // check whether viewer is blocked by article author
   const isBlocked = await userService.blocked({
     userId: article.authorId,
-    targetId: viewer.id
+    targetId: viewer.id,
   })
   if (isBlocked) {
     throw new ForbiddenError('viewer is blocked by article author')
@@ -104,12 +104,12 @@ const resolver: MutationToPutCommentResolver = async (
     newComment[CACHE_KEYWORD] = [
       {
         id: article.id,
-        type: NODE_TYPES.article
+        type: NODE_TYPES.article,
       },
       {
         id: comment.id,
-        type: NODE_TYPES.comment
-      }
+        type: NODE_TYPES.comment,
+      },
     ]
   }
 
@@ -147,14 +147,14 @@ const resolver: MutationToPutCommentResolver = async (
           {
             type: 'target',
             entityTable: 'article',
-            entity: article
+            entity: article,
           },
           {
             type: 'comment',
             entityTable: 'comment',
-            entity: newComment
-          }
-        ]
+            entity: newComment,
+          },
+        ],
       })
     }
 
@@ -170,14 +170,14 @@ const resolver: MutationToPutCommentResolver = async (
           {
             type: 'target',
             entityTable: 'comment',
-            entity: parentComment
+            entity: parentComment,
           },
           {
             type: 'reply',
             entityTable: 'comment',
-            entity: newComment
-          }
-        ]
+            entity: newComment,
+          },
+        ],
       })
     }
 
@@ -192,20 +192,20 @@ const resolver: MutationToPutCommentResolver = async (
           {
             type: 'target',
             entityTable: 'comment',
-            entity: replyToComment
+            entity: replyToComment,
           },
           {
             type: 'reply',
             entityTable: 'comment',
-            entity: newComment
-          }
-        ]
+            entity: newComment,
+          },
+        ],
       })
     }
 
     // notify article's subscribers
     const articleSubscribers = await articleService.findSubscriptions({
-      id: article.id
+      id: article.id,
     })
     articleSubscribers.forEach((subscriber: any) => {
       if (subscriber.id === articleAuthor) {
@@ -219,14 +219,14 @@ const resolver: MutationToPutCommentResolver = async (
           {
             type: 'target',
             entityTable: 'article',
-            entity: article
+            entity: article,
           },
           {
             type: 'comment',
             entityTable: 'comment',
-            entity: newComment
-          }
-        ]
+            entity: newComment,
+          },
+        ],
       })
     })
 
@@ -234,8 +234,8 @@ const resolver: MutationToPutCommentResolver = async (
     newComment[CACHE_KEYWORD] = [
       {
         id: article.id,
-        type: NODE_TYPES.article
-      }
+        type: NODE_TYPES.article,
+      },
     ]
   }
 
@@ -243,7 +243,7 @@ const resolver: MutationToPutCommentResolver = async (
   notificationService.pubsub.publish(
     toGlobalId({
       type: 'Article',
-      id: article.id
+      id: article.id,
     }),
     article
   )
@@ -260,9 +260,9 @@ const resolver: MutationToPutCommentResolver = async (
           {
             type: 'target',
             entityTable: 'comment',
-            entity: newComment
-          }
-        ]
+            entity: newComment,
+          },
+        ],
       })
     })
   }

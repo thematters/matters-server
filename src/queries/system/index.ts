@@ -1,6 +1,6 @@
 import {
   GQLPossibleConnectionTypeNames,
-  GQLPossibleNodeTypeNames
+  GQLPossibleNodeTypeNames,
 } from 'definitions'
 
 import frequentSearch from './frequentSearch'
@@ -11,7 +11,7 @@ import {
   links,
   placements,
   releases,
-  reportCategory
+  reportCategory,
 } from './official'
 import OSS from './oss'
 import Report from './report'
@@ -23,17 +23,17 @@ export default {
     search,
     frequentSearch,
     official: () => true,
-    oss: () => true
+    oss: () => true,
   },
   Node: {
-    __resolveType: ({ __type }: { __type: GQLPossibleNodeTypeNames }) => __type
+    __resolveType: ({ __type }: { __type: GQLPossibleNodeTypeNames }) => __type,
   },
   Connection: {
     __resolveType: ({ __type }: { __type: GQLPossibleConnectionTypeNames }) =>
-      __type
+      __type,
   },
   Asset: {
-    id: ({ uuid }: { uuid: string }) => uuid
+    id: ({ uuid }: { uuid: string }) => uuid,
   },
   Official: {
     ipfsAddress,
@@ -41,8 +41,8 @@ export default {
     feedbackCategory,
     releases, // TODO
     links,
-    placements // TODO
+    placements, // TODO
   },
   OSS,
-  Report
+  Report,
 }

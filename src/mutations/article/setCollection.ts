@@ -23,10 +23,10 @@ const resolver: MutationToSetCollectionResolver = async (
   const oldIds = (
     await articleService.findCollections({
       entranceId,
-      limit: null
+      limit: null,
     })
   ).map(({ articleId }: any) => articleId)
-  const newIds = collection.map(articleId => fromGlobalId(articleId).id)
+  const newIds = collection.map((articleId) => fromGlobalId(articleId).id)
   const addItems: any[] = []
   const updateItems: any[] = []
   const deleteItems: any[] = []
@@ -48,13 +48,13 @@ const resolver: MutationToSetCollectionResolver = async (
     ...addItems.map((data: any) => articleService.insertCollection(data)),
     ...updateItems.map((data: any) =>
       articleService.updateCollectionOrder(data)
-    )
+    ),
   ])
 
   // Delete unwanted
   await articleService.deleteCollectionByArticleIds({
     entranceId,
-    articleIds: difference(oldIds, newIds)
+    articleIds: difference(oldIds, newIds),
   })
 
   // trigger notifications
@@ -68,14 +68,14 @@ const resolver: MutationToSetCollectionResolver = async (
         {
           type: 'target',
           entityTable: 'article',
-          entity: targetCollection
+          entity: targetCollection,
         },
         {
           type: 'collection',
           entityTable: 'article',
-          entity: article
-        }
-      ]
+          entity: article,
+        },
+      ],
     })
   })
 

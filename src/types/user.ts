@@ -22,7 +22,7 @@ export default /* GraphQL */ `
     "Verify user email."
     verifyEmail(input: VerifyEmailInput!): Boolean @authenticate
 
-    "Register user."
+    "Register user, can only be used on matters.news website."
     userRegister(input: UserRegisterInput!): AuthResult!
 
     "Login user."

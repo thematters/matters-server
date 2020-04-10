@@ -25,7 +25,7 @@ const resolver: MutationToFeedbackResolver = async (
     category,
     description,
     contact,
-    assetIds
+    assetIds,
   })
 
   return true

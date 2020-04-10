@@ -26,6 +26,7 @@ export default /* GraphQL */ `
     ##############
     setBoost(input: SetBoostInput!): Node! @authorize
     putRemark(input: PutRemarkInput!): String @authorize
+    putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @authorize
   }
 
   extend type Subscription {
@@ -71,6 +72,7 @@ export default /* GraphQL */ `
     report(input: ReportInput!): Report!
     today(input: ConnectionArgs!): ArticleConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
+    skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
   }
 
   type Category {
@@ -166,6 +168,27 @@ export default /* GraphQL */ `
     node: Report!
   }
 
+  type SkippedListItemsConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [SkippedListItemEdge!]
+  }
+
+  type SkippedListItemEdge {
+    cursor: String!
+    node: SkippedListItem
+  }
+
+  type SkippedListItem {
+    id: ID!
+    uuid: UUID!
+    type: SkippedListItemType!
+    value: String!
+    archived: Boolean!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
   input NodeInput {
     id: ID!
   }
@@ -239,6 +262,11 @@ export default /* GraphQL */ `
     id: ID!
     remark: String!
     type: RemarkTypes!
+  }
+
+  input PutSkippedListItemInput {
+    id: ID!
+    archived: Boolean!
   }
 
   input LogRecordInput {
@@ -322,6 +350,11 @@ export default /* GraphQL */ `
   enum CacheScope {
     PUBLIC
     PRIVATE
+  }
+
+  enum SkippedListItemType {
+    agent_hash
+    email
   }
 
   input CostComplexity {

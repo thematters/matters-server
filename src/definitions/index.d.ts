@@ -9,7 +9,7 @@ import {
   SystemService,
   TagService,
   NotificationService,
-  OAuthService
+  OAuthService,
 } from 'connectors'
 
 export * from './schema'
@@ -209,4 +209,4 @@ export type Falsey = '' | 0 | false | null | undefined
 
 export type ScopeMode = 'visitor' | 'oauth' | 'user' | 'admin'
 
-export type BlockListType = 'agent_hash' | 'email'
+export type SkippedListItemType = 'agent_hash' | 'email'

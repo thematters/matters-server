@@ -17,6 +17,6 @@ export const links: OfficialToLinksResolver = () => {
       : 'https://web-stage.matters.news/faq',
     tos: isProd
       ? 'https://matters.news/tos'
-      : 'https://web-stage.matters.news/tos'
+      : 'https://web-stage.matters.news/tos',
   }
 }
