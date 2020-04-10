@@ -286,6 +286,10 @@ export class PaymentService extends BaseService {
         currency,
       })
 
+      if (!payment) {
+        throw new ServerError('failed to create payment')
+      }
+
       // create a pending transaction from DB
       const transaction = await this.createTransaction({
         amount,

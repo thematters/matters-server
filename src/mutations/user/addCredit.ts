@@ -3,8 +3,14 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
 } from 'common/enums'
-import { AuthenticationError, ServerError } from 'common/errors'
+import {
+  AuthenticationError,
+  PaymentAmountTooSmallError,
+  ServerError,
+} from 'common/errors'
 import { Customer, MutationToAddCreditResolver } from 'definitions'
+
+const MINIMAL_AMOUNT = 20
 
 const resolver: MutationToAddCreditResolver = async (
   parent,
@@ -13,6 +19,11 @@ const resolver: MutationToAddCreditResolver = async (
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  // check amount
+  if (amount <= MINIMAL_AMOUNT) {
+    throw new PaymentAmountTooSmallError('The minimal amount is 20')
   }
 
   const provider = PAYMENT_PROVIDER.stripe
