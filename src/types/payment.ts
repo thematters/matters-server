@@ -1,16 +1,18 @@
 export default /* GraphQL */ `
   extend type Mutation {
     "Add Credit to User Wallet"
-    addCredit(input: AddCreditInput!): AddCreditResult!
+    addCredit(input: AddCreditInput!): AddCreditResult! @authenticate
 
     "Pay to another user or article"
-    payTo(input: PayToInput!): PayToResult!
+    payTo(input: PayToInput!): PayToResult! @authenticate
   }
 
   extend type User {
     "User Wallet"
-    wallet: Wallet!
+    wallet: Wallet! @scope
   }
+
+  union TransactionTarget = Article | Transaction
 
   type Wallet {
     balance: Balance!
@@ -18,17 +20,17 @@ export default /* GraphQL */ `
   }
 
   type Balance {
-    HKD: Int!
+    HKD: Float!!
   }
 
   type Transaction {
-    uuid: UUID!
+    id: ID!
 
     state: TransactionState!
 
     purpose: TransactionPurpose!
 
-    amount: Int!
+    amount: Float!
 
     currency: TransactionCurrency!
 
@@ -41,8 +43,8 @@ export default /* GraphQL */ `
     "Sender of transaction."
     sender: User
 
-    "Article that transaction pay for."
-    target: Article
+    "Related target article or transaction."
+    target: TransactionTarget
   }
 
   type TransactionConnection implements Connection {
@@ -59,7 +61,7 @@ export default /* GraphQL */ `
   input TransactionsArgs {
     after: String
     first: Int
-    uuid: UUID
+    id: ID
     states: [TransactionState!]
   }
 

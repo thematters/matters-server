@@ -1,11 +1,10 @@
-import { v4 } from 'uuid'
-
 import {
   BATCH_SIZE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
 import { BaseService } from 'connectors'
@@ -17,7 +16,7 @@ export class PaymentService extends BaseService {
   stripe: typeof stripe
 
   constructor() {
-    super('noop')
+    super('transaction')
 
     this.stripe = stripe
   }
@@ -27,7 +26,7 @@ export class PaymentService extends BaseService {
    *             Wallet            *
    *                               *
    *********************************/
-  countBalance = async ({
+  calculateBalance = async ({
     userId,
     currency,
   }: {
@@ -47,19 +46,19 @@ export class PaymentService extends BaseService {
   // count transactions by given conditions
   totalTransactionCount = async ({
     userId,
-    uuid,
+    id,
     states,
   }: {
     userId: string
-    uuid?: string
+    id?: string
     states?: TRANSACTION_STATE[]
   }) => {
     let qs = this.knex('transaction_delta_view').where({
       userId,
     })
 
-    if (uuid) {
-      qs = qs.where({ uuid })
+    if (id) {
+      qs = qs.where({ id })
     }
 
     if (states) {
@@ -73,14 +72,14 @@ export class PaymentService extends BaseService {
   // find transactions by given conditions
   findTransactions = async ({
     userId,
-    uuid,
+    id,
     providerTxId,
     states,
     offset = 0,
     limit = BATCH_SIZE,
   }: {
     userId?: string
-    uuid?: string
+    id?: string
     providerTxId?: string
     states?: TRANSACTION_STATE[]
     offset?: number
@@ -92,8 +91,8 @@ export class PaymentService extends BaseService {
       qs = qs.where({ userId })
     }
 
-    if (uuid) {
-      qs = qs.where({ uuid })
+    if (id) {
+      qs = qs.where({ id })
     }
 
     if (providerTxId) {
@@ -115,11 +114,12 @@ export class PaymentService extends BaseService {
 
     provider,
     providerTxId,
-    refundedId,
 
     recipientId,
     senderId,
+
     targetId,
+    targetType = TRANSACTION_TARGET_TYPE.article,
   }: {
     amount: number
     state?: TRANSACTION_STATE
@@ -128,32 +128,29 @@ export class PaymentService extends BaseService {
 
     provider: PAYMENT_PROVIDER
     providerTxId: string
-    refundedId?: string
 
     recipientId?: string
     senderId?: string
+
     targetId?: string
+    targetType?: TRANSACTION_TARGET_TYPE
   }) => {
-    const uuid = v4()
+    // TODO: target type in entity type table
 
-    return this.baseCreate(
-      {
-        uuid,
-        amount,
-        state,
-        currency,
-        purpose,
+    return this.baseCreate({
+      amount,
+      state,
+      currency,
+      purpose,
 
-        provider,
-        providerTxId,
-        refundedId,
+      provider,
+      providerTxId,
 
-        senderId,
-        recipientId,
-        targetId,
-      },
-      'transaction'
-    )
+      senderId,
+      recipientId,
+      targetId,
+      targetType,
+    })
   }
 
   // Update transaction's state by given id
@@ -168,11 +165,7 @@ export class PaymentService extends BaseService {
       state,
     }
 
-    return this.baseUpdate(
-      id,
-      { updatedAt: new Date(), ...data },
-      'transaction'
-    )
+    return this.baseUpdate(id, { updatedAt: new Date(), ...data })
   }
 
   /*********************************

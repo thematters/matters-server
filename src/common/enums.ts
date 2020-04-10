@@ -608,6 +608,11 @@ export enum TRANSACTION_PURPOSE {
   fee = 'fee',
 }
 
+export enum TRANSACTION_TARGET_TYPE {
+  article = 'article',
+  transaction = 'transaction',
+}
+
 export enum PAYMENT_CURRENCY {
   HKD = 'hkd',
   LIKE = 'like',

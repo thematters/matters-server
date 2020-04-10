@@ -6,7 +6,7 @@ const resolver: WalletToBalanceResolver = async (
   _,
   { dataSources: { paymentService } }
 ) => {
-  const HKD = await paymentService.countBalance({
+  const HKD = await paymentService.calculateBalance({
     userId: id,
     currency: PAYMENT_CURRENCY.HKD,
   })

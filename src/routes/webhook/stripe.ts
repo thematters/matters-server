@@ -7,6 +7,7 @@ import {
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
+  TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
@@ -88,10 +89,12 @@ const createRefundTxs = async (refunds: Stripe.ApiList<Stripe.Refund>) => {
 
         provider: PAYMENT_PROVIDER.stripe,
         providerTxId: refund.id,
-        refundedId: paymentTx.id,
 
         recipientId: undefined,
         senderId: paymentTx.recipientId,
+
+        targetId: paymentTx.id,
+        targetType: TRANSACTION_TARGET_TYPE.transaction,
       })
     })
   )
