@@ -105,7 +105,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",
-    "@types/bull": "^3.12.1",
+    "@types/bull": "^3.12.2",
     "@types/cheerio": "^0.22.17",
     "@types/cookie": "^0.3.3",
     "@types/dotenv": "^8.2.0",
@@ -146,7 +146,7 @@
     "chokidar": "^3.3.1",
     "chokidar-cli": "^2.1.0",
     "codecov": "^3.6.5",
-    "husky": "^4.2.3",
+    "husky": "^4.2.5",
     "jest": "^25.3.0",
     "knex-migrate": "^1.7.4",
     "nodemon": "^2.0.3",
