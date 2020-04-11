@@ -109,7 +109,6 @@ export class CacheService {
         })
       }
     }
-
     return data || fallbackValue
   }
 
