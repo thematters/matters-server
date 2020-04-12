@@ -1,8 +1,8 @@
 import _ from 'lodash'
 
 import {
-  SEARCH_KEY_TRUNCATE_LENGTH,
   SEARCH_ARTICLE_URL_REGEX,
+  SEARCH_KEY_TRUNCATE_LENGTH,
 } from 'common/enums'
 import { connectionFromArray, cursorToIndex } from 'common/utils'
 import { GQLNode, QueryToSearchResolver } from 'definitions'
@@ -17,11 +17,9 @@ const resolver: QueryToSearchResolver = async (
 ) => {
   if (input.key) {
     const match = SEARCH_ARTICLE_URL_REGEX.exec(input.key)
-    if (match) {
-      input.key = match[5]
-    } else {
-      input.key = input.key.slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
-    }
+    input.key = match
+      ? match[5]
+      : input.key.slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
   }
 
   if (input.type !== 'User' && input.key) {
