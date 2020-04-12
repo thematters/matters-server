@@ -11,11 +11,11 @@ import {
   authDirectiveFactory,
   DeprecatedDirective,
   LogCacheDirective,
+  ObjectCacheDirective,
   PrivateCacheDirective,
   PurgeCacheDirective,
   RateLimitDirective,
   ScopeDirective,
-  ObjectCacheDirective,
 } from './types/directives'
 
 const schema = makeExecutableSchema({
