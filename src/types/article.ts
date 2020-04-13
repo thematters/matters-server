@@ -130,7 +130,7 @@ export default /* GraphQL */ `
     relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Appreciations history of this article."
-    appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
+    appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
 
     "Total number of appreciations recieved of this article."
     appreciationsReceivedTotal: Int!

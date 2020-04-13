@@ -4,7 +4,7 @@ import { APPRECIATION_PURPOSE } from 'common/enums'
 import { ArticleNotFoundError } from 'common/errors'
 import logger from 'common/logger'
 import { i18n } from 'common/utils/i18n'
-import { GQLTransactionTypeResolver } from 'definitions'
+import { GQLAppreciationTypeResolver } from 'definitions'
 
 const trans = {
   appreciateSubsidy: i18n({
@@ -39,7 +39,7 @@ const trans = {
   }),
 }
 
-export const Transaction: GQLTransactionTypeResolver = {
+export const Appreciation: GQLAppreciationTypeResolver = {
   purpose: ({ purpose }) => camelCase(purpose),
   content: async (trx, _, { viewer, dataSources: { articleService } }) => {
     switch (trx.purpose) {
@@ -63,7 +63,7 @@ export const Transaction: GQLTransactionTypeResolver = {
       case APPRECIATION_PURPOSE.firstPost:
         return trans.firstPost(viewer.language, {})
       default:
-        logger.error(`transaction purpose ${trx.purpose} no match`)
+        logger.error(`appreciation purpose ${trx.purpose} no match`)
         return ''
     }
   },

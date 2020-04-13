@@ -1,10 +1,10 @@
 import { toGlobalId } from 'common/utils'
 import {
+  GQLAppreciationTypeResolver,
   GQLLikerTypeResolver,
   GQLLIKETypeResolver,
   GQLQueryTypeResolver,
   GQLRecommendationTypeResolver,
-  GQLTransactionTypeResolver,
   GQLUserActivityTypeResolver,
   GQLUserInfoTypeResolver,
   GQLUserOSSTypeResolver,
@@ -13,6 +13,7 @@ import {
   GQLUserTypeResolver,
 } from 'definitions'
 
+import { Appreciation } from './appreciation'
 import articleCount from './articleCount'
 import avatar from './avatar'
 import badges from './badges'
@@ -36,7 +37,6 @@ import Recommendation from './recommendation'
 import rootUser from './rootUser'
 import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
-import { Transaction } from './transaction'
 import unreadFolloweeArticles from './unreadFolloweeArticles'
 import unreadNoticeCount from './unreadNoticeCount'
 import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
@@ -52,7 +52,7 @@ const user: {
   UserActivity: GQLUserActivityTypeResolver
   Liker: GQLLikerTypeResolver
   LIKE: GQLLIKETypeResolver
-  Transaction: GQLTransactionTypeResolver
+  Appreciation: GQLAppreciationTypeResolver
   UserStatus: GQLUserStatusTypeResolver
   UserOSS: GQLUserOSSTypeResolver
 } = {
@@ -99,7 +99,7 @@ const user: {
     total,
     rateUSD,
   },
-  Transaction,
+  Appreciation,
   UserStatus: {
     LIKE: (root) => root,
     articleCount,
