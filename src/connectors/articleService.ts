@@ -205,6 +205,18 @@ export class ArticleService extends BaseService {
     this.knex.select().from(this.table).where({ mediaHash }).first()
 
   /**
+   * Find article by title
+   */
+  findByTitle = async (title: string, oss = false) => {
+    const baseQuery = this.knex.select().from(this.table).where({ title })
+
+    const query = oss
+      ? baseQuery
+      : baseQuery.andWhere({ state: ARTICLE_STATE.active })
+    return query.orderBy('id', 'desc')
+  }
+
+  /**
    * Find article by which set as sticky.
    */
   findBySticky = async (authorId: string, sticky: boolean) =>
@@ -309,6 +321,7 @@ export class ArticleService extends BaseService {
           id,
           title,
           content: stripHtml(content),
+          state: ARTICLE_STATE.active,
           userName,
           displayName,
           tags,
@@ -318,6 +331,22 @@ export class ArticleService extends BaseService {
       ],
     })
     return result
+  }
+
+  searchByMediaHash = async (key: string, oss = false) => {
+    const query = this.knex.select().from(this.table).where({ mediaHash: key })
+
+    const rows = await (oss
+      ? query
+      : query.andWhere({ state: ARTICLE_STATE.active }))
+    if (rows.length > 0) {
+      return {
+        nodes: rows,
+        totalCount: rows.length,
+      }
+    } else {
+      throw new ServerError('article search by media hash failed')
+    }
   }
 
   search = async ({
@@ -348,17 +377,35 @@ export class ArticleService extends BaseService {
     }
 
     try {
+      // check if media hash in search key
+      const re = /\-?([0-9a-zA-Z]{49,59})$/gi
+      const match = re.exec(key)
+      if (match) {
+        return this.searchByMediaHash(match[1], oss)
+      }
+
+      // take the condition that searching for exact article title into consideration
+      const idsByTitle = []
+      if (key.length >= 5 && offset === 0) {
+        const articles = await this.findByTitle(key, oss)
+        for (const article of articles) {
+          idsByTitle.push(article.id)
+        }
+      }
+
       const { body } = await this.es.client.search({
         index: this.table,
         body: searchBody.build(),
       })
       const { hits } = body
-      const ids = hits.hits.map(({ _id }: { _id: any }) => _id)
+      const ids = idsByTitle.concat(
+        hits.hits.map(({ _id }: { _id: any }) => _id)
+      )
       const nodes = await this.baseFindByIds(ids, this.table)
 
       return {
         nodes,
-        totalCount: hits.total.value,
+        totalCount: idsByTitle.length + hits.total.value,
       }
     } catch (err) {
       logger.error(err)
