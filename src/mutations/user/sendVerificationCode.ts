@@ -87,7 +87,8 @@ const resolver: MutationToSendVerificationCodeResolver = async (
       await systemService.createSkippedItem(TYPE_HASH, banEmail.uuid, agentHash)
     }
     logger.info(new Error('email is in blocklist'))
-    return true
+    // temporaraily disable
+    // return true
   }
 
   // verify agent hash if it's in blocklist
@@ -103,7 +104,8 @@ const resolver: MutationToSendVerificationCodeResolver = async (
         email
       )
       logger.info(new Error('agent hash is in blocklist'))
-      return true
+      // temporaraily disable
+      // return true
     }
   }
 
