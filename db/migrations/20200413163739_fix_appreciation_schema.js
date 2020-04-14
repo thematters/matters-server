@@ -38,7 +38,6 @@ exports.up = (knex) => {
   alter table appreciation
     alter column id set default nextval('appreciation_id_seq'),
     alter column id set not null,
-    add primary key (id),
     alter column created_at set default now(),
     alter column created_at set not null;
   `)
