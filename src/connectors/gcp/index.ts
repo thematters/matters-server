@@ -23,7 +23,7 @@ class GCP {
       'zh-TW': zh_hant,
     }
 
-    return langMap[externalLang] || zh_hant
+    return langMap[externalLang] || externalLang
   }
 
   fromInteralLanguage = (internalLang: string) => {
@@ -38,7 +38,6 @@ class GCP {
   detectLanguage = async (content: string) => {
     try {
       const [{ language }] = await this.translateAPI.detect(content)
-
       return this.toInternalLanguage(language)
     } catch (err) {
       logger.error(err)
