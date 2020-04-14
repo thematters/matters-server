@@ -42,8 +42,7 @@ export class ObjectCacheDirective extends SchemaDirectiveVisitor {
       const field = fields[fieldName]
       const { resolve = defaultFieldResolver } = field
       field.resolve = async function (...args) {
-        // Get the required Role from the field first, falling back
-        // to the objectType if no Role is required by the field:
+        // Get ttl from field or object
         const maxAge = field._ttl || objectType._ttl
 
         if (maxAge) {
