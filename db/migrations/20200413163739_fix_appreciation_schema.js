@@ -27,19 +27,22 @@ exports.up = (knex) => {
   ) r
   where appreciation.uuid = r.uuid;
 
+  -- add constraints
+  alter table appreciation
+    alter column id set not null,
+    alter column created_at set default now(),
+    alter column created_at set not null;
+
   -- set sequence
   create sequence if not exists appreciation_id_seq
-    owned by appreciation.id;
+  owned by appreciation.id;
 
   -- set starting point of sequence
   select setval('appreciation_id_seq', (select max(id) from appreciation));
 
-  -- add constraints
+  -- add id default as sequence
   alter table appreciation
-    alter column id set default nextval('appreciation_id_seq'),
-    alter column id set not null,
-    alter column created_at set default now(),
-    alter column created_at set not null;
+    alter column id set default nextval('appreciation_id_seq');
   `)
 }
 
