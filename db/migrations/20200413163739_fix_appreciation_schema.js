@@ -28,7 +28,7 @@ exports.up = (knex) => {
   where appreciation.uuid = r.uuid;
 
   -- set sequence
-  create sequence appreciation_id_seq
+  create sequence if not exists appreciation_id_seq
     owned by appreciation.id;
 
   -- set starting point of sequence
