@@ -1,7 +1,7 @@
 import {
   connectionFromArray,
-  connectionFromPromisedArray,
-  cursorToIndex,
+  connectionFromArrayWithKeys,
+  cursorToKeys,
 } from 'common/utils'
 import { UserToFollowersResolver } from 'definitions'
 
@@ -14,22 +14,22 @@ const resolver: UserToFollowersResolver = async (
     return connectionFromArray([], input)
   }
 
-  const { first, after } = input
-  const offset = cursorToIndex(after) + 1
-  const totalCount = await userService.countFollowers(id)
-  const actions = await userService.findFollowers({
-    targetId: id,
-    offset,
-    limit: first,
-  })
-
-  return connectionFromPromisedArray(
-    userService.dataloader.loadMany(
-      actions.map(({ userId }: { userId: string }) => userId)
-    ),
-    input,
-    totalCount
+  const keys = cursorToKeys(input.after)
+  const params = { targetId: id, after: keys.idCursor, limit: input.first }
+  const [count, items] = await Promise.all([
+    userService.countFollowers(id),
+    userService.findFollowers(params),
+  ])
+  const cursors = items.reduce(
+    (map, item) => ({ ...map, [item.userId]: item.id }),
+    {}
   )
+  const users = (await userService.dataloader.loadMany(
+    items.map(({ userId }: { userId: string }) => userId)
+  )) as Array<Record<string, any>>
+  const data = users.map((user) => ({ ...user, __cursor: cursors[user.id] }))
+
+  return connectionFromArrayWithKeys(data, input, count)
 }
 
 export default resolver

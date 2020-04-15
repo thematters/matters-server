@@ -115,3 +115,78 @@ export const loadManyFilterError = (items: Array<Item | Error>) => {
     return true
   }) as Item[]
 }
+
+/**
+ * Convert GQL curosr to query keys. For example, the GQL cursor
+ * `YXJyYXljb25uZWN0aW9uOjEwOjM5` will be parsed as `arrayconnection:10:39`.
+ *
+ */
+export const cursorToKeys = (
+  cursor: ConnectionCursor | undefined
+): { offset: number; idCursor?: number } => {
+  if (!cursor) {
+    return { offset: -1 }
+  }
+  const keys = Base64.decode(cursor).split(':')
+  return { offset: parseInt(keys[1], 10), idCursor: parseInt(keys[2], 10) }
+}
+
+/**
+ * Convert query keys to GQL curosr. For example, the query keys
+ * `arrayconnection:10:39` will be converted to `YXJyYXljb25uZWN0aW9uOjEwOjM5`.
+ *
+ */
+export const keysToCursor = (
+  offset: number,
+  idCursor: number
+): ConnectionCursor => {
+  return Base64.encodeURI(`${PREFIX}:${offset}:${idCursor}`)
+}
+
+/**
+ * Construct a GQL connection using qeury keys mechanism. Query keys are
+ * composed of `offset` and `idCursor`. `offset` is for managing connection
+ * like `merge`, and `idCursor` is for SQL querying.
+ *
+ */
+export function connectionFromArrayWithKeys(
+  data: Array<Record<string, any>>,
+  args: ConnectionArguments,
+  totalCount?: number
+): Connection<Record<string, any>> {
+  if (totalCount) {
+    const { after } = args
+    const keys = cursorToKeys(after)
+
+    const edges = data.map((value, index) => ({
+      cursor: keysToCursor(index + keys.offset + 1, value.__cursor || value.id),
+      node: value,
+    }))
+
+    const firstEdge = edges[0]
+    const lastEdge = edges[edges.length - 1]
+
+    return {
+      edges,
+      totalCount,
+      pageInfo: {
+        startCursor: firstEdge ? firstEdge.cursor : '',
+        endCursor: lastEdge ? lastEdge.cursor : '',
+        hasPreviousPage: after ? keys.offset >= 0 : false,
+        hasNextPage: lastEdge
+          ? cursorToKeys(lastEdge.cursor).offset + 1 < totalCount
+          : false,
+      },
+    }
+  }
+
+  const connections = connectionFromArraySlice(data, args, {
+    sliceStart: 0,
+    arrayLength: data.length,
+  })
+
+  return {
+    ...connections,
+    totalCount: data.length,
+  }
+}
