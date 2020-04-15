@@ -16,16 +16,16 @@ const resolver: UserToFollowersResolver = async (
 
   const keys = cursorToKeys(input.after)
   const params = { targetId: id, after: keys.idCursor, limit: input.first }
-  const [count, items] = await Promise.all([
+  const [count, actions] = await Promise.all([
     userService.countFollowers(id),
     userService.findFollowers(params),
   ])
-  const cursors = items.reduce(
-    (map, item) => ({ ...map, [item.userId]: item.id }),
+  const cursors = actions.reduce(
+    (map, action) => ({ ...map, [action.userId]: action.id }),
     {}
   )
   const users = (await userService.dataloader.loadMany(
-    items.map(({ userId }: { userId: string }) => userId)
+    actions.map(({ userId }: { userId: string }) => userId)
   )) as Array<Record<string, any>>
   const data = users.map((user) => ({ ...user, __cursor: cursors[user.id] }))
 
