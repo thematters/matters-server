@@ -24,8 +24,8 @@ exports.up = async (knex) => {
       drop constraint if exists ${table}_recipient_id_foreign;
 
     alter table ${table}
-      add constraint ${table}_sender_id_foreign foreign key (sender_id) references user (id),
-      add constraint ${table}_recipient_id_foreign foreign key (recipient_id) references user (id);
+      add constraint ${table}_sender_id_foreign foreign key (sender_id) references "user" (id),
+      add constraint ${table}_recipient_id_foreign foreign key (recipient_id) references "user" (id);
   `)
 }
 
