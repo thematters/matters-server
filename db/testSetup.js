@@ -1,16 +1,14 @@
 require('dotenv').config()
 
 // MATTERS_ENV must be 'test' in order to run test cases
-if (!['test', 'development'].includes(process.env['MATTERS_ENV']))
-  throw new Error(
-    "In order to run test cases, MATTERS_ENV must be 'test' or 'develop'."
-  )
+if (process.env['MATTERS_ENV'] !== 'test')
+  throw new Error("In order to run test cases, MATTERS_ENV must be 'test'.")
 
 const { Client } = require('pg')
 const Knex = require('knex')
 const knexConfig = require('../knexfile')
-const knex = Knex(knexConfig[process.env['MATTERS_ENV']])
-const database = knexConfig[process.env['MATTERS_ENV']].connection.database
+const knex = Knex(knexConfig.test)
+const database = knexConfig.test.connection.database
 
 global.knex = knex
 
@@ -32,14 +30,15 @@ module.exports = async () => {
     database: 'postgres',
   })
 
-  // create test db if it does not exist
+  // create new test db everytime
   client.connect()
-  const result = await client.query(
-    "SELECT * FROM pg_catalog.pg_database WHERE datname = '" + database + "'"
-  )
-  if (!result.rowCount) {
-    await client.query('CREATE DATABASE "' + database + '"')
-  }
+  // const result = await client.query(
+  //   "SELECT * FROM pg_catalog.pg_database WHERE datname = '" + database + "'"
+  // )
+  // if (!result.rowCount) {
+  await client.query('DROP DATABASE IF EXISTS "' + database + '"')
+  await client.query('CREATE DATABASE "' + database + '"')
+  // }
   client.end()
 
   await rollbackAllMigrations()
