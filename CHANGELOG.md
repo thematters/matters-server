@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0] - 2020-04-17
+
+### Added
+
+- @objectCache directive #907
+
+### Changed
+
+- Rename "Transaction" to "Appreciation" in schema #882
+- Disable ban-user for sending verification code. #917
+- Add matching for article URL in search key #908
+- Add an index to user table #919
+- Revise query and add a new connection handler. #922
+- Fix appreciation data and schema #915
+- Fix constraints for `appreciation` table #923
+
 ## [2.12.0] - 2020-04-09
 
 ### Added
