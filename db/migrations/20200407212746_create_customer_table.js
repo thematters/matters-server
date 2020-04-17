@@ -18,10 +18,6 @@ exports.up = async (knex) => {
 
     t.foreign('user_id').references('id').inTable('user')
   })
-
-  /**
-   * Transaction
-   */
 }
 
 exports.down = baseDown(table)
