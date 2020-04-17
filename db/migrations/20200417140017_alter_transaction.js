@@ -1,6 +1,4 @@
-const {
-  alterEnumString
-} = require('../utils')
+const { alterEnumString } = require('../utils')
 
 const table = 'transaction'
 
@@ -9,11 +7,20 @@ exports.up = async (knex) => {
     t.decimal('fee', 36, 18)
   })
 
-  await knex.raw(alterEnumString(table, 'purpose', ['donation', 'add-credit', 'refund']))
+  await knex.raw(
+    alterEnumString(table, 'purpose', ['donation', 'add-credit', 'refund'])
+  )
 }
 
 exports.down = async (knex) => {
-  await knex.raw(alterEnumString(table, 'purpose', ['donation', 'add-credit', 'refund', 'fee']))
+  await knex.raw(
+    alterEnumString(table, 'purpose', [
+      'donation',
+      'add-credit',
+      'refund',
+      'fee',
+    ])
+  )
 
   await knex.schema.table(table, (t) => {
     t.dropColumn('fee')
