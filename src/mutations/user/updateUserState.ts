@@ -47,7 +47,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
   }
 
   /**
-   * Active, Banned, Frozen
+   * Active, Banned
    */
   const updatedUser = await userService.updateInfo(dbId, {
     state,
@@ -57,11 +57,6 @@ const resolver: MutationToUpdateUserStateResolver = async (
   if (state === USER_STATE.banned) {
     notificationService.trigger({
       event: 'user_banned',
-      recipientId: updatedUser.id,
-    })
-  } else if (state === USER_STATE.frozen) {
-    notificationService.trigger({
-      event: 'user_frozen',
       recipientId: updatedUser.id,
     })
   }

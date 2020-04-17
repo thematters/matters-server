@@ -1164,7 +1164,6 @@ export const enum GQLUserState {
   active = 'active',
   onboarding = 'onboarding',
   banned = 'banned',
-  frozen = 'frozen',
   archived = 'archived',
 }
 

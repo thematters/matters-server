@@ -2025,7 +2025,6 @@ enum UserState {
   active
   onboarding
   banned
-  frozen
   archived
 }
 
