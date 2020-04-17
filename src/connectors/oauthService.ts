@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import nanoid from 'nanoid'
+import { nanoid } from 'nanoid'
 
 import {
   OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS,

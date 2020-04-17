@@ -80,7 +80,6 @@ export class CacheService {
     field,
     args,
     getter,
-    fallbackValue = '',
     expire = CACHE_TTL.SHORT,
   }: {
     type: string
@@ -88,7 +87,6 @@ export class CacheService {
     field?: string
     args?: string
     getter?: () => Promise<string | undefined>
-    fallbackValue?: string
     expire?: number
   }) => {
     const key = this.genKey({ type, id, field, args })
@@ -110,7 +108,7 @@ export class CacheService {
       }
     }
 
-    return data || fallbackValue
+    return data
   }
 
   /**

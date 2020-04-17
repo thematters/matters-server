@@ -205,7 +205,7 @@ export default /* GraphQL */ `
     todaySummary: String
   }
 
-  type ArticleTranslation {
+  type ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC}) {
     originalLanguage: String!
     title: String!
     content: String!

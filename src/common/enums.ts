@@ -28,6 +28,7 @@ export const MATERIALIZED_VIEW = {
 // cache ttl in seconds
 export const CACHE_TTL = {
   STATIC: 60 * 60 * 24 * 10, // 10 days for static data
+  LONG: 60 * 60 * 24, // 1 day
   SHORT: 90,
   DEFAULT: 60,
   INSTANT: 0,
@@ -522,6 +523,7 @@ export const APPRECIATION_TYPES = {
 }
 
 export const SEARCH_KEY_TRUNCATE_LENGTH = 100
+export const SEARCH_ARTICLE_URL_REGEX = /^(https:\/\/([a-z0-9-]+.)?matters.news\/)@([a-zA-Z0-9_-]+)\/(.+?)-([0-9a-zA-Z]{49,59})$/gi
 
 /**
  * Recommendation

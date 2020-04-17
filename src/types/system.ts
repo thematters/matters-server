@@ -390,4 +390,6 @@ export default /* GraphQL */ `
   directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 
   directive @logCache(type: String!) on FIELD_DEFINITION
+
+  directive @objectCache(maxAge: Int = 1000) on OBJECT | FIELD_DEFINITION
 `

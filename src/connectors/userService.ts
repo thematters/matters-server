@@ -772,19 +772,24 @@ export class UserService extends BaseService {
   findFollowers = async ({
     targetId,
     limit = BATCH_SIZE,
-    offset = 0,
+    after,
   }: {
     targetId: string
     limit?: number
-    offset?: number
-  }) =>
-    this.knex
+    after?: number
+  }) => {
+    const query = this.knex
       .select()
       .from('action_user')
       .where({ targetId, action: USER_ACTION.follow })
       .orderBy('id', 'desc')
-      .offset(offset)
       .limit(limit)
+
+    if (after) {
+      query.andWhere('id', '<', after)
+    }
+    return query
+  }
 
   isFollowing = async ({
     userId,
