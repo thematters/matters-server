@@ -31,6 +31,7 @@ export default /* GraphQL */ `
     purpose: TransactionPurpose!
 
     amount: Float!
+    fee: PositiveFloat!
 
     currency: TransactionCurrency!
 
@@ -76,7 +77,6 @@ export default /* GraphQL */ `
     donation
     addCredit
     refund
-    fee
   }
 
   enum TransactionCurrency {
