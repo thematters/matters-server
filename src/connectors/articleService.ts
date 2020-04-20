@@ -378,7 +378,7 @@ export class ArticleService extends BaseService {
 
     try {
       // check if media hash in search key
-      const re = /\-?([0-9a-zA-Z]{49,59})$/gi
+      const re = /^([0-9a-zA-Z]{49,59})$/gi
       const match = re.exec(key)
       if (match) {
         return this.searchByMediaHash(match[1], oss)
@@ -392,6 +392,7 @@ export class ArticleService extends BaseService {
           idsByTitle.push(article.id)
         }
       }
+      searchBody.notFilter('ids', { values: idsByTitle })
 
       const { body } = await this.es.client.search({
         index: this.table,

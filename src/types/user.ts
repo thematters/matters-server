@@ -244,13 +244,13 @@ export default /* GraphQL */ `
     recentSearches(input: ConnectionArgs!): RecentSearchConnection!
 
     "Appreciations current user gave."
-    appreciationsSent(input: ConnectionArgs!): TransactionConnection!
+    appreciationsSent(input: ConnectionArgs!): AppreciationConnection!
 
     "Total number of appreciation current user gave."
     appreciationsSentTotal: Int!
 
     "Appreciations current user received."
-    appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
+    appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
 
     "Total number of appreciation current user received."
     appreciationsReceivedTotal: Int!
@@ -285,7 +285,7 @@ export default /* GraphQL */ `
     totalWordCount: Int!
   }
 
-  type Liker {
+  type Liker @objectCache(maxAge: ${CACHE_TTL.LONG}) {
     "Liker ID of LikeCoin"
     likerId: String @scope
 
@@ -309,21 +309,21 @@ export default /* GraphQL */ `
     rateUSD: NonNegativeFloat
   }
 
-  type Transaction {
+  type Appreciation {
     amount: Int!
-    purpose: TransactionPurpose!
+    purpose: AppreciationPurpose!
     content: String!
 
-    "Timestamp of transaction."
+    "Timestamp of appreciation."
     createdAt: DateTime!
 
-    "Recipient of transaction."
+    "Recipient of appreciation."
     recipient: User!
 
-    "Sender of transaction."
+    "Sender of appreciation."
     sender: User
 
-    "Object that transaction is meant for."
+    "Object that appreciation is meant for."
     target: Article
   }
 
@@ -390,15 +390,15 @@ export default /* GraphQL */ `
     node: String!
   }
 
-  type TransactionConnection implements Connection {
+  type AppreciationConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
-    edges: [TransactionEdge!]
+    edges: [AppreciationEdge!]
   }
 
-  type TransactionEdge {
+  type AppreciationEdge {
     cursor: String!
-    node: Transaction!
+    node: Appreciation!
   }
 
   input UserInput {
@@ -558,7 +558,7 @@ export default /* GraphQL */ `
     admin
   }
 
-  enum TransactionPurpose {
+  enum AppreciationPurpose {
     appreciate
     appreciateComment
     appreciateSubsidy

@@ -32,7 +32,9 @@ export class PurgeCacheDirective extends SchemaDirectiveVisitor {
     const { resolve = defaultFieldResolver } = field
     field.resolve = async function (...args) {
       const [root, _, { redis }, { returnType }] = args
+
       const result = await resolve.apply(this, args)
+
       if (result && result.id && redis && returnType) {
         try {
           const cache = _get(result, CACHE_KEYWORD, [])

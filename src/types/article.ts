@@ -130,7 +130,7 @@ export default /* GraphQL */ `
     relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Appreciations history of this article."
-    appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
+    appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
 
     "Total number of appreciations recieved of this article."
     appreciationsReceivedTotal: Int!
@@ -205,7 +205,7 @@ export default /* GraphQL */ `
     todaySummary: String
   }
 
-  type ArticleTranslation {
+  type ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC}) {
     originalLanguage: String!
     title: String!
     content: String!

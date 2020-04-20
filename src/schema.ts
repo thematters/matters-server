@@ -11,6 +11,7 @@ import {
   authDirectiveFactory,
   DeprecatedDirective,
   LogCacheDirective,
+  ObjectCacheDirective,
   PrivateCacheDirective,
   PurgeCacheDirective,
   RateLimitDirective,
@@ -28,6 +29,7 @@ const schema = makeExecutableSchema({
     privateCache: PrivateCacheDirective,
     logCache: LogCacheDirective,
     rateLimit: RateLimitDirective,
+    objectCache: ObjectCacheDirective,
   },
   resolvers: merge(queries, mutations, subscriptions),
 })

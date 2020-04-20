@@ -19,9 +19,51 @@ directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 
 directive @logCache(type: String!) on FIELD_DEFINITION
 
+directive @objectCache(maxAge: Int = 1000) on OBJECT | FIELD_DEFINITION
+
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
+}
+
+type Appreciation {
+  amount: Int!
+  purpose: AppreciationPurpose!
+  content: String!
+
+  """Timestamp of appreciation."""
+  createdAt: DateTime!
+
+  """Recipient of appreciation."""
+  recipient: User!
+
+  """Sender of appreciation."""
+  sender: User
+
+  """Object that appreciation is meant for."""
+  target: Article
+}
+
+type AppreciationConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [AppreciationEdge!]
+}
+
+type AppreciationEdge {
+  cursor: String!
+  node: Appreciation!
+}
+
+enum AppreciationPurpose {
+  appreciate
+  appreciateComment
+  appreciateSubsidy
+  invitationAccepted
+  joinByInvitation
+  joinByTask
+  firstPost
+  systemSubsidy
 }
 
 input ArchiveArticleInput {
@@ -91,7 +133,7 @@ type Article implements Node {
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
   """Appreciations history of this article."""
-  appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
+  appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
 
   """Total number of appreciations recieved of this article."""
   appreciationsReceivedTotal: Int!
@@ -1705,46 +1747,6 @@ input ToggleItemInput {
   enabled: Boolean
 }
 
-type Transaction {
-  amount: Int!
-  purpose: TransactionPurpose!
-  content: String!
-
-  """Timestamp of transaction."""
-  createdAt: DateTime!
-
-  """Recipient of transaction."""
-  recipient: User!
-
-  """Sender of transaction."""
-  sender: User
-
-  """Object that transaction is meant for."""
-  target: Article
-}
-
-type TransactionConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [TransactionEdge!]
-}
-
-type TransactionEdge {
-  cursor: String!
-  node: Transaction!
-}
-
-enum TransactionPurpose {
-  appreciate
-  appreciateComment
-  appreciateSubsidy
-  invitationAccepted
-  joinByInvitation
-  joinByTask
-  firstPost
-  systemSubsidy
-}
-
 input UnpinCommentInput {
   id: ID!
 }
@@ -1907,13 +1909,13 @@ type UserActivity {
   recentSearches(input: ConnectionArgs!): RecentSearchConnection!
 
   """Appreciations current user gave."""
-  appreciationsSent(input: ConnectionArgs!): TransactionConnection!
+  appreciationsSent(input: ConnectionArgs!): AppreciationConnection!
 
   """Total number of appreciation current user gave."""
   appreciationsSentTotal: Int!
 
   """Appreciations current user received."""
-  appreciationsReceived(input: ConnectionArgs!): TransactionConnection!
+  appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
 
   """Total number of appreciation current user received."""
   appreciationsReceivedTotal: Int!
