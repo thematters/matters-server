@@ -1791,6 +1791,7 @@ type Transaction {
   state: TransactionState!
   purpose: TransactionPurpose!
   amount: Float!
+  fee: NonNegativeFloat!
   currency: TransactionCurrency!
 
   """Timestamp of transaction."""
@@ -1826,7 +1827,6 @@ enum TransactionPurpose {
   donation
   addCredit
   refund
-  fee
 }
 
 input TransactionsArgs {

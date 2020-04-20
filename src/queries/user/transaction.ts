@@ -5,6 +5,7 @@ import { GQLTransactionTypeResolver, TransactionTargetType } from 'definitions'
 
 export const Transaction: GQLTransactionTypeResolver = {
   id: ({ id }) => toGlobalId({ type: 'Transaction', id }),
+  fee: ({ fee }) => fee || 0,
   purpose: ({ purpose }) => camelCase(purpose),
   sender: (trx, _, { dataSources: { userService } }) =>
     trx.senderId ? userService.dataloader.load(trx.senderId) : null,

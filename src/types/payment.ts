@@ -31,7 +31,7 @@ export default /* GraphQL */ `
     purpose: TransactionPurpose!
 
     amount: Float!
-    fee: PositiveFloat!
+    fee: NonNegativeFloat!
 
     currency: TransactionCurrency!
 
