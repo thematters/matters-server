@@ -285,7 +285,7 @@ export default /* GraphQL */ `
     totalWordCount: Int!
   }
 
-  type Liker @objectCache(maxAge: ${CACHE_TTL.LONG}) {
+  type Liker {
     "Liker ID of LikeCoin"
     likerId: String @scope
 
