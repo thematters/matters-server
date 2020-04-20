@@ -125,7 +125,7 @@
     "@types/js-base64": "^2.3.1",
     "@types/jsonwebtoken": "^8.3.9",
     "@types/knex": "^0.16.1",
-    "@types/lodash": "^4.14.149",
+    "@types/lodash": "^4.14.150",
     "@types/mime-types": "^2.1.0",
     "@types/nanoid": "^2.1.0",
     "@types/newrelic": "^6.4.0",
