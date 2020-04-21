@@ -3,6 +3,7 @@ import comment from './comment'
 import draft from './draft'
 import notice from './notice'
 import oauthClient from './oauthClient'
+import payment from './payment'
 import response from './response'
 import scalars from './scalars'
 import system from './system'
@@ -29,5 +30,6 @@ export default [
   system,
   user,
   response,
+  payment,
   oauthClient,
 ]

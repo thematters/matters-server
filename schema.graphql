@@ -21,6 +21,18 @@ directive @logCache(type: String!) on FIELD_DEFINITION
 
 directive @objectCache(maxAge: Int = 1000) on OBJECT | FIELD_DEFINITION
 
+"""Add Credit"""
+input AddCreditInput {
+  amount: PositiveFloat!
+}
+
+type AddCreditResult {
+  transaction: Transaction!
+
+  """The client secret of this PaymentIntent."""
+  client_secret: String!
+}
+
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
@@ -483,6 +495,10 @@ type Badge {
 
 enum BadgeType {
   seed
+}
+
+type Balance {
+  HKD: Float!
 }
 
 input BlockUserInput {
@@ -1042,6 +1058,12 @@ type Mutation {
   """Unfollow curent user."""
   unfollowUser(input: FollowUserInput!): User! @deprecated(reason: "Use `toggleFollowUser`.")
 
+  """Add Credit to User Wallet"""
+  addCredit(input: AddCreditInput!): AddCreditResult!
+
+  """Pay to another user or article"""
+  payTo(input: PayToInput!): PayToResult!
+
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
 }
@@ -1244,6 +1266,23 @@ type PageInfo {
   endCursor: String
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
+}
+
+"""Pay To"""
+input PayToInput {
+  amount: PositiveFloat!
+  currency: TransactionCurrency!
+  purpose: TransactionPurpose!
+  recipientId: ID
+  targetId: ID
+  passcode: String!
+}
+
+type PayToResult {
+  transaction: Transaction!
+
+  """Only available when paying with LIKE."""
+  redirectUrl: URL
 }
 
 input PinCommentInput {
@@ -1747,6 +1786,65 @@ input ToggleItemInput {
   enabled: Boolean
 }
 
+type Transaction {
+  id: ID!
+  state: TransactionState!
+  purpose: TransactionPurpose!
+  amount: Float!
+  fee: NonNegativeFloat!
+  currency: TransactionCurrency!
+
+  """Timestamp of transaction."""
+  createdAt: DateTime!
+
+  """Recipient of transaction."""
+  recipient: User
+
+  """Sender of transaction."""
+  sender: User
+
+  """Related target article or transaction."""
+  target: TransactionTarget
+}
+
+type TransactionConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TransactionEdge!]
+}
+
+enum TransactionCurrency {
+  HKD
+  LIKE
+}
+
+type TransactionEdge {
+  cursor: String!
+  node: Transaction!
+}
+
+enum TransactionPurpose {
+  donation
+  addCredit
+  refund
+}
+
+input TransactionsArgs {
+  after: String
+  first: Int
+  id: ID
+  states: [TransactionState!]
+}
+
+enum TransactionState {
+  pending
+  succeeded
+  failed
+  canceled
+}
+
+union TransactionTarget = Article | Transaction
+
 input UnpinCommentInput {
   id: ID!
 }
@@ -1899,6 +1997,9 @@ type User implements Node {
   oss: UserOSS!
   remark: String
   notices(input: ConnectionArgs!): NoticeConnection!
+
+  """User Wallet"""
+  wallet: Wallet!
 }
 
 type UserActivity {
@@ -2081,4 +2182,9 @@ enum Vote {
 input VoteCommentInput {
   vote: Vote!
   id: ID!
+}
+
+type Wallet {
+  balance: Balance!
+  transactions(input: TransactionsArgs!): TransactionConnection!
 }

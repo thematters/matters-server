@@ -276,4 +276,10 @@ export class BaseService extends DataSource {
    */
   baseFindEntityTypeId = async (entityType: string) =>
     this.knex('entity_type').select('id').where({ table: entityType }).first()
+
+  /**
+   * Find entity type table by a given id.
+   */
+  baseFindEntityTypeTable = async (id: string) =>
+    this.knex('entity_type').select('table').where({ id }).first()
 }

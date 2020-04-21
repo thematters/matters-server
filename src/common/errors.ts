@@ -323,3 +323,29 @@ export class MigrationReachLimitError extends ApolloError {
     Object.defineProperty(this, 'name', { value: 'MigrationReachLimit' })
   }
 }
+
+/*********************************
+ *                               *
+ *             Payment           *
+ *                               *
+ *********************************/
+export class PaymentAmountTooSmallError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_AMOUNT_TOO_SMALL')
+    Object.defineProperty(this, 'name', { value: 'PaymentAmountTooSmall' })
+  }
+}
+
+export class PaymentAmountInvalidError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_AMOUNT_INVALID')
+    Object.defineProperty(this, 'name', { value: 'PaymentAmountInvalid' })
+  }
+}
+
+export class PaymentPasscodeInvalidError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_PASSCODE_INVALID')
+    Object.defineProperty(this, 'name', { value: 'PaymentPasscodeInvalid' })
+  }
+}

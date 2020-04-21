@@ -5,12 +5,15 @@ import {
   GQLLIKETypeResolver,
   GQLQueryTypeResolver,
   GQLRecommendationTypeResolver,
+  GQLTransactionTargetTypeResolver,
+  GQLTransactionTypeResolver,
   GQLUserActivityTypeResolver,
   GQLUserInfoTypeResolver,
   GQLUserOSSTypeResolver,
   GQLUserSettingsTypeResolver,
   GQLUserStatusTypeResolver,
   GQLUserTypeResolver,
+  GQLWalletTypeResolver,
 } from 'definitions'
 
 import { Appreciation } from './appreciation'
@@ -37,11 +40,13 @@ import Recommendation from './recommendation'
 import rootUser from './rootUser'
 import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
+import { Transaction, TransactionTarget } from './transaction'
 import unreadFolloweeArticles from './unreadFolloweeArticles'
 import unreadNoticeCount from './unreadNoticeCount'
 import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
 import UserActivity from './userActivity'
 import userNameEditable from './userNameEditable'
+import Wallet from './wallet'
 
 const user: {
   Query: GQLQueryTypeResolver
@@ -51,8 +56,13 @@ const user: {
   UserSettings: GQLUserSettingsTypeResolver
   UserActivity: GQLUserActivityTypeResolver
   Liker: GQLLikerTypeResolver
+  Wallet: GQLWalletTypeResolver
   LIKE: GQLLIKETypeResolver
   Appreciation: GQLAppreciationTypeResolver
+  Transaction: GQLTransactionTypeResolver
+  TransactionTarget: {
+    __resolveType: GQLTransactionTargetTypeResolver
+  }
   UserStatus: GQLUserStatusTypeResolver
   UserOSS: GQLUserOSSTypeResolver
 } = {
@@ -66,6 +76,7 @@ const user: {
     likerId,
     liker: (root) => root,
     info: (root) => root,
+    wallet: (root) => root,
     settings: (root) => root,
     status: (root) => (root.id ? root : null),
     activity: (root) => root,
@@ -89,6 +100,7 @@ const user: {
     email: ({ email }) => email && email.replace(/#/g, '@'),
     profileCover,
   },
+  Wallet,
   UserSettings: {
     language: ({ language }, _, { viewer }) => language,
     notification,
@@ -100,6 +112,8 @@ const user: {
     rateUSD,
   },
   Appreciation,
+  Transaction,
+  TransactionTarget,
   UserStatus: {
     LIKE: (root) => root,
     articleCount,
