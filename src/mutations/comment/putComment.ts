@@ -28,6 +28,10 @@ const resolver: MutationToPutCommentResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
+  if (viewer.state === USER_STATE.banned) {
+    throw new ForbiddenError('viewer has no permission')
+  }
+
   const { content, articleId, parentId, mentions, replyTo } = commentInput
 
   if (!content || content.length <= 0) {
