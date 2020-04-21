@@ -19,7 +19,7 @@ const resolver: MutationToVoteCommentResolver = async (
   const comment = await commentService.dataloader.load(dbId)
   const article = await articleService.dataloader.load(comment.articleId)
 
-  // disallow onboarding and archived user operation
+  // disallow onboarding vote others' comment, and forbid archived user operation
   const isOnboarding = viewer.state === USER_STATE.onboarding
   const isArchived = viewer.state === USER_STATE.archived
   if ((article.authorId !== viewer.id && isOnboarding) || isArchived) {

@@ -28,10 +28,6 @@ const resolver: MutationToPutCommentResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  if (viewer.state === USER_STATE.banned) {
-    throw new ForbiddenError('viewer has no permission')
-  }
-
   const { content, articleId, parentId, mentions, replyTo } = commentInput
 
   if (!content || content.length <= 0) {
@@ -52,7 +48,10 @@ const resolver: MutationToPutCommentResolver = async (
     throw new ArticleNotFoundError('target article does not exists')
   }
 
-  if (article.authorId !== viewer.id && viewer.state !== USER_STATE.active) {
+  // disallow onboarding unvote others' comment, and forbid archived user operation
+  const isOnboarding = viewer.state === USER_STATE.onboarding
+  const isArchived = viewer.state === USER_STATE.archived
+  if ((article.authorId !== viewer.id && isOnboarding) || isArchived) {
     throw new ForbiddenError('viewer has no permission')
   }
 
