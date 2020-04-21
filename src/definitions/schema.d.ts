@@ -1303,6 +1303,7 @@ export interface GQLTransaction {
   state: GQLTransactionState
   purpose: GQLTransactionPurpose
   amount: number
+  fee: GQLNonNegativeFloat
   currency: GQLTransactionCurrency
 
   /**
@@ -1330,7 +1331,6 @@ export const enum GQLTransactionPurpose {
   donation = 'donation',
   addCredit = 'addCredit',
   refund = 'refund',
-  fee = 'fee',
 }
 
 export const enum GQLTransactionCurrency {
@@ -6060,6 +6060,7 @@ export interface GQLTransactionTypeResolver<TParent = any> {
   state?: TransactionToStateResolver<TParent>
   purpose?: TransactionToPurposeResolver<TParent>
   amount?: TransactionToAmountResolver<TParent>
+  fee?: TransactionToFeeResolver<TParent>
   currency?: TransactionToCurrencyResolver<TParent>
   createdAt?: TransactionToCreatedAtResolver<TParent>
   recipient?: TransactionToRecipientResolver<TParent>
@@ -6095,6 +6096,15 @@ export interface TransactionToPurposeResolver<TParent = any, TResult = any> {
 }
 
 export interface TransactionToAmountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToFeeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

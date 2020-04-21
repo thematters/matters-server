@@ -9,6 +9,7 @@ import {
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
+import { calcStripeFee, toProviderAmount } from 'common/utils'
 import { BaseService } from 'connectors'
 import { User } from 'definitions'
 
@@ -112,6 +113,8 @@ export class PaymentService extends BaseService {
 
   createTransaction = async ({
     amount,
+    fee,
+
     state = TRANSACTION_STATE.pending,
     purpose,
     currency = PAYMENT_CURRENCY.HKD,
@@ -126,6 +129,8 @@ export class PaymentService extends BaseService {
     targetType = TRANSACTION_TARGET_TYPE.article,
   }: {
     amount: number
+    fee?: number
+
     state?: TRANSACTION_STATE
     purpose: TRANSACTION_PURPOSE
     currency?: PAYMENT_CURRENCY
@@ -147,6 +152,8 @@ export class PaymentService extends BaseService {
 
     return this.baseCreate({
       amount,
+      fee,
+
       state,
       currency,
       purpose,
@@ -280,9 +287,10 @@ export class PaymentService extends BaseService {
   }) => {
     if (provider === PAYMENT_PROVIDER.stripe) {
       // create a payment intent from Stripe
+      const fee = calcStripeFee(amount)
       const payment = await this.stripe.createPaymentIntent({
         customerId,
-        amount,
+        amount: amount + fee,
         currency,
       })
 
@@ -293,6 +301,7 @@ export class PaymentService extends BaseService {
       // create a pending transaction from DB
       const transaction = await this.createTransaction({
         amount,
+        fee,
         currency,
         purpose,
         provider,

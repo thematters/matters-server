@@ -85,6 +85,7 @@ const createRefundTxs = async (refunds: Stripe.ApiList<Stripe.Refund>) => {
       // and link with payment intent transaction
       await paymentService.createTransaction({
         amount: toDBAmount({ amount: refund.amount }),
+
         state: TRANSACTION_STATE.succeeded,
         currency: _.upperCase(refund.currency) as PAYMENT_CURRENCY,
         purpose: TRANSACTION_PURPOSE.refund,
