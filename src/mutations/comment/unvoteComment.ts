@@ -19,7 +19,10 @@ const resolver: MutationToUnvoteCommentResolver = async (
   const comment = await commentService.dataloader.load(dbId)
   const article = await articleService.dataloader.load(comment.articleId)
 
-  if (article.authorId !== viewer.id && viewer.state !== USER_STATE.active) {
+  // disallow onboarding and archived user
+  const isOnboarding = viewer.state === USER_STATE.onboarding
+  const isArchived = viewer.state === USER_STATE.archived
+  if ((article.authorId !== viewer.id && isOnboarding) || isArchived) {
     throw new ForbiddenError('viewer has no permission')
   }
 
