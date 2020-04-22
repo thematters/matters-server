@@ -30,7 +30,7 @@ const resolver: MutationToAddCreditResolver = async (
   }
 
   // check deciaml places
-  const places = amount.toString().split('.')[1].length || 0
+  const places = amount % 1 ? amount.toString().split('.')[1].length : 0
   if (places > MAX_DECIMAL_PLACES) {
     throw new PaymentAmountInvalidError('maximum 2 decimal places')
   }
