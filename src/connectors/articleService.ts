@@ -841,42 +841,6 @@ export class ArticleService extends BaseService {
     return parseInt(result.sum || '0', 10)
   }
 
-  countAppreciation = async (referenceId: string) => {
-    const result = await this.knex
-      .select()
-      .from('appreciation')
-      .where({
-        referenceId,
-        purpose: APPRECIATION_PURPOSE.appreciate,
-      })
-      .count()
-      .first()
-    return parseInt(result.count || '0', 10)
-  }
-
-  /**
-   * Count total appreciaton by a given article id and user ids.
-   */
-  countAppreciationByUserIds = async ({
-    articleId,
-    userIds,
-  }: {
-    articleId: string
-    userIds: string[]
-  }) => {
-    const result = await this.knex
-      .select()
-      .from('appreciation')
-      .where({
-        referenceId: articleId,
-        purpose: APPRECIATION_PURPOSE.appreciate,
-      })
-      .whereIn('senderId', userIds)
-      .sum('amount')
-      .first()
-    return parseInt(result.sum || '0', 10)
-  }
-
   /**
    * Count an article's appreciations by a given articleId.
    */

@@ -1,3 +1,4 @@
+import addCredit from './addCredit'
 import blockUser from './blockUser'
 import changeEmail from './changeEmail'
 import clearReadHistory from './clearReadHistory'
@@ -6,6 +7,7 @@ import confirmVerificationCode from './confirmVerificationCode'
 import followUser from './followUser'
 import generateLikerId from './generateLikerId'
 import migration from './migration'
+import payTo from './payTo'
 import resetPassword from './resetPassword'
 import sendVerificationCode from './sendVerificationCode'
 import toggleBlockUser from './toggleBlockUser'
@@ -47,5 +49,7 @@ export default {
     updateUserState,
     updateUserRole,
     migration,
+    addCredit,
+    payTo,
   },
 }

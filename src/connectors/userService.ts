@@ -75,7 +75,6 @@ export class UserService extends BaseService {
     description?: string
     password: string
   }) => {
-    // TODO:
     const avatar = null
 
     const uuid = v4()
@@ -494,7 +493,6 @@ export class UserService extends BaseService {
    *        Appreciation           *
    *                               *
    *********************************/
-
   totalRecived = async (recipientId: string) => {
     const result = await this.knex('appreciation')
       .where({

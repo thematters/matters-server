@@ -10,6 +10,7 @@ import {
   TagService,
   NotificationService,
   OAuthService,
+  PaymentService,
 } from 'connectors'
 
 export * from './schema'
@@ -75,6 +76,7 @@ export type DataSources = {
   tagService: InstanceType<typeof TagService>
   notificationService: InstanceType<typeof NotificationService>
   oauthService: InstanceType<typeof OAuthService>
+  paymentService: InstanceType<typeof PaymentService>
 }
 
 export type TableName =
@@ -122,6 +124,8 @@ export type TableName =
   | 'oauth_refresh_token'
   | 'user_oauth_likecoin'
   | 'blocklist'
+  | 'transaction'
+  | 'customer'
 
 export type MaterializedView =
   | 'article_count_materialized'
@@ -154,6 +158,8 @@ export type ItemData = { [key: string]: any }
 export type LANGUAGES = 'zh_hans' | 'zh_hant' | 'en'
 
 export type ResponseType = 'Article' | 'Comment'
+
+export type TransactionTargetType = 'Article' | 'Transaction'
 
 export type UserOAuthLikeCoinAccountType = 'temporal' | 'general'
 
@@ -210,3 +216,12 @@ export type Falsey = '' | 0 | false | null | undefined
 export type ScopeMode = 'visitor' | 'oauth' | 'user' | 'admin'
 
 export type SkippedListItemType = 'agent_hash' | 'email'
+
+/**
+ * Payment
+ */
+export type Customer = {
+  userId: string
+  provider: string
+  customerId: string
+}

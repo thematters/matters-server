@@ -9,6 +9,7 @@ import {
   DraftService,
   NotificationService,
   OAuthService,
+  PaymentService,
   SystemService,
   TagService,
   UserService,
@@ -115,6 +116,7 @@ export const testClient = async (
       tagService: new TagService(),
       notificationService: new NotificationService(),
       oauthService: new OAuthService(),
+      paymentService: new PaymentService(),
     }),
   })
 

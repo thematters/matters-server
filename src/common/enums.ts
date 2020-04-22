@@ -591,3 +591,34 @@ export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
   AGENT_HASH: 'agent_hash',
   EMAIL: 'email',
 }
+
+/**
+ * Payment
+ */
+export enum TRANSACTION_STATE {
+  pending = 'pending',
+  succeeded = 'succeeded',
+  failed = 'failed',
+  canceled = 'canceled',
+}
+
+export enum TRANSACTION_PURPOSE {
+  donation = 'donation',
+  addCredit = 'add-credit',
+  refund = 'refund',
+  fee = 'fee',
+}
+
+export enum TRANSACTION_TARGET_TYPE {
+  article = 'article',
+  transaction = 'transaction',
+}
+
+export enum PAYMENT_CURRENCY {
+  HKD = 'HKD',
+  LIKE = 'LIKE',
+}
+
+export enum PAYMENT_PROVIDER {
+  stripe = 'stripe',
+}

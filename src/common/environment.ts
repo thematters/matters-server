@@ -87,6 +87,8 @@ export const environment = {
   likecoinClientSecret: process.env.MATTERS_LIKECOIN_CLIENT_SECRET || '',
   likecoinCallbackURL: process.env.MATTERS_LIKECOIN_CALLBACK_URL || '',
   oAuthSecret: process.env.MATTERS_OAUTH_SECRET || '',
+  stripeSecret: process.env.MATTERS_STRIPE_SECRET || '',
+  stripeWebhookSecret: process.env.MATTERS_STRIPE_WEBHOOK_SECRET || '',
 }
 
 export const isDev = environment.env.includes('dev')
