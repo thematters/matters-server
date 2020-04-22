@@ -48,10 +48,11 @@ const resolver: MutationToPutCommentResolver = async (
     throw new ArticleNotFoundError('target article does not exists')
   }
 
-  // disallow onboarding unvote others' comment, and forbid archived user operation
+  // disallow onboarding leave comments on others' works, and forbid inactive user operation
   const isOnboarding = viewer.state === USER_STATE.onboarding
   const isArchived = viewer.state === USER_STATE.archived
-  if ((article.authorId !== viewer.id && isOnboarding) || isArchived) {
+  const isBanned = viewer.state === USER_STATE.banned
+  if ((article.authorId !== viewer.id && isOnboarding) || isArchived || isBanned) {
     throw new ForbiddenError('viewer has no permission')
   }
 
