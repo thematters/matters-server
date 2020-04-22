@@ -22,9 +22,11 @@ const resolver: MutationToAddCreditResolver = async (
   }
 
   // check amount
-  if (amount <= MINIMAL_AMOUNT) {
+  if (amount < MINIMAL_AMOUNT) {
     throw new PaymentAmountTooSmallError('The minimal amount is 20')
   }
+
+  // TODO: check deciaml places
 
   const provider = PAYMENT_PROVIDER.stripe
   const currency = PAYMENT_CURRENCY.HKD
