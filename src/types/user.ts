@@ -549,7 +549,6 @@ export default /* GraphQL */ `
     active
     onboarding
     banned
-    frozen
     archived
   }
 
