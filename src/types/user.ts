@@ -290,7 +290,7 @@ export default /* GraphQL */ `
     likerId: String @scope
 
     "Whether liker is a civic liker"
-    civicLiker: Boolean!
+    civicLiker: Boolean! @objectCache(maxAge: ${CACHE_TTL.LONG})
 
     "Total LIKE left in wallet."
     total: NonNegativeFloat! @scope
