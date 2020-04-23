@@ -5,12 +5,15 @@ import {
 } from 'common/enums'
 import {
   AuthenticationError,
+  PaymentAmountInvalidError,
   PaymentAmountTooSmallError,
   ServerError,
 } from 'common/errors'
 import { Customer, MutationToAddCreditResolver } from 'definitions'
 
-const MINIMAL_AMOUNT = 20
+const MIN_AMOUNT = 20
+
+const MAX_DECIMAL_PLACES = 2
 
 const resolver: MutationToAddCreditResolver = async (
   parent,
@@ -22,8 +25,14 @@ const resolver: MutationToAddCreditResolver = async (
   }
 
   // check amount
-  if (amount <= MINIMAL_AMOUNT) {
+  if (amount < MIN_AMOUNT) {
     throw new PaymentAmountTooSmallError('The minimal amount is 20')
+  }
+
+  // check deciaml places
+  const places = amount % 1 ? amount.toString().split('.')[1].length : 0
+  if (places > MAX_DECIMAL_PLACES) {
+    throw new PaymentAmountInvalidError('maximum 2 decimal places')
   }
 
   const provider = PAYMENT_PROVIDER.stripe
