@@ -97,7 +97,6 @@ export const USER_STATE = {
   onboarding: 'onboarding',
   active: 'active',
   banned: 'banned',
-  frozen: 'frozen',
   archived: 'archived',
 }
 
