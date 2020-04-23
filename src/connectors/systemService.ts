@@ -296,25 +296,33 @@ export class SystemService extends BaseService {
   createSkippedItem = async (
     type: SkippedListItemType,
     uuid: string,
-    value: string
+    value: string,
+    note?: string
   ) => {
     if (!type || !uuid || !value) {
       return
     }
     const item = await this.findSkippedItem(type, value)
     if (!item) {
-      return this.baseCreate({ uuid, type, value }, 'blocklist')
+      const data = {
+        uuid,
+        type,
+        value,
+        ...(note ? { note } : {}),
+      }
+      return this.baseCreate(data, 'blocklist')
     }
   }
 
-  saveAgentHash = async (value: string) => {
+  saveAgentHash = async (value: string, note?: string) => {
     if (!value) {
       return
     }
     return this.createSkippedItem(
       SKIPPED_LIST_ITEM_TYPES.AGENT_HASH,
       v4(),
-      value
+      value,
+      note
     )
   }
 
