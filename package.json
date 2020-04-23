@@ -50,7 +50,7 @@
     "bodybuilder": "^2.2.20",
     "bull": "^3.13.0",
     "cheerio": "^1.0.0-rc.2",
-    "cookie": "^0.4.0",
+    "cookie": "^0.4.1",
     "cors": "^2.8.5",
     "dataloader": "^2.0.0",
     "dotenv": "^8.2.0",
