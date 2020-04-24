@@ -1562,10 +1562,11 @@ export class UserService extends BaseService {
     expiredAt,
   }: {
     state: string
-    expiredAt: Date
+    expiredAt: string
   }) =>
-    this.knex('punish_record')
-      .select()
+    this.knex
+      .select('*')
+      .from('punish_record')
       .where({ state })
       .andWhere('expired_at', '<=', expiredAt)
 }

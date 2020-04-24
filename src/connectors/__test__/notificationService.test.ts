@@ -37,6 +37,7 @@ describe('user notify setting', () => {
     user_activated: true,
     user_banned: true,
     user_frozen: true,
+    user_unbanned: true,
     comment_banned: false,
     article_banned: false,
     comment_reported: false,

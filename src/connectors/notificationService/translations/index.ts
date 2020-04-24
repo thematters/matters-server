@@ -125,6 +125,11 @@ export default {
     zh_hans: '因为违反社区规则，Matters 决定将您的账户冻结，无法在站上进行互动',
     en: 'Your account has been deactivated for vilolating the Term of Use',
   }),
+  user_unbanned: i18n({
+    zh_hant: '你的評論與創作權限已恢復',
+    zh_hans: '你的评论与创作权限已恢复',
+    en: 'Your account has been recover.',
+  }),
   comment_banned: i18n<{ content: string }>({
     zh_hant: ({ content }) =>
       `因為違反社區規則，您的評論「${makeSummary(content, 21)}」已被隱藏`,

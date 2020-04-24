@@ -188,7 +188,7 @@ class UserQueue extends BaseQueue {
     try {
       const records = await this.userService.findPunishRecordsByTime({
         state: USER_STATE.banned,
-        expiredAt: new Date(new Date().getTime()),
+        expiredAt: new Date(Date.now()).toISOString(),
       })
       const users: Array<string | number> = []
 
@@ -198,8 +198,9 @@ class UserQueue extends BaseQueue {
             await this.userService.updateInfo(record.userId, {
               state: USER_STATE.active,
             })
+            await this.userService.baseDelete(record.id, 'punish_record')
             this.notificationService.trigger({
-              event: 'user_activated',
+              event: 'user_unbanned',
               recipientId: record.userId,
             })
             users.push(record.userId)
