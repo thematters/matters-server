@@ -304,6 +304,7 @@ export const QUEUE_JOB = {
   // User
   archiveUser: 'userArchive',
   activateOnboardingUsers: 'activateOnboardingUsers',
+  unbanUsers: 'unbanUsers',
 
   // Emails
   sendDailySummaryEmails: 'sendDailySummaryEmails',

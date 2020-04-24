@@ -1,6 +1,6 @@
 import Queue from 'bull'
 
-import { MINUTE, QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
+import { MINUTE, QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY, USER_STATE } from 'common/enums'
 import logger from 'common/logger'
 
 import { BaseQueue } from './baseQueue'
@@ -30,6 +30,16 @@ class UserQueue extends BaseQueue {
         },
       }
     )
+
+    // unban user every day at 00:00
+    this.q.add(
+      QUEUE_JOB.unbanUsers,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 0 * * *', tz: 'Asia/Hong_Kong' },
+      }
+    )
   }
 
   /**
@@ -53,6 +63,8 @@ class UserQueue extends BaseQueue {
       QUEUE_JOB.activateOnboardingUsers,
       this.activateOnboardingUsers
     )
+
+    this.q.process(QUEUE_JOB.unbanUsers, this.unbanUsers)
   }
 
   private handleArchiveUser: Queue.ProcessCallbackFunction<unknown> = async (
@@ -155,6 +167,41 @@ class UserQueue extends BaseQueue {
       )
 
       done(null, activatedUsers)
+    } catch (e) {
+      done(e)
+    }
+  }
+
+  /**
+   * Unban users.
+   */
+  private unbanUsers: Queue.ProcessCallbackFunction<
+    unknown
+  > = async (job, done) => {
+    try {
+      const records = await this.userService.findPunishRecordsByTime({
+        state: USER_STATE.banned,
+        expiredAt: new Date(new Date().getTime())
+      })
+      const users: Array<string | number> = []
+
+      await Promise.all(
+        records.map(async (record, index) => {
+          try {
+            await this.userService.updateInfo(record.userId, { state: USER_STATE.active })
+            this.notificationService.trigger({
+              event: 'user_activated',
+              recipientId: record.userId,
+            })
+            users.push(record.userId)
+            job.progress(((index + 1) / records.length) * 100)
+          } catch (e) {
+            logger.error(e)
+          }
+        })
+      )
+
+      done(null, users)
     } catch (e) {
       done(e)
     }
