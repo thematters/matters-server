@@ -1,6 +1,12 @@
 import Queue from 'bull'
 
-import { MINUTE, QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY, USER_STATE } from 'common/enums'
+import {
+  MINUTE,
+  QUEUE_JOB,
+  QUEUE_NAME,
+  QUEUE_PRIORITY,
+  USER_STATE,
+} from 'common/enums'
 import logger from 'common/logger'
 
 import { BaseQueue } from './baseQueue'
@@ -175,20 +181,23 @@ class UserQueue extends BaseQueue {
   /**
    * Unban users.
    */
-  private unbanUsers: Queue.ProcessCallbackFunction<
-    unknown
-  > = async (job, done) => {
+  private unbanUsers: Queue.ProcessCallbackFunction<unknown> = async (
+    job,
+    done
+  ) => {
     try {
       const records = await this.userService.findPunishRecordsByTime({
         state: USER_STATE.banned,
-        expiredAt: new Date(new Date().getTime())
+        expiredAt: new Date(new Date().getTime()),
       })
       const users: Array<string | number> = []
 
       await Promise.all(
         records.map(async (record, index) => {
           try {
-            await this.userService.updateInfo(record.userId, { state: USER_STATE.active })
+            await this.userService.updateInfo(record.userId, {
+              state: USER_STATE.active,
+            })
             this.notificationService.trigger({
               event: 'user_activated',
               recipientId: record.userId,

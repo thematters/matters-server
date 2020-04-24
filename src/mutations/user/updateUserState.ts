@@ -63,11 +63,14 @@ const resolver: MutationToUpdateUserStateResolver = async (
     // insert record into punish_record
     if (typeof banDays === 'number') {
       const expiredAt = getPunishExpiredDate(banDays)
-      await userService.baseCreate({
-        userId: updatedUser.id,
-        state,
-        expiredAt,
-      }, 'punish_record')
+      await userService.baseCreate(
+        {
+          userId: updatedUser.id,
+          state,
+          expiredAt,
+        },
+        'punish_record'
+      )
     }
   }
 
