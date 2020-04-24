@@ -49,8 +49,6 @@ export class NotificationService extends BaseService {
         }
       case 'article_published':
       case 'comment_pinned':
-      case 'upstream_article_archived':
-      case 'downstream_article_archived':
         return {
           type: params.event,
           recipientId: params.recipientId,
