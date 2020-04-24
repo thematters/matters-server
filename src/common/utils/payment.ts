@@ -1,4 +1,18 @@
+import NP from 'number-precision'
+
 import { PAYMENT_CURRENCY, PAYMENT_PROVIDER } from 'common/enums'
+
+NP.enableBoundaryChecking(false)
+
+export const numRound = (num: number, decPlaces: number = 2) => {
+  return NP.round(num, decPlaces)
+}
+
+/**
+ * Convert DB amount to provider amount
+ *
+ * @see {@url https://stripe.com/docs/currencies#zero-decimal}
+ */
 
 interface ToAmountArgs {
   amount: number
@@ -13,19 +27,13 @@ const PROVIDER_CURRENCY_RATE = {
   },
 }
 
-/**
- * Convert DB amount to provider amount
- *
- * @see {@url https://stripe.com/docs/currencies#zero-decimal}
- */
-
 export const toProviderAmount = ({
   amount,
   currency = PAYMENT_CURRENCY.HKD,
   provider = PAYMENT_PROVIDER.stripe,
 }: ToAmountArgs) => {
   const rate = PROVIDER_CURRENCY_RATE[provider][currency]
-  return amount * rate
+  return NP.times(amount, rate)
 }
 
 /**
@@ -37,7 +45,7 @@ export const toDBAmount = ({
   provider = PAYMENT_PROVIDER.stripe,
 }: ToAmountArgs) => {
   const rate = PROVIDER_CURRENCY_RATE[provider][currency]
-  return amount / rate
+  return NP.divide(amount, rate)
 }
 
 /**
@@ -49,8 +57,8 @@ export const toDBAmount = ({
 const FEE_FIXED = 2.35
 const FEE_PERCENT = 0.034
 
-export const calcStripeFee = (amount: number, decimal: number = 2) => {
+export const calcStripeFee = (amount: number) => {
   const charge = (amount + FEE_FIXED) / (1 - FEE_PERCENT)
   const fee = charge - amount
-  return parseFloat(fee.toFixed(decimal))
+  return numRound(fee)
 }

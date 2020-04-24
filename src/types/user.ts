@@ -287,10 +287,10 @@ export default /* GraphQL */ `
 
   type Liker {
     "Liker ID of LikeCoin"
-    likerId: String @scope
+    likerId: String
 
     "Whether liker is a civic liker"
-    civicLiker: Boolean!
+    civicLiker: Boolean! @objectCache(maxAge: ${CACHE_TTL.LONG})
 
     "Total LIKE left in wallet."
     total: NonNegativeFloat! @scope

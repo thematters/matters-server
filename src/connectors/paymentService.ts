@@ -9,7 +9,7 @@ import {
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
-import { calcStripeFee, toProviderAmount } from 'common/utils'
+import { calcStripeFee, numRound, toProviderAmount } from 'common/utils'
 import { BaseService } from 'connectors'
 import { User } from 'definitions'
 
@@ -288,9 +288,10 @@ export class PaymentService extends BaseService {
     if (provider === PAYMENT_PROVIDER.stripe) {
       // create a payment intent from Stripe
       const fee = calcStripeFee(amount)
+      const total = numRound(amount + fee)
       const payment = await this.stripe.createPaymentIntent({
         customerId,
-        amount: amount + fee,
+        amount: total,
         currency,
       })
 

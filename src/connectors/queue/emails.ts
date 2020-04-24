@@ -32,7 +32,7 @@ class EmailsQueue extends BaseQueue {
       }
     )
 
-    // send churn emails, check every day at 00:00
+    // send churn emails, check every day at 20:00
     this.q.add(
       QUEUE_JOB.sendChurnEmails,
       {},
