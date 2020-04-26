@@ -117,7 +117,7 @@
     "@types/graphql-iso-date": "^3.3.3",
     "@types/graphql-relay": "^0.6.0",
     "@types/graphql-type-json": "^0.3.2",
-    "@types/helmet": "0.0.45",
+    "@types/helmet": "0.0.46",
     "@types/imagemin": "^7.0.0",
     "@types/imagemin-gifsicle": "^5.2.0",
     "@types/imagemin-jpegtran": "^5.0.0",
