@@ -1554,19 +1554,31 @@ export class UserService extends BaseService {
    *             Punish            *
    *                               *
    *********************************/
-  findPunishRecord = ({ userId, state }: { userId: number; state: string }) =>
-    this.knex('punish_record').select().where({ userId, state })
-
   findPunishRecordsByTime = ({
     state,
+    archived,
     expiredAt,
   }: {
     state: string
+    archived: boolean
     expiredAt: string
   }) =>
     this.knex
-      .select('*')
+      .select()
       .from('punish_record')
-      .where({ state })
+      .where({ state, archived })
       .andWhere('expired_at', '<=', expiredAt)
+
+  archivePunishRecordsByUserId = ({
+    state,
+    userId,
+  }: {
+    state: string
+    userId: string
+  }) =>
+    this.knex
+      .select()
+      .from('punish_record')
+      .where({ userId, state })
+      .update({ archived: true })
 }

@@ -9,15 +9,18 @@ exports.up = async (knex) => {
     t.bigIncrements('id').primary()
     t.bigInteger('user_id').unsigned()
     t.enu('state', ['banned']).notNullable()
+    t.boolean('archived').defaultTo(false)
     t.timestamp('expired_at').defaultTo(knex.fn.now()).notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
     // setup foreign key
     t.foreign('user_id').references('id').inTable('user')
+  })
 
-    // composite unique key
-    t.unique(['user_id', 'state'])
+  // add index
+  await knex.schema.table(table, (t) => {
+    t.index(['user_id', 'state', 'archived'])
   })
 }
 

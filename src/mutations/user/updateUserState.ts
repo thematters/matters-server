@@ -14,7 +14,10 @@ const resolver: MutationToUpdateUserStateResolver = async (
   const user = await userService.dataloader.load(dbId)
 
   // check
-  if (user.state === USER_STATE.archived || user.state === USER_STATE.banned) {
+  if (
+    user.state === USER_STATE.archived ||
+    (state === USER_STATE.banned && user.state === USER_STATE.banned)
+  ) {
     throw new ActionFailedError(`user has already been ${state}`)
   }
 
@@ -72,6 +75,12 @@ const resolver: MutationToUpdateUserStateResolver = async (
         'punish_record'
       )
     }
+  } else if (state !== user.state && user.state === USER_STATE.banned) {
+    // clean up punish recods if team manually recover it from ban
+    await userService.archivePunishRecordsByUserId({
+      userId: updatedUser.id,
+      state: USER_STATE.banned
+    })
   }
 
   return updatedUser
