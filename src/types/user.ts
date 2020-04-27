@@ -261,7 +261,7 @@ export default /* GraphQL */ `
     state: UserState!
 
     "User role and access level."
-    role: UserRole!
+    role: UserRole! @scope
 
     "Total LIKE left in wallet."
     LIKE: LIKE! @scope @deprecated(reason: "Use \`liker.total\` and \`liker.rateUSD\`.")

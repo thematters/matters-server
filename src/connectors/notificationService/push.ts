@@ -104,15 +104,6 @@ class Push extends BaseService {
             title: target.entity.title,
           })
         )
-      case 'upstream_article_archived':
-        return trans.upstream_article_archived(language, {})
-      case 'downstream_article_archived':
-        return (
-          downstream &&
-          trans.downstream_article_archived(language, {
-            title: downstream.entity.title,
-          })
-        )
       case 'comment_pinned':
         return (
           actor &&
