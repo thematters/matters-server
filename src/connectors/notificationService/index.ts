@@ -97,6 +97,12 @@ export class NotificationService extends BaseService {
           recipientId: params.recipientId,
           message: trans.user_frozen(language, {}),
         }
+      case 'user_unbanned':
+        return {
+          type: 'official_announcement',
+          recipientId: params.recipientId,
+          message: trans.user_unbanned(language, {}),
+        }
       case 'comment_banned':
         return {
           type: 'official_announcement',

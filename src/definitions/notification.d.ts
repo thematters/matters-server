@@ -28,6 +28,7 @@ export type OfficialNoticeExtendType =
   | 'user_activated'
   | 'user_banned'
   | 'user_frozen'
+  | 'user_unbanned'
   | 'comment_banned'
   | 'article_banned'
   | 'article_reported'
@@ -245,6 +246,11 @@ export interface NoticeUserFrozenParams extends NotificationRequiredParams {
   recipientId: string
 }
 
+export interface NoticeUserUnbannedParams extends NotificationRequiredParams {
+  event: 'user_unbanned'
+  recipientId: string
+}
+
 export interface NoticeCommentBannedParams extends NotificationRequiredParams {
   event: 'comment_banned'
   entities: [NotificationEntity<'target', 'comment'>]
@@ -293,6 +299,7 @@ export type NotificationPrarms =
   | NoticeUserActivatedParams
   | NoticeUserBannedParams
   | NoticeUserFrozenParams
+  | NoticeUserUnbannedParams
   | NoticeCommentBannedParams
   | NoticeArticleBannedParams
   | NoticeArticleReportedParams

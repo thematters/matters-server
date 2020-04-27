@@ -509,6 +509,7 @@ class Notice extends BaseService {
       user_activated: true,
       user_banned: true,
       user_frozen: true,
+      user_unbanned: true,
       comment_banned: setting.reportFeedback,
       article_banned: setting.reportFeedback,
       comment_reported: setting.reportFeedback,
