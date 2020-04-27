@@ -79,7 +79,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
     // clean up punish recods if team manually recover it from ban
     await userService.archivePunishRecordsByUserId({
       userId: updatedUser.id,
-      state: USER_STATE.banned
+      state: USER_STATE.banned,
     })
   }
 
