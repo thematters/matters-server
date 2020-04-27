@@ -2033,6 +2033,11 @@ type UserEdge {
   node: User!
 }
 
+enum UserGroup {
+  a
+  b
+}
+
 type UserInfo {
   """Timestamp of registration."""
   createdAt: DateTime!
@@ -2054,6 +2059,9 @@ type UserInfo {
 
   """Cover of profile page."""
   profileCover: URL
+
+  """Type of group."""
+  group: UserGroup!
 }
 
 enum UserInfoFields {

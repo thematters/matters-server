@@ -24,6 +24,7 @@ import blockList from './blockList'
 import commentCount from './commentCount'
 import followees from './followees'
 import followers from './followers'
+import group from './group'
 import isBlocked from './isBlocked'
 import isBlocking from './isBlocking'
 import isFollowee from './isFollowee'
@@ -99,6 +100,7 @@ const user: {
     userNameEditable,
     email: ({ email }) => email && email.replace(/#/g, '@'),
     profileCover,
+    group,
   },
   Wallet,
   UserSettings: {
