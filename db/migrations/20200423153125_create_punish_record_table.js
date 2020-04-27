@@ -19,12 +19,6 @@ exports.up = async (knex) => {
     // composite unique key
     t.unique(['user_id', 'state'])
   })
-
-  // add index
-  await knex.schema.table(table, (t) => {
-    t.index(['state'])
-    t.index(['user_id', 'state'])
-  })
 }
 
 exports.down = baseDown(table)
