@@ -225,6 +225,9 @@ export default /* GraphQL */ `
 
     "Cover of profile page."
     profileCover: URL
+
+    "Type of group."
+    group: UserGroup!
   }
 
   type UserSettings {
@@ -565,6 +568,11 @@ export default /* GraphQL */ `
   enum UserRole {
     user
     admin
+  }
+
+  enum UserGroup {
+    a
+    b
   }
 
   enum AppreciationPurpose {

@@ -61,6 +61,7 @@ export type Viewer = (User | { id: null }) & {
   scopeMode: ScopeMode
   oauthClient?: OAuthClient
   agentHash?: string
+  group: string
 }
 
 export type RequestContext = {
