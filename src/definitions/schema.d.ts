@@ -446,6 +446,11 @@ export interface GQLUserInfo {
    * Cover of profile page.
    */
   profileCover?: GQLURL
+
+  /**
+   * Type of group.
+   */
+  group: GQLUserGroup
 }
 
 export type GQLEmail = any
@@ -456,6 +461,11 @@ export interface GQLBadge {
 
 export const enum GQLBadgeType {
   seed = 'seed',
+}
+
+export const enum GQLUserGroup {
+  a = 'a',
+  b = 'b',
 }
 
 export interface GQLUserSettings {
@@ -3964,6 +3974,7 @@ export interface GQLUserInfoTypeResolver<TParent = any> {
   badges?: UserInfoToBadgesResolver<TParent>
   agreeOn?: UserInfoToAgreeOnResolver<TParent>
   profileCover?: UserInfoToProfileCoverResolver<TParent>
+  group?: UserInfoToGroupResolver<TParent>
 }
 
 export interface UserInfoToCreatedAtResolver<TParent = any, TResult = any> {
@@ -4024,6 +4035,15 @@ export interface UserInfoToAgreeOnResolver<TParent = any, TResult = any> {
 }
 
 export interface UserInfoToProfileCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserInfoToGroupResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
