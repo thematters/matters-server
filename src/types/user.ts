@@ -514,6 +514,7 @@ export default /* GraphQL */ `
     email_reset
     email_reset_confirm
     password_reset
+    payment_password_reset
     email_verify
   }
 

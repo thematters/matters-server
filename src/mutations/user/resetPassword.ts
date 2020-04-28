@@ -14,7 +14,7 @@ const resolver: MutationToResetPasswordResolver = async (
   const [code] = await userService.findVerificationCodes({
     where: {
       uuid,
-      type: 'password_reset',
+      type: type === 'payment' ? 'payment_password_reset' : 'password_reset',
       status: 'verified',
     },
   })
