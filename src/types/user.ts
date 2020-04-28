@@ -281,6 +281,9 @@ export default /* GraphQL */ `
     "Whether user has read response info or not."
     unreadResponseInfoPopUp: Boolean!
 
+    "Whether user already set payment password."
+    hasPaymentPassword: Boolean!
+
     "Number of total written words."
     totalWordCount: Int!
   }

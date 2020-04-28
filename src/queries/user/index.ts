@@ -24,6 +24,7 @@ import blockList from './blockList'
 import commentCount from './commentCount'
 import followees from './followees'
 import followers from './followers'
+import hasPaymentPassword from './hasPaymentPassword'
 import isBlocked from './isBlocked'
 import isBlocking from './isBlocking'
 import isFollowee from './isFollowee'
@@ -121,6 +122,7 @@ const user: {
     unreadNoticeCount,
     unreadFolloweeArticles,
     unreadResponseInfoPopUp,
+    hasPaymentPassword,
     totalWordCount,
   },
   UserOSS: {

@@ -1162,6 +1162,11 @@ export interface GQLUserStatus {
   unreadResponseInfoPopUp: boolean
 
   /**
+   * Whether user already set payment password.
+   */
+  hasPaymentPassword: boolean
+
+  /**
    * Number of total written words.
    */
   totalWordCount: number
@@ -5726,6 +5731,7 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
   unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
   unreadResponseInfoPopUp?: UserStatusToUnreadResponseInfoPopUpResolver<TParent>
+  hasPaymentPassword?: UserStatusToHasPaymentPasswordResolver<TParent>
   totalWordCount?: UserStatusToTotalWordCountResolver<TParent>
 }
 
@@ -5805,6 +5811,18 @@ export interface UserStatusToUnreadFolloweeArticlesResolver<
 }
 
 export interface UserStatusToUnreadResponseInfoPopUpResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToHasPaymentPasswordResolver<
   TParent = any,
   TResult = any
 > {
