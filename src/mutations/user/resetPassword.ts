@@ -32,8 +32,10 @@ const resolver: MutationToResetPasswordResolver = async (
 
   // check password
   if (type === 'payment') {
-    if (isValidPaymentPassword(password)) {
-      throw new PasswordInvalidError('invalid payment password')
+    if (!isValidPaymentPassword(password)) {
+      throw new PasswordInvalidError(
+        'invalid payment password, should be 6 digits.'
+      )
     }
   } else {
     if (!isValidPassword(password)) {

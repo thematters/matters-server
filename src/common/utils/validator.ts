@@ -73,6 +73,9 @@ export const isValidPassword = (password: string): boolean => {
   return /^[\x00-\x7F]*$/.test(password)
 }
 
+/**
+ * Validate payment pass word. It only accepts digital.
+ */
 export const isValidPaymentPassword = (password: string): boolean => {
   if (!password || password.length !== 6) {
     return false

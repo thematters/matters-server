@@ -94,11 +94,13 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       )
     }
 
-    if (isValidPaymentPassword(input.paymentPassword)) {
-      throw new PasswordInvalidError('invalid payment password')
+    if (!isValidPaymentPassword(input.paymentPassword)) {
+      throw new PasswordInvalidError(
+        'invalid payment password, should be 6 digits.'
+      )
     }
 
-    updateParams.paymentPassword = await generatePasswordhash(
+    updateParams.paymentPasswordHash = await generatePasswordhash(
       input.paymentPassword
     )
   }
