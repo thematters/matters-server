@@ -3,7 +3,7 @@ import { MutationToResetPasswordResolver } from 'definitions'
 
 const resolver: MutationToResetPasswordResolver = async (
   _,
-  { input: { password, codeId: uuid } },
+  { input: { password, codeId: uuid, type } },
   { viewer, dataSources: { userService } }
 ) => {
   const [code] = await userService.findVerificationCodes({
@@ -25,8 +25,8 @@ const resolver: MutationToResetPasswordResolver = async (
     throw new UserNotFoundError('target user does not exists')
   }
 
-  // change password
-  await userService.changePassword({ userId: user.id, password })
+  // change account or payment password
+  await userService.changePassword({ userId: user.id, password, type })
 
   // mark code status as used
   await userService.markVerificationCodeAs({

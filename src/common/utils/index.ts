@@ -1,5 +1,8 @@
+import { hash } from 'bcrypt'
 import * as cheerio from 'cheerio'
 import _ from 'lodash'
+
+import { BCRYPT_ROUNDS } from 'common/enums'
 
 export * from './makeContext'
 export * from './getFileName'
@@ -58,3 +61,6 @@ export const extractAssetDataFromHtml = (
     })
     .get()
 }
+
+export const generatePasswordhash = (password: string) =>
+  hash(password, BCRYPT_ROUNDS)

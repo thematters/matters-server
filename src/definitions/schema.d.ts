@@ -1861,7 +1861,7 @@ export interface GQLMutation {
   confirmVerificationCode: string
 
   /**
-   * Reset user password.
+   * Reset user or payment password.
    */
   resetPassword?: boolean
 
@@ -2251,6 +2251,12 @@ export interface GQLConfirmVerificationCodeInput {
 export interface GQLResetPasswordInput {
   password: string
   codeId: string
+  type?: GQLResetPasswordType
+}
+
+export const enum GQLResetPasswordType {
+  account = 'account',
+  payment = 'payment',
 }
 
 export interface GQLChangeEmailInput {
@@ -2291,6 +2297,7 @@ export interface GQLUpdateUserInfoInput {
   language?: GQLUserLanguage
   agreeOn?: boolean
   profileCover?: string
+  paymentPassword?: string
 }
 
 export interface GQLUpdateNotificationSettingInput {
@@ -2376,7 +2383,7 @@ export interface GQLPayToInput {
   purpose: GQLTransactionPurpose
   recipientId?: string
   targetId?: string
-  passcode: string
+  password: string
 }
 
 export interface GQLPayToResult {

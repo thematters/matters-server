@@ -29,6 +29,7 @@ export type User = {
   emailVerified: string
   likerId?: string
   passwordHash: string
+  paymentPasswordHash?: string
   baseGravity: number
   currGravity: number
   language: LANGUAGES

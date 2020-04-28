@@ -1,4 +1,4 @@
-import { compare, hash } from 'bcrypt'
+import { compare } from 'bcrypt'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import jwt from 'jsonwebtoken'
@@ -9,7 +9,6 @@ import {
   ALS_DEFAULT_VECTOR,
   ARTICLE_STATE,
   BATCH_SIZE,
-  BCRYPT_ROUNDS,
   COMMENT_STATE,
   LOG_RECORD_TYPES,
   MATERIALIZED_VIEW,
@@ -28,8 +27,10 @@ import {
   ServerError,
 } from 'common/errors'
 import logger from 'common/logger'
+import { generatePasswordhash } from 'common/utils'
 import { BaseService, OAuthService } from 'connectors'
 import {
+  GQLResetPasswordType,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
   ItemData,
@@ -78,7 +79,7 @@ export class UserService extends BaseService {
     const avatar = null
 
     const uuid = v4()
-    const passwordHash = await hash(password, BCRYPT_ROUNDS)
+    const passwordHash = await generatePasswordhash(password)
     const user = await this.baseCreate({
       uuid,
       email,
@@ -192,13 +193,19 @@ export class UserService extends BaseService {
   changePassword = async ({
     userId,
     password,
+    type = GQLResetPasswordType.account,
   }: {
     userId: string
     password: string
+    type?: GQLResetPasswordType
   }) => {
-    const passwordHash = await hash(password, BCRYPT_ROUNDS)
+    const passwordHash = await generatePasswordhash(password)
+    const data =
+      type === 'payment'
+        ? { paymentPasswordHash: passwordHash }
+        : { passwordHash }
     const user = await this.baseUpdate(userId, {
-      passwordHash,
+      ...data,
       updatedAt: new Date(),
     })
     return user

@@ -9,7 +9,11 @@ import {
   UsernameExistsError,
   UsernameInvalidError,
 } from 'common/errors'
-import { isValidDisplayName, isValidUserName } from 'common/utils'
+import {
+  generatePasswordhash,
+  isValidDisplayName,
+  isValidUserName,
+} from 'common/utils'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserInfoResolver = async (
@@ -78,6 +82,18 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   // check user agree term
   if (input.agreeOn === true) {
     updateParams.agreeOn = new Date()
+  }
+
+  // check payment password
+  if (input.paymentPassword) {
+    if (viewer.paymentPasswordHash) {
+      throw new UserInputError(
+        'Payment password alraedy exists. To reset it, use `resetPassword` mutation.'
+      )
+    }
+    updateParams.paymentPassword = await generatePasswordhash(
+      input.paymentPassword
+    )
   }
 
   if (isEmpty(updateParams)) {

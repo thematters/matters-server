@@ -103,7 +103,7 @@ export default /* GraphQL */ `
     purpose: TransactionPurpose!
     recipientId: ID
     targetId: ID
-    passcode: String!
+    password: String!
   }
 
   type PayToResult {
