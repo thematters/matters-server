@@ -1,4 +1,9 @@
-import { CodeInvalidError, UserNotFoundError } from 'common/errors'
+import {
+  CodeInvalidError,
+  PasswordInvalidError,
+  UserNotFoundError,
+} from 'common/errors'
+import { isValidPassword, isValidPaymentPassword } from 'common/utils'
 import { MutationToResetPasswordResolver } from 'definitions'
 
 const resolver: MutationToResetPasswordResolver = async (
@@ -23,6 +28,17 @@ const resolver: MutationToResetPasswordResolver = async (
   const user = await userService.findByEmail(code.email)
   if (!user) {
     throw new UserNotFoundError('target user does not exists')
+  }
+
+  // check password
+  if (type === 'payment') {
+    if (isValidPaymentPassword(password)) {
+      throw new PasswordInvalidError('invalid payment password')
+    }
+  } else {
+    if (!isValidPassword(password)) {
+      throw new PasswordInvalidError('invalid user password')
+    }
   }
 
   // change account or payment password

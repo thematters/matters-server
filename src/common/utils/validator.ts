@@ -73,6 +73,14 @@ export const isValidPassword = (password: string): boolean => {
   return /^[\x00-\x7F]*$/.test(password)
 }
 
+export const isValidPaymentPassword = (password: string): boolean => {
+  if (!password || password.length !== 6) {
+    return false
+  }
+
+  return /^[\d]*$/.test(password)
+}
+
 /**
  * Validate if string is in english.
  */

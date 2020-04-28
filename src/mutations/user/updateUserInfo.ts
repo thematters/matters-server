@@ -5,6 +5,7 @@ import {
   AuthenticationError,
   DisplayNameInvalidError,
   ForbiddenError,
+  PasswordInvalidError,
   UserInputError,
   UsernameExistsError,
   UsernameInvalidError,
@@ -12,6 +13,7 @@ import {
 import {
   generatePasswordhash,
   isValidDisplayName,
+  isValidPaymentPassword,
   isValidUserName,
 } from 'common/utils'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
@@ -91,6 +93,11 @@ const resolver: MutationToUpdateUserInfoResolver = async (
         'Payment password alraedy exists. To reset it, use `resetPassword` mutation.'
       )
     }
+
+    if (isValidPaymentPassword(input.paymentPassword)) {
+      throw new PasswordInvalidError('invalid payment password')
+    }
+
     updateParams.paymentPassword = await generatePasswordhash(
       input.paymentPassword
     )
