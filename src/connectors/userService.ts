@@ -1492,7 +1492,13 @@ export class UserService extends BaseService {
    *             Churn             *
    *                               *
    *********************************/
-  findLost = ({ type }: { type: 'new-register' | 'medium-term' }) => {
+  findLost = ({
+    type,
+    group,
+  }: {
+    type: 'new-register' | 'medium-term'
+    group?: 'a' | 'b'
+  }) => {
     const userLastReadQuery = this.knex('article_read_count')
       .select('user_id')
       .max('article_read_count.updated_at', { as: 'last_read' })
@@ -1500,9 +1506,15 @@ export class UserService extends BaseService {
       .orderBy('last_read', 'desc')
       .as('user_last_read')
 
+    // get A/B testing group filter if provied
+    const groupFilter = group
+      ? this.knex.raw(`("user".id % 2) ${group === 'a' ? '=' : '<>'} 0`)
+      : undefined
+
     // registered within one month and last read a week ago
     if (type === 'new-register') {
-      return this.knex
+      // registered within one month and last read a week ago
+      const newRegisterQuery = this.knex
         .select('user.*', 'last_read')
         .from('user')
         .leftJoin(userLastReadQuery, 'user.id', 'user_last_read.user_id')
@@ -1530,11 +1542,16 @@ export class UserService extends BaseService {
             )
         )
         .whereNull('sent_record.type')
+
+      if (groupFilter) {
+        newRegisterQuery.where(groupFilter)
+      }
+      return newRegisterQuery
     }
 
     // read within six months and last read two weeks ago
     if (type === 'medium-term') {
-      return this.knex
+      const mediumTermQuery = this.knex
         .select('user.*', 'last_read')
         .from(userLastReadQuery)
         .leftJoin('user', 'user_last_read.user_id', 'user.id')
@@ -1551,6 +1568,11 @@ export class UserService extends BaseService {
         .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
         .whereNull('sent_record.type')
         .whereNotNull('user.id')
+
+      if (groupFilter) {
+        mediumTermQuery.where(groupFilter)
+      }
+      return mediumTermQuery
     }
 
     return []
