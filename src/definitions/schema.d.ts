@@ -1172,6 +1172,11 @@ export interface GQLUserStatus {
   unreadResponseInfoPopUp: boolean
 
   /**
+   * Whether user already set payment password.
+   */
+  hasPaymentPassword: boolean
+
+  /**
    * Number of total written words.
    */
   totalWordCount: number
@@ -1871,7 +1876,7 @@ export interface GQLMutation {
   confirmVerificationCode: string
 
   /**
-   * Reset user password.
+   * Reset user or payment password.
    */
   resetPassword?: boolean
 
@@ -2249,6 +2254,7 @@ export const enum GQLVerificationCodeType {
   email_reset = 'email_reset',
   email_reset_confirm = 'email_reset_confirm',
   password_reset = 'password_reset',
+  payment_password_reset = 'payment_password_reset',
   email_verify = 'email_verify',
 }
 
@@ -2261,6 +2267,12 @@ export interface GQLConfirmVerificationCodeInput {
 export interface GQLResetPasswordInput {
   password: string
   codeId: string
+  type?: GQLResetPasswordType
+}
+
+export const enum GQLResetPasswordType {
+  account = 'account',
+  payment = 'payment',
 }
 
 export interface GQLChangeEmailInput {
@@ -2301,6 +2313,7 @@ export interface GQLUpdateUserInfoInput {
   language?: GQLUserLanguage
   agreeOn?: boolean
   profileCover?: string
+  paymentPassword?: string
 }
 
 export interface GQLUpdateNotificationSettingInput {
@@ -2386,7 +2399,7 @@ export interface GQLPayToInput {
   purpose: GQLTransactionPurpose
   recipientId?: string
   targetId?: string
-  passcode: string
+  password: string
 }
 
 export interface GQLPayToResult {
@@ -5739,6 +5752,7 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
   unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
   unreadResponseInfoPopUp?: UserStatusToUnreadResponseInfoPopUpResolver<TParent>
+  hasPaymentPassword?: UserStatusToHasPaymentPasswordResolver<TParent>
   totalWordCount?: UserStatusToTotalWordCountResolver<TParent>
 }
 
@@ -5818,6 +5832,18 @@ export interface UserStatusToUnreadFolloweeArticlesResolver<
 }
 
 export interface UserStatusToUnreadResponseInfoPopUpResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToHasPaymentPasswordResolver<
   TParent = any,
   TResult = any
 > {

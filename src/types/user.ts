@@ -13,7 +13,7 @@ export default /* GraphQL */ `
     "Confirm verification code from email."
     confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
-    "Reset user password."
+    "Reset user or payment password."
     resetPassword(input: ResetPasswordInput!): Boolean
 
     "Change user email."
@@ -284,6 +284,9 @@ export default /* GraphQL */ `
     "Whether user has read response info or not."
     unreadResponseInfoPopUp: Boolean!
 
+    "Whether user already set payment password."
+    hasPaymentPassword: Boolean!
+
     "Number of total written words."
     totalWordCount: Int!
   }
@@ -423,6 +426,7 @@ export default /* GraphQL */ `
   input ResetPasswordInput {
     password: String!
     codeId: ID!
+    type: ResetPasswordType
   }
 
   input ChangeEmailInput {
@@ -463,6 +467,7 @@ export default /* GraphQL */ `
     language: UserLanguage
     agreeOn: Boolean
     profileCover: ID
+    paymentPassword: String
   }
 
   input UpdateUserStateInput {
@@ -509,7 +514,13 @@ export default /* GraphQL */ `
     email_reset
     email_reset_confirm
     password_reset
+    payment_password_reset
     email_verify
+  }
+
+  enum ResetPasswordType {
+    account
+    payment
   }
 
   enum UserInfoFields {

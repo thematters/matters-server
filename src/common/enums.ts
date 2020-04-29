@@ -143,6 +143,7 @@ export const VERIFICATION_CODE_TYPES = {
   email_reset: 'email_reset',
   email_reset_confirm: 'email_reset_confirm',
   password_reset: 'password_reset',
+  payment_password_reset: 'payment_password_reset',
   email_verify: 'email_verify',
 }
 

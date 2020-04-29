@@ -995,7 +995,7 @@ type Mutation {
   """Confirm verification code from email."""
   confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
-  """Reset user password."""
+  """Reset user or payment password."""
   resetPassword(input: ResetPasswordInput!): Boolean
 
   """Change user email."""
@@ -1275,7 +1275,7 @@ input PayToInput {
   purpose: TransactionPurpose!
   recipientId: ID
   targetId: ID
-  passcode: String!
+  password: String!
 }
 
 type PayToResult {
@@ -1550,6 +1550,12 @@ input ReportsInput {
 input ResetPasswordInput {
   password: String!
   codeId: ID!
+  type: ResetPasswordType
+}
+
+enum ResetPasswordType {
+  account
+  payment
 }
 
 union Response = Article | Comment
@@ -1897,6 +1903,7 @@ input UpdateUserInfoInput {
   language: UserLanguage
   agreeOn: Boolean
   profileCover: ID
+  paymentPassword: String
 }
 
 input UpdateUserRoleInput {
@@ -2162,6 +2169,9 @@ type UserStatus {
   """Whether user has read response info or not."""
   unreadResponseInfoPopUp: Boolean!
 
+  """Whether user already set payment password."""
+  hasPaymentPassword: Boolean!
+
   """Number of total written words."""
   totalWordCount: Int!
 }
@@ -2173,6 +2183,7 @@ enum VerificationCodeType {
   email_reset
   email_reset_confirm
   password_reset
+  payment_password_reset
   email_verify
 }
 

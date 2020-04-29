@@ -342,10 +342,3 @@ export class PaymentAmountInvalidError extends ApolloError {
     Object.defineProperty(this, 'name', { value: 'PaymentAmountInvalid' })
   }
 }
-
-export class PaymentPasscodeInvalidError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'PAYMENT_PASSCODE_INVALID')
-    Object.defineProperty(this, 'name', { value: 'PaymentPasscodeInvalid' })
-  }
-}
