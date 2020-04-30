@@ -101,7 +101,7 @@ export default /* GraphQL */ `
     amount: PositiveFloat!
     currency: TransactionCurrency!
     purpose: TransactionPurpose!
-    recipientId: ID
+    recipientId: ID!
     targetId: ID
     password: String!
   }

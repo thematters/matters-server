@@ -622,5 +622,6 @@ export enum PAYMENT_CURRENCY {
 }
 
 export enum PAYMENT_PROVIDER {
+  likecoin = 'likecoin',
   stripe = 'stripe',
 }
