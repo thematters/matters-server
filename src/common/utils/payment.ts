@@ -17,7 +17,7 @@ export const numRound = (num: number, decPlaces: number = 2) => {
 interface ToAmountArgs {
   amount: number
   currency?: PAYMENT_CURRENCY
-  provider?: PAYMENT_PROVIDER
+  provider?: Exclude<PAYMENT_PROVIDER, PAYMENT_PROVIDER.likecoin>
 }
 
 const PROVIDER_CURRENCY_RATE = {
