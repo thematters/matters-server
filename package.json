@@ -98,7 +98,7 @@
     "sharp": "^0.25.2",
     "stripe": "^8.48.0",
     "typescript": "^3.8.3",
-    "uuid": "^7.0.3",
+    "uuid": "^8.0.0",
     "validator": "^13.0.0",
     "winston": "^3.2.1",
     "winston-transport": "^4.3.0",

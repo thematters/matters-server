@@ -1,6 +1,6 @@
 const compact = require('lodash/compact')
 
-const uuidv4 = require('uuid/v4')
+const { v4: uuidv4 } = require('uuid')
 
 const table = 'transaction'
 
@@ -50,10 +50,16 @@ exports.up = async (knex) => {
       items.map(async ({ userName, role, amount }) => {
         const user = await knex('user')
           .select('id')
-          .where({ user_name: userName, role })
+          .where({
+            user_name: userName,
+            role,
+          })
           .first()
         if (user) {
-          return { id: user.id, amount }
+          return {
+            id: user.id,
+            amount,
+          }
         }
       })
     )
