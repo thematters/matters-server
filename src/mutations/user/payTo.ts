@@ -30,6 +30,10 @@ const resolver: MutationToPayToResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
+  if (!viewer.paymentPasswordHash) {
+    throw new ForbiddenError('viewr payment password has not set')
+  }
+
   if (!amount || typeof amount !== 'number' || amount <= 0) {
     throw new UserInputError('amount is incorrect')
   }
@@ -42,19 +46,18 @@ const resolver: MutationToPayToResolver = async (
   const targetService = services[targetType]
 
   // fetch entities
-  const [user, recipient, target] = await Promise.all([
-    userService.baseFindById(viewer.id),
+  const [recipient, target] = await Promise.all([
     userService.baseFindById(recipientDbId),
     targetService ? targetService.baseFindById(targetDbId) : undefined,
   ])
 
   // safety checks
-  if (!user || !recipient) {
-    throw new UserNotFoundError('user is not found')
+  if (!recipient) {
+    throw new UserNotFoundError('recipient is not found')
   }
 
   if (
-    user.state === USER_STATE.archived ||
+    viewer.state === USER_STATE.archived ||
     recipient.state === USER_STATE.archived
   ) {
     throw new ForbiddenError('viewer or recipient has no permission')
@@ -64,15 +67,15 @@ const resolver: MutationToPayToResolver = async (
     throw new EntityNotFoundError(`entity ${targetId} is not found`)
   }
 
-  const verified = await compare(password, user.paymentPasswordHash)
+  const verified = await compare(password, viewer.paymentPasswordHash)
   if (!verified) {
     throw new PasswordInvalidError('password is incorrect, pay failed.')
   }
 
   switch (currency) {
     case 'LIKE':
-      if (!viewer.likerId) {
-        throw new ForbiddenError('viewer has no liker id')
+      if (!viewer.likerId || !recipient.likerId) {
+        throw new ForbiddenError('viewer or recipient has no liker id')
       }
       // insert a pending transaction
       const pendingTxId = v4()
@@ -94,7 +97,7 @@ const resolver: MutationToPayToResolver = async (
         likecoinPayLikerId,
       } = environment
       const params = new URLSearchParams()
-      params.append('to', user.likerId)
+      params.append('to', recipient.likerId)
       params.append('amount', amount.toString())
       params.append('via', likecoinPayLikerId)
       params.append('fee', '0')
