@@ -9,7 +9,6 @@ const service = new PaymentService()
 const likecoinRouter = Router()
 
 likecoinRouter.get('/', async (req, res) => {
-
   try {
     const { tx_hash, state } = req.query
 
@@ -25,8 +24,8 @@ likecoinRouter.get('/', async (req, res) => {
 
     // update transaction state
     const results = await Promise.all(
-      transactions.map(
-        transaction => service.baseUpdate(transaction.id, {
+      transactions.map((transaction) =>
+        service.baseUpdate(transaction.id, {
           id: transaction.id,
           provider_tx_id: tx_hash,
           state: TRANSACTION_STATE.succeeded,
