@@ -34,6 +34,11 @@ const resolver: MutationToPayToResolver = async (
     throw new ForbiddenError('viewr payment password has not set')
   }
 
+  // keep purpose params for future usage, but only allow donation for now
+  if (TRANSACTION_PURPOSE[purpose] !== TRANSACTION_PURPOSE.donation) {
+    throw new UserInputError('now only support donation')
+  }
+
   if (!amount || typeof amount !== 'number' || amount <= 0) {
     throw new UserInputError('amount is incorrect')
   }
