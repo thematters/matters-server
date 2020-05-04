@@ -1124,7 +1124,7 @@ export class ArticleService extends BaseService {
       ip,
     }
 
-    if (!record) {
+    if (!record || record.length === 0) {
       // create new record
       return this.baseCreate({ ...newData, count: 1, readTime: 0 }, table)
     }
@@ -1132,7 +1132,7 @@ export class ArticleService extends BaseService {
     const oldData = record[0]
 
     // lapsed time in secondes
-    const lapse = (Date.now() - new Date(oldData.updateAt).getTime()) / 1000
+    const lapse = (Date.now() - new Date(oldData.updatedAt).getTime()) / 1000
 
     // after 30 minutes, accumulate count
     if (lapse > 60 * 30) {
@@ -1141,7 +1141,7 @@ export class ArticleService extends BaseService {
         {
           ...oldData,
           ...newData,
-          count: oldData.count + 1,
+          count: parseInt(oldData.count, 10) + 1,
         },
         table
       )
@@ -1153,7 +1153,7 @@ export class ArticleService extends BaseService {
       {
         ...oldData,
         ...newData,
-        readTime: oldData.readTime + lapse,
+        readTime: Math.round(parseInt(oldData.readTime, 10) + lapse),
       },
       table
     )
