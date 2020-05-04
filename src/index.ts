@@ -55,8 +55,8 @@ server.installSubscriptionHandlers(httpServer)
 // OAuth
 app.use('/oauth', routes.oauth)
 
-// Webhook
-app.use('/webhook', routes.webhook)
+// Pay
+app.use('/pay', routes.pay)
 
 httpServer.listen(PORT, () => {
   console.log(
