@@ -2397,7 +2397,7 @@ export interface GQLPayToInput {
   amount: GQLPositiveFloat
   currency: GQLTransactionCurrency
   purpose: GQLTransactionPurpose
-  recipientId?: string
+  recipientId: string
   targetId?: string
   password: string
 }
