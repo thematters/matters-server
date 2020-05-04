@@ -1134,8 +1134,8 @@ export class ArticleService extends BaseService {
     // lapsed time in secondes
     const lapse = (Date.now() - new Date(oldData.updatedAt).getTime()) / 1000
 
-    // after 30 minutes, accumulate count
-    if (lapse > 60 * 30) {
+    // if lapse if longer than 30 minutes, or original read longer than 30 minutes, accumulate count
+    if (lapse > 60 * 30 || parseInt(oldData.readTime, 10) > 60 * 30) {
       return this.baseUpdate(
         oldData.id,
         {
