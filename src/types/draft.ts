@@ -54,6 +54,9 @@ export default /* GraphQL */ `
 
     "List of asstets are belonged to this draft."
     assets: [Asset!]!
+
+    "Published article"
+    article: Article
   }
 
   type DraftConnection implements Connection {

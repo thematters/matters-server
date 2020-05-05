@@ -71,6 +71,7 @@ export class ArticleService extends BaseService {
    * Publish an article to IPFS
    */
   publish = async ({
+    id,
     authorId,
     title,
     cover,
@@ -148,6 +149,7 @@ export class ArticleService extends BaseService {
       dataHash,
       mediaHash,
       state: ARTICLE_STATE.active,
+      draftId: id,
     })
 
     return article
@@ -215,6 +217,12 @@ export class ArticleService extends BaseService {
       : baseQuery.andWhere({ state: ARTICLE_STATE.active })
     return query.orderBy('id', 'desc')
   }
+
+  /**
+   * Find article by draft id
+   */
+  findByDraftId = async (draftId: string) =>
+    this.knex.select().from(this.table).where({ draftId }).first()
 
   /**
    * Find article by which set as sticky.

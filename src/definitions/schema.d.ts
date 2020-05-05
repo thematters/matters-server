@@ -970,6 +970,11 @@ export interface GQLDraft extends GQLNode {
    * List of asstets are belonged to this draft.
    */
   assets: Array<GQLAsset>
+
+  /**
+   * Published article
+   */
+  article?: GQLArticle
 }
 
 /**
@@ -5180,6 +5185,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   cover?: DraftToCoverResolver<TParent>
   publishState?: DraftToPublishStateResolver<TParent>
   assets?: DraftToAssetsResolver<TParent>
+  article?: DraftToArticleResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -5303,6 +5309,15 @@ export interface DraftToPublishStateResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToAssetsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
