@@ -1119,20 +1119,53 @@ export class ArticleService extends BaseService {
     articleId: string
     userId?: string | null
     ip?: string
-  }) =>
-    this.baseUpdateOrCreate({
-      data: {
-        articleId,
-        userId,
-        updated_at: new Date(),
-        count: this.knex.raw('count + 1'),
-        archived: false,
-        ip,
+  }) => {
+    const table = 'article_read_count'
+
+    const record = await this.baseFind({ where: { articleId, userId }, table })
+
+    const newData = {
+      articleId,
+      userId,
+      updatedAt: new Date(),
+      archived: false,
+      ip,
+    }
+
+    if (!record || record.length === 0) {
+      // create new record
+      return this.baseCreate({ ...newData, count: 1, readTime: 0 }, table)
+    }
+
+    const oldData = record[0]
+
+    // lapsed time in secondes
+    const lapse = (Date.now() - new Date(oldData.updatedAt).getTime()) / 1000
+
+    // if lapse if longer than 30 minutes, or original read longer than 30 minutes, accumulate count
+    if (lapse > 60 * 30 || parseInt(oldData.readTime, 10) > 60 * 30) {
+      return this.baseUpdate(
+        oldData.id,
+        {
+          ...oldData,
+          ...newData,
+          count: parseInt(oldData.count, 10) + 1,
+        },
+        table
+      )
+    }
+
+    // within 30 minutes, accumulate time
+    return this.baseUpdate(
+      oldData.id,
+      {
+        ...oldData,
+        ...newData,
+        readTime: Math.round(parseInt(oldData.readTime, 10) + lapse),
       },
-      where: { articleId, userId },
-      table: 'article_read_count',
-      createOptions: { count: 1 },
-    })
+      table
+    )
+  }
 
   /*********************************
    *                               *
