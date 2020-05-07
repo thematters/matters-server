@@ -9,6 +9,7 @@ export const sendPayment = async ({
   to,
   type,
   recipient,
+  tx,
   language = 'zh_hant',
 }: {
   to: string
