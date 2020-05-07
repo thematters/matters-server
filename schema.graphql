@@ -1271,6 +1271,39 @@ type PageInfo {
   hasPreviousPage: Boolean!
 }
 
+"""This notice type contains info about current user requested to payout."""
+type PaymentPayoutNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """The transaction data."""
+  target: Transaction!
+}
+
+"""This notice type contains info about current user received a donation."""
+type PaymentReceivedDonationNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """The user who donated to current user."""
+  actor: User!
+
+  """The transaction data."""
+  target: Transaction!
+}
+
 """Pay To"""
 input PayToInput {
   amount: PositiveFloat!

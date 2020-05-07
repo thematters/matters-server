@@ -1257,6 +1257,8 @@ export type GQLPossibleNoticeTypeNames =
   | 'CommentPinnedNotice'
   | 'DownstreamArticleArchivedNotice'
   | 'OfficialAnnouncementNotice'
+  | 'PaymentPayoutNotice'
+  | 'PaymentReceivedDonationNotice'
   | 'SubscribedArticleNewCommentNotice'
   | 'UpstreamArticleArchivedNotice'
   | 'UserNewFollowerNotice'
@@ -1278,6 +1280,8 @@ export interface GQLNoticeNameMap {
   CommentPinnedNotice: GQLCommentPinnedNotice
   DownstreamArticleArchivedNotice: GQLDownstreamArticleArchivedNotice
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
+  PaymentPayoutNotice: GQLPaymentPayoutNotice
+  PaymentReceivedDonationNotice: GQLPaymentReceivedDonationNotice
   SubscribedArticleNewCommentNotice: GQLSubscribedArticleNewCommentNotice
   UpstreamArticleArchivedNotice: GQLUpstreamArticleArchivedNotice
   UserNewFollowerNotice: GQLUserNewFollowerNotice
@@ -2875,6 +2879,61 @@ export interface GQLOfficialAnnouncementNotice extends GQLNotice {
 }
 
 /**
+ * This notice type contains info about current user requested to payout.
+ */
+export interface GQLPaymentPayoutNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The transaction data.
+   */
+  target: GQLTransaction
+}
+
+/**
+ * This notice type contains info about current user received a donation.
+ */
+export interface GQLPaymentReceivedDonationNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The user who donated to current user.
+   */
+  actor: GQLUser
+
+  /**
+   * The transaction data.
+   */
+  target: GQLTransaction
+}
+
+/**
  * Enums for user roles.
  */
 export const enum GQLRole {
@@ -3093,6 +3152,8 @@ export interface GQLResolver {
   NonPositiveFloat?: GraphQLScalarType
   NonPositiveInt?: GraphQLScalarType
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
+  PaymentPayoutNotice?: GQLPaymentPayoutNoticeTypeResolver
+  PaymentReceivedDonationNotice?: GQLPaymentReceivedDonationNoticeTypeResolver
   SubscribedArticleNewCommentNotice?: GQLSubscribedArticleNewCommentNoticeTypeResolver
   Time?: GraphQLScalarType
   UpstreamArticleArchivedNotice?: GQLUpstreamArticleArchivedNoticeTypeResolver
@@ -6007,6 +6068,8 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'CommentPinnedNotice'
     | 'DownstreamArticleArchivedNotice'
     | 'OfficialAnnouncementNotice'
+    | 'PaymentPayoutNotice'
+    | 'PaymentReceivedDonationNotice'
     | 'SubscribedArticleNewCommentNotice'
     | 'UpstreamArticleArchivedNotice'
     | 'UserNewFollowerNotice'
@@ -9583,6 +9646,126 @@ export interface OfficialAnnouncementNoticeToMessageResolver<
 }
 
 export interface OfficialAnnouncementNoticeToLinkResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLPaymentPayoutNoticeTypeResolver<TParent = any> {
+  id?: PaymentPayoutNoticeToIdResolver<TParent>
+  unread?: PaymentPayoutNoticeToUnreadResolver<TParent>
+  createdAt?: PaymentPayoutNoticeToCreatedAtResolver<TParent>
+  target?: PaymentPayoutNoticeToTargetResolver<TParent>
+}
+
+export interface PaymentPayoutNoticeToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PaymentPayoutNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PaymentPayoutNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PaymentPayoutNoticeToTargetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLPaymentReceivedDonationNoticeTypeResolver<TParent = any> {
+  id?: PaymentReceivedDonationNoticeToIdResolver<TParent>
+  unread?: PaymentReceivedDonationNoticeToUnreadResolver<TParent>
+  createdAt?: PaymentReceivedDonationNoticeToCreatedAtResolver<TParent>
+  actor?: PaymentReceivedDonationNoticeToActorResolver<TParent>
+  target?: PaymentReceivedDonationNoticeToTargetResolver<TParent>
+}
+
+export interface PaymentReceivedDonationNoticeToIdResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PaymentReceivedDonationNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PaymentReceivedDonationNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PaymentReceivedDonationNoticeToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PaymentReceivedDonationNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {

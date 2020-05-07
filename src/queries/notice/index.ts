@@ -15,6 +15,8 @@ import {
   GQLCommentPinnedNoticeTypeResolver,
   GQLDownstreamArticleArchivedNoticeTypeResolver,
   GQLOfficialAnnouncementNoticeTypeResolver,
+  GQLPaymentPayoutNoticeTypeResolver,
+  GQLPaymentReceivedDonationNoticeTypeResolver,
   GQLSubscribedArticleNewCommentNoticeTypeResolver,
   GQLUpstreamArticleArchivedNoticeTypeResolver,
   GQLUserNewFollowerNoticeTypeResolver,
@@ -44,6 +46,8 @@ const notice: {
   ArticleTagHasBeenAddedNotice: GQLArticleTagHasBeenAddedNoticeTypeResolver
   ArticleTagHasBeenRemovedNotice: GQLArticleTagHasBeenRemovedNoticeTypeResolver
   ArticleTagHasBeenUnselectedNotice: GQLArticleTagHasBeenUnselectedNoticeTypeResolver
+  PaymentReceivedDonationNotice: GQLPaymentReceivedDonationNoticeTypeResolver
+  PaymentPayoutNotice: GQLPaymentPayoutNoticeTypeResolver
 } = {
   User: {
     notices,
@@ -71,6 +75,10 @@ const notice: {
         comment_pinned: 'CommentPinnedNotice',
         comment_new_reply: 'CommentNewReplyNotice',
         comment_mentioned_you: 'CommentMentionedYouNotice',
+        // payment
+        payment_received_donation: 'PaymentReceivedDonationNotice',
+        payment_payout: 'PaymentPayoutNotice',
+
         // official
         official_announcement: 'OfficialAnnouncementNotice',
       }
@@ -167,6 +175,15 @@ const notice: {
     actor: ({ actors }: { actors: any[] }) => actors[0],
     target: ({ entities }) => entities.target,
     tag: ({ entities }) => entities.tag,
+  },
+  PaymentReceivedDonationNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    target: ({ entities }) => entities.target,
+  },
+  PaymentPayoutNotice: {
+    id: ({ uuid }) => uuid,
+    target: ({ entities }) => entities.target,
   },
 }
 
