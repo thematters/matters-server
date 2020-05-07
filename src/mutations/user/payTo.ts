@@ -124,7 +124,9 @@ const resolver: MutationToPayToResolver = async (
       break
   }
 
-  // trigger notifications
+  /**
+   * trigger notifications
+   */
   // send to sender
   notificationService.mail.sendPayment({
     to: viewer.email,
@@ -141,6 +143,18 @@ const resolver: MutationToPayToResolver = async (
   })
 
   // send to recipient
+  notificationService.trigger({
+    event: 'payment_received_donation',
+    actorId: viewer.id,
+    recipientId: recipient.id,
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'transaction',
+        entity: transaction,
+      },
+    ],
+  })
   notificationService.mail.sendPayment({
     to: recipient.email,
     recipient: {

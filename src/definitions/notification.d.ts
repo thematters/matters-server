@@ -243,7 +243,19 @@ export interface NoticeUserActivatedParams extends NotificationRequiredParams {
 /**
  * Payment
  */
+export interface NoticePaymentReceivedDonationParams
+  extends NotificationRequiredParams {
+  event: 'payment_received_donation'
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'transaction'>]
+}
 
+export interface NoticePaymentPayoutParams extends NotificationRequiredParams {
+  event: 'payment_payout'
+  recipientId: string
+  entities: [NotificationEntity<'target', 'transaction'>]
+}
 
 /**
  * Official Announcement
@@ -320,6 +332,8 @@ export type NotificationPrarms =
   | NoticeCommentMentionedYouParams
   | NoticeOfficialAnnouncementParams
   | NoticeUserActivatedParams
+  | NoticePaymentReceivedDonationParams
+  | NoticePaymentPayoutParams
   | NoticeUserBannedParams
   | NoticeUserFrozenParams
   | NoticeUserUnbannedParams
