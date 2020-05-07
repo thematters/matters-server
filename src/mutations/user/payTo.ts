@@ -17,7 +17,7 @@ import {
   UserInputError,
   UserNotFoundError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, numRound } from 'common/utils'
 import { MutationToPayToResolver } from 'definitions'
 
 const resolver: MutationToPayToResolver = async (
@@ -136,7 +136,7 @@ const resolver: MutationToPayToResolver = async (
     tx: {
       recipient,
       sender: viewer,
-      amount: transaction.amount,
+      amount: numRound(transaction.amount),
       currency: transaction.currency,
     },
   })
@@ -152,7 +152,7 @@ const resolver: MutationToPayToResolver = async (
     tx: {
       recipient,
       sender: viewer,
-      amount: transaction.amount,
+      amount: numRound(transaction.amount),
       currency: transaction.currency,
     },
   })
