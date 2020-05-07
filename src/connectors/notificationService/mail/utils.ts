@@ -110,6 +110,10 @@ export const trans = {
       zh_hant: 'Matters 通知 | 你收到一筆來自他人的支持',
       zh_hans: 'Matters 通知 | 你收到一笔来自他人的支持',
     }),
+    payout: i18n({
+      zh_hant: 'Matters 通知 | 你的提現流程已經啟動',
+      zh_hans: 'Matters 通知 | 你的提现流程已经启动',
+    }),
   },
 }
 
