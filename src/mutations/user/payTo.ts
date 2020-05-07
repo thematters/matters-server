@@ -72,9 +72,11 @@ const resolver: MutationToPayToResolver = async (
     throw new EntityNotFoundError(`entity ${targetId} is not found`)
   }
 
-  const verified = await compare(password, viewer.paymentPasswordHash)
-  if (!verified) {
-    throw new PasswordInvalidError('password is incorrect, pay failed.')
+  if (PAYMENT_CURRENCY[currency] !== PAYMENT_CURRENCY.LIKE) {
+    const verified = await compare(password, viewer.paymentPasswordHash)
+    if (!verified) {
+      throw new PasswordInvalidError('password is incorrect, pay failed.')
+    }
   }
 
   switch (currency) {
