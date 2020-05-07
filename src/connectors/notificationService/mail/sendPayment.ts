@@ -20,6 +20,7 @@ export const sendPayment = async ({
     | 'donated'
     | 'receivedDonation'
     | 'receivedDonationLikeCoin'
+    | 'payout'
   recipient: {
     displayName: string
     userName: string
@@ -50,7 +51,15 @@ export const sendPayment = async ({
         dynamic_template_data: {
           subject,
           siteDomain: environment.siteDomain,
-          type,
+          type: {
+            passwordSet: type === 'passwordSet',
+            passwordChanged: type === 'passwordChanged',
+            creditAdded: type === 'creditAdded',
+            donated: type === 'donated',
+            receivedDonation: type === 'receivedDonation',
+            receivedDonationLikeCoin: type === 'receivedDonationLikeCoin',
+            payout: type === 'payout',
+          },
           recipient,
           tx,
         },
