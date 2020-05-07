@@ -138,7 +138,8 @@ const resolver: MutationToPayToResolver = async (
     tx: {
       recipient,
       sender: viewer,
-      amount: `${transaction.amount} ${transaction.currency}`,
+      amount: transaction.amount,
+      currency: transaction.currency,
     },
   })
 
@@ -165,7 +166,8 @@ const resolver: MutationToPayToResolver = async (
     tx: {
       recipient,
       sender: viewer,
-      amount: `${transaction.amount} ${transaction.currency}`,
+      amount: transaction.amount,
+      currency: transaction.currency,
     },
   })
 
