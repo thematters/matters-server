@@ -34,7 +34,7 @@ export const sendPayment = async ({
       displayName: string
       userName: string
     }
-    amount: string
+    amount: number
     currency: string
   }
   language?: LANGUAGES

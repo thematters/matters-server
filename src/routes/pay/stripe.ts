@@ -12,7 +12,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { toDBAmount } from 'common/utils'
+import { numRound, toDBAmount } from 'common/utils'
 import { NotificationService, PaymentService, UserService } from 'connectors'
 
 const stripe = new Stripe(environment.stripeSecret, {
@@ -69,7 +69,7 @@ const updateTxState = async (
       type: 'creditAdded',
       tx: {
         recipient,
-        amount: tx.amount,
+        amount: numRound(tx.amount),
         currency: tx.currency,
       },
     })
