@@ -21,6 +21,8 @@ const actorsRequired = {
   article_tag_has_been_added: true,
   article_tag_has_been_removed: true,
   article_tag_has_been_unselected: true,
+  payment_received_donation: true,
+  payment_payout: false,
 }
 const entitiesRequired = {
   user_new_follower: false,
@@ -41,6 +43,8 @@ const entitiesRequired = {
   article_tag_has_been_added: true,
   article_tag_has_been_removed: true,
   article_tag_has_been_unselected: true,
+  payment_received_donation: true,
+  payment_payout: true,
 }
 const messageRequired = {
   user_new_follower: false,
@@ -61,6 +65,8 @@ const messageRequired = {
   article_tag_has_been_added: false,
   article_tag_has_been_removed: false,
   article_tag_has_been_unselected: false,
+  payment_received_donation: false,
+  payment_payout: false,
 }
 
 type NoticeEdges = Array<{ node: NoticeItem; cursor: string }>
