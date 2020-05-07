@@ -69,7 +69,8 @@ const updateTxState = async (
       type: 'creditAdded',
       tx: {
         recipient,
-        amount: `${tx.amount} ${tx.currency}`,
+        amount: tx.amount,
+        currency: tx.currency,
       },
     })
   }
