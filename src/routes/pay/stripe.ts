@@ -13,9 +13,7 @@ import {
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { toDBAmount } from 'common/utils'
-import { PaymentService } from 'connectors'
-
-const paymentService = new PaymentService()
+import { NotificationService, PaymentService, UserService } from 'connectors'
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-03-02',
@@ -31,6 +29,10 @@ const updateTxState = async (
     | 'payment_intent.processing'
     | 'payment_intent.succeeded'
 ) => {
+  const userService = new UserService()
+  const paymentService = new PaymentService()
+  const notificationService = new NotificationService()
+
   // find transaction by payment intent id
   const transaction = (
     await paymentService.findTransactions({
@@ -50,13 +52,32 @@ const updateTxState = async (
     'payment_intent.succeeded': TRANSACTION_STATE.succeeded,
   }
 
-  await paymentService.markTransactionStateAs({
+  const tx = await paymentService.markTransactionStateAs({
     id: transaction.id,
     state: eventStateMap[eventType],
   })
+
+  // trigger notifications
+  if (eventType === 'payment_intent.succeeded') {
+    const recipient = await userService.baseFindById(tx.recipientId)
+    notificationService.mail.sendPayment({
+      to: recipient.email,
+      recipient: {
+        displayName: recipient.displayName,
+        userName: recipient.userName,
+      },
+      type: 'creditAdded',
+      tx: {
+        recipient,
+        amount: `${tx.amount} ${tx.currency}`,
+      },
+    })
+  }
 }
 
 const createRefundTxs = async (refunds: Stripe.ApiList<Stripe.Refund>) => {
+  const paymentService = new PaymentService()
+
   await Promise.all(
     refunds.data.map(async (refund) => {
       const refundTx = (
@@ -112,6 +133,8 @@ const createRefundTxs = async (refunds: Stripe.ApiList<Stripe.Refund>) => {
 stripeRouter.use(bodyParser.raw({ type: 'application/json' }))
 
 stripeRouter.post('/', async (req, res) => {
+  const paymentService = new PaymentService()
+
   const sig = req.headers['stripe-signature'] as string
 
   let event: Stripe.Event | null = null

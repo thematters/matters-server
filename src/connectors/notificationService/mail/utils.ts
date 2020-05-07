@@ -85,6 +85,32 @@ export const trans = {
         `${displayName}，在你离开的日子里，Matters 有很多话想和你说`,
     }),
   },
+  payment: {
+    passwordSet: i18n({
+      zh_hant: 'Matters 通知 | 你的交易密碼已成功設定',
+      zh_hans: 'Matters 通知 | 你的交易密码已成功设定',
+    }),
+    passwordChanged: i18n({
+      zh_hant: 'Matters 通知 | 你的交易密碼已修改成功',
+      zh_hans: 'Matters 通知 | 你的交易密码已修改成功',
+    }),
+    creditAdded: i18n({
+      zh_hant: 'Matters 通知 | 充值成功',
+      zh_hans: 'Matters 通知 | 充值成功',
+    }),
+    donated: i18n({
+      zh_hant: 'Matters 通知 | 支付成功',
+      zh_hans: 'Matters 通知 | 支付成功',
+    }),
+    receivedDonation: i18n({
+      zh_hant: 'Matters 通知 | 你收到一筆來自他人的支持',
+      zh_hans: 'Matters 通知 | 你收到一笔来自他人的支持',
+    }),
+    receivedDonationLikeCoin: i18n({
+      zh_hant: 'Matters 通知 | 你收到一筆來自他人的支持',
+      zh_hans: 'Matters 通知 | 你收到一笔来自他人的支持',
+    }),
+  },
 }
 
 const userService = new UserService()
