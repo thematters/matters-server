@@ -9,7 +9,7 @@ import { MutationToResetPasswordResolver } from 'definitions'
 const resolver: MutationToResetPasswordResolver = async (
   _,
   { input: { password, codeId: uuid, type } },
-  { viewer, dataSources: { userService } }
+  { viewer, dataSources: { userService, notificationService } }
 ) => {
   const [code] = await userService.findVerificationCodes({
     where: {
@@ -51,6 +51,18 @@ const resolver: MutationToResetPasswordResolver = async (
     codeId: code.id,
     status: 'used',
   })
+
+  // trigger notifications
+  if (type === 'payment') {
+    notificationService.mail.sendPayment({
+      to: user.email,
+      recipient: {
+        displayName: user.displayName,
+        userName: user.userName,
+      },
+      type: 'passwordChanged',
+    })
+  }
 
   return true
 }

@@ -17,13 +17,21 @@ import {
   UserInputError,
   UserNotFoundError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, numRound } from 'common/utils'
 import { MutationToPayToResolver } from 'definitions'
 
 const resolver: MutationToPayToResolver = async (
   parent,
   { input: { amount, currency, password, purpose, recipientId, targetId } },
-  { viewer, dataSources: { articleService, paymentService, userService } }
+  {
+    viewer,
+    dataSources: {
+      articleService,
+      paymentService,
+      userService,
+      notificationService,
+    },
+  }
 ) => {
   // params validators
   if (!viewer.id) {
@@ -77,6 +85,9 @@ const resolver: MutationToPayToResolver = async (
     throw new PasswordInvalidError('password is incorrect, pay failed.')
   }
 
+  let transaction
+  let redirectUrl
+
   switch (currency) {
     case 'LIKE':
       if (!viewer.likerId || !recipient.likerId) {
@@ -84,7 +95,7 @@ const resolver: MutationToPayToResolver = async (
       }
       // insert a pending transaction
       const pendingTxId = v4()
-      const transaction = await paymentService.createTransaction({
+      transaction = await paymentService.createTransaction({
         amount,
         fee: 0,
         currency: PAYMENT_CURRENCY[currency],
@@ -108,10 +119,45 @@ const resolver: MutationToPayToResolver = async (
       params.append('fee', '0')
       params.append('state', pendingTxId)
       params.append('redirect_uri', likecoinPayCallbackURL)
-      return { transaction, redirectUrl: `${likecoinPayURL}?${params}` }
+
+      redirectUrl = `${likecoinPayURL}?${params}`
+      break
   }
 
-  return {}
+  // trigger notifications
+  // send to sender
+  notificationService.mail.sendPayment({
+    to: viewer.email,
+    recipient: {
+      displayName: viewer.displayName,
+      userName: viewer.userName,
+    },
+    type: 'donated',
+    tx: {
+      recipient,
+      sender: viewer,
+      amount: numRound(transaction.amount),
+      currency: transaction.currency,
+    },
+  })
+
+  // send to recipient
+  notificationService.mail.sendPayment({
+    to: recipient.email,
+    recipient: {
+      displayName: recipient.displayName,
+      userName: recipient.userName,
+    },
+    type: currency === 'LIKE' ? 'receivedDonationLikeCoin' : 'receivedDonation',
+    tx: {
+      recipient,
+      sender: viewer,
+      amount: numRound(transaction.amount),
+      currency: transaction.currency,
+    },
+  })
+
+  return { transaction, redirectUrl }
 }
 
 export default resolver

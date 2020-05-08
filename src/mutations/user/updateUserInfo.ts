@@ -21,7 +21,7 @@ import { MutationToUpdateUserInfoResolver } from 'definitions'
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
   { input },
-  { viewer, dataSources: { userService, systemService } }
+  { viewer, dataSources: { userService, systemService, notificationService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -117,6 +117,18 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     await userService.addUserNameEditHistory({
       userId: viewer.id,
       previous: viewer.userName,
+    })
+  }
+
+  // trigger notifications
+  if (updateParams.paymentPasswordHash) {
+    notificationService.mail.sendPayment({
+      to: user.email,
+      recipient: {
+        displayName: viewer.displayName,
+        userName: viewer.userName,
+      },
+      type: 'passwordSet',
     })
   }
 
