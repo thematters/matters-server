@@ -2404,7 +2404,7 @@ export interface GQLPayToInput {
   purpose: GQLTransactionPurpose
   recipientId: string
   targetId?: string
-  password: string
+  password?: string
 }
 
 export interface GQLPayToResult {

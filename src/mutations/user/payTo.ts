@@ -38,10 +38,6 @@ const resolver: MutationToPayToResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  if (!viewer.paymentPasswordHash) {
-    throw new ForbiddenError('viewr payment password has not set')
-  }
-
   // keep purpose params for future usage, but only allow donation for now
   if (TRANSACTION_PURPOSE[purpose] !== TRANSACTION_PURPOSE.donation) {
     throw new UserInputError('now only support donation')
@@ -80,9 +76,15 @@ const resolver: MutationToPayToResolver = async (
     throw new EntityNotFoundError(`entity ${targetId} is not found`)
   }
 
-  const verified = await compare(password, viewer.paymentPasswordHash)
-  if (!verified) {
-    throw new PasswordInvalidError('password is incorrect, pay failed.')
+  if (PAYMENT_CURRENCY[currency] !== PAYMENT_CURRENCY.LIKE) {
+    if (!viewer.paymentPasswordHash) {
+      throw new ForbiddenError('viewer payment password has not set')
+    }
+
+    const verified = await compare(password, viewer.paymentPasswordHash)
+    if (!verified) {
+      throw new PasswordInvalidError('password is incorrect, pay failed.')
+    }
   }
 
   let transaction
