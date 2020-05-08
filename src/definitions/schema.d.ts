@@ -2900,7 +2900,7 @@ export interface GQLPaymentPayoutNotice extends GQLNotice {
   /**
    * The transaction data.
    */
-  target: GQLTransaction
+  target?: GQLTransaction
 }
 
 /**
@@ -2930,7 +2930,7 @@ export interface GQLPaymentReceivedDonationNotice extends GQLNotice {
   /**
    * The transaction data.
    */
-  target: GQLTransaction
+  target?: GQLTransaction
 }
 
 /**

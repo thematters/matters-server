@@ -1283,7 +1283,7 @@ type PaymentPayoutNotice implements Notice {
   createdAt: DateTime!
 
   """The transaction data."""
-  target: Transaction!
+  target: Transaction
 }
 
 """This notice type contains info about current user received a donation."""
@@ -1301,7 +1301,7 @@ type PaymentReceivedDonationNotice implements Notice {
   actor: User!
 
   """The transaction data."""
-  target: Transaction!
+  target: Transaction
 }
 
 """Pay To"""

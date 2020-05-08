@@ -408,7 +408,7 @@ export default /* GraphQL */ `
     actor: User!
 
     "The transaction data."
-    target: Transaction!
+    target: Transaction
   }
 
   """
@@ -425,6 +425,6 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The transaction data."
-    target: Transaction!
+    target: Transaction
   }
 `
