@@ -573,6 +573,7 @@ export const DB_NOTICE_TYPES: DBNoticeType[] = [
   'subscribed_article_new_comment',
   'upstream_article_archived',
   'downstream_article_archived',
+  // tag
   'article_tag_has_been_added',
   'article_tag_has_been_removed',
   'article_tag_has_been_unselected',
@@ -580,6 +581,9 @@ export const DB_NOTICE_TYPES: DBNoticeType[] = [
   'comment_pinned',
   'comment_new_reply',
   'comment_mentioned_you',
+  // payment
+  'payment_received_donation',
+  'payment_payout',
   // official
   'official_announcement',
 ]
