@@ -96,6 +96,19 @@ export default {
     zh_hans: ({ displayName }) => `${displayName} 在评论中提及了你`,
     en: ({ displayName }) => `${displayName} mentioned you in a comment`,
   }),
+  payment_received_donation: i18n<{
+    displayName: string
+    userName: string
+    amount: number
+    currency: string
+  }>({
+    zh_hant: ({ displayName, userName, amount, currency }) =>
+      `${displayName}（@${userName}）支持了你 ${amount} ${currency}，快去查看自己的收入吧！`,
+    zh_hans: ({ displayName, userName, amount, currency }) =>
+      `${displayName}（@${userName}）支持了你 ${amount} ${currency}，快去查看自己的收入吧！`,
+    en: ({ displayName, userName, amount, currency }) =>
+      `${displayName} (@${userName}) donated ${amount} ${currency} to you.`,
+  }),
   official_announcement: i18n<{ message: string }>({
     zh_hant: ({ message }) => message,
     zh_hans: ({ message }) => message,

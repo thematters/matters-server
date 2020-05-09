@@ -21,6 +21,9 @@ export type DBNoticeType =
   | 'comment_pinned'
   | 'comment_new_reply'
   | 'comment_mentioned_you'
+  // payment
+  | 'payment_received_donation'
+  | 'payment_payout'
   // official
   | 'official_announcement'
 
@@ -59,6 +62,9 @@ export type NotificationEntity<
   entity: any
 }
 
+/**
+ * User
+ */
 export interface NoticeUserNewFollowerParams
   extends NotificationRequiredParams {
   event: 'user_new_follower'
@@ -66,6 +72,9 @@ export interface NoticeUserNewFollowerParams
   actorId: string
 }
 
+/**
+ * Article
+ */
 export interface NoticeArticlePublishedParams
   extends NotificationRequiredParams {
   event: 'article_published'
@@ -161,6 +170,9 @@ export interface NoticeDownstreamArticleArchivedParams
   ]
 }
 
+/**
+ * Comment
+ */
 export interface NoticeCommentPinnedParams extends NotificationRequiredParams {
   event: 'comment_pinned'
   actorId: string
@@ -187,14 +199,9 @@ export interface NoticeCommentMentionedYouParams
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
-export interface NoticeOfficialAnnouncementParams
-  extends NotificationRequiredParams {
-  event: 'official_announcement'
-  recipientId: string
-  message: string
-  data: { url: string }
-}
-
+/**
+ * Tag
+ */
 export interface NoticeArticleTagHasBeenAddedParams
   extends NotificationRequiredParams {
   event: 'article_tag_has_been_added'
@@ -231,6 +238,34 @@ export interface NoticeArticleTagHasBeenUnselectedParams
 export interface NoticeUserActivatedParams extends NotificationRequiredParams {
   event: 'user_activated'
   recipientId: string
+}
+
+/**
+ * Payment
+ */
+export interface NoticePaymentReceivedDonationParams
+  extends NotificationRequiredParams {
+  event: 'payment_received_donation'
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'transaction'>]
+}
+
+export interface NoticePaymentPayoutParams extends NotificationRequiredParams {
+  event: 'payment_payout'
+  recipientId: string
+  entities: [NotificationEntity<'target', 'transaction'>]
+}
+
+/**
+ * Official Announcement
+ */
+export interface NoticeOfficialAnnouncementParams
+  extends NotificationRequiredParams {
+  event: 'official_announcement'
+  recipientId: string
+  message: string
+  data: { url: string }
 }
 
 /**
@@ -297,6 +332,8 @@ export type NotificationPrarms =
   | NoticeCommentMentionedYouParams
   | NoticeOfficialAnnouncementParams
   | NoticeUserActivatedParams
+  | NoticePaymentReceivedDonationParams
+  | NoticePaymentPayoutParams
   | NoticeUserBannedParams
   | NoticeUserFrozenParams
   | NoticeUserUnbannedParams

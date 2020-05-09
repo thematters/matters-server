@@ -33,6 +33,11 @@ export default /* GraphQL */ `
     node: Notice!
   }
 
+  #################################
+  #                               #
+  #             User              #
+  #                               #
+  #################################
   """
   This notice type contains info about current user has new followers.
   """
@@ -50,6 +55,11 @@ export default /* GraphQL */ `
     actors: [User]
   }
 
+  #################################
+  #                               #
+  #           Article             #
+  #                               #
+  #################################
   """
   This notice type contains info about current user's article publihsed successfully.
   """
@@ -221,6 +231,11 @@ export default /* GraphQL */ `
     target: Article
   }
 
+  #################################
+  #                               #
+  #           Comment             #
+  #                               #
+  #################################
   """
   This notice type contains info about current user's comment has been pinned.
   """
@@ -272,6 +287,11 @@ export default /* GraphQL */ `
     target: Comment
   }
 
+  #################################
+  #                               #
+  #             Misc              #
+  #                               #
+  #################################
   """
   The notice type contains info about official announcement.
   """
@@ -292,6 +312,11 @@ export default /* GraphQL */ `
     link: URL
   }
 
+  #################################
+  #                               #
+  #             Tag               #
+  #                               #
+  #################################
   """
   This notice type contains info about one user has added current user's article, and set it as selected.
   """
@@ -359,5 +384,47 @@ export default /* GraphQL */ `
 
     "The tag has been attached to an article."
     tag: Tag
+  }
+
+  #################################
+  #                               #
+  #            Payment            #
+  #                               #
+  #################################
+  """
+  This notice type contains info about current user received a donation.
+  """
+  type PaymentReceivedDonationNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "The user who donated to current user."
+    actor: User!
+
+    "The transaction data."
+    target: Transaction
+  }
+
+  """
+  This notice type contains info about current user requested to payout.
+  """
+  type PaymentPayoutNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "The transaction data."
+    target: Transaction
   }
 `

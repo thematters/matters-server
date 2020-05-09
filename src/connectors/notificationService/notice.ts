@@ -517,6 +517,8 @@ class Notice extends BaseService {
       article_tag_has_been_added: setting.tag,
       article_tag_has_been_removed: setting.tag,
       article_tag_has_been_unselected: setting.tag,
+      payment_received_donation: true,
+      payment_payout: true,
     }
 
     return noticeSettingMap[event]

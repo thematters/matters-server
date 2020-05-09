@@ -49,6 +49,7 @@ export class NotificationService extends BaseService {
         }
       case 'article_published':
       case 'comment_pinned':
+      case 'payment_payout':
         return {
           type: params.event,
           recipientId: params.recipientId,
@@ -66,6 +67,7 @@ export class NotificationService extends BaseService {
       case 'article_tag_has_been_added':
       case 'article_tag_has_been_removed':
       case 'article_tag_has_been_unselected':
+      case 'payment_received_donation':
         return {
           type: params.event,
           recipientId: params.recipientId,

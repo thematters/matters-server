@@ -1,5 +1,6 @@
 import _ from 'lodash'
 
+import { numRound } from 'common/utils'
 import { BaseService } from 'connectors'
 import { notificationQueue } from 'connectors/queue/notification'
 import { LANGUAGES, PutNoticeParams, User } from 'definitions'
@@ -125,6 +126,17 @@ class Push extends BaseService {
         )
       case 'official_announcement':
         return message && trans.official_announcement(language, { message })
+      case 'payment_received_donation':
+        return (
+          actor &&
+          target &&
+          trans.payment_received_donation(language, {
+            displayName: actor.displayName,
+            userName: actor.userName,
+            amount: numRound(target.entity.amount),
+            currency: target.entity.currency,
+          })
+        )
     }
   }
 
