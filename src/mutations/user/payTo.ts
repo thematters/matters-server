@@ -19,7 +19,7 @@ import {
   UserInputError,
   UserNotFoundError,
 } from 'common/errors'
-import { calcMattersFee, fromGlobalId, numRound } from 'common/utils'
+import { fromGlobalId, numRound } from 'common/utils'
 import { MutationToPayToResolver } from 'definitions'
 
 const resolver: MutationToPayToResolver = async (
@@ -93,6 +93,8 @@ const resolver: MutationToPayToResolver = async (
   let redirectUrl
 
   const baseParams = {
+    amount,
+    fee: 0,
     recipientId: recipient.id,
     senderId: viewer.id,
     targetId: target.id,
@@ -107,8 +109,6 @@ const resolver: MutationToPayToResolver = async (
       const pendingTxId = v4()
       transaction = await paymentService.createTransaction({
         ...baseParams,
-        amount,
-        fee: 0,
         currency: PAYMENT_CURRENCY.LIKE,
         purpose: TRANSACTION_PURPOSE[purpose],
         provider: PAYMENT_PROVIDER.likecoin,
@@ -141,11 +141,8 @@ const resolver: MutationToPayToResolver = async (
         )
       }
 
-      const fee = calcMattersFee(amount)
       transaction = await paymentService.createTransaction({
         ...baseParams,
-        amount: numRound(amount - fee),
-        fee,
         currency: PAYMENT_CURRENCY.HKD,
         purpose: TRANSACTION_PURPOSE[purpose],
         provider: PAYMENT_PROVIDER.matters,
