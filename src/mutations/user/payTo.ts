@@ -5,6 +5,7 @@ import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   USER_STATE,
 } from 'common/enums'
@@ -90,6 +91,13 @@ const resolver: MutationToPayToResolver = async (
   let transaction
   let redirectUrl
 
+  const baseParams = {
+    amount,
+    recipientId: recipient.id,
+    senderId: viewer.id,
+    targetId: target.id,
+  }
+
   switch (currency) {
     case 'LIKE':
       if (!viewer.likerId || !recipient.likerId) {
@@ -98,15 +106,12 @@ const resolver: MutationToPayToResolver = async (
       // insert a pending transaction
       const pendingTxId = v4()
       transaction = await paymentService.createTransaction({
-        amount,
+        ...baseParams,
         fee: 0,
-        currency: PAYMENT_CURRENCY[currency],
+        currency: PAYMENT_CURRENCY.LIKE,
         purpose: TRANSACTION_PURPOSE[purpose],
         provider: PAYMENT_PROVIDER.likecoin,
         providerTxId: pendingTxId,
-        recipientId: recipient.id,
-        senderId: viewer.id,
-        targetId: target.id,
       })
 
       const {
@@ -123,6 +128,17 @@ const resolver: MutationToPayToResolver = async (
       params.append('redirect_uri', likecoinPayCallbackURL)
 
       redirectUrl = `${likecoinPayURL}?${params}`
+      break
+    case 'HKD':
+      transaction = await paymentService.createTransaction({
+        ...baseParams,
+        fee: 0,
+        currency: PAYMENT_CURRENCY.HKD,
+        purpose: TRANSACTION_PURPOSE[purpose],
+        provider: PAYMENT_PROVIDER.stripe,
+        providerTxId: v4(),
+        state: TRANSACTION_STATE.succeeded
+      })
       break
   }
 
