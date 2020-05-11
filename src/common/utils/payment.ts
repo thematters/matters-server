@@ -17,7 +17,7 @@ export const numRound = (num: number, decPlaces: number = 2) => {
 interface ToAmountArgs {
   amount: number
   currency?: PAYMENT_CURRENCY
-  provider?: Exclude<PAYMENT_PROVIDER, PAYMENT_PROVIDER.likecoin>
+  provider?: Exclude<PAYMENT_PROVIDER, PAYMENT_PROVIDER.likecoin | PAYMENT_PROVIDER.matters>
 }
 
 const PROVIDER_CURRENCY_RATE = {
@@ -60,5 +60,10 @@ const FEE_PERCENT = 0.034
 export const calcStripeFee = (amount: number) => {
   const charge = (amount + FEE_FIXED) / (1 - FEE_PERCENT)
   const fee = charge - amount
+  return numRound(fee)
+}
+
+export const calcMattersFee = (amount: number) => {
+  const fee = amount * 0.05
   return numRound(fee)
 }
