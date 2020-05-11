@@ -15,6 +15,7 @@ import {
   EntityNotFoundError,
   ForbiddenError,
   PasswordInvalidError,
+  PaymentBalanceInsufficientError,
   UserInputError,
   UserNotFoundError,
 } from 'common/errors'
@@ -130,6 +131,14 @@ const resolver: MutationToPayToResolver = async (
       redirectUrl = `${likecoinPayURL}?${params}`
       break
     case 'HKD':
+      const balance = await paymentService.calculateBalance({
+        userId: viewer.id,
+        currency: PAYMENT_CURRENCY.HKD,
+      })
+      if (balance < amount) {
+        throw new PaymentBalanceInsufficientError('viewer has insufficient balance')
+      }
+
       const fee = calcMattersFee(amount)
       transaction = await paymentService.createTransaction({
         ...baseParams,
