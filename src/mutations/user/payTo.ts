@@ -137,7 +137,7 @@ const resolver: MutationToPayToResolver = async (
         purpose: TRANSACTION_PURPOSE[purpose],
         provider: PAYMENT_PROVIDER.stripe,
         providerTxId: v4(),
-        state: TRANSACTION_STATE.succeeded
+        state: TRANSACTION_STATE.succeeded,
       })
       break
   }
