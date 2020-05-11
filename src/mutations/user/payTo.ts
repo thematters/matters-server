@@ -136,7 +136,9 @@ const resolver: MutationToPayToResolver = async (
         currency: PAYMENT_CURRENCY.HKD,
       })
       if (balance < amount) {
-        throw new PaymentBalanceInsufficientError('viewer has insufficient balance')
+        throw new PaymentBalanceInsufficientError(
+          'viewer has insufficient balance'
+        )
       }
 
       const fee = calcMattersFee(amount)
