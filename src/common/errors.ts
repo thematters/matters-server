@@ -342,3 +342,10 @@ export class PaymentAmountInvalidError extends ApolloError {
     Object.defineProperty(this, 'name', { value: 'PaymentAmountInvalid' })
   }
 }
+
+export class PaymentBalanceInsufficientError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_BALANCE_INSUFFICIENT')
+    Object.defineProperty(this, 'name', { value: 'PaymentBalanceInsufficient' })
+  }
+}

@@ -5,6 +5,7 @@ import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   USER_STATE,
 } from 'common/enums'
@@ -14,6 +15,7 @@ import {
   EntityNotFoundError,
   ForbiddenError,
   PasswordInvalidError,
+  PaymentBalanceInsufficientError,
   UserInputError,
   UserNotFoundError,
 } from 'common/errors'
@@ -90,6 +92,14 @@ const resolver: MutationToPayToResolver = async (
   let transaction
   let redirectUrl
 
+  const baseParams = {
+    amount,
+    fee: 0,
+    recipientId: recipient.id,
+    senderId: viewer.id,
+    targetId: target.id,
+  }
+
   switch (currency) {
     case 'LIKE':
       if (!viewer.likerId || !recipient.likerId) {
@@ -98,15 +108,11 @@ const resolver: MutationToPayToResolver = async (
       // insert a pending transaction
       const pendingTxId = v4()
       transaction = await paymentService.createTransaction({
-        amount,
-        fee: 0,
-        currency: PAYMENT_CURRENCY[currency],
+        ...baseParams,
+        currency: PAYMENT_CURRENCY.LIKE,
         purpose: TRANSACTION_PURPOSE[purpose],
         provider: PAYMENT_PROVIDER.likecoin,
         providerTxId: pendingTxId,
-        recipientId: recipient.id,
-        senderId: viewer.id,
-        targetId: target.id,
       })
 
       const {
@@ -123,6 +129,26 @@ const resolver: MutationToPayToResolver = async (
       params.append('redirect_uri', likecoinPayCallbackURL)
 
       redirectUrl = `${likecoinPayURL}?${params}`
+      break
+    case 'HKD':
+      const balance = await paymentService.calculateBalance({
+        userId: viewer.id,
+        currency: PAYMENT_CURRENCY.HKD,
+      })
+      if (balance < amount) {
+        throw new PaymentBalanceInsufficientError(
+          'viewer has insufficient balance'
+        )
+      }
+
+      transaction = await paymentService.createTransaction({
+        ...baseParams,
+        currency: PAYMENT_CURRENCY.HKD,
+        purpose: TRANSACTION_PURPOSE[purpose],
+        provider: PAYMENT_PROVIDER.matters,
+        providerTxId: v4(),
+        state: TRANSACTION_STATE.succeeded,
+      })
       break
   }
 
