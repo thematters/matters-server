@@ -71,7 +71,6 @@ export default {
   ArticleOSS: {
     boost: articleOSS.boost,
     score: articleOSS.score,
-    inRecommendToday: articleOSS.inRecommendToday,
     inRecommendIcymi: articleOSS.inRecommendIcymi,
     inRecommendHottest: articleOSS.inRecommendHottest,
     inRecommendNewest: articleOSS.inRecommendNewest,

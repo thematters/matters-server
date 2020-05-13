@@ -622,12 +622,6 @@ export class ArticleService extends BaseService {
   /**
    * Find One
    */
-  findRecommendToday = async (articleId: string) =>
-    this.knex('article')
-      .select('article.*', 'c.updated_at as chose_at', 'c.cover as todayCover')
-      .join('matters_today as c', 'c.article_id', 'article.id')
-      .where({ articleId })
-      .first()
 
   findRecommendIcymi = async (articleId: string) =>
     this.knex('article')
@@ -640,14 +634,6 @@ export class ArticleService extends BaseService {
   /**
    * Count
    */
-  countRecommendToday = async (where: { [key: string]: any } = {}) => {
-    const result = await this.knex('article')
-      .join('matters_today as c', 'c.article_id', 'article.id')
-      .where(where)
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
 
   countRecommendIcymi = async () => {
     const result = await this.knex('article')
@@ -752,16 +738,6 @@ export class ArticleService extends BaseService {
   /**
    * Find or Update recommendation
    */
-
-  updateRecommendToday = async (
-    articleId: string,
-    data: { cover?: number; title?: string; summary?: string }
-  ) =>
-    this.baseUpdateOrCreate({
-      where: { articleId },
-      data,
-      table: 'matters_today',
-    })
 
   addRecommendIcymi = async (articleId: string) =>
     this.baseFindOrCreate({

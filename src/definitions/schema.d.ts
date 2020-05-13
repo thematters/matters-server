@@ -1376,7 +1376,6 @@ export interface GQLArticleTranslation {
 export interface GQLArticleOSS {
   boost: GQLNonNegativeFloat
   score: GQLNonNegativeFloat
-  inRecommendToday: boolean
   inRecommendIcymi: boolean
   inRecommendHottest: boolean
   inRecommendNewest: boolean
@@ -1764,7 +1763,6 @@ export interface GQLMutation {
   deleteTags?: boolean
   renameTag: GQLTag
   mergeTags: GQLTag
-  updateMattersToday: GQLArticle
 
   /**
    * Subscribe an artcile.
@@ -2097,13 +2095,6 @@ export interface GQLRenameTagInput {
 export interface GQLMergeTagsInput {
   ids: Array<string>
   content: string
-}
-
-export interface GQLUpdateMattersTodayInput {
-  id: string
-  cover?: string
-  title?: string
-  summary?: string
 }
 
 export interface GQLSubscribeArticleInput {
@@ -6311,7 +6302,6 @@ export interface ArticleTranslationToContentResolver<
 export interface GQLArticleOSSTypeResolver<TParent = any> {
   boost?: ArticleOSSToBoostResolver<TParent>
   score?: ArticleOSSToScoreResolver<TParent>
-  inRecommendToday?: ArticleOSSToInRecommendTodayResolver<TParent>
   inRecommendIcymi?: ArticleOSSToInRecommendIcymiResolver<TParent>
   inRecommendHottest?: ArticleOSSToInRecommendHottestResolver<TParent>
   inRecommendNewest?: ArticleOSSToInRecommendNewestResolver<TParent>
@@ -6327,18 +6317,6 @@ export interface ArticleOSSToBoostResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleOSSToScoreResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleOSSToInRecommendTodayResolver<
-  TParent = any,
-  TResult = any
-> {
   (
     parent: TParent,
     args: {},
@@ -7445,7 +7423,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteTags?: MutationToDeleteTagsResolver<TParent>
   renameTag?: MutationToRenameTagResolver<TParent>
   mergeTags?: MutationToMergeTagsResolver<TParent>
-  updateMattersToday?: MutationToUpdateMattersTodayResolver<TParent>
   subscribeArticle?: MutationToSubscribeArticleResolver<TParent>
   unsubscribeArticle?: MutationToUnsubscribeArticleResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
@@ -7753,21 +7730,6 @@ export interface MutationToMergeTagsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToMergeTagsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToUpdateMattersTodayArgs {
-  input: GQLUpdateMattersTodayInput
-}
-export interface MutationToUpdateMattersTodayResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToUpdateMattersTodayArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

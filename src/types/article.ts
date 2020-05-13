@@ -53,7 +53,6 @@ export default /* GraphQL */ `
     deleteTags(input: DeleteTagsInput!): Boolean @authorize @purgeCache
     renameTag(input: RenameTagInput!): Tag! @authorize @purgeCache
     mergeTags(input: MergeTagsInput!): Tag! @authorize @purgeCache
-    updateMattersToday(input: UpdateMattersTodayInput!): Article! @authorize @purgeCache
 
 
     ##############
@@ -196,7 +195,6 @@ export default /* GraphQL */ `
   type ArticleOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: NonNegativeFloat! @authorize
     score: NonNegativeFloat! @authorize
-    inRecommendToday: Boolean! @authorize
     inRecommendIcymi: Boolean! @authorize
     inRecommendHottest: Boolean! @authorize
     inRecommendNewest: Boolean! @authorize
@@ -317,13 +315,6 @@ export default /* GraphQL */ `
   input MergeTagsInput {
     ids: [ID!]!
     content: String!
-  }
-
-  input UpdateMattersTodayInput {
-    id: ID!
-    cover: String
-    title: String
-    summary: String
   }
 
   input PutTagInput {

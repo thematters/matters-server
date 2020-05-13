@@ -3,9 +3,7 @@ import {
   ArticleOSSToInRecommendHottestResolver,
   ArticleOSSToInRecommendIcymiResolver,
   ArticleOSSToInRecommendNewestResolver,
-  ArticleOSSToInRecommendTodayResolver,
   ArticleOSSToScoreResolver,
-  ArticleOSSToTodayCoverResolver,
 } from 'definitions'
 
 export const boost: ArticleOSSToBoostResolver = (
@@ -19,12 +17,6 @@ export const score: ArticleOSSToScoreResolver = (
   _,
   { dataSources: { articleService } }
 ) => articleService.findScore(id)
-
-export const inRecommendToday: ArticleOSSToInRecommendTodayResolver = async (
-  { id },
-  _,
-  { dataSources: { articleService } }
-) => !!(await articleService.findRecommendToday(id))
 
 export const inRecommendIcymi: ArticleOSSToInRecommendIcymiResolver = async (
   { id },

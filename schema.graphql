@@ -336,7 +336,6 @@ type ArticleNewSubscriberNotice implements Notice {
 type ArticleOSS {
   boost: NonNegativeFloat!
   score: NonNegativeFloat!
-  inRecommendToday: Boolean!
   inRecommendIcymi: Boolean!
   inRecommendHottest: Boolean!
   inRecommendNewest: Boolean!
@@ -926,7 +925,6 @@ type Mutation {
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
-  updateMattersToday(input: UpdateMattersTodayInput!): Article!
 
   """Subscribe an artcile."""
   subscribeArticle(input: SubscribeArticleInput!): Article! @deprecated(reason: "Use `toggleSubscribeArticle`.")
@@ -1909,13 +1907,6 @@ input UpdateArticleStateInput {
 input UpdateCommentsStateInput {
   ids: [ID!]!
   state: CommentState!
-}
-
-input UpdateMattersTodayInput {
-  id: ID!
-  cover: String
-  title: String
-  summary: String
 }
 
 input UpdateNotificationSettingInput {
