@@ -156,6 +156,9 @@ export default /* GraphQL */ `
     "Translation of article title and content."
     translation: ArticleTranslation
 
+    "Transactions history of this article."
+    transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
+
     # OSS
     oss: ArticleOSS! @authorize
     remark: String @authorize
@@ -356,6 +359,12 @@ export default /* GraphQL */ `
   input TagSelectedInput {
     id: ID
     mediaHash: String
+  }
+
+  input TransactionsReceivedByArgs {
+    after: String
+    first: Int
+    purpose: TransactionPurpose!
   }
 
   "Enums for an article state."

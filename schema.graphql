@@ -173,6 +173,9 @@ type Article implements Node {
   """Translation of article title and content."""
   translation: ArticleTranslation
 
+  """Transactions history of this article."""
+  transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
+
   """OSS"""
   oss: ArticleOSS!
   remark: String
@@ -1876,6 +1879,12 @@ input TransactionsArgs {
   first: Int
   id: ID
   states: [TransactionState!]
+}
+
+input TransactionsReceivedByArgs {
+  after: String
+  first: Int
+  purpose: TransactionPurpose!
 }
 
 enum TransactionState {

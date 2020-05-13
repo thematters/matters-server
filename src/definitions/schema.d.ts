@@ -177,6 +177,11 @@ export interface GQLArticle extends GQLNode {
   translation?: GQLArticleTranslation
 
   /**
+   * Transactions history of this article.
+   */
+  transactionsReceivedBy: GQLUserConnection
+
+  /**
    * OSS
    */
   oss: GQLArticleOSS
@@ -1376,6 +1381,12 @@ export interface GQLArticleTranslation {
   originalLanguage: string
   title: string
   content: string
+}
+
+export interface GQLTransactionsReceivedByArgs {
+  after?: string
+  first?: number
+  purpose: GQLTransactionPurpose
 }
 
 export interface GQLArticleOSS {
@@ -3301,6 +3312,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   subscribed?: ArticleToSubscribedResolver<TParent>
   sticky?: ArticleToStickyResolver<TParent>
   translation?: ArticleToTranslationResolver<TParent>
+  transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
@@ -3587,6 +3599,21 @@ export interface ArticleToTranslationResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToTransactionsReceivedByArgs {
+  input: GQLTransactionsReceivedByArgs
+}
+export interface ArticleToTransactionsReceivedByResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: ArticleToTransactionsReceivedByArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

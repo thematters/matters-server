@@ -11,6 +11,9 @@ import {
   ARTICLE_STATE,
   BATCH_SIZE,
   MATERIALIZED_VIEW,
+  TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
+  TRANSACTION_TARGET_TYPE,
   USER_ACTION,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -1617,5 +1620,82 @@ export class ArticleService extends BaseService {
       qs = qs.where('createdAt', '>=', since)
     }
     return qs
+  }
+
+  /*********************************
+   *                               *
+   *          Transaction          *
+   *                               *
+   *********************************/
+  /**
+   * Count an article's transactions by a given articleId.
+   */
+  countTransactions = async ({
+    purpose = TRANSACTION_PURPOSE.donation,
+    state = TRANSACTION_STATE.succeeded,
+    targetId,
+    targetType = TRANSACTION_TARGET_TYPE.article,
+  }: {
+    purpose?: TRANSACTION_PURPOSE
+    state?: TRANSACTION_STATE
+    targetId: string
+    targetType?: TRANSACTION_TARGET_TYPE
+  }) => {
+    const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
+    const result = await this.knex
+      .select()
+      .from((knex: any) => {
+        const source = knex
+          .select('sender_id', 'target_id')
+          .from('transaction')
+          .where({
+            purpose,
+            state,
+            targetId,
+            targetType: entityTypeId,
+          })
+          .groupBy('sender_id', 'target_id')
+        source.as('source')
+      })
+      .count()
+      .first()
+
+    return parseInt(result.count || '0', 10)
+  }
+
+  /**
+   * Find an article's transactions by a given articleId.
+   */
+  findTransactions = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    purpose = TRANSACTION_PURPOSE.donation,
+    state = TRANSACTION_STATE.succeeded,
+    targetId,
+    targetType = TRANSACTION_TARGET_TYPE.article,
+  }: {
+    limit?: number
+    offset?: number
+    purpose?: TRANSACTION_PURPOSE
+    state?: TRANSACTION_STATE
+    targetId: string
+    targetType?: TRANSACTION_TARGET_TYPE
+  }) => {
+    const { id: entityTypeId } = await this.baseFindEntityTypeId(targetType)
+    const result = await this.knex('transaction')
+      .select('sender_id', 'target_id')
+      .where({
+        purpose,
+        state,
+        targetId,
+        targetType: entityTypeId,
+      })
+      .groupBy('sender_id', 'target_id')
+      .sum('amount as amount')
+      .max('created_at as created_at')
+      .limit(limit)
+      .offset(offset)
+
+    return result
   }
 }

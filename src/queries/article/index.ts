@@ -21,6 +21,7 @@ import tagArticles from './tag/articles'
 import * as tagOSS from './tag/oss'
 import tagSelected from './tag/selected'
 import tags from './tags'
+import transactionsReceivedBy from './transactionsReceivedBy'
 import ArticleTranslation from './translation'
 import userArticles from './user/articles'
 
@@ -60,6 +61,7 @@ export default {
     translation: (root: any) => root,
     topicScore: ({ topicScore }: { topicScore: number }) =>
       topicScore ? Math.round(topicScore) : null,
+    transactionsReceivedBy,
   },
   ArticleTranslation,
   Tag: {
