@@ -49,14 +49,3 @@ export const inRecommendNewest: ArticleOSSToInRecommendNewestResolver = async (
   const recommendSetting = await articleService.findRecommendSetting(id)
   return recommendSetting.inNewest
 }
-
-export const todayCover: ArticleOSSToTodayCoverResolver = async (
-  { id },
-  _,
-  { dataSources: { articleService, systemService } }
-) => {
-  const today = await articleService.findRecommendToday(id)
-  return today && today.todayCover
-    ? systemService.findAssetUrl(today.todayCover)
-    : null
-}

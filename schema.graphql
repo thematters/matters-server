@@ -340,9 +340,6 @@ type ArticleOSS {
   inRecommendIcymi: Boolean!
   inRecommendHottest: Boolean!
   inRecommendNewest: Boolean!
-  todayCover: String
-  todayTitle: String
-  todaySummary: String
 }
 
 """
@@ -1253,7 +1250,6 @@ type OSS {
   tags(input: TagsInput!): TagConnection!
   reports(input: ReportsInput!): ReportConnection!
   report(input: ReportInput!): Report!
-  today(input: ConnectionArgs!): ArticleConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
 }
@@ -1472,9 +1468,6 @@ type Recommendation {
   """Global articles sort by latest activity time."""
   hottest(input: ConnectionArgs!): ArticleConnection!
 
-  """'Matters Today' recommendation."""
-  today: Article
-
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
 
@@ -1493,7 +1486,6 @@ type Recommendation {
 
 """Enums for types of recommend articles."""
 enum RecommendTypes {
-  today
   icymi
   hottest
   newest

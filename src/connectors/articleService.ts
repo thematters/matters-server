@@ -512,29 +512,6 @@ export class ArticleService extends BaseService {
     return result
   }
 
-  recommendToday = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-    where = {},
-  }: {
-    limit?: number
-    offset?: number
-    where?: { [key: string]: any }
-  }) =>
-    this.knex('article')
-      .select(
-        'article.*',
-        'c.updated_at as chose_at',
-        'c.cover as oss_cover',
-        'c.title as oss_title',
-        'c.summary as oss_summary'
-      )
-      .join('matters_today as c', 'c.article_id', 'article.id')
-      .orderBy('chose_at', 'desc')
-      .where(where)
-      .offset(offset)
-      .limit(limit)
-
   recommendIcymi = async ({
     limit = BATCH_SIZE,
     offset = 0,
@@ -775,12 +752,6 @@ export class ArticleService extends BaseService {
   /**
    * Find or Update recommendation
    */
-  addRecommendToday = async (articleId: string) =>
-    this.baseFindOrCreate({
-      where: { articleId },
-      data: { articleId },
-      table: 'matters_today',
-    })
 
   updateRecommendToday = async (
     articleId: string,
@@ -791,9 +762,6 @@ export class ArticleService extends BaseService {
       data,
       table: 'matters_today',
     })
-
-  removeRecommendToday = async (articleId: string) =>
-    this.knex('matters_today').where({ articleId }).del()
 
   addRecommendIcymi = async (articleId: string) =>
     this.baseFindOrCreate({

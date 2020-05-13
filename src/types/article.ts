@@ -200,9 +200,6 @@ export default /* GraphQL */ `
     inRecommendIcymi: Boolean! @authorize
     inRecommendHottest: Boolean! @authorize
     inRecommendNewest: Boolean! @authorize
-    todayCover: String
-    todayTitle: String
-    todaySummary: String
   }
 
   type ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC}) {
@@ -367,7 +364,6 @@ export default /* GraphQL */ `
 
   "Enums for types of recommend articles."
   enum RecommendTypes {
-    today
     icymi
     hottest
     newest

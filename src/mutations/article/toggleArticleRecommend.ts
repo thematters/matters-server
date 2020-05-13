@@ -14,11 +14,6 @@ const resolver: MutationToToggleArticleRecommendResolver = async (
   }
 
   switch (type) {
-    case 'today':
-      await (enabled
-        ? articleService.addRecommendToday
-        : articleService.removeRecommendToday)(dbId)
-      break
     case 'icymi':
       await (enabled
         ? articleService.addRecommendIcymi

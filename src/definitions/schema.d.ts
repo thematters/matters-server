@@ -532,11 +532,6 @@ export interface GQLRecommendation {
   hottest: GQLArticleConnection
 
   /**
-   * 'Matters Today' recommendation.
-   */
-  today?: GQLArticle
-
-  /**
    * 'In case you missed it' recommendation.
    */
   icymi: GQLArticleConnection
@@ -1385,9 +1380,6 @@ export interface GQLArticleOSS {
   inRecommendIcymi: boolean
   inRecommendHottest: boolean
   inRecommendNewest: boolean
-  todayCover?: string
-  todayTitle?: string
-  todaySummary?: string
 }
 
 export interface GQLFeaturedCommentsInput {
@@ -1530,7 +1522,6 @@ export interface GQLOSS {
   tags: GQLTagConnection
   reports: GQLReportConnection
   report: GQLReport
-  today: GQLArticleConnection
   oauthClients: GQLOAuthClientConnection
   skippedListItems: GQLSkippedListItemsConnection
 }
@@ -2084,7 +2075,6 @@ export interface GQLToggleArticleRecommendInput {
  * Enums for types of recommend articles.
  */
 export const enum GQLRecommendTypes {
-  today = 'today',
   icymi = 'icymi',
   hottest = 'hottest',
   newest = 'newest',
@@ -4362,7 +4352,6 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeWorks?: RecommendationToFolloweeWorksResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
-  today?: RecommendationToTodayResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
@@ -4419,15 +4408,6 @@ export interface RecommendationToHottestResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToHottestArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RecommendationToTodayResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6335,9 +6315,6 @@ export interface GQLArticleOSSTypeResolver<TParent = any> {
   inRecommendIcymi?: ArticleOSSToInRecommendIcymiResolver<TParent>
   inRecommendHottest?: ArticleOSSToInRecommendHottestResolver<TParent>
   inRecommendNewest?: ArticleOSSToInRecommendNewestResolver<TParent>
-  todayCover?: ArticleOSSToTodayCoverResolver<TParent>
-  todayTitle?: ArticleOSSToTodayTitleResolver<TParent>
-  todaySummary?: ArticleOSSToTodaySummaryResolver<TParent>
 }
 
 export interface ArticleOSSToBoostResolver<TParent = any, TResult = any> {
@@ -6395,36 +6372,6 @@ export interface ArticleOSSToInRecommendHottestResolver<
 }
 
 export interface ArticleOSSToInRecommendNewestResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleOSSToTodayCoverResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleOSSToTodayTitleResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleOSSToTodaySummaryResolver<
   TParent = any,
   TResult = any
 > {
@@ -6876,7 +6823,6 @@ export interface GQLOSSTypeResolver<TParent = any> {
   tags?: OSSToTagsResolver<TParent>
   reports?: OSSToReportsResolver<TParent>
   report?: OSSToReportResolver<TParent>
-  today?: OSSToTodayResolver<TParent>
   oauthClients?: OSSToOauthClientsResolver<TParent>
   skippedListItems?: OSSToSkippedListItemsResolver<TParent>
 }
@@ -6948,18 +6894,6 @@ export interface OSSToReportResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToReportArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface OSSToTodayArgs {
-  input: GQLConnectionArgs
-}
-export interface OSSToTodayResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: OSSToTodayArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
