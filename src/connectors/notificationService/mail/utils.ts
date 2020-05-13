@@ -95,8 +95,8 @@ export const trans = {
       zh_hans: 'Matters 通知 | 你的交易密码已修改成功',
     }),
     creditAdded: i18n({
-      zh_hant: 'Matters 通知 | 充值成功',
-      zh_hans: 'Matters 通知 | 充值成功',
+      zh_hant: 'Matters 通知 | 儲值成功',
+      zh_hans: 'Matters 通知 | 储值成功',
     }),
     donated: i18n({
       zh_hant: 'Matters 通知 | 支付成功',
