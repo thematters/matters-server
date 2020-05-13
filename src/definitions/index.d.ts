@@ -61,7 +61,7 @@ export type Viewer = (User | { id: null }) & {
   scopeMode: ScopeMode
   oauthClient?: OAuthClient
   agentHash?: string
-  group: string
+  group: 'a' | 'b'
 }
 
 export type RequestContext = {
@@ -135,6 +135,7 @@ export type MaterializedView =
   | 'tag_count_materialized'
   | 'user_reader_materialized'
   | 'article_activity_materialized'
+  | 'article_activity_b_materialized'
   | 'featured_comment_materialized'
 
 export type ThirdPartyAccount = {

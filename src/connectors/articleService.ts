@@ -435,17 +435,23 @@ export class ArticleService extends BaseService {
     offset = 0,
     where = {},
     oss = false,
+    group = 'a',
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
     oss?: boolean
+    group?: 'a' | 'b'
   }) => {
     // use view when oss for real time update
     // use materialized in other cases
     const table = oss
-      ? 'article_activity_view'
-      : MATERIALIZED_VIEW.articleActivityMaterialized
+      ? group === 'a'
+        ? 'article_activity_view'
+        : 'article_activity_b_view'
+      : group === 'a'
+      ? MATERIALIZED_VIEW.articleActivityMaterialized
+      : MATERIALIZED_VIEW.articleActivityBMaterialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
