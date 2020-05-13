@@ -33,8 +33,8 @@ export const trans = {
       zh_hans: '修改密碼',
     }),
     payment_password_reset: i18n({
-      zh_hant: '修改支付密碼',
-      zh_hans: '修改支付密碼',
+      zh_hant: '修改交易密碼',
+      zh_hans: '修改交易密碼',
     }),
     email_verify: i18n({
       zh_hant: '電子信箱認證',
