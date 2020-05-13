@@ -1,6 +1,7 @@
 import { Router } from 'express'
 
 import { TRANSACTION_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { PaymentService } from 'connectors'
 
@@ -9,11 +10,14 @@ const service = new PaymentService()
 const likecoinRouter = Router()
 
 likecoinRouter.get('/', async (req, res) => {
+  const successRedirect = `${environment.siteDomain}/pay/likecoin/success`
+  const failureRedirect = `${environment.siteDomain}/pay/likecoin/failure`
+
   try {
     const { tx_hash, state } = req.query
 
     if (!tx_hash) {
-      res.json({ result: 'payment failed' })
+      throw new Error('callback has no tx_hash')
     }
 
     // get pending transaction
@@ -35,9 +39,10 @@ likecoinRouter.get('/', async (req, res) => {
     )
   } catch (error) {
     logger.error(error)
+    return res.redirect(failureRedirect)
   }
 
-  res.json({ result: 'payment successed' })
+  return res.redirect(successRedirect)
 })
 
 export default likecoinRouter
