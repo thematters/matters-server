@@ -1541,13 +1541,7 @@ export interface GQLPlacementUnit {
 
 export interface GQLFeature {
   name: string
-  flag: GQLFeatureFlag
-}
-
-export const enum GQLFeatureFlag {
-  on = 'on',
-  off = 'off',
-  admin_only = 'admin_only',
+  enabled: boolean
 }
 
 export interface GQLOSS {
@@ -1900,7 +1894,7 @@ export interface GQLMutation {
   setBoost: GQLNode
   putRemark?: string
   putSkippedListItem?: Array<GQLSkippedListItem>
-  setFeatureFlag: GQLFeature
+  toggleFeature: GQLFeature
 
   /**
    * Send verification code for email.
@@ -2280,9 +2274,8 @@ export interface GQLPutSkippedListItemInput {
   archived: boolean
 }
 
-export interface GQLSetFeatureFlagInput {
+export interface GQLToggleFeatureInput {
   name: GQLFeatureName
-  flag: GQLFeatureFlag
 }
 
 export const enum GQLFeatureName {
@@ -6937,7 +6930,7 @@ export interface PlacementUnitToAdLabelResolver<TParent = any, TResult = any> {
 
 export interface GQLFeatureTypeResolver<TParent = any> {
   name?: FeatureToNameResolver<TParent>
-  flag?: FeatureToFlagResolver<TParent>
+  enabled?: FeatureToEnabledResolver<TParent>
 }
 
 export interface FeatureToNameResolver<TParent = any, TResult = any> {
@@ -6949,7 +6942,7 @@ export interface FeatureToNameResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface FeatureToFlagResolver<TParent = any, TResult = any> {
+export interface FeatureToEnabledResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7622,7 +7615,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
   putSkippedListItem?: MutationToPutSkippedListItemResolver<TParent>
-  setFeatureFlag?: MutationToSetFeatureFlagResolver<TParent>
+  toggleFeature?: MutationToToggleFeatureResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -8202,16 +8195,13 @@ export interface MutationToPutSkippedListItemResolver<
   ): TResult
 }
 
-export interface MutationToSetFeatureFlagArgs {
-  input: GQLSetFeatureFlagInput
+export interface MutationToToggleFeatureArgs {
+  input: GQLToggleFeatureInput
 }
-export interface MutationToSetFeatureFlagResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface MutationToToggleFeatureResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: MutationToSetFeatureFlagArgs,
+    args: MutationToToggleFeatureArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

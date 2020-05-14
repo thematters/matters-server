@@ -6,15 +6,15 @@ exports.up = async (knex) => {
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
     t.string('name').notNullable().unique()
-    t.enu('flag', ['on', 'off', 'admin_only']).notNullable()
+    t.boolean('enabled').notNullable().defaultTo(false)
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
   })
 
   await knex(table).insert([
-    { name: 'add_credit', flag: 'admin_only' },
-    { name: 'payment', flag: 'admin_only' },
-    { name: 'payout', flag: 'admin_only' },
+    { name: 'add_credit', enabled: false },
+    { name: 'payment', enabled: false },
+    { name: 'payout', enabled: false },
   ])
 }
 

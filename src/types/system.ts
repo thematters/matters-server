@@ -27,7 +27,7 @@ export default /* GraphQL */ `
     setBoost(input: SetBoostInput!): Node! @authorize
     putRemark(input: PutRemarkInput!): String @authorize
     putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @authorize
-    setFeatureFlag(input: SetFeatureFlagInput!): Feature! @authorize
+    toggleFeature(input: ToggleFeatureInput!): Feature! @authorize
   }
 
   extend type Subscription {
@@ -69,7 +69,7 @@ export default /* GraphQL */ `
 
   type Feature {
     name: String!
-    flag: FeatureFlag!
+    enabled: Boolean!
   }
 
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -294,9 +294,8 @@ export default /* GraphQL */ `
     enabled: Boolean
   }
 
-  input SetFeatureFlagInput {
+  input ToggleFeatureInput {
     name: FeatureName!
-    flag: FeatureFlag!
   }
 
   enum SearchTypes {
@@ -375,12 +374,6 @@ export default /* GraphQL */ `
     add_credit
     payment
     payout
-  }
-
-  enum FeatureFlag {
-    on
-    off
-    admin_only
   }
 
   input CostComplexity {

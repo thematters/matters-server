@@ -809,19 +809,13 @@ enum EntityType {
 
 type Feature {
   name: String!
-  flag: FeatureFlag!
+  enabled: Boolean!
 }
 
 input FeaturedCommentsInput {
   sort: CommentSort
   after: String
   first: Int
-}
-
-enum FeatureFlag {
-  on
-  off
-  admin_only
 }
 
 enum FeatureName {
@@ -1011,7 +1005,7 @@ type Mutation {
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
-  setFeatureFlag(input: SetFeatureFlagInput!): Feature!
+  toggleFeature(input: ToggleFeatureInput!): Feature!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1696,11 +1690,6 @@ input SetCollectionInput {
   collection: [ID!]!
 }
 
-input SetFeatureFlagInput {
-  name: FeatureName!
-  flag: FeatureFlag!
-}
-
 input SingleFileDeleteInput {
   id: ID!
 }
@@ -1849,6 +1838,10 @@ input ToggleArticleRecommendInput {
   id: ID!
   enabled: Boolean!
   type: RecommendTypes!
+}
+
+input ToggleFeatureInput {
+  name: FeatureName!
 }
 
 """Common input to toggle single item for `toggleXXX` mutations"""
