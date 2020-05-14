@@ -27,6 +27,7 @@ export default /* GraphQL */ `
     setBoost(input: SetBoostInput!): Node! @authorize
     putRemark(input: PutRemarkInput!): String @authorize
     putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @authorize
+    setFeatureFlag(input: SetFeatureFlagInput!): FeatureFlag! @authorize
   }
 
   extend type Subscription {
@@ -61,6 +62,14 @@ export default /* GraphQL */ `
 
     "IPFS node address"
     ipfsAddress: [String!]!
+
+    "Feature flag"
+    features: [Feature!]!
+  }
+
+  type Feature {
+    name: String!
+    flag: FeatureFlag!
   }
 
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -285,6 +294,11 @@ export default /* GraphQL */ `
     enabled: Boolean
   }
 
+  input SetFeatureFlagInput {
+    feature: FeatureName!
+    flag: FeatureFlag!
+  }
+
   enum SearchTypes {
     Article
     User
@@ -355,6 +369,18 @@ export default /* GraphQL */ `
   enum SkippedListItemType {
     agent_hash
     email
+  }
+
+  enum FeatureName {
+    add_credit
+    payment
+    payout
+  }
+
+  enum FeatureFlag {
+    on
+    off
+    admin_only
   }
 
   input CostComplexity {

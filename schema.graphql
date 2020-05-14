@@ -807,10 +807,27 @@ enum EntityType {
   user
 }
 
+type Feature {
+  name: String!
+  flag: FeatureFlag!
+}
+
 input FeaturedCommentsInput {
   sort: CommentSort
   after: String
   first: Int
+}
+
+enum FeatureFlag {
+  on
+  off
+  admin_only
+}
+
+enum FeatureName {
+  add_credit
+  payment
+  payout
 }
 
 input FeedbackInput {
@@ -994,6 +1011,7 @@ type Mutation {
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
+  setFeatureFlag(input: SetFeatureFlagInput!): FeatureFlag!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1221,6 +1239,9 @@ type Official {
 
   """IPFS node address"""
   ipfsAddress: [String!]!
+
+  """Feature flag"""
+  features: [Feature!]!
 }
 
 """The notice type contains info about official announcement."""
@@ -1673,6 +1694,11 @@ input SetBoostInput {
 input SetCollectionInput {
   id: ID!
   collection: [ID!]!
+}
+
+input SetFeatureFlagInput {
+  feature: FeatureName!
+  flag: FeatureFlag!
 }
 
 input SingleFileDeleteInput {

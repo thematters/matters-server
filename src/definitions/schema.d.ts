@@ -1475,6 +1475,11 @@ export interface GQLOfficial {
    * IPFS node address
    */
   ipfsAddress: Array<string>
+
+  /**
+   * Feature flag
+   */
+  features: Array<GQLFeature>
 }
 
 export interface GQLCategory {
@@ -1532,6 +1537,17 @@ export interface GQLPlacementUnit {
   image: GQLURL
   link: GQLURL
   adLabel: boolean
+}
+
+export interface GQLFeature {
+  name: string
+  flag: GQLFeatureFlag
+}
+
+export const enum GQLFeatureFlag {
+  on = 'on',
+  off = 'off',
+  admin_only = 'admin_only',
 }
 
 export interface GQLOSS {
@@ -1884,6 +1900,7 @@ export interface GQLMutation {
   setBoost: GQLNode
   putRemark?: string
   putSkippedListItem?: Array<GQLSkippedListItem>
+  setFeatureFlag: GQLFeatureFlag
 
   /**
    * Send verification code for email.
@@ -2261,6 +2278,17 @@ export const enum GQLRemarkTypes {
 export interface GQLPutSkippedListItemInput {
   id: string
   archived: boolean
+}
+
+export interface GQLSetFeatureFlagInput {
+  feature: GQLFeatureName
+  flag: GQLFeatureFlag
+}
+
+export const enum GQLFeatureName {
+  add_credit = 'add_credit',
+  payment = 'payment',
+  payout = 'payout',
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -3123,6 +3151,7 @@ export interface GQLResolver {
   OfficialLinks?: GQLOfficialLinksTypeResolver
   Placements?: GQLPlacementsTypeResolver
   PlacementUnit?: GQLPlacementUnitTypeResolver
+  Feature?: GQLFeatureTypeResolver
   OSS?: GQLOSSTypeResolver
   ReportConnection?: GQLReportConnectionTypeResolver
   ReportEdge?: GQLReportEdgeTypeResolver
@@ -6538,6 +6567,7 @@ export interface GQLOfficialTypeResolver<TParent = any> {
   links?: OfficialToLinksResolver<TParent>
   placements?: OfficialToPlacementsResolver<TParent>
   ipfsAddress?: OfficialToIpfsAddressResolver<TParent>
+  features?: OfficialToFeaturesResolver<TParent>
 }
 
 export interface OfficialToReportCategoryResolver<
@@ -6595,6 +6625,15 @@ export interface OfficialToPlacementsResolver<TParent = any, TResult = any> {
 }
 
 export interface OfficialToIpfsAddressResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OfficialToFeaturesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6888,6 +6927,29 @@ export interface PlacementUnitToLinkResolver<TParent = any, TResult = any> {
 }
 
 export interface PlacementUnitToAdLabelResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLFeatureTypeResolver<TParent = any> {
+  name?: FeatureToNameResolver<TParent>
+  flag?: FeatureToFlagResolver<TParent>
+}
+
+export interface FeatureToNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface FeatureToFlagResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7560,6 +7622,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
   putSkippedListItem?: MutationToPutSkippedListItemResolver<TParent>
+  setFeatureFlag?: MutationToSetFeatureFlagResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -8134,6 +8197,21 @@ export interface MutationToPutSkippedListItemResolver<
   (
     parent: TParent,
     args: MutationToPutSkippedListItemArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSetFeatureFlagArgs {
+  input: GQLSetFeatureFlagInput
+}
+export interface MutationToSetFeatureFlagResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToSetFeatureFlagArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
