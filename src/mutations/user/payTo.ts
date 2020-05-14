@@ -153,51 +153,53 @@ const resolver: MutationToPayToResolver = async (
   }
 
   /**
-   * trigger notifications
+   * trigger notifications (HKD only, see `routes/pay/likecoin` for LIKE)
    */
-  // send to sender
-  notificationService.mail.sendPayment({
-    to: viewer.email,
-    recipient: {
-      displayName: viewer.displayName,
-      userName: viewer.userName,
-    },
-    type: 'donated',
-    tx: {
-      recipient,
-      sender: viewer,
-      amount: numRound(transaction.amount),
-      currency: transaction.currency,
-    },
-  })
-
-  // send to recipient
-  notificationService.trigger({
-    event: 'payment_received_donation',
-    actorId: viewer.id,
-    recipientId: recipient.id,
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'transaction',
-        entity: transaction,
+  if (currency === 'HKD') {
+    // send to sender
+    notificationService.mail.sendPayment({
+      to: viewer.email,
+      recipient: {
+        displayName: viewer.displayName,
+        userName: viewer.userName,
       },
-    ],
-  })
-  notificationService.mail.sendPayment({
-    to: recipient.email,
-    recipient: {
-      displayName: recipient.displayName,
-      userName: recipient.userName,
-    },
-    type: currency === 'LIKE' ? 'receivedDonationLikeCoin' : 'receivedDonation',
-    tx: {
-      recipient,
-      sender: viewer,
-      amount: numRound(transaction.amount),
-      currency: transaction.currency,
-    },
-  })
+      type: 'donated',
+      tx: {
+        recipient,
+        sender: viewer,
+        amount: numRound(transaction.amount),
+        currency: transaction.currency,
+      },
+    })
+
+    // send to recipient
+    notificationService.trigger({
+      event: 'payment_received_donation',
+      actorId: viewer.id,
+      recipientId: recipient.id,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'transaction',
+          entity: transaction,
+        },
+      ],
+    })
+    notificationService.mail.sendPayment({
+      to: recipient.email,
+      recipient: {
+        displayName: recipient.displayName,
+        userName: recipient.userName,
+      },
+      type: 'receivedDonation',
+      tx: {
+        recipient,
+        sender: viewer,
+        amount: numRound(transaction.amount),
+        currency: transaction.currency,
+      },
+    })
+  }
 
   return { transaction, redirectUrl }
 }
