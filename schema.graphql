@@ -1011,7 +1011,7 @@ type Mutation {
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
-  setFeatureFlag(input: SetFeatureFlagInput!): FeatureFlag!
+  setFeatureFlag(input: SetFeatureFlagInput!): Feature!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1697,7 +1697,7 @@ input SetCollectionInput {
 }
 
 input SetFeatureFlagInput {
-  feature: FeatureName!
+  name: FeatureName!
   flag: FeatureFlag!
 }
 

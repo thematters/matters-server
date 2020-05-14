@@ -1900,7 +1900,7 @@ export interface GQLMutation {
   setBoost: GQLNode
   putRemark?: string
   putSkippedListItem?: Array<GQLSkippedListItem>
-  setFeatureFlag: GQLFeatureFlag
+  setFeatureFlag: GQLFeature
 
   /**
    * Send verification code for email.
@@ -2281,7 +2281,7 @@ export interface GQLPutSkippedListItemInput {
 }
 
 export interface GQLSetFeatureFlagInput {
-  feature: GQLFeatureName
+  name: GQLFeatureName
   flag: GQLFeatureFlag
 }
 

@@ -27,7 +27,7 @@ export default /* GraphQL */ `
     setBoost(input: SetBoostInput!): Node! @authorize
     putRemark(input: PutRemarkInput!): String @authorize
     putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @authorize
-    setFeatureFlag(input: SetFeatureFlagInput!): FeatureFlag! @authorize
+    setFeatureFlag(input: SetFeatureFlagInput!): Feature! @authorize
   }
 
   extend type Subscription {
@@ -64,7 +64,7 @@ export default /* GraphQL */ `
     ipfsAddress: [String!]!
 
     "Feature flag"
-    features: [Feature!]!
+    features: [Feature!]! @objectCache(maxAge: ${CACHE_TTL.SHORT})
   }
 
   type Feature {
@@ -295,7 +295,7 @@ export default /* GraphQL */ `
   }
 
   input SetFeatureFlagInput {
-    feature: FeatureName!
+    name: FeatureName!
     flag: FeatureFlag!
   }
 
