@@ -132,6 +132,7 @@ const resolvers: GQLRecommendationTypeResolver = {
         limit: first,
         where,
         oss,
+        group: viewer.group,
       }),
       input,
       totalCount
@@ -169,13 +170,6 @@ const resolvers: GQLRecommendationTypeResolver = {
       input,
       totalCount
     )
-  },
-  today: async (_, __, { dataSources: { articleService } }) => {
-    const [article] = await articleService.recommendToday({
-      offset: 0,
-      limit: 1,
-    })
-    return { ...article, cover: article.ossCover || article.cover }
   },
   icymi: async ({ id }, { input }, { dataSources: { articleService } }) => {
     const { first, after } = input

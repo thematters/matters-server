@@ -339,13 +339,9 @@ type ArticleNewSubscriberNotice implements Notice {
 type ArticleOSS {
   boost: NonNegativeFloat!
   score: NonNegativeFloat!
-  inRecommendToday: Boolean!
   inRecommendIcymi: Boolean!
   inRecommendHottest: Boolean!
   inRecommendNewest: Boolean!
-  todayCover: String
-  todayTitle: String
-  todaySummary: String
 }
 
 """
@@ -932,7 +928,6 @@ type Mutation {
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
-  updateMattersToday(input: UpdateMattersTodayInput!): Article!
 
   """Subscribe an artcile."""
   subscribeArticle(input: SubscribeArticleInput!): Article! @deprecated(reason: "Use `toggleSubscribeArticle`.")
@@ -1256,7 +1251,6 @@ type OSS {
   tags(input: TagsInput!): TagConnection!
   reports(input: ReportsInput!): ReportConnection!
   report(input: ReportInput!): Report!
-  today(input: ConnectionArgs!): ArticleConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
 }
@@ -1475,9 +1469,6 @@ type Recommendation {
   """Global articles sort by latest activity time."""
   hottest(input: ConnectionArgs!): ArticleConnection!
 
-  """'Matters Today' recommendation."""
-  today: Article
-
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
 
@@ -1496,7 +1487,6 @@ type Recommendation {
 
 """Enums for types of recommend articles."""
 enum RecommendTypes {
-  today
   icymi
   hottest
   newest
@@ -1926,13 +1916,6 @@ input UpdateArticleStateInput {
 input UpdateCommentsStateInput {
   ids: [ID!]!
   state: CommentState!
-}
-
-input UpdateMattersTodayInput {
-  id: ID!
-  cover: String
-  title: String
-  summary: String
 }
 
 input UpdateNotificationSettingInput {

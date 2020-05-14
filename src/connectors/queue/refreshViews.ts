@@ -86,10 +86,10 @@ class RefreshViewsQueue extends BaseQueue {
    * Cusumers
    */
   private addConsumers = () => {
-    this.q.process(
-      QUEUE_JOB.refreshArticleActivityView,
+    this.q.process(QUEUE_JOB.refreshArticleActivityView, () => {
       this.handleRefreshView('article_activity_materialized')
-    )
+      this.handleRefreshView('article_activity_b_materialized')
+    })
     this.q.process(
       QUEUE_JOB.refreshArticleCountView,
       this.handleRefreshView('article_count_materialized')

@@ -70,7 +70,6 @@ export default /* GraphQL */ `
     tags(input: TagsInput!): TagConnection!
     reports(input: ReportsInput!): ReportConnection!
     report(input: ReportInput!): Report!
-    today(input: ConnectionArgs!): ArticleConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
     skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
   }

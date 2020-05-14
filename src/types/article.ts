@@ -53,7 +53,6 @@ export default /* GraphQL */ `
     deleteTags(input: DeleteTagsInput!): Boolean @authorize @purgeCache
     renameTag(input: RenameTagInput!): Tag! @authorize @purgeCache
     mergeTags(input: MergeTagsInput!): Tag! @authorize @purgeCache
-    updateMattersToday(input: UpdateMattersTodayInput!): Article! @authorize @purgeCache
 
 
     ##############
@@ -199,13 +198,9 @@ export default /* GraphQL */ `
   type ArticleOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: NonNegativeFloat! @authorize
     score: NonNegativeFloat! @authorize
-    inRecommendToday: Boolean! @authorize
     inRecommendIcymi: Boolean! @authorize
     inRecommendHottest: Boolean! @authorize
     inRecommendNewest: Boolean! @authorize
-    todayCover: String
-    todayTitle: String
-    todaySummary: String
   }
 
   type ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC}) {
@@ -325,13 +320,6 @@ export default /* GraphQL */ `
     content: String!
   }
 
-  input UpdateMattersTodayInput {
-    id: ID!
-    cover: String
-    title: String
-    summary: String
-  }
-
   input PutTagInput {
     id: ID
     content: String
@@ -376,7 +364,6 @@ export default /* GraphQL */ `
 
   "Enums for types of recommend articles."
   enum RecommendTypes {
-    today
     icymi
     hottest
     newest
