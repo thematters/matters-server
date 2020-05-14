@@ -4,7 +4,12 @@ import { NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { numRound } from 'common/utils'
-import { CacheService, NotificationService, PaymentService, UserService } from 'connectors'
+import {
+  CacheService,
+  NotificationService,
+  PaymentService,
+  UserService,
+} from 'connectors'
 
 const likecoinRouter = Router()
 
@@ -95,13 +100,15 @@ likecoinRouter.get('/', async (req, res) => {
     // manaully invalidate cache since it returns complex object
     if (tx.targetType) {
       const cacheService = new CacheService()
-      const entityResult = await userService.baseFindEntityTypeTable(tx.targetType)
-      const targetType = NODE_TYPES[entityResult?.table as keyof typeof NODE_TYPES || '']
+      const entityResult = await userService.baseFindEntityTypeTable(
+        tx.targetType
+      )
+      const targetType =
+        NODE_TYPES[(entityResult?.table as keyof typeof NODE_TYPES) || '']
       if (targetType) {
         await cacheService.invalidateFQC(targetType, tx.targetId)
       }
     }
-
   } catch (error) {
     logger.error(error)
     return res.redirect(failureRedirect)
