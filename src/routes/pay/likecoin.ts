@@ -3,9 +3,8 @@ import { Router } from 'express'
 import { TRANSACTION_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { PaymentService } from 'connectors'
-
-const service = new PaymentService()
+import { numRound } from 'common/utils'
+import { NotificationService, PaymentService, UserService } from 'connectors'
 
 const likecoinRouter = Router()
 
@@ -13,30 +12,85 @@ likecoinRouter.get('/', async (req, res) => {
   const successRedirect = `${environment.siteDomain}/pay/likecoin/success`
   const failureRedirect = `${environment.siteDomain}/pay/likecoin/failure`
 
+  const userService = new UserService()
+  const paymentService = new PaymentService()
+  const notificationService = new NotificationService()
+
   try {
     const { tx_hash, state } = req.query
 
     if (!tx_hash) {
-      throw new Error('callback has no tx_hash')
+      throw new Error('callback has no "tx_hash"')
+    }
+
+    if (!state) {
+      throw new Error('callback has no "state"')
     }
 
     // get pending transaction
-    const transactions = await service.findTransactions({
-      providerTxId: state,
-      limit: 1,
+    const tx = (
+      await paymentService.findTransactions({
+        providerTxId: state,
+      })
+    )[0]
+
+    // mark transaction state as "succeeded"
+    paymentService.baseUpdate(tx.id, {
+      id: tx.id,
+      provider_tx_id: tx_hash,
+      state: TRANSACTION_STATE.succeeded,
+      updatedAt: new Date(),
     })
 
-    // update transaction state
-    const results = await Promise.all(
-      transactions.map((transaction) =>
-        service.baseUpdate(transaction.id, {
-          id: transaction.id,
-          provider_tx_id: tx_hash,
-          state: TRANSACTION_STATE.succeeded,
-          updatedAt: new Date(),
-        })
-      )
-    )
+    /**
+     * trigger notifications
+     */
+    const sender = await userService.baseFindById(tx.senderId)
+    const recipient = await userService.baseFindById(tx.recipientId)
+
+    // send to sender
+    notificationService.mail.sendPayment({
+      to: sender.email,
+      recipient: {
+        displayName: sender.displayName,
+        userName: sender.userName,
+      },
+      type: 'donated',
+      tx: {
+        recipient,
+        sender,
+        amount: numRound(tx.amount),
+        currency: tx.currency,
+      },
+    })
+
+    // send to recipient
+    notificationService.trigger({
+      event: 'payment_received_donation',
+      actorId: sender.id,
+      recipientId: recipient.id,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'transaction',
+          entity: tx,
+        },
+      ],
+    })
+    notificationService.mail.sendPayment({
+      to: recipient.email,
+      recipient: {
+        displayName: recipient.displayName,
+        userName: recipient.userName,
+      },
+      type: 'receivedDonationLikeCoin',
+      tx: {
+        recipient,
+        sender,
+        amount: numRound(tx.amount),
+        currency: tx.currency,
+      },
+    })
   } catch (error) {
     logger.error(error)
     return res.redirect(failureRedirect)
