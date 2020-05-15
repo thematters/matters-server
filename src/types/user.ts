@@ -173,9 +173,6 @@ export default /* GraphQL */ `
     "Global articles sort by latest activity time."
     hottest(input: ConnectionArgs!): ArticleConnection!
 
-    "'Matters Today' recommendation."
-    today: Article @logCache(type: "${NODE_TYPES.article}")
-
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection!
 

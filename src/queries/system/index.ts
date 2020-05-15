@@ -7,6 +7,7 @@ import frequentSearch from './frequentSearch'
 import ipfsAddress from './ipfsAddress'
 import node from './node'
 import {
+  features,
   feedbackCategory,
   links,
   placements,
@@ -42,6 +43,7 @@ export default {
     releases, // TODO
     links,
     placements, // TODO
+    features,
   },
   OSS,
   Report,

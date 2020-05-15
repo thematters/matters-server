@@ -537,11 +537,6 @@ export interface GQLRecommendation {
   hottest: GQLArticleConnection
 
   /**
-   * 'Matters Today' recommendation.
-   */
-  today?: GQLArticle
-
-  /**
    * 'In case you missed it' recommendation.
    */
   icymi: GQLArticleConnection
@@ -1392,13 +1387,9 @@ export interface GQLTransactionsReceivedByArgs {
 export interface GQLArticleOSS {
   boost: GQLNonNegativeFloat
   score: GQLNonNegativeFloat
-  inRecommendToday: boolean
   inRecommendIcymi: boolean
   inRecommendHottest: boolean
   inRecommendNewest: boolean
-  todayCover?: string
-  todayTitle?: string
-  todaySummary?: string
 }
 
 export interface GQLFeaturedCommentsInput {
@@ -1475,6 +1466,11 @@ export interface GQLOfficial {
    * IPFS node address
    */
   ipfsAddress: Array<string>
+
+  /**
+   * Feature flag
+   */
+  features: Array<GQLFeature>
 }
 
 export interface GQLCategory {
@@ -1534,6 +1530,17 @@ export interface GQLPlacementUnit {
   adLabel: boolean
 }
 
+export interface GQLFeature {
+  name: GQLFeatureName
+  enabled: boolean
+}
+
+export const enum GQLFeatureName {
+  add_credit = 'add_credit',
+  payment = 'payment',
+  payout = 'payout',
+}
+
 export interface GQLOSS {
   users: GQLUserConnection
   comments: GQLCommentConnection
@@ -1541,7 +1548,6 @@ export interface GQLOSS {
   tags: GQLTagConnection
   reports: GQLReportConnection
   report: GQLReport
-  today: GQLArticleConnection
   oauthClients: GQLOAuthClientConnection
   skippedListItems: GQLSkippedListItemsConnection
 }
@@ -1784,7 +1790,6 @@ export interface GQLMutation {
   deleteTags?: boolean
   renameTag: GQLTag
   mergeTags: GQLTag
-  updateMattersToday: GQLArticle
 
   /**
    * Subscribe an artcile.
@@ -1884,6 +1889,7 @@ export interface GQLMutation {
   setBoost: GQLNode
   putRemark?: string
   putSkippedListItem?: Array<GQLSkippedListItem>
+  toggleFeature: GQLFeature
 
   /**
    * Send verification code for email.
@@ -2095,7 +2101,6 @@ export interface GQLToggleArticleRecommendInput {
  * Enums for types of recommend articles.
  */
 export const enum GQLRecommendTypes {
-  today = 'today',
   icymi = 'icymi',
   hottest = 'hottest',
   newest = 'newest',
@@ -2118,13 +2123,6 @@ export interface GQLRenameTagInput {
 export interface GQLMergeTagsInput {
   ids: Array<string>
   content: string
-}
-
-export interface GQLUpdateMattersTodayInput {
-  id: string
-  cover?: string
-  title?: string
-  summary?: string
 }
 
 export interface GQLSubscribeArticleInput {
@@ -2261,6 +2259,10 @@ export const enum GQLRemarkTypes {
 export interface GQLPutSkippedListItemInput {
   id: string
   archived: boolean
+}
+
+export interface GQLToggleFeatureInput {
+  name: GQLFeatureName
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -3123,6 +3125,7 @@ export interface GQLResolver {
   OfficialLinks?: GQLOfficialLinksTypeResolver
   Placements?: GQLPlacementsTypeResolver
   PlacementUnit?: GQLPlacementUnitTypeResolver
+  Feature?: GQLFeatureTypeResolver
   OSS?: GQLOSSTypeResolver
   ReportConnection?: GQLReportConnectionTypeResolver
   ReportEdge?: GQLReportEdgeTypeResolver
@@ -4389,7 +4392,6 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeWorks?: RecommendationToFolloweeWorksResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
-  today?: RecommendationToTodayResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
@@ -4446,15 +4448,6 @@ export interface RecommendationToHottestResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToHottestArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RecommendationToTodayResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6358,13 +6351,9 @@ export interface ArticleTranslationToContentResolver<
 export interface GQLArticleOSSTypeResolver<TParent = any> {
   boost?: ArticleOSSToBoostResolver<TParent>
   score?: ArticleOSSToScoreResolver<TParent>
-  inRecommendToday?: ArticleOSSToInRecommendTodayResolver<TParent>
   inRecommendIcymi?: ArticleOSSToInRecommendIcymiResolver<TParent>
   inRecommendHottest?: ArticleOSSToInRecommendHottestResolver<TParent>
   inRecommendNewest?: ArticleOSSToInRecommendNewestResolver<TParent>
-  todayCover?: ArticleOSSToTodayCoverResolver<TParent>
-  todayTitle?: ArticleOSSToTodayTitleResolver<TParent>
-  todaySummary?: ArticleOSSToTodaySummaryResolver<TParent>
 }
 
 export interface ArticleOSSToBoostResolver<TParent = any, TResult = any> {
@@ -6377,18 +6366,6 @@ export interface ArticleOSSToBoostResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleOSSToScoreResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleOSSToInRecommendTodayResolver<
-  TParent = any,
-  TResult = any
-> {
   (
     parent: TParent,
     args: {},
@@ -6422,36 +6399,6 @@ export interface ArticleOSSToInRecommendHottestResolver<
 }
 
 export interface ArticleOSSToInRecommendNewestResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleOSSToTodayCoverResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleOSSToTodayTitleResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleOSSToTodaySummaryResolver<
   TParent = any,
   TResult = any
 > {
@@ -6538,6 +6485,7 @@ export interface GQLOfficialTypeResolver<TParent = any> {
   links?: OfficialToLinksResolver<TParent>
   placements?: OfficialToPlacementsResolver<TParent>
   ipfsAddress?: OfficialToIpfsAddressResolver<TParent>
+  features?: OfficialToFeaturesResolver<TParent>
 }
 
 export interface OfficialToReportCategoryResolver<
@@ -6595,6 +6543,15 @@ export interface OfficialToPlacementsResolver<TParent = any, TResult = any> {
 }
 
 export interface OfficialToIpfsAddressResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OfficialToFeaturesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6896,6 +6853,29 @@ export interface PlacementUnitToAdLabelResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface GQLFeatureTypeResolver<TParent = any> {
+  name?: FeatureToNameResolver<TParent>
+  enabled?: FeatureToEnabledResolver<TParent>
+}
+
+export interface FeatureToNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface FeatureToEnabledResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLOSSTypeResolver<TParent = any> {
   users?: OSSToUsersResolver<TParent>
   comments?: OSSToCommentsResolver<TParent>
@@ -6903,7 +6883,6 @@ export interface GQLOSSTypeResolver<TParent = any> {
   tags?: OSSToTagsResolver<TParent>
   reports?: OSSToReportsResolver<TParent>
   report?: OSSToReportResolver<TParent>
-  today?: OSSToTodayResolver<TParent>
   oauthClients?: OSSToOauthClientsResolver<TParent>
   skippedListItems?: OSSToSkippedListItemsResolver<TParent>
 }
@@ -6975,18 +6954,6 @@ export interface OSSToReportResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToReportArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface OSSToTodayArgs {
-  input: GQLConnectionArgs
-}
-export interface OSSToTodayResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: OSSToTodayArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7538,7 +7505,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteTags?: MutationToDeleteTagsResolver<TParent>
   renameTag?: MutationToRenameTagResolver<TParent>
   mergeTags?: MutationToMergeTagsResolver<TParent>
-  updateMattersToday?: MutationToUpdateMattersTodayResolver<TParent>
   subscribeArticle?: MutationToSubscribeArticleResolver<TParent>
   unsubscribeArticle?: MutationToUnsubscribeArticleResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
@@ -7560,6 +7526,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
   putSkippedListItem?: MutationToPutSkippedListItemResolver<TParent>
+  toggleFeature?: MutationToToggleFeatureResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -7851,21 +7818,6 @@ export interface MutationToMergeTagsResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToUpdateMattersTodayArgs {
-  input: GQLUpdateMattersTodayInput
-}
-export interface MutationToUpdateMattersTodayResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToUpdateMattersTodayArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface MutationToSubscribeArticleArgs {
   input: GQLSubscribeArticleInput
 }
@@ -8134,6 +8086,18 @@ export interface MutationToPutSkippedListItemResolver<
   (
     parent: TParent,
     args: MutationToPutSkippedListItemArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleFeatureArgs {
+  input: GQLToggleFeatureInput
+}
+export interface MutationToToggleFeatureResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToToggleFeatureArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

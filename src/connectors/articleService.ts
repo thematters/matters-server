@@ -438,17 +438,23 @@ export class ArticleService extends BaseService {
     offset = 0,
     where = {},
     oss = false,
+    group = 'a',
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
     oss?: boolean
+    group?: 'a' | 'b'
   }) => {
     // use view when oss for real time update
     // use materialized in other cases
     const table = oss
-      ? 'article_activity_view'
-      : MATERIALIZED_VIEW.articleActivityMaterialized
+      ? group === 'a'
+        ? 'article_activity_view'
+        : 'article_activity_b_view'
+      : group === 'a'
+      ? MATERIALIZED_VIEW.articleActivityMaterialized
+      : MATERIALIZED_VIEW.articleActivityBMaterialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
@@ -508,29 +514,6 @@ export class ArticleService extends BaseService {
     const result = await qs
     return result
   }
-
-  recommendToday = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-    where = {},
-  }: {
-    limit?: number
-    offset?: number
-    where?: { [key: string]: any }
-  }) =>
-    this.knex('article')
-      .select(
-        'article.*',
-        'c.updated_at as chose_at',
-        'c.cover as oss_cover',
-        'c.title as oss_title',
-        'c.summary as oss_summary'
-      )
-      .join('matters_today as c', 'c.article_id', 'article.id')
-      .orderBy('chose_at', 'desc')
-      .where(where)
-      .offset(offset)
-      .limit(limit)
 
   recommendIcymi = async ({
     limit = BATCH_SIZE,
@@ -642,12 +625,6 @@ export class ArticleService extends BaseService {
   /**
    * Find One
    */
-  findRecommendToday = async (articleId: string) =>
-    this.knex('article')
-      .select('article.*', 'c.updated_at as chose_at', 'c.cover as todayCover')
-      .join('matters_today as c', 'c.article_id', 'article.id')
-      .where({ articleId })
-      .first()
 
   findRecommendIcymi = async (articleId: string) =>
     this.knex('article')
@@ -660,14 +637,6 @@ export class ArticleService extends BaseService {
   /**
    * Count
    */
-  countRecommendToday = async (where: { [key: string]: any } = {}) => {
-    const result = await this.knex('article')
-      .join('matters_today as c', 'c.article_id', 'article.id')
-      .where(where)
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
 
   countRecommendIcymi = async () => {
     const result = await this.knex('article')
@@ -772,25 +741,6 @@ export class ArticleService extends BaseService {
   /**
    * Find or Update recommendation
    */
-  addRecommendToday = async (articleId: string) =>
-    this.baseFindOrCreate({
-      where: { articleId },
-      data: { articleId },
-      table: 'matters_today',
-    })
-
-  updateRecommendToday = async (
-    articleId: string,
-    data: { cover?: number; title?: string; summary?: string }
-  ) =>
-    this.baseUpdateOrCreate({
-      where: { articleId },
-      data,
-      table: 'matters_today',
-    })
-
-  removeRecommendToday = async (articleId: string) =>
-    this.knex('matters_today').where({ articleId }).del()
 
   addRecommendIcymi = async (articleId: string) =>
     this.baseFindOrCreate({

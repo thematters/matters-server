@@ -14,7 +14,6 @@ export default {
     articles: CONNECTION_INPUT_COST,
     tags: CONNECTION_INPUT_COST,
     reports: CONNECTION_INPUT_COST,
-    today: CONNECTION_INPUT_COST,
     skippedListItems: CONNECTION_INPUT_COST,
   },
   Article: {
