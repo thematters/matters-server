@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.0] - 2020-05-15
+
+### Added
+
+- Matters Pay #884 #930 #946 #971 #983 #984 #985 #1006 #1007 #1011 #1016 #1023 #1030 #1031 #1035 #1040
+- A/B Grouping #977
+- Read Timer #992
+- Feature Flag #1039
+- Apache 2.0 License #1028
+
+### Changed
+
+- Add ab test for front page feed
+- Add "Draft.article" query; #991
+- Implementation of auto-unban user. #959
+- Add `@scope` for field `role` and partially retire downstream and upstream. #961
+- Record agent hash's mapping email. #945
+- Make "liker.likerId" public #952
+
 ## [2.13.0] - 2020-04-20
 
 ### Added
