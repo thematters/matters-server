@@ -7,7 +7,7 @@ import {
 } from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
-import { SkippedListItemType } from 'definitions'
+import { GQLFeatureName, SkippedListItemType } from 'definitions'
 
 export class SystemService extends BaseService {
   constructor() {
@@ -49,6 +49,30 @@ export class SystemService extends BaseService {
     return result.map(({ searchKey }) =>
       (searchKey as string).slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
     )
+  }
+
+  /*********************************
+   *                               *
+   *            Features           *
+   *                               *
+   *********************************/
+
+  getFeatureFlags = async () => this.knex('feature_flag').select('*').limit(50)
+
+  toggleFeature = async ({ name }: { name: GQLFeatureName }) => {
+    const table = 'feature_flag'
+    const [oldFeatureFlag] = await this.knex(table).where({ name })
+
+    const [featureFlag] = await this.knex
+      .where({ name })
+      .update({
+        name,
+        enabled: !oldFeatureFlag.enabled,
+        updatedAt: this.knex.fn.now(),
+      })
+      .into(table)
+      .returning('*')
+    return featureFlag
   }
 
   /*********************************

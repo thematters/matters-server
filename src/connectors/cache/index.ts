@@ -90,7 +90,7 @@ export class CacheService {
     id: string
     field?: string
     args?: string
-    getter?: () => Promise<string | undefined>
+    getter: () => Promise<string | undefined>
     expire?: number
   }) => {
     const key = this.genKey({ type, id, field, args })
