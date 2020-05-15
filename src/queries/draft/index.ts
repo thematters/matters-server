@@ -2,6 +2,7 @@ import slugify from '@matters/slugify'
 
 import { countWords, makeSummary, toGlobalId } from 'common/utils'
 
+import article from './article'
 import assets from './assets'
 import collection from './collection'
 import draftCover from './cover'
@@ -21,5 +22,6 @@ export default {
     cover: draftCover,
     collection,
     assets,
+    article,
   },
 }

@@ -5,17 +5,23 @@ import {
   AuthenticationError,
   DisplayNameInvalidError,
   ForbiddenError,
+  PasswordInvalidError,
   UserInputError,
   UsernameExistsError,
   UsernameInvalidError,
 } from 'common/errors'
-import { isValidDisplayName, isValidUserName } from 'common/utils'
+import {
+  generatePasswordhash,
+  isValidDisplayName,
+  isValidPaymentPassword,
+  isValidUserName,
+} from 'common/utils'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
   { input },
-  { viewer, dataSources: { userService, systemService } }
+  { viewer, dataSources: { userService, systemService, notificationService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -80,6 +86,25 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     updateParams.agreeOn = new Date()
   }
 
+  // check payment password
+  if (input.paymentPassword) {
+    if (viewer.paymentPasswordHash) {
+      throw new UserInputError(
+        'Payment password alraedy exists. To reset it, use `resetPassword` mutation.'
+      )
+    }
+
+    if (!isValidPaymentPassword(input.paymentPassword)) {
+      throw new PasswordInvalidError(
+        'invalid payment password, should be 6 digits.'
+      )
+    }
+
+    updateParams.paymentPasswordHash = await generatePasswordhash(
+      input.paymentPassword
+    )
+  }
+
   if (isEmpty(updateParams)) {
     throw new UserInputError('bad request')
   }
@@ -92,6 +117,18 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     await userService.addUserNameEditHistory({
       userId: viewer.id,
       previous: viewer.userName,
+    })
+  }
+
+  // trigger notifications
+  if (updateParams.paymentPasswordHash) {
+    notificationService.mail.sendPayment({
+      to: user.email,
+      recipient: {
+        displayName: viewer.displayName,
+        userName: viewer.userName,
+      },
+      type: 'passwordSet',
     })
   }
 

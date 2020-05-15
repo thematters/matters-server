@@ -1,5 +1,8 @@
+import { hash } from 'bcrypt'
 import * as cheerio from 'cheerio'
 import _ from 'lodash'
+
+import { BCRYPT_ROUNDS } from 'common/enums'
 
 export * from './makeContext'
 export * from './getFileName'
@@ -17,6 +20,8 @@ export * from './xss'
 export * from './makeStreamToBuffer'
 export * from './content'
 export * from './scope'
+export * from './payment'
+export * from './time'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.
@@ -56,3 +61,6 @@ export const extractAssetDataFromHtml = (
     })
     .get()
 }
+
+export const generatePasswordhash = (password: string) =>
+  hash(password, BCRYPT_ROUNDS)

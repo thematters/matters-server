@@ -22,6 +22,7 @@ export const MATERIALIZED_VIEW = {
   tagCountMaterialized: 'tag_count_materialized',
   userReaderMaterialized: 'user_reader_materialized',
   articleActivityMaterialized: 'article_activity_materialized',
+  articleActivityBMaterialized: 'article_activity_b_materialized',
   featuredCommentMaterialized: 'featured_comment_materialized',
 }
 
@@ -97,7 +98,6 @@ export const USER_STATE = {
   onboarding: 'onboarding',
   active: 'active',
   banned: 'banned',
-  frozen: 'frozen',
   archived: 'archived',
 }
 
@@ -144,6 +144,7 @@ export const VERIFICATION_CODE_TYPES = {
   email_reset: 'email_reset',
   email_reset_confirm: 'email_reset_confirm',
   password_reset: 'password_reset',
+  payment_password_reset: 'payment_password_reset',
   email_verify: 'email_verify',
 }
 
@@ -305,6 +306,7 @@ export const QUEUE_JOB = {
   // User
   archiveUser: 'userArchive',
   activateOnboardingUsers: 'activateOnboardingUsers',
+  unbanUsers: 'unbanUsers',
 
   // Emails
   sendDailySummaryEmails: 'sendDailySummaryEmails',
@@ -377,6 +379,11 @@ const DEV_EMAIL_TEMPLATE_ID = {
     zh_hans: 'd-0e2daefb95214cf9ad0f9cd0d2957636',
     en: 'd-f2df8dd4f3e24c7981ec152ccf6eb2ec',
   },
+  payment: {
+    zh_hant: 'd-dd77980e9ec1477f98259c7e9fb4fc28',
+    zh_hans: 'd-9fea53d8838e44c4be4b93d26b8f2e9a',
+    en: 'd-dd77980e9ec1477f98259c7e9fb4fc28',
+  },
 }
 
 const PROD_EMAIL_TEMPLATE_ID = {
@@ -409,6 +416,11 @@ const PROD_EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-0b1612857f9b474aba91679c8e0994d8',
     zh_hans: 'd-d397d5ae9264436bb1e65a202174e6a9',
     en: 'd-0b1612857f9b474aba91679c8e0994d8',
+  },
+  payment: {
+    zh_hant: 'd-96ab5281c6bd419ebec20e8dbcbed427',
+    zh_hans: 'd-b00c4b181721405ebcb9170b1f890075',
+    en: 'd-96ab5281c6bd419ebec20e8dbcbed427',
   },
 }
 
@@ -562,6 +574,7 @@ export const DB_NOTICE_TYPES: DBNoticeType[] = [
   'subscribed_article_new_comment',
   'upstream_article_archived',
   'downstream_article_archived',
+  // tag
   'article_tag_has_been_added',
   'article_tag_has_been_removed',
   'article_tag_has_been_unselected',
@@ -569,6 +582,9 @@ export const DB_NOTICE_TYPES: DBNoticeType[] = [
   'comment_pinned',
   'comment_new_reply',
   'comment_mentioned_you',
+  // payment
+  'payment_received_donation',
+  'payment_payout',
   // official
   'official_announcement',
 ]
@@ -591,4 +607,37 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
 export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
   AGENT_HASH: 'agent_hash',
   EMAIL: 'email',
+}
+
+/**
+ * Payment
+ */
+export enum TRANSACTION_STATE {
+  pending = 'pending',
+  succeeded = 'succeeded',
+  failed = 'failed',
+  canceled = 'canceled',
+}
+
+export enum TRANSACTION_PURPOSE {
+  donation = 'donation',
+  addCredit = 'add-credit',
+  refund = 'refund',
+  fee = 'fee',
+}
+
+export enum TRANSACTION_TARGET_TYPE {
+  article = 'article',
+  transaction = 'transaction',
+}
+
+export enum PAYMENT_CURRENCY {
+  HKD = 'HKD',
+  LIKE = 'LIKE',
+}
+
+export enum PAYMENT_PROVIDER {
+  likecoin = 'likecoin',
+  matters = 'matters',
+  stripe = 'stripe',
 }

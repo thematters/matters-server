@@ -25,9 +25,31 @@ export const scopeModes = [
   SCOPE_MODE.admin,
 ]
 
+/**
+ * Define user group by id or ip. Even is group A, and odd is group B.
+ *
+ */
+export const getUserGroup = ({ id, ip }: { id?: string; ip?: string }) => {
+  let num = 0
+  try {
+    if (id) {
+      num = parseInt(id, 10) || 0
+    } else if (ip) {
+      const last = ip.split(/[.:]/).pop() || '0'
+      num = parseInt(last, 10) || 0
+    }
+  } catch (error) {
+    logger.error(error)
+  }
+  return num % 2 === 0 ? 'a' : 'b'
+}
+
 export const getViewerFromUser = async (user: any) => {
   // overwrite default by user
   const viewer = { role: USER_ROLE.visitor, ...user }
+
+  // apppend uesr group
+  viewer.group = getUserGroup(user)
 
   // append hepler functions (keep it till we fully utilize scope)
   viewer.hasRole = (requires: string) =>
@@ -54,7 +76,7 @@ const getUser = async (token: string, agentHash: string) => {
     if (user.state === USER_STATE.archived) {
       if (agentHash) {
         await systemService
-          .saveAgentHash(agentHash)
+          .saveAgentHash(agentHash, user.email)
           .catch((error) => logger.error)
       }
       throw new Error('user has deleted')

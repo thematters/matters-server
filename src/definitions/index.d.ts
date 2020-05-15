@@ -10,6 +10,7 @@ import {
   TagService,
   NotificationService,
   OAuthService,
+  PaymentService,
 } from 'connectors'
 
 export * from './schema'
@@ -28,6 +29,7 @@ export type User = {
   emailVerified: string
   likerId?: string
   passwordHash: string
+  paymentPasswordHash?: string
   baseGravity: number
   currGravity: number
   language: LANGUAGES
@@ -41,7 +43,7 @@ export type User = {
 
 export type UserRole = 'admin' | 'user'
 
-export type UserState = 'active' | 'banned' | 'frozen' | 'archived'
+export type UserState = 'active' | 'banned' | 'archived'
 
 export type Context = RequestContext & {
   dataSources: DataSources
@@ -59,6 +61,7 @@ export type Viewer = (User | { id: null }) & {
   scopeMode: ScopeMode
   oauthClient?: OAuthClient
   agentHash?: string
+  group: 'a' | 'b'
 }
 
 export type RequestContext = {
@@ -75,6 +78,7 @@ export type DataSources = {
   tagService: InstanceType<typeof TagService>
   notificationService: InstanceType<typeof NotificationService>
   oauthService: InstanceType<typeof OAuthService>
+  paymentService: InstanceType<typeof PaymentService>
 }
 
 export type TableName =
@@ -122,12 +126,16 @@ export type TableName =
   | 'oauth_refresh_token'
   | 'user_oauth_likecoin'
   | 'blocklist'
+  | 'transaction'
+  | 'customer'
+  | 'punish_record'
 
 export type MaterializedView =
   | 'article_count_materialized'
   | 'tag_count_materialized'
   | 'user_reader_materialized'
   | 'article_activity_materialized'
+  | 'article_activity_b_materialized'
   | 'featured_comment_materialized'
 
 export type ThirdPartyAccount = {
@@ -154,6 +162,8 @@ export type ItemData = { [key: string]: any }
 export type LANGUAGES = 'zh_hans' | 'zh_hant' | 'en'
 
 export type ResponseType = 'Article' | 'Comment'
+
+export type TransactionTargetType = 'Article' | 'Transaction'
 
 export type UserOAuthLikeCoinAccountType = 'temporal' | 'general'
 
@@ -210,3 +220,12 @@ export type Falsey = '' | 0 | false | null | undefined
 export type ScopeMode = 'visitor' | 'oauth' | 'user' | 'admin'
 
 export type SkippedListItemType = 'agent_hash' | 'email'
+
+/**
+ * Payment
+ */
+export type Customer = {
+  userId: string
+  provider: string
+  customerId: string
+}

@@ -49,12 +49,14 @@ const resolver: MutationToUserRegisterResolver = async (
   if (user) {
     throw new EmailExistsError('email address has already been registered')
   }
+
   // check display name
   // Note: We will use "userName" to pre-fill "displayName" in step-1 of signUp flow on website
   const shouldCheckDisplayName = displayName !== userName
   if (shouldCheckDisplayName && !isValidDisplayName(displayName)) {
     throw new DisplayNameInvalidError('invalid user display name')
   }
+
   // check password
   if (!isValidPassword(password)) {
     throw new PasswordInvalidError('invalid user password')

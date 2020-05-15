@@ -32,13 +32,13 @@ class EmailsQueue extends BaseQueue {
       }
     )
 
-    // send churn emails, check every day at 00:00
+    // send churn emails, check every day at 08:00 and 20:00
     this.q.add(
       QUEUE_JOB.sendChurnEmails,
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 20 * * *', tz: 'Asia/Hong_Kong' },
+        repeat: { cron: '0 8,20 * * *', tz: 'Asia/Hong_Kong' },
       }
     )
   }
@@ -111,12 +111,17 @@ class EmailsQueue extends BaseQueue {
     try {
       logger.info(`[schedule job] start send churn emails`)
 
+      // get A/B testing group. day time is for group A and night is for group B.
+      const group = new Date().getHours() <= 11 ? 'a' : 'b'
+
       // churn users
       const newRegisterUsers = await this.userService.findLost({
         type: 'new-register',
+        group,
       })
       const mediumTermUsers = await this.userService.findLost({
         type: 'medium-term',
+        group,
       })
       const totalUsers = newRegisterUsers.length + mediumTermUsers.length
 

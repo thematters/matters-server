@@ -37,6 +37,7 @@ describe('user notify setting', () => {
     user_activated: true,
     user_banned: true,
     user_frozen: true,
+    user_unbanned: true,
     comment_banned: false,
     article_banned: false,
     comment_reported: false,
@@ -44,6 +45,8 @@ describe('user notify setting', () => {
     article_tag_has_been_added: true,
     article_tag_has_been_removed: true,
     article_tag_has_been_unselected: true,
+    payment_received_donation: true,
+    payment_payout: true,
   }
 
   test('user receives notifications', async () => {

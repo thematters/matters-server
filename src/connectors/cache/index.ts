@@ -1,4 +1,5 @@
 import { RedisCache } from 'apollo-server-cache-redis'
+import _ from 'lodash'
 
 import { CACHE_PREFIX, CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
@@ -67,8 +68,11 @@ export class CacheService {
     if (!this.redis || !this.redis.client) {
       throw new Error('redis init failed')
     }
+
     const key = this.genKey({ type, id, args, field })
-    return this.redis.client.set(key, data, 'EX', expire)
+    const serializedData = JSON.stringify(data)
+
+    return this.redis.client.set(key, serializedData, 'EX', expire)
   }
 
   /**
@@ -86,17 +90,19 @@ export class CacheService {
     id: string
     field?: string
     args?: string
-    getter?: () => Promise<string | undefined>
+    getter: () => Promise<string | undefined>
     expire?: number
   }) => {
     const key = this.genKey({ type, id, field, args })
 
     let data = await this.redis.client.get(key)
+    data = JSON.parse(data)
 
     // get the data if there is none
-    if (!data && getter) {
+    if (_.isNil(data) && getter) {
       data = await getter()
-      if (data) {
+
+      if (!_.isNil(data)) {
         this.storeObject({
           type,
           id,

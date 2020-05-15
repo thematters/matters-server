@@ -21,6 +21,9 @@ export type DBNoticeType =
   | 'comment_pinned'
   | 'comment_new_reply'
   | 'comment_mentioned_you'
+  // payment
+  | 'payment_received_donation'
+  | 'payment_payout'
   // official
   | 'official_announcement'
 
@@ -28,6 +31,7 @@ export type OfficialNoticeExtendType =
   | 'user_activated'
   | 'user_banned'
   | 'user_frozen'
+  | 'user_unbanned'
   | 'comment_banned'
   | 'article_banned'
   | 'article_reported'
@@ -58,6 +62,9 @@ export type NotificationEntity<
   entity: any
 }
 
+/**
+ * User
+ */
 export interface NoticeUserNewFollowerParams
   extends NotificationRequiredParams {
   event: 'user_new_follower'
@@ -65,6 +72,9 @@ export interface NoticeUserNewFollowerParams
   actorId: string
 }
 
+/**
+ * Article
+ */
 export interface NoticeArticlePublishedParams
   extends NotificationRequiredParams {
   event: 'article_published'
@@ -160,6 +170,9 @@ export interface NoticeDownstreamArticleArchivedParams
   ]
 }
 
+/**
+ * Comment
+ */
 export interface NoticeCommentPinnedParams extends NotificationRequiredParams {
   event: 'comment_pinned'
   actorId: string
@@ -186,14 +199,9 @@ export interface NoticeCommentMentionedYouParams
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
-export interface NoticeOfficialAnnouncementParams
-  extends NotificationRequiredParams {
-  event: 'official_announcement'
-  recipientId: string
-  message: string
-  data: { url: string }
-}
-
+/**
+ * Tag
+ */
 export interface NoticeArticleTagHasBeenAddedParams
   extends NotificationRequiredParams {
   event: 'article_tag_has_been_added'
@@ -233,6 +241,34 @@ export interface NoticeUserActivatedParams extends NotificationRequiredParams {
 }
 
 /**
+ * Payment
+ */
+export interface NoticePaymentReceivedDonationParams
+  extends NotificationRequiredParams {
+  event: 'payment_received_donation'
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'transaction'>]
+}
+
+export interface NoticePaymentPayoutParams extends NotificationRequiredParams {
+  event: 'payment_payout'
+  recipientId: string
+  entities: [NotificationEntity<'target', 'transaction'>]
+}
+
+/**
+ * Official Announcement
+ */
+export interface NoticeOfficialAnnouncementParams
+  extends NotificationRequiredParams {
+  event: 'official_announcement'
+  recipientId: string
+  message: string
+  data: { url: string }
+}
+
+/**
  * Punish
  */
 export interface NoticeUserBannedParams extends NotificationRequiredParams {
@@ -242,6 +278,11 @@ export interface NoticeUserBannedParams extends NotificationRequiredParams {
 
 export interface NoticeUserFrozenParams extends NotificationRequiredParams {
   event: 'user_frozen'
+  recipientId: string
+}
+
+export interface NoticeUserUnbannedParams extends NotificationRequiredParams {
+  event: 'user_unbanned'
   recipientId: string
 }
 
@@ -291,8 +332,11 @@ export type NotificationPrarms =
   | NoticeCommentMentionedYouParams
   | NoticeOfficialAnnouncementParams
   | NoticeUserActivatedParams
+  | NoticePaymentReceivedDonationParams
+  | NoticePaymentPayoutParams
   | NoticeUserBannedParams
   | NoticeUserFrozenParams
+  | NoticeUserUnbannedParams
   | NoticeCommentBannedParams
   | NoticeArticleBannedParams
   | NoticeArticleReportedParams

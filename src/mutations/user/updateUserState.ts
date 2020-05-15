@@ -1,6 +1,6 @@
 import { USER_STATE } from 'common/enums'
 import { ActionFailedError, UserInputError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, getPunishExpiredDate } from 'common/utils'
 import { userQueue } from 'connectors/queue'
 import { MutationToUpdateUserStateResolver } from 'definitions'
 
@@ -14,8 +14,11 @@ const resolver: MutationToUpdateUserStateResolver = async (
   const user = await userService.dataloader.load(dbId)
 
   // check
-  if (user.state === USER_STATE.archived) {
-    throw new ActionFailedError('user has already been archived')
+  if (
+    user.state === USER_STATE.archived ||
+    (state === USER_STATE.banned && user.state === USER_STATE.banned)
+  ) {
+    throw new ActionFailedError(`user has already been ${state}`)
   }
 
   /**
@@ -47,22 +50,36 @@ const resolver: MutationToUpdateUserStateResolver = async (
   }
 
   /**
-   * Active, Banned, Frozen
+   * Active, Banned
    */
   const updatedUser = await userService.updateInfo(dbId, {
     state,
   })
 
-  // trigger notification
   if (state === USER_STATE.banned) {
+    // trigger notification
     notificationService.trigger({
       event: 'user_banned',
       recipientId: updatedUser.id,
     })
-  } else if (state === USER_STATE.frozen) {
-    notificationService.trigger({
-      event: 'user_frozen',
-      recipientId: updatedUser.id,
+
+    // insert record into punish_record
+    if (typeof banDays === 'number') {
+      const expiredAt = getPunishExpiredDate(banDays)
+      await userService.baseCreate(
+        {
+          userId: updatedUser.id,
+          state,
+          expiredAt,
+        },
+        'punish_record'
+      )
+    }
+  } else if (state !== user.state && user.state === USER_STATE.banned) {
+    // clean up punish recods if team manually recover it from ban
+    await userService.archivePunishRecordsByUserId({
+      userId: updatedUser.id,
+      state: USER_STATE.banned,
     })
   }
 

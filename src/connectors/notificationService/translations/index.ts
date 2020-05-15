@@ -96,6 +96,19 @@ export default {
     zh_hans: ({ displayName }) => `${displayName} 在评论中提及了你`,
     en: ({ displayName }) => `${displayName} mentioned you in a comment`,
   }),
+  payment_received_donation: i18n<{
+    displayName: string
+    userName: string
+    amount: number
+    currency: string
+  }>({
+    zh_hant: ({ displayName, userName, amount, currency }) =>
+      `${displayName}（@${userName}）支持了你 ${amount} ${currency}，快去查看自己的收入吧！`,
+    zh_hans: ({ displayName, userName, amount, currency }) =>
+      `${displayName}（@${userName}）支持了你 ${amount} ${currency}，快去查看自己的收入吧！`,
+    en: ({ displayName, userName, amount, currency }) =>
+      `${displayName} (@${userName}) donated ${amount} ${currency} to you.`,
+  }),
   official_announcement: i18n<{ message: string }>({
     zh_hant: ({ message }) => message,
     zh_hans: ({ message }) => message,
@@ -124,6 +137,11 @@ export default {
     zh_hant: '因為違反社區規則，Matters 決定將您的賬戶凍結，無法在站上進行互動',
     zh_hans: '因为违反社区规则，Matters 决定将您的账户冻结，无法在站上进行互动',
     en: 'Your account has been deactivated for vilolating the Term of Use',
+  }),
+  user_unbanned: i18n({
+    zh_hant: '你的評論與創作權限已恢復',
+    zh_hans: '你的评论与创作权限已恢复',
+    en: 'Your account has been recover.',
   }),
   comment_banned: i18n<{ content: string }>({
     zh_hant: ({ content }) =>

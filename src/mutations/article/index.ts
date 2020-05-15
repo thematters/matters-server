@@ -19,7 +19,6 @@ import toggleSubscribeArticle from './toggleSubscribeArticle'
 import unsubscribeArticle from './unsubscribeArticle'
 import updateArticleInfo from './updateArticleInfo'
 import updateArticleState from './updateArticleState'
-import updateMattersToday from './updateMattersToday'
 
 export default {
   Mutation: {
@@ -39,7 +38,6 @@ export default {
     deleteTags,
     renameTag,
     mergeTags,
-    updateMattersToday,
     setCollection,
     updateArticleInfo,
     putTag,

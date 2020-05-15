@@ -159,14 +159,6 @@ export class NoticeNotFoundError extends ApolloError {
   }
 }
 
-export class MattersTodayNotFoundError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'MATTERS_TODAY_NOT_FOUND')
-
-    Object.defineProperty(this, 'name', { value: 'MattersTodayNotFoundError' })
-  }
-}
-
 /*********************************
  *                               *
  *           Article             *
@@ -321,5 +313,31 @@ export class MigrationReachLimitError extends ApolloError {
     super(message, 'MIGRATION_REACH_LIMIT')
 
     Object.defineProperty(this, 'name', { value: 'MigrationReachLimit' })
+  }
+}
+
+/*********************************
+ *                               *
+ *             Payment           *
+ *                               *
+ *********************************/
+export class PaymentAmountTooSmallError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_AMOUNT_TOO_SMALL')
+    Object.defineProperty(this, 'name', { value: 'PaymentAmountTooSmall' })
+  }
+}
+
+export class PaymentAmountInvalidError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_AMOUNT_INVALID')
+    Object.defineProperty(this, 'name', { value: 'PaymentAmountInvalid' })
+  }
+}
+
+export class PaymentBalanceInsufficientError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_BALANCE_INSUFFICIENT')
+    Object.defineProperty(this, 'name', { value: 'PaymentBalanceInsufficient' })
   }
 }

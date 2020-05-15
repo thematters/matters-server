@@ -1,6 +1,7 @@
 import { sendChurn } from './sendChurn'
 import { sendDailySummary } from './sendDailySummary'
 import { sendMigrationSuccess } from './sendMigrationSuccess'
+import { sendPayment } from './sendPayment'
 import { sendRegisterSuccess } from './sendRegisterSuccess'
 import { sendUserDeletedByAdmin } from './sendUserDeletedByAdmin'
 import { sendVerificationCode } from './sendVerificationCode'
@@ -12,4 +13,5 @@ export const mail = {
   sendRegisterSuccess,
   sendUserDeletedByAdmin,
   sendVerificationCode,
+  sendPayment,
 }

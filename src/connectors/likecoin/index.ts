@@ -46,6 +46,12 @@ const ENDPOINTS = {
   rate: '/misc/price',
 }
 
+/**
+ * Interact with LikeCoin
+ *
+ * API Docs:
+ * @see {@url https://documenter.getpostman.com/view/6879252/SVzxZfwH?version=latest}
+ */
 export class LikeCoin {
   knex: Knex
 

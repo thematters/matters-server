@@ -9,12 +9,12 @@ const articleService = new ArticleService()
 
 test('publish', async () => {
   const articlePublished = await articleService.publish({
+    id: '1',
     authorId: '1',
     title: 'test',
     cover: '1',
     summary: 'test-summary',
     content: '<div>test-html-string</div>',
-    draftId: '1',
   })
   expect(articlePublished.mediaHash).toBeDefined()
   expect(articlePublished.dataHash).toBeDefined()

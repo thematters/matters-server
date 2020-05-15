@@ -21,6 +21,18 @@ directive @logCache(type: String!) on FIELD_DEFINITION
 
 directive @objectCache(maxAge: Int = 1000) on OBJECT | FIELD_DEFINITION
 
+"""Add Credit"""
+input AddCreditInput {
+  amount: PositiveFloat!
+}
+
+type AddCreditResult {
+  transaction: Transaction!
+
+  """The client secret of this PaymentIntent."""
+  client_secret: String!
+}
+
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
@@ -160,6 +172,9 @@ type Article implements Node {
 
   """Translation of article title and content."""
   translation: ArticleTranslation
+
+  """Transactions history of this article."""
+  transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
   """OSS"""
   oss: ArticleOSS!
@@ -324,13 +339,9 @@ type ArticleNewSubscriberNotice implements Notice {
 type ArticleOSS {
   boost: NonNegativeFloat!
   score: NonNegativeFloat!
-  inRecommendToday: Boolean!
   inRecommendIcymi: Boolean!
   inRecommendHottest: Boolean!
   inRecommendNewest: Boolean!
-  todayCover: String
-  todayTitle: String
-  todaySummary: String
 }
 
 """
@@ -483,6 +494,10 @@ type Badge {
 
 enum BadgeType {
   seed
+}
+
+type Balance {
+  HKD: Float!
 }
 
 input BlockUserInput {
@@ -764,6 +779,9 @@ type Draft implements Node {
 
   """List of asstets are belonged to this draft."""
   assets: [Asset!]!
+
+  """Published article"""
+  article: Article
 }
 
 type DraftConnection implements Connection {
@@ -785,10 +803,21 @@ enum EntityType {
   user
 }
 
+type Feature {
+  name: FeatureName!
+  enabled: Boolean!
+}
+
 input FeaturedCommentsInput {
   sort: CommentSort
   after: String
   first: Int
+}
+
+enum FeatureName {
+  add_credit
+  payment
+  payout
 }
 
 input FeedbackInput {
@@ -910,7 +939,6 @@ type Mutation {
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
-  updateMattersToday(input: UpdateMattersTodayInput!): Article!
 
   """Subscribe an artcile."""
   subscribeArticle(input: SubscribeArticleInput!): Article! @deprecated(reason: "Use `toggleSubscribeArticle`.")
@@ -972,6 +1000,7 @@ type Mutation {
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
+  toggleFeature(input: ToggleFeatureInput!): Feature!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -979,7 +1008,7 @@ type Mutation {
   """Confirm verification code from email."""
   confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
-  """Reset user password."""
+  """Reset user or payment password."""
   resetPassword(input: ResetPasswordInput!): Boolean
 
   """Change user email."""
@@ -1041,6 +1070,12 @@ type Mutation {
 
   """Unfollow curent user."""
   unfollowUser(input: FollowUserInput!): User! @deprecated(reason: "Use `toggleFollowUser`.")
+
+  """Add Credit to User Wallet"""
+  addCredit(input: AddCreditInput!): AddCreditResult!
+
+  """Pay to another user or article"""
+  payTo(input: PayToInput!): PayToResult!
 
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
@@ -1193,6 +1228,9 @@ type Official {
 
   """IPFS node address"""
   ipfsAddress: [String!]!
+
+  """Feature flag"""
+  features: [Feature!]!
 }
 
 """The notice type contains info about official announcement."""
@@ -1228,7 +1266,6 @@ type OSS {
   tags(input: TagsInput!): TagConnection!
   reports(input: ReportsInput!): ReportConnection!
   report(input: ReportInput!): Report!
-  today(input: ConnectionArgs!): ArticleConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
 }
@@ -1244,6 +1281,56 @@ type PageInfo {
   endCursor: String
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
+}
+
+"""This notice type contains info about current user requested to payout."""
+type PaymentPayoutNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """The transaction data."""
+  target: Transaction
+}
+
+"""This notice type contains info about current user received a donation."""
+type PaymentReceivedDonationNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """The user who donated to current user."""
+  actor: User!
+
+  """The transaction data."""
+  target: Transaction
+}
+
+"""Pay To"""
+input PayToInput {
+  amount: PositiveFloat!
+  currency: TransactionCurrency!
+  purpose: TransactionPurpose!
+  recipientId: ID!
+  targetId: ID
+  password: String
+}
+
+type PayToResult {
+  transaction: Transaction!
+
+  """Only available when paying with LIKE."""
+  redirectUrl: URL
 }
 
 input PinCommentInput {
@@ -1397,9 +1484,6 @@ type Recommendation {
   """Global articles sort by latest activity time."""
   hottest(input: ConnectionArgs!): ArticleConnection!
 
-  """'Matters Today' recommendation."""
-  today: Article
-
   """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
 
@@ -1418,7 +1502,6 @@ type Recommendation {
 
 """Enums for types of recommend articles."""
 enum RecommendTypes {
-  today
   icymi
   hottest
   newest
@@ -1511,6 +1594,12 @@ input ReportsInput {
 input ResetPasswordInput {
   password: String!
   codeId: ID!
+  type: ResetPasswordType
+}
+
+enum ResetPasswordType {
+  account
+  payment
 }
 
 union Response = Article | Comment
@@ -1741,11 +1830,80 @@ input ToggleArticleRecommendInput {
   type: RecommendTypes!
 }
 
+input ToggleFeatureInput {
+  name: FeatureName!
+}
+
 """Common input to toggle single item for `toggleXXX` mutations"""
 input ToggleItemInput {
   id: ID!
   enabled: Boolean
 }
+
+type Transaction {
+  id: ID!
+  state: TransactionState!
+  purpose: TransactionPurpose!
+  amount: Float!
+  fee: NonNegativeFloat!
+  currency: TransactionCurrency!
+
+  """Timestamp of transaction."""
+  createdAt: DateTime!
+
+  """Recipient of transaction."""
+  recipient: User
+
+  """Sender of transaction."""
+  sender: User
+
+  """Related target article or transaction."""
+  target: TransactionTarget
+}
+
+type TransactionConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TransactionEdge!]
+}
+
+enum TransactionCurrency {
+  HKD
+  LIKE
+}
+
+type TransactionEdge {
+  cursor: String!
+  node: Transaction!
+}
+
+enum TransactionPurpose {
+  donation
+  addCredit
+  refund
+}
+
+input TransactionsArgs {
+  after: String
+  first: Int
+  id: ID
+  states: [TransactionState!]
+}
+
+input TransactionsReceivedByArgs {
+  after: String
+  first: Int
+  purpose: TransactionPurpose!
+}
+
+enum TransactionState {
+  pending
+  succeeded
+  failed
+  canceled
+}
+
+union TransactionTarget = Article | Transaction
 
 input UnpinCommentInput {
   id: ID!
@@ -1779,13 +1937,6 @@ input UpdateCommentsStateInput {
   state: CommentState!
 }
 
-input UpdateMattersTodayInput {
-  id: ID!
-  cover: String
-  title: String
-  summary: String
-}
-
 input UpdateNotificationSettingInput {
   type: NotificationSettingType!
   enabled: Boolean!
@@ -1799,6 +1950,7 @@ input UpdateUserInfoInput {
   language: UserLanguage
   agreeOn: Boolean
   profileCover: ID
+  paymentPassword: String
 }
 
 input UpdateUserRoleInput {
@@ -1899,6 +2051,9 @@ type User implements Node {
   oss: UserOSS!
   remark: String
   notices(input: ConnectionArgs!): NoticeConnection!
+
+  """User Wallet"""
+  wallet: Wallet!
 }
 
 type UserActivity {
@@ -1932,6 +2087,11 @@ type UserEdge {
   node: User!
 }
 
+enum UserGroup {
+  a
+  b
+}
+
 type UserInfo {
   """Timestamp of registration."""
   createdAt: DateTime!
@@ -1953,6 +2113,9 @@ type UserInfo {
 
   """Cover of profile page."""
   profileCover: URL
+
+  """Type of group."""
+  group: UserGroup!
 }
 
 enum UserInfoFields {
@@ -2025,7 +2188,6 @@ enum UserState {
   active
   onboarding
   banned
-  frozen
   archived
 }
 
@@ -2054,6 +2216,9 @@ type UserStatus {
   """Whether user has read response info or not."""
   unreadResponseInfoPopUp: Boolean!
 
+  """Whether user already set payment password."""
+  hasPaymentPassword: Boolean!
+
   """Number of total written words."""
   totalWordCount: Int!
 }
@@ -2065,6 +2230,7 @@ enum VerificationCodeType {
   email_reset
   email_reset_confirm
   password_reset
+  payment_password_reset
   email_verify
 }
 
@@ -2081,4 +2247,9 @@ enum Vote {
 input VoteCommentInput {
   vote: Vote!
   id: ID!
+}
+
+type Wallet {
+  balance: Balance!
+  transactions(input: TransactionsArgs!): TransactionConnection!
 }

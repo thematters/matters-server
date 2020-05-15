@@ -509,6 +509,7 @@ class Notice extends BaseService {
       user_activated: true,
       user_banned: true,
       user_frozen: true,
+      user_unbanned: true,
       comment_banned: setting.reportFeedback,
       article_banned: setting.reportFeedback,
       comment_reported: setting.reportFeedback,
@@ -516,6 +517,8 @@ class Notice extends BaseService {
       article_tag_has_been_added: setting.tag,
       article_tag_has_been_removed: setting.tag,
       article_tag_has_been_unselected: setting.tag,
+      payment_received_donation: true,
+      payment_payout: true,
     }
 
     return noticeSettingMap[event]

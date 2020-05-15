@@ -55,6 +55,9 @@ server.installSubscriptionHandlers(httpServer)
 // OAuth
 app.use('/oauth', routes.oauth)
 
+// Pay
+app.use('/pay', routes.pay)
+
 httpServer.listen(PORT, () => {
   console.log(
     `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
