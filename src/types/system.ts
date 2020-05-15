@@ -68,7 +68,7 @@ export default /* GraphQL */ `
   }
 
   type Feature {
-    name: String!
+    name: FeatureName!
     enabled: Boolean!
   }
 

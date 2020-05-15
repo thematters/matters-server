@@ -1540,8 +1540,14 @@ export interface GQLPlacementUnit {
 }
 
 export interface GQLFeature {
-  name: string
+  name: GQLFeatureName
   enabled: boolean
+}
+
+export const enum GQLFeatureName {
+  add_credit = 'add_credit',
+  payment = 'payment',
+  payout = 'payout',
 }
 
 export interface GQLOSS {
@@ -2276,12 +2282,6 @@ export interface GQLPutSkippedListItemInput {
 
 export interface GQLToggleFeatureInput {
   name: GQLFeatureName
-}
-
-export const enum GQLFeatureName {
-  add_credit = 'add_credit',
-  payment = 'payment',
-  payout = 'payout',
 }
 
 export interface GQLSendVerificationCodeInput {

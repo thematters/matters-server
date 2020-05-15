@@ -808,7 +808,7 @@ enum EntityType {
 }
 
 type Feature {
-  name: String!
+  name: FeatureName!
   enabled: Boolean!
 }
 
