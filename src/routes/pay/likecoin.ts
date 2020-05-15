@@ -1,10 +1,15 @@
 import { Router } from 'express'
 
-import { TRANSACTION_STATE } from 'common/enums'
+import { NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { numRound } from 'common/utils'
-import { NotificationService, PaymentService, UserService } from 'connectors'
+import {
+  CacheService,
+  NotificationService,
+  PaymentService,
+  UserService,
+} from 'connectors'
 
 const likecoinRouter = Router()
 
@@ -91,6 +96,19 @@ likecoinRouter.get('/', async (req, res) => {
         currency: tx.currency,
       },
     })
+
+    // manaully invalidate cache
+    if (tx.targetType) {
+      const cacheService = new CacheService()
+      const entityResult = await userService.baseFindEntityTypeTable(
+        tx.targetType
+      )
+      const targetType =
+        NODE_TYPES[(entityResult?.table as keyof typeof NODE_TYPES) || '']
+      if (targetType) {
+        await cacheService.invalidateFQC(targetType, tx.targetId)
+      }
+    }
   } catch (error) {
     logger.error(error)
     return res.redirect(failureRedirect)

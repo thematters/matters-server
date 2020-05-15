@@ -20,6 +20,7 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import { fromGlobalId, numRound } from 'common/utils'
+import { CacheService } from 'connectors'
 import { MutationToPayToResolver } from 'definitions'
 
 const resolver: MutationToPayToResolver = async (
@@ -33,6 +34,7 @@ const resolver: MutationToPayToResolver = async (
       userService,
       notificationService,
     },
+    redis,
   }
 ) => {
   // params validators
@@ -199,6 +201,12 @@ const resolver: MutationToPayToResolver = async (
         currency: transaction.currency,
       },
     })
+
+    // manaully invalidate cache since it returns complex object
+    if (redis && redis.client) {
+      const cacheService = new CacheService(redis)
+      await cacheService.invalidateFQC(targetType, targetDbId)
+    }
   }
 
   return { transaction, redirectUrl }
