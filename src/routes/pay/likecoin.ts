@@ -97,7 +97,7 @@ likecoinRouter.get('/', async (req, res) => {
       },
     })
 
-    // manaully invalidate cache since it returns complex object
+    // manaully invalidate cache
     if (tx.targetType) {
       const cacheService = new CacheService()
       const entityResult = await userService.baseFindEntityTypeTable(
