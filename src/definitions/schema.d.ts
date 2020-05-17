@@ -1539,6 +1539,7 @@ export const enum GQLFeatureName {
   add_credit = 'add_credit',
   payment = 'payment',
   payout = 'payout',
+  verify_appreciate = 'verify_appreciate',
 }
 
 export interface GQLOSS {
@@ -2054,7 +2055,7 @@ export interface GQLToggleItemInput {
 export interface GQLAppreciateArticleInput {
   id: string
   amount: number
-  token: string
+  token?: string
 }
 
 export interface GQLReadArticleInput {

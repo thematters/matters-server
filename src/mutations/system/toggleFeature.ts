@@ -4,6 +4,6 @@ const resolver: MutationToToggleFeatureResolver = async (
   root,
   { input: { name } },
   { dataSources: { systemService } }
-) => systemService.toggleFeature({ name })
+) => systemService.toggleFeature(name)
 
 export default resolver

@@ -14,7 +14,15 @@ import { MutationToAppreciateArticleResolver } from 'definitions'
 const resolver: MutationToAppreciateArticleResolver = async (
   root,
   { input: { id, amount, token } },
-  { viewer, dataSources: { userService, articleService, notificationService } }
+  {
+    viewer,
+    dataSources: {
+      userService,
+      articleService,
+      notificationService,
+      systemService,
+    },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -50,9 +58,14 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ForbiddenError('article author has no liker id')
   }
 
-  const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
-  if (!isHuman) {
-    throw new ForbiddenError('appreciate via script is not allowed')
+  // protect from scripting
+  const feature = await systemService.getFeatureFlag('verify_appreciate')
+
+  if (feature && feature.enabled) {
+    const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
+    if (!isHuman) {
+      throw new ForbiddenError('appreciate via script is not allowed')
+    }
   }
 
   try {
