@@ -68,7 +68,7 @@ class GCP {
 
   recaptcha = async ({ token, ip }: { token?: string; ip?: string }) => {
     // skip test
-    if (!isTest) {
+    if (isTest) {
       return true
     }
 
