@@ -275,6 +275,7 @@ export default /* GraphQL */ `
   input AppreciateArticleInput {
     id: ID!
     amount: Int!
+    token: String!
   }
 
   input ReadArticleInput {

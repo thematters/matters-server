@@ -36,6 +36,7 @@ type AddCreditResult {
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
+  token: String!
 }
 
 type Appreciation {

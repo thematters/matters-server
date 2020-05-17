@@ -1,24 +1,19 @@
-import {
-  APPRECIATION_TYPES,
-  CACHE_KEYWORD,
-  NODE_TYPES,
-  USER_STATE,
-} from 'common/enums'
+import { APPRECIATION_TYPES, CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
   AuthenticationError,
   ForbiddenError,
-  LikerNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
+import { gcp } from 'connectors'
 import { likeCoinQueue } from 'connectors/queue'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 
 const resolver: MutationToAppreciateArticleResolver = async (
   root,
-  { input: { id, amount } },
+  { input: { id, amount, token } },
   { viewer, dataSources: { userService, articleService, notificationService } }
 ) => {
   if (!viewer.id) {
@@ -55,9 +50,9 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ForbiddenError('article author has no liker id')
   }
 
-  const liker = await userService.findLiker({ userId: viewer.id })
-  if (!liker) {
-    throw new LikerNotFoundError('liker not found')
+  const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
+  if (!isHuman) {
+    throw new ForbiddenError('appreciate via script is not allowed')
   }
 
   try {
@@ -72,7 +67,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
 
     // record to LikeCoin
     likeCoinQueue.like({
-      likerId: liker.likerId,
+      likerId: viewer.likerId,
       likerIp: viewer.ip,
       authorLikerId: author.likerId,
       url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,

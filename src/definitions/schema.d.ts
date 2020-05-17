@@ -2054,6 +2054,7 @@ export interface GQLToggleItemInput {
 export interface GQLAppreciateArticleInput {
   id: string
   amount: number
+  token: string
 }
 
 export interface GQLReadArticleInput {
