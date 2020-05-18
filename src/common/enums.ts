@@ -641,3 +641,7 @@ export enum PAYMENT_PROVIDER {
   matters = 'matters',
   stripe = 'stripe',
 }
+
+export const PAYMENT_MAXIMUM_AMOUNT = {
+  HKD: 5000,
+}

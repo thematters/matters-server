@@ -341,3 +341,12 @@ export class PaymentBalanceInsufficientError extends ApolloError {
     Object.defineProperty(this, 'name', { value: 'PaymentBalanceInsufficient' })
   }
 }
+
+export class PaymentReachMaximumLimitError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_REACH_MAXIMUM_LIMIT')
+    Object.defineProperty(this, 'name', {
+      value: 'PaymentReachMaximumLimitError',
+    })
+  }
+}
