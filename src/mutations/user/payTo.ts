@@ -3,6 +3,7 @@ import { v4 } from 'uuid'
 
 import {
   PAYMENT_CURRENCY,
+  PAYMENT_MAXIMUM_AMOUNT,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
@@ -16,6 +17,7 @@ import {
   ForbiddenError,
   PasswordInvalidError,
   PaymentBalanceInsufficientError,
+  PaymentReachMaximumLimitError,
   UserInputError,
   UserNotFoundError,
 } from 'common/errors'
@@ -140,6 +142,12 @@ const resolver: MutationToPayToResolver = async (
       if (balance < amount) {
         throw new PaymentBalanceInsufficientError(
           'viewer has insufficient balance'
+        )
+      }
+
+      if (amount > PAYMENT_MAXIMUM_AMOUNT.HKD) {
+        throw new PaymentReachMaximumLimitError(
+          'payment reached maximum limit'
         )
       }
 
