@@ -149,6 +149,13 @@ const resolver: MutationToPayToResolver = async (
         throw new PaymentReachMaximumLimitError('payment reached maximum limit')
       }
 
+      const hasPaidAmount = await paymentService.sumTodayDonationTransactions({
+        senderId: viewer.id
+      })
+      if ((amount + hasPaidAmount) > PAYMENT_MAXIMUM_AMOUNT.HKD) {
+        throw new PaymentReachMaximumLimitError('payment reached daily maximum limit')
+      }
+
       transaction = await paymentService.createTransaction({
         ...baseParams,
         currency: PAYMENT_CURRENCY.HKD,

@@ -9,7 +9,7 @@ import {
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
-import { calcStripeFee, numRound, toProviderAmount } from 'common/utils'
+import { calcStripeFee, getUTC8Midnight, numRound, toProviderAmount } from 'common/utils'
 import { BaseService } from 'connectors'
 import { User } from 'definitions'
 
@@ -181,6 +181,35 @@ export class PaymentService extends BaseService {
     }
 
     return this.baseUpdate(id, { updatedAt: new Date(), ...data })
+  }
+
+  /**
+   * Sum up the amount of donation transaction.
+   *
+   */
+  sumTodayDonationTransactions = async ({
+    currency = PAYMENT_CURRENCY.HKD,
+    senderId,
+  }: {
+    currency?: PAYMENT_CURRENCY
+    senderId: string
+  }) => {
+    const todayMidnight = getUTC8Midnight()
+    const result = await this.knex('transaction')
+      .where({
+        purpose: TRANSACTION_PURPOSE.donation,
+        senderId,
+        state: TRANSACTION_STATE.succeeded,
+      })
+      .andWhere('created_at', '>=', todayMidnight.toISOString())
+      .groupBy('sender_id')
+      .sum('amount as amount')
+      .first()
+
+    if (!result) {
+      return 0
+    }
+    return Math.max(parseInt(result.amount || 0, 10), 0)
   }
 
   /*********************************
