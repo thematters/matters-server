@@ -121,17 +121,17 @@ export default {
   user_banned: i18n<{ banDays?: number }>({
     zh_hant: ({ banDays }) =>
       banDays
-        ? `因為違反社區規則，Matters 決定將您禁言 ${banDays} 天，無法發佈作品、評論和讚賞`
-        : '因為違反社區規則，Matters 決定將您禁言，無法發佈作品、評論和讚賞',
+        ? `因為違反社區規則，您已被禁言 ${banDays} 天，無法發佈作品和評論`
+        : '因為違反社區規則，您已被禁言，無法發佈作品和評論',
     zh_hans: ({ banDays }) =>
       banDays
-        ? `因为违反社区规则，Matters 决定将您禁言 ${banDays} 天，无法发布作品、评论和赞赏`
-        : '因为违反社区规则，Matters 决定将您禁言，无法发布作品、评论和赞赏',
+        ? `因为违反社区规则，您已被禁言 ${banDays} 天，无法发布作品和评论`
+        : '因为违反社区规则，您已被禁言，无法发布作品和评论',
     en: ({ banDays }) =>
       banDays
         ? 'You have been fobidden to publish any contents' +
-          `, comments and like others within ${banDays} days for vilolating the Term of Use`
-        : 'You have been fobidden to publish any contents, comments and like others for vilolating the Term of Use',
+          `and comments within ${banDays} days for vilolating the Term of Use`
+        : 'You have been fobidden to publish any contents and comments for vilolating the Term of Use',
   }),
   user_frozen: i18n({
     zh_hant: '因為違反社區規則，Matters 決定將您的賬戶凍結，無法在站上進行互動',
