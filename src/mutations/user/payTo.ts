@@ -146,9 +146,7 @@ const resolver: MutationToPayToResolver = async (
       }
 
       if (amount > PAYMENT_MAXIMUM_AMOUNT.HKD) {
-        throw new PaymentReachMaximumLimitError(
-          'payment reached maximum limit'
-        )
+        throw new PaymentReachMaximumLimitError('payment reached maximum limit')
       }
 
       transaction = await paymentService.createTransaction({
