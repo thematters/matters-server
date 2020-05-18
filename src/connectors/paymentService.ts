@@ -9,7 +9,12 @@ import {
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
-import { calcStripeFee, getUTC8Midnight, numRound, toProviderAmount } from 'common/utils'
+import {
+  calcStripeFee,
+  getUTC8Midnight,
+  numRound,
+  toProviderAmount,
+} from 'common/utils'
 import { BaseService } from 'connectors'
 import { User } from 'definitions'
 
