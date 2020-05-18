@@ -613,8 +613,8 @@ export class ArticleService extends BaseService {
    *                               *
    *********************************/
 
-  translate = (content: string, target: string) =>
-    gcp.translate(content, target)
+  translate = ({ content, target }: { content: string; target: string }) =>
+    gcp.translate({ content, target })
 
   detectLanguage = (content: string) => gcp.detectLanguage(content)
 

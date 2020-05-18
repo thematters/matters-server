@@ -373,6 +373,7 @@ export default /* GraphQL */ `
     add_credit
     payment
     payout
+    verify_appreciate
   }
 
   input CostComplexity {

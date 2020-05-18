@@ -10,8 +10,12 @@ import { BaseService } from 'connectors'
 import { GQLFeatureName, SkippedListItemType } from 'definitions'
 
 export class SystemService extends BaseService {
+  featureFlagTable: string
+
   constructor() {
     super('noop')
+
+    this.featureFlagTable = 'feature_flag'
   }
 
   /*********************************
@@ -57,11 +61,19 @@ export class SystemService extends BaseService {
    *                               *
    *********************************/
 
-  getFeatureFlags = async () => this.knex('feature_flag').select('*').limit(50)
+  getFeatureFlags = () => this.knex(this.featureFlagTable).select('*').limit(50)
 
-  toggleFeature = async ({ name }: { name: GQLFeatureName }) => {
-    const table = 'feature_flag'
-    const [oldFeatureFlag] = await this.knex(table).where({ name })
+  getFeatureFlag = async (
+    name: GQLFeatureName | keyof typeof GQLFeatureName
+  ) => {
+    const [featureFlag] = await this.knex(this.featureFlagTable).where({ name })
+    return featureFlag
+  }
+
+  toggleFeature = async (
+    name: GQLFeatureName | keyof typeof GQLFeatureName
+  ) => {
+    const oldFeatureFlag = await this.getFeatureFlag(name)
 
     const [featureFlag] = await this.knex
       .where({ name })
@@ -70,7 +82,7 @@ export class SystemService extends BaseService {
         enabled: !oldFeatureFlag.enabled,
         updatedAt: this.knex.fn.now(),
       })
-      .into(table)
+      .into(this.featureFlagTable)
       .returning('*')
     return featureFlag
   }

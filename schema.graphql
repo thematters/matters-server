@@ -36,6 +36,7 @@ type AddCreditResult {
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
+  token: String
 }
 
 type Appreciation {
@@ -818,6 +819,7 @@ enum FeatureName {
   add_credit
   payment
   payout
+  verify_appreciate
 }
 
 input FeedbackInput {
