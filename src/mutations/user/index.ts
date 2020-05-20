@@ -7,6 +7,7 @@ import confirmVerificationCode from './confirmVerificationCode'
 import followUser from './followUser'
 import generateLikerId from './generateLikerId'
 import migration from './migration'
+import payout from './payout'
 import payTo from './payTo'
 import resetPassword from './resetPassword'
 import sendVerificationCode from './sendVerificationCode'
@@ -51,5 +52,6 @@ export default {
     migration,
     addCredit,
     payTo,
+    payout,
   },
 }

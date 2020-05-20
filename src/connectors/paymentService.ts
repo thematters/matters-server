@@ -10,6 +10,7 @@ import {
 } from 'common/enums'
 import { ServerError } from 'common/errors'
 import {
+  calcMattersFee,
   calcStripeFee,
   getUTC8Midnight,
   numRound,
@@ -349,5 +350,41 @@ export class PaymentService extends BaseService {
         transaction,
       }
     }
+  }
+
+  createPayout = async ({
+    amount,
+    recipientId,
+    recipientStripeConnectedId,
+  }: {
+    amount: number
+    recipientId: string
+    recipientStripeConnectedId: string,
+  }) => {
+    const fee = calcMattersFee(amount)
+
+    // create stripe payment
+    const payment = await this.stripe.createDestinationCharge({
+      amount,
+      currency: PAYMENT_CURRENCY.HKD,
+      fee,
+      recipientStripeConnectedId,
+    })
+
+    if (!payment) {
+      throw new ServerError('failed to create payment')
+    }
+
+    // create pending matters transaction
+    return this.createTransaction({
+      amount,
+      currency: PAYMENT_CURRENCY.HKD,
+      fee,
+      purpose: TRANSACTION_PURPOSE.payout,
+      provider: PAYMENT_PROVIDER.stripe,
+      providerTxId: payment.id,
+      recipientId,
+      targetType: undefined,
+    })
   }
 }

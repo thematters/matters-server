@@ -646,3 +646,7 @@ export enum PAYMENT_PROVIDER {
 export const PAYMENT_MAXIMUM_AMOUNT = {
   HKD: 5000,
 }
+
+export enum PAYMENT_PAYOUT_MINIMUM_AMOUNT {
+  HKD = 500,
+}

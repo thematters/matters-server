@@ -70,6 +70,39 @@ class StripeService {
       this.handleError(err)
     }
   }
+
+  createDestinationCharge = async ({
+    amount,
+    currency,
+    fee,
+    recipientStripeConnectedId,
+  }: {
+    amount: number
+    currency: PAYMENT_CURRENCY
+    fee: number
+    recipientStripeConnectedId: string
+  }) => {
+    try {
+      // if (!environment.stripeMattersCustomer) {
+      //   throw new Error()
+      // }
+
+      return await this.stripe.paymentIntents.create({
+        amount,
+        application_fee_amount: fee,
+        confirm: true,
+        currency,
+        // customer: environment.stripeMattersCustomer,
+        off_session: true,
+        on_behalf_of: recipientStripeConnectedId,
+        transfer_data: {
+          destination: recipientStripeConnectedId,
+        },
+      })
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
 }
 
 export const stripe = new StripeService()
