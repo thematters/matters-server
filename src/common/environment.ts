@@ -92,6 +92,7 @@ export const environment = {
   oAuthSecret: process.env.MATTERS_OAUTH_SECRET || '',
   stripeSecret: process.env.MATTERS_STRIPE_SECRET || '',
   stripeWebhookSecret: process.env.MATTERS_STRIPE_WEBHOOK_SECRET || '',
+  stripeConnectClientId: process.env.MATTERS_STRIPE_CONNECT_CLIENT_ID || '',
 }
 
 export const isDev = environment.env.includes('dev')

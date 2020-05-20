@@ -645,3 +645,7 @@ export enum PAYMENT_PROVIDER {
 export const PAYMENT_MAXIMUM_AMOUNT = {
   HKD: 5000,
 }
+
+export enum PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE {
+  express = 'express',
+}

@@ -5,6 +5,9 @@ export default /* GraphQL */ `
 
     "Pay to another user or article"
     payTo(input: PayToInput!): PayToResult! @authenticate
+
+    "Create Stripe Connect account for Payout"
+    connectStripeAccount: ConnectStripeAccountResult! @authenticate
   }
 
   extend type User {
@@ -17,6 +20,7 @@ export default /* GraphQL */ `
   type Wallet {
     balance: Balance!
     transactions(input: TransactionsArgs!): TransactionConnection!
+    stripeAccount: StripeAccount
   }
 
   type Balance {
@@ -111,5 +115,15 @@ export default /* GraphQL */ `
 
     "Only available when paying with LIKE."
     redirectUrl: URL
+  }
+
+  # Stripe Account
+  type StripeAccount {
+    id: ID!
+    loginUrl: URL!
+  }
+
+  type ConnectStripeAccountResult {
+    redirectUrl: URL!
   }
 `
