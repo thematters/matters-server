@@ -40,6 +40,18 @@ const stripeConnectHandler = async (
     return res.redirect(url)
   }
 
+  // check if viewer already has a payout account
+  const payoutAccount = (
+    await paymentService.findPayoutAccount({ userId: viewer.id })
+  )[0]
+
+  if (payoutAccount) {
+    return redirectFailure({
+      code: OAUTH_CALLBACK_ERROR_CODE.stripeAccountExists,
+      message: 'viewer already has a payout account.',
+    })
+  }
+
   try {
     const { stripe_user_id: accountId } = await stripe.oauth.token({
       grant_type: 'authorization_code',
@@ -49,10 +61,11 @@ const stripeConnectHandler = async (
     if (!accountId) {
       return redirectFailure({
         code: OAUTH_CALLBACK_ERROR_CODE.stripeAccountNotFound,
-        message: 'accountid is required',
+        message: 'accountId is required.',
       })
     }
 
+    //
     await paymentService.createPayoutAccount({
       user: viewer,
       accountId,

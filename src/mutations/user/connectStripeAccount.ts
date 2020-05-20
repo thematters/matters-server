@@ -1,4 +1,3 @@
-import { USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
   PaymentPayoutAccountExistsError,

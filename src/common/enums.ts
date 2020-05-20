@@ -508,6 +508,7 @@ export const OAUTH_CALLBACK_ERROR_CODE = {
   // stripe
   stripeAccountNotFound: 4,
   stripeAuthFailed: 5,
+  stripeAccountExists: 6,
 }
 
 export const GQL_OPERATION = {
