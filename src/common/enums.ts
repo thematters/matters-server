@@ -624,6 +624,7 @@ export enum TRANSACTION_PURPOSE {
   addCredit = 'add-credit',
   refund = 'refund',
   fee = 'fee',
+  payout = 'payout'
 }
 
 export enum TRANSACTION_TARGET_TYPE {

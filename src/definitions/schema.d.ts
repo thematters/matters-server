@@ -2022,6 +2022,11 @@ export interface GQLMutation {
   payTo: GQLPayToResult
 
   /**
+   * Payout to user
+   */
+  payout: GQLTransaction
+
+  /**
    * Create or Update an OAuth Client, used in OSS.
    */
   putOAuthClient?: GQLOAuthClient
@@ -2414,9 +2419,6 @@ export interface GQLAddCreditResult {
   client_secret: string
 }
 
-/**
- * Pay To
- */
 export interface GQLPayToInput {
   amount: GQLPositiveFloat
   currency: GQLTransactionCurrency
@@ -2433,6 +2435,11 @@ export interface GQLPayToResult {
    * Only available when paying with LIKE.
    */
   redirectUrl?: GQLURL
+}
+
+export interface GQLPayoutInput {
+  amount: GQLPositiveFloat
+  password: string
 }
 
 export interface GQLPutOAuthClientInput {
@@ -7556,6 +7563,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   unfollowUser?: MutationToUnfollowUserResolver<TParent>
   addCredit?: MutationToAddCreditResolver<TParent>
   payTo?: MutationToPayToResolver<TParent>
+  payout?: MutationToPayoutResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
@@ -8427,6 +8435,18 @@ export interface MutationToPayToResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPayToArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPayoutArgs {
+  input: GQLPayoutInput
+}
+export interface MutationToPayoutResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPayoutArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

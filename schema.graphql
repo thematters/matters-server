@@ -1079,6 +1079,9 @@ type Mutation {
   """Pay to another user or article"""
   payTo(input: PayToInput!): PayToResult!
 
+  """Payout to user"""
+  payout(input: PayoutInput!): Transaction!
+
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
 }
@@ -1318,7 +1321,11 @@ type PaymentReceivedDonationNotice implements Notice {
   target: Transaction
 }
 
-"""Pay To"""
+input PayoutInput {
+  amount: PositiveFloat!
+  password: String!
+}
+
 input PayToInput {
   amount: PositiveFloat!
   currency: TransactionCurrency!
