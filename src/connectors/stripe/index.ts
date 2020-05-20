@@ -82,6 +82,7 @@ class StripeService {
       {
         client_id: environment.stripeConnectClientId,
         response_type: 'code',
+        redirect_uri: environment.stripeConnectCallbackURL,
         stripe_user: {
           email: user.email,
           url: `${environment.siteDomain}/@${user.userName}`,

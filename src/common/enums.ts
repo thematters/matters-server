@@ -502,8 +502,12 @@ export const CORS_OPTIONS = {
 
 export const OAUTH_CALLBACK_ERROR_CODE = {
   userNotFound: 1,
+  // likecoin
   likerNotFound: 2,
   likerExists: 3,
+  // stripe
+  stripeAccountNotFound: 4,
+  stripeAuthFailed: 5,
 }
 
 export const GQL_OPERATION = {

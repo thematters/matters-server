@@ -128,6 +128,7 @@ export type TableName =
   | 'blocklist'
   | 'transaction'
   | 'customer'
+  | 'payout_account'
   | 'punish_record'
 
 export type MaterializedView =

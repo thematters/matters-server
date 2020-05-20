@@ -382,4 +382,26 @@ export class PaymentService extends BaseService {
 
     return qs
   }
+
+  createPayoutAccount = async ({
+    user,
+    accountId,
+    type = PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express,
+    provider = PAYMENT_PROVIDER.stripe,
+  }: {
+    user: User
+    accountId: string
+    type?: PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express
+    provider?: PAYMENT_PROVIDER.stripe
+  }) => {
+    return this.baseCreate(
+      {
+        userId: user.id,
+        accountId,
+        type,
+        provider,
+      },
+      'payout_account'
+    )
+  }
 }

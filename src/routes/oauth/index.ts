@@ -14,6 +14,7 @@ import { OAuthService } from 'connectors'
 
 import OAuthServer from './express-oauth-server'
 import initPassportStrategies from './strategies'
+import stripeConnectHandler from './stripeConnectHandler'
 
 const oAuthRouter = Router()
 const oAuthService = new OAuthService()
@@ -113,6 +114,10 @@ oAuthRouter.get('/:provider', (req, res, next) => {
 })
 oAuthRouter.get('/:provider/callback', (req, res, next) => {
   const provider = req.params.provider
+
+  if (provider === 'stripe-connect') {
+    return stripeConnectHandler(req, res, next)
+  }
 
   passport.authenticate(provider, (err, user, info) => {
     if (err) {

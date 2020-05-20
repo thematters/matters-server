@@ -1,3 +1,5 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Mutation {
     "Add Credit to User Wallet"
@@ -119,7 +121,7 @@ export default /* GraphQL */ `
 
   # Stripe Account
   type StripeAccount {
-    id: ID!
+    id: ID! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
     loginUrl: URL!
   }
 
