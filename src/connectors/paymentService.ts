@@ -429,7 +429,8 @@ export class PaymentService extends BaseService {
       throw new ServerError('failed to create payment')
     }
 
-    // create pending matters transaction
+    // create pending matters transaction. To make number of wallet
+    // balance right, set recipient as sender here.
     return this.createTransaction({
       amount,
       currency: PAYMENT_CURRENCY.HKD,
@@ -437,7 +438,7 @@ export class PaymentService extends BaseService {
       purpose: TRANSACTION_PURPOSE.payout,
       provider: PAYMENT_PROVIDER.stripe,
       providerTxId: payment.id,
-      recipientId,
+      senderId: recipientId,
       targetType: undefined,
     })
   }
