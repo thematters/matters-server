@@ -8,8 +8,8 @@ import {
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import {
-  GQLFeatureName,
   GQLFeatureFlag,
+  GQLFeatureName,
   SkippedListItemType,
 } from 'definitions'
 
