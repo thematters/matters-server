@@ -121,8 +121,8 @@ class StripeService {
       }
 
       return await this.stripe.paymentIntents.create({
-        amount,
-        application_fee_amount: fee,
+        amount: toProviderAmount({ amount }),
+        application_fee_amount: toProviderAmount({ amount: fee }),
         confirm: true,
         currency,
         customer: environment.stripeCustomerId,
