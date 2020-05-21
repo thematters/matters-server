@@ -815,6 +815,12 @@ input FeaturedCommentsInput {
   first: Int
 }
 
+enum FeatureFlag {
+  on
+  off
+  admin
+}
+
 enum FeatureName {
   add_credit
   payment
@@ -1002,7 +1008,7 @@ type Mutation {
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
-  toggleFeature(input: ToggleFeatureInput!): Feature!
+  setFeature(input: SetFeatureInput!): Feature!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1680,6 +1686,11 @@ input SetBoostInput {
 input SetCollectionInput {
   id: ID!
   collection: [ID!]!
+}
+
+input SetFeatureInput {
+  name: FeatureName!
+  flag: FeatureFlag!
 }
 
 input SingleFileDeleteInput {

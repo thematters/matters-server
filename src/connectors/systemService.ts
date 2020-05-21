@@ -7,7 +7,11 @@ import {
 } from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
-import { GQLFeatureName, SkippedListItemType } from 'definitions'
+import {
+  GQLFeatureName,
+  GQLFeatureFlag,
+  SkippedListItemType,
+} from 'definitions'
 
 export class SystemService extends BaseService {
   featureFlagTable: string
@@ -70,16 +74,18 @@ export class SystemService extends BaseService {
     return featureFlag
   }
 
-  toggleFeature = async (
+  setFeatureFlag = async ({
+    name,
+    flag,
+  }: {
     name: GQLFeatureName | keyof typeof GQLFeatureName
-  ) => {
-    const oldFeatureFlag = await this.getFeatureFlag(name)
-
+    flag: GQLFeatureFlag | keyof typeof GQLFeatureFlag
+  }) => {
     const [featureFlag] = await this.knex
       .where({ name })
       .update({
         name,
-        enabled: !oldFeatureFlag.enabled,
+        flag,
         updatedAt: this.knex.fn.now(),
       })
       .into(this.featureFlagTable)

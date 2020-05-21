@@ -5,7 +5,7 @@ import putSkippedListItem from './putSkippedListItem'
 import setBoost from './setBoost'
 import singleFileDelete from './singleFileDelete'
 import singleFileUpload from './singleFileUpload'
-import toggleFeature from './toggleFeature'
+import setFeature from './setFeature'
 
 export default {
   Mutation: {
@@ -16,6 +16,6 @@ export default {
     putRemark,
     logRecord,
     putSkippedListItem,
-    toggleFeature,
+    setFeature,
   },
 }

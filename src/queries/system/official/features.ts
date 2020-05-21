@@ -1,5 +1,5 @@
 import { USER_ROLE } from 'common/enums'
-import { FeatureFlag, OfficialToFeaturesResolver } from 'definitions'
+import { GQLFeatureFlag, OfficialToFeaturesResolver } from 'definitions'
 
 export const features: OfficialToFeaturesResolver = async (
   root,
@@ -8,7 +8,7 @@ export const features: OfficialToFeaturesResolver = async (
 ) => {
   const featureFlags = await systemService.getFeatureFlags()
 
-  const enabled = (flag: FeatureFlag) =>
+  const enabled = (flag: GQLFeatureFlag) =>
     flag === 'on'
       ? true
       : flag === 'off'

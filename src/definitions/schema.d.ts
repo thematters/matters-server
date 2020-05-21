@@ -1890,7 +1890,7 @@ export interface GQLMutation {
   setBoost: GQLNode
   putRemark?: string
   putSkippedListItem?: Array<GQLSkippedListItem>
-  toggleFeature: GQLFeature
+  setFeature: GQLFeature
 
   /**
    * Send verification code for email.
@@ -2263,8 +2263,15 @@ export interface GQLPutSkippedListItemInput {
   archived: boolean
 }
 
-export interface GQLToggleFeatureInput {
+export interface GQLSetFeatureInput {
   name: GQLFeatureName
+  flag: GQLFeatureFlag
+}
+
+export const enum GQLFeatureFlag {
+  on = 'on',
+  off = 'off',
+  admin = 'admin',
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -2993,6 +3000,10 @@ export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
 }
 
 export type GQLTime = any
+
+export interface GQLToggleFeatureInput {
+  name: GQLFeatureName
+}
 
 export interface GQLUpstreamArticleArchivedNotice extends GQLNotice {
   id: string
@@ -7528,7 +7539,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
   putSkippedListItem?: MutationToPutSkippedListItemResolver<TParent>
-  toggleFeature?: MutationToToggleFeatureResolver<TParent>
+  setFeature?: MutationToSetFeatureResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -8093,13 +8104,13 @@ export interface MutationToPutSkippedListItemResolver<
   ): TResult
 }
 
-export interface MutationToToggleFeatureArgs {
-  input: GQLToggleFeatureInput
+export interface MutationToSetFeatureArgs {
+  input: GQLSetFeatureInput
 }
-export interface MutationToToggleFeatureResolver<TParent = any, TResult = any> {
+export interface MutationToSetFeatureResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: MutationToToggleFeatureArgs,
+    args: MutationToSetFeatureArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
