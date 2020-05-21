@@ -659,3 +659,9 @@ export enum PAYMENT_PAYOUT_MINIMUM_AMOUNT {
 export enum PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE {
   express = 'express',
 }
+
+export enum SLACK_MESSAGE_STATE {
+  canceled = 'canceled',
+  failed = 'failed',
+  successful = 'successful',
+}
