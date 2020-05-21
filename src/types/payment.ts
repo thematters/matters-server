@@ -8,6 +8,9 @@ export default /* GraphQL */ `
     "Pay to another user or article"
     payTo(input: PayToInput!): PayToResult! @authenticate
 
+    "Payout to user"
+    payout(input: PayoutInput!): Transaction! @authenticate
+
     "Create Stripe Connect account for Payout"
     connectStripeAccount: ConnectStripeAccountResult! @authenticate
   }
@@ -83,16 +86,12 @@ export default /* GraphQL */ `
     donation
     addCredit
     refund
+    payout
   }
 
   enum TransactionCurrency {
     HKD
     LIKE
-  }
-
-  # Add Credit
-  input AddCreditInput {
-    amount: PositiveFloat!
   }
 
   type AddCreditResult {
@@ -102,7 +101,18 @@ export default /* GraphQL */ `
     client_secret: String!
   }
 
-  # Pay To
+  type PayToResult {
+    transaction: Transaction!
+
+    "Only available when paying with LIKE."
+    redirectUrl: URL
+  }
+
+  # Add Credit
+  input AddCreditInput {
+    amount: PositiveFloat!
+  }
+
   input PayToInput {
     amount: PositiveFloat!
     currency: TransactionCurrency!
@@ -112,11 +122,9 @@ export default /* GraphQL */ `
     password: String
   }
 
-  type PayToResult {
-    transaction: Transaction!
-
-    "Only available when paying with LIKE."
-    redirectUrl: URL
+  input PayoutInput {
+    amount: PositiveFloat!
+    password: String!
   }
 
   # Stripe Account

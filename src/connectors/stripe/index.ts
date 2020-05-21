@@ -99,6 +99,44 @@ class StripeService {
   createExpressLoginLink = (accountId: string) => {
     return this.stripe.accounts.createLoginLink(accountId)
   }
+
+  /**
+   * Create destination charge.
+   *
+   * @see {@url https://stripe.com/docs/connect/destination-charges}
+   */
+  createDestinationCharge = async ({
+    amount,
+    currency,
+    fee,
+    recipientStripeConnectedId,
+  }: {
+    amount: number
+    currency: PAYMENT_CURRENCY
+    fee: number
+    recipientStripeConnectedId: string
+  }) => {
+    try {
+      if (!environment.stripeCustomerId) {
+        throw new ServerError('matters stripe customer id has not been set')
+      }
+
+      return await this.stripe.paymentIntents.create({
+        amount: toProviderAmount({ amount }),
+        application_fee_amount: toProviderAmount({ amount: fee }),
+        confirm: true,
+        currency,
+        customer: environment.stripeCustomerId,
+        off_session: true,
+        on_behalf_of: recipientStripeConnectedId,
+        transfer_data: {
+          destination: recipientStripeConnectedId,
+        },
+      })
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
 }
 
 export const stripe = new StripeService()
