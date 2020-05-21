@@ -7,9 +7,9 @@ exports.up = async (knex) => {
   })
 
   const updateField = (name, flag) =>
-    this.knex(table).where({ name }).update({
+    knex(table).where({ name }).update({
       flag,
-      updatedAt: knex.fn.now(),
+      updated_at: knex.fn.now(),
     })
 
   await updateField('add_credit', 'admin')
