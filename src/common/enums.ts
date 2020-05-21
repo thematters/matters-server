@@ -651,7 +651,7 @@ export const PAYMENT_MAXIMUM_AMOUNT = {
   HKD: 5000,
 }
 
-export const PAYMENT_MINIMAL_PAYOUT_AMOUNT = {
+export const PAYMENT_PAYOUT_MINIMUM_AMOUNT = {
   HKD: 500,
 }
 
