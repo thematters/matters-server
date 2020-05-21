@@ -51,25 +51,25 @@ const resolver: MutationToPayoutResolver = async (
       userId: viewer.id,
       currency: PAYMENT_CURRENCY.HKD,
     }),
-    // paymentService.findPayoutAccount({ userId: viewer.id })
+    paymentService.findPayoutAccount({ userId: viewer.id })
   ])
 
   if (amount > balance) {
     throw new PaymentBalanceInsufficientError('viewer has insufficient balance')
   }
 
-  // if (!customer || !customer.accountId) {
-  //   throw new EntityNotFoundError(`customer is not found`)
-  // }
+  const recipient = customer[0]
+  if (!recipient || !recipient.accountId) {
+    throw new EntityNotFoundError(`paypout recipient is not found`)
+  }
 
-  // const transaction = await paymentService.createPayout({
-  //   amount,
-  //   recipientId: viewer.id,
-  //   recipientStripeConnectedId: customer.accountId
-  // })
+  const transaction = await paymentService.createPayout({
+    amount,
+    recipientId: viewer.id,
+    recipientStripeConnectedId: recipient.accountId
+  })
 
-  // return transaction
-  return {}
+  return transaction
 }
 
 export default resolver
