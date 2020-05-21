@@ -96,8 +96,9 @@ class StripeService {
     )
   }
 
-  createExpressLoginLink = (accountId: string) => {
-    return this.stripe.accounts.createLoginLink(accountId)
+  createExpressLoginLink = async (accountId: string) => {
+    const { url } = await this.stripe.accounts.createLoginLink(accountId)
+    return url
   }
 
   /**

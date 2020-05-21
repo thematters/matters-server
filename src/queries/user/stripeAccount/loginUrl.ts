@@ -1,11 +1,11 @@
 import { StripeAccountToLoginUrlResolver } from 'definitions'
 
 const resolver: StripeAccountToLoginUrlResolver = async (
-  { id },
+  { accountId },
   _,
   { dataSources: { paymentService } }
 ) => {
-  return paymentService.stripe.createExpressLoginLink(id)
+  return paymentService.stripe.createExpressLoginLink(accountId)
 }
 
 export default resolver
