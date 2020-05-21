@@ -51,7 +51,7 @@ const resolver: MutationToPayoutResolver = async (
       userId: viewer.id,
       currency: PAYMENT_CURRENCY.HKD,
     }),
-    paymentService.findPayoutAccount({ userId: viewer.id })
+    paymentService.findPayoutAccount({ userId: viewer.id }),
   ])
 
   if (amount > balance) {
@@ -66,7 +66,7 @@ const resolver: MutationToPayoutResolver = async (
   const transaction = await paymentService.createPayout({
     amount,
     recipientId: viewer.id,
-    recipientStripeConnectedId: recipient.accountId
+    recipientStripeConnectedId: recipient.accountId,
   })
 
   return transaction
