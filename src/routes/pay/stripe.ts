@@ -6,6 +6,7 @@ import Stripe from 'stripe'
 import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
+  SLACK_MESSAGE_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -14,6 +15,7 @@ import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { numRound, toDBAmount } from 'common/utils'
 import { NotificationService, PaymentService, UserService } from 'connectors'
+import SlackService from 'connectors/slack'
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-03-02',
@@ -83,6 +85,20 @@ const updateTxState = async (
         currency: tx.currency,
       },
     })
+
+    // send slack message
+    if (tx.purpose === TRANSACTION_PURPOSE.payout) {
+      const slack = new SlackService()
+      if (slack) {
+        slack.sendPayoutMessage({
+          amount: tx.amount,
+          fee: tx.fee,
+          state: SLACK_MESSAGE_STATE.successful,
+          txId: tx.providerTxId,
+          userName: recipient.userName,
+        })
+      }
+    }
   }
 }
 
