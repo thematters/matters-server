@@ -21,6 +21,15 @@ const stripe = new Stripe(environment.stripeSecret, {
 
 const stripeRouter = Router()
 
+const mappingTxPurposeToMailType = (type: TRANSACTION_PURPOSE) => {
+  switch (type) {
+    case TRANSACTION_PURPOSE.addCredit:
+      return 'creditAdded'
+    case TRANSACTION_PURPOSE.payout:
+      return 'payout'
+  }
+}
+
 const updateTxState = async (
   paymentIntent: Stripe.PaymentIntent,
   eventType:
@@ -58,7 +67,8 @@ const updateTxState = async (
   })
 
   // trigger notifications
-  if (eventType === 'payment_intent.succeeded') {
+  const mailType = mappingTxPurposeToMailType(tx.purpose)
+  if (eventType === 'payment_intent.succeeded' && mailType) {
     const recipient = await userService.baseFindById(tx.recipientId)
     notificationService.mail.sendPayment({
       to: recipient.email,
@@ -66,7 +76,7 @@ const updateTxState = async (
         displayName: recipient.displayName,
         userName: recipient.userName,
       },
-      type: 'creditAdded',
+      type: mailType,
       tx: {
         recipient,
         amount: numRound(tx.amount),
