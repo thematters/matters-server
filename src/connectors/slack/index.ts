@@ -43,14 +43,15 @@ class SlackService {
         attachments: [
           {
             color: this.getMessageColor(state),
-            text: '\n'
-              + `\n- *Matters id:* ${userName}`
-              + `\n- *Stripe tx id*: ${txId}`
-              + `\n- *Amount*: ${numRound(amount)}`
-              + `\n- *Fee*: ${numRound(fee)}`,
+            text:
+              '\n' +
+              `\n- *Matters id:* ${userName}` +
+              `\n- *Stripe tx id*: ${txId}` +
+              `\n- *Amount*: ${numRound(amount)}` +
+              `\n- *Fee*: ${numRound(fee)}`,
           },
         ],
-        markdown: true
+        markdown: true,
       })
     } catch (error) {
       logger.error(error)
