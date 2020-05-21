@@ -84,7 +84,7 @@ class StripeService {
   }) => {
     try {
       if (!environment.stripeCustomerId) {
-        throw new ServerError('matters stripe customer id has been set')
+        throw new ServerError('matters stripe customer id has not been set')
       }
 
       return await this.stripe.paymentIntents.create({
