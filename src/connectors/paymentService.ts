@@ -359,7 +359,7 @@ export class PaymentService extends BaseService {
   }: {
     amount: number
     recipientId: string
-    recipientStripeConnectedId: string,
+    recipientStripeConnectedId: string
   }) => {
     const fee = calcMattersFee(amount)
 

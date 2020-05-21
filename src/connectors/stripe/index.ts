@@ -83,16 +83,16 @@ class StripeService {
     recipientStripeConnectedId: string
   }) => {
     try {
-      // if (!environment.stripeMattersCustomer) {
-      //   throw new Error()
-      // }
+      if (!environment.stripeCustomerId) {
+        throw new ServerError('matters stripe customer id has been set')
+      }
 
       return await this.stripe.paymentIntents.create({
         amount,
         application_fee_amount: fee,
         confirm: true,
         currency,
-        // customer: environment.stripeMattersCustomer,
+        customer: environment.stripeCustomerId,
         off_session: true,
         on_behalf_of: recipientStripeConnectedId,
         transfer_data: {
