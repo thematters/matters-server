@@ -1843,10 +1843,6 @@ input ToggleArticleRecommendInput {
   type: RecommendTypes!
 }
 
-input ToggleFeatureInput {
-  name: FeatureName!
-}
-
 """Common input to toggle single item for `toggleXXX` mutations"""
 input ToggleItemInput {
   id: ID!

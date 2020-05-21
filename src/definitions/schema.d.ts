@@ -3001,10 +3001,6 @@ export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
 
 export type GQLTime = any
 
-export interface GQLToggleFeatureInput {
-  name: GQLFeatureName
-}
-
 export interface GQLUpstreamArticleArchivedNotice extends GQLNotice {
   id: string
   unread: boolean

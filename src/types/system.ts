@@ -293,10 +293,6 @@ export default /* GraphQL */ `
     enabled: Boolean
   }
 
-  input ToggleFeatureInput {
-    name: FeatureName!
-  }
-
   input SetFeatureInput {
     name: FeatureName!
     flag: FeatureFlag!
