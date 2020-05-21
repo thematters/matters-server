@@ -95,6 +95,7 @@ export const environment = {
   stripeConnectClientId: process.env.MATTERS_STRIPE_CONNECT_CLIENT_ID || '',
   stripeConnectCallbackURL:
     process.env.MATTERS_STRIPE_CONNECT_CALLBACK_URL || '',
+  stripeCustomerId: process.env.MATTERS_STRIPE_CUSTOMER_ID || '',
 }
 
 export const isDev = environment.env.includes('dev')

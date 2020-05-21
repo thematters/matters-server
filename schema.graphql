@@ -1083,7 +1083,10 @@ type Mutation {
   """Pay to another user or article"""
   payTo(input: PayToInput!): PayToResult!
 
-  """Connect Stripe account for Payout"""
+  """Payout to user"""
+  payout(input: PayoutInput!): Transaction!
+
+  """Create Stripe Connect account for Payout"""
   connectStripeAccount: ConnectStripeAccountResult!
 
   """Create or Update an OAuth Client, used in OSS."""
@@ -1325,7 +1328,11 @@ type PaymentReceivedDonationNotice implements Notice {
   target: Transaction
 }
 
-"""Pay To"""
+input PayoutInput {
+  amount: PositiveFloat!
+  password: String!
+}
+
 input PayToInput {
   amount: PositiveFloat!
   currency: TransactionCurrency!
@@ -1896,6 +1903,7 @@ enum TransactionPurpose {
   donation
   addCredit
   refund
+  payout
 }
 
 input TransactionsArgs {

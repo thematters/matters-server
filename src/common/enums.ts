@@ -629,6 +629,7 @@ export enum TRANSACTION_PURPOSE {
   addCredit = 'add-credit',
   refund = 'refund',
   fee = 'fee',
+  payout = 'payout',
 }
 
 export enum TRANSACTION_TARGET_TYPE {
@@ -651,8 +652,8 @@ export const PAYMENT_MAXIMUM_AMOUNT = {
   HKD: 5000,
 }
 
-export const PAYMENT_PAYOUT_MINIMUM_AMOUNT = {
-  HKD: 500,
+export enum PAYMENT_PAYOUT_MINIMUM_AMOUNT {
+  HKD = 500,
 }
 
 export enum PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE {
