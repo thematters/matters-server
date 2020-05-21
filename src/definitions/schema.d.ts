@@ -1355,6 +1355,7 @@ export const enum GQLTransactionPurpose {
   donation = 'donation',
   addCredit = 'addCredit',
   refund = 'refund',
+  payout = 'payout',
 }
 
 export const enum GQLTransactionCurrency {

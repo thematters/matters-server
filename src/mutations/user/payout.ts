@@ -60,7 +60,7 @@ const resolver: MutationToPayoutResolver = async (
 
   const recipient = customer[0]
   if (!recipient || !recipient.accountId) {
-    throw new EntityNotFoundError(`paypout recipient is not found`)
+    throw new EntityNotFoundError(`payout recipient is not found`)
   }
 
   const transaction = await paymentService.createPayout({

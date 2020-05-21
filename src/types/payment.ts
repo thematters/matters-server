@@ -86,6 +86,7 @@ export default /* GraphQL */ `
     donation
     addCredit
     refund
+    payout
   }
 
   enum TransactionCurrency {
