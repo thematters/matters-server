@@ -350,3 +350,13 @@ export class PaymentReachMaximumLimitError extends ApolloError {
     })
   }
 }
+
+export class PaymentPayoutAccountExistsError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_PAYOUT_ACCOUNT_EXISTS')
+
+    Object.defineProperty(this, 'name', {
+      value: 'PaymentPayoutAccountExistsError',
+    })
+  }
+}

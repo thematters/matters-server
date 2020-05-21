@@ -4,6 +4,7 @@ import {
   BATCH_SIZE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
+  PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -349,5 +350,58 @@ export class PaymentService extends BaseService {
         transaction,
       }
     }
+  }
+
+  /*********************************
+   *                               *
+   *             Payout            *
+   *                               *
+   *********************************/
+  findPayoutAccount = async ({
+    userId,
+    accountId,
+    provider = PAYMENT_PROVIDER.stripe,
+  }: {
+    userId?: string
+    accountId?: string
+    provider?: PAYMENT_PROVIDER.stripe
+  }) => {
+    let qs = this.knex('payout_account')
+
+    if (userId) {
+      qs = qs.where({ userId })
+    }
+
+    if (accountId) {
+      qs = qs.where({ accountId })
+    }
+
+    if (provider) {
+      qs = qs.where({ provider })
+    }
+
+    return qs
+  }
+
+  createPayoutAccount = async ({
+    user,
+    accountId,
+    type = PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express,
+    provider = PAYMENT_PROVIDER.stripe,
+  }: {
+    user: User
+    accountId: string
+    type?: PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express
+    provider?: PAYMENT_PROVIDER.stripe
+  }) => {
+    return this.baseCreate(
+      {
+        userId: user.id,
+        accountId,
+        type,
+        provider,
+      },
+      'payout_account'
+    )
   }
 }

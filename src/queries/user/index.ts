@@ -5,6 +5,7 @@ import {
   GQLLIKETypeResolver,
   GQLQueryTypeResolver,
   GQLRecommendationTypeResolver,
+  GQLStripeAccountTypeResolver,
   GQLTransactionTargetTypeResolver,
   GQLTransactionTypeResolver,
   GQLUserActivityTypeResolver,
@@ -40,6 +41,7 @@ import { boost, score } from './oss'
 import profileCover from './profileCover'
 import Recommendation from './recommendation'
 import rootUser from './rootUser'
+import StripeAccount from './stripeAccount'
 import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
@@ -52,21 +54,26 @@ import Wallet from './wallet'
 
 const user: {
   Query: GQLQueryTypeResolver
+
   User: GQLUserTypeResolver
-  Recommendation: GQLRecommendationTypeResolver
   UserInfo: GQLUserInfoTypeResolver
   UserSettings: GQLUserSettingsTypeResolver
   UserActivity: GQLUserActivityTypeResolver
-  Liker: GQLLikerTypeResolver
-  Wallet: GQLWalletTypeResolver
-  LIKE: GQLLIKETypeResolver
+  UserStatus: GQLUserStatusTypeResolver
   Appreciation: GQLAppreciationTypeResolver
+  Recommendation: GQLRecommendationTypeResolver
+
+  Liker: GQLLikerTypeResolver
+  LIKE: GQLLIKETypeResolver
+
+  UserOSS: GQLUserOSSTypeResolver
+
+  Wallet: GQLWalletTypeResolver
   Transaction: GQLTransactionTypeResolver
   TransactionTarget: {
     __resolveType: GQLTransactionTargetTypeResolver
   }
-  UserStatus: GQLUserStatusTypeResolver
-  UserOSS: GQLUserOSSTypeResolver
+  StripeAccount: GQLStripeAccountTypeResolver
 } = {
   Query: {
     viewer: (root, _, { viewer }) => viewer,
@@ -94,8 +101,6 @@ const user: {
     isBlocking,
     isBlocked,
   },
-  Recommendation,
-  Liker,
   UserInfo: {
     badges,
     userNameEditable,
@@ -103,20 +108,12 @@ const user: {
     profileCover,
     group,
   },
-  Wallet,
   UserSettings: {
     language: ({ language }, _, { viewer }) => language,
     notification,
     oauthProviders,
   },
   UserActivity,
-  LIKE: {
-    total,
-    rateUSD,
-  },
-  Appreciation,
-  Transaction,
-  TransactionTarget,
   UserStatus: {
     LIKE: (root) => root,
     articleCount,
@@ -127,10 +124,27 @@ const user: {
     hasPaymentPassword,
     totalWordCount,
   },
+  Appreciation,
+  Recommendation,
+
+  // LikeCoin
+  Liker,
+  LIKE: {
+    total,
+    rateUSD,
+  },
+
+  // OSS
   UserOSS: {
     boost,
     score,
   },
+
+  // Payment
+  Wallet,
+  Transaction,
+  TransactionTarget,
+  StripeAccount,
 }
 
 export default user

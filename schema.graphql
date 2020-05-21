@@ -706,6 +706,10 @@ input ConnectionArgs {
   oss: Boolean
 }
 
+type ConnectStripeAccountResult {
+  redirectUrl: URL!
+}
+
 input CostComplexity {
   min: Int = 1
   max: Int
@@ -1078,6 +1082,9 @@ type Mutation {
 
   """Pay to another user or article"""
   payTo(input: PayToInput!): PayToResult!
+
+  """Connect Stripe account for Payout"""
+  connectStripeAccount: ConnectStripeAccountResult!
 
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
@@ -1720,6 +1727,12 @@ enum SkippedListItemType {
   email
 }
 
+"""Stripe Account"""
+type StripeAccount {
+  id: ID!
+  loginUrl: URL!
+}
+
 input SubscribeArticleInput {
   id: ID!
 }
@@ -2254,4 +2267,5 @@ input VoteCommentInput {
 type Wallet {
   balance: Balance!
   transactions(input: TransactionsArgs!): TransactionConnection!
+  stripeAccount: StripeAccount
 }
