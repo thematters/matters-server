@@ -71,6 +71,39 @@ class StripeService {
     }
   }
 
+  /**
+   * Create OAuth Link for viewer to connect Stripe account
+   *
+   * @see {@url https://stripe.com/docs/connect/oauth-reference}
+   * @see {@url https://stripe.com/docs/connect/express-accounts#integrating-oauth}
+   */
+  createOAuthLink = ({ user }: { user: User }) => {
+    return this.stripe.oauth.authorizeUrl(
+      {
+        client_id: environment.stripeConnectClientId,
+        response_type: 'code',
+        redirect_uri: environment.stripeConnectCallbackURL,
+        stripe_user: {
+          email: user.email,
+          url: `${environment.siteDomain}/@${user.userName}`,
+          country: 'HK',
+        },
+      },
+      {
+        express: true,
+      }
+    )
+  }
+
+  createExpressLoginLink = (accountId: string) => {
+    return this.stripe.accounts.createLoginLink(accountId)
+  }
+
+  /**
+   * Create destination charge.
+   *
+   * @see {@url https://stripe.com/docs/connect/destination-charges}
+   */
   createDestinationCharge = async ({
     amount,
     currency,

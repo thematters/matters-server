@@ -502,8 +502,13 @@ export const CORS_OPTIONS = {
 
 export const OAUTH_CALLBACK_ERROR_CODE = {
   userNotFound: 1,
+  // likecoin
   likerNotFound: 2,
   likerExists: 3,
+  // stripe
+  stripeAccountNotFound: 4,
+  stripeAuthFailed: 5,
+  stripeAccountExists: 6,
 }
 
 export const GQL_OPERATION = {
@@ -649,4 +654,8 @@ export const PAYMENT_MAXIMUM_AMOUNT = {
 
 export enum PAYMENT_PAYOUT_MINIMUM_AMOUNT {
   HKD = 500,
+}
+
+export enum PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE {
+  express = 'express',
 }

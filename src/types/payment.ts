@@ -1,3 +1,5 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Mutation {
     "Add Credit to User Wallet"
@@ -8,6 +10,9 @@ export default /* GraphQL */ `
 
     "Payout to user"
     payout(input: PayoutInput!): Transaction! @authenticate
+
+    "Create Stripe Connect account for Payout"
+    connectStripeAccount: ConnectStripeAccountResult! @authenticate
   }
 
   extend type User {
@@ -20,6 +25,7 @@ export default /* GraphQL */ `
   type Wallet {
     balance: Balance!
     transactions(input: TransactionsArgs!): TransactionConnection!
+    stripeAccount: StripeAccount
   }
 
   type Balance {
@@ -118,5 +124,15 @@ export default /* GraphQL */ `
   input PayoutInput {
     amount: PositiveFloat!
     password: String!
+  }
+
+  # Stripe Account
+  type StripeAccount {
+    id: ID! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    loginUrl: URL!
+  }
+
+  type ConnectStripeAccountResult {
+    redirectUrl: URL!
   }
 `

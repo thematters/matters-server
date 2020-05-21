@@ -4,6 +4,7 @@ import changeEmail from './changeEmail'
 import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import confirmVerificationCode from './confirmVerificationCode'
+import connectStripeAccount from './connectStripeAccount'
 import followUser from './followUser'
 import generateLikerId from './generateLikerId'
 import migration from './migration'
@@ -53,5 +54,6 @@ export default {
     addCredit,
     payTo,
     payout,
+    connectStripeAccount,
   },
 }
