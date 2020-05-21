@@ -41,6 +41,8 @@ export type User = {
   agreeOn: string
 }
 
+export type FeatureFlag = 'on' | 'off' | 'admin'
+
 export type UserRole = 'admin' | 'user'
 
 export type UserState = 'active' | 'banned' | 'archived'
