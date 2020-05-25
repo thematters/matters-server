@@ -25,7 +25,7 @@ export default /* GraphQL */ `
   type Wallet {
     balance: Balance!
     transactions(input: TransactionsArgs!): TransactionConnection!
-    stripeAccount: StripeAccount @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    stripeAccount: StripeAccount
   }
 
   type Balance {
@@ -130,7 +130,7 @@ export default /* GraphQL */ `
   # Stripe Account
   type StripeAccount {
     id: ID!
-    loginUrl: URL!
+    loginUrl: URL! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
   }
 
   type ConnectStripeAccountResult {
