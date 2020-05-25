@@ -2,10 +2,10 @@ import { NextFunction, Request, Response } from 'express'
 import querystring from 'querystring'
 import Stripe from 'stripe'
 
-import { OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
+import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { PaymentService } from 'connectors'
+import { CacheService, PaymentService } from 'connectors'
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-03-02',
@@ -23,6 +23,7 @@ const stripeConnectHandler = async (
   next: NextFunction
 ) => {
   const paymentService = new PaymentService()
+  const cacheService = new CacheService()
 
   const authCode = req.query.code
   const viewer = req.app.locals.viewer
@@ -65,11 +66,14 @@ const stripeConnectHandler = async (
       })
     }
 
-    //
+    // save to db
     await paymentService.createPayoutAccount({
       user: viewer,
       accountId,
     })
+
+    // invalidate user cache
+    await cacheService.invalidateFQC(NODE_TYPES.user, viewer.id)
   } catch (err) {
     logger.error(err)
 
