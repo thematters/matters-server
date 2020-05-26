@@ -136,6 +136,9 @@ type Article implements Node {
   """Content of this article."""
   content: String!
 
+  """Original language of content"""
+  language: String
+
   """List of articles which added this article into their collections."""
   collectedBy(input: ConnectionArgs!): ArticleConnection!
 
@@ -172,7 +175,7 @@ type Article implements Node {
   sticky: Boolean!
 
   """Translation of article title and content."""
-  translation: ArticleTranslation
+  translation(input: TranslationArgs): ArticleTranslation
 
   """Transactions history of this article."""
   transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
@@ -438,8 +441,9 @@ type ArticleTagHasBeenUnselectedNotice implements Notice {
   tag: Tag
 }
 
+"""@objectCache(maxAge: 864000)"""
 type ArticleTranslation {
-  originalLanguage: String!
+  originalLanguage: String! @deprecated(reason: "Use `Article.language` instead")
   title: String!
   content: String!
 }
@@ -1934,6 +1938,10 @@ enum TransactionState {
 }
 
 union TransactionTarget = Article | Transaction
+
+input TranslationArgs {
+  language: UserLanguage!
+}
 
 input UnpinCommentInput {
   id: ID!

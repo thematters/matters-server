@@ -117,6 +117,11 @@ export interface GQLArticle extends GQLNode {
   content: string
 
   /**
+   * Original language of content
+   */
+  language?: string
+
+  /**
    * List of articles which added this article into their collections.
    */
   collectedBy: GQLArticleConnection
@@ -1382,7 +1387,18 @@ export interface GQLStripeAccount {
   loginUrl: GQLURL
 }
 
+export interface GQLTranslationArgs {
+  language: GQLUserLanguage
+}
+
+/**
+ * @objectCache(maxAge: 864000)
+ */
 export interface GQLArticleTranslation {
+  /**
+   *
+   * @deprecated Use `Article.language` instead
+   */
   originalLanguage: string
   title: string
   content: string
@@ -3338,6 +3354,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   dataHash?: ArticleToDataHashResolver<TParent>
   mediaHash?: ArticleToMediaHashResolver<TParent>
   content?: ArticleToContentResolver<TParent>
+  language?: ArticleToLanguageResolver<TParent>
   collectedBy?: ArticleToCollectedByResolver<TParent>
   collection?: ArticleToCollectionResolver<TParent>
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>
@@ -3509,6 +3526,15 @@ export interface ArticleToContentResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface ArticleToLanguageResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface ArticleToCollectedByArgs {
   input: GQLConnectionArgs
 }
@@ -3635,10 +3661,13 @@ export interface ArticleToStickyResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface ArticleToTranslationArgs {
+  input?: GQLTranslationArgs
+}
 export interface ArticleToTranslationResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: {},
+    args: ArticleToTranslationArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

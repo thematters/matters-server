@@ -12,6 +12,7 @@ import collection from './collection'
 import content from './content'
 import articleCover from './cover'
 import hasAppreciate from './hasAppreciate'
+import language from './language'
 import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
 import rootArticle from './rootArticle'
@@ -22,7 +23,7 @@ import * as tagOSS from './tag/oss'
 import tagSelected from './tag/selected'
 import tags from './tags'
 import transactionsReceivedBy from './transactionsReceivedBy'
-import ArticleTranslation from './translation'
+import translation from './translation'
 import userArticles from './user/articles'
 
 export default {
@@ -44,6 +45,7 @@ export default {
     collectedBy,
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
     hasAppreciate,
+    language,
     oss: (root: any) => root,
     relatedArticles,
     slug: ({ slug, title }: { slug: string; title: string }) =>
@@ -58,12 +60,11 @@ export default {
       content: string
     }) => makeSummary(articleContent, cover ? 110 : 140),
     tags,
-    translation: (root: any) => root,
+    translation,
     topicScore: ({ topicScore }: { topicScore: number }) =>
       topicScore ? Math.round(topicScore) : null,
     transactionsReceivedBy,
   },
-  ArticleTranslation,
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
     articles: tagArticles,

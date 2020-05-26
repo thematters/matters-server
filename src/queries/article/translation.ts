@@ -1,23 +1,24 @@
-import { GQLArticleTranslationTypeResolver } from 'definitions'
+import { ArticleToTranslationResolver } from 'definitions'
 
-const resolver: GQLArticleTranslationTypeResolver = {
-  originalLanguage: async (
-    { content },
-    _,
-    { dataSources: { articleService } }
-  ) => articleService.detectLanguage(content),
+const resolver: ArticleToTranslationResolver = (
+  { content, title },
+  { input },
+  { dataSources: { articleService }, viewer }
+) => ({
+  // deprecated
+  originalLanguage: () => articleService.detectLanguage(content),
 
-  title: async (
-    { title },
-    _,
-    { dataSources: { articleService }, viewer: { language } }
-  ) => articleService.translate({ content: title, target: language }),
+  title: () =>
+    articleService.translate({
+      content: title,
+      target: input ? input.language : viewer.language,
+    }),
 
-  content: async (
-    { content },
-    _,
-    { dataSources: { articleService }, viewer: { language } }
-  ) => articleService.translate({ content, target: language }),
-}
+  content: () =>
+    articleService.translate({
+      content,
+      target: input ? input.language : viewer.language,
+    }),
+})
 
 export default resolver
