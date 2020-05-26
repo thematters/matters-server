@@ -89,7 +89,7 @@
     "newrelic": "^6.8.0",
     "number-precision": "^1.3.2",
     "oauth2-server": "^3.0.2",
-    "objection": "^2.1.3",
+    "objection": "^2.1.5",
     "passport": "^0.4.1",
     "passport-oauth2": "^1.5.0",
     "pg": "^8.2.1",
