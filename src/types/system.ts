@@ -64,7 +64,7 @@ export default /* GraphQL */ `
     ipfsAddress: [String!]!
 
     "Feature flag"
-    features: [Feature!]! @objectCache(maxAge: ${CACHE_TTL.SHORT})
+    features: [Feature!]!
   }
 
   type Feature {
