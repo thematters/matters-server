@@ -443,26 +443,31 @@ export class PaymentService extends BaseService {
     })
   }
 
-  calculatePayoutPending = async ({
-    senderId,
-    currency,
-  }: {
-    senderId: string
-    currency: PAYMENT_CURRENCY
-  }) => {
-    const result = await this.knex('transaction')
-      .where({
-        senderId,
-        currency,
-        purpose: TRANSACTION_PURPOSE.payout,
-        state: TRANSACTION_STATE.pending,
-      })
-      .sum('amount as amount')
-      .first()
+  calculateHKDBalance = async ({ userId }: { userId: string }) => {
+    const result = await this.knex
+      .select()
+      .from(
+        this.knex.raw(`(
+          select
+            sum(amount) as amount
+          from
+            transaction
+          where
+            recipient_id = ${userId} and currency = 'HKD' and state = 'succeeded'
+          union
+          select
+            sum((0 - amount)) as amount
+          from
+            transaction
+          where
+            sender_id = ${userId} and currency = 'HKD' and (state = 'succeeded' or state = 'pending')
+        ) as src`)
+      )
+      .sum('src.amount as amount')
 
-    if (!result) {
+    if (!result || !result[0]) {
       return 0
     }
-    return Math.max(parseInt(result.amount || 0, 10), 0)
+    return Math.max(parseInt(result[0].amount || 0, 10), 0)
   }
 }
