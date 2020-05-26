@@ -442,4 +442,27 @@ export class PaymentService extends BaseService {
       targetType: undefined,
     })
   }
+
+  calculatePayoutPending = async({
+    senderId,
+    currency,
+  }: {
+    senderId: string
+    currency: PAYMENT_CURRENCY
+  }) => {
+    const result = await this.knex('transaction')
+      .where({
+        senderId,
+        currency,
+        purpose: TRANSACTION_PURPOSE.payout,
+        state: TRANSACTION_STATE.pending,
+      })
+      .sum('amount as amount')
+      .first()
+
+    if (!result) {
+      return 0
+    }
+    return Math.max(parseInt(result.amount || 0, 10), 0)
+  }
 }

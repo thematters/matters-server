@@ -46,15 +46,19 @@ const resolver: MutationToPayoutResolver = async (
     throw new PasswordInvalidError('password is incorrect, payment failed.')
   }
 
-  const [balance, customer] = await Promise.all([
+  const [balance, pending, customer] = await Promise.all([
     paymentService.calculateBalance({
       userId: viewer.id,
       currency: PAYMENT_CURRENCY.HKD,
     }),
+    paymentService.calculatePayoutPending({
+      senderId: viewer.id,
+      currency: PAYMENT_CURRENCY.HKD
+    }),
     paymentService.findPayoutAccount({ userId: viewer.id }),
   ])
 
-  if (amount > balance) {
+  if (amount > (balance - pending)) {
     throw new PaymentBalanceInsufficientError('viewer has insufficient balance')
   }
 
