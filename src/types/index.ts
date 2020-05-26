@@ -13,6 +13,7 @@ const Root = /* GraphQL */ `
   type Query
   type Mutation
   type Subscription
+
   schema {
     query: Query
     mutation: Mutation

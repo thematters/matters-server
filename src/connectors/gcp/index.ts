@@ -12,10 +12,14 @@ class GCP {
   translateAPI: TranslateAPI.Translate
 
   constructor() {
-    this.translateAPI = new TranslateAPI.Translate({
-      projectId: environment.gcpProjectId,
-      keyFilename: environment.translateCertPath,
-    })
+    try {
+      this.translateAPI = new TranslateAPI.Translate({
+        projectId: environment.gcpProjectId,
+        keyFilename: environment.translateCertPath,
+      })
+    } catch (err) {
+      logger.error(err)
+    }
   }
 
   // map to internal language
