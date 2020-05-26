@@ -53,12 +53,12 @@ const resolver: MutationToPayoutResolver = async (
     }),
     paymentService.calculatePayoutPending({
       senderId: viewer.id,
-      currency: PAYMENT_CURRENCY.HKD
+      currency: PAYMENT_CURRENCY.HKD,
     }),
     paymentService.findPayoutAccount({ userId: viewer.id }),
   ])
 
-  if (amount > (balance - pending)) {
+  if (amount > balance - pending) {
     throw new PaymentBalanceInsufficientError('viewer has insufficient balance')
   }
 

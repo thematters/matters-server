@@ -443,7 +443,7 @@ export class PaymentService extends BaseService {
     })
   }
 
-  calculatePayoutPending = async({
+  calculatePayoutPending = async ({
     senderId,
     currency,
   }: {
