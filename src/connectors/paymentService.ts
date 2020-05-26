@@ -4,12 +4,19 @@ import {
   BATCH_SIZE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
+  PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
-import { calcStripeFee, numRound, toProviderAmount } from 'common/utils'
+import {
+  calcMattersFee,
+  calcStripeFee,
+  getUTC8Midnight,
+  numRound,
+  toProviderAmount,
+} from 'common/utils'
 import { BaseService } from 'connectors'
 import { User } from 'definitions'
 
@@ -183,6 +190,35 @@ export class PaymentService extends BaseService {
     return this.baseUpdate(id, { updatedAt: new Date(), ...data })
   }
 
+  /**
+   * Sum up the amount of donation transaction.
+   *
+   */
+  sumTodayDonationTransactions = async ({
+    currency = PAYMENT_CURRENCY.HKD,
+    senderId,
+  }: {
+    currency?: PAYMENT_CURRENCY
+    senderId: string
+  }) => {
+    const todayMidnight = getUTC8Midnight()
+    const result = await this.knex('transaction')
+      .where({
+        purpose: TRANSACTION_PURPOSE.donation,
+        senderId,
+        state: TRANSACTION_STATE.succeeded,
+      })
+      .andWhere('created_at', '>=', todayMidnight.toISOString())
+      .groupBy('sender_id')
+      .sum('amount as amount')
+      .first()
+
+    if (!result) {
+      return 0
+    }
+    return Math.max(parseInt(result.amount || 0, 10), 0)
+  }
+
   /*********************************
    *                               *
    *            Customer           *
@@ -315,5 +351,95 @@ export class PaymentService extends BaseService {
         transaction,
       }
     }
+  }
+
+  /*********************************
+   *                               *
+   *             Payout            *
+   *                               *
+   *********************************/
+  findPayoutAccount = async ({
+    userId,
+    accountId,
+    provider = PAYMENT_PROVIDER.stripe,
+  }: {
+    userId?: string
+    accountId?: string
+    provider?: PAYMENT_PROVIDER.stripe
+  }) => {
+    let qs = this.knex('payout_account')
+
+    if (userId) {
+      qs = qs.where({ userId })
+    }
+
+    if (accountId) {
+      qs = qs.where({ accountId })
+    }
+
+    if (provider) {
+      qs = qs.where({ provider })
+    }
+
+    return qs
+  }
+
+  createPayoutAccount = async ({
+    user,
+    accountId,
+    type = PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express,
+    provider = PAYMENT_PROVIDER.stripe,
+  }: {
+    user: User
+    accountId: string
+    type?: PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express
+    provider?: PAYMENT_PROVIDER.stripe
+  }) => {
+    return this.baseCreate(
+      {
+        userId: user.id,
+        accountId,
+        type,
+        provider,
+      },
+      'payout_account'
+    )
+  }
+
+  createPayout = async ({
+    amount,
+    recipientId,
+    recipientStripeConnectedId,
+  }: {
+    amount: number
+    recipientId: string
+    recipientStripeConnectedId: string
+  }) => {
+    const fee = calcMattersFee(amount)
+
+    // create stripe payment
+    const payment = await this.stripe.createDestinationCharge({
+      amount,
+      currency: PAYMENT_CURRENCY.HKD,
+      fee,
+      recipientStripeConnectedId,
+    })
+
+    if (!payment) {
+      throw new ServerError('failed to create payment')
+    }
+
+    // create pending matters transaction. To make number of wallet
+    // balance right, set recipient as sender here.
+    return this.createTransaction({
+      amount,
+      currency: PAYMENT_CURRENCY.HKD,
+      fee,
+      purpose: TRANSACTION_PURPOSE.payout,
+      provider: PAYMENT_PROVIDER.stripe,
+      providerTxId: payment.id,
+      senderId: recipientId,
+      targetType: undefined,
+    })
   }
 }

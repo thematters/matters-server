@@ -613,8 +613,8 @@ export class ArticleService extends BaseService {
    *                               *
    *********************************/
 
-  translate = (content: string, target: string) =>
-    gcp.translate(content, target)
+  translate = ({ content, target }: { content: string; target: string }) =>
+    gcp.translate({ content, target })
 
   detectLanguage = (content: string) => gcp.detectLanguage(content)
 
@@ -1639,6 +1639,7 @@ export class ArticleService extends BaseService {
       .groupBy('sender_id', 'target_id')
       .sum('amount as amount')
       .max('created_at as created_at')
+      .orderBy('created_at', 'desc')
       .limit(limit)
       .offset(offset)
 

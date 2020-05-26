@@ -7,11 +7,19 @@ import {
 } from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
-import { GQLFeatureName, SkippedListItemType } from 'definitions'
+import {
+  GQLFeatureFlag,
+  GQLFeatureName,
+  SkippedListItemType,
+} from 'definitions'
 
 export class SystemService extends BaseService {
+  featureFlagTable: string
+
   constructor() {
     super('noop')
+
+    this.featureFlagTable = 'feature_flag'
   }
 
   /*********************************
@@ -57,20 +65,30 @@ export class SystemService extends BaseService {
    *                               *
    *********************************/
 
-  getFeatureFlags = async () => this.knex('feature_flag').select('*').limit(50)
+  getFeatureFlags = () => this.knex(this.featureFlagTable).select('*').limit(50)
 
-  toggleFeature = async ({ name }: { name: GQLFeatureName }) => {
-    const table = 'feature_flag'
-    const [oldFeatureFlag] = await this.knex(table).where({ name })
+  getFeatureFlag = async (
+    name: GQLFeatureName | keyof typeof GQLFeatureName
+  ) => {
+    const [featureFlag] = await this.knex(this.featureFlagTable).where({ name })
+    return featureFlag
+  }
 
+  setFeatureFlag = async ({
+    name,
+    flag,
+  }: {
+    name: GQLFeatureName | keyof typeof GQLFeatureName
+    flag: GQLFeatureFlag | keyof typeof GQLFeatureFlag
+  }) => {
     const [featureFlag] = await this.knex
       .where({ name })
       .update({
         name,
-        enabled: !oldFeatureFlag.enabled,
+        flag,
         updatedAt: this.knex.fn.now(),
       })
-      .into(table)
+      .into(this.featureFlagTable)
       .returning('*')
     return featureFlag
   }

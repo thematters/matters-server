@@ -11,13 +11,13 @@ const resolver: GQLArticleTranslationTypeResolver = {
     { title },
     _,
     { dataSources: { articleService }, viewer: { language } }
-  ) => articleService.translate(title, language),
+  ) => articleService.translate({ content: title, target: language }),
 
   content: async (
     { content },
     _,
     { dataSources: { articleService }, viewer: { language } }
-  ) => articleService.translate(content, language),
+  ) => articleService.translate({ content, target: language }),
 }
 
 export default resolver

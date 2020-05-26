@@ -36,6 +36,7 @@ type AddCreditResult {
 input AppreciateArticleInput {
   id: ID!
   amount: Int!
+  token: String
 }
 
 type Appreciation {
@@ -705,6 +706,10 @@ input ConnectionArgs {
   oss: Boolean
 }
 
+type ConnectStripeAccountResult {
+  redirectUrl: URL!
+}
+
 input CostComplexity {
   min: Int = 1
   max: Int
@@ -814,10 +819,17 @@ input FeaturedCommentsInput {
   first: Int
 }
 
+enum FeatureFlag {
+  on
+  off
+  admin
+}
+
 enum FeatureName {
   add_credit
   payment
   payout
+  verify_appreciate
 }
 
 input FeedbackInput {
@@ -1000,7 +1012,7 @@ type Mutation {
   setBoost(input: SetBoostInput!): Node!
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
-  toggleFeature(input: ToggleFeatureInput!): Feature!
+  setFeature(input: SetFeatureInput!): Feature!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1076,6 +1088,12 @@ type Mutation {
 
   """Pay to another user or article"""
   payTo(input: PayToInput!): PayToResult!
+
+  """Payout to user"""
+  payout(input: PayoutInput!): Transaction!
+
+  """Create Stripe Connect account for Payout"""
+  connectStripeAccount: ConnectStripeAccountResult!
 
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
@@ -1316,7 +1334,11 @@ type PaymentReceivedDonationNotice implements Notice {
   target: Transaction
 }
 
-"""Pay To"""
+input PayoutInput {
+  amount: PositiveFloat!
+  password: String!
+}
+
 input PayToInput {
   amount: PositiveFloat!
   currency: TransactionCurrency!
@@ -1680,6 +1702,11 @@ input SetCollectionInput {
   collection: [ID!]!
 }
 
+input SetFeatureInput {
+  name: FeatureName!
+  flag: FeatureFlag!
+}
+
 input SingleFileDeleteInput {
   id: ID!
 }
@@ -1716,6 +1743,12 @@ type SkippedListItemsConnection implements Connection {
 enum SkippedListItemType {
   agent_hash
   email
+}
+
+"""Stripe Account"""
+type StripeAccount {
+  id: ID!
+  loginUrl: URL!
 }
 
 input SubscribeArticleInput {
@@ -1830,10 +1863,6 @@ input ToggleArticleRecommendInput {
   type: RecommendTypes!
 }
 
-input ToggleFeatureInput {
-  name: FeatureName!
-}
-
 """Common input to toggle single item for `toggleXXX` mutations"""
 input ToggleItemInput {
   id: ID!
@@ -1881,6 +1910,7 @@ enum TransactionPurpose {
   donation
   addCredit
   refund
+  payout
 }
 
 input TransactionsArgs {
@@ -2252,4 +2282,5 @@ input VoteCommentInput {
 type Wallet {
   balance: Balance!
   transactions(input: TransactionsArgs!): TransactionConnection!
+  stripeAccount: StripeAccount
 }

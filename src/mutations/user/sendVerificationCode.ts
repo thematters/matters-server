@@ -1,19 +1,16 @@
-import axios from 'axios'
-
 import {
   SKIPPED_LIST_ITEM_TYPES,
   VERIFICATION_CODE_PROTECTED_TYPES,
   VERIFICATION_CODE_TYPES,
 } from 'common/enums'
-import { environment, isTest } from 'common/environment'
 import {
-  ActionFailedError,
   AuthenticationError,
   EmailExistsError,
   EmailNotFoundError,
-  UserInputError,
+  ForbiddenError,
 } from 'common/errors'
 import logger from 'common/logger'
+import { gcp } from 'connectors'
 import { MutationToSendVerificationCodeResolver } from 'definitions'
 
 const resolver: MutationToSendVerificationCodeResolver = async (
@@ -40,30 +37,9 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     }
 
     // check token for Turing test
-    if (!token) {
-      throw new UserInputError('please register on matters.news')
-    } else if (!isTest) {
-      // Turing test with recaptcha
-      const { data } = await axios({
-        method: 'post',
-        url: 'https://www.google.com/recaptcha/api/siteverify',
-        params: {
-          secret: environment.recaptchaSecret,
-          response: token,
-          remoteip: viewer.ip,
-        },
-      })
-
-      const { success, score } = data
-
-      if (!success) {
-        throw new ActionFailedError(`please try again: ${data['error-codes']}`)
-      }
-
-      // use 0.5 for Turing test
-      if (score < 0.5) {
-        throw new ActionFailedError('cannot verify human')
-      }
+    const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
+    if (!isHuman) {
+      throw new ForbiddenError('registration via scripting is not allowed')
     }
   }
 

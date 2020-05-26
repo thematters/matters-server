@@ -1,3 +1,5 @@
+import { CACHE_TTL } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Mutation {
     "Add Credit to User Wallet"
@@ -5,6 +7,12 @@ export default /* GraphQL */ `
 
     "Pay to another user or article"
     payTo(input: PayToInput!): PayToResult! @authenticate
+
+    "Payout to user"
+    payout(input: PayoutInput!): Transaction! @authenticate
+
+    "Create Stripe Connect account for Payout"
+    connectStripeAccount: ConnectStripeAccountResult! @authenticate
   }
 
   extend type User {
@@ -17,6 +25,7 @@ export default /* GraphQL */ `
   type Wallet {
     balance: Balance!
     transactions(input: TransactionsArgs!): TransactionConnection!
+    stripeAccount: StripeAccount
   }
 
   type Balance {
@@ -77,16 +86,12 @@ export default /* GraphQL */ `
     donation
     addCredit
     refund
+    payout
   }
 
   enum TransactionCurrency {
     HKD
     LIKE
-  }
-
-  # Add Credit
-  input AddCreditInput {
-    amount: PositiveFloat!
   }
 
   type AddCreditResult {
@@ -96,7 +101,18 @@ export default /* GraphQL */ `
     client_secret: String!
   }
 
-  # Pay To
+  type PayToResult {
+    transaction: Transaction!
+
+    "Only available when paying with LIKE."
+    redirectUrl: URL
+  }
+
+  # Add Credit
+  input AddCreditInput {
+    amount: PositiveFloat!
+  }
+
   input PayToInput {
     amount: PositiveFloat!
     currency: TransactionCurrency!
@@ -106,10 +122,18 @@ export default /* GraphQL */ `
     password: String
   }
 
-  type PayToResult {
-    transaction: Transaction!
+  input PayoutInput {
+    amount: PositiveFloat!
+    password: String!
+  }
 
-    "Only available when paying with LIKE."
-    redirectUrl: URL
+  # Stripe Account
+  type StripeAccount {
+    id: ID!
+    loginUrl: URL! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+  }
+
+  type ConnectStripeAccountResult {
+    redirectUrl: URL!
   }
 `

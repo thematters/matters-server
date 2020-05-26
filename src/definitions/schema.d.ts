@@ -1290,6 +1290,7 @@ export interface GQLNoticeNameMap {
 export interface GQLWallet {
   balance: GQLBalance
   transactions: GQLTransactionConnection
+  stripeAccount?: GQLStripeAccount
 }
 
 export interface GQLBalance {
@@ -1354,6 +1355,7 @@ export const enum GQLTransactionPurpose {
   donation = 'donation',
   addCredit = 'addCredit',
   refund = 'refund',
+  payout = 'payout',
 }
 
 export const enum GQLTransactionCurrency {
@@ -1370,6 +1372,14 @@ export interface GQLTransactionTargetNameMap {
   TransactionTarget: GQLTransactionTarget
   Article: GQLArticle
   Transaction: GQLTransaction
+}
+
+/**
+ * Stripe Account
+ */
+export interface GQLStripeAccount {
+  id: string
+  loginUrl: GQLURL
 }
 
 export interface GQLArticleTranslation {
@@ -1539,6 +1549,7 @@ export const enum GQLFeatureName {
   add_credit = 'add_credit',
   payment = 'payment',
   payout = 'payout',
+  verify_appreciate = 'verify_appreciate',
 }
 
 export interface GQLOSS {
@@ -1889,7 +1900,7 @@ export interface GQLMutation {
   setBoost: GQLNode
   putRemark?: string
   putSkippedListItem?: Array<GQLSkippedListItem>
-  toggleFeature: GQLFeature
+  setFeature: GQLFeature
 
   /**
    * Send verification code for email.
@@ -2021,6 +2032,16 @@ export interface GQLMutation {
   payTo: GQLPayToResult
 
   /**
+   * Payout to user
+   */
+  payout: GQLTransaction
+
+  /**
+   * Create Stripe Connect account for Payout
+   */
+  connectStripeAccount: GQLConnectStripeAccountResult
+
+  /**
    * Create or Update an OAuth Client, used in OSS.
    */
   putOAuthClient?: GQLOAuthClient
@@ -2054,6 +2075,7 @@ export interface GQLToggleItemInput {
 export interface GQLAppreciateArticleInput {
   id: string
   amount: number
+  token?: string
 }
 
 export interface GQLReadArticleInput {
@@ -2261,8 +2283,15 @@ export interface GQLPutSkippedListItemInput {
   archived: boolean
 }
 
-export interface GQLToggleFeatureInput {
+export interface GQLSetFeatureInput {
   name: GQLFeatureName
+  flag: GQLFeatureFlag
+}
+
+export const enum GQLFeatureFlag {
+  on = 'on',
+  off = 'off',
+  admin = 'admin',
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -2412,9 +2441,6 @@ export interface GQLAddCreditResult {
   client_secret: string
 }
 
-/**
- * Pay To
- */
 export interface GQLPayToInput {
   amount: GQLPositiveFloat
   currency: GQLTransactionCurrency
@@ -2431,6 +2457,15 @@ export interface GQLPayToResult {
    * Only available when paying with LIKE.
    */
   redirectUrl?: GQLURL
+}
+
+export interface GQLPayoutInput {
+  amount: GQLPositiveFloat
+  password: string
+}
+
+export interface GQLConnectStripeAccountResult {
+  redirectUrl: GQLURL
 }
 
 export interface GQLPutOAuthClientInput {
@@ -3115,6 +3150,7 @@ export interface GQLResolver {
     __resolveType: GQLTransactionTargetTypeResolver
   }
 
+  StripeAccount?: GQLStripeAccountTypeResolver
   ArticleTranslation?: GQLArticleTranslationTypeResolver
   ArticleOSS?: GQLArticleOSSTypeResolver
   SearchResultConnection?: GQLSearchResultConnectionTypeResolver
@@ -3144,6 +3180,7 @@ export interface GQLResolver {
   PositiveFloat?: GraphQLScalarType
   AddCreditResult?: GQLAddCreditResultTypeResolver
   PayToResult?: GQLPayToResultTypeResolver
+  ConnectStripeAccountResult?: GQLConnectStripeAccountResultTypeResolver
   Subscription?: GQLSubscriptionTypeResolver
   ArticleMentionedYouNotice?: GQLArticleMentionedYouNoticeTypeResolver
   ArticleNewAppreciationNotice?: GQLArticleNewAppreciationNoticeTypeResolver
@@ -6097,6 +6134,7 @@ export interface GQLNoticeTypeResolver<TParent = any> {
 export interface GQLWalletTypeResolver<TParent = any> {
   balance?: WalletToBalanceResolver<TParent>
   transactions?: WalletToTransactionsResolver<TParent>
+  stripeAccount?: WalletToStripeAccountResolver<TParent>
 }
 
 export interface WalletToBalanceResolver<TParent = any, TResult = any> {
@@ -6115,6 +6153,15 @@ export interface WalletToTransactionsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: WalletToTransactionsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface WalletToStripeAccountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6306,6 +6353,29 @@ export interface GQLTransactionTargetTypeResolver<TParent = any> {
     | 'Article'
     | 'Transaction'
 }
+export interface GQLStripeAccountTypeResolver<TParent = any> {
+  id?: StripeAccountToIdResolver<TParent>
+  loginUrl?: StripeAccountToLoginUrlResolver<TParent>
+}
+
+export interface StripeAccountToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface StripeAccountToLoginUrlResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLArticleTranslationTypeResolver<TParent = any> {
   originalLanguage?: ArticleTranslationToOriginalLanguageResolver<TParent>
   title?: ArticleTranslationToTitleResolver<TParent>
@@ -7526,7 +7596,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   setBoost?: MutationToSetBoostResolver<TParent>
   putRemark?: MutationToPutRemarkResolver<TParent>
   putSkippedListItem?: MutationToPutSkippedListItemResolver<TParent>
-  toggleFeature?: MutationToToggleFeatureResolver<TParent>
+  setFeature?: MutationToSetFeatureResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -7554,6 +7624,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   unfollowUser?: MutationToUnfollowUserResolver<TParent>
   addCredit?: MutationToAddCreditResolver<TParent>
   payTo?: MutationToPayToResolver<TParent>
+  payout?: MutationToPayoutResolver<TParent>
+  connectStripeAccount?: MutationToConnectStripeAccountResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
@@ -8091,13 +8163,13 @@ export interface MutationToPutSkippedListItemResolver<
   ): TResult
 }
 
-export interface MutationToToggleFeatureArgs {
-  input: GQLToggleFeatureInput
+export interface MutationToSetFeatureArgs {
+  input: GQLSetFeatureInput
 }
-export interface MutationToToggleFeatureResolver<TParent = any, TResult = any> {
+export interface MutationToSetFeatureResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: MutationToToggleFeatureArgs,
+    args: MutationToSetFeatureArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8430,6 +8502,30 @@ export interface MutationToPayToResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface MutationToPayoutArgs {
+  input: GQLPayoutInput
+}
+export interface MutationToPayoutResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPayoutArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToConnectStripeAccountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface MutationToPutOAuthClientArgs {
   input: GQLPutOAuthClientInput
 }
@@ -8515,6 +8611,22 @@ export interface PayToResultToTransactionResolver<
 }
 
 export interface PayToResultToRedirectUrlResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLConnectStripeAccountResultTypeResolver<TParent = any> {
+  redirectUrl?: ConnectStripeAccountResultToRedirectUrlResolver<TParent>
+}
+
+export interface ConnectStripeAccountResultToRedirectUrlResolver<
   TParent = any,
   TResult = any
 > {

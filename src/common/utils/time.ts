@@ -12,3 +12,10 @@ export const getPunishExpiredDate = (days: number) => {
   date.setHours(date.getHours() - 8)
   return date
 }
+
+export const getUTC8Midnight = () => {
+  const date = new Date(Date.now() + 8 * HOUR)
+  date.setUTCHours(0, 0, 0, 0)
+  date.setHours(date.getHours() - 8)
+  return date
+}

@@ -70,6 +70,74 @@ class StripeService {
       this.handleError(err)
     }
   }
+
+  /**
+   * Create OAuth Link for viewer to connect Stripe account
+   *
+   * @see {@url https://stripe.com/docs/connect/oauth-reference}
+   * @see {@url https://stripe.com/docs/connect/express-accounts#integrating-oauth}
+   */
+  createOAuthLink = ({ user }: { user: User }) => {
+    return this.stripe.oauth.authorizeUrl(
+      {
+        client_id: environment.stripeConnectClientId,
+        response_type: 'code',
+        redirect_uri: environment.stripeConnectCallbackURL,
+        suggested_capabilities: ['card_payments', 'transfers'],
+        stripe_user: {
+          email: user.email,
+          url: `${environment.siteDomain}/@${user.userName}`,
+          country: 'HK',
+        },
+      },
+      {
+        express: true,
+      }
+    )
+  }
+
+  createExpressLoginLink = async (accountId: string) => {
+    const { url } = await this.stripe.accounts.createLoginLink(accountId)
+    return url
+  }
+
+  /**
+   * Create destination charge.
+   *
+   * @see {@url https://stripe.com/docs/connect/destination-charges}
+   */
+  createDestinationCharge = async ({
+    amount,
+    currency,
+    fee,
+    recipientStripeConnectedId,
+  }: {
+    amount: number
+    currency: PAYMENT_CURRENCY
+    fee: number
+    recipientStripeConnectedId: string
+  }) => {
+    try {
+      if (!environment.stripeCustomerId) {
+        throw new ServerError('matters stripe customer id has not been set')
+      }
+
+      return await this.stripe.paymentIntents.create({
+        amount: toProviderAmount({ amount }),
+        application_fee_amount: toProviderAmount({ amount: fee }),
+        confirm: true,
+        currency,
+        customer: environment.stripeCustomerId,
+        off_session: true,
+        on_behalf_of: recipientStripeConnectedId,
+        transfer_data: {
+          destination: recipientStripeConnectedId,
+        },
+      })
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
 }
 
 export const stripe = new StripeService()
