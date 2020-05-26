@@ -47,7 +47,7 @@ class GCP {
       return this.toInternalLanguage(language)
     } catch (err) {
       logger.error(err)
-      return ''
+      return
     }
   }
 
@@ -66,7 +66,7 @@ class GCP {
       return translation
     } catch (err) {
       logger.error(err)
-      return ''
+      return
     }
   }
 
