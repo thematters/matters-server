@@ -208,8 +208,8 @@ export default /* GraphQL */ `
 
   type ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC})  {
     originalLanguage: String! @deprecated(reason: "Use \`Article.language\` instead")
-    title: String!
-    content: String!
+    title: String
+    content: String
   }
 
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {

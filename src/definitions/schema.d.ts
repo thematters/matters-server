@@ -1397,8 +1397,8 @@ export interface GQLArticleTranslation {
    * @deprecated Use `Article.language` instead
    */
   originalLanguage: string
-  title: string
-  content: string
+  title?: string
+  content?: string
 }
 
 export interface GQLTransactionsReceivedByArgs {

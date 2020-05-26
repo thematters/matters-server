@@ -443,8 +443,8 @@ type ArticleTagHasBeenUnselectedNotice implements Notice {
 
 type ArticleTranslation {
   originalLanguage: String! @deprecated(reason: "Use `Article.language` instead")
-  title: String!
-  content: String!
+  title: String
+  content: String
 }
 
 """This type contains type, link and related data of an asset."""
