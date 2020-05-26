@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2020-05-23
+
+### Added
+
+- Payout #1065 #1066 #1071 #1072 #1073 #1077 #1085
+- Create default code of conduct #1084
+
+### Changed
+
+- Add admin state to feature flag #1070
+- Add order for donator list. #1078
+- Add safety check for HKD payment maximum amount. #1049
+- Add recaptcha check to appreciate and corresponding feature flag #1044
+- Add daily donation limit for HKD. #1051
+- Remove & Regenerate Environment Variables #1086
+- Revise notice content of user ban. #1050
+- Drop extra transaction purpose constraints. #1087
+
 ## [2.14.0] - 2020-05-15
 
 ### Added
