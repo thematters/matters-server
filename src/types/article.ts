@@ -120,7 +120,7 @@ export default /* GraphQL */ `
     content: String!
 
     "Original language of content"
-    language: String # @objectCache(maxAge: ${CACHE_TTL.STATIC})
+    language: String @objectCache(maxAge: ${CACHE_TTL.STATIC})
 
     "List of articles which added this article into their collections."
     collectedBy(input: ConnectionArgs!): ArticleConnection!
@@ -206,8 +206,7 @@ export default /* GraphQL */ `
     inRecommendNewest: Boolean! @authorize
   }
 
-# @objectCache(maxAge: ${CACHE_TTL.STATIC})
-  type ArticleTranslation  {
+  type ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC})  {
     originalLanguage: String! @deprecated(reason: "Use \`Article.language\` instead")
     title: String!
     content: String!

@@ -1391,9 +1391,6 @@ export interface GQLTranslationArgs {
   language: GQLUserLanguage
 }
 
-/**
- * @objectCache(maxAge: 864000)
- */
 export interface GQLArticleTranslation {
   /**
    *

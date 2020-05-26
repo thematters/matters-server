@@ -441,7 +441,6 @@ type ArticleTagHasBeenUnselectedNotice implements Notice {
   tag: Tag
 }
 
-"""@objectCache(maxAge: 864000)"""
 type ArticleTranslation {
   originalLanguage: String! @deprecated(reason: "Use `Article.language` instead")
   title: String!
