@@ -135,11 +135,10 @@ const resolver: MutationToPayToResolver = async (
       redirectUrl = `${likecoinPayURL}?${params}`
       break
     case 'HKD':
-      const balance = await paymentService.calculateBalance({
+      const balance = await paymentService.calculateHKDBalance({
         userId: viewer.id,
-        currency: PAYMENT_CURRENCY.HKD,
       })
-      if (balance < amount) {
+      if (amount > balance) {
         throw new PaymentBalanceInsufficientError(
           'viewer has insufficient balance'
         )

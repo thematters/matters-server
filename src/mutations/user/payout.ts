@@ -47,9 +47,8 @@ const resolver: MutationToPayoutResolver = async (
   }
 
   const [balance, customer] = await Promise.all([
-    paymentService.calculateBalance({
+    paymentService.calculateHKDBalance({
       userId: viewer.id,
-      currency: PAYMENT_CURRENCY.HKD,
     }),
     paymentService.findPayoutAccount({ userId: viewer.id }),
   ])
