@@ -11,7 +11,7 @@ import logger from 'common/logger'
  *
  */
 
-type KeyInfo = {
+interface KeyInfo {
   type?: string
   id: string
   args?: { [key: string]: any }
