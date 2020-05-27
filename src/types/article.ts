@@ -119,6 +119,9 @@ export default /* GraphQL */ `
     "Content of this article."
     content: String!
 
+    "Original language of content"
+    language: String @objectCache(maxAge: ${CACHE_TTL.STATIC})
+
     "List of articles which added this article into their collections."
     collectedBy(input: ConnectionArgs!): ArticleConnection!
 
@@ -153,7 +156,7 @@ export default /* GraphQL */ `
     sticky: Boolean!
 
     "Translation of article title and content."
-    translation: ArticleTranslation
+    translation(input: TranslationArgs): ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC})
 
     "Transactions history of this article."
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
@@ -203,10 +206,10 @@ export default /* GraphQL */ `
     inRecommendNewest: Boolean! @authorize
   }
 
-  type ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC}) {
-    originalLanguage: String!
-    title: String!
-    content: String!
+  type ArticleTranslation {
+    originalLanguage: String! @deprecated(reason: "Use \`Article.language\` instead")
+    title: String
+    content: String
   }
 
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -354,6 +357,10 @@ export default /* GraphQL */ `
     after: String
     first: Int
     purpose: TransactionPurpose!
+  }
+
+  input TranslationArgs {
+    language: UserLanguage!
   }
 
   "Enums for an article state."

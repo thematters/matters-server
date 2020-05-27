@@ -11,6 +11,13 @@ import logger from 'common/logger'
  *
  */
 
+interface KeyInfo {
+  type?: string
+  id: string
+  args?: { [key: string]: any }
+  field?: string
+}
+
 export class CacheService {
   prefix: string
   redis: RedisCache
@@ -34,18 +41,10 @@ export class CacheService {
    *
    * e.g. cache-keys:Article:1510
    */
-  genKey = ({
-    type,
-    id,
-    field,
-    args,
-  }: {
-    type?: string
-    id: string
-    args?: string
-    field?: string
-  }): string =>
-    [this.prefix, type, id, field, args].filter((el) => el).join(':')
+  genKey = ({ type, id, field, args }: KeyInfo): string =>
+    [this.prefix, type, id, field, JSON.stringify(args)]
+      .filter((el) => el)
+      .join(':')
 
   /**
    * Store gql returned object in cache.
@@ -57,11 +56,7 @@ export class CacheService {
     args,
     data,
     expire = CACHE_TTL.SHORT,
-  }: {
-    type: string
-    id: string
-    field?: string
-    args?: string
+  }: KeyInfo & {
     data: string
     expire?: number
   }) => {
@@ -85,11 +80,7 @@ export class CacheService {
     args,
     getter,
     expire = CACHE_TTL.SHORT,
-  }: {
-    type: string
-    id: string
-    field?: string
-    args?: string
+  }: KeyInfo & {
     getter: () => Promise<string | undefined>
     expire?: number
   }) => {

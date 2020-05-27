@@ -12,10 +12,14 @@ class GCP {
   translateAPI: TranslateAPI.Translate
 
   constructor() {
-    this.translateAPI = new TranslateAPI.Translate({
-      projectId: environment.gcpProjectId,
-      keyFilename: environment.translateCertPath,
-    })
+    try {
+      this.translateAPI = new TranslateAPI.Translate({
+        projectId: environment.gcpProjectId,
+        keyFilename: environment.translateCertPath,
+      })
+    } catch (err) {
+      logger.error(err)
+    }
   }
 
   // map to internal language
@@ -43,7 +47,7 @@ class GCP {
       return this.toInternalLanguage(language)
     } catch (err) {
       logger.error(err)
-      return ''
+      return
     }
   }
 
@@ -62,7 +66,7 @@ class GCP {
       return translation
     } catch (err) {
       logger.error(err)
-      return ''
+      return
     }
   }
 
