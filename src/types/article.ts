@@ -156,7 +156,7 @@ export default /* GraphQL */ `
     sticky: Boolean!
 
     "Translation of article title and content."
-    translation(input: TranslationArgs): ArticleTranslation
+    translation(input: TranslationArgs): ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC})
 
     "Transactions history of this article."
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
@@ -206,7 +206,7 @@ export default /* GraphQL */ `
     inRecommendNewest: Boolean! @authorize
   }
 
-  type ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC})  {
+  type ArticleTranslation {
     originalLanguage: String! @deprecated(reason: "Use \`Article.language\` instead")
     title: String
     content: String
