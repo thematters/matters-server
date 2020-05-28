@@ -470,4 +470,19 @@ export class PaymentService extends BaseService {
     }
     return Math.max(parseInt(result[0].amount || 0, 10), 0)
   }
+
+  countPendingPayouts = async ({ userId }: { userId: string }) => {
+    const result = await this.knex('transaction')
+      .where({
+        purpose: TRANSACTION_PURPOSE.payout,
+        senderId: userId,
+        state: TRANSACTION_STATE.pending
+      })
+      .count()
+
+    if (!result || !result[0]) {
+      return 0
+    }
+    return parseInt(`${result[0].count}` || '0', 10)
+  }
 }
