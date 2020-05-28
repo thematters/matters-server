@@ -476,7 +476,7 @@ export class PaymentService extends BaseService {
       .where({
         purpose: TRANSACTION_PURPOSE.payout,
         senderId: userId,
-        state: TRANSACTION_STATE.pending
+        state: TRANSACTION_STATE.pending,
       })
       .count()
 
