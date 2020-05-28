@@ -72,7 +72,9 @@ const updateTxState = async (
   const mailType = mappingTxPurposeToMailType(tx.purpose)
   if (eventType === 'payment_intent.succeeded' && mailType) {
     const isPayout = tx.purpose === TRANSACTION_PURPOSE.payout
-    const recipient = await userService.baseFindById(isPayout ? tx.senderId : tx.recipientId)
+    const recipient = await userService.baseFindById(
+      isPayout ? tx.senderId : tx.recipientId
+    )
     notificationService.mail.sendPayment({
       to: recipient.email,
       recipient: {
