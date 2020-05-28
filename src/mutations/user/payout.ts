@@ -14,6 +14,7 @@ import {
   ForbiddenError,
   PasswordInvalidError,
   PaymentBalanceInsufficientError,
+  PaymentPayoutTransactionExistsError,
   PaymentReachMaximumLimitError,
   UserInputError,
 } from 'common/errors'
@@ -46,12 +47,19 @@ const resolver: MutationToPayoutResolver = async (
     throw new PasswordInvalidError('password is incorrect, payment failed.')
   }
 
-  const [balance, customer] = await Promise.all([
+  const [balance, pending, customer] = await Promise.all([
     paymentService.calculateHKDBalance({
       userId: viewer.id,
     }),
+    paymentService.countPendingPayouts({ userId: viewer.id }),
     paymentService.findPayoutAccount({ userId: viewer.id }),
   ])
+
+  if (pending > 0) {
+    throw new PaymentPayoutTransactionExistsError(
+      'viewer already has ongoing payouts'
+    )
+  }
 
   if (amount > balance) {
     throw new PaymentBalanceInsufficientError('viewer has insufficient balance')
