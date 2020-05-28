@@ -97,7 +97,7 @@
     "qs": "^6.9.4",
     "request-ip": "^2.1.3",
     "sharp": "^0.25.3",
-    "stripe": "^8.55.0",
+    "stripe": "^8.56.0",
     "typescript": "^3.8.3",
     "uuid": "^8.1.0",
     "validator": "^13.0.0",
