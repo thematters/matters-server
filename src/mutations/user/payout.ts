@@ -14,6 +14,7 @@ import {
   ForbiddenError,
   PasswordInvalidError,
   PaymentBalanceInsufficientError,
+  PaymentPasswordNotSetError,
   PaymentPayoutTransactionExistsError,
   PaymentReachMaximumLimitError,
   UserInputError,
@@ -39,7 +40,7 @@ const resolver: MutationToPayoutResolver = async (
   }
 
   if (!viewer.paymentPasswordHash) {
-    throw new ForbiddenError('viewer payment password has not set')
+    throw new PaymentPasswordNotSetError('viewer payment password has not set')
   }
 
   const verified = await compare(password, viewer.paymentPasswordHash)

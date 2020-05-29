@@ -368,3 +368,12 @@ export class PaymentPayoutTransactionExistsError extends ApolloError {
     })
   }
 }
+
+export class PaymentPasswordNotSetError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_PASSWORD_NOT_SET')
+    Object.defineProperty(this, 'name', {
+      value: 'PaymentPasswordNotSetError',
+    })
+  }
+}
