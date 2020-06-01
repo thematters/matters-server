@@ -30,6 +30,7 @@ class SentryTransport extends Transport {
       switch (code) {
         case 'CODE_EXPIRED':
         case 'UNAUTHENTICATED':
+        case 'USER_EMAIL_NOT_FOUND':
         case 'USER_USERNAME_EXISTS':
         case 'USER_PASSWORD_INVALID': {
           // Ingore errors
