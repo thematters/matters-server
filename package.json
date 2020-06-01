@@ -75,7 +75,7 @@
     "image-size": "^0.8.3",
     "imagemin": "^7.0.1",
     "imagemin-gifsicle": "^7.0.0",
-    "imagemin-jpegtran": "^6.0.0",
+    "imagemin-jpegtran": "^7.0.0",
     "imagemin-pngquant": "^8.0.0",
     "imagemin-svgo": "^8.0.0",
     "ipfs-http-client": "^41.0.0",
