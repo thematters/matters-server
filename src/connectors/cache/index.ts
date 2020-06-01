@@ -5,6 +5,7 @@ import { CACHE_PREFIX, CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
 import { UnknownError } from 'common/errors'
 import logger from 'common/logger'
+import { UnknownError } from 'common/errors'
 
 /**
  * Service for managing cache for other async services. Resolvers and middlewares
