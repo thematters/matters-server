@@ -30,7 +30,7 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: MINUTE * 2, // every 2 minutes
+          every: MINUTE * 2.1, // every 2.1 minutes
         },
       }
     )
@@ -42,7 +42,7 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: HOUR * 1.1, // every 1.1 hour
+          every: MINUTE * 3.1, // every 3.1 minutes
         },
       }
     )
@@ -66,7 +66,7 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: MINUTE * 2.5, // every 2.5 minutes
+          every: MINUTE * 5.1, // every 5.1 minutes
         },
       }
     )
