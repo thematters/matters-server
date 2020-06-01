@@ -4,6 +4,7 @@ import _ from 'lodash'
 import { CACHE_PREFIX, CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
+import { UnknownError } from 'common/errors'
 
 /**
  * Service for managing cache for other async services. Resolvers and middlewares
@@ -13,7 +14,7 @@ import logger from 'common/logger'
 
 interface KeyInfo {
   type?: string
-  id: string
+  id?: string
   args?: { [key: string]: any }
   field?: string
 }
@@ -41,22 +42,23 @@ export class CacheService {
    *
    * e.g. cache-keys:Article:1510
    */
-  genKey = ({ type, id, field, args }: KeyInfo): string =>
-    [this.prefix, type, id, field, JSON.stringify(args)]
-      .filter((el) => el)
-      .join(':')
+  genKey = ({ type, id, field, args }: KeyInfo): string => {
+    const keys = [type, id, field, JSON.stringify(args)].filter((el) => el)
+    if (keys.length === 0) {
+      throw new UnknownError('cache key not specified')
+    }
+    return [this.prefix, ...keys].join(':')
+  }
 
   /**
    * Store gql returned object in cache.
    */
   storeObject = ({
-    type,
-    id,
-    field,
-    args,
+    keys,
     data,
     expire = CACHE_TTL.SHORT,
   }: KeyInfo & {
+    keys: KeyInfo
     data: string
     expire?: number
   }) => {
@@ -64,7 +66,7 @@ export class CacheService {
       throw new Error('redis init failed')
     }
 
-    const key = this.genKey({ type, id, args, field })
+    const key = this.genKey(keys)
     const serializedData = JSON.stringify(data)
 
     return this.redis.client.set(key, serializedData, 'EX', expire)
@@ -74,31 +76,42 @@ export class CacheService {
    * Get object from cache, or get object then cache.
    */
   getObject = async ({
-    type,
-    id,
-    field,
-    args,
+    keys,
     getter,
     expire = CACHE_TTL.SHORT,
   }: KeyInfo & {
+    keys: KeyInfo
     getter: () => Promise<string | undefined>
     expire?: number
   }) => {
-    const key = this.genKey({ type, id, field, args })
+    const isNil = (tested: any) => {
+      if (_.isNil(tested)) {
+        return true
+      }
+
+      // avoid empty object
+      if (typeof tested === 'object') {
+        return Object.values(tested).reduce(
+          (accu, curr) => _.isNil(curr) || accu,
+          false
+        )
+      }
+
+      return false
+    }
+
+    const key = this.genKey(keys)
 
     let data = await this.redis.client.get(key)
     data = JSON.parse(data)
 
     // get the data if there is none
-    if (_.isNil(data) && getter) {
+    if (isNil(data) && getter) {
       data = await getter()
 
-      if (!_.isNil(data)) {
+      if (!isNil(data)) {
         this.storeObject({
-          type,
-          id,
-          field,
-          args,
+          keys,
           data,
           expire,
         })

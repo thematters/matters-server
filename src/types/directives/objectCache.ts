@@ -49,10 +49,12 @@ export class ObjectCacheDirective extends SchemaDirectiveVisitor {
           const [{ id }] = args
 
           return cacheService.getObject({
-            type: objectType.name,
-            id,
-            field: field.name,
-            args: args[1],
+            keys: {
+              type: objectType.name,
+              id,
+              field: field.name,
+              args: args[1],
+            },
             getter: () => resolve.apply(this, args),
             expire: maxAge,
           })
