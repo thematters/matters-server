@@ -1,9 +1,9 @@
 import { ARTICLE_STATE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
-import { RecommendationToHottestResolver } from 'definitions'
+import { RecommendationToValuedResolver } from 'definitions'
 
-export const hottest: RecommendationToHottestResolver = async (
+export const valued: RecommendationToValuedResolver = async (
   { id },
   { input },
   { viewer, dataSources: { articleService } }
@@ -32,7 +32,7 @@ export const hottest: RecommendationToHottestResolver = async (
       limit: first,
       where,
       oss,
-      score: 'activity',
+      score: 'value',
     }),
     input,
     totalCount

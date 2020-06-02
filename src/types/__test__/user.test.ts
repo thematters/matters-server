@@ -601,6 +601,7 @@ describe('user recommendations', () => {
       'topics',
       'followeeArticles',
       'newest',
+      'valued',
       'followeeWorks',
     ]
     for (const list of lists) {

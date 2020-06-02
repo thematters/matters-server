@@ -16,6 +16,7 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   USER_ACTION,
+  VIEW,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
@@ -433,24 +434,31 @@ export class ArticleService extends BaseService {
   /**
    * Find Many
    */
-  recommendHottest = async ({
+  recommendByScore = async ({
     limit = BATCH_SIZE,
     offset = 0,
     where = {},
     oss = false,
-    group = 'a',
+    score = 'activity',
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
     oss?: boolean
-    group?: 'a' | 'b'
+    score?: 'activity' | 'value'
   }) => {
     // use view when oss for real time update
     // use materialized in other cases
-    const table = oss
-      ? 'article_activity_view'
-      : MATERIALIZED_VIEW.articleActivityMaterialized
+    let table
+    if (score === 'activity') {
+      table = oss
+        ? VIEW.articleActivity
+        : MATERIALIZED_VIEW.articleActivityMaterialized
+    } else {
+      table = oss
+        ? VIEW.articleValue
+        : MATERIALIZED_VIEW.articleValueMaterialized
+    }
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
