@@ -547,6 +547,11 @@ export interface GQLRecommendation {
   icymi: GQLArticleConnection
 
   /**
+   * Global articles sort by appreciate, donation and subscription.
+   */
+  valued: GQLArticleConnection
+
+  /**
    * Global tag list, sort by activities in recent 14 days.
    */
   tags: GQLTagConnection
@@ -4456,6 +4461,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
+  valued?: RecommendationToValuedResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
   authors?: RecommendationToAuthorsResolver<TParent>
@@ -4523,6 +4529,18 @@ export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToIcymiArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToValuedArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToValuedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: RecommendationToValuedArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
