@@ -95,7 +95,7 @@ exports.down = async (knex) => {
   await knex.raw(/*sql*/ `
   drop view ${view} cascade;
 
-  create view ${view} as
+  create view ${drop_view} as
     select
       *,
       base_score+base_score2+boost_score1+boost_score2 as score

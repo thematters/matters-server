@@ -11,6 +11,7 @@ import {
   ARTICLE_STATE,
   BATCH_SIZE,
   MATERIALIZED_VIEW,
+  MINUTE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -85,7 +86,6 @@ export class ArticleService extends BaseService {
   }) => {
     const userService = new UserService()
     const systemService = new SystemService()
-
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
     const now = new Date()
@@ -1061,8 +1061,8 @@ export class ArticleService extends BaseService {
    * User read an article
    */
   read = async ({
-    articleId,
     userId,
+    articleId,
     ip,
   }: {
     articleId: string
@@ -1071,8 +1071,7 @@ export class ArticleService extends BaseService {
   }) => {
     const table = 'article_read_count'
 
-    const record = await this.baseFind({ where: { articleId, userId }, table })
-
+    // current read data
     const newData = {
       articleId,
       userId,
@@ -1081,31 +1080,54 @@ export class ArticleService extends BaseService {
       ip,
     }
 
+    // past record
+    const record = await this.baseFind({ where: { articleId, userId }, table })
+
+    // create create new record if none exists
     if (!record || record.length === 0) {
-      // create new record
-      return this.baseCreate({ ...newData, count: 1, readTime: 0 }, table)
+      await this.baseCreate(
+        {
+          ...newData,
+          count: 1,
+          timedCount: 1,
+          readTime: 0,
+          lastRead: new Date(),
+        },
+        table
+      )
+      return { newRead: true }
     }
 
+    // get old data
     const oldData = record[0]
 
-    // lapsed time in secondes
+    // calculate heart beat lapsed time in secondes
     const lapse = (Date.now() - new Date(oldData.updatedAt).getTime()) / 1000
 
-    // if lapse if longer than 30 minutes, or original read longer than 30 minutes, accumulate count
-    if (lapse > 60 * 30 || parseInt(oldData.readTime, 10) > 60 * 30) {
-      return this.baseUpdate(
+    // calculate last read total time
+    const readLength =
+      (Date.now() - new Date(oldData.lastRead).getTime()) / 1000
+
+    // if lapse if longer than 5 minutes
+    // or original read longer than 30 minutes
+    // add a new count and update last read timestamp
+    if (lapse > MINUTE * 5 || readLength > MINUTE * 30) {
+      await this.baseUpdate(
         oldData.id,
         {
           ...oldData,
           ...newData,
           count: parseInt(oldData.count, 10) + 1,
+          timedCount: parseInt(oldData.timedCount, 10) + 1,
+          lastRead: new Date(),
         },
         table
       )
+      return { newRead: true }
     }
 
-    // within 30 minutes, accumulate time
-    return this.baseUpdate(
+    // other wise accumulate time
+    await this.baseUpdate(
       oldData.id,
       {
         ...oldData,
@@ -1114,6 +1136,7 @@ export class ArticleService extends BaseService {
       },
       table
     )
+    return { newRead: false }
   }
 
   /*********************************

@@ -3,8 +3,8 @@ import _ from 'lodash'
 
 import { CACHE_PREFIX, CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
-import logger from 'common/logger'
 import { UnknownError } from 'common/errors'
+import logger from 'common/logger'
 
 /**
  * Service for managing cache for other async services. Resolvers and middlewares
