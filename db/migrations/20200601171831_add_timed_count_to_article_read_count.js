@@ -6,14 +6,13 @@ exports.up = async (knex) => {
     t.timestamp('last_read').defaultTo()
   })
 
-  await knex(table).update({
+  return await knex(table).update({
     read_time: 0,
   })
 }
 
-exports.down = async (knex) => {
-  await knex.schema.table(table, (t) => {
+exports.down = (knex) =>
+  knex.schema.table(table, (t) => {
     t.dropColumn('timed_count')
     t.dropColumn('last_read')
   })
-}
