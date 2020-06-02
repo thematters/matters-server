@@ -22,7 +22,6 @@ export const MATERIALIZED_VIEW = {
   tagCountMaterialized: 'tag_count_materialized',
   userReaderMaterialized: 'user_reader_materialized',
   articleActivityMaterialized: 'article_activity_materialized',
-  articleActivityBMaterialized: 'article_activity_b_materialized',
   featuredCommentMaterialized: 'featured_comment_materialized',
 }
 
