@@ -8,7 +8,6 @@ export const valued: RecommendationToValuedResolver = async (
   { input },
   { viewer, dataSources: { articleService } }
 ) => {
-  console.log({ test: 'test' })
   const { oss = false } = input
 
   if (oss) {
