@@ -35,6 +35,18 @@ class RefreshViewsQueue extends BaseQueue {
       }
     )
 
+    // refresh articleActivityMaterialized every 2 minutes, for hottest recommendation
+    this.q.add(
+      QUEUE_JOB.refreshArticleValueView,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: MINUTE * 1.9, // every 1.9 minutes
+        },
+      }
+    )
+
     // refresh articleCountMaterialized every 1.1 hours, for topics recommendation
     this.q.add(
       QUEUE_JOB.refreshArticleCountView,
@@ -89,6 +101,10 @@ class RefreshViewsQueue extends BaseQueue {
     this.q.process(
       QUEUE_JOB.refreshArticleActivityView,
       this.handleRefreshView('article_activity_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshArticleValueView,
+      this.handleRefreshView('article_value_materialized')
     )
     this.q.process(
       QUEUE_JOB.refreshArticleCountView,

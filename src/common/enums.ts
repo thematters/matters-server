@@ -317,6 +317,7 @@ export const QUEUE_JOB = {
   refreshTagCountMaterialView: 'refreshTagCountMaterialView',
   refreshUserReaderView: 'refreshUserReaderView',
   refreshArticleActivityView: 'refreshArticleActivityView',
+  refreshArticleValueView: 'refreshArticleValueView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
 
   // Migration
