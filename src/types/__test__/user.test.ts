@@ -588,7 +588,7 @@ describe('mutations on User object', () => {
 })
 
 describe('user recommendations', () => {
-  test.only('retrive articles from hottest, icymi, topics, followeeArticles, newest and valued', async () => {
+  test('retrive articles from hottest, icymi, topics, followeeArticles, newest and valued', async () => {
     await Promise.all(
       _values(MATERIALIZED_VIEW).map((view) =>
         refreshView(view as MaterializedView)
