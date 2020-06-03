@@ -40,7 +40,7 @@
     "@matters/slugify": "^0.7.3",
     "@okgrow/graphql-scalars": "^0.4.6",
     "@sendgrid/mail": "^6.4.0",
-    "@sentry/node": "^5.16.0",
+    "@sentry/node": "^5.16.1",
     "@slack/web-api": "^5.9.0",
     "apollo-server-cache-redis": "^1.2.1",
     "apollo-server-express": "^2.9.12",
