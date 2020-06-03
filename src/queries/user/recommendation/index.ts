@@ -9,6 +9,7 @@ import { newest } from './newest'
 import { recommendArticles } from './recommendArticles'
 import { tags } from './tags'
 import { topics } from './topics'
+import { valued } from './valued'
 
 const resolvers: GQLRecommendationTypeResolver = {
   authors,
@@ -20,6 +21,7 @@ const resolvers: GQLRecommendationTypeResolver = {
   recommendArticles,
   tags,
   topics,
+  valued,
 }
 
 export default resolvers
