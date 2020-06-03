@@ -30,7 +30,19 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: MINUTE * 2, // every 2 minutes
+          every: MINUTE * 2.1, // every 2.1 minutes
+        },
+      }
+    )
+
+    // refresh articleActivityMaterialized every 2 minutes, for hottest recommendation
+    this.q.add(
+      QUEUE_JOB.refreshArticleValueView,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: MINUTE * 1.9, // every 1.9 minutes
         },
       }
     )
@@ -42,7 +54,7 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: HOUR * 1.1, // every 1.1 hour
+          every: MINUTE * 3.1, // every 3.1 minutes
         },
       }
     )
@@ -66,7 +78,7 @@ class RefreshViewsQueue extends BaseQueue {
       {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
-          every: MINUTE * 2.5, // every 2.5 minutes
+          every: MINUTE * 5.1, // every 5.1 minutes
         },
       }
     )
@@ -89,6 +101,10 @@ class RefreshViewsQueue extends BaseQueue {
     this.q.process(
       QUEUE_JOB.refreshArticleActivityView,
       this.handleRefreshView('article_activity_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshArticleValueView,
+      this.handleRefreshView('article_value_materialized')
     )
     this.q.process(
       QUEUE_JOB.refreshArticleCountView,

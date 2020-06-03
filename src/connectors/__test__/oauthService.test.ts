@@ -72,8 +72,8 @@ describe('token', () => {
 
     const token = await oauthService.saveToken(
       {
-        accessToken,
-        refreshToken,
+        accessToken: accessToken || 'test-token',
+        refreshToken: refreshToken || 'test-token',
         client,
         user,
       },
