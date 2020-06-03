@@ -6,6 +6,7 @@ import {
 import frequentSearch from './frequentSearch'
 import ipfsAddress from './ipfsAddress'
 import node from './node'
+import nodes from './nodes'
 import {
   features,
   feedbackCategory,
@@ -21,6 +22,7 @@ import search from './search'
 export default {
   Query: {
     node,
+    nodes,
     search,
     frequentSearch,
     official: () => true,

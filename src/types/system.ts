@@ -3,6 +3,7 @@ import { CACHE_TTL } from 'common/enums'
 export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node @privateCache @logCache(type: "Node")
+    nodes(input: NodesInput!): [Node!] @privateCache
     frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection! @privateCache
     official: Official!
@@ -199,6 +200,10 @@ export default /* GraphQL */ `
 
   input NodeInput {
     id: ID!
+  }
+
+  input NodesInput {
+    ids: [ID!]!
   }
 
   input OSSArticlesInput {
