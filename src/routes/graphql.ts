@@ -15,6 +15,7 @@ import 'newrelic'
 import {
   CACHE_TTL,
   CORS_OPTIONS,
+  GRAPHQL_COST_LIMIT,
   UPLOAD_FILE_COUNT_LIMIT,
   UPLOAD_FILE_SIZE_LIMIT,
 } from 'common/enums'
@@ -49,7 +50,7 @@ class ProtectedApolloServer extends ApolloServer {
     res: express.Response
   ): Promise<GraphQLOptions> {
     const options = await super.createGraphQLServerOptions(req, res)
-    const maximumCost = 500
+    const maximumCost = GRAPHQL_COST_LIMIT
 
     return {
       ...options,

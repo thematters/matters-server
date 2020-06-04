@@ -15,6 +15,7 @@ import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql'
 export interface GQLQuery {
   article?: GQLArticle
   node?: GQLNode
+  nodes?: Array<GQLNode>
   frequentSearch?: Array<string>
   search: GQLSearchResultConnection
   official: GQLOfficial
@@ -1444,6 +1445,10 @@ export interface GQLCommentsFilter {
 
 export interface GQLNodeInput {
   id: string
+}
+
+export interface GQLNodesInput {
+  ids: Array<string>
 }
 
 export interface GQLFrequentSearchInput {
@@ -3231,6 +3236,7 @@ export interface GQLResolver {
 export interface GQLQueryTypeResolver<TParent = any> {
   article?: QueryToArticleResolver<TParent>
   node?: QueryToNodeResolver<TParent>
+  nodes?: QueryToNodesResolver<TParent>
   frequentSearch?: QueryToFrequentSearchResolver<TParent>
   search?: QueryToSearchResolver<TParent>
   official?: QueryToOfficialResolver<TParent>
@@ -3259,6 +3265,18 @@ export interface QueryToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToNodeArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface QueryToNodesArgs {
+  input: GQLNodesInput
+}
+export interface QueryToNodesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: QueryToNodesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

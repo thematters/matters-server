@@ -11,6 +11,8 @@ export const MINUTE = 1000 * 60
 export const HOUR = MINUTE * 60
 export const DAY = HOUR * 24
 
+export const GRAPHQL_COST_LIMIT = 500
+
 export const UPLOAD_FILE_COUNT_LIMIT = 50
 
 export const UPLOAD_FILE_SIZE_LIMIT = 100 * 1024 * 1024

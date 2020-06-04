@@ -1118,6 +1118,10 @@ input NodeInput {
   id: ID!
 }
 
+input NodesInput {
+  ids: [ID!]!
+}
+
 scalar NonNegativeFloat
 
 scalar NonNegativeInt
@@ -1452,6 +1456,7 @@ input PutTagInput {
 type Query {
   article(input: ArticleInput!): Article
   node(input: NodeInput!): Node
+  nodes(input: NodesInput!): [Node!]
   frequentSearch(input: FrequentSearchInput!): [String!]
   search(input: SearchInput!): SearchResultConnection!
   official: Official!
