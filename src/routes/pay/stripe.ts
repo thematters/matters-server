@@ -84,7 +84,7 @@ const updateTxState = async (
       type: mailType,
       tx: {
         recipient,
-        amount: numRound(tx.amount),
+        amount: numRound(isPayout ? tx.amount - tx.fee : tx.amount),
         currency: tx.currency,
       },
     })
