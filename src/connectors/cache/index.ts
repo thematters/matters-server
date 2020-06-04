@@ -104,7 +104,6 @@ export class CacheService {
 
     let data = await this.redis.client.get(key)
     data = JSON.parse(data)
-
     // get the data if there is none
     if (isNil(data) && getter) {
       data = await getter()
