@@ -55,17 +55,33 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   }
 
   const { agentHash } = viewer
-  const { AGENT_HASH: TYPE_HASH, EMAIL: TYPE_EMAIL } = SKIPPED_LIST_ITEM_TYPES
+  const {
+    AGENT_HASH: TYPE_HASH,
+    EMAIL: TYPE_EMAIL,
+    DOMAIN: TYPE_DOMAIN,
+  } = SKIPPED_LIST_ITEM_TYPES
 
   // verify email if it's in blocklist
   const banEmail = await systemService.findSkippedItem(TYPE_EMAIL, email)
   if (banEmail && banEmail.archived === false) {
     if (agentHash) {
-      await systemService.createSkippedItem(TYPE_HASH, banEmail.uuid, agentHash)
+      await systemService.createSkippedItem({
+        type: TYPE_HASH,
+        uuid: banEmail.uuid,
+        value: agentHash,
+      })
     }
-    logger.info(new Error('email is in blocklist'))
+    logger.info(new Error(`email ${email} is in blocklist`))
     // temporaraily disable
     // return true
+  }
+
+  // verify email doamin if it's in blocklist
+  const domain = email.split('@')[1]
+  const banDomain = await systemService.findSkippedItem(TYPE_DOMAIN, domain)
+  if (banDomain && banDomain.archived === false) {
+    logger.info(new Error(`domain ${domain} is in blocklist`))
+    return true
   }
 
   // verify agent hash if it's in blocklist
@@ -75,12 +91,12 @@ const resolver: MutationToSendVerificationCodeResolver = async (
       agentHash
     )
     if (banAgentHash && banAgentHash.archived === false) {
-      await systemService.createSkippedItem(
-        TYPE_EMAIL,
-        banAgentHash.uuid,
-        email
-      )
-      logger.info(new Error('agent hash is in blocklist'))
+      await systemService.createSkippedItem({
+        type: TYPE_EMAIL,
+        uuid: banAgentHash.uuid,
+        value: email,
+      })
+      logger.info(new Error(`agent hash ${agentHash} is in blocklist`))
       // temporaraily disable
       // return true
     }

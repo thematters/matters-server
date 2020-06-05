@@ -1292,7 +1292,7 @@ type OSS {
   reports(input: ReportsInput!): ReportConnection!
   report(input: ReportInput!): Report!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
-  skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
+  skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
 }
 
 input OSSArticlesInput {
@@ -1443,8 +1443,10 @@ input PutRemarkInput {
 }
 
 input PutSkippedListItemInput {
-  id: ID!
-  archived: Boolean!
+  id: ID
+  type: SkippedListItemType
+  value: String
+  archived: Boolean
 }
 
 input PutTagInput {
@@ -1751,9 +1753,16 @@ type SkippedListItemsConnection implements Connection {
   edges: [SkippedListItemEdge!]
 }
 
+input SkippedListItemsInput {
+  after: String
+  first: Int
+  type: SkippedListItemType
+}
+
 enum SkippedListItemType {
   agent_hash
   email
+  domain
 }
 
 """Stripe Account"""

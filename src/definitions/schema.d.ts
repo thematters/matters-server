@@ -1717,6 +1717,18 @@ export const enum GQLGrantType {
 
 export type GQLDate = any
 
+export interface GQLSkippedListItemsInput {
+  after?: string
+  first?: number
+  type?: GQLSkippedListItemType
+}
+
+export const enum GQLSkippedListItemType {
+  agent_hash = 'agent_hash',
+  email = 'email',
+  domain = 'domain',
+}
+
 export interface GQLSkippedListItemsConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
@@ -1736,11 +1748,6 @@ export interface GQLSkippedListItem {
   archived: boolean
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
-}
-
-export const enum GQLSkippedListItemType {
-  agent_hash = 'agent_hash',
-  email = 'email',
 }
 
 export interface GQLUserInput {
@@ -2302,8 +2309,10 @@ export const enum GQLRemarkTypes {
 }
 
 export interface GQLPutSkippedListItemInput {
-  id: string
-  archived: boolean
+  id?: string
+  type?: GQLSkippedListItemType
+  value?: string
+  archived?: boolean
 }
 
 export interface GQLSetFeatureInput {
@@ -7104,7 +7113,7 @@ export interface OSSToOauthClientsResolver<TParent = any, TResult = any> {
 }
 
 export interface OSSToSkippedListItemsArgs {
-  input: GQLConnectionArgs
+  input: GQLSkippedListItemsInput
 }
 export interface OSSToSkippedListItemsResolver<TParent = any, TResult = any> {
   (

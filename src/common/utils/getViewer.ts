@@ -4,13 +4,7 @@ import jwt from 'jsonwebtoken'
 import _ from 'lodash'
 import requestIp from 'request-ip'
 
-import {
-  LANGUAGE,
-  SCOPE_MODE,
-  SKIPPED_LIST_ITEM_TYPES,
-  USER_ROLE,
-  USER_STATE,
-} from 'common/enums'
+import { LANGUAGE, SCOPE_MODE, USER_ROLE, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { clearCookie, getLanguage, makeScope } from 'common/utils'

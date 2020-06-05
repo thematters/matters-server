@@ -620,6 +620,7 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
 export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
   AGENT_HASH: 'agent_hash',
   EMAIL: 'email',
+  DOMAIN: 'domain',
 }
 
 /**

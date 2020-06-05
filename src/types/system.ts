@@ -81,7 +81,7 @@ export default /* GraphQL */ `
     reports(input: ReportsInput!): ReportConnection!
     report(input: ReportInput!): Report!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
-    skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
+    skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
   }
 
   type Category {
@@ -175,6 +175,12 @@ export default /* GraphQL */ `
   type ReportEdge {
     cursor: String!
     node: Report!
+  }
+
+  input SkippedListItemsInput {
+    after: String
+    first: Int
+    type: SkippedListItemType
   }
 
   type SkippedListItemsConnection implements Connection {
@@ -278,8 +284,10 @@ export default /* GraphQL */ `
   }
 
   input PutSkippedListItemInput {
-    id: ID!
-    archived: Boolean!
+    id: ID
+    type: SkippedListItemType
+    value: String
+    archived: Boolean
   }
 
   input LogRecordInput {
@@ -374,6 +382,7 @@ export default /* GraphQL */ `
   enum SkippedListItemType {
     agent_hash
     email
+    domain
   }
 
   enum FeatureName {

@@ -3,18 +3,20 @@ import { OSSToSkippedListItemsResolver } from 'definitions'
 
 export const skippedListItems: OSSToSkippedListItemsResolver = async (
   root,
-  { input: { ...connectionArgs } },
+  { input: { type, ...connectionArgs } },
   { viewer, dataSources: { systemService } }
 ) => {
+  const types = type ? [type] : ['email', 'agent_hash'] // backward compatible
+
   const { first, after } = connectionArgs
   const offset = cursorToIndex(after) + 1
-  const totalCount = await systemService.baseCount({}, 'blocklist')
+  const totalCount = await systemService.countSkippedItems({ types })
 
   const items = (
-    await systemService.baseFind({
+    await systemService.findSkippedItems({
+      types,
       offset,
       limit: first,
-      table: 'blocklist',
     })
   ).map((item) => ({
     ...item,
