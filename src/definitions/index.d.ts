@@ -220,7 +220,7 @@ export type Falsey = '' | 0 | false | null | undefined
 
 export type ScopeMode = 'visitor' | 'oauth' | 'user' | 'admin'
 
-export type SkippedListItemType = 'agent_hash' | 'email'
+export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
 
 /**
  * Payment

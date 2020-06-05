@@ -331,41 +331,77 @@ export class SystemService extends BaseService {
    *           Skipped             *
    *                               *
    *********************************/
+  findSkippedItems = async ({
+    types,
+    limit = BATCH_SIZE,
+    offset = 0,
+  }: {
+    types: string[]
+    limit?: number
+    offset?: number
+  }) =>
+    this.knex('blocklist')
+      .whereIn('type', types)
+      .limit(limit)
+      .offset(offset)
+      .orderBy('id', 'desc')
+
   findSkippedItem = async (type: SkippedListItemType, value: string) => {
     return this.knex('blocklist').where({ type, value }).first()
   }
 
-  createSkippedItem = async (
-    type: SkippedListItemType,
-    uuid: string,
-    value: string,
+  countSkippedItems = async ({ types }: { types: string[] }) => {
+    const result = await this.knex('blocklist')
+      .whereIn('type', types)
+      .count()
+      .first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  createSkippedItem = async ({
+    type,
+    value,
+    uuid,
+    note,
+    archived,
+  }: {
+    type: SkippedListItemType
+    value: string
+    uuid?: string
     note?: string
-  ) => {
-    if (!type || !uuid || !value) {
-      return
+    archived?: boolean
+  }) => {
+    const where = {
+      type,
+      value,
+      ...(uuid ? { uuid } : {}),
     }
-    const item = await this.findSkippedItem(type, value)
-    if (!item) {
-      const data = {
-        uuid,
+
+    return this.baseUpdateOrCreate({
+      where,
+      data: {
         type,
         value,
-        ...(note ? { note } : {}),
-      }
-      return this.baseCreate(data, 'blocklist')
-    }
+        note,
+        archived,
+        ...(uuid ? {} : { uuid: v4() }),
+        updatedAt: new Date(),
+      },
+      table: 'blocklist',
+    })
   }
 
   saveAgentHash = async (value: string, note?: string) => {
     if (!value) {
       return
     }
-    return this.createSkippedItem(
-      SKIPPED_LIST_ITEM_TYPES.AGENT_HASH,
-      v4(),
+    return this.createSkippedItem({
+      type: SKIPPED_LIST_ITEM_TYPES.AGENT_HASH,
+      uuid: v4(),
       value,
-      note
-    )
+      note,
+    })
   }
 
   updateSkippedItem = async (
