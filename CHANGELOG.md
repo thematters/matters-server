@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2020-06-05
+
+### Added
+
+- Add "nodes" root query #1137
+
+### Changed
+
+- Move objectCache to field and use args in objectCache #1105
+- Add prevention of multiple pending payout transactions. #1115
+- Add error code for payment password. #1116
+- Catch known error. #1127
+- Adjust fee of Matters service. #1136
+- Fix amount of payout email #1143
+
 ## [3.0.0] - 2020-05-23
 
 ### Added
