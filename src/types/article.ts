@@ -120,7 +120,7 @@ export default /* GraphQL */ `
     content: String!
 
     "Original language of content"
-    language: String @objectCache(maxAge: ${CACHE_TTL.STATIC})
+    language: String @objectCache(maxAge: ${CACHE_TTL.SHORT})
 
     "List of articles which added this article into their collections."
     collectedBy(input: ConnectionArgs!): ArticleConnection!
