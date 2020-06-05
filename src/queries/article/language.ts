@@ -8,7 +8,7 @@ const resolver: ArticleToLanguageResolver = (
   if (storedLanguage) {
     return storedLanguage
   }
-  console.log({ storedLanguage })
+
   articleService
     .detectLanguage(content)
     .then((language) => language && articleService.baseUpdate(id, { language }))
