@@ -1,7 +1,7 @@
 import { ArticleToTranslationResolver } from 'definitions'
 
 const resolver: ArticleToTranslationResolver = async (
-  { id, content: originContent, title: originTitle },
+  { content: originContent, title: originTitle },
   { input },
   { dataSources: { articleService }, viewer }
 ) => {

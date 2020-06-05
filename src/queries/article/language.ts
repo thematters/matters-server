@@ -1,9 +1,19 @@
 import { ArticleToLanguageResolver } from 'definitions'
 
 const resolver: ArticleToLanguageResolver = (
-  { content },
+  { id, content, language: storedLanguage },
   _,
   { dataSources: { articleService } }
-) => articleService.detectLanguage(content)
+) => {
+  if (storedLanguage) {
+    return storedLanguage
+  }
+  console.log({ storedLanguage })
+  articleService
+    .detectLanguage(content)
+    .then((language) => language && articleService.baseUpdate(id, { language }))
+  // return  first to prevent blocking
+  return
+}
 
 export default resolver

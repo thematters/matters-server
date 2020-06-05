@@ -91,10 +91,7 @@ export class CacheService {
 
       // avoid empty object
       if (typeof tested === 'object') {
-        return Object.values(tested).reduce(
-          (accu, curr) => _.isNil(curr) || accu,
-          false
-        )
+        return Object.values(tested).length === 0
       }
 
       return false
@@ -104,6 +101,7 @@ export class CacheService {
 
     let data = await this.redis.client.get(key)
     data = JSON.parse(data)
+
     // get the data if there is none
     if (isNil(data) && getter) {
       data = await getter()
