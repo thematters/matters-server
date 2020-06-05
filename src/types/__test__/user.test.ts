@@ -588,7 +588,7 @@ describe('mutations on User object', () => {
 })
 
 describe('user recommendations', () => {
-  test('retrive articles from hottest, icymi, topics, followeeArticles and newest', async () => {
+  test('retrive articles from hottest, icymi, topics, followeeArticles, newest and valued', async () => {
     await Promise.all(
       _values(MATERIALIZED_VIEW).map((view) =>
         refreshView(view as MaterializedView)
@@ -601,6 +601,7 @@ describe('user recommendations', () => {
       'topics',
       'followeeArticles',
       'newest',
+      'valued',
       'followeeWorks',
     ]
     for (const list of lists) {

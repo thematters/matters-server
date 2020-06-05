@@ -442,4 +442,47 @@ export class PaymentService extends BaseService {
       targetType: undefined,
     })
   }
+
+  calculateHKDBalance = async ({ userId }: { userId: string }) => {
+    const result = await this.knex
+      .select()
+      .from(
+        this.knex.raw(`(
+          select
+            sum(amount) as amount
+          from
+            transaction
+          where
+            recipient_id = ${userId} and currency = 'HKD' and state = 'succeeded'
+          union
+          select
+            sum((0 - amount)) as amount
+          from
+            transaction
+          where
+            sender_id = ${userId} and currency = 'HKD' and (state = 'succeeded' or state = 'pending')
+        ) as src`)
+      )
+      .sum('src.amount as amount')
+
+    if (!result || !result[0]) {
+      return 0
+    }
+    return Math.max(parseInt(result[0].amount || 0, 10), 0)
+  }
+
+  countPendingPayouts = async ({ userId }: { userId: string }) => {
+    const result = await this.knex('transaction')
+      .where({
+        purpose: TRANSACTION_PURPOSE.payout,
+        senderId: userId,
+        state: TRANSACTION_STATE.pending,
+      })
+      .count()
+
+    if (!result || !result[0]) {
+      return 0
+    }
+    return parseInt(`${result[0].count}` || '0', 10)
+  }
 }

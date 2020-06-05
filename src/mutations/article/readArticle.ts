@@ -18,30 +18,33 @@ const resolver: MutationToReadArticleResolver = async (
 
   // only record if viewer read others articles
   if (viewer.id !== article.authorId) {
-    await articleService.read({
+    const { newRead } = await articleService.read({
       articleId: article.id,
       userId: viewer.id || null,
       ip: viewer.ip,
     })
-  }
 
-  // call like.co count api for like.co analytic pageview
-  try {
-    let liker
-    if (viewer.id) {
-      liker = await userService.findLiker({ userId: viewer.id })
+    // if it's a new read
+    // call like.co count api for like.co analytic pageview
+    if (newRead) {
+      try {
+        let liker
+        if (viewer.id) {
+          liker = await userService.findLiker({ userId: viewer.id })
+        }
+
+        const author = await userService.dataloader.load(article.authorId)
+
+        likeCoinQueue.sendPV({
+          likerId: liker ? liker.likerId : undefined,
+          likerIp: viewer.ip,
+          authorLikerId: author.likerId,
+          url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+        })
+      } catch (error) {
+        logger.error(error)
+      }
     }
-
-    const author = await userService.dataloader.load(article.authorId)
-
-    likeCoinQueue.sendPV({
-      likerId: liker ? liker.likerId : undefined,
-      likerIp: viewer.ip,
-      authorLikerId: author.likerId,
-      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
-    })
-  } catch (error) {
-    logger.error(error)
   }
 
   return article

@@ -176,6 +176,9 @@ export default /* GraphQL */ `
     "'In case you missed it' recommendation."
     icymi(input: ConnectionArgs!): ArticleConnection!
 
+    "Global articles sort by appreciate, donation and subscription."
+    valued(input: ConnectionArgs!): ArticleConnection!
+
     "Global tag list, sort by activities in recent 14 days."
     tags(input: ConnectionArgs!): TagConnection!
 

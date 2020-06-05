@@ -136,7 +136,7 @@ export type MaterializedView =
   | 'tag_count_materialized'
   | 'user_reader_materialized'
   | 'article_activity_materialized'
-  | 'article_activity_b_materialized'
+  | 'article_value_materialized'
   | 'featured_comment_materialized'
 
 export type ThirdPartyAccount = {
@@ -220,7 +220,7 @@ export type Falsey = '' | 0 | false | null | undefined
 
 export type ScopeMode = 'visitor' | 'oauth' | 'user' | 'admin'
 
-export type SkippedListItemType = 'agent_hash' | 'email'
+export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
 
 /**
  * Payment

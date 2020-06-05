@@ -17,6 +17,7 @@ import {
   ForbiddenError,
   PasswordInvalidError,
   PaymentBalanceInsufficientError,
+  PaymentPasswordNotSetError,
   PaymentReachMaximumLimitError,
   UserInputError,
   UserNotFoundError,
@@ -84,7 +85,9 @@ const resolver: MutationToPayToResolver = async (
 
   if (PAYMENT_CURRENCY[currency] !== PAYMENT_CURRENCY.LIKE) {
     if (!viewer.paymentPasswordHash) {
-      throw new ForbiddenError('viewer payment password has not set')
+      throw new PaymentPasswordNotSetError(
+        'viewer payment password has not set'
+      )
     }
 
     const verified = await compare(password, viewer.paymentPasswordHash)
@@ -135,11 +138,10 @@ const resolver: MutationToPayToResolver = async (
       redirectUrl = `${likecoinPayURL}?${params}`
       break
     case 'HKD':
-      const balance = await paymentService.calculateBalance({
+      const balance = await paymentService.calculateHKDBalance({
         userId: viewer.id,
-        currency: PAYMENT_CURRENCY.HKD,
       })
-      if (balance < amount) {
+      if (amount > balance) {
         throw new PaymentBalanceInsufficientError(
           'viewer has insufficient balance'
         )

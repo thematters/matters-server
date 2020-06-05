@@ -11,18 +11,25 @@ export const MINUTE = 1000 * 60
 export const HOUR = MINUTE * 60
 export const DAY = HOUR * 24
 
+export const GRAPHQL_COST_LIMIT = 500
+
 export const UPLOAD_FILE_COUNT_LIMIT = 50
 
 export const UPLOAD_FILE_SIZE_LIMIT = 100 * 1024 * 1024
 
 export const UPLOAD_MIGRATION_FILE_SIZE_LIMIT = 1 * 1024 * 1024
 
+export const VIEW = {
+  articleValue: 'article_value_view',
+  articleActivity: 'article_activity_view',
+}
+
 export const MATERIALIZED_VIEW = {
   articleCountMaterialized: 'article_count_materialized',
   tagCountMaterialized: 'tag_count_materialized',
   userReaderMaterialized: 'user_reader_materialized',
   articleActivityMaterialized: 'article_activity_materialized',
-  articleActivityBMaterialized: 'article_activity_b_materialized',
+  articleValueMaterialized: 'article_value_materialized',
   featuredCommentMaterialized: 'featured_comment_materialized',
 }
 
@@ -317,6 +324,7 @@ export const QUEUE_JOB = {
   refreshTagCountMaterialView: 'refreshTagCountMaterialView',
   refreshUserReaderView: 'refreshUserReaderView',
   refreshArticleActivityView: 'refreshArticleActivityView',
+  refreshArticleValueView: 'refreshArticleValueView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
 
   // Migration
@@ -612,6 +620,7 @@ export const NOTIFICATION_TYPES: NotificationType[] = [
 export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
   AGENT_HASH: 'agent_hash',
   EMAIL: 'email',
+  DOMAIN: 'domain',
 }
 
 /**

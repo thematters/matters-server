@@ -14,6 +14,8 @@ import {
   ForbiddenError,
   PasswordInvalidError,
   PaymentBalanceInsufficientError,
+  PaymentPasswordNotSetError,
+  PaymentPayoutTransactionExistsError,
   PaymentReachMaximumLimitError,
   UserInputError,
 } from 'common/errors'
@@ -38,7 +40,7 @@ const resolver: MutationToPayoutResolver = async (
   }
 
   if (!viewer.paymentPasswordHash) {
-    throw new ForbiddenError('viewer payment password has not set')
+    throw new PaymentPasswordNotSetError('viewer payment password has not set')
   }
 
   const verified = await compare(password, viewer.paymentPasswordHash)
@@ -46,13 +48,19 @@ const resolver: MutationToPayoutResolver = async (
     throw new PasswordInvalidError('password is incorrect, payment failed.')
   }
 
-  const [balance, customer] = await Promise.all([
-    paymentService.calculateBalance({
+  const [balance, pending, customer] = await Promise.all([
+    paymentService.calculateHKDBalance({
       userId: viewer.id,
-      currency: PAYMENT_CURRENCY.HKD,
     }),
+    paymentService.countPendingPayouts({ userId: viewer.id }),
     paymentService.findPayoutAccount({ userId: viewer.id }),
   ])
+
+  if (pending > 0) {
+    throw new PaymentPayoutTransactionExistsError(
+      'viewer already has ongoing payouts'
+    )
+  }
 
   if (amount > balance) {
     throw new PaymentBalanceInsufficientError('viewer has insufficient balance')

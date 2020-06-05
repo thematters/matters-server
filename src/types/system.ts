@@ -3,6 +3,7 @@ import { CACHE_TTL } from 'common/enums'
 export default /* GraphQL */ `
   extend type Query {
     node(input: NodeInput!): Node @privateCache @logCache(type: "Node")
+    nodes(input: NodesInput!): [Node!] @privateCache
     frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection! @privateCache
     official: Official!
@@ -80,7 +81,7 @@ export default /* GraphQL */ `
     reports(input: ReportsInput!): ReportConnection!
     report(input: ReportInput!): Report!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
-    skippedListItems(input: ConnectionArgs!): SkippedListItemsConnection!
+    skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
   }
 
   type Category {
@@ -176,6 +177,12 @@ export default /* GraphQL */ `
     node: Report!
   }
 
+  input SkippedListItemsInput {
+    after: String
+    first: Int
+    type: SkippedListItemType
+  }
+
   type SkippedListItemsConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
@@ -199,6 +206,10 @@ export default /* GraphQL */ `
 
   input NodeInput {
     id: ID!
+  }
+
+  input NodesInput {
+    ids: [ID!]!
   }
 
   input OSSArticlesInput {
@@ -273,8 +284,10 @@ export default /* GraphQL */ `
   }
 
   input PutSkippedListItemInput {
-    id: ID!
-    archived: Boolean!
+    id: ID
+    type: SkippedListItemType
+    value: String
+    archived: Boolean
   }
 
   input LogRecordInput {
@@ -369,6 +382,7 @@ export default /* GraphQL */ `
   enum SkippedListItemType {
     agent_hash
     email
+    domain
   }
 
   enum FeatureName {

@@ -71,7 +71,10 @@ const updateTxState = async (
   // trigger notifications
   const mailType = mappingTxPurposeToMailType(tx.purpose)
   if (eventType === 'payment_intent.succeeded' && mailType) {
-    const recipient = await userService.baseFindById(tx.recipientId)
+    const isPayout = tx.purpose === TRANSACTION_PURPOSE.payout
+    const recipient = await userService.baseFindById(
+      isPayout ? tx.senderId : tx.recipientId
+    )
     notificationService.mail.sendPayment({
       to: recipient.email,
       recipient: {
@@ -81,13 +84,13 @@ const updateTxState = async (
       type: mailType,
       tx: {
         recipient,
-        amount: numRound(tx.amount),
+        amount: numRound(isPayout ? tx.amount - tx.fee : tx.amount),
         currency: tx.currency,
       },
     })
 
     // send slack message
-    if (tx.purpose === TRANSACTION_PURPOSE.payout) {
+    if (isPayout) {
       const slack = new SlackService()
       if (slack) {
         slack.sendPayoutMessage({

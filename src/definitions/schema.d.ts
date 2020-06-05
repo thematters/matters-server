@@ -15,6 +15,7 @@ import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql'
 export interface GQLQuery {
   article?: GQLArticle
   node?: GQLNode
+  nodes?: Array<GQLNode>
   frequentSearch?: Array<string>
   search: GQLSearchResultConnection
   official: GQLOfficial
@@ -545,6 +546,11 @@ export interface GQLRecommendation {
    * 'In case you missed it' recommendation.
    */
   icymi: GQLArticleConnection
+
+  /**
+   * Global articles sort by appreciate, donation and subscription.
+   */
+  valued: GQLArticleConnection
 
   /**
    * Global tag list, sort by activities in recent 14 days.
@@ -1441,6 +1447,10 @@ export interface GQLNodeInput {
   id: string
 }
 
+export interface GQLNodesInput {
+  ids: Array<string>
+}
+
 export interface GQLFrequentSearchInput {
   key?: string
   first?: number
@@ -1707,6 +1717,18 @@ export const enum GQLGrantType {
 
 export type GQLDate = any
 
+export interface GQLSkippedListItemsInput {
+  after?: string
+  first?: number
+  type?: GQLSkippedListItemType
+}
+
+export const enum GQLSkippedListItemType {
+  agent_hash = 'agent_hash',
+  email = 'email',
+  domain = 'domain',
+}
+
 export interface GQLSkippedListItemsConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
@@ -1726,11 +1748,6 @@ export interface GQLSkippedListItem {
   archived: boolean
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
-}
-
-export const enum GQLSkippedListItemType {
-  agent_hash = 'agent_hash',
-  email = 'email',
 }
 
 export interface GQLUserInput {
@@ -2292,8 +2309,10 @@ export const enum GQLRemarkTypes {
 }
 
 export interface GQLPutSkippedListItemInput {
-  id: string
-  archived: boolean
+  id?: string
+  type?: GQLSkippedListItemType
+  value?: string
+  archived?: boolean
 }
 
 export interface GQLSetFeatureInput {
@@ -3226,6 +3245,7 @@ export interface GQLResolver {
 export interface GQLQueryTypeResolver<TParent = any> {
   article?: QueryToArticleResolver<TParent>
   node?: QueryToNodeResolver<TParent>
+  nodes?: QueryToNodesResolver<TParent>
   frequentSearch?: QueryToFrequentSearchResolver<TParent>
   search?: QueryToSearchResolver<TParent>
   official?: QueryToOfficialResolver<TParent>
@@ -3254,6 +3274,18 @@ export interface QueryToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToNodeArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface QueryToNodesArgs {
+  input: GQLNodesInput
+}
+export interface QueryToNodesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: QueryToNodesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -4456,6 +4488,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
+  valued?: RecommendationToValuedResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
   authors?: RecommendationToAuthorsResolver<TParent>
@@ -4523,6 +4556,18 @@ export interface RecommendationToIcymiResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToIcymiArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToValuedArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToValuedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: RecommendationToValuedArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7068,7 +7113,7 @@ export interface OSSToOauthClientsResolver<TParent = any, TResult = any> {
 }
 
 export interface OSSToSkippedListItemsArgs {
-  input: GQLConnectionArgs
+  input: GQLSkippedListItemsInput
 }
 export interface OSSToSkippedListItemsResolver<TParent = any, TResult = any> {
   (
