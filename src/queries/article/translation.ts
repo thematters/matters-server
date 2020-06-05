@@ -18,7 +18,7 @@ const resolver: ArticleToTranslationResolver = async (
   return title && content
     ? {
         // obsolete
-        originContent: '',
+        originLanguage: '',
         title,
         content,
       }
