@@ -144,7 +144,7 @@
     "@types/validator": "^13.0.0",
     "@types/winston": "^2.4.4",
     "@types/ws": "^7.2.5",
-    "apollo-server-testing": "^2.9.12",
+    "apollo-server-testing": "^2.14.2",
     "chokidar": "^3.4.0",
     "chokidar-cli": "^2.1.0",
     "codecov": "^3.7.0",
