@@ -377,3 +377,12 @@ export class PaymentPasswordNotSetError extends ApolloError {
     })
   }
 }
+
+export class PaymentQueueJobDataError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_QUEUE_JOB_DATA_ERROR')
+    Object.defineProperty(this, 'name', {
+      value: 'PaymentQueueJobDataError',
+    })
+  }
+}

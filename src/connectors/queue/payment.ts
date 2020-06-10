@@ -9,6 +9,7 @@ import {
   QUEUE_PRIORITY,
   TRANSACTION_STATE,
 } from 'common/enums'
+import { PaymentQueueJobDataError } from 'common/errors'
 import logger from 'common/logger'
 import { numRound } from 'common/utils'
 import { PaymentService } from 'connectors'
@@ -38,7 +39,7 @@ class PaymentQueue extends BaseQueue {
       { txId },
       {
         priority: QUEUE_PRIORITY.NORMAL,
-        removeOnComplete: true,
+        removeOnComplete: false,
       }
     )
   }
@@ -53,7 +54,7 @@ class PaymentQueue extends BaseQueue {
       { txId },
       {
         priority: QUEUE_PRIORITY.NORMAL,
-        removeOnComplete: true,
+        removeOnComplete: false,
       }
     )
   }
@@ -96,14 +97,17 @@ class PaymentQueue extends BaseQueue {
     job,
     done
   ) => {
+    let txId
     try {
-      const { txId } = job.data as PaymentParams
+      const data = job.data as PaymentParams
+      txId = data.txId
+
       if (!txId) {
-        throw new Error(`payout job has no required txId: ${txId}`)
+        throw new PaymentQueueJobDataError(`payout job has no required txId: ${txId}`)
       }
       const tx = await this.paymentService.baseFindById(txId)
       if (!tx) {
-        throw new Error('payout pending tx not found')
+        throw new PaymentQueueJobDataError('payout pending tx not found')
       }
 
       // cancel payout if senderId is not specified
@@ -130,9 +134,9 @@ class PaymentQueue extends BaseQueue {
 
       // create stripe payment
       const payment = await this.paymentService.stripe.createDestinationCharge({
-        amount: tx.amount,
+        amount: numRound(tx.amount),
         currency: PAYMENT_CURRENCY.HKD,
-        fee: tx.fee,
+        fee: numRound(tx.fee),
         recipientStripeConnectedId: recipient.accountId,
       })
 
@@ -150,6 +154,13 @@ class PaymentQueue extends BaseQueue {
       job.progress(100)
       done(null, { txId, stripeTxId: payment.id })
     } catch (error) {
+      if (txId && error.name !== 'PaymentQueueJobDataError') {
+        try {
+          await this.failTx(txId)
+        } catch (error) {
+          logger.error(error)
+        }
+      }
       logger.error(error)
       done(error)
     }
@@ -159,14 +170,17 @@ class PaymentQueue extends BaseQueue {
     job,
     done
   ) => {
+    let txId
     try {
-      const { txId } = job.data as PaymentParams
+      const data = job.data as PaymentParams
+      txId = data.txId
+
       if (!txId) {
-        throw new Error(`pay-to job has no required txId: ${txId}`)
+        throw new PaymentQueueJobDataError(`pay-to job has no required txId: ${txId}`)
       }
       const tx = await this.paymentService.baseFindById(txId)
       if (!tx) {
-        throw new Error('pay-to pending tx not found')
+        throw new PaymentQueueJobDataError('pay-to pending tx not found')
       }
 
       // cancel pay-to if recipientId or senderId is not specified
@@ -266,6 +280,13 @@ class PaymentQueue extends BaseQueue {
       job.progress(100)
       done(null, job.data)
     } catch (error) {
+      if (txId && error.name !== 'PaymentQueueJobDataError') {
+        try {
+          await this.failTx(txId)
+        } catch (error) {
+          logger.error(error)
+        }
+      }
       logger.error(error)
       done(error)
     }
