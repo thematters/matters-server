@@ -39,7 +39,7 @@
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
     "@okgrow/graphql-scalars": "^0.4.6",
-    "@sendgrid/mail": "^6.4.0",
+    "@sendgrid/mail": "^7.1.1",
     "@sentry/node": "^5.17.0",
     "@slack/web-api": "^5.10.0",
     "apollo-server-cache-redis": "^1.2.1",
