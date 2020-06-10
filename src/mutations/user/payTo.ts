@@ -24,6 +24,7 @@ import {
 } from 'common/errors'
 import { fromGlobalId, numRound } from 'common/utils'
 import { CacheService } from 'connectors'
+import { paymentQueue } from 'connectors/queue'
 import { MutationToPayToResolver } from 'definitions'
 
 const resolver: MutationToPayToResolver = async (
@@ -160,70 +161,18 @@ const resolver: MutationToPayToResolver = async (
         )
       }
 
+      // insert pending tx
       transaction = await paymentService.createTransaction({
         ...baseParams,
         currency: PAYMENT_CURRENCY.HKD,
         purpose: TRANSACTION_PURPOSE[purpose],
         provider: PAYMENT_PROVIDER.matters,
         providerTxId: v4(),
-        state: TRANSACTION_STATE.succeeded,
       })
+
+      // insert queue job
+      paymentQueue.payTo({ txId: transaction.id })
       break
-  }
-
-  /**
-   * trigger notifications (HKD only, see `routes/pay/likecoin` for LIKE)
-   */
-  if (currency === 'HKD') {
-    // send to sender
-    notificationService.mail.sendPayment({
-      to: viewer.email,
-      recipient: {
-        displayName: viewer.displayName,
-        userName: viewer.userName,
-      },
-      type: 'donated',
-      tx: {
-        recipient,
-        sender: viewer,
-        amount: numRound(transaction.amount),
-        currency: transaction.currency,
-      },
-    })
-
-    // send to recipient
-    notificationService.trigger({
-      event: 'payment_received_donation',
-      actorId: viewer.id,
-      recipientId: recipient.id,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'transaction',
-          entity: transaction,
-        },
-      ],
-    })
-    notificationService.mail.sendPayment({
-      to: recipient.email,
-      recipient: {
-        displayName: recipient.displayName,
-        userName: recipient.userName,
-      },
-      type: 'receivedDonation',
-      tx: {
-        recipient,
-        sender: viewer,
-        amount: numRound(transaction.amount),
-        currency: transaction.currency,
-      },
-    })
-
-    // manaully invalidate cache since it returns complex object
-    if (redis && redis.client) {
-      const cacheService = new CacheService(redis)
-      await cacheService.invalidateFQC(targetType, targetDbId)
-    }
   }
 
   return { transaction, redirectUrl }

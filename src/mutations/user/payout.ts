@@ -20,6 +20,7 @@ import {
   UserInputError,
 } from 'common/errors'
 import { calcMattersFee } from 'common/utils'
+import { paymentQueue } from 'connectors/queue'
 import { MutationToPayoutResolver } from 'definitions'
 
 const resolver: MutationToPayoutResolver = async (
@@ -71,11 +72,21 @@ const resolver: MutationToPayoutResolver = async (
     throw new EntityNotFoundError(`payout recipient is not found`)
   }
 
-  const transaction = await paymentService.createPayout({
+  // insert pending tx
+  const fee = calcMattersFee(amount)
+  const transaction = await paymentService.createTransaction({
     amount,
-    recipientId: viewer.id,
-    recipientStripeConnectedId: recipient.accountId,
+    currency: PAYMENT_CURRENCY.HKD,
+    fee,
+    purpose: TRANSACTION_PURPOSE.payout,
+    provider: PAYMENT_PROVIDER.stripe,
+    providerTxId: v4(),
+    senderId: viewer.id,
+    targetType: undefined,
   })
+
+  // insert queue job
+  paymentQueue.payout({ txId: transaction.id })
 
   return transaction
 }
