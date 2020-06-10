@@ -4,23 +4,22 @@ import {
   NODE_TYPES,
   PAYMENT_CURRENCY,
   PAYMENT_MAXIMUM_AMOUNT,
-  QUEUE_JOB, QUEUE_NAME,
+  QUEUE_JOB,
+  QUEUE_NAME,
   QUEUE_PRIORITY,
-  TRANSACTION_STATE
+  TRANSACTION_STATE,
 } from 'common/enums'
 import logger from 'common/logger'
-import { numRound }from 'common/utils'
+import { numRound } from 'common/utils'
 import { PaymentService } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
-
 
 interface PaymentParams {
   txId: string
 }
 
 class PaymentQueue extends BaseQueue {
-
   paymentService: InstanceType<typeof PaymentService>
 
   constructor() {
@@ -49,7 +48,7 @@ class PaymentQueue extends BaseQueue {
    *
    */
   payTo = ({ txId }: PaymentParams) => {
-    return  this.q.add(
+    return this.q.add(
       QUEUE_JOB.payTo,
       { txId },
       {
@@ -66,7 +65,7 @@ class PaymentQueue extends BaseQueue {
    */
   private addConsumers = () => {
     this.q.process(QUEUE_JOB.payout, 1, this.handlePayout)
-    this.q.process(QUEUE_JOB.payTo, 1, this.handlePayout)
+    this.q.process(QUEUE_JOB.payTo, 1, this.handlePayTo)
   }
 
   /**
@@ -76,7 +75,7 @@ class PaymentQueue extends BaseQueue {
   private cancelTx = async (txId: string) =>
     this.paymentService.markTransactionStateAs({
       id: txId,
-      state: TRANSACTION_STATE.canceled
+      state: TRANSACTION_STATE.canceled,
     })
 
   /**
@@ -86,7 +85,7 @@ class PaymentQueue extends BaseQueue {
   private failTx = async (txId: string) =>
     this.paymentService.markTransactionStateAs({
       id: txId,
-      state: TRANSACTION_STATE.failed
+      state: TRANSACTION_STATE.failed,
     })
 
   /**
@@ -124,7 +123,7 @@ class PaymentQueue extends BaseQueue {
       // 1. balance including pending amounts < 0
       // 2. user has no stripe account
       // 3. user has multiple pending payouts
-      if (balance < 0 || (!recipient || !recipient.accountId) || pending > 1) {
+      if (balance < 0 || !recipient || !recipient.accountId || pending > 1) {
         await this.cancelTx(txId)
         return done(null, job.data)
       }
@@ -150,7 +149,6 @@ class PaymentQueue extends BaseQueue {
 
       job.progress(100)
       done(null, { txId, stripeTxId: payment.id })
-
     } catch (error) {
       logger.error(error)
       done(error)
@@ -179,7 +177,9 @@ class PaymentQueue extends BaseQueue {
 
       const [balance, hasPaid, recipient, sender] = await Promise.all([
         this.paymentService.calculateHKDBalance({ userId: tx.senderId }),
-        this.paymentService.sumTodayDonationTransactions({ senderId: tx.senderId }),
+        this.paymentService.sumTodayDonationTransactions({
+          senderId: tx.senderId,
+        }),
         this.userService.baseFindById(tx.recipientId),
         this.userService.baseFindById(tx.senderId),
       ])
@@ -192,8 +192,9 @@ class PaymentQueue extends BaseQueue {
       if (
         balance < 0 ||
         tx.amount > PAYMENT_MAXIMUM_AMOUNT.HKD ||
-        (tx.amount + hasPaid) > PAYMENT_MAXIMUM_AMOUNT.HKD ||
-        (!recipient || !sender)
+        tx.amount + hasPaid > PAYMENT_MAXIMUM_AMOUNT.HKD ||
+        !recipient ||
+        !sender
       ) {
         await this.cancelTx(txId)
         return done(null, job.data)
@@ -252,8 +253,11 @@ class PaymentQueue extends BaseQueue {
 
       // manaully invalidate cache
       if (tx.targetType) {
-        const entity = await this.userService.baseFindEntityTypeTable(tx.targetType)
-        const entityType = NODE_TYPES[(entity?.table as keyof typeof NODE_TYPES) || '']
+        const entity = await this.userService.baseFindEntityTypeTable(
+          tx.targetType
+        )
+        const entityType =
+          NODE_TYPES[(entity?.table as keyof typeof NODE_TYPES) || '']
         if (entityType) {
           await this.cacheService.invalidateFQC(entityType, tx.targetId)
         }
@@ -261,7 +265,6 @@ class PaymentQueue extends BaseQueue {
 
       job.progress(100)
       done(null, job.data)
-
     } catch (error) {
       logger.error(error)
       done(error)
