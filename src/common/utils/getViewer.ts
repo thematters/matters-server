@@ -130,8 +130,17 @@ export const getViewerFromReq = async ({
   }
 
   // get user from token, use cookie first then 'x-access-token'
-  const token =
+  let token =
     cookie.parse(headers.cookie || '').token || headers['x-access-token'] || ''
+
+  // FIXME: Strip off viewer for query that name contains `Public` suffix,
+  // should be removed when the cookie-based token is deprecated
+  // @ts-ignore
+  const operationName = req?.query?.operationName || req?.body?.operationName
+  const isPublicQuery = /Public$/.test(operationName)
+  if (isPublicQuery) {
+    token = ''
+  }
 
   if (!token) {
     logger.info('User is not logged in, viewing as guest')
