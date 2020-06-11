@@ -44,10 +44,8 @@ export class ObjectCacheDirective extends SchemaDirectiveVisitor {
       field.resolve = async function (...args) {
         // Get ttl from field or object
         const maxAge = field._ttl || objectType._ttl
-
+        const [{ id }] = args
         if (maxAge) {
-          const [{ id }] = args
-
           return cacheService.getObject({
             keys: {
               type: objectType.name,
