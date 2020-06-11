@@ -103,7 +103,9 @@ class PaymentQueue extends BaseQueue {
       txId = data.txId
 
       if (!txId) {
-        throw new PaymentQueueJobDataError(`payout job has no required txId: ${txId}`)
+        throw new PaymentQueueJobDataError(
+          `payout job has no required txId: ${txId}`
+        )
       }
       const tx = await this.paymentService.baseFindById(txId)
       if (!tx) {
@@ -176,7 +178,9 @@ class PaymentQueue extends BaseQueue {
       txId = data.txId
 
       if (!txId) {
-        throw new PaymentQueueJobDataError(`pay-to job has no required txId: ${txId}`)
+        throw new PaymentQueueJobDataError(
+          `pay-to job has no required txId: ${txId}`
+        )
       }
       const tx = await this.paymentService.baseFindById(txId)
       if (!tx) {
