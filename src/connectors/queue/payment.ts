@@ -276,8 +276,8 @@ class PaymentQueue extends BaseQueue {
         )
         const entityType =
           NODE_TYPES[(entity?.table as keyof typeof NODE_TYPES) || '']
-        if (entityType) {
-          await this.cacheService.invalidateFQC(entityType, tx.targetId)
+        if (entityType && this.cacheService) {
+          this.cacheService.invalidateFQC(entityType, tx.targetId)
         }
       }
 

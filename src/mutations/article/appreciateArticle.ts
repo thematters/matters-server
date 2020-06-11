@@ -8,7 +8,7 @@ import {
 } from 'common/errors'
 import { fromGlobalId, isFeatureEnabled } from 'common/utils'
 import { gcp } from 'connectors'
-import { likeCoinQueue } from 'connectors/queue'
+import { appreciationQueue } from 'connectors/queue'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 
 const resolver: MutationToAppreciateArticleResolver = async (
@@ -68,60 +68,14 @@ const resolver: MutationToAppreciateArticleResolver = async (
     }
   }
 
-  try {
-    // record to DB
-    await articleService.appreciate({
-      articleId: article.id,
-      senderId: viewer.id,
-      recipientId: article.authorId,
-      amount: validAmount,
-      type: APPRECIATION_TYPES.like,
-    })
+  // insert appreciation job
+  appreciationQueue.appreciate({
+    amount: validAmount,
+    articleId: article.id,
+    senderId: viewer.id,
+  })
 
-    // record to LikeCoin
-    likeCoinQueue.like({
-      likerId: viewer.likerId,
-      likerIp: viewer.ip,
-      authorLikerId: author.likerId,
-      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
-      amount: validAmount,
-    })
-
-    // publish a PubSub event
-    notificationService.pubsub.publish(id, article)
-
-    // trigger notifications
-    notificationService.trigger({
-      event: 'article_new_appreciation',
-      actorId: viewer.id,
-      recipientId: article.authorId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'article',
-          entity: article,
-        },
-      ],
-    })
-
-    const newArticle = await articleService.dataloader.load(article.id)
-
-    // Add custom data for cache invalidation
-    newArticle[CACHE_KEYWORD] = [
-      {
-        id: newArticle.id,
-        type: NODE_TYPES.article,
-      },
-      {
-        id: newArticle.authorId,
-        type: NODE_TYPES.user,
-      },
-    ]
-
-    return newArticle
-  } catch (error) {
-    throw error
-  }
+  return article
 }
 
 export default resolver

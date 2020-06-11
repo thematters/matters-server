@@ -333,6 +333,9 @@ export const QUEUE_JOB = {
   // Payment
   payout: 'payout',
   payTo: 'payTo',
+
+  // Appreciation
+  appreciation: 'appreciation',
 }
 
 export const QUEUE_NAME = {
@@ -344,6 +347,7 @@ export const QUEUE_NAME = {
   user: 'user',
   migration: 'migration',
   payment: 'payment',
+  appreciation: 'appreciation',
 }
 
 export const QUEUE_CONCURRENCY = {
