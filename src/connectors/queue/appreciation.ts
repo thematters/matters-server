@@ -5,7 +5,7 @@ import {
   NODE_TYPES,
   QUEUE_JOB,
   QUEUE_NAME,
-  QUEUE_PRIORITY
+  QUEUE_PRIORITY,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -18,7 +18,7 @@ import logger from 'common/logger'
 import { toGlobalId } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
-import { likeCoinQueue} from './likecoin'
+import { likeCoinQueue } from './likecoin'
 
 interface AppreciationParams {
   amount: number
@@ -93,7 +93,7 @@ class AppreciationQueue extends BaseQueue {
 
       const [author, sender] = await Promise.all([
         this.userService.baseFindById(article.authorId),
-        this.userService.baseFindById(senderId)
+        this.userService.baseFindById(senderId),
       ])
 
       if (!author || !sender) {
@@ -149,7 +149,6 @@ class AppreciationQueue extends BaseQueue {
       done(error)
     }
   }
-
 }
 
 export const appreciationQueue = new AppreciationQueue()
