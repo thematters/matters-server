@@ -1,18 +1,8 @@
 import * as AWS from 'aws-sdk'
-import { imageSize } from 'image-size'
-import imagemin from 'imagemin'
-import imageminGifsicle from 'imagemin-gifsicle'
-import imageminJpegtran from 'imagemin-jpegtran'
-import imageminPngquant from 'imagemin-pngquant'
-import imageminSvgo from 'imagemin-svgo'
 import mime from 'mime-types'
 import sharp from 'sharp'
 
-import {
-  ACCEPTED_UPLOAD_IMAGE_TYPES,
-  IMAGE_DIMENSION_LIMIT,
-  LOCAL_S3_ENDPOINT,
-} from 'common/enums'
+import { ACCEPTED_UPLOAD_IMAGE_TYPES, LOCAL_S3_ENDPOINT } from 'common/enums'
 import { environment } from 'common/environment'
 import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
 import { GQLAssetType } from 'definitions'
@@ -91,22 +81,6 @@ export class AWSService {
         buffer = await this.convertToJPEG(buffer)
         finalMimeType = 'image/jpeg'
       }
-
-      // Detect image dimension
-      const { width, height } = imageSize(buffer)
-      if (width && width > IMAGE_DIMENSION_LIMIT) {
-        buffer = await this.resizeImage(buffer, IMAGE_DIMENSION_LIMIT, null)
-      }
-
-      // Compress image
-      buffer = await imagemin.buffer(buffer, {
-        plugins: [
-          imageminGifsicle(),
-          imageminJpegtran(),
-          imageminPngquant(),
-          imageminSvgo(),
-        ],
-      })
     }
 
     const extension =
@@ -134,17 +108,6 @@ export class AWSService {
         Key: key,
       })
       .promise()
-
-  /**
-   * Resize image to specific size.
-   */
-  resizeImage = async (
-    buffer: Buffer,
-    width: number | null,
-    height: number | null
-  ): Promise<Buffer> => {
-    return sharp(buffer).resize(width, height).toBuffer()
-  }
 
   /**
    * Convert buffer to jpeg
