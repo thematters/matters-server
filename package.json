@@ -100,7 +100,7 @@
     "stripe": "^8.60.0",
     "typescript": "^3.8.3",
     "uuid": "^8.1.0",
-    "validator": "^13.0.0",
+    "validator": "^13.1.1",
     "winston": "^3.2.1",
     "winston-transport": "^4.3.0",
     "xss": "^1.0.7"
