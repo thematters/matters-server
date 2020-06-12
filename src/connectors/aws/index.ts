@@ -1,8 +1,7 @@
 import * as AWS from 'aws-sdk'
 import mime from 'mime-types'
-import sharp from 'sharp'
 
-import { ACCEPTED_UPLOAD_IMAGE_TYPES, LOCAL_S3_ENDPOINT } from 'common/enums'
+import { LOCAL_S3_ENDPOINT } from 'common/enums'
 import { environment } from 'common/environment'
 import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
 import { GQLAssetType } from 'definitions'
@@ -71,30 +70,21 @@ export class AWSService {
   ): Promise<string> => {
     const { createReadStream, mimetype, encoding } = upload
     const stream = createReadStream()
-    let finalMimeType = mimetype
-    let buffer = await makeStreamToBuffer(stream)
-
-    // Reduce image size
-    if (mimetype && ACCEPTED_UPLOAD_IMAGE_TYPES.includes(mimetype)) {
-      if (mimetype === 'image/webp') {
-        // convert to jpeg
-        buffer = await this.convertToJPEG(buffer)
-        finalMimeType = 'image/jpeg'
-      }
-    }
+    const buffer = await makeStreamToBuffer(stream)
 
     const extension =
-      mime.extension(finalMimeType) || upload.filename.split('.').pop()
-
+      mime.extension(mimetype) || upload.filename.split('.').pop()
     const key = `${folder}/${uuid}.${extension}`
-    const result = await this.s3
+
+    await this.s3
       .upload({
         Body: buffer,
         Bucket: this.s3Bucket,
-        ContentType: finalMimeType,
+        ContentType: mimetype,
         Key: key,
       })
       .promise()
+
     return key
   }
 
@@ -108,13 +98,6 @@ export class AWSService {
         Key: key,
       })
       .promise()
-
-  /**
-   * Convert buffer to jpeg
-   */
-  convertToJPEG = async (buffer: Buffer): Promise<Buffer> => {
-    return sharp(buffer).jpeg().toBuffer()
-  }
 }
 
 export const aws = new AWSService()
