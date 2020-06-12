@@ -38,7 +38,7 @@ class AppreciationQueue extends BaseQueue {
    */
   appreciate = ({ amount, articleId, senderId }: AppreciationParams) => {
     return this.q.add(
-      QUEUE_JOB.payout,
+      QUEUE_JOB.appreciation,
       { amount, articleId, senderId },
       {
         priority: QUEUE_PRIORITY.NORMAL,
