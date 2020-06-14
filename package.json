@@ -124,7 +124,7 @@
     "@types/imagemin-jpegtran": "^5.0.0",
     "@types/imagemin-svgo": "^7.0.0",
     "@types/ioredis": "^4.16.4",
-    "@types/jest": "^25.2.3",
+    "@types/jest": "^26.0.0",
     "@types/js-base64": "^2.3.1",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/knex": "^0.16.1",
