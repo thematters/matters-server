@@ -10,6 +10,7 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import logger from 'common/logger'
+import { isFeatureEnabled } from 'common/utils'
 import { gcp } from 'connectors'
 import { MutationToSendVerificationCodeResolver } from 'definitions'
 
@@ -61,6 +62,9 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     DOMAIN: TYPE_DOMAIN,
   } = SKIPPED_LIST_ITEM_TYPES
 
+  const feature = await systemService.getFeatureFlag('fingerprint')
+  const isFingerprintEnabled = feature && isFeatureEnabled(feature.flag, viewer)
+
   // verify email if it's in blocklist
   const banEmail = await systemService.findSkippedItem(TYPE_EMAIL, email)
   if (banEmail && banEmail.archived === false) {
@@ -72,8 +76,10 @@ const resolver: MutationToSendVerificationCodeResolver = async (
       })
     }
     logger.info(new Error(`email ${email} is in blocklist`))
-    // temporaraily disable
-    // return true
+
+    if (isFingerprintEnabled) {
+      return true
+    }
   }
 
   // verify email doamin if it's in blocklist
@@ -97,8 +103,10 @@ const resolver: MutationToSendVerificationCodeResolver = async (
         value: email,
       })
       logger.info(new Error(`agent hash ${agentHash} is in blocklist`))
-      // temporaraily disable
-      // return true
+
+      if (isFingerprintEnabled) {
+        return true
+      }
     }
   }
 
