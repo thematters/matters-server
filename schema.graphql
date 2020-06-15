@@ -833,6 +833,7 @@ enum FeatureName {
   payment
   payout
   verify_appreciate
+  fingerprint
 }
 
 input FeedbackInput {
