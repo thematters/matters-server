@@ -17,7 +17,11 @@ export const UPLOAD_FILE_COUNT_LIMIT = 50
 
 export const UPLOAD_FILE_SIZE_LIMIT = 100 * 1024 * 1024
 
-export const UPLOAD_MIGRATION_FILE_SIZE_LIMIT = 1 * 1024 * 1024
+export const UPLOAD_IMAGE_SIZE_LIMIT = 5 * 1024 * 1024
+
+export const UPLOAD_AUDIO_SIZE_LIMIT = 100 * 1024 * 1024
+
+export const UPLOAD_MIGRATION_SIZE_LIMIT = 1 * 1024 * 1024
 
 export const VIEW = {
   articleValue: 'article_value_view',
@@ -479,11 +483,14 @@ export const OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
   'image/gif',
   'image/png',
-  'image/jpg',
   'image/jpeg',
   'image/svg+xml',
   'image/webp',
 ]
+
+export const ACCEPTED_UPLOAD_AUDIO_TYPES: string[] = ['audio/mpeg', 'audio/aac']
+
+export const ACCEPTED_UPLOAD_MIGRATION_TYPES: string[] = ['text/html']
 
 export const IMAGE_DIMENSION_LIMIT = 1400
 

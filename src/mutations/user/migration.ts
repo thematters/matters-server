@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio'
 import getStream from 'get-stream'
 
-import { OAUTH_PROVIDER, UPLOAD_MIGRATION_FILE_SIZE_LIMIT } from 'common/enums'
+import { OAUTH_PROVIDER, UPLOAD_MIGRATION_SIZE_LIMIT } from 'common/enums'
 import {
   AuthenticationError,
   MigrationReachLimitError,
@@ -41,11 +41,11 @@ const resolver: MutationToMigrationResolver = async (
       const stream = createReadStream()
       const buffer = await getStream.buffer(stream, {
         encoding: 'utf8',
-        maxBuffer: UPLOAD_MIGRATION_FILE_SIZE_LIMIT,
+        maxBuffer: UPLOAD_MIGRATION_SIZE_LIMIT,
       })
       totalSize = totalSize + buffer.byteLength
 
-      if (totalSize > UPLOAD_MIGRATION_FILE_SIZE_LIMIT) {
+      if (totalSize > UPLOAD_MIGRATION_SIZE_LIMIT) {
         throw new MigrationReachLimitError(
           'total size of migration files reaches limit.'
         )
