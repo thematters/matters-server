@@ -468,7 +468,7 @@ export class PaymentService extends BaseService {
     if (!result || !result[0]) {
       return 0
     }
-    return Math.max(parseInt(result[0].amount || 0, 10), 0)
+    return parseInt(result[0].amount || 0, 10)
   }
 
   countPendingPayouts = async ({ userId }: { userId: string }) => {
