@@ -5,7 +5,6 @@ import * as firebase from 'firebase-admin'
 import helmet from 'helmet'
 import http from 'http'
 import 'module-alias/register'
-import 'newrelic'
 import requestIp from 'request-ip'
 
 import { CORS_OPTIONS } from 'common/enums'

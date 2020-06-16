@@ -10,7 +10,6 @@ import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
 import _ from 'lodash'
 import 'module-alias/register'
-import 'newrelic'
 
 import {
   CACHE_TTL,
