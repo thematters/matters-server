@@ -47,7 +47,7 @@
     "apollo-server-plugin-response-cache": "^0.5.2",
     "aws-sdk": "^2.695.0",
     "axios": "^0.19.2",
-    "bcrypt": "^4.0.1",
+    "bcrypt": "^5.0.0",
     "bodybuilder": "^2.2.20",
     "bull": "^3.14.0",
     "cheerio": "^1.0.0-rc.2",
