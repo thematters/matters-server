@@ -32,13 +32,9 @@ const resolver: MutationToSingleFileUploadResolver = async (
   { input: { type, file, url, entityType, entityId } },
   { viewer, dataSources: { systemService } }
 ) => {
-  const isImageType = [
-    'avatar',
-    'embed',
-    'profileCover',
-    'oauthClientAvatar',
-  ].indexOf(type)
-  const isAudioType = ['embedaudio'].indexOf(type)
+  const isImageType =
+    ['avatar', 'embed', 'profileCover', 'oauthClientAvatar'].indexOf(type) >= 0
+  const isAudioType = ['embedaudio'].indexOf(type) >= 0
 
   if ((!file && !url) || (file && url)) {
     throw new UserInputError('One of file and url needs to be specified.')
