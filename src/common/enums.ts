@@ -346,7 +346,8 @@ export const QUEUE_NAME = {
   likecoin: 'likecoin',
   user: 'user',
   migration: 'migration',
-  payment: 'payment',
+  payout: 'payout',
+  payTo: 'payTo',
   appreciation: 'appreciation',
 }
 

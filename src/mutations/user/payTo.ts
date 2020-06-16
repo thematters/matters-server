@@ -24,7 +24,7 @@ import {
 } from 'common/errors'
 import { fromGlobalId, numRound } from 'common/utils'
 import { CacheService } from 'connectors'
-import { paymentQueue } from 'connectors/queue'
+import { payToQueue } from 'connectors/queue'
 import { MutationToPayToResolver } from 'definitions'
 
 const resolver: MutationToPayToResolver = async (
@@ -171,7 +171,7 @@ const resolver: MutationToPayToResolver = async (
       })
 
       // insert queue job
-      paymentQueue.payTo({ txId: transaction.id })
+      payToQueue.payTo({ txId: transaction.id })
       break
   }
 

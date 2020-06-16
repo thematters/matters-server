@@ -20,7 +20,7 @@ import {
   UserInputError,
 } from 'common/errors'
 import { calcMattersFee } from 'common/utils'
-import { paymentQueue } from 'connectors/queue'
+import { payoutQueue } from 'connectors/queue'
 import { MutationToPayoutResolver } from 'definitions'
 
 const resolver: MutationToPayoutResolver = async (
@@ -86,7 +86,7 @@ const resolver: MutationToPayoutResolver = async (
   })
 
   // insert queue job
-  paymentQueue.payout({ txId: transaction.id })
+  payoutQueue.payout({ txId: transaction.id })
 
   return transaction
 }
