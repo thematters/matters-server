@@ -19,6 +19,7 @@ const ERROR_CODES = {
   EMAIL_ALREADY_USED: 'EMAIL_ALREADY_USED',
   OAUTH_USER_ID_ALREADY_USED: 'OAUTH_USER_ID_ALREADY_USED',
   LOGIN_NEEDED: 'LOGIN_NEEDED',
+  INSUFFICIENT_PERMISSION: 'INSUFFICIENT_PERMISSION',
 }
 
 type LikeCoinLocale =
@@ -131,9 +132,14 @@ export class LikeCoin {
         throw new LikerUserIdExistsError('user id already used.')
       }
 
-      // notify client that reauth needed
-      if (data === ERROR_CODES.LOGIN_NEEDED) {
-        throw new OAuthTokenInvalidError('token is invalid, reauth needed.')
+      // notify client to prompt the user for reauthentication.
+      if (
+        data === ERROR_CODES.LOGIN_NEEDED ||
+        data === ERROR_CODES.INSUFFICIENT_PERMISSION
+      ) {
+        throw new OAuthTokenInvalidError(
+          "token hasn's permission to access the resource, please reauth."
+        )
       }
 
       logger.error(e)
