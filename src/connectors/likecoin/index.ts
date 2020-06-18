@@ -3,7 +3,11 @@ import Knex from 'knex'
 import _ from 'lodash'
 
 import { environment } from 'common/environment'
-import { LikerEmailExistsError, LikerUserIdExistsError } from 'common/errors'
+import {
+  LikerEmailExistsError,
+  LikerUserIdExistsError,
+  OAuthTokenInvalidError,
+} from 'common/errors'
 import logger from 'common/logger'
 import { knex } from 'connectors'
 import { UserOAuthLikeCoin } from 'definitions'
@@ -14,6 +18,8 @@ const ERROR_CODES = {
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   EMAIL_ALREADY_USED: 'EMAIL_ALREADY_USED',
   OAUTH_USER_ID_ALREADY_USED: 'OAUTH_USER_ID_ALREADY_USED',
+  LOGIN_NEEDED: 'LOGIN_NEEDED',
+  INSUFFICIENT_PERMISSION: 'INSUFFICIENT_PERMISSION',
 }
 
 type LikeCoinLocale =
@@ -119,11 +125,21 @@ export class LikeCoin {
       }
 
       if (data === ERROR_CODES.EMAIL_ALREADY_USED) {
-        throw new LikerEmailExistsError('email already used')
+        throw new LikerEmailExistsError('email already used.')
       }
 
       if (data === ERROR_CODES.OAUTH_USER_ID_ALREADY_USED) {
-        throw new LikerUserIdExistsError('user id already used')
+        throw new LikerUserIdExistsError('user id already used.')
+      }
+
+      // notify client to prompt the user for reauthentication.
+      if (
+        data === ERROR_CODES.LOGIN_NEEDED ||
+        data === ERROR_CODES.INSUFFICIENT_PERMISSION
+      ) {
+        throw new OAuthTokenInvalidError(
+          "token hasn's permission to access the resource, please reauth."
+        )
       }
 
       logger.error(e)
