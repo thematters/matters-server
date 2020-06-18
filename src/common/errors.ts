@@ -305,6 +305,19 @@ export class LikerUserIdExistsError extends ApolloError {
 
 /*********************************
  *                               *
+ *             OAuth             *
+ *                               *
+ *********************************/
+export class OAuthTokenInvalidError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'OAUTH_TOKEN_INVALID')
+
+    Object.defineProperty(this, 'name', { value: 'OAuthTokenInvalidError' })
+  }
+}
+
+/*********************************
+ *                               *
  *            Migration          *
  *                               *
  *********************************/
