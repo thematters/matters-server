@@ -1028,10 +1028,6 @@ export interface GQLAsset {
  */
 export const enum GQLAssetType {
   avatar = 'avatar',
-  cover = 'cover',
-  audiodraft = 'audiodraft',
-  report = 'report',
-  feedback = 'feedback',
   embed = 'embed',
   embedaudio = 'embedaudio',
   profileCover = 'profileCover',
