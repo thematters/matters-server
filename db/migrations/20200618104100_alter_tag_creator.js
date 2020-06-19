@@ -6,9 +6,11 @@ exports.up = async (knex) => {
     .where({ email: 'hi@matters.news', role: 'admin', state: 'active' })
     .first()
 
-  await knex.schema.table(table, function (t) {
-    t.bigInteger('creator').unsigned().notNullable().defaultTo(user.id)
-  })
+  if (user) {
+    await knex.schema.table(table, function (t) {
+      t.bigInteger('creator').unsigned().notNullable().defaultTo(user.id)
+    })
+  }
 }
 
 exports.down = async (knex) => {
