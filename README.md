@@ -32,18 +32,6 @@
 
 - `docker-compose -f docker/docker-compose.yml run app npm run test`
 
-## Deploy to beanstalk staging environment
-
-- Make sure you have `python` and `pip` installed
-- `pip install -U awscli awsebcli`
-- `aws configure`, then input your access key and secret
-- Login AWS ECR with `$(aws ecr get-login --no-include-email --region ap-southeast-1)`
-- `docker-compose -f docker/docker-compose.yml build`
-- `docker tag matters-server:latest 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:develop`
-- `docker push 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:develop`
-- `docker-compose -f docker/docker-compose.yml run app npm run build`
-- `bin/eb-deploy.sh develop`
-
 ## Develop Email Template
 
 We use [MJML](https://mjml.io) to develop our SendGrid email template.
