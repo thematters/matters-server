@@ -90,6 +90,16 @@ jobs:
         run: npm run build
 
       # === predeploy ===
+      - name: Docker Configuration (develop)
+        # if: github.ref == 'refs/heads/develop'
+        run: |
+          cat docker/Dockerrun.aws.json.example | sed "s/{{IMAGE_TAG}}/develop/" > Dockerrun.aws.json
+
+      - name: Docker Configuration (production)
+        if: github.ref == 'refs/heads/master'
+        run: |
+          cat docker/Dockerrun.aws.json.example | sed "s/{{IMAGE_TAG}}/prod/" > Dockerrun.aws.json
+
       - name: Generate deployment package
         # if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
         run: zip -r deploy.zip . -x node_modules/\* .git/\*
@@ -118,11 +128,6 @@ jobs:
           MATTERS_PG_DATABASE: ${{ secrets.DEVELOP_PG_DATABASE }}
           MATTERS_PG_USER: ${{ secrets.DEVELOP_PG_USER }}
           MATTERS_PG_PASSWORD: ${{ secrets.DEVELOP_PG_PASSWORD }}
-
-      - name: Docker Configuration (develop)
-        # if: github.ref == 'refs/heads/develop'
-        run: |
-          cat docker/Dockerrun.aws.json.example | sed "s/{{IMAGE_TAG}}/develop/" > Dockerrun.aws.json
 
       - name: Build, tag, and push image to Amazon ECR (develop)
         # if: github.ref == 'refs/heads/develop'
@@ -159,11 +164,6 @@ jobs:
           MATTERS_PG_DATABASE: ${{ secrets.PROD_PG_DATABASE }}
           MATTERS_PG_USER: ${{ secrets.PROD_PG_USER }}
           MATTERS_PG_PASSWORD: ${{ secrets.PROD_PG_PASSWORD }}
-
-      - name: Docker Configuration (production)
-        if: github.ref == 'refs/heads/master'
-        run: |
-          cat docker/Dockerrun.aws.json.example | sed "s/{{IMAGE_TAG}}/prod/" > Dockerrun.aws.json
 
       - name: Build, tag, and push image to Amazon ECR (production)
         if: github.ref == 'refs/heads/master'
