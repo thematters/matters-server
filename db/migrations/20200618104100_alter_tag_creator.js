@@ -7,7 +7,9 @@ exports.up = async (knex) => {
     .first()
 
   await knex.schema.table(table, function (t) {
-    t.bigInteger('creator').unsigned().defaultTo(user ? user.id : null)
+    t.bigInteger('creator')
+      .unsigned()
+      .defaultTo(user ? user.id : null)
   })
 }
 
