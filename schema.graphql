@@ -1825,6 +1825,9 @@ type Tag implements Node {
   """Editors of this tag."""
   editors: [User!]
 
+  """Creator of this tag."""
+  creator: User!
+
   """OSS"""
   oss: TagOSS!
   remark: String

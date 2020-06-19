@@ -19,6 +19,8 @@ import rootArticle from './rootArticle'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import tagArticles from './tag/articles'
+import tagCreator from './tag/creator'
+import tagEditors from './tag/editors'
 import * as tagOSS from './tag/oss'
 import tagSelected from './tag/selected'
 import tags from './tags'
@@ -69,6 +71,8 @@ export default {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
     articles: tagArticles,
     selected: tagSelected,
+    creator: tagCreator,
+    editors: tagEditors,
     oss: (root: any) => root,
   },
   ArticleOSS: {
