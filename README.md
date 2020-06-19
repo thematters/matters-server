@@ -1,5 +1,7 @@
 ## Start local dev
 
+![](https://github.com/thematters/matters-server/workflows/Deployment/badge.svg) ![](https://github.com/thematters/matters-server/workflows/Create%20Release/badge.svg)
+
 - `npm i`
 - Start local postgres (for Mac: https://postgresapp.com/)
 - Export variables `MATTERS_PG_HOST`, `MATTERS_PG_USER`, `MATTERS_PG_PASSWORD`, `MATTERS_PG_DATABASE`
