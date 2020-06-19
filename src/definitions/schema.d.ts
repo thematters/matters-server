@@ -852,7 +852,7 @@ export interface GQLTag extends GQLNode {
   /**
    * Creator of this tag.
    */
-  creator: GQLUser
+  creator?: GQLUser
 
   /**
    * OSS

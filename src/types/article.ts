@@ -193,7 +193,7 @@ export default /* GraphQL */ `
     editors: [User!]
 
     "Creator of this tag."
-    creator: User!
+    creator: User
 
     # OSS
     oss: TagOSS! @authorize

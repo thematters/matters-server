@@ -1826,7 +1826,7 @@ type Tag implements Node {
   editors: [User!]
 
   """Creator of this tag."""
-  creator: User!
+  creator: User
 
   """OSS"""
   oss: TagOSS!
