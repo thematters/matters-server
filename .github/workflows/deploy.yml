@@ -23,7 +23,7 @@ jobs:
       postgres:
         image: postgres:10-alpine
         ports:
-          - 5432
+          - 5432:5432
         env:
           POSTGRES_DB: matters-test
           POSTGRES_USER: postgres
@@ -31,15 +31,15 @@ jobs:
       redis:
         image: redis
         ports:
-          - 6379
+          - 6379:6379
       elasticsearch:
         image: elasticsearch:5-alpine
         ports:
-          - 9200
+          - 9200:9200
       ipfs:
         image: ipfs/go-ipfs:latest
         ports:
-          - 5001
+          - 5001:5001
 
     steps:
       - name: Checkout Repo
