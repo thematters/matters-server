@@ -1,7 +1,6 @@
 const table = 'tag'
 
 exports.up = async (knex) => {
-
   // default creator would be matty if article_tag does not exist
   await knex.raw(`
     UPDATE
