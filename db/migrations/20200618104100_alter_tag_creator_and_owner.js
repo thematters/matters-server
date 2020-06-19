@@ -8,13 +8,11 @@ exports.up = async (knex) => {
 
   await knex.schema.table(table, function (t) {
     t.bigInteger('creator').unsigned().notNullable().defaultTo(user.id)
-    t.bigInteger('owner').unsigned()
   })
 }
 
 exports.down = async (knex) => {
   await knex.schema.table(table, function (t) {
     t.dropColumn('creator')
-    t.dropColumn('owner')
   })
 }
