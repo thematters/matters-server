@@ -34,7 +34,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "@elastic/elasticsearch": "^7.7.1",
+    "@elastic/elasticsearch": "^7.8.0",
     "@google-cloud/translate": "^6.0.0",
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
