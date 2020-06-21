@@ -1,5 +1,7 @@
 ## Start local dev
 
+![](https://github.com/thematters/matters-server/workflows/Deployment/badge.svg) ![](https://github.com/thematters/matters-server/workflows/Create%20Release/badge.svg)
+
 - `npm i`
 - Start local postgres (for Mac: https://postgresapp.com/)
 - Export variables `MATTERS_PG_HOST`, `MATTERS_PG_USER`, `MATTERS_PG_PASSWORD`, `MATTERS_PG_DATABASE`
@@ -29,18 +31,6 @@
 ## Run test cases with docker-compose
 
 - `docker-compose -f docker/docker-compose.yml run app npm run test`
-
-## Deploy to beanstalk staging environment
-
-- Make sure you have `python` and `pip` installed
-- `pip install -U awscli awsebcli`
-- `aws configure`, then input your access key and secret
-- Login AWS ECR with `$(aws ecr get-login --no-include-email --region ap-southeast-1)`
-- `docker-compose -f docker/docker-compose.yml build`
-- `docker tag matters-server:latest 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:develop`
-- `docker push 903380195283.dkr.ecr.ap-southeast-1.amazonaws.com/matters-server:develop`
-- `docker-compose -f docker/docker-compose.yml run app npm run build`
-- `bin/eb-deploy.sh develop`
 
 ## Develop Email Template
 
