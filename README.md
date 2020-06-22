@@ -1,6 +1,8 @@
-## Start local dev
+# Matters Server
 
 ![](https://github.com/thematters/matters-server/workflows/Deployment/badge.svg) ![](https://github.com/thematters/matters-server/workflows/Create%20Release/badge.svg)
+
+## Start local dev
 
 - `npm i`
 - Start local postgres (for Mac: https://postgresapp.com/)
