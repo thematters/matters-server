@@ -249,7 +249,7 @@ class PublicationQueue extends BaseQueue {
           this.tagService.create({
             content: tag,
             creator: article.authorId,
-            editors: tagEditors
+            editors: tagEditors,
           })
         )
       )) as unknown) as [{ id: string; content: string }]

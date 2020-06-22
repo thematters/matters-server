@@ -72,10 +72,7 @@ export class TagService extends BaseService {
     description?: string
     editors: string[]
   }) => {
-    const item = await this.knex(this.table)
-      .select()
-      .where({ content })
-      .first()
+    const item = await this.knex(this.table).select().where({ content }).first()
 
     // create
     if (!item) {
