@@ -192,6 +192,9 @@ export default /* GraphQL */ `
     "Editors of this tag."
     editors: [User!]
 
+    "Creator of this tag."
+    creator: User
+
     # OSS
     oss: TagOSS! @authorize
     remark: String @authorize

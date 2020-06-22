@@ -465,10 +465,6 @@ type Asset {
 """Enums for asset types."""
 enum AssetType {
   avatar
-  cover
-  audiodraft
-  report
-  feedback
   embed
   embedaudio
   profileCover
@@ -1828,6 +1824,9 @@ type Tag implements Node {
 
   """Editors of this tag."""
   editors: [User!]
+
+  """Creator of this tag."""
+  creator: User
 
   """OSS"""
   oss: TagOSS!

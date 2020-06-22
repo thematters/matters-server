@@ -850,6 +850,11 @@ export interface GQLTag extends GQLNode {
   editors?: Array<GQLUser>
 
   /**
+   * Creator of this tag.
+   */
+  creator?: GQLUser
+
+  /**
    * OSS
    */
   oss: GQLTagOSS
@@ -1028,10 +1033,6 @@ export interface GQLAsset {
  */
 export const enum GQLAssetType {
   avatar = 'avatar',
-  cover = 'cover',
-  audiodraft = 'audiodraft',
-  report = 'report',
-  feedback = 'feedback',
   embed = 'embed',
   embedaudio = 'embedaudio',
   profileCover = 'profileCover',
@@ -5103,6 +5104,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   cover?: TagToCoverResolver<TParent>
   description?: TagToDescriptionResolver<TParent>
   editors?: TagToEditorsResolver<TParent>
+  creator?: TagToCreatorResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
   deleted?: TagToDeletedResolver<TParent>
@@ -5178,6 +5180,15 @@ export interface TagToDescriptionResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToEditorsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToCreatorResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
