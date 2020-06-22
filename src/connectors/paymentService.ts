@@ -15,7 +15,6 @@ import {
   calcStripeFee,
   getUTC8Midnight,
   numRound,
-  toProviderAmount,
 } from 'common/utils'
 import { BaseService } from 'connectors'
 import { User } from 'definitions'
