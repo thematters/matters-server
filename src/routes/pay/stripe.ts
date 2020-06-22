@@ -38,7 +38,8 @@ const updateTxState = async (
     | 'payment_intent.canceled'
     | 'payment_intent.payment_failed'
     | 'payment_intent.processing'
-    | 'payment_intent.succeeded'
+    | 'payment_intent.succeeded',
+  remark?: string | null
 ) => {
   const userService = new UserService()
   const paymentService = new PaymentService()
@@ -66,6 +67,7 @@ const updateTxState = async (
   const tx = await paymentService.markTransactionStateAs({
     id: transaction.id,
     state: eventStateMap[eventType],
+    remark,
   })
 
   // trigger notifications
@@ -187,7 +189,13 @@ stripeRouter.post('/', async (req, res) => {
   // Handle the event
   switch (event.type) {
     case 'payment_intent.canceled':
+      const canceled = event.data.object as Stripe.PaymentIntent
+      await updateTxState(canceled, event.type, canceled.cancellation_reason)
+      break
     case 'payment_intent.payment_failed':
+      const failed = event.data.object as Stripe.PaymentIntent
+      await updateTxState(failed, event.type, failed.last_payment_error?.code)
+      break
     case 'payment_intent.processing':
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object as Stripe.PaymentIntent

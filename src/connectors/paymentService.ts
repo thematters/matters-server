@@ -179,13 +179,20 @@ export class PaymentService extends BaseService {
   markTransactionStateAs = async ({
     id,
     state,
+    remark,
   }: {
     id: string
     state: TRANSACTION_STATE
+    remark?: string | null
   }) => {
-    const data = {
-      state,
-    }
+    const data = remark
+      ? {
+          state,
+          remark,
+        }
+      : {
+          state,
+        }
 
     return this.baseUpdate(id, { updatedAt: new Date(), ...data })
   }
