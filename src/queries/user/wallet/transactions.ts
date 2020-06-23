@@ -2,8 +2,8 @@ import { CacheScope } from 'apollo-cache-control'
 
 import {
   CACHE_TTL,
-  TransactionRemarkText,
   TRANSACTION_STATE,
+  TransactionRemarkText,
 } from 'common/enums'
 import { connectionFromArray, cursorToIndex, fromGlobalId } from 'common/utils'
 import { WalletToTransactionsResolver } from 'definitions'

@@ -3,7 +3,7 @@ const column = 'remark'
 
 exports.up = (knex) =>
   knex.schema.table(table, (t) => {
-    t.string(column)
+    t.string(column).defaultTo()
   })
 
 exports.down = (knex) =>

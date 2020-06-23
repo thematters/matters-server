@@ -5,8 +5,8 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-  TRANSACTION_STATE,
   TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
 } from 'common/enums'
 import logger from 'common/logger'
 import { PaymentService } from 'connectors'
@@ -43,27 +43,30 @@ class TxTimeoutQueue extends BaseQueue {
    * Cusumers
    */
   private addConsumers = () => {
-    this.q.process(QUEUE_JOB.txTimeout, this.handleRefreshView())
+    this.q.process(QUEUE_JOB.txTimeout, this.handleUpdateTx())
   }
 
-  private handleRefreshView = (): Queue.ProcessCallbackFunction<
-    unknown
-  > => async (job, done) => {
+  private handleUpdateTx = (): Queue.ProcessCallbackFunction<unknown> => async (
+    job,
+    done
+  ) => {
     try {
       // cancel pending tx that are 30minutes+ old
       logger.info(`[schedule job] canceling timeout pending transactions`)
-      await this.paymentService
+      const result = await this.paymentService
         .knex(this.paymentService.table)
         .update({ state: TRANSACTION_STATE.canceled, remark: 'time_out' })
         .where(
           'created_at',
-          '>=',
+          '<',
           this.paymentService.knex.raw(`now() - ('30 minutes'::interval)`)
         )
         .andWhere({ state: TRANSACTION_STATE.pending })
         .andWhereNot({
           purpose: TRANSACTION_PURPOSE.payout,
         })
+
+      console.log(result)
       job.progress(100)
       done(null)
     } catch (e) {
