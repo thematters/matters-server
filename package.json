@@ -117,7 +117,7 @@
     "@types/js-base64": "^2.3.1",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/knex": "^0.16.1",
-    "@types/lodash": "^4.14.155",
+    "@types/lodash": "^4.14.156",
     "@types/mime-types": "^2.1.0",
     "@types/nanoid": "^2.1.0",
     "@types/node-fetch": "^2.5.7",
