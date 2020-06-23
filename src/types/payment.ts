@@ -55,6 +55,9 @@ export default /* GraphQL */ `
 
     "Related target article or transaction."
     target: TransactionTarget
+
+    "Message for end user, including reason of failure."
+    message: String
   }
 
   type TransactionConnection implements Connection {
