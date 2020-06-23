@@ -66,7 +66,6 @@ class TxTimeoutQueue extends BaseQueue {
           purpose: TRANSACTION_PURPOSE.payout,
         })
 
-      console.log(result)
       job.progress(100)
       done(null)
     } catch (e) {
