@@ -1361,6 +1361,11 @@ export interface GQLTransaction {
    * Related target article or transaction.
    */
   target?: GQLTransactionTarget
+
+  /**
+   * Message for end user, including reason of failure.
+   */
+  message?: string
 }
 
 export const enum GQLTransactionPurpose {
@@ -6339,6 +6344,7 @@ export interface GQLTransactionTypeResolver<TParent = any> {
   recipient?: TransactionToRecipientResolver<TParent>
   sender?: TransactionToSenderResolver<TParent>
   target?: TransactionToTargetResolver<TParent>
+  message?: TransactionToMessageResolver<TParent>
 }
 
 export interface TransactionToIdResolver<TParent = any, TResult = any> {
@@ -6423,6 +6429,15 @@ export interface TransactionToSenderResolver<TParent = any, TResult = any> {
 }
 
 export interface TransactionToTargetResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToMessageResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

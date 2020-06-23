@@ -13,8 +13,4 @@ exports.up = async (knex) => {
   )
 }
 
-exports.down = async (knex) => {
-  await knex.raw(
-    alterEnumString(table, 'purpose', ['donation', 'add-credit', 'refund'])
-  )
-}
+exports.down = async (knex) => {}

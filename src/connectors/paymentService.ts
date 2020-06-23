@@ -15,7 +15,6 @@ import {
   calcStripeFee,
   getUTC8Midnight,
   numRound,
-  toProviderAmount,
 } from 'common/utils'
 import { BaseService } from 'connectors'
 import { User } from 'definitions'
@@ -179,13 +178,20 @@ export class PaymentService extends BaseService {
   markTransactionStateAs = async ({
     id,
     state,
+    remark,
   }: {
     id: string
     state: TRANSACTION_STATE
+    remark?: string | null
   }) => {
-    const data = {
-      state,
-    }
+    const data = remark
+      ? {
+          state,
+          remark,
+        }
+      : {
+          state,
+        }
 
     return this.baseUpdate(id, { updatedAt: new Date(), ...data })
   }
