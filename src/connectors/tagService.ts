@@ -57,19 +57,34 @@ export class TagService extends BaseService {
   findByContent = async ({ content }: { content: string }) =>
     this.knex.select().from(this.table).where({ content })
 
+  /**
+   * Create a tag, but return one if it's existing.
+   *
+   */
   create = async ({
     content,
+    creator,
     description,
     editors,
   }: {
     content: string
+    creator: string
     description?: string
     editors: string[]
-  }) =>
-    this.baseFindOrCreate({
-      where: { content },
-      data: { content, description, editors },
-    })
+  }) => {
+    const item = await this.knex(this.table).select().where({ content }).first()
+
+    // create
+    if (!item) {
+      return this.baseCreate(
+        { content, creator, description, editors },
+        this.table
+      )
+    }
+
+    // find
+    return item
+  }
 
   /*********************************
    *                               *
@@ -224,10 +239,12 @@ export class TagService extends BaseService {
    *********************************/
   createArticleTags = async ({
     articleIds,
+    creator,
     tagIds,
     selected,
   }: {
     articleIds: string[]
+    creator: string
     tagIds: string[]
     selected?: boolean
   }) => {
@@ -238,6 +255,7 @@ export class TagService extends BaseService {
       articleIds.map((articleId) => {
         return tagIds.map((tagId) => ({
           articleId,
+          creator,
           tagId,
           ...(selected === true ? { selected } : {}),
         }))
@@ -374,14 +392,16 @@ export class TagService extends BaseService {
   mergeTags = async ({
     tagIds,
     content,
+    creator,
     editors,
   }: {
     tagIds: string[]
     content: string
+    creator: string
     editors: string[]
   }) => {
     // create new tag
-    const newTag = await this.create({ content, editors })
+    const newTag = await this.create({ content, creator, editors })
 
     // add tag into search engine
     await this.addToSearch({
@@ -392,7 +412,7 @@ export class TagService extends BaseService {
 
     // move article tags to new tag
     const articleIds = await this.findArticleIdsByTagIds(tagIds)
-    await this.createArticleTags({ articleIds, tagIds: [newTag.id] })
+    await this.createArticleTags({ articleIds, creator, tagIds: [newTag.id] })
 
     // delete article tags
     await this.knex('article_tag').whereIn('tag_id', tagIds).del()

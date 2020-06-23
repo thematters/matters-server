@@ -42,6 +42,7 @@ const resolver: MutationToPutTagResolver = async (
 
     const newTag = await tagService.create({
       content: tagContent,
+      creator: viewer.id,
       description,
       editors: [viewer.id],
     })

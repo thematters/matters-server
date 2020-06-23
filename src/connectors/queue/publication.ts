@@ -241,18 +241,23 @@ class PublicationQueue extends BaseQueue {
     if (tags && tags.length > 0) {
       // get tag editor
       const mattyUser = await this.userService.findByEmail('hi@matters.news')
-      const tagEditors = mattyUser ? [mattyUser.id] : []
+      const tagEditors = [mattyUser.id, article.authorId]
 
       // create tag records, return tag record if already exists
       const dbTags = ((await Promise.all(
         tags.map((tag: string) =>
-          this.tagService.create({ content: tag, editors: tagEditors })
+          this.tagService.create({
+            content: tag,
+            creator: article.authorId,
+            editors: tagEditors,
+          })
         )
       )) as unknown) as [{ id: string; content: string }]
 
       // create article_tag record
       await this.tagService.createArticleTags({
         articleIds: [article.id],
+        creator: article.authorId,
         tagIds: dbTags.map(({ id }) => id),
       })
     } else {
