@@ -126,10 +126,9 @@ const resolver: MutationToPutArticlesTagsResolver = async (
 
   // add creator if not listed in editors
   if (!isEditor && !isMatty && isCreator) {
-    const updatedTag = await tagService.baseUpdate(
-      tag.id,
-      { editors: _uniq([...tag.editors, viewer.id]) }
-    )
+    const updatedTag = await tagService.baseUpdate(tag.id, {
+      editors: _uniq([...tag.editors, viewer.id]),
+    })
     return updatedTag
   }
 
