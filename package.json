@@ -136,6 +136,7 @@
     "chokidar": "^3.4.0",
     "chokidar-cli": "^2.1.0",
     "codecov": "^3.7.0",
+    "cz-conventional-changelog": "^3.2.0",
     "husky": "^4.2.5",
     "jest": "^25.5.4",
     "knex-migrate": "^1.7.4",
@@ -167,7 +168,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run build && npm run gen && npm run format && git add schema.graphql src/definitions/schema.d.ts"
+      "pre-commit": "npm run build && npm run gen && npm run format && git add schema.graphql src/definitions/schema.d.ts",
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true"
     }
   },
   "graphql-inspector": {
@@ -175,6 +177,11 @@
     "schema": {
       "ref": "develop",
       "path": "schema.graphql"
+    }
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
     }
   }
 }
