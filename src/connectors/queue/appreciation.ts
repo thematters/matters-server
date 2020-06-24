@@ -15,7 +15,6 @@ import {
   UserNotFoundError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { toGlobalId } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
 import { likeCoinQueue } from './likecoin'
@@ -24,6 +23,7 @@ interface AppreciationParams {
   amount: number
   articleId: string
   senderId: string
+  snederIP?: string
 }
 
 class AppreciationQueue extends BaseQueue {
@@ -65,7 +65,12 @@ class AppreciationQueue extends BaseQueue {
     done
   ) => {
     try {
-      const { amount, articleId, senderId } = job.data as AppreciationParams
+      const {
+        amount,
+        articleId,
+        senderId,
+        snederIP,
+      } = job.data as AppreciationParams
 
       if (!articleId || !senderId) {
         throw new Error('appreciation job has no required data')
@@ -116,7 +121,7 @@ class AppreciationQueue extends BaseQueue {
       // insert record to LikeCoin
       likeCoinQueue.like({
         likerId: sender.likerId,
-        likerIp: sender.ip,
+        likerIp: snederIP,
         authorLikerId: author.likerId,
         url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
         amount: validAmount,
