@@ -1,4 +1,5 @@
 import _difference from 'lodash/difference'
+import _some from 'lodash/some'
 
 import {
   AuthenticationError,
@@ -61,15 +62,19 @@ const resolver: MutationToPutArticlesTagsResolver = async (
     throw new UserInputError('"articles" is required in update')
   }
 
-  // temporarily safety check
-  if (viewer.email !== 'hi@matters.news') {
-    throw new ForbiddenError('only Matty can manage tag at this moment')
-  }
-
   const { id: dbId } = fromGlobalId(id)
   const tag = await tagService.baseFindById(dbId)
   if (!tag) {
     throw new TagNotFoundError('tag not found')
+  }
+
+  // update only allow: editor, creator, matty
+  const isEditor = _some(tag.editors, (editor) => editor.id === viewer.id)
+  const isCreator = tag.creator === viewer.id
+  const canEdit = isEditor || isCreator || viewer.email === 'hi@matters.news'
+
+  if (!canEdit) {
+    throw new ForbiddenError('only editor, creator, and matty can manage tag')
   }
 
   if (typeof selected === 'boolean') {

@@ -1,4 +1,5 @@
 import _replace from 'lodash/replace'
+import _some from 'lodash/some'
 import _trim from 'lodash/trim'
 
 import {
@@ -14,15 +15,10 @@ import { MutationToPutTagResolver } from 'definitions'
 const resolver: MutationToPutTagResolver = async (
   root,
   { input: { id, content, description } },
-  { viewer, dataSources: { tagService } }
+  { viewer, dataSources: { tagService, userService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('viewer has no permission')
-  }
-
-  // temporarily safety check
-  if (viewer.email !== 'hi@matters.news') {
-    throw new ForbiddenError('only Matty can manage tag at this moment')
   }
 
   const tagContent = content ? _trim(content) : ''
@@ -40,11 +36,16 @@ const resolver: MutationToPutTagResolver = async (
       throw new DuplicateTagError(`dulpicate tag content: ${tagContent}`)
     }
 
+    const matty = (await userService.baseFind({
+      where: { email: 'hi@matters.news', role: 'admin', state: 'active' },
+      limit: 1,
+    }))[0]
+
     const newTag = await tagService.create({
       content: tagContent,
       creator: viewer.id,
       description,
-      editors: [viewer.id],
+      editors: [matty.id, viewer.id],
     })
 
     // add tag into search engine
@@ -60,6 +61,14 @@ const resolver: MutationToPutTagResolver = async (
     const tag = await tagService.baseFindById(dbId)
     if (!tag) {
       throw new TagNotFoundError('tag not found')
+    }
+
+    const isEditor = _some(tag.editors, (editor) => editor.id === viewer.id)
+    const isCreator = tag.creator === viewer.id
+    const canEdit = isEditor || isCreator || viewer.email === 'hi@matters.news'
+
+    if (!canEdit) {
+      throw new ForbiddenError('only editor, creator, and matty can manage tag')
     }
 
     // gather tag update params
@@ -80,6 +89,10 @@ const resolver: MutationToPutTagResolver = async (
     if (Object.keys(updateParams).length === 0) {
       throw new UserInputError('bad request')
     }
+    if (!isEditor && isCreator) {
+      updateParams.editors = [...tag.editors, viewer.id]
+    }
+
     const updateTag = await tagService.baseUpdate(dbId, updateParams)
 
     // update tag for search engine
