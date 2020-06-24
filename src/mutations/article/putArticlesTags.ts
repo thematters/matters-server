@@ -1,5 +1,6 @@
 import _difference from 'lodash/difference'
 import _some from 'lodash/some'
+import _uniq from 'lodash/uniq'
 
 import {
   AuthenticationError,
@@ -71,7 +72,8 @@ const resolver: MutationToPutArticlesTagsResolver = async (
   // update only allow: editor, creator, matty
   const isEditor = _some(tag.editors, (editor) => editor.id === viewer.id)
   const isCreator = tag.creator === viewer.id
-  const canEdit = isEditor || isCreator || viewer.email === 'hi@matters.news'
+  const isMatty = viewer.email === 'hi@matters.news'
+  const canEdit = isEditor || isCreator || isMatty
 
   if (!canEdit) {
     throw new ForbiddenError('only editor, creator, and matty can manage tag')
@@ -121,6 +123,16 @@ const resolver: MutationToPutArticlesTagsResolver = async (
       })
     })
   }
+
+  // add creator if not listed in editors
+  if (!isEditor && !isMatty && isCreator) {
+    const updatedTag = await tagService.baseUpdate(
+      tag.id,
+      { editors: _uniq([...tag.editors, viewer.id]) }
+    )
+    return updatedTag
+  }
+
   return tag
 }
 

@@ -1,6 +1,7 @@
 import _replace from 'lodash/replace'
 import _some from 'lodash/some'
 import _trim from 'lodash/trim'
+import _uniq from 'lodash/uniq'
 
 import {
   AuthenticationError,
@@ -36,16 +37,18 @@ const resolver: MutationToPutTagResolver = async (
       throw new DuplicateTagError(`dulpicate tag content: ${tagContent}`)
     }
 
-    const matty = (await userService.baseFind({
-      where: { email: 'hi@matters.news', role: 'admin', state: 'active' },
-      limit: 1,
-    }))[0]
+    const matty = (
+      await userService.baseFind({
+        where: { email: 'hi@matters.news', role: 'admin', state: 'active' },
+        limit: 1,
+      })
+    )[0]
 
     const newTag = await tagService.create({
       content: tagContent,
       creator: viewer.id,
       description,
-      editors: [matty.id, viewer.id],
+      editors: _uniq([matty.id, viewer.id]),
     })
 
     // add tag into search engine
@@ -90,7 +93,7 @@ const resolver: MutationToPutTagResolver = async (
       throw new UserInputError('bad request')
     }
     if (!isEditor && isCreator) {
-      updateParams.editors = [...tag.editors, viewer.id]
+      updateParams.editors = _uniq([...tag.editors, viewer.id])
     }
 
     const updateTag = await tagService.baseUpdate(dbId, updateParams)
