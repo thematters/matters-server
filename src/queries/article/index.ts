@@ -12,6 +12,7 @@ import collection from './collection'
 import content from './content'
 import articleCover from './cover'
 import hasAppreciate from './hasAppreciate'
+import canSuperLike from './canSuperLike'
 import language from './language'
 import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
@@ -47,6 +48,7 @@ export default {
     collectedBy,
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
     hasAppreciate,
+    canSuperLike,
     language,
     oss: (root: any) => root,
     relatedArticles,

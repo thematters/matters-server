@@ -149,6 +149,9 @@ export default /* GraphQL */ `
     "This value determines if current viewer has appreciated or not."
     hasAppreciate: Boolean!
 
+    "This value determines if current viewer can SuperLike or not."
+    canSuperLike: Boolean!
+
     "This value determines if current Viewer has subscribed of not."
     subscribed: Boolean!
 
@@ -282,6 +285,7 @@ export default /* GraphQL */ `
     id: ID!
     amount: Int!
     token: String
+    superLike: Boolean
   }
 
   input ReadArticleInput {

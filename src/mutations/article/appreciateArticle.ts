@@ -13,7 +13,7 @@ import { MutationToAppreciateArticleResolver } from 'definitions'
 
 const resolver: MutationToAppreciateArticleResolver = async (
   root,
-  { input: { id, amount, token } },
+  { input: { id, amount, token, superLike } },
   {
     viewer,
     dataSources: {
@@ -42,6 +42,32 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ForbiddenError('cannot appreciate your own article')
   }
 
+  /**
+   * Super Like
+   */
+  if (superLike) {
+    const [liker, author] = await Promise.all([
+      userService.findLiker({ userId: viewer.id }),
+      userService.dataloader.load(article.authorId),
+    ])
+
+    if (!liker || !author) {
+      throw new ForbiddenError('viewer or author has no liker id')
+    }
+
+    await userService.likecoin.superlike({
+      liker,
+      likerIp: viewer.ip,
+      authorLikerId: author.likerId,
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+    })
+
+    return article
+  }
+
+  /**
+   * Like
+   */
   const appreciateLeft = await articleService.appreciateLeftByUser({
     articleId: dbId,
     userId: viewer.id,
@@ -52,11 +78,6 @@ const resolver: MutationToAppreciateArticleResolver = async (
 
   // Check if amount exceeded limit. if yes, then use the left amount.
   const validAmount = Math.min(amount, appreciateLeft)
-
-  const author = await userService.dataloader.load(article.authorId)
-  if (!author.likerId) {
-    throw new ForbiddenError('article author has no liker id')
-  }
 
   // protect from scripting
   const feature = await systemService.getFeatureFlag('verify_appreciate')
