@@ -129,7 +129,7 @@
     "@types/request-ip": "0.0.35",
     "@types/sharp": "^0.25.0",
     "@types/uuid": "^8.0.0",
-    "@types/validator": "^13.0.0",
+    "@types/validator": "^13.1.0",
     "@types/winston": "^2.4.4",
     "@types/ws": "^7.2.5",
     "apollo-server-testing": "^2.9.12",
