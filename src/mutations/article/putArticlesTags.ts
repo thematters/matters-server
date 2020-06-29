@@ -1,4 +1,6 @@
 import _difference from 'lodash/difference'
+import _some from 'lodash/some'
+import _uniq from 'lodash/uniq'
 
 import {
   AuthenticationError,
@@ -61,15 +63,20 @@ const resolver: MutationToPutArticlesTagsResolver = async (
     throw new UserInputError('"articles" is required in update')
   }
 
-  // temporarily safety check
-  if (viewer.email !== 'hi@matters.news') {
-    throw new ForbiddenError('only Matty can manage tag at this moment')
-  }
-
   const { id: dbId } = fromGlobalId(id)
   const tag = await tagService.baseFindById(dbId)
   if (!tag) {
     throw new TagNotFoundError('tag not found')
+  }
+
+  // update only allow: editor, creator, matty
+  const isEditor = _some(tag.editors, (editor) => editor.id === viewer.id)
+  const isCreator = tag.creator === viewer.id
+  const isMatty = viewer.email === 'hi@matters.news'
+  const canEdit = isEditor || isCreator || isMatty
+
+  if (!canEdit) {
+    throw new ForbiddenError('only editor, creator, and matty can manage tag')
   }
 
   if (typeof selected === 'boolean') {
@@ -116,6 +123,15 @@ const resolver: MutationToPutArticlesTagsResolver = async (
       })
     })
   }
+
+  // add creator if not listed in editors
+  if (!isEditor && !isMatty && isCreator) {
+    const updatedTag = await tagService.baseUpdate(tag.id, {
+      editors: _uniq([...tag.editors, viewer.id]),
+    })
+    return updatedTag
+  }
+
   return tag
 }
 
