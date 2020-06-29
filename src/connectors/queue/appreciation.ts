@@ -36,10 +36,15 @@ class AppreciationQueue extends BaseQueue {
    * Producer for appreciation.
    *
    */
-  appreciate = ({ amount, articleId, senderId }: AppreciationParams) => {
+  appreciate = ({
+    amount,
+    articleId,
+    senderId,
+    snederIP,
+  }: AppreciationParams) => {
     return this.q.add(
       QUEUE_JOB.appreciation,
-      { amount, articleId, senderId },
+      { amount, articleId, senderId, snederIP },
       {
         priority: QUEUE_PRIORITY.NORMAL,
         removeOnComplete: true,
