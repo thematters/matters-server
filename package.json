@@ -131,7 +131,7 @@
     "@types/uuid": "^8.0.0",
     "@types/validator": "^13.1.0",
     "@types/winston": "^2.4.4",
-    "@types/ws": "^7.2.5",
+    "@types/ws": "^7.2.6",
     "apollo-server-testing": "^2.9.12",
     "chokidar": "^3.4.0",
     "chokidar-cli": "^2.1.0",
