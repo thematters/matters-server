@@ -55,6 +55,16 @@ const resolver: MutationToAppreciateArticleResolver = async (
       throw new ForbiddenError('viewer or author has no liker id')
     }
 
+    const canSuperLike = await userService.likecoin.canSuperLike({
+      liker,
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+      likerIp: viewer.ip,
+    })
+
+    if (!canSuperLike) {
+      throw new ForbiddenError('cannot super like')
+    }
+
     await userService.likecoin.superlike({
       liker,
       likerIp: viewer.ip,
