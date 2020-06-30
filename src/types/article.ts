@@ -40,7 +40,7 @@ export default /* GraphQL */ `
     putArticlesTags(input: PutArticlesTagsInput!): Tag! @authenticate @purgeCache
 
     "Delete one tag from articles"
-    deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authorize @purgeCache
+    deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authenticate @purgeCache
 
     ##############
     #     OSS    #
