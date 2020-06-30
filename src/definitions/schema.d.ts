@@ -168,6 +168,11 @@ export interface GQLArticle extends GQLNode {
   hasAppreciate: boolean
 
   /**
+   * This value determines if current viewer can SuperLike or not.
+   */
+  canSuperLike: boolean
+
+  /**
    * This value determines if current Viewer has subscribed of not.
    */
   subscribed: boolean
@@ -2113,6 +2118,7 @@ export interface GQLAppreciateArticleInput {
   id: string
   amount: number
   token?: string
+  superLike?: boolean
 }
 
 export interface GQLReadArticleInput {
@@ -3402,6 +3408,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   appreciateLimit?: ArticleToAppreciateLimitResolver<TParent>
   appreciateLeft?: ArticleToAppreciateLeftResolver<TParent>
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>
+  canSuperLike?: ArticleToCanSuperLikeResolver<TParent>
   subscribed?: ArticleToSubscribedResolver<TParent>
   sticky?: ArticleToStickyResolver<TParent>
   translation?: ArticleToTranslationResolver<TParent>
@@ -3671,6 +3678,15 @@ export interface ArticleToAppreciateLeftResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToHasAppreciateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToCanSuperLikeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

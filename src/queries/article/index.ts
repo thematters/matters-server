@@ -7,6 +7,7 @@ import appreciateLeft from './appreciateLeft'
 import appreciationsReceived from './appreciationsReceived'
 import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import author from './author'
+import canSuperLike from './canSuperLike'
 import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
@@ -47,6 +48,7 @@ export default {
     collectedBy,
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
     hasAppreciate,
+    canSuperLike,
     language,
     oss: (root: any) => root,
     relatedArticles,

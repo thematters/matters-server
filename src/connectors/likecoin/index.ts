@@ -50,6 +50,7 @@ const ENDPOINTS = {
   total: '/like/info/like/history/total',
   like: '/like/likebutton',
   rate: '/misc/price',
+  superlike: '/like/share',
 }
 
 /**
@@ -391,6 +392,73 @@ export class LikeCoin {
     } catch (error) {
       throw error
     }
+  }
+
+  /**
+   * Super Like
+   */
+  superlike = async ({
+    authorLikerId,
+    liker,
+    url,
+    likerIp,
+  }: {
+    authorLikerId: string
+    liker: UserOAuthLikeCoin
+    url: string
+    likerIp?: string
+  }) => {
+    try {
+      const endpoint = `${ENDPOINTS.superlike}/${authorLikerId}/`
+      const result = await this.request({
+        headers: { 'X-LIKECOIN-REAL-IP': likerIp },
+        endpoint,
+        withClientCredential: true,
+        method: 'POST',
+        liker,
+        data: {
+          referrer: encodeURI(url),
+        },
+      })
+      const data = _.get(result, 'data')
+      if (data === 'OK') {
+        return data
+      } else {
+        throw result
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  canSuperLike = async ({
+    liker,
+    url,
+    likerIp,
+  }: {
+    liker: UserOAuthLikeCoin
+    url: string
+    likerIp?: string
+  }) => {
+    const endpoint = `${ENDPOINTS.superlike}/self`
+
+    const res = await this.request({
+      endpoint,
+      method: 'GET',
+      headers: { 'X-LIKECOIN-REAL-IP': likerIp },
+      withClientCredential: true,
+      params: {
+        referrer: encodeURI(url),
+      },
+      liker,
+    })
+    const data = _.get(res, 'data')
+
+    if (!data) {
+      throw res
+    }
+
+    return data.canSuperLike
   }
 }
 
