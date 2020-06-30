@@ -73,6 +73,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     amount: validAmount,
     articleId: article.id,
     senderId: viewer.id,
+    snederIP: viewer.ip,
   })
 
   return article
