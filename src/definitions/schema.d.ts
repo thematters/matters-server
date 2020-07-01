@@ -573,7 +573,12 @@ export interface GQLRecommendation {
   authors: GQLUserConnection
 
   /**
-   * Recommend articles usings collaborative filtering
+   * Personalized recommendation based on interaction with tags.
+   */
+  interest: GQLArticleConnection
+
+  /**
+   * Recommend articles with collaborative filtering
    */
   recommendArticles: GQLArticleConnection
 }
@@ -4515,6 +4520,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   tags?: RecommendationToTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
   authors?: RecommendationToAuthorsResolver<TParent>
+  interest?: RecommendationToInterestResolver<TParent>
   recommendArticles?: RecommendationToRecommendArticlesResolver<TParent>
 }
 
@@ -4627,6 +4633,21 @@ export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToAuthorsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToInterestArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToInterestResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToInterestArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

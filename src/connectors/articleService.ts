@@ -559,6 +559,23 @@ export class ArticleService extends BaseService {
       .offset(offset)
   }
 
+  recommendByInterest = async ({
+    userId,
+    limit = BATCH_SIZE,
+    offset = 0,
+  }: {
+    userId: string
+    limit?: number
+    offset?: number
+  }) =>
+    this.knex(`article_interest_materialized as interests`)
+      .select('*')
+      .join('article', 'interests.id', 'article.id')
+      .orderBy('score', 'desc')
+      .where({ 'article.state': ARTICLE_STATE.active, userId })
+      .limit(limit)
+      .offset(offset)
+
   related = async ({
     id,
     size,
@@ -646,6 +663,14 @@ export class ArticleService extends BaseService {
     const result = await this.knex('article')
       .join('matters_choice as c', 'c.article_id', 'article.id')
       .where({ state: ARTICLE_STATE.active })
+      .count()
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  countRecommendInterest = async ({ userId }: { userId: string }) => {
+    const result = await this.knex('article_interest_materialized')
+      .where({ userId })
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)

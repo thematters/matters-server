@@ -330,6 +330,7 @@ export const QUEUE_JOB = {
   refreshArticleActivityView: 'refreshArticleActivityView',
   refreshArticleValueView: 'refreshArticleValueView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
+  refreshArticleInterestView: 'refreshArticleInterestView',
 
   // Migration
   migration: 'migration',

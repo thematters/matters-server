@@ -6,6 +6,7 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
+  DAY,
 } from 'common/enums'
 import logger from 'common/logger'
 import { refreshView } from 'connectors'
@@ -92,6 +93,16 @@ class RefreshViewsQueue extends BaseQueue {
         repeat: { cron: '0 3 * * *', tz: 'Asia/Hong_Kong' },
       }
     )
+
+    // refresh articleInterestMaterialized every day at 2am
+    this.q.add(
+      QUEUE_JOB.refreshArticleInterestView,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: { cron: '0 2 * * *', tz: 'Asia/Hong_Kong' },
+      }
+    )
   }
 
   /**
@@ -121,6 +132,10 @@ class RefreshViewsQueue extends BaseQueue {
     this.q.process(
       QUEUE_JOB.refreshUserReaderView,
       this.handleRefreshView('user_reader_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshArticleInterestView,
+      this.handleRefreshView('article_interest_materialized')
     )
   }
 
