@@ -12,7 +12,7 @@ import {
 import { ServerError } from 'common/errors'
 import {
   calcMattersFee,
-  calcStripeFee,
+  // calcStripeFee,
   getUTC8Midnight,
   numRound,
 } from 'common/utils'
@@ -329,8 +329,9 @@ export class PaymentService extends BaseService {
   }) => {
     if (provider === PAYMENT_PROVIDER.stripe) {
       // create a payment intent from Stripe
-      const fee = calcStripeFee(amount)
-      const total = numRound(amount + fee)
+      // const fee = calcStripeFee(amount)
+      // const total = numRound(amount + fee)
+      const total = numRound(amount)
       const payment = await this.stripe.createPaymentIntent({
         customerId,
         amount: total,
@@ -344,7 +345,7 @@ export class PaymentService extends BaseService {
       // create a pending transaction from DB
       const transaction = await this.createTransaction({
         amount,
-        fee,
+        // fee,
         currency,
         purpose,
         provider,
