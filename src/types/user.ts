@@ -162,10 +162,13 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Use \`followeeWorks\`.")
+    followeeArticles(input: ConnectionArgs!): ArticleConnection!
+
+    "Comments published by user's followees."
+    followeeComments(input: ConnectionArgs!): CommentConnection!
 
     "Articles and comments published by user's followees."
-    followeeWorks(input: ResponsesInput!): ResponseConnection!
+    followeeWorks(input: ResponsesInput!): ResponseConnection! @deprecated(reason: "Feature changed.")
 
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection!

@@ -528,12 +528,17 @@ export const enum GQLOAuthProvider {
 export interface GQLRecommendation {
   /**
    * Articles published by user's followees.
-   * @deprecated Use `followeeWorks`.
    */
   followeeArticles: GQLArticleConnection
 
   /**
+   * Comments published by user's followees.
+   */
+  followeeComments: GQLCommentConnection
+
+  /**
    * Articles and comments published by user's followees.
+   * @deprecated Feature changed.
    */
   followeeWorks: GQLResponseConnection
 
@@ -598,8 +603,8 @@ export interface GQLConnection {
 /** Use this to resolve interface type Connection */
 export type GQLPossibleConnectionTypeNames =
   | 'ArticleConnection'
-  | 'ResponseConnection'
   | 'CommentConnection'
+  | 'ResponseConnection'
   | 'TagConnection'
   | 'UserConnection'
   | 'DraftConnection'
@@ -616,8 +621,8 @@ export type GQLPossibleConnectionTypeNames =
 export interface GQLConnectionNameMap {
   Connection: GQLConnection
   ArticleConnection: GQLArticleConnection
-  ResponseConnection: GQLResponseConnection
   CommentConnection: GQLCommentConnection
+  ResponseConnection: GQLResponseConnection
   TagConnection: GQLTagConnection
   UserConnection: GQLUserConnection
   DraftConnection: GQLDraftConnection
@@ -644,44 +649,15 @@ export interface GQLArticleEdge {
   node: GQLArticle
 }
 
-export interface GQLResponsesInput {
-  sort?: GQLResponseSort
-  after?: string
-  before?: string
-  includeAfter?: boolean
-  includeBefore?: boolean
-  first?: number
-  articleOnly?: boolean
-}
-
-/**
- * Enums for sorting responses.
- */
-export const enum GQLResponseSort {
-  oldest = 'oldest',
-  newest = 'newest',
-}
-
-export interface GQLResponseConnection extends GQLConnection {
+export interface GQLCommentConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
-  edges?: Array<GQLResponseEdge>
+  edges?: Array<GQLCommentEdge>
 }
 
-export interface GQLResponseEdge {
+export interface GQLCommentEdge {
   cursor: string
-  node: GQLResponse
-}
-
-export type GQLResponse = GQLArticle | GQLComment
-
-/** Use this to resolve union type Response */
-export type GQLPossibleResponseTypeNames = 'Article' | 'Comment'
-
-export interface GQLResponseNameMap {
-  Response: GQLResponse
-  Article: GQLArticle
-  Comment: GQLComment
+  node: GQLComment
 }
 
 /**
@@ -788,15 +764,44 @@ export const enum GQLCommentSort {
   newest = 'newest',
 }
 
-export interface GQLCommentConnection extends GQLConnection {
-  totalCount: number
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLCommentEdge>
+export interface GQLResponsesInput {
+  sort?: GQLResponseSort
+  after?: string
+  before?: string
+  includeAfter?: boolean
+  includeBefore?: boolean
+  first?: number
+  articleOnly?: boolean
 }
 
-export interface GQLCommentEdge {
+/**
+ * Enums for sorting responses.
+ */
+export const enum GQLResponseSort {
+  oldest = 'oldest',
+  newest = 'newest',
+}
+
+export interface GQLResponseConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLResponseEdge>
+}
+
+export interface GQLResponseEdge {
   cursor: string
-  node: GQLComment
+  node: GQLResponse
+}
+
+export type GQLResponse = GQLArticle | GQLComment
+
+/** Use this to resolve union type Response */
+export type GQLPossibleResponseTypeNames = 'Article' | 'Comment'
+
+export interface GQLResponseNameMap {
+  Response: GQLResponse
+  Article: GQLArticle
+  Comment: GQLComment
 }
 
 export interface GQLTagConnection extends GQLConnection {
@@ -3149,15 +3154,15 @@ export interface GQLResolver {
 
   PageInfo?: GQLPageInfoTypeResolver
   ArticleEdge?: GQLArticleEdgeTypeResolver
+  CommentConnection?: GQLCommentConnectionTypeResolver
+  CommentEdge?: GQLCommentEdgeTypeResolver
+  Comment?: GQLCommentTypeResolver
   ResponseConnection?: GQLResponseConnectionTypeResolver
   ResponseEdge?: GQLResponseEdgeTypeResolver
   Response?: {
     __resolveType: GQLResponseTypeResolver
   }
 
-  Comment?: GQLCommentTypeResolver
-  CommentConnection?: GQLCommentConnectionTypeResolver
-  CommentEdge?: GQLCommentEdgeTypeResolver
   TagConnection?: GQLTagConnectionTypeResolver
   TagEdge?: GQLTagEdgeTypeResolver
   Tag?: GQLTagTypeResolver
@@ -4507,6 +4512,7 @@ export interface NotificationSettingToReportFeedbackResolver<
 
 export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
+  followeeComments?: RecommendationToFolloweeCommentsResolver<TParent>
   followeeWorks?: RecommendationToFolloweeWorksResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
@@ -4528,6 +4534,21 @@ export interface RecommendationToFolloweeArticlesResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFolloweeCommentsArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToFolloweeCommentsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFolloweeCommentsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -4692,8 +4713,8 @@ export interface ArticleConnectionToEdgesResolver<
 export interface GQLConnectionTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'ArticleConnection'
-    | 'ResponseConnection'
     | 'CommentConnection'
+    | 'ResponseConnection'
     | 'TagConnection'
     | 'UserConnection'
     | 'DraftConnection'
@@ -4776,13 +4797,13 @@ export interface ArticleEdgeToNodeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLResponseConnectionTypeResolver<TParent = any> {
-  totalCount?: ResponseConnectionToTotalCountResolver<TParent>
-  pageInfo?: ResponseConnectionToPageInfoResolver<TParent>
-  edges?: ResponseConnectionToEdgesResolver<TParent>
+export interface GQLCommentConnectionTypeResolver<TParent = any> {
+  totalCount?: CommentConnectionToTotalCountResolver<TParent>
+  pageInfo?: CommentConnectionToPageInfoResolver<TParent>
+  edges?: CommentConnectionToEdgesResolver<TParent>
 }
 
-export interface ResponseConnectionToTotalCountResolver<
+export interface CommentConnectionToTotalCountResolver<
   TParent = any,
   TResult = any
 > {
@@ -4794,7 +4815,7 @@ export interface ResponseConnectionToTotalCountResolver<
   ): TResult
 }
 
-export interface ResponseConnectionToPageInfoResolver<
+export interface CommentConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
@@ -4806,7 +4827,7 @@ export interface ResponseConnectionToPageInfoResolver<
   ): TResult
 }
 
-export interface ResponseConnectionToEdgesResolver<
+export interface CommentConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
@@ -4818,12 +4839,12 @@ export interface ResponseConnectionToEdgesResolver<
   ): TResult
 }
 
-export interface GQLResponseEdgeTypeResolver<TParent = any> {
-  cursor?: ResponseEdgeToCursorResolver<TParent>
-  node?: ResponseEdgeToNodeResolver<TParent>
+export interface GQLCommentEdgeTypeResolver<TParent = any> {
+  cursor?: CommentEdgeToCursorResolver<TParent>
+  node?: CommentEdgeToNodeResolver<TParent>
 }
 
-export interface ResponseEdgeToCursorResolver<TParent = any, TResult = any> {
+export interface CommentEdgeToCursorResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4832,7 +4853,7 @@ export interface ResponseEdgeToCursorResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface ResponseEdgeToNodeResolver<TParent = any, TResult = any> {
+export interface CommentEdgeToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4841,11 +4862,6 @@ export interface ResponseEdgeToNodeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLResponseTypeResolver<TParent = any> {
-  (parent: TParent, context: Context, info: GraphQLResolveInfo):
-    | 'Article'
-    | 'Comment'
-}
 export interface GQLCommentTypeResolver<TParent = any> {
   id?: CommentToIdResolver<TParent>
   state?: CommentToStateResolver<TParent>
@@ -4992,13 +5008,13 @@ export interface CommentToRemarkResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface GQLCommentConnectionTypeResolver<TParent = any> {
-  totalCount?: CommentConnectionToTotalCountResolver<TParent>
-  pageInfo?: CommentConnectionToPageInfoResolver<TParent>
-  edges?: CommentConnectionToEdgesResolver<TParent>
+export interface GQLResponseConnectionTypeResolver<TParent = any> {
+  totalCount?: ResponseConnectionToTotalCountResolver<TParent>
+  pageInfo?: ResponseConnectionToPageInfoResolver<TParent>
+  edges?: ResponseConnectionToEdgesResolver<TParent>
 }
 
-export interface CommentConnectionToTotalCountResolver<
+export interface ResponseConnectionToTotalCountResolver<
   TParent = any,
   TResult = any
 > {
@@ -5010,7 +5026,7 @@ export interface CommentConnectionToTotalCountResolver<
   ): TResult
 }
 
-export interface CommentConnectionToPageInfoResolver<
+export interface ResponseConnectionToPageInfoResolver<
   TParent = any,
   TResult = any
 > {
@@ -5022,7 +5038,7 @@ export interface CommentConnectionToPageInfoResolver<
   ): TResult
 }
 
-export interface CommentConnectionToEdgesResolver<
+export interface ResponseConnectionToEdgesResolver<
   TParent = any,
   TResult = any
 > {
@@ -5034,12 +5050,12 @@ export interface CommentConnectionToEdgesResolver<
   ): TResult
 }
 
-export interface GQLCommentEdgeTypeResolver<TParent = any> {
-  cursor?: CommentEdgeToCursorResolver<TParent>
-  node?: CommentEdgeToNodeResolver<TParent>
+export interface GQLResponseEdgeTypeResolver<TParent = any> {
+  cursor?: ResponseEdgeToCursorResolver<TParent>
+  node?: ResponseEdgeToNodeResolver<TParent>
 }
 
-export interface CommentEdgeToCursorResolver<TParent = any, TResult = any> {
+export interface ResponseEdgeToCursorResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5048,7 +5064,7 @@ export interface CommentEdgeToCursorResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface CommentEdgeToNodeResolver<TParent = any, TResult = any> {
+export interface ResponseEdgeToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5057,6 +5073,11 @@ export interface CommentEdgeToNodeResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface GQLResponseTypeResolver<TParent = any> {
+  (parent: TParent, context: Context, info: GraphQLResolveInfo):
+    | 'Article'
+    | 'Comment'
+}
 export interface GQLTagConnectionTypeResolver<TParent = any> {
   totalCount?: TagConnectionToTotalCountResolver<TParent>
   pageInfo?: TagConnectionToPageInfoResolver<TParent>
