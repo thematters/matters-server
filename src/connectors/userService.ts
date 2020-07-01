@@ -759,6 +759,65 @@ export class UserService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
+  /**
+   * Find followee comments based on action_user table records. If one followee made
+   * multiple comments in one article, only returns the latest one.
+   *
+   */
+  followeeComments = async ({
+    userId,
+    offset = 0,
+    limit = BATCH_SIZE,
+  }: {
+    userId: string
+    offset?: number
+    limit?: number
+  }) =>
+    this.knex
+      .select('source.*')
+      .from((operator: any) => {
+        operator
+          .max({ id: 'comment.id', created_at: 'comment.created_at' })
+          .from('action_user as au')
+          .join('comment', 'comment.author_id', 'au.target_id')
+          .where({
+            action: 'follow',
+            userId,
+            'comment.state': COMMENT_STATE.active,
+          })
+          .groupBy('article_id', 'author_id')
+          .as('source')
+      })
+      .orderBy('source.created_at', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+  /**
+   * Count followee comments based on action_user table records. If one followee made
+   * multiple comments in one article, only count as one.
+   *
+   */
+  countFolloweeComments = async (userId: string) => {
+    const result = await this.knex
+      .from((operator: any) => {
+        operator
+          .max({ id: 'comment.id', created_at: 'comment.created_at' })
+          .from('action_user as au')
+          .join('comment', 'comment.author_id', 'au.target_id')
+          .where({
+            action: 'follow',
+            userId,
+            'comment.state': COMMENT_STATE.active,
+          })
+          .groupBy('article_id', 'author_id')
+          .as('source')
+      })
+      .countDistinct('source.id')
+      .first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   findFollowees = async ({
     userId,
     limit = BATCH_SIZE,
