@@ -8,12 +8,12 @@ import {
 } from 'common/errors'
 import { fromGlobalId, isFeatureEnabled } from 'common/utils'
 import { gcp } from 'connectors'
-import { likeCoinQueue } from 'connectors/queue'
+import { appreciationQueue } from 'connectors/queue'
 import { MutationToAppreciateArticleResolver } from 'definitions'
 
 const resolver: MutationToAppreciateArticleResolver = async (
   root,
-  { input: { id, amount, token } },
+  { input: { id, amount, token, superLike } },
   {
     viewer,
     dataSources: {
@@ -42,6 +42,42 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ForbiddenError('cannot appreciate your own article')
   }
 
+  /**
+   * Super Like
+   */
+  if (superLike) {
+    const [liker, author] = await Promise.all([
+      userService.findLiker({ userId: viewer.id }),
+      userService.dataloader.load(article.authorId),
+    ])
+
+    if (!liker || !author) {
+      throw new ForbiddenError('viewer or author has no liker id')
+    }
+
+    const canSuperLike = await userService.likecoin.canSuperLike({
+      liker,
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+      likerIp: viewer.ip,
+    })
+
+    if (!canSuperLike) {
+      throw new ForbiddenError('cannot super like')
+    }
+
+    await userService.likecoin.superlike({
+      liker,
+      likerIp: viewer.ip,
+      authorLikerId: author.likerId,
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+    })
+
+    return article
+  }
+
+  /**
+   * Like
+   */
   const appreciateLeft = await articleService.appreciateLeftByUser({
     articleId: dbId,
     userId: viewer.id,
@@ -53,11 +89,6 @@ const resolver: MutationToAppreciateArticleResolver = async (
   // Check if amount exceeded limit. if yes, then use the left amount.
   const validAmount = Math.min(amount, appreciateLeft)
 
-  const author = await userService.dataloader.load(article.authorId)
-  if (!author.likerId) {
-    throw new ForbiddenError('article author has no liker id')
-  }
-
   // protect from scripting
   const feature = await systemService.getFeatureFlag('verify_appreciate')
 
@@ -68,60 +99,15 @@ const resolver: MutationToAppreciateArticleResolver = async (
     }
   }
 
-  try {
-    // record to DB
-    await articleService.appreciate({
-      articleId: article.id,
-      senderId: viewer.id,
-      recipientId: article.authorId,
-      amount: validAmount,
-      type: APPRECIATION_TYPES.like,
-    })
+  // insert appreciation job
+  appreciationQueue.appreciate({
+    amount: validAmount,
+    articleId: article.id,
+    senderId: viewer.id,
+    snederIP: viewer.ip,
+  })
 
-    // record to LikeCoin
-    likeCoinQueue.like({
-      likerId: viewer.likerId,
-      likerIp: viewer.ip,
-      authorLikerId: author.likerId,
-      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
-      amount: validAmount,
-    })
-
-    // publish a PubSub event
-    notificationService.pubsub.publish(id, article)
-
-    // trigger notifications
-    notificationService.trigger({
-      event: 'article_new_appreciation',
-      actorId: viewer.id,
-      recipientId: article.authorId,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'article',
-          entity: article,
-        },
-      ],
-    })
-
-    const newArticle = await articleService.dataloader.load(article.id)
-
-    // Add custom data for cache invalidation
-    newArticle[CACHE_KEYWORD] = [
-      {
-        id: newArticle.id,
-        type: NODE_TYPES.article,
-      },
-      {
-        id: newArticle.authorId,
-        type: NODE_TYPES.user,
-      },
-    ]
-
-    return newArticle
-  } catch (error) {
-    throw error
-  }
+  return article
 }
 
 export default resolver

@@ -1,7 +1,12 @@
 import axios from 'axios'
 import { v4 } from 'uuid'
 
-import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
+import {
+  ACCEPTED_UPLOAD_AUDIO_TYPES,
+  ACCEPTED_UPLOAD_IMAGE_TYPES,
+  UPLOAD_AUDIO_SIZE_LIMIT,
+  UPLOAD_IMAGE_SIZE_LIMIT,
+} from 'common/enums'
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
@@ -27,8 +32,16 @@ const resolver: MutationToSingleFileUploadResolver = async (
   { input: { type, file, url, entityType, entityId } },
   { viewer, dataSources: { systemService } }
 ) => {
+  const isImageType =
+    ['avatar', 'embed', 'profileCover', 'oauthClientAvatar'].indexOf(type) >= 0
+  const isAudioType = ['embedaudio'].indexOf(type) >= 0
+
   if ((!file && !url) || (file && url)) {
     throw new UserInputError('One of file and url needs to be specified.')
+  }
+
+  if (url && !isImageType) {
+    throw new UserInputError(`type:${type} doesn\'t support specifying a url.`)
   }
 
   if (!entityType) {
@@ -55,10 +68,9 @@ const resolver: MutationToSingleFileUploadResolver = async (
   let upload
   if (url) {
     try {
-      // TODO: resize image if too large
       const res = await axios.get(url, {
         responseType: 'stream',
-        maxContentLength: UPLOAD_FILE_SIZE_LIMIT,
+        maxContentLength: UPLOAD_IMAGE_SIZE_LIMIT,
       })
       const disposition = res.headers['content-disposition']
       const filename = getFileName(disposition, url)
@@ -74,6 +86,17 @@ const resolver: MutationToSingleFileUploadResolver = async (
     }
   } else {
     upload = await file
+  }
+
+  // check MIME types
+  if (upload.mimetype) {
+    if (isImageType && !ACCEPTED_UPLOAD_IMAGE_TYPES.includes(upload.mimetype)) {
+      throw new UserInputError('Invalid image format.')
+    }
+
+    if (isAudioType && !ACCEPTED_UPLOAD_AUDIO_TYPES.includes(upload.mimetype)) {
+      throw new UserInputError('Invalid audio format.')
+    }
   }
 
   const uuid = v4()

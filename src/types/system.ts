@@ -341,10 +341,6 @@ export default /* GraphQL */ `
   "Enums for asset types."
   enum AssetType {
     avatar
-    cover
-    audiodraft
-    report
-    feedback
     embed
     embedaudio
     profileCover
@@ -390,6 +386,7 @@ export default /* GraphQL */ `
     payment
     payout
     verify_appreciate
+    fingerprint
   }
 
   enum FeatureFlag {

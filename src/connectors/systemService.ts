@@ -372,11 +372,7 @@ export class SystemService extends BaseService {
     note?: string
     archived?: boolean
   }) => {
-    const where = {
-      type,
-      value,
-      ...(uuid ? { uuid } : {}),
-    }
+    const where = { type, value }
 
     return this.baseUpdateOrCreate({
       where,
@@ -385,7 +381,7 @@ export class SystemService extends BaseService {
         value,
         note,
         archived,
-        ...(uuid ? {} : { uuid: v4() }),
+        uuid: uuid || v4(),
         updatedAt: new Date(),
       },
       table: 'blocklist',

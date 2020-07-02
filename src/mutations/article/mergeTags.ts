@@ -17,6 +17,7 @@ const resolver: MutationToMergeTagsResolver = async (
   const newTag = await tagService.mergeTags({
     tagIds: tagDbIds,
     content,
+    creator: mattyUser.id,
     editors: [mattyUser.id],
   })
 

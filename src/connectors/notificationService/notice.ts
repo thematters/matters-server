@@ -2,7 +2,7 @@ import DataLoader from 'dataloader'
 import { isEqual, uniqBy } from 'lodash'
 import { v4 } from 'uuid'
 
-import { BATCH_SIZE, DB_NOTICE_TYPES } from 'common/enums'
+import { BATCH_SIZE, DAY, DB_NOTICE_TYPES } from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import {
@@ -334,9 +334,11 @@ class Notice extends BaseService {
   /**
    * Find notice actors by a given notice id
    */
-  findActors = async (noticeId: string): Promise<User[]> => {
+  findActors = async (
+    noticeId: string
+  ): Promise<Array<User & { noticeActorCreatedAt: string }>> => {
     const actors = await this.knex
-      .select('user.*')
+      .select('user.*', 'notice_actor.created_at as noticeActorCreatedAt')
       .from('notice_actor')
       .innerJoin('user', 'notice_actor.actor_id', '=', 'user.id')
       .where({ noticeId })
@@ -456,7 +458,11 @@ class Notice extends BaseService {
     const notices = await Promise.all(
       noticeDetails.map(async (n: NoticeDetail) => {
         const entities = (await this.findEntities(n.id)) as NoticeEntitiesMap
-        const actors = await this.findActors(n.id)
+        const actors = (await this.findActors(n.id)).filter(
+          (actor) =>
+            new Date(actor.noticeActorCreatedAt) >=
+            new Date(Date.now() - DAY * 1)
+        )
 
         return {
           ...n,

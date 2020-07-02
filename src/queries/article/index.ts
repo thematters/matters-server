@@ -7,6 +7,7 @@ import appreciateLeft from './appreciateLeft'
 import appreciationsReceived from './appreciationsReceived'
 import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import author from './author'
+import canSuperLike from './canSuperLike'
 import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
@@ -19,6 +20,8 @@ import rootArticle from './rootArticle'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import tagArticles from './tag/articles'
+import tagCreator from './tag/creator'
+import tagEditors from './tag/editors'
 import * as tagOSS from './tag/oss'
 import tagSelected from './tag/selected'
 import tags from './tags'
@@ -45,6 +48,7 @@ export default {
     collectedBy,
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
     hasAppreciate,
+    canSuperLike,
     language,
     oss: (root: any) => root,
     relatedArticles,
@@ -69,6 +73,8 @@ export default {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
     articles: tagArticles,
     selected: tagSelected,
+    creator: tagCreator,
+    editors: tagEditors,
     oss: (root: any) => root,
   },
   ArticleOSS: {

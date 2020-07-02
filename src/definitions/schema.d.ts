@@ -168,6 +168,11 @@ export interface GQLArticle extends GQLNode {
   hasAppreciate: boolean
 
   /**
+   * This value determines if current viewer can SuperLike or not.
+   */
+  canSuperLike: boolean
+
+  /**
    * This value determines if current Viewer has subscribed of not.
    */
   subscribed: boolean
@@ -850,6 +855,11 @@ export interface GQLTag extends GQLNode {
   editors?: Array<GQLUser>
 
   /**
+   * Creator of this tag.
+   */
+  creator?: GQLUser
+
+  /**
    * OSS
    */
   oss: GQLTagOSS
@@ -1028,10 +1038,6 @@ export interface GQLAsset {
  */
 export const enum GQLAssetType {
   avatar = 'avatar',
-  cover = 'cover',
-  audiodraft = 'audiodraft',
-  report = 'report',
-  feedback = 'feedback',
   embed = 'embed',
   embedaudio = 'embedaudio',
   profileCover = 'profileCover',
@@ -1360,6 +1366,11 @@ export interface GQLTransaction {
    * Related target article or transaction.
    */
   target?: GQLTransactionTarget
+
+  /**
+   * Message for end user, including reason of failure.
+   */
+  message?: string
 }
 
 export const enum GQLTransactionPurpose {
@@ -1573,6 +1584,7 @@ export const enum GQLFeatureName {
   payment = 'payment',
   payout = 'payout',
   verify_appreciate = 'verify_appreciate',
+  fingerprint = 'fingerprint',
 }
 
 export interface GQLOSS {
@@ -2106,6 +2118,7 @@ export interface GQLAppreciateArticleInput {
   id: string
   amount: number
   token?: string
+  superLike?: boolean
 }
 
 export interface GQLReadArticleInput {
@@ -3395,6 +3408,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   appreciateLimit?: ArticleToAppreciateLimitResolver<TParent>
   appreciateLeft?: ArticleToAppreciateLeftResolver<TParent>
   hasAppreciate?: ArticleToHasAppreciateResolver<TParent>
+  canSuperLike?: ArticleToCanSuperLikeResolver<TParent>
   subscribed?: ArticleToSubscribedResolver<TParent>
   sticky?: ArticleToStickyResolver<TParent>
   translation?: ArticleToTranslationResolver<TParent>
@@ -3664,6 +3678,15 @@ export interface ArticleToAppreciateLeftResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToHasAppreciateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToCanSuperLikeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5102,6 +5125,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   cover?: TagToCoverResolver<TParent>
   description?: TagToDescriptionResolver<TParent>
   editors?: TagToEditorsResolver<TParent>
+  creator?: TagToCreatorResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
   deleted?: TagToDeletedResolver<TParent>
@@ -5177,6 +5201,15 @@ export interface TagToDescriptionResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToEditorsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToCreatorResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6327,6 +6360,7 @@ export interface GQLTransactionTypeResolver<TParent = any> {
   recipient?: TransactionToRecipientResolver<TParent>
   sender?: TransactionToSenderResolver<TParent>
   target?: TransactionToTargetResolver<TParent>
+  message?: TransactionToMessageResolver<TParent>
 }
 
 export interface TransactionToIdResolver<TParent = any, TResult = any> {
@@ -6411,6 +6445,15 @@ export interface TransactionToSenderResolver<TParent = any, TResult = any> {
 }
 
 export interface TransactionToTargetResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionToMessageResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

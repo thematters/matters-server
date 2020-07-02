@@ -34,13 +34,13 @@ export default /* GraphQL */ `
     updateArticleInfo(input: UpdateArticleInfoInput!): Article! @authenticate @purgeCache
 
     "Create or update tag."
-    putTag(input: PutTagInput!): Tag! @authorize @purgeCache
+    putTag(input: PutTagInput!): Tag! @authenticate @purgeCache
 
     "Add or update one tag to articles."
-    putArticlesTags(input: PutArticlesTagsInput!): Tag! @authorize @purgeCache
+    putArticlesTags(input: PutArticlesTagsInput!): Tag! @authenticate @purgeCache
 
     "Delete one tag from articles"
-    deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authorize @purgeCache
+    deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authenticate @purgeCache
 
     ##############
     #     OSS    #
@@ -149,6 +149,9 @@ export default /* GraphQL */ `
     "This value determines if current viewer has appreciated or not."
     hasAppreciate: Boolean!
 
+    "This value determines if current viewer can SuperLike or not."
+    canSuperLike: Boolean!
+
     "This value determines if current Viewer has subscribed of not."
     subscribed: Boolean!
 
@@ -191,6 +194,9 @@ export default /* GraphQL */ `
 
     "Editors of this tag."
     editors: [User!]
+
+    "Creator of this tag."
+    creator: User
 
     # OSS
     oss: TagOSS! @authorize
@@ -279,6 +285,7 @@ export default /* GraphQL */ `
     id: ID!
     amount: Int!
     token: String
+    superLike: Boolean
   }
 
   input ReadArticleInput {

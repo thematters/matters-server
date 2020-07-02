@@ -12,10 +12,9 @@ import {
 import { ServerError } from 'common/errors'
 import {
   calcMattersFee,
-  calcStripeFee,
+  // calcStripeFee,
   getUTC8Midnight,
   numRound,
-  toProviderAmount,
 } from 'common/utils'
 import { BaseService } from 'connectors'
 import { User } from 'definitions'
@@ -179,13 +178,20 @@ export class PaymentService extends BaseService {
   markTransactionStateAs = async ({
     id,
     state,
+    remark,
   }: {
     id: string
     state: TRANSACTION_STATE
+    remark?: string | null
   }) => {
-    const data = {
-      state,
-    }
+    const data = remark
+      ? {
+          state,
+          remark,
+        }
+      : {
+          state,
+        }
 
     return this.baseUpdate(id, { updatedAt: new Date(), ...data })
   }
@@ -323,8 +329,9 @@ export class PaymentService extends BaseService {
   }) => {
     if (provider === PAYMENT_PROVIDER.stripe) {
       // create a payment intent from Stripe
-      const fee = calcStripeFee(amount)
-      const total = numRound(amount + fee)
+      // const fee = calcStripeFee(amount)
+      // const total = numRound(amount + fee)
+      const total = numRound(amount)
       const payment = await this.stripe.createPaymentIntent({
         customerId,
         amount: total,
@@ -338,7 +345,7 @@ export class PaymentService extends BaseService {
       // create a pending transaction from DB
       const transaction = await this.createTransaction({
         amount,
-        fee,
+        // fee,
         currency,
         purpose,
         provider,
@@ -468,7 +475,7 @@ export class PaymentService extends BaseService {
     if (!result || !result[0]) {
       return 0
     }
-    return Math.max(parseInt(result[0].amount || 0, 10), 0)
+    return parseInt(result[0].amount || 0, 10)
   }
 
   countPendingPayouts = async ({ userId }: { userId: string }) => {

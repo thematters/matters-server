@@ -305,6 +305,19 @@ export class LikerUserIdExistsError extends ApolloError {
 
 /*********************************
  *                               *
+ *             OAuth             *
+ *                               *
+ *********************************/
+export class OAuthTokenInvalidError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'OAUTH_TOKEN_INVALID')
+
+    Object.defineProperty(this, 'name', { value: 'OAuthTokenInvalidError' })
+  }
+}
+
+/*********************************
+ *                               *
  *            Migration          *
  *                               *
  *********************************/
@@ -374,6 +387,15 @@ export class PaymentPasswordNotSetError extends ApolloError {
     super(message, 'PAYMENT_PASSWORD_NOT_SET')
     Object.defineProperty(this, 'name', {
       value: 'PaymentPasswordNotSetError',
+    })
+  }
+}
+
+export class PaymentQueueJobDataError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'PAYMENT_QUEUE_JOB_DATA_ERROR')
+    Object.defineProperty(this, 'name', {
+      value: 'PaymentQueueJobDataError',
     })
   }
 }

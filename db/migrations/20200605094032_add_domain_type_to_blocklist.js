@@ -8,6 +8,4 @@ exports.up = async (knex) => {
   )
 }
 
-exports.down = async (knex) => {
-  await knex.raw(alterEnumString(table, 'type', ['agent_hash', 'email']))
-}
+exports.down = async (knex) => {}
