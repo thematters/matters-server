@@ -63,7 +63,7 @@ export default /* GraphQL */ `
     #     OSS    #
     ##############
     "Update state of a user, used in OSS."
-    updateUserState(input: UpdateUserStateInput!): User! @authorize @purgeCache
+    updateUserState(input: UpdateUserStateInput!): [User!] @authorize @purgeCache
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @authorize @purgeCache
 
@@ -474,7 +474,8 @@ export default /* GraphQL */ `
   }
 
   input UpdateUserStateInput {
-    id: ID!
+    id: ID
+    emails: [String!]
     state: UserState!
     banDays: PositiveInt
     password: String
@@ -567,6 +568,7 @@ export default /* GraphQL */ `
     onboarding
     banned
     archived
+    frozen
   }
 
   enum UserRole {

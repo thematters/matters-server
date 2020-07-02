@@ -1070,7 +1070,7 @@ type Mutation {
   migration(input: MigrationInput!): Boolean
 
   """Update state of a user, used in OSS."""
-  updateUserState(input: UpdateUserStateInput!): User!
+  updateUserState(input: UpdateUserStateInput!): [User!]
 
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
@@ -2023,7 +2023,8 @@ input UpdateUserRoleInput {
 }
 
 input UpdateUserStateInput {
-  id: ID!
+  id: ID
+  emails: [String!]
   state: UserState!
   banDays: PositiveInt
   password: String
@@ -2253,6 +2254,7 @@ enum UserState {
   onboarding
   banned
   archived
+  frozen
 }
 
 type UserStatus {

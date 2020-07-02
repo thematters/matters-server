@@ -6,18 +6,74 @@ import { MutationToUpdateUserStateResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserStateResolver = async (
   _,
-  { input: { id, state, banDays, password } },
+  { input: { id, state, banDays, password, emails } },
   { viewer, dataSources: { userService, notificationService } }
 ) => {
-  const { id: dbId } = fromGlobalId(id)
+  // handlers for cleanup and notification
+  const handleBan = async (userId: string) => {
+    // trigger notification
+    notificationService.trigger({
+      event: 'user_banned',
+      recipientId: userId,
+    })
+
+    // insert record into punish_record
+    if (typeof banDays === 'number') {
+      const expiredAt = getPunishExpiredDate(banDays)
+      await userService.baseCreate(
+        {
+          userId,
+          state,
+          expiredAt,
+        },
+        'punish_record'
+      )
+    }
+  }
+
+  // clean up punish recods if team manually recover it from ban
+  const handleUnban = (userId: string) =>
+    userService.archivePunishRecordsByUserId({
+      userId,
+      state: USER_STATE.banned,
+    })
+
   const isArchived = state === USER_STATE.archived
+
+  /**
+   * Batch update with email array
+   */
+  if (emails && emails.length > 0) {
+    if (isArchived) {
+      throw new UserInputError('Cannot archive users in batch')
+    }
+
+    return userService.knex
+      .whereIn('email', emails)
+      .update({ state })
+      .into(userService.table)
+      .returning('*')
+      .then((users) =>
+        users.map((batchUpdatedUser) => {
+          const { id: userId } = batchUpdatedUser
+          if (state === USER_STATE.banned) {
+            handleBan(userId)
+          }
+
+          return batchUpdatedUser
+        })
+      )
+  }
+
+  if (!id) {
+    throw new UserInputError('need to provide `id` or `emails`')
+  }
+
+  const { id: dbId } = fromGlobalId(id)
   const user = await userService.dataloader.load(dbId)
 
   // check
-  if (
-    user.state === USER_STATE.archived ||
-    (state === USER_STATE.banned && user.state === USER_STATE.banned)
-  ) {
+  if (user.state === state) {
     throw new ActionFailedError(`user has already been ${state}`)
   }
 
@@ -50,37 +106,16 @@ const resolver: MutationToUpdateUserStateResolver = async (
   }
 
   /**
-   * Active, Banned
+   * active, banned, frozen
    */
   const updatedUser = await userService.updateInfo(dbId, {
     state,
   })
 
   if (state === USER_STATE.banned) {
-    // trigger notification
-    notificationService.trigger({
-      event: 'user_banned',
-      recipientId: updatedUser.id,
-    })
-
-    // insert record into punish_record
-    if (typeof banDays === 'number') {
-      const expiredAt = getPunishExpiredDate(banDays)
-      await userService.baseCreate(
-        {
-          userId: updatedUser.id,
-          state,
-          expiredAt,
-        },
-        'punish_record'
-      )
-    }
+    handleBan(updatedUser.id)
   } else if (state !== user.state && user.state === USER_STATE.banned) {
-    // clean up punish recods if team manually recover it from ban
-    await userService.archivePunishRecordsByUserId({
-      userId: updatedUser.id,
-      state: USER_STATE.banned,
-    })
+    handleUnban(updatedUser.id)
   }
 
   return updatedUser

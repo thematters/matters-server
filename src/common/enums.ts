@@ -105,7 +105,7 @@ export const COMMENT_STATE = {
 }
 
 export const USER_STATE = {
-  inactive: 'inactive',
+  frozen: 'frozen',
   onboarding: 'onboarding',
   active: 'active',
   banned: 'banned',

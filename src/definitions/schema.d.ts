@@ -1214,6 +1214,7 @@ export const enum GQLUserState {
   onboarding = 'onboarding',
   banned = 'banned',
   archived = 'archived',
+  frozen = 'frozen',
 }
 
 export const enum GQLUserRole {
@@ -2037,7 +2038,7 @@ export interface GQLMutation {
   /**
    * Update state of a user, used in OSS.
    */
-  updateUserState: GQLUser
+  updateUserState?: Array<GQLUser>
 
   /**
    * Update state of a user, used in OSS.
@@ -2452,7 +2453,8 @@ export const enum GQLMigrationType {
 }
 
 export interface GQLUpdateUserStateInput {
-  id: string
+  id?: string
+  emails?: Array<string>
   state: GQLUserState
   banDays?: GQLPositiveInt
   password?: string
