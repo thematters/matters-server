@@ -4,3 +4,5 @@
 .elasticbeanstalk/*
 .git
 .gitignore
+.github
+.vscode
