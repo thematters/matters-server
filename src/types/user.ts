@@ -63,7 +63,7 @@ export default /* GraphQL */ `
     #     OSS    #
     ##############
     "Update state of a user, used in OSS."
-    updateUserState(input: UpdateUserStateInput!): User! @authorize @purgeCache
+    updateUserState(input: UpdateUserStateInput!): [User!] @authorize @purgeCache
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @authorize @purgeCache
 
@@ -188,7 +188,10 @@ export default /* GraphQL */ `
     "Global user list, sort by activities in recent 6 month."
     authors(input: AuthorsInput!): UserConnection!
 
-    "Recommend articles usings collaborative filtering"
+    "Personalized recommendation based on interaction with tags."
+    interest(input: ConnectionArgs!): ArticleConnection!
+
+    "Recommend articles with collaborative filtering"
     recommendArticles(input: ConnectionArgs!): ArticleConnection!
   }
 
@@ -471,7 +474,8 @@ export default /* GraphQL */ `
   }
 
   input UpdateUserStateInput {
-    id: ID!
+    id: ID
+    emails: [String!]
     state: UserState!
     banDays: PositiveInt
     password: String
@@ -564,6 +568,7 @@ export default /* GraphQL */ `
     onboarding
     banned
     archived
+    frozen
   }
 
   enum UserRole {

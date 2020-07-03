@@ -5,6 +5,7 @@ import { followeeArticles } from './followeeArticles'
 import { followeeWorks } from './followeeWorks'
 import { hottest } from './hottest'
 import { icymi } from './icymi'
+import { interest } from './interest'
 import { newest } from './newest'
 import { recommendArticles } from './recommendArticles'
 import { tags } from './tags'
@@ -22,6 +23,7 @@ const resolvers: GQLRecommendationTypeResolver = {
   tags,
   topics,
   valued,
+  interest,
 }
 
 export default resolvers

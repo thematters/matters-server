@@ -8,7 +8,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { countWords, fromGlobalId, sanitize, toGlobalId } from 'common/utils'
+import { fromGlobalId, sanitize, toGlobalId } from 'common/utils'
 import { MutationToPutCommentResolver } from 'definitions'
 
 const resolver: MutationToPutCommentResolver = async (
@@ -50,8 +50,12 @@ const resolver: MutationToPutCommentResolver = async (
 
   // disallow onboarding leave comments on others' works, and forbid inactive user operation
   const isOnboarding = viewer.state === USER_STATE.onboarding
-  const isInactive =
-    viewer.state === USER_STATE.archived || viewer.state === USER_STATE.banned
+  const isInactive = [
+    USER_STATE.banned,
+    USER_STATE.archived,
+    USER_STATE.frozen,
+  ].includes(viewer.state)
+
   if ((article.authorId !== viewer.id && isOnboarding) || isInactive) {
     throw new ForbiddenError('viewer has no permission')
   }
