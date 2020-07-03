@@ -5,12 +5,12 @@ import { followeeArticles } from './followeeArticles'
 import { followeeWorks } from './followeeWorks'
 import { hottest } from './hottest'
 import { icymi } from './icymi'
+import { interest } from './interest'
 import { newest } from './newest'
 import { recommendArticles } from './recommendArticles'
 import { tags } from './tags'
 import { topics } from './topics'
 import { valued } from './valued'
-import { interest } from './interest'
 
 const resolvers: GQLRecommendationTypeResolver = {
   authors,

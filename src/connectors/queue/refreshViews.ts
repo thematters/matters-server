@@ -1,12 +1,12 @@
 import Queue from 'bull'
 
 import {
+  DAY,
   HOUR,
   MINUTE,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-  DAY,
 } from 'common/enums'
 import logger from 'common/logger'
 import { refreshView } from 'connectors'

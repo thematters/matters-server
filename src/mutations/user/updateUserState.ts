@@ -105,7 +105,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
       language: user.language,
     })
 
-    return archivedUser
+    return [archivedUser]
   }
 
   /**
@@ -121,7 +121,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
     handleUnban(updatedUser.id)
   }
 
-  return updatedUser
+  return [updatedUser]
 }
 
 export default resolver

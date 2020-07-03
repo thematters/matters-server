@@ -55,7 +55,7 @@ exports.up = (knex) =>
      from article_read_count
      where user_id is not null ) "read" on "read".article_id = article_interest.id
   and "read".user_id = article_interest.user_id
-  where "read".article_id is null;
+  where "read".article_id is null and score > 0;
 
   create materialized view ${materialized} as
   select *
