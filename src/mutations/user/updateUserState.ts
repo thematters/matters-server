@@ -72,8 +72,11 @@ const resolver: MutationToUpdateUserStateResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const user = await userService.dataloader.load(dbId)
 
-  // check
-  if (user.state === state) {
+  // check to prevent unarchiving user
+  if (
+    user.state === USER_STATE.archived ||
+    (state === USER_STATE.banned && user.state === USER_STATE.banned)
+  ) {
     throw new ActionFailedError(`user has already been ${state}`)
   }
 
