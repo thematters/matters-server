@@ -187,7 +187,7 @@ jobs:
 
       - name: Kill VPN
         if: always()
-        run: sudo killall openvpn
+        run: sudo killall openvpn 2>/dev/null
 
       - name: Build, tag, and push image to Amazon ECR (production)
         if: github.ref == 'refs/heads/master'
