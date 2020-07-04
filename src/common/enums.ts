@@ -105,7 +105,7 @@ export const COMMENT_STATE = {
 }
 
 export const USER_STATE = {
-  inactive: 'inactive',
+  frozen: 'frozen',
   onboarding: 'onboarding',
   active: 'active',
   banned: 'banned',
@@ -330,6 +330,7 @@ export const QUEUE_JOB = {
   refreshArticleActivityView: 'refreshArticleActivityView',
   refreshArticleValueView: 'refreshArticleValueView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
+  refreshArticleInterestView: 'refreshArticleInterestView',
 
   // Migration
   migration: 'migration',

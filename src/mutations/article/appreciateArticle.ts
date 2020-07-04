@@ -1,4 +1,9 @@
-import { APPRECIATION_TYPES, CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
+import {
+  APPRECIATION_TYPES,
+  CACHE_KEYWORD,
+  NODE_TYPES,
+  USER_STATE,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
@@ -26,6 +31,14 @@ const resolver: MutationToAppreciateArticleResolver = async (
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  if (
+    [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
+      viewer.state
+    )
+  ) {
+    throw new AuthenticationError(`${viewer.state} user has no permission`)
   }
 
   if (!viewer.likerId) {

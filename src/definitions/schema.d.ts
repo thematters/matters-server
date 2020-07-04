@@ -578,7 +578,12 @@ export interface GQLRecommendation {
   authors: GQLUserConnection
 
   /**
-   * Recommend articles usings collaborative filtering
+   * Personalized recommendation based on interaction with tags.
+   */
+  interest: GQLArticleConnection
+
+  /**
+   * Recommend articles with collaborative filtering
    */
   recommendArticles: GQLArticleConnection
 }
@@ -1214,6 +1219,7 @@ export const enum GQLUserState {
   onboarding = 'onboarding',
   banned = 'banned',
   archived = 'archived',
+  frozen = 'frozen',
 }
 
 export const enum GQLUserRole {
@@ -2037,7 +2043,7 @@ export interface GQLMutation {
   /**
    * Update state of a user, used in OSS.
    */
-  updateUserState: GQLUser
+  updateUserState?: Array<GQLUser>
 
   /**
    * Update state of a user, used in OSS.
@@ -2452,7 +2458,8 @@ export const enum GQLMigrationType {
 }
 
 export interface GQLUpdateUserStateInput {
-  id: string
+  id?: string
+  emails?: Array<string>
   state: GQLUserState
   banDays?: GQLPositiveInt
   password?: string
@@ -4521,6 +4528,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   tags?: RecommendationToTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
   authors?: RecommendationToAuthorsResolver<TParent>
+  interest?: RecommendationToInterestResolver<TParent>
   recommendArticles?: RecommendationToRecommendArticlesResolver<TParent>
 }
 
@@ -4648,6 +4656,21 @@ export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToAuthorsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToInterestArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToInterestResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToInterestArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

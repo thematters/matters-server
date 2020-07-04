@@ -155,6 +155,26 @@ jobs:
       # === [END] `develop` branch ===
 
       # === `master` branch ===
+      - name: Start VPN
+        if: github.ref == 'refs/heads/master'
+        run: |
+          sudo apt-get install openvpn \
+          && echo $VPN_CONFIG | base64 -d >> $VPN_CONFIG_PATH \
+          && echo $VPN_AUTH | base64 -d >> $VPN_AUTH_PATH \
+          && sudo openvpn --config $VPN_CONFIG_PATH --auth-user-pass $VPN_AUTH_PATH --daemon \
+          && sleep 5s
+        env:
+          VPN_CONFIG: ${{ secrets.VPN_CONFIG }}
+          VPN_CONFIG_PATH: '.github/config.ovpn'
+          VPN_AUTH: ${{ secrets.VPN_AUTH }}
+          VPN_AUTH_PATH: '.github/auth.txt'
+
+      - name: Check DB Connection
+        if: github.ref == 'refs/heads/master'
+        run: nc -zv -w 2 $MATTERS_PG_HOST 5432
+        env:
+          MATTERS_PG_HOST: ${{ secrets.PROD_PG_HOST }}
+
       - name: DB Migration (production)
         if: github.ref == 'refs/heads/master'
         run: npm run db:migrate
@@ -164,6 +184,10 @@ jobs:
           MATTERS_PG_DATABASE: ${{ secrets.PROD_PG_DATABASE }}
           MATTERS_PG_USER: ${{ secrets.PROD_PG_USER }}
           MATTERS_PG_PASSWORD: ${{ secrets.PROD_PG_PASSWORD }}
+
+      - name: Kill VPN
+        if: always()
+        run: sudo killall openvpn || true
 
       - name: Build, tag, and push image to Amazon ECR (production)
         if: github.ref == 'refs/heads/master'

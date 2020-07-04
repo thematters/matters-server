@@ -1591,7 +1591,11 @@ export class UserService extends BaseService {
           this.knex.raw(`now() -  interval '30 days'`)
         )
         .where('last_read', '<', this.knex.raw(`now() -  interval '7 days'`))
-        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
+        .whereNotIn('user.state', [
+          USER_STATE.archived,
+          USER_STATE.banned,
+          USER_STATE.frozen,
+        ])
         .whereNull('sent_record.type')
 
       if (groupFilter) {
@@ -1616,7 +1620,11 @@ export class UserService extends BaseService {
         )
         .where('last_read', '>=', this.knex.raw(`now() -  interval '180 days'`))
         .where('last_read', '<', this.knex.raw(`now() -  interval '14 days'`))
-        .whereNotIn('user.state', [USER_STATE.archived, USER_STATE.banned])
+        .whereNotIn('user.state', [
+          USER_STATE.archived,
+          USER_STATE.banned,
+          USER_STATE.frozen,
+        ])
         .whereNull('sent_record.type')
         .whereNotNull('user.id')
 

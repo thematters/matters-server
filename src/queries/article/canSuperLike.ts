@@ -1,4 +1,5 @@
 import { environment } from 'common/environment'
+import logger from 'common/logger'
 import { ArticleToCanSuperLikeResolver } from 'definitions'
 
 const resolver: ArticleToCanSuperLikeResolver = async (
@@ -19,11 +20,16 @@ const resolver: ArticleToCanSuperLikeResolver = async (
     return false
   }
 
-  return userService.likecoin.canSuperLike({
-    liker,
-    url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
-    likerIp: viewer.ip,
-  })
+  try {
+    return await userService.likecoin.canSuperLike({
+      liker,
+      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+      likerIp: viewer.ip,
+    })
+  } catch (e) {
+    logger.error(e)
+    return false
+  }
 }
 
 export default resolver
