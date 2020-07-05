@@ -550,9 +550,9 @@ export class ArticleService extends BaseService {
       : MATERIALIZED_VIEW.articleCountMaterialized
 
     return this.knex(`${table} as view`)
-      .select('view.*', 'article.state', 'article.public', 'article.sticky')
+      .select('view.score', 'article.*')
       .join('article', 'view.id', 'article.id')
-      .orderByRaw('topic_score DESC NULLS LAST')
+      .orderByRaw('score DESC NULLS LAST')
       .orderBy('view.id', 'desc')
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
       .limit(limit)
