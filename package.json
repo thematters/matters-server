@@ -61,7 +61,7 @@
     "get-stream": "^5.1.0",
     "graphql": "^14.6.0",
     "graphql-cost-analysis": "^1.0.3",
-    "graphql-custom-types": "^1.5.1",
+    "graphql-custom-types": "^1.6.0",
     "graphql-depth-limit": "^1.1.0",
     "graphql-iso-date": "^3.6.1",
     "graphql-middleware": "^4.0.2",
