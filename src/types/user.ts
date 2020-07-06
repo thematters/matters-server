@@ -41,6 +41,9 @@ export default /* GraphQL */ `
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
       @authenticate @purgeCache
 
+    "Follow or unfollow tag."
+    toggleFollowTag(input: ToggleItemInput!): Tag! @authenticate @purgeCache
+
     "Follow or Unfollow current usere."
     toggleFollowUser(input: ToggleItemInput!): User! @authenticate @purgeCache
 

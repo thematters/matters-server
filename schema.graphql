@@ -1051,6 +1051,9 @@ type Mutation {
   """Update user notification settings."""
   updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
 
+  """Follow or unfollow tag."""
+  toggleFollowTag(input: ToggleItemInput!): Tag!
+
   """Follow or Unfollow current usere."""
   toggleFollowUser(input: ToggleItemInput!): User!
 
@@ -1837,6 +1840,12 @@ type Tag implements Node {
 
   """Creator of this tag."""
   creator: User
+
+  """This value determines if current viewer is following or not."""
+  isFollowed: Boolean
+
+  """Followers of this tag."""
+  followers(input: ConnectionArgs!): UserConnection!
 
   """OSS"""
   oss: TagOSS!

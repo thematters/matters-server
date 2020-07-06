@@ -870,6 +870,16 @@ export interface GQLTag extends GQLNode {
   creator?: GQLUser
 
   /**
+   * This value determines if current viewer is following or not.
+   */
+  isFollowed?: boolean
+
+  /**
+   * Followers of this tag.
+   */
+  followers: GQLUserConnection
+
+  /**
    * OSS
    */
   oss: GQLTagOSS
@@ -889,6 +899,17 @@ export interface GQLTagSelectedInput {
   mediaHash?: string
 }
 
+export interface GQLUserConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLUserEdge>
+}
+
+export interface GQLUserEdge {
+  cursor: string
+  node: GQLUser
+}
+
 export interface GQLTagOSS {
   boost: GQLNonNegativeFloat
   score: GQLNonNegativeFloat
@@ -904,17 +925,6 @@ export interface GQLAuthorsInput {
 export interface GQLAuthorsFilter {
   random?: boolean
   followed?: boolean
-}
-
-export interface GQLUserConnection extends GQLConnection {
-  totalCount: number
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLUserEdge>
-}
-
-export interface GQLUserEdge {
-  cursor: string
-  node: GQLUser
 }
 
 export interface GQLDraftConnection extends GQLConnection {
@@ -2009,6 +2019,11 @@ export interface GQLMutation {
    * Update user notification settings.
    */
   updateNotificationSetting: GQLUser
+
+  /**
+   * Follow or unfollow tag.
+   */
+  toggleFollowTag: GQLTag
 
   /**
    * Follow or Unfollow current usere.
@@ -3173,9 +3188,9 @@ export interface GQLResolver {
   TagConnection?: GQLTagConnectionTypeResolver
   TagEdge?: GQLTagEdgeTypeResolver
   Tag?: GQLTagTypeResolver
-  TagOSS?: GQLTagOSSTypeResolver
   UserConnection?: GQLUserConnectionTypeResolver
   UserEdge?: GQLUserEdgeTypeResolver
+  TagOSS?: GQLTagOSSTypeResolver
   DraftConnection?: GQLDraftConnectionTypeResolver
   DraftEdge?: GQLDraftEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
@@ -5170,6 +5185,8 @@ export interface GQLTagTypeResolver<TParent = any> {
   description?: TagToDescriptionResolver<TParent>
   editors?: TagToEditorsResolver<TParent>
   creator?: TagToCreatorResolver<TParent>
+  isFollowed?: TagToIsFollowedResolver<TParent>
+  followers?: TagToFollowersResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
   deleted?: TagToDeletedResolver<TParent>
@@ -5262,6 +5279,27 @@ export interface TagToCreatorResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface TagToIsFollowedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToFollowersArgs {
+  input: GQLConnectionArgs
+}
+export interface TagToFollowersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: TagToFollowersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface TagToOssResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -5281,29 +5319,6 @@ export interface TagToRemarkResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToDeletedResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLTagOSSTypeResolver<TParent = any> {
-  boost?: TagOSSToBoostResolver<TParent>
-  score?: TagOSSToScoreResolver<TParent>
-}
-
-export interface TagOSSToBoostResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagOSSToScoreResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5366,6 +5381,29 @@ export interface UserEdgeToCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface UserEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagOSSTypeResolver<TParent = any> {
+  boost?: TagOSSToBoostResolver<TParent>
+  score?: TagOSSToScoreResolver<TParent>
+}
+
+export interface TagOSSToBoostResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagOSSToScoreResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7768,6 +7806,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<
     TParent
   >
+  toggleFollowTag?: MutationToToggleFollowTagResolver<TParent>
   toggleFollowUser?: MutationToToggleFollowUserResolver<TParent>
   toggleBlockUser?: MutationToToggleBlockUserResolver<TParent>
   toggleSubscribePush?: MutationToToggleSubscribePushResolver<TParent>
@@ -8469,6 +8508,21 @@ export interface MutationToUpdateNotificationSettingResolver<
   (
     parent: TParent,
     args: MutationToUpdateNotificationSettingArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleFollowTagArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToToggleFollowTagResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleFollowTagArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
