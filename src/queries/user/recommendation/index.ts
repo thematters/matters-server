@@ -2,6 +2,7 @@ import { GQLRecommendationTypeResolver } from 'definitions/schema'
 
 import { authors } from './authors'
 import { followeeArticles } from './followeeArticles'
+import { followeeComments } from './followeeComments'
 import { followeeWorks } from './followeeWorks'
 import { hottest } from './hottest'
 import { icymi } from './icymi'
@@ -15,6 +16,7 @@ import { valued } from './valued'
 const resolvers: GQLRecommendationTypeResolver = {
   authors,
   followeeArticles,
+  followeeComments,
   followeeWorks,
   hottest,
   icymi,
