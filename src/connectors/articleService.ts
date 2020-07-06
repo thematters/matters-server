@@ -739,7 +739,7 @@ export class ArticleService extends BaseService {
       .select()
       .where({ id: articleId })
       .first()
-    return article.topicScore || 0
+    return article?.score || 0
   }
 
   /**
