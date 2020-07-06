@@ -872,7 +872,7 @@ export interface GQLTag extends GQLNode {
   /**
    * This value determines if current viewer is following or not.
    */
-  isFollowed?: boolean
+  isFollower?: boolean
 
   /**
    * Followers of this tag.
@@ -5185,7 +5185,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   description?: TagToDescriptionResolver<TParent>
   editors?: TagToEditorsResolver<TParent>
   creator?: TagToCreatorResolver<TParent>
-  isFollowed?: TagToIsFollowedResolver<TParent>
+  isFollower?: TagToIsFollowerResolver<TParent>
   followers?: TagToFollowersResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
@@ -5279,7 +5279,7 @@ export interface TagToCreatorResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface TagToIsFollowedResolver<TParent = any, TResult = any> {
+export interface TagToIsFollowerResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

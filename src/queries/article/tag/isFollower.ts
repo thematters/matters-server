@@ -1,8 +1,8 @@
 import { TagNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { TagToIsFollowedResolver } from 'definitions'
+import { TagToIsFollowerResolver } from 'definitions'
 
-const resolver: TagToIsFollowedResolver = async (
+const resolver: TagToIsFollowerResolver = async (
   { id },
   _,
   { viewer, dataSources: { tagService, userService } }

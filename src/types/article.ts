@@ -199,7 +199,7 @@ export default /* GraphQL */ `
     creator: User
 
     "This value determines if current viewer is following or not."
-    isFollowed: Boolean
+    isFollower: Boolean
 
     "Followers of this tag."
     followers(input: ConnectionArgs!): UserConnection!
