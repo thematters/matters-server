@@ -757,3 +757,7 @@ export const TransactionRemarkText = {
     unknow_error: '未知支付错误',
   },
 }
+
+export const TAG_ACTION = {
+  follow: 'follow',
+}

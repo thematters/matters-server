@@ -5,21 +5,15 @@ import { TagToIsFollowerResolver } from 'definitions'
 const resolver: TagToIsFollowerResolver = async (
   { id },
   _,
-  { viewer, dataSources: { tagService, userService } }
+  { viewer, dataSources: { tagService } }
 ) => {
-  const tagId = fromGlobalId(id).id
-
-  if (!tagId) {
-    throw new TagNotFoundError('Cannot find tag by a given input')
-  }
-
   if (!viewer.id) {
     return false
   }
 
-  return userService.isFollowing({
+  return tagService.isFollowing({
+    targetId: id,
     userId: viewer.id,
-    targetId: tagId,
   })
 }
 

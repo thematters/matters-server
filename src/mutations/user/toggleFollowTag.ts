@@ -10,7 +10,7 @@ import { MutationToToggleFollowTagResolver } from 'definitions'
 const resolver: MutationToToggleFollowTagResolver = async (
   _,
   { input: { id, enabled } },
-  { viewer, dataSources: { tagService, userService } }
+  { viewer, dataSources: { tagService } }
 ) => {
   // checks
   if (!viewer.id) {
@@ -27,9 +27,9 @@ const resolver: MutationToToggleFollowTagResolver = async (
   // determine action
   let action: 'follow' | 'unfollow'
   if (enabled === undefined) {
-    const isFollowing = await userService.isFollowing({
-      userId: viewer.id,
+    const isFollowing = await tagService.isFollowing({
       targetId: tag.id,
+      userId: viewer.id,
     })
     action = !!isFollowing ? 'unfollow' : 'follow'
   } else {
@@ -38,22 +38,10 @@ const resolver: MutationToToggleFollowTagResolver = async (
 
   // run action
   if (action === 'follow') {
-    await userService.follow(viewer.id, tag.id)
+    await tagService.follow({ targetId: tag.id, userId: viewer.id })
   } else {
-    await userService.unfollow(viewer.id, tag.id)
+    await tagService.unfollow({ targetId: tag.id, userId: viewer.id })
   }
-
-  // Add custom data for cache invalidation
-  tag[CACHE_KEYWORD] = [
-    {
-      id: viewer.id,
-      type: NODE_TYPES.user,
-    },
-    {
-      id: tag.id,
-      type: NODE_TYPES.tag,
-    },
-  ]
 
   return tag
 }

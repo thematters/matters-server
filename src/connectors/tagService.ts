@@ -2,7 +2,12 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
 
-import { ARTICLE_STATE, BATCH_SIZE, MATERIALIZED_VIEW } from 'common/enums'
+import {
+  ARTICLE_STATE,
+  BATCH_SIZE,
+  MATERIALIZED_VIEW,
+  TAG_ACTION,
+} from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
@@ -84,6 +89,98 @@ export class TagService extends BaseService {
 
     // find
     return item
+  }
+
+  /*********************************
+   *                               *
+   *             Follow            *
+   *                               *
+   *********************************/
+  follow = async ({
+    targetId,
+    userId,
+  }: {
+    targetId: string
+    userId: string
+  }) => {
+    const data = {
+      userId,
+      targetId,
+      action: TAG_ACTION.follow,
+    }
+    return this.baseUpdateOrCreate({
+      where: data,
+      data: { updatedAt: new Date(), ...data },
+      table: 'action_tag',
+    })
+  }
+
+  unfollow = async ({
+    targetId,
+    userId,
+  }: {
+    targetId: string
+    userId: string
+  }) =>
+    this.knex
+      .from('action_tag')
+      .where({
+        targetId,
+        userId,
+        action: TAG_ACTION.follow,
+      })
+      .del()
+  /**
+   * Find followers of a tag using id as pagination index.
+   *
+   */
+  findFollowers = async ({
+    targetId,
+    limit = BATCH_SIZE,
+    after,
+  }: {
+    targetId: string
+    limit?: number
+    after?: number
+  }) => {
+    const query = this.knex
+      .select()
+      .from('action_tag')
+      .where({ targetId, action: TAG_ACTION.follow })
+      .orderBy('id', 'desc')
+      .limit(limit)
+
+    if (after) {
+      query.andWhere('id', '<', after)
+    }
+    return query
+  }
+
+  /**
+   * Determine if an user followed a tag or not by a given id.
+   *
+   */
+  isFollowing = async ({
+    userId,
+    targetId,
+  }: {
+    userId: string
+    targetId: string
+  }) => {
+    const result = await this.knex
+      .select()
+      .from('action_tag')
+      .where({ userId, targetId, action: TAG_ACTION.follow })
+      .first()
+    return !!result
+  }
+
+  countFollowers = async (targetId: string) => {
+    const result = await this.knex('action_tag')
+      .where({ targetId, action: TAG_ACTION.follow })
+      .count()
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /*********************************
