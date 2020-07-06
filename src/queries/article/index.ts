@@ -65,8 +65,8 @@ export default {
     }) => makeSummary(articleContent, cover ? 110 : 140),
     tags,
     translation,
-    topicScore: ({ topicScore }: { topicScore: number }) =>
-      topicScore ? Math.round(topicScore) : null,
+    topicScore: ({ score }: { score: number }) =>
+      score ? Math.round(score) : null,
     transactionsReceivedBy,
   },
   Tag: {
