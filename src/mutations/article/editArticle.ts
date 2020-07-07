@@ -35,6 +35,9 @@ const resolver: MutationToEditArticleResolver = async (
   if (article.authorId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')
   }
+  if (article.state !== ARTICLE_STATE.active) {
+    throw new ForbiddenError('only active article is allowed to be edited.')
+  }
 
   // cache
   const purgeCache: {
