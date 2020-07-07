@@ -2,6 +2,7 @@ import appreciateArticle from './appreciateArticle'
 import archiveArticle from './archiveArticle'
 import deleteArticlesTags from './deleteArticlesTags'
 import deleteTags from './deleteTags'
+import editArticle from './editArticle'
 import mergeTags from './mergeTags'
 import publishArticle from './publishArticle'
 import putArticlesTags from './putArticlesTags'
@@ -23,6 +24,7 @@ import updateArticleState from './updateArticleState'
 export default {
   Mutation: {
     publishArticle,
+    editArticle,
     archiveArticle,
     subscribeArticle,
     unsubscribeArticle,

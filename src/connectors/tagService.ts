@@ -58,6 +58,17 @@ export class TagService extends BaseService {
     this.knex.select().from(this.table).where({ content })
 
   /**
+   * Find tags by a given article id.
+   *
+   */
+  findByArticleId = async ({ articleId }: { articleId: string }) =>
+    this.knex
+      .select('tag.*')
+      .from('article_tag')
+      .join(this.table, 'tag.id', 'article_tag.tag_id')
+      .where({ articleId })
+
+  /**
    * Create a tag, but return one if it's existing.
    *
    */
@@ -76,13 +87,21 @@ export class TagService extends BaseService {
 
     // create
     if (!item) {
-      return this.baseCreate(
+      const tag = await this.baseCreate(
         { content, creator, description, editors },
         this.table
       )
+
+      // add tag into search engine
+      await this.addToSearch({
+        id: tag.id,
+        content: tag.content,
+        description: tag.description,
+      })
+
+      return tag
     }
 
-    // find
     return item
   }
 
@@ -91,7 +110,6 @@ export class TagService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-
   addToSearch = async ({
     id,
     content,
@@ -356,6 +374,18 @@ export class TagService extends BaseService {
     this.knex('article_tag')
       .whereIn('article_id', articleIds)
       .andWhere({ tagId })
+      .del()
+
+  deleteArticleTagsByTagIds = async ({
+    articleId,
+    tagIds,
+  }: {
+    articleId: string
+    tagIds: string[]
+  }) =>
+    this.knex('article_tag')
+      .whereIn('tag_id', tagIds)
+      .andWhere({ articleId })
       .del()
 
   isArticleSelected = async ({
