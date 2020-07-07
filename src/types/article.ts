@@ -198,6 +198,12 @@ export default /* GraphQL */ `
     "Creator of this tag."
     creator: User
 
+    "This value determines if current viewer is following or not."
+    isFollower: Boolean
+
+    "Followers of this tag."
+    followers(input: ConnectionArgs!): UserConnection!
+
     # OSS
     oss: TagOSS! @authorize
     remark: String @authorize

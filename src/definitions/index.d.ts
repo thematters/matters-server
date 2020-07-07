@@ -87,6 +87,7 @@ export type TableName =
   | 'action_user'
   | 'action_comment'
   | 'action_article'
+  | 'action_tag'
   | 'transaction'
   | 'asset'
   | 'article'

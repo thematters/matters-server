@@ -22,6 +22,8 @@ import subscribers from './subscribers'
 import tagArticles from './tag/articles'
 import tagCreator from './tag/creator'
 import tagEditors from './tag/editors'
+import tagFollowers from './tag/followers'
+import tagIsFollower from './tag/isFollower'
 import * as tagOSS from './tag/oss'
 import tagSelected from './tag/selected'
 import tags from './tags'
@@ -75,6 +77,8 @@ export default {
     selected: tagSelected,
     creator: tagCreator,
     editors: tagEditors,
+    isFollower: tagIsFollower,
+    followers: tagFollowers,
     oss: (root: any) => root,
   },
   ArticleOSS: {
