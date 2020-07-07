@@ -27,11 +27,11 @@ const resolver: MutationToToggleFollowTagResolver = async (
   // determine action
   let action: 'follow' | 'unfollow'
   if (enabled === undefined) {
-    const isFollowing = await tagService.isFollowing({
+    const isFollower = await tagService.isFollower({
       targetId: tag.id,
       userId: viewer.id,
     })
-    action = !!isFollowing ? 'unfollow' : 'follow'
+    action = !!isFollower ? 'unfollow' : 'follow'
   } else {
     action = enabled ? 'follow' : 'unfollow'
   }

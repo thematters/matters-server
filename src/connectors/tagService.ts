@@ -160,7 +160,7 @@ export class TagService extends BaseService {
    * Determine if an user followed a tag or not by a given id.
    *
    */
-  isFollowing = async ({
+  isFollower = async ({
     userId,
     targetId,
   }: {

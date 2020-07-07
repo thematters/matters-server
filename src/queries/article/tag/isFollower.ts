@@ -11,7 +11,7 @@ const resolver: TagToIsFollowerResolver = async (
     return false
   }
 
-  return tagService.isFollowing({
+  return tagService.isFollower({
     targetId: id,
     userId: viewer.id,
   })
