@@ -14,12 +14,12 @@ export const followTags: RecommendationToFollowTagsResolver = async (
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
   const [totalCount, tagIds] = await Promise.all([
-    userService.countFollowTagsArticles(id),
-    userService.followTagsArticles({ userId: id, offset, limit: first }),
+    userService.countFollowTags(id),
+    userService.followTags({ userId: id, offset, limit: first }),
   ])
 
   return connectionFromPromisedArray(
-    tagService.dataloader.loadMany(tagIds.map((tagId) => tagId.id)),
+    tagService.dataloader.loadMany(tagIds.map(({ targetId }) => targetId)),
     input,
     totalCount
   )
