@@ -19,7 +19,7 @@ export const followTags: RecommendationToFollowTagsResolver = async (
   ])
 
   return connectionFromPromisedArray(
-    tagService.dataloader.loadMany(tagIds.map(({ id }) => id)),
+    tagService.dataloader.loadMany(tagIds.map((tagId) => tagId.id)),
     input,
     totalCount
   )
