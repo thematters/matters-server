@@ -1,4 +1,4 @@
-import { difference } from 'lodash'
+import { difference, uniq } from 'lodash'
 
 import { ARTICLE_STATE, CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import {
@@ -94,16 +94,20 @@ const resolver: MutationToEditArticleResolver = async (
   if (tags) {
     // get tag editor
     const mattyUser = await userService.findByEmail('hi@matters.news')
-    const tagEditors = [mattyUser.id, article.authorId]
+    const tagEditors = mattyUser
+      ? [mattyUser.id, article.authorId]
+      : [article.authorId]
 
     // create tag records
     const dbTags = ((await Promise.all(
-      tags.map((tag: string) =>
-        tagService.create({
-          content: tag,
-          creator: article.authorId,
-          editors: tagEditors,
-        })
+      uniq(
+        tags.map((tag: string) =>
+          tagService.create({
+            content: tag,
+            creator: article.authorId,
+            editors: tagEditors,
+          })
+        )
       )
     )) as unknown) as [{ id: string; content: string }]
 
@@ -137,7 +141,9 @@ const resolver: MutationToEditArticleResolver = async (
         limit: null,
       })
     ).map(({ articleId }: { articleId: string }) => articleId)
-    const newIds = collection.map((articleId) => fromGlobalId(articleId).id)
+    const newIds = uniq(
+      collection.map((articleId) => fromGlobalId(articleId).id)
+    )
     const addItems: any[] = []
     const updateItems: any[] = []
     const diff = difference(newIds, oldIds)
