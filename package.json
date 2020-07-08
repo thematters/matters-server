@@ -101,7 +101,7 @@
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",
     "@types/bull": "^3.14.0",
-    "@types/cheerio": "^0.22.18",
+    "@types/cheerio": "^0.22.20",
     "@types/cookie": "^0.4.0",
     "@types/dotenv": "^8.2.0",
     "@types/express-session": "^1.17.0",
