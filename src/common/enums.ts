@@ -105,7 +105,7 @@ export const COMMENT_STATE = {
 }
 
 export const USER_STATE = {
-  inactive: 'inactive',
+  frozen: 'frozen',
   onboarding: 'onboarding',
   active: 'active',
   banned: 'banned',
@@ -330,6 +330,7 @@ export const QUEUE_JOB = {
   refreshArticleActivityView: 'refreshArticleActivityView',
   refreshArticleValueView: 'refreshArticleValueView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
+  refreshArticleInterestView: 'refreshArticleInterestView',
 
   // Migration
   migration: 'migration',
@@ -486,7 +487,6 @@ export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
   'image/gif',
   'image/png',
   'image/jpeg',
-  'image/svg+xml',
   'image/webp',
 ]
 
@@ -756,4 +756,8 @@ export const TransactionRemarkText = {
     // fallback
     unknow_error: '未知支付错误',
   },
+}
+
+export const TAG_ACTION = {
+  follow: 'follow',
 }

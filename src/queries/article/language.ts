@@ -1,3 +1,4 @@
+import { stripHtml } from 'common/utils'
 import { ArticleToLanguageResolver } from 'definitions'
 
 const resolver: ArticleToLanguageResolver = (
@@ -10,7 +11,7 @@ const resolver: ArticleToLanguageResolver = (
   }
 
   articleService
-    .detectLanguage(content)
+    .detectLanguage(stripHtml(content.slice(0, 300)))
     .then((language) => language && articleService.baseUpdate(id, { language }))
   // return  first to prevent blocking
   return

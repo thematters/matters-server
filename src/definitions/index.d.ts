@@ -87,6 +87,7 @@ export type TableName =
   | 'action_user'
   | 'action_comment'
   | 'action_article'
+  | 'action_tag'
   | 'transaction'
   | 'asset'
   | 'article'
@@ -138,6 +139,7 @@ export type MaterializedView =
   | 'article_activity_materialized'
   | 'article_value_materialized'
   | 'featured_comment_materialized'
+  | 'article_interest_materialized'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'

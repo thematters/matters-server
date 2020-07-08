@@ -13,6 +13,7 @@ import payTo from './payTo'
 import resetPassword from './resetPassword'
 import sendVerificationCode from './sendVerificationCode'
 import toggleBlockUser from './toggleBlockUser'
+import toggleFollowTag from './toggleFollowTag'
 import toggleFollowUser from './toggleFollowUser'
 import toggleSubscribePush from './toggleSubscribePush'
 import unblockUser from './unblockUser'
@@ -45,6 +46,7 @@ export default {
     unfollowUser,
     toggleSubscribePush,
     toggleBlockUser,
+    toggleFollowTag,
     toggleFollowUser,
     clearReadHistory,
     clearSearchHistory,
