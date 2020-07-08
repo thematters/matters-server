@@ -4,6 +4,8 @@ import { authors } from './authors'
 import { followeeArticles } from './followeeArticles'
 import { followeeComments } from './followeeComments'
 import { followeeWorks } from './followeeWorks'
+import { followTags } from './followTags'
+import { followTagsArticles } from './followTagsArticles'
 import { hottest } from './hottest'
 import { icymi } from './icymi'
 import { interest } from './interest'
@@ -18,6 +20,8 @@ const resolvers: GQLRecommendationTypeResolver = {
   followeeArticles,
   followeeComments,
   followeeWorks,
+  followTags,
+  followTagsArticles,
   hottest,
   icymi,
   newest,

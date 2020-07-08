@@ -173,6 +173,12 @@ export default /* GraphQL */ `
     "Articles and comments published by user's followees."
     followeeWorks(input: ResponsesInput!): ResponseConnection! @deprecated(reason: "Feature changed.")
 
+    "Tags that user followed."
+    followTags(input: ConnectionArgs!): TagConnection!
+
+    "Articles has been added into followed tags."
+    followTagsArticles(input: ConnectionArgs!): ArticleConnection!
+
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection!
 

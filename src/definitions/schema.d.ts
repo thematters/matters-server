@@ -543,6 +543,16 @@ export interface GQLRecommendation {
   followeeWorks: GQLResponseConnection
 
   /**
+   * Tags that user followed.
+   */
+  followTags: GQLTagConnection
+
+  /**
+   * Articles has been added into followed tags.
+   */
+  followTagsArticles: GQLArticleConnection
+
+  /**
    * Global articles sort by publish time.
    */
   newest: GQLArticleConnection
@@ -4536,6 +4546,8 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
   followeeComments?: RecommendationToFolloweeCommentsResolver<TParent>
   followeeWorks?: RecommendationToFolloweeWorksResolver<TParent>
+  followTags?: RecommendationToFollowTagsResolver<TParent>
+  followTagsArticles?: RecommendationToFollowTagsArticlesResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
@@ -4587,6 +4599,36 @@ export interface RecommendationToFolloweeWorksResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeWorksArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFollowTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToFollowTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFollowTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFollowTagsArticlesArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToFollowTagsArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFollowTagsArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
