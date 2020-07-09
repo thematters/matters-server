@@ -5,6 +5,7 @@ import _uniq from 'lodash/uniq'
 import {
   AuthenticationError,
   NotAllowAddTagError,
+  NotAllowAddTagSelectedError,
   TagNotFoundError,
   UserInputError,
 } from 'common/errors'
@@ -84,12 +85,17 @@ const resolver: MutationToAddArticlesTagsResolver = async (
   const isMaintainer =
     isEditor || (normalEditors.length === 0 && isCreator) || isMatty
 
+  // only maintainer can add articles into tag selected
+  if (!isMaintainer && selected) {
+    throw new NotAllowAddTagSelectedError('not allow add tag to article')
+  }
+
   // compare new and old article ids that have this tag (dedupe)
   const oldIds = await tagService.findArticleIdsByTagIds([dbId])
   const newIds = articles.map((articleId) => fromGlobalId(articleId).id)
   const addIds = _difference(newIds, oldIds)
 
-  // not-maintainer can only add his/her articles
+  // not-maintainer can only add his/her own articles
   if (!isMaintainer) {
     const count = await articleService.countByIdsAndAuthor({
       ids: addIds,

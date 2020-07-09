@@ -295,10 +295,10 @@ export class ArticleService extends BaseService {
     authorId: string
     ids: string[]
   }) => {
-    const result = await this.knex
-      .countDistinct('id')
+    const result = await this.knex(this.table)
       .whereIn('id', ids)
       .andWhere({ authorId })
+      .count()
       .first()
 
     return parseInt(result ? (result.count as string) : '0', 10)

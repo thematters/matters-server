@@ -193,6 +193,14 @@ export class NotAllowAddTagError extends ApolloError {
   }
 }
 
+export class NotAllowAddTagSelectedError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'NOT_ALLOW_ADD_TAG_SELECTED')
+
+    Object.defineProperty(this, 'name', { value: 'NotAllowAddTagSelectedError' })
+  }
+}
+
 /*********************************
  *                               *
  *             User              *
