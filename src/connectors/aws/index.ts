@@ -76,7 +76,7 @@ export class AWSService {
     const extension = mime.extension(mimetype)
 
     if (!extension) {
-      throw new UserInputError('Invalid file type.')
+      throw new Error('Invalid file type.')
     }
 
     const key = `${folder}/${uuid}.${extension}`
