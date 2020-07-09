@@ -822,7 +822,7 @@ export class UserService extends BaseService {
    * Find tags based on action_tag table records.
    *
    */
-  followTags = async ({
+  findFollowingTags = async ({
     userId,
     offset = 0,
     limit = BATCH_SIZE,
@@ -841,7 +841,7 @@ export class UserService extends BaseService {
    * Count tags based on action_tag table records.
    *
    */
-  countFollowTags = async (userId: string) => {
+  countFollowingTags = async (userId: string) => {
     const result = await this.knex('action_tag').where({ userId }).first()
 
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -851,7 +851,7 @@ export class UserService extends BaseService {
    * Find tags articles based on action_tag table records.
    *
    */
-  followTagsArticles = async ({
+  findFollowingTagsArticles = async ({
     userId,
     offset = 0,
     limit = BATCH_SIZE,
@@ -875,7 +875,7 @@ export class UserService extends BaseService {
    * Count tags articles based on action_tag table records.
    *
    */
-  countFollowTagsArticles = async (userId: string) => {
+  countFollowingTagsArticles = async (userId: string) => {
     const result = await this.knex
       .from('action_tag')
       .innerJoin('article_tag', 'article_tag.tag_id', 'action_tag.target_id')

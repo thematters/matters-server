@@ -1,8 +1,8 @@
 import { AuthenticationError } from 'common/errors'
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
-import { RecommendationToFollowTagsArticlesResolver } from 'definitions'
+import { RecommendationToFollowingTagsArticlesResolver } from 'definitions'
 
-export const followTagsArticles: RecommendationToFollowTagsArticlesResolver = async (
+export const followingTagsArticles: RecommendationToFollowingTagsArticlesResolver = async (
   { id }: { id: string },
   { input },
   { dataSources: { articleService, userService } }
@@ -14,8 +14,8 @@ export const followTagsArticles: RecommendationToFollowTagsArticlesResolver = as
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
   const [totalCount, articleIds] = await Promise.all([
-    userService.countFollowTagsArticles(id),
-    userService.followTagsArticles({ userId: id, offset, limit: first }),
+    userService.countFollowingTagsArticles(id),
+    userService.findFollowingTagsArticles({ userId: id, offset, limit: first }),
   ])
 
   return connectionFromPromisedArray(

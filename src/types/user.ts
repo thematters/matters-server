@@ -174,10 +174,10 @@ export default /* GraphQL */ `
     followeeWorks(input: ResponsesInput!): ResponseConnection! @deprecated(reason: "Feature changed.")
 
     "Tags that user followed."
-    followTags(input: ConnectionArgs!): TagConnection!
+    followingTags(input: ConnectionArgs!): TagConnection!
 
     "Articles has been added into followed tags."
-    followTagsArticles(input: ConnectionArgs!): ArticleConnection!
+    followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection!

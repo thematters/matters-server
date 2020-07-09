@@ -233,8 +233,8 @@ describe('manage article tag', () => {
           id: createTagId,
           articles: articleIds,
           isSelected: true,
-        }
-      }
+        },
+      },
     })
     expect(addResult?.data?.addArticlesTags?.articles?.edges.length).toBe(2)
 

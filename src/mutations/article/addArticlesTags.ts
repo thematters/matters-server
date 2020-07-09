@@ -4,8 +4,7 @@ import _uniq from 'lodash/uniq'
 
 import {
   AuthenticationError,
-  NotAllowAddTagError,
-  NotAllowAddTagSelectedError,
+  ForbiddenError,
   TagNotFoundError,
   UserInputError,
 } from 'common/errors'
@@ -87,7 +86,7 @@ const resolver: MutationToAddArticlesTagsResolver = async (
 
   // only maintainer can add articles into tag selected
   if (!isMaintainer && selected) {
-    throw new NotAllowAddTagSelectedError('not allow add tag to article')
+    throw new ForbiddenError('not allow add tag to article')
   }
 
   // compare new and old article ids that have this tag (dedupe)
@@ -103,7 +102,7 @@ const resolver: MutationToAddArticlesTagsResolver = async (
     })
 
     if (count !== addIds.length) {
-      throw new NotAllowAddTagError('not allow add tag to article')
+      throw new ForbiddenError('not allow add tag to article')
     }
   }
 

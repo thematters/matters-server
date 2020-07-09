@@ -545,12 +545,12 @@ export interface GQLRecommendation {
   /**
    * Tags that user followed.
    */
-  followTags: GQLTagConnection
+  followingTags: GQLTagConnection
 
   /**
    * Articles has been added into followed tags.
    */
-  followTagsArticles: GQLArticleConnection
+  followingTagsArticles: GQLArticleConnection
 
   /**
    * Global articles sort by publish time.
@@ -4557,8 +4557,8 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
   followeeComments?: RecommendationToFolloweeCommentsResolver<TParent>
   followeeWorks?: RecommendationToFolloweeWorksResolver<TParent>
-  followTags?: RecommendationToFollowTagsResolver<TParent>
-  followTagsArticles?: RecommendationToFollowTagsArticlesResolver<TParent>
+  followingTags?: RecommendationToFollowingTagsResolver<TParent>
+  followingTagsArticles?: RecommendationToFollowingTagsArticlesResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
@@ -4615,31 +4615,31 @@ export interface RecommendationToFolloweeWorksResolver<
   ): TResult
 }
 
-export interface RecommendationToFollowTagsArgs {
+export interface RecommendationToFollowingTagsArgs {
   input: GQLConnectionArgs
 }
-export interface RecommendationToFollowTagsResolver<
+export interface RecommendationToFollowingTagsResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: RecommendationToFollowTagsArgs,
+    args: RecommendationToFollowingTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
-export interface RecommendationToFollowTagsArticlesArgs {
+export interface RecommendationToFollowingTagsArticlesArgs {
   input: GQLConnectionArgs
 }
-export interface RecommendationToFollowTagsArticlesResolver<
+export interface RecommendationToFollowingTagsArticlesResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: RecommendationToFollowTagsArticlesArgs,
+    args: RecommendationToFollowingTagsArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
