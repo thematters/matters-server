@@ -54,7 +54,7 @@ const DELETE_TAG = `
 `
 
 const ADD_ARTICLES_TAGS = `
-  mutation ($input: PutArticlesTagsInput!) {
+  mutation ($input: AddArticlesTagsInput!) {
     addArticlesTags(input: $input) {
       id
       articles(input: { after: null, first: null, oss: true }) {
@@ -70,8 +70,25 @@ const ADD_ARTICLES_TAGS = `
   }
 `
 
-const DELETE_ARTICLES_TAGS = `
+const UPDATE_ARTICLES_TAGS = `
   mutation ($input: UpdateArticlesTagsInput!) {
+    updateArticlesTags(input: $input) {
+      id
+      articles(input: { after: null, first: null, oss: true }) {
+        edges {
+          node {
+            ... on Article {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+const DELETE_ARTICLES_TAGS = `
+  mutation ($input: DeleteArticlesTagsInput!) {
     deleteArticlesTags(input: $input) {
       id
       articles(input: { after: null, first: null, oss: true }) {
@@ -205,6 +222,19 @@ describe('manage article tag', () => {
           articles: articleIds,
         },
       },
+    })
+    expect(addResult?.data?.addArticlesTags?.articles?.edges.length).toBe(2)
+
+    // update
+    const updateResult = await mutate({
+      mutation: UPDATE_ARTICLES_TAGS,
+      variables: {
+        input: {
+          id: createTagId,
+          articles: articleIds,
+          isSelected: true,
+        }
+      }
     })
     expect(addResult?.data?.addArticlesTags?.articles?.edges.length).toBe(2)
 
