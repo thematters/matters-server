@@ -2881,14 +2881,6 @@ export interface GQLArticleTagHasBeenUnselectedNotice extends GQLNotice {
   tag?: GQLTag
 }
 
-/**
- * Enums for article tag types
- */
-export const enum GQLArticleTagTypes {
-  selected = 'selected',
-  latest = 'latest',
-}
-
 export const enum GQLCacheScope {
   PUBLIC = 'PUBLIC',
   PRIVATE = 'PRIVATE',

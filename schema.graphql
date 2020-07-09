@@ -451,12 +451,6 @@ type ArticleTagHasBeenUnselectedNotice implements Notice {
   tag: Tag
 }
 
-"""Enums for article tag types"""
-enum ArticleTagTypes {
-  selected
-  latest
-}
-
 type ArticleTranslation {
   originalLanguage: String! @deprecated(reason: "Use `Article.language` instead")
   title: String

@@ -405,10 +405,4 @@ export default /* GraphQL */ `
     oldest
     hottest
   }
-
-  "Enums for article tag types"
-  enum ArticleTagTypes {
-    selected
-    latest
-  }
 `
