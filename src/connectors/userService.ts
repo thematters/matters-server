@@ -862,10 +862,12 @@ export class UserService extends BaseService {
   }) =>
     this.knex
       .select('article_tag.article_id')
+      .max('article_tag.created_at as created_at')
       .from('action_tag')
       .innerJoin('article_tag', 'article_tag.tag_id', 'action_tag.target_id')
       .where({ userId })
-      .orderBy('article_tag.created_at', 'desc')
+      .groupBy('article_tag.article_id')
+      .orderBy('created_at', 'desc')
       .offset(offset)
       .limit(limit)
 
