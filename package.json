@@ -59,7 +59,7 @@
     "express-session": "^1.17.1",
     "firebase-admin": "^8.13.0",
     "get-stream": "^5.1.0",
-    "graphql": "^14.6.0",
+    "graphql": "^14.7.0",
     "graphql-cost-analysis": "^1.0.3",
     "graphql-custom-types": "^1.6.0",
     "graphql-depth-limit": "^1.1.0",
