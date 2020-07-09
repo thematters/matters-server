@@ -3,6 +3,7 @@ import mime from 'mime-types'
 
 import { LOCAL_S3_ENDPOINT } from 'common/enums'
 import { environment } from 'common/environment'
+import { UserInputError } from 'common/errors'
 import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
 import { GQLAssetType } from 'definitions'
 
@@ -68,12 +69,16 @@ export class AWSService {
     upload: any,
     uuid: string
   ): Promise<string> => {
-    const { createReadStream, mimetype, encoding } = upload
+    const { createReadStream, mimetype } = upload
     const stream = createReadStream()
     const buffer = await makeStreamToBuffer(stream)
 
-    const extension =
-      mime.extension(mimetype) || upload.filename.split('.').pop()
+    const extension = mime.extension(mimetype)
+
+    if (!extension) {
+      throw new UserInputError('Invalid file type.')
+    }
+
     const key = `${folder}/${uuid}.${extension}`
 
     await this.s3

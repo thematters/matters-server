@@ -4,6 +4,7 @@ import Knex from 'knex'
 import { v4 } from 'uuid'
 
 import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
+import logger from 'common/logger'
 import { getFileName } from 'common/utils'
 import { aws, knex } from 'connectors'
 import { AWSService } from 'connectors/aws'
@@ -142,13 +143,17 @@ export class Medium {
           const caption = dom.find('figcaption').text() || ''
           const image = dom.find('img')
           if (image && image.attr('src')) {
-            const url = image.attr('src')
-            const { content, asset } = await this.createImageBlock(
-              url || '',
-              caption
-            )
-            contents.push(content)
-            assets.push(asset)
+            try {
+              const url = image.attr('src')
+              const { content, asset } = await this.createImageBlock(
+                url || '',
+                caption
+              )
+              contents.push(content)
+              assets.push(asset)
+            } catch (err) {
+              logger.error(err)
+            }
             break
           }
           break
