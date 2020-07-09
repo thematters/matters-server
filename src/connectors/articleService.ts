@@ -284,6 +284,26 @@ export class ArticleService extends BaseService {
     )
   }
 
+  /**
+   * Count articles by given ids and author.
+   *
+   */
+  countByIdsAndAuthor = async ({
+    authorId,
+    ids,
+  }: {
+    authorId: string
+    ids: string[]
+  }) => {
+    const result = await this.knex
+      .countDistinct('id')
+      .whereIn('id', ids)
+      .andWhere({ authorId })
+      .first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   /*********************************
    *                               *
    *           Search              *

@@ -1,10 +1,10 @@
+import addArticlesTags from './addArticlesTags'
 import appreciateArticle from './appreciateArticle'
 import archiveArticle from './archiveArticle'
 import deleteArticlesTags from './deleteArticlesTags'
 import deleteTags from './deleteTags'
 import mergeTags from './mergeTags'
 import publishArticle from './publishArticle'
-import putArticlesTags from './putArticlesTags'
 import putTag from './putTag'
 import readArticle from './readArticle'
 import recallPublish from './recallPublish'
@@ -18,6 +18,7 @@ import toggleArticleRecommend from './toggleArticleRecommend'
 import toggleSubscribeArticle from './toggleSubscribeArticle'
 import unsubscribeArticle from './unsubscribeArticle'
 import updateArticleInfo from './updateArticleInfo'
+import updateArticlesTags from './updateArticlesTags'
 import updateArticleState from './updateArticleState'
 
 export default {
@@ -41,7 +42,8 @@ export default {
     setCollection,
     updateArticleInfo,
     putTag,
-    putArticlesTags,
+    addArticlesTags,
     deleteArticlesTags,
+    updateArticlesTags,
   },
 }

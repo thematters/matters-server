@@ -36,11 +36,14 @@ export default /* GraphQL */ `
     "Create or update tag."
     putTag(input: PutTagInput!): Tag! @authenticate @purgeCache
 
-    "Add or update one tag to articles."
-    putArticlesTags(input: PutArticlesTagsInput!): Tag! @authenticate @purgeCache
+    "Add one tag to articles."
+    addArticlesTags(input: AddArticlesTagsInput!): Tag! @authenticate @purgeCache
+
+    "Update articles' tag."
+    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authenticate @purgeCache
 
     "Delete one tag from articles"
-    deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authenticate @purgeCache
+    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @authenticate @purgeCache
 
     ##############
     #     OSS    #
@@ -343,13 +346,19 @@ export default /* GraphQL */ `
     description: String
   }
 
-  input PutArticlesTagsInput {
+  input AddArticlesTagsInput {
     id: ID!
     articles: [ID!]
     selected: Boolean
   }
 
   input UpdateArticlesTagsInput {
+    id: ID!
+    articles: [ID!]
+    isSelected: Boolean!
+  }
+
+  input DeleteArticlesTagsInput {
     id: ID!
     articles: [ID!]
   }
@@ -395,5 +404,11 @@ export default /* GraphQL */ `
     newest
     oldest
     hottest
+  }
+
+  "Enums for article tag types"
+  enum ArticleTagTypes {
+    selected
+    latest
   }
 `

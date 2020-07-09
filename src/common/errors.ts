@@ -185,6 +185,14 @@ export class DuplicateTagError extends ApolloError {
   }
 }
 
+export class NotAllowAddTagError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'NOT_ALLOW_ADD_TAG')
+
+    Object.defineProperty(this, 'name', { value: 'NotAllowAddTagError' })
+  }
+}
+
 /*********************************
  *                               *
  *             User              *
