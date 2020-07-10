@@ -814,6 +814,14 @@ type DraftEdge {
   node: Draft!
 }
 
+input EditArticleInput {
+  id: ID!
+  state: ArticleState
+  sticky: Boolean
+  tags: [String!]
+  collection: [ID!]
+}
+
 scalar Email
 
 enum EntityType {
@@ -921,8 +929,8 @@ type Mutation {
   """Publish an article onto IPFS."""
   publishArticle(input: PublishArticleInput!): Draft!
 
-  """Archive an article and users won't be able to view this article."""
-  archiveArticle(input: ArchiveArticleInput!): Article!
+  """Edit an article."""
+  editArticle(input: EditArticleInput!): Article!
 
   """Report an article to team."""
   reportArticle(input: ReportArticleInput!): Boolean
@@ -935,15 +943,6 @@ type Mutation {
 
   """Read an article."""
   readArticle(input: ReadArticleInput!): Article!
-
-  """Recall while publishing."""
-  recallPublish(input: RecallPublishInput!): Draft!
-
-  """Set collection of an article."""
-  setCollection(input: SetCollectionInput!): Article!
-
-  """Update article information."""
-  updateArticleInfo(input: UpdateArticleInfoInput!): Article!
 
   """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
@@ -975,6 +974,18 @@ type Mutation {
 
   """Unsubscribe an article."""
   unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @deprecated(reason: "Use `toggleSubscribeArticle`.")
+
+  """Archive an article and users won't be able to view this article."""
+  archiveArticle(input: ArchiveArticleInput!): Article! @deprecated(reason: "Use `editArticle`.")
+
+  """Set collection of an article."""
+  setCollection(input: SetCollectionInput!): Article! @deprecated(reason: "Use `editArticle`.")
+
+  """Update article information."""
+  updateArticleInfo(input: UpdateArticleInfoInput!): Article! @deprecated(reason: "Use `editArticle`.")
+
+  """Recall while publishing."""
+  recallPublish(input: RecallPublishInput!): Draft! @deprecated
 
   """Publish a comment."""
   putComment(input: PutCommentInput!): Comment!
