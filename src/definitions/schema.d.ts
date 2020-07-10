@@ -543,6 +543,16 @@ export interface GQLRecommendation {
   followeeWorks: GQLResponseConnection
 
   /**
+   * Tags that user followed.
+   */
+  followingTags: GQLTagConnection
+
+  /**
+   * Articles has been added into followed tags.
+   */
+  followingTagsArticles: GQLArticleConnection
+
+  /**
    * Global articles sort by publish time.
    */
   newest: GQLArticleConnection
@@ -1843,9 +1853,14 @@ export interface GQLMutation {
   putTag: GQLTag
 
   /**
-   * Add or update one tag to articles.
+   * Add one tag to articles.
    */
-  putArticlesTags: GQLTag
+  addArticlesTags: GQLTag
+
+  /**
+   * Update articles' tag.
+   */
+  updateArticlesTags: GQLTag
 
   /**
    * Delete one tag from articles
@@ -2171,13 +2186,19 @@ export interface GQLPutTagInput {
   description?: string
 }
 
-export interface GQLPutArticlesTagsInput {
+export interface GQLAddArticlesTagsInput {
   id: string
   articles?: Array<string>
   selected?: boolean
 }
 
 export interface GQLUpdateArticlesTagsInput {
+  id: string
+  articles?: Array<string>
+  isSelected: boolean
+}
+
+export interface GQLDeleteArticlesTagsInput {
   id: string
   articles?: Array<string>
 }
@@ -4536,6 +4557,8 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
   followeeComments?: RecommendationToFolloweeCommentsResolver<TParent>
   followeeWorks?: RecommendationToFolloweeWorksResolver<TParent>
+  followingTags?: RecommendationToFollowingTagsResolver<TParent>
+  followingTagsArticles?: RecommendationToFollowingTagsArticlesResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
@@ -4587,6 +4610,36 @@ export interface RecommendationToFolloweeWorksResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeWorksArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFollowingTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToFollowingTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFollowingTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFollowingTagsArticlesArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToFollowingTagsArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFollowingTagsArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7762,7 +7815,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   setCollection?: MutationToSetCollectionResolver<TParent>
   updateArticleInfo?: MutationToUpdateArticleInfoResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
-  putArticlesTags?: MutationToPutArticlesTagsResolver<TParent>
+  addArticlesTags?: MutationToAddArticlesTagsResolver<TParent>
+  updateArticlesTags?: MutationToUpdateArticlesTagsResolver<TParent>
   deleteArticlesTags?: MutationToDeleteArticlesTagsResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
@@ -7961,23 +8015,38 @@ export interface MutationToPutTagResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToPutArticlesTagsArgs {
-  input: GQLPutArticlesTagsInput
+export interface MutationToAddArticlesTagsArgs {
+  input: GQLAddArticlesTagsInput
 }
-export interface MutationToPutArticlesTagsResolver<
+export interface MutationToAddArticlesTagsResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToPutArticlesTagsArgs,
+    args: MutationToAddArticlesTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateArticlesTagsArgs {
+  input: GQLUpdateArticlesTagsInput
+}
+export interface MutationToUpdateArticlesTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateArticlesTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface MutationToDeleteArticlesTagsArgs {
-  input: GQLUpdateArticlesTagsInput
+  input: GQLDeleteArticlesTagsInput
 }
 export interface MutationToDeleteArticlesTagsResolver<
   TParent = any,

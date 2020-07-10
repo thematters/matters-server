@@ -1,4 +1,3 @@
-import _difference from 'lodash/difference'
 import _some from 'lodash/some'
 import _uniq from 'lodash/uniq'
 
@@ -10,7 +9,7 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { ArticleService, NotificationService } from 'connectors'
-import { MutationToPutArticlesTagsResolver } from 'definitions'
+import { MutationToUpdateArticlesTagsResolver } from 'definitions'
 
 const triggerNotice = async ({
   articleId,
@@ -50,10 +49,18 @@ const triggerNotice = async ({
   })
 }
 
-const resolver: MutationToPutArticlesTagsResolver = async (
+const resolver: MutationToUpdateArticlesTagsResolver = async (
   root,
-  { input: { id, articles, selected } },
-  { viewer, dataSources: { articleService, notificationService, tagService } }
+  { input: { id, articles, isSelected } },
+  {
+    viewer,
+    dataSources: {
+      articleService,
+      notificationService,
+      tagService,
+      userService,
+    },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('viewer has no permission')
@@ -69,60 +76,39 @@ const resolver: MutationToPutArticlesTagsResolver = async (
     throw new TagNotFoundError('tag not found')
   }
 
+  const admin = 'hi@matters.news'
+  const normalEditors = (await userService.baseFindByIds(tag.editors)).filter(
+    (user) => user.email !== admin
+  )
+
   // update only allow: editor, creator, matty
-  const isEditor = _some(tag.editors, (editor) => editor.id === viewer.id)
+  const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
   const isCreator = tag.creator === viewer.id
-  const isMatty = viewer.email === 'hi@matters.news'
-  const canEdit = isEditor || isCreator || isMatty
+  const isMatty = viewer.email === admin
+  const isMaintainer =
+    isEditor || (normalEditors.length === 0 && isCreator) || isMatty
 
-  if (!canEdit) {
-    throw new ForbiddenError('only editor, creator, and matty can manage tag')
+  if (!isMaintainer) {
+    throw new ForbiddenError('only editor, creator and matty can manage tag')
   }
 
-  if (typeof selected === 'boolean') {
-    // set article as selected
-    const { id: articleId } = fromGlobalId(articles[0])
-    await tagService.putArticleTag({
-      articleId,
-      tagId: dbId,
-      data: { selected },
-    })
+  // set article as selected or not
+  const { id: articleId } = fromGlobalId(articles[0])
+  await tagService.putArticleTag({
+    articleId,
+    tagId: dbId,
+    data: { selected: isSelected },
+  })
 
-    // trigger notification for adding article tag
-    await triggerNotice({
-      articleId,
-      articleService,
-      notificationService,
-      selected,
-      tag,
-      viewerId: viewer.id,
-    })
-  } else {
-    // compare new and old article ids which have this tag
-    const oldIds = await tagService.findArticleIdsByTagIds([dbId])
-    const newIds = articles.map((articleId) => fromGlobalId(articleId).id)
-    const addIds = _difference(newIds, oldIds)
-
-    // article will be selected by default if the article tag created by tag manager
-    await tagService.createArticleTags({
-      articleIds: addIds,
-      creator: viewer.id,
-      tagIds: [dbId],
-      selected: true,
-    })
-
-    // trigger notification for adding article tag
-    addIds.forEach(async (articleId: string) => {
-      await triggerNotice({
-        articleId,
-        articleService,
-        notificationService,
-        selected: true,
-        tag,
-        viewerId: viewer.id,
-      })
-    })
-  }
+  // trigger notification for adding article tag
+  await triggerNotice({
+    articleId,
+    articleService,
+    notificationService,
+    selected: isSelected,
+    tag,
+    viewerId: viewer.id,
+  })
 
   // add creator if not listed in editors
   if (!isEditor && !isMatty && isCreator) {
