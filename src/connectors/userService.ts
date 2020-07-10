@@ -818,6 +818,74 @@ export class UserService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
+  /**
+   * Find tags based on action_tag table records.
+   *
+   */
+  findFollowingTags = async ({
+    userId,
+    offset = 0,
+    limit = BATCH_SIZE,
+  }: {
+    userId: string
+    offset?: number
+    limit?: number
+  }) =>
+    this.knex('action_tag')
+      .select('target_id')
+      .where({ userId })
+      .offset(offset)
+      .limit(limit)
+
+  /**
+   * Count tags based on action_tag table records.
+   *
+   */
+  countFollowingTags = async (userId: string) => {
+    const result = await this.knex('action_tag').where({ userId }).first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Find tags articles based on action_tag table records.
+   *
+   */
+  findFollowingTagsArticles = async ({
+    userId,
+    offset = 0,
+    limit = BATCH_SIZE,
+  }: {
+    userId: string
+    offset?: number
+    limit?: number
+  }) =>
+    this.knex
+      .select('article_tag.article_id')
+      .max('article_tag.created_at as created_at')
+      .from('action_tag')
+      .innerJoin('article_tag', 'article_tag.tag_id', 'action_tag.target_id')
+      .where({ userId })
+      .groupBy('article_tag.article_id')
+      .orderBy('created_at', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+  /**
+   * Count tags articles based on action_tag table records.
+   *
+   */
+  countFollowingTagsArticles = async (userId: string) => {
+    const result = await this.knex
+      .from('action_tag')
+      .innerJoin('article_tag', 'article_tag.tag_id', 'action_tag.target_id')
+      .where({ userId })
+      .countDistinct('article_tag.article_id')
+      .first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   findFollowees = async ({
     userId,
     limit = BATCH_SIZE,

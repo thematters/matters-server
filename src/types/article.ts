@@ -34,11 +34,14 @@ export default /* GraphQL */ `
     "Create or update tag."
     putTag(input: PutTagInput!): Tag! @authenticate @purgeCache
 
-    "Add or update one tag to articles."
-    putArticlesTags(input: PutArticlesTagsInput!): Tag! @authenticate @purgeCache
+    "Add one tag to articles."
+    addArticlesTags(input: AddArticlesTagsInput!): Tag! @authenticate @purgeCache
+
+    "Update articles' tag."
+    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authenticate @purgeCache
 
     "Delete one tag from articles"
-    deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authenticate @purgeCache
+    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @authenticate @purgeCache
 
 
     ##############
@@ -209,6 +212,12 @@ export default /* GraphQL */ `
     "Creator of this tag."
     creator: User
 
+    "This value determines if current viewer is following or not."
+    isFollower: Boolean
+
+    "Followers of this tag."
+    followers(input: ConnectionArgs!): UserConnection!
+
     # OSS
     oss: TagOSS! @authorize
     remark: String @authorize
@@ -356,13 +365,19 @@ export default /* GraphQL */ `
     description: String
   }
 
-  input PutArticlesTagsInput {
+  input AddArticlesTagsInput {
     id: ID!
     articles: [ID!]
     selected: Boolean
   }
 
   input UpdateArticlesTagsInput {
+    id: ID!
+    articles: [ID!]
+    isSelected: Boolean!
+  }
+
+  input DeleteArticlesTagsInput {
     id: ID!
     articles: [ID!]
   }

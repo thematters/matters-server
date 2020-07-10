@@ -21,6 +21,12 @@ directive @logCache(type: String!) on FIELD_DEFINITION
 
 directive @objectCache(maxAge: Int = 1000) on OBJECT | FIELD_DEFINITION
 
+input AddArticlesTagsInput {
+  id: ID!
+  articles: [ID!]
+  selected: Boolean
+}
+
 """Add Credit"""
 input AddCreditInput {
   amount: PositiveFloat!
@@ -722,6 +728,11 @@ scalar Date
 
 scalar DateTime
 
+input DeleteArticlesTagsInput {
+  id: ID!
+  articles: [ID!]
+}
+
 input DeleteCommentInput {
   id: ID!
 }
@@ -936,11 +947,14 @@ type Mutation {
   """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
 
-  """Add or update one tag to articles."""
-  putArticlesTags(input: PutArticlesTagsInput!): Tag!
+  """Add one tag to articles."""
+  addArticlesTags(input: AddArticlesTagsInput!): Tag!
+
+  """Update articles' tag."""
+  updateArticlesTags(input: UpdateArticlesTagsInput!): Tag!
 
   """Delete one tag from articles"""
-  deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag!
+  deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag!
 
   """
   #############
@@ -1061,6 +1075,9 @@ type Mutation {
 
   """Update user notification settings."""
   updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
+
+  """Follow or unfollow tag."""
+  toggleFollowTag(input: ToggleItemInput!): Tag!
 
   """Follow or Unfollow current usere."""
   toggleFollowUser(input: ToggleItemInput!): User!
@@ -1415,12 +1432,6 @@ enum PublishState {
   published
 }
 
-input PutArticlesTagsInput {
-  id: ID!
-  articles: [ID!]
-  selected: Boolean
-}
-
 input PutCommentInput {
   comment: CommentInput!
   id: ID
@@ -1524,6 +1535,12 @@ type Recommendation {
 
   """Articles and comments published by user's followees."""
   followeeWorks(input: ResponsesInput!): ResponseConnection! @deprecated(reason: "Feature changed.")
+
+  """Tags that user followed."""
+  followingTags(input: ConnectionArgs!): TagConnection!
+
+  """Articles has been added into followed tags."""
+  followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
 
   """Global articles sort by publish time."""
   newest(input: ConnectionArgs!): ArticleConnection!
@@ -1849,6 +1866,12 @@ type Tag implements Node {
   """Creator of this tag."""
   creator: User
 
+  """This value determines if current viewer is following or not."""
+  isFollower: Boolean
+
+  """Followers of this tag."""
+  followers(input: ConnectionArgs!): UserConnection!
+
   """OSS"""
   oss: TagOSS!
   remark: String
@@ -2003,6 +2026,7 @@ input UpdateArticleInfoInput {
 input UpdateArticlesTagsInput {
   id: ID!
   articles: [ID!]
+  isSelected: Boolean!
 }
 
 input UpdateArticleStateInput {

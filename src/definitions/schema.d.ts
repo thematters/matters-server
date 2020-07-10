@@ -543,6 +543,16 @@ export interface GQLRecommendation {
   followeeWorks: GQLResponseConnection
 
   /**
+   * Tags that user followed.
+   */
+  followingTags: GQLTagConnection
+
+  /**
+   * Articles has been added into followed tags.
+   */
+  followingTagsArticles: GQLArticleConnection
+
+  /**
    * Global articles sort by publish time.
    */
   newest: GQLArticleConnection
@@ -870,6 +880,16 @@ export interface GQLTag extends GQLNode {
   creator?: GQLUser
 
   /**
+   * This value determines if current viewer is following or not.
+   */
+  isFollower?: boolean
+
+  /**
+   * Followers of this tag.
+   */
+  followers: GQLUserConnection
+
+  /**
    * OSS
    */
   oss: GQLTagOSS
@@ -889,6 +909,17 @@ export interface GQLTagSelectedInput {
   mediaHash?: string
 }
 
+export interface GQLUserConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLUserEdge>
+}
+
+export interface GQLUserEdge {
+  cursor: string
+  node: GQLUser
+}
+
 export interface GQLTagOSS {
   boost: GQLNonNegativeFloat
   score: GQLNonNegativeFloat
@@ -904,17 +935,6 @@ export interface GQLAuthorsInput {
 export interface GQLAuthorsFilter {
   random?: boolean
   followed?: boolean
-}
-
-export interface GQLUserConnection extends GQLConnection {
-  totalCount: number
-  pageInfo: GQLPageInfo
-  edges?: Array<GQLUserEdge>
-}
-
-export interface GQLUserEdge {
-  cursor: string
-  node: GQLUser
 }
 
 export interface GQLDraftConnection extends GQLConnection {
@@ -1818,9 +1838,14 @@ export interface GQLMutation {
   putTag: GQLTag
 
   /**
-   * Add or update one tag to articles.
+   * Add one tag to articles.
    */
-  putArticlesTags: GQLTag
+  addArticlesTags: GQLTag
+
+  /**
+   * Update articles' tag.
+   */
+  updateArticlesTags: GQLTag
 
   /**
    * Delete one tag from articles
@@ -2020,6 +2045,11 @@ export interface GQLMutation {
   updateNotificationSetting: GQLUser
 
   /**
+   * Follow or unfollow tag.
+   */
+  toggleFollowTag: GQLTag
+
+  /**
    * Follow or Unfollow current usere.
    */
   toggleFollowUser: GQLUser
@@ -2155,13 +2185,19 @@ export interface GQLPutTagInput {
   description?: string
 }
 
-export interface GQLPutArticlesTagsInput {
+export interface GQLAddArticlesTagsInput {
   id: string
   articles?: Array<string>
   selected?: boolean
 }
 
 export interface GQLUpdateArticlesTagsInput {
+  id: string
+  articles?: Array<string>
+  isSelected: boolean
+}
+
+export interface GQLDeleteArticlesTagsInput {
   id: string
   articles?: Array<string>
 }
@@ -3190,9 +3226,9 @@ export interface GQLResolver {
   TagConnection?: GQLTagConnectionTypeResolver
   TagEdge?: GQLTagEdgeTypeResolver
   Tag?: GQLTagTypeResolver
-  TagOSS?: GQLTagOSSTypeResolver
   UserConnection?: GQLUserConnectionTypeResolver
   UserEdge?: GQLUserEdgeTypeResolver
+  TagOSS?: GQLTagOSSTypeResolver
   DraftConnection?: GQLDraftConnectionTypeResolver
   DraftEdge?: GQLDraftEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
@@ -4538,6 +4574,8 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
   followeeComments?: RecommendationToFolloweeCommentsResolver<TParent>
   followeeWorks?: RecommendationToFolloweeWorksResolver<TParent>
+  followingTags?: RecommendationToFollowingTagsResolver<TParent>
+  followingTagsArticles?: RecommendationToFollowingTagsArticlesResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
@@ -4589,6 +4627,36 @@ export interface RecommendationToFolloweeWorksResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeWorksArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFollowingTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToFollowingTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFollowingTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFollowingTagsArticlesArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToFollowingTagsArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFollowingTagsArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5187,6 +5255,8 @@ export interface GQLTagTypeResolver<TParent = any> {
   description?: TagToDescriptionResolver<TParent>
   editors?: TagToEditorsResolver<TParent>
   creator?: TagToCreatorResolver<TParent>
+  isFollower?: TagToIsFollowerResolver<TParent>
+  followers?: TagToFollowersResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
   deleted?: TagToDeletedResolver<TParent>
@@ -5279,6 +5349,27 @@ export interface TagToCreatorResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface TagToIsFollowerResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToFollowersArgs {
+  input: GQLConnectionArgs
+}
+export interface TagToFollowersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: TagToFollowersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface TagToOssResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -5298,29 +5389,6 @@ export interface TagToRemarkResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToDeletedResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLTagOSSTypeResolver<TParent = any> {
-  boost?: TagOSSToBoostResolver<TParent>
-  score?: TagOSSToScoreResolver<TParent>
-}
-
-export interface TagOSSToBoostResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagOSSToScoreResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5383,6 +5451,29 @@ export interface UserEdgeToCursorResolver<TParent = any, TResult = any> {
 }
 
 export interface UserEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagOSSTypeResolver<TParent = any> {
+  boost?: TagOSSToBoostResolver<TParent>
+  score?: TagOSSToScoreResolver<TParent>
+}
+
+export interface TagOSSToBoostResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagOSSToScoreResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7738,7 +7829,8 @@ export interface GQLMutationTypeResolver<TParent = any> {
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
-  putArticlesTags?: MutationToPutArticlesTagsResolver<TParent>
+  addArticlesTags?: MutationToAddArticlesTagsResolver<TParent>
+  updateArticlesTags?: MutationToUpdateArticlesTagsResolver<TParent>
   deleteArticlesTags?: MutationToDeleteArticlesTagsResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
@@ -7786,6 +7878,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<
     TParent
   >
+  toggleFollowTag?: MutationToToggleFollowTagResolver<TParent>
   toggleFollowUser?: MutationToToggleFollowUserResolver<TParent>
   toggleBlockUser?: MutationToToggleBlockUserResolver<TParent>
   toggleSubscribePush?: MutationToToggleSubscribePushResolver<TParent>
@@ -7898,23 +7991,38 @@ export interface MutationToPutTagResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToPutArticlesTagsArgs {
-  input: GQLPutArticlesTagsInput
+export interface MutationToAddArticlesTagsArgs {
+  input: GQLAddArticlesTagsInput
 }
-export interface MutationToPutArticlesTagsResolver<
+export interface MutationToAddArticlesTagsResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToPutArticlesTagsArgs,
+    args: MutationToAddArticlesTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateArticlesTagsArgs {
+  input: GQLUpdateArticlesTagsInput
+}
+export interface MutationToUpdateArticlesTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateArticlesTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface MutationToDeleteArticlesTagsArgs {
-  input: GQLUpdateArticlesTagsInput
+  input: GQLDeleteArticlesTagsInput
 }
 export interface MutationToDeleteArticlesTagsResolver<
   TParent = any,
@@ -8499,6 +8607,21 @@ export interface MutationToUpdateNotificationSettingResolver<
   (
     parent: TParent,
     args: MutationToUpdateNotificationSettingArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleFollowTagArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToToggleFollowTagResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleFollowTagArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

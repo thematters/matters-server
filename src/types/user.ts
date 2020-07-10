@@ -41,6 +41,9 @@ export default /* GraphQL */ `
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
       @authenticate @purgeCache
 
+    "Follow or unfollow tag."
+    toggleFollowTag(input: ToggleItemInput!): Tag! @authenticate @purgeCache
+
     "Follow or Unfollow current usere."
     toggleFollowUser(input: ToggleItemInput!): User! @authenticate @purgeCache
 
@@ -169,6 +172,12 @@ export default /* GraphQL */ `
 
     "Articles and comments published by user's followees."
     followeeWorks(input: ResponsesInput!): ResponseConnection! @deprecated(reason: "Feature changed.")
+
+    "Tags that user followed."
+    followingTags(input: ConnectionArgs!): TagConnection!
+
+    "Articles has been added into followed tags."
+    followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection!
