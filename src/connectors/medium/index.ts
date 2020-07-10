@@ -3,7 +3,12 @@ import * as cheerio from 'cheerio'
 import Knex from 'knex'
 import { v4 } from 'uuid'
 
-import { UPLOAD_FILE_SIZE_LIMIT } from 'common/enums'
+import {
+  ACCEPTED_UPLOAD_IMAGE_TYPES,
+  UPLOAD_FILE_SIZE_LIMIT,
+} from 'common/enums'
+import { UserInputError } from 'common/errors'
+import logger from 'common/logger'
 import { getFileName } from 'common/utils'
 import { aws, knex } from 'connectors'
 import { AWSService } from 'connectors/aws'
@@ -36,7 +41,7 @@ export class Medium {
    *
    */
   createImageBlock = async (url: string, caption: string) => {
-    const asset = await this.fetchAndUploadAsset(url)
+    const asset = await this.fetchAndUploadAsset(url, 'image')
     const src = `${this.aws.s3Endpoint}/${asset.key}`
     const content =
       `<figure class="image"><img src="${src}" data-asset-id="${asset.uuid}">` +
@@ -60,21 +65,33 @@ export class Medium {
    * Fetch and upload assets embedded in post.
    *
    */
-  fetchAndUploadAsset = async (url: string) => {
+  fetchAndUploadAsset = async (url: string, assetType: 'image') => {
+    const isImage = assetType === 'image'
+
+    if (!isImage) {
+      throw new Error(`${assetType} isn't supported.`)
+    }
+
     try {
       const response = await axios.get(url, {
         responseType: 'stream',
         maxContentLength: UPLOAD_FILE_SIZE_LIMIT,
       })
       const disposition = response.headers['content-disposition']
+      const mimetype = response.headers['content-type']
       const filename = getFileName(disposition, url)
       const upload = {
         createReadStream: () => response.data,
-        mimetype: response.headers['content-type'],
+        mimetype,
         encoding: 'utf8',
         filename,
       }
       const uuid = v4()
+
+      if (!ACCEPTED_UPLOAD_IMAGE_TYPES.includes(mimetype)) {
+        throw new Error('Invalid image type.')
+      }
+
       const key = await this.aws.baseUploadFile(
         'embed' as GQLAssetType,
         upload,
@@ -142,13 +159,17 @@ export class Medium {
           const caption = dom.find('figcaption').text() || ''
           const image = dom.find('img')
           if (image && image.attr('src')) {
-            const url = image.attr('src')
-            const { content, asset } = await this.createImageBlock(
-              url || '',
-              caption
-            )
-            contents.push(content)
-            assets.push(asset)
+            try {
+              const url = image.attr('src')
+              const { content, asset } = await this.createImageBlock(
+                url || '',
+                caption
+              )
+              contents.push(content)
+              assets.push(asset)
+            } catch (err) {
+              logger.error(err)
+            }
             break
           }
           break
