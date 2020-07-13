@@ -31,6 +31,8 @@ const resolver: MutationToPutTagResolver = async (
       throw new AssetNotFoundError('tag cover asset does not exists')
     }
     coverId = asset.id
+  } else if (cover === null) {
+    coverId = null
   }
 
   const tagContent = content ? _trim(content) : ''
@@ -109,7 +111,7 @@ const resolver: MutationToPutTagResolver = async (
     if (typeof description !== 'undefined' && description !== null) {
       updateParams.description = description
     }
-    if (coverId) {
+    if (typeof coverId !== 'undefined') {
       updateParams.cover = coverId
     }
     if (Object.keys(updateParams).length === 0) {

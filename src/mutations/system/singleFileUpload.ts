@@ -33,7 +33,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
   { viewer, dataSources: { systemService } }
 ) => {
   const isImageType =
-    ['avatar', 'embed', 'profileCover', 'oauthClientAvatar'].indexOf(type) >= 0
+    ['avatar', 'embed', 'profileCover', 'oauthClientAvatar', 'tagCover'].indexOf(type) >= 0
   const isAudioType = ['embedaudio'].indexOf(type) >= 0
 
   if ((!file && !url) || (file && url)) {
