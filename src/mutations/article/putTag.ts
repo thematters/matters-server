@@ -65,12 +65,6 @@ const resolver: MutationToPutTagResolver = async (
       cover: coverId,
     })
 
-    // add tag into search engine
-    await tagService.addToSearch({
-      id: newTag.id,
-      content: newTag.content,
-      description: newTag.description,
-    })
     return newTag
   } else {
     // update tag
