@@ -343,6 +343,7 @@ export default /* GraphQL */ `
   input PutTagInput {
     id: ID
     content: String
+    cover: ID
     description: String
   }
 

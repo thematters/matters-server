@@ -68,11 +68,13 @@ export class TagService extends BaseService {
    */
   create = async ({
     content,
+    cover,
     creator,
     description,
     editors,
   }: {
     content: string
+    cover?: string
     creator: string
     description?: string
     editors: string[]
@@ -82,7 +84,7 @@ export class TagService extends BaseService {
     // create
     if (!item) {
       return this.baseCreate(
-        { content, creator, description, editors },
+        { content, cover, creator, description, editors },
         this.table
       )
     }
@@ -469,6 +471,22 @@ export class TagService extends BaseService {
     })
     return result.length > 0
   }
+
+  /**
+   * Find article covers by tag id.
+   */
+  findArticleCovers = async ({ id }: { id: string }) =>
+    this.knex
+      .select('article.cover')
+      .from('article_tag')
+      .join('article', 'article_id', 'article.id')
+      .where({
+        tagId: id,
+        selected: true,
+        state: ARTICLE_STATE.active,
+      })
+      .limit(BATCH_SIZE)
+      .orderBy('article_tag.id', 'asc')
 
   /*********************************
    *                               *

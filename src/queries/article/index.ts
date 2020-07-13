@@ -20,6 +20,7 @@ import rootArticle from './rootArticle'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import tagArticles from './tag/articles'
+import tagCover from './tag/cover'
 import tagCreator from './tag/creator'
 import tagEditors from './tag/editors'
 import tagFollowers from './tag/followers'
@@ -80,6 +81,7 @@ export default {
     isFollower: tagIsFollower,
     followers: tagFollowers,
     oss: (root: any) => root,
+    cover: tagCover,
   },
   ArticleOSS: {
     boost: articleOSS.boost,

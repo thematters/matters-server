@@ -2183,6 +2183,7 @@ export interface GQLUpdateArticleInfoInput {
 export interface GQLPutTagInput {
   id?: string
   content?: string
+  cover?: string
   description?: string
 }
 
