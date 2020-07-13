@@ -1072,6 +1072,7 @@ export const enum GQLAssetType {
   embedaudio = 'embedaudio',
   profileCover = 'profileCover',
   oauthClientAvatar = 'oauthClientAvatar',
+  tagCover = 'tagCover',
 }
 
 export interface GQLUserActivity {
@@ -2182,6 +2183,7 @@ export interface GQLReadArticleInput {
 export interface GQLPutTagInput {
   id?: string
   content?: string
+  cover?: string
   description?: string
 }
 
@@ -2335,6 +2337,7 @@ export type GQLUpload = any
 export const enum GQLEntityType {
   article = 'article',
   draft = 'draft',
+  tag = 'tag',
   user = 'user',
 }
 

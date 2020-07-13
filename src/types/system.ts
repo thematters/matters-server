@@ -345,11 +345,13 @@ export default /* GraphQL */ `
     embedaudio
     profileCover
     oauthClientAvatar
+    tagCover
   }
 
   enum EntityType {
     article
     draft
+    tag
     user
   }
 

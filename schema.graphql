@@ -479,6 +479,7 @@ enum AssetType {
   embedaudio
   profileCover
   oauthClientAvatar
+  tagCover
 }
 
 input AuthorsFilter {
@@ -827,6 +828,7 @@ scalar Email
 enum EntityType {
   article
   draft
+  tag
   user
 }
 
@@ -1475,6 +1477,7 @@ input PutSkippedListItemInput {
 input PutTagInput {
   id: ID
   content: String
+  cover: ID
   description: String
 }
 
