@@ -129,7 +129,7 @@ const resolver: MutationToPutTagResolver = async (
       const coverAsset = await tagService.baseFindById(tag.cover, 'asset')
       if (coverAsset) {
         await systemService.deleteAssetAndAssetMap({
-          [`${coverAsset.id}`]: coverAsset.path
+          [`${coverAsset.id}`]: coverAsset.path,
         })
       }
     }
