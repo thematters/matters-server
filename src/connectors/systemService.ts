@@ -188,7 +188,7 @@ export class SystemService extends BaseService {
   /**
    * Delete asset and asset map by a given id
    */
-  deleteAssetAndAssetMap = async (assets: Array<{ [key: string]: string }>) => {
+  deleteAssetAndAssetMap = async (assets: { [key: string]: string }) => {
     const ids = Object.keys(assets)
 
     await this.knex.transaction(async (trx) => {
