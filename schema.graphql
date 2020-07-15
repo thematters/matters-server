@@ -1711,11 +1711,16 @@ enum Role {
   admin
 }
 
+enum SearchFilter {
+  author
+}
+
 input SearchInput {
   key: String!
   type: SearchTypes!
   after: String
   first: Int
+  filter: SearchFilter
   oss: Boolean
 }
 

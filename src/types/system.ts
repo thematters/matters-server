@@ -243,6 +243,7 @@ export default /* GraphQL */ `
     type: SearchTypes!
     after: String
     first: Int
+    filter: SearchFilter
     oss: Boolean
   }
 
@@ -316,6 +317,10 @@ export default /* GraphQL */ `
     Article
     User
     Tag
+  }
+
+  enum SearchFilter {
+    author
   }
 
   enum BoostTypes {
