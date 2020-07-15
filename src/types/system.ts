@@ -247,6 +247,10 @@ export default /* GraphQL */ `
     oss: Boolean
   }
 
+  input SearchFilter {
+    authorId: ID
+  }
+
   input ReleasesInput {
     platform: PlatformType!
     channel: ChannelType!
@@ -317,10 +321,6 @@ export default /* GraphQL */ `
     Article
     User
     Tag
-  }
-
-  enum SearchFilter {
-    author
   }
 
   enum BoostTypes {

@@ -1711,8 +1711,8 @@ enum Role {
   admin
 }
 
-enum SearchFilter {
-  author
+input SearchFilter {
+  authorId: ID
 }
 
 input SearchInput {

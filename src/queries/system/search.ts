@@ -29,12 +29,6 @@ const resolver: QueryToSearchResolver = async (
     )
   }
 
-  // add search filter
-  const filters: Record<string, any> = {}
-  if (input.filter === 'author') {
-    filters.authorId = viewer.id
-  }
-
   const offset = cursorToIndex(input.after) + 1
 
   const serviceMap = {
@@ -44,7 +38,7 @@ const resolver: QueryToSearchResolver = async (
   }
 
   const connection = await serviceMap[input.type]
-    .search({ ...input, offset, filters })
+    .search({ ...input, offset })
     .then(({ nodes, totalCount }) => {
       nodes = _.compact(nodes)
       return {

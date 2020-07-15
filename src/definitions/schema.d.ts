@@ -1514,8 +1514,8 @@ export const enum GQLSearchTypes {
   Tag = 'Tag',
 }
 
-export const enum GQLSearchFilter {
-  author = 'author',
+export interface GQLSearchFilter {
+  authorId?: string
 }
 
 export interface GQLSearchResultConnection extends GQLConnection {
