@@ -13,7 +13,12 @@ exports.up = async (knex) => {
   await knex.raw(`
     create view ${view} as
         select
-            tag.*,
+            tag.id,
+            tag.content,
+            tag.cover,
+            tag.description,
+            tag.created_at,
+            tag.updated_at
             recent_count,
             count,
             last_used,
@@ -81,7 +86,10 @@ exports.down = async (knex) => {
   await knex.raw(`
     create view ${view} as
         select
-            tag.*,
+            tag.id,
+            tag.content,
+            tag.created_at,
+            tag.updated_at
             recent_count,
             count,
             last_used,
