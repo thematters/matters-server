@@ -18,7 +18,7 @@ exports.up = async (knex) => {
             tag.cover,
             tag.description,
             tag.created_at,
-            tag.updated_at
+            tag.updated_at,
             recent_count,
             count,
             last_used,
@@ -89,7 +89,7 @@ exports.down = async (knex) => {
             tag.id,
             tag.content,
             tag.created_at,
-            tag.updated_at
+            tag.updated_at,
             recent_count,
             count,
             last_used,
