@@ -7,10 +7,10 @@ exports.up = async (knex) => {
   await knex.raw(`drop materialized view if exists ${materialized}`)
 
   // drop old view
-  await knex.raw(/*sql*/ `DROP view IF EXISTS ${view}`)
+  await knex.raw(`drop view if exists ${view}`)
 
   // create view
-  await knex.raw(/*sql*/ `
+  await knex.raw(`
     create view ${view} as
         select
             tag.*,
@@ -63,7 +63,7 @@ exports.up = async (knex) => {
   `)
 
   // re-create materialized view
-  await knex.raw(/*sql*/ `
+  await knex.raw(`
     create materialized view ${materialized} as
         select *
         from ${view}
@@ -75,10 +75,10 @@ exports.down = async (knex) => {
   await knex.raw(`drop materialized view if exists ${materialized}`)
 
   // drop old view
-  await knex.raw(/*sql*/ `DROP view IF EXISTS ${view}`)
+  await knex.raw(`drop view if exists ${view}`)
 
   // create view
-  await knex.raw(/*sql*/ `
+  await knex.raw(`
     create view ${view} as
         select
             tag.*,
@@ -131,7 +131,7 @@ exports.down = async (knex) => {
   `)
 
   // re-create materialized view
-  await knex.raw(/*sql*/ `
+  await knex.raw(`
     create materialized view ${materialized} as
         select *
         from ${view}
