@@ -1504,6 +1504,7 @@ export interface GQLSearchInput {
   type: GQLSearchTypes
   after?: string
   first?: number
+  filter?: GQLSearchFilter
   oss?: boolean
 }
 
@@ -1511,6 +1512,10 @@ export const enum GQLSearchTypes {
   Article = 'Article',
   User = 'User',
   Tag = 'Tag',
+}
+
+export interface GQLSearchFilter {
+  authorId?: string
 }
 
 export interface GQLSearchResultConnection extends GQLConnection {

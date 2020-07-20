@@ -213,12 +213,25 @@ export class ArticleService extends BaseService {
   /**
    * Find article by title
    */
-  findByTitle = async (title: string, oss = false) => {
-    const baseQuery = this.knex.select().from(this.table).where({ title })
+  findByTitle = async ({
+    title,
+    oss = false,
+    filter,
+  }: {
+    title: string
+    oss?: boolean
+    filter?: Record<string, any>
+  }) => {
+    const query = this.knex.select().from(this.table).where({ title })
 
-    const query = oss
-      ? baseQuery
-      : baseQuery.andWhere({ state: ARTICLE_STATE.active })
+    if (!oss) {
+      query.andWhere({ state: ARTICLE_STATE.active })
+    }
+
+    if (filter && Object.keys(filter).length > 0) {
+      query.andWhere(filter)
+    }
+
     return query.orderBy('id', 'desc')
   }
 
@@ -365,12 +378,26 @@ export class ArticleService extends BaseService {
     return result
   }
 
-  searchByMediaHash = async (key: string, oss = false) => {
+  searchByMediaHash = async ({
+    key,
+    oss = false,
+    filter,
+  }: {
+    key: string
+    oss?: boolean
+    filter?: Record<string, any>
+  }) => {
     const query = this.knex.select().from(this.table).where({ mediaHash: key })
 
-    const rows = await (oss
-      ? query
-      : query.andWhere({ state: ARTICLE_STATE.active }))
+    if (!oss) {
+      query.andWhere({ state: ARTICLE_STATE.active })
+    }
+
+    if (filter && Object.keys(filter).length > 0) {
+      query.andWhere(filter)
+    }
+
+    const rows = await query
     if (rows.length > 0) {
       return {
         nodes: rows,
@@ -386,7 +413,13 @@ export class ArticleService extends BaseService {
     first = 20,
     offset,
     oss = false,
-  }: GQLSearchInput & { offset: number; oss?: boolean }) => {
+    filter,
+  }: GQLSearchInput & {
+    author?: string
+    offset: number
+    oss?: boolean
+    filter?: Record<string, any>
+  }) => {
     const searchBody = bodybuilder()
       .query('multi_match', {
         query: key,
@@ -408,18 +441,23 @@ export class ArticleService extends BaseService {
       searchBody.filter('term', { state: ARTICLE_STATE.active })
     }
 
+    // add filter
+    if (filter && Object.keys(filter).length > 0) {
+      searchBody.filter('term', filter)
+    }
+
     try {
       // check if media hash in search key
       const re = /^([0-9a-zA-Z]{49,59})$/gi
       const match = re.exec(key)
       if (match) {
-        return this.searchByMediaHash(match[1], oss)
+        return this.searchByMediaHash({ key: match[1], oss, filter })
       }
 
       // take the condition that searching for exact article title into consideration
       const idsByTitle = []
       if (key.length >= 5 && offset === 0) {
-        const articles = await this.findByTitle(key, oss)
+        const articles = await this.findByTitle({ title: key, oss, filter })
         for (const article of articles) {
           idsByTitle.push(article.id)
         }
