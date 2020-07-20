@@ -243,7 +243,12 @@ export default /* GraphQL */ `
     type: SearchTypes!
     after: String
     first: Int
+    filter: SearchFilter
     oss: Boolean
+  }
+
+  input SearchFilter {
+    authorId: ID
   }
 
   input ReleasesInput {

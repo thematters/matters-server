@@ -4,7 +4,7 @@ import {
   SEARCH_ARTICLE_URL_REGEX,
   SEARCH_KEY_TRUNCATE_LENGTH,
 } from 'common/enums'
-import { connectionFromArray, cursorToIndex } from 'common/utils'
+import { connectionFromArray, cursorToIndex, fromGlobalId } from 'common/utils'
 import { GQLNode, QueryToSearchResolver } from 'definitions'
 
 const resolver: QueryToSearchResolver = async (
@@ -27,6 +27,11 @@ const resolver: QueryToSearchResolver = async (
       { userId: viewer ? viewer.id : null, searchKey: input.key },
       'search_history'
     )
+  }
+
+  if (input?.filter?.authorId) {
+    const { id: authorId } = fromGlobalId(input.filter.authorId)
+    input.filter.authorId = authorId
   }
 
   const offset = cursorToIndex(input.after) + 1
