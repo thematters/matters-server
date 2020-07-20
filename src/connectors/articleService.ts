@@ -332,6 +332,7 @@ export class ArticleService extends BaseService {
         `${this.table}.id as id`,
         'title',
         'content',
+        'author_id as authorId',
         'user.user_name as userName',
         'user.display_name as displayName'
       )
@@ -353,6 +354,7 @@ export class ArticleService extends BaseService {
     id,
     title,
     content,
+    authorId,
     userName,
     displayName,
     tags,
@@ -367,6 +369,7 @@ export class ArticleService extends BaseService {
           title,
           content: stripHtml(content),
           state: ARTICLE_STATE.active,
+          authorId,
           userName,
           displayName,
           tags,
