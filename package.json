@@ -41,7 +41,7 @@
     "@okgrow/graphql-scalars": "^0.4.6",
     "@sendgrid/mail": "^6.4.0",
     "@sentry/node": "^5.19.2",
-    "@slack/web-api": "^5.10.0",
+    "@slack/web-api": "^5.11.0",
     "apollo-server-cache-redis": "^1.2.2",
     "apollo-server-express": "^2.9.12",
     "apollo-server-plugin-response-cache": "^0.5.3",
