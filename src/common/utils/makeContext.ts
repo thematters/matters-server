@@ -29,7 +29,7 @@ export const makeContext = async ({
   res,
   connection,
 }: {
-  req?: Request
+  req: Request
   res: Response
   connection?: any
 }): Promise<RequestContext> => {
@@ -58,6 +58,7 @@ export const makeContext = async ({
 
   return {
     viewer,
+    req,
     res,
   }
 }

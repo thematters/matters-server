@@ -29,13 +29,13 @@ const resolver: MutationToUnvoteCommentResolver = async (
   await commentService.unvote({ commentId: dbId, userId: viewer.id })
 
   // publish a PubSub event
-  notificationService.pubsub.publish(
-    toGlobalId({
-      type: 'Article',
-      id: article.id,
-    }),
-    article
-  )
+  // notificationService.pubsub.publish(
+  //   toGlobalId({
+  //     type: 'Article',
+  //     id: article.id,
+  //   }),
+  //   article
+  // )
 
   return comment
 }

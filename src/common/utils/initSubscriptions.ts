@@ -1,5 +1,3 @@
-import { RequestHeaders } from 'request-ip'
-
 import { getViewerFromReq } from 'common/utils'
 import {
   ArticleService,
@@ -13,15 +11,16 @@ import {
 
 export const initSubscriptions = (): { onConnect: any } => ({
   onConnect: async (
-    connectionParams: RequestHeaders,
+    connectionParams: { [key: string]: any },
     webSocket: any,
     context: any
   ) => {
     // `connectionParams` passed from client
-    // https://www.apollographql.com/docs/react/advanced/subscriptions.html#authentication
+    // https://www.apollographql.com/docs/apollo-server/data/subscriptions/
     const viewer = await getViewerFromReq({
       req: {
         headers: { ...connectionParams, ...context.request.headers },
+        // @ts-ignore
         connection: {},
       },
     })

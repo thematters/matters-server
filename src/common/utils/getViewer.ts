@@ -1,8 +1,6 @@
 import cookie from 'cookie'
-import { Response } from 'express'
+import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import _ from 'lodash'
-import requestIp from 'request-ip'
 
 import { LANGUAGE, SCOPE_MODE, USER_ROLE, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
@@ -112,17 +110,17 @@ export const getViewerFromReq = async ({
   req,
   res,
 }: {
-  req?: requestIp.Request & { clientIp?: string }
+  req?: Request
   res?: Response
 }): Promise<Viewer> => {
   const headers = req ? req.headers : {}
-  const isWeb = headers['x-client-name'] === 'web'
+  // const isWeb = headers['x-client-name'] === 'web'
   const language = getLanguage(LANGUAGE.zh_hant as string)
   const agentHash = headers['x-user-agent-hash'] as string
 
   // user infomation from request
   let user = {
-    ip: req && req.clientIp,
+    ip: req?.clientIp,
     language,
     scopeMode: SCOPE_MODE.visitor,
     scope: {},
@@ -153,8 +151,8 @@ export const getViewerFromReq = async ({
     } catch (err) {
       logger.info(err)
 
-      if (res) {
-        clearCookie(res)
+      if (req && res) {
+        clearCookie({ req, res })
       }
     }
   }

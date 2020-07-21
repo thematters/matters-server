@@ -4,7 +4,7 @@ import {
 } from '@apollographql/graphql-playground-html'
 import { RedisCache } from 'apollo-server-cache-redis'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
-import express, { Express } from 'express'
+import { Express, Request, Response } from 'express'
 import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
@@ -45,8 +45,8 @@ const PLAYGROUND_ENDPOINT = '/playground'
 
 class ProtectedApolloServer extends ApolloServer {
   async createGraphQLServerOptions(
-    req: express.Request,
-    res: express.Response
+    req: Request,
+    res: Response
   ): Promise<GraphQLOptions> {
     const options = await super.createGraphQLServerOptions(req, res)
     const maximumCost = GRAPHQL_COST_LIMIT
