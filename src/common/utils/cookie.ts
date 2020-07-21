@@ -1,20 +1,14 @@
 import { Request, Response } from 'express'
-import psl from 'psl'
 
 import { USER_ACCESS_TOKEN_EXPIRES_IN_MS } from 'common/enums'
 import { environment } from 'common/environment'
 
-const getCookieOption = () => {
-  const domain =
-    environment.env === 'development'
-      ? ''
-      : `.${psl.get(environment.domain || 'matters.news')}`
-
+const getCookieOption = (req: Request) => {
   return {
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     httpOnly: true,
-    // secure:
-    domain,
+    secure: req.protocol === 'https',
+    domain: req.hostname,
   }
 }
 
@@ -32,11 +26,11 @@ export const setCookie = ({
     return
   }
 
-  const opts = getCookieOption()
+  const opts = getCookieOption(req)
   return res.cookie('token', token, opts)
 }
 
 export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
-  const opts = getCookieOption()
+  const opts = getCookieOption(req)
   return res.clearCookie('token', opts)
 }
