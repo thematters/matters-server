@@ -135,7 +135,7 @@
     "apollo-server-testing": "^2.9.12",
     "chokidar": "^3.4.1",
     "chokidar-cli": "^2.1.0",
-    "codecov": "^3.7.1",
+    "codecov": "^3.7.2",
     "cz-conventional-changelog": "^3.2.0",
     "husky": "^4.2.5",
     "jest": "^25.5.4",
