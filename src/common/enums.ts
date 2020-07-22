@@ -1,3 +1,5 @@
+import { CorsOptions } from 'cors'
+
 import { isProd } from 'common/environment'
 import { i18n } from 'common/utils/i18n'
 import { SkippedListItemType } from 'definitions'
@@ -509,21 +511,18 @@ export const UTM_PARAMETER = {
   },
 }
 
-export const CORS_OPTIONS = {
-  origin: [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'https://matters.news',
-    'https://www.matters.news',
-    'https://oss.matters.news',
-    'https://web-stage.matters.news',
-    'https://oss-stage.matters.news',
-    'https://web-likecoin.matters.news',
-    'https://web-develop.matters.news',
-    'https://oss-develop.matters.news',
-    'https://matters.one',
-    'https://www.matters.one',
-  ],
+export const CORS_OPTIONS: CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, false)
+    }
+
+    const isLocalDev = /(localhost|127\.0\.0\.1)/.test(origin)
+    const isMatters = /matters\.news$/.test(origin)
+    const isAllowed = isLocalDev || isMatters
+
+    callback(null, isAllowed)
+  },
   credentials: true,
 }
 

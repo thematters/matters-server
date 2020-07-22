@@ -23,7 +23,7 @@ import { MutationToUserRegisterResolver } from 'definitions'
 const resolver: MutationToUserRegisterResolver = async (
   root,
   { input },
-  { viewer, dataSources: { userService, notificationService }, res }
+  { viewer, dataSources: { userService, notificationService }, req, res }
 ) => {
   const { email: rawEmail, userName, displayName, password, codeId } = input
   const email = rawEmail ? rawEmail.toLowerCase() : null
@@ -113,7 +113,7 @@ const resolver: MutationToUserRegisterResolver = async (
 
   const { token } = await userService.login({ ...input, email })
 
-  setCookie({ res, token })
+  setCookie({ req, res, token })
 
   return { token, auth: true }
 }

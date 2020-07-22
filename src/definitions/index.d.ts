@@ -1,5 +1,5 @@
 import { RedisCache } from 'apollo-server-cache-redis'
-import { Response } from 'express'
+import { Request, Response } from 'express'
 
 import {
   UserService,
@@ -66,6 +66,7 @@ export type Viewer = (User | { id: null }) & {
 
 export type RequestContext = {
   viewer: Viewer
+  req: Request
   res: Response
 }
 
