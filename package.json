@@ -125,7 +125,7 @@
     "@types/passport-oauth2": "^1.4.9",
     "@types/qs": "^6.9.3",
     "@types/request-ip": "0.0.35",
-    "@types/sharp": "^0.25.0",
+    "@types/sharp": "^0.25.1",
     "@types/uuid": "^8.0.0",
     "@types/validator": "^13.1.0",
     "@types/winston": "^2.4.4",
