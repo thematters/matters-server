@@ -1,5 +1,5 @@
 import bodyParser from 'body-parser'
-import { Router } from 'express'
+import { Request, Response, Router } from 'express'
 import passport from 'passport'
 import querystring from 'querystring'
 
@@ -36,7 +36,7 @@ const oAuthServer = new OAuthServer({
   allowEmptyState: true,
   allowExtendedTokenAttributes: true,
   authenticateHandler: {
-    handle: async (req: any, res: any) => {
+    handle: async (req: Request, res: Response) => {
       const viewer = await getViewerFromReq({ req, res })
 
       if (!viewer.id) {

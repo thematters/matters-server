@@ -29,13 +29,13 @@ const resolver: MutationToDeleteCommentResolver = async (
 
   // publish a PubSub event
   const article = await articleService.dataloader.load(articleId)
-  notificationService.pubsub.publish(
-    toGlobalId({
-      type: 'Article',
-      id: article.id,
-    }),
-    article
-  )
+  // notificationService.pubsub.publish(
+  //   toGlobalId({
+  //     type: 'Article',
+  //     id: article.id,
+  //   }),
+  //   article
+  // )
 
   // Add custom data for cache invalidation
   comment[CACHE_KEYWORD] = [
