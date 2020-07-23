@@ -15,14 +15,17 @@ export class PrivateCacheDirective extends SchemaDirectiveVisitor {
     field.resolve = async function (...args) {
       const [root, _, { viewer }, { fieldName, cacheControl }] = args
       const logged = viewer.id && viewer.hasRole('user')
+
       let maxAge = CACHE_TTL.SHORT
       if (field._strict === true && logged) {
         maxAge = CACHE_TTL.INSTANT
       }
+
       let scope = CacheScope.Public
       if (logged) {
         scope = CacheScope.Private
       }
+
       cacheControl.setCacheHint({ maxAge, scope })
       return resolve.apply(this, args)
     }

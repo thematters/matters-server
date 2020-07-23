@@ -1,3 +1,7 @@
+import {
+  LogCacheDirective,
+  PurgeCacheDirective,
+} from '@matters/apollo-response-cache'
 import { makeExecutableSchema } from 'graphql-tools'
 import { merge } from 'lodash'
 
@@ -10,13 +14,19 @@ import typeDefs from './types'
 import {
   authDirectiveFactory,
   DeprecatedDirective,
-  LogCacheDirective,
   ObjectCacheDirective,
   PrivateCacheDirective,
-  PurgeCacheDirective,
   RateLimitDirective,
   ScopeDirective,
 } from './types/directives'
+
+const typeResolver = (type: string, result: any) => {
+  if (type === 'Node' || type === 'Response') {
+    return result.__type
+  }
+
+  return type
+}
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -25,11 +35,11 @@ const schema = makeExecutableSchema({
     authenticate: authDirectiveFactory(AuthenticationError),
     authorize: authDirectiveFactory(ForbiddenError),
     scope: ScopeDirective,
-    purgeCache: PurgeCacheDirective,
-    privateCache: PrivateCacheDirective,
-    logCache: LogCacheDirective,
     rateLimit: RateLimitDirective,
+    privateCache: PrivateCacheDirective,
     objectCache: ObjectCacheDirective,
+    logCache: LogCacheDirective({ typeResolver }),
+    purgeCache: PurgeCacheDirective({ typeResolver }),
   },
   resolvers: merge(queries, mutations, subscriptions),
 })

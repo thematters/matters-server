@@ -21,7 +21,13 @@ export const scopeModes = [
  * Define user group by id or ip. Even is group A, and odd is group B.
  *
  */
-export const getUserGroup = ({ id, ip }: { id?: string; ip?: string }) => {
+export const getUserGroup = ({
+  id,
+  ip,
+}: {
+  id?: string | null
+  ip?: string
+}) => {
   let num = 0
   try {
     if (id) {

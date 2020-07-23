@@ -430,11 +430,11 @@ export default /* GraphQL */ `
 
   directive @scope on FIELD_DEFINITION
 
-  directive @purgeCache on FIELD_DEFINITION
-
   directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 
-  directive @logCache(type: String!) on FIELD_DEFINITION
-
   directive @objectCache(maxAge: Int = 1000) on OBJECT | FIELD_DEFINITION
+
+  directive @logCache(type: String!, identifier: String = "id") on FIELD_DEFINITION
+
+  directive @purgeCache(type: String!, identifier: String = "id") on FIELD_DEFINITION
 `

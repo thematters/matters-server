@@ -17,7 +17,7 @@ export default /* GraphQL */ `
     resetPassword(input: ResetPasswordInput!): Boolean
 
     "Change user email."
-    changeEmail(input: ChangeEmailInput!): User! @authenticate @purgeCache
+    changeEmail(input: ChangeEmailInput!): User! @authenticate @logCache(type: "${NODE_TYPES.user}")
 
     "Verify user email."
     verifyEmail(input: VerifyEmailInput!): Boolean @authenticate
@@ -32,26 +32,26 @@ export default /* GraphQL */ `
     userLogout: Boolean!
 
     "Generate or claim a Liker ID through LikeCoin"
-    generateLikerId: User! @authenticate @purgeCache
+    generateLikerId: User! @authenticate @logCache(type: "${NODE_TYPES.user}")
 
     "Update user information."
-    updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate @purgeCache
+    updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate @logCache(type: "${NODE_TYPES.user}")
 
     "Update user notification settings."
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
-      @authenticate @purgeCache
+      @authenticate @logCache(type: "${NODE_TYPES.user}")
 
     "Follow or unfollow tag."
-    toggleFollowTag(input: ToggleItemInput!): Tag! @authenticate @purgeCache
+    toggleFollowTag(input: ToggleItemInput!): Tag! @authenticate @logCache(type: "${NODE_TYPES.tag}")
 
     "Follow or Unfollow current usere."
-    toggleFollowUser(input: ToggleItemInput!): User! @authenticate @purgeCache
+    toggleFollowUser(input: ToggleItemInput!): User! @authenticate @logCache(type: "${NODE_TYPES.user}")
 
     "Block or Unblock a given user."
-    toggleBlockUser(input: ToggleItemInput!): User! @authenticate @purgeCache
+    toggleBlockUser(input: ToggleItemInput!): User! @authenticate @logCache(type: "${NODE_TYPES.user}")
 
     "Subscribe/ Unsubscribe Push Notification."
-    toggleSubscribePush(input: ToggleItemInput!): User! @authenticate @purgeCache
+    toggleSubscribePush(input: ToggleItemInput!): User! @authenticate @logCache(type: "${NODE_TYPES.user}")
 
     "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
@@ -66,25 +66,25 @@ export default /* GraphQL */ `
     #     OSS    #
     ##############
     "Update state of a user, used in OSS."
-    updateUserState(input: UpdateUserStateInput!): [User!] @authorize @purgeCache
+    updateUserState(input: UpdateUserStateInput!): [User!] @authorize @logCache(type: "${NODE_TYPES.user}")
     "Update state of a user, used in OSS."
-    updateUserRole(input: UpdateUserRoleInput!): User! @authorize @purgeCache
+    updateUserRole(input: UpdateUserRoleInput!): User! @authorize @logCache(type: "${NODE_TYPES.user}")
 
 
     ##############
     # DEPRECATED #
     ##############
     "Block a given user."
-    blockUser(input: BlockUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleBlockUser\`.")
+    blockUser(input: BlockUserInput!): User! @authenticate @logCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
 
     "Unblock a given user."
-    unblockUser(input: BlockUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleBlockUser\`.")
+    unblockUser(input: BlockUserInput!): User! @authenticate @logCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
 
     "Follow a given user."
-    followUser(input: FollowUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleFollowUser\`.")
+    followUser(input: FollowUserInput!): User! @authenticate @logCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
 
     "Unfollow curent user."
-    unfollowUser(input: FollowUserInput!): User! @authenticate @purgeCache @deprecated(reason: "Use \`toggleFollowUser\`.")
+    unfollowUser(input: FollowUserInput!): User! @authenticate @logCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
 
   }
 

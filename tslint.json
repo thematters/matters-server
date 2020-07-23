@@ -9,12 +9,8 @@
         "definitions",
         "middlewares",
         "types",
-        "apollo-cache-control",
         "apollo-datasource",
-        "apollo-server-caching",
-        "apollo-server-plugin-base",
         "@apollographql/graphql-playground-html",
-        "apollo-server-types",
         "@sendgrid/helpers",
         "apollo-server-testing",
         "body-parser",
@@ -43,8 +39,7 @@
         "import-sources-order": "case-insensitive",
         "named-imports-order": "case-insensitive",
         "grouped-imports": true,
-        "groups": [
-          {
+        "groups": [{
             "name": "local",
             "match": "^[.]",
             "order": 20

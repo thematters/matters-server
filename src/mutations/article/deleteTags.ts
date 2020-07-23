@@ -6,7 +6,7 @@ import { MutationToDeleteTagsResolver } from 'definitions'
 const resolver: MutationToDeleteTagsResolver = async (
   root,
   { input: { ids } },
-  { viewer, dataSources: { tagService }, redis }
+  { viewer, dataSources: { tagService } }
 ) => {
   const tagDbIds = ids.map((id) => fromGlobalId(id).id)
   await tagService.deleteTags(tagDbIds)
@@ -15,12 +15,10 @@ const resolver: MutationToDeleteTagsResolver = async (
   )
 
   // manually invalidate cache since it returns nothing
-  if (redis && redis.client) {
-    const cacheService = new CacheService(redis)
-    await Promise.all(
-      tagDbIds.map((id) => cacheService.invalidateFQC(NODE_TYPES.tag, id))
-    )
-  }
+  const cacheService = new CacheService()
+  await Promise.all(
+    tagDbIds.map((id) => cacheService.invalidateFQC(NODE_TYPES.tag, id))
+  )
 
   return true
 }
