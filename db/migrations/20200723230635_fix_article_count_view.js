@@ -40,9 +40,9 @@ exports.up = async (knex) => {
     WHERE
       "comment"."state" = 'active'
     GROUP BY
-      article.id) AS comment_score;
+      article.id) AS comment_score
     WHERE
-      commenters_7d > 2
+      commenters_7d > 2;
 
   create materialized view ${topicMaterialized} as
   select *
