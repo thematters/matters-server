@@ -112,7 +112,7 @@
     "@types/graphql-type-json": "^0.3.2",
     "@types/helmet": "0.0.47",
     "@types/ioredis": "^4.17.2",
-    "@types/jest": "^26.0.5",
+    "@types/jest": "^26.0.6",
     "@types/js-base64": "^3.0.0",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/knex": "^0.16.1",
