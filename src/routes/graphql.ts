@@ -1,7 +1,3 @@
-import {
-  RenderPageOptions as PlaygroundRenderPageOptions,
-  renderPlaygroundPage,
-} from '@apollographql/graphql-playground-html'
 import { responseCachePlugin } from '@matters/apollo-response-cache'
 import { RedisCache } from 'apollo-server-cache-redis'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
@@ -9,6 +5,7 @@ import { Express, Request, Response } from 'express'
 import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
 import { applyMiddleware } from 'graphql-middleware'
+import expressPlayground from 'graphql-playground-middleware-express'
 import _ from 'lodash'
 import 'module-alias/register'
 
@@ -140,16 +137,12 @@ export const graphql = (app: Express) => {
   })
 
   // Playground
-  app.get(PLAYGROUND_ENDPOINT, (req, res, next) => {
-    const playgroundRenderPageOptions: PlaygroundRenderPageOptions = {
+  app.get(
+    PLAYGROUND_ENDPOINT,
+    expressPlayground({
       endpoint: API_ENDPOINT,
-    }
-    res.setHeader('Content-Type', 'text/html')
-    const playground = renderPlaygroundPage(playgroundRenderPageOptions)
-    res.write(playground)
-    res.end()
-    return
-  })
+    })
+  )
 
   return server
 }

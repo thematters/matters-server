@@ -10,7 +10,6 @@
         "middlewares",
         "types",
         "apollo-datasource",
-        "@apollographql/graphql-playground-html",
         "@sendgrid/helpers",
         "apollo-server-testing",
         "body-parser",
@@ -39,7 +38,8 @@
         "import-sources-order": "case-insensitive",
         "named-imports-order": "case-insensitive",
         "grouped-imports": true,
-        "groups": [{
+        "groups": [
+          {
             "name": "local",
             "match": "^[.]",
             "order": 20
