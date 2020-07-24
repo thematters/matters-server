@@ -480,6 +480,8 @@ export const INVALID_NAMES = [
   'matters管理员',
 ]
 
+export const COOKIE_TOKEN_NAME = '__token'
+
 export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
 export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS = MINUTE * 10 // 10 mins
 export const OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 30 // 30 days

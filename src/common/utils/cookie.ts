@@ -1,6 +1,9 @@
 import { Request, Response } from 'express'
 
-import { USER_ACCESS_TOKEN_EXPIRES_IN_MS } from 'common/enums'
+import {
+  COOKIE_TOKEN_NAME,
+  USER_ACCESS_TOKEN_EXPIRES_IN_MS,
+} from 'common/enums'
 import { environment } from 'common/environment'
 
 const getCookieOption = (req: Request) => {
@@ -27,10 +30,10 @@ export const setCookie = ({
   }
 
   const opts = getCookieOption(req)
-  return res.cookie('token', token, opts)
+  return res.cookie(COOKIE_TOKEN_NAME, token, opts)
 }
 
 export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
   const opts = getCookieOption(req)
-  return res.clearCookie('token', opts)
+  return res.clearCookie(COOKIE_TOKEN_NAME, opts)
 }
