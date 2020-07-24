@@ -248,13 +248,13 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   // publish a PubSub event
-  notificationService.pubsub.publish(
-    toGlobalId({
-      type: 'Article',
-      id: article.id,
-    }),
-    article
-  )
+  // notificationService.pubsub.publish(
+  //   toGlobalId({
+  //     type: 'Article',
+  //     id: article.id,
+  //   }),
+  //   article
+  // )
 
   // trigger notifications
   // notify mentioned users

@@ -203,12 +203,12 @@ export class NotificationService extends BaseService {
     /**
      * Publish a PubSub event
      */
-    this.pubsub.publish(
-      toGlobalId({
-        type: 'User',
-        id: noticeParams.recipientId,
-      }),
-      recipient
-    )
+    // this.pubsub.publish(
+    //   toGlobalId({
+    //     type: 'User',
+    //     id: noticeParams.recipientId,
+    //   }),
+    //   recipient
+    // )
   }
 }

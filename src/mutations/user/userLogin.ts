@@ -8,6 +8,7 @@ const resolver: MutationToUserLoginResolver = async (
 ) => {
   const {
     dataSources: { userService, systemService },
+    req,
     res,
   } = context
 
@@ -20,7 +21,7 @@ const resolver: MutationToUserLoginResolver = async (
     archivedCallback,
   })
 
-  setCookie({ res, token })
+  setCookie({ req, res, token })
 
   context.viewer = await getViewerFromUser(user)
   context.viewer.scopeMode = user.role as ScopeMode

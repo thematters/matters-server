@@ -543,6 +543,16 @@ export interface GQLRecommendation {
   followeeWorks: GQLResponseConnection
 
   /**
+   * Tags that user followed.
+   */
+  followingTags: GQLTagConnection
+
+  /**
+   * Articles has been added into followed tags.
+   */
+  followingTagsArticles: GQLArticleConnection
+
+  /**
    * Global articles sort by publish time.
    */
   newest: GQLArticleConnection
@@ -1062,6 +1072,7 @@ export const enum GQLAssetType {
   embedaudio = 'embedaudio',
   profileCover = 'profileCover',
   oauthClientAvatar = 'oauthClientAvatar',
+  tagCover = 'tagCover',
 }
 
 export interface GQLUserActivity {
@@ -1493,6 +1504,7 @@ export interface GQLSearchInput {
   type: GQLSearchTypes
   after?: string
   first?: number
+  filter?: GQLSearchFilter
   oss?: boolean
 }
 
@@ -1500,6 +1512,10 @@ export const enum GQLSearchTypes {
   Article = 'Article',
   User = 'User',
   Tag = 'Tag',
+}
+
+export interface GQLSearchFilter {
+  authorId?: string
 }
 
 export interface GQLSearchResultConnection extends GQLConnection {
@@ -1798,9 +1814,9 @@ export interface GQLMutation {
   publishArticle: GQLDraft
 
   /**
-   * Archive an article and users won't be able to view this article.
+   * Edit an article.
    */
-  archiveArticle: GQLArticle
+  editArticle: GQLArticle
 
   /**
    * Report an article to team.
@@ -1823,29 +1839,19 @@ export interface GQLMutation {
   readArticle: GQLArticle
 
   /**
-   * Recall while publishing.
-   */
-  recallPublish: GQLDraft
-
-  /**
-   * Set collection of an article.
-   */
-  setCollection: GQLArticle
-
-  /**
-   * Update article information.
-   */
-  updateArticleInfo: GQLArticle
-
-  /**
    * Create or update tag.
    */
   putTag: GQLTag
 
   /**
-   * Add or update one tag to articles.
+   * Add one tag to articles.
    */
-  putArticlesTags: GQLTag
+  addArticlesTags: GQLTag
+
+  /**
+   * Update articles' tag.
+   */
+  updateArticlesTags: GQLTag
 
   /**
    * Delete one tag from articles
@@ -1876,6 +1882,30 @@ export interface GQLMutation {
    * @deprecated Use `toggleSubscribeArticle`.
    */
   unsubscribeArticle: GQLArticle
+
+  /**
+   * Archive an article and users won't be able to view this article.
+   * @deprecated Use `editArticle`.
+   */
+  archiveArticle: GQLArticle
+
+  /**
+   * Set collection of an article.
+   * @deprecated Use `editArticle`.
+   */
+  setCollection: GQLArticle
+
+  /**
+   * Update article information.
+   * @deprecated Use `editArticle`.
+   */
+  updateArticleInfo: GQLArticle
+
+  /**
+   * Recall while publishing.
+   * @deprecated No longer supported
+   */
+  recallPublish: GQLDraft
 
   /**
    * Publish a comment.
@@ -2120,8 +2150,12 @@ export interface GQLPublishArticleInput {
   delay?: number
 }
 
-export interface GQLArchiveArticleInput {
+export interface GQLEditArticleInput {
   id: string
+  state?: GQLArticleState
+  sticky?: boolean
+  tags?: Array<string>
+  collection?: Array<string>
 }
 
 export interface GQLReportArticleInput {
@@ -2151,33 +2185,26 @@ export interface GQLReadArticleInput {
   id: string
 }
 
-export interface GQLRecallPublishInput {
-  id: string
-}
-
-export interface GQLSetCollectionInput {
-  id: string
-  collection: Array<string>
-}
-
-export interface GQLUpdateArticleInfoInput {
-  id: string
-  sticky?: boolean
-}
-
 export interface GQLPutTagInput {
   id?: string
   content?: string
+  cover?: string
   description?: string
 }
 
-export interface GQLPutArticlesTagsInput {
+export interface GQLAddArticlesTagsInput {
   id: string
   articles?: Array<string>
   selected?: boolean
 }
 
 export interface GQLUpdateArticlesTagsInput {
+  id: string
+  articles?: Array<string>
+  isSelected: boolean
+}
+
+export interface GQLDeleteArticlesTagsInput {
   id: string
   articles?: Array<string>
 }
@@ -2221,6 +2248,24 @@ export interface GQLSubscribeArticleInput {
 }
 
 export interface GQLUnsubscribeArticleInput {
+  id: string
+}
+
+export interface GQLArchiveArticleInput {
+  id: string
+}
+
+export interface GQLSetCollectionInput {
+  id: string
+  collection: Array<string>
+}
+
+export interface GQLUpdateArticleInfoInput {
+  id: string
+  sticky?: boolean
+}
+
+export interface GQLRecallPublishInput {
   id: string
 }
 
@@ -2297,6 +2342,7 @@ export type GQLUpload = any
 export const enum GQLEntityType {
   article = 'article',
   draft = 'draft',
+  tag = 'tag',
   user = 'user',
 }
 
@@ -4536,6 +4582,8 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
   followeeComments?: RecommendationToFolloweeCommentsResolver<TParent>
   followeeWorks?: RecommendationToFolloweeWorksResolver<TParent>
+  followingTags?: RecommendationToFollowingTagsResolver<TParent>
+  followingTagsArticles?: RecommendationToFollowingTagsArticlesResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
   icymi?: RecommendationToIcymiResolver<TParent>
@@ -4587,6 +4635,36 @@ export interface RecommendationToFolloweeWorksResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeWorksArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFollowingTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToFollowingTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFollowingTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFollowingTagsArticlesArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToFollowingTagsArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFollowingTagsArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7753,16 +7831,14 @@ export interface SkippedListItemToUpdatedAtResolver<
 
 export interface GQLMutationTypeResolver<TParent = any> {
   publishArticle?: MutationToPublishArticleResolver<TParent>
-  archiveArticle?: MutationToArchiveArticleResolver<TParent>
+  editArticle?: MutationToEditArticleResolver<TParent>
   reportArticle?: MutationToReportArticleResolver<TParent>
   toggleSubscribeArticle?: MutationToToggleSubscribeArticleResolver<TParent>
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
-  recallPublish?: MutationToRecallPublishResolver<TParent>
-  setCollection?: MutationToSetCollectionResolver<TParent>
-  updateArticleInfo?: MutationToUpdateArticleInfoResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
-  putArticlesTags?: MutationToPutArticlesTagsResolver<TParent>
+  addArticlesTags?: MutationToAddArticlesTagsResolver<TParent>
+  updateArticlesTags?: MutationToUpdateArticlesTagsResolver<TParent>
   deleteArticlesTags?: MutationToDeleteArticlesTagsResolver<TParent>
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticlePublic?: MutationToToggleArticlePublicResolver<TParent>
@@ -7773,6 +7849,10 @@ export interface GQLMutationTypeResolver<TParent = any> {
   mergeTags?: MutationToMergeTagsResolver<TParent>
   subscribeArticle?: MutationToSubscribeArticleResolver<TParent>
   unsubscribeArticle?: MutationToUnsubscribeArticleResolver<TParent>
+  archiveArticle?: MutationToArchiveArticleResolver<TParent>
+  setCollection?: MutationToSetCollectionResolver<TParent>
+  updateArticleInfo?: MutationToUpdateArticleInfoResolver<TParent>
+  recallPublish?: MutationToRecallPublishResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   togglePinComment?: MutationToTogglePinCommentResolver<TParent>
@@ -7841,16 +7921,13 @@ export interface MutationToPublishArticleResolver<
   ): TResult
 }
 
-export interface MutationToArchiveArticleArgs {
-  input: GQLArchiveArticleInput
+export interface MutationToEditArticleArgs {
+  input: GQLEditArticleInput
 }
-export interface MutationToArchiveArticleResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface MutationToEditArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: MutationToArchiveArticleArgs,
+    args: MutationToEditArticleArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7910,45 +7987,6 @@ export interface MutationToReadArticleResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToRecallPublishArgs {
-  input: GQLRecallPublishInput
-}
-export interface MutationToRecallPublishResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToRecallPublishArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToSetCollectionArgs {
-  input: GQLSetCollectionInput
-}
-export interface MutationToSetCollectionResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToSetCollectionArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToUpdateArticleInfoArgs {
-  input: GQLUpdateArticleInfoInput
-}
-export interface MutationToUpdateArticleInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToUpdateArticleInfoArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface MutationToPutTagArgs {
   input: GQLPutTagInput
 }
@@ -7961,23 +7999,38 @@ export interface MutationToPutTagResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToPutArticlesTagsArgs {
-  input: GQLPutArticlesTagsInput
+export interface MutationToAddArticlesTagsArgs {
+  input: GQLAddArticlesTagsInput
 }
-export interface MutationToPutArticlesTagsResolver<
+export interface MutationToAddArticlesTagsResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToPutArticlesTagsArgs,
+    args: MutationToAddArticlesTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateArticlesTagsArgs {
+  input: GQLUpdateArticlesTagsInput
+}
+export interface MutationToUpdateArticlesTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateArticlesTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
 }
 
 export interface MutationToDeleteArticlesTagsArgs {
-  input: GQLUpdateArticlesTagsInput
+  input: GQLDeleteArticlesTagsInput
 }
 export interface MutationToDeleteArticlesTagsResolver<
   TParent = any,
@@ -8112,6 +8165,60 @@ export interface MutationToUnsubscribeArticleResolver<
   (
     parent: TParent,
     args: MutationToUnsubscribeArticleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToArchiveArticleArgs {
+  input: GQLArchiveArticleInput
+}
+export interface MutationToArchiveArticleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToArchiveArticleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSetCollectionArgs {
+  input: GQLSetCollectionInput
+}
+export interface MutationToSetCollectionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToSetCollectionArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateArticleInfoArgs {
+  input: GQLUpdateArticleInfoInput
+}
+export interface MutationToUpdateArticleInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateArticleInfoArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToRecallPublishArgs {
+  input: GQLRecallPublishInput
+}
+export interface MutationToRecallPublishResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToRecallPublishArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -4,6 +4,7 @@ import _trim from 'lodash/trim'
 import _uniq from 'lodash/uniq'
 
 import {
+  AssetNotFoundError,
   AuthenticationError,
   DuplicateTagError,
   ForbiddenError,
@@ -15,11 +16,23 @@ import { MutationToPutTagResolver } from 'definitions'
 
 const resolver: MutationToPutTagResolver = async (
   root,
-  { input: { id, content, description } },
-  { viewer, dataSources: { tagService, userService } }
+  { input: { id, content, cover, description } },
+  { viewer, dataSources: { systemService, tagService, userService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('viewer has no permission')
+  }
+
+  // check if cover exists when receving parameter cover
+  let coverId
+  if (cover) {
+    const asset = await systemService.findAssetByUUID(cover)
+    if (!asset || asset.type !== 'tagCover' || asset.authorId !== viewer.id) {
+      throw new AssetNotFoundError('tag cover asset does not exists')
+    }
+    coverId = asset.id
+  } else if (cover === null) {
+    coverId = null
   }
 
   const tagContent = content ? _trim(content) : ''
@@ -49,14 +62,9 @@ const resolver: MutationToPutTagResolver = async (
       creator: viewer.id,
       description,
       editors: _uniq([matty.id, viewer.id]),
+      cover: coverId,
     })
 
-    // add tag into search engine
-    await tagService.addToSearch({
-      id: newTag.id,
-      content: newTag.content,
-      description: newTag.description,
-    })
     return newTag
   } else {
     // update tag
@@ -66,11 +74,19 @@ const resolver: MutationToPutTagResolver = async (
       throw new TagNotFoundError('tag not found')
     }
 
-    const isEditor = _some(tag.editors, (editor) => editor.id === viewer.id)
-    const isCreator = tag.creator === viewer.id
-    const canEdit = isEditor || isCreator || viewer.email === 'hi@matters.news'
+    const admin = 'hi@matters.news'
+    const normalEditors = (await userService.baseFindByIds(tag.editors)).filter(
+      (user) => user.email !== admin
+    )
 
-    if (!canEdit) {
+    // update only allow: editor, creator, matty
+    const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
+    const isCreator = tag.creator === viewer.id
+    const isMatty = viewer.email === admin
+    const isMaintainer =
+      isEditor || (normalEditors.length === 0 && isCreator) || isMatty
+
+    if (!isMaintainer) {
       throw new ForbiddenError('only editor, creator, and matty can manage tag')
     }
 
@@ -89,6 +105,9 @@ const resolver: MutationToPutTagResolver = async (
     if (typeof description !== 'undefined' && description !== null) {
       updateParams.description = description
     }
+    if (typeof coverId !== 'undefined') {
+      updateParams.cover = coverId
+    }
     if (Object.keys(updateParams).length === 0) {
       throw new UserInputError('bad request')
     }
@@ -104,6 +123,16 @@ const resolver: MutationToPutTagResolver = async (
       content: updateTag.content,
       description: updateTag.description,
     })
+
+    // delete unused tag cover
+    if (tag.cover && tag.cover !== updateTag.cover) {
+      const coverAsset = await tagService.baseFindById(tag.cover, 'asset')
+      if (coverAsset) {
+        await systemService.deleteAssetAndAssetMap({
+          [`${coverAsset.id}`]: coverAsset.path,
+        })
+      }
+    }
     return updateTag
   }
 }

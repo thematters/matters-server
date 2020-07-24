@@ -243,7 +243,12 @@ export default /* GraphQL */ `
     type: SearchTypes!
     after: String
     first: Int
+    filter: SearchFilter
     oss: Boolean
+  }
+
+  input SearchFilter {
+    authorId: ID
   }
 
   input ReleasesInput {
@@ -345,11 +350,13 @@ export default /* GraphQL */ `
     embedaudio
     profileCover
     oauthClientAvatar
+    tagCover
   }
 
   enum EntityType {
     article
     draft
+    tag
     user
   }
 

@@ -1,33 +1,39 @@
-import { Response } from 'express'
-import psl from 'psl'
+import { Request, Response } from 'express'
 
-import { USER_ACCESS_TOKEN_EXPIRES_IN_MS } from 'common/enums'
+import {
+  COOKIE_TOKEN_NAME,
+  USER_ACCESS_TOKEN_EXPIRES_IN_MS,
+} from 'common/enums'
 import { environment } from 'common/environment'
 
-const getCookieOption = () => {
-  const domain =
-    environment.env === 'development'
-      ? ''
-      : `.${psl.get(environment.domain || 'matters.news')}`
-
+const getCookieOption = (req: Request) => {
   return {
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     httpOnly: true,
-    domain,
+    secure: req.protocol === 'https',
+    domain: req.hostname,
   }
 }
 
-export const setCookie = ({ res, token }: { res: Response; token: string }) => {
+export const setCookie = ({
+  req,
+  res,
+  token,
+}: {
+  req: Request
+  res: Response
+  token: string
+}) => {
   if (environment.env === 'test') {
     // skip during testing
     return
   }
 
-  const opts = getCookieOption()
-  return res.cookie('token', token, opts)
+  const opts = getCookieOption(req)
+  return res.cookie(COOKIE_TOKEN_NAME, token, opts)
 }
 
-export const clearCookie = (res: Response) => {
-  const opts = getCookieOption()
-  return res.clearCookie('token', opts)
+export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
+  const opts = getCookieOption(req)
+  return res.clearCookie(COOKIE_TOKEN_NAME, opts)
 }

@@ -63,16 +63,29 @@ export class TagService extends BaseService {
     this.knex.select().from(this.table).where({ content })
 
   /**
+   * Find tags by a given article id.
+   *
+   */
+  findByArticleId = async ({ articleId }: { articleId: string }) =>
+    this.knex
+      .select('tag.*')
+      .from('article_tag')
+      .join(this.table, 'tag.id', 'article_tag.tag_id')
+      .where({ articleId })
+
+  /**
    * Create a tag, but return one if it's existing.
    *
    */
   create = async ({
     content,
+    cover,
     creator,
     description,
     editors,
   }: {
     content: string
+    cover?: string
     creator: string
     description?: string
     editors: string[]
@@ -81,13 +94,21 @@ export class TagService extends BaseService {
 
     // create
     if (!item) {
-      return this.baseCreate(
-        { content, creator, description, editors },
+      const tag = await this.baseCreate(
+        { content, cover, creator, description, editors },
         this.table
       )
+
+      // add tag into search engine
+      await this.addToSearch({
+        id: tag.id,
+        content: tag.content,
+        description: tag.description,
+      })
+
+      return tag
     }
 
-    // find
     return item
   }
 
@@ -188,7 +209,6 @@ export class TagService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
-
   addToSearch = async ({
     id,
     content,
@@ -455,6 +475,18 @@ export class TagService extends BaseService {
       .andWhere({ tagId })
       .del()
 
+  deleteArticleTagsByTagIds = async ({
+    articleId,
+    tagIds,
+  }: {
+    articleId: string
+    tagIds: string[]
+  }) =>
+    this.knex('article_tag')
+      .whereIn('tag_id', tagIds)
+      .andWhere({ articleId })
+      .del()
+
   isArticleSelected = async ({
     articleId,
     tagId,
@@ -469,6 +501,22 @@ export class TagService extends BaseService {
     })
     return result.length > 0
   }
+
+  /**
+   * Find article covers by tag id.
+   */
+  findArticleCovers = async ({ id }: { id: string }) =>
+    this.knex
+      .select('article.cover')
+      .from('article_tag')
+      .join('article', 'article_id', 'article.id')
+      .where({
+        tagId: id,
+        selected: true,
+        state: ARTICLE_STATE.active,
+      })
+      .limit(BATCH_SIZE)
+      .orderBy('article_tag.id', 'asc')
 
   /*********************************
    *                               *

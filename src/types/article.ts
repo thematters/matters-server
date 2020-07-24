@@ -6,11 +6,14 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
+    ##############
+    #   Article  #
+    ##############
     "Publish an article onto IPFS."
     publishArticle(input: PublishArticleInput!): Draft! @authenticate @purgeCache @rateLimit(limit:10, period:7200)
 
-    "Archive an article and users won't be able to view this article."
-    archiveArticle(input: ArchiveArticleInput!): Article! @authenticate @purgeCache
+    "Edit an article."
+    editArticle(input: EditArticleInput!): Article! @authenticate @purgeCache
 
     "Report an article to team."
     reportArticle(input: ReportArticleInput!): Boolean
@@ -24,23 +27,22 @@ export default /* GraphQL */ `
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
 
-    "Recall while publishing."
-    recallPublish(input: RecallPublishInput!): Draft! @authenticate @purgeCache
 
-    "Set collection of an article."
-    setCollection(input: SetCollectionInput!): Article! @authenticate @purgeCache
-
-    "Update article information."
-    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @authenticate @purgeCache
-
+    ##############
+    #     Tag    #
+    ##############
     "Create or update tag."
     putTag(input: PutTagInput!): Tag! @authenticate @purgeCache
 
-    "Add or update one tag to articles."
-    putArticlesTags(input: PutArticlesTagsInput!): Tag! @authenticate @purgeCache
+    "Add one tag to articles."
+    addArticlesTags(input: AddArticlesTagsInput!): Tag! @authenticate @purgeCache
+
+    "Update articles' tag."
+    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authenticate @purgeCache
 
     "Delete one tag from articles"
-    deleteArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authenticate @purgeCache
+    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @authenticate @purgeCache
+
 
     ##############
     #     OSS    #
@@ -64,6 +66,18 @@ export default /* GraphQL */ `
     "Unsubscribe an article."
     unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @authenticate @purgeCache
     @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
+
+    "Archive an article and users won't be able to view this article."
+    archiveArticle(input: ArchiveArticleInput!): Article! @authenticate @purgeCache @deprecated(reason: "Use \`editArticle\`.")
+
+    "Set collection of an article."
+    setCollection(input: SetCollectionInput!): Article! @authenticate @purgeCache @deprecated(reason: "Use \`editArticle\`.")
+
+    "Update article information."
+    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @authenticate @purgeCache @deprecated(reason: "Use \`editArticle\`.")
+
+    "Recall while publishing."
+    recallPublish(input: RecallPublishInput!): Draft! @authenticate @purgeCache @deprecated
   }
 
   """
@@ -267,6 +281,14 @@ export default /* GraphQL */ `
     delay: Int
   }
 
+  input EditArticleInput {
+    id: ID!
+    state: ArticleState
+    sticky: Boolean
+    tags: [String!]
+    collection: [ID!]
+  }
+
   input ArchiveArticleInput {
     id: ID!
   }
@@ -340,16 +362,23 @@ export default /* GraphQL */ `
   input PutTagInput {
     id: ID
     content: String
+    cover: ID
     description: String
   }
 
-  input PutArticlesTagsInput {
+  input AddArticlesTagsInput {
     id: ID!
     articles: [ID!]
     selected: Boolean
   }
 
   input UpdateArticlesTagsInput {
+    id: ID!
+    articles: [ID!]
+    isSelected: Boolean!
+  }
+
+  input DeleteArticlesTagsInput {
     id: ID!
     articles: [ID!]
   }
