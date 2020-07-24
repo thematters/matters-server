@@ -2,7 +2,13 @@ import cookie from 'cookie'
 import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 
-import { LANGUAGE, SCOPE_MODE, USER_ROLE, USER_STATE } from 'common/enums'
+import {
+  COOKIE_TOKEN_NAME,
+  LANGUAGE,
+  SCOPE_MODE,
+  USER_ROLE,
+  USER_STATE,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { clearCookie, getLanguage, makeScope } from 'common/utils'
@@ -129,7 +135,9 @@ export const getViewerFromReq = async ({
 
   // get user from token, use cookie first then 'x-access-token'
   const token =
-    cookie.parse(headers.cookie || '').token || headers['x-access-token'] || ''
+    cookie.parse(headers.cookie || '')[COOKIE_TOKEN_NAME] ||
+    headers['x-access-token'] ||
+    ''
 
   if (!token) {
     logger.info('User is not logged in, viewing as guest')
