@@ -1,0 +1,5 @@
+# dev team is required for all PR reviews
+*   @thematters/dev
+
+# data team is required for all data related PR reviews
+db/migrations/*  @thematters/data
