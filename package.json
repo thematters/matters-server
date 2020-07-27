@@ -1,12 +1,14 @@
 {
   "name": "matters-server",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "description": "Matters Server",
+  "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
   "engines": {
     "node": ">=12.16",
     "npm": ">=6.14"
   },
+  "license": "Apache-2.0",
   "scripts": {
     "db:rollback": "knex-migrate rollback",
     "db:migrate": "knex-migrate up",
@@ -31,8 +33,6 @@
     "gen": "npm run gen:schema && npm run gen:types",
     "schema:push": "apollo service:push --key=$MATTERS_APOLLO_API_KEY --localSchemaFile=schema.graphql"
   },
-  "author": "Matters <hi@matters.news>",
-  "license": "Apache-2.0",
   "dependencies": {
     "@elastic/elasticsearch": "^7.8.0",
     "@google-cloud/translate": "^6.0.2",
@@ -46,7 +46,7 @@
     "apollo-cache-control": "^0.11.1",
     "apollo-server-cache-redis": "^1.2.2",
     "apollo-server-express": "^2.16.0",
-    "aws-sdk": "^2.718.0",
+    "aws-sdk": "^2.719.0",
     "axios": "^0.19.2",
     "bcrypt": "^5.0.0",
     "bodybuilder": "^2.2.20",
