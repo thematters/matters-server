@@ -332,6 +332,7 @@ export class ArticleService extends BaseService {
         `${this.table}.id as id`,
         'title',
         'content',
+        'author_id as authorId',
         'user.user_name as userName',
         'user.display_name as displayName'
       )
@@ -353,6 +354,7 @@ export class ArticleService extends BaseService {
     id,
     title,
     content,
+    authorId,
     userName,
     displayName,
     tags,
@@ -367,6 +369,7 @@ export class ArticleService extends BaseService {
           title,
           content: stripHtml(content),
           state: ARTICLE_STATE.active,
+          authorId,
           userName,
           displayName,
           tags,
@@ -1193,14 +1196,18 @@ export class ArticleService extends BaseService {
     const oldData = record[0]
 
     // calculate heart beat lapsed time in secondes
-    const lapse = (Date.now() - new Date(oldData.updatedAt).getTime()) / 1000
+    const lapse = Date.now() - new Date(oldData.updatedAt).getTime()
 
     // calculate last read total time
-    const readLength =
-      (Date.now() - new Date(oldData.lastRead).getTime()) / 1000
+    const readLength = Date.now() - new Date(oldData.lastRead).getTime()
 
-    // if lapse if longer than 5 minutes
-    // or original read longer than 30 minutes
+    // if original read longer than 30 minutes
+    // skip
+    if (readLength > MINUTE * 30) {
+      return { newRead: false }
+    }
+
+    // if lapse is longer than 5 minutes
     // add a new count and update last read timestamp
     if (lapse > MINUTE * 5 || readLength > MINUTE * 30) {
       await this.baseUpdate(
