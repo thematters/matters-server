@@ -1,3 +1,4 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import { NextFunction, Request, Response } from 'express'
 import querystring from 'querystring'
 import Stripe from 'stripe'
@@ -73,7 +74,10 @@ const stripeConnectHandler = async (
     })
 
     // invalidate user cache
-    await cacheService.invalidateFQC(NODE_TYPES.user, viewer.id)
+    await invalidateFQC({
+      node: { type: NODE_TYPES.user, id: viewer.id },
+      redis: cacheService.redis,
+    })
   } catch (err) {
     logger.error(err)
 

@@ -26,7 +26,6 @@ export class ScopeDirective extends SchemaDirectiveVisitor {
             return resolve.apply(this, args)
           }
           throw new ForbiddenError('viewer has no permission')
-          break
         }
         case SCOPE_MODE.visitor:
         case SCOPE_MODE.user: {

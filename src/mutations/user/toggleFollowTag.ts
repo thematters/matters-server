@@ -1,9 +1,4 @@
-import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
-import {
-  ActionFailedError,
-  AuthenticationError,
-  TagNotFoundError,
-} from 'common/errors'
+import { AuthenticationError, TagNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToToggleFollowTagResolver } from 'definitions'
 

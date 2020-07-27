@@ -66,7 +66,7 @@ export default /* GraphQL */ `
     #     OSS    #
     ##############
     "Update state of a user, used in OSS."
-    updateUserState(input: UpdateUserStateInput!): [User!] @authorize @purgeCache(type: "${NODE_TYPES.user}")
+    updateUserState(input: UpdateUserStateInput!): [User!] @authorize
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @authorize @purgeCache(type: "${NODE_TYPES.user}")
 

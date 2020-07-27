@@ -5,6 +5,7 @@ import {
 import { makeExecutableSchema } from 'graphql-tools'
 import { merge } from 'lodash'
 
+import { CACHE_KEYWORD } from 'common/enums'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
 
 import mutations from './mutations'
@@ -21,7 +22,15 @@ import {
 } from './types/directives'
 
 const typeResolver = (type: string, result: any) => {
-  if (type === 'Node' || type === 'Response') {
+  const unionsAndInterfaces = [
+    'Node',
+    'Response',
+    'Connection',
+    'TransactionTarget',
+    'Notice',
+  ]
+
+  if (unionsAndInterfaces.indexOf(type) >= 0) {
     return result.__type
   }
 
@@ -39,7 +48,10 @@ const schema = makeExecutableSchema({
     privateCache: PrivateCacheDirective,
     objectCache: ObjectCacheDirective,
     logCache: LogCacheDirective({ typeResolver }),
-    purgeCache: PurgeCacheDirective({ typeResolver }),
+    purgeCache: PurgeCacheDirective({
+      typeResolver,
+      extraNodesPath: CACHE_KEYWORD,
+    }),
   },
   resolvers: merge(queries, mutations, subscriptions),
 })

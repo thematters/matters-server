@@ -21,7 +21,7 @@ export default /* GraphQL */ `
     unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Update a comments' state."
-    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
+    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @authenticate
 
 
     ##############

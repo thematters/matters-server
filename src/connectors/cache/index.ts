@@ -118,28 +118,6 @@ export class CacheService {
     return data
   }
 
-  /**
-   * Invalidate cache by given type and id.
-   */
-  invalidateFQC = async (type: string, id: string) => {
-    try {
-      if (!this.redis || !this.redis.client) {
-        throw new Error('redis init failed')
-      }
-      const key = this.genKey({ type, id })
-      const hashes = await this.redis.client.smembers(key)
-      hashes.map(async (hash: string) => {
-        await this.redis.client
-          .pipeline()
-          .del(`fqc:${hash}`)
-          .srem(key, hash)
-          .exec()
-      })
-    } catch (error) {
-      logger.error(error)
-    }
-  }
-
   checkOperationLimit = async ({
     user,
     operation,

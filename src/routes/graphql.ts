@@ -141,6 +141,10 @@ export const graphql = (app: Express) => {
     PLAYGROUND_ENDPOINT,
     expressPlayground({
       endpoint: API_ENDPOINT,
+      settings: {
+        // @ts-ignore
+        'schema.polling.enable': false,
+      },
     })
   )
 

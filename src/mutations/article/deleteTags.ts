@@ -1,3 +1,5 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
 import { NODE_TYPES } from 'common/enums'
 import { fromGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
@@ -17,7 +19,12 @@ const resolver: MutationToDeleteTagsResolver = async (
   // manually invalidate cache since it returns nothing
   const cacheService = new CacheService()
   await Promise.all(
-    tagDbIds.map((id) => cacheService.invalidateFQC(NODE_TYPES.tag, id))
+    tagDbIds.map((id) =>
+      invalidateFQC({
+        node: { type: NODE_TYPES.tag, id },
+        redis: cacheService.redis,
+      })
+    )
   )
 
   return true

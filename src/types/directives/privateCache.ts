@@ -4,20 +4,17 @@ import { SchemaDirectiveVisitor } from 'graphql-tools'
 
 import { CACHE_TTL } from 'common/enums'
 
-interface Params {
-  _strict: boolean
-}
-
 export class PrivateCacheDirective extends SchemaDirectiveVisitor {
-  visitFieldDefinition(field: GraphQLField<any, any> & Params) {
+  visitFieldDefinition(field: GraphQLField<any, any>) {
     const { resolve = defaultFieldResolver } = field
-    field._strict = this.args.strict
-    field.resolve = async function (...args) {
+
+    field.resolve = async (...args) => {
+      const { strict } = this.args
       const [root, _, { viewer }, { fieldName, cacheControl }] = args
       const logged = viewer.id && viewer.hasRole('user')
 
       let maxAge = CACHE_TTL.SHORT
-      if (field._strict === true && logged) {
+      if (strict && logged) {
         maxAge = CACHE_TTL.INSTANT
       }
 
