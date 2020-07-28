@@ -38,7 +38,6 @@ const resolver: MutationToPayToResolver = async (
       userService,
       notificationService,
     },
-    redis,
   }
 ) => {
   // params validators

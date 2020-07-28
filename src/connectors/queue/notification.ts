@@ -1,4 +1,4 @@
-import { MailData } from '@sendgrid/helpers/classes/mail'
+import { MailDataRequired } from '@sendgrid/helpers/classes/mail'
 import Queue from 'bull'
 
 import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
@@ -26,7 +26,7 @@ class NotificationQueue {
   /**
    * Producers
    */
-  sendMail = (data: MailData) => {
+  sendMail = (data: MailDataRequired) => {
     return this.q.add(QUEUE_JOB.sendMail, data, {
       priority: QUEUE_PRIORITY.NORMAL,
     })
@@ -44,7 +44,7 @@ class NotificationQueue {
   private addConsumers = () => {
     this.q.process(QUEUE_JOB.sendMail, async (job, done) => {
       try {
-        const result = await mailService.send(job.data as MailData)
+        const result = await mailService.send(job.data as MailDataRequired)
         job.progress(100)
         done(null, result)
       } catch (e) {

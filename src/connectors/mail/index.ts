@@ -1,4 +1,4 @@
-import { MailData } from '@sendgrid/helpers/classes/mail'
+import { MailDataRequired } from '@sendgrid/helpers/classes/mail'
 import sgMail from '@sendgrid/mail'
 
 import { environment, isDev, isTest } from 'common/environment'
@@ -15,7 +15,7 @@ class MailService {
     return sgMail
   }
 
-  send = async (params: MailData) => {
+  send = async (params: MailDataRequired) => {
     if (isTest) {
       return
     }

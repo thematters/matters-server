@@ -1,8 +1,8 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 
 import {
   NODE_TYPES,
-  PAYMENT_CURRENCY,
   PAYMENT_MAXIMUM_AMOUNT,
   QUEUE_JOB,
   QUEUE_NAME,
@@ -186,7 +186,10 @@ class PayToQueue extends BaseQueue {
         const entityType =
           NODE_TYPES[(entity?.table as keyof typeof NODE_TYPES) || '']
         if (entityType && this.cacheService) {
-          this.cacheService.invalidateFQC(entityType, tx.targetId)
+          invalidateFQC({
+            node: { type: entityType, id: tx.targetId },
+            redis: this.cacheService.redis,
+          })
         }
       }
 

@@ -553,7 +553,7 @@ export const NODE_TYPES = {
 }
 
 // keyword notating for cache invalidation
-export const CACHE_KEYWORD = '__cache__'
+export const CACHE_KEYWORD = '__invalid_nodes__'
 
 // redis cache for apq keys or resolver returned objects
 export const CACHE_PREFIX = {

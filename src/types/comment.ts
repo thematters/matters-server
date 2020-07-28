@@ -3,35 +3,35 @@ import { NODE_TYPES } from 'common/enums'
 export default /* GraphQL */ `
   extend type Mutation {
     "Publish a comment."
-    putComment(input: PutCommentInput!): Comment! @authenticate @purgeCache @rateLimit(limit:3, period:120)
+    putComment(input: PutCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}") @rateLimit(limit:3, period:120)
 
     "Remove a comment."
-    deleteComment(input: DeleteCommentInput!): Comment! @authenticate @purgeCache
+    deleteComment(input: DeleteCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Pin or Unpin a comment."
-    togglePinComment(input: ToggleItemInput!): Comment! @authenticate @purgeCache
+    togglePinComment(input: ToggleItemInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Report a comment to team."
     reportComment(input: ReportCommentInput!): Boolean
 
     "Upvote or downvote a comment."
-    voteComment(input: VoteCommentInput!): Comment! @authenticate @purgeCache
+    voteComment(input: VoteCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Unvote a comment."
-    unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate @purgeCache
+    unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Update a comments' state."
-    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @authenticate @purgeCache
+    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @authenticate
 
 
     ##############
     # DEPRECATED #
     ##############
     "Pin a comment."
-    pinComment(input: PinCommentInput!): Comment! @authenticate @purgeCache @deprecated(reason: "Use \`togglePinComment\`.")
+    pinComment(input: PinCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}") @deprecated(reason: "Use \`togglePinComment\`.")
 
     "Unpin a comment."
-    unpinComment(input: UnpinCommentInput!): Comment! @authenticate @purgeCache @deprecated(reason: "Use \`togglePinComment\`.")
+    unpinComment(input: UnpinCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}") @deprecated(reason: "Use \`togglePinComment\`.")
 
   }
 

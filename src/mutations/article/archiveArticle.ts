@@ -1,4 +1,4 @@
-import { ARTICLE_STATE, CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
+import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToArchiveArticleResolver } from 'definitions'

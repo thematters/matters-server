@@ -1,3 +1,4 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
 
@@ -177,7 +178,10 @@ class PublicationQueue extends BaseQueue {
       job.progress(95)
 
       // invalidate user cache
-      await this.cacheService.invalidateFQC(NODE_TYPES.user, article.authorId)
+      await invalidateFQC({
+        node: { type: NODE_TYPES.user, id: article.authorId },
+        redis: this.cacheService.redis,
+      })
       job.progress(100)
 
       done(null, {
