@@ -8,7 +8,7 @@ import { TagToFollowersResolver } from 'definitions'
 const resolver: TagToFollowersResolver = async (
   { id },
   { input },
-  { dataSources: { tagService } }
+  { dataSources: { tagService, userService } }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
@@ -24,7 +24,8 @@ const resolver: TagToFollowersResolver = async (
     (map, action) => ({ ...map, [action.userId]: action.id }),
     {}
   )
-  const users = (await tagService.dataloader.loadMany(
+
+  const users = (await userService.dataloader.loadMany(
     actions.map(({ userId }: { userId: string }) => userId)
   )) as Array<Record<string, any>>
   const data = users.map((user) => ({ ...user, __cursor: cursors[user.id] }))
