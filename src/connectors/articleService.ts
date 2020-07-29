@@ -523,12 +523,12 @@ export class ArticleService extends BaseService {
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
-      .rightJoin(
+      .rightJoin('article', 'view.id', 'article.id')
+      .leftJoin(
         'article_recommend_setting as setting',
         'view.id',
         'setting.article_id'
       )
-      .rightJoin('article', 'view.id', 'article.id')
       .orderByRaw('score desc nulls last')
       .orderBy([{ column: 'view.id', order: 'desc' }])
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
