@@ -557,7 +557,6 @@ export const CACHE_KEYWORD = '__invalid_nodes__'
 
 // redis cache for apq keys or resolver returned objects
 export const CACHE_PREFIX = {
-  KEYS: 'cache-keys',
   OBJECTS: 'cache-objects',
   OPERATION_LOG: 'operation-log',
 }

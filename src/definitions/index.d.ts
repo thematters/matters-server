@@ -11,6 +11,7 @@ import {
   NotificationService,
   OAuthService,
   PaymentService,
+  CacheService,
 } from 'connectors'
 
 export * from './schema'
