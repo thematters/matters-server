@@ -45,7 +45,7 @@
     "@slack/web-api": "^5.11.0",
     "apollo-cache-control": "^0.11.1",
     "apollo-server-cache-redis": "^1.2.2",
-    "apollo-server-express": "^2.16.0",
+    "apollo-server-express": "^2.16.1",
     "aws-sdk": "^2.722.0",
     "axios": "^0.19.2",
     "bcrypt": "^5.0.0",
