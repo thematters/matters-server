@@ -7,7 +7,7 @@ export default /* GraphQL */ `
     frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection! @privateCache
     official: Official!
-    oss: OSS! @authorize @cacheControl(maxAge: ${CACHE_TTL.INSTANT}, scope: PRIVATE)
+    oss: OSS! @authorize
   }
 
   extend type Mutation {

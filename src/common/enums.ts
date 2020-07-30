@@ -39,13 +39,13 @@ export const MATERIALIZED_VIEW = {
   featuredCommentMaterialized: 'featured_comment_materialized',
 }
 
-// cache ttl in seconds
+// cache TTL in seconds
 export const CACHE_TTL = {
   STATIC: 60 * 60 * 24 * 10, // 10 days for static data
   LONG: 60 * 60 * 24, // 1 day
-  SHORT: 90,
-  DEFAULT: 60,
-  INSTANT: 0,
+  SHORT: 60 * 10, // 10 mins
+  DEFAULT: 60, // 1 min
+  INSTANT: 0, // no cache
 }
 
 export const USER_ROLE = {
