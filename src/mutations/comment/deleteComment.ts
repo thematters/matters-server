@@ -37,18 +37,6 @@ const resolver: MutationToDeleteCommentResolver = async (
   //   article
   // )
 
-  // Add custom data for cache invalidation
-  comment[CACHE_KEYWORD] = [
-    {
-      id: article.id,
-      type: NODE_TYPES.article,
-    },
-    {
-      id: comment.id,
-      type: NODE_TYPES.comment,
-    },
-  ]
-
   return comment
 }
 export default resolver

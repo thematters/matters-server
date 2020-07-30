@@ -49,8 +49,8 @@ export default /* GraphQL */ `
     ##############
     toggleArticleLive(input: ToggleItemInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
     toggleArticlePublic(input: ToggleItemInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
-    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @purgeCache(type: "${NODE_TYPES.article}")
-      @authorize
+    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
+
     updateArticleState(input: UpdateArticleStateInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
     deleteTags(input: DeleteTagsInput!): Boolean @authorize
     renameTag(input: RenameTagInput!): Tag! @authorize @purgeCache(type: "${NODE_TYPES.tag}")
@@ -107,7 +107,7 @@ export default /* GraphQL */ `
     live: Boolean!
 
     "Author of this article."
-    author: User!
+    author: User! @logCache(type: "${NODE_TYPES.user}")
 
     "Article title."
     title: String!
@@ -207,9 +207,11 @@ export default /* GraphQL */ `
     description: String
 
     "Editors of this tag."
+    # editors: [User!] @logCache(type: "${NODE_TYPES.user}")
     editors: [User!]
 
     "Creator of this tag."
+    # creator: User @logCache(type: "${NODE_TYPES.article}")
     creator: User
 
     "This value determines if current viewer is following or not."

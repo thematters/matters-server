@@ -21,18 +21,6 @@ const resolver: MutationToArchiveArticleResolver = async (
 
   const article = await articleService.archive(dbId)
 
-  // Add custom data for cache invalidation
-  article[CACHE_KEYWORD] = [
-    {
-      id: article.id,
-      type: NODE_TYPES.article,
-    },
-    {
-      id: article.authorId,
-      type: NODE_TYPES.user,
-    },
-  ]
-
   return article
 }
 

@@ -1,4 +1,4 @@
-import { CACHE_TTL } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
@@ -54,6 +54,7 @@ export default /* GraphQL */ `
     sender: User
 
     "Related target article or transaction."
+    # target: TransactionTarget @logCache(type: "${NODE_TYPES.transactionTarget}")
     target: TransactionTarget
 
     "Message for end user, including reason of failure."
@@ -68,7 +69,7 @@ export default /* GraphQL */ `
 
   type TransactionEdge {
     cursor: String!
-    node: Transaction!
+    node: Transaction! @logCache(type: "${NODE_TYPES.transaction}")
   }
 
   input TransactionsArgs {

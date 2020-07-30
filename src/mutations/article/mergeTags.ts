@@ -21,7 +21,7 @@ const resolver: MutationToMergeTagsResolver = async (
     editors: [mattyUser.id],
   })
 
-  // Add custom data for cache invalidation
+  // invalidate extra nodes
   newTag[CACHE_KEYWORD] = tagDbIds.map((id) => ({ id, type: NODE_TYPES.tag }))
   return newTag
 }

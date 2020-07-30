@@ -47,18 +47,6 @@ const resolver: MutationToToggleBlockUserResolver = async (
     await userService.unblock(viewer.id, user.id)
   }
 
-  // Add custom data for cache invalidation
-  user[CACHE_KEYWORD] = [
-    {
-      id: viewer.id,
-      type: NODE_TYPES.user,
-    },
-    {
-      id: user.id,
-      type: NODE_TYPES.user,
-    },
-  ]
-
   return user
 }
 

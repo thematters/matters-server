@@ -1,13 +1,13 @@
-import { CACHE_TTL } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    node(input: NodeInput!): Node @privateCache @logCache(type: "Node")
-    nodes(input: NodesInput!): [Node!] @privateCache
+    node(input: NodeInput!): Node @privateCache @logCache(type: "${NODE_TYPES.node}")
+    nodes(input: NodesInput!): [Node!] @privateCache @logCache(type: "${NODE_TYPES.node}")
     frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection! @privateCache
-    official: Official!
-    oss: OSS! @authorize
+    official: Official! @privateCache
+    oss: OSS! @authorize @privateCache
   }
 
   extend type Mutation {
@@ -150,7 +150,7 @@ export default /* GraphQL */ `
 
   type SearchResultEdge {
     cursor: String!
-    node: Node!
+    node: Node! @logCache(type: "${NODE_TYPES.node}")
   }
 
   type ReportConnection implements Connection {

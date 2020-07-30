@@ -1,4 +1,4 @@
-import { CACHE_TTL } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
@@ -56,7 +56,7 @@ export default /* GraphQL */ `
     assets: [Asset!]!
 
     "Published article"
-    article: Article
+    article: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   type DraftConnection implements Connection {
@@ -67,7 +67,7 @@ export default /* GraphQL */ `
 
   type DraftEdge {
     cursor: String!
-    node: Draft!
+    node: Draft! @logCache(type: "${NODE_TYPES.draft}")
   }
 
   input PutDraftInput {

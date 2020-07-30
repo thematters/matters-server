@@ -21,7 +21,7 @@ export default /* GraphQL */ `
     unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Update a comments' state."
-    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @authenticate
+    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
 
 
     ##############
@@ -92,7 +92,7 @@ export default /* GraphQL */ `
     pinCommentLeft: Int!
 
     "List of pinned comments."
-    pinnedComments: [Comment!]
+    pinnedComments: [Comment!] @logCache(type: "${NODE_TYPES.comment}")
 
     "List of featured comments of this article."
     featuredComments(input: FeaturedCommentsInput!): CommentConnection!

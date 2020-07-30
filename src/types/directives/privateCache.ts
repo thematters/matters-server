@@ -13,7 +13,7 @@ export class PrivateCacheDirective extends SchemaDirectiveVisitor {
       const [root, _, { viewer }, { fieldName, cacheControl }] = args
       const logged = viewer.id && viewer.hasRole('user')
 
-      let maxAge = CACHE_TTL.SHORT
+      let maxAge: number | undefined
       if (strict && logged) {
         maxAge = CACHE_TTL.INSTANT
       }
@@ -21,9 +21,14 @@ export class PrivateCacheDirective extends SchemaDirectiveVisitor {
       let scope = CacheScope.Public
       if (logged) {
         scope = CacheScope.Private
+        maxAge = Math.min(CACHE_TTL.DEFAULT, cacheControl.cacheHint.maxAge || 0)
       }
 
-      cacheControl.setCacheHint({ maxAge, scope })
+      if (typeof maxAge === 'number') {
+        cacheControl.setCacheHint({ maxAge, scope })
+      } else {
+        cacheControl.setCacheHint({ scope })
+      }
       return resolve.apply(this, args)
     }
   }

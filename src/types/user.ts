@@ -66,7 +66,8 @@ export default /* GraphQL */ `
     #     OSS    #
     ##############
     "Update state of a user, used in OSS."
-    updateUserState(input: UpdateUserStateInput!): [User!] @authorize
+    updateUserState(input: UpdateUserStateInput!): [User!] @authorize @purgeCache(type: "${NODE_TYPES.user}")
+
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @authorize @purgeCache(type: "${NODE_TYPES.user}")
 
@@ -85,7 +86,6 @@ export default /* GraphQL */ `
 
     "Unfollow curent user."
     unfollowUser(input: FollowUserInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
-
   }
 
   type User implements Node {
@@ -386,7 +386,7 @@ export default /* GraphQL */ `
 
   type UserEdge {
     cursor: String!
-    node: User!
+    node: User! @logCache(type: "${NODE_TYPES.user}")
   }
 
   type ReadHistoryConnection implements Connection {
@@ -419,7 +419,7 @@ export default /* GraphQL */ `
 
   type AppreciationEdge {
     cursor: String!
-    node: Appreciation!
+    node: Appreciation! @logCache(type: "${NODE_TYPES.appreciation}")
   }
 
   input UserInput {

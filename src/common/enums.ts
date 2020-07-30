@@ -44,7 +44,7 @@ export const CACHE_TTL = {
   STATIC: 60 * 60 * 24 * 10, // 10 days for static data
   LONG: 60 * 60 * 24, // 1 day
   SHORT: 60 * 10, // 10 mins
-  DEFAULT: 60, // 1 min
+  DEFAULT: 90, // 1.5 mins
   INSTANT: 0, // no cache
 }
 
@@ -550,6 +550,14 @@ export const NODE_TYPES = {
   draft: 'Draft',
   user: 'User',
   tag: 'Tag',
+  appreciation: 'Appreciation',
+  transaction: 'Transaction',
+
+  // Unions & Interfaces
+  node: 'Node',
+  notice: 'Notice',
+  response: 'Response',
+  transactionTarget: 'TransactionTarget',
 }
 
 // keyword notating for cache invalidation

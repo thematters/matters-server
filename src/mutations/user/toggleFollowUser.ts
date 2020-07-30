@@ -54,18 +54,6 @@ const resolver: MutationToToggleFollowUserResolver = async (
     await userService.unfollow(viewer.id, user.id)
   }
 
-  // Add custom data for cache invalidation
-  user[CACHE_KEYWORD] = [
-    {
-      id: viewer.id,
-      type: NODE_TYPES.user,
-    },
-    {
-      id: user.id,
-      type: NODE_TYPES.user,
-    },
-  ]
-
   return user
 }
 

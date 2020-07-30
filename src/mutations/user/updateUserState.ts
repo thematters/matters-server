@@ -1,24 +1,9 @@
-import { invalidateFQC } from '@matters/apollo-response-cache'
-
 import { NODE_TYPES, USER_STATE } from 'common/enums'
 import { ActionFailedError, UserInputError } from 'common/errors'
 import { fromGlobalId, getPunishExpiredDate } from 'common/utils'
 import { CacheService } from 'connectors'
 import { userQueue } from 'connectors/queue'
 import { MutationToUpdateUserStateResolver, User } from 'definitions'
-
-// manually invalidate cache since it returns nothing
-const invalidateUsers = async (users: User[]) => {
-  const cacheService = new CacheService()
-  await Promise.all(
-    users.map(({ id }) =>
-      invalidateFQC({
-        node: { type: NODE_TYPES.user, id },
-        redis: cacheService.redis,
-      })
-    )
-  )
-}
 
 const resolver: MutationToUpdateUserStateResolver = async (
   _,
@@ -80,7 +65,6 @@ const resolver: MutationToUpdateUserStateResolver = async (
         })
       )
 
-    await invalidateUsers(updatedUsers)
     return updatedUsers
   }
 
@@ -124,7 +108,6 @@ const resolver: MutationToUpdateUserStateResolver = async (
       language: user.language,
     })
 
-    await invalidateUsers([archivedUser])
     return [archivedUser]
   }
 
@@ -141,7 +124,6 @@ const resolver: MutationToUpdateUserStateResolver = async (
     handleUnban(updatedUser.id)
   }
 
-  await invalidateUsers([updatedUser])
   return [updatedUser]
 }
 
