@@ -1891,19 +1891,16 @@ export interface GQLMutation {
 
   /**
    * Set collection of an article.
-   * @deprecated Use `editArticle`.
    */
   setCollection: GQLArticle
 
   /**
    * Update article information.
-   * @deprecated Use `editArticle`.
    */
   updateArticleInfo: GQLArticle
 
   /**
    * Recall while publishing.
-   * @deprecated No longer supported
    */
   recallPublish: GQLDraft
 
@@ -1944,13 +1941,11 @@ export interface GQLMutation {
 
   /**
    * Pin a comment.
-   * @deprecated Use `togglePinComment`.
    */
   pinComment: GQLComment
 
   /**
    * Unpin a comment.
-   * @deprecated Use `togglePinComment`.
    */
   unpinComment: GQLComment
 

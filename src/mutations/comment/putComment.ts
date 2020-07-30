@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
+import { USER_STATE } from 'common/enums'
 import {
   ArticleNotFoundError,
   AuthenticationError,

@@ -1,6 +1,6 @@
 import { difference, uniq } from 'lodash'
 
-import { ARTICLE_STATE, CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
+import { ARTICLE_STATE } from 'common/enums'
 import {
   AuthenticationError,
   EntityNotFoundError,

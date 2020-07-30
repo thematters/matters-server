@@ -1,4 +1,3 @@
-import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import { ArticleNotFoundError, AuthenticationError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToToggleSubscribeArticleResolver } from 'definitions'

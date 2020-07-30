@@ -22,7 +22,6 @@ import logger from 'common/logger'
 import { initSubscriptions, makeContext } from 'common/utils'
 import {
   ArticleService,
-  CacheService,
   CommentService,
   DraftService,
   NotificationService,

@@ -5,7 +5,6 @@ import { Request } from 'express'
 import { roleAccess, scopeModes } from 'common/utils'
 import {
   ArticleService,
-  CacheService,
   CommentService,
   DraftService,
   NotificationService,

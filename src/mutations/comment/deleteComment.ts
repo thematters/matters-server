@@ -1,6 +1,6 @@
-import { CACHE_KEYWORD, COMMENT_STATE, NODE_TYPES } from 'common/enums'
+import { COMMENT_STATE } from 'common/enums'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 import { MutationToDeleteCommentResolver } from 'definitions'
 
 const resolver: MutationToDeleteCommentResolver = async (

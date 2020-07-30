@@ -9,16 +9,16 @@ export default /* GraphQL */ `
     deleteComment(input: DeleteCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Pin or Unpin a comment."
-    togglePinComment(input: ToggleItemInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
+    togglePinComment(input: ToggleItemInput!): Comment! @authenticate
 
     "Report a comment to team."
     reportComment(input: ReportCommentInput!): Boolean
 
     "Upvote or downvote a comment."
-    voteComment(input: VoteCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
+    voteComment(input: VoteCommentInput!): Comment! @authenticate
 
     "Unvote a comment."
-    unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
+    unvoteComment(input: UnvoteCommentInput!): Comment! @authenticate
 
     "Update a comments' state."
     updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @authenticate @purgeCache(type: "${NODE_TYPES.comment}")
@@ -28,11 +28,10 @@ export default /* GraphQL */ `
     # DEPRECATED #
     ##############
     "Pin a comment."
-    pinComment(input: PinCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}") @deprecated(reason: "Use \`togglePinComment\`.")
+    pinComment(input: PinCommentInput!): Comment! @authenticate
 
     "Unpin a comment."
-    unpinComment(input: UnpinCommentInput!): Comment! @authenticate @purgeCache(type: "${NODE_TYPES.comment}") @deprecated(reason: "Use \`togglePinComment\`.")
-
+    unpinComment(input: UnpinCommentInput!): Comment! @authenticate
   }
 
   """

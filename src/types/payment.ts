@@ -23,7 +23,7 @@ export default /* GraphQL */ `
   union TransactionTarget = Article | Transaction
 
   type Wallet {
-    balance: Balance!
+    balance: Balance! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
     transactions(input: TransactionsArgs!): TransactionConnection!
     stripeAccount: StripeAccount
   }
