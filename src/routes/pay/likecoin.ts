@@ -1,3 +1,4 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import { Router } from 'express'
 
 import { NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
@@ -106,7 +107,10 @@ likecoinRouter.get('/', async (req, res) => {
       const targetType =
         NODE_TYPES[(entityResult?.table as keyof typeof NODE_TYPES) || '']
       if (targetType) {
-        await cacheService.invalidateFQC(targetType, tx.targetId)
+        await invalidateFQC({
+          node: { type: targetType, id: tx.targetId },
+          redis: cacheService.redis,
+        })
       }
     }
   } catch (error) {

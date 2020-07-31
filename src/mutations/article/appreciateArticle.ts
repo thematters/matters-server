@@ -1,9 +1,4 @@
-import {
-  APPRECIATION_TYPES,
-  CACHE_KEYWORD,
-  NODE_TYPES,
-  USER_STATE,
-} from 'common/enums'
+import { USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,

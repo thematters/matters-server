@@ -9,8 +9,6 @@ export default {
     responses: articleResponses,
   },
   Response: {
-    __resolveType: ({ __type }: { __type: ResponseType }) => {
-      return __type
-    },
+    __resolveType: ({ __type }: { __type: ResponseType }) => __type,
   },
 }

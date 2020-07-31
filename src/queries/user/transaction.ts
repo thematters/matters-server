@@ -44,7 +44,5 @@ export const Transaction: GQLTransactionTypeResolver = {
 }
 
 export const TransactionTarget = {
-  __resolveType: ({ __type }: { __type: TransactionTargetType }) => {
-    return __type
-  },
+  __resolveType: ({ __type }: { __type: TransactionTargetType }) => __type,
 }

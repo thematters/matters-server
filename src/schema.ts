@@ -1,6 +1,11 @@
+import {
+  LogCacheDirective,
+  PurgeCacheDirective,
+} from '@matters/apollo-response-cache'
 import { makeExecutableSchema } from 'graphql-tools'
 import { merge } from 'lodash'
 
+import { CACHE_KEYWORD } from 'common/enums'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
 
 import mutations from './mutations'
@@ -10,13 +15,27 @@ import typeDefs from './types'
 import {
   authDirectiveFactory,
   DeprecatedDirective,
-  LogCacheDirective,
   ObjectCacheDirective,
   PrivateCacheDirective,
-  PurgeCacheDirective,
   RateLimitDirective,
   ScopeDirective,
 } from './types/directives'
+
+const typeResolver = (type: string, result: any) => {
+  const unionsAndInterfaces = [
+    'Node',
+    'Response',
+    'Connection',
+    'TransactionTarget',
+    'Notice',
+  ]
+
+  if (unionsAndInterfaces.indexOf(type) >= 0) {
+    return result.__type
+  }
+
+  return type
+}
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -25,11 +44,14 @@ const schema = makeExecutableSchema({
     authenticate: authDirectiveFactory(AuthenticationError),
     authorize: authDirectiveFactory(ForbiddenError),
     scope: ScopeDirective,
-    purgeCache: PurgeCacheDirective,
-    privateCache: PrivateCacheDirective,
-    logCache: LogCacheDirective,
     rateLimit: RateLimitDirective,
+    privateCache: PrivateCacheDirective,
     objectCache: ObjectCacheDirective,
+    logCache: LogCacheDirective({ typeResolver }),
+    purgeCache: PurgeCacheDirective({
+      typeResolver,
+      extraNodesPath: CACHE_KEYWORD,
+    }),
   },
   resolvers: merge(queries, mutations, subscriptions),
 })

@@ -1,17 +1,9 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import LikeCoinStrategy from '@matters/passport-likecoin'
 import _ from 'lodash'
 import passport from 'passport'
-import {
-  Strategy,
-  StrategyOptionsWithRequest,
-  VerifyFunctionWithRequest,
-} from 'passport-oauth2'
 
-import {
-  NODE_TYPES,
-  OAUTH_CALLBACK_ERROR_CODE,
-  OAUTH_PROVIDER,
-} from 'common/enums'
+import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { CacheService, UserService } from 'connectors'
@@ -103,7 +95,10 @@ export default () => {
           const user = await userService.dataloader.load(viewer.id)
 
           // invalidate user cache
-          await cacheService.invalidateFQC(NODE_TYPES.user, userId)
+          await invalidateFQC({
+            node: { type: NODE_TYPES.user, id: userId },
+            redis: cacheService.redis,
+          })
 
           return done(null, user)
         } catch (e) {
