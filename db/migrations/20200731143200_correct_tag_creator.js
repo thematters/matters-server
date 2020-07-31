@@ -103,25 +103,20 @@ exports.up = async (knex) => {
       continue
     }
 
-    const data = await knex.raw(`
-      SELECT
-        article_tag.*,
-        article.author_id
-      FROM
-        article_tag
-      INNER JOIN
-        article ON article.id = article_tag.article_id
-      WHERE tag_id = ${id}
-      ORDER BY created_at
-      LIMIT 1
-    `)
+    const record = await knex('article_tag')
+      .select('article_tag.*', 'article.author_id')
+      .innerJoin('article', 'article.id', 'article_tag.article_id')
+      .where({ 'article_tag.tag_id': id })
+      .orderBy('created_at', 'asc')
+      .limit(1)
+      .first()
 
-    if (!data || !data[0] || !data[0].author_id) {
+    if (!record || !record.author_id) {
       console.log(`tag: ${id}, could not find author`)
       continue
     }
 
-    await knex(table).where({ id }).update({ creator: data[0].author_id })
+    await knex(table).where({ id }).update({ creator: record.author_id })
     console.log(`tag: ${id}, updated`)
   }
 }
