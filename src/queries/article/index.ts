@@ -31,6 +31,7 @@ import tags from './tags'
 import transactionsReceivedBy from './transactionsReceivedBy'
 import translation from './translation'
 import userArticles from './user/articles'
+import userTags from './user/tags'
 
 export default {
   Query: {
@@ -38,6 +39,7 @@ export default {
   },
   User: {
     articles: userArticles,
+    tags: userTags,
   },
   Article: {
     content,

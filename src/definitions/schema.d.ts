@@ -329,6 +329,11 @@ export interface GQLUser extends GQLNode {
   articles: GQLArticleConnection
 
   /**
+   * Tags owned by current user.
+   */
+  tags: GQLTagConnection
+
+  /**
    * Drafts authored by current user.
    */
   drafts: GQLDraftConnection
@@ -3938,6 +3943,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   settings?: UserToSettingsResolver<TParent>
   recommendation?: UserToRecommendationResolver<TParent>
   articles?: UserToArticlesResolver<TParent>
+  tags?: UserToTagsResolver<TParent>
   drafts?: UserToDraftsResolver<TParent>
   commentedArticles?: UserToCommentedArticlesResolver<TParent>
   subscriptions?: UserToSubscriptionsResolver<TParent>
@@ -4053,6 +4059,18 @@ export interface UserToArticlesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
