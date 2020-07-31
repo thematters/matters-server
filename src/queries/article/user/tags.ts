@@ -4,10 +4,10 @@ import { UserToArticlesResolver } from 'definitions'
 const resolver: UserToArticlesResolver = async (
   { id },
   { input },
-  { dataSources: { tagService, userService }, viewer }
+  { dataSources: { tagService, userService } }
 ) => {
   const mattyUser = await userService.findByEmail('hi@matters.news')
-  const isMatty = viewer.id === mattyUser.id
+  const isMatty = mattyUser && id === mattyUser.id
 
   if (isMatty) {
     return connectionFromPromisedArray(tagService.findByCreator(id), input)
