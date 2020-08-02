@@ -31,7 +31,7 @@
     "gen:schema": "ts-node --files src/common/utils/exportSchema.ts",
     "gen:types": "ts-node --files src/common/utils/generateTypes.ts",
     "gen": "npm run gen:schema && npm run gen:types",
-    "schema:push": "apollo service:push --key=$MATTERS_APOLLO_API_KEY --localSchemaFile=schema.graphql"
+    "schema:push": "apollo service:push --key=$APOLLO_API_KEY --localSchemaFile=schema.graphql --tag=$TAG_NAME"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.8.0",
@@ -126,6 +126,7 @@
     "@types/validator": "^13.1.0",
     "@types/winston": "^2.4.4",
     "@types/ws": "^7.2.6",
+    "apollo": "^2.30.1",
     "apollo-server-testing": "^2.9.12",
     "chokidar": "^3.4.1",
     "chokidar-cli": "^2.1.0",

@@ -1,0 +1,46 @@
+name: Push Schema to Apollo
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+jobs:
+  push_schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+
+      - name: Get Version
+        id: version
+        uses: martinbeentjes/npm-get-version-action@master
+
+      - name: Push Schema (develop)
+        if: github.ref == 'refs/heads/develop'
+        run: npm run schema:push
+        env:
+          APOLLO_API_KEY: ${{ secrets.DEVELOP_APOLLO_API_KEY }}
+          TAG_NAME: current
+
+      - name: Push Schema (production)
+        if: github.ref == 'refs/heads/master'
+        run: npm run schema:push
+        env:
+          APOLLO_API_KEY: ${{ secrets.PROD_APOLLO_API_KEY }}
+          TAG_NAME: v${{ steps.version.outputs.current-version }}
+
+      - name: Slack Notification
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          author_name: matters-server
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
