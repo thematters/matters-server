@@ -521,7 +521,8 @@ export const CORS_OPTIONS: CorsOptions = {
 
     const isLocalDev = /(localhost|127\.0\.0\.1)/.test(origin)
     const isMatters = /matters\.news$/.test(origin)
-    const isAllowed = isLocalDev || isMatters
+    const isApolloStudio = /apollographql\.com/.test(origin)
+    const isAllowed = isLocalDev || isMatters || isApolloStudio
 
     callback(null, isAllowed)
   },
