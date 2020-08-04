@@ -1,4 +1,3 @@
-import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import {
   ActionFailedError,
   AuthenticationError,
@@ -46,18 +45,6 @@ const resolver: MutationToToggleBlockUserResolver = async (
   } else {
     await userService.unblock(viewer.id, user.id)
   }
-
-  // Add custom data for cache invalidation
-  user[CACHE_KEYWORD] = [
-    {
-      id: viewer.id,
-      type: NODE_TYPES.user,
-    },
-    {
-      id: user.id,
-      type: NODE_TYPES.user,
-    },
-  ]
 
   return user
 }

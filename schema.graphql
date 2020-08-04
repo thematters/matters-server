@@ -981,13 +981,13 @@ type Mutation {
   archiveArticle(input: ArchiveArticleInput!): Article! @deprecated(reason: "Use `editArticle`.")
 
   """Set collection of an article."""
-  setCollection(input: SetCollectionInput!): Article! @deprecated(reason: "Use `editArticle`.")
+  setCollection(input: SetCollectionInput!): Article!
 
   """Update article information."""
-  updateArticleInfo(input: UpdateArticleInfoInput!): Article! @deprecated(reason: "Use `editArticle`.")
+  updateArticleInfo(input: UpdateArticleInfoInput!): Article!
 
   """Recall while publishing."""
-  recallPublish(input: RecallPublishInput!): Draft! @deprecated
+  recallPublish(input: RecallPublishInput!): Draft!
 
   """Publish a comment."""
   putComment(input: PutCommentInput!): Comment!
@@ -1011,10 +1011,10 @@ type Mutation {
   updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]!
 
   """Pin a comment."""
-  pinComment(input: PinCommentInput!): Comment! @deprecated(reason: "Use `togglePinComment`.")
+  pinComment(input: PinCommentInput!): Comment!
 
   """Unpin a comment."""
-  unpinComment(input: UnpinCommentInput!): Comment! @deprecated(reason: "Use `togglePinComment`.")
+  unpinComment(input: UnpinCommentInput!): Comment!
 
   """Create or update a draft."""
   putDraft(input: PutDraftInput!): Draft!

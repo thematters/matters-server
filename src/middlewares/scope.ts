@@ -20,7 +20,6 @@ export const scopeMiddleware = async (
     switch (operation) {
       case GQL_OPERATION.mutation: {
         throw new ForbiddenError('viewer has no permission')
-        break
       }
 
       case GQL_OPERATION.query: {
@@ -29,7 +28,6 @@ export const scopeMiddleware = async (
 
       default: {
         throw new UnknownError('unknown operation')
-        break
       }
     }
   }

@@ -39,13 +39,13 @@ export const MATERIALIZED_VIEW = {
   featuredCommentMaterialized: 'featured_comment_materialized',
 }
 
-// cache ttl in seconds
+// cache TTL in seconds
 export const CACHE_TTL = {
   STATIC: 60 * 60 * 24 * 10, // 10 days for static data
   LONG: 60 * 60 * 24, // 1 day
-  SHORT: 90,
-  DEFAULT: 60,
-  INSTANT: 0,
+  SHORT: 60 * 3, // 3 mins
+  DEFAULT: 30, // 30s
+  INSTANT: 0, // no cache
 }
 
 export const USER_ROLE = {
@@ -551,6 +551,14 @@ export const NODE_TYPES = {
   draft: 'Draft',
   user: 'User',
   tag: 'Tag',
+  appreciation: 'Appreciation',
+  transaction: 'Transaction',
+
+  // Unions & Interfaces
+  node: 'Node',
+  notice: 'Notice',
+  response: 'Response',
+  transactionTarget: 'TransactionTarget',
 }
 
 // keyword notating for cache invalidation
@@ -558,7 +566,6 @@ export const CACHE_KEYWORD = '__invalid_nodes__'
 
 // redis cache for apq keys or resolver returned objects
 export const CACHE_PREFIX = {
-  KEYS: 'cache-keys',
   OBJECTS: 'cache-objects',
   OPERATION_LOG: 'operation-log',
 }

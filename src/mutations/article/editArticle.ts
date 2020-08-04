@@ -1,6 +1,6 @@
 import { difference, uniq } from 'lodash'
 
-import { ARTICLE_STATE, CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
+import { ARTICLE_STATE } from 'common/enums'
 import {
   AuthenticationError,
   EntityNotFoundError,
@@ -39,11 +39,6 @@ const resolver: MutationToEditArticleResolver = async (
     throw new ForbiddenError('only active article is allowed to be edited.')
   }
 
-  // cache
-  const purgeCache: {
-    [CACHE_KEYWORD]: Array<{ id: string; type: string }>
-  } = { [CACHE_KEYWORD]: [] }
-
   /**
    * Archive
    */
@@ -54,17 +49,6 @@ const resolver: MutationToEditArticleResolver = async (
   }
   if (state === ARTICLE_STATE.archived) {
     await articleService.archive(dbId)
-
-    purgeCache[CACHE_KEYWORD].push(
-      {
-        id: article.id,
-        type: NODE_TYPES.article,
-      },
-      {
-        id: article.authorId,
-        type: NODE_TYPES.user,
-      }
-    )
   }
 
   /**
@@ -200,7 +184,6 @@ const resolver: MutationToEditArticleResolver = async (
    * Result
    */
   const newArticle = await articleService.baseFindById(dbId)
-  Object.assign(newArticle, purgeCache)
   return newArticle
 }
 

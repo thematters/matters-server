@@ -1,4 +1,4 @@
-import { CACHE_TTL } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
@@ -12,24 +12,24 @@ export default /* GraphQL */ `
   """
   This type contains content, collections, assets and related data of a draft.
   """
-  type Draft implements Node {
+  type Draft implements Node @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     "Unique ID of this draft."
-    id: ID! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    id: ID!
 
     "Collection list of this draft."
     collection(input: ConnectionArgs!): ArticleConnection!
 
     "Draft title."
-    title: String @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    title: String
 
     "Slugified draft title."
     slug: String!
 
     "Summary of this draft."
-    summary: String @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    summary: String
 
     "Content of this draft."
-    content: String @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    content: String
 
     "Time of this draft was scheduled for publishing."
     scheduledAt: DateTime
@@ -56,7 +56,7 @@ export default /* GraphQL */ `
     assets: [Asset!]!
 
     "Published article"
-    article: Article
+    article: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   type DraftConnection implements Connection {
@@ -67,7 +67,7 @@ export default /* GraphQL */ `
 
   type DraftEdge {
     cursor: String!
-    node: Draft!
+    node: Draft! @logCache(type: "${NODE_TYPES.draft}")
   }
 
   input PutDraftInput {
