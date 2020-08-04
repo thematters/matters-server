@@ -1,6 +1,9 @@
 name: Push Schema to Apollo
 
 on:
+  pull_request:
+    branches:
+      - '*'
   push:
     branches:
       - develop
@@ -23,8 +26,20 @@ jobs:
         id: version
         uses: martinbeentjes/npm-get-version-action@master
 
+      - name: Cache Dependencies
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install Dependencies
+        run: npm ci
+
       - name: Push Schema (develop)
-        if: github.ref == 'refs/heads/develop'
+        # if: github.ref == 'refs/heads/develop'
         run: npm run schema:push
         env:
           APOLLO_API_KEY: ${{ secrets.DEVELOP_APOLLO_API_KEY }}
