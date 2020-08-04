@@ -74,6 +74,32 @@ export class TagService extends BaseService {
       .where({ articleId })
 
   /**
+   *  Find tags by a given creator id (user).
+   */
+  findByCreator = async (userId: string) => {
+    const query = this.knex
+      .select()
+      .from(this.table)
+      .where({ creator: userId })
+      .orderBy('id', 'desc')
+
+    return query
+  }
+
+  /**
+   *  Find tags by a given editor id (user).
+   */
+  findByEditor = async (userId: string) => {
+    const query = this.knex
+      .select()
+      .from(this.table)
+      .where(this.knex.raw(`editors @> ARRAY['${userId}']`))
+      .orderBy('id', 'desc')
+
+    return query
+  }
+
+  /**
    * Create a tag, but return one if it's existing.
    *
    */
