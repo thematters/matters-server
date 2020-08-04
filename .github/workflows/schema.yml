@@ -1,9 +1,6 @@
 name: Push Schema to Apollo
 
 on:
-  pull_request:
-    branches:
-      - '*'
   push:
     branches:
       - develop
@@ -39,7 +36,7 @@ jobs:
         run: npm ci
 
       - name: Push Schema (develop)
-        # if: github.ref == 'refs/heads/develop'
+        if: github.ref == 'refs/heads/develop'
         run: npm run schema:push
         env:
           APOLLO_API_KEY: ${{ secrets.DEVELOP_APOLLO_API_KEY }}
