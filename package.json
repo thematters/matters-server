@@ -108,7 +108,7 @@
     "@types/graphql-depth-limit": "^1.1.2",
     "@types/graphql-relay": "^0.6.0",
     "@types/helmet": "0.0.47",
-    "@types/ioredis": "^4.17.2",
+    "@types/ioredis": "^4.17.3",
     "@types/jest": "^26.0.5",
     "@types/js-base64": "^3.0.0",
     "@types/jsonwebtoken": "^8.5.0",
