@@ -7,6 +7,7 @@ import { BaseQueue } from './baseQueue'
 interface LikeData {
   likerId: string
   likerIp?: string
+  userAgent: string
   authorLikerId: string
   url: string
   amount: number
@@ -15,6 +16,7 @@ interface LikeData {
 interface SendPVData {
   likerId?: string
   likerIp?: string
+  userAgent: string
   authorLikerId: string
   url: string
 }
@@ -54,14 +56,7 @@ class LikeCoinQueue extends BaseQueue {
     done
   ) => {
     try {
-      const {
-        likerId,
-        likerIp,
-        authorLikerId,
-        url,
-        amount,
-      } = job.data as LikeData
-
+      const { likerId } = job.data as LikeData
       const liker = await this.userService.findLiker({ likerId })
 
       if (!liker) {
@@ -69,11 +64,8 @@ class LikeCoinQueue extends BaseQueue {
       }
 
       const result = await this.userService.likecoin.like({
-        authorLikerId,
         liker,
-        likerIp,
-        url,
-        amount,
+        ...(job.data as LikeData),
       })
       job.progress(100)
       done(null, result)
@@ -87,15 +79,13 @@ class LikeCoinQueue extends BaseQueue {
     done
   ) => {
     try {
-      const { likerId, likerIp, authorLikerId, url } = job.data as SendPVData
+      const { likerId } = job.data as SendPVData
 
       const liker = await this.userService.findLiker({ likerId })
 
       const result = await this.userService.likecoin.count({
-        authorLikerId,
         liker: liker || undefined,
-        likerIp,
-        url,
+        ...(job.data as SendPVData),
       })
 
       job.progress(100)

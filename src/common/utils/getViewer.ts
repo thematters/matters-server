@@ -129,10 +129,12 @@ export const getViewerFromReq = async ({
   // const isWeb = headers['x-client-name'] === 'web'
   const language = getLanguage(LANGUAGE.zh_hant as string)
   const agentHash = headers['x-user-agent-hash'] as string
+  const userAgent = headers['user-agent'] as string
 
   // user infomation from request
   let user = {
     ip: req?.clientIp,
+    userAgent,
     language,
     scopeMode: SCOPE_MODE.visitor,
     scope: {},

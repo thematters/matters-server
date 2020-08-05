@@ -38,6 +38,7 @@ const resolver: MutationToReadArticleResolver = async (
         likeCoinQueue.sendPV({
           likerId: liker ? liker.likerId : undefined,
           likerIp: viewer.ip,
+          userAgent: viewer.userAgent,
           authorLikerId: author.likerId,
           url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
         })

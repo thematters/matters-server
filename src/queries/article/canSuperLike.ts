@@ -25,6 +25,7 @@ const resolver: ArticleToCanSuperLikeResolver = async (
       liker,
       url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
       likerIp: viewer.ip,
+      userAgent: viewer.userAgent,
     })
   } catch (e) {
     logger.error(e)
