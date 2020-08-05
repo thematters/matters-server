@@ -163,7 +163,7 @@ export default /* GraphQL */ `
     hasAppreciate: Boolean!
 
     "This value determines if current viewer can SuperLike or not."
-    canSuperLike: Boolean!
+    canSuperLike: Boolean! @objectCache(maxAge: ${CACHE_TTL.MEDIUM})
 
     "This value determines if current Viewer has subscribed of not."
     subscribed: Boolean!
