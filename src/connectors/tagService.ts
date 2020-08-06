@@ -553,6 +553,12 @@ export class TagService extends BaseService {
     // delete article tags
     await this.knex('article_tag').whereIn('tag_id', tagIds).del()
 
+    // delete action tag
+    await this.knex('action_tag')
+      .whereIn('target_id', tagIds)
+      .andWhere('action', 'follow')
+      .del()
+
     // delete tags
     await this.baseBatchDelete(tagIds)
   }
@@ -587,6 +593,20 @@ export class TagService extends BaseService {
 
     // delete article tags
     await this.knex('article_tag').whereIn('tag_id', tagIds).del()
+
+    // update existing action tag
+    await this.knex.raw(`
+      INSERT INTO action_tag (user_id, action, target_id)
+      SELECT
+        user_id, 'follow', ${newTag.id}
+      FROM action_tag
+      WHERE target_id in (${tagIds.join(',')})
+      GROUP BY user_id
+    `)
+    await this.knex('action_tag')
+      .whereIn('target_id', tagIds)
+      .andWhere('action', 'follow')
+      .del()
 
     // delete tags
     await this.baseBatchDelete(tagIds)
