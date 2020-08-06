@@ -14,7 +14,7 @@ export default /* GraphQL */ `
   """
   type Draft implements Node @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     "Unique ID of this draft."
-    id: ID!
+    id: ID! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Collection list of this draft."
     collection(input: ConnectionArgs!): ArticleConnection!
