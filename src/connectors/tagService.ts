@@ -551,9 +551,7 @@ export class TagService extends BaseService {
    *********************************/
   deleteTags = async (tagIds: string[]) => {
     // delete article tags
-    await this.knex('article_tag')
-      .whereIn('tag_id', tagIds)
-      .del()
+    await this.knex('article_tag').whereIn('tag_id', tagIds).del()
 
     // delete action tag
     await this.knex('action_tag')
