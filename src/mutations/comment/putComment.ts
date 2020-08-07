@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { USER_STATE } from 'common/enums'
+import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
 import {
   ArticleNotFoundError,
   AuthenticationError,
@@ -254,6 +254,14 @@ const resolver: MutationToPutCommentResolver = async (
       })
     })
   }
+
+  // invalidate extra nodes
+  newComment[CACHE_KEYWORD] = [
+    {
+      id: article.id,
+      type: NODE_TYPES.article,
+    },
+  ]
 
   return newComment
 }
