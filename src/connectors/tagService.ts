@@ -550,25 +550,14 @@ export class TagService extends BaseService {
    *                               *
    *********************************/
   deleteTags = async (tagIds: string[]) => {
-    const ids = tagIds
-      .map((tagId) => parseInt(tagId, 10))
-      .filter((id) => typeof id === 'number')
-    logger.error(ids)
-
     // delete article tags
-    const deleteArticleTags = this.knex('article_tag')
-      .whereIn('tag_id', ids)
-      .del()
-    await deleteArticleTags
-    logger.error(deleteArticleTags.toString())
+    await this.knex('article_tag').whereIn('tag_id', tagIds).del()
 
     // delete action tag
-    const deleteActionTag = this.knex('action_tag')
-      .whereIn('target_id', ids)
+    await this.knex('action_tag')
+      .whereIn('target_id', tagIds)
       .andWhere('action', 'follow')
       .del()
-    await deleteActionTag
-    logger.error(deleteActionTag.toString())
 
     // delete tags
     await this.baseBatchDelete(tagIds)
