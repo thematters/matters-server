@@ -938,9 +938,14 @@ export interface GQLAuthorsInput {
 }
 
 export interface GQLAuthorsFilter {
-  random?: boolean
+  /**
+   * index of author list, min: 0, max: 50
+   */
+  random?: GQLNonNegativeInt
   followed?: boolean
 }
+
+export type GQLNonNegativeInt = any
 
 export interface GQLDraftConnection extends GQLConnection {
   totalCount: number
@@ -3008,8 +3013,6 @@ export type GQLNegativeFloat = any
 
 export type GQLNegativeInt = any
 
-export type GQLNonNegativeInt = any
-
 export type GQLNonPositiveFloat = any
 
 export type GQLNonPositiveInt = any
@@ -3237,6 +3240,7 @@ export interface GQLResolver {
   UserConnection?: GQLUserConnectionTypeResolver
   UserEdge?: GQLUserEdgeTypeResolver
   TagOSS?: GQLTagOSSTypeResolver
+  NonNegativeInt?: GraphQLScalarType
   DraftConnection?: GQLDraftConnectionTypeResolver
   DraftEdge?: GQLDraftEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
@@ -3317,7 +3321,6 @@ export interface GQLResolver {
   JSON?: GraphQLScalarType
   NegativeFloat?: GraphQLScalarType
   NegativeInt?: GraphQLScalarType
-  NonNegativeInt?: GraphQLScalarType
   NonPositiveFloat?: GraphQLScalarType
   NonPositiveInt?: GraphQLScalarType
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
