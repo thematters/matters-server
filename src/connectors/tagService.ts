@@ -561,11 +561,11 @@ export class TagService extends BaseService {
 
     // for debugging
     await deletion
-    console.log(deletion.toString())
+    logger.info(deletion.toString())
     const testResult = await this.knex('action_tag')
       .whereIn('target_id', tagIds)
       .andWhere('action', 'follow')
-    console.log(testResult)
+    logger.info(testResult)
 
     // delete tags
     await this.baseBatchDelete(tagIds)
