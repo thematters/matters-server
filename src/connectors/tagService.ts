@@ -554,10 +554,18 @@ export class TagService extends BaseService {
     await this.knex('article_tag').whereIn('tag_id', tagIds).del()
 
     // delete action tag
-    await this.knex('action_tag')
+    const deletion = this.knex('action_tag')
       .whereIn('target_id', tagIds)
       .andWhere('action', 'follow')
       .del()
+
+    // for debugging
+    await deletion
+    console.log(deletion.toString())
+    const testResult = await this.knex('action_tag')
+      .whereIn('target_id', tagIds)
+      .andWhere('action', 'follow')
+    console.log(testResult)
 
     // delete tags
     await this.baseBatchDelete(tagIds)
