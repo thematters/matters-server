@@ -218,7 +218,8 @@ export default /* GraphQL */ `
   }
 
   input AuthorsFilter {
-    random: Boolean
+    "index of author list, min: 0, max: 50"
+    random: NonNegativeInt
     followed: Boolean
   }
 

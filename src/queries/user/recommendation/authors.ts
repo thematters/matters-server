@@ -1,7 +1,5 @@
-import { CacheScope } from 'apollo-cache-control'
-import { sampleSize } from 'lodash'
+import { chunk } from 'lodash'
 
-import { CACHE_TTL } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import {
   connectionFromArray,
@@ -13,10 +11,9 @@ import { RecommendationToAuthorsResolver } from 'definitions'
 export const authors: RecommendationToAuthorsResolver = async (
   { id },
   { input },
-  { dataSources: { userService }, viewer },
-  { cacheControl }
+  { dataSources: { userService }, viewer }
 ) => {
-  const { oss = false } = input
+  const { first, after, filter, oss = false } = input
 
   if (oss) {
     if (!viewer.hasRole('admin')) {
@@ -24,34 +21,38 @@ export const authors: RecommendationToAuthorsResolver = async (
     }
   }
 
-  const { first, after, filter } = input
-
-  const randomDraw = first || 5
-
+  /**
+   * Filter out followed users
+   */
   let notIn: any[] = id ? [id] : []
-  if (filter && filter.followed === false) {
+  if (filter?.followed === false && id) {
     // TODO: move this logic to db layer
-    if (id) {
-      const followees = await userService.findFollowees({
-        userId: id,
-        limit: 999,
-      })
-      notIn = [...notIn, ...followees.map(({ targetId }: any) => targetId)]
-    }
+    const followees = await userService.findFollowees({
+      userId: id,
+      limit: 999,
+    })
+    notIn = [...notIn, ...followees.map(({ targetId }: any) => targetId)]
   }
 
-  if (filter && filter.random) {
-    cacheControl.setCacheHint({
-      maxAge: CACHE_TTL.INSTANT,
-      scope: CacheScope.Private,
-    })
+  /**
+   * Pick randomly
+   */
+  if (typeof filter?.random === 'number') {
+    const MAX_RANDOM_INDEX = 50
+    const randomDraw = first || 5
+    const index = Math.min(filter.random, MAX_RANDOM_INDEX)
+
     const authorPool = await userService.recommendAuthor({
-      limit: 50,
+      limit: MAX_RANDOM_INDEX * randomDraw,
       notIn,
       oss,
     })
 
-    return connectionFromArray(sampleSize(authorPool, randomDraw), input)
+    return connectionFromArray(
+      chunk(authorPool, randomDraw)[index],
+      input,
+      authorPool.length
+    )
   }
 
   const offset = cursorToIndex(after) + 1
