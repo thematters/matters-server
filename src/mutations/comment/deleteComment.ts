@@ -1,4 +1,4 @@
-import { COMMENT_STATE } from 'common/enums'
+import { CACHE_KEYWORD, COMMENT_STATE, NODE_TYPES } from 'common/enums'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToDeleteCommentResolver } from 'definitions'
@@ -27,15 +27,14 @@ const resolver: MutationToDeleteCommentResolver = async (
     updatedAt: new Date(),
   })
 
-  // publish a PubSub event
+  // invalidate extra nodes
   const article = await articleService.dataloader.load(articleId)
-  // notificationService.pubsub.publish(
-  //   toGlobalId({
-  //     type: 'Article',
-  //     id: article.id,
-  //   }),
-  //   article
-  // )
+  comment[CACHE_KEYWORD] = [
+    {
+      id: article.id,
+      type: NODE_TYPES.article,
+    },
+  ]
 
   return comment
 }
