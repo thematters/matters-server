@@ -538,7 +538,6 @@ export class TagService extends BaseService {
       .join('article', 'article_id', 'article.id')
       .where({
         tagId: id,
-        selected: true,
         state: ARTICLE_STATE.active,
       })
       .limit(BATCH_SIZE)
