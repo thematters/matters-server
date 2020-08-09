@@ -42,7 +42,7 @@ export default /* GraphQL */ `
       @authenticate @purgeCache(type: "${NODE_TYPES.user}")
 
     "Follow or unfollow tag."
-    toggleFollowTag(input: ToggleItemInput!): Tag! @authenticate
+    toggleFollowTag(input: ToggleItemInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Follow or Unfollow current usere."
     toggleFollowUser(input: ToggleItemInput!): User! @authenticate
