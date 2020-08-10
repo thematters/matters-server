@@ -4,8 +4,6 @@ import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { CACHE_PREFIX } from 'common/enums'
 import { CacheService } from 'connectors'
 
-const cacheService = new CacheService(undefined, CACHE_PREFIX.OBJECTS)
-
 type EnhancedObject = GraphQLObjectType & {
   _ttl?: number
   _cacheFieldsWrapped?: boolean
@@ -42,9 +40,12 @@ export class ObjectCacheDirective extends SchemaDirectiveVisitor {
       const field = fields[fieldName]
       const { resolve = defaultFieldResolver } = field
       field.resolve = async function (...args) {
+        const cacheService = new CacheService(CACHE_PREFIX.OBJECTS)
+
         // Get ttl from field or object
         const maxAge = field._ttl || objectType._ttl
         const [{ id }] = args
+
         if (maxAge) {
           return cacheService.getObject({
             keys: {

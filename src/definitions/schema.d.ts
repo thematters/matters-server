@@ -329,6 +329,11 @@ export interface GQLUser extends GQLNode {
   articles: GQLArticleConnection
 
   /**
+   * Tags owned by current user.
+   */
+  tags: GQLTagConnection
+
+  /**
    * Drafts authored by current user.
    */
   drafts: GQLDraftConnection
@@ -933,9 +938,14 @@ export interface GQLAuthorsInput {
 }
 
 export interface GQLAuthorsFilter {
-  random?: boolean
+  /**
+   * index of author list, min: 0, max: 50
+   */
+  random?: GQLNonNegativeInt
   followed?: boolean
 }
+
+export type GQLNonNegativeInt = any
 
 export interface GQLDraftConnection extends GQLConnection {
   totalCount: number
@@ -1891,19 +1901,16 @@ export interface GQLMutation {
 
   /**
    * Set collection of an article.
-   * @deprecated Use `editArticle`.
    */
   setCollection: GQLArticle
 
   /**
    * Update article information.
-   * @deprecated Use `editArticle`.
    */
   updateArticleInfo: GQLArticle
 
   /**
    * Recall while publishing.
-   * @deprecated No longer supported
    */
   recallPublish: GQLDraft
 
@@ -1944,13 +1951,11 @@ export interface GQLMutation {
 
   /**
    * Pin a comment.
-   * @deprecated Use `togglePinComment`.
    */
   pinComment: GQLComment
 
   /**
    * Unpin a comment.
-   * @deprecated Use `togglePinComment`.
    */
   unpinComment: GQLComment
 
@@ -3008,8 +3013,6 @@ export type GQLNegativeFloat = any
 
 export type GQLNegativeInt = any
 
-export type GQLNonNegativeInt = any
-
 export type GQLNonPositiveFloat = any
 
 export type GQLNonPositiveInt = any
@@ -3237,6 +3240,7 @@ export interface GQLResolver {
   UserConnection?: GQLUserConnectionTypeResolver
   UserEdge?: GQLUserEdgeTypeResolver
   TagOSS?: GQLTagOSSTypeResolver
+  NonNegativeInt?: GraphQLScalarType
   DraftConnection?: GQLDraftConnectionTypeResolver
   DraftEdge?: GQLDraftEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
@@ -3317,7 +3321,6 @@ export interface GQLResolver {
   JSON?: GraphQLScalarType
   NegativeFloat?: GraphQLScalarType
   NegativeInt?: GraphQLScalarType
-  NonNegativeInt?: GraphQLScalarType
   NonPositiveFloat?: GraphQLScalarType
   NonPositiveInt?: GraphQLScalarType
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
@@ -3938,6 +3941,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   settings?: UserToSettingsResolver<TParent>
   recommendation?: UserToRecommendationResolver<TParent>
   articles?: UserToArticlesResolver<TParent>
+  tags?: UserToTagsResolver<TParent>
   drafts?: UserToDraftsResolver<TParent>
   commentedArticles?: UserToCommentedArticlesResolver<TParent>
   subscriptions?: UserToSubscriptionsResolver<TParent>
@@ -4053,6 +4057,18 @@ export interface UserToArticlesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: UserToTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

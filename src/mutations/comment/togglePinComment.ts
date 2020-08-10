@@ -3,7 +3,7 @@ import {
   AuthenticationError,
   ForbiddenError,
 } from 'common/errors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 import { MutationToTogglePinCommentResolver } from 'definitions'
 
 const resolver: MutationToTogglePinCommentResolver = async (
@@ -37,6 +37,7 @@ const resolver: MutationToTogglePinCommentResolver = async (
   }
 
   // run action
+  let pinnedComment
   if (action === 'pin') {
     const pinLeft = await commentService.pinLeftByArticle(comment.articleId)
     if (pinLeft <= 0) {
@@ -48,7 +49,7 @@ const resolver: MutationToTogglePinCommentResolver = async (
       return comment
     }
 
-    const pinnedComment = await commentService.togglePinned({
+    pinnedComment = await commentService.togglePinned({
       commentId: dbId,
       pinned: true,
     })
@@ -75,14 +76,14 @@ const resolver: MutationToTogglePinCommentResolver = async (
     //   }),
     //   article
     // )
-
-    return pinnedComment
   } else {
-    return commentService.togglePinned({
+    pinnedComment = commentService.togglePinned({
       commentId: dbId,
       pinned: false,
     })
   }
+
+  return pinnedComment
 }
 
 export default resolver

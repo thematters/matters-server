@@ -55,6 +55,7 @@ export type Viewer = (User | { id: null }) & {
   hasRole: (role: UserRole) => boolean
   hasScopeMode: (mode: string) => boolean
   ip?: string
+  userAgent: string
   role: string
   language: LANGUAGES
   scope: { [key: string]: any }

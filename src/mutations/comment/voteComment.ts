@@ -1,6 +1,6 @@
 import { USER_STATE } from 'common/enums'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 import { MutationToVoteCommentResolver } from 'definitions'
 
 const resolver: MutationToVoteCommentResolver = async (

@@ -1,3 +1,5 @@
+import { NODE_TYPES } from 'common/enums'
+
 export default /* GraphQL */ `
   union Response = Article | Comment
 
@@ -17,7 +19,7 @@ export default /* GraphQL */ `
 
   type ResponseEdge {
     cursor: String!
-    node: Response! @logCache(type: "Response")
+    node: Response! @logCache(type: "${NODE_TYPES.response}")
   }
 
   input ResponsesInput {

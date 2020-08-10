@@ -329,18 +329,23 @@ export class LikeCoin {
     authorLikerId,
     url,
     likerIp,
+    userAgent,
   }: {
     liker?: UserOAuthLikeCoin
     authorLikerId: string
     url: string
     likerIp?: string
+    userAgent: string
   }) => {
     const endpoint = `${ENDPOINTS.like}/${authorLikerId}/self`
     const res = await this.request({
       endpoint,
       method: 'GET',
       liker,
-      headers: { 'X-LIKECOIN-REAL-IP': likerIp },
+      headers: {
+        'X-LIKECOIN-REAL-IP': likerIp,
+        'X-LIKECOIN-USER-AGENT': userAgent,
+      },
       withClientCredential: true,
       params: {
         referrer: encodeURI(url),
@@ -364,17 +369,22 @@ export class LikeCoin {
     url,
     likerIp,
     amount,
+    userAgent,
   }: {
     authorLikerId: string
     liker: UserOAuthLikeCoin
     url: string
     likerIp?: string
     amount: number
+    userAgent: string
   }) => {
     try {
       const endpoint = `${ENDPOINTS.like}/${authorLikerId}/${amount}`
       const result = await this.request({
-        headers: { 'X-LIKECOIN-REAL-IP': likerIp },
+        headers: {
+          'X-LIKECOIN-REAL-IP': likerIp,
+          'X-LIKECOIN-USER-AGENT': userAgent,
+        },
         endpoint,
         withClientCredential: true,
         method: 'POST',
@@ -402,16 +412,21 @@ export class LikeCoin {
     liker,
     url,
     likerIp,
+    userAgent,
   }: {
     authorLikerId: string
     liker: UserOAuthLikeCoin
     url: string
     likerIp?: string
+    userAgent: string
   }) => {
     try {
       const endpoint = `${ENDPOINTS.superlike}/${authorLikerId}/`
       const result = await this.request({
-        headers: { 'X-LIKECOIN-REAL-IP': likerIp },
+        headers: {
+          'X-LIKECOIN-REAL-IP': likerIp,
+          'X-LIKECOIN-USER-AGENT': userAgent,
+        },
         endpoint,
         withClientCredential: true,
         method: 'POST',
@@ -435,17 +450,22 @@ export class LikeCoin {
     liker,
     url,
     likerIp,
+    userAgent,
   }: {
     liker: UserOAuthLikeCoin
     url: string
     likerIp?: string
+    userAgent: string
   }) => {
     const endpoint = `${ENDPOINTS.superlike}/self`
 
     const res = await this.request({
       endpoint,
       method: 'GET',
-      headers: { 'X-LIKECOIN-REAL-IP': likerIp },
+      headers: {
+        'X-LIKECOIN-REAL-IP': likerIp,
+        'X-LIKECOIN-USER-AGENT': userAgent,
+      },
       withClientCredential: true,
       params: {
         referrer: encodeURI(url),

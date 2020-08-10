@@ -25,7 +25,6 @@ const typeResolver = (type: string, result: any) => {
   const unionsAndInterfaces = [
     'Node',
     'Response',
-    'Connection',
     'TransactionTarget',
     'Notice',
   ]

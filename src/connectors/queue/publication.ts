@@ -1,10 +1,8 @@
-import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
 
 import {
   MINUTE,
-  NODE_TYPES,
   PUBLISH_ARTICLE_DELAY,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
@@ -174,13 +172,6 @@ class PublicationQueue extends BaseQueue {
             entity: article,
           },
         ],
-      })
-      job.progress(95)
-
-      // invalidate user cache
-      await invalidateFQC({
-        node: { type: NODE_TYPES.user, id: article.authorId },
-        redis: this.cacheService.redis,
       })
       job.progress(100)
 

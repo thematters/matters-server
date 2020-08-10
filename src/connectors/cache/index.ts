@@ -1,10 +1,9 @@
 import { RedisCache } from 'apollo-server-cache-redis'
 import _ from 'lodash'
 
-import { CACHE_PREFIX, CACHE_TTL } from 'common/enums'
+import { CACHE_TTL } from 'common/enums'
 import { environment } from 'common/environment'
 import { UnknownError } from 'common/errors'
-import logger from 'common/logger'
 
 /**
  * Service for managing cache for other async services. Resolvers and middlewares
@@ -19,28 +18,24 @@ interface KeyInfo {
   field?: string
 }
 
+const redisCache = new RedisCache({
+  host: environment.cacheHost,
+  port: environment.cachePort,
+})
+
 export class CacheService {
   prefix: string
   redis: RedisCache
 
-  constructor(instance?: RedisCache, prefix = CACHE_PREFIX.KEYS) {
+  constructor(prefix = '') {
     this.prefix = prefix
-    this.redis = instance || this.init()
+    this.redis = redisCache
   }
-
-  /**
-   * Initialization of RedisCache.
-   */
-  init = (): RedisCache =>
-    new RedisCache({
-      host: environment.cacheHost,
-      port: environment.cachePort,
-    })
 
   /**
    * Generate cache key.
    *
-   * e.g. cache-keys:Article:1510
+   * e.g. cache-objects:Article:1510
    */
   genKey = ({ type, id, field, args }: KeyInfo): string => {
     const keys = [type, id, field, JSON.stringify(args)].filter((el) => el)
@@ -116,62 +111,5 @@ export class CacheService {
     }
 
     return data
-  }
-
-  checkOperationLimit = async ({
-    user,
-    operation,
-    limit,
-    period,
-  }: {
-    user: string
-    operation: string
-    limit: number
-    period: number
-  }) => {
-    const cacheKey = this.genKey({
-      id: user,
-      field: operation,
-    })
-
-    const operationLog = await this.redis.client.lrange(cacheKey, 0, -1)
-
-    // timestamp in seconds
-    const current = Math.floor(Date.now() / 1000)
-
-    // no record
-    if (!operationLog) {
-      // create
-      this.redis.client.lpush(cacheKey, current).then(() => {
-        this.redis.client.expire(cacheKey, period)
-      })
-
-      // pass
-      return true
-    }
-
-    // within period
-    const valid = operationLog.map(
-      (timestamp: number) => timestamp >= current - period
-    )
-
-    // count
-    const times = valid.reduce(
-      (a: boolean, b: boolean) => (a ? 1 : 0) + (b ? 1 : 0),
-      0
-    )
-
-    // over limit
-    if (times >= limit) {
-      return false
-    }
-
-    // add, trim, update expiration
-    this.redis.client.lpush(cacheKey, current)
-    this.redis.client.ltrim(cacheKey, 0, times)
-    this.redis.client.expire(cacheKey, period)
-
-    // pass
-    return true
   }
 }

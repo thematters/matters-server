@@ -67,6 +67,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
       liker,
       url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
       likerIp: viewer.ip,
+      userAgent: viewer.userAgent,
     })
 
     if (!canSuperLike) {
@@ -76,6 +77,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     await userService.likecoin.superlike({
       liker,
       likerIp: viewer.ip,
+      userAgent: viewer.userAgent,
       authorLikerId: author.likerId,
       url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
     })
@@ -112,7 +114,8 @@ const resolver: MutationToAppreciateArticleResolver = async (
     amount: validAmount,
     articleId: article.id,
     senderId: viewer.id,
-    snederIP: viewer.ip,
+    senderIP: viewer.ip,
+    userAgent: viewer.userAgent,
   })
 
   return article

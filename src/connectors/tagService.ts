@@ -74,6 +74,32 @@ export class TagService extends BaseService {
       .where({ articleId })
 
   /**
+   *  Find tags by a given creator id (user).
+   */
+  findByCreator = async (userId: string) => {
+    const query = this.knex
+      .select()
+      .from(this.table)
+      .where({ creator: userId })
+      .orderBy('id', 'desc')
+
+    return query
+  }
+
+  /**
+   *  Find tags by a given editor id (user).
+   */
+  findByEditor = async (userId: string) => {
+    const query = this.knex
+      .select()
+      .from(this.table)
+      .where(this.knex.raw(`editors @> ARRAY['${userId}']`))
+      .orderBy('id', 'desc')
+
+    return query
+  }
+
+  /**
    * Create a tag, but return one if it's existing.
    *
    */
@@ -512,7 +538,6 @@ export class TagService extends BaseService {
       .join('article', 'article_id', 'article.id')
       .where({
         tagId: id,
-        selected: true,
         state: ARTICLE_STATE.active,
       })
       .limit(BATCH_SIZE)
@@ -526,6 +551,12 @@ export class TagService extends BaseService {
   deleteTags = async (tagIds: string[]) => {
     // delete article tags
     await this.knex('article_tag').whereIn('tag_id', tagIds).del()
+
+    // delete action tag
+    await this.knex('action_tag')
+      .whereIn('target_id', tagIds)
+      .andWhere('action', 'follow')
+      .del()
 
     // delete tags
     await this.baseBatchDelete(tagIds)
@@ -561,6 +592,20 @@ export class TagService extends BaseService {
 
     // delete article tags
     await this.knex('article_tag').whereIn('tag_id', tagIds).del()
+
+    // update existing action tag
+    await this.knex.raw(`
+      INSERT INTO action_tag (user_id, action, target_id)
+      SELECT
+        user_id, 'follow', ${newTag.id}
+      FROM action_tag
+      WHERE target_id in (${tagIds.join(',')})
+      GROUP BY user_id
+    `)
+    await this.knex('action_tag')
+      .whereIn('target_id', tagIds)
+      .andWhere('action', 'follow')
+      .del()
 
     // delete tags
     await this.baseBatchDelete(tagIds)

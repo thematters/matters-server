@@ -19,10 +19,10 @@ export default /* GraphQL */ `
     reportArticle(input: ReportArticleInput!): Boolean
 
     "Subscribe or Unsubscribe article"
-    toggleSubscribeArticle(input: ToggleItemInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}")
+    toggleSubscribeArticle(input: ToggleItemInput!): Article! @authenticate
 
     "Appreciate an article."
-    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}") @rateLimit(limit:5, period:60)
+    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate @rateLimit(limit:5, period:60)
 
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
@@ -32,7 +32,7 @@ export default /* GraphQL */ `
     #     Tag    #
     ##############
     "Create or update tag."
-    putTag(input: PutTagInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    putTag(input: PutTagInput!): Tag! @authenticate
 
     "Add one tag to articles."
     addArticlesTags(input: AddArticlesTagsInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
@@ -41,7 +41,7 @@ export default /* GraphQL */ `
     updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Delete one tag from articles"
-    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @authenticate
 
 
     ##############
@@ -49,35 +49,34 @@ export default /* GraphQL */ `
     ##############
     toggleArticleLive(input: ToggleItemInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
     toggleArticlePublic(input: ToggleItemInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
-    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @purgeCache(type: "${NODE_TYPES.article}")
-      @authorize
+    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @authorize
+
     updateArticleState(input: UpdateArticleStateInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
     deleteTags(input: DeleteTagsInput!): Boolean @authorize
-    renameTag(input: RenameTagInput!): Tag! @authorize @purgeCache(type: "${NODE_TYPES.tag}")
-    mergeTags(input: MergeTagsInput!): Tag! @authorize @purgeCache(type: "${NODE_TYPES.tag}")
+    renameTag(input: RenameTagInput!): Tag! @authorize
+    mergeTags(input: MergeTagsInput!): Tag! @authorize
 
 
     ##############
     # DEPRECATED #
     ##############
     "Subscribe an artcile."
-    subscribeArticle(input: SubscribeArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
+    subscribeArticle(input: SubscribeArticleInput!): Article! @authenticate @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
 
     "Unsubscribe an article."
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}")
-    @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @authenticate @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
 
     "Archive an article and users won't be able to view this article."
     archiveArticle(input: ArchiveArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`editArticle\`.")
 
     "Set collection of an article."
-    setCollection(input: SetCollectionInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`editArticle\`.")
+    setCollection(input: SetCollectionInput!): Article! @authenticate
 
     "Update article information."
-    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`editArticle\`.")
+    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @authenticate
 
     "Recall while publishing."
-    recallPublish(input: RecallPublishInput!): Draft! @authenticate @purgeCache(type: "${NODE_TYPES.draft}") @deprecated
+    recallPublish(input: RecallPublishInput!): Draft! @authenticate
   }
 
   """
@@ -107,7 +106,7 @@ export default /* GraphQL */ `
     live: Boolean!
 
     "Author of this article."
-    author: User!
+    author: User! @logCache(type: "${NODE_TYPES.user}")
 
     "Article title."
     title: String!
@@ -134,7 +133,7 @@ export default /* GraphQL */ `
     content: String!
 
     "Original language of content"
-    language: String @objectCache(maxAge: ${CACHE_TTL.SHORT})
+    language: String
 
     "List of articles which added this article into their collections."
     collectedBy(input: ConnectionArgs!): ArticleConnection!
@@ -164,7 +163,7 @@ export default /* GraphQL */ `
     hasAppreciate: Boolean!
 
     "This value determines if current viewer can SuperLike or not."
-    canSuperLike: Boolean!
+    canSuperLike: Boolean! @objectCache(maxAge: ${CACHE_TTL.MEDIUM})
 
     "This value determines if current Viewer has subscribed of not."
     subscribed: Boolean!
@@ -207,9 +206,11 @@ export default /* GraphQL */ `
     description: String
 
     "Editors of this tag."
+    # editors: [User!] @logCache(type: "${NODE_TYPES.user}")
     editors: [User!]
 
     "Creator of this tag."
+    # creator: User @logCache(type: "${NODE_TYPES.article}")
     creator: User
 
     "This value determines if current viewer is following or not."

@@ -1,23 +1,7 @@
-import { invalidateFQC } from '@matters/apollo-response-cache'
-
-import { COMMENT_STATE, NODE_TYPES } from 'common/enums'
+import { COMMENT_STATE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
-import { CacheService } from 'connectors'
 import { MutationToUpdateCommentsStateResolver } from 'definitions'
-
-// manually invalidate cache since it returns an array of comment
-const invalidateComments = async (comments: any[]) => {
-  const cacheService = new CacheService()
-  await Promise.all(
-    comments.map(({ id }) =>
-      invalidateFQC({
-        node: { type: NODE_TYPES.comment, id },
-        redis: cacheService.redis,
-      })
-    )
-  )
-}
 
 const resolver: MutationToUpdateCommentsStateResolver = async (
   _,
@@ -66,7 +50,6 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
       })
     )
 
-    await invalidateComments(authorComments)
     return authorComments
   }
 
@@ -93,7 +76,6 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
     )
   }
 
-  await invalidateComments(comments)
   return comments
 }
 

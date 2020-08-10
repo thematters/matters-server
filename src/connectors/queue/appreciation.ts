@@ -1,9 +1,7 @@
-import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 
 import {
   APPRECIATION_TYPES,
-  NODE_TYPES,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
@@ -24,7 +22,8 @@ interface AppreciationParams {
   amount: number
   articleId: string
   senderId: string
-  snederIP?: string
+  senderIP?: string
+  userAgent: string
 }
 
 class AppreciationQueue extends BaseQueue {
@@ -41,11 +40,12 @@ class AppreciationQueue extends BaseQueue {
     amount,
     articleId,
     senderId,
-    snederIP,
+    senderIP,
+    userAgent,
   }: AppreciationParams) => {
     return this.q.add(
       QUEUE_JOB.appreciation,
-      { amount, articleId, senderId, snederIP },
+      { amount, articleId, senderId, senderIP, userAgent },
       {
         priority: QUEUE_PRIORITY.NORMAL,
         removeOnComplete: true,
@@ -75,7 +75,8 @@ class AppreciationQueue extends BaseQueue {
         amount,
         articleId,
         senderId,
-        snederIP,
+        senderIP,
+        userAgent,
       } = job.data as AppreciationParams
 
       if (!articleId || !senderId) {
@@ -127,7 +128,8 @@ class AppreciationQueue extends BaseQueue {
       // insert record to LikeCoin
       likeCoinQueue.like({
         likerId: sender.likerId,
-        likerIp: snederIP,
+        likerIp: senderIP,
+        userAgent,
         authorLikerId: author.likerId,
         url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
         amount: validAmount,
@@ -146,18 +148,6 @@ class AppreciationQueue extends BaseQueue {
           },
         ],
       })
-
-      // invalidate cache
-      if (this.cacheService) {
-        invalidateFQC({
-          node: { type: NODE_TYPES.article, id: article.id },
-          redis: this.cacheService.redis,
-        })
-        invalidateFQC({
-          node: { type: NODE_TYPES.user, id: article.authorId },
-          redis: this.cacheService.redis,
-        })
-      }
 
       job.progress(100)
       done(null, job.data)
