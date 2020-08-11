@@ -173,6 +173,9 @@ export default /* GraphQL */ `
     "Comments published by user's followees."
     followeeComments(input: ConnectionArgs!): CommentConnection!
 
+    "Articles that followee donated"
+    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
+
     "Articles and comments published by user's followees."
     followeeWorks(input: ResponsesInput!): ResponseConnection! @deprecated(reason: "Feature changed.")
 
@@ -424,6 +427,22 @@ export default /* GraphQL */ `
   type AppreciationEdge {
     cursor: String!
     node: Appreciation!
+  }
+
+  type FolloweeDonatedArticleConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [FolloweeDonatedArticleEdge!]
+  }
+
+  type FolloweeDonatedArticleEdge {
+    cursor: String!
+    node: FolloweeDonatedArticle!
+  }
+
+  type FolloweeDonatedArticle {
+    article: Article!
+    followee: User!
   }
 
   input UserInput {

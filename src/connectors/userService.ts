@@ -13,6 +13,9 @@ import {
   LOG_RECORD_TYPES,
   MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
+  TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
+  TRANSACTION_TARGET_TYPE,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
   USER_STATE,
@@ -813,6 +816,84 @@ export class UserService extends BaseService {
           .as('source')
       })
       .countDistinct('source.id')
+      .first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Find deduped followee donations by a given entity type.
+   *
+   */
+  findDedupedFolloweeDonationsByEntity = async ({
+    id,
+    limit = BATCH_SIZE,
+    after,
+    type,
+  }: {
+    id: string
+    limit?: number
+    after?: number
+    type: TRANSACTION_TARGET_TYPE
+  }) => {
+    const query = this.knex
+      .select('*')
+      .from((knex: any) => {
+        const source = knex
+          .max('tx.id as id')
+          .select('tx.target_id as article_id')
+          .from('action_user as au')
+          .innerJoin('transaction as tx', 'tx.sender_id', 'au.target_id')
+          .where({
+            'au.user_id': id,
+            'au.action': USER_ACTION.follow,
+            'tx.purpose': TRANSACTION_PURPOSE.donation,
+            'tx.state': TRANSACTION_STATE.succeeded,
+            'tx.target_type': type,
+          })
+          .groupBy('article_id')
+          .orderBy('id', 'desc')
+          .as('source')
+        return source
+      })
+      .limit(limit)
+
+    if (after) {
+      query.andWhere('id', '<', after)
+    }
+    return query
+  }
+
+  /**
+   * Count deduped followee donation by a given entity type.
+   *
+   */
+  countDedupedFolloweeDonationsByEntity = async ({
+    id,
+    type,
+  }: {
+    id: string
+    type: TRANSACTION_TARGET_TYPE
+  }) => {
+    const result = await this.knex
+      .count('id')
+      .from((knex: any) => {
+        const source = knex
+          .max('tx.id as id')
+          .select('tx.target_id as article_id')
+          .from('action_user as au')
+          .innerJoin('transaction as tx', 'tx.sender_id', 'au.target_id')
+          .where({
+            'au.user_id': id,
+            'au.action': USER_ACTION.follow,
+            'tx.purpose': TRANSACTION_PURPOSE.donation,
+            'tx.state': TRANSACTION_STATE.succeeded,
+            'tx.target_type': type,
+          })
+          .groupBy('article_id')
+          .as('source')
+        return source
+      })
       .first()
 
     return parseInt(result ? (result.count as string) : '0', 10)

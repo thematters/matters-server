@@ -542,6 +542,11 @@ export interface GQLRecommendation {
   followeeComments: GQLCommentConnection
 
   /**
+   * Articles that followee donated
+   */
+  followeeDonatedArticles: GQLFolloweeDonatedArticleConnection
+
+  /**
    * Articles and comments published by user's followees.
    * @deprecated Feature changed.
    */
@@ -624,6 +629,7 @@ export interface GQLConnection {
 export type GQLPossibleConnectionTypeNames =
   | 'ArticleConnection'
   | 'CommentConnection'
+  | 'FolloweeDonatedArticleConnection'
   | 'ResponseConnection'
   | 'TagConnection'
   | 'UserConnection'
@@ -642,6 +648,7 @@ export interface GQLConnectionNameMap {
   Connection: GQLConnection
   ArticleConnection: GQLArticleConnection
   CommentConnection: GQLCommentConnection
+  FolloweeDonatedArticleConnection: GQLFolloweeDonatedArticleConnection
   ResponseConnection: GQLResponseConnection
   TagConnection: GQLTagConnection
   UserConnection: GQLUserConnection
@@ -782,6 +789,22 @@ export interface GQLCommentCommentsInput {
 export const enum GQLCommentSort {
   oldest = 'oldest',
   newest = 'newest',
+}
+
+export interface GQLFolloweeDonatedArticleConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLFolloweeDonatedArticleEdge>
+}
+
+export interface GQLFolloweeDonatedArticleEdge {
+  cursor: string
+  node: GQLFolloweeDonatedArticle
+}
+
+export interface GQLFolloweeDonatedArticle {
+  article: GQLArticle
+  followee: GQLUser
 }
 
 export interface GQLResponsesInput {
@@ -3228,6 +3251,9 @@ export interface GQLResolver {
   CommentConnection?: GQLCommentConnectionTypeResolver
   CommentEdge?: GQLCommentEdgeTypeResolver
   Comment?: GQLCommentTypeResolver
+  FolloweeDonatedArticleConnection?: GQLFolloweeDonatedArticleConnectionTypeResolver
+  FolloweeDonatedArticleEdge?: GQLFolloweeDonatedArticleEdgeTypeResolver
+  FolloweeDonatedArticle?: GQLFolloweeDonatedArticleTypeResolver
   ResponseConnection?: GQLResponseConnectionTypeResolver
   ResponseEdge?: GQLResponseEdgeTypeResolver
   Response?: {
@@ -4597,6 +4623,9 @@ export interface NotificationSettingToReportFeedbackResolver<
 export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
   followeeComments?: RecommendationToFolloweeCommentsResolver<TParent>
+  followeeDonatedArticles?: RecommendationToFolloweeDonatedArticlesResolver<
+    TParent
+  >
   followeeWorks?: RecommendationToFolloweeWorksResolver<TParent>
   followingTags?: RecommendationToFollowingTagsResolver<TParent>
   followingTagsArticles?: RecommendationToFollowingTagsArticlesResolver<TParent>
@@ -4636,6 +4665,21 @@ export interface RecommendationToFolloweeCommentsResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeCommentsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToFolloweeDonatedArticlesArgs {
+  input: GQLConnectionArgs
+}
+export interface RecommendationToFolloweeDonatedArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToFolloweeDonatedArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -4846,6 +4890,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'ArticleConnection'
     | 'CommentConnection'
+    | 'FolloweeDonatedArticleConnection'
     | 'ResponseConnection'
     | 'TagConnection'
     | 'UserConnection'
@@ -5132,6 +5177,108 @@ export interface CommentToReplyToResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLFolloweeDonatedArticleConnectionTypeResolver<
+  TParent = any
+> {
+  totalCount?: FolloweeDonatedArticleConnectionToTotalCountResolver<TParent>
+  pageInfo?: FolloweeDonatedArticleConnectionToPageInfoResolver<TParent>
+  edges?: FolloweeDonatedArticleConnectionToEdgesResolver<TParent>
+}
+
+export interface FolloweeDonatedArticleConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface FolloweeDonatedArticleConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface FolloweeDonatedArticleConnectionToEdgesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLFolloweeDonatedArticleEdgeTypeResolver<TParent = any> {
+  cursor?: FolloweeDonatedArticleEdgeToCursorResolver<TParent>
+  node?: FolloweeDonatedArticleEdgeToNodeResolver<TParent>
+}
+
+export interface FolloweeDonatedArticleEdgeToCursorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface FolloweeDonatedArticleEdgeToNodeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLFolloweeDonatedArticleTypeResolver<TParent = any> {
+  article?: FolloweeDonatedArticleToArticleResolver<TParent>
+  followee?: FolloweeDonatedArticleToFolloweeResolver<TParent>
+}
+
+export interface FolloweeDonatedArticleToArticleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface FolloweeDonatedArticleToFolloweeResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
