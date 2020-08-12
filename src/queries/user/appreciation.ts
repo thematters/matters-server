@@ -44,6 +44,7 @@ export const Appreciation: GQLAppreciationTypeResolver = {
   content: async (trx, _, { viewer, dataSources: { articleService } }) => {
     switch (trx.purpose) {
       case APPRECIATION_PURPOSE.appreciate:
+      case APPRECIATION_PURPOSE.superlike:
         const article = await articleService.dataloader.load(trx.referenceId)
         if (!article) {
           throw new ArticleNotFoundError('reference article not found')

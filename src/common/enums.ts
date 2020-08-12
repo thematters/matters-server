@@ -86,6 +86,7 @@ export const USER_ACTION = {
 
 export const APPRECIATION_PURPOSE = {
   appreciate: 'appreciate',
+  superlike: 'superlike',
   appreciateComment: 'appreciate-comment',
   appreciateSubsidy: 'appreciate-subsidy',
   invitationAccepted: 'invitation-accepted',
