@@ -7,6 +7,7 @@ import { v4 } from 'uuid'
 
 import {
   ALS_DEFAULT_VECTOR,
+  APPRECIATION_PURPOSE,
   ARTICLE_STATE,
   BATCH_SIZE,
   COMMENT_STATE,
@@ -505,6 +506,9 @@ export class UserService extends BaseService {
       .where({
         recipientId,
       })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
+      })
       .sum('amount as total')
 
     return Math.max(parseInt(result[0].total || 0, 10), 0)
@@ -515,6 +519,9 @@ export class UserService extends BaseService {
       .where({
         recipientId,
       })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
+      })
       .count()
     return parseInt(`${result[0].count}` || '0', 10)
   }
@@ -524,6 +531,9 @@ export class UserService extends BaseService {
       .where({
         senderId,
       })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
+      })
       .count()
     return parseInt(`${result[0].count}` || '0', 10)
   }
@@ -532,6 +542,9 @@ export class UserService extends BaseService {
     const result = await this.knex('appreciation')
       .where({
         senderId,
+      })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
       })
       .sum('amount as total')
     return Math.max(parseInt(result[0].total || 0, 10), 0)
@@ -550,6 +563,9 @@ export class UserService extends BaseService {
       .where({
         senderId,
       })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
+      })
       .limit(limit)
       .offset(offset)
       .orderBy('id', 'desc')
@@ -566,6 +582,9 @@ export class UserService extends BaseService {
     this.knex('appreciation')
       .where({
         recipientId,
+      })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
       })
       .limit(limit)
       .offset(offset)

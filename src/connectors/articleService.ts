@@ -1035,13 +1035,50 @@ export class ArticleService extends BaseService {
     return result
   }
 
+  /**
+   * Super Like
+   */
+  superlike = async ({
+    articleId,
+    senderId,
+    recipientId,
+    amount,
+    type,
+  }: {
+    articleId: string
+    senderId: string
+    recipientId: string
+    amount: number
+    type: string
+  }) => {
+    const appreciation = {
+      senderId,
+      recipientId,
+      referenceId: articleId,
+      purpose: APPRECIATION_PURPOSE.superlike,
+      type,
+    }
+
+    const uuid = v4()
+    const result = await this.knex('appreciation')
+      .insert({
+        ...appreciation,
+        uuid,
+        amount,
+      })
+      .into('appreciation')
+      .returning('*')
+
+    return result
+  }
+
   /*********************************
    *                               *
    *              Tag              *
    *                               *
    *********************************/
   /**
-   * Find tages by a given article id.
+   * Find tags by a given article id.
    */
   findTagIds = async ({
     id: articleId,

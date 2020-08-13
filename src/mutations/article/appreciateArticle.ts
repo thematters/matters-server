@@ -1,4 +1,4 @@
-import { USER_STATE } from 'common/enums'
+import { APPRECIATION_TYPES, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
@@ -80,6 +80,15 @@ const resolver: MutationToAppreciateArticleResolver = async (
       userAgent: viewer.userAgent,
       authorLikerId: author.likerId,
       url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+    })
+
+    // insert record
+    await articleService.superlike({
+      articleId: article.id,
+      senderId: viewer.id,
+      recipientId: article.authorId,
+      amount: 1,
+      type: APPRECIATION_TYPES.like,
     })
 
     return article
