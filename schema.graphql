@@ -865,6 +865,22 @@ input FeedbackInput {
   contact: String
 }
 
+type FolloweeDonatedArticle {
+  article: Article!
+  followee: User!
+}
+
+type FolloweeDonatedArticleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [FolloweeDonatedArticleEdge!]
+}
+
+type FolloweeDonatedArticleEdge {
+  cursor: String!
+  node: FolloweeDonatedArticle!
+}
+
 input FollowUserInput {
   id: ID!
 }
@@ -1536,6 +1552,9 @@ type Recommendation {
 
   """Comments published by user's followees."""
   followeeComments(input: ConnectionArgs!): CommentConnection!
+
+  """Articles that followee donated"""
+  followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
 
   """Articles and comments published by user's followees."""
   followeeWorks(input: ResponsesInput!): ResponseConnection! @deprecated(reason: "Feature changed.")
