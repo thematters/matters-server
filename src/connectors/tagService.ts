@@ -536,7 +536,8 @@ export class TagService extends BaseService {
       .select('article.cover')
       .from('article_tag')
       .join('article', 'article_id', 'article.id')
-      .where({
+      .whereNotNull('cover')
+      .andWhere({
         tagId: id,
         state: ARTICLE_STATE.active,
       })
