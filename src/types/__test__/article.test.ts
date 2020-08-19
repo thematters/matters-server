@@ -181,7 +181,7 @@ describe('publish article', () => {
       title: Math.random().toString(),
       content: Math.random().toString(),
     }
-    const { id } = await putDraft(draft)
+    const { id } = await putDraft({ draft })
     const { publishState } = await publishArticle({ id })
     expect(publishState).toBe(PUBLISH_STATE.pending)
 
@@ -360,5 +360,51 @@ describe('toggle article state', () => {
       },
     })
     expect(_get(data, 'toggleSubscribeArticle.subscribed')).toBe(false)
+  })
+})
+
+describe('frozen user do muations to article', () => {
+
+  // frozen user shared settings
+  const frozenUser = { isAuth: true, isFrozen: true }
+  const errorPath = 'errors.0.extensions.code'
+
+  test('subscribe article', async () => {
+    const { mutate } = await testClient(frozenUser)
+    const result = await mutate({
+      mutation: TOGGLE_SUBSCRIBE_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: true
+        }
+      }
+    })
+    expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
+  })
+
+  test('unsubscribe article', async () => {
+    const { mutate } = await testClient(frozenUser)
+    const result = await mutate({
+      mutation: TOGGLE_SUBSCRIBE_ARTICLE,
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          enabled: false,
+        }
+      }
+    })
+    expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
+  })
+
+  test('create draft', async () => {
+    const result = await putDraft({
+      draft: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+      },
+      client: { isFrozen: true },
+    })
+    expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
   })
 })

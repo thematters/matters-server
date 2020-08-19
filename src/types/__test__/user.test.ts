@@ -711,3 +711,34 @@ describe('verification code', () => {
     expect(confirmedCode.status).toBe(VERIFICATION_CODE_STATUS.verified)
   })
 })
+
+describe('frozen user do mutations', () => {
+
+  // frozen user shared settings
+  const frozenUser = { isAuth: true, isFrozen: true }
+  const errorPath = 'errors.0.extensions.code'
+
+  test('follow an user', async () => {
+    const followeeId = toGlobalId({ type: 'User', id: '3' })
+
+    // follow
+    const { mutate } = await testClient(frozenUser)
+    const result = await mutate({
+      mutation: FOLLOW_USER,
+      variables: { input: { id: followeeId } },
+    })
+    expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
+  })
+
+  test('followed by an user', async () => {
+    const followeeId = toGlobalId({ type: 'User', id: '8' })
+
+    // follow
+    const { mutate } = await testClient({ isAuth: true })
+    const result = await mutate({
+      mutation: FOLLOW_USER,
+      variables: { input: { id: followeeId } },
+    })
+    expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_TARGET_STATE')
+  })
+})

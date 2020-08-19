@@ -94,7 +94,9 @@ export class ForbiddenByTargetStateError extends ApolloError {
   constructor(message: string) {
     super(message, 'FORBIDDEN_BY_TARGET_STATE')
 
-    Object.defineProperty(this, 'name', { value: 'ForbiddenByTargetStateError' })
+    Object.defineProperty(this, 'name', {
+      value: 'ForbiddenByTargetStateError',
+    })
   }
 }
 
