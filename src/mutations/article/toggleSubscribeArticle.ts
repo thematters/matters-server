@@ -1,5 +1,9 @@
 import { USER_STATE } from 'common/enums'
-import { ArticleNotFoundError, AuthenticationError, ForbiddenByStateError } from 'common/errors'
+import {
+  ArticleNotFoundError,
+  AuthenticationError,
+  ForbiddenByStateError,
+} from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToToggleSubscribeArticleResolver } from 'definitions'
 

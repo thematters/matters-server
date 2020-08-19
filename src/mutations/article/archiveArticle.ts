@@ -1,5 +1,9 @@
 import { USER_STATE } from 'common/enums'
-import { AuthenticationError, ForbiddenByStateError, ForbiddenError } from 'common/errors'
+import {
+  AuthenticationError,
+  ForbiddenByStateError,
+  ForbiddenError,
+} from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToArchiveArticleResolver } from 'definitions'
 

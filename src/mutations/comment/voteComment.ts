@@ -21,7 +21,8 @@ const resolver: MutationToVoteCommentResolver = async (
 
   // disallow onboarding user vote in others' articles, and forbid archived user operation
   const isOnboarding = viewer.state === USER_STATE.onboarding
-  const isInactive = viewer.state === USER_STATE.archived || viewer.state === USER_STATE.frozen
+  const isInactive =
+    viewer.state === USER_STATE.archived || viewer.state === USER_STATE.frozen
   if ((article.authorId !== viewer.id && isOnboarding) || isInactive) {
     throw new ForbiddenByStateError('viewer has no permission')
   }

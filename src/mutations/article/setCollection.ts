@@ -1,7 +1,12 @@
 import { difference } from 'lodash'
 
 import { USER_STATE } from 'common/enums'
-import { AuthenticationError, EntityNotFoundError, ForbiddenByStateError, ForbiddenError } from 'common/errors'
+import {
+  AuthenticationError,
+  EntityNotFoundError,
+  ForbiddenByStateError,
+  ForbiddenError,
+} from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToSetCollectionResolver } from 'definitions'
 
