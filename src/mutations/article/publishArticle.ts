@@ -1,5 +1,9 @@
 import { PUBLISH_ARTICLE_DELAY, PUBLISH_STATE, USER_STATE } from 'common/enums'
-import { AuthenticationError, DraftNotFoundError, ForbiddenByStateError } from 'common/errors'
+import {
+  AuthenticationError,
+  DraftNotFoundError,
+  ForbiddenByStateError,
+} from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { publicationQueue } from 'connectors/queue'
 import { MutationToPublishArticleResolver } from 'definitions'

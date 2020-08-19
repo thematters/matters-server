@@ -85,7 +85,9 @@ const resolver: MutationToPayToResolver = async (
     recipient.state === USER_STATE.archived ||
     recipient.state === USER_STATE.frozen
   ) {
-    throw new ForbiddenByTargetStateError(`cannot pay-to ${recipient.state} user`)
+    throw new ForbiddenByTargetStateError(
+      `cannot pay-to ${recipient.state} user`
+    )
   }
 
   if (!target || target.state === 'archived') {

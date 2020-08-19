@@ -58,7 +58,9 @@ const resolver: MutationToAppreciateArticleResolver = async (
   }
 
   if (author.state === USER_STATE.frozen) {
-    throw new ForbiddenByTargetStateError(`cannot appreciate ${author.state} user`)
+    throw new ForbiddenByTargetStateError(
+      `cannot appreciate ${author.state} user`
+    )
   }
 
   /**
