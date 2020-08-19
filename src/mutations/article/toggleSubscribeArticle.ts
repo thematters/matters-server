@@ -1,4 +1,5 @@
-import { ArticleNotFoundError, AuthenticationError } from 'common/errors'
+import { USER_STATE } from 'common/enums'
+import { ArticleNotFoundError, AuthenticationError, ForbiddenByStateError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToToggleSubscribeArticleResolver } from 'definitions'
 
@@ -10,6 +11,10 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
   // checks
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  if (viewer.state === USER_STATE.frozen) {
+    throw new ForbiddenByStateError('viewer has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)

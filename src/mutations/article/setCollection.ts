@@ -1,6 +1,7 @@
 import { difference } from 'lodash'
 
-import { EntityNotFoundError, ForbiddenError } from 'common/errors'
+import { USER_STATE } from 'common/enums'
+import { AuthenticationError, EntityNotFoundError, ForbiddenByStateError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToSetCollectionResolver } from 'definitions'
 
@@ -9,6 +10,14 @@ const resolver: MutationToSetCollectionResolver = async (
   { input: { id, collection } },
   { viewer, dataSources: { articleService, notificationService } }
 ) => {
+  if (!viewer.id) {
+    throw new AuthenticationError('visitor has no permission')
+  }
+
+  if (viewer.state === USER_STATE.frozen) {
+    throw new ForbiddenByStateError('viewer has no permission')
+  }
+
   const entranceId = fromGlobalId(id).id
   const article = await articleService.baseFindById(entranceId)
   if (!article) {

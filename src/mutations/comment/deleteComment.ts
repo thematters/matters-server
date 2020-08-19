@@ -1,5 +1,5 @@
-import { CACHE_KEYWORD, COMMENT_STATE, NODE_TYPES } from 'common/enums'
-import { AuthenticationError, ForbiddenError } from 'common/errors'
+import { CACHE_KEYWORD, COMMENT_STATE, NODE_TYPES, USER_STATE } from 'common/enums'
+import { AuthenticationError, ForbiddenByStateError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToDeleteCommentResolver } from 'definitions'
 
@@ -13,6 +13,10 @@ const resolver: MutationToDeleteCommentResolver = async (
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  if (viewer.state === USER_STATE.frozen) {
+    throw new ForbiddenByStateError('viewer has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)

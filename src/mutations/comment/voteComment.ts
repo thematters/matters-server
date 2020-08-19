@@ -1,5 +1,5 @@
 import { USER_STATE } from 'common/enums'
-import { AuthenticationError, ForbiddenError } from 'common/errors'
+import { AuthenticationError, ForbiddenByStateError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToVoteCommentResolver } from 'definitions'
 
@@ -21,9 +21,9 @@ const resolver: MutationToVoteCommentResolver = async (
 
   // disallow onboarding user vote in others' articles, and forbid archived user operation
   const isOnboarding = viewer.state === USER_STATE.onboarding
-  const isArchived = viewer.state === USER_STATE.archived
-  if ((article.authorId !== viewer.id && isOnboarding) || isArchived) {
-    throw new ForbiddenError('viewer has no permission')
+  const isInactive = viewer.state === USER_STATE.archived || viewer.state === USER_STATE.frozen
+  if ((article.authorId !== viewer.id && isOnboarding) || isInactive) {
+    throw new ForbiddenByStateError('viewer has no permission')
   }
 
   // check is voted before

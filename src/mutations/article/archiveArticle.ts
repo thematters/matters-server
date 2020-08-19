@@ -1,4 +1,5 @@
-import { AuthenticationError, ForbiddenError } from 'common/errors'
+import { USER_STATE } from 'common/enums'
+import { AuthenticationError, ForbiddenByStateError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToArchiveArticleResolver } from 'definitions'
 
@@ -9,6 +10,10 @@ const resolver: MutationToArchiveArticleResolver = async (
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  if (viewer.state === USER_STATE.frozen) {
+    throw new ForbiddenByStateError('viewer has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
