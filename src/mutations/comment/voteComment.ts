@@ -24,7 +24,7 @@ const resolver: MutationToVoteCommentResolver = async (
   const isInactive =
     viewer.state === USER_STATE.archived || viewer.state === USER_STATE.frozen
   if ((article.authorId !== viewer.id && isOnboarding) || isInactive) {
-    throw new ForbiddenByStateError('viewer has no permission')
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
   // check is voted before

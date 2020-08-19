@@ -4,6 +4,8 @@ import {
   ActionLimitExceededError,
   ArticleNotFoundError,
   AuthenticationError,
+  ForbiddenByStateError,
+  ForbiddenByTargetStateError,
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId, isFeatureEnabled } from 'common/utils'
@@ -50,15 +52,20 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ForbiddenError('cannot appreciate your own article')
   }
 
+  const author = await userService.dataloader.load(article.authorId)
+  if (!author) {
+    throw new ForbiddenError('author has no liker id')
+  }
+
+  if (author.state === USER_STATE.frozen) {
+    throw new ForbiddenByTargetStateError(`cannot appreciate ${author.state} user`)
+  }
+
   /**
    * Super Like
    */
   if (superLike) {
-    const [liker, author] = await Promise.all([
-      userService.findLiker({ userId: viewer.id }),
-      userService.dataloader.load(article.authorId),
-    ])
-
+    const liker = await userService.findLiker({ userId: viewer.id })
     if (!liker || !author) {
       throw new ForbiddenError('viewer or author has no liker id')
     }

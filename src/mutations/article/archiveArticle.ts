@@ -17,7 +17,7 @@ const resolver: MutationToArchiveArticleResolver = async (
   }
 
   if (viewer.state === USER_STATE.frozen) {
-    throw new ForbiddenByStateError('viewer has no permission')
+    throw new ForbiddenByStateError(`${viewer.state} has no permission`)
   }
 
   const { id: dbId } = fromGlobalId(id)

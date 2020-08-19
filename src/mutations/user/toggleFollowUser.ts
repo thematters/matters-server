@@ -1,6 +1,9 @@
+import { USER_STATE } from 'common/enums'
 import {
   ActionFailedError,
   AuthenticationError,
+  ForbiddenByStateError,
+  ForbiddenByTargetStateError,
   UserNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
@@ -14,6 +17,10 @@ const resolver: MutationToToggleFollowUserResolver = async (
   // checks
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  if (viewer.state === USER_STATE.frozen) {
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
   const { id: dbId } = fromGlobalId(id)
@@ -41,6 +48,10 @@ const resolver: MutationToToggleFollowUserResolver = async (
 
   // run action
   if (action === 'follow') {
+    if (user.state === USER_STATE.frozen) {
+      throw new ForbiddenByTargetStateError(`cannot follow ${user.state} user`)
+    }
+
     await userService.follow(viewer.id, user.id)
 
     // trigger notificaiton

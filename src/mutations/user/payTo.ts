@@ -14,6 +14,8 @@ import { environment } from 'common/environment'
 import {
   AuthenticationError,
   EntityNotFoundError,
+  ForbiddenByStateError,
+  ForbiddenByTargetStateError,
   ForbiddenError,
   PasswordInvalidError,
   PaymentBalanceInsufficientError,
@@ -74,9 +76,16 @@ const resolver: MutationToPayToResolver = async (
 
   if (
     viewer.state === USER_STATE.archived ||
-    recipient.state === USER_STATE.archived
+    viewer.state === USER_STATE.frozen
   ) {
-    throw new ForbiddenError('viewer or recipient has no permission')
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
+  }
+
+  if (
+    recipient.state === USER_STATE.archived ||
+    recipient.state === USER_STATE.frozen
+  ) {
+    throw new ForbiddenByTargetStateError(`cannot pay-to ${recipient.state} user`)
   }
 
   if (!target || target.state === 'archived') {

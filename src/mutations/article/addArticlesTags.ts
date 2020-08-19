@@ -2,8 +2,10 @@ import _difference from 'lodash/difference'
 import _some from 'lodash/some'
 import _uniq from 'lodash/uniq'
 
+import { USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
+  ForbiddenByStateError,
   ForbiddenError,
   TagNotFoundError,
   UserInputError,
@@ -60,6 +62,10 @@ const resolver: MutationToAddArticlesTagsResolver = async (
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('viewer has no permission')
+  }
+
+  if (viewer.state === USER_STATE.frozen) {
+    throw new ForbiddenByStateError(`${viewer.state} has no permission`)
   }
 
   if (!articles) {
