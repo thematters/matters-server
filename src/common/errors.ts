@@ -82,6 +82,14 @@ export class ForbiddenError extends ApolloError {
   }
 }
 
+export class ForbiddenByStateError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'FORBIDDEN_BY_STATE')
+
+    Object.defineProperty(this, 'name', { value: 'ForbiddenByStateError' })
+  }
+}
+
 export class TokenInvalidError extends ApolloError {
   constructor(message: string) {
     super(message, 'TOKEN_INVALID')
