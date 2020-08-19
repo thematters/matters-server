@@ -77,7 +77,7 @@ exports.seed = function (knex, Promise) {
           display_name: 'frozen_user',
           email: 'frozen@matters.news',
           role: 'user',
-          state: 'frozen',
+          state: 'active',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
         },
       ])
