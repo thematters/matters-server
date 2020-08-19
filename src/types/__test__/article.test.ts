@@ -8,7 +8,7 @@ import {
   GQLPublishArticleInput,
 } from 'definitions'
 
-import { publishArticle, putDraft, testClient } from './utils'
+import { publishArticle, putDraft, testClient, updateUserState } from './utils'
 
 const mediaHash = 'someIpfsMediaHash1'
 
@@ -364,10 +364,23 @@ describe('toggle article state', () => {
 })
 
 describe('frozen user do muations to article', () => {
-
   // frozen user shared settings
   const frozenUser = { isAuth: true, isFrozen: true }
   const errorPath = 'errors.0.extensions.code'
+
+  // make sure user state in db is correct
+  beforeAll(async () => {
+    await updateUserState({
+      id: toGlobalId({ type: 'User', id: 8 }),
+      state: 'frozen',
+    })
+  })
+  afterAll(async () => {
+    await updateUserState({
+      id: toGlobalId({ type: 'User', id: 8 }),
+      state: 'active',
+    })
+  })
 
   test('subscribe article', async () => {
     const { mutate } = await testClient(frozenUser)
@@ -376,9 +389,9 @@ describe('frozen user do muations to article', () => {
       variables: {
         input: {
           id: ARTICLE_ID,
-          enabled: true
-        }
-      }
+          enabled: true,
+        },
+      },
     })
     expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
   })
@@ -391,8 +404,8 @@ describe('frozen user do muations to article', () => {
         input: {
           id: ARTICLE_ID,
           enabled: false,
-        }
-      }
+        },
+      },
     })
     expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
   })

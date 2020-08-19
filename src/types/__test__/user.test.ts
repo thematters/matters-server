@@ -11,6 +11,7 @@ import {
   getUserContext,
   registerUser,
   testClient,
+  updateUserState,
 } from './utils'
 
 let userService: any
@@ -713,10 +714,23 @@ describe('verification code', () => {
 })
 
 describe('frozen user do mutations', () => {
-
   // frozen user shared settings
   const frozenUser = { isAuth: true, isFrozen: true }
   const errorPath = 'errors.0.extensions.code'
+
+  // make sure user state in db is correct
+  beforeAll(async () => {
+    await updateUserState({
+      id: toGlobalId({ type: 'User', id: 8 }),
+      state: 'frozen',
+    })
+  })
+  afterAll(async () => {
+    await updateUserState({
+      id: toGlobalId({ type: 'User', id: 8 }),
+      state: 'active',
+    })
+  })
 
   test('follow an user', async () => {
     const followeeId = toGlobalId({ type: 'User', id: '3' })

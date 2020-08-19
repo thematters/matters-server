@@ -155,7 +155,6 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
   return draft
 }
 
-
 interface PutDraftInput {
   client?: {
     isFrozen?: boolean
@@ -250,5 +249,30 @@ export const updateUserDescription = async ({
     mutation: UPDATE_USER_INFO_DESCRIPTION,
     // @ts-ignore
     variables: { input: { description } },
+  })
+}
+
+export const updateUserState = async ({
+  id,
+  state,
+}: {
+  id: string
+  state: string
+}) => {
+  const UPDATE_USER_STATE = `
+    mutation UpdateUserState($input: UpdateUserStateInput!) {
+      updateUserState(input: $input) {
+        id
+        status {
+          state
+        }
+      }
+    }
+  `
+
+  const { mutate } = await testClient({ isAdmin: true })
+  return mutate({
+    mutation: UPDATE_USER_STATE,
+    variables: { input: { id, state } },
   })
 }
