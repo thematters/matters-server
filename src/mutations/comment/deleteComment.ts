@@ -25,7 +25,7 @@ const resolver: MutationToDeleteCommentResolver = async (
   }
 
   if (viewer.state === USER_STATE.frozen) {
-    throw new ForbiddenByStateError(`${viewer.state} has no permission`)
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
   const { id: dbId } = fromGlobalId(id)
