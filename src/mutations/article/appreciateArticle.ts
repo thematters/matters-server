@@ -35,7 +35,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
       viewer.state
     )
   ) {
-    throw new AuthenticationError(`${viewer.state} user has no permission`)
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
   if (!viewer.likerId) {
