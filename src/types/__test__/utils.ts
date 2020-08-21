@@ -49,18 +49,21 @@ export const testClient = async (
     isAdmin,
     isMatty,
     isOnboarding,
+    isFrozen,
     context,
   }: {
     isAuth?: boolean
     isAdmin?: boolean
     isMatty?: boolean
     isOnboarding?: boolean
+    isFrozen?: boolean
     context?: any
   } = {
     isAuth: false,
     isAdmin: false,
     isMatty: false,
     isOnboarding: false,
+    isFrozen: false,
     context: null,
   }
 ) => {
@@ -73,6 +76,8 @@ export const testClient = async (
         ? 'hi@matters.news'
         : isOnboarding
         ? 'onboarding@matters.news'
+        : isFrozen
+        ? 'frozen@matters.news'
         : isAdmin
         ? adminUser.email
         : defaultTestUser.email,
@@ -150,7 +155,14 @@ export const publishArticle = async (input: GQLPublishArticleInput) => {
   return draft
 }
 
-export const putDraft = async (draft: GQLPutDraftInput) => {
+interface PutDraftInput {
+  client?: {
+    isFrozen?: boolean
+  }
+  draft: GQLPutDraftInput
+}
+
+export const putDraft = async ({ draft, client }: PutDraftInput) => {
   const PUT_DRAFT = `
     mutation($input: PutDraftInput!) {
       putDraft(input: $input) {
@@ -170,14 +182,21 @@ export const putDraft = async (draft: GQLPutDraftInput) => {
       }
     }
   `
+
   const { mutate } = await testClient({
     isAuth: true,
+    ...client,
   })
   const result = await mutate({
     mutation: PUT_DRAFT,
     // @ts-ignore
     variables: { input: draft },
   })
+
+  if (!result.data) {
+    // if no return data, then pass entire result to parent
+    return result
+  }
 
   const putDraftResult = result && result.data && result.data.putDraft
   return putDraftResult
@@ -230,5 +249,30 @@ export const updateUserDescription = async ({
     mutation: UPDATE_USER_INFO_DESCRIPTION,
     // @ts-ignore
     variables: { input: { description } },
+  })
+}
+
+export const updateUserState = async ({
+  id,
+  state,
+}: {
+  id: string
+  state: string
+}) => {
+  const UPDATE_USER_STATE = `
+    mutation UpdateUserState($input: UpdateUserStateInput!) {
+      updateUserState(input: $input) {
+        id
+        status {
+          state
+        }
+      }
+    }
+  `
+
+  const { mutate } = await testClient({ isAdmin: true })
+  return mutate({
+    mutation: UPDATE_USER_STATE,
+    variables: { input: { id, state } },
   })
 }

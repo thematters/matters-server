@@ -1,12 +1,13 @@
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
-import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
+import { ARTICLE_STATE, PUBLISH_STATE, USER_STATE } from 'common/enums'
 import {
   ArticleNotFoundError,
   AssetNotFoundError,
   AuthenticationError,
   DraftNotFoundError,
+  ForbiddenByStateError,
   ForbiddenError,
 } from 'common/errors'
 import {
@@ -39,6 +40,10 @@ const resolver: MutationToPutDraftResolver = async (
   } = input
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  if (viewer.state === USER_STATE.frozen) {
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
   // check for asset existence

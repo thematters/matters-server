@@ -232,7 +232,9 @@ describe('mutations on comment', () => {
         input: { id: commentId, vote: 'up' },
       },
     })
-    expect(_get(upvoteResult, 'errors.0.extensions.code')).toBe('FORBIDDEN')
+    expect(_get(upvoteResult, 'errors.0.extensions.code')).toBe(
+      'FORBIDDEN_BY_STATE'
+    )
 
     // upvote comment that article published by viewer
     const upvoteSuccuessResult = await mutate({
@@ -252,7 +254,9 @@ describe('mutations on comment', () => {
         input: { id: commentId, vote: 'down' },
       },
     })
-    expect(_get(downvoteResult, 'errors.0.extensions.code')).toBe('FORBIDDEN')
+    expect(_get(downvoteResult, 'errors.0.extensions.code')).toBe(
+      'FORBIDDEN_BY_STATE'
+    )
 
     // downvote comment that article published by viewer
     const downvoteSuccuessResult = await mutate({

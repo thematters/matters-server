@@ -1,9 +1,10 @@
 import { difference, uniq } from 'lodash'
 
-import { ARTICLE_STATE } from 'common/enums'
+import { ARTICLE_STATE, USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
   EntityNotFoundError,
+  ForbiddenByStateError,
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
@@ -24,6 +25,10 @@ const resolver: MutationToEditArticleResolver = async (
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  if (viewer.state === USER_STATE.frozen) {
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
   // checks
