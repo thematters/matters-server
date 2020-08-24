@@ -939,7 +939,7 @@ export interface GQLAuthorsInput {
 
 export interface GQLAuthorsFilter {
   /**
-   * index of author list, min: 0, max: 50
+   * index of author list, min: 0, max: 49
    */
   random?: GQLNonNegativeInt
   followed?: boolean

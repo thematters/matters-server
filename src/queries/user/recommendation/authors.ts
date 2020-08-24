@@ -47,8 +47,9 @@ export const authors: RecommendationToAuthorsResolver = async (
       oss,
     })
 
-    const index = Math.min(filter.random, MAX_RANDOM_INDEX, chunk.length)
-    const filteredAuthors = chunk(authorPool, randomDraw)[index]
+    const chunks = chunk(authorPool, randomDraw)
+    const index = Math.min(filter.random, MAX_RANDOM_INDEX, chunks.length - 1)
+    const filteredAuthors = chunks[index]
 
     return connectionFromArray(filteredAuthors, input, authorPool.length)
   }
