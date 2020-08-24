@@ -5,7 +5,7 @@
  */
 
 exports.up = async (knex) => {
-  knex.raw(`
+  await knex.raw(`
     UPDATE
         article_read_count
     SET
