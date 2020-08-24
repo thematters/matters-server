@@ -1228,7 +1228,7 @@ export class ArticleService extends BaseService {
       {
         ...oldData,
         ...newData,
-        readTime: Math.round(parseInt(oldData.readTime, 10) + lapse),
+        readTime: Math.round(parseInt(oldData.readTime, 10) + lapse / 1000),
       },
       table
     )
