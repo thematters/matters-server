@@ -23,6 +23,7 @@ import avatar from './avatar'
 import badges from './badges'
 import blockList from './blockList'
 import commentCount from './commentCount'
+import donatedArticleCount from './donatedArticleCount'
 import followees from './followees'
 import followers from './followers'
 import group from './group'
@@ -39,6 +40,7 @@ import notification from './notification'
 import oauthProviders from './oauthProviders'
 import { boost, score } from './oss'
 import profileCover from './profileCover'
+import receivedDonationCount from './receivedDonationCount'
 import Recommendation from './recommendation'
 import rootUser from './rootUser'
 import StripeAccount from './stripeAccount'
@@ -123,6 +125,8 @@ const user: {
     unreadResponseInfoPopUp,
     hasPaymentPassword,
     totalWordCount,
+    donatedArticleCount,
+    receivedDonationCount,
   },
   Appreciation,
   Recommendation,

@@ -20,6 +20,14 @@ export default /* GraphQL */ `
     wallet: Wallet! @scope
   }
 
+  extend type UserStatus {
+    "Number of articles donated by user"
+    donatedArticleCount: Int!
+
+    "Number of times of donations received by user"
+    receivedDonationCount: Int!
+  }
+
   union TransactionTarget = Article | Transaction
 
   type Wallet {

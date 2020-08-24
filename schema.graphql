@@ -149,11 +149,14 @@ type Article implements Node {
   """List of articles which added this article into their collections."""
   collectedBy(input: ConnectionArgs!): ArticleConnection!
 
-  """List of articles added into this articles' collection."""
+  """List of articles added into this article' collection."""
   collection(input: ConnectionArgs!): ArticleConnection!
 
-  """Related articles to this articles."""
+  """Related articles to this article."""
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
+
+  """Donation-related articles to this article."""
+  relatedDonationArticles(input: ConnectionArgs!): ArticleConnection!
 
   """Appreciations history of this article."""
   appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
@@ -161,7 +164,7 @@ type Article implements Node {
   """Total number of appreciations recieved of this article."""
   appreciationsReceivedTotal: Int!
 
-  """Subscribers of this articles."""
+  """Subscribers of this article."""
   subscribers(input: ConnectionArgs!): UserConnection!
 
   """Limit the nuhmber of appreciate per user."""
@@ -2356,6 +2359,12 @@ type UserStatus {
 
   """Number of total written words."""
   totalWordCount: Int!
+
+  """Number of articles donated by user"""
+  donatedArticleCount: Int!
+
+  """Number of times of donations received by user"""
+  receivedDonationCount: Int!
 }
 
 scalar UUID

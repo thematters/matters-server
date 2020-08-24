@@ -128,14 +128,19 @@ export interface GQLArticle extends GQLNode {
   collectedBy: GQLArticleConnection
 
   /**
-   * List of articles added into this articles' collection.
+   * List of articles added into this article' collection.
    */
   collection: GQLArticleConnection
 
   /**
-   * Related articles to this articles.
+   * Related articles to this article.
    */
   relatedArticles: GQLArticleConnection
+
+  /**
+   * Donation-related articles to this article.
+   */
+  relatedDonationArticles: GQLArticleConnection
 
   /**
    * Appreciations history of this article.
@@ -148,7 +153,7 @@ export interface GQLArticle extends GQLNode {
   appreciationsReceivedTotal: number
 
   /**
-   * Subscribers of this articles.
+   * Subscribers of this article.
    */
   subscribers: GQLUserConnection
 
@@ -1266,6 +1271,16 @@ export interface GQLUserStatus {
    * Number of total written words.
    */
   totalWordCount: number
+
+  /**
+   * Number of articles donated by user
+   */
+  donatedArticleCount: number
+
+  /**
+   * Number of times of donations received by user
+   */
+  receivedDonationCount: number
 }
 
 export const enum GQLUserState {
@@ -3502,6 +3517,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   collectedBy?: ArticleToCollectedByResolver<TParent>
   collection?: ArticleToCollectionResolver<TParent>
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>
+  relatedDonationArticles?: ArticleToRelatedDonationArticlesResolver<TParent>
   appreciationsReceived?: ArticleToAppreciationsReceivedResolver<TParent>
   appreciationsReceivedTotal?: ArticleToAppreciationsReceivedTotalResolver<
     TParent
@@ -3714,6 +3730,21 @@ export interface ArticleToRelatedArticlesResolver<
   (
     parent: TParent,
     args: ArticleToRelatedArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToRelatedDonationArticlesArgs {
+  input: GQLConnectionArgs
+}
+export interface ArticleToRelatedDonationArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: ArticleToRelatedDonationArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6314,6 +6345,8 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   unreadResponseInfoPopUp?: UserStatusToUnreadResponseInfoPopUpResolver<TParent>
   hasPaymentPassword?: UserStatusToHasPaymentPasswordResolver<TParent>
   totalWordCount?: UserStatusToTotalWordCountResolver<TParent>
+  donatedArticleCount?: UserStatusToDonatedArticleCountResolver<TParent>
+  receivedDonationCount?: UserStatusToReceivedDonationCountResolver<TParent>
 }
 
 export interface UserStatusToStateResolver<TParent = any, TResult = any> {
@@ -6416,6 +6449,30 @@ export interface UserStatusToHasPaymentPasswordResolver<
 }
 
 export interface UserStatusToTotalWordCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToDonatedArticleCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserStatusToReceivedDonationCountResolver<
   TParent = any,
   TResult = any
 > {

@@ -138,11 +138,14 @@ export default /* GraphQL */ `
     "List of articles which added this article into their collections."
     collectedBy(input: ConnectionArgs!): ArticleConnection!
 
-    "List of articles added into this articles' collection."
+    "List of articles added into this article' collection."
     collection(input: ConnectionArgs!): ArticleConnection!
 
-    "Related articles to this articles."
+    "Related articles to this article."
     relatedArticles(input: ConnectionArgs!): ArticleConnection!
+
+    "Donation-related articles to this article."
+    relatedDonationArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Appreciations history of this article."
     appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
@@ -150,7 +153,7 @@ export default /* GraphQL */ `
     "Total number of appreciations recieved of this article."
     appreciationsReceivedTotal: Int!
 
-    "Subscribers of this articles."
+    "Subscribers of this article."
     subscribers(input: ConnectionArgs!): UserConnection!
 
     "Limit the nuhmber of appreciate per user."
