@@ -1,7 +1,7 @@
 /**
- * In realase v3.6.0 (2020-07-31 20:28 GMT+8), the unit of read_time
+ * In realase v3.6.0 (2020-07-31 20:29 GMT+8), the unit of read_time
  * changed from second to millsecond. To revert it, divide read_time
- * which is updated after 2020-07-31 20:28 GMT+8 by 1000.
+ * which is updated after 2020-07-31 20:29 GMT+8 by 1000.
  */
 
 exports.up = async (knex) => {
