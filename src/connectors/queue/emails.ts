@@ -167,7 +167,7 @@ class EmailsQueue extends BaseQueue {
             })
           ).length >= 1
 
-        // retrieve followeeArticles, or fallbakc to top appreciation articles
+        // retrieve followeeArticles, or fallback to top appreciation articles
         let articles: any[] = []
 
         if (hasFollowee) {

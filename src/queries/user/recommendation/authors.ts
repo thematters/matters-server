@@ -40,7 +40,6 @@ export const authors: RecommendationToAuthorsResolver = async (
   if (typeof filter?.random === 'number') {
     const MAX_RANDOM_INDEX = 50
     const randomDraw = first || 5
-    const index = Math.min(filter.random, MAX_RANDOM_INDEX)
 
     const authorPool = await userService.recommendAuthor({
       limit: MAX_RANDOM_INDEX * randomDraw,
@@ -48,11 +47,11 @@ export const authors: RecommendationToAuthorsResolver = async (
       oss,
     })
 
-    return connectionFromArray(
-      chunk(authorPool, randomDraw)[index],
-      input,
-      authorPool.length
-    )
+    const chunks = chunk(authorPool, randomDraw)
+    const index = Math.min(filter.random, MAX_RANDOM_INDEX, chunks.length - 1)
+    const filteredAuthors = chunks[index]
+
+    return connectionFromArray(filteredAuthors, input, authorPool.length)
   }
 
   const offset = cursorToIndex(after) + 1
