@@ -1484,6 +1484,17 @@ export interface GQLStripeAccount {
   loginUrl: GQLURL
 }
 
+export interface GQLRelatedDonationArticlesInput {
+  after?: string
+  first?: number
+  oss?: boolean
+
+  /**
+   * index of article list, min: 0, max: 49
+   */
+  random?: GQLNonNegativeInt
+}
+
 export interface GQLTranslationArgs {
   language: GQLUserLanguage
 }
@@ -3736,7 +3747,7 @@ export interface ArticleToRelatedArticlesResolver<
 }
 
 export interface ArticleToRelatedDonationArticlesArgs {
-  input: GQLConnectionArgs
+  input: GQLRelatedDonationArticlesInput
 }
 export interface ArticleToRelatedDonationArticlesResolver<
   TParent = any,

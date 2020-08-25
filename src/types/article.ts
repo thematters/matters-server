@@ -145,7 +145,7 @@ export default /* GraphQL */ `
     relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Donation-related articles to this article."
-    relatedDonationArticles(input: ConnectionArgs!): ArticleConnection!
+    relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection!
 
     "Appreciations history of this article."
     appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
@@ -407,6 +407,15 @@ export default /* GraphQL */ `
 
   input TranslationArgs {
     language: UserLanguage!
+  }
+
+  input RelatedDonationArticlesInput {
+    after: String
+    first: Int
+    oss: Boolean
+
+    "index of article list, min: 0, max: 49"
+    random: NonNegativeInt
   }
 
   "Enums for an article state."
