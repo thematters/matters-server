@@ -8,9 +8,9 @@ import {
 import { ArticleToRelatedDonationArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedDonationArticlesResolver = async (
-  { authorId, id, title },
+  { id },
   { input },
-  { dataSources: { articleService, tagService }, viewer }
+  { dataSources: { articleService } }
 ) => {
   const { first, after, random } = input
 

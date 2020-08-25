@@ -1807,9 +1807,11 @@ export class ArticleService extends BaseService {
   makeRelatedDonationsQuery = ({
     articleId,
     targetTypeId,
+    notIn,
   }: {
     articleId: string
     targetTypeId: string
+    notIn: string[]
   }) => {
     // 1 LIKE = 0.05 HKD
     const RATE_HKD_TO_LIKE = 20
@@ -1844,6 +1846,7 @@ export class ArticleService extends BaseService {
       )
       .rightJoin(donatorsQuery, 'donators.user_id', 'transaction.sender_id')
       .where({ ...baseWhere })
+      .whereNotIn('target_id', notIn)
       .groupBy('target_id')
       .as('related_donations')
 
@@ -1864,7 +1867,8 @@ export class ArticleService extends BaseService {
     const query = this.makeRelatedDonationsQuery({
       articleId,
       targetTypeId: entityTypeId,
-    }).whereNotIn('target_id', notIn)
+      notIn,
+    })
 
     const result = await this.knex.count('target_id').from(query).first()
 
@@ -1892,7 +1896,8 @@ export class ArticleService extends BaseService {
     const query = this.makeRelatedDonationsQuery({
       articleId,
       targetTypeId: entityTypeId,
-    }).whereNotIn('id', notIn)
+      notIn,
+    })
 
     return this.knex
       .select('article.*')
