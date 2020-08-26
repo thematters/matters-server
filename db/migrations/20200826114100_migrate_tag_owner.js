@@ -30,6 +30,5 @@ exports.up = async (knex) => {
 }
 
 exports.down = async (knex) => {
-  await knex(table)
-    .update('owner', null)
+  await knex(table).update('owner', null)
 }
