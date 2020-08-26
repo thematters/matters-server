@@ -967,7 +967,7 @@ type Mutation {
   putTag(input: PutTagInput!): Tag!
 
   """Update member, permission and othters of a tag."""
-  updateTagSetting(input: UpdateTagSettingInput): Tag!
+  updateTagSetting(input: UpdateTagSettingInput!): Tag!
 
   """Add one tag to articles."""
   addArticlesTags(input: AddArticlesTagsInput!): Tag!
@@ -1897,6 +1897,9 @@ type Tag implements Node {
   """Creator of this tag."""
   creator: User
 
+  """Owner of this tag."""
+  owner: User
+
   """This value determines if current viewer is following or not."""
   isFollower: Boolean
 
@@ -2076,8 +2079,8 @@ input UpdateNotificationSettingInput {
 }
 
 input UpdateTagSettingInput {
-  id: ID
-  type: UpdateTagSettingType
+  id: ID!
+  type: UpdateTagSettingType!
 }
 
 enum UpdateTagSettingType {

@@ -6,6 +6,10 @@ exports.up = async (knex) => {
     .where({ email: 'hi@matters.news', role: 'admin', state: 'active' })
     .first()
 
+  if (!matty) {
+    return
+  }
+
   // update current matty's tag
   await knex.raw(`
     UPDATE
