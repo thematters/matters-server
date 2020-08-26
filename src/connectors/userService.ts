@@ -1490,6 +1490,41 @@ export class UserService extends BaseService {
 
   /*********************************
    *                               *
+   *           Donation            *
+   *                               *
+   *********************************/
+  /**
+   * Count times of donation received by user
+   */
+  countReceivedDonation = async (recipientId: string) => {
+    const result = await this.knex('transaction')
+      .countDistinct('id')
+      .where({
+        recipientId,
+        state: TRANSACTION_STATE.succeeded,
+        purpose: TRANSACTION_PURPOSE.donation,
+      })
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Count articles donated by user
+   */
+  countDonatedArticle = async (senderId: string) => {
+    const result = await this.knex('transaction')
+      .countDistinct('target_id')
+      .where({
+        senderId,
+        state: TRANSACTION_STATE.succeeded,
+        purpose: TRANSACTION_PURPOSE.donation,
+      })
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /*********************************
+   *                               *
    *         OAuth:LikeCoin        *
    *                               *
    *********************************/

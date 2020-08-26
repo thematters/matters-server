@@ -16,6 +16,7 @@ import hasAppreciate from './hasAppreciate'
 import language from './language'
 import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
+import relatedDonationArticles from './relatedDonationArticles'
 import rootArticle from './rootArticle'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
@@ -57,6 +58,7 @@ export default {
     language,
     oss: (root: any) => root,
     relatedArticles,
+    relatedDonationArticles,
     slug: ({ slug, title }: { slug: string; title: string }) =>
       slug || slugify(title), // handle missing slug from migration
     subscribed,
