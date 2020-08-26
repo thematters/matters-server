@@ -68,8 +68,10 @@ oAuthRouter.use(async (req, res, next) => {
  */
 oAuthRouter.use('/authorize', async (req, res, next) => {
   const qs = querystring.stringify(req.query)
-  const grantUrl = `${environment.siteDomain}/oauth/authorize?${qs}`
-  const loginUrl = `${environment.siteDomain}/login?${querystring.stringify({
+  const grantUrl = `${environment.oauthSiteDomain}/oauth/authorize?${qs}`
+  const loginUrl = `${
+    environment.oauthSiteDomain
+  }/login?${querystring.stringify({
     target: grantUrl,
   })}`
   let redirectUrl = ''
@@ -99,7 +101,7 @@ oAuthRouter.use('/:provider', (req, res, next) => {
   const qs = querystring.stringify({
     target: fullUrl,
   })
-  const loginUrl = `${environment.siteDomain}/login?${qs}`
+  const loginUrl = `${environment.oauthSiteDomain}/login?${qs}`
   let redirectUrl = ''
 
   if (!req.app.locals.viewer.id) {
