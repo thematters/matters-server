@@ -966,6 +966,9 @@ type Mutation {
   """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
 
+  """Update member, permission and othters of a tag."""
+  updateTagSetting(input: UpdateTagSettingInput): Tag!
+
   """Add one tag to articles."""
   addArticlesTags(input: AddArticlesTagsInput!): Tag!
 
@@ -2070,6 +2073,16 @@ input UpdateCommentsStateInput {
 input UpdateNotificationSettingInput {
   type: NotificationSettingType!
   enabled: Boolean!
+}
+
+input UpdateTagSettingInput {
+  id: ID
+  type: UpdateTagSettingType
+}
+
+enum UpdateTagSettingType {
+  adopt
+  leave
 }
 
 input UpdateUserInfoInput {

@@ -1877,6 +1877,11 @@ export interface GQLMutation {
   putTag: GQLTag
 
   /**
+   * Update member, permission and othters of a tag.
+   */
+  updateTagSetting: GQLTag
+
+  /**
    * Add one tag to articles.
    */
   addArticlesTags: GQLTag
@@ -2218,6 +2223,16 @@ export interface GQLPutTagInput {
   content?: string
   cover?: string
   description?: string
+}
+
+export interface GQLUpdateTagSettingInput {
+  id?: string
+  type?: GQLUpdateTagSettingType
+}
+
+export const enum GQLUpdateTagSettingType {
+  adopt = 'adopt',
+  leave = 'leave',
 }
 
 export interface GQLAddArticlesTagsInput {
@@ -8000,6 +8015,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
+  updateTagSetting?: MutationToUpdateTagSettingResolver<TParent>
   addArticlesTags?: MutationToAddArticlesTagsResolver<TParent>
   updateArticlesTags?: MutationToUpdateArticlesTagsResolver<TParent>
   deleteArticlesTags?: MutationToDeleteArticlesTagsResolver<TParent>
@@ -8157,6 +8173,21 @@ export interface MutationToPutTagResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutTagArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateTagSettingArgs {
+  input?: GQLUpdateTagSettingInput
+}
+export interface MutationToUpdateTagSettingResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateTagSettingArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
