@@ -68,6 +68,9 @@ const MERGE_TAG = `
       ... on Tag {
         id
         content
+        owner {
+          id
+        }
       }
     }
   }
@@ -243,6 +246,7 @@ describe('manage tag', () => {
     })
     const mergeTagId = mergeResult?.data?.mergeTags?.id
     expect(mergeResult?.data?.mergeTags?.content).toBe(mergeContent)
+    expect(mergeResult?.data?.mergeTags?.owner?.id).toBe(toGlobalId({ type: 'User', id: 6 }))
 
     // delete
     const deleteResult = await mutate({
