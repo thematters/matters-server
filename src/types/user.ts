@@ -101,8 +101,8 @@ export default /* GraphQL */ `
     "Display name on user profile, can be duplicated."
     displayName: String
 
-    "LikerID of LikeCoin"
-    likerId: String @scope @deprecated(reason: "Use \`liker.likerId\`.")
+    "LikerID of LikeCoin, being used by LikeCoin OAuth"
+    likerId: String @scope
 
     "Liker info of current user"
     liker: Liker!

@@ -1850,7 +1850,15 @@ export class ArticleService extends BaseService {
       .groupBy('target_id')
       .as('related_donations')
 
-    return relatedDonationsQuery
+    return this.knex
+      .select('article.*')
+      .from(this.table)
+      .rightJoin(
+        relatedDonationsQuery,
+        'article.id',
+        'related_donations.target_id'
+      )
+      .where({ state: ARTICLE_STATE.active })
   }
 
   countRelatedDonations = async ({
@@ -1899,12 +1907,6 @@ export class ArticleService extends BaseService {
       notIn,
     })
 
-    return this.knex
-      .select('article.*')
-      .from(this.table)
-      .rightJoin(query, 'article.id', 'related_donations.target_id')
-      .orderBy('score')
-      .limit(limit)
-      .offset(offset)
+    return query.orderBy('score').limit(limit).offset(offset)
   }
 }
