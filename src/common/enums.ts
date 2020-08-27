@@ -41,11 +41,12 @@ export const MATERIALIZED_VIEW = {
 
 // cache TTL in seconds
 export const CACHE_TTL = {
+  PUBLIC_QUERY: 60 * 60 * 24, // 1 day
+  PRIVATE_QUERY: 60 * 10, // 10 mins
+
   STATIC: 60 * 60 * 24 * 10, // 10 days for static data
   LONG: 60 * 60 * 24, // 1 day
-  MEDIUM: 60 * 60, // 1 hour
   SHORT: 60 * 3, // 3 mins
-  DEFAULT: 30, // 30s
   INSTANT: 0, // no cache
 }
 
