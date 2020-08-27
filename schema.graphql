@@ -2133,8 +2133,8 @@ type User implements Node {
   """Display name on user profile, can be duplicated."""
   displayName: String
 
-  """LikerID of LikeCoin"""
-  likerId: String @deprecated(reason: "Use `liker.likerId`.")
+  """LikerID of LikeCoin, being used by LikeCoin OAuth"""
+  likerId: String
 
   """Liker info of current user"""
   liker: Liker!
