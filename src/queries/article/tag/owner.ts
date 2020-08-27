@@ -4,6 +4,6 @@ const resolver: TagToOwnerResolver = (
   { owner },
   _,
   { dataSources: { userService } }
-) => userService.dataloader.load(owner)
+) => owner ? userService.dataloader.load(owner) : null
 
 export default resolver
