@@ -1,4 +1,5 @@
 import axios from 'axios'
+import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -32,6 +33,9 @@ const resolver: MutationToSingleFileUploadResolver = async (
   { input: { type, file, url, entityType, entityId } },
   { viewer, dataSources: { systemService } }
 ) => {
+  // https://github.com/Urigo/graphql-scalars#url
+  url = _.get(url, 'href')
+
   const isImageType =
     [
       'avatar',
