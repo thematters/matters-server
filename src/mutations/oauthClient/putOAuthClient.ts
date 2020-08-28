@@ -32,6 +32,9 @@ const resolver: MutationToPutOAuthClientResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
+  // https://github.com/Urigo/graphql-scalars#url
+  website = _.get(website, 'href')
+
   let oauthClient: any = {
     clientId: id || nanoid(32),
     clientSecret: secret,

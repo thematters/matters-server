@@ -298,7 +298,7 @@ export interface GQLUser extends GQLNode {
   displayName?: string
 
   /**
-   * LikerID of LikeCoin
+   * LikerID of LikeCoin, being used by LikeCoin OAuth
    */
   likerId?: string
 
