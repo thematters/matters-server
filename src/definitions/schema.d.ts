@@ -299,7 +299,6 @@ export interface GQLUser extends GQLNode {
 
   /**
    * LikerID of LikeCoin
-   * @deprecated Use `liker.likerId`.
    */
   likerId?: string
 
@@ -2110,7 +2109,7 @@ export interface GQLMutation {
   toggleFollowTag: GQLTag
 
   /**
-   * Follow or Unfollow current usere.
+   * Follow or Unfollow current user.
    */
   toggleFollowUser: GQLUser
 

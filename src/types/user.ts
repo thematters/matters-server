@@ -44,7 +44,7 @@ export default /* GraphQL */ `
     "Follow or unfollow tag."
     toggleFollowTag(input: ToggleItemInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
 
-    "Follow or Unfollow current usere."
+    "Follow or Unfollow current user."
     toggleFollowUser(input: ToggleItemInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
 
     "Block or Unblock a given user."
@@ -102,7 +102,7 @@ export default /* GraphQL */ `
     displayName: String
 
     "LikerID of LikeCoin"
-    likerId: String @scope @deprecated(reason: "Use \`liker.likerId\`.")
+    likerId: String @scope
 
     "Liker info of current user"
     liker: Liker!

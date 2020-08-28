@@ -1,4 +1,4 @@
-import { USER_STATE } from 'common/enums'
+import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
 import {
   ActionFailedError,
   AuthenticationError,
@@ -63,6 +63,14 @@ const resolver: MutationToToggleFollowUserResolver = async (
   } else {
     await userService.unfollow(viewer.id, user.id)
   }
+
+  // invalidate extra nodes
+  user[CACHE_KEYWORD] = [
+    {
+      id: viewer.id,
+      type: NODE_TYPES.user,
+    },
+  ]
 
   return user
 }

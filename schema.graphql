@@ -1101,7 +1101,7 @@ type Mutation {
   """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
 
-  """Follow or Unfollow current usere."""
+  """Follow or Unfollow current user."""
   toggleFollowUser(input: ToggleItemInput!): User!
 
   """Block or Unblock a given user."""
@@ -2134,7 +2134,7 @@ type User implements Node {
   displayName: String
 
   """LikerID of LikeCoin"""
-  likerId: String @deprecated(reason: "Use `liker.likerId`.")
+  likerId: String
 
   """Liker info of current user"""
   liker: Liker!
