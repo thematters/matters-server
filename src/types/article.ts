@@ -118,7 +118,7 @@ export default /* GraphQL */ `
     summary: String!
 
     "Tags attached to this article."
-    tags: [Tag!]
+    tags: [Tag!] @logCache(type: "${NODE_TYPES.tag}")
 
     "Word count of this article."
     wordCount: Int
@@ -209,12 +209,10 @@ export default /* GraphQL */ `
     description: String
 
     "Editors of this tag."
-    # editors: [User!] @logCache(type: "${NODE_TYPES.user}")
-    editors: [User!]
+    editors: [User!] @logCache(type: "${NODE_TYPES.user}")
 
     "Creator of this tag."
-    # creator: User @logCache(type: "${NODE_TYPES.article}")
-    creator: User
+    creator: User @logCache(type: "${NODE_TYPES.user}")
 
     "This value determines if current viewer is following or not."
     isFollower: Boolean

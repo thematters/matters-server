@@ -1,3 +1,5 @@
+import { CACHE_TTL, NODE_TYPES } from 'common/enums'
+
 export default /* GraphQL */ `
   extend type Mutation {
     "Mark all received notices as read."
@@ -5,7 +7,7 @@ export default /* GraphQL */ `
   }
 
   extend type User {
-    notices(input: ConnectionArgs!): NoticeConnection! @scope
+    notices(input: ConnectionArgs!): NoticeConnection! @scope @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
   }
 
   """
@@ -30,7 +32,7 @@ export default /* GraphQL */ `
 
   type NoticeEdge {
     cursor: String!
-    node: Notice!
+    node: Notice! @logCache(type: "${NODE_TYPES.notice}")
   }
 
   #################################
@@ -52,7 +54,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of new followers."
-    actors: [User]
+    actors: [User] @logCache(type: "${NODE_TYPES.user}")
   }
 
   #################################
@@ -74,16 +76,16 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The article that has been published."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   type ArticleNewDownstreamNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actors: [User]
+    actors: [User] @logCache(type: "${NODE_TYPES.user}")
     downstream: Article
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   """
@@ -100,13 +102,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user collect current user's articles."
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
 
     "The article that collected current user's articles."
-    collection: Article
+    collection: Article @logCache(type: "${NODE_TYPES.article}")
 
     "The article that has been collected."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   """
@@ -123,10 +125,10 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of users who appreciated current user's article."
-    actors: [User]
+    actors: [User] @logCache(type: "${NODE_TYPES.user}")
 
     "The article that has been appreciated."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   """
@@ -143,10 +145,10 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of users who subscribed current user's article."
-    actors: [User]
+    actors: [User] @logCache(type: "${NODE_TYPES.user}")
 
     "The article that has been subscribed."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   """
@@ -163,13 +165,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user who comment current user's article."
-    actors: [User]
+    actors: [User] @logCache(type: "${NODE_TYPES.user}")
 
     "The article that has new comment."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
 
     "The comment data."
-    comment: Comment
+    comment: Comment @logCache(type: "${NODE_TYPES.comment}")
   }
 
   """
@@ -186,10 +188,10 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user who mentioned current user."
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
 
     "The article that current user has been mentioned in."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   """
@@ -206,29 +208,29 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user who made new comment to current user's subscribed article."
-    actors: [User]
+    actors: [User] @logCache(type: "${NODE_TYPES.user}")
 
     "The article that current user has been subscribed."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
 
     "The comment data."
-    comment: Comment
+    comment: Comment @logCache(type: "${NODE_TYPES.comment}")
   }
 
   type UpstreamArticleArchivedNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    upstream: Article
-    target: Article
+    upstream: Article @logCache(type: "${NODE_TYPES.article}")
+    target: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   type DownstreamArticleArchivedNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    downstream: Article
-    target: Article
+    downstream: Article @logCache(type: "${NODE_TYPES.article}")
+    target: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   #################################
@@ -250,10 +252,10 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user who pinned current user's comment."
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
 
     "The comment data."
-    target: Comment
+    target: Comment @logCache(type: "${NODE_TYPES.comment}")
   }
 
   """
@@ -270,21 +272,21 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user who replied current user's comment."
-    actors: [User]
+    actors: [User] @logCache(type: "${NODE_TYPES.user}")
 
     "The comment that has new replied."
-    target: Comment
+    target: Comment @logCache(type: "${NODE_TYPES.comment}")
 
     "The comment that replied to current user's existing comment."
-    reply: Comment
+    reply: Comment @logCache(type: "${NODE_TYPES.comment}")
   }
 
   type CommentMentionedYouNotice implements Notice {
     id: ID!
     unread: Boolean!
     createdAt: DateTime!
-    actor: User!
-    target: Comment
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
+    target: Comment @logCache(type: "${NODE_TYPES.comment}")
   }
 
   #################################
@@ -331,13 +333,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user who replied current user's comment."
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
 
     "The article has a new tag."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
 
     "The tag has been attached to an article."
-    tag: Tag
+    tag: Tag @logCache(type: "${NODE_TYPES.tag}")
   }
 
   """
@@ -354,13 +356,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user who replied current user's comment."
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
 
     "The article loses a tag."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
 
     "The tag has been deattached from an article."
-    tag: Tag
+    tag: Tag @logCache(type: "${NODE_TYPES.tag}")
   }
 
   """
@@ -377,13 +379,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user who replied current user's comment."
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
 
     "The article has a new tag."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
 
     "The tag has been attached to an article."
-    tag: Tag
+    tag: Tag @logCache(type: "${NODE_TYPES.tag}")
   }
 
   #################################
@@ -405,10 +407,10 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The user who donated to current user."
-    actor: User!
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
 
     "The transaction data."
-    target: Transaction
+    target: Transaction @logCache(type: "${NODE_TYPES.transaction}")
   }
 
   """
@@ -425,6 +427,6 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "The transaction data."
-    target: Transaction
+    target: Transaction @logCache(type: "${NODE_TYPES.transaction}")
   }
 `

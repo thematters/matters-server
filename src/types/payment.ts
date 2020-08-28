@@ -62,8 +62,7 @@ export default /* GraphQL */ `
     sender: User
 
     "Related target article or transaction."
-    # target: TransactionTarget @logCache(type: "${NODE_TYPES.transactionTarget}")
-    target: TransactionTarget
+    target: TransactionTarget @logCache(type: "${NODE_TYPES.transactionTarget}")
 
     "Message for end user, including reason of failure."
     message: String

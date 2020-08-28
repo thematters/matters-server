@@ -186,25 +186,25 @@ export default /* GraphQL */ `
     followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Global articles sort by publish time."
-    newest(input: ConnectionArgs!): ArticleConnection!
+    newest(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global articles sort by latest activity time."
-    hottest(input: ConnectionArgs!): ArticleConnection!
+    hottest(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "'In case you missed it' recommendation."
-    icymi(input: ConnectionArgs!): ArticleConnection!
+    icymi(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global articles sort by appreciate, donation and subscription."
-    valued(input: ConnectionArgs!): ArticleConnection!
+    valued(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global tag list, sort by activities in recent 14 days."
-    tags(input: ConnectionArgs!): TagConnection!
+    tags(input: ConnectionArgs!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
     "Gloabl article list, sort by activities in recent 72 hours."
-    topics(input: ConnectionArgs!): ArticleConnection!
+    topics(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global user list, sort by activities in recent 6 month."
-    authors(input: AuthorsInput!): UserConnection!
+    authors(input: AuthorsInput!): UserConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
 
     "Personalized recommendation based on interaction with tags."
     interest(input: ConnectionArgs!): ArticleConnection!
@@ -346,13 +346,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "Recipient of appreciation."
-    recipient: User!
+    recipient: User! @logCache(type: "${NODE_TYPES.user}")
 
     "Sender of appreciation."
-    sender: User
+    sender: User @logCache(type: "${NODE_TYPES.user}")
 
     "Object that appreciation is meant for."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   type NotificationSetting {
@@ -372,7 +372,7 @@ export default /* GraphQL */ `
   }
 
   type ReadHistory {
-    article: Article!
+    article: Article! @logCache(type: "${NODE_TYPES.article}")
     readAt: DateTime!
   }
 
@@ -441,8 +441,8 @@ export default /* GraphQL */ `
   }
 
   type FolloweeDonatedArticle {
-    article: Article!
-    followee: User!
+    article: Article! @logCache(type: "${NODE_TYPES.article}")
+    followee: User! @logCache(type: "${NODE_TYPES.user}")
   }
 
   input UserInput {

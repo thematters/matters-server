@@ -4,13 +4,13 @@ import * as cheerio from 'cheerio'
 
 import {
   MINUTE,
+  NODE_TYPES,
   PUBLISH_ARTICLE_DELAY,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-  NODE_TYPES,
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
