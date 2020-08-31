@@ -2109,7 +2109,7 @@ export interface GQLMutation {
   toggleFollowTag: GQLTag
 
   /**
-   * Follow or Unfollow current usere.
+   * Follow or Unfollow current user.
    */
   toggleFollowUser: GQLUser
 

@@ -67,15 +67,6 @@ const resolver: MutationToTogglePinCommentResolver = async (
         },
       ],
     })
-
-    // publish a PubSub event
-    // notificationService.pubsub.publish(
-    //   toGlobalId({
-    //     type: 'Article',
-    //     id: article.id,
-    //   }),
-    //   article
-    // )
   } else {
     pinnedComment = commentService.togglePinned({
       commentId: dbId,

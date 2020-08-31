@@ -1,4 +1,4 @@
-import { CACHE_TTL } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -39,7 +39,7 @@ export default /* GraphQL */ `
     grantTypes: [GrantType!] @authorize
 
     "Linked Developer Account"
-    user: User
+    user: User @logCache(type: "${NODE_TYPES.user}")
 
     "Creation Date"
     createdAt: Date!

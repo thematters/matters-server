@@ -17,7 +17,7 @@ export default /* GraphQL */ `
     resetPassword(input: ResetPasswordInput!): Boolean
 
     "Change user email."
-    changeEmail(input: ChangeEmailInput!): User! @authenticate
+    changeEmail(input: ChangeEmailInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
 
     "Verify user email."
     verifyEmail(input: VerifyEmailInput!): Boolean @authenticate
@@ -32,10 +32,10 @@ export default /* GraphQL */ `
     userLogout: Boolean!
 
     "Generate or claim a Liker ID through LikeCoin"
-    generateLikerId: User! @authenticate
+    generateLikerId: User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
 
     "Update user information."
-    updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate
+    updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
 
     "Update user notification settings."
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
@@ -44,14 +44,14 @@ export default /* GraphQL */ `
     "Follow or unfollow tag."
     toggleFollowTag(input: ToggleItemInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
 
-    "Follow or Unfollow current usere."
-    toggleFollowUser(input: ToggleItemInput!): User! @authenticate
+    "Follow or Unfollow current user."
+    toggleFollowUser(input: ToggleItemInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
 
     "Block or Unblock a given user."
-    toggleBlockUser(input: ToggleItemInput!): User! @authenticate
+    toggleBlockUser(input: ToggleItemInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
 
     "Subscribe/ Unsubscribe Push Notification."
-    toggleSubscribePush(input: ToggleItemInput!): User! @authenticate
+    toggleSubscribePush(input: ToggleItemInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
 
     "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
@@ -69,23 +69,23 @@ export default /* GraphQL */ `
     updateUserState(input: UpdateUserStateInput!): [User!] @authorize @purgeCache(type: "${NODE_TYPES.user}")
 
     "Update state of a user, used in OSS."
-    updateUserRole(input: UpdateUserRoleInput!): User! @authorize
+    updateUserRole(input: UpdateUserRoleInput!): User! @authorize @purgeCache(type: "${NODE_TYPES.user}")
 
 
     ##############
     # DEPRECATED #
     ##############
     "Block a given user."
-    blockUser(input: BlockUserInput!): User! @authenticate @deprecated(reason: "Use \`toggleBlockUser\`.")
+    blockUser(input: BlockUserInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
 
     "Unblock a given user."
-    unblockUser(input: BlockUserInput!): User! @authenticate @deprecated(reason: "Use \`toggleBlockUser\`.")
+    unblockUser(input: BlockUserInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
 
     "Follow a given user."
-    followUser(input: FollowUserInput!): User! @authenticate @deprecated(reason: "Use \`toggleFollowUser\`.")
+    followUser(input: FollowUserInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
 
     "Unfollow curent user."
-    unfollowUser(input: FollowUserInput!): User! @authenticate @deprecated(reason: "Use \`toggleFollowUser\`.")
+    unfollowUser(input: FollowUserInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
   }
 
   type User implements Node {
@@ -186,25 +186,25 @@ export default /* GraphQL */ `
     followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Global articles sort by publish time."
-    newest(input: ConnectionArgs!): ArticleConnection!
+    newest(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global articles sort by latest activity time."
-    hottest(input: ConnectionArgs!): ArticleConnection!
+    hottest(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "'In case you missed it' recommendation."
-    icymi(input: ConnectionArgs!): ArticleConnection!
+    icymi(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global articles sort by appreciate, donation and subscription."
-    valued(input: ConnectionArgs!): ArticleConnection!
+    valued(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global tag list, sort by activities in recent 14 days."
-    tags(input: ConnectionArgs!): TagConnection!
+    tags(input: ConnectionArgs!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
     "Gloabl article list, sort by activities in recent 72 hours."
-    topics(input: ConnectionArgs!): ArticleConnection!
+    topics(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global user list, sort by activities in recent 6 month."
-    authors(input: AuthorsInput!): UserConnection!
+    authors(input: AuthorsInput!): UserConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
 
     "Personalized recommendation based on interaction with tags."
     interest(input: ConnectionArgs!): ArticleConnection!
@@ -346,13 +346,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "Recipient of appreciation."
-    recipient: User!
+    recipient: User! @logCache(type: "${NODE_TYPES.user}")
 
     "Sender of appreciation."
-    sender: User
+    sender: User @logCache(type: "${NODE_TYPES.user}")
 
     "Object that appreciation is meant for."
-    target: Article
+    target: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
   type NotificationSetting {
@@ -372,7 +372,7 @@ export default /* GraphQL */ `
   }
 
   type ReadHistory {
-    article: Article!
+    article: Article! @logCache(type: "${NODE_TYPES.article}")
     readAt: DateTime!
   }
 
@@ -441,8 +441,8 @@ export default /* GraphQL */ `
   }
 
   type FolloweeDonatedArticle {
-    article: Article!
-    followee: User!
+    article: Article! @logCache(type: "${NODE_TYPES.article}")
+    followee: User! @logCache(type: "${NODE_TYPES.user}")
   }
 
   input UserInput {
