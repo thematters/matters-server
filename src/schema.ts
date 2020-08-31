@@ -5,7 +5,7 @@ import {
 import { makeExecutableSchema } from 'graphql-tools'
 import { merge } from 'lodash'
 
-import { CACHE_KEYWORD } from 'common/enums'
+import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import { AuthenticationError, ForbiddenError } from 'common/errors'
 
 import mutations from './mutations'
@@ -23,13 +23,13 @@ import {
 
 const typeResolver = (type: string, result: any) => {
   const unionsAndInterfaces = [
-    'Node',
-    'Response',
-    'TransactionTarget',
-    'Notice',
+    NODE_TYPES.node,
+    NODE_TYPES.response,
+    NODE_TYPES.transactionTarget,
+    NODE_TYPES.notice,
   ]
 
-  if (unionsAndInterfaces.indexOf(type) >= 0) {
+  if (unionsAndInterfaces.indexOf(type) >= 0 && result?.__type) {
     return result.__type
   }
 
