@@ -957,6 +957,23 @@ export interface GQLTagOSS {
   score: GQLNonNegativeFloat
 }
 
+export interface GQLRecommendationTagsInput {
+  after?: string
+  first?: number
+  oss?: boolean
+  filter?: GQLRecommendationTagsFilter
+}
+
+export interface GQLRecommendationTagsFilter {
+  /**
+   * index of tag list, min: 0, max: 49
+   */
+  random?: GQLNonNegativeInt
+  all?: boolean
+}
+
+export type GQLNonNegativeInt = any
+
 export interface GQLAuthorsInput {
   after?: string
   first?: number
@@ -971,8 +988,6 @@ export interface GQLAuthorsFilter {
   random?: GQLNonNegativeInt
   followed?: boolean
 }
-
-export type GQLNonNegativeInt = any
 
 export interface GQLDraftConnection extends GQLConnection {
   totalCount: number
@@ -4820,7 +4835,7 @@ export interface RecommendationToValuedResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToTagsArgs {
-  input: GQLConnectionArgs
+  input: GQLRecommendationTagsInput
 }
 export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
   (

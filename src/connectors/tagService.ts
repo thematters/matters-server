@@ -375,6 +375,50 @@ export class TagService extends BaseService {
     return tag.tagScore || 0
   }
 
+  /**
+   * Find curation tags.
+   *
+   */
+  findCurationTags = async ({
+    mattyId,
+    limit = BATCH_SIZE,
+    offset = 0,
+    oss = false,
+  }: {
+    mattyId: string
+    limit?: number
+    offset?: number
+    oss?: boolean
+  }) =>
+    this.knex()
+      .select('tag.*')
+      .from(
+        this.knex.raw(`(
+          SELECT
+              tag.id,
+              COALESCE(SUM(1), 0) AS articles,
+              COALESCE(SUM(art.selected::int), 0) AS selected
+          FROM
+              tag
+              JOIN article_tag art ON art.tag_id = tag.id
+          WHERE
+              tag.deleted = FALSE
+              AND tag.owner != ${mattyId}
+              OR (tag.owner = ${mattyId} AND now() - tag.created_at <= Interval '90 day')
+          GROUP BY
+              tag.id
+        ) AS base`)
+      )
+      .join('tag', 'tag.id', 'base.id')
+      .where(
+        this.knex.raw(`
+          base.articles >= 3
+          AND (tag.description IS NOT NULL OR base.selected > 0)
+        `)
+      )
+      .limit(limit)
+      .offset(offset)
+
   /*********************************
    *                               *
    *            Article            *

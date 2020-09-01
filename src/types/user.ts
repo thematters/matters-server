@@ -198,7 +198,7 @@ export default /* GraphQL */ `
     valued(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global tag list, sort by activities in recent 14 days."
-    tags(input: ConnectionArgs!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
+    tags(input: RecommendationTagsInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
     "Gloabl article list, sort by activities in recent 72 hours."
     topics(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
@@ -542,6 +542,19 @@ export default /* GraphQL */ `
   input MigrationInput {
     type: MigrationType
     files: [Upload]!
+  }
+
+  input RecommendationTagsInput {
+    after: String
+    first: Int
+    oss: Boolean
+    filter: RecommendationTagsFilter
+  }
+
+  input RecommendationTagsFilter {
+    "index of tag list, min: 0, max: 49"
+    random: NonNegativeInt
+    all: Boolean
   }
 
   enum BadgeType {
