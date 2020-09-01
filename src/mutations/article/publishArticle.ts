@@ -1,5 +1,9 @@
 import { PUBLISH_ARTICLE_DELAY, PUBLISH_STATE, USER_STATE } from 'common/enums'
-import { AuthenticationError, DraftNotFoundError } from 'common/errors'
+import {
+  AuthenticationError,
+  DraftNotFoundError,
+  ForbiddenByStateError,
+} from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { publicationQueue } from 'connectors/queue'
 import { MutationToPublishArticleResolver } from 'definitions'
@@ -18,7 +22,7 @@ const resolver: MutationToPublishArticleResolver = async (
       viewer.state
     )
   ) {
-    throw new AuthenticationError(`${viewer.state} user has no permission`)
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
   // retrive data from draft

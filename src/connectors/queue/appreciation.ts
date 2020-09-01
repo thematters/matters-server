@@ -1,7 +1,9 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 
 import {
   APPRECIATION_TYPES,
+  NODE_TYPES,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
@@ -148,6 +150,18 @@ class AppreciationQueue extends BaseQueue {
           },
         ],
       })
+
+      // invalidate cache
+      if (this.cacheService) {
+        invalidateFQC({
+          node: { type: NODE_TYPES.article, id: article.id },
+          redis: this.cacheService.redis,
+        })
+        invalidateFQC({
+          node: { type: NODE_TYPES.user, id: article.authorId },
+          redis: this.cacheService.redis,
+        })
+      }
 
       job.progress(100)
       done(null, job.data)

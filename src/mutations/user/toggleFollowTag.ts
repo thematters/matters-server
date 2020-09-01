@@ -1,4 +1,3 @@
-import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
 import { AuthenticationError, TagNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToToggleFollowTagResolver } from 'definitions'
@@ -38,14 +37,6 @@ const resolver: MutationToToggleFollowTagResolver = async (
   } else {
     await tagService.unfollow({ targetId: tag.id, userId: viewer.id })
   }
-
-  // invalidate extra nodes
-  tag[CACHE_KEYWORD] = [
-    {
-      id: viewer.id,
-      type: NODE_TYPES.user,
-    },
-  ]
 
   return tag
 }

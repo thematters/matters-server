@@ -149,11 +149,14 @@ type Article implements Node {
   """List of articles which added this article into their collections."""
   collectedBy(input: ConnectionArgs!): ArticleConnection!
 
-  """List of articles added into this articles' collection."""
+  """List of articles added into this article' collection."""
   collection(input: ConnectionArgs!): ArticleConnection!
 
-  """Related articles to this articles."""
+  """Related articles to this article."""
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
+
+  """Donation-related articles to this article."""
+  relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection!
 
   """Appreciations history of this article."""
   appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
@@ -161,7 +164,7 @@ type Article implements Node {
   """Total number of appreciations recieved of this article."""
   appreciationsReceivedTotal: Int!
 
-  """Subscribers of this articles."""
+  """Subscribers of this article."""
   subscribers(input: ConnectionArgs!): UserConnection!
 
   """Limit the nuhmber of appreciate per user."""
@@ -865,6 +868,22 @@ input FeedbackInput {
   contact: String
 }
 
+type FolloweeDonatedArticle {
+  article: Article!
+  followee: User!
+}
+
+type FolloweeDonatedArticleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [FolloweeDonatedArticleEdge!]
+}
+
+type FolloweeDonatedArticleEdge {
+  cursor: String!
+  node: FolloweeDonatedArticle!
+}
+
 input FollowUserInput {
   id: ID!
 }
@@ -1082,7 +1101,7 @@ type Mutation {
   """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
 
-  """Follow or Unfollow current usere."""
+  """Follow or Unfollow current user."""
   toggleFollowUser(input: ToggleItemInput!): User!
 
   """Block or Unblock a given user."""
@@ -1537,6 +1556,9 @@ type Recommendation {
   """Comments published by user's followees."""
   followeeComments(input: ConnectionArgs!): CommentConnection!
 
+  """Articles that followee donated"""
+  followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
+
   """Articles and comments published by user's followees."""
   followeeWorks(input: ResponsesInput!): ResponseConnection! @deprecated(reason: "Feature changed.")
 
@@ -1579,6 +1601,15 @@ enum RecommendTypes {
   icymi
   hottest
   newest
+}
+
+input RelatedDonationArticlesInput {
+  after: String
+  first: Int
+  oss: Boolean
+
+  """index of article list, min: 0, max: 49"""
+  random: NonNegativeInt
 }
 
 type Release {
@@ -2102,8 +2133,8 @@ type User implements Node {
   """Display name on user profile, can be duplicated."""
   displayName: String
 
-  """LikerID of LikeCoin"""
-  likerId: String @deprecated(reason: "Use `liker.likerId`.")
+  """LikerID of LikeCoin, being used by LikeCoin OAuth"""
+  likerId: String
 
   """Liker info of current user"""
   liker: Liker!
@@ -2337,6 +2368,12 @@ type UserStatus {
 
   """Number of total written words."""
   totalWordCount: Int!
+
+  """Number of articles donated by user"""
+  donatedArticleCount: Int!
+
+  """Number of times of donations received by user"""
+  receivedDonationCount: Int!
 }
 
 scalar UUID

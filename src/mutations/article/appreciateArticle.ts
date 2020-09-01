@@ -1,9 +1,11 @@
-import { USER_STATE } from 'common/enums'
+import { APPRECIATION_TYPES, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
   ArticleNotFoundError,
   AuthenticationError,
+  ForbiddenByStateError,
+  ForbiddenByTargetStateError,
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId, isFeatureEnabled } from 'common/utils'
@@ -33,7 +35,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
       viewer.state
     )
   ) {
-    throw new AuthenticationError(`${viewer.state} user has no permission`)
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
   if (!viewer.likerId) {
@@ -50,15 +52,22 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ForbiddenError('cannot appreciate your own article')
   }
 
+  const author = await userService.dataloader.load(article.authorId)
+  if (!author) {
+    throw new ForbiddenError('author has no liker id')
+  }
+
+  if (author.state === USER_STATE.frozen) {
+    throw new ForbiddenByTargetStateError(
+      `cannot appreciate ${author.state} user`
+    )
+  }
+
   /**
    * Super Like
    */
   if (superLike) {
-    const [liker, author] = await Promise.all([
-      userService.findLiker({ userId: viewer.id }),
-      userService.dataloader.load(article.authorId),
-    ])
-
+    const liker = await userService.findLiker({ userId: viewer.id })
     if (!liker || !author) {
       throw new ForbiddenError('viewer or author has no liker id')
     }
@@ -80,6 +89,15 @@ const resolver: MutationToAppreciateArticleResolver = async (
       userAgent: viewer.userAgent,
       authorLikerId: author.likerId,
       url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+    })
+
+    // insert record
+    await articleService.superlike({
+      articleId: article.id,
+      senderId: viewer.id,
+      recipientId: article.authorId,
+      amount: 1,
+      type: APPRECIATION_TYPES.like,
     })
 
     return article

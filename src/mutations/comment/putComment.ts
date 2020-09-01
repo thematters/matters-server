@@ -5,6 +5,7 @@ import {
   ArticleNotFoundError,
   AuthenticationError,
   CommentNotFoundError,
+  ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
@@ -57,7 +58,7 @@ const resolver: MutationToPutCommentResolver = async (
   ].includes(viewer.state)
 
   if ((article.authorId !== viewer.id && isOnboarding) || isInactive) {
-    throw new ForbiddenError('viewer has no permission')
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
   // check whether viewer is blocked by article author

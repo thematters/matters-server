@@ -21,7 +21,10 @@ export class PrivateCacheDirective extends SchemaDirectiveVisitor {
       let scope = CacheScope.Public
       if (logged) {
         scope = CacheScope.Private
-        maxAge = Math.min(CACHE_TTL.DEFAULT, cacheControl.cacheHint.maxAge || 0)
+        maxAge = Math.min(
+          CACHE_TTL.PRIVATE_QUERY,
+          cacheControl.cacheHint.maxAge || 0
+        )
       }
 
       if (typeof maxAge === 'number') {

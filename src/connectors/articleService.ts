@@ -717,7 +717,6 @@ export class ArticleService extends BaseService {
   /**
    * Count
    */
-
   countRecommendIcymi = async () => {
     const result = await this.knex('article')
       .join('matters_choice as c', 'c.article_id', 'article.id')
@@ -1035,13 +1034,50 @@ export class ArticleService extends BaseService {
     return result
   }
 
+  /**
+   * Super Like
+   */
+  superlike = async ({
+    articleId,
+    senderId,
+    recipientId,
+    amount,
+    type,
+  }: {
+    articleId: string
+    senderId: string
+    recipientId: string
+    amount: number
+    type: string
+  }) => {
+    const appreciation = {
+      senderId,
+      recipientId,
+      referenceId: articleId,
+      purpose: APPRECIATION_PURPOSE.superlike,
+      type,
+    }
+
+    const uuid = v4()
+    const result = await this.knex('appreciation')
+      .insert({
+        ...appreciation,
+        uuid,
+        amount,
+      })
+      .into('appreciation')
+      .returning('*')
+
+    return result
+  }
+
   /*********************************
    *                               *
    *              Tag              *
    *                               *
    *********************************/
   /**
-   * Find tages by a given article id.
+   * Find tags by a given article id.
    */
   findTagIds = async ({
     id: articleId,
@@ -1763,5 +1799,114 @@ export class ArticleService extends BaseService {
       .offset(offset)
 
     return result
+  }
+
+  /**
+   * Count articles which also donated by the donator of a given article
+   */
+  makeRelatedDonationsQuery = ({
+    articleId,
+    targetTypeId,
+    notIn,
+  }: {
+    articleId: string
+    targetTypeId: string
+    notIn: string[]
+  }) => {
+    // 1 LIKE = 0.05 HKD
+    const RATE_HKD_TO_LIKE = 20
+
+    const baseWhere = {
+      targetType: targetTypeId,
+      state: TRANSACTION_STATE.succeeded,
+      purpose: TRANSACTION_PURPOSE.donation,
+    }
+
+    const donatorsQuery = this.knex('transaction')
+      .select('sender_id as user_id')
+      .where({
+        targetId: articleId,
+        ...baseWhere,
+      })
+      .groupBy('sender_id')
+      .as('donators')
+
+    const relatedDonationsQuery = this.knex('transaction')
+      .select('target_id')
+      .select(
+        this.knex.raw(`
+            sum(
+              CASE WHEN currency = 'HKD' THEN
+                amount * ${RATE_HKD_TO_LIKE}
+              ELSE
+                amount
+              END
+            ) score
+          `)
+      )
+      .rightJoin(donatorsQuery, 'donators.user_id', 'transaction.sender_id')
+      .where({ ...baseWhere })
+      .whereNotIn('target_id', notIn)
+      .groupBy('target_id')
+      .as('related_donations')
+
+    return this.knex
+      .select('article.*')
+      .from(this.table)
+      .rightJoin(
+        relatedDonationsQuery,
+        'article.id',
+        'related_donations.target_id'
+      )
+      .where({ state: ARTICLE_STATE.active })
+  }
+
+  countRelatedDonations = async ({
+    articleId,
+    notIn,
+  }: {
+    articleId: string
+    notIn: string[]
+  }) => {
+    const { id: entityTypeId } = await this.baseFindEntityTypeId(
+      TRANSACTION_TARGET_TYPE.article
+    )
+
+    const query = this.makeRelatedDonationsQuery({
+      articleId,
+      targetTypeId: entityTypeId,
+      notIn,
+    })
+
+    const result = await this.knex.count('target_id').from(query).first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Find articles which also donated by the donator of a given article
+   */
+  findRelatedDonations = async ({
+    articleId,
+    notIn,
+    limit = BATCH_SIZE,
+    offset = 0,
+  }: {
+    articleId: string
+    notIn: string[]
+    limit?: number
+    offset?: number
+  }) => {
+    const { id: entityTypeId } = await this.baseFindEntityTypeId(
+      TRANSACTION_TARGET_TYPE.article
+    )
+
+    const query = this.makeRelatedDonationsQuery({
+      articleId,
+      targetTypeId: entityTypeId,
+      notIn,
+    })
+
+    return query.orderBy('score').limit(limit).offset(offset)
   }
 }

@@ -7,12 +7,16 @@ import { v4 } from 'uuid'
 
 import {
   ALS_DEFAULT_VECTOR,
+  APPRECIATION_PURPOSE,
   ARTICLE_STATE,
   BATCH_SIZE,
   COMMENT_STATE,
   LOG_RECORD_TYPES,
   MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
+  TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
+  TRANSACTION_TARGET_TYPE,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
   USER_ACTION,
   USER_STATE,
@@ -505,6 +509,9 @@ export class UserService extends BaseService {
       .where({
         recipientId,
       })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
+      })
       .sum('amount as total')
 
     return Math.max(parseInt(result[0].total || 0, 10), 0)
@@ -515,6 +522,9 @@ export class UserService extends BaseService {
       .where({
         recipientId,
       })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
+      })
       .count()
     return parseInt(`${result[0].count}` || '0', 10)
   }
@@ -524,6 +534,9 @@ export class UserService extends BaseService {
       .where({
         senderId,
       })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
+      })
       .count()
     return parseInt(`${result[0].count}` || '0', 10)
   }
@@ -532,6 +545,9 @@ export class UserService extends BaseService {
     const result = await this.knex('appreciation')
       .where({
         senderId,
+      })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
       })
       .sum('amount as total')
     return Math.max(parseInt(result[0].total || 0, 10), 0)
@@ -550,6 +566,9 @@ export class UserService extends BaseService {
       .where({
         senderId,
       })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
+      })
       .limit(limit)
       .offset(offset)
       .orderBy('id', 'desc')
@@ -566,6 +585,9 @@ export class UserService extends BaseService {
     this.knex('appreciation')
       .where({
         recipientId,
+      })
+      .whereNot({
+        purpose: APPRECIATION_PURPOSE.superlike,
       })
       .limit(limit)
       .offset(offset)
@@ -813,6 +835,84 @@ export class UserService extends BaseService {
           .as('source')
       })
       .countDistinct('source.id')
+      .first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Find deduped followee donations by a given entity type.
+   *
+   */
+  findDedupedFolloweeDonationsByEntity = async ({
+    id,
+    limit = BATCH_SIZE,
+    after,
+    type,
+  }: {
+    id: string
+    limit?: number
+    after?: number
+    type: TRANSACTION_TARGET_TYPE
+  }) => {
+    const query = this.knex
+      .select('*')
+      .from((knex: any) => {
+        const source = knex
+          .max('tx.id as id')
+          .select('tx.target_id as article_id')
+          .from('action_user as au')
+          .innerJoin('transaction as tx', 'tx.sender_id', 'au.target_id')
+          .where({
+            'au.user_id': id,
+            'au.action': USER_ACTION.follow,
+            'tx.purpose': TRANSACTION_PURPOSE.donation,
+            'tx.state': TRANSACTION_STATE.succeeded,
+            'tx.target_type': type,
+          })
+          .groupBy('article_id')
+          .orderBy('id', 'desc')
+          .as('source')
+        return source
+      })
+      .limit(limit)
+
+    if (after) {
+      query.andWhere('id', '<', after)
+    }
+    return query
+  }
+
+  /**
+   * Count deduped followee donation by a given entity type.
+   *
+   */
+  countDedupedFolloweeDonationsByEntity = async ({
+    id,
+    type,
+  }: {
+    id: string
+    type: TRANSACTION_TARGET_TYPE
+  }) => {
+    const result = await this.knex
+      .count('id')
+      .from((knex: any) => {
+        const source = knex
+          .max('tx.id as id')
+          .select('tx.target_id as article_id')
+          .from('action_user as au')
+          .innerJoin('transaction as tx', 'tx.sender_id', 'au.target_id')
+          .where({
+            'au.user_id': id,
+            'au.action': USER_ACTION.follow,
+            'tx.purpose': TRANSACTION_PURPOSE.donation,
+            'tx.state': TRANSACTION_STATE.succeeded,
+            'tx.target_type': type,
+          })
+          .groupBy('article_id')
+          .as('source')
+        return source
+      })
       .first()
 
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -1386,6 +1486,41 @@ export class UserService extends BaseService {
       { updatedAt: new Date(), ...data },
       'verification_code'
     )
+  }
+
+  /*********************************
+   *                               *
+   *           Donation            *
+   *                               *
+   *********************************/
+  /**
+   * Count times of donation received by user
+   */
+  countReceivedDonation = async (recipientId: string) => {
+    const result = await this.knex('transaction')
+      .countDistinct('id')
+      .where({
+        recipientId,
+        state: TRANSACTION_STATE.succeeded,
+        purpose: TRANSACTION_PURPOSE.donation,
+      })
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Count articles donated by user
+   */
+  countDonatedArticle = async (senderId: string) => {
+    const result = await this.knex('transaction')
+      .countDistinct('target_id')
+      .where({
+        senderId,
+        state: TRANSACTION_STATE.succeeded,
+        purpose: TRANSACTION_PURPOSE.donation,
+      })
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
   }
 
   /*********************************

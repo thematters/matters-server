@@ -20,6 +20,14 @@ export default /* GraphQL */ `
     wallet: Wallet! @scope
   }
 
+  extend type UserStatus {
+    "Number of articles donated by user"
+    donatedArticleCount: Int!
+
+    "Number of times of donations received by user"
+    receivedDonationCount: Int!
+  }
+
   union TransactionTarget = Article | Transaction
 
   type Wallet {
@@ -32,7 +40,7 @@ export default /* GraphQL */ `
     HKD: Float!
   }
 
-  type Transaction {
+  type Transaction @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     id: ID!
 
     state: TransactionState!
@@ -54,8 +62,7 @@ export default /* GraphQL */ `
     sender: User
 
     "Related target article or transaction."
-    # target: TransactionTarget @logCache(type: "${NODE_TYPES.transactionTarget}")
-    target: TransactionTarget
+    target: TransactionTarget @logCache(type: "${NODE_TYPES.transactionTarget}")
 
     "Message for end user, including reason of failure."
     message: String
