@@ -100,6 +100,16 @@ export class TagService extends BaseService {
   }
 
   /**
+   * Find tags by a given owner id (user).
+   */
+  findByOwner = async (userId: string) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({ owner: userId })
+      .orderBy('id', 'desc')
+
+  /**
    * Create a tag, but return one if it's existing.
    *
    */
