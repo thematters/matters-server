@@ -52,7 +52,7 @@ export const getViewerFromUser = async (user: any) => {
   // overwrite default by user
   const viewer = { role: USER_ROLE.visitor, ...user }
 
-  // apppend uesr group
+  // append uesr group
   viewer.group = getUserGroup(user)
 
   // append hepler functions (keep it till we fully utilize scope)

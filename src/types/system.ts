@@ -1,4 +1,4 @@
-import { CACHE_TTL, NODE_TYPES } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES, SCOPE_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -7,15 +7,15 @@ export default /* GraphQL */ `
     frequentSearch(input: FrequentSearchInput!): [String!]
     search(input: SearchInput!): SearchResultConnection! @privateCache
     official: Official! @privateCache
-    oss: OSS! @authorize @privateCache
+    oss: OSS! @scope(mode: "${SCOPE_MODE.admin}") @privateCache
   }
 
   extend type Mutation {
     "Upload a single file."
-    singleFileUpload(input: SingleFileUploadInput!): Asset! @authenticate
+    singleFileUpload(input: SingleFileUploadInput!): Asset! @scope(mode: "${SCOPE_MODE.user}")
 
     "Delete a uploaded file."
-    singleFileDelete(input: SingleFileDeleteInput!): Boolean! @authenticate
+    singleFileDelete(input: SingleFileDeleteInput!): Boolean! @scope(mode: "${SCOPE_MODE.user}")
 
     feedback(input: FeedbackInput!): Boolean
 
@@ -25,10 +25,10 @@ export default /* GraphQL */ `
     ##############
     #     OSS    #
     ##############
-    setBoost(input: SetBoostInput!): Node! @authorize
-    putRemark(input: PutRemarkInput!): String @authorize
-    putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @authorize
-    setFeature(input: SetFeatureInput!): Feature! @authorize
+    setBoost(input: SetBoostInput!): Node! @scope(mode: "${SCOPE_MODE.admin}")
+    putRemark(input: PutRemarkInput!): String @scope(mode: "${SCOPE_MODE.admin}")
+    putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @scope(mode: "${SCOPE_MODE.admin}")
+    setFeature(input: SetFeatureInput!): Feature! @scope(mode: "${SCOPE_MODE.admin}")
   }
 
   extend type Subscription {
@@ -169,7 +169,7 @@ export default /* GraphQL */ `
     assets: [URL!]
     contact: String
     createdAt: DateTime!
-    remark: String @authorize
+    remark: String @scope(mode: "${SCOPE_MODE.admin}")
   }
 
   type ReportEdge {
@@ -422,13 +422,7 @@ export default /* GraphQL */ `
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ENUM_VALUE
 
-  directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION
-
-  directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
-
-  directive @private on FIELD_DEFINITION
-
-  directive @scope on FIELD_DEFINITION
+  directive @scope(mode: String!, scope: String) on FIELD_DEFINITION
 
   directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 

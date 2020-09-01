@@ -6,42 +6,57 @@ import {
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 
 import { SCOPE_MODE } from 'common/enums'
-import { ForbiddenError } from 'common/errors'
+import { AuthenticationError, ForbiddenError } from 'common/errors'
 import { isValidReadScope } from 'common/utils/scope'
 
 export class ScopeDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field: GraphQLField<any, any>) {
     const { resolve = defaultFieldResolver, name } = field
 
-    field.resolve = async function (...args) {
-      const [{ id }, _, { viewer }, { path }] = args
+    field.resolve = async (...args) => {
+      const { mode, group } = this.args
+      const [{ id }, _, { viewer }, { path, operation }] = args
 
-      switch (viewer.scopeMode) {
-        case SCOPE_MODE.oauth: {
-          const nodes = responsePathAsArray(path) || []
-          if (nodes[0] !== 'viewer') {
-            break
-          }
-          if (isValidReadScope(viewer.scope, nodes)) {
-            return resolve.apply(this, args)
-          }
-          throw new ForbiddenError('viewer has no permission')
+      console.log({
+        path: responsePathAsArray(path),
+        operation: operation.operation,
+      })
+
+      /**
+       * Check Mode
+       */
+      if (!viewer.hasScopeMode(mode)) {
+        if (!viewer.id) {
+          throw new AuthenticationError('viewer has no permission')
         }
-        case SCOPE_MODE.visitor:
-        case SCOPE_MODE.user: {
-          if (id === viewer.id) {
-            return resolve.apply(this, args)
-          }
-          break
-        }
-        case SCOPE_MODE.admin: {
-          if (viewer.id) {
-            return resolve.apply(this, args)
-          }
-          break
-        }
+
+        throw new ForbiddenError(`${viewer.scopeMode} is not authorized`)
       }
-      throw new ForbiddenError(`unauthorized user for field ${name}`)
+
+      /**
+       * Check OAuth Scope
+       */
+      if (viewer.scopeMode !== SCOPE_MODE.oauth) {
+        return resolve.apply(this, args)
+      }
+
+      // mutation
+      if (operation.operation === 'mutation') {
+        return resolve.apply(this, args)
+      }
+
+      // query
+      const nodes = responsePathAsArray(path) || []
+
+      if (nodes[0] !== 'viewer') {
+        throw new ForbiddenError('viewer has no permission')
+      }
+
+      if (isValidReadScope(viewer.scope, nodes)) {
+        return resolve.apply(this, args)
+      }
+
+      throw new ForbiddenError('viewer has no permission')
     }
   }
 }

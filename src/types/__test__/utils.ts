@@ -93,6 +93,7 @@ export const testClient = async (
   if (!viewer.scopeMode) {
     viewer.scopeMode = viewer.role
   }
+
   if (!viewer.scope) {
     viewer.scope = {}
   }

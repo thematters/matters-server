@@ -1,4 +1,4 @@
-import { CACHE_TTL, NODE_TYPES } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES, SCOPE_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -17,10 +17,10 @@ export default /* GraphQL */ `
     resetPassword(input: ResetPasswordInput!): Boolean
 
     "Change user email."
-    changeEmail(input: ChangeEmailInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
+    changeEmail(input: ChangeEmailInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Verify user email."
-    verifyEmail(input: VerifyEmailInput!): Boolean @authenticate
+    verifyEmail(input: VerifyEmailInput!): Boolean @scope(mode: "${SCOPE_MODE.user}")
 
     "Register user, can only be used on matters.news website."
     userRegister(input: UserRegisterInput!): AuthResult!
@@ -32,60 +32,60 @@ export default /* GraphQL */ `
     userLogout: Boolean!
 
     "Generate or claim a Liker ID through LikeCoin"
-    generateLikerId: User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
+    generateLikerId: User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Update user information."
-    updateUserInfo(input: UpdateUserInfoInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
+    updateUserInfo(input: UpdateUserInfoInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Update user notification settings."
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
-      @authenticate @purgeCache(type: "${NODE_TYPES.user}")
+      @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Follow or unfollow tag."
-    toggleFollowTag(input: ToggleItemInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    toggleFollowTag(input: ToggleItemInput!): Tag! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Follow or Unfollow current user."
-    toggleFollowUser(input: ToggleItemInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
+    toggleFollowUser(input: ToggleItemInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Block or Unblock a given user."
-    toggleBlockUser(input: ToggleItemInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
+    toggleBlockUser(input: ToggleItemInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Subscribe/ Unsubscribe Push Notification."
-    toggleSubscribePush(input: ToggleItemInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}")
+    toggleSubscribePush(input: ToggleItemInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Clear read history for user."
-    clearReadHistory(input: ClearReadHistoryInput!): Boolean @authenticate
+    clearReadHistory(input: ClearReadHistoryInput!): Boolean @scope(mode: "${SCOPE_MODE.user}")
 
     "Clear search history for user."
-    clearSearchHistory: Boolean @authenticate
+    clearSearchHistory: Boolean @scope(mode: "${SCOPE_MODE.user}")
 
     "Migrate articles from other service provider."
-    migration(input: MigrationInput!): Boolean @authenticate
+    migration(input: MigrationInput!): Boolean @scope(mode: "${SCOPE_MODE.user}")
 
     ##############
     #     OSS    #
     ##############
     "Update state of a user, used in OSS."
-    updateUserState(input: UpdateUserStateInput!): [User!] @authorize @purgeCache(type: "${NODE_TYPES.user}")
+    updateUserState(input: UpdateUserStateInput!): [User!] @scope(mode: "${SCOPE_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Update state of a user, used in OSS."
-    updateUserRole(input: UpdateUserRoleInput!): User! @authorize @purgeCache(type: "${NODE_TYPES.user}")
+    updateUserRole(input: UpdateUserRoleInput!): User! @scope(mode: "${SCOPE_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
 
 
     ##############
     # DEPRECATED #
     ##############
     "Block a given user."
-    blockUser(input: BlockUserInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
+    blockUser(input: BlockUserInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
 
     "Unblock a given user."
-    unblockUser(input: BlockUserInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
+    unblockUser(input: BlockUserInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
 
     "Follow a given user."
-    followUser(input: FollowUserInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
+    followUser(input: FollowUserInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
 
     "Unfollow curent user."
-    unfollowUser(input: FollowUserInput!): User! @authenticate @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
+    unfollowUser(input: FollowUserInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
   }
 
   type User implements Node {
@@ -102,7 +102,7 @@ export default /* GraphQL */ `
     displayName: String
 
     "LikerID of LikeCoin, being used by LikeCoin OAuth"
-    likerId: String @scope
+    likerId: String
 
     "Liker info of current user"
     liker: Liker!
@@ -114,10 +114,10 @@ export default /* GraphQL */ `
     info: UserInfo!
 
     "User settings."
-    settings: UserSettings! @scope
+    settings: UserSettings! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Article recommendations for current user."
-    recommendation: Recommendation! @scope
+    recommendation: Recommendation! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Articles authored by current user."
     articles(input: ConnectionArgs!): ArticleConnection!
@@ -126,16 +126,16 @@ export default /* GraphQL */ `
     tags(input: ConnectionArgs!): TagConnection!
 
     "Drafts authored by current user."
-    drafts(input: ConnectionArgs!): DraftConnection! @scope
+    drafts(input: ConnectionArgs!): DraftConnection! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Articles current user commented on"
     commentedArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Artilces current user subscribed to."
-    subscriptions(input: ConnectionArgs!): ArticleConnection! @scope
+    subscriptions(input: ConnectionArgs!): ArticleConnection! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Record of user activity, only accessable by current user."
-    activity: UserActivity! @scope
+    activity: UserActivity! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Followers of this user."
     followers(input: ConnectionArgs!): UserConnection!
@@ -150,7 +150,7 @@ export default /* GraphQL */ `
     isFollowee: Boolean!
 
     "Users that blocked by current user."
-    blockList(input: ConnectionArgs!): UserConnection! @scope
+    blockList(input: ConnectionArgs!): UserConnection! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Whether current user is blocking viewer."
     isBlocking: Boolean!
@@ -162,8 +162,8 @@ export default /* GraphQL */ `
     status: UserStatus
 
     # OSS
-    oss: UserOSS! @authorize
-    remark: String @authorize
+    oss: UserOSS! @scope(mode: "${SCOPE_MODE.admin}")
+    remark: String @scope(mode: "${SCOPE_MODE.admin}")
   }
 
   type Recommendation {
@@ -237,7 +237,7 @@ export default /* GraphQL */ `
     description: String
 
     "User email."
-    email: Email @scope
+    email: Email @scope(mode: "${SCOPE_MODE.oauth}")
 
     "User badges."
     badges: [Badge!]
@@ -286,10 +286,10 @@ export default /* GraphQL */ `
     state: UserState!
 
     "User role and access level."
-    role: UserRole! @scope
+    role: UserRole! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Total LIKE left in wallet."
-    LIKE: LIKE! @scope @deprecated(reason: "Use \`liker.total\` and \`liker.rateUSD\`.")
+    LIKE: LIKE! @scope(mode: "${SCOPE_MODE.oauth}") @deprecated(reason: "Use \`liker.total\` and \`liker.rateUSD\`.")
 
     "Number of articles published by user"
     articleCount: Int!
@@ -298,7 +298,7 @@ export default /* GraphQL */ `
     commentCount: Int!
 
     "Number of unread notices."
-    unreadNoticeCount: Int! @scope @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    unreadNoticeCount: Int! @scope(mode: "${SCOPE_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Whether there are unread articles from followees."
     unreadFolloweeArticles: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
@@ -321,7 +321,7 @@ export default /* GraphQL */ `
     civicLiker: Boolean! @objectCache(maxAge: ${CACHE_TTL.LONG})
 
     "Total LIKE left in wallet."
-    total: NonNegativeFloat! @scope
+    total: NonNegativeFloat! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Rate of LikeCoin/USD"
     rateUSD: NonNegativeFloat

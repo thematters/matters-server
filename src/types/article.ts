@@ -1,4 +1,4 @@
-import { CACHE_TTL, NODE_TYPES } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES, SCOPE_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -10,19 +10,19 @@ export default /* GraphQL */ `
     #   Article  #
     ##############
     "Publish an article onto IPFS."
-    publishArticle(input: PublishArticleInput!): Draft! @authenticate @purgeCache(type: "${NODE_TYPES.draft}") @rateLimit(limit:10, period:7200)
+    publishArticle(input: PublishArticleInput!): Draft! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.draft}") @rateLimit(limit:10, period:7200)
 
     "Edit an article."
-    editArticle(input: EditArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}")
+    editArticle(input: EditArticleInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}")
 
     "Report an article to team."
     reportArticle(input: ReportArticleInput!): Boolean
 
     "Subscribe or Unsubscribe article"
-    toggleSubscribeArticle(input: ToggleItemInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}")
+    toggleSubscribeArticle(input: ToggleItemInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}")
 
     "Appreciate an article."
-    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}") @rateLimit(limit:5, period:60)
+    appreciateArticle(input: AppreciateArticleInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}") @rateLimit(limit:5, period:60)
 
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
@@ -32,51 +32,51 @@ export default /* GraphQL */ `
     #     Tag    #
     ##############
     "Create or update tag."
-    putTag(input: PutTagInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    putTag(input: PutTagInput!): Tag! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Add one tag to articles."
-    addArticlesTags(input: AddArticlesTagsInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    addArticlesTags(input: AddArticlesTagsInput!): Tag! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Update articles' tag."
-    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Delete one tag from articles"
-    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.tag}")
 
 
     ##############
     #     OSS    #
     ##############
-    toggleArticleLive(input: ToggleItemInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
-    toggleArticlePublic(input: ToggleItemInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
-    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
+    toggleArticleLive(input: ToggleItemInput!): Article! @scope(mode: "${SCOPE_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
+    toggleArticlePublic(input: ToggleItemInput!): Article! @scope(mode: "${SCOPE_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
+    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @scope(mode: "${SCOPE_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
 
-    updateArticleState(input: UpdateArticleStateInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
-    deleteTags(input: DeleteTagsInput!): Boolean @authorize
-    renameTag(input: RenameTagInput!): Tag! @authorize @purgeCache(type: "${NODE_TYPES.tag}")
-    mergeTags(input: MergeTagsInput!): Tag! @authorize @purgeCache(type: "${NODE_TYPES.tag}")
+    updateArticleState(input: UpdateArticleStateInput!): Article! @scope(mode: "${SCOPE_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
+    deleteTags(input: DeleteTagsInput!): Boolean @scope(mode: "${SCOPE_MODE.admin}")
+    renameTag(input: RenameTagInput!): Tag! @scope(mode: "${SCOPE_MODE.admin}") @purgeCache(type: "${NODE_TYPES.tag}")
+    mergeTags(input: MergeTagsInput!): Tag! @scope(mode: "${SCOPE_MODE.admin}") @purgeCache(type: "${NODE_TYPES.tag}")
 
 
     ##############
     # DEPRECATED #
     ##############
     "Subscribe an artcile."
-    subscribeArticle(input: SubscribeArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}")  @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
+    subscribeArticle(input: SubscribeArticleInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}")  @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
 
     "Unsubscribe an article."
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
 
     "Archive an article and users won't be able to view this article."
-    archiveArticle(input: ArchiveArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`editArticle\`.")
+    archiveArticle(input: ArchiveArticleInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`editArticle\`.")
 
     "Set collection of an article."
-    setCollection(input: SetCollectionInput!): Article! @purgeCache(type: "${NODE_TYPES.article}") @authenticate
+    setCollection(input: SetCollectionInput!): Article! @purgeCache(type: "${NODE_TYPES.article}") @scope(mode: "${SCOPE_MODE.user}")
 
     "Update article information."
-    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @purgeCache(type: "${NODE_TYPES.article}") @authenticate
+    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @purgeCache(type: "${NODE_TYPES.article}") @scope(mode: "${SCOPE_MODE.user}")
 
     "Recall while publishing."
-    recallPublish(input: RecallPublishInput!): Draft! @purgeCache(type: "${NODE_TYPES.draft}") @authenticate
+    recallPublish(input: RecallPublishInput!): Draft! @purgeCache(type: "${NODE_TYPES.draft}") @scope(mode: "${SCOPE_MODE.user}")
   }
 
   """
@@ -181,8 +181,8 @@ export default /* GraphQL */ `
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
     # OSS
-    oss: ArticleOSS! @authorize
-    remark: String @authorize
+    oss: ArticleOSS! @scope(mode: "${SCOPE_MODE.admin}")
+    remark: String @scope(mode: "${SCOPE_MODE.admin}")
   }
 
   "This type contains content, count and related data of an article tag."
@@ -221,17 +221,17 @@ export default /* GraphQL */ `
     followers(input: ConnectionArgs!): UserConnection!
 
     # OSS
-    oss: TagOSS! @authorize
-    remark: String @authorize
-    deleted: Boolean! @authorize
+    oss: TagOSS! @scope(mode: "${SCOPE_MODE.admin}")
+    remark: String @scope(mode: "${SCOPE_MODE.admin}")
+    deleted: Boolean! @scope(mode: "${SCOPE_MODE.admin}")
   }
 
   type ArticleOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
-    boost: NonNegativeFloat! @authorize
-    score: NonNegativeFloat! @authorize
-    inRecommendIcymi: Boolean! @authorize
-    inRecommendHottest: Boolean! @authorize
-    inRecommendNewest: Boolean! @authorize
+    boost: NonNegativeFloat! @scope(mode: "${SCOPE_MODE.admin}")
+    score: NonNegativeFloat! @scope(mode: "${SCOPE_MODE.admin}")
+    inRecommendIcymi: Boolean! @scope(mode: "${SCOPE_MODE.admin}")
+    inRecommendHottest: Boolean! @scope(mode: "${SCOPE_MODE.admin}")
+    inRecommendNewest: Boolean! @scope(mode: "${SCOPE_MODE.admin}")
   }
 
   type ArticleTranslation {

@@ -31,7 +31,6 @@ import {
   TagService,
   UserService,
 } from 'connectors'
-import { scopeMiddleware } from 'middlewares/scope'
 import { sentryMiddleware } from 'middlewares/sentry'
 
 import costMap from '../costMap'
@@ -79,11 +78,7 @@ const cache = new RedisCache({
   port: environment.cachePort,
 })
 
-const composedSchema = applyMiddleware(
-  schema,
-  sentryMiddleware,
-  scopeMiddleware
-)
+const composedSchema = applyMiddleware(schema, sentryMiddleware)
 
 const server = new ProtectedApolloServer({
   schema: composedSchema,
