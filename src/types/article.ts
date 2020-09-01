@@ -35,7 +35,7 @@ export default /* GraphQL */ `
     putTag(input: PutTagInput!): Tag! @authenticate
 
     "Update member, permission and othters of a tag."
-    updateTagSetting(input: UpdateTagSettingInput!): Tag! @authenticate
+    updateTagSetting(input: UpdateTagSettingInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Add one tag to articles."
     addArticlesTags(input: AddArticlesTagsInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
