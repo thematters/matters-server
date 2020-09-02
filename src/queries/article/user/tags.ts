@@ -13,7 +13,7 @@ const resolver: UserToArticlesResolver = async (
     return connectionFromPromisedArray(tagService.findByCreator(id), input)
   }
 
-  return connectionFromPromisedArray(tagService.findByEditor(id), input)
+  return connectionFromPromisedArray(tagService.findByOwner(id), input)
 }
 
 export default resolver

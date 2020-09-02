@@ -100,6 +100,16 @@ export class TagService extends BaseService {
   }
 
   /**
+   * Find tags by a given owner id (user).
+   */
+  findByOwner = async (userId: string) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({ owner: userId })
+      .orderBy('id', 'desc')
+
+  /**
    * Create a tag, but return one if it's existing.
    *
    */
@@ -109,19 +119,21 @@ export class TagService extends BaseService {
     creator,
     description,
     editors,
+    owner,
   }: {
     content: string
     cover?: string
     creator: string
     description?: string
     editors: string[]
+    owner: string
   }) => {
     const item = await this.knex(this.table).select().where({ content }).first()
 
     // create
     if (!item) {
       const tag = await this.baseCreate(
-        { content, cover, creator, description, editors },
+        { content, cover, creator, description, editors, owner },
         this.table
       )
 
@@ -571,14 +583,16 @@ export class TagService extends BaseService {
     content,
     creator,
     editors,
+    owner,
   }: {
     tagIds: string[]
     content: string
     creator: string
     editors: string[]
+    owner: string
   }) => {
     // create new tag
-    const newTag = await this.create({ content, creator, editors })
+    const newTag = await this.create({ content, creator, editors, owner })
 
     // add tag into search engine
     await this.addToSearch({

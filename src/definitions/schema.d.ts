@@ -912,6 +912,11 @@ export interface GQLTag extends GQLNode {
   creator?: GQLUser
 
   /**
+   * Owner of this tag.
+   */
+  owner?: GQLUser
+
+  /**
    * This value determines if current viewer is following or not.
    */
   isFollower?: boolean
@@ -1902,6 +1907,11 @@ export interface GQLMutation {
   putTag: GQLTag
 
   /**
+   * Update member, permission and othters of a tag.
+   */
+  updateTagSetting: GQLTag
+
+  /**
    * Add one tag to articles.
    */
   addArticlesTags: GQLTag
@@ -2243,6 +2253,16 @@ export interface GQLPutTagInput {
   content?: string
   cover?: string
   description?: string
+}
+
+export interface GQLUpdateTagSettingInput {
+  id: string
+  type: GQLUpdateTagSettingType
+}
+
+export const enum GQLUpdateTagSettingType {
+  adopt = 'adopt',
+  leave = 'leave',
 }
 
 export interface GQLAddArticlesTagsInput {
@@ -5467,6 +5487,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   description?: TagToDescriptionResolver<TParent>
   editors?: TagToEditorsResolver<TParent>
   creator?: TagToCreatorResolver<TParent>
+  owner?: TagToOwnerResolver<TParent>
   isFollower?: TagToIsFollowerResolver<TParent>
   followers?: TagToFollowersResolver<TParent>
   oss?: TagToOssResolver<TParent>
@@ -5553,6 +5574,15 @@ export interface TagToEditorsResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToCreatorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToOwnerResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -8067,6 +8097,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
+  updateTagSetting?: MutationToUpdateTagSettingResolver<TParent>
   addArticlesTags?: MutationToAddArticlesTagsResolver<TParent>
   updateArticlesTags?: MutationToUpdateArticlesTagsResolver<TParent>
   deleteArticlesTags?: MutationToDeleteArticlesTagsResolver<TParent>
@@ -8224,6 +8255,21 @@ export interface MutationToPutTagResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutTagArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateTagSettingArgs {
+  input: GQLUpdateTagSettingInput
+}
+export interface MutationToUpdateTagSettingResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateTagSettingArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

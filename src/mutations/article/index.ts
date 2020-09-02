@@ -21,6 +21,7 @@ import unsubscribeArticle from './unsubscribeArticle'
 import updateArticleInfo from './updateArticleInfo'
 import updateArticlesTags from './updateArticlesTags'
 import updateArticleState from './updateArticleState'
+import updateTagSetting from './updateTagSetting'
 
 export default {
   Mutation: {
@@ -47,5 +48,6 @@ export default {
     addArticlesTags,
     deleteArticlesTags,
     updateArticlesTags,
+    updateTagSetting,
   },
 }

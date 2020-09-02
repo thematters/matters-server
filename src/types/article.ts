@@ -34,6 +34,9 @@ export default /* GraphQL */ `
     "Create or update tag."
     putTag(input: PutTagInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
 
+    "Update member, permission and othters of a tag."
+    updateTagSetting(input: UpdateTagSettingInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+
     "Add one tag to articles."
     addArticlesTags(input: AddArticlesTagsInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
 
@@ -214,6 +217,9 @@ export default /* GraphQL */ `
     "Creator of this tag."
     creator: User @logCache(type: "${NODE_TYPES.user}")
 
+    "Owner of this tag."
+    owner: User
+
     "This value determines if current viewer is following or not."
     isFollower: Boolean
 
@@ -368,6 +374,11 @@ export default /* GraphQL */ `
     description: String
   }
 
+  input UpdateTagSettingInput {
+    id: ID!
+    type: UpdateTagSettingType!
+  }
+
   input AddArticlesTagsInput {
     id: ID!
     articles: [ID!]
@@ -435,5 +446,10 @@ export default /* GraphQL */ `
     newest
     oldest
     hottest
+  }
+
+  enum UpdateTagSettingType {
+    adopt
+    leave
   }
 `
