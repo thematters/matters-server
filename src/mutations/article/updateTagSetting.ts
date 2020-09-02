@@ -1,6 +1,6 @@
 import _uniq from 'lodash/uniq'
 
-import { USER_STATE } from 'common/enums'
+import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
   ForbiddenByStateError,
@@ -62,6 +62,9 @@ const resolver: MutationToUpdateTagSettingResolver = async (
   }
 
   const updatedTag = await tagService.baseUpdate(tagId, params)
+
+  // invalidate extra nodes
+  updatedTag[CACHE_KEYWORD] = [{ id: viewer.id, type: NODE_TYPES.user }]
   return updatedTag
 }
 
