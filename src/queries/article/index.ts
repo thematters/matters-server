@@ -27,6 +27,7 @@ import tagEditors from './tag/editors'
 import tagFollowers from './tag/followers'
 import tagIsFollower from './tag/isFollower'
 import * as tagOSS from './tag/oss'
+import tagOwner from './tag/owner'
 import tagSelected from './tag/selected'
 import tags from './tags'
 import transactionsReceivedBy from './transactionsReceivedBy'
@@ -82,6 +83,7 @@ export default {
     selected: tagSelected,
     creator: tagCreator,
     editors: tagEditors,
+    owner: tagOwner,
     isFollower: tagIsFollower,
     followers: tagFollowers,
     oss: (root: any) => root,

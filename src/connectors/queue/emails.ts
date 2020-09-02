@@ -33,14 +33,14 @@ class EmailsQueue extends BaseQueue {
     )
 
     // send churn emails, check every day at 08:00 and 20:00
-    this.q.add(
-      QUEUE_JOB.sendChurnEmails,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 8,20 * * *', tz: 'Asia/Hong_Kong' },
-      }
-    )
+    // this.q.add(
+    //   QUEUE_JOB.sendChurnEmails,
+    //   {},
+    //   {
+    //     priority: QUEUE_PRIORITY.MEDIUM,
+    //     repeat: { cron: '0 8,20 * * *', tz: 'Asia/Hong_Kong' },
+    //   }
+    // )
   }
 
   /**
@@ -54,7 +54,7 @@ class EmailsQueue extends BaseQueue {
     )
 
     // send churn emails
-    this.q.process(QUEUE_JOB.sendChurnEmails, this.sendChurnEmails)
+    // this.q.process(QUEUE_JOB.sendChurnEmails, this.sendChurnEmails)
   }
 
   private sendDailySummaryEmails: Queue.ProcessCallbackFunction<

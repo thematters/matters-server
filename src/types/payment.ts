@@ -40,7 +40,7 @@ export default /* GraphQL */ `
     HKD: Float!
   }
 
-  type Transaction {
+  type Transaction @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     id: ID!
 
     state: TransactionState!

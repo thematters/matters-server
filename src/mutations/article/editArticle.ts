@@ -95,6 +95,7 @@ const resolver: MutationToEditArticleResolver = async (
             content: tag,
             creator: article.authorId,
             editors: tagEditors,
+            owner: article.authorId,
           })
         )
       )
