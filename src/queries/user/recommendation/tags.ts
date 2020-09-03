@@ -42,7 +42,12 @@ export const tags: RecommendationToTagsResolver = async (
   // query all tags by specific logic (curation concat non-curation)
   const offset = cursorToIndex(after) + 1
   const totalCount = await tagService.baseCount()
-  const items = await tagService.findArrangedTags({ mattyId: matty.id, limit: first, offset, oss })
+  const items = await tagService.findArrangedTags({
+    mattyId: matty.id,
+    limit: first,
+    offset,
+    oss,
+  })
   return connectionFromPromisedArray(
     tagService.dataloader.loadMany(items.map((item) => item.id)),
     input,
