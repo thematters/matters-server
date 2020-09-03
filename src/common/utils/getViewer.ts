@@ -83,7 +83,7 @@ const getUser = async (token: string, agentHash: string) => {
           .saveAgentHash(agentHash, user.email)
           .catch((error) => logger.error)
       }
-      throw new Error('user has deleted')
+      throw new Error('user has been deleted')
     }
 
     return { ...user, scopeMode: user.role }
@@ -97,7 +97,7 @@ const getUser = async (token: string, agentHash: string) => {
       const live = data.accessTokenExpiresAt.getTime() - Date.now() > 0
 
       if (!live) {
-        throw new Error('token expired')
+        throw new Error('oauth token expired')
       }
 
       if (data.user.state === USER_STATE.archived) {
@@ -149,19 +149,22 @@ export const getViewerFromReq = async ({
 
   if (!token) {
     logger.info('User is not logged in, viewing as guest')
-  } else {
-    try {
-      const userDB = await getUser(token as string, agentHash)
+    return getViewerFromUser(user)
+  }
 
-      // overwrite request by user settings
-      user = { ...user, ...userDB }
-    } catch (err) {
-      logger.info(err)
+  try {
+    const userDB = await getUser(token as string, agentHash)
 
-      if (req && res) {
-        clearCookie({ req, res })
-      }
+    // overwrite request by user settings
+    user = { ...user, ...userDB }
+  } catch (err) {
+    logger.info(err)
+
+    if (req && res) {
+      clearCookie({ req, res })
     }
+
+    throw err
   }
 
   return getViewerFromUser(user)

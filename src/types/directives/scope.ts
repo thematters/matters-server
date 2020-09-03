@@ -15,11 +15,14 @@ export class ScopeDirective extends SchemaDirectiveVisitor {
 
     field.resolve = async (...args) => {
       const { mode, group } = this.args
-      const [{ id }, _, { viewer }, { path, operation }] = args
+      const [root, _, { viewer }, { path, operation }] = args
 
       console.log({
         path: responsePathAsArray(path),
         operation: operation.operation,
+        mode,
+        group,
+        viewer,
       })
 
       /**
@@ -33,13 +36,13 @@ export class ScopeDirective extends SchemaDirectiveVisitor {
         throw new ForbiddenError(`${viewer.scopeMode} is not authorized`)
       }
 
-      /**
-       * Check OAuth Scope
-       */
       if (viewer.scopeMode !== SCOPE_MODE.oauth) {
         return resolve.apply(this, args)
       }
 
+      /**
+       * Check OAuth Scope
+       */
       // mutation
       if (operation.operation === 'mutation') {
         return resolve.apply(this, args)

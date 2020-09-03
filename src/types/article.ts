@@ -1,4 +1,4 @@
-import { CACHE_TTL, NODE_TYPES, SCOPE_MODE } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES, SCOPE_GROUP, SCOPE_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -10,19 +10,19 @@ export default /* GraphQL */ `
     #   Article  #
     ##############
     "Publish an article onto IPFS."
-    publishArticle(input: PublishArticleInput!): Draft! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.draft}") @rateLimit(limit:10, period:7200)
+    publishArticle(input: PublishArticleInput!): Draft! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.draft}") @rateLimit(limit:10, period:7200)
 
     "Edit an article."
-    editArticle(input: EditArticleInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}")
+    editArticle(input: EditArticleInput!): Article! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}")
 
     "Report an article to team."
     reportArticle(input: ReportArticleInput!): Boolean
 
     "Subscribe or Unsubscribe article"
-    toggleSubscribeArticle(input: ToggleItemInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}")
+    toggleSubscribeArticle(input: ToggleItemInput!): Article! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}")
 
     "Appreciate an article."
-    appreciateArticle(input: AppreciateArticleInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}") @rateLimit(limit:5, period:60)
+    appreciateArticle(input: AppreciateArticleInput!): Article! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}") @rateLimit(limit:5, period:60)
 
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
@@ -32,16 +32,16 @@ export default /* GraphQL */ `
     #     Tag    #
     ##############
     "Create or update tag."
-    putTag(input: PutTagInput!): Tag! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.tag}")
+    putTag(input: PutTagInput!): Tag! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Add one tag to articles."
-    addArticlesTags(input: AddArticlesTagsInput!): Tag! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.tag}")
+    addArticlesTags(input: AddArticlesTagsInput!): Tag! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Update articles' tag."
-    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.tag}")
+    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Delete one tag from articles"
-    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.tag}")
+    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
 
 
     ##############
@@ -61,22 +61,22 @@ export default /* GraphQL */ `
     # DEPRECATED #
     ##############
     "Subscribe an artcile."
-    subscribeArticle(input: SubscribeArticleInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}")  @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
+    subscribeArticle(input: SubscribeArticleInput!): Article! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}")  @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
 
     "Unsubscribe an article."
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
 
     "Archive an article and users won't be able to view this article."
-    archiveArticle(input: ArchiveArticleInput!): Article! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`editArticle\`.")
+    archiveArticle(input: ArchiveArticleInput!): Article! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`editArticle\`.")
 
     "Set collection of an article."
-    setCollection(input: SetCollectionInput!): Article! @purgeCache(type: "${NODE_TYPES.article}") @scope(mode: "${SCOPE_MODE.user}")
+    setCollection(input: SetCollectionInput!): Article! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}")
 
     "Update article information."
-    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @purgeCache(type: "${NODE_TYPES.article}") @scope(mode: "${SCOPE_MODE.user}")
+    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}")
 
     "Recall while publishing."
-    recallPublish(input: RecallPublishInput!): Draft! @purgeCache(type: "${NODE_TYPES.draft}") @scope(mode: "${SCOPE_MODE.user}")
+    recallPublish(input: RecallPublishInput!): Draft! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.draft}")
   }
 
   """

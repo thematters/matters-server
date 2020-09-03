@@ -1,9 +1,9 @@
-import { CACHE_TTL, NODE_TYPES, SCOPE_MODE } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES, SCOPE_GROUP, SCOPE_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
     "Mark all received notices as read."
-    markAllNoticesAsRead: Boolean @scope(mode: "${SCOPE_MODE.user}")
+    markAllNoticesAsRead: Boolean @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}")
   }
 
   extend type User {

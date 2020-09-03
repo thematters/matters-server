@@ -1,4 +1,4 @@
-import { CACHE_TTL, NODE_TYPES, SCOPE_MODE } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES, SCOPE_GROUP, SCOPE_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -12,10 +12,10 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     "Upload a single file."
-    singleFileUpload(input: SingleFileUploadInput!): Asset! @scope(mode: "${SCOPE_MODE.user}")
+    singleFileUpload(input: SingleFileUploadInput!): Asset! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Delete a uploaded file."
-    singleFileDelete(input: SingleFileDeleteInput!): Boolean! @scope(mode: "${SCOPE_MODE.user}")
+    singleFileDelete(input: SingleFileDeleteInput!): Boolean! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     feedback(input: FeedbackInput!): Boolean
 
@@ -422,7 +422,7 @@ export default /* GraphQL */ `
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ENUM_VALUE
 
-  directive @scope(mode: String!, scope: String) on FIELD_DEFINITION
+  directive @scope(mode: String!, group: String) on FIELD_DEFINITION
 
   directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 

@@ -1,4 +1,4 @@
-import { CACHE_TTL, NODE_TYPES, SCOPE_MODE } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES, SCOPE_GROUP, SCOPE_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -17,10 +17,10 @@ export default /* GraphQL */ `
     resetPassword(input: ResetPasswordInput!): Boolean
 
     "Change user email."
-    changeEmail(input: ChangeEmailInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
+    changeEmail(input: ChangeEmailInput!): User! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Verify user email."
-    verifyEmail(input: VerifyEmailInput!): Boolean @scope(mode: "${SCOPE_MODE.user}")
+    verifyEmail(input: VerifyEmailInput!): Boolean @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}")
 
     "Register user, can only be used on matters.news website."
     userRegister(input: UserRegisterInput!): AuthResult!
@@ -32,35 +32,35 @@ export default /* GraphQL */ `
     userLogout: Boolean!
 
     "Generate or claim a Liker ID through LikeCoin"
-    generateLikerId: User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
+    generateLikerId: User! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Update user information."
-    updateUserInfo(input: UpdateUserInfoInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
+    updateUserInfo(input: UpdateUserInfoInput!): User! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Update user notification settings."
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
-      @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
+      @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Follow or unfollow tag."
-    toggleFollowTag(input: ToggleItemInput!): Tag! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.tag}")
+    toggleFollowTag(input: ToggleItemInput!): Tag! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Follow or Unfollow current user."
-    toggleFollowUser(input: ToggleItemInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
+    toggleFollowUser(input: ToggleItemInput!): User! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Block or Unblock a given user."
-    toggleBlockUser(input: ToggleItemInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
+    toggleBlockUser(input: ToggleItemInput!): User! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Subscribe/ Unsubscribe Push Notification."
-    toggleSubscribePush(input: ToggleItemInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}")
+    toggleSubscribePush(input: ToggleItemInput!): User! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
 
     "Clear read history for user."
-    clearReadHistory(input: ClearReadHistoryInput!): Boolean @scope(mode: "${SCOPE_MODE.user}")
+    clearReadHistory(input: ClearReadHistoryInput!): Boolean @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Clear search history for user."
-    clearSearchHistory: Boolean @scope(mode: "${SCOPE_MODE.user}")
+    clearSearchHistory: Boolean @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Migrate articles from other service provider."
-    migration(input: MigrationInput!): Boolean @scope(mode: "${SCOPE_MODE.user}")
+    migration(input: MigrationInput!): Boolean @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}")
 
     ##############
     #     OSS    #
@@ -76,16 +76,16 @@ export default /* GraphQL */ `
     # DEPRECATED #
     ##############
     "Block a given user."
-    blockUser(input: BlockUserInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
+    blockUser(input: BlockUserInput!): User! @scope(mode: "${SCOPE_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
 
     "Unblock a given user."
-    unblockUser(input: BlockUserInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
+    unblockUser(input: BlockUserInput!): User! @scope(mode: "${SCOPE_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
 
     "Follow a given user."
-    followUser(input: FollowUserInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
+    followUser(input: FollowUserInput!): User! @scope(mode: "${SCOPE_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
 
     "Unfollow curent user."
-    unfollowUser(input: FollowUserInput!): User! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
+    unfollowUser(input: FollowUserInput!): User! @scope(mode: "${SCOPE_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
   }
 
   type User implements Node {

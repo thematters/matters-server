@@ -1,37 +1,37 @@
-import { NODE_TYPES, SCOPE_MODE } from 'common/enums'
+import { NODE_TYPES, SCOPE_GROUP, SCOPE_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
     "Publish a comment."
-    putComment(input: PutCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.comment}") @rateLimit(limit:3, period:120)
+    putComment(input: PutCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.comment}") @rateLimit(limit:3, period:120)
 
     "Remove a comment."
-    deleteComment(input: DeleteCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.comment}")
+    deleteComment(input: DeleteCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Pin or Unpin a comment."
-    togglePinComment(input: ToggleItemInput!): Comment! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.comment}")
+    togglePinComment(input: ToggleItemInput!): Comment! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Report a comment to team."
     reportComment(input: ReportCommentInput!): Boolean
 
     "Upvote or downvote a comment."
-    voteComment(input: VoteCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.comment}")
+    voteComment(input: VoteCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Unvote a comment."
-    unvoteComment(input: UnvoteCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.comment}")
+    unvoteComment(input: UnvoteCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Update a comments' state."
-    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.comment}")
+    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.comment}")
 
 
     ##############
     # DEPRECATED #
     ##############
     "Pin a comment."
-    pinComment(input: PinCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.comment}")
+    pinComment(input: PinCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
 
     "Unpin a comment."
-    unpinComment(input: UnpinCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.user}") @purgeCache(type: "${NODE_TYPES.comment}")
+    unpinComment(input: UnpinCommentInput!): Comment! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
   }
 
   """
