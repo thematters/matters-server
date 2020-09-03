@@ -45,6 +45,7 @@ export const CACHE_TTL = {
   PUBLIC_FEED_ARTICLE: 60 * 3, // 3 mins
   PUBLIC_FEED_TAG: 60 * 30, // 30 mins
   PUBLIC_FEED_USER: 60 * 30, // 30 mins
+  PUBLIC_SEARCH: 60 * 60 * 1, // 1 hour
 
   PRIVATE_QUERY: 60 * 3, // 3 mins
 
