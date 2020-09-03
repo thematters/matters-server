@@ -21,17 +21,17 @@ export const tags: RecommendationToTagsResolver = async (
     }
   }
 
+  const matty = await userService.findByEmail('hi@matters.news')
+
   // pick randomly
   if (typeof filter?.random === 'number') {
     const { random } = filter
     const draw = first || 5
     const limit = 50
 
-    const mattyUser = await userService.findByEmail('hi@matters.news')
     const curationTags = await tagService.findCurationTags({
-      mattyId: mattyUser.id,
+      mattyId: matty.id,
       limit: limit * draw,
-      oss,
     })
     const chunks = chunk(curationTags, draw)
     const index = Math.min(random, limit, chunks.length - 1)
@@ -39,14 +39,12 @@ export const tags: RecommendationToTagsResolver = async (
     return connectionFromArray(filteredTags, input, curationTags.length)
   }
 
+  // query all tags by specific logic (curation concat non-curation)
   const offset = cursorToIndex(after) + 1
   const totalCount = await tagService.baseCount()
+  const items = await tagService.findArrangedTags({ mattyId: matty.id, limit: first, offset, oss })
   return connectionFromPromisedArray(
-    tagService.recommendTags({
-      offset,
-      limit: first,
-      oss,
-    }),
+    tagService.dataloader.loadMany(items.map((item) => item.id)),
     input,
     totalCount
   )

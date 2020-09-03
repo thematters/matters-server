@@ -339,6 +339,11 @@ export class TagService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
+
+   /**
+    * Find all tags in score-based order.
+    *
+    */
   recommendTags = async ({
     limit = BATCH_SIZE,
     offset = 0,
@@ -388,10 +393,85 @@ export class TagService extends BaseService {
   }
 
   /**
-   * Find curation tags.
+   * Find curation-like tags.
    *
    */
-  findCurationTags = async ({
+  findCurationTags = ({
+    mattyId,
+    fields = ['*'],
+    limit,
+  }: {
+    mattyId: string
+    fields?: any[]
+    limit?: number
+  }) => {
+    const query = this.knex
+      .select(fields)
+      .from(
+        this.knex.raw(`(
+          SELECT
+              tag.*
+          FROM (
+              SELECT
+                  tag.id,
+                  COALESCE(SUM(1), 0) AS articles,
+                  COALESCE(SUM(art.selected::int), 0) AS selected
+              FROM
+                  tag
+                  JOIN article_tag art ON art.tag_id = tag.id
+              WHERE
+                  tag.deleted = FALSE
+                  AND tag.owner != ${mattyId}
+                  OR (tag.owner = ${mattyId} AND now() - tag.created_at <= Interval '90 day')
+              GROUP BY
+                  tag.id
+          ) AS base
+          JOIN tag ON tag.id = base.id
+          WHERE
+              base.articles >= 3
+              AND (tag.description IS NOT NULL OR base.selected > 0)
+        ) AS source`)
+      )
+
+    if (limit) {
+      query.limit(limit)
+    }
+    return query
+  }
+
+  /**
+   * Find non-curation-like tags based on score order.
+   *
+   */
+  findNonCurationTags = ({
+    mattyId,
+    fields = ['*'],
+    oss = false,
+  }: {
+    mattyId: string
+    fields?: any[]
+    oss?: boolean
+  }) => {
+    const curation = this.findCurationTags({ mattyId, fields: ['id'] })
+    const query = this.knex
+      .select(fields)
+      .from((knex: any) => {
+        const source = knex
+          .select()
+          .from(oss ? 'tag_count_view' : MATERIALIZED_VIEW.tagCountMaterialized)
+          .whereNotIn('id', curation)
+          .orderByRaw('tag_score DESC NULLS LAST')
+          .orderBy('count', 'desc')
+        source.as('source')
+      })
+    return query
+  }
+
+  /**
+   * Find curation-like and non-curation-like tags in specific order.
+   *
+   */
+  findArrangedTags = async ({
     mattyId,
     limit = BATCH_SIZE,
     offset = 0,
@@ -401,35 +481,16 @@ export class TagService extends BaseService {
     limit?: number
     offset?: number
     oss?: boolean
-  }) =>
-    this.knex()
-      .select('tag.*')
-      .from(
-        this.knex.raw(`(
-          SELECT
-              tag.id,
-              COALESCE(SUM(1), 0) AS articles,
-              COALESCE(SUM(art.selected::int), 0) AS selected
-          FROM
-              tag
-              JOIN article_tag art ON art.tag_id = tag.id
-          WHERE
-              tag.deleted = FALSE
-              AND tag.owner != ${mattyId}
-              OR (tag.owner = ${mattyId} AND now() - tag.created_at <= Interval '90 day')
-          GROUP BY
-              tag.id
-        ) AS base`)
-      )
-      .join('tag', 'tag.id', 'base.id')
-      .where(
-        this.knex.raw(`
-          base.articles >= 3
-          AND (tag.description IS NOT NULL OR base.selected > 0)
-        `)
-      )
+  }) => {
+    const curation = this.findCurationTags({ mattyId, fields: ['id', this.knex.raw('1 as type')] })
+    const nonCuration = this.findNonCurationTags({ mattyId, fields: ['id', this.knex.raw('2 as type')] })
+    const query = curation
+      .unionAll([nonCuration])
+      .orderBy('type')
       .limit(limit)
       .offset(offset)
+    return query
+  }
 
   /*********************************
    *                               *

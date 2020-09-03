@@ -974,7 +974,6 @@ export interface GQLRecommendationTagsFilter {
    * index of tag list, min: 0, max: 49
    */
   random?: GQLNonNegativeInt
-  all?: boolean
 }
 
 export type GQLNonNegativeInt = any

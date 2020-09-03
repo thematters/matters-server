@@ -554,7 +554,6 @@ export default /* GraphQL */ `
   input RecommendationTagsFilter {
     "index of tag list, min: 0, max: 49"
     random: NonNegativeInt
-    all: Boolean
   }
 
   enum BadgeType {
