@@ -1,7 +1,12 @@
 import _get from 'lodash/get'
 
 import { toGlobalId } from 'common/utils'
-import { GQLNodeInput, GQLPutTagInput } from 'definitions'
+import {
+  GQLNodeInput,
+  GQLPutTagInput,
+  GQLUpdateTagSettingInput,
+  GQLUpdateTagSettingType,
+} from 'definitions'
 
 import { testClient } from './utils'
 
@@ -23,6 +28,27 @@ const PUT_TAG = `
       id
       content
       description
+      editors {
+        id
+      }
+      owner {
+        id
+      }
+    }
+  }
+`
+
+const UPDATE_TAG_SETTING = `
+  mutation ($input: UpdateTagSettingInput!) {
+    updateTagSetting(input: $input) {
+      id
+      content
+      editors {
+        id
+      }
+      owner {
+        id
+      }
     }
   }
 `
@@ -42,6 +68,9 @@ const MERGE_TAG = `
       ... on Tag {
         id
         content
+        owner {
+          id
+        }
       }
     }
   }
@@ -104,13 +133,21 @@ const DELETE_ARTICLES_TAGS = `
   }
 `
 
-export const putTag = async (tag: GQLPutTagInput) => {
-  const { mutate } = await testClient({
-    isAdmin: true,
-    isAuth: true,
-    isMatty: true,
-  })
+interface BaseInput {
+  isAdmin?: boolean
+  isAuth?: boolean
+  isMatty?: boolean
+}
 
+type PutTagInput = { tag: GQLPutTagInput } & BaseInput
+
+export const putTag = async ({
+  isAdmin = true,
+  isAuth = true,
+  isMatty = true,
+  tag,
+}: PutTagInput) => {
+  const { mutate } = await testClient({ isAdmin, isAuth, isMatty })
   const result = await mutate({
     mutation: PUT_TAG,
     // @ts-ignore
@@ -120,13 +157,35 @@ export const putTag = async (tag: GQLPutTagInput) => {
   return data
 }
 
+type UpdateTagSettingInput = GQLUpdateTagSettingInput & BaseInput
+
+export const updateTagSetting = async ({
+  isAdmin = false,
+  isAuth = false,
+  isMatty = false,
+  id,
+  type,
+}: UpdateTagSettingInput) => {
+  const { mutate } = await testClient({ isAdmin, isAuth, isMatty })
+  const result = await mutate({
+    mutation: UPDATE_TAG_SETTING,
+    variables: { input: { id, type } },
+  })
+
+  if (!result.data) {
+    return result
+  }
+  const data = result?.data?.updateTagSetting
+  return data
+}
+
 describe('put tag', () => {
   test('create, query and update tag', async () => {
     const content = 'Test tag #1'
     const description = 'This is a tag description'
 
     // create
-    const createResult = await putTag({ content, description })
+    const createResult = await putTag({ tag: { content, description } })
     const createTagId = createResult?.id
     expect(createTagId).toBeDefined()
 
@@ -148,9 +207,11 @@ describe('put tag', () => {
     const updateContent = 'Update tag #1'
     const updateDescription = 'Update description'
     const updateResult = await putTag({
-      id: createTagId,
-      content: updateContent,
-      description: updateDescription,
+      tag: {
+        id: createTagId,
+        content: updateContent,
+        description: updateDescription,
+      },
     })
     expect(updateResult?.content).toBe(updateContent)
     expect(updateResult?.description).toBe(updateDescription)
@@ -160,7 +221,7 @@ describe('put tag', () => {
 describe('manage tag', () => {
   test('rename and delete tag', async () => {
     // create
-    const createResult = await putTag({ content: 'Test tag #1' })
+    const createResult = await putTag({ tag: { content: 'Test tag #1' } })
     const createTagId = createResult?.id
     expect(createTagId).toBeDefined()
 
@@ -185,6 +246,9 @@ describe('manage tag', () => {
     })
     const mergeTagId = mergeResult?.data?.mergeTags?.id
     expect(mergeResult?.data?.mergeTags?.content).toBe(mergeContent)
+    expect(mergeResult?.data?.mergeTags?.owner?.id).toBe(
+      toGlobalId({ type: 'User', id: 6 })
+    )
 
     // delete
     const deleteResult = await mutate({
@@ -198,7 +262,7 @@ describe('manage tag', () => {
 describe('manage article tag', () => {
   test('add and delete article tag', async () => {
     // create
-    const createResult = await putTag({ content: 'Test tag #1' })
+    const createResult = await putTag({ tag: { content: 'Test tag #1' } })
     const createTagId = createResult?.id
     expect(createTagId).toBeDefined()
 
@@ -251,5 +315,74 @@ describe('manage article tag', () => {
     expect(deleteResult?.data?.deleteArticlesTags?.articles?.edges.length).toBe(
       0
     )
+  })
+})
+
+describe('manage settings of a tag', () => {
+  const errorPath = 'errors.0.extensions.code'
+
+  test('adopt and leave tag', async () => {
+    const authedId = toGlobalId({ type: 'User', id: 1 })
+    const mattyId = toGlobalId({ type: 'User', id: 6 })
+
+    // matty create tag
+    const tag = await putTag({ tag: { content: 'Tag adoption #1' } })
+    const editors = (tag?.editors || []).map((editor: any) => editor?.id)
+    expect(editors.includes(mattyId)).toBeTruthy()
+    expect(tag?.owner?.id).toBe(mattyId)
+
+    // authed user try adopt matty's tag
+    const adoptMattyTagData = await updateTagSetting({
+      isAuth: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.adopt,
+    })
+    expect(_get(adoptMattyTagData, errorPath)).toBe('FORBIDDEN')
+
+    // authed user try to leave matty's tag
+    const leaveMattyTagData = await updateTagSetting({
+      isAuth: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.leave,
+    })
+    expect(_get(leaveMattyTagData, errorPath)).toBe('FORBIDDEN')
+
+    // matty leave tag
+    const mattyLeaveTagData = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.leave,
+    })
+    const mattyLeaveTagDataEditors = (mattyLeaveTagData?.editors || []).map(
+      (editor: any) => editor?.id
+    )
+    expect(mattyLeaveTagDataEditors.includes(mattyId)).toBeTruthy()
+    expect(mattyLeaveTagData?.owner).toBe(null)
+
+    // authed user adopt tag
+    const adoptData = await updateTagSetting({
+      isAuth: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.adopt,
+    })
+    const adoptDataEditors = (adoptData?.editors || []).map(
+      (editor: any) => editor?.id
+    )
+    expect(adoptDataEditors.includes(authedId)).toBeTruthy()
+    expect(adoptData?.owner?.id).toBe(authedId)
+
+    // authed user leave tag
+    const leaveData = await updateTagSetting({
+      isAuth: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.leave,
+    })
+    const leaveDataEditors = (leaveData?.editors || []).map(
+      (editor: any) => editor?.id
+    )
+    expect(leaveDataEditors.includes(authedId)).toBeFalsy()
+    expect(leaveDataEditors.includes(mattyId)).toBeTruthy()
+    expect(leaveData?.owner).toBe(null)
   })
 })

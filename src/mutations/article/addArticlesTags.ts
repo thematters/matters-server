@@ -78,19 +78,12 @@ const resolver: MutationToAddArticlesTagsResolver = async (
     throw new TagNotFoundError('tag not found')
   }
 
-  const admin = 'hi@matters.news'
-  const normalEditors = (await userService.baseFindByIds(tag.editors)).filter(
-    (user) => user.email !== admin
-  )
-
-  // define permission
+  // add only allow: owner, editor, matty
+  const isOwner = tag.owner === viewer.id
   const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
-  const isCreator = tag.creator === viewer.id
-  const isMatty = viewer.email === admin
-  const isMaintainer =
-    isEditor || (normalEditors.length === 0 && isCreator) || isMatty
+  const isMatty = viewer.email === 'hi@matters.news'
+  const isMaintainer = isOwner || isEditor || isMatty
 
-  // only maintainer can add articles into tag selected
   if (!isMaintainer && selected) {
     throw new ForbiddenError('not allow add tag to article')
   }
@@ -130,14 +123,6 @@ const resolver: MutationToAddArticlesTagsResolver = async (
         viewerId: viewer.id,
       })
     })
-  }
-
-  // add creator if not listed in editors
-  if (!isEditor && !isMatty && isCreator) {
-    const updatedTag = await tagService.baseUpdate(tag.id, {
-      editors: _uniq([...tag.editors, viewer.id]),
-    })
-    return updatedTag
   }
 
   return tag

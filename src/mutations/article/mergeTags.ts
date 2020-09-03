@@ -19,6 +19,7 @@ const resolver: MutationToMergeTagsResolver = async (
     content,
     creator: mattyUser.id,
     editors: [mattyUser.id],
+    owner: mattyUser.id,
   })
 
   // invalidate extra nodes
