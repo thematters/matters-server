@@ -1,7 +1,6 @@
 import _ from 'lodash'
 
 import { SCOPE_MODE } from 'common/enums'
-import { makeScope } from 'common/utils'
 
 import { adminUser, defaultTestUser, getUserContext, testClient } from './utils'
 
@@ -79,13 +78,11 @@ const prepare = async ({
 
 // Check OAuth viewer query and mutation are functional or not.
 describe('OAuth viewer qeury and mutation', () => {
-  const scope = makeScope(testScopes)
-
   test('query with public and socped fields', async () => {
     const { context, query } = await prepare({
       email: defaultTestUser.email,
       mode: SCOPE_MODE.oauth,
-      scope,
+      scope: testScopes,
     })
     const otherUserName = 'test2'
     const { data } = await query({
@@ -102,7 +99,7 @@ describe('OAuth viewer qeury and mutation', () => {
     const { context, query } = await prepare({
       email: defaultTestUser.email,
       mode: SCOPE_MODE.oauth,
-      scope,
+      scope: testScopes,
     })
 
     // query no scope field error
@@ -128,7 +125,7 @@ describe('OAuth viewer qeury and mutation', () => {
     const { context, mutate } = await prepare({
       email: defaultTestUser.email,
       mode: SCOPE_MODE.oauth,
-      scope,
+      scope: testScopes,
     })
     const description = 'foo bar'
     const { errors } = await mutate({

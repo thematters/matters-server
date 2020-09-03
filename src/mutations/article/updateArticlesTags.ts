@@ -65,7 +65,7 @@ const resolver: MutationToUpdateArticlesTagsResolver = async (
   }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('viewer has no permission')
+    throw new AuthenticationError('visitor has no permission')
   }
 
   if (viewer.state === USER_STATE.frozen) {

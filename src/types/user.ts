@@ -117,7 +117,7 @@ export default /* GraphQL */ `
     settings: UserSettings! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Article recommendations for current user."
-    recommendation: Recommendation! @scope(mode: "${SCOPE_MODE.oauth}")
+    recommendation: Recommendation!
 
     "Articles authored by current user."
     articles(input: ConnectionArgs!): ArticleConnection!
@@ -168,22 +168,22 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection!
+    followeeArticles(input: ConnectionArgs!): ArticleConnection! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Comments published by user's followees."
-    followeeComments(input: ConnectionArgs!): CommentConnection!
+    followeeComments(input: ConnectionArgs!): CommentConnection! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Articles that followee donated"
-    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
+    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Articles and comments published by user's followees."
-    followeeWorks(input: ResponsesInput!): ResponseConnection! @deprecated(reason: "Feature changed.")
+    followeeWorks(input: ResponsesInput!): ResponseConnection! @scope(mode: "${SCOPE_MODE.oauth}") @deprecated(reason: "Feature changed.")
 
     "Tags that user followed."
-    followingTags(input: ConnectionArgs!): TagConnection!
+    followingTags(input: ConnectionArgs!): TagConnection! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Articles has been added into followed tags."
-    followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
+    followingTagsArticles(input: ConnectionArgs!): ArticleConnection! @scope(mode: "${SCOPE_MODE.oauth}")
 
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})

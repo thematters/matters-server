@@ -11,7 +11,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { clearCookie, getLanguage, makeScope } from 'common/utils'
+import { clearCookie, getLanguage } from 'common/utils'
 import { OAuthService, SystemService, UserService } from 'connectors'
 import { Viewer } from 'definitions'
 
@@ -104,12 +104,10 @@ const getUser = async (token: string, agentHash: string) => {
         throw new Error('user has been deleted')
       }
 
-      const scope = makeScope(data.scope as string[])
-
       return {
         ...data.user,
         scopeMode: SCOPE_MODE.oauth,
-        scope,
+        scope: data.scope as string[],
         oauthClient: data.client && data.client.rawClient,
       }
     }
