@@ -412,7 +412,7 @@ export class TagService extends BaseService {
           FROM (
               SELECT
                   tag.id,
-                  COALESCE(SUM(1), 0) AS articles,
+                  COUNT(1) AS articles,
                   COALESCE(SUM(art.selected::int), 0) AS selected
               FROM
                   tag
