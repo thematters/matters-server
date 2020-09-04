@@ -1,5 +1,5 @@
 import { getViewerFromUser, setCookie } from 'common/utils'
-import { MutationToUserLoginResolver, AuthMode } from 'definitions'
+import { AuthMode, MutationToUserLoginResolver } from 'definitions'
 
 const resolver: MutationToUserLoginResolver = async (
   root,

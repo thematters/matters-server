@@ -2,7 +2,7 @@ import { ApolloServer } from 'apollo-server-express'
 import { createTestClient } from 'apollo-server-testing'
 import { Request } from 'express'
 
-import { roleAccess, authModes } from 'common/utils'
+import { authModes, roleAccess } from 'common/utils'
 import {
   ArticleService,
   CommentService,
