@@ -62,10 +62,10 @@ export const USER_ROLE = {
 }
 
 /**
- * scope mode is "oauth" if the viewer access token is signed via OAuth,
+ * auth mode is "oauth" if the viewer access token is signed via OAuth,
  * otherwise, it's `viewer.role`
  */
-export const SCOPE_MODE = {
+export const AUTH_MODE = {
   visitor: 'visitor',
   oauth: 'oauth',
   user: 'user',

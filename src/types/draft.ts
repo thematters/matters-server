@@ -1,12 +1,12 @@
-import { CACHE_TTL, NODE_TYPES, SCOPE_GROUP, SCOPE_MODE } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES, SCOPE_GROUP, AUTH_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
     "Create or update a draft."
-    putDraft(input: PutDraftInput!): Draft! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    putDraft(input: PutDraftInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Remove a draft."
-    deleteDraft(input: DeleteDraftInput!): Boolean @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level2}")
+    deleteDraft(input: DeleteDraftInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}")
   }
 
   """

@@ -1,4 +1,4 @@
-import { CACHE_TTL, NODE_TYPES, SCOPE_MODE } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES, AUTH_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -7,7 +7,7 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     "Create or Update an OAuth Client, used in OSS."
-    putOAuthClient(input: PutOAuthClientInput!): OAuthClient @scope(mode: "${SCOPE_MODE.admin}")
+    putOAuthClient(input: PutOAuthClientInput!): OAuthClient @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type OAuthClient {
@@ -30,13 +30,13 @@ export default /* GraphQL */ `
     avatar: URL
 
     "Client secret"
-    secret: String! @scope(mode: "${SCOPE_MODE.admin}")
+    secret: String! @auth(mode: "${AUTH_MODE.admin}")
 
     "Redirect URIs"
-    redirectURIs: [URL!] @scope(mode: "${SCOPE_MODE.admin}")
+    redirectURIs: [URL!] @auth(mode: "${AUTH_MODE.admin}")
 
     "Grant Types"
-    grantTypes: [GrantType!] @scope(mode: "${SCOPE_MODE.admin}")
+    grantTypes: [GrantType!] @auth(mode: "${AUTH_MODE.admin}")
 
     "Linked Developer Account"
     user: User @logCache(type: "${NODE_TYPES.user}")

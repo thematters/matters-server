@@ -1,23 +1,23 @@
-import { CACHE_TTL, NODE_TYPES, SCOPE_GROUP, SCOPE_MODE } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES, SCOPE_GROUP, AUTH_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
     "Add Credit to User Wallet"
-    addCredit(input: AddCreditInput!): AddCreditResult! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    addCredit(input: AddCreditInput!): AddCreditResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Pay to another user or article"
-    payTo(input: PayToInput!): PayToResult! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    payTo(input: PayToInput!): PayToResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Payout to user"
-    payout(input: PayoutInput!): Transaction! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    payout(input: PayoutInput!): Transaction! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Create Stripe Connect account for Payout"
-    connectStripeAccount: ConnectStripeAccountResult! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    connectStripeAccount: ConnectStripeAccountResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
   }
 
   extend type User {
     "User Wallet"
-    wallet: Wallet! @scope(mode: "${SCOPE_MODE.oauth}")
+    wallet: Wallet! @auth(mode: "${AUTH_MODE.oauth}")
   }
 
   extend type UserStatus {

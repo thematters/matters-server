@@ -5,7 +5,7 @@ directive @cacheControl(maxAge: Int, scope: CacheScope) on OBJECT | FIELD | FIEL
 
 directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
 
-directive @scope(mode: String!, group: String) on FIELD_DEFINITION
+directive @auth(mode: String!, group: String) on FIELD_DEFINITION
 
 directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 

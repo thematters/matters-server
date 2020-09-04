@@ -3,9 +3,9 @@ import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 
 import {
+  AUTH_MODE,
   COOKIE_TOKEN_NAME,
   LANGUAGE,
-  SCOPE_MODE,
   USER_ROLE,
   USER_STATE,
 } from 'common/enums'
@@ -16,11 +16,11 @@ import { OAuthService, SystemService, UserService } from 'connectors'
 import { Viewer } from 'definitions'
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
-export const scopeModes = [
-  SCOPE_MODE.visitor,
-  SCOPE_MODE.oauth,
-  SCOPE_MODE.user,
-  SCOPE_MODE.admin,
+export const authModes = [
+  AUTH_MODE.visitor,
+  AUTH_MODE.oauth,
+  AUTH_MODE.user,
+  AUTH_MODE.admin,
 ]
 
 /**
@@ -61,9 +61,9 @@ export const getViewerFromUser = async (user: any) => {
     roleAccess.findIndex((role) => role === requires)
 
   // append helper functions
-  viewer.hasScopeMode = (requires: string) =>
-    scopeModes.findIndex((mode) => mode === viewer.scopeMode) >=
-    scopeModes.findIndex((mode) => mode === requires)
+  viewer.hasAuthMode = (requires: string) =>
+    authModes.findIndex((mode) => mode === viewer.authMode) >=
+    authModes.findIndex((mode) => mode === requires)
 
   return viewer
 }
@@ -86,7 +86,7 @@ const getUser = async (token: string, agentHash: string) => {
       throw new Error('user has been deleted')
     }
 
-    return { ...user, scopeMode: user.role }
+    return { ...user, authMode: user.role }
   } catch (error) {
     // get oauth user
     const oAuthService = new OAuthService()
@@ -106,7 +106,7 @@ const getUser = async (token: string, agentHash: string) => {
 
       return {
         ...data.user,
-        scopeMode: SCOPE_MODE.oauth,
+        authMode: AUTH_MODE.oauth,
         scope: data.scope as string[],
         oauthClient: data.client && data.client.rawClient,
       }
@@ -134,7 +134,7 @@ export const getViewerFromReq = async ({
     ip: req?.clientIp,
     userAgent,
     language,
-    scopeMode: SCOPE_MODE.visitor,
+    authMode: AUTH_MODE.visitor,
     scope: {},
     agentHash,
   }

@@ -1,4 +1,4 @@
-import { CACHE_TTL, NODE_TYPES, SCOPE_GROUP, SCOPE_MODE } from 'common/enums'
+import { CACHE_TTL, NODE_TYPES, SCOPE_GROUP, AUTH_MODE } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -7,15 +7,15 @@ export default /* GraphQL */ `
     frequentSearch(input: FrequentSearchInput!): [String!] @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     search(input: SearchInput!): SearchResultConnection! @privateCache @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     official: Official! @privateCache
-    oss: OSS! @scope(mode: "${SCOPE_MODE.admin}") @privateCache
+    oss: OSS! @auth(mode: "${AUTH_MODE.admin}") @privateCache
   }
 
   extend type Mutation {
     "Upload a single file."
-    singleFileUpload(input: SingleFileUploadInput!): Asset! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    singleFileUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Delete a uploaded file."
-    singleFileDelete(input: SingleFileDeleteInput!): Boolean! @scope(mode: "${SCOPE_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    singleFileDelete(input: SingleFileDeleteInput!): Boolean! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     feedback(input: FeedbackInput!): Boolean
 
@@ -25,10 +25,10 @@ export default /* GraphQL */ `
     ##############
     #     OSS    #
     ##############
-    setBoost(input: SetBoostInput!): Node! @scope(mode: "${SCOPE_MODE.admin}")
-    putRemark(input: PutRemarkInput!): String @scope(mode: "${SCOPE_MODE.admin}")
-    putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @scope(mode: "${SCOPE_MODE.admin}")
-    setFeature(input: SetFeatureInput!): Feature! @scope(mode: "${SCOPE_MODE.admin}")
+    setBoost(input: SetBoostInput!): Node! @auth(mode: "${AUTH_MODE.admin}")
+    putRemark(input: PutRemarkInput!): String @auth(mode: "${AUTH_MODE.admin}")
+    putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @auth(mode: "${AUTH_MODE.admin}")
+    setFeature(input: SetFeatureInput!): Feature! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   extend type Subscription {
@@ -169,7 +169,7 @@ export default /* GraphQL */ `
     assets: [URL!]
     contact: String
     createdAt: DateTime!
-    remark: String @scope(mode: "${SCOPE_MODE.admin}")
+    remark: String @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type ReportEdge {
@@ -422,7 +422,7 @@ export default /* GraphQL */ `
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ENUM_VALUE
 
-  directive @scope(mode: String!, group: String) on FIELD_DEFINITION
+  directive @auth(mode: String!, group: String) on FIELD_DEFINITION
 
   directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 

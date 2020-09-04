@@ -12,11 +12,11 @@ import queries from './queries'
 import subscriptions from './subscriptions'
 import typeDefs from './types'
 import {
+  AuthDirective,
   DeprecatedDirective,
   ObjectCacheDirective,
   PrivateCacheDirective,
   RateLimitDirective,
-  ScopeDirective,
 } from './types/directives'
 
 const typeResolver = (type: string, result: any) => {
@@ -40,7 +40,7 @@ const schema = makeExecutableSchema({
     deprecated: DeprecatedDirective,
 
     // limitation
-    scope: ScopeDirective,
+    auth: AuthDirective,
     rateLimit: RateLimitDirective,
 
     // caching

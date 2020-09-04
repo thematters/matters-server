@@ -2,7 +2,7 @@ import { ApolloServer } from 'apollo-server-express'
 import { createTestClient } from 'apollo-server-testing'
 import { Request } from 'express'
 
-import { roleAccess, scopeModes } from 'common/utils'
+import { roleAccess, authModes } from 'common/utils'
 import {
   ArticleService,
   CommentService,
@@ -90,8 +90,8 @@ export const testClient = async (
     viewer.role = isAdmin ? 'admin' : isAuth ? 'user' : 'visitor'
   }
 
-  if (!viewer.scopeMode) {
-    viewer.scopeMode = viewer.role
+  if (!viewer.authMode) {
+    viewer.authMode = viewer.role
   }
 
   if (!viewer.scope) {
@@ -103,9 +103,9 @@ export const testClient = async (
     hasRole: (requires: string) =>
       roleAccess.findIndex((role) => role === viewer.role) >=
       roleAccess.findIndex((role) => role === requires),
-    hasScopeMode: (requires: string) =>
-      scopeModes.findIndex((mode) => mode === viewer.scopeMode) >=
-      scopeModes.findIndex((mode) => mode === requires),
+    hasAuthMode: (requires: string) =>
+      authModes.findIndex((mode) => mode === viewer.authMode) >=
+      authModes.findIndex((mode) => mode === requires),
   }
 
   const server = new ApolloServer({

@@ -5,11 +5,11 @@ import {
 } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 
-import { SCOPE_GROUP, SCOPE_MODE } from 'common/enums'
+import { AUTH_MODE, SCOPE_GROUP } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { isValidScope } from 'common/utils/scope'
 
-export class ScopeDirective extends SchemaDirectiveVisitor {
+export class AuthDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field: GraphQLField<any, any>) {
     const { resolve = defaultFieldResolver, name: fieldName } = field
 
@@ -20,7 +20,7 @@ export class ScopeDirective extends SchemaDirectiveVisitor {
 
       const isQuery = operation.operation === 'query'
       const isSelf = root?.id === viewer?.id
-      const errorMessage = `"${viewer.scopeMode}" isn't authorized for "${fieldName}"`
+      const errorMessage = `"${viewer.authMode}" isn't authorized for "${fieldName}"`
 
       /**
        * Query
@@ -32,13 +32,13 @@ export class ScopeDirective extends SchemaDirectiveVisitor {
         }
 
         // check require mode
-        if (!viewer.hasScopeMode(requireMode)) {
+        if (!viewer.hasAuthMode(requireMode)) {
           throw new ForbiddenError(errorMessage)
         }
 
-        switch (viewer.scopeMode) {
+        switch (viewer.authMode) {
           // "oauth" can only access granted fields
-          case SCOPE_MODE.oauth:
+          case AUTH_MODE.oauth:
             if (!isSelf) {
               break
             }
@@ -56,14 +56,14 @@ export class ScopeDirective extends SchemaDirectiveVisitor {
             break
 
           // "user" can only access own fields
-          case SCOPE_MODE.user:
+          case AUTH_MODE.user:
             if (isSelf) {
               return resolve.apply(this, args)
             }
             break
 
           // "admin" can access all user's fields
-          case SCOPE_MODE.admin:
+          case AUTH_MODE.admin:
             return resolve.apply(this, args)
         }
 
@@ -73,16 +73,25 @@ export class ScopeDirective extends SchemaDirectiveVisitor {
       /**
        * Mutation
        */
-      if (!viewer.hasScopeMode(requireMode)) {
+      if (!viewer.hasAuthMode(requireMode)) {
         throw new ForbiddenError(errorMessage)
       }
 
-      const requireMutationScope = ['mutation', requireGroup, ...nodes].join(
-        ':'
-      )
-      const isStrict = requireGroup === SCOPE_GROUP.level3
-      if (isValidScope(viewer.scope, requireMutationScope, isStrict)) {
-        return resolve.apply(this, args)
+      switch (viewer.authMode) {
+        case AUTH_MODE.oauth:
+          const requireMutationScope = [
+            'mutation',
+            requireGroup,
+            ...nodes,
+          ].join(':')
+          const isStrict = requireGroup === SCOPE_GROUP.level3
+          if (isValidScope(viewer.scope, requireMutationScope, isStrict)) {
+            return resolve.apply(this, args)
+          }
+          break
+        case AUTH_MODE.user:
+        case AUTH_MODE.admin:
+          return resolve.apply(this, args)
       }
 
       throw new ForbiddenError(errorMessage)
