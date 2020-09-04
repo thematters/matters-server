@@ -24,6 +24,7 @@ const mutationLevel3Scope = ['mutation:level3']
 const VIEWER_SCOPED_PRIVATE = `
   query ($input: UserInput!) {
     viewer {
+      id
       displayName
       likerId
       info {
@@ -142,7 +143,71 @@ const prepare = async ({
  *
  * mode: 'visitor'
  */
-// TODO
+describe('Anonymous query and mutation', () => {
+  test('query with public and private fields', async () => {
+    const { query } = await testClient({ isAuth: false })
+    const otherUserName = 'test2'
+    const { data } = await query({
+      query: VIEWER_SCOPED_PRIVATE,
+      variables: { input: { userName: otherUserName } },
+    })
+    expect(data && data.viewer.id).toBe('')
+    expect(data && data.viewer.displayName).toBe(null)
+    expect(data && data.viewer.info.email).toBe(null)
+    expect(data && data.user.displayName).toBe(otherUserName)
+  })
+
+  test('query with private fields', async () => {
+    const { query } = await testClient({ isAuth: false })
+    const otherUserName = 'test2'
+    const error_case = await query({
+      query: VIEWER_SCOPED_WITH_OTHER_PRIVATE,
+      variables: { input: { userName: otherUserName } },
+    })
+    expect(_.get(error_case, 'errors.length')).toBe(1)
+    expect(_.get(error_case, 'errors.0.message')).toBeTruthy()
+  })
+
+  test('query nested other private fields', async () => {
+    const { query } = await testClient({ isAuth: false })
+    const errorCase1 = await query({ query: VIEWER_NESTED_OTHER_PARIVATE })
+    expect(errorCase1 && errorCase1.errors && errorCase1.errors.length).toBe(1)
+    expect(
+      errorCase1 && errorCase1.errors && errorCase1.errors[0].message
+    ).toBeTruthy()
+  })
+
+  test('level1 mutation', async () => {
+    const description = 'foo bar'
+    const { mutate } = await testClient({ isAuth: false })
+    const { errors } = await mutate({
+      mutation: UPDATE_USER_INFO_DESCRIPTION,
+      variables: { input: { description } },
+    })
+    expect(errors && errors.length).toBe(1)
+    expect(errors && errors[0].message).toBeTruthy()
+  })
+
+  test('level2 mutation', async () => {
+    const content = 'test comment content'
+    const { mutate } = await testClient({ isAuth: false })
+    const { errors } = await mutate({
+      mutation: CREATE_COMMENT,
+      variables: { content },
+    })
+    expect(errors && errors.length).toBe(1)
+    expect(errors && errors[0].message).toBeTruthy()
+  })
+
+  test('level3 mutation', async () => {
+    const { mutate } = await testClient({ isAuth: false })
+    const { errors } = await mutate({
+      mutation: CLEAR_SEARCH_HISTORY,
+    })
+    expect(errors && errors.length).toBe(1)
+    expect(errors && errors[0].message).toBeTruthy()
+  })
+})
 
 /**
  * Check OAuth viewer query and mutation are functional or not.
@@ -351,10 +416,10 @@ describe('General viewer query and mutation', () => {
 
   test('level2 mutation', async () => {
     const content = 'test comment content'
-    const { mutate: scopedMutate } = await prepare({
+    const { mutate } = await prepare({
       email: defaultTestUser.email,
     })
-    const { data } = await scopedMutate({
+    const { data } = await mutate({
       mutation: CREATE_COMMENT,
       variables: { content },
     })
@@ -362,10 +427,10 @@ describe('General viewer query and mutation', () => {
   })
 
   test('level3 mutation', async () => {
-    const { mutate: scopedMutate } = await prepare({
+    const { mutate } = await prepare({
       email: defaultTestUser.email,
     })
-    const { data } = await scopedMutate({
+    const { data } = await mutate({
       mutation: CLEAR_SEARCH_HISTORY,
     })
     expect(data?.clearSearchHistory).toBeTruthy()
@@ -431,10 +496,10 @@ describe('Admin viewer query and mutation', () => {
 
   test('level2 mutation', async () => {
     const content = 'test comment content'
-    const { mutate: scopedMutate } = await prepare({
+    const { mutate } = await prepare({
       email: adminUser.email,
     })
-    const { data } = await scopedMutate({
+    const { data } = await mutate({
       mutation: CREATE_COMMENT,
       variables: { content },
     })
@@ -442,10 +507,10 @@ describe('Admin viewer query and mutation', () => {
   })
 
   test('level3 mutation', async () => {
-    const { mutate: scopedMutate } = await prepare({
+    const { mutate } = await prepare({
       email: adminUser.email,
     })
-    const { data } = await scopedMutate({
+    const { data } = await mutate({
       mutation: CLEAR_SEARCH_HISTORY,
     })
     expect(data?.clearSearchHistory).toBeTruthy()
