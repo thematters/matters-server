@@ -36,7 +36,11 @@ export const tags: RecommendationToTagsResolver = async (
     const chunks = chunk(curationTags, draw)
     const index = Math.min(random, limit, chunks.length - 1)
     const filteredTags = chunks[index] || []
-    return connectionFromArray(filteredTags, input, curationTags.length)
+    return connectionFromPromisedArray(
+      tagService.dataloader.loadMany(filteredTags.map((tag) => tag.id)),
+      input,
+      curationTags.length
+    )
   }
 
   // query all tags by specific logic (curation concat non-curation)

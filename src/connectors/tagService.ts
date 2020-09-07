@@ -405,31 +405,10 @@ export class TagService extends BaseService {
     fields?: any[]
     limit?: number
   }) => {
-    const query = this.knex.select(fields).from(
-      this.knex.raw(`(
-          SELECT
-              tag.*
-          FROM (
-              SELECT
-                  tag.id,
-                  COUNT(1) AS articles,
-                  COALESCE(SUM(art.selected::int), 0) AS selected
-              FROM
-                  tag
-                  JOIN article_tag art ON art.tag_id = tag.id
-              WHERE
-                  tag.deleted = FALSE
-                  AND tag.owner != ${mattyId}
-                  OR (tag.owner = ${mattyId} AND now() - tag.created_at <= Interval '90 day')
-              GROUP BY
-                  tag.id
-          ) AS base
-          JOIN tag ON tag.id = base.id
-          WHERE
-              base.articles >= 3
-              AND (tag.description IS NOT NULL OR base.selected > 0)
-        ) AS source`)
-    )
+    const query = this.knex
+      .select(fields)
+      .from('curation_tag_materialized')
+      .orderBy('uuid')
 
     if (limit) {
       query.limit(limit)
@@ -485,8 +464,11 @@ export class TagService extends BaseService {
     const nonCuration = this.findNonCurationTags({
       mattyId,
       fields: ['id', this.knex.raw('2 as type')],
+      oss,
     })
-    const query = curation
+    const query = this.knex
+      .select(['id', 'type'])
+      .from(curation.as('curation'))
       .unionAll([nonCuration])
       .orderBy('type')
       .limit(limit)

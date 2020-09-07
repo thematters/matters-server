@@ -142,6 +142,7 @@ export type MaterializedView =
   | 'article_value_materialized'
   | 'featured_comment_materialized'
   | 'article_interest_materialized'
+  | 'curation_tag_materialized'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'
