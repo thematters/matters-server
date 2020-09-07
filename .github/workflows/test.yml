@@ -1,0 +1,80 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:10-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: matters-test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+      elasticsearch:
+        image: elasticsearch:5-alpine
+        ports:
+          - 9200:9200
+      ipfs:
+        image: ipfs/go-ipfs:latest
+        ports:
+          - 5001:5001
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2.1.1
+        with:
+          node-version: '12.16'
+
+      - name: Cache Dependencies
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Lint
+        run: |
+          npm run lint \
+          && npm run format:check
+
+      - name: Test
+        run: npm run test
+        env:
+          CODECOV_TOKEN: de5ab681-0837-4a24-b614-0a29225a7e4c
+          MATTERS_ENV: test
+          MATTERS_PG_HOST: localhost
+          MATTERS_PG_USER: postgres
+          MATTERS_PG_PASSWORD: postgres
+          MATTERS_PG_DATABASE: matters-test
+          MATTERS_PUBSUB_HOST: localhost
+          MATTERS_QUEUE_HOST: localhost
+          MATTERS_CACHE_HOST: localhost
+          MATTERS_JWT_SECRET: QsNmu9
+          MATTERS_ELASTICSEARCH_HOST: localhost
+          MATTERS_ELASTICSEARCH_PORT: 9200
+          MATTERS_IPFS_HOST: localhost
+          MATTERS_IPFS_PORT: 5001
+          MATTERS_OICD_PRIVATE_KEY: .ebextensions/oicd_rsa_private_local.pem
+
+      - name: Build
+        run: npm run build
