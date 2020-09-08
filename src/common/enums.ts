@@ -61,16 +61,26 @@ export const USER_ROLE = {
   visitor: 'visitor',
 }
 
-export const SCOPE_MODE = {
+/**
+ * auth mode is "oauth" if the viewer access token is signed via OAuth,
+ * otherwise, it's `viewer.role`
+ */
+export const AUTH_MODE = {
   visitor: 'visitor',
+  oauth: 'oauth',
   user: 'user',
   admin: 'admin',
-  oauth: 'oauth',
 }
 
-export const SCOPE_TYPE = {
-  read: 'read',
-  write: 'write',
+/**
+ * Scope grouping for mutation
+ *
+ * @see {@url https://github.com/thematters/developer-resource/wiki/Scopes#mutation}
+ */
+export const SCOPE_GROUP = {
+  level1: 'level1',
+  level2: 'level2',
+  level3: 'level3',
 }
 
 export const LANGUAGE = {

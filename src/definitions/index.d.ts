@@ -53,13 +53,13 @@ export type Context = RequestContext & {
 
 export type Viewer = (User | { id: null }) & {
   hasRole: (role: UserRole) => boolean
-  hasScopeMode: (mode: string) => boolean
+  hasAuthMode: (mode: string) => boolean
   ip?: string
   userAgent: string
   role: string
   language: LANGUAGES
   scope: { [key: string]: any }
-  scopeMode: ScopeMode
+  authMode: AuthMode
   oauthClient?: OAuthClient
   agentHash?: string
   group: 'a' | 'b'
@@ -222,7 +222,7 @@ export interface OAuthRefreshToken {
 
 export type Falsey = '' | 0 | false | null | undefined
 
-export type ScopeMode = 'visitor' | 'oauth' | 'user' | 'admin'
+export type AuthMode = 'visitor' | 'oauth' | 'user' | 'admin'
 
 export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
 

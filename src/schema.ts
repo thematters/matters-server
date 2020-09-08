@@ -6,19 +6,17 @@ import { makeExecutableSchema } from 'graphql-tools'
 import { merge } from 'lodash'
 
 import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
-import { AuthenticationError, ForbiddenError } from 'common/errors'
 
 import mutations from './mutations'
 import queries from './queries'
 import subscriptions from './subscriptions'
 import typeDefs from './types'
 import {
-  authDirectiveFactory,
+  AuthDirective,
   DeprecatedDirective,
   ObjectCacheDirective,
   PrivateCacheDirective,
   RateLimitDirective,
-  ScopeDirective,
 } from './types/directives'
 
 const typeResolver = (type: string, result: any) => {
@@ -40,10 +38,12 @@ const schema = makeExecutableSchema({
   typeDefs,
   schemaDirectives: {
     deprecated: DeprecatedDirective,
-    authenticate: authDirectiveFactory(AuthenticationError),
-    authorize: authDirectiveFactory(ForbiddenError),
-    scope: ScopeDirective,
+
+    // limitation
+    auth: AuthDirective,
     rateLimit: RateLimitDirective,
+
+    // caching
     privateCache: PrivateCacheDirective,
     objectCache: ObjectCacheDirective,
     logCache: LogCacheDirective({ typeResolver }),

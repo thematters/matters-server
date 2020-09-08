@@ -1,4 +1,4 @@
-import { CACHE_TTL, NODE_TYPES } from 'common/enums'
+import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -10,19 +10,19 @@ export default /* GraphQL */ `
     #   Article  #
     ##############
     "Publish an article onto IPFS."
-    publishArticle(input: PublishArticleInput!): Draft! @authenticate @purgeCache(type: "${NODE_TYPES.draft}") @rateLimit(limit:10, period:7200)
+    publishArticle(input: PublishArticleInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.draft}") @rateLimit(limit:10, period:7200)
 
     "Edit an article."
-    editArticle(input: EditArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}")
+    editArticle(input: EditArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}")
 
     "Report an article to team."
     reportArticle(input: ReportArticleInput!): Boolean
 
     "Subscribe or Unsubscribe article"
-    toggleSubscribeArticle(input: ToggleItemInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}")
+    toggleSubscribeArticle(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}")
 
     "Appreciate an article."
-    appreciateArticle(input: AppreciateArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}") @rateLimit(limit:5, period:60)
+    appreciateArticle(input: AppreciateArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}") @rateLimit(limit:5, period:60)
 
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
@@ -32,54 +32,54 @@ export default /* GraphQL */ `
     #     Tag    #
     ##############
     "Create or update tag."
-    putTag(input: PutTagInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    putTag(input: PutTagInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Update member, permission and othters of a tag."
-    updateTagSetting(input: UpdateTagSettingInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    updateTagSetting(input: UpdateTagSettingInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Add one tag to articles."
-    addArticlesTags(input: AddArticlesTagsInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    addArticlesTags(input: AddArticlesTagsInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Update articles' tag."
-    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
 
     "Delete one tag from articles"
-    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @authenticate @purgeCache(type: "${NODE_TYPES.tag}")
+    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
 
 
     ##############
     #     OSS    #
     ##############
-    toggleArticleLive(input: ToggleItemInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
-    toggleArticlePublic(input: ToggleItemInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
-    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
+    toggleArticleLive(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
+    toggleArticlePublic(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
+    toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
 
-    updateArticleState(input: UpdateArticleStateInput!): Article! @authorize @purgeCache(type: "${NODE_TYPES.article}")
-    deleteTags(input: DeleteTagsInput!): Boolean @authorize
-    renameTag(input: RenameTagInput!): Tag! @authorize @purgeCache(type: "${NODE_TYPES.tag}")
-    mergeTags(input: MergeTagsInput!): Tag! @authorize @purgeCache(type: "${NODE_TYPES.tag}")
+    updateArticleState(input: UpdateArticleStateInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
+    deleteTags(input: DeleteTagsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
+    renameTag(input: RenameTagInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.tag}")
+    mergeTags(input: MergeTagsInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.tag}")
 
 
     ##############
     # DEPRECATED #
     ##############
     "Subscribe an artcile."
-    subscribeArticle(input: SubscribeArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}")  @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
+    subscribeArticle(input: SubscribeArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}")  @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
 
     "Unsubscribe an article."
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
+    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
 
     "Archive an article and users won't be able to view this article."
-    archiveArticle(input: ArchiveArticleInput!): Article! @authenticate @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`editArticle\`.")
+    archiveArticle(input: ArchiveArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`editArticle\`.")
 
     "Set collection of an article."
-    setCollection(input: SetCollectionInput!): Article! @purgeCache(type: "${NODE_TYPES.article}") @authenticate
+    setCollection(input: SetCollectionInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}")
 
     "Update article information."
-    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @purgeCache(type: "${NODE_TYPES.article}") @authenticate
+    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}")
 
     "Recall while publishing."
-    recallPublish(input: RecallPublishInput!): Draft! @purgeCache(type: "${NODE_TYPES.draft}") @authenticate
+    recallPublish(input: RecallPublishInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.draft}")
   }
 
   """
@@ -184,8 +184,8 @@ export default /* GraphQL */ `
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
     # OSS
-    oss: ArticleOSS! @authorize
-    remark: String @authorize
+    oss: ArticleOSS! @auth(mode: "${AUTH_MODE.admin}")
+    remark: String @auth(mode: "${AUTH_MODE.admin}")
   }
 
   "This type contains content, count and related data of an article tag."
@@ -227,17 +227,17 @@ export default /* GraphQL */ `
     followers(input: ConnectionArgs!): UserConnection!
 
     # OSS
-    oss: TagOSS! @authorize
-    remark: String @authorize
-    deleted: Boolean! @authorize
+    oss: TagOSS! @auth(mode: "${AUTH_MODE.admin}")
+    remark: String @auth(mode: "${AUTH_MODE.admin}")
+    deleted: Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type ArticleOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
-    boost: NonNegativeFloat! @authorize
-    score: NonNegativeFloat! @authorize
-    inRecommendIcymi: Boolean! @authorize
-    inRecommendHottest: Boolean! @authorize
-    inRecommendNewest: Boolean! @authorize
+    boost: NonNegativeFloat! @auth(mode: "${AUTH_MODE.admin}")
+    score: NonNegativeFloat! @auth(mode: "${AUTH_MODE.admin}")
+    inRecommendIcymi: Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    inRecommendHottest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    inRecommendNewest: Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type ArticleTranslation {

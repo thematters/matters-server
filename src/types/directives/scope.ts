@@ -5,43 +5,96 @@ import {
 } from 'graphql'
 import { SchemaDirectiveVisitor } from 'graphql-tools'
 
-import { SCOPE_MODE } from 'common/enums'
+import { AUTH_MODE, SCOPE_GROUP } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
-import { isValidReadScope } from 'common/utils/scope'
+import { isValidScope } from 'common/utils/scope'
 
-export class ScopeDirective extends SchemaDirectiveVisitor {
+export class AuthDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field: GraphQLField<any, any>) {
-    const { resolve = defaultFieldResolver, name } = field
+    const { resolve = defaultFieldResolver, name: fieldName } = field
 
-    field.resolve = async function (...args) {
-      const [{ id }, _, { viewer }, { path }] = args
+    field.resolve = async (...args) => {
+      const { mode: requireMode, group: requireGroup } = this.args
+      const [root, _, { viewer }, { path, operation }] = args
+      const nodes = responsePathAsArray(path) || []
 
-      switch (viewer.scopeMode) {
-        case SCOPE_MODE.oauth: {
-          const nodes = responsePathAsArray(path) || []
-          if (nodes[0] !== 'viewer') {
+      const isQuery = operation.operation === 'query'
+      const isSelf = root?.id === viewer?.id
+      const errorMessage = `"${viewer.authMode}" isn't authorized for "${fieldName}"`
+
+      /**
+       * Query
+       */
+      if (isQuery) {
+        // "visitor" can only access anonymous' fields
+        if (!viewer.id && isSelf) {
+          return resolve.apply(this, args)
+        }
+
+        // check require mode
+        if (!viewer.hasAuthMode(requireMode)) {
+          throw new ForbiddenError(errorMessage)
+        }
+
+        switch (viewer.authMode) {
+          // "oauth" can only access granted fields
+          case AUTH_MODE.oauth:
+            if (!isSelf) {
+              break
+            }
+
+            if (nodes[0] !== 'viewer') {
+              throw new ForbiddenError(
+                `"oauth" can only query start from "viewer" root`
+              )
+            }
+
+            const requireQueryScope = ['query', ...nodes].join(':')
+            if (isValidScope(viewer.scope, requireQueryScope)) {
+              return resolve.apply(this, args)
+            }
             break
-          }
-          if (isValidReadScope(viewer.scope, nodes)) {
+
+          // "user" can only access own fields
+          case AUTH_MODE.user:
+            if (isSelf) {
+              return resolve.apply(this, args)
+            }
+            break
+
+          // "admin" can access all user's fields
+          case AUTH_MODE.admin:
             return resolve.apply(this, args)
-          }
-          throw new ForbiddenError('viewer has no permission')
         }
-        case SCOPE_MODE.visitor:
-        case SCOPE_MODE.user: {
-          if (id === viewer.id) {
-            return resolve.apply(this, args)
-          }
-          break
-        }
-        case SCOPE_MODE.admin: {
-          if (viewer.id) {
-            return resolve.apply(this, args)
-          }
-          break
-        }
+
+        throw new ForbiddenError(errorMessage)
       }
-      throw new ForbiddenError(`unauthorized user for field ${name}`)
+
+      /**
+       * Mutation
+       */
+      if (!viewer.hasAuthMode(requireMode)) {
+        throw new ForbiddenError(errorMessage)
+      }
+
+      switch (viewer.authMode) {
+        case AUTH_MODE.oauth:
+          const requireMutationScope = [
+            'mutation',
+            requireGroup,
+            ...nodes,
+          ].join(':')
+          const isStrict = requireGroup === SCOPE_GROUP.level3
+          if (isValidScope(viewer.scope, requireMutationScope, isStrict)) {
+            return resolve.apply(this, args)
+          }
+          break
+        case AUTH_MODE.user:
+        case AUTH_MODE.admin:
+          return resolve.apply(this, args)
+      }
+
+      throw new ForbiddenError(errorMessage)
     }
   }
 }

@@ -3,24 +3,24 @@ import { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 
 import {
+  AUTH_MODE,
   COOKIE_TOKEN_NAME,
   LANGUAGE,
-  SCOPE_MODE,
   USER_ROLE,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { clearCookie, getLanguage, makeScope } from 'common/utils'
+import { clearCookie, getLanguage } from 'common/utils'
 import { OAuthService, SystemService, UserService } from 'connectors'
 import { Viewer } from 'definitions'
 
 export const roleAccess = [USER_ROLE.visitor, USER_ROLE.user, USER_ROLE.admin]
-export const scopeModes = [
-  SCOPE_MODE.visitor,
-  SCOPE_MODE.oauth,
-  SCOPE_MODE.user,
-  SCOPE_MODE.admin,
+export const authModes = [
+  AUTH_MODE.visitor,
+  AUTH_MODE.oauth,
+  AUTH_MODE.user,
+  AUTH_MODE.admin,
 ]
 
 /**
@@ -52,7 +52,7 @@ export const getViewerFromUser = async (user: any) => {
   // overwrite default by user
   const viewer = { role: USER_ROLE.visitor, ...user }
 
-  // apppend uesr group
+  // append uesr group
   viewer.group = getUserGroup(user)
 
   // append hepler functions (keep it till we fully utilize scope)
@@ -61,9 +61,9 @@ export const getViewerFromUser = async (user: any) => {
     roleAccess.findIndex((role) => role === requires)
 
   // append helper functions
-  viewer.hasScopeMode = (requires: string) =>
-    scopeModes.findIndex((mode) => mode === viewer.scopeMode) >=
-    scopeModes.findIndex((mode) => mode === requires)
+  viewer.hasAuthMode = (requires: string) =>
+    authModes.findIndex((mode) => mode === viewer.authMode) >=
+    authModes.findIndex((mode) => mode === requires)
 
   return viewer
 }
@@ -83,10 +83,10 @@ const getUser = async (token: string, agentHash: string) => {
           .saveAgentHash(agentHash, user.email)
           .catch((error) => logger.error)
       }
-      throw new Error('user has deleted')
+      throw new Error('user has been deleted')
     }
 
-    return { ...user, scopeMode: user.role }
+    return { ...user, authMode: user.role }
   } catch (error) {
     // get oauth user
     const oAuthService = new OAuthService()
@@ -97,19 +97,17 @@ const getUser = async (token: string, agentHash: string) => {
       const live = data.accessTokenExpiresAt.getTime() - Date.now() > 0
 
       if (!live) {
-        throw new Error('token expired')
+        throw new Error('oauth token expired')
       }
 
       if (data.user.state === USER_STATE.archived) {
         throw new Error('user has been deleted')
       }
 
-      const scope = makeScope(data.scope as string[])
-
       return {
         ...data.user,
-        scopeMode: SCOPE_MODE.oauth,
-        scope,
+        authMode: AUTH_MODE.oauth,
+        scope: data.scope as string[],
         oauthClient: data.client && data.client.rawClient,
       }
     }
@@ -136,7 +134,7 @@ export const getViewerFromReq = async ({
     ip: req?.clientIp,
     userAgent,
     language,
-    scopeMode: SCOPE_MODE.visitor,
+    authMode: AUTH_MODE.visitor,
     scope: {},
     agentHash,
   }
@@ -149,19 +147,22 @@ export const getViewerFromReq = async ({
 
   if (!token) {
     logger.info('User is not logged in, viewing as guest')
-  } else {
-    try {
-      const userDB = await getUser(token as string, agentHash)
+    return getViewerFromUser(user)
+  }
 
-      // overwrite request by user settings
-      user = { ...user, ...userDB }
-    } catch (err) {
-      logger.info(err)
+  try {
+    const userDB = await getUser(token as string, agentHash)
 
-      if (req && res) {
-        clearCookie({ req, res })
-      }
+    // overwrite request by user settings
+    user = { ...user, ...userDB }
+  } catch (err) {
+    logger.info(err)
+
+    if (req && res) {
+      clearCookie({ req, res })
     }
+
+    throw err
   }
 
   return getViewerFromUser(user)
