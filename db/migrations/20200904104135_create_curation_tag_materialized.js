@@ -47,5 +47,5 @@ exports.up = async (knex) => {
 }
 
 exports.down = async (knex) => {
-  await knex.raw(`DROP MATERIALIZED VIEW ${view}`)
+  await knex.raw(`DROP MATERIALIZED VIEW IF EXISTS ${view}`)
 }
