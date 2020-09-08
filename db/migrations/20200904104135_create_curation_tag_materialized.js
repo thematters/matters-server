@@ -18,7 +18,7 @@ exports.up = async (knex) => {
     CREATE MATERIALIZED VIEW ${view} AS
     SELECT
         source.id,
-        uuid_generate_v4() as uuid
+        RANDOM() AS uuid
     FROM (
         SELECT
             tag.*

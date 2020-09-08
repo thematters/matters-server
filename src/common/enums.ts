@@ -37,6 +37,7 @@ export const MATERIALIZED_VIEW = {
   articleActivityMaterialized: 'article_activity_materialized',
   articleValueMaterialized: 'article_value_materialized',
   featuredCommentMaterialized: 'featured_comment_materialized',
+  curationTagMaterialized: 'curation_tag_materialized',
 }
 
 // cache TTL in seconds

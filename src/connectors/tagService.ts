@@ -407,7 +407,7 @@ export class TagService extends BaseService {
   }) => {
     const query = this.knex
       .select(fields)
-      .from('curation_tag_materialized')
+      .from(MATERIALIZED_VIEW.curationTagMaterialized)
       .orderBy('uuid')
 
     if (limit) {
