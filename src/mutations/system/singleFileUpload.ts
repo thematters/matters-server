@@ -9,7 +9,7 @@ import {
   UPLOAD_IMAGE_SIZE_LIMIT,
 } from 'common/enums'
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, resolveUrl } from 'common/utils'
 import { ItemData, MutationToSingleFileUploadResolver } from 'definitions'
 
 const getFileName = (disposition: string, url: string) => {
@@ -33,8 +33,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
   { input: { type, file, url, entityType, entityId } },
   { viewer, dataSources: { systemService } }
 ) => {
-  // https://github.com/Urigo/graphql-scalars#url
-  url = _.get(url, 'href')
+  url = resolveUrl(url)
 
   const isImageType =
     [

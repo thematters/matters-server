@@ -7,7 +7,7 @@ import {
   UserInputError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, resolveUrl } from 'common/utils'
 import { MutationToPutOAuthClientResolver } from 'definitions'
 
 const resolver: MutationToPutOAuthClientResolver = async (
@@ -32,18 +32,15 @@ const resolver: MutationToPutOAuthClientResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
-  // https://github.com/Urigo/graphql-scalars#url
-  website = _.get(website, 'href')
-
   let oauthClient: any = {
     clientId: id || nanoid(32),
     clientSecret: secret,
     name,
     description,
     scope,
-    websiteUrl: website,
+    websiteUrl: resolveUrl(website),
     grantTypes,
-    redirectUri: redirectURIs,
+    redirectUri: redirectURIs?.map((r) => resolveUrl(r)),
     userId: user ? fromGlobalId(user).id : user,
   }
 
