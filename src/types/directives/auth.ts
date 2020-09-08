@@ -7,7 +7,7 @@ import { SchemaDirectiveVisitor } from 'graphql-tools'
 
 import { AUTH_MODE, SCOPE_GROUP } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
-import { isValidScope } from 'common/utils/scope'
+import { isScopeAllowed } from 'common/utils/scope'
 
 export class AuthDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition(field: GraphQLField<any, any>) {
@@ -50,7 +50,7 @@ export class AuthDirective extends SchemaDirectiveVisitor {
             }
 
             const requireQueryScope = ['query', ...nodes].join(':')
-            if (isValidScope(viewer.scope, requireQueryScope)) {
+            if (isScopeAllowed(viewer.scope, requireQueryScope)) {
               return resolve.apply(this, args)
             }
             break
@@ -85,7 +85,7 @@ export class AuthDirective extends SchemaDirectiveVisitor {
             ...nodes,
           ].join(':')
           const isStrict = requireGroup === SCOPE_GROUP.level3
-          if (isValidScope(viewer.scope, requireMutationScope, isStrict)) {
+          if (isScopeAllowed(viewer.scope, requireMutationScope, isStrict)) {
             return resolve.apply(this, args)
           }
           break

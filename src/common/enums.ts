@@ -83,6 +83,11 @@ export const SCOPE_GROUP = {
   level3: 'level3',
 }
 
+export const SCOPE_PREFIX = {
+  query: 'query:viewer',
+  mutation: 'mutation',
+}
+
 export const LANGUAGE = {
   zh_hans: 'zh_hans',
   zh_hant: 'zh_hant',
@@ -556,11 +561,6 @@ export const OAUTH_CALLBACK_ERROR_CODE = {
   stripeAccountNotFound: 4,
   stripeAuthFailed: 5,
   stripeAccountExists: 6,
-}
-
-export const GQL_OPERATION = {
-  query: 'query',
-  mutation: 'mutation',
 }
 
 export const NODE_TYPES = {

@@ -7,7 +7,7 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { toGlobalId } from 'common/utils'
+import { isScopeAllowed, toGlobalId } from 'common/utils'
 import { BaseService, UserService } from 'connectors'
 import {
   Falsey,
@@ -316,6 +316,7 @@ export class OAuthService extends BaseService {
    *                               *
    *********************************/
   scopeStr2Arr = (scope: string): string[] => {
+    // split by a space or a comma
     return scope.split(/[,\s]/).filter((s) => !!s)
   }
 
@@ -324,15 +325,33 @@ export class OAuthService extends BaseService {
     client: OAuthClient,
     scope: string | string[]
   ): Promise<string | string[] | Falsey> => {
+    if (!client.scope) {
+      return false
+    }
+
     // Use client's default scope,
     // if thrid-party app has not specified "scope" query parameter in authorization,
     if (!scope) {
       return client.scope
     }
 
-    // TODO: validate scope with client's scope in DB
-    scope = scope instanceof Array ? scope : this.scopeStr2Arr(scope)
-    return scope
+    // check with db
+    const clientScope = client.scope as string[]
+    const scopes = scope instanceof Array ? scope : this.scopeStr2Arr(scope)
+    let isValidate = true
+
+    for (const requestScope of scopes) {
+      if (!isScopeAllowed(clientScope, requestScope)) {
+        isValidate = false
+        break
+      }
+    }
+
+    if (!isValidate) {
+      return false
+    }
+
+    return scopes
   }
 
   verifyScope = async (accessToken: OAuthToken, scope: string | string[]) => {
