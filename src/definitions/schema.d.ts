@@ -440,7 +440,7 @@ export interface GQLUserInfo {
   /**
    * Timestamp of registration.
    */
-  createdAt: GQLDateTime
+  createdAt?: GQLDateTime
 
   /**
    * Is user name editable.

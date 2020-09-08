@@ -228,7 +228,7 @@ export default /* GraphQL */ `
 
   type UserInfo {
     "Timestamp of registration."
-    createdAt: DateTime!
+    createdAt: DateTime
 
     "Is user name editable."
     userNameEditable: Boolean!
