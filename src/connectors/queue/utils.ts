@@ -22,10 +22,13 @@ export const sharedQueueOpts = {
   },
 }
 
-export const createQueue = (queueName: string, customOpts?: CustomQueueOpts) => {
+export const createQueue = (
+  queueName: string,
+  customOpts?: CustomQueueOpts
+) => {
   const queue = new Queue(queueName, {
     ...sharedQueueOpts,
-    ...(customOpts || {} ),
+    ...(customOpts || {}),
   })
 
   queue.on('error', (error) => {
