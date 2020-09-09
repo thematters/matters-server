@@ -339,6 +339,11 @@ export class TagService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
+
+  /**
+   * Find all tags in score-based order.
+   *
+   */
   recommendTags = async ({
     limit = BATCH_SIZE,
     offset = 0,
@@ -385,6 +390,90 @@ export class TagService extends BaseService {
       .where({ id: tagId })
       .first()
     return tag.tagScore || 0
+  }
+
+  /**
+   * Find curation-like tags.
+   *
+   */
+  findCurationTags = ({
+    mattyId,
+    fields = ['*'],
+    limit,
+  }: {
+    mattyId: string
+    fields?: any[]
+    limit?: number
+  }) => {
+    const query = this.knex
+      .select(fields)
+      .from(MATERIALIZED_VIEW.curationTagMaterialized)
+      .orderBy('uuid')
+
+    if (limit) {
+      query.limit(limit)
+    }
+    return query
+  }
+
+  /**
+   * Find non-curation-like tags based on score order.
+   *
+   */
+  findNonCurationTags = ({
+    mattyId,
+    fields = ['*'],
+    oss = false,
+  }: {
+    mattyId: string
+    fields?: any[]
+    oss?: boolean
+  }) => {
+    const curation = this.findCurationTags({ mattyId, fields: ['id'] })
+    const query = this.knex.select(fields).from((knex: any) => {
+      const source = knex
+        .select()
+        .from(oss ? 'tag_count_view' : MATERIALIZED_VIEW.tagCountMaterialized)
+        .whereNotIn('id', curation)
+        .orderByRaw('tag_score DESC NULLS LAST')
+        .orderBy('count', 'desc')
+      source.as('source')
+    })
+    return query
+  }
+
+  /**
+   * Find curation-like and non-curation-like tags in specific order.
+   *
+   */
+  findArrangedTags = async ({
+    mattyId,
+    limit = BATCH_SIZE,
+    offset = 0,
+    oss = false,
+  }: {
+    mattyId: string
+    limit?: number
+    offset?: number
+    oss?: boolean
+  }) => {
+    const curation = this.findCurationTags({
+      mattyId,
+      fields: ['id', this.knex.raw('1 as type')],
+    })
+    const nonCuration = this.findNonCurationTags({
+      mattyId,
+      fields: ['id', this.knex.raw('2 as type')],
+      oss,
+    })
+    const query = this.knex
+      .select(['id', 'type'])
+      .from(curation.as('curation'))
+      .unionAll([nonCuration])
+      .orderBy('type')
+      .limit(limit)
+      .offset(offset)
+    return query
   }
 
   /*********************************

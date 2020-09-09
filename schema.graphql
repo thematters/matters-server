@@ -1578,7 +1578,7 @@ type Recommendation {
   valued(input: ConnectionArgs!): ArticleConnection!
 
   """Global tag list, sort by activities in recent 14 days."""
-  tags(input: ConnectionArgs!): TagConnection!
+  tags(input: RecommendationTagsInput!): TagConnection!
 
   """Gloabl article list, sort by activities in recent 72 hours."""
   topics(input: ConnectionArgs!): ArticleConnection!
@@ -1591,6 +1591,18 @@ type Recommendation {
 
   """Recommend articles with collaborative filtering"""
   recommendArticles(input: ConnectionArgs!): ArticleConnection!
+}
+
+input RecommendationTagsFilter {
+  """index of tag list, min: 0, max: 49"""
+  random: NonNegativeInt
+}
+
+input RecommendationTagsInput {
+  after: String
+  first: Int
+  oss: Boolean
+  filter: RecommendationTagsFilter
 }
 
 """Enums for types of recommend articles."""

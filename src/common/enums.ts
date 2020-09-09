@@ -37,13 +37,14 @@ export const MATERIALIZED_VIEW = {
   articleActivityMaterialized: 'article_activity_materialized',
   articleValueMaterialized: 'article_value_materialized',
   featuredCommentMaterialized: 'featured_comment_materialized',
+  curationTagMaterialized: 'curation_tag_materialized',
 }
 
 // cache TTL in seconds
 export const CACHE_TTL = {
   PUBLIC_QUERY: 60 * 60 * 24, // 1 day
   PUBLIC_FEED_ARTICLE: 60 * 3, // 3 mins
-  PUBLIC_FEED_TAG: 60 * 30, // 30 mins
+  PUBLIC_FEED_TAG: 60 * 3, // 3 mins
   PUBLIC_FEED_USER: 60 * 30, // 30 mins
   PUBLIC_SEARCH: 60 * 60 * 1, // 1 hour
 
@@ -356,6 +357,7 @@ export const QUEUE_JOB = {
   refreshArticleValueView: 'refreshArticleValueView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
   refreshArticleInterestView: 'refreshArticleInterestView',
+  refreshCurationTagMaterialView: 'refreshCurationTagMaterialView',
 
   // Migration
   migration: 'migration',
