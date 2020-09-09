@@ -13,6 +13,7 @@ exports.seed = function (knex, Promise) {
           grant_types: ['authorization_code', 'refresh_token'],
           name: 'LikeCoin',
           website_url: 'https://like.co',
+          scope: ['query:viewer:likerId'],
         },
       ])
     })

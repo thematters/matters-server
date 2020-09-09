@@ -1,5 +1,6 @@
 import _ from 'lodash'
 
+import { SCOPE_PREFIX } from 'common/enums'
 import { OAuthService, UserService } from 'connectors'
 import { OAuthClient, User } from 'definitions'
 
@@ -32,7 +33,7 @@ describe('scope', () => {
     const validScopes = await oauthService.validateScope(
       user,
       client,
-      'query:viewer:likerId'
+      `${SCOPE_PREFIX.query}:likerId`
     )
     expect(_.get(validScopes, 'length')).toBe(1)
 

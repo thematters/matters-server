@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { AUTH_MODE } from 'common/enums'
+import { AUTH_MODE, SCOPE_PREFIX } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import { adminUser, defaultTestUser, getUserContext, testClient } from './utils'
@@ -8,18 +8,18 @@ import { adminUser, defaultTestUser, getUserContext, testClient } from './utils'
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 2 })
 
 const queryScopes = [
-  'query:viewer:likerId',
-  'query:viewer:info:email',
-  'query:viewer:recommendation',
+  `${SCOPE_PREFIX.query}:likerId`,
+  `${SCOPE_PREFIX.query}:info:email`,
+  `${SCOPE_PREFIX.query}:recommendation`,
 ]
 
 const mutationScopes = [
-  'mutation:level1',
-  'mutation:level2:putComment',
-  'mutation:level3:clearSearchHistory',
+  `${SCOPE_PREFIX.mutation}:level1`,
+  `${SCOPE_PREFIX.mutation}:level2:putComment`,
+  `${SCOPE_PREFIX.mutation}:level3:clearSearchHistory`,
 ]
 
-const mutationLevel3Scope = ['mutation:level3']
+const mutationLevel3Scope = [`${SCOPE_PREFIX.mutation}:level3`]
 
 const VIEWER_SCOPED_PRIVATE = `
   query ($input: UserInput!) {
