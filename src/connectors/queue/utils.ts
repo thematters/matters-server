@@ -1,9 +1,13 @@
-import Queue from 'bull'
+import Queue, { RateLimiter } from 'bull'
 import Redis from 'ioredis'
 
 import { QUEUE_COMPLETED_LIST_SIZE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
+
+export interface CustomQueueOpts {
+  limiter?: RateLimiter
+}
 
 export const sharedQueueOpts = {
   // Reusing Redis Connections
@@ -18,8 +22,11 @@ export const sharedQueueOpts = {
   },
 }
 
-export const createQueue = (queueName: string) => {
-  const queue = new Queue(queueName, sharedQueueOpts)
+export const createQueue = (queueName: string, customOpts?: CustomQueueOpts) => {
+  const queue = new Queue(queueName, {
+    ...sharedQueueOpts,
+    ...(customOpts || {} ),
+  })
 
   queue.on('error', (error) => {
     // An error occured.
