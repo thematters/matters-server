@@ -1,4 +1,4 @@
-import Queue from 'bull'
+import Queue, { RateLimiter } from 'bull'
 
 import logger from 'common/logger'
 import {
@@ -11,7 +11,7 @@ import {
   UserService,
 } from 'connectors'
 
-import { createQueue } from './utils'
+import { createQueue, CustomQueueOpts } from './utils'
 
 export class BaseQueue {
   q: InstanceType<typeof Queue>
@@ -24,8 +24,8 @@ export class BaseQueue {
   notificationService: InstanceType<typeof NotificationService>
   cacheService: InstanceType<typeof CacheService>
 
-  constructor(queueName: string) {
-    this.q = createQueue(queueName)
+  constructor(queueName: string, customOpts?: CustomQueueOpts) {
+    this.q = createQueue(queueName, customOpts)
 
     this.userService = new UserService()
     this.articleService = new ArticleService()
