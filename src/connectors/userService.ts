@@ -309,6 +309,17 @@ export class UserService extends BaseService {
       // delete push devices
       await trx('push_device').where({ userId: id }).del()
 
+      // remove tag owner and editors
+      await trx.raw(`
+        UPDATE
+          tag
+        SET
+          owner = NULL,
+          editors = array_remove(editors, owner::text)
+        WHERE
+          owner = ${id}
+      `)
+
       return user
     })
 
