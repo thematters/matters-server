@@ -394,6 +394,7 @@ export default /* GraphQL */ `
     payout
     verify_appreciate
     fingerprint
+    tag_adoption
   }
 
   enum FeatureFlag {
