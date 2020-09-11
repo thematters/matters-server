@@ -1016,7 +1016,7 @@ export class ArticleService extends BaseService {
       result = await this.knex('appreciation')
         .where({ id: bundle.id })
         .update({
-          amount: bundle.amount + amount,
+          amount: Math.min(bundle.amount + amount, ARTICLE_APPRECIATE_LIMIT),
           createdAt: this.knex.fn.now(),
         })
     } else {

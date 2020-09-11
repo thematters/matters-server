@@ -65,3 +65,6 @@ export const extractAssetDataFromHtml = (
 
 export const generatePasswordhash = (password: string) =>
   hash(password, BCRYPT_ROUNDS)
+
+// https://github.com/Urigo/graphql-scalars#url
+export const resolveUrl = (url: any) => _.get(url, 'href')

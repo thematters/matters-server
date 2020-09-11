@@ -37,13 +37,14 @@ export const MATERIALIZED_VIEW = {
   articleActivityMaterialized: 'article_activity_materialized',
   articleValueMaterialized: 'article_value_materialized',
   featuredCommentMaterialized: 'featured_comment_materialized',
+  curationTagMaterialized: 'curation_tag_materialized',
 }
 
 // cache TTL in seconds
 export const CACHE_TTL = {
   PUBLIC_QUERY: 60 * 60 * 24, // 1 day
   PUBLIC_FEED_ARTICLE: 60 * 3, // 3 mins
-  PUBLIC_FEED_TAG: 60 * 30, // 30 mins
+  PUBLIC_FEED_TAG: 60 * 3, // 3 mins
   PUBLIC_FEED_USER: 60 * 30, // 30 mins
   PUBLIC_SEARCH: 60 * 60 * 1, // 1 hour
 
@@ -61,16 +62,31 @@ export const USER_ROLE = {
   visitor: 'visitor',
 }
 
-export const SCOPE_MODE = {
+/**
+ * auth mode is "oauth" if the viewer access token is signed via OAuth,
+ * otherwise, it's `viewer.role`
+ */
+export const AUTH_MODE = {
   visitor: 'visitor',
+  oauth: 'oauth',
   user: 'user',
   admin: 'admin',
-  oauth: 'oauth',
 }
 
-export const SCOPE_TYPE = {
-  read: 'read',
-  write: 'write',
+/**
+ * Scope grouping for mutation
+ *
+ * @see {@url https://github.com/thematters/developer-resource/wiki/Scopes#mutation}
+ */
+export const SCOPE_GROUP = {
+  level1: 'level1',
+  level2: 'level2',
+  level3: 'level3',
+}
+
+export const SCOPE_PREFIX = {
+  query: 'query:viewer',
+  mutation: 'mutation',
 }
 
 export const LANGUAGE = {
@@ -341,6 +357,7 @@ export const QUEUE_JOB = {
   refreshArticleValueView: 'refreshArticleValueView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
   refreshArticleInterestView: 'refreshArticleInterestView',
+  refreshCurationTagMaterialView: 'refreshCurationTagMaterialView',
 
   // Migration
   migration: 'migration',
@@ -546,11 +563,6 @@ export const OAUTH_CALLBACK_ERROR_CODE = {
   stripeAccountNotFound: 4,
   stripeAuthFailed: 5,
   stripeAccountExists: 6,
-}
-
-export const GQL_OPERATION = {
-  query: 'query',
-  mutation: 'mutation',
 }
 
 export const NODE_TYPES = {

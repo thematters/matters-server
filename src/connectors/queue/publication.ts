@@ -258,6 +258,7 @@ class PublicationQueue extends BaseQueue {
             content: tag,
             creator: article.authorId,
             editors: tagEditors,
+            owner: article.authorId,
           })
         )
       )) as unknown) as [{ id: string; content: string }]

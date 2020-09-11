@@ -27,7 +27,7 @@ const resolver: MutationToDeleteArticlesTagsResolver = async (
   }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('viewer has no permission')
+    throw new AuthenticationError('visitor has no permission')
   }
 
   if (viewer.state === USER_STATE.frozen) {
@@ -44,17 +44,11 @@ const resolver: MutationToDeleteArticlesTagsResolver = async (
     throw new TagNotFoundError('tag not found')
   }
 
-  const admin = 'hi@matters.news'
-  const normalEditors = (await userService.baseFindByIds(tag.editors)).filter(
-    (user) => user.email !== admin
-  )
-
-  // update only allow: editor, creator, matty
+  // delete only allow: owner, editor, matty
+  const isOwner = tag.owner === viewer.id
   const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
-  const isCreator = tag.creator === viewer.id
-  const isMatty = viewer.email === admin
-  const isMaintainer =
-    isEditor || (normalEditors.length === 0 && isCreator) || isMatty
+  const isMatty = viewer.email === 'hi@matters.news'
+  const isMaintainer = isOwner || isEditor || isMatty
 
   if (!isMaintainer) {
     throw new ForbiddenError('only editor, creator and matty can manage tag')
@@ -91,13 +85,6 @@ const resolver: MutationToDeleteArticlesTagsResolver = async (
     })
   })
 
-  // add creator if not listed in editors
-  if (!isEditor && !isMatty && isCreator) {
-    const updatedTag = await tagService.baseUpdate(tag.id, {
-      editors: _uniq([...tag.editors, viewer.id]),
-    })
-    return updatedTag
-  }
   return tag
 }
 

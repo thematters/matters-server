@@ -48,7 +48,7 @@ class RefreshViewsQueue extends BaseQueue {
       }
     )
 
-    // refresh articleCountMaterialized every 1.1 hours, for topics recommendation
+    // refresh articleCountMaterialized every 3.1 minutes, for topics recommendation
     this.q.add(
       QUEUE_JOB.refreshArticleCountView,
       {},
@@ -72,7 +72,7 @@ class RefreshViewsQueue extends BaseQueue {
       }
     )
 
-    // refresh tagCountMaterialized every 2.5 minutes
+    // refresh tagCountMaterialized every 5.1 minutes
     this.q.add(
       QUEUE_JOB.refreshTagCountMaterialView,
       {},
@@ -80,6 +80,18 @@ class RefreshViewsQueue extends BaseQueue {
         priority: QUEUE_PRIORITY.MEDIUM,
         repeat: {
           every: MINUTE * 5.1, // every 5.1 minutes
+        },
+      }
+    )
+
+    // refresh curationTagMaterialized every 3 minutes
+    this.q.add(
+      QUEUE_JOB.refreshCurationTagMaterialView,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: MINUTE * 3, // every 3 minutes
         },
       }
     )
@@ -136,6 +148,10 @@ class RefreshViewsQueue extends BaseQueue {
     this.q.process(
       QUEUE_JOB.refreshArticleInterestView,
       this.handleRefreshView('article_interest_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshCurationTagMaterialView,
+      this.handleRefreshView('curation_tag_materialized')
     )
   }
 

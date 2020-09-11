@@ -1,4 +1,4 @@
-import { CACHE_TTL, NODE_TYPES } from 'common/enums'
+import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
@@ -7,15 +7,15 @@ export default /* GraphQL */ `
     frequentSearch(input: FrequentSearchInput!): [String!] @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     search(input: SearchInput!): SearchResultConnection! @privateCache @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     official: Official! @privateCache
-    oss: OSS! @authorize @privateCache
+    oss: OSS! @auth(mode: "${AUTH_MODE.admin}") @privateCache
   }
 
   extend type Mutation {
     "Upload a single file."
-    singleFileUpload(input: SingleFileUploadInput!): Asset! @authenticate
+    singleFileUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Delete a uploaded file."
-    singleFileDelete(input: SingleFileDeleteInput!): Boolean! @authenticate
+    singleFileDelete(input: SingleFileDeleteInput!): Boolean! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     feedback(input: FeedbackInput!): Boolean
 
@@ -25,10 +25,10 @@ export default /* GraphQL */ `
     ##############
     #     OSS    #
     ##############
-    setBoost(input: SetBoostInput!): Node! @authorize
-    putRemark(input: PutRemarkInput!): String @authorize
-    putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @authorize
-    setFeature(input: SetFeatureInput!): Feature! @authorize
+    setBoost(input: SetBoostInput!): Node! @auth(mode: "${AUTH_MODE.admin}")
+    putRemark(input: PutRemarkInput!): String @auth(mode: "${AUTH_MODE.admin}")
+    putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @auth(mode: "${AUTH_MODE.admin}")
+    setFeature(input: SetFeatureInput!): Feature! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   extend type Subscription {
@@ -169,7 +169,7 @@ export default /* GraphQL */ `
     assets: [URL!]
     contact: String
     createdAt: DateTime!
-    remark: String @authorize
+    remark: String @auth(mode: "${AUTH_MODE.admin}")
   }
 
   type ReportEdge {
@@ -394,6 +394,7 @@ export default /* GraphQL */ `
     payout
     verify_appreciate
     fingerprint
+    tag_adoption
   }
 
   enum FeatureFlag {
@@ -422,13 +423,7 @@ export default /* GraphQL */ `
     reason: String = "No longer supported"
   ) on FIELD_DEFINITION | ENUM_VALUE
 
-  directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION
-
-  directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
-
-  directive @private on FIELD_DEFINITION
-
-  directive @scope on FIELD_DEFINITION
+  directive @auth(mode: String!, group: String) on FIELD_DEFINITION
 
   directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 

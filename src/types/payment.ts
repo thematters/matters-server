@@ -1,23 +1,23 @@
-import { CACHE_TTL, NODE_TYPES } from 'common/enums'
+import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
     "Add Credit to User Wallet"
-    addCredit(input: AddCreditInput!): AddCreditResult! @authenticate
+    addCredit(input: AddCreditInput!): AddCreditResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Pay to another user or article"
-    payTo(input: PayToInput!): PayToResult! @authenticate
+    payTo(input: PayToInput!): PayToResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Payout to user"
-    payout(input: PayoutInput!): Transaction! @authenticate
+    payout(input: PayoutInput!): Transaction! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Create Stripe Connect account for Payout"
-    connectStripeAccount: ConnectStripeAccountResult! @authenticate
+    connectStripeAccount: ConnectStripeAccountResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
   }
 
   extend type User {
     "User Wallet"
-    wallet: Wallet! @scope
+    wallet: Wallet! @auth(mode: "${AUTH_MODE.oauth}")
   }
 
   extend type UserStatus {

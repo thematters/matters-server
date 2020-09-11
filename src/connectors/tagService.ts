@@ -100,6 +100,16 @@ export class TagService extends BaseService {
   }
 
   /**
+   * Find tags by a given owner id (user).
+   */
+  findByOwner = async (userId: string) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({ owner: userId })
+      .orderBy('id', 'desc')
+
+  /**
    * Create a tag, but return one if it's existing.
    *
    */
@@ -109,19 +119,21 @@ export class TagService extends BaseService {
     creator,
     description,
     editors,
+    owner,
   }: {
     content: string
     cover?: string
     creator: string
     description?: string
     editors: string[]
+    owner: string
   }) => {
     const item = await this.knex(this.table).select().where({ content }).first()
 
     // create
     if (!item) {
       const tag = await this.baseCreate(
-        { content, cover, creator, description, editors },
+        { content, cover, creator, description, editors, owner },
         this.table
       )
 
@@ -327,6 +339,11 @@ export class TagService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
+
+  /**
+   * Find all tags in score-based order.
+   *
+   */
   recommendTags = async ({
     limit = BATCH_SIZE,
     offset = 0,
@@ -373,6 +390,90 @@ export class TagService extends BaseService {
       .where({ id: tagId })
       .first()
     return tag.tagScore || 0
+  }
+
+  /**
+   * Find curation-like tags.
+   *
+   */
+  findCurationTags = ({
+    mattyId,
+    fields = ['*'],
+    limit,
+  }: {
+    mattyId: string
+    fields?: any[]
+    limit?: number
+  }) => {
+    const query = this.knex
+      .select(fields)
+      .from(MATERIALIZED_VIEW.curationTagMaterialized)
+      .orderBy('uuid')
+
+    if (limit) {
+      query.limit(limit)
+    }
+    return query
+  }
+
+  /**
+   * Find non-curation-like tags based on score order.
+   *
+   */
+  findNonCurationTags = ({
+    mattyId,
+    fields = ['*'],
+    oss = false,
+  }: {
+    mattyId: string
+    fields?: any[]
+    oss?: boolean
+  }) => {
+    const curation = this.findCurationTags({ mattyId, fields: ['id'] })
+    const query = this.knex.select(fields).from((knex: any) => {
+      const source = knex
+        .select()
+        .from(oss ? 'tag_count_view' : MATERIALIZED_VIEW.tagCountMaterialized)
+        .whereNotIn('id', curation)
+        .orderByRaw('tag_score DESC NULLS LAST')
+        .orderBy('count', 'desc')
+      source.as('source')
+    })
+    return query
+  }
+
+  /**
+   * Find curation-like and non-curation-like tags in specific order.
+   *
+   */
+  findArrangedTags = async ({
+    mattyId,
+    limit = BATCH_SIZE,
+    offset = 0,
+    oss = false,
+  }: {
+    mattyId: string
+    limit?: number
+    offset?: number
+    oss?: boolean
+  }) => {
+    const curation = this.findCurationTags({
+      mattyId,
+      fields: ['id', this.knex.raw('1 as type')],
+    })
+    const nonCuration = this.findNonCurationTags({
+      mattyId,
+      fields: ['id', this.knex.raw('2 as type')],
+      oss,
+    })
+    const query = this.knex
+      .select(['id', 'type'])
+      .from(curation.as('curation'))
+      .unionAll([nonCuration])
+      .orderBy('type')
+      .limit(limit)
+      .offset(offset)
+    return query
   }
 
   /*********************************
@@ -571,14 +672,16 @@ export class TagService extends BaseService {
     content,
     creator,
     editors,
+    owner,
   }: {
     tagIds: string[]
     content: string
     creator: string
     editors: string[]
+    owner: string
   }) => {
     // create new tag
-    const newTag = await this.create({ content, creator, editors })
+    const newTag = await this.create({ content, creator, editors, owner })
 
     // add tag into search engine
     await this.addToSearch({

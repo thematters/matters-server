@@ -204,6 +204,22 @@ query($input: ConnectionArgs!) {
 }
 `
 
+const GET_VIEWER_RECOMMENDATION_TAGS = `
+query($input: RecommendationTagsInput!) {
+  viewer {
+    recommendation {
+      tags(input: $input) {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+}
+`
+
 const GET_VIEWER_RECOMMENDATION_FOLLOWEE_WORKS = `
 query($input: ResponsesInput!) {
   viewer {
@@ -642,7 +658,7 @@ describe('user recommendations', () => {
       isAuth: true,
     })
     const { data } = await queryNew({
-      query: GET_VIEWER_RECOMMENDATION('tags'),
+      query: GET_VIEWER_RECOMMENDATION_TAGS,
       // @ts-ignore
       variables: { input: { first: 1 } },
     })

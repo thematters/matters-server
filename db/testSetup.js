@@ -39,4 +39,11 @@ module.exports = async () => {
   await rollbackAllMigrations()
   await knex.migrate.latest()
   await knex.seed.run()
+
+  // re-run specific migrations after seeding
+  const tasks = ['20200904104135_create_curation_tag_materialized.js']
+  for (const task of tasks) {
+    await knex.migrate.down({ name: task })
+    await knex.migrate.up({ name: task })
+  }
 }

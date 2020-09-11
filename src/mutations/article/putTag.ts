@@ -22,7 +22,7 @@ const resolver: MutationToPutTagResolver = async (
   { viewer, dataSources: { systemService, tagService, userService } }
 ) => {
   if (!viewer.id) {
-    throw new AuthenticationError('viewer has no permission')
+    throw new AuthenticationError('visitor has no permission')
   }
 
   if (viewer.state === USER_STATE.frozen) {
@@ -68,6 +68,7 @@ const resolver: MutationToPutTagResolver = async (
       creator: viewer.id,
       description,
       editors: _uniq([matty.id, viewer.id]),
+      owner: viewer.id,
       cover: coverId,
     })
 
@@ -80,20 +81,14 @@ const resolver: MutationToPutTagResolver = async (
       throw new TagNotFoundError('tag not found')
     }
 
-    const admin = 'hi@matters.news'
-    const normalEditors = (await userService.baseFindByIds(tag.editors)).filter(
-      (user) => user.email !== admin
-    )
-
-    // update only allow: editor, creator, matty
+    // update only allow: owner, editor, matty
+    const isOwner = tag.owner === viewer.id
     const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
-    const isCreator = tag.creator === viewer.id
-    const isMatty = viewer.email === admin
-    const isMaintainer =
-      isEditor || (normalEditors.length === 0 && isCreator) || isMatty
+    const isMatty = viewer.email === 'hi@matters.news'
+    const isMaintainer = isOwner || isEditor || isMatty
 
     if (!isMaintainer) {
-      throw new ForbiddenError('only editor, creator, and matty can manage tag')
+      throw new ForbiddenError('only owner, editor, and matty can manage tag')
     }
 
     // gather tag update params
@@ -116,9 +111,6 @@ const resolver: MutationToPutTagResolver = async (
     }
     if (Object.keys(updateParams).length === 0) {
       throw new UserInputError('bad request')
-    }
-    if (!isEditor && isCreator) {
-      updateParams.editors = _uniq([...tag.editors, viewer.id])
     }
 
     const updateTag = await tagService.baseUpdate(dbId, updateParams)

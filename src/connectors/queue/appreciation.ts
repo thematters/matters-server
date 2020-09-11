@@ -30,7 +30,8 @@ interface AppreciationParams {
 
 class AppreciationQueue extends BaseQueue {
   constructor() {
-    super(QUEUE_NAME.appreciation)
+    // make it a bit slower on handling jobs in order to reduce courrent operations
+    super(QUEUE_NAME.appreciation, { limiter: { max: 1, duration: 500 } })
     this.addConsumers()
   }
 

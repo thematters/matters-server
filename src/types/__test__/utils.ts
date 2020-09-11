@@ -2,7 +2,7 @@ import { ApolloServer } from 'apollo-server-express'
 import { createTestClient } from 'apollo-server-testing'
 import { Request } from 'express'
 
-import { roleAccess, scopeModes } from 'common/utils'
+import { authModes, roleAccess } from 'common/utils'
 import {
   ArticleService,
   CommentService,
@@ -18,10 +18,17 @@ import {
   DataSources,
   GQLPublishArticleInput,
   GQLPutDraftInput,
+  GQLSetFeatureInput,
   GQLUserRegisterInput,
 } from 'definitions'
 
 import schema from '../../schema'
+
+interface BaseInput {
+  isAdmin?: boolean
+  isAuth?: boolean
+  isMatty?: boolean
+}
 
 export const defaultTestUser = {
   email: 'test1@matters.news',
@@ -90,9 +97,10 @@ export const testClient = async (
     viewer.role = isAdmin ? 'admin' : isAuth ? 'user' : 'visitor'
   }
 
-  if (!viewer.scopeMode) {
-    viewer.scopeMode = viewer.role
+  if (!viewer.authMode) {
+    viewer.authMode = viewer.role
   }
+
   if (!viewer.scope) {
     viewer.scope = {}
   }
@@ -102,9 +110,9 @@ export const testClient = async (
     hasRole: (requires: string) =>
       roleAccess.findIndex((role) => role === viewer.role) >=
       roleAccess.findIndex((role) => role === requires),
-    hasScopeMode: (requires: string) =>
-      scopeModes.findIndex((mode) => mode === viewer.scopeMode) >=
-      scopeModes.findIndex((mode) => mode === requires),
+    hasAuthMode: (requires: string) =>
+      authModes.findIndex((mode) => mode === viewer.authMode) >=
+      authModes.findIndex((mode) => mode === requires),
   }
 
   const server = new ApolloServer({
@@ -275,4 +283,28 @@ export const updateUserState = async ({
     mutation: UPDATE_USER_STATE,
     variables: { input: { id, state } },
   })
+}
+
+export const setFeature = async ({
+  isAdmin = true,
+  isAuth = true,
+  isMatty = true,
+  input,
+}: { input: GQLSetFeatureInput } & BaseInput) => {
+  const SET_FEATURE_FLAG = `
+    mutation ($input: SetFeatureInput!) {
+      setFeature(input: $input) {
+        name
+        enabled
+      }
+    }
+  `
+  const { mutate } = await testClient({ isAdmin, isAuth, isMatty })
+  const result = await mutate({
+    mutation: SET_FEATURE_FLAG,
+    // @ts-ignore
+    variables: { input },
+  })
+  const data = result?.data?.setFeature
+  return data
 }

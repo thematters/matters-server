@@ -440,7 +440,7 @@ export interface GQLUserInfo {
   /**
    * Timestamp of registration.
    */
-  createdAt: GQLDateTime
+  createdAt?: GQLDateTime
 
   /**
    * Is user name editable.
@@ -912,6 +912,11 @@ export interface GQLTag extends GQLNode {
   creator?: GQLUser
 
   /**
+   * Owner of this tag.
+   */
+  owner?: GQLUser
+
+  /**
    * This value determines if current viewer is following or not.
    */
   isFollower?: boolean
@@ -957,6 +962,22 @@ export interface GQLTagOSS {
   score: GQLNonNegativeFloat
 }
 
+export interface GQLRecommendationTagsInput {
+  after?: string
+  first?: number
+  oss?: boolean
+  filter?: GQLRecommendationTagsFilter
+}
+
+export interface GQLRecommendationTagsFilter {
+  /**
+   * index of tag list, min: 0, max: 49
+   */
+  random?: GQLNonNegativeInt
+}
+
+export type GQLNonNegativeInt = any
+
 export interface GQLAuthorsInput {
   after?: string
   first?: number
@@ -971,8 +992,6 @@ export interface GQLAuthorsFilter {
   random?: GQLNonNegativeInt
   followed?: boolean
 }
-
-export type GQLNonNegativeInt = any
 
 export interface GQLDraftConnection extends GQLConnection {
   totalCount: number
@@ -1680,6 +1699,7 @@ export const enum GQLFeatureName {
   payout = 'payout',
   verify_appreciate = 'verify_appreciate',
   fingerprint = 'fingerprint',
+  tag_adoption = 'tag_adoption',
 }
 
 export interface GQLOSS {
@@ -1900,6 +1920,11 @@ export interface GQLMutation {
    * Create or update tag.
    */
   putTag: GQLTag
+
+  /**
+   * Update member, permission and othters of a tag.
+   */
+  updateTagSetting: GQLTag
 
   /**
    * Add one tag to articles.
@@ -2243,6 +2268,16 @@ export interface GQLPutTagInput {
   content?: string
   cover?: string
   description?: string
+}
+
+export interface GQLUpdateTagSettingInput {
+  id: string
+  type: GQLUpdateTagSettingType
+}
+
+export const enum GQLUpdateTagSettingType {
+  adopt = 'adopt',
+  leave = 'leave',
 }
 
 export interface GQLAddArticlesTagsInput {
@@ -4820,7 +4855,7 @@ export interface RecommendationToValuedResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToTagsArgs {
-  input: GQLConnectionArgs
+  input: GQLRecommendationTagsInput
 }
 export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
   (
@@ -5467,6 +5502,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   description?: TagToDescriptionResolver<TParent>
   editors?: TagToEditorsResolver<TParent>
   creator?: TagToCreatorResolver<TParent>
+  owner?: TagToOwnerResolver<TParent>
   isFollower?: TagToIsFollowerResolver<TParent>
   followers?: TagToFollowersResolver<TParent>
   oss?: TagToOssResolver<TParent>
@@ -5553,6 +5589,15 @@ export interface TagToEditorsResolver<TParent = any, TResult = any> {
 }
 
 export interface TagToCreatorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToOwnerResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -8067,6 +8112,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
+  updateTagSetting?: MutationToUpdateTagSettingResolver<TParent>
   addArticlesTags?: MutationToAddArticlesTagsResolver<TParent>
   updateArticlesTags?: MutationToUpdateArticlesTagsResolver<TParent>
   deleteArticlesTags?: MutationToDeleteArticlesTagsResolver<TParent>
@@ -8224,6 +8270,21 @@ export interface MutationToPutTagResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutTagArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUpdateTagSettingArgs {
+  input: GQLUpdateTagSettingInput
+}
+export interface MutationToUpdateTagSettingResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUpdateTagSettingArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

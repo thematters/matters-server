@@ -5,13 +5,7 @@ directive @cacheControl(maxAge: Int, scope: CacheScope) on OBJECT | FIELD | FIEL
 
 directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
 
-directive @authenticate(requires: Role = user) on OBJECT | FIELD_DEFINITION
-
-directive @authorize(requires: Role = admin) on OBJECT | FIELD_DEFINITION
-
-directive @private on FIELD_DEFINITION
-
-directive @scope on FIELD_DEFINITION
+directive @auth(mode: String!, group: String) on FIELD_DEFINITION
 
 directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 
@@ -859,6 +853,7 @@ enum FeatureName {
   payout
   verify_appreciate
   fingerprint
+  tag_adoption
 }
 
 input FeedbackInput {
@@ -968,6 +963,9 @@ type Mutation {
 
   """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
+
+  """Update member, permission and othters of a tag."""
+  updateTagSetting(input: UpdateTagSettingInput!): Tag!
 
   """Add one tag to articles."""
   addArticlesTags(input: AddArticlesTagsInput!): Tag!
@@ -1581,7 +1579,7 @@ type Recommendation {
   valued(input: ConnectionArgs!): ArticleConnection!
 
   """Global tag list, sort by activities in recent 14 days."""
-  tags(input: ConnectionArgs!): TagConnection!
+  tags(input: RecommendationTagsInput!): TagConnection!
 
   """Gloabl article list, sort by activities in recent 72 hours."""
   topics(input: ConnectionArgs!): ArticleConnection!
@@ -1594,6 +1592,18 @@ type Recommendation {
 
   """Recommend articles with collaborative filtering"""
   recommendArticles(input: ConnectionArgs!): ArticleConnection!
+}
+
+input RecommendationTagsFilter {
+  """index of tag list, min: 0, max: 49"""
+  random: NonNegativeInt
+}
+
+input RecommendationTagsInput {
+  after: String
+  first: Int
+  oss: Boolean
+  filter: RecommendationTagsFilter
 }
 
 """Enums for types of recommend articles."""
@@ -1906,6 +1916,9 @@ type Tag implements Node {
   """Creator of this tag."""
   creator: User
 
+  """Owner of this tag."""
+  owner: User
+
   """This value determines if current viewer is following or not."""
   isFollower: Boolean
 
@@ -2084,6 +2097,16 @@ input UpdateNotificationSettingInput {
   enabled: Boolean!
 }
 
+input UpdateTagSettingInput {
+  id: ID!
+  type: UpdateTagSettingType!
+}
+
+enum UpdateTagSettingType {
+  adopt
+  leave
+}
+
 input UpdateUserInfoInput {
   displayName: String
   userName: String
@@ -2240,7 +2263,7 @@ enum UserGroup {
 
 type UserInfo {
   """Timestamp of registration."""
-  createdAt: DateTime!
+  createdAt: DateTime
 
   """Is user name editable."""
   userNameEditable: Boolean!
