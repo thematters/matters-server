@@ -10,6 +10,7 @@ import {
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
+import { ForbiddenByStateError, TokenInvalidError } from 'common/errors'
 import logger from 'common/logger'
 import { clearCookie, getLanguage } from 'common/utils'
 import { OAuthService, SystemService, UserService } from 'connectors'
@@ -83,7 +84,7 @@ const getUser = async (token: string, agentHash: string) => {
           .saveAgentHash(agentHash, user.email)
           .catch((error) => logger.error)
       }
-      throw new Error('user has been deleted')
+      throw new ForbiddenByStateError('user has been deleted')
     }
 
     return { ...user, authMode: user.role }
@@ -97,11 +98,11 @@ const getUser = async (token: string, agentHash: string) => {
       const live = data.accessTokenExpiresAt.getTime() - Date.now() > 0
 
       if (!live) {
-        throw new Error('oauth token expired')
+        throw new TokenInvalidError('oauth token expired')
       }
 
       if (data.user.state === USER_STATE.archived) {
-        throw new Error('user has been deleted')
+        throw new ForbiddenByStateError('user has been deleted')
       }
 
       return {
@@ -112,7 +113,7 @@ const getUser = async (token: string, agentHash: string) => {
       }
     }
 
-    throw new Error('token invalid')
+    throw new TokenInvalidError('token invalid')
   }
 }
 
