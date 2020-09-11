@@ -2,13 +2,15 @@ import _get from 'lodash/get'
 
 import { toGlobalId } from 'common/utils'
 import {
+  GQLFeatureFlag,
+  GQLFeatureName,
   GQLNodeInput,
   GQLPutTagInput,
   GQLUpdateTagSettingInput,
   GQLUpdateTagSettingType,
 } from 'definitions'
 
-import { testClient } from './utils'
+import { setFeature, testClient } from './utils'
 
 const QUERY_TAG = `
   query ($input: NodeInput!) {
@@ -324,6 +326,16 @@ describe('manage settings of a tag', () => {
   test('adopt and leave tag', async () => {
     const authedId = toGlobalId({ type: 'User', id: 1 })
     const mattyId = toGlobalId({ type: 'User', id: 6 })
+
+    // matty enable user can adopt tag
+    const test = await setFeature({
+      isAdmin: true,
+      isMatty: true,
+      input: {
+        name: GQLFeatureName.tag_adoption,
+        flag: GQLFeatureFlag.on,
+      },
+    })
 
     // matty create tag
     const tag = await putTag({ tag: { content: 'Tag adoption #1' } })

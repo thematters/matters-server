@@ -8,7 +8,7 @@ import {
   TagNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, isFeatureEnabled } from 'common/utils'
 import {
   GQLUpdateTagSettingType,
   MutationToUpdateTagSettingResolver,
@@ -17,7 +17,7 @@ import {
 const resolver: MutationToUpdateTagSettingResolver = async (
   _,
   { input: { id, type } },
-  { viewer, dataSources: { tagService, userService } }
+  { viewer, dataSources: { systemService, tagService, userService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('viewer has no permission')
@@ -37,6 +37,12 @@ const resolver: MutationToUpdateTagSettingResolver = async (
   let params: Record<string, any> = {}
   switch (type) {
     case GQLUpdateTagSettingType.adopt:
+      // check feature is enabled
+      const feature = await systemService.getFeatureFlag('tag_adoption')
+      if (feature && !isFeatureEnabled(feature.flag, viewer)) {
+        throw new ForbiddenError('viewer has no permission')
+      }
+
       // if tag has been adopted, throw error
       if (tag.owner) {
         throw new ForbiddenError('viewer has no permission')

@@ -18,10 +18,17 @@ import {
   DataSources,
   GQLPublishArticleInput,
   GQLPutDraftInput,
+  GQLSetFeatureInput,
   GQLUserRegisterInput,
 } from 'definitions'
 
 import schema from '../../schema'
+
+interface BaseInput {
+  isAdmin?: boolean
+  isAuth?: boolean
+  isMatty?: boolean
+}
 
 export const defaultTestUser = {
   email: 'test1@matters.news',
@@ -276,4 +283,28 @@ export const updateUserState = async ({
     mutation: UPDATE_USER_STATE,
     variables: { input: { id, state } },
   })
+}
+
+export const setFeature = async ({
+  isAdmin = true,
+  isAuth = true,
+  isMatty = true,
+  input,
+}: { input: GQLSetFeatureInput } & BaseInput) => {
+  const SET_FEATURE_FLAG = `
+    mutation ($input: SetFeatureInput!) {
+      setFeature(input: $input) {
+        name
+        enabled
+      }
+    }
+  `
+  const { mutate } = await testClient({ isAdmin, isAuth, isMatty })
+  const result = await mutate({
+    mutation: SET_FEATURE_FLAG,
+    // @ts-ignore
+    variables: { input },
+  })
+  const data = result?.data?.setFeature
+  return data
 }

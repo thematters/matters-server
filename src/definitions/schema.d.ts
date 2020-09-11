@@ -1699,6 +1699,7 @@ export const enum GQLFeatureName {
   payout = 'payout',
   verify_appreciate = 'verify_appreciate',
   fingerprint = 'fingerprint',
+  tag_adoption = 'tag_adoption',
 }
 
 export interface GQLOSS {
