@@ -302,7 +302,7 @@ describe('manage article tag', () => {
         },
       },
     })
-    expect(addResult?.data?.addArticlesTags?.articles?.edges.length).toBe(2)
+    expect(updateResult?.data?.addArticlesTags?.articles?.edges.length).toBe(2)
 
     // remove
     const deleteResult = await mutate({
