@@ -1,6 +1,7 @@
 import _uniq from 'lodash/uniq'
 
 import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AuthenticationError,
   ForbiddenByStateError,
@@ -13,7 +14,6 @@ import {
   GQLUpdateTagSettingType,
   MutationToUpdateTagSettingResolver,
 } from 'definitions'
-import { environment } from 'common/environment'
 
 const resolver: MutationToUpdateTagSettingResolver = async (
   _,

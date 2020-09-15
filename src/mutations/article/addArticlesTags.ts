@@ -3,6 +3,7 @@ import _some from 'lodash/some'
 import _uniq from 'lodash/uniq'
 
 import { USER_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AuthenticationError,
   ForbiddenByStateError,
@@ -13,7 +14,6 @@ import {
 import { fromGlobalId } from 'common/utils'
 import { ArticleService, NotificationService } from 'connectors'
 import { MutationToAddArticlesTagsResolver } from 'definitions'
-import { environment } from 'common/environment'
 
 const triggerNotice = async ({
   articleId,

@@ -1,6 +1,7 @@
 import { difference, uniq } from 'lodash'
 
 import { ARTICLE_STATE, USER_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AuthenticationError,
   EntityNotFoundError,
@@ -9,7 +10,6 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToEditArticleResolver } from 'definitions'
-import { environment } from 'common/environment'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
