@@ -1,6 +1,7 @@
 import _uniq from 'lodash/uniq'
 
 import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AuthenticationError,
   ForbiddenByStateError,
@@ -56,7 +57,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         throw new ForbiddenError('viewer has no permission')
       }
 
-      const isMatty = viewer.email === 'hi@matters.news'
+      const isMatty = viewer.id === environment.mattyId
       const editors = isMatty
         ? undefined
         : (tag.editors || []).filter((item: string) => item !== viewer.id)

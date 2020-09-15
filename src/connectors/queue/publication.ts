@@ -12,7 +12,7 @@ import {
   QUEUE_NAME,
   QUEUE_PRIORITY,
 } from 'common/enums'
-import { isTest } from 'common/environment'
+import { environment, isTest } from 'common/environment'
 import logger from 'common/logger'
 import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
 
@@ -246,9 +246,8 @@ class PublicationQueue extends BaseQueue {
 
     if (tags && tags.length > 0) {
       // get tag editor
-      const mattyUser = await this.userService.findByEmail('hi@matters.news')
-      const tagEditors = mattyUser
-        ? [mattyUser.id, article.authorId]
+      const tagEditors = environment.mattyId
+        ? [environment.mattyId, article.authorId]
         : [article.authorId]
 
       // create tag records, return tag record if already exists

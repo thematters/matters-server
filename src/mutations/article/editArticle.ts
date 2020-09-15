@@ -1,6 +1,7 @@
 import { difference, uniq } from 'lodash'
 
 import { ARTICLE_STATE, USER_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AuthenticationError,
   EntityNotFoundError,
@@ -82,9 +83,8 @@ const resolver: MutationToEditArticleResolver = async (
    */
   if (tags) {
     // get tag editor
-    const mattyUser = await userService.findByEmail('hi@matters.news')
-    const tagEditors = mattyUser
-      ? [mattyUser.id, article.authorId]
+    const tagEditors = environment.mattyId
+      ? [environment.mattyId, article.authorId]
       : [article.authorId]
 
     // create tag records

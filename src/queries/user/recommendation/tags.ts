@@ -1,5 +1,6 @@
 import { chunk } from 'lodash'
 
+import { environment } from 'common/environment'
 import { ForbiddenError } from 'common/errors'
 import {
   connectionFromArray,
@@ -21,8 +22,6 @@ export const tags: RecommendationToTagsResolver = async (
     }
   }
 
-  const matty = await userService.findByEmail('hi@matters.news')
-
   // pick randomly
   if (typeof filter?.random === 'number') {
     const { random } = filter
@@ -30,7 +29,7 @@ export const tags: RecommendationToTagsResolver = async (
     const limit = 50
 
     const curationTags = await tagService.findCurationTags({
-      mattyId: matty.id,
+      mattyId: environment.mattyId,
       limit: limit * draw,
     })
     const chunks = chunk(curationTags, draw)
@@ -47,7 +46,7 @@ export const tags: RecommendationToTagsResolver = async (
   const offset = cursorToIndex(after) + 1
   const totalCount = await tagService.baseCount()
   const items = await tagService.findArrangedTags({
-    mattyId: matty.id,
+    mattyId: environment.mattyId,
     limit: first,
     offset,
     oss,

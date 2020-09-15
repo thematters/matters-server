@@ -77,6 +77,7 @@ jobs:
           MATTERS_PUBSUB_HOST: localhost
           MATTERS_QUEUE_HOST: localhost
           MATTERS_CACHE_HOST: localhost
+          MATTERS_MATTY_ID: 6
           MATTERS_JWT_SECRET: QsNmu9
           MATTERS_ELASTICSEARCH_HOST: localhost
           MATTERS_ELASTICSEARCH_PORT: 9200
