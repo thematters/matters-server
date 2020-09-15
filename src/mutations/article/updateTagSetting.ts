@@ -13,6 +13,7 @@ import {
   GQLUpdateTagSettingType,
   MutationToUpdateTagSettingResolver,
 } from 'definitions'
+import { environment } from 'common/environment'
 
 const resolver: MutationToUpdateTagSettingResolver = async (
   _,
@@ -56,7 +57,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         throw new ForbiddenError('viewer has no permission')
       }
 
-      const isMatty = viewer.email === 'hi@matters.news'
+      const isMatty = viewer.id === environment.mattyId
       const editors = isMatty
         ? undefined
         : (tag.editors || []).filter((item: string) => item !== viewer.id)

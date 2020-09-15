@@ -9,6 +9,7 @@ import {
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToEditArticleResolver } from 'definitions'
+import { environment } from 'common/environment'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
@@ -82,9 +83,8 @@ const resolver: MutationToEditArticleResolver = async (
    */
   if (tags) {
     // get tag editor
-    const mattyUser = await userService.findByEmail('hi@matters.news')
-    const tagEditors = mattyUser
-      ? [mattyUser.id, article.authorId]
+    const tagEditors = environment.mattyId
+      ? [environment.mattyId, article.authorId]
       : [article.authorId]
 
     // create tag records

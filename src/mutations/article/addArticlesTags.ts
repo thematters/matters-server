@@ -13,6 +13,7 @@ import {
 import { fromGlobalId } from 'common/utils'
 import { ArticleService, NotificationService } from 'connectors'
 import { MutationToAddArticlesTagsResolver } from 'definitions'
+import { environment } from 'common/environment'
 
 const triggerNotice = async ({
   articleId,
@@ -81,7 +82,7 @@ const resolver: MutationToAddArticlesTagsResolver = async (
   // add only allow: owner, editor, matty
   const isOwner = tag.owner === viewer.id
   const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
-  const isMatty = viewer.email === 'hi@matters.news'
+  const isMatty = viewer.id === environment.mattyId
   const isMaintainer = isOwner || isEditor || isMatty
 
   if (!isMaintainer && selected) {

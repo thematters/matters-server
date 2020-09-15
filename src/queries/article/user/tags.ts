@@ -1,3 +1,4 @@
+import { environment } from 'common/environment'
 import { connectionFromPromisedArray } from 'common/utils'
 import { UserToArticlesResolver } from 'definitions'
 
@@ -6,8 +7,7 @@ const resolver: UserToArticlesResolver = async (
   { input },
   { dataSources: { tagService, userService } }
 ) => {
-  const mattyUser = await userService.findByEmail('hi@matters.news')
-  const isMatty = mattyUser && id === mattyUser.id
+  const isMatty = id === environment.mattyId
 
   if (isMatty) {
     return connectionFromPromisedArray(tagService.findByCreator(id), input)
