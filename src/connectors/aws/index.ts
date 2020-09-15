@@ -41,7 +41,7 @@ export class AWSService {
   getS3Endpoint = (): string => {
     const { env, awsS3Endpoint, awsCloudFrontEndpoint } = environment
     switch (env) {
-      case 'staging':
+      case 'stage':
       case 'production': {
         return `https://${
           awsCloudFrontEndpoint || `${this.s3Bucket}.${awsS3Endpoint}`
