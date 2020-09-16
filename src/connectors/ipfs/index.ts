@@ -9,8 +9,6 @@ import logger from 'common/logger'
 
 import ipfsArticleTemplate from './templates/article'
 
-const { ipfsHost, ipfsPort, domain } = environment
-
 export class IPFS {
   client: IPFS.FilesAPI & ipfsCmds
 
@@ -18,8 +16,8 @@ export class IPFS {
 
   constructor() {
     this.client = ipfsClient({
-      host: ipfsHost || '',
-      port: ipfsPort,
+      host: environment.ipfsHost,
+      port: environment.ipfsPort,
       protocol: 'http',
     })
   }
@@ -35,7 +33,7 @@ export class IPFS {
     }
     try {
       const fullUrl =
-        url.indexOf('://') >= 0 ? url : urlResolve(domain || '', url)
+        url.indexOf('://') >= 0 ? url : urlResolve(environment.domain, url)
       const { data } = await axios.get(fullUrl, { responseType: 'arraybuffer' })
 
       if (mutateOrigin) {

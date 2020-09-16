@@ -45,15 +45,15 @@ if (process.env.MATTERS_OICD_PRIVATE_KEY) {
  */
 
 export const environment = {
-  env: process.env.MATTERS_ENV || 'development',
-  domain: process.env.MATTERS_DOMAIN,
+  env: process.env.MATTERS_ENV,
+  domain: process.env.MATTERS_DOMAIN || '',
   siteDomain: process.env.MATTERS_SITE_DOMAIN as string,
   oauthSiteDomain: process.env.MATTERS_OAUTH_SITE_DOMAIN as string,
   awsRegion: process.env.MATTERS_AWS_REGION,
   awsAccessId: process.env.MATTERS_AWS_ACCESS_ID,
   awsAccessKey: process.env.MATTERS_AWS_ACCESS_KEY,
   awsS3Endpoint: process.env.MATTERS_AWS_S3_ENDPOINT,
-  awsS3Bucket: process.env.MATTERS_AWS_S3_BUCKET,
+  awsS3Bucket: process.env.MATTERS_AWS_S3_BUCKET || '',
   esHost: process.env.MATTERS_ELASTICSEARCH_HOST,
   esPort: process.env.MATTERS_ELASTICSEARCH_PORT,
   awsCloudFrontEndpoint: process.env.MATTERS_AWS_CLOUD_FRONT_ENDPOINT,
@@ -61,7 +61,7 @@ export const environment = {
   pgUser: process.env.MATTERS_PG_USER,
   pgPassword: process.env.MATTERS_PG_PASSWORD,
   pgDatabase: process.env.MATTERS_PG_DATABASE,
-  ipfsHost: process.env.MATTERS_IPFS_HOST,
+  ipfsHost: process.env.MATTERS_IPFS_HOST || '',
   ipfsPort: process.env.MATTERS_IPFS_PORT || '5001',
   pubSubHost: process.env.MATTERS_PUBSUB_HOST as string,
   pubSubPort: (process.env.MATTERS_PUBSUB_PORT || 6379) as number,
@@ -101,6 +101,8 @@ export const environment = {
   slackPayoutChannel: process.env.MATTERS_SLACK_PAYOUT_CHANNEL || '',
 }
 
-export const isDev = environment.env.includes('dev')
-export const isTest = environment.env.includes('test')
-export const isProd = environment.env.includes('prod')
+export const isLocal = environment.env === 'local'
+export const isTest = environment.env === 'test'
+export const isDev = environment.env === 'development'
+export const isStage = environment.env === 'stage'
+export const isProd = environment.env === 'production'

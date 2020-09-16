@@ -18,7 +18,7 @@ import {
   USER_ACTION,
   VIEW,
 } from 'common/enums'
-import { environment } from 'common/environment'
+import { isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import logger from 'common/logger'
 import {
@@ -645,7 +645,7 @@ export class ArticleService extends BaseService {
     notIn?: string[]
   }) => {
     // skip if in test
-    if (['test'].includes(environment.env)) {
+    if (isTest) {
       return []
     }
 
