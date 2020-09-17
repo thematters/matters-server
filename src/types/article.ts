@@ -377,6 +377,7 @@ export default /* GraphQL */ `
   input UpdateTagSettingInput {
     id: ID!
     type: UpdateTagSettingType!
+    editor: ID
   }
 
   input AddArticlesTagsInput {
@@ -451,5 +452,7 @@ export default /* GraphQL */ `
   enum UpdateTagSettingType {
     adopt
     leave
+    add_editor
+    remove_editor
   }
 `

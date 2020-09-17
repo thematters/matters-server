@@ -2273,11 +2273,14 @@ export interface GQLPutTagInput {
 export interface GQLUpdateTagSettingInput {
   id: string
   type: GQLUpdateTagSettingType
+  editor?: string
 }
 
 export const enum GQLUpdateTagSettingType {
   adopt = 'adopt',
   leave = 'leave',
+  add_editor = 'add_editor',
+  remove_editor = 'remove_editor',
 }
 
 export interface GQLAddArticlesTagsInput {

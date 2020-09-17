@@ -2100,11 +2100,14 @@ input UpdateNotificationSettingInput {
 input UpdateTagSettingInput {
   id: ID!
   type: UpdateTagSettingType!
+  editor: ID
 }
 
 enum UpdateTagSettingType {
   adopt
   leave
+  add_editor
+  remove_editor
 }
 
 input UpdateUserInfoInput {
