@@ -268,6 +268,13 @@ class PublicationQueue extends BaseQueue {
         creator: article.authorId,
         tagIds: dbTags.map(({ id }) => id),
       })
+
+      // auto follow tags
+      await Promise.all(
+        dbTags.map(({ id }) =>
+          this.tagService.follow({ targetId: id, userId: article.authorId })
+        )
+      )
     } else {
       tags = []
     }
