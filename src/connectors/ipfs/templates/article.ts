@@ -1,8 +1,6 @@
 import { UTM_PARAMETER } from 'common/enums'
 import { environment } from 'common/environment'
 
-const { siteDomain } = environment
-
 interface TemplateVars {
   title: string
   author: {
@@ -152,7 +150,7 @@ const template = ({
       <header>
         <h1 itemprop="headline">${title}</h1>
         <figure class="byline">
-          <a href="${siteDomain}/@${author.userName}?${UTM_PARAMETER.SOURCE.IPFS}" target="_blank" itemprop="author">
+          <a href="${environment.siteDomain}/@${author.userName}?${UTM_PARAMETER.SOURCE.IPFS}" target="_blank" itemprop="author">
             ${author.displayName} (@${author.userName})
           </a>
           <time itemprop="datePublished" datetime="${publishedAt.toISOString()}">${toDateString(publishedAt)}</time>
