@@ -33,7 +33,7 @@ module.exports = {
     },
   },
 
-  staging: {
+  stage: {
     client: 'postgresql',
     connection: {
       host: process.env['MATTERS_PG_HOST'],

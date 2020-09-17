@@ -2,8 +2,7 @@ import * as AWS from 'aws-sdk'
 import mime from 'mime-types'
 
 import { LOCAL_S3_ENDPOINT } from 'common/enums'
-import { environment } from 'common/environment'
-import { UserInputError } from 'common/errors'
+import { environment, isLocal, isTest } from 'common/environment'
 import { makeStreamToBuffer } from 'common/utils/makeStreamToBuffer'
 import { GQLAssetType } from 'definitions'
 
@@ -23,12 +22,11 @@ export class AWSService {
    * Get AWS config.
    */
   getAWSConfig = () => {
-    const { env, awsRegion, awsAccessId, awsAccessKey } = environment
     return {
-      region: awsRegion || '',
-      accessKeyId: awsAccessId || '',
-      secretAccessKey: awsAccessKey || '',
-      ...(env === 'development'
+      region: environment.awsRegion,
+      accessKeyId: environment.awsAccessId,
+      secretAccessKey: environment.awsAccessKey,
+      ...(isLocal
         ? { s3BucketEndpoint: true, endpoint: LOCAL_S3_ENDPOINT }
         : {}),
     }
@@ -39,17 +37,13 @@ export class AWSService {
    * will be replaced.
    */
   getS3Endpoint = (): string => {
-    const { env, awsS3Endpoint, awsCloudFrontEndpoint } = environment
-    switch (env) {
-      case 'stage':
-      case 'production': {
-        return `https://${
-          awsCloudFrontEndpoint || `${this.s3Bucket}.${awsS3Endpoint}`
-        }`
-      }
-      default: {
-        return `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
-      }
+    if (isTest) {
+      return `${LOCAL_S3_ENDPOINT}/${this.s3Bucket}`
+    } else {
+      return `https://${
+        environment.awsCloudFrontEndpoint ||
+        `${this.s3Bucket}.${environment.awsS3Endpoint}`
+      }`
     }
   }
 
@@ -57,8 +51,7 @@ export class AWSService {
    * Get S3 bucket.
    */
   getS3Bucket = (): string => {
-    const { awsS3Bucket } = environment
-    return awsS3Bucket || 'matters-server-dev'
+    return environment.awsS3Bucket
   }
 
   /**

@@ -4,7 +4,7 @@ import {
   COOKIE_TOKEN_NAME,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
 } from 'common/enums'
-import { environment } from 'common/environment'
+import { isTest } from 'common/environment'
 
 const getCookieOption = (req: Request) => {
   return {
@@ -24,7 +24,7 @@ export const setCookie = ({
   res: Response
   token: string
 }) => {
-  if (environment.env === 'test') {
+  if (isTest) {
     // skip during testing
     return
   }
