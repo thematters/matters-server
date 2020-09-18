@@ -377,7 +377,7 @@ export default /* GraphQL */ `
   input UpdateTagSettingInput {
     id: ID!
     type: UpdateTagSettingType!
-    editor: ID
+    editors: [ID!]
   }
 
   input AddArticlesTagsInput {

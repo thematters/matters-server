@@ -2273,7 +2273,7 @@ export interface GQLPutTagInput {
 export interface GQLUpdateTagSettingInput {
   id: string
   type: GQLUpdateTagSettingType
-  editor?: string
+  editors?: Array<string>
 }
 
 export const enum GQLUpdateTagSettingType {

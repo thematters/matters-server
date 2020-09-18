@@ -1,5 +1,5 @@
+import _difference from 'lodash/difference'
 import _uniq from 'lodash/uniq'
-import _without from 'lodash/without'
 
 import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
@@ -19,7 +19,7 @@ import {
 
 const resolver: MutationToUpdateTagSettingResolver = async (
   _,
-  { input: { id, type, editor } },
+  { input: { id, type, editors } },
   { viewer, dataSources: { systemService, tagService, userService } }
 ) => {
   if (!viewer.id) {
@@ -63,54 +63,69 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       }
 
       const isMatty = viewer.id === environment.mattyId
-      const editors = isMatty
+      const updatedEditors = isMatty
         ? undefined
         : (tag.editors || []).filter((item: string) => item !== viewer.id)
-      params = { owner: null, editors }
+      params = { owner: null, editors: updatedEditors }
       break
     }
     case GQLUpdateTagSettingType.add_editor: {
       if (!isOwner) {
         throw new ForbiddenError('viewer has no permission')
       }
-      if (!editor) {
-        throw new UserInputError('editor is invalid')
+      if (!editors || editors.length === 0) {
+        throw new UserInputError('editors is invalid')
       }
 
-      const editors = _without(tag.editors, tag.owner, environment.mattyId)
-      if (editors.length >= 4) {
+      const currentEditors = _difference(
+        tag.editors,
+        tag.owner,
+        environment.mattyId
+      )
+      if (currentEditors.length >= 4) {
         throw new UserInputError('number of editors reaches limit')
       }
 
-      const { id: editorId } = fromGlobalId(editor)
-      if (isOwner && viewer.id === editorId) {
-        throw new UserInputError('cannot add self')
-      }
-      const user = await userService.baseFindById(editorId)
-      if (!user) {
-        throw new UserNotFoundError('editor not found')
-      }
-      params = { editors: _uniq([...editors, editorId]) }
+      const addEditors = await Promise.all(
+        editors.map(async (editor) => {
+          const { id: editorId } = fromGlobalId(editor)
+          if (isOwner && viewer.id === editorId) {
+            return
+          }
+          const user = await userService.baseFindById(editorId)
+          if (user) {
+            return editorId
+          }
+        })
+      )
+      const updatedEditors = addEditors.filter(
+        (editorId) => editorId !== undefined
+      )
+      params = { editors: _uniq([...tag.editors, ...updatedEditors]) }
       break
     }
     case GQLUpdateTagSettingType.remove_editor: {
       if (!isOwner) {
         throw new ForbiddenError('viewer has no permission')
       }
-      if (!editor) {
-        throw new UserInputError('editor is invalid')
+      if (!editors || editors.length === 0) {
+        throw new UserInputError('editors is invalid')
       }
 
-      const { id: editorId } = fromGlobalId(editor)
-      if (isOwner && viewer.id === editorId) {
-        throw new UserInputError('cannot remove self')
-      }
-      const user = await userService.baseFindById(editorId)
-      if (!user) {
-        throw new UserNotFoundError('editor not found')
-      }
-      const editors = _without(tag.editors, editorId)
-      params = { editors }
+      const removeEditors = editors.map((editor) => {
+        const { id: editorId } = fromGlobalId(editor)
+        if (isOwner && viewer.id === editorId) {
+          return
+        }
+        if (editorId === environment.mattyId) {
+          return
+        }
+        return editorId
+      })
+      const updatedEditors = removeEditors.filter(
+        (editorId) => editorId !== undefined
+      )
+      params = { editors: _difference(tag.editors, updatedEditors) }
       break
     }
     default: {

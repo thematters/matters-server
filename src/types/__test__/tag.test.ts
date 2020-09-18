@@ -167,11 +167,12 @@ export const updateTagSetting = async ({
   isMatty = false,
   id,
   type,
+  editors,
 }: UpdateTagSettingInput) => {
   const { mutate } = await testClient({ isAdmin, isAuth, isMatty })
   const result = await mutate({
     mutation: UPDATE_TAG_SETTING,
-    variables: { input: { id, type } },
+    variables: { input: { id, type, editors } },
   })
 
   if (!result.data) {
@@ -396,5 +397,211 @@ describe('manage settings of a tag', () => {
     expect(leaveDataEditors.includes(authedId)).toBeFalsy()
     expect(leaveDataEditors.includes(mattyId)).toBeTruthy()
     expect(leaveData?.owner).toBe(null)
+  })
+
+  test('add and remove editor to a tag', async () => {
+    const user1Id = toGlobalId({ type: 'User', id: 1 })
+    const user2Id = toGlobalId({ type: 'User', id: 2 })
+    const user3Id = toGlobalId({ type: 'User', id: 3 })
+    const user4Id = toGlobalId({ type: 'User', id: 4 })
+    const user7Id = toGlobalId({ type: 'User', id: 7 })
+    const mattyId = toGlobalId({ type: 'User', id: 6 })
+
+    // matty create tag
+    const tag = await putTag({ tag: { content: 'Tag editor #1' } })
+    const editors = (tag?.editors || []).map((editor: any) => editor?.id)
+    expect(editors.includes(mattyId)).toBeTruthy()
+    expect(tag?.owner?.id).toBe(mattyId)
+
+    // other try add editor
+    const otherAddEditorData = await updateTagSetting({
+      isAuth: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.add_editor,
+      editors: [user2Id],
+    })
+    expect(_get(otherAddEditorData, errorPath)).toBe('FORBIDDEN')
+
+    // other try remove editor
+    const otherRemoveEditorData = await updateTagSetting({
+      isAuth: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.remove_editor,
+      editors: [user2Id],
+    })
+    expect(_get(otherRemoveEditorData, errorPath)).toBe('FORBIDDEN')
+
+    // owner add self into edtor
+    const addSelfData = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.add_editor,
+      editors: [mattyId],
+    })
+    const addSelfDataEditors = (addSelfData?.editors || []).map(
+      (editor: any) => editor?.id
+    )
+    expect(addSelfDataEditors.includes(mattyId)).toBeTruthy()
+    expect(addSelfData?.owner?.id).toBe(mattyId)
+
+    // owner remove self from editor
+    const removeSelfData = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.remove_editor,
+      editors: [mattyId],
+    })
+    const removeSelfDataEditors = (removeSelfData?.editors || []).map(
+      (editor: any) => editor?.id
+    )
+    expect(removeSelfDataEditors.includes(mattyId)).toBeTruthy()
+    expect(removeSelfData?.owner?.id).toBe(mattyId)
+
+    // add other users
+    const addEditor1Data = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.add_editor,
+      editors: [user1Id],
+    })
+    const addEditor1DataEditors = (addEditor1Data?.editors || []).map(
+      (editor: any) => editor?.id
+    )
+    expect(addEditor1DataEditors.includes(mattyId)).toBeTruthy()
+    expect(addEditor1DataEditors.includes(user1Id)).toBeTruthy()
+    expect(addEditor1Data?.editors.length).toBe(2)
+
+    const addEditor2Data = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.add_editor,
+      editors: [user1Id, user2Id, user3Id, user4Id],
+    })
+    const addEditor2DataEditors = (addEditor2Data?.editors || []).map(
+      (editor: any) => editor?.id
+    )
+    expect(addEditor2DataEditors.includes(mattyId)).toBeTruthy()
+    expect(addEditor2DataEditors.includes(user1Id)).toBeTruthy()
+    expect(addEditor2DataEditors.includes(user2Id)).toBeTruthy()
+    expect(addEditor2DataEditors.includes(user3Id)).toBeTruthy()
+    expect(addEditor2DataEditors.includes(user4Id)).toBeTruthy()
+    expect(addEditor2Data?.editors.length).toBe(5)
+
+    const addEditor3Data = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.add_editor,
+      editors: [user7Id],
+    })
+    expect(_get(addEditor3Data, errorPath)).toBe('BAD_USER_INPUT')
+
+    // remove other users
+    const removeEditor1Data = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.remove_editor,
+      editors: [user4Id],
+    })
+    const removeEditor1DataEditors = (removeEditor1Data?.editors || []).map(
+      (editor: any) => editor?.id
+    )
+    expect(removeEditor1DataEditors.includes(mattyId)).toBeTruthy()
+    expect(removeEditor1DataEditors.includes(user1Id)).toBeTruthy()
+    expect(removeEditor1DataEditors.includes(user2Id)).toBeTruthy()
+    expect(removeEditor1DataEditors.includes(user3Id)).toBeTruthy()
+    expect(removeEditor1DataEditors.includes(user4Id)).toBeFalsy()
+    expect(removeEditor1Data?.editors.length).toBe(4)
+
+    const removeEditor2Data = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.remove_editor,
+      editors: [user2Id, user3Id],
+    })
+    const removeEditor2DataEditors = (removeEditor2Data?.editors || []).map(
+      (editor: any) => editor?.id
+    )
+    expect(removeEditor2DataEditors.includes(mattyId)).toBeTruthy()
+    expect(removeEditor2DataEditors.includes(user1Id)).toBeTruthy()
+    expect(removeEditor2DataEditors.includes(user2Id)).toBeFalsy()
+    expect(removeEditor2DataEditors.includes(user3Id)).toBeFalsy()
+    expect(removeEditor2Data?.editors.length).toBe(2)
+
+    const removeEditor3Data = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.remove_editor,
+      editors: [user1Id],
+    })
+    const removeEditor3DataEditors = (removeEditor3Data?.editors || []).map(
+      (editor: any) => editor?.id
+    )
+    expect(removeEditor3DataEditors.includes(mattyId)).toBeTruthy()
+    expect(removeEditor3DataEditors.includes(user1Id)).toBeFalsy()
+    expect(removeEditor3Data?.editors.length).toBe(1)
+
+    // authed user create tag
+    const authedUserTag = await putTag({
+      isAdmin: false,
+      isMatty: false,
+      tag: { content: 'Tag editor #2' },
+    })
+    const authedUserTagEditors = (authedUserTag?.editors || []).map(
+      (editor: any) => editor?.id
+    )
+    expect(authedUserTagEditors.includes(mattyId)).toBeTruthy()
+    expect(authedUserTagEditors.includes(user1Id)).toBeTruthy()
+    expect(authedUserTag?.owner?.id).toBe(user1Id)
+    expect(authedUserTag?.editors.length).toBe(2)
+
+    const authedUserAddEditor1Data = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.remove_editor,
+      editors: [mattyId],
+    })
+    const authedUserAddEditor1DataEditors = (
+      authedUserAddEditor1Data?.editors || []
+    ).map((editor: any) => editor?.id)
+    expect(authedUserAddEditor1DataEditors.includes(mattyId)).toBeTruthy()
+    expect(authedUserAddEditor1DataEditors.includes(user1Id)).toBeTruthy()
+    expect(authedUserAddEditor1Data?.editors.length).toBe(2)
+
+    const authedUserAddEditor2Data = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.add_editor,
+      editors: [user1Id, user2Id],
+    })
+    const authedUserAddEditor2DataEditors = (
+      authedUserAddEditor2Data?.editors || []
+    ).map((editor: any) => editor?.id)
+    expect(authedUserAddEditor2DataEditors.includes(mattyId)).toBeTruthy()
+    expect(authedUserAddEditor2DataEditors.includes(user1Id)).toBeTruthy()
+    expect(authedUserAddEditor2DataEditors.includes(user2Id)).toBeTruthy()
+    expect(authedUserAddEditor2Data?.editors.length).toBe(3)
+
+    const authedUserRemoveEditor1Data = await updateTagSetting({
+      isAuth: true,
+      isMatty: true,
+      id: tag.id,
+      type: GQLUpdateTagSettingType.remove_editor,
+      editors: [mattyId],
+    })
+    const authedUserRemoveEditor1DataEditors = (
+      authedUserRemoveEditor1Data?.editors || []
+    ).map((editor: any) => editor?.id)
+    expect(authedUserRemoveEditor1DataEditors.includes(mattyId)).toBeTruthy()
+    expect(authedUserRemoveEditor1DataEditors?.editors.length).toBe(3)
   })
 })
