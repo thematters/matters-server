@@ -457,5 +457,6 @@ export default /* GraphQL */ `
     leave
     add_editor
     remove_editor
+    leave_editor
   }
 `

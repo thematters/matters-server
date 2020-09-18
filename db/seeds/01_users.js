@@ -80,6 +80,14 @@ exports.seed = function (knex, Promise) {
           state: 'active',
           password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
         },
+        {
+          uuid: '00000000-0000-0000-0000-000000000009',
+          user_name: 'test9',
+          display_name: 'test9',
+          email: 'test9@matters.news',
+          password_hash: bcrypt.hashSync('12345678', BCRYPT_ROUNDS),
+          state: 'active',
+        },
       ])
     })
 }
