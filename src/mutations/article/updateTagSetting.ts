@@ -53,6 +53,9 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         throw new ForbiddenError('viewer has no permission')
       }
 
+      // auto follow current tag
+      await tagService.follow({ targetId: tag.id, userId: viewer.id })
+
       params = { owner: viewer.id, editors: _uniq([...tag.editors, viewer.id]) }
       break
     }

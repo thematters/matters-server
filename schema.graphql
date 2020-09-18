@@ -961,6 +961,9 @@ type Mutation {
   """Read an article."""
   readArticle(input: ReadArticleInput!): Article!
 
+  """Follow or unfollow tag."""
+  toggleFollowTag(input: ToggleItemInput!): Tag!
+
   """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
 
@@ -1095,9 +1098,6 @@ type Mutation {
 
   """Update user notification settings."""
   updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
-
-  """Follow or unfollow tag."""
-  toggleFollowTag(input: ToggleItemInput!): Tag!
 
   """Follow or Unfollow current user."""
   toggleFollowUser(input: ToggleItemInput!): User!

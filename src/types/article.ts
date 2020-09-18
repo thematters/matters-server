@@ -31,6 +31,9 @@ export default /* GraphQL */ `
     ##############
     #     Tag    #
     ##############
+    "Follow or unfollow tag."
+    toggleFollowTag(input: ToggleItemInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
+
     "Create or update tag."
     putTag(input: PutTagInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
 
