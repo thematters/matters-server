@@ -1917,6 +1917,11 @@ export interface GQLMutation {
   readArticle: GQLArticle
 
   /**
+   * Follow or unfollow tag.
+   */
+  toggleFollowTag: GQLTag
+
+  /**
    * Create or update tag.
    */
   putTag: GQLTag
@@ -2127,11 +2132,6 @@ export interface GQLMutation {
    * Update user notification settings.
    */
   updateNotificationSetting: GQLUser
-
-  /**
-   * Follow or unfollow tag.
-   */
-  toggleFollowTag: GQLTag
 
   /**
    * Follow or Unfollow current user.
@@ -8111,6 +8111,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleSubscribeArticle?: MutationToToggleSubscribeArticleResolver<TParent>
   appreciateArticle?: MutationToAppreciateArticleResolver<TParent>
   readArticle?: MutationToReadArticleResolver<TParent>
+  toggleFollowTag?: MutationToToggleFollowTagResolver<TParent>
   putTag?: MutationToPutTagResolver<TParent>
   updateTagSetting?: MutationToUpdateTagSettingResolver<TParent>
   addArticlesTags?: MutationToAddArticlesTagsResolver<TParent>
@@ -8162,7 +8163,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<
     TParent
   >
-  toggleFollowTag?: MutationToToggleFollowTagResolver<TParent>
   toggleFollowUser?: MutationToToggleFollowUserResolver<TParent>
   toggleBlockUser?: MutationToToggleBlockUserResolver<TParent>
   toggleSubscribePush?: MutationToToggleSubscribePushResolver<TParent>
@@ -8258,6 +8258,21 @@ export interface MutationToReadArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToReadArticleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleFollowTagArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToToggleFollowTagResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleFollowTagArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8906,21 +8921,6 @@ export interface MutationToUpdateNotificationSettingResolver<
   (
     parent: TParent,
     args: MutationToUpdateNotificationSettingArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToToggleFollowTagArgs {
-  input: GQLToggleItemInput
-}
-export interface MutationToToggleFollowTagResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToToggleFollowTagArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -41,9 +41,6 @@ export default /* GraphQL */ `
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
       @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
 
-    "Follow or unfollow tag."
-    toggleFollowTag(input: ToggleItemInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
-
     "Follow or Unfollow current user."
     toggleFollowUser(input: ToggleItemInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
 
