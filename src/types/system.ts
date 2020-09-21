@@ -14,9 +14,6 @@ export default /* GraphQL */ `
     "Upload a single file."
     singleFileUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
-    "Delete a uploaded file."
-    singleFileDelete(input: SingleFileDeleteInput!): Boolean! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
-
     feedback(input: FeedbackInput!): Boolean
 
     "Add specific user behavior record."
@@ -263,10 +260,6 @@ export default /* GraphQL */ `
     url: URL
     entityType: EntityType!
     entityId: ID
-  }
-
-  input SingleFileDeleteInput {
-    id: ID!
   }
 
   input FeedbackInput {

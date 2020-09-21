@@ -61,28 +61,6 @@ export default /* GraphQL */ `
     deleteTags(input: DeleteTagsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
     renameTag(input: RenameTagInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.tag}")
     mergeTags(input: MergeTagsInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.tag}")
-
-
-    ##############
-    # DEPRECATED #
-    ##############
-    "Subscribe an artcile."
-    subscribeArticle(input: SubscribeArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}")  @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
-
-    "Unsubscribe an article."
-    unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`toggleSubscribeArticle\`.")
-
-    "Archive an article and users won't be able to view this article."
-    archiveArticle(input: ArchiveArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "Use \`editArticle\`.")
-
-    "Set collection of an article."
-    setCollection(input: SetCollectionInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}")
-
-    "Update article information."
-    updateArticleInfo(input: UpdateArticleInfoInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}")
-
-    "Recall while publishing."
-    recallPublish(input: RecallPublishInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.draft}")
   }
 
   """
@@ -244,7 +222,6 @@ export default /* GraphQL */ `
   }
 
   type ArticleTranslation {
-    originalLanguage: String! @deprecated(reason: "Use \`Article.language\` instead")
     title: String
     content: String
   }
@@ -300,18 +277,6 @@ export default /* GraphQL */ `
     collection: [ID!]
   }
 
-  input ArchiveArticleInput {
-    id: ID!
-  }
-
-  input SubscribeArticleInput {
-    id: ID!
-  }
-
-  input UnsubscribeArticleInput {
-    id: ID!
-  }
-
   input ReportArticleInput {
     id: ID!
     category: ID!
@@ -329,20 +294,6 @@ export default /* GraphQL */ `
 
   input ReadArticleInput {
     id: ID!
-  }
-
-  input RecallPublishInput {
-    id: ID!
-  }
-
-  input SetCollectionInput {
-    id: ID!
-    collection: [ID!]!
-  }
-
-  input UpdateArticleInfoInput {
-    id: ID!
-    sticky: Boolean
   }
 
   input ToggleArticleRecommendInput {

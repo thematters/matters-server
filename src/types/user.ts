@@ -67,22 +67,6 @@ export default /* GraphQL */ `
 
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
-
-
-    ##############
-    # DEPRECATED #
-    ##############
-    "Block a given user."
-    blockUser(input: BlockUserInput!): User! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
-
-    "Unblock a given user."
-    unblockUser(input: BlockUserInput!): User! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
-
-    "Follow a given user."
-    followUser(input: FollowUserInput!): User! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
-
-    "Unfollow curent user."
-    unfollowUser(input: FollowUserInput!): User! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
   }
 
   type User implements Node {
@@ -285,8 +269,6 @@ export default /* GraphQL */ `
     "User role and access level."
     role: UserRole! @auth(mode: "${AUTH_MODE.oauth}")
 
-    "Total LIKE left in wallet."
-    LIKE: LIKE! @auth(mode: "${AUTH_MODE.oauth}") @deprecated(reason: "Use \`liker.total\` and \`liker.rateUSD\`.")
 
     "Number of articles published by user"
     articleCount: Int!
@@ -329,10 +311,6 @@ export default /* GraphQL */ `
     score: NonNegativeFloat!
   }
 
-  type LIKE {
-    total: NonNegativeFloat!
-    rateUSD: NonNegativeFloat
-  }
 
   type Appreciation {
     amount: Int!
@@ -516,20 +494,6 @@ export default /* GraphQL */ `
   input UpdateUserRoleInput {
     id: ID!
     role: UserRole!
-  }
-
-  input FollowUserInput {
-    id: ID!
-  }
-
-
-  input BlockUserInput {
-    id: ID!
-  }
-
-  input ImportArticlesInput {
-    platform: String
-    token: String
   }
 
   input ClearReadHistoryInput {

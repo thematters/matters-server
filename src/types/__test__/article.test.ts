@@ -28,14 +28,6 @@ const GET_ARTICLES = `
   }
 `
 
-const RECALL_PUBLISH = `
-  mutation($input: RecallPublishInput!) {
-    recallPublish(input: $input) {
-      publishState
-    }
-  }
-`
-
 const GET_ARTICLE_TAGS = `
   query ($input: NodeInput!) {
     node(input: $input) {
@@ -184,55 +176,6 @@ describe('publish article', () => {
     const { id } = await putDraft({ draft })
     const { publishState } = await publishArticle({ id })
     expect(publishState).toBe(PUBLISH_STATE.pending)
-
-    const { mutate } = await testClient({
-      isAuth: true,
-    })
-    const result = await mutate({
-      mutation: RECALL_PUBLISH,
-      // @ts-ignore
-      variables: { input: { id } },
-    })
-    const draftRecalled = result && result.data && result.data.recallPublish
-    expect(draftRecalled.publishState).toBe(PUBLISH_STATE.unpublished)
-  })
-
-  test('add collection to article and query', async () => {
-    const { mutate } = await testClient({
-      isAuth: true,
-    })
-
-    const collection = [
-      toGlobalId({ type: 'Article', id: 1 }),
-      toGlobalId({ type: 'Article', id: 2 }),
-    ]
-
-    const result = await mutate({
-      mutation: `
-        mutation($id: ID!, $collection: [ID!]!) {
-          setCollection(input: { id: $id, collection: $collection }) {
-            collection(input: {}) {
-              edges {
-                node {
-                  id
-                }
-              }
-            }
-          }
-        }
-      `,
-      // @ts-ignore
-      variables: {
-        id: toGlobalId({ type: 'Article', id: 4 }),
-        collection,
-      },
-    })
-
-    expect(
-      _get(result, 'data.setCollection.collection.edges').map(
-        ({ node }: { node: { id: string } }) => node.id
-      )
-    ).toMatchObject(collection)
   })
 })
 

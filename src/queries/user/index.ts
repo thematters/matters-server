@@ -2,7 +2,6 @@ import { toGlobalId } from 'common/utils'
 import {
   GQLAppreciationTypeResolver,
   GQLLikerTypeResolver,
-  GQLLIKETypeResolver,
   GQLQueryTypeResolver,
   GQLRecommendationTypeResolver,
   GQLStripeAccountTypeResolver,
@@ -34,8 +33,6 @@ import isFollowee from './isFollowee'
 import isFollower from './isFollower'
 import Liker from './liker'
 import likerId from './liker/likerId'
-import rateUSD from './liker/rateUSD'
-import total from './liker/total'
 import notification from './notification'
 import oauthProviders from './oauthProviders'
 import { boost, score } from './oss'
@@ -66,7 +63,6 @@ const user: {
   Recommendation: GQLRecommendationTypeResolver
 
   Liker: GQLLikerTypeResolver
-  LIKE: GQLLIKETypeResolver
 
   UserOSS: GQLUserOSSTypeResolver
 
@@ -117,7 +113,6 @@ const user: {
   },
   UserActivity,
   UserStatus: {
-    LIKE: (root) => root,
     articleCount,
     commentCount,
     unreadNoticeCount,
@@ -133,10 +128,6 @@ const user: {
 
   // LikeCoin
   Liker,
-  LIKE: {
-    total,
-    rateUSD,
-  },
 
   // OSS
   UserOSS: {

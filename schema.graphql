@@ -80,10 +80,6 @@ enum AppreciationPurpose {
   systemSubsidy
 }
 
-input ArchiveArticleInput {
-  id: ID!
-}
-
 """
 This type contains metadata, content, hash and related data of an article. If you
 want information about article's comments. Please check Comment type.
@@ -449,7 +445,6 @@ type ArticleTagHasBeenUnselectedNotice implements Notice {
 }
 
 type ArticleTranslation {
-  originalLanguage: String! @deprecated(reason: "Use `Article.language` instead")
   title: String
   content: String
 }
@@ -507,10 +502,6 @@ enum BadgeType {
 
 type Balance {
   HKD: Float!
-}
-
-input BlockUserInput {
-  id: ID!
 }
 
 enum BoostTypes {
@@ -879,10 +870,6 @@ type FolloweeDonatedArticleEdge {
   node: FolloweeDonatedArticle!
 }
 
-input FollowUserInput {
-  id: ID!
-}
-
 input FrequentSearchInput {
   key: String
   first: Int
@@ -893,17 +880,7 @@ enum GrantType {
   refresh_token
 }
 
-input ImportArticlesInput {
-  platform: String
-  token: String
-}
-
 scalar JSON
-
-type LIKE {
-  total: NonNegativeFloat!
-  rateUSD: NonNegativeFloat
-}
 
 type Liker {
   """Liker ID of LikeCoin"""
@@ -992,24 +969,6 @@ type Mutation {
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
 
-  """Subscribe an artcile."""
-  subscribeArticle(input: SubscribeArticleInput!): Article! @deprecated(reason: "Use `toggleSubscribeArticle`.")
-
-  """Unsubscribe an article."""
-  unsubscribeArticle(input: UnsubscribeArticleInput!): Article! @deprecated(reason: "Use `toggleSubscribeArticle`.")
-
-  """Archive an article and users won't be able to view this article."""
-  archiveArticle(input: ArchiveArticleInput!): Article! @deprecated(reason: "Use `editArticle`.")
-
-  """Set collection of an article."""
-  setCollection(input: SetCollectionInput!): Article!
-
-  """Update article information."""
-  updateArticleInfo(input: UpdateArticleInfoInput!): Article!
-
-  """Recall while publishing."""
-  recallPublish(input: RecallPublishInput!): Draft!
-
   """Publish a comment."""
   putComment(input: PutCommentInput!): Comment!
 
@@ -1048,9 +1007,6 @@ type Mutation {
 
   """Upload a single file."""
   singleFileUpload(input: SingleFileUploadInput!): Asset!
-
-  """Delete a uploaded file."""
-  singleFileDelete(input: SingleFileDeleteInput!): Boolean!
   feedback(input: FeedbackInput!): Boolean
 
   """Add specific user behavior record."""
@@ -1122,18 +1078,6 @@ type Mutation {
 
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
-
-  """Block a given user."""
-  blockUser(input: BlockUserInput!): User! @deprecated(reason: "Use `toggleBlockUser`.")
-
-  """Unblock a given user."""
-  unblockUser(input: BlockUserInput!): User! @deprecated(reason: "Use `toggleBlockUser`.")
-
-  """Follow a given user."""
-  followUser(input: FollowUserInput!): User! @deprecated(reason: "Use `toggleFollowUser`.")
-
-  """Unfollow curent user."""
-  unfollowUser(input: FollowUserInput!): User! @deprecated(reason: "Use `toggleFollowUser`.")
 
   """Add Credit to User Wallet"""
   addCredit(input: AddCreditInput!): AddCreditResult!
@@ -1532,10 +1476,6 @@ type ReadHistoryEdge {
   node: ReadHistory!
 }
 
-input RecallPublishInput {
-  id: ID!
-}
-
 type RecentSearchConnection implements Connection {
   totalCount: Int!
   pageInfo: PageInfo!
@@ -1795,18 +1735,9 @@ input SetBoostInput {
   type: BoostTypes!
 }
 
-input SetCollectionInput {
-  id: ID!
-  collection: [ID!]!
-}
-
 input SetFeatureInput {
   name: FeatureName!
   flag: FeatureFlag!
-}
-
-input SingleFileDeleteInput {
-  id: ID!
 }
 
 input SingleFileUploadInput {
@@ -1854,10 +1785,6 @@ enum SkippedListItemType {
 type StripeAccount {
   id: ID!
   loginUrl: URL!
-}
-
-input SubscribeArticleInput {
-  id: ID!
 }
 
 """
@@ -2063,17 +1990,8 @@ input UnpinCommentInput {
   id: ID!
 }
 
-input UnsubscribeArticleInput {
-  id: ID!
-}
-
 input UnvoteCommentInput {
   id: ID!
-}
-
-input UpdateArticleInfoInput {
-  id: ID!
-  sticky: Boolean
 }
 
 input UpdateArticlesTagsInput {
@@ -2367,9 +2285,6 @@ type UserStatus {
 
   """User role and access level."""
   role: UserRole!
-
-  """Total LIKE left in wallet."""
-  LIKE: LIKE! @deprecated(reason: "Use `liker.total` and `liker.rateUSD`.")
 
   """Number of articles published by user"""
   articleCount: Int!

@@ -1250,12 +1250,6 @@ export interface GQLUserStatus {
   role: GQLUserRole
 
   /**
-   * Total LIKE left in wallet.
-   * @deprecated Use `liker.total` and `liker.rateUSD`.
-   */
-  LIKE: GQLLIKE
-
-  /**
    * Number of articles published by user
    */
   articleCount: number
@@ -1312,11 +1306,6 @@ export const enum GQLUserState {
 export const enum GQLUserRole {
   user = 'user',
   admin = 'admin',
-}
-
-export interface GQLLIKE {
-  total: GQLNonNegativeFloat
-  rateUSD?: GQLNonNegativeFloat
 }
 
 export interface GQLUserOSS {
@@ -1518,11 +1507,6 @@ export interface GQLTranslationArgs {
 }
 
 export interface GQLArticleTranslation {
-  /**
-   *
-   * @deprecated Use `Article.language` instead
-   */
-  originalLanguage: string
   title?: string
   content?: string
 }
@@ -1960,39 +1944,6 @@ export interface GQLMutation {
   mergeTags: GQLTag
 
   /**
-   * Subscribe an artcile.
-   * @deprecated Use `toggleSubscribeArticle`.
-   */
-  subscribeArticle: GQLArticle
-
-  /**
-   * Unsubscribe an article.
-   * @deprecated Use `toggleSubscribeArticle`.
-   */
-  unsubscribeArticle: GQLArticle
-
-  /**
-   * Archive an article and users won't be able to view this article.
-   * @deprecated Use `editArticle`.
-   */
-  archiveArticle: GQLArticle
-
-  /**
-   * Set collection of an article.
-   */
-  setCollection: GQLArticle
-
-  /**
-   * Update article information.
-   */
-  updateArticleInfo: GQLArticle
-
-  /**
-   * Recall while publishing.
-   */
-  recallPublish: GQLDraft
-
-  /**
    * Publish a comment.
    */
   putComment: GQLComment
@@ -2056,11 +2007,6 @@ export interface GQLMutation {
    * Upload a single file.
    */
   singleFileUpload: GQLAsset
-
-  /**
-   * Delete a uploaded file.
-   */
-  singleFileDelete: boolean
   feedback?: boolean
 
   /**
@@ -2172,30 +2118,6 @@ export interface GQLMutation {
    * Update state of a user, used in OSS.
    */
   updateUserRole: GQLUser
-
-  /**
-   * Block a given user.
-   * @deprecated Use `toggleBlockUser`.
-   */
-  blockUser: GQLUser
-
-  /**
-   * Unblock a given user.
-   * @deprecated Use `toggleBlockUser`.
-   */
-  unblockUser: GQLUser
-
-  /**
-   * Follow a given user.
-   * @deprecated Use `toggleFollowUser`.
-   */
-  followUser: GQLUser
-
-  /**
-   * Unfollow curent user.
-   * @deprecated Use `toggleFollowUser`.
-   */
-  unfollowUser: GQLUser
 
   /**
    * Add Credit to User Wallet
@@ -2331,32 +2253,6 @@ export interface GQLMergeTagsInput {
   content: string
 }
 
-export interface GQLSubscribeArticleInput {
-  id: string
-}
-
-export interface GQLUnsubscribeArticleInput {
-  id: string
-}
-
-export interface GQLArchiveArticleInput {
-  id: string
-}
-
-export interface GQLSetCollectionInput {
-  id: string
-  collection: Array<string>
-}
-
-export interface GQLUpdateArticleInfoInput {
-  id: string
-  sticky?: boolean
-}
-
-export interface GQLRecallPublishInput {
-  id: string
-}
-
 export interface GQLPutCommentInput {
   comment: GQLCommentInput
   id?: string
@@ -2432,10 +2328,6 @@ export const enum GQLEntityType {
   draft = 'draft',
   tag = 'tag',
   user = 'user',
-}
-
-export interface GQLSingleFileDeleteInput {
-  id: string
 }
 
 export interface GQLFeedbackInput {
@@ -2619,14 +2511,6 @@ export type GQLPositiveInt = any
 export interface GQLUpdateUserRoleInput {
   id: string
   role: GQLUserRole
-}
-
-export interface GQLBlockUserInput {
-  id: string
-}
-
-export interface GQLFollowUserInput {
-  id: string
 }
 
 /**
@@ -3085,11 +2969,6 @@ export interface GQLDownstreamArticleArchivedNotice extends GQLNotice {
   target?: GQLArticle
 }
 
-export interface GQLImportArticlesInput {
-  platform?: string
-  token?: string
-}
-
 export type GQLJSON = any
 
 export type GQLNegativeFloat = any
@@ -3341,7 +3220,6 @@ export interface GQLResolver {
   AppreciationEdge?: GQLAppreciationEdgeTypeResolver
   Appreciation?: GQLAppreciationTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
-  LIKE?: GQLLIKETypeResolver
   UserOSS?: GQLUserOSSTypeResolver
   NoticeConnection?: GQLNoticeConnectionTypeResolver
   NoticeEdge?: GQLNoticeEdgeTypeResolver
@@ -6392,7 +6270,6 @@ export interface AppreciationToTargetResolver<TParent = any, TResult = any> {
 export interface GQLUserStatusTypeResolver<TParent = any> {
   state?: UserStatusToStateResolver<TParent>
   role?: UserStatusToRoleResolver<TParent>
-  LIKE?: UserStatusToLIKEResolver<TParent>
   articleCount?: UserStatusToArticleCountResolver<TParent>
   commentCount?: UserStatusToCommentCountResolver<TParent>
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
@@ -6414,15 +6291,6 @@ export interface UserStatusToStateResolver<TParent = any, TResult = any> {
 }
 
 export interface UserStatusToRoleResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserStatusToLIKEResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6531,29 +6399,6 @@ export interface UserStatusToReceivedDonationCountResolver<
   TParent = any,
   TResult = any
 > {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLLIKETypeResolver<TParent = any> {
-  total?: LIKEToTotalResolver<TParent>
-  rateUSD?: LIKEToRateUSDResolver<TParent>
-}
-
-export interface LIKEToTotalResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface LIKEToRateUSDResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6926,21 +6771,8 @@ export interface StripeAccountToLoginUrlResolver<TParent = any, TResult = any> {
 }
 
 export interface GQLArticleTranslationTypeResolver<TParent = any> {
-  originalLanguage?: ArticleTranslationToOriginalLanguageResolver<TParent>
   title?: ArticleTranslationToTitleResolver<TParent>
   content?: ArticleTranslationToContentResolver<TParent>
-}
-
-export interface ArticleTranslationToOriginalLanguageResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
 }
 
 export interface ArticleTranslationToTitleResolver<
@@ -8124,12 +7956,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteTags?: MutationToDeleteTagsResolver<TParent>
   renameTag?: MutationToRenameTagResolver<TParent>
   mergeTags?: MutationToMergeTagsResolver<TParent>
-  subscribeArticle?: MutationToSubscribeArticleResolver<TParent>
-  unsubscribeArticle?: MutationToUnsubscribeArticleResolver<TParent>
-  archiveArticle?: MutationToArchiveArticleResolver<TParent>
-  setCollection?: MutationToSetCollectionResolver<TParent>
-  updateArticleInfo?: MutationToUpdateArticleInfoResolver<TParent>
-  recallPublish?: MutationToRecallPublishResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   togglePinComment?: MutationToTogglePinCommentResolver<TParent>
@@ -8143,7 +7969,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteDraft?: MutationToDeleteDraftResolver<TParent>
   markAllNoticesAsRead?: MutationToMarkAllNoticesAsReadResolver<TParent>
   singleFileUpload?: MutationToSingleFileUploadResolver<TParent>
-  singleFileDelete?: MutationToSingleFileDeleteResolver<TParent>
   feedback?: MutationToFeedbackResolver<TParent>
   logRecord?: MutationToLogRecordResolver<TParent>
   setBoost?: MutationToSetBoostResolver<TParent>
@@ -8171,10 +7996,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   migration?: MutationToMigrationResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
-  blockUser?: MutationToBlockUserResolver<TParent>
-  unblockUser?: MutationToUnblockUserResolver<TParent>
-  followUser?: MutationToFollowUserResolver<TParent>
-  unfollowUser?: MutationToUnfollowUserResolver<TParent>
   addCredit?: MutationToAddCreditResolver<TParent>
   payTo?: MutationToPayToResolver<TParent>
   payout?: MutationToPayoutResolver<TParent>
@@ -8446,90 +8267,6 @@ export interface MutationToMergeTagsResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToSubscribeArticleArgs {
-  input: GQLSubscribeArticleInput
-}
-export interface MutationToSubscribeArticleResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToSubscribeArticleArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToUnsubscribeArticleArgs {
-  input: GQLUnsubscribeArticleInput
-}
-export interface MutationToUnsubscribeArticleResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToUnsubscribeArticleArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToArchiveArticleArgs {
-  input: GQLArchiveArticleInput
-}
-export interface MutationToArchiveArticleResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToArchiveArticleArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToSetCollectionArgs {
-  input: GQLSetCollectionInput
-}
-export interface MutationToSetCollectionResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToSetCollectionArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToUpdateArticleInfoArgs {
-  input: GQLUpdateArticleInfoInput
-}
-export interface MutationToUpdateArticleInfoResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToUpdateArticleInfoArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToRecallPublishArgs {
-  input: GQLRecallPublishInput
-}
-export interface MutationToRecallPublishResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToRecallPublishArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface MutationToPutCommentArgs {
   input: GQLPutCommentInput
 }
@@ -8690,21 +8427,6 @@ export interface MutationToSingleFileUploadResolver<
   (
     parent: TParent,
     args: MutationToSingleFileUploadArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToSingleFileDeleteArgs {
-  input: GQLSingleFileDeleteInput
-}
-export interface MutationToSingleFileDeleteResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToSingleFileDeleteArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -9035,54 +8757,6 @@ export interface MutationToUpdateUserRoleResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserRoleArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToBlockUserArgs {
-  input: GQLBlockUserInput
-}
-export interface MutationToBlockUserResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToBlockUserArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToUnblockUserArgs {
-  input: GQLBlockUserInput
-}
-export interface MutationToUnblockUserResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToUnblockUserArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToFollowUserArgs {
-  input: GQLFollowUserInput
-}
-export interface MutationToFollowUserResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToFollowUserArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToUnfollowUserArgs {
-  input: GQLFollowUserInput
-}
-export interface MutationToUnfollowUserResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToUnfollowUserArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

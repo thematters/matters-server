@@ -29,20 +29,6 @@ const USER_LOGIN = `
   }
 `
 
-const FOLLOW_USER = `
-  mutation FollowerUser($input: FollowUserInput!) {
-    followUser(input: $input) {
-      isFollowee
-    }
-  }
-`
-const UNFOLLOW_USER = `
-  mutation FollowerUser($input: UnfollowUserInput!) {
-    unfollowUser(input: $input) {
-      isFollowee
-    }
-  }
-`
 const TOGGLE_FOLLOW_USER = `
   mutation($input: ToggleItemInput!) {
     toggleFollowUser(input: $input) {
@@ -445,56 +431,6 @@ describe('user query fields', () => {
 })
 
 describe('mutations on User object', () => {
-  test('followUser and unfollowUser', async () => {
-    const followeeId = toGlobalId({ type: 'User', id: '3' })
-
-    // follow
-    const { mutate } = await testClient({
-      isAuth: true,
-    })
-    const { data: followData } = await mutate({
-      mutation: FOLLOW_USER,
-      // @ts-ignore
-      variables: { input: { id: followeeId } },
-    })
-    expect(
-      followData && followData.followUser && followData.followUser.isFollowee
-    ).toBeTruthy()
-
-    // check
-    const { query } = await testClient({ isAuth: true })
-    const { data: followeeData } = await query({
-      query: GET_VIEWER_FOLLOWEES,
-      // @ts-ignore
-      variables: { input: {} },
-    })
-    const followees = _get(followeeData, 'viewer.followees.edges')
-    expect(
-      followees.map(({ node: { id } }: { node: { id: string } }) => id)
-    ).toContain(followeeId)
-
-    // unfollow
-    const { mutate: mutateNew } = await testClient({ isAuth: true })
-    const { data: unfollowData } = await mutateNew({
-      mutation: UNFOLLOW_USER,
-      // @ts-ignore
-      variables: { input: { id: followeeId } },
-    })
-    expect(unfollowData && unfollowData.unfollowUser.isFollowee).toBeFalsy()
-
-    // re-check
-    const { query: queryNew } = await testClient({ isAuth: true })
-    const { data: followeeDataNew } = await queryNew({
-      query: GET_VIEWER_FOLLOWEES,
-      // @ts-ignore
-      variables: { input: {} },
-    })
-    const followeesNew = _get(followeeDataNew, 'viewer.followees.edges')
-    expect(
-      followeesNew.filter(({ id }: { id: string }) => id === followeeId).length
-    ).toEqual(0)
-  })
-
   test('follow a user with `toggleFollowUser`', async () => {
     const followeeId = toGlobalId({ type: 'User', id: '4' })
     const { mutate } = await testClient({ isAuth: true })
@@ -746,29 +682,5 @@ describe('frozen user do mutations', () => {
       id: toGlobalId({ type: 'User', id: 8 }),
       state: 'active',
     })
-  })
-
-  test('follow an user', async () => {
-    const followeeId = toGlobalId({ type: 'User', id: '3' })
-
-    // follow
-    const { mutate } = await testClient(frozenUser)
-    const result = await mutate({
-      mutation: FOLLOW_USER,
-      variables: { input: { id: followeeId } },
-    })
-    expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
-  })
-
-  test('followed by an user', async () => {
-    const followeeId = toGlobalId({ type: 'User', id: '8' })
-
-    // follow
-    const { mutate } = await testClient({ isAuth: true })
-    const result = await mutate({
-      mutation: FOLLOW_USER,
-      variables: { input: { id: followeeId } },
-    })
-    expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_TARGET_STATE')
   })
 })
