@@ -15,7 +15,7 @@ const mediaHash = 'someIpfsMediaHash1'
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 2 })
 
 const GET_ARTICLES = `
-  query ($input: OSSArticlesInput!) {
+  query ($input: ConnectionArgs!) {
     oss {
       articles(input: $input) {
         edges {
