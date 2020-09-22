@@ -1,9 +1,9 @@
-"""Rate limit within a given period of time, in seconds"""
-directive @rateLimit(period: Int!, limit: Int!) on FIELD_DEFINITION
-
 directive @cacheControl(maxAge: Int, scope: CacheScope) on OBJECT | FIELD | FIELD_DEFINITION
 
 directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
+
+"""Rate limit within a given period of time, in seconds"""
+directive @rateLimit(period: Int!, limit: Int!) on FIELD_DEFINITION
 
 directive @auth(mode: String!, group: String) on FIELD_DEFINITION
 
@@ -99,9 +99,6 @@ type Article implements Node {
 
   """State of this article."""
   state: ArticleState!
-
-  """This value determines if this article is accessible to visitors."""
-  public: Boolean!
 
   """This value determines if this article is under Subscription or not."""
   live: Boolean!
@@ -515,21 +512,11 @@ enum CacheScope {
   PRIVATE
 }
 
-type Category {
-  id: ID!
-  name: String!
-}
-
 input ChangeEmailInput {
   oldEmail: Email!
   oldEmailCodeId: ID!
   newEmail: Email!
   newEmailCodeId: ID!
-}
-
-enum ChannelType {
-  appStore
-  googlePlay
 }
 
 input ClearReadHistoryInput {
@@ -847,13 +834,6 @@ enum FeatureName {
   tag_adoption
 }
 
-input FeedbackInput {
-  category: ID!
-  description: String
-  assetIds: [ID!]
-  contact: String
-}
-
 type FolloweeDonatedArticle {
   article: Article!
   followee: User!
@@ -926,9 +906,6 @@ type Mutation {
   """Edit an article."""
   editArticle(input: EditArticleInput!): Article!
 
-  """Report an article to team."""
-  reportArticle(input: ReportArticleInput!): Boolean
-
   """Subscribe or Unsubscribe article"""
   toggleSubscribeArticle(input: ToggleItemInput!): Article!
 
@@ -962,7 +939,6 @@ type Mutation {
   #############
   """
   toggleArticleLive(input: ToggleItemInput!): Article!
-  toggleArticlePublic(input: ToggleItemInput!): Article!
   toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
   deleteTags(input: DeleteTagsInput!): Boolean
@@ -977,9 +953,6 @@ type Mutation {
 
   """Pin or Unpin a comment."""
   togglePinComment(input: ToggleItemInput!): Comment!
-
-  """Report a comment to team."""
-  reportComment(input: ReportCommentInput!): Boolean
 
   """Upvote or downvote a comment."""
   voteComment(input: VoteCommentInput!): Comment!
@@ -1007,7 +980,6 @@ type Mutation {
 
   """Upload a single file."""
   singleFileUpload(input: SingleFileUploadInput!): Asset!
-  feedback(input: FeedbackInput!): Boolean
 
   """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
@@ -1228,25 +1200,8 @@ input OAuthClientInput {
   id: ID!
 }
 
-enum OAuthProvider {
-  facebook
-  wechat
-  google
-}
-
 """This type contains system-wise settings."""
 type Official {
-  reportCategory: [Category!]!
-  feedbackCategory: [Category!]!
-  releases(input: ReleasesInput!): [Release!]
-
-  """Links of specific pages on Matters site."""
-  links: OfficialLinks!
-  placements: Placements!
-
-  """IPFS node address"""
-  ipfsAddress: [String!]!
-
   """Feature flag"""
   features: [Feature!]!
 }
@@ -1269,29 +1224,13 @@ type OfficialAnnouncementNotice implements Notice {
   link: URL
 }
 
-type OfficialLinks {
-  beginnerGuide: URL!
-  userGuide: URL!
-  about: URL!
-  faq: URL!
-  tos: URL!
-}
-
 type OSS {
   users(input: ConnectionArgs!): UserConnection!
   comments(input: ConnectionArgs!): CommentConnection!
-  articles(input: OSSArticlesInput!): ArticleConnection!
+  articles(input: ConnectionArgs!): ArticleConnection!
   tags(input: TagsInput!): TagConnection!
-  reports(input: ReportsInput!): ReportConnection!
-  report(input: ReportInput!): Report!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
-}
-
-input OSSArticlesInput {
-  public: Boolean
-  after: String
-  first: Int
 }
 
 type PageInfo {
@@ -1357,26 +1296,6 @@ type PayToResult {
 
 input PinCommentInput {
   id: ID!
-}
-
-type Placements {
-  webAsideTop: PlacementUnit!
-  appSplash: PlacementUnit!
-  appInStreamTop: PlacementUnit!
-  appInStreamMiddle: PlacementUnit!
-  appInStreamBottom: PlacementUnit!
-  appInvitationTop: PlacementUnit!
-}
-
-type PlacementUnit {
-  image: URL!
-  link: URL!
-  adLabel: Boolean!
-}
-
-enum PlatformType {
-  ios
-  android
 }
 
 scalar PositiveFloat
@@ -1497,9 +1416,6 @@ type Recommendation {
   """Articles that followee donated"""
   followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
 
-  """Articles and comments published by user's followees."""
-  followeeWorks(input: ResponsesInput!): ResponseConnection! @deprecated(reason: "Feature changed.")
-
   """Tags that user followed."""
   followingTags(input: ConnectionArgs!): TagConnection!
 
@@ -1562,25 +1478,6 @@ input RelatedDonationArticlesInput {
   random: NonNegativeInt
 }
 
-type Release {
-  title: String
-  description: String
-  cover: URL
-  link: URL
-  platform: PlatformType!
-  channel: ChannelType!
-  version: String!
-  latest: Boolean!
-  forceUpdate: Boolean!
-  releasedAt: DateTime!
-}
-
-input ReleasesInput {
-  platform: PlatformType!
-  channel: ChannelType!
-  first: Int
-}
-
 enum RemarkTypes {
   Article
   User
@@ -1593,50 +1490,6 @@ enum RemarkTypes {
 input RenameTagInput {
   id: ID!
   content: String!
-}
-
-type Report {
-  id: ID!
-  user: User
-  article: Article
-  comment: Comment
-  category: String!
-  description: String
-  assets: [URL!]
-  contact: String
-  createdAt: DateTime!
-  remark: String
-}
-
-input ReportArticleInput {
-  id: ID!
-  category: ID!
-  description: String!
-  assetIds: [ID!]
-  contact: String
-}
-
-input ReportCommentInput {
-  id: ID!
-  category: ID!
-  description: String!
-  assetIds: [ID!]
-  contact: String
-}
-
-type ReportConnection implements Connection {
-  totalCount: Int!
-  pageInfo: PageInfo!
-  edges: [ReportEdge!]
-}
-
-type ReportEdge {
-  cursor: String!
-  node: Report!
-}
-
-input ReportInput {
-  id: ID!
 }
 
 input ReportsInput {
@@ -2268,7 +2121,6 @@ type UserSettings {
 
   """Notification settings."""
   notification: NotificationSetting!
-  oauthProviders: [OAuthProvider!]
 }
 
 enum UserState {
@@ -2297,9 +2149,6 @@ type UserStatus {
 
   """Whether there are unread articles from followees."""
   unreadFolloweeArticles: Boolean!
-
-  """Whether user has read response info or not."""
-  unreadResponseInfoPopUp: Boolean!
 
   """Whether user already set payment password."""
   hasPaymentPassword: Boolean!

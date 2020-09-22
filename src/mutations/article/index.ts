@@ -8,9 +8,7 @@ import publishArticle from './publishArticle'
 import putTag from './putTag'
 import readArticle from './readArticle'
 import renameTag from './renameTag'
-import reportArticle from './reportArticle'
 import toggleArticleLive from './toggleArticleLive'
-import toggleArticlePublic from './toggleArticlePublic'
 import toggleArticleRecommend from './toggleArticleRecommend'
 import toggleSubscribeArticle from './toggleSubscribeArticle'
 import updateArticlesTags from './updateArticlesTags'
@@ -21,11 +19,9 @@ export default {
   Mutation: {
     publishArticle,
     editArticle,
-    reportArticle,
     appreciateArticle,
     readArticle,
     toggleArticleLive,
-    toggleArticlePublic,
     toggleArticleRecommend,
     toggleSubscribeArticle,
     updateArticleState,

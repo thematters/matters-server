@@ -34,7 +34,6 @@ import isFollower from './isFollower'
 import Liker from './liker'
 import likerId from './liker/likerId'
 import notification from './notification'
-import oauthProviders from './oauthProviders'
 import { boost, score } from './oss'
 import profileCover from './profileCover'
 import receivedDonationCount from './receivedDonationCount'
@@ -46,7 +45,6 @@ import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
 import unreadFolloweeArticles from './unreadFolloweeArticles'
 import unreadNoticeCount from './unreadNoticeCount'
-import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
 import UserActivity from './userActivity'
 import userNameEditable from './userNameEditable'
 import Wallet from './wallet'
@@ -109,7 +107,6 @@ const user: {
   UserSettings: {
     language: ({ language }, _, { viewer }) => language,
     notification,
-    oauthProviders,
   },
   UserActivity,
   UserStatus: {
@@ -117,7 +114,6 @@ const user: {
     commentCount,
     unreadNoticeCount,
     unreadFolloweeArticles,
-    unreadResponseInfoPopUp,
     hasPaymentPassword,
     totalWordCount,
     donatedArticleCount,

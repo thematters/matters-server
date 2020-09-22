@@ -400,49 +400,4 @@ export class CommentService extends BaseService {
     })
     return Math.max(ARTICLE_PIN_COMMENT_LIMIT - pinnedCount, 0)
   }
-
-  /*********************************
-   *                               *
-   *             Report            *
-   *                               *
-   *********************************/
-  /**
-   * User report an comment
-   */
-  report = async ({
-    commentId,
-    userId,
-    category,
-    description,
-    contact,
-    assetIds,
-  }: {
-    commentId: string
-    userId?: string | null
-    category: string
-    description?: string
-    contact?: string
-    assetIds?: string[]
-  }): Promise<void> => {
-    // create report
-    const { id: reportId } = await this.baseCreate(
-      {
-        userId,
-        commentId,
-        category,
-        description,
-        contact,
-      },
-      'report'
-    )
-    // create report assets
-    if (!assetIds || assetIds.length <= 0) {
-      return
-    }
-    const reportAssets = assetIds.map((assetId) => ({
-      reportId,
-      assetId,
-    }))
-    await this.baseBatchCreate(reportAssets, 'report_asset')
-  }
 }

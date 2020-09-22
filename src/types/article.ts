@@ -15,9 +15,6 @@ export default /* GraphQL */ `
     "Edit an article."
     editArticle(input: EditArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}")
 
-    "Report an article to team."
-    reportArticle(input: ReportArticleInput!): Boolean
-
     "Subscribe or Unsubscribe article"
     toggleSubscribeArticle(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}")
 
@@ -54,7 +51,6 @@ export default /* GraphQL */ `
     #     OSS    #
     ##############
     toggleArticleLive(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
-    toggleArticlePublic(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
     toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
 
     updateArticleState(input: UpdateArticleStateInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
@@ -82,9 +78,6 @@ export default /* GraphQL */ `
 
     "State of this article."
     state: ArticleState!
-
-    "This value determines if this article is accessible to visitors."
-    public: Boolean!
 
     "This value determines if this article is under Subscription or not."
     live: Boolean!
@@ -275,14 +268,6 @@ export default /* GraphQL */ `
     sticky: Boolean
     tags: [String!]
     collection: [ID!]
-  }
-
-  input ReportArticleInput {
-    id: ID!
-    category: ID!
-    description: String!
-    assetIds: [ID!]
-    contact: String
   }
 
   input AppreciateArticleInput {
