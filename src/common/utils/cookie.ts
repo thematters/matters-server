@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { CookieOptions, Request, Response } from 'express'
 
 import {
   COOKIE_TOKEN_NAME,
@@ -12,7 +12,8 @@ const getCookieOption = (req: Request) => {
     httpOnly: true,
     secure: req.protocol === 'https',
     domain: req.hostname,
-  }
+    sameSite: 'strict',
+  } as CookieOptions
 }
 
 export const setCookie = ({
