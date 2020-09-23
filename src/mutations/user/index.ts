@@ -1,11 +1,9 @@
 import addCredit from './addCredit'
-import blockUser from './blockUser'
 import changeEmail from './changeEmail'
 import clearReadHistory from './clearReadHistory'
 import clearSearchHistory from './clearSearchHistory'
 import confirmVerificationCode from './confirmVerificationCode'
 import connectStripeAccount from './connectStripeAccount'
-import followUser from './followUser'
 import generateLikerId from './generateLikerId'
 import migration from './migration'
 import payout from './payout'
@@ -16,8 +14,6 @@ import toggleBlockUser from './toggleBlockUser'
 import toggleFollowTag from './toggleFollowTag'
 import toggleFollowUser from './toggleFollowUser'
 import toggleSubscribePush from './toggleSubscribePush'
-import unblockUser from './unblockUser'
-import unfollowUser from './unfollowUser'
 import updateNotificationSetting from './updateNotificationSetting'
 import updateUserInfo from './updateUserInfo'
 import updateUserRole from './updateUserRole'
@@ -40,10 +36,6 @@ export default {
     generateLikerId,
     updateUserInfo,
     updateNotificationSetting,
-    followUser,
-    unblockUser,
-    blockUser,
-    unfollowUser,
     toggleSubscribePush,
     toggleBlockUser,
     toggleFollowTag,

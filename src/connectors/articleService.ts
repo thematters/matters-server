@@ -1273,51 +1273,6 @@ export class ArticleService extends BaseService {
 
   /*********************************
    *                               *
-   *             Report            *
-   *                               *
-   *********************************/
-  /**
-   * User report an article
-   */
-  report = async ({
-    articleId,
-    userId,
-    category,
-    description,
-    contact,
-    assetIds,
-  }: {
-    articleId?: string
-    userId?: string | null
-    category: string
-    description?: string
-    contact?: string
-    assetIds?: string[]
-  }): Promise<void> => {
-    // create report
-    const { id: reportId } = await this.baseCreate(
-      {
-        userId,
-        articleId,
-        category,
-        description,
-        contact,
-      },
-      'report'
-    )
-    // create report assets
-    if (!assetIds || assetIds.length <= 0) {
-      return
-    }
-    const reportAssets = assetIds.map((assetId) => ({
-      reportId,
-      assetId,
-    }))
-    await this.baseBatchCreate(reportAssets, 'report_asset')
-  }
-
-  /*********************************
-   *                               *
    *          Collection           *
    *                               *
    *********************************/

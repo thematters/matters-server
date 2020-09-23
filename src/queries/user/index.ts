@@ -2,7 +2,6 @@ import { toGlobalId } from 'common/utils'
 import {
   GQLAppreciationTypeResolver,
   GQLLikerTypeResolver,
-  GQLLIKETypeResolver,
   GQLQueryTypeResolver,
   GQLRecommendationTypeResolver,
   GQLStripeAccountTypeResolver,
@@ -34,10 +33,7 @@ import isFollowee from './isFollowee'
 import isFollower from './isFollower'
 import Liker from './liker'
 import likerId from './liker/likerId'
-import rateUSD from './liker/rateUSD'
-import total from './liker/total'
 import notification from './notification'
-import oauthProviders from './oauthProviders'
 import { boost, score } from './oss'
 import profileCover from './profileCover'
 import receivedDonationCount from './receivedDonationCount'
@@ -49,7 +45,6 @@ import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
 import unreadFolloweeArticles from './unreadFolloweeArticles'
 import unreadNoticeCount from './unreadNoticeCount'
-import unreadResponseInfoPopUp from './unreadResponseInfoPopUp'
 import UserActivity from './userActivity'
 import userNameEditable from './userNameEditable'
 import Wallet from './wallet'
@@ -66,7 +61,6 @@ const user: {
   Recommendation: GQLRecommendationTypeResolver
 
   Liker: GQLLikerTypeResolver
-  LIKE: GQLLIKETypeResolver
 
   UserOSS: GQLUserOSSTypeResolver
 
@@ -113,16 +107,13 @@ const user: {
   UserSettings: {
     language: ({ language }, _, { viewer }) => language,
     notification,
-    oauthProviders,
   },
   UserActivity,
   UserStatus: {
-    LIKE: (root) => root,
     articleCount,
     commentCount,
     unreadNoticeCount,
     unreadFolloweeArticles,
-    unreadResponseInfoPopUp,
     hasPaymentPassword,
     totalWordCount,
     donatedArticleCount,
@@ -133,10 +124,6 @@ const user: {
 
   // LikeCoin
   Liker,
-  LIKE: {
-    total,
-    rateUSD,
-  },
 
   // OSS
   UserOSS: {

@@ -67,22 +67,6 @@ export default /* GraphQL */ `
 
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
-
-
-    ##############
-    # DEPRECATED #
-    ##############
-    "Block a given user."
-    blockUser(input: BlockUserInput!): User! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
-
-    "Unblock a given user."
-    unblockUser(input: BlockUserInput!): User! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleBlockUser\`.")
-
-    "Follow a given user."
-    followUser(input: FollowUserInput!): User! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
-
-    "Unfollow curent user."
-    unfollowUser(input: FollowUserInput!): User! @auth(mode: "${AUTH_MODE.oauth}") @purgeCache(type: "${NODE_TYPES.user}") @deprecated(reason: "Use \`toggleFollowUser\`.")
   }
 
   type User implements Node {
@@ -173,9 +157,6 @@ export default /* GraphQL */ `
     "Articles that followee donated"
     followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @auth(mode: "${AUTH_MODE.oauth}")
 
-    "Articles and comments published by user's followees."
-    followeeWorks(input: ResponsesInput!): ResponseConnection! @auth(mode: "${AUTH_MODE.oauth}") @deprecated(reason: "Feature changed.")
-
     "Tags that user followed."
     followingTags(input: ConnectionArgs!): TagConnection! @auth(mode: "${AUTH_MODE.oauth}")
 
@@ -252,10 +233,9 @@ export default /* GraphQL */ `
   type UserSettings {
     "User language setting."
     language: UserLanguage!
-    # Notification settings
+
     "Notification settings."
     notification: NotificationSetting!
-    oauthProviders: [OAuthProvider!]
   }
 
   type UserActivity {
@@ -285,9 +265,6 @@ export default /* GraphQL */ `
     "User role and access level."
     role: UserRole! @auth(mode: "${AUTH_MODE.oauth}")
 
-    "Total LIKE left in wallet."
-    LIKE: LIKE! @auth(mode: "${AUTH_MODE.oauth}") @deprecated(reason: "Use \`liker.total\` and \`liker.rateUSD\`.")
-
     "Number of articles published by user"
     articleCount: Int!
 
@@ -299,9 +276,6 @@ export default /* GraphQL */ `
 
     "Whether there are unread articles from followees."
     unreadFolloweeArticles: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
-
-    "Whether user has read response info or not."
-    unreadResponseInfoPopUp: Boolean!
 
     "Whether user already set payment password."
     hasPaymentPassword: Boolean!
@@ -321,17 +295,12 @@ export default /* GraphQL */ `
     total: NonNegativeFloat! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Rate of LikeCoin/USD"
-    rateUSD: NonNegativeFloat
+    rateUSD: NonNegativeFloat @objectCache(maxAge: ${CACHE_TTL.LONG})
   }
 
   type UserOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
-  }
-
-  type LIKE {
-    total: NonNegativeFloat!
-    rateUSD: NonNegativeFloat
   }
 
   type Appreciation {
@@ -518,20 +487,6 @@ export default /* GraphQL */ `
     role: UserRole!
   }
 
-  input FollowUserInput {
-    id: ID!
-  }
-
-
-  input BlockUserInput {
-    id: ID!
-  }
-
-  input ImportArticlesInput {
-    platform: String
-    token: String
-  }
-
   input ClearReadHistoryInput {
     id: ID!
   }
@@ -599,12 +554,6 @@ export default /* GraphQL */ `
     commentVoted
     officialNotice
     reportFeedback
-  }
-
-  enum OAuthProvider {
-    facebook
-    wechat
-    google
   }
 
   enum UserState {
