@@ -34,11 +34,6 @@ const GET_ARTILCE_COMMENTS = `
     }
   }
 `
-const REPORT_COMMENT = `
-  mutation($input: ReportCommentInput!) {
-    reportComment(input: $input)
-  }
-`
 
 const VOTE_COMMENT = `
   mutation($input: VoteCommentInput!) {
@@ -143,41 +138,6 @@ describe('query comment list on article', () => {
         new Date(createdAt).getTime()
     )
     expect(isDesc(commentTimestamps)).toBe(true)
-  })
-})
-
-describe('Report comment', () => {
-  test('report a comment without asset', async () => {
-    const { mutate } = await testClient({ isAuth: true })
-    const result = await mutate({
-      mutation: REPORT_COMMENT,
-      // @ts-ignore
-      variables: {
-        input: {
-          id: COMMENT_ID,
-          category: 'spam',
-          description: 'desc',
-        },
-      },
-    })
-    expect(_get(result, 'data.reportComment')).toBe(true)
-  })
-
-  test('report a comment with asset', async () => {
-    const { mutate } = await testClient({ isAuth: true })
-    const result = await mutate({
-      mutation: REPORT_COMMENT,
-      // @ts-ignore
-      variables: {
-        input: {
-          id: COMMENT_ID,
-          category: 'spam',
-          description: 'desc',
-          assetIds: ['00000000-0000-0000-0000-000000000011'],
-        },
-      },
-    })
-    expect(_get(result, 'data.reportComment')).toBe(true)
   })
 })
 

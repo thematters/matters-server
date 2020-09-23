@@ -4,19 +4,10 @@ import {
 } from 'definitions'
 
 import frequentSearch from './frequentSearch'
-import ipfsAddress from './ipfsAddress'
 import node from './node'
 import nodes from './nodes'
-import {
-  features,
-  feedbackCategory,
-  links,
-  placements,
-  releases,
-  reportCategory,
-} from './official'
+import { features } from './official'
 import OSS from './oss'
-import Report from './report'
 import search from './search'
 
 export default {
@@ -39,14 +30,7 @@ export default {
     id: ({ uuid }: { uuid: string }) => uuid,
   },
   Official: {
-    ipfsAddress,
-    reportCategory,
-    feedbackCategory,
-    releases, // TODO
-    links,
-    placements, // TODO
     features,
   },
   OSS,
-  Report,
 }

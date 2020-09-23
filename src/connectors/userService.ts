@@ -720,52 +720,6 @@ export class UserService extends BaseService {
     return query.where({ id: cursorId }).first()
   }
 
-  findFolloweeWorks = async ({
-    after,
-    limit = BATCH_SIZE,
-    state = USER_STATE.active,
-    userId,
-  }: {
-    after?: any
-    limit?: number
-    state?: string
-    userId: string
-  }) => {
-    const query = this.makeFolloweeWorksQuery({ state, userId })
-    if (after) {
-      const subQuery = this.makeFolloweeWorksFilterQuery({
-        cursorId: after,
-        state,
-        userId,
-      })
-      query.andWhere('seq', '<', subQuery)
-    }
-    if (limit) {
-      query.limit(limit)
-    }
-    return query
-  }
-
-  findFolloweeWorksRange = async ({
-    state = USER_STATE.active,
-    userId,
-  }: {
-    state?: string
-    userId: string
-  }) => {
-    const query = this.makeFolloweeWorksQuery({ fields: '', state, userId })
-    const { count, max, min } = await query
-      .max('seq')
-      .min('seq')
-      .count()
-      .first()
-    return {
-      count: parseInt(count, 10),
-      max: parseInt(max, 10),
-      min: parseInt(min, 10),
-    }
-  }
-
   followeeArticles = async ({
     userId,
     offset = 0,
@@ -1711,13 +1665,6 @@ export class UserService extends BaseService {
       },
     })
   }
-
-  findOAuthProviders = async ({ userId }: { userId: string }) =>
-    this.knex
-      .select('provider')
-      .from('user_oauth')
-      .where({ userId })
-      .groupBy('provider')
 
   findOAuthToken = async ({
     userId,
