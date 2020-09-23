@@ -7,12 +7,15 @@ import {
 import { isTest } from 'common/environment'
 
 const getCookieOption = (req: Request) => {
+  const origin = req.headers.origin || ''
+  const isLocalDev = /(localhost|127\.0\.0\.1):\d+$/.test(origin)
+
   return {
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     httpOnly: true,
     secure: req.protocol === 'https',
     domain: req.hostname,
-    sameSite: 'strict',
+    sameSite: isLocalDev ? undefined : 'strict',
   } as CookieOptions
 }
 
