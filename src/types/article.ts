@@ -186,7 +186,7 @@ export default /* GraphQL */ `
     description: String
 
     "Editors of this tag."
-    editors: [User!] @logCache(type: "${NODE_TYPES.user}")
+    editors(input: TagEditorsInput): [User!] @logCache(type: "${NODE_TYPES.user}")
 
     "Creator of this tag."
     creator: User @logCache(type: "${NODE_TYPES.user}")
@@ -349,6 +349,10 @@ export default /* GraphQL */ `
   input TagSelectedInput {
     id: ID
     mediaHash: String
+  }
+
+  input TagEditorsInput {
+    excludeAdmin: Boolean
   }
 
   input TransactionsReceivedByArgs {

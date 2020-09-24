@@ -891,6 +891,10 @@ export interface GQLTagSelectedInput {
   mediaHash?: string
 }
 
+export interface GQLTagEditorsInput {
+  excludeAdmin?: boolean
+}
+
 export interface GQLUserConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
@@ -5181,10 +5185,13 @@ export interface TagToDescriptionResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface TagToEditorsArgs {
+  input?: GQLTagEditorsInput
+}
 export interface TagToEditorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: {},
+    args: TagToEditorsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

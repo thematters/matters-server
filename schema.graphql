@@ -1691,7 +1691,7 @@ type Tag implements Node {
   description: String
 
   """Editors of this tag."""
-  editors: [User!]
+  editors(input: TagEditorsInput): [User!]
 
   """Creator of this tag."""
   creator: User
@@ -1730,6 +1730,10 @@ type TagConnection implements Connection {
 type TagEdge {
   cursor: String!
   node: Tag!
+}
+
+input TagEditorsInput {
+  excludeAdmin: Boolean
 }
 
 type TagOSS {
