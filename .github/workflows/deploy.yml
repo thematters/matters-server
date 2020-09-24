@@ -77,6 +77,7 @@ jobs:
           MATTERS_PUBSUB_HOST: localhost
           MATTERS_QUEUE_HOST: localhost
           MATTERS_CACHE_HOST: localhost
+          MATTERS_MATTY_ID: 6
           MATTERS_JWT_SECRET: QsNmu9
           MATTERS_ELASTICSEARCH_HOST: localhost
           MATTERS_ELASTICSEARCH_PORT: 9200
@@ -155,7 +156,7 @@ jobs:
           region: ap-southeast-1
           deployment_package: deploy.zip
           use_existing_version_if_available: true
-          wait_for_deployment: false
+          wait_for_deployment: true
       # === [END] `develop` branch ===
 
       # === `stage` branch ===
@@ -192,7 +193,7 @@ jobs:
           region: ap-southeast-1
           deployment_package: deploy.zip
           use_existing_version_if_available: true
-          wait_for_deployment: false
+          wait_for_deployment: true
       # === [END] `stage` branch ===
 
       # === `master` branch ===
@@ -253,6 +254,7 @@ jobs:
           region: ap-southeast-1
           deployment_package: deploy.zip
           use_existing_version_if_available: true
+          wait_for_deployment: true
       # === [END] `master` branch ===
 
       - name: Logout of Amazon ECR

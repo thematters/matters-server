@@ -5,7 +5,7 @@ import * as path from 'path'
 import { createLogger, format, transports } from 'winston'
 import Transport from 'winston-transport'
 
-import { isProd } from 'common/environment'
+import { isProd, isTest } from 'common/environment'
 
 const logPath = 'logs'
 
@@ -77,7 +77,11 @@ const logger = createLogger({
 })
 
 if (!isProd) {
-  logger.add(new transports.Console())
+  logger.add(
+    new transports.Console({
+      level: isTest ? 'warn' : 'info',
+    })
+  )
 }
 
 export default logger

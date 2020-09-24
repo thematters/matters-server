@@ -1,6 +1,7 @@
 import _uniq from 'lodash/uniq'
 
 import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AuthenticationError,
   ForbiddenByStateError,
@@ -48,6 +49,9 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         throw new ForbiddenError('viewer has no permission')
       }
 
+      // auto follow current tag
+      await tagService.follow({ targetId: tag.id, userId: viewer.id })
+
       params = { owner: viewer.id, editors: _uniq([...tag.editors, viewer.id]) }
       break
     case GQLUpdateTagSettingType.leave:
@@ -56,7 +60,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         throw new ForbiddenError('viewer has no permission')
       }
 
-      const isMatty = viewer.email === 'hi@matters.news'
+      const isMatty = viewer.id === environment.mattyId
       const editors = isMatty
         ? undefined
         : (tag.editors || []).filter((item: string) => item !== viewer.id)
@@ -64,7 +68,6 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       break
     default:
       throw new UserInputError('unknown update tag type')
-      break
   }
 
   const updatedTag = await tagService.baseUpdate(tagId, params)

@@ -11,9 +11,6 @@ export default /* GraphQL */ `
     "Pin or Unpin a comment."
     togglePinComment(input: ToggleItemInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
 
-    "Report a comment to team."
-    reportComment(input: ReportCommentInput!): Boolean
-
     "Upvote or downvote a comment."
     voteComment(input: VoteCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
 
@@ -171,14 +168,6 @@ export default /* GraphQL */ `
     id: ID!
   }
 
-  input ReportCommentInput {
-    id: ID!
-    category: ID!
-    description: String!
-    assetIds: [ID!]
-    contact: String
-  }
-
   input VoteCommentInput {
     vote: Vote!
     id: ID!
@@ -206,7 +195,4 @@ export default /* GraphQL */ `
     banned
     collapsed
   }
-
-  "Rate limit within a given period of time, in seconds"
-  directive @rateLimit(period: Int!, limit: Int!) on FIELD_DEFINITION
 `

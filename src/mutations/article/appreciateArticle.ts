@@ -48,7 +48,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ArticleNotFoundError('target article does not exists')
   }
 
-  if (article.authorId === viewer.id) {
+  if (article.authorId === viewer.id && !superLike) {
     throw new ForbiddenError('cannot appreciate your own article')
   }
 

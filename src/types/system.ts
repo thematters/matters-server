@@ -14,11 +14,6 @@ export default /* GraphQL */ `
     "Upload a single file."
     singleFileUpload(input: SingleFileUploadInput!): Asset! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
-    "Delete a uploaded file."
-    singleFileDelete(input: SingleFileDeleteInput!): Boolean! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
-
-    feedback(input: FeedbackInput!): Boolean
-
     "Add specific user behavior record."
     logRecord(input: LogRecordInput!): Boolean
 
@@ -53,17 +48,6 @@ export default /* GraphQL */ `
 
   "This type contains system-wise settings."
   type Official {
-    reportCategory: [Category!]!
-    feedbackCategory: [Category!]!
-    releases(input: ReleasesInput!): [Release!]
-
-    "Links of specific pages on Matters site."
-    links: OfficialLinks!
-    placements: Placements!
-
-    "IPFS node address"
-    ipfsAddress: [String!]!
-
     "Feature flag"
     features: [Feature!]!
   }
@@ -76,54 +60,12 @@ export default /* GraphQL */ `
   type OSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     users(input: ConnectionArgs!): UserConnection!
     comments(input: ConnectionArgs!): CommentConnection!
-    articles(input: OSSArticlesInput!): ArticleConnection!
+    articles(input: ConnectionArgs!): ArticleConnection!
     tags(input: TagsInput!): TagConnection!
-    reports(input: ReportsInput!): ReportConnection!
-    report(input: ReportInput!): Report!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
     skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
   }
 
-  type Category {
-    id: ID!
-    name: String!
-  }
-
-  type Release {
-    title: String
-    description: String
-    cover: URL
-    link: URL
-    platform: PlatformType!
-    channel: ChannelType!
-    version: String!
-    latest: Boolean!
-    forceUpdate: Boolean!
-    releasedAt: DateTime!
-  }
-
-  type OfficialLinks {
-    beginnerGuide: URL!
-    userGuide: URL!
-    about: URL!
-    faq: URL!
-    tos: URL!
-  }
-
-  type Placements {
-    webAsideTop: PlacementUnit!
-    appSplash: PlacementUnit!
-    appInStreamTop: PlacementUnit!
-    appInStreamMiddle: PlacementUnit!
-    appInStreamBottom: PlacementUnit!
-    appInvitationTop: PlacementUnit!
-  }
-
-  type PlacementUnit {
-    image: URL!
-    link: URL!
-    adLabel: Boolean!
-  }
 
   """
   This type contains type, link and related data of an asset.
@@ -151,30 +93,6 @@ export default /* GraphQL */ `
   type SearchResultEdge {
     cursor: String!
     node: Node! @logCache(type: "${NODE_TYPES.node}")
-  }
-
-  type ReportConnection implements Connection {
-    totalCount: Int!
-    pageInfo: PageInfo!
-    edges: [ReportEdge!]
-  }
-
-  type Report {
-    id: ID!
-    user: User
-    article: Article
-    comment: Comment
-    category: String!
-    description: String
-    assets: [URL!]
-    contact: String
-    createdAt: DateTime!
-    remark: String @auth(mode: "${AUTH_MODE.admin}")
-  }
-
-  type ReportEdge {
-    cursor: String!
-    node: Report!
   }
 
   input SkippedListItemsInput {
@@ -212,21 +130,11 @@ export default /* GraphQL */ `
     ids: [ID!]!
   }
 
-  input OSSArticlesInput {
-    public: Boolean
-    after: String
-    first: Int
-  }
-
   input ReportsInput {
     article: Boolean!
     comment: Boolean!
     after: String
     first: Int
-  }
-
-  input ReportInput {
-    id: ID!
   }
 
   input FrequentSearchInput {
@@ -251,29 +159,12 @@ export default /* GraphQL */ `
     authorId: ID
   }
 
-  input ReleasesInput {
-    platform: PlatformType!
-    channel: ChannelType!
-    first: Int
-  }
-
   input SingleFileUploadInput {
     type: AssetType!
     file: Upload
     url: URL
     entityType: EntityType!
     entityId: ID
-  }
-
-  input SingleFileDeleteInput {
-    id: ID!
-  }
-
-  input FeedbackInput {
-    category: ID!
-    description: String
-    assetIds: [ID!]
-    contact: String
   }
 
   input SetBoostInput {
@@ -316,7 +207,6 @@ export default /* GraphQL */ `
     flag: FeatureFlag!
   }
 
-
   enum SearchTypes {
     Article
     User
@@ -358,16 +248,6 @@ export default /* GraphQL */ `
     draft
     tag
     user
-  }
-
-  enum PlatformType {
-    ios
-    android
-  }
-
-  enum ChannelType {
-    appStore
-    googlePlay
   }
 
   "Enums for user roles."
@@ -418,6 +298,9 @@ export default /* GraphQL */ `
     useMultipliers: Boolean
     complexity: CostComplexity
   ) on OBJECT | FIELD_DEFINITION
+
+  "Rate limit within a given period of time, in seconds"
+  directive @rateLimit(period: Int!, limit: Int!) on FIELD_DEFINITION
 
   directive @deprecated(
     reason: String = "No longer supported"
