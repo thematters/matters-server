@@ -200,6 +200,9 @@ export default /* GraphQL */ `
     "Followers of this tag."
     followers(input: ConnectionArgs!): UserConnection!
 
+    "Participants of this tag."
+    participants(input: ConnectionArgs!): UserConnection!
+
     # OSS
     oss: TagOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")

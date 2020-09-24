@@ -867,6 +867,11 @@ export interface GQLTag extends GQLNode {
   followers: GQLUserConnection
 
   /**
+   * Participants of this tag.
+   */
+  participants: GQLUserConnection
+
+  /**
    * OSS
    */
   oss: GQLTagOSS
@@ -5101,6 +5106,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   owner?: TagToOwnerResolver<TParent>
   isFollower?: TagToIsFollowerResolver<TParent>
   followers?: TagToFollowersResolver<TParent>
+  participants?: TagToParticipantsResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
   deleted?: TagToDeletedResolver<TParent>
@@ -5218,6 +5224,18 @@ export interface TagToFollowersResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: TagToFollowersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToParticipantsArgs {
+  input: GQLConnectionArgs
+}
+export interface TagToParticipantsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: TagToParticipantsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
