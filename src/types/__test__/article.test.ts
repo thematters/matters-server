@@ -15,7 +15,7 @@ const mediaHash = 'someIpfsMediaHash1'
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 2 })
 
 const GET_ARTICLES = `
-  query ($input: OSSArticlesInput!) {
+  query ($input: ConnectionArgs!) {
     oss {
       articles(input: $input) {
         edges {
@@ -24,14 +24,6 @@ const GET_ARTICLES = `
           }
         }
       }
-    }
-  }
-`
-
-const RECALL_PUBLISH = `
-  mutation($input: RecallPublishInput!) {
-    recallPublish(input: $input) {
-      publishState
     }
   }
 `
@@ -64,11 +56,7 @@ const APPRECIATE_ARTICLE = `
     }
   }
 `
-const REPORT_ARTICLE = `
-  mutation($input: ReportArticleInput!) {
-    reportArticle(input: $input)
-  }
-`
+
 const TOGGLE_ARTICLE_LIVE = `
   mutation($input: ToggleItemInput!) {
     toggleArticleLive(input: $input) {
@@ -76,13 +64,7 @@ const TOGGLE_ARTICLE_LIVE = `
     }
   }
 `
-const TOGGLE_ARTICLE_PUBLIC = `
-  mutation($input: ToggleItemInput!) {
-    toggleArticlePublic(input: $input) {
-      public
-    }
-  }
-`
+
 const TOGGLE_SUBSCRIBE_ARTICLE = `
   mutation($input: ToggleItemInput!) {
     toggleSubscribeArticle(input: $input) {
@@ -184,90 +166,6 @@ describe('publish article', () => {
     const { id } = await putDraft({ draft })
     const { publishState } = await publishArticle({ id })
     expect(publishState).toBe(PUBLISH_STATE.pending)
-
-    const { mutate } = await testClient({
-      isAuth: true,
-    })
-    const result = await mutate({
-      mutation: RECALL_PUBLISH,
-      // @ts-ignore
-      variables: { input: { id } },
-    })
-    const draftRecalled = result && result.data && result.data.recallPublish
-    expect(draftRecalled.publishState).toBe(PUBLISH_STATE.unpublished)
-  })
-
-  test('add collection to article and query', async () => {
-    const { mutate } = await testClient({
-      isAuth: true,
-    })
-
-    const collection = [
-      toGlobalId({ type: 'Article', id: 1 }),
-      toGlobalId({ type: 'Article', id: 2 }),
-    ]
-
-    const result = await mutate({
-      mutation: `
-        mutation($id: ID!, $collection: [ID!]!) {
-          setCollection(input: { id: $id, collection: $collection }) {
-            collection(input: {}) {
-              edges {
-                node {
-                  id
-                }
-              }
-            }
-          }
-        }
-      `,
-      // @ts-ignore
-      variables: {
-        id: toGlobalId({ type: 'Article', id: 4 }),
-        collection,
-      },
-    })
-
-    expect(
-      _get(result, 'data.setCollection.collection.edges').map(
-        ({ node }: { node: { id: string } }) => node.id
-      )
-    ).toMatchObject(collection)
-  })
-})
-
-describe('report article', () => {
-  test('report a article without assets', async () => {
-    const { mutate } = await testClient({ isAuth: true })
-    const result = await mutate({
-      mutation: REPORT_ARTICLE,
-      // @ts-ignore
-      variables: {
-        input: {
-          id: ARTICLE_ID,
-          category: 'spam',
-          description: 'desc',
-        },
-      },
-    })
-    expect(_get(result, 'data.reportArticle')).toBe(true)
-  })
-
-  test('report a article with assets', async () => {
-    const { mutate } = await testClient({ isAuth: true })
-    const result = await mutate({
-      mutation: REPORT_ARTICLE,
-      // @ts-ignore
-      variables: {
-        input: {
-          id: ARTICLE_ID,
-          category: 'spam',
-          description: 'desc',
-          assetIds: ['00000000-0000-0000-0000-000000000011'],
-        },
-      },
-    })
-    expect(_get(result, 'data.reportArticle')).toBe(true)
   })
 })
 
@@ -300,36 +198,6 @@ describe('toggle article state', () => {
       },
     })
     expect(_get(result, 'data.toggleArticleLive.live')).toBe(false)
-  })
-
-  test('enable article public', async () => {
-    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
-    const { data } = await mutate({
-      mutation: TOGGLE_ARTICLE_PUBLIC,
-      // @ts-ignore
-      variables: {
-        input: {
-          id: ARTICLE_ID,
-          enabled: true,
-        },
-      },
-    })
-    expect(_get(data, 'toggleArticlePublic.public')).toBe(true)
-  })
-
-  test('disable article public', async () => {
-    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
-    const { data } = await mutate({
-      mutation: TOGGLE_ARTICLE_PUBLIC,
-      // @ts-ignore
-      variables: {
-        input: {
-          id: ARTICLE_ID,
-          enabled: false,
-        },
-      },
-    })
-    expect(_get(data, 'toggleArticlePublic.public')).toBe(false)
   })
 
   test('subscribe an article', async () => {

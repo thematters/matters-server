@@ -4,6 +4,7 @@ import _trim from 'lodash/trim'
 import _uniq from 'lodash/uniq'
 
 import { USER_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -56,18 +57,13 @@ const resolver: MutationToPutTagResolver = async (
       throw new DuplicateTagError(`dulpicate tag content: ${tagContent}`)
     }
 
-    const matty = (
-      await userService.baseFind({
-        where: { email: 'hi@matters.news', role: 'admin', state: 'active' },
-        limit: 1,
-      })
-    )[0]
-
     const newTag = await tagService.create({
       content: tagContent,
       creator: viewer.id,
       description,
-      editors: _uniq([matty.id, viewer.id]),
+      editors: _uniq(
+        environment.mattyId ? [environment.mattyId, viewer.id] : [viewer.id]
+      ),
       owner: viewer.id,
       cover: coverId,
     })
@@ -84,7 +80,7 @@ const resolver: MutationToPutTagResolver = async (
     // update only allow: owner, editor, matty
     const isOwner = tag.owner === viewer.id
     const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
-    const isMatty = viewer.email === 'hi@matters.news'
+    const isMatty = viewer.id === environment.mattyId
     const isMaintainer = isOwner || isEditor || isMatty
 
     if (!isMaintainer) {

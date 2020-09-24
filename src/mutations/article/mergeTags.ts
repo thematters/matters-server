@@ -1,4 +1,5 @@
 import { CACHE_KEYWORD, NODE_TYPES } from 'common/enums'
+import { environment } from 'common/environment'
 import { UserNotFoundError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToMergeTagsResolver } from 'definitions'
@@ -9,17 +10,16 @@ const resolver: MutationToMergeTagsResolver = async (
   { viewer, dataSources: { tagService, userService } }
 ) => {
   // assign Matty as tag's editor
-  const mattyUser = await userService.findByEmail('hi@matters.news')
-  if (!mattyUser) {
+  if (!environment.mattyId) {
     throw new UserNotFoundError('could not find Matty')
   }
   const tagDbIds = ids.map((id) => fromGlobalId(id).id)
   const newTag = await tagService.mergeTags({
     tagIds: tagDbIds,
     content,
-    creator: mattyUser.id,
-    editors: [mattyUser.id],
-    owner: mattyUser.id,
+    creator: environment.mattyId,
+    editors: [environment.mattyId],
+    owner: environment.mattyId,
   })
 
   // invalidate extra nodes

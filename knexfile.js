@@ -1,77 +1,40 @@
+const baseConfig = {
+  client: 'postgresql',
+  connection: {
+    host: process.env.MATTERS_PG_HOST,
+    user: process.env.MATTERS_PG_USER,
+    password: process.env.MATTERS_PG_PASSWORD,
+    database: process.env.MATTERS_PG_DATABASE,
+  },
+  migrations: {
+    tableName: 'knex_migrations',
+    directory: './db/migrations',
+  },
+  seeds: {
+    directory: './db/seeds',
+  },
+}
+
 module.exports = {
   test: {
-    client: 'postgresql',
+    ...baseConfig,
     connection: {
-      host: process.env['MATTERS_PG_HOST'],
-      user: process.env['MATTERS_PG_USER'],
-      password: process.env['MATTERS_PG_PASSWORD'],
+      ...baseConfig.connection,
       database: 'test_' + process.env['MATTERS_PG_DATABASE'], // always prefix test db with 'test_'
     },
-    migrations: {
-      tableName: 'knex_migrations',
-      directory: './db/migrations',
-    },
-    seeds: {
-      directory: './db/seeds',
-    },
   },
 
-  development: {
-    client: 'postgresql',
-    connection: {
-      host: process.env['MATTERS_PG_HOST'],
-      user: process.env['MATTERS_PG_USER'],
-      password: process.env['MATTERS_PG_PASSWORD'],
-      database: process.env['MATTERS_PG_DATABASE'],
-    },
-    migrations: {
-      tableName: 'knex_migrations',
-      directory: './db/migrations',
-    },
-    seeds: {
-      directory: './db/seeds',
-    },
-  },
+  local: baseConfig,
 
-  staging: {
-    client: 'postgresql',
-    connection: {
-      host: process.env['MATTERS_PG_HOST'],
-      user: process.env['MATTERS_PG_USER'],
-      password: process.env['MATTERS_PG_PASSWORD'],
-      database: process.env['MATTERS_PG_DATABASE'],
-    },
-    pool: {
-      min: 2,
-      max: 10,
-    },
-    migrations: {
-      tableName: 'knex_migrations',
-      directory: './db/migrations',
-    },
-    seeds: {
-      directory: './db/seeds',
-    },
-  },
+  development: baseConfig,
+
+  stage: baseConfig,
 
   production: {
-    client: 'postgresql',
-    connection: {
-      host: process.env['MATTERS_PG_HOST'],
-      user: process.env['MATTERS_PG_USER'],
-      password: process.env['MATTERS_PG_PASSWORD'],
-      database: process.env['MATTERS_PG_DATABASE'],
-    },
+    ...baseConfig,
     pool: {
       min: 2,
       max: 10,
-    },
-    migrations: {
-      tableName: 'knex_migrations',
-      directory: './db/migrations',
-    },
-    seeds: {
-      directory: './db/seeds',
     },
   },
 }

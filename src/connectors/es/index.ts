@@ -4,8 +4,6 @@ import _ from 'lodash'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 
-const { esHost: host, esPort: port } = environment
-
 interface Item {
   [key: string]: any
   id: string
@@ -18,7 +16,7 @@ class ElasticSearch {
 
   constructor() {
     this.client = new elasticsearch.Client({
-      node: `http://${host}:${port}`,
+      node: `http://${environment.esHost}:${environment.esPort}`,
     })
 
     this.init()

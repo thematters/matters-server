@@ -7,9 +7,10 @@ import { MaterializedView } from 'definitions'
 // @ts-ignore
 import knexConfig from '../../../knexfile'
 
-const { env } = environment
-
-export const knex = Knex({ ...knexConfig[env], ...knexSnakeCaseMappers() })
+export const knex = Knex({
+  ...knexConfig[environment.env],
+  ...knexSnakeCaseMappers(),
+})
 
 export const refreshView = async (view: MaterializedView) =>
   knex.raw(/*sql*/ `

@@ -18,7 +18,7 @@ import {
   USER_ACTION,
   VIEW,
 } from 'common/enums'
-import { environment } from 'common/environment'
+import { isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import logger from 'common/logger'
 import {
@@ -645,7 +645,7 @@ export class ArticleService extends BaseService {
     notIn?: string[]
   }) => {
     // skip if in test
-    if (['test'].includes(environment.env)) {
+    if (isTest) {
       return []
     }
 
@@ -1269,51 +1269,6 @@ export class ArticleService extends BaseService {
       table
     )
     return { newRead: false }
-  }
-
-  /*********************************
-   *                               *
-   *             Report            *
-   *                               *
-   *********************************/
-  /**
-   * User report an article
-   */
-  report = async ({
-    articleId,
-    userId,
-    category,
-    description,
-    contact,
-    assetIds,
-  }: {
-    articleId?: string
-    userId?: string | null
-    category: string
-    description?: string
-    contact?: string
-    assetIds?: string[]
-  }): Promise<void> => {
-    // create report
-    const { id: reportId } = await this.baseCreate(
-      {
-        userId,
-        articleId,
-        category,
-        description,
-        contact,
-      },
-      'report'
-    )
-    // create report assets
-    if (!assetIds || assetIds.length <= 0) {
-      return
-    }
-    const reportAssets = assetIds.map((assetId) => ({
-      reportId,
-      assetId,
-    }))
-    await this.baseBatchCreate(reportAssets, 'report_asset')
   }
 
   /*********************************

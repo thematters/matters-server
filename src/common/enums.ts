@@ -1,7 +1,6 @@
 import { CorsOptions } from 'cors'
 
 import { isProd } from 'common/environment'
-import { i18n } from 'common/utils/i18n'
 import { SkippedListItemType } from 'definitions'
 import {
   DBNoticeType,
@@ -190,131 +189,6 @@ export const VERIFICATION_CODE_PROTECTED_TYPES = [
   'email_verify',
   'email_reset_confirm',
 ]
-
-/**
- * Categories
- */
-const __REPORT_CATEGORIES = [
-  {
-    id: 'report-1',
-    name: i18n({
-      zh_hant: '侵權、抄襲',
-      zh_hans: '侵权、抄袭',
-      en: 'Include infringed or plagiarized contents',
-    }),
-  },
-  {
-    id: 'report-2',
-    name: i18n({
-      zh_hant: '攻擊、侮辱、誹謗、恐嚇他人',
-      zh_hans: '攻击、侮辱、诽谤、恐吓他人',
-      en: 'Include any abusive, insulting, threatening contents',
-    }),
-  },
-  {
-    id: 'report-3',
-    name: i18n({
-      zh_hant: '鼓吹歧視、仇恨',
-      zh_hans: '鼓吹歧视、仇恨',
-      en: 'Include discriminating or hateful contents',
-    }),
-  },
-  {
-    id: 'report-4',
-    name: i18n({
-      zh_hant: '誤導、欺詐、侵犯隱私',
-      zh_hans: '误导、欺诈、侵犯隐私',
-      en:
-        "Include misleading, deceiving contents or violate others' legal rights",
-    }),
-  },
-  {
-    id: 'report-5',
-    name: i18n({
-      zh_hant: '色情、暴力、教唆犯罪或鼓勵自我傷害',
-      zh_hans: '色情、暴力、教唆犯罪或鼓励自我伤害',
-      en: 'Include obscene, violent, tortuous inflammatory contents',
-    }),
-  },
-  {
-    id: 'report-6',
-    name: i18n({
-      zh_hant: '假新聞、不實消息、垃圾訊息',
-      zh_hans: '假新闻、不实消息、垃圾讯息',
-      en: 'Include fake, inaccurate, trash contents',
-    }),
-  },
-  {
-    id: 'report-7',
-    name: i18n({
-      zh_hant: '冒用他人身份',
-      zh_hans: '冒用他人身份',
-      en: 'Impersonate any person',
-    }),
-  },
-  {
-    id: 'report-8',
-    name: i18n({
-      zh_hant: '其他（請填寫原因）',
-      zh_hans: '其他（请填写原因）',
-      en: 'Others (please specify)',
-    }),
-  },
-]
-
-export const REPORT_CATEGORIES = {
-  zh_hant: __REPORT_CATEGORIES.map(({ id, name }) => ({
-    id,
-    name: name('zh_hant', {}),
-  })),
-  zh_hans: __REPORT_CATEGORIES.map(({ id, name }) => ({
-    id,
-    name: name('zh_hans', {}),
-  })),
-  en: __REPORT_CATEGORIES.map(({ id, name }) => ({ id, name: name('en', {}) })),
-}
-
-const __FEEDBACK_CATEGORIES = [
-  {
-    id: 'feedback-1',
-    name: i18n({
-      zh_hant: '操作異常',
-      zh_hans: '操作异常',
-      en: 'Operation Exception',
-    }),
-  },
-  {
-    id: 'feedback-2',
-    name: i18n({
-      zh_hant: '功能建議',
-      zh_hans: '功能建议',
-      en: 'Feature Suggestions',
-    }),
-  },
-  {
-    id: 'feedback-3',
-    name: i18n({
-      zh_hant: '其他（請填寫原因）',
-      zh_hans: '其他（请填写原因）',
-      en: 'Others (please specify)',
-    }),
-  },
-]
-
-export const FEEDBACK_CATEGORIES = {
-  zh_hant: __FEEDBACK_CATEGORIES.map(({ id, name }) => ({
-    id,
-    name: name('zh_hant', {}),
-  })),
-  zh_hans: __FEEDBACK_CATEGORIES.map(({ id, name }) => ({
-    id,
-    name: name('zh_hans', {}),
-  })),
-  en: __FEEDBACK_CATEGORIES.map(({ id, name }) => ({
-    id,
-    name: name('en', {}),
-  })),
-}
 
 /**
  * Queue
@@ -544,9 +418,9 @@ export const CORS_OPTIONS: CorsOptions = {
       return callback(null, false)
     }
 
-    const isLocalDev = /(localhost|127\.0\.0\.1)/.test(origin)
-    const isMatters = /matters\.news$/.test(origin)
-    const isApolloStudio = /apollographql\.com/.test(origin)
+    const isLocalDev = /(localhost|127\.0\.0\.1):\d+$/.test(origin)
+    const isMatters = /\/\/(.*\.)?matters\.news$/.test(origin)
+    const isApolloStudio = /\/\/(.*\.)?apollographql\.com$/.test(origin)
     const isAllowed = isLocalDev || isMatters || isApolloStudio
 
     callback(null, isAllowed)

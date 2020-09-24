@@ -2,6 +2,7 @@ import _some from 'lodash/some'
 import _uniq from 'lodash/uniq'
 
 import { USER_STATE } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   AuthenticationError,
   ForbiddenByStateError,
@@ -85,7 +86,7 @@ const resolver: MutationToUpdateArticlesTagsResolver = async (
   // update only allow: owner, editor, matty
   const isOwner = tag.owner === viewer.id
   const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
-  const isMatty = viewer.email === 'hi@matters.news'
+  const isMatty = viewer.id === environment.mattyId
   const isMaintainer = isOwner || isEditor || isMatty
 
   if (!isMaintainer) {

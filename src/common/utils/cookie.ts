@@ -1,18 +1,22 @@
-import { Request, Response } from 'express'
+import { CookieOptions, Request, Response } from 'express'
 
 import {
   COOKIE_TOKEN_NAME,
   USER_ACCESS_TOKEN_EXPIRES_IN_MS,
 } from 'common/enums'
-import { environment } from 'common/environment'
+import { isTest } from 'common/environment'
 
 const getCookieOption = (req: Request) => {
+  const origin = req.headers.origin || ''
+  const isLocalDev = /(localhost|127\.0\.0\.1):\d+$/.test(origin)
+
   return {
     maxAge: USER_ACCESS_TOKEN_EXPIRES_IN_MS,
     httpOnly: true,
     secure: req.protocol === 'https',
     domain: req.hostname,
-  }
+    sameSite: isLocalDev ? undefined : 'strict',
+  } as CookieOptions
 }
 
 export const setCookie = ({
@@ -24,7 +28,7 @@ export const setCookie = ({
   res: Response
   token: string
 }) => {
-  if (environment.env === 'test') {
+  if (isTest) {
     // skip during testing
     return
   }
