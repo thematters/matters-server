@@ -2,16 +2,20 @@ import { environment } from 'common/environment'
 import { TagToEditorsResolver } from 'definitions'
 
 const resolver: TagToEditorsResolver = (
-  { editors },
+  { editors, owner },
   { input },
   { dataSources: { userService } }
 ) => {
+  let ids = editors || []
+
   if (input?.excludeAdmin === true) {
-    return userService.dataloader.loadMany(
-      editors.filter((editor: string) => editor !== environment.mattyId) || []
-    )
+    ids = ids.filter((editor: string) => editor !== environment.mattyId)
   }
-  return userService.dataloader.loadMany(editors || [])
+
+  if (input?.excludeOwner === true) {
+    ids = ids.filter((editor: string) => editor !== owner)
+  }
+  return userService.dataloader.loadMany(ids)
 }
 
 export default resolver

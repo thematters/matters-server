@@ -893,6 +893,7 @@ export interface GQLTagSelectedInput {
 
 export interface GQLTagEditorsInput {
   excludeAdmin?: boolean
+  excludeOwner?: boolean
 }
 
 export interface GQLUserConnection extends GQLConnection {

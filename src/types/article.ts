@@ -353,6 +353,7 @@ export default /* GraphQL */ `
 
   input TagEditorsInput {
     excludeAdmin: Boolean
+    excludeOwner: Boolean
   }
 
   input TransactionsReceivedByArgs {

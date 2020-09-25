@@ -1734,6 +1734,7 @@ type TagEdge {
 
 input TagEditorsInput {
   excludeAdmin: Boolean
+  excludeOwner: Boolean
 }
 
 type TagOSS {
