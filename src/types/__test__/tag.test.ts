@@ -551,8 +551,7 @@ describe('manage settings of a tag', () => {
 
     const authedUserAddData1 = await updateTagSetting({
       isAuth: true,
-      isMatty: true,
-      id: tag.id,
+      id: authedUserTag.id,
       type: GQLUpdateTagSettingType.remove_editor,
       editors: [mattyId],
     })
@@ -566,8 +565,7 @@ describe('manage settings of a tag', () => {
 
     const authedUserAddData2 = await updateTagSetting({
       isAuth: true,
-      isMatty: true,
-      id: tag.id,
+      id: authedUserTag.id,
       type: GQLUpdateTagSettingType.add_editor,
       editors: [user1Id, user2Id],
     })
@@ -581,8 +579,7 @@ describe('manage settings of a tag', () => {
 
     const authedUserRmData1 = await updateTagSetting({
       isAuth: true,
-      isMatty: true,
-      id: tag.id,
+      id: authedUserTag.id,
       type: GQLUpdateTagSettingType.remove_editor,
       editors: [mattyId],
     })
@@ -590,7 +587,7 @@ describe('manage settings of a tag', () => {
       editorFilter
     )
     expect(authedUserRmData1Editors.includes(mattyId)).toBeTruthy()
-    expect(authedUserRmData1Editors?.editors.length).toBe(3)
+    expect(authedUserRmData1?.editors.length).toBe(3)
   })
 
   test('leave editor from a tag', async () => {
