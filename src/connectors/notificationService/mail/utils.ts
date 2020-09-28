@@ -115,6 +115,20 @@ export const trans = {
       zh_hans: 'Matters 通知 | 你的提现流程已经启动',
     }),
   },
+  tag: {
+    adoptTag: i18n<{ displayName: string; content: string }>({
+      zh_hant: ({ displayName, content }) =>
+        `${displayName}，你已成為 #${content} 的主理人，你做好準備了嗎？`,
+      zh_hans: ({ displayName, content }) =>
+        `${displayName}，你已成为 #${content} 的主理人，你做好准备了吗？`,
+    }),
+    assignAsTagEditor: i18n<{ displayName: string; content: string }>({
+      zh_hant: ({ displayName, content }) =>
+        `${displayName}，你已成為 #${content} 的協作者，你做好準備了嗎？`,
+      zh_hans: ({ displayName, content }) =>
+        `${displayName}，你已成为 #${content} 的协作者，你做好准备了吗？`,
+    })
+  },
 }
 
 const userService = new UserService()

@@ -1,3 +1,5 @@
+import { sendAdoptTag } from './sendAdoptTag'
+import { sendAssignAsTagEditor } from './sendAssignAsTagEditor'
 import { sendChurn } from './sendChurn'
 import { sendDailySummary } from './sendDailySummary'
 import { sendMigrationSuccess } from './sendMigrationSuccess'
@@ -7,6 +9,8 @@ import { sendUserDeletedByAdmin } from './sendUserDeletedByAdmin'
 import { sendVerificationCode } from './sendVerificationCode'
 
 export const mail = {
+  sendAdoptTag,
+  sendAssignAsTagEditor,
   sendChurn,
   sendDailySummary,
   sendMigrationSuccess,
