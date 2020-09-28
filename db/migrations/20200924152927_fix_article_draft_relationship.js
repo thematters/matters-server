@@ -7,7 +7,7 @@ const article_tag_table = 'article_tag'
 const tag_table = 'tag'
 const collection_table = 'collection'
 
-const CHUNK_SIZE = 50
+const CHUNK_SIZE = 10
 const REMARK = '{20200924152927_fix_article_draft_relationship,}'
 
 exports.up = async (knex) => {
