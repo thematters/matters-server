@@ -867,6 +867,11 @@ export interface GQLTag extends GQLNode {
   followers: GQLUserConnection
 
   /**
+   * Participants of this tag.
+   */
+  participants: GQLUserConnection
+
+  /**
    * OSS
    */
   oss: GQLTagOSS
@@ -884,6 +889,11 @@ export interface GQLTagArticlesInput {
 export interface GQLTagSelectedInput {
   id?: string
   mediaHash?: string
+}
+
+export interface GQLTagEditorsInput {
+  excludeAdmin?: boolean
+  excludeOwner?: boolean
 }
 
 export interface GQLUserConnection extends GQLConnection {
@@ -2035,11 +2045,15 @@ export interface GQLPutTagInput {
 export interface GQLUpdateTagSettingInput {
   id: string
   type: GQLUpdateTagSettingType
+  editors?: Array<string>
 }
 
 export const enum GQLUpdateTagSettingType {
   adopt = 'adopt',
   leave = 'leave',
+  add_editor = 'add_editor',
+  remove_editor = 'remove_editor',
+  leave_editor = 'leave_editor',
 }
 
 export interface GQLAddArticlesTagsInput {
@@ -5097,6 +5111,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   owner?: TagToOwnerResolver<TParent>
   isFollower?: TagToIsFollowerResolver<TParent>
   followers?: TagToFollowersResolver<TParent>
+  participants?: TagToParticipantsResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
   deleted?: TagToDeletedResolver<TParent>
@@ -5171,10 +5186,13 @@ export interface TagToDescriptionResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface TagToEditorsArgs {
+  input?: GQLTagEditorsInput
+}
 export interface TagToEditorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: {},
+    args: TagToEditorsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5214,6 +5232,18 @@ export interface TagToFollowersResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: TagToFollowersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToParticipantsArgs {
+  input: GQLConnectionArgs
+}
+export interface TagToParticipantsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: TagToParticipantsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
