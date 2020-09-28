@@ -85,10 +85,12 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       }
 
       // gather valid editors
-      const newEditors = editors.map(async (editor) => {
-        const { id: editorId } = fromGlobalId(editor)
-        return editorId
-      }).filter((editorId) => editorId !== undefined)
+      const newEditors = editors
+        .map((editor) => {
+          const { id: editorId } = fromGlobalId(editor)
+          return editorId
+        })
+        .filter((editorId) => editorId !== undefined)
 
       // editors composed by 4 editors, matty and owner
       if (_uniq([...tag.editors, ...newEditors]).length > 6) {
