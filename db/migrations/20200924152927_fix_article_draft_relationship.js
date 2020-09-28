@@ -50,7 +50,6 @@ exports.up = async (knex) => {
           .insert({
             uuid: uuidv4(),
             author_id: item.author_id,
-            upstream_id: item.upstream_id,
             title: item.title,
             cover: item.cover,
             summary: item.summary,
