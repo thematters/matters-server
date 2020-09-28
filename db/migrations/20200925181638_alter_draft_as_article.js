@@ -5,6 +5,7 @@ exports.up = async (knex) => {
   // Draft
   await knex.schema.table(draft_table, (t) => {
     // drop deprecated
+    t.dropColumn('upstream_id')
     t.dropColumn('scheduled_at')
 
     // new from article
@@ -49,5 +50,7 @@ exports.down = async (knex) => {
     t.dropColumn('word_count')
 
     t.timestamp('scheduled_at')
+    t.bigInteger('upstream_id').unsigned()
+    t.foreign('upstream_id').references('id').inTable(article_table)
   })
 }
