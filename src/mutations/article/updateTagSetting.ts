@@ -76,7 +76,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       break
     }
     case GQLUpdateTagSettingType.add_editor: {
-      // only viewer can add editors
+      // only owner can add editors
       if (!isOwner) {
         throw new ForbiddenError('viewer has no permission')
       }
@@ -85,17 +85,12 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       }
 
       // gather valid editors
-      const newEditors = (
-        await Promise.all(
-          editors.map(async (editor) => {
-            const { id: editorId } = fromGlobalId(editor)
-            const user = await userService.baseFindById(editorId)
-            if (user) {
-              return editorId
-            }
-          })
-        )
-      ).filter((editorId) => editorId !== undefined)
+      const newEditors = editors
+        .map((editor) => {
+          const { id: editorId } = fromGlobalId(editor)
+          return editorId
+        })
+        .filter((editorId) => editorId !== undefined)
 
       // editors composed by 4 editors, matty and owner
       if (_uniq([...tag.editors, ...newEditors]).length > 6) {
@@ -105,7 +100,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       break
     }
     case GQLUpdateTagSettingType.remove_editor: {
-      // only viewer can remove editors
+      // only owner can remove editors
       if (!isOwner) {
         throw new ForbiddenError('viewer has no permission')
       }

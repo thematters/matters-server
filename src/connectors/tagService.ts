@@ -170,8 +170,6 @@ export class TagService extends BaseService {
             article ON article.id = at.article_id
         WHERE
             at.tag_id = ${id}
-        ORDER BY
-            at.created_at
     ) AS base`)
 
     const result = await this.knex
