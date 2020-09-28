@@ -60,19 +60,6 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Create a new article item.
-   */
-  create = async (articleData: ItemData & { content: string }) => {
-    // craete article
-    const article = await this.baseCreate({
-      uuid: v4(),
-      wordCount: countWords(articleData.content),
-      ...articleData,
-    })
-    return article
-  }
-
-  /**
    * Publish an article to IPFS
    */
   publish = async ({
@@ -87,6 +74,7 @@ export class ArticleService extends BaseService {
   }) => {
     const userService = new UserService()
     const systemService = new SystemService()
+
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
     const now = new Date()
@@ -142,11 +130,13 @@ export class ArticleService extends BaseService {
     })
     const mediaHash = cid.toBaseEncodedString()
 
-    // edit db record
-    const article = await this.create({
+    // craete article
+    const article = await this.baseCreate({
+      uuid: v4(),
       authorId,
       title,
       slug: slugify(title),
+      wordCount: countWords(content),
       summary,
       content,
       cover,
