@@ -1691,7 +1691,7 @@ type Tag implements Node {
   description: String
 
   """Editors of this tag."""
-  editors: [User!]
+  editors(input: TagEditorsInput): [User!]
 
   """Creator of this tag."""
   creator: User
@@ -1704,6 +1704,9 @@ type Tag implements Node {
 
   """Followers of this tag."""
   followers(input: ConnectionArgs!): UserConnection!
+
+  """Participants of this tag."""
+  participants(input: ConnectionArgs!): UserConnection!
 
   """OSS"""
   oss: TagOSS!
@@ -1727,6 +1730,11 @@ type TagConnection implements Connection {
 type TagEdge {
   cursor: String!
   node: Tag!
+}
+
+input TagEditorsInput {
+  excludeAdmin: Boolean
+  excludeOwner: Boolean
 }
 
 type TagOSS {
@@ -1871,11 +1879,15 @@ input UpdateNotificationSettingInput {
 input UpdateTagSettingInput {
   id: ID!
   type: UpdateTagSettingType!
+  editors: [ID!]
 }
 
 enum UpdateTagSettingType {
   adopt
   leave
+  add_editor
+  remove_editor
+  leave_editor
 }
 
 input UpdateUserInfoInput {
