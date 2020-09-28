@@ -127,7 +127,7 @@ export const trans = {
         `${displayName}，你已成為 #${content} 的協作者，你做好準備了嗎？`,
       zh_hans: ({ displayName, content }) =>
         `${displayName}，你已成为 #${content} 的协作者，你做好准备了吗？`,
-    })
+    }),
   },
 }
 

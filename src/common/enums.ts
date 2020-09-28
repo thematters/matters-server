@@ -319,7 +319,7 @@ const DEV_EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-ea7389447e9d48549a7d0ad86b90fa9f',
     zh_hans: 'd-6fe4334692e2475dba68a135831f0f40',
     en: 'd-ea7389447e9d48549a7d0ad86b90fa9f',
-  }
+  },
 }
 
 const PROD_EMAIL_TEMPLATE_ID = {
