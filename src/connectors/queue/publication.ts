@@ -98,8 +98,14 @@ class PublicationQueue extends BaseQueue {
       }
       job.progress(10)
 
-      // mark draft as published
+      // mark draft as published and copy data from article
+      // TODO: deprecated once article table is altered
+      // @see {@url https://github.com/thematters/matters-server/pull/1509}
       await this.draftService.baseUpdate(draft.id, {
+        articleId: article.id,
+        wordCount: article.wordCount,
+        dataHash: article.dataHash,
+        mediaHash: article.mediaHash,
         archived: true,
         publishState: PUBLISH_STATE.published,
         updatedAt: new Date(),
