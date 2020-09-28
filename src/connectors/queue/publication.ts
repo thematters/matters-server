@@ -5,7 +5,6 @@ import * as cheerio from 'cheerio'
 import {
   MINUTE,
   NODE_TYPES,
-  PUBLISH_ARTICLE_DELAY,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
@@ -38,18 +37,11 @@ class PublicationQueue extends BaseQueue {
     )
   }
 
-  publishArticle = ({
-    draftId,
-    delay = PUBLISH_ARTICLE_DELAY,
-  }: {
-    draftId: string
-    delay?: number
-  }) => {
+  publishArticle = ({ draftId }: { draftId: string }) => {
     return this.q.add(
       QUEUE_JOB.publishArticle,
       { draftId },
       {
-        delay,
         priority: QUEUE_PRIORITY.CRITICAL,
       }
     )
@@ -92,11 +84,6 @@ class PublicationQueue extends BaseQueue {
         return
       }
 
-      if (draft.scheduledAt && draft.scheduledAt > new Date()) {
-        job.progress(100)
-        done(null, `Draft's (${draftId}) scheduledAt is greater than now`)
-        return
-      }
       job.progress(5)
 
       // publish to IPFS
@@ -359,11 +346,7 @@ class PublicationQueue extends BaseQueue {
       const pendingDraftIds: string[] = []
 
       drafts.forEach((draft: any, index: number) => {
-        // skip if draft was scheduled and later than now
-        if (draft.scheduledAt && draft.scheduledAt > new Date()) {
-          return
-        }
-        publicationQueue.publishArticle({ draftId: draft.id, delay: 0 })
+        publicationQueue.publishArticle({ draftId: draft.id })
         pendingDraftIds.push(draft.id)
         job.progress(((index + 1) / drafts.length) * 100)
       })

@@ -271,7 +271,6 @@ export const QUEUE_COMPLETED_LIST_SIZE = {
   large: 10000,
 }
 
-export const PUBLISH_ARTICLE_DELAY = 1000
 export const MIGRATION_DELAY = 1000
 
 const DEV_EMAIL_TEMPLATE_ID = {
