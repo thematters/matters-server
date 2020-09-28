@@ -21,7 +21,15 @@ import {
 const resolver: MutationToUpdateTagSettingResolver = async (
   _,
   { input: { id, type, editors } },
-  { viewer, dataSources: { notificationService: notice, systemService, tagService, userService } }
+  {
+    viewer,
+    dataSources: {
+      notificationService: notice,
+      systemService,
+      tagService,
+      userService,
+    },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('viewer has no permission')
@@ -62,15 +70,19 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       // update
       updatedTag = await tagService.baseUpdate(tagId, {
-        owner: viewer.id, editors: _uniq([...tag.editors, viewer.id])
+        owner: viewer.id,
+        editors: _uniq([...tag.editors, viewer.id]),
       })
 
       // send mails and notices
       notice.mail.sendAdoptTag({
         to: viewer.email,
         language: viewer.language,
-        recipient: { displayName: viewer.displayName, userName: viewer.userName },
-        tag: { content: tag.content }
+        recipient: {
+          displayName: viewer.displayName,
+          userName: viewer.userName,
+        },
+        tag: { content: tag.content },
       })
       break
     }
@@ -87,7 +99,8 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       // update
       updatedTag = await tagService.baseUpdate(tagId, {
-        owner: null, editors: newEditors
+        owner: null,
+        editors: newEditors,
       })
       break
     }
@@ -101,12 +114,13 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       }
 
       // gather valid editors
-      const newEditors = editors
-        .map((editor) => {
-          const { id: editorId } = fromGlobalId(editor)
-          return editorId
-        })
-        .filter((editorId) => editorId !== undefined) || []
+      const newEditors =
+        editors
+          .map((editor) => {
+            const { id: editorId } = fromGlobalId(editor)
+            return editorId
+          })
+          .filter((editorId) => editorId !== undefined) || []
 
       // editors composed by 4 editors, matty and owner
       const dedupedEditors = _uniq([...tag.editors, ...newEditors])
@@ -116,12 +130,14 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       // update
       updatedTag = await tagService.baseUpdate(tagId, {
-        editors: dedupedEditors
+        editors: dedupedEditors,
       })
 
       // send emails and notices
-      const recipients = await userService.dataloader.loadMany(newEditors) as Array<Record<string, any>>
-      recipients.map(recipient => {
+      const recipients = (await userService.dataloader.loadMany(
+        newEditors
+      )) as Array<Record<string, any>>
+      recipients.map((recipient) => {
         notice.mail.sendAssignAsTagEditor({
           to: recipient.email,
           language: recipient.language,
@@ -133,7 +149,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
             displayName: viewer.displayName,
             userName: viewer.userName,
           },
-          tag: { content: tag.content }
+          tag: { content: tag.content },
         })
       })
       break
@@ -148,19 +164,20 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       }
 
       // gather valid editors
-      const removeEditors = editors
-        .map((editor) => {
-          const { id: editorId } = fromGlobalId(editor)
-          if (editorId === tag.owner || editorId === mattyId) {
-            return
-          }
-          return editorId
-        })
-        .filter((editorId) => editorId !== undefined) as string[] || []
+      const removeEditors =
+        (editors
+          .map((editor) => {
+            const { id: editorId } = fromGlobalId(editor)
+            if (editorId === tag.owner || editorId === mattyId) {
+              return
+            }
+            return editorId
+          })
+          .filter((editorId) => editorId !== undefined) as string[]) || []
 
       // update
       updatedTag = await tagService.baseUpdate(tagId, {
-        editors: _difference(tag.editors, removeEditors)
+        editors: _difference(tag.editors, removeEditors),
       })
       break
     }
@@ -175,7 +192,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       // update
       updatedTag = await tagService.baseUpdate(tagId, {
-        editors: _difference(tag.editors, [viewer.id])
+        editors: _difference(tag.editors, [viewer.id]),
       })
       break
     }
