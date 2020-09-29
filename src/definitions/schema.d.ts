@@ -1309,6 +1309,10 @@ export type GQLPossibleNoticeTypeNames =
   | 'PaymentPayoutNotice'
   | 'PaymentReceivedDonationNotice'
   | 'SubscribedArticleNewCommentNotice'
+  | 'TagAddEditorNotice'
+  | 'TagAdoptionNotice'
+  | 'TagLeaveEditorNotice'
+  | 'TagLeaveNotice'
   | 'UpstreamArticleArchivedNotice'
   | 'UserNewFollowerNotice'
 
@@ -1332,6 +1336,10 @@ export interface GQLNoticeNameMap {
   PaymentPayoutNotice: GQLPaymentPayoutNotice
   PaymentReceivedDonationNotice: GQLPaymentReceivedDonationNotice
   SubscribedArticleNewCommentNotice: GQLSubscribedArticleNewCommentNotice
+  TagAddEditorNotice: GQLTagAddEditorNotice
+  TagAdoptionNotice: GQLTagAdoptionNotice
+  TagLeaveEditorNotice: GQLTagLeaveEditorNotice
+  TagLeaveNotice: GQLTagLeaveNotice
   UpstreamArticleArchivedNotice: GQLUpstreamArticleArchivedNotice
   UserNewFollowerNotice: GQLUserNewFollowerNotice
 }
@@ -2954,6 +2962,118 @@ export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
   comment?: GQLComment
 }
 
+/**
+ * This notice type contains info about editors has been added into a tag.
+ */
+export interface GQLTagAddEditorNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The user who added editor to a tag.
+   */
+  actor: GQLUser
+  tag?: GQLTag
+}
+
+/**
+ * This notice type contains info about a tag has been adopted by a user.
+ */
+export interface GQLTagAdoptionNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The user who adopted a tag.
+   */
+  actor: GQLUser
+
+  /**
+   * The tag adopted by user.
+   */
+  tag?: GQLTag
+}
+
+/**
+ * This notice type contains info about a editor left a tag.
+ */
+export interface GQLTagLeaveEditorNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The user who leave from tag editors.
+   */
+  actor: GQLUser
+  tag?: GQLTag
+}
+
+/**
+ * This notice type contains info about a user left a tag.
+ */
+export interface GQLTagLeaveNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The user who leave a tag.
+   */
+  actor: GQLUser
+
+  /**
+   * The tag left by user.
+   */
+  tag?: GQLTag
+}
+
 export type GQLTime = any
 
 export interface GQLUpstreamArticleArchivedNotice extends GQLNotice {
@@ -3129,6 +3249,10 @@ export interface GQLResolver {
   PaymentPayoutNotice?: GQLPaymentPayoutNoticeTypeResolver
   PaymentReceivedDonationNotice?: GQLPaymentReceivedDonationNoticeTypeResolver
   SubscribedArticleNewCommentNotice?: GQLSubscribedArticleNewCommentNoticeTypeResolver
+  TagAddEditorNotice?: GQLTagAddEditorNoticeTypeResolver
+  TagAdoptionNotice?: GQLTagAdoptionNoticeTypeResolver
+  TagLeaveEditorNotice?: GQLTagLeaveEditorNoticeTypeResolver
+  TagLeaveNotice?: GQLTagLeaveNoticeTypeResolver
   Time?: GraphQLScalarType
   UpstreamArticleArchivedNotice?: GQLUpstreamArticleArchivedNoticeTypeResolver
   UserNewFollowerNotice?: GQLUserNewFollowerNoticeTypeResolver
@@ -6243,6 +6367,10 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'PaymentPayoutNotice'
     | 'PaymentReceivedDonationNotice'
     | 'SubscribedArticleNewCommentNotice'
+    | 'TagAddEditorNotice'
+    | 'TagAdoptionNotice'
+    | 'TagLeaveEditorNotice'
+    | 'TagLeaveNotice'
     | 'UpstreamArticleArchivedNotice'
     | 'UserNewFollowerNotice'
 }
@@ -9432,6 +9560,254 @@ export interface SubscribedArticleNewCommentNoticeToCommentResolver<
   TParent = any,
   TResult = any
 > {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagAddEditorNoticeTypeResolver<TParent = any> {
+  id?: TagAddEditorNoticeToIdResolver<TParent>
+  unread?: TagAddEditorNoticeToUnreadResolver<TParent>
+  createdAt?: TagAddEditorNoticeToCreatedAtResolver<TParent>
+  actor?: TagAddEditorNoticeToActorResolver<TParent>
+  tag?: TagAddEditorNoticeToTagResolver<TParent>
+}
+
+export interface TagAddEditorNoticeToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAddEditorNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAddEditorNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAddEditorNoticeToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAddEditorNoticeToTagResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagAdoptionNoticeTypeResolver<TParent = any> {
+  id?: TagAdoptionNoticeToIdResolver<TParent>
+  unread?: TagAdoptionNoticeToUnreadResolver<TParent>
+  createdAt?: TagAdoptionNoticeToCreatedAtResolver<TParent>
+  actor?: TagAdoptionNoticeToActorResolver<TParent>
+  tag?: TagAdoptionNoticeToTagResolver<TParent>
+}
+
+export interface TagAdoptionNoticeToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAdoptionNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAdoptionNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAdoptionNoticeToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAdoptionNoticeToTagResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagLeaveEditorNoticeTypeResolver<TParent = any> {
+  id?: TagLeaveEditorNoticeToIdResolver<TParent>
+  unread?: TagLeaveEditorNoticeToUnreadResolver<TParent>
+  createdAt?: TagLeaveEditorNoticeToCreatedAtResolver<TParent>
+  actor?: TagLeaveEditorNoticeToActorResolver<TParent>
+  tag?: TagLeaveEditorNoticeToTagResolver<TParent>
+}
+
+export interface TagLeaveEditorNoticeToIdResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveEditorNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveEditorNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveEditorNoticeToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveEditorNoticeToTagResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagLeaveNoticeTypeResolver<TParent = any> {
+  id?: TagLeaveNoticeToIdResolver<TParent>
+  unread?: TagLeaveNoticeToUnreadResolver<TParent>
+  createdAt?: TagLeaveNoticeToCreatedAtResolver<TParent>
+  actor?: TagLeaveNoticeToActorResolver<TParent>
+  tag?: TagLeaveNoticeToTagResolver<TParent>
+}
+
+export interface TagLeaveNoticeToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveNoticeToUnreadResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveNoticeToActorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveNoticeToTagResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

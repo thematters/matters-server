@@ -533,6 +533,10 @@ export const DB_NOTICE_TYPES: DBNoticeType[] = [
   'article_tag_has_been_added',
   'article_tag_has_been_removed',
   'article_tag_has_been_unselected',
+  'tag_adoption',
+  'tag_leave',
+  'tag_add_editor',
+  'tag_leave_editor',
   // comment
   'comment_pinned',
   'comment_new_reply',

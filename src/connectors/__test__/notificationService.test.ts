@@ -47,6 +47,10 @@ describe('user notify setting', () => {
     article_tag_has_been_unselected: true,
     payment_received_donation: true,
     payment_payout: true,
+    tag_adoption: true,
+    tag_leave: true,
+    tag_add_editor: true,
+    tag_leave_editor: true,
   }
 
   test('user receives notifications', async () => {

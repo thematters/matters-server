@@ -24,7 +24,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
   {
     viewer,
     dataSources: {
-      notificationService: notice,
+      notificationService,
       systemService,
       tagService,
       userService,
@@ -74,8 +74,8 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         editors: _uniq([...tag.editors, viewer.id]),
       })
 
-      // send mails and notices
-      notice.mail.sendAdoptTag({
+      // send mails
+      notificationService.mail.sendAdoptTag({
         to: viewer.email,
         language: viewer.language,
         recipient: {
@@ -84,11 +84,32 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         },
         tag: { content: tag.content },
       })
+
+      // send notices
+      const participants = await tagService.findParticipants({
+        id: tag.id,
+        limit: 0,
+      })
+
+      participants.map((participant) => {
+        notificationService.trigger({
+          event: 'tag_adoption',
+          recipientId: participant.authorId,
+          actorId: viewer.id,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'tag',
+              entity: tag,
+            },
+          ],
+        })
+      })
       break
     }
     case UpdateType.leave: {
       // if tag has no owner or owner is not viewer, throw error
-      if (!tag.owner || (tag.owner && tag.owner !== viewer.id)) {
+      if (!tag.owner || (tag.owner && !isOwner)) {
         throw new ForbiddenError('viewer has no permission')
       }
 
@@ -102,6 +123,24 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         owner: null,
         editors: newEditors,
       })
+
+      // send notices
+      if (newEditors && newEditors.length > 0) {
+        newEditors.map((editor: string) => {
+          notificationService.trigger({
+            event: 'tag_leave',
+            recipientId: editor,
+            actorId: viewer.id,
+            entities: [
+              {
+                type: 'target',
+                entityTable: 'tag',
+                entity: tag,
+              },
+            ],
+          })
+        })
+      }
       break
     }
     case UpdateType.add_editor: {
@@ -137,8 +176,9 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       const recipients = (await userService.dataloader.loadMany(
         newEditors
       )) as Array<Record<string, any>>
+
       recipients.map((recipient) => {
-        notice.mail.sendAssignAsTagEditor({
+        notificationService.mail.sendAssignAsTagEditor({
           to: recipient.email,
           language: recipient.language,
           recipient: {
@@ -150,6 +190,19 @@ const resolver: MutationToUpdateTagSettingResolver = async (
             userName: viewer.userName,
           },
           tag: { content: tag.content },
+        })
+
+        notificationService.trigger({
+          event: 'tag_add_editor',
+          recipientId: recipient.id,
+          actorId: viewer.id,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'tag',
+              entity: tag,
+            },
+          ],
         })
       })
       break
@@ -194,6 +247,22 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       updatedTag = await tagService.baseUpdate(tagId, {
         editors: _difference(tag.editors, [viewer.id]),
       })
+
+      // send notice
+      if (tag.owner) {
+        notificationService.trigger({
+          event: 'tag_add_editor',
+          recipientId: tag.owner,
+          actorId: viewer.id,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'tag',
+              entity: tag,
+            },
+          ],
+        })
+      }
       break
     }
     default: {

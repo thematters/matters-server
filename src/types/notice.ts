@@ -388,6 +388,84 @@ export default /* GraphQL */ `
     tag: Tag @logCache(type: "${NODE_TYPES.tag}")
   }
 
+  """
+  This notice type contains info about a tag has been adopted by a user.
+  """
+  type TagAdoptionNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "The user who adopted a tag."
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
+
+    "The tag adopted by user."
+    tag: Tag @logCache(type: "${NODE_TYPES.tag}")
+  }
+
+  """
+  This notice type contains info about a user left a tag.
+  """
+  type TagLeaveNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "The user who leave a tag."
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
+
+    "The tag left by user."
+    tag: Tag @logCache(type: "${NODE_TYPES.tag}")
+  }
+
+  """
+  This notice type contains info about editors has been added into a tag.
+  """
+  type TagAddEditorNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "The user who added editor to a tag."
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
+
+    tag: Tag @logCache(type: "${NODE_TYPES.tag}")
+  }
+
+  """
+  This notice type contains info about a editor left a tag.
+  """
+  type TagLeaveEditorNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "The user who leave from tag editors."
+    actor: User! @logCache(type: "${NODE_TYPES.user}")
+
+    tag: Tag @logCache(type: "${NODE_TYPES.tag}")
+  }
+
   #################################
   #                               #
   #            Payment            #
