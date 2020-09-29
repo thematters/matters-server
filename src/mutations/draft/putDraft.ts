@@ -1,7 +1,12 @@
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
-import { ARTICLE_STATE, PUBLISH_STATE, USER_STATE } from 'common/enums'
+import {
+  ARTICLE_STATE,
+  ASSET_TYPE,
+  PUBLISH_STATE,
+  USER_STATE,
+} from 'common/enums'
 import {
   ArticleNotFoundError,
   AssetNotFoundError,
@@ -20,7 +25,11 @@ import {
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const checkAssetValidity = (asset: any, viewer: any) => {
-  if (!asset || asset.type !== 'embed' || asset.authorId !== viewer.id) {
+  if (
+    !asset ||
+    asset.type !== ASSET_TYPE.embed ||
+    asset.authorId !== viewer.id
+  ) {
     throw new AssetNotFoundError('Asset does not exists')
   }
 }
@@ -119,35 +128,6 @@ const resolver: MutationToPutDraftResolver = async (
       throw new ForbiddenError(
         'current publishState is not allow to be updated'
       )
-    }
-
-    // handle cover
-    if (content || content === '') {
-      const uuids = (extractAssetDataFromHtml(content, 'image') || []).filter(
-        (uuid) => uuid && uuid !== 'embed'
-      )
-      // check if cover needs to be removed forcely
-      if (uuids.length === 0) {
-        data.cover = null
-      }
-
-      // If no cover is specified
-      if (!coverAssetUUID) {
-        const isCurrentCoverInvalid =
-          draft.cover &&
-          uuids.length > 0 &&
-          !uuids.includes(
-            (await systemService.baseFindById(draft.cover, 'asset')).uuid
-          )
-        const needSetCandidateCover = !draft.cover && uuids.length >= 1
-
-        // fallback to set candidate cover
-        if (isCurrentCoverInvalid || needSetCandidateCover) {
-          const coverCandidate = await systemService.findAssetByUUID(uuids[0])
-          checkAssetValidity(coverCandidate, viewer)
-          data.cover = coverCandidate.id
-        }
-      }
     }
 
     // update
