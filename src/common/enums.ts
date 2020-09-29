@@ -37,6 +37,10 @@ export const MATERIALIZED_VIEW = {
   articleValueMaterialized: 'article_value_materialized',
   featuredCommentMaterialized: 'featured_comment_materialized',
   curationTagMaterialized: 'curation_tag_materialized',
+
+  /* Hottest articles A/B test */
+  articleHottestAMaterialized: 'article_hottest_a_materialized',
+  articleHottestBMaterialized: 'article_hottest_b_materialized',
 }
 
 // cache TTL in seconds
@@ -232,6 +236,10 @@ export const QUEUE_JOB = {
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
   refreshArticleInterestView: 'refreshArticleInterestView',
   refreshCurationTagMaterialView: 'refreshCurationTagMaterialView',
+
+  /* Refresh Views - hottest articles A/B test*/
+  refreshArticleHottestAView: 'refreshArticleHottestAView',
+  refreshArticleHottestBView: 'refreshArticleHottestBView',
 
   // Migration
   migration: 'migration',
