@@ -1,4 +1,4 @@
-import { PUBLISH_ARTICLE_DELAY, PUBLISH_STATE, USER_STATE } from 'common/enums'
+import { PUBLISH_STATE, USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
   DraftNotFoundError,
@@ -10,7 +10,7 @@ import { MutationToPublishArticleResolver } from 'definitions'
 
 const resolver: MutationToPublishArticleResolver = async (
   _,
-  { input: { id, delay } },
+  { input: { id } },
   { viewer, dataSources: { draftService } }
 ) => {
   if (!viewer.id) {
@@ -41,15 +41,13 @@ const resolver: MutationToPublishArticleResolver = async (
     return draft
   }
 
-  const scheduledAt = new Date(Date.now() + (delay || PUBLISH_ARTICLE_DELAY))
   const draftPending = await draftService.baseUpdate(draft.id, {
     publishState: PUBLISH_STATE.pending,
-    scheduledAt,
     updatedAt: new Date(),
   })
 
   // add job to queue
-  publicationQueue.publishArticle({ draftId: draftDBId, delay })
+  publicationQueue.publishArticle({ draftId: draftDBId })
 
   return draftPending
 }

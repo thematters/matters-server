@@ -31,9 +31,6 @@ export default /* GraphQL */ `
     "Content of this draft."
     content: String
 
-    "Time of this draft was scheduled for publishing."
-    scheduledAt: DateTime
-
     "Time of this draft was created."
     createdAt: DateTime!
 
