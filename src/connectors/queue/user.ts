@@ -107,7 +107,7 @@ class UserQueue extends BaseQueue {
     // delete assets
     await Promise.all(
       drafts.map(async (draft) => {
-        const assetMap = await this.systemService.findAssetMap(
+        const assetMap = await this.systemService.findAssetAndAssetMap(
           draftEntityTypeId,
           draft.id
         )

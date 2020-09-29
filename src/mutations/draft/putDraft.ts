@@ -15,13 +15,7 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
 } from 'common/errors'
-import {
-  extractAssetDataFromHtml,
-  fromGlobalId,
-  makeSummary,
-  sanitize,
-  stripHtml,
-} from 'common/utils'
+import { fromGlobalId, makeSummary, sanitize } from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const checkAssetValidity = (asset: any, viewer: any) => {
@@ -134,6 +128,7 @@ const resolver: MutationToPutDraftResolver = async (
     return draftService.baseUpdate(dbId, {
       updatedAt: new Date(),
       ...data,
+      cover: data.cover || draft.cover,
     })
   }
 
