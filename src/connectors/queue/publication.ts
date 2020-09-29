@@ -132,7 +132,7 @@ class PublicationQueue extends BaseQueue {
       ])
 
       // Remove unused assets
-      await this.deleteUnusedAssets({ articleEntityTypeId, draft, article })
+      await this.deleteUnusedAssets({ draftEntityTypeId, draft })
       job.progress(45)
 
       // Swap assets from draft to article
@@ -319,21 +319,16 @@ class PublicationQueue extends BaseQueue {
    * Delete unused assets from S3 and DB, skip if error is thrown.
    */
   private deleteUnusedAssets = async ({
-    articleEntityTypeId,
+    draftEntityTypeId,
     draft,
-    article,
   }: {
-    articleEntityTypeId: string
+    draftEntityTypeId: string
     draft: any
-    article: any
   }) => {
     try {
       const [assetMap, uuids] = await Promise.all([
-        this.systemService.findAssetAndAssetMap(
-          articleEntityTypeId,
-          article.id
-        ),
-        extractAssetDataFromHtml(article.content),
+        this.systemService.findAssetAndAssetMap(draftEntityTypeId, draft.id),
+        extractAssetDataFromHtml(draft.content),
       ])
 
       const assets = assetMap.reduce((data: any, asset: any) => {
