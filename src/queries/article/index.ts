@@ -28,6 +28,7 @@ import tagFollowers from './tag/followers'
 import tagIsFollower from './tag/isFollower'
 import * as tagOSS from './tag/oss'
 import tagOwner from './tag/owner'
+import tagParticipants from './tag/participants'
 import tagSelected from './tag/selected'
 import tags from './tags'
 import transactionsReceivedBy from './transactionsReceivedBy'
@@ -88,6 +89,7 @@ export default {
     followers: tagFollowers,
     oss: (root: any) => root,
     cover: tagCover,
+    participants: tagParticipants,
   },
   ArticleOSS: {
     boost: articleOSS.boost,

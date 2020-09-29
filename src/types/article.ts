@@ -186,7 +186,7 @@ export default /* GraphQL */ `
     description: String
 
     "Editors of this tag."
-    editors: [User!] @logCache(type: "${NODE_TYPES.user}")
+    editors(input: TagEditorsInput): [User!] @logCache(type: "${NODE_TYPES.user}")
 
     "Creator of this tag."
     creator: User @logCache(type: "${NODE_TYPES.user}")
@@ -199,6 +199,9 @@ export default /* GraphQL */ `
 
     "Followers of this tag."
     followers(input: ConnectionArgs!): UserConnection!
+
+    "Participants of this tag."
+    participants(input: ConnectionArgs!): UserConnection!
 
     # OSS
     oss: TagOSS! @auth(mode: "${AUTH_MODE.admin}")
@@ -315,6 +318,7 @@ export default /* GraphQL */ `
   input UpdateTagSettingInput {
     id: ID!
     type: UpdateTagSettingType!
+    editors: [ID!]
   }
 
   input AddArticlesTagsInput {
@@ -344,6 +348,11 @@ export default /* GraphQL */ `
   input TagSelectedInput {
     id: ID
     mediaHash: String
+  }
+
+  input TagEditorsInput {
+    excludeAdmin: Boolean
+    excludeOwner: Boolean
   }
 
   input TransactionsReceivedByArgs {
@@ -389,5 +398,8 @@ export default /* GraphQL */ `
   enum UpdateTagSettingType {
     adopt
     leave
+    add_editor
+    remove_editor
+    leave_editor
   }
 `
