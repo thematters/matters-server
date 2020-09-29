@@ -1,6 +1,3 @@
-const chunk = require('lodash/chunk')
-const { v4: uuidv4 } = require('uuid')
-
 const article_table = 'article'
 const draft_table = 'draft'
 const article_tag_table = 'article_tag'
@@ -37,7 +34,7 @@ exports.up = async (knex) => {
       updated_at
     )
     SELECT
-      uuid_generate_v4 () AS uuid,
+      md5(random()::text || clock_timestamp()::text)::uuid AS uuid,
       article.author_id,
       article.id,
 
@@ -81,7 +78,8 @@ exports.up = async (knex) => {
     UPDATE
       ${article_table}
     SET
-      draft_id = draft_article.draft_id
+      draft_id = draft_article.draft_id,
+      remark = '${REMARK}'
     FROM (
       SELECT DISTINCT ON (draft.article_id)
         draft.id AS draft_id,
