@@ -18,6 +18,10 @@ import {
   GQLPaymentPayoutNoticeTypeResolver,
   GQLPaymentReceivedDonationNoticeTypeResolver,
   GQLSubscribedArticleNewCommentNoticeTypeResolver,
+  GQLTagAddEditorNoticeTypeResolver,
+  GQLTagAdoptionNoticeTypeResolver,
+  GQLTagLeaveEditorNoticeTypeResolver,
+  GQLTagLeaveNoticeTypeResolver,
   GQLUpstreamArticleArchivedNoticeTypeResolver,
   GQLUserNewFollowerNoticeTypeResolver,
   GQLUserTypeResolver,
@@ -48,6 +52,10 @@ const notice: {
   ArticleTagHasBeenUnselectedNotice: GQLArticleTagHasBeenUnselectedNoticeTypeResolver
   PaymentReceivedDonationNotice: GQLPaymentReceivedDonationNoticeTypeResolver
   PaymentPayoutNotice: GQLPaymentPayoutNoticeTypeResolver
+  TagAdoptionNotice: GQLTagAdoptionNoticeTypeResolver
+  TagLeaveNotice: GQLTagLeaveNoticeTypeResolver
+  TagAddEditorNotice: GQLTagAddEditorNoticeTypeResolver
+  TagLeaveEditorNotice: GQLTagLeaveEditorNoticeTypeResolver
 } = {
   User: {
     notices,
@@ -78,6 +86,11 @@ const notice: {
         // payment
         payment_received_donation: 'PaymentReceivedDonationNotice',
         payment_payout: 'PaymentPayoutNotice',
+        // tag
+        tag_adoption: 'TagAdoptionNotice',
+        tag_leave: 'TagLeaveNotice',
+        tag_add_editor: 'TagAddEditorNotice',
+        tag_leave_editor: 'TagLeaveEditorNotice',
 
         // official
         official_announcement: 'OfficialAnnouncementNotice',
@@ -184,6 +197,26 @@ const notice: {
   PaymentPayoutNotice: {
     id: ({ uuid }) => uuid,
     target: ({ entities }) => entities.target,
+  },
+  TagAdoptionNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    tag: ({ entities }) => entities.target,
+  },
+  TagLeaveNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    tag: ({ entities }) => entities.target,
+  },
+  TagAddEditorNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    tag: ({ entities }) => entities.target,
+  },
+  TagLeaveEditorNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    tag: ({ entities }) => entities.target,
   },
 }
 
