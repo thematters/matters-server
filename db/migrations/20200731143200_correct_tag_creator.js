@@ -74,17 +74,17 @@ exports.up = async (knex) => {
     const tag = await knex(table).select('id', 'editors').where({ id }).first()
 
     if (!tag) {
-      console.log(`tag: ${id}, not exist`)
+      // console.log(`tag: ${id}, not exist`)
       continue
     }
     // if any user has picked the tag, then skip
     if (tag.editors && tag.editors.length > 1) {
-      console.log(`tag: ${id}, canceled`)
+      // console.log(`tag: ${id}, canceled`)
       continue
     }
 
     await knex(table).where({ id }).update({ creator: matty.id })
-    console.log(`tag: ${id}, updated`)
+    // console.log(`tag: ${id}, updated`)
   }
 
   // reset others' tags
@@ -94,12 +94,12 @@ exports.up = async (knex) => {
     const tag = await knex(table).select('id', 'editors').where({ id }).first()
 
     if (!tag) {
-      console.log(`tag: ${id}, not exist`)
+      // console.log(`tag: ${id}, not exist`)
       continue
     }
     // if any user has picked the tag, then skip
     if (tag.editors && tag.editors.length > 1) {
-      console.log(`tag: ${id}, canceled`)
+      // console.log(`tag: ${id}, canceled`)
       continue
     }
 
@@ -112,12 +112,12 @@ exports.up = async (knex) => {
       .first()
 
     if (!record || !record.author_id) {
-      console.log(`tag: ${id}, could not find author`)
+      // console.log(`tag: ${id}, could not find author`)
       continue
     }
 
     await knex(table).where({ id }).update({ creator: record.author_id })
-    console.log(`tag: ${id}, updated`)
+    // console.log(`tag: ${id}, updated`)
   }
 }
 
