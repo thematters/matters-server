@@ -989,11 +989,6 @@ export interface GQLDraft extends GQLNode {
   content?: string
 
   /**
-   * Time of this draft was scheduled for publishing.
-   */
-  scheduledAt?: GQLDateTime
-
-  /**
    * Time of this draft was created.
    */
   createdAt: GQLDateTime
@@ -2013,7 +2008,6 @@ export interface GQLMutation {
 
 export interface GQLPublishArticleInput {
   id: string
-  delay?: number
 }
 
 export interface GQLEditArticleInput {
@@ -5554,7 +5548,6 @@ export interface GQLDraftTypeResolver<TParent = any> {
   slug?: DraftToSlugResolver<TParent>
   summary?: DraftToSummaryResolver<TParent>
   content?: DraftToContentResolver<TParent>
-  scheduledAt?: DraftToScheduledAtResolver<TParent>
   createdAt?: DraftToCreatedAtResolver<TParent>
   updatedAt?: DraftToUpdatedAtResolver<TParent>
   wordCount?: DraftToWordCountResolver<TParent>
@@ -5614,15 +5607,6 @@ export interface DraftToSummaryResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToContentResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface DraftToScheduledAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

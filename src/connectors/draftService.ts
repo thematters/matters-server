@@ -1,5 +1,6 @@
 import DataLoader from 'dataloader'
 
+import { PUBLISH_STATE } from 'common/enums'
 import { BaseService } from 'connectors'
 
 export class DraftService extends BaseService {
@@ -47,13 +48,12 @@ export class DraftService extends BaseService {
     })
 
   /**
-   * Find or Delete drafts that aren't linked to articles by a given author id (user).
+   * Find unpublished drafts by a given author id (user).
    */
-  findUnlinkedDraftsByAuthor = (authorId: string) =>
+  findUnpublishedByAuthor = (authorId: string) =>
     this.knex
-      .select('draft.*', 'article.draft_id')
+      .select()
       .from(this.table)
-      .leftOuterJoin('article', 'article.draft_id', 'draft.id')
-      .whereNull('draft_id')
-      .andWhere({ 'draft.author_id': authorId })
+      .where({ authorId })
+      .andWhereNot({ publishState: PUBLISH_STATE.published })
 }
