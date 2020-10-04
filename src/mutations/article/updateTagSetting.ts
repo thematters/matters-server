@@ -65,14 +65,14 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         throw new ForbiddenError('viewer has no permission')
       }
 
-      // auto follow current tag
-      await tagService.follow({ targetId: tag.id, userId: viewer.id })
-
       // update
       updatedTag = await tagService.baseUpdate(tagId, {
         owner: viewer.id,
         editors: _uniq([...tag.editors, viewer.id]),
       })
+
+      // auto follow current tag
+      await tagService.follow({ targetId: tag.id, userId: viewer.id })
 
       // send mails
       notificationService.mail.sendAdoptTag({
@@ -154,12 +154,14 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       // gather valid editors
       const newEditors =
-        editors
+        (editors
           .map((editor) => {
             const { id: editorId } = fromGlobalId(editor)
-            return editorId
+            if (!tag.editors.includes(editorId)) {
+              return editorId
+            }
           })
-          .filter((editorId) => editorId !== undefined) || []
+          .filter((editorId) => editorId !== undefined) as string[]) || []
 
       // editors composed by 4 editors, matty and owner
       const dedupedEditors = _uniq([...tag.editors, ...newEditors])
@@ -171,6 +173,13 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       updatedTag = await tagService.baseUpdate(tagId, {
         editors: dedupedEditors,
       })
+
+      // auto follow current tag
+      await Promise.all(
+        newEditors.map((editorId) =>
+          tagService.follow({ targetId: tag.id, userId: editorId })
+        )
+      )
 
       // send emails and notices
       const recipients = (await userService.dataloader.loadMany(
