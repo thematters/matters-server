@@ -21,6 +21,7 @@ const triggerNotice = async ({
   selected,
   tag,
   viewerId,
+  isOwner,
 }: {
   articleId: string
   articleService: InstanceType<typeof ArticleService>
@@ -28,27 +29,39 @@ const triggerNotice = async ({
   selected: boolean
   tag: any
   viewerId: string
+  isOwner: boolean
 }) => {
+  const { mattyId } = environment
   const article = await articleService.baseFindById(articleId)
-  notificationService.trigger({
-    event:
-      selected === true
-        ? 'article_tag_has_been_added'
-        : 'article_tag_has_been_unselected',
-    recipientId: article.authorId,
-    actorId: viewerId,
-    entities: [
-      {
-        type: 'target',
-        entityTable: 'article',
-        entity: article,
-      },
-      {
-        type: 'tag',
-        entityTable: 'tag',
-        entity: tag,
-      },
-    ],
+  const editors = (tag.editors || []).filter((id: string) => id !== mattyId)
+  const owner = tag.owner ? [`${tag.owner}`] : []
+  const users = [article.authorId, ...(isOwner ? editors : owner)].filter(
+    (user) => user !== viewerId
+  )
+
+  const event =
+    selected === true
+      ? 'article_tag_has_been_added'
+      : 'article_tag_has_been_unselected'
+
+  users.map(async (user) => {
+    await notificationService.trigger({
+      event,
+      recipientId: user,
+      actorId: viewerId,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'article',
+          entity: article,
+        },
+        {
+          type: 'tag',
+          entityTable: 'tag',
+          entity: tag,
+        },
+      ],
+    })
   })
 }
 
@@ -109,6 +122,7 @@ const resolver: MutationToUpdateArticlesTagsResolver = async (
     selected: isSelected,
     tag,
     viewerId: viewer.id,
+    isOwner,
   })
 
   return tag
