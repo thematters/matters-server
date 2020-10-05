@@ -1,5 +1,6 @@
 import { has, isEmpty } from 'lodash'
 
+import { ASSET_TYPE } from 'common/enums'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -36,7 +37,11 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   if (input.avatar) {
     const avatarAssetUUID = input.avatar
     const asset = await systemService.findAssetByUUID(avatarAssetUUID)
-    if (!asset || asset.type !== 'avatar' || asset.authorId !== viewer.id) {
+    if (
+      !asset ||
+      asset.type !== ASSET_TYPE.avatar ||
+      asset.authorId !== viewer.id
+    ) {
       throw new AssetNotFoundError('avatar asset does not exists')
     }
     updateParams.avatar = asset.id
@@ -47,7 +52,7 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     const asset = await systemService.findAssetByUUID(input.profileCover)
     if (
       !asset ||
-      asset.type !== 'profileCover' ||
+      asset.type !== ASSET_TYPE.profileCover ||
       asset.authorId !== viewer.id
     ) {
       throw new AssetNotFoundError('profile cover asset does not exists')
