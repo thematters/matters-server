@@ -18,12 +18,14 @@ exports.up = async (knex) => {
         where a.state = 'active'
         and arc.created_at >= to_timestamp((extract(epoch from now()) - ${time_window}*24*3600))
         and arc.user_id is not null
-        and MOD(arc.user_id, 2) = 1
+        and (MOD(arc.user_id, 2) = 1 or arc.user_id in (select id from public.user where role = 'admin'))
         group by a.id
     ) t
   )
 
-  select * from
+  select article.id, article.title, article.created_at, 'https://matters.news/@-/-' || article.media_hash as link, coalesce(t.score, 0) as score
+  from article
+  left join
   (
       select t1.*, t2.latest_transaction,
       (select max_efficiency from original_score) as max_efficiency,
@@ -45,7 +47,7 @@ exports.up = async (knex) => {
           where a.state = 'active'
           and arc.created_at > to_timestamp((extract(epoch from now()) - ${time_window}*24*3600))
           and arc.user_id is not null
-          and MOD(arc.user_id, 2) = 1
+          and (MOD(arc.user_id, 2) = 1 or arc.user_id in (select id from public.user where role = 'admin'))
           group by a.id, u.display_name
       ) t1
       left join
@@ -54,11 +56,12 @@ exports.up = async (knex) => {
            from transaction
            where target_type = 4 and state = 'succeeded' and purpose = 'donation'
            and (currency = 'LIKE' and amount >= 100 or currency = 'HKD')
-           and MOD(sender_id, 2) = 1
+           and (MOD(sender_id, 2) = 1 or sender_id in (select id from public.user where role = 'admin'))
            group by target_id
       ) t2 on t1.id = t2.target_id
-  ) t
-  order by score desc;
+  ) t on article.id = t.id
+  where article.state = 'active'
+  order by score desc, created_at desc;
 
   create materialized view ${materialized} as
   select *

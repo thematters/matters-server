@@ -18,7 +18,7 @@ exports.up = async (knex) => {
             sum((created_at >= now() - interval '12 hours')::int) as comment_12_hrs,
             sum((created_at >= now() - interval '30 minutes')::int) as comment_30_mins
     from comment
-    where MOD(author_id, 2) = 0  /* user group A */
+    where (MOD(author_id, 2) = 0 and author_id not in (select id from public.user where role = 'admin'))  /* user group A */
     group by article_id) as cc on cc.article_id = article.id /* past 2 days like */
     left join
     (select reference_id,
@@ -26,7 +26,7 @@ exports.up = async (knex) => {
     from appreciation
     where purpose = 'appreciate'
       and created_at >= now() - interval '24 hours'
-      and MOD(sender_id, 2) = 0 /* user group A */
+      and (MOD(sender_id, 2) = 0 and sender_id not in (select id from public.user where role = 'admin')) /* user group A */
     group by reference_id) as lc1 on lc1.reference_id = article.id /* past 30 minutes like */
     left join
     (select reference_id,
@@ -34,7 +34,7 @@ exports.up = async (knex) => {
     from appreciation
     where purpose = 'appreciate'
       and created_at >= now() - interval '30 minutes'
-      and MOD(sender_id, 2) = 0 /* user group A */
+      and (MOD(sender_id, 2) = 0 and sender_id not in (select id from public.user where role = 'admin')) /* user group A */
     group by reference_id) as lc2 on lc2.reference_id = article.id /* number of days since published */
     left join
     (select id,
@@ -45,7 +45,7 @@ exports.up = async (knex) => {
             extract(epoch from now()-min(created_at))/60 as since_comment
     from comment
     where created_at >= now() - interval '30 days'
-    and MOD(author_id, 2) = 0 /* user group A */
+    and (MOD(author_id, 2) = 0 and author_id not in (select id from public.user where role = 'admin')) /* user group A */
     group by article_id) as fc on fc.article_id = article.id /* minutes since first like */
     left join
     (select reference_id,
@@ -53,7 +53,7 @@ exports.up = async (knex) => {
     from appreciation
     where purpose = 'appreciate'
       and created_at >= now() - interval '30 days'
-      and MOD(sender_id, 2) = 0 /* user group A */
+      and (MOD(sender_id, 2) = 0 and sender_id not in (select id from public.user where role = 'admin')) /* user group A */
     group by reference_id) as fl on fl.reference_id = article.id) as scores
     where id not in
     (select article_id
