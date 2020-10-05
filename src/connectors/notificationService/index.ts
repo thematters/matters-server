@@ -68,6 +68,10 @@ export class NotificationService extends BaseService {
       case 'article_tag_has_been_removed':
       case 'article_tag_has_been_unselected':
       case 'payment_received_donation':
+      case 'tag_adoption':
+      case 'tag_leave':
+      case 'tag_add_editor':
+      case 'tag_leave_editor':
         return {
           type: params.event,
           recipientId: params.recipientId,

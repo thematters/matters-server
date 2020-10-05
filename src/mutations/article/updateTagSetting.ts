@@ -14,14 +14,22 @@ import {
 } from 'common/errors'
 import { fromGlobalId, isFeatureEnabled } from 'common/utils'
 import {
-  GQLUpdateTagSettingType,
+  GQLUpdateTagSettingType as UpdateType,
   MutationToUpdateTagSettingResolver,
 } from 'definitions'
 
 const resolver: MutationToUpdateTagSettingResolver = async (
   _,
   { input: { id, type, editors } },
-  { viewer, dataSources: { systemService, tagService, userService } }
+  {
+    viewer,
+    dataSources: {
+      notificationService,
+      systemService,
+      tagService,
+      userService,
+    },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('viewer has no permission')
@@ -42,9 +50,10 @@ const resolver: MutationToUpdateTagSettingResolver = async (
   const isOwner = tag.owner === viewer.id
   const isMatty = viewer.id === mattyId
 
-  let params: Record<string, any> = {}
+  let updatedTag
+
   switch (type) {
-    case GQLUpdateTagSettingType.adopt: {
+    case UpdateType.adopt: {
       // check feature is enabled
       const feature = await systemService.getFeatureFlag('tag_adoption')
       if (feature && !isFeatureEnabled(feature.flag, viewer)) {
@@ -59,12 +68,48 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       // auto follow current tag
       await tagService.follow({ targetId: tag.id, userId: viewer.id })
 
-      params = { owner: viewer.id, editors: _uniq([...tag.editors, viewer.id]) }
+      // update
+      updatedTag = await tagService.baseUpdate(tagId, {
+        owner: viewer.id,
+        editors: _uniq([...tag.editors, viewer.id]),
+      })
+
+      // send mails
+      notificationService.mail.sendAdoptTag({
+        to: viewer.email,
+        language: viewer.language,
+        recipient: {
+          displayName: viewer.displayName,
+          userName: viewer.userName,
+        },
+        tag: { content: tag.content },
+      })
+
+      // send notices
+      const participants = await tagService.findParticipants({
+        id: tag.id,
+        limit: 0,
+      })
+
+      participants.map((participant) => {
+        notificationService.trigger({
+          event: 'tag_adoption',
+          recipientId: participant.authorId,
+          actorId: viewer.id,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'tag',
+              entity: tag,
+            },
+          ],
+        })
+      })
       break
     }
-    case GQLUpdateTagSettingType.leave: {
+    case UpdateType.leave: {
       // if tag has no owner or owner is not viewer, throw error
-      if (!tag.owner || (tag.owner && tag.owner !== viewer.id)) {
+      if (!tag.owner || (tag.owner && !isOwner)) {
         throw new ForbiddenError('viewer has no permission')
       }
 
@@ -72,10 +117,33 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       const newEditors = isMatty
         ? undefined
         : (tag.editors || []).filter((item: string) => item !== viewer.id)
-      params = { owner: null, editors: newEditors }
+
+      // update
+      updatedTag = await tagService.baseUpdate(tagId, {
+        owner: null,
+        editors: newEditors,
+      })
+
+      // send notices
+      if (newEditors && newEditors.length > 0) {
+        newEditors.map((editor: string) => {
+          notificationService.trigger({
+            event: 'tag_leave',
+            recipientId: editor,
+            actorId: viewer.id,
+            entities: [
+              {
+                type: 'target',
+                entityTable: 'tag',
+                entity: tag,
+              },
+            ],
+          })
+        })
+      }
       break
     }
-    case GQLUpdateTagSettingType.add_editor: {
+    case UpdateType.add_editor: {
       // only owner can add editors
       if (!isOwner) {
         throw new ForbiddenError('viewer has no permission')
@@ -85,21 +153,61 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       }
 
       // gather valid editors
-      const newEditors = editors
-        .map((editor) => {
-          const { id: editorId } = fromGlobalId(editor)
-          return editorId
-        })
-        .filter((editorId) => editorId !== undefined)
+      const newEditors =
+        editors
+          .map((editor) => {
+            const { id: editorId } = fromGlobalId(editor)
+            return editorId
+          })
+          .filter((editorId) => editorId !== undefined) || []
 
       // editors composed by 4 editors, matty and owner
-      if (_uniq([...tag.editors, ...newEditors]).length > 6) {
+      const dedupedEditors = _uniq([...tag.editors, ...newEditors])
+      if (dedupedEditors.length > 6) {
         throw new UserInputError('number of editors reaches limit')
       }
-      params = { editors: _uniq([...tag.editors, ...newEditors]) }
+
+      // update
+      updatedTag = await tagService.baseUpdate(tagId, {
+        editors: dedupedEditors,
+      })
+
+      // send emails and notices
+      const recipients = (await userService.dataloader.loadMany(
+        newEditors
+      )) as Array<Record<string, any>>
+
+      recipients.map((recipient) => {
+        notificationService.mail.sendAssignAsTagEditor({
+          to: recipient.email,
+          language: recipient.language,
+          recipient: {
+            displayName: recipient.displayName,
+            userName: recipient.userName,
+          },
+          sender: {
+            displayName: viewer.displayName,
+            userName: viewer.userName,
+          },
+          tag: { content: tag.content },
+        })
+
+        notificationService.trigger({
+          event: 'tag_add_editor',
+          recipientId: recipient.id,
+          actorId: viewer.id,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'tag',
+              entity: tag,
+            },
+          ],
+        })
+      })
       break
     }
-    case GQLUpdateTagSettingType.remove_editor: {
+    case UpdateType.remove_editor: {
       // only owner can remove editors
       if (!isOwner) {
         throw new ForbiddenError('viewer has no permission')
@@ -109,19 +217,24 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       }
 
       // gather valid editors
-      const removeEditors = editors
-        .map((editor) => {
-          const { id: editorId } = fromGlobalId(editor)
-          if (editorId === tag.owner || editorId === mattyId) {
-            return
-          }
-          return editorId
-        })
-        .filter((editorId) => editorId !== undefined)
-      params = { editors: _difference(tag.editors, removeEditors) }
+      const removeEditors =
+        (editors
+          .map((editor) => {
+            const { id: editorId } = fromGlobalId(editor)
+            if (editorId === tag.owner || editorId === mattyId) {
+              return
+            }
+            return editorId
+          })
+          .filter((editorId) => editorId !== undefined) as string[]) || []
+
+      // update
+      updatedTag = await tagService.baseUpdate(tagId, {
+        editors: _difference(tag.editors, removeEditors),
+      })
       break
     }
-    case GQLUpdateTagSettingType.leave_editor: {
+    case UpdateType.leave_editor: {
       const isEditor = _some(tag.editors, (editor) => editor === viewer.id)
       if (!isEditor) {
         throw new ForbiddenError('viewer has no permission')
@@ -129,7 +242,27 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       if (isOwner || isMatty) {
         throw new ForbiddenError('viewer cannot leave')
       }
-      params = { editors: _difference(tag.editors, [viewer.id]) }
+
+      // update
+      updatedTag = await tagService.baseUpdate(tagId, {
+        editors: _difference(tag.editors, [viewer.id]),
+      })
+
+      // send notice
+      if (tag.owner) {
+        notificationService.trigger({
+          event: 'tag_leave_editor',
+          recipientId: tag.owner,
+          actorId: viewer.id,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'tag',
+              entity: tag,
+            },
+          ],
+        })
+      }
       break
     }
     default: {
@@ -138,10 +271,10 @@ const resolver: MutationToUpdateTagSettingResolver = async (
     }
   }
 
-  const updatedTag = await tagService.baseUpdate(tagId, params)
-
-  // invalidate extra nodes
-  updatedTag[CACHE_KEYWORD] = [{ id: viewer.id, type: NODE_TYPES.user }]
+  if (updatedTag) {
+    // invalidate extra nodes
+    updatedTag[CACHE_KEYWORD] = [{ id: viewer.id, type: NODE_TYPES.user }]
+  }
   return updatedTag
 }
 

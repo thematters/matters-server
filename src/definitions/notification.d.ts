@@ -26,6 +26,11 @@ export type DBNoticeType =
   | 'payment_payout'
   // official
   | 'official_announcement'
+  // tag
+  | 'tag_adoption'
+  | 'tag_leave'
+  | 'tag_add_editor'
+  | 'tag_leave_editor'
 
 export type OfficialNoticeExtendType =
   | 'user_activated'
@@ -315,6 +320,37 @@ export interface NoticeCommentReportedParams
   recipientId: string
 }
 
+/**
+ * Tag
+ */
+export interface NoticeTagAdoptionParams extends NotificationRequiredParams {
+  event: 'tag_adoption'
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'tag'>]
+}
+
+export interface NoticeTagLeaveParams extends NotificationRequiredParams {
+  event: 'tag_leave'
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'tag'>]
+}
+
+export interface NoticeTagAddEditorParams extends NotificationRequiredParams {
+  event: 'tag_add_editor'
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'tag'>]
+}
+
+export interface NoticeTagLeaveEditorParams extends NotificationRequiredParams {
+  event: 'tag_leave_editor'
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'tag'>]
+}
+
 export type NotificationPrarms =
   | NoticeUserNewFollowerParams
   | NoticeArticlePublishedParams
@@ -344,6 +380,10 @@ export type NotificationPrarms =
   | NoticeArticleTagHasBeenAddedParams
   | NoticeArticleTagHasBeenRemovedParams
   | NoticeArticleTagHasBeenUnselectedParams
+  | NoticeTagAdoptionParams
+  | NoticeTagLeaveParams
+  | NoticeTagAddEditorParams
+  | NoticeTagLeaveEditorParams
 
 export type NoticeUserId = string
 

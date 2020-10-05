@@ -525,6 +525,10 @@ class Notice extends BaseService {
       article_tag_has_been_unselected: setting.tag,
       payment_received_donation: true,
       payment_payout: true,
+      tag_adoption: true,
+      tag_leave: true,
+      tag_add_editor: true,
+      tag_leave_editor: true,
     }
 
     return noticeSettingMap[event]

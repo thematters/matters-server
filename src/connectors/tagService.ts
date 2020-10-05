@@ -197,8 +197,8 @@ export class TagService extends BaseService {
    */
   findParticipants = async ({
     id,
-    offset = BATCH_SIZE,
-    limit,
+    offset = 0,
+    limit = BATCH_SIZE,
     exclude,
   }: {
     id: string
