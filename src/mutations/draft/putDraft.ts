@@ -119,9 +119,9 @@ const resolver: MutationToPutDraftResolver = async (
 
     // update
     return draftService.baseUpdate(dbId, {
-      updatedAt: new Date(),
       ...data,
-      cover: data.cover || draft.cover,
+      updatedAt: new Date(),
+      cover: cover === null ? null : data.cover || draft.cover,
     })
   }
 
