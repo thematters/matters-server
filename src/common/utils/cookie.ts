@@ -44,7 +44,7 @@ export const setCookie = ({
 
 export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
   const opts = getCookieOption(req)
-  
+
   res.clearCookie(COOKIE_TOKEN_NAME, opts)
   res.clearCookie(COOKIE_AB_GROUP, opts)
 }
