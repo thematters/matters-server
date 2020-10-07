@@ -140,6 +140,11 @@ const resolver: MutationToEditArticleResolver = async (
       cover: asset.id,
       updatedAt: new Date(),
     })
+  } else if (cover === null) {
+    await articleService.baseUpdate(dbId, {
+      cover: null,
+      updatedAt: new Date(),
+    })
   }
 
   /**

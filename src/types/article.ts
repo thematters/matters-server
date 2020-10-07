@@ -92,7 +92,7 @@ export default /* GraphQL */ `
     cover: URL
 
     "List of asstets are belonged to this article."
-    assets: [Asset!]!
+    assets: [Asset!]! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "A short summary for this article."
     summary: String!
