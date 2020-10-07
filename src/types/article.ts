@@ -91,6 +91,9 @@ export default /* GraphQL */ `
     "Article cover's link."
     cover: URL
 
+    "List of asstets are belonged to this article."
+    assets: [Asset!]!
+
     "A short summary for this article."
     summary: String!
 
@@ -101,10 +104,10 @@ export default /* GraphQL */ `
     wordCount: Int
 
     "IPFS hash of this article."
-    dataHash: String
+    dataHash: String!
 
     "Media hash, composed of cid encoding, of this article."
-    mediaHash: String
+    mediaHash: String!
 
     "Content of this article."
     content: String!
@@ -269,6 +272,7 @@ export default /* GraphQL */ `
     state: ArticleState
     sticky: Boolean
     tags: [String!]
+    cover: ID
     collection: [ID!]
   }
 

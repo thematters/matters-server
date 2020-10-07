@@ -6,6 +6,7 @@ import { makeSummary, toGlobalId } from 'common/utils'
 import appreciateLeft from './appreciateLeft'
 import appreciationsReceived from './appreciationsReceived'
 import appreciationsReceivedTotal from './appreciationsReceivedTotal'
+import assets from './assets'
 import author from './author'
 import canSuperLike from './canSuperLike'
 import collectedBy from './collectedBy'
@@ -52,6 +53,7 @@ export default {
     appreciateLeft,
     author,
     cover: articleCover,
+    assets,
     collection,
     collectedBy,
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),

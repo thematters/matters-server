@@ -72,7 +72,7 @@ export default /* GraphQL */ `
     title: String
     content: String
     tags: [String]
-    coverAssetId: ID
+    cover: ID
     collection: [ID]
   }
 
