@@ -1074,6 +1074,7 @@ export interface GQLAsset {
  */
 export const enum GQLAssetType {
   avatar = 'avatar',
+  cover = 'cover',
   embed = 'embed',
   embedaudio = 'embedaudio',
   profileCover = 'profileCover',

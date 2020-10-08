@@ -407,6 +407,7 @@ export const OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
 
 export const ASSET_TYPE = {
   avatar: 'avatar',
+  cover: 'cover',
   embed: 'embed',
   embedaudio: 'embedaudio',
   profileCover: 'profileCover',

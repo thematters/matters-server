@@ -92,7 +92,7 @@ export default /* GraphQL */ `
     cover: URL
 
     "List of asstets are belonged to this article."
-    assets: [Asset!]! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    assets: [Asset!]! @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "A short summary for this article."
     summary: String!

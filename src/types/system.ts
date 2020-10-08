@@ -236,6 +236,7 @@ export default /* GraphQL */ `
   "Enums for asset types."
   enum AssetType {
     avatar
+    cover
     embed
     embedaudio
     profileCover
