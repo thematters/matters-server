@@ -1,8 +1,9 @@
 import { difference, uniq } from 'lodash'
 
-import { ARTICLE_STATE, USER_STATE } from 'common/enums'
+import { ARTICLE_STATE, ASSET_TYPE, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  AssetNotFoundError,
   AuthenticationError,
   EntityNotFoundError,
   ForbiddenByStateError,
@@ -13,11 +14,12 @@ import { MutationToEditArticleResolver } from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
-  { input: { id, state, sticky, tags, collection } },
+  { input: { id, state, sticky, tags, cover, collection } },
   {
     viewer,
     dataSources: {
-      userService,
+      draftService,
+      systemService,
       articleService,
       tagService,
       notificationService,
@@ -117,6 +119,31 @@ const resolver: MutationToEditArticleResolver = async (
     await tagService.deleteArticleTagsByTagIds({
       articleId: article.id,
       tagIds: difference(oldIds, newIds),
+    })
+  }
+
+  /**
+   * Cover
+   */
+  if (cover) {
+    const asset = await systemService.findAssetByUUID(cover)
+
+    if (
+      !asset ||
+      asset.type !== ASSET_TYPE.embed ||
+      asset.authorId !== viewer.id
+    ) {
+      throw new AssetNotFoundError('article cover does not exists')
+    }
+
+    await articleService.baseUpdate(dbId, {
+      cover: asset.id,
+      updatedAt: new Date(),
+    })
+  } else if (cover === null) {
+    await articleService.baseUpdate(dbId, {
+      cover: null,
+      updatedAt: new Date(),
     })
   }
 
