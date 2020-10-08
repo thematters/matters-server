@@ -33,7 +33,7 @@ const resolver: MutationToPutDraftResolver = async (
   { input },
   { viewer, dataSources: { draftService, systemService, articleService } }
 ) => {
-  const { id, title, content, tags, cover, collection: collection } = input
+  const { id, title, content, tags, cover, collection } = input
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
