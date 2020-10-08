@@ -271,7 +271,6 @@ export const QUEUE_COMPLETED_LIST_SIZE = {
   large: 10000,
 }
 
-export const PUBLISH_ARTICLE_DELAY = 1000
 export const MIGRATION_DELAY = 1000
 
 const DEV_EMAIL_TEMPLATE_ID = {
@@ -309,6 +308,16 @@ const DEV_EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-dd77980e9ec1477f98259c7e9fb4fc28',
     zh_hans: 'd-9fea53d8838e44c4be4b93d26b8f2e9a',
     en: 'd-dd77980e9ec1477f98259c7e9fb4fc28',
+  },
+  adoptTag: {
+    zh_hant: 'd-88b64da37a3240a2b240b5fbdf944661',
+    zh_hans: 'd-2d9dda465f294e1e8a7e226a4165d0d9',
+    en: 'd-88b64da37a3240a2b240b5fbdf944661',
+  },
+  assignAsTagEditor: {
+    zh_hant: 'd-ea7389447e9d48549a7d0ad86b90fa9f',
+    zh_hans: 'd-6fe4334692e2475dba68a135831f0f40',
+    en: 'd-ea7389447e9d48549a7d0ad86b90fa9f',
   },
 }
 
@@ -348,6 +357,16 @@ const PROD_EMAIL_TEMPLATE_ID = {
     zh_hans: 'd-b00c4b181721405ebcb9170b1f890075',
     en: 'd-96ab5281c6bd419ebec20e8dbcbed427',
   },
+  adoptTag: {
+    zh_hant: 'd-20e5e339130d49d79fce853577f689d3',
+    zh_hans: 'd-6e8f11d55f3447fc9e4ab2f4aa13ff2f',
+    en: 'd-20e5e339130d49d79fce853577f689d3',
+  },
+  assignAsTagEditor: {
+    zh_hant: 'd-3dc33b89e89442fe8c25c51502c9f4d6',
+    zh_hans: 'd-fba153b334af44cb9c1ecc3695eff9fc',
+    en: 'd-3dc33b89e89442fe8c25c51502c9f4d6',
+  },
 }
 
 export const EMAIL_TEMPLATE_ID = isProd
@@ -385,6 +404,15 @@ export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
 export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS = MINUTE * 10 // 10 mins
 export const OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 30 // 30 days
 export const OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
+
+export const ASSET_TYPE = {
+  avatar: 'avatar',
+  embed: 'embed',
+  embedaudio: 'embedaudio',
+  profileCover: 'profileCover',
+  oauthClientAvatar: 'oauthClientAvatar',
+  tagCover: 'tagCover',
+}
 
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
   'image/gif',
@@ -513,6 +541,10 @@ export const DB_NOTICE_TYPES: DBNoticeType[] = [
   'article_tag_has_been_added',
   'article_tag_has_been_removed',
   'article_tag_has_been_unselected',
+  'tag_adoption',
+  'tag_leave',
+  'tag_add_editor',
+  'tag_leave_editor',
   // comment
   'comment_pinned',
   'comment_new_reply',

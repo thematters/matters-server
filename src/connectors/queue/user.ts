@@ -1,6 +1,7 @@
 import Queue from 'bull'
 
 import {
+  ASSET_TYPE,
   MINUTE,
   QUEUE_JOB,
   QUEUE_NAME,
@@ -81,7 +82,7 @@ class UserQueue extends BaseQueue {
       const { userId } = job.data as ArchiveUserData
 
       // delete unlinked drafts
-      await this.deleteUnlinkedDrafts(userId)
+      await this.deleteUnpublishedDrafts(userId)
       job.progress(50)
 
       // delete assets
@@ -95,10 +96,10 @@ class UserQueue extends BaseQueue {
   }
 
   /**
-   * Delete drafts that aren't linked to articles
+   * Delete unpublished drafts
    */
-  private deleteUnlinkedDrafts = async (authorId: string) => {
-    const drafts = await this.draftService.findUnlinkedDraftsByAuthor(authorId)
+  private deleteUnpublishedDrafts = async (authorId: string) => {
+    const drafts = await this.draftService.findUnpublishedByAuthor(authorId)
     const {
       id: draftEntityTypeId,
     } = await this.systemService.baseFindEntityTypeId('draft')
@@ -106,7 +107,7 @@ class UserQueue extends BaseQueue {
     // delete assets
     await Promise.all(
       drafts.map(async (draft) => {
-        const assetMap = await this.systemService.findAssetMap(
+        const assetMap = await this.systemService.findAssetAndAssetMap(
           draftEntityTypeId,
           draft.id
         )
@@ -133,7 +134,11 @@ class UserQueue extends BaseQueue {
    *
    */
   private deleteUserAssets = async (userId: string) => {
-    const types = ['avatar', 'profileCover', 'oauthClientAvatar']
+    const types = [
+      ASSET_TYPE.avatar,
+      ASSET_TYPE.profileCover,
+      ASSET_TYPE.oauthClientAvatar,
+    ]
     const assets = (
       await this.systemService.findAssetsByAuthorAndTypes(userId, types)
     ).reduce((data: any, asset: any) => {

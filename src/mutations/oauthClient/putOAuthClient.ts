@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { nanoid } from 'nanoid'
 
+import { ASSET_TYPE } from 'common/enums'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -49,7 +50,7 @@ const resolver: MutationToPutOAuthClientResolver = async (
       const asset = await systemService.findAssetByUUID(avatar)
       if (
         !asset ||
-        asset.type !== 'oauthClientAvatar' ||
+        asset.type !== ASSET_TYPE.oauthClientAvatar ||
         asset.authorId !== viewer.id
       ) {
         throw new AssetNotFoundError('avatar asset does not exists')

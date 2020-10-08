@@ -150,6 +150,95 @@ export class TagService extends BaseService {
     return item
   }
 
+  /**
+   * Count of a tag's participants.
+   *
+   */
+  countParticipants = async ({
+    id,
+    exclude,
+  }: {
+    id: string
+    exclude?: string[]
+  }) => {
+    const subquery = this.knex.raw(`(
+        SELECT
+            at.*, article.author_id
+        FROM
+            article_tag AS at
+        INNER JOIN
+            article ON article.id = at.article_id
+        WHERE
+            at.tag_id = ${id}
+    ) AS base`)
+
+    const result = await this.knex
+      .from((knex: any) => {
+        const source = knex
+          .select('author_id')
+          .from(subquery)
+          .groupBy('author_id')
+
+        if (exclude) {
+          source.whereNotIn('author_id', exclude)
+        }
+
+        source.as('source')
+      })
+      .count()
+      .first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Find a tag's participants.
+   *
+   */
+  findParticipants = async ({
+    id,
+    offset = 0,
+    limit = BATCH_SIZE,
+    exclude,
+  }: {
+    id: string
+    offset?: number
+    limit?: number
+    exclude?: string[]
+  }) => {
+    const subquery = this.knex.raw(`(
+        SELECT
+            at.*, article.author_id
+        FROM
+            article_tag AS at
+        INNER JOIN
+            article ON article.id = at.article_id
+        WHERE
+            at.tag_id = ${id}
+        ORDER BY
+            at.created_at
+    ) AS base`)
+
+    const query = this.knex
+      .select('author_id')
+      .from(subquery)
+      .groupBy('author_id')
+
+    if (exclude) {
+      query.whereNotIn('author_id', exclude)
+    }
+
+    if (limit) {
+      query.limit(limit)
+    }
+
+    if (offset) {
+      query.offset(offset)
+    }
+
+    return query
+  }
+
   /*********************************
    *                               *
    *             Follow            *

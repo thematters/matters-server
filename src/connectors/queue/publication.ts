@@ -5,7 +5,6 @@ import * as cheerio from 'cheerio'
 import {
   MINUTE,
   NODE_TYPES,
-  PUBLISH_ARTICLE_DELAY,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
@@ -38,18 +37,11 @@ class PublicationQueue extends BaseQueue {
     )
   }
 
-  publishArticle = ({
-    draftId,
-    delay = PUBLISH_ARTICLE_DELAY,
-  }: {
-    draftId: string
-    delay?: number
-  }) => {
+  publishArticle = ({ draftId }: { draftId: string }) => {
     return this.q.add(
       QUEUE_JOB.publishArticle,
       { draftId },
       {
-        delay,
         priority: QUEUE_PRIORITY.CRITICAL,
       }
     )
@@ -92,11 +84,6 @@ class PublicationQueue extends BaseQueue {
         return
       }
 
-      if (draft.scheduledAt && draft.scheduledAt > new Date()) {
-        job.progress(100)
-        done(null, `Draft's (${draftId}) scheduledAt is greater than now`)
-        return
-      }
       job.progress(5)
 
       // publish to IPFS
@@ -111,8 +98,14 @@ class PublicationQueue extends BaseQueue {
       }
       job.progress(10)
 
-      // mark draft as published
+      // mark draft as published and copy data from article
+      // TODO: deprecated once article table is altered
+      // @see {@url https://github.com/thematters/matters-server/pull/1509}
       await this.draftService.baseUpdate(draft.id, {
+        articleId: article.id,
+        wordCount: article.wordCount,
+        dataHash: article.dataHash,
+        mediaHash: article.mediaHash,
         archived: true,
         publishState: PUBLISH_STATE.published,
         updatedAt: new Date(),
@@ -327,13 +320,18 @@ class PublicationQueue extends BaseQueue {
   }) => {
     try {
       const [assetMap, uuids] = await Promise.all([
-        this.systemService.findAssetMap(draftEntityTypeId, draft.id),
+        this.systemService.findAssetAndAssetMap(draftEntityTypeId, draft.id),
         extractAssetDataFromHtml(draft.content),
       ])
+
       const assets = assetMap.reduce((data: any, asset: any) => {
-        if (uuids && !uuids.includes(asset.uuid)) {
+        const isCover = draft.cover === asset.asset_id
+        const isEmbed = uuids && uuids.includes(asset.uuid)
+
+        if (!isCover && !isEmbed) {
           data[`${asset.assetId}`] = asset.path
         }
+
         return data
       }, {})
 
@@ -359,11 +357,7 @@ class PublicationQueue extends BaseQueue {
       const pendingDraftIds: string[] = []
 
       drafts.forEach((draft: any, index: number) => {
-        // skip if draft was scheduled and later than now
-        if (draft.scheduledAt && draft.scheduledAt > new Date()) {
-          return
-        }
-        publicationQueue.publishArticle({ draftId: draft.id, delay: 0 })
+        publicationQueue.publishArticle({ draftId: draft.id })
         pendingDraftIds.push(draft.id)
         job.progress(((index + 1) / drafts.length) * 100)
       })
