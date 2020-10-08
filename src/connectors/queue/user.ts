@@ -1,6 +1,7 @@
 import Queue from 'bull'
 
 import {
+  ASSET_TYPE,
   MINUTE,
   QUEUE_JOB,
   QUEUE_NAME,
@@ -106,7 +107,7 @@ class UserQueue extends BaseQueue {
     // delete assets
     await Promise.all(
       drafts.map(async (draft) => {
-        const assetMap = await this.systemService.findAssetMap(
+        const assetMap = await this.systemService.findAssetAndAssetMap(
           draftEntityTypeId,
           draft.id
         )
@@ -133,7 +134,11 @@ class UserQueue extends BaseQueue {
    *
    */
   private deleteUserAssets = async (userId: string) => {
-    const types = ['avatar', 'profileCover', 'oauthClientAvatar']
+    const types = [
+      ASSET_TYPE.avatar,
+      ASSET_TYPE.profileCover,
+      ASSET_TYPE.oauthClientAvatar,
+    ]
     const assets = (
       await this.systemService.findAssetsByAuthorAndTypes(userId, types)
     ).reduce((data: any, asset: any) => {
