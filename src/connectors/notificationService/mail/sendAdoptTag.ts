@@ -18,6 +18,7 @@ export const sendAdoptTag = async ({
     userName: string
   }
   tag: {
+    id: string
     content: string
   }
 }) => {
