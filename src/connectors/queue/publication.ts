@@ -100,7 +100,7 @@ class PublicationQueue extends BaseQueue {
 
       // mark draft as published and copy data from article
       // TODO: deprecated once article table is altered
-      // @see {@url https://github.com/thematters/matters-server/pull/1509}
+      // @see {@url https://github.com/thematters/matters-server/pull/1510}
       await this.draftService.baseUpdate(draft.id, {
         articleId: article.id,
         wordCount: article.wordCount,
@@ -116,6 +116,20 @@ class PublicationQueue extends BaseQueue {
       await this.handleCollection({ draft, article })
       job.progress(40)
 
+      // handle tags
+      const tags = await this.handleTags({ draft, article })
+      job.progress(50)
+
+      /**
+       * Handle Assets
+       *
+       * Relationship between asset_map and entity:
+       *
+       * cover -> article
+       * embed -> draft
+       *
+       * @see {@url https://github.com/thematters/matters-server/pull/1510}
+       */
       const [
         { id: draftEntityTypeId },
         { id: articleEntityTypeId },
@@ -126,7 +140,7 @@ class PublicationQueue extends BaseQueue {
 
       // Remove unused assets
       await this.deleteUnusedAssets({ draftEntityTypeId, draft })
-      job.progress(45)
+      job.progress(60)
 
       // Swap cover assets from draft to article
       const coverAssets = await this.systemService.findAssetAndAssetMap({
@@ -135,15 +149,11 @@ class PublicationQueue extends BaseQueue {
         assetType: 'cover',
       })
       await this.systemService.swapAssetMapEntity(
-        coverAssets.map((ast) => ast.assetId),
+        coverAssets.map((ast) => ast.id),
         articleEntityTypeId,
         article.id
       )
-      job.progress(50)
-
-      // handle tags
-      const tags = await this.handleTags({ draft, article })
-      job.progress(60)
+      job.progress(70)
 
       // add to search
       const author = await this.userService.baseFindById(article.authorId)

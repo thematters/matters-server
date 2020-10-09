@@ -155,7 +155,7 @@ export class SystemService extends BaseService {
     assetType?: keyof typeof ASSET_TYPE
   }) => {
     let qs = this.knex('asset_map')
-      .select('asset_id', 'uuid', 'path', 'entity_id', 'type', 'created_at')
+      .select('asset_map.*', 'uuid', 'path', 'type', 'created_at')
       .rightJoin('asset', 'asset_map.asset_id', 'asset.id')
       .where({ entityTypeId, entityId })
 
@@ -192,11 +192,7 @@ export class SystemService extends BaseService {
     })
 
     try {
-      await Promise.all(
-        paths.map((path) => {
-          this.aws.baseDeleteFile(path)
-        })
-      )
+      await Promise.all(paths.map((path) => this.aws.baseDeleteFile(path)))
     } catch (e) {
       logger.error(e)
     }
