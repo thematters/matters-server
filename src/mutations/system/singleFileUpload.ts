@@ -39,6 +39,7 @@ const resolver: MutationToSingleFileUploadResolver = async (
   const isImageType =
     [
       ASSET_TYPE.avatar,
+      ASSET_TYPE.cover,
       ASSET_TYPE.embed,
       ASSET_TYPE.profileCover,
       ASSET_TYPE.oauthClientAvatar,

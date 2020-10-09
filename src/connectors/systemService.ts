@@ -146,7 +146,7 @@ export class SystemService extends BaseService {
    */
   findAssetAndAssetMap = async (entityTypeId: string, entityId: string) =>
     this.knex('asset_map')
-      .select('asset_id', 'uuid', 'path', 'entityId', 'type', 'createdAt')
+      .select('asset_id', 'uuid', 'path', 'entity_id', 'type', 'created_at')
       .rightJoin('asset', 'asset_map.asset_id', 'asset.id')
       .where({ entityTypeId, entityId })
 
@@ -172,7 +172,7 @@ export class SystemService extends BaseService {
   /**
    * Delete asset and asset map by a given id
    */
-  deleteAssetAndAssetMap = async (assets: { [key: string]: string }) => {
+  deleteAssetAndAssetMap = async (assets: { [id: string]: string }) => {
     const ids = Object.keys(assets)
 
     await this.knex.transaction(async (trx) => {

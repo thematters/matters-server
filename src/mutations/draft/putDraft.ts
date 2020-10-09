@@ -18,16 +18,6 @@ import {
 import { fromGlobalId, makeSummary, sanitize } from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
-const checkAssetValidity = (asset: any, viewer: any) => {
-  if (
-    !asset ||
-    asset.type !== ASSET_TYPE.embed ||
-    asset.authorId !== viewer.id
-  ) {
-    throw new AssetNotFoundError('Asset does not exists')
-  }
-}
-
 const resolver: MutationToPutDraftResolver = async (
   root,
   { input },
@@ -46,7 +36,15 @@ const resolver: MutationToPutDraftResolver = async (
   let coverId
   if (cover) {
     const asset = await systemService.findAssetByUUID(cover)
-    checkAssetValidity(asset, viewer)
+
+    if (
+      !asset ||
+      [ASSET_TYPE.embed, ASSET_TYPE.cover].indexOf(asset.type) < 0 ||
+      asset.authorId !== viewer.id
+    ) {
+      throw new AssetNotFoundError('Asset does not exists')
+    }
+
     coverId = asset.id
   }
 

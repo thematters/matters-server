@@ -130,7 +130,7 @@ const resolver: MutationToEditArticleResolver = async (
 
     if (
       !asset ||
-      asset.type !== ASSET_TYPE.embed ||
+      [ASSET_TYPE.embed, ASSET_TYPE.cover].indexOf(asset.type) < 0 ||
       asset.authorId !== viewer.id
     ) {
       throw new AssetNotFoundError('article cover does not exists')
