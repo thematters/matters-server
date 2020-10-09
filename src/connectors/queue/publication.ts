@@ -128,10 +128,14 @@ class PublicationQueue extends BaseQueue {
       await this.deleteUnusedAssets({ draftEntityTypeId, draft })
       job.progress(45)
 
-      // Swap assets from draft to article
-      await this.systemService.replaceAssetMapEntityTypeAndId(
-        draftEntityTypeId,
-        draft.id,
+      // Swap cover assets from draft to article
+      const coverAssets = await this.systemService.findAssetAndAssetMap({
+        entityTypeId: draftEntityTypeId,
+        entityId: draft.id,
+        assetType: 'cover',
+      })
+      await this.systemService.swapAssetMapEntity(
+        coverAssets.map((ast) => ast.assetId),
         articleEntityTypeId,
         article.id
       )
@@ -319,27 +323,26 @@ class PublicationQueue extends BaseQueue {
     draft: any
   }) => {
     try {
-      const [assetMap, uuids] = await Promise.all([
-        this.systemService.findAssetAndAssetMap(draftEntityTypeId, draft.id),
+      const [assets, uuids] = await Promise.all([
+        this.systemService.findAssetAndAssetMap({
+          entityTypeId: draftEntityTypeId,
+          entityId: draft.id,
+        }),
         extractAssetDataFromHtml(draft.content),
       ])
 
-      const assets = assetMap.reduce(
-        (data: { [id: string]: string }, asset: any) => {
-          const isCover = draft.cover === asset.assetId
-          const isEmbed = uuids && uuids.includes(asset.uuid)
+      const unusedAssetPaths: { [id: string]: string } = {}
+      assets.forEach((asset) => {
+        const isCover = draft.cover === asset.assetId
+        const isEmbed = uuids && uuids.includes(asset.uuid)
 
-          if (!isCover && !isEmbed) {
-            data[`${asset.assetId}`] = asset.path
-          }
+        if (!isCover && !isEmbed) {
+          unusedAssetPaths[`${asset.assetId}`] = asset.path
+        }
+      })
 
-          return data
-        },
-        {}
-      )
-
-      if (assets && Object.keys(assets).length > 0) {
-        await this.systemService.deleteAssetAndAssetMap(assets)
+      if (Object.keys(unusedAssetPaths).length > 0) {
+        await this.systemService.deleteAssetAndAssetMap(unusedAssetPaths)
       }
     } catch (e) {
       logger.error(e)
