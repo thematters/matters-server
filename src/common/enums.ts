@@ -27,6 +27,10 @@ export const UPLOAD_MIGRATION_SIZE_LIMIT = 1 * 1024 * 1024
 export const VIEW = {
   articleValue: 'article_value_view',
   articleActivity: 'article_activity_view',
+
+  /* Hottest articles A/B test */
+  articleHottestA: 'article_hottest_a_view',
+  articleHottestB: 'article_hottest_b_view',
 }
 
 export const MATERIALIZED_VIEW = {
