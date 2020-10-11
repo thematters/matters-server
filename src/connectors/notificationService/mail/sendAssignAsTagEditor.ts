@@ -23,6 +23,7 @@ export const sendAssignAsTagEditor = async ({
     userName: string
   }
   tag: {
+    id: string
     content: string
   }
 }) => {

@@ -5,6 +5,7 @@ import { v4 } from 'uuid'
 import {
   ACCEPTED_UPLOAD_AUDIO_TYPES,
   ACCEPTED_UPLOAD_IMAGE_TYPES,
+  ASSET_TYPE,
   UPLOAD_AUDIO_SIZE_LIMIT,
   UPLOAD_IMAGE_SIZE_LIMIT,
 } from 'common/enums'
@@ -37,13 +38,14 @@ const resolver: MutationToSingleFileUploadResolver = async (
 
   const isImageType =
     [
-      'avatar',
-      'embed',
-      'profileCover',
-      'oauthClientAvatar',
-      'tagCover',
+      ASSET_TYPE.avatar,
+      ASSET_TYPE.cover,
+      ASSET_TYPE.embed,
+      ASSET_TYPE.profileCover,
+      ASSET_TYPE.oauthClientAvatar,
+      ASSET_TYPE.tagCover,
     ].indexOf(type) >= 0
-  const isAudioType = ['embedaudio'].indexOf(type) >= 0
+  const isAudioType = [ASSET_TYPE.embedaudio].indexOf(type) >= 0
 
   if ((!file && !url) || (file && url)) {
     throw new UserInputError('One of file and url needs to be specified.')

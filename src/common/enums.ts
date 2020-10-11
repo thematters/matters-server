@@ -414,6 +414,16 @@ export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS = MINUTE * 10 // 10 mins
 export const OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 30 // 30 days
 export const OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
 
+export const ASSET_TYPE = {
+  avatar: 'avatar',
+  cover: 'cover',
+  embed: 'embed',
+  embedaudio: 'embedaudio',
+  profileCover: 'profileCover',
+  oauthClientAvatar: 'oauthClientAvatar',
+  tagCover: 'tagCover',
+}
+
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [
   'image/gif',
   'image/png',

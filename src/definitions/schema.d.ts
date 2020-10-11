@@ -83,6 +83,11 @@ export interface GQLArticle extends GQLNode {
   cover?: GQLURL
 
   /**
+   * List of asstets are belonged to this article.
+   */
+  assets: Array<GQLAsset>
+
+  /**
    * A short summary for this article.
    */
   summary: string
@@ -100,12 +105,12 @@ export interface GQLArticle extends GQLNode {
   /**
    * IPFS hash of this article.
    */
-  dataHash?: string
+  dataHash: string
 
   /**
    * Media hash, composed of cid encoding, of this article.
    */
-  mediaHash?: string
+  mediaHash: string
 
   /**
    * Content of this article.
@@ -1069,6 +1074,7 @@ export interface GQLAsset {
  */
 export const enum GQLAssetType {
   avatar = 'avatar',
+  cover = 'cover',
   embed = 'embed',
   embedaudio = 'embedaudio',
   profileCover = 'profileCover',
@@ -2015,6 +2021,7 @@ export interface GQLEditArticleInput {
   state?: GQLArticleState
   sticky?: boolean
   tags?: Array<string>
+  cover?: string
   collection?: Array<string>
 }
 
@@ -2153,7 +2160,7 @@ export interface GQLPutDraftInput {
   title?: string
   content?: string
   tags?: Array<string | null>
-  coverAssetId?: string
+  cover?: string
   collection?: Array<string | null>
 }
 
@@ -3385,6 +3392,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   author?: ArticleToAuthorResolver<TParent>
   title?: ArticleToTitleResolver<TParent>
   cover?: ArticleToCoverResolver<TParent>
+  assets?: ArticleToAssetsResolver<TParent>
   summary?: ArticleToSummaryResolver<TParent>
   tags?: ArticleToTagsResolver<TParent>
   wordCount?: ArticleToWordCountResolver<TParent>
@@ -3494,6 +3502,15 @@ export interface ArticleToTitleResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToAssetsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

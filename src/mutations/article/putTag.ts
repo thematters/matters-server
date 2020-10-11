@@ -3,7 +3,7 @@ import _some from 'lodash/some'
 import _trim from 'lodash/trim'
 import _uniq from 'lodash/uniq'
 
-import { USER_STATE } from 'common/enums'
+import { ASSET_TYPE, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   AssetNotFoundError,
@@ -34,7 +34,11 @@ const resolver: MutationToPutTagResolver = async (
   let coverId
   if (cover) {
     const asset = await systemService.findAssetByUUID(cover)
-    if (!asset || asset.type !== 'tagCover' || asset.authorId !== viewer.id) {
+    if (
+      !asset ||
+      asset.type !== ASSET_TYPE.tagCover ||
+      asset.authorId !== viewer.id
+    ) {
       throw new AssetNotFoundError('tag cover asset does not exists')
     }
     coverId = asset.id

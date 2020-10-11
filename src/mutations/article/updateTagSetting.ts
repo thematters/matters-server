@@ -65,14 +65,14 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         throw new ForbiddenError('viewer has no permission')
       }
 
-      // auto follow current tag
-      await tagService.follow({ targetId: tag.id, userId: viewer.id })
-
       // update
       updatedTag = await tagService.baseUpdate(tagId, {
         owner: viewer.id,
         editors: _uniq([...tag.editors, viewer.id]),
       })
+
+      // auto follow current tag
+      await tagService.follow({ targetId: tag.id, userId: viewer.id })
 
       // send mails
       notificationService.mail.sendAdoptTag({
@@ -82,7 +82,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
           displayName: viewer.displayName,
           userName: viewer.userName,
         },
-        tag: { content: tag.content },
+        tag: { id, content: tag.content },
       })
 
       // send notices
@@ -91,8 +91,8 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         limit: 0,
       })
 
-      participants.map((participant) => {
-        notificationService.trigger({
+      participants.map(async (participant) => {
+        await notificationService.trigger({
           event: 'tag_adoption',
           recipientId: participant.authorId,
           actorId: viewer.id,
@@ -126,8 +126,8 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       // send notices
       if (newEditors && newEditors.length > 0) {
-        newEditors.map((editor: string) => {
-          notificationService.trigger({
+        newEditors.map(async (editor: string) => {
+          await notificationService.trigger({
             event: 'tag_leave',
             recipientId: editor,
             actorId: viewer.id,
@@ -154,12 +154,14 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       // gather valid editors
       const newEditors =
-        editors
+        (editors
           .map((editor) => {
             const { id: editorId } = fromGlobalId(editor)
-            return editorId
+            if (!tag.editors.includes(editorId)) {
+              return editorId
+            }
           })
-          .filter((editorId) => editorId !== undefined) || []
+          .filter((editorId) => editorId !== undefined) as string[]) || []
 
       // editors composed by 4 editors, matty and owner
       const dedupedEditors = _uniq([...tag.editors, ...newEditors])
@@ -172,12 +174,19 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         editors: dedupedEditors,
       })
 
+      // auto follow current tag
+      await Promise.all(
+        newEditors.map((editorId) =>
+          tagService.follow({ targetId: tag.id, userId: editorId })
+        )
+      )
+
       // send emails and notices
       const recipients = (await userService.dataloader.loadMany(
         newEditors
       )) as Array<Record<string, any>>
 
-      recipients.map((recipient) => {
+      recipients.map(async (recipient) => {
         notificationService.mail.sendAssignAsTagEditor({
           to: recipient.email,
           language: recipient.language,
@@ -189,10 +198,10 @@ const resolver: MutationToUpdateTagSettingResolver = async (
             displayName: viewer.displayName,
             userName: viewer.userName,
           },
-          tag: { content: tag.content },
+          tag: { id, content: tag.content },
         })
 
-        notificationService.trigger({
+        await notificationService.trigger({
           event: 'tag_add_editor',
           recipientId: recipient.id,
           actorId: viewer.id,

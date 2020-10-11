@@ -1,6 +1,7 @@
 import { v4 } from 'uuid'
 
 import {
+  ASSET_TYPE,
   MIGRATION_DELAY,
   MIGTATION_SOURCE,
   QUEUE_CONCURRENCY,
@@ -116,7 +117,7 @@ class MigrationQueue extends BaseQueue {
                       {
                         uuid: asset.uuid,
                         authorId: userId,
-                        type: 'embed',
+                        type: ASSET_TYPE.embed,
                         path: asset.key,
                       },
                       entityTypeId,

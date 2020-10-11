@@ -320,15 +320,23 @@ class PublicationQueue extends BaseQueue {
   }) => {
     try {
       const [assetMap, uuids] = await Promise.all([
-        this.systemService.findAssetMap(draftEntityTypeId, draft.id),
+        this.systemService.findAssetAndAssetMap(draftEntityTypeId, draft.id),
         extractAssetDataFromHtml(draft.content),
       ])
-      const assets = assetMap.reduce((data: any, asset: any) => {
-        if (uuids && !uuids.includes(asset.uuid)) {
-          data[`${asset.assetId}`] = asset.path
-        }
-        return data
-      }, {})
+
+      const assets = assetMap.reduce(
+        (data: { [id: string]: string }, asset: any) => {
+          const isCover = draft.cover === asset.assetId
+          const isEmbed = uuids && uuids.includes(asset.uuid)
+
+          if (!isCover && !isEmbed) {
+            data[`${asset.assetId}`] = asset.path
+          }
+
+          return data
+        },
+        {}
+      )
 
       if (assets && Object.keys(assets).length > 0) {
         await this.systemService.deleteAssetAndAssetMap(assets)
