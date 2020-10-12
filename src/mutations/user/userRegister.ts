@@ -45,8 +45,8 @@ const resolver: MutationToUserRegisterResolver = async (
   }
 
   // check email
-  const user = await userService.findByEmail(email)
-  if (user) {
+  const otherUser = await userService.findByEmail(email)
+  if (otherUser) {
     throw new EmailExistsError('email address has already been registered')
   }
 
@@ -111,9 +111,9 @@ const resolver: MutationToUserRegisterResolver = async (
     language: viewer.language,
   })
 
-  const { token } = await userService.login({ ...input, email })
+  const { token, user } = await userService.login({ ...input, email })
 
-  setCookie({ req, res, token })
+  setCookie({ req, res, token, user })
 
   return { token, auth: true }
 }
