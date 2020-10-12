@@ -1,7 +1,7 @@
 import slugify from '@matters/slugify'
 
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
-import { makeSummary, toGlobalId } from 'common/utils'
+import { toGlobalId } from 'common/utils'
 
 import appreciateLeft from './appreciateLeft'
 import appreciationsReceived from './appreciationsReceived'

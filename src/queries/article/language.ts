@@ -15,7 +15,9 @@ const resolver: ArticleToLanguageResolver = async (
   if (draft && draft.content) {
     articleService
       .detectLanguage(stripHtml(draft.content.slice(0, 300)))
-      .then((language) => language && draftService.baseUpdate(draftId, { language }))
+      .then(
+        (language) => language && draftService.baseUpdate(draftId, { language })
+      )
   }
   // return first to prevent blocking
   return
