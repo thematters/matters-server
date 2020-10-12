@@ -27,6 +27,10 @@ export const UPLOAD_MIGRATION_SIZE_LIMIT = 1 * 1024 * 1024
 export const VIEW = {
   articleValue: 'article_value_view',
   articleActivity: 'article_activity_view',
+
+  /* Hottest articles A/B test */
+  articleHottestA: 'article_hottest_a_view',
+  articleHottestB: 'article_hottest_b_view',
 }
 
 export const MATERIALIZED_VIEW = {
@@ -37,6 +41,10 @@ export const MATERIALIZED_VIEW = {
   articleValueMaterialized: 'article_value_materialized',
   featuredCommentMaterialized: 'featured_comment_materialized',
   curationTagMaterialized: 'curation_tag_materialized',
+
+  /* Hottest articles A/B test */
+  articleHottestAMaterialized: 'article_hottest_a_materialized',
+  articleHottestBMaterialized: 'article_hottest_b_materialized',
 }
 
 // cache TTL in seconds
@@ -233,6 +241,10 @@ export const QUEUE_JOB = {
   refreshArticleInterestView: 'refreshArticleInterestView',
   refreshCurationTagMaterialView: 'refreshCurationTagMaterialView',
 
+  /* Refresh Views - hottest articles A/B test*/
+  refreshArticleHottestAView: 'refreshArticleHottestAView',
+  refreshArticleHottestBView: 'refreshArticleHottestBView',
+
   // Migration
   migration: 'migration',
 
@@ -399,6 +411,7 @@ export const INVALID_NAMES = [
 ]
 
 export const COOKIE_TOKEN_NAME = '__token'
+export const COOKIE_AB_GROUP = '__abgroup'
 
 export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
 export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS = MINUTE * 10 // 10 mins
