@@ -492,7 +492,7 @@ describe('manage settings of a tag', () => {
       type: GQLUpdateTagSettingType.add_editor,
       editors: [user7Id, user9Id],
     })
-    expect(_get(addData3, errorPath)).toBe('BAD_USER_INPUT')
+    expect(_get(addData3, errorPath)).toBe('TAG_EDITORS_REACH_LIMIT')
 
     // remove other users
     const rmData1 = await updateTagSetting({
