@@ -8,19 +8,17 @@ const resolver: DraftToAssetsResolver = async (
   const { id: draftEntityTypeId } = await systemService.baseFindEntityTypeId(
     'draft'
   )
-  const assetMap = await systemService.findAssetAndAssetMap(
-    draftEntityTypeId,
-    id
-  )
+  const assets = await systemService.findAssetAndAssetMap({
+    entityTypeId: draftEntityTypeId,
+    entityId: id,
+  })
 
-  const assets = assetMap.map((asset) => {
+  return assets.map((asset) => {
     return {
       ...asset,
       path: asset.path ? `${systemService.aws.s3Endpoint}/${asset.path}` : null,
     }
   })
-
-  return assets
 }
 
 export default resolver

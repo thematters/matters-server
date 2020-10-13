@@ -9,24 +9,24 @@ const resolver: ArticleToAssetsResolver = async (
   const { id: articleEntityTypeId } = await systemService.baseFindEntityTypeId(
     'article'
   )
-  const articleAssetMap = await systemService.findAssetAndAssetMap(
-    articleEntityTypeId,
-    id
-  )
+  const articleAssets = await systemService.findAssetAndAssetMap({
+    entityTypeId: articleEntityTypeId,
+    entityId: id,
+  })
 
   // assets belonged to linked latest draft
-  let draftAssetMap: any[] = []
+  let draftAssets: any[] = []
   if (draftId) {
     const { id: draftEntityTypeId } = await systemService.baseFindEntityTypeId(
       'draft'
     )
-    draftAssetMap = await systemService.findAssetAndAssetMap(
-      draftEntityTypeId,
-      draftId
-    )
+    draftAssets = await systemService.findAssetAndAssetMap({
+      entityTypeId: draftEntityTypeId,
+      entityId: draftId,
+    })
   }
 
-  const assets = [...articleAssetMap, ...draftAssetMap].map((asset) => {
+  const assets = [...articleAssets, ...draftAssets].map((asset) => {
     return {
       ...asset,
       path: asset.path ? `${systemService.aws.s3Endpoint}/${asset.path}` : null,
