@@ -500,6 +500,7 @@ export class ArticleService extends BaseService {
   }) => {
     // use view when oss for real time update
     // use materialized in other cases
+    logger.info('Recommend hottest articles for group A user')
     let table
     if (score === 'activity') {
       table = oss
@@ -553,6 +554,8 @@ export class ArticleService extends BaseService {
   }) => {
     // use view when oss for real time update
     // use materialized in other cases
+    logger.info('Recommend hottest articles for group B user')
+
     let table
     if (score === 'activity') {
       table = oss

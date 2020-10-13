@@ -32,9 +32,11 @@ export const authModes = [
 export const getUserGroup = ({
   id,
   ip,
+  role,
 }: {
   id?: string | null
   ip?: string
+  role?: string | null
 }) => {
   let num = 0
   try {
@@ -46,6 +48,10 @@ export const getUserGroup = ({
     }
   } catch (error) {
     logger.error(error)
+  }
+
+  if (role === USER_ROLE.admin) {
+    return 'b'
   }
   return num % 2 === 0 ? 'a' : 'b'
 }
@@ -147,6 +153,11 @@ export const getViewerFromReq = async ({
     headers['x-access-token'] ||
     ''
   const group = cookie.parse(headers.cookie || '')[COOKIE_AB_GROUP] || ''
+
+  // TODO: for debug purpose, remove after checking cookie based A/B testing
+  logger.info(
+    `======================== User group: ${group} ===========================`
+  )
 
   if (!token) {
     logger.info('User is not logged in, viewing as guest')
