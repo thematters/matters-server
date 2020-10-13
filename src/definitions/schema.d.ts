@@ -1912,11 +1912,6 @@ export interface GQLMutation {
   changeEmail: GQLUser
 
   /**
-   * Verify user email.
-   */
-  verifyEmail?: boolean
-
-  /**
    * Register user, can only be used on matters.news website.
    */
   userRegister: GQLAuthResult
@@ -2276,10 +2271,6 @@ export interface GQLChangeEmailInput {
   oldEmailCodeId: string
   newEmail: GQLEmail
   newEmailCodeId: string
-}
-
-export interface GQLVerifyEmailInput {
-  codeId: string
 }
 
 export interface GQLUserRegisterInput {
@@ -3116,6 +3107,10 @@ export interface GQLUserNewFollowerNotice extends GQLNotice {
    * List of new followers.
    */
   actors?: Array<GQLUser | null>
+}
+
+export interface GQLVerifyEmailInput {
+  codeId: string
 }
 
 /*********************************
@@ -7352,7 +7347,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
   changeEmail?: MutationToChangeEmailResolver<TParent>
-  verifyEmail?: MutationToVerifyEmailResolver<TParent>
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
   userLogout?: MutationToUserLogoutResolver<TParent>
@@ -7878,18 +7872,6 @@ export interface MutationToChangeEmailResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToChangeEmailArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToVerifyEmailArgs {
-  input: GQLVerifyEmailInput
-}
-export interface MutationToVerifyEmailResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToVerifyEmailArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -1008,9 +1008,6 @@ type Mutation {
   """Change user email."""
   changeEmail(input: ChangeEmailInput!): User!
 
-  """Verify user email."""
-  verifyEmail(input: VerifyEmailInput!): Boolean
-
   """Register user, can only be used on matters.news website."""
   userRegister(input: UserRegisterInput!): AuthResult!
 

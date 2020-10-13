@@ -19,9 +19,6 @@ export default /* GraphQL */ `
     "Change user email."
     changeEmail(input: ChangeEmailInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.user}")
 
-    "Verify user email."
-    verifyEmail(input: VerifyEmailInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}")
-
     "Register user, can only be used on matters.news website."
     userRegister(input: UserRegisterInput!): AuthResult!
 
