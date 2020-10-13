@@ -107,17 +107,18 @@ class UserQueue extends BaseQueue {
     // delete assets
     await Promise.all(
       drafts.map(async (draft) => {
-        const assetMap = await this.systemService.findAssetAndAssetMap(
-          draftEntityTypeId,
-          draft.id
-        )
-        const assets = assetMap.reduce((data: any, asset: any) => {
-          data[`${asset.assetId}`] = asset.path
-          return data
-        }, {})
+        const assets = await this.systemService.findAssetAndAssetMap({
+          entityTypeId: draftEntityTypeId,
+          entityId: draft.id,
+        })
 
-        if (assets && Object.keys(assets).length > 0) {
-          await this.systemService.deleteAssetAndAssetMap(assets)
+        const assetPaths: { [id: string]: string } = {}
+        assets.forEach((asset) => {
+          assetPaths[`${asset.assetId}`] = asset.path
+        })
+
+        if (Object.keys(assetPaths).length > 0) {
+          await this.systemService.deleteAssetAndAssetMap(assetPaths)
         }
       })
     )
