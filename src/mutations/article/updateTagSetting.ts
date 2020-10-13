@@ -260,7 +260,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       // send notice
       if (tag.owner) {
-        notificationService.trigger({
+        await notificationService.trigger({
           event: 'tag_leave_editor',
           recipientId: tag.owner,
           actorId: viewer.id,
