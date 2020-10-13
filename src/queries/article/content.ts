@@ -2,17 +2,21 @@ import { ARTICLE_STATE } from 'common/enums'
 import { ArticleToContentResolver } from 'definitions'
 
 // ACL for article content
-const resolver: ArticleToContentResolver = (
-  { content, state, authorId },
+const resolver: ArticleToContentResolver = async (
+  { draftId, state, authorId },
   _,
-  { viewer }
+  { viewer, dataSources: { draftService } }
 ) => {
   const isActive = state === ARTICLE_STATE.active
   const isAdmin = viewer.hasRole('admin')
   const isAuthor = authorId === viewer.id
 
   if (isActive || isAdmin || isAuthor) {
-    return content
+    // find the linked draft
+    const draft = await draftService.dataloader.load(draftId)
+    if (draft && draft.content) {
+      return draft.content
+    }
   }
 
   return ''
