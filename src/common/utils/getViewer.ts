@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken'
 
 import {
   AUTH_MODE,
+  COOKIE_AB_GROUP,
   COOKIE_TOKEN_NAME,
   LANGUAGE,
   USER_ROLE,
@@ -49,12 +50,12 @@ export const getUserGroup = ({
   return num % 2 === 0 ? 'a' : 'b'
 }
 
-export const getViewerFromUser = async (user: any) => {
+export const getViewerFromUser = async (user: any, group?: string) => {
   // overwrite default by user
   const viewer = { role: USER_ROLE.visitor, ...user }
 
   // append uesr group
-  viewer.group = getUserGroup(user)
+  viewer.group = group ? group : getUserGroup(user)
 
   // append hepler functions (keep it till we fully utilize scope)
   viewer.hasRole = (requires: string) =>
@@ -145,10 +146,11 @@ export const getViewerFromReq = async ({
     cookie.parse(headers.cookie || '')[COOKIE_TOKEN_NAME] ||
     headers['x-access-token'] ||
     ''
+  const group = cookie.parse(headers.cookie || '')[COOKIE_AB_GROUP] || ''
 
   if (!token) {
     logger.info('User is not logged in, viewing as guest')
-    return getViewerFromUser(user)
+    return getViewerFromUser(user, group)
   }
 
   try {
@@ -166,5 +168,5 @@ export const getViewerFromReq = async ({
     throw err
   }
 
-  return getViewerFromUser(user)
+  return getViewerFromUser(user, group)
 }

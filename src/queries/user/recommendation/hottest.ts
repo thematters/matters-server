@@ -26,6 +26,23 @@ export const hottest: RecommendationToHottestResolver = async (
     where: id ? {} : where,
     oss,
   })
+
+  /**
+   * TODO: to update after finish A/B testing
+   */
+  if (viewer.group === 'b') {
+    return connectionFromPromisedArray(
+      articleService.recommendByScoreB({
+        offset,
+        limit: first,
+        where,
+        oss,
+        score: 'activity',
+      }),
+      input,
+      totalCount
+    )
+  }
   return connectionFromPromisedArray(
     articleService.recommendByScore({
       offset,

@@ -82,7 +82,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
           displayName: viewer.displayName,
           userName: viewer.userName,
         },
-        tag: { content: tag.content },
+        tag: { id, content: tag.content },
       })
 
       // send notices
@@ -198,7 +198,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
             displayName: viewer.displayName,
             userName: viewer.userName,
           },
-          tag: { content: tag.content },
+          tag: { id, content: tag.content },
         })
 
         await notificationService.trigger({

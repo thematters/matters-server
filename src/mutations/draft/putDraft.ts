@@ -18,29 +18,12 @@ import {
 import { fromGlobalId, makeSummary, sanitize } from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
-const checkAssetValidity = (asset: any, viewer: any) => {
-  if (
-    !asset ||
-    asset.type !== ASSET_TYPE.embed ||
-    asset.authorId !== viewer.id
-  ) {
-    throw new AssetNotFoundError('Asset does not exists')
-  }
-}
-
 const resolver: MutationToPutDraftResolver = async (
   root,
   { input },
   { viewer, dataSources: { draftService, systemService, articleService } }
 ) => {
-  const {
-    id,
-    title,
-    content,
-    tags,
-    coverAssetId: coverAssetUUID,
-    collection: collectionGlobalIds,
-  } = input
+  const { id, title, content, tags, cover, collection } = input
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
@@ -50,19 +33,27 @@ const resolver: MutationToPutDraftResolver = async (
   }
 
   // check for asset existence
-  let coverAssetId
-  if (coverAssetUUID) {
-    const asset = await systemService.findAssetByUUID(coverAssetUUID)
-    checkAssetValidity(asset, viewer)
-    coverAssetId = asset.id
+  let coverId
+  if (cover) {
+    const asset = await systemService.findAssetByUUID(cover)
+
+    if (
+      !asset ||
+      [ASSET_TYPE.embed, ASSET_TYPE.cover].indexOf(asset.type) < 0 ||
+      asset.authorId !== viewer.id
+    ) {
+      throw new AssetNotFoundError('Asset does not exists')
+    }
+
+    coverId = asset.id
   }
 
   // check for collection existence
   // add to dbId array if ok
-  let collection = null
-  if (collectionGlobalIds) {
-    collection = await Promise.all(
-      collectionGlobalIds.map(async (articleGlobalId) => {
+  let collectionIds = null
+  if (collection) {
+    collectionIds = await Promise.all(
+      collection.map(async (articleGlobalId) => {
         if (!articleGlobalId) {
           throw new ArticleNotFoundError(
             `Cannot find article ${articleGlobalId}`
@@ -93,8 +84,8 @@ const resolver: MutationToPutDraftResolver = async (
       summary: content && makeSummary(content),
       content: content && sanitize(content),
       tags,
-      cover: coverAssetId,
-      collection,
+      cover: coverId,
+      collection: collectionIds,
     },
     _.isNil
   )
@@ -126,9 +117,9 @@ const resolver: MutationToPutDraftResolver = async (
 
     // update
     return draftService.baseUpdate(dbId, {
-      updatedAt: new Date(),
       ...data,
-      cover: data.cover || draft.cover,
+      updatedAt: new Date(),
+      cover: cover === null ? null : data.cover || draft.cover,
     })
   }
 
