@@ -51,7 +51,7 @@ exports.up = async (knex) => {
       ARRAY_REMOVE(ARRAY_AGG(article_tag_detail.content), NULL) AS tags,
       ARRAY_REMOVE(ARRAY_AGG(collection.article_id), NULL) AS collection,
 
-      FALSE AS archived,
+      TRUE AS archived,
       'published' AS publish_state,
 
       article.created_at,
