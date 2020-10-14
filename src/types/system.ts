@@ -152,6 +152,8 @@ export default /* GraphQL */ `
     after: String
     first: Int
     filter: SearchFilter
+    "whether this search operation should be recorded in search history"
+    record: Boolean
     oss: Boolean
   }
 
