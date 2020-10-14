@@ -1560,6 +1560,11 @@ export interface GQLSearchInput {
   after?: string
   first?: number
   filter?: GQLSearchFilter
+
+  /**
+   * whether this search operation should be recorded in search history
+   */
+  record?: boolean
   oss?: boolean
 }
 
