@@ -8,6 +8,7 @@ import {
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
+  TagEditorsReachLimitError,
   TagNotFoundError,
   UserInputError,
   UserNotFoundError,
@@ -166,7 +167,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       // editors composed by 4 editors, matty and owner
       const dedupedEditors = _uniq([...tag.editors, ...newEditors])
       if (dedupedEditors.length > 6) {
-        throw new UserInputError('number of editors reaches limit')
+        throw new TagEditorsReachLimitError('number of editors reaches limit')
       }
 
       // update
@@ -259,7 +260,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       // send notice
       if (tag.owner) {
-        notificationService.trigger({
+        await notificationService.trigger({
           event: 'tag_leave_editor',
           recipientId: tag.owner,
           actorId: viewer.id,

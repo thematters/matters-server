@@ -203,6 +203,14 @@ export class DuplicateTagError extends ApolloError {
   }
 }
 
+export class TagEditorsReachLimitError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'TAG_EDITORS_REACH_LIMIT')
+
+    Object.defineProperty(this, 'name', { value: 'TagEditorsReachLimitError' })
+  }
+}
+
 /*********************************
  *                               *
  *             User              *
