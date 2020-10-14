@@ -1,19 +1,13 @@
-import { ARTICLE_STATE } from 'common/enums'
 import { makeSummary } from 'common/utils'
 import { ArticleToSummaryResolver } from 'definitions'
 
 const resolver: ArticleToSummaryResolver = async (
-  { cover, draftId },
+  { content, articleId },
   _,
-  { viewer, dataSources: { draftService } }
+  { dataSources: { articleService } }
 ) => {
-  // fetch data from the latest linked draft
-  const draft = await draftService.dataloader.load(draftId)
-  if (draft && draft.content) {
-    return makeSummary(draft.content, cover ? 110 : 140)
-  }
-
-  return ''
+  const article = await articleService.dataloader.load(articleId)
+  return makeSummary(content, article?.cover ? 110 : 140)
 }
 
 export default resolver

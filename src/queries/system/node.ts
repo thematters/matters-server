@@ -28,12 +28,16 @@ const resolver: QueryToNodeResolver = async (
     type: NodeTypes
     id: string
   }
-  const node = await serviceMap[type].dataloader.load(dbId)
+  let node = await serviceMap[type].dataloader.load(dbId)
 
   if (!node) {
     throw new EntityNotFoundError('target does not exist')
   }
 
+  if (type === 'Article') {
+    // fetch data from latest linked draft
+    node = await draftService.dataloader.load(node.draftId)
+  }
   if (type === 'Draft' && viewer.id !== node.authorId) {
     throw new ForbiddenError('only author is allowed to view draft')
   }

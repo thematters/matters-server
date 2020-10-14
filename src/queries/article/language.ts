@@ -2,7 +2,7 @@ import { stripHtml } from 'common/utils'
 import { ArticleToLanguageResolver } from 'definitions'
 
 const resolver: ArticleToLanguageResolver = async (
-  { draftId, language: storedLanguage },
+  { id, content, language: storedLanguage },
   _,
   { dataSources: { articleService, draftService } }
 ) => {
@@ -10,15 +10,11 @@ const resolver: ArticleToLanguageResolver = async (
     return storedLanguage
   }
 
-  // fetch data from latest linked draft
-  const draft = await draftService.dataloader.load(draftId)
-  if (draft && draft.content) {
-    articleService
-      .detectLanguage(stripHtml(draft.content.slice(0, 300)))
-      .then(
-        (language) => language && draftService.baseUpdate(draftId, { language })
-      )
-  }
+  articleService
+    .detectLanguage(stripHtml(content.slice(0, 300)))
+    .then(
+      (language) => language && draftService.baseUpdate(id, { language })
+    )
   // return first to prevent blocking
   return
 }

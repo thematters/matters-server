@@ -1,9 +1,9 @@
 import { ArticleToPinCommentLeftResolver } from 'definitions'
 
 const resolver: ArticleToPinCommentLeftResolver = (
-  { id },
+  { articleId },
   _,
   { dataSources: { commentService } }
-) => commentService.pinLeftByArticle(id)
+) => commentService.pinLeftByArticle(articleId)
 
 export default resolver

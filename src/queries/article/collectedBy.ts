@@ -7,15 +7,15 @@ import {
 import { ArticleToCollectedByResolver } from 'definitions'
 
 const resolver: ArticleToCollectedByResolver = async (
-  { id },
+  { articleId },
   { input },
   { dataSources: { articleService } }
 ) => {
   const { after, first } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.countCollectedBy(id)
+  const totalCount = await articleService.countCollectedBy(articleId)
   const collections = await articleService.findCollectedBy({
-    articleId: id,
+    articleId,
     limit: first,
     offset,
   })

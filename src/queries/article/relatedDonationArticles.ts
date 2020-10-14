@@ -8,13 +8,13 @@ import {
 import { ArticleToRelatedDonationArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedDonationArticlesResolver = async (
-  { id },
+  { articleId },
   { input },
   { dataSources: { articleService } }
 ) => {
   const { first, after, random } = input
 
-  const notIn = [id]
+  const notIn = [articleId]
 
   /**
    * Pick randomly
@@ -24,7 +24,7 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
     const randomDraw = first || 5
 
     const articlePool = await articleService.findRelatedDonations({
-      articleId: id,
+      articleId,
       notIn,
       limit: MAX_RANDOM_INDEX * randomDraw,
     })
@@ -38,13 +38,13 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
 
   const offset = cursorToIndex(after) + 1
   const totalCount = await articleService.countRelatedDonations({
-    articleId: id,
+    articleId,
     notIn,
   })
 
   return connectionFromPromisedArray(
     articleService.findRelatedDonations({
-      articleId: id,
+      articleId,
       offset,
       notIn,
       limit: first,

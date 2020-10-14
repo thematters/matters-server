@@ -3,7 +3,7 @@ import { fromGlobalId, toGlobalId } from 'common/utils'
 import { ArticleToCommentsResolver } from 'definitions'
 
 const resolver: ArticleToCommentsResolver = async (
-  { id },
+  { articleId },
   { input: { sort, first, ...rest } },
   { dataSources: { commentService } }
 ) => {
@@ -27,7 +27,7 @@ const resolver: ArticleToCommentsResolver = async (
   }
 
   // handle filter
-  let filter = { articleId: id } as { [key: string]: any }
+  let filter = { articleId } as { [key: string]: any }
   if (rest.filter) {
     const { parentComment, author, state } = rest.filter
     if (parentComment || parentComment === null) {

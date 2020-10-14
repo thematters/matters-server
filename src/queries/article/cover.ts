@@ -1,11 +1,12 @@
 import { ArticleToCoverResolver } from 'definitions'
 
 const resolver: ArticleToCoverResolver = async (
-  { cover },
+  { articleId },
   _,
-  { dataSources: { systemService } }
+  { dataSources: { articleService, systemService } }
 ) => {
-  return cover ? systemService.findAssetUrl(cover) : null
+  const article = await articleService.dataloader.load(articleId)
+  return article?.cover ? systemService.findAssetUrl(article.cover) : null
 }
 
 export default resolver

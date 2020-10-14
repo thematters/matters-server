@@ -2,15 +2,15 @@ import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { ArticleToSubscribersResolver } from 'definitions'
 
 const resolver: ArticleToSubscribersResolver = async (
-  { id },
+  { articleId },
   { input },
   { dataSources: { articleService, userService } }
 ) => {
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.countSubscriptions(id)
+  const totalCount = await articleService.countSubscriptions(articleId)
   const actions = await articleService.findSubscriptions({
-    id,
+    id: articleId,
     offset,
     limit: first,
   })

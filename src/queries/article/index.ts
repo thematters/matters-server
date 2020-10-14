@@ -13,15 +13,12 @@ import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
 import articleCover from './cover'
-import dataHash from './dataHash'
 import hasAppreciate from './hasAppreciate'
 import language from './language'
-import mediaHash from './mediaHash'
 import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
 import rootArticle from './rootArticle'
-import slug from './slug'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import summary from './summary'
@@ -36,12 +33,10 @@ import tagOwner from './tag/owner'
 import tagParticipants from './tag/participants'
 import tagSelected from './tag/selected'
 import tags from './tags'
-import title from './title'
 import transactionsReceivedBy from './transactionsReceivedBy'
 import translation from './translation'
 import userArticles from './user/articles'
 import userTags from './user/tags'
-import wordCount from './wordCount'
 
 export default {
   Query: {
@@ -62,26 +57,24 @@ export default {
     assets,
     collection,
     collectedBy,
-    dataHash,
-    id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
+    id: ({ articleId }: { articleId: string }) =>
+      toGlobalId({ type: 'Article', id: articleId }),
     hasAppreciate,
     canSuperLike,
     language,
-    mediaHash,
     oss: (root: any) => root,
     relatedArticles,
     relatedDonationArticles,
-    slug,
+    slug: ({ slug, title }: { slug: string; title: string }) =>
+      slug || slugify(title),
     subscribed,
     subscribers,
     summary,
     tags,
-    title,
     translation,
     topicScore: ({ score }: { score: number }) =>
       score ? Math.round(score) : null,
     transactionsReceivedBy,
-    wordCount,
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),

@@ -6,7 +6,7 @@ import { connectionFromArray, loadManyFilterError } from 'common/utils'
 import { ArticleToRelatedArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedArticlesResolver = async (
-  { authorId, id, title },
+  { authorId, articleId, title },
   { input },
   { dataSources: { articleService, tagService } }
 ) => {
@@ -18,10 +18,10 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
   // helper function to prevent duplicates and origin article
   const addRec = (rec: any[], extra: any[]) =>
-    _.uniqBy(rec.concat(extra), 'id').filter((_rec) => _rec.id !== id)
+    _.uniqBy(rec.concat(extra), 'id').filter((_rec) => _rec.id !== articleId)
 
   // articles in collection for this article as the entrance
-  const entranceId = id
+  const entranceId = articleId
   const collection = (await articleService.findCollections({ entranceId })).map(
     ({ articleId: aid }: { articleId: any }) => aid
   )
@@ -30,7 +30,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
   // get initial recommendation
   try {
     const relatedArticles = await articleService.related({
-      id,
+      id: articleId,
       size: recommendationSize + buffer,
       notIn: collection,
     })
@@ -41,7 +41,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     )
 
     logger.info(
-      `[recommendation] article ${id}, title ${title}, ES result ${relatedArticleIds}`
+      `[recommendation] article ${articleId}, title ${title}, ES result ${relatedArticleIds}`
     )
 
     // get articles
@@ -57,7 +57,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
 
   // fall back to tags
   if (articles.length < recommendationSize + buffer) {
-    const tagIds = await articleService.findTagIds({ id })
+    const tagIds = await articleService.findTagIds({ id: articleId })
 
     for (const tagId of tagIds) {
       if (articles.length >= recommendationSize + buffer) {
@@ -70,7 +70,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       })
 
       logger.info(
-        `[recommendation] article ${id}, title ${title}, tag result ${articleIds} `
+        `[recommendation] article ${articleId}, title ${title}, tag result ${articleIds} `
       )
 
       // get articles and append
@@ -88,7 +88,7 @@ const resolver: ArticleToRelatedArticlesResolver = async (
       state: ARTICLE_STATE.active,
     })
     logger.info(
-      `[recommendation] article ${id}, title ${title}, author result ${articlesFromAuthor.map(
+      `[recommendation] article ${articleId}, title ${title}, author result ${articlesFromAuthor.map(
         ({ id: aid }: { id: string }) => aid
       )} `
     )

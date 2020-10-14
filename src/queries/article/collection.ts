@@ -7,15 +7,15 @@ import {
 import { ArticleToCollectionResolver } from 'definitions'
 
 const resolver: ArticleToCollectionResolver = async (
-  { id },
+  { articleId },
   { input },
   { dataSources: { articleService } }
 ) => {
   const { after, first } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.countCollections(id)
+  const totalCount = await articleService.countCollections(articleId)
   const collections = await articleService.findCollections({
-    entranceId: id,
+    entranceId: articleId,
     limit: first,
     offset,
   })
@@ -23,7 +23,7 @@ const resolver: ArticleToCollectionResolver = async (
   return connectionFromPromisedArray(
     articleService.dataloader
       .loadMany(
-        collections.map(({ articleId }: { articleId: string }) => articleId)
+        collections.map(({ articleId: id }: { articleId: string }) => id)
       )
       .then(loadManyFilterError),
     input,
