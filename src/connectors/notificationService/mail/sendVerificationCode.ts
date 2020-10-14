@@ -9,12 +9,14 @@ export const sendVerificationCode = async ({
   to,
   type,
   code,
+  redirectUrl,
   recipient,
   language = 'zh_hant',
 }: {
   to: string
   type: keyof typeof VERIFICATION_CODE_TYPES
   code: string
+  redirectUrl?: string
   recipient: {
     displayName?: string
   }
@@ -25,6 +27,11 @@ export const sendVerificationCode = async ({
   const subject = trans.verificationCode.subject(language, {
     type: codeTypeStr,
   })
+
+  // construct email verification link
+  const hasQs = redirectUrl && redirectUrl.indexOf('?') >= 0
+  const link = `${redirectUrl}${hasQs ? '&' : '?'}code=${code}&type=${type}`
+
   notificationQueue.sendMail({
     from: environment.emailFromAsk as string,
     templateId,
@@ -35,9 +42,9 @@ export const sendVerificationCode = async ({
         dynamic_template_data: {
           subject,
           siteDomain: environment.siteDomain,
-          code,
           type: codeTypeStr,
           recipient,
+          ...(redirectUrl ? { link } : { code }),
         },
       },
     ],

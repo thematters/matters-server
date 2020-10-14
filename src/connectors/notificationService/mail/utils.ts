@@ -36,10 +36,6 @@ export const trans = {
       zh_hant: '修改交易密碼',
       zh_hans: '修改交易密碼',
     }),
-    email_verify: i18n({
-      zh_hant: '電子信箱認證',
-      zh_hans: '电子邮箱认证',
-    }),
   },
   registerSuccess: i18n({
     zh_hant: '歡迎來到 Matters 宇宙航艦，這是為你準備的登船指南',

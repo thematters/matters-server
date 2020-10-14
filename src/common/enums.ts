@@ -189,13 +189,12 @@ export const VERIFICATION_CODE_TYPES = {
   email_reset_confirm: 'email_reset_confirm',
   password_reset: 'password_reset',
   payment_password_reset: 'payment_password_reset',
-  email_verify: 'email_verify',
 }
 
 export const VERIFICATION_CODE_PROTECTED_TYPES = [
   'email_reset',
-  'email_verify',
   'email_reset_confirm',
+  'payment_password_reset',
 ]
 
 /**

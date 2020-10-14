@@ -416,6 +416,12 @@ export default /* GraphQL */ `
     email: Email!
     type: VerificationCodeType!
     token: String
+
+    """
+    Redirect URL embedded in the verification email,
+    code will be instead if it's not provided.
+    """
+    redirectUrl: URL
   }
 
   input ConfirmVerificationCodeInput {
@@ -515,7 +521,6 @@ export default /* GraphQL */ `
     email_reset_confirm
     password_reset
     payment_password_reset
-    email_verify
   }
 
   enum ResetPasswordType {
