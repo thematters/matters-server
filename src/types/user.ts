@@ -419,7 +419,7 @@ export default /* GraphQL */ `
 
     """
     Redirect URL embedded in the verification email,
-    code will be instead if it's not provided.
+    use code instead if not provided.
     """
     redirectUrl: URL
   }
