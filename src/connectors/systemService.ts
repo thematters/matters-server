@@ -1,6 +1,7 @@
 import { v4 } from 'uuid'
 
 import {
+  ASSET_TYPE,
   BATCH_SIZE,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SKIPPED_LIST_ITEM_TYPES,
@@ -144,36 +145,46 @@ export class SystemService extends BaseService {
   /**
    * Find asset and asset map by given entity type and id
    */
-  findAssetAndAssetMap = async (entityTypeId: string, entityId: string) =>
-    this.knex('asset_map')
-      .select('asset_id', 'uuid', 'path', 'entity_id', 'type', 'created_at')
+  findAssetAndAssetMap = async ({
+    entityTypeId,
+    entityId,
+    assetType,
+  }: {
+    entityTypeId: string
+    entityId: string
+    assetType?: keyof typeof ASSET_TYPE
+  }) => {
+    let qs = this.knex('asset_map')
+      .select('asset_map.*', 'uuid', 'path', 'type', 'created_at')
       .rightJoin('asset', 'asset_map.asset_id', 'asset.id')
       .where({ entityTypeId, entityId })
 
-  /**
-   * Update asset map by given entity type and id
-   */
-  replaceAssetMapEntityTypeAndId = async (
-    oldEntityTypeId: string,
-    oldEntityId: string,
-    newEntityTypeId: string,
-    newEntityId: string
-  ) =>
-    this.knex('asset_map')
-      .where({
-        entityTypeId: oldEntityTypeId,
-        entityId: oldEntityId,
-      })
-      .update({
-        entityTypeId: newEntityTypeId,
-        entityId: newEntityId,
-      })
+    if (assetType) {
+      qs = qs.andWhere({ type: assetType })
+    }
+
+    return qs
+  }
 
   /**
-   * Delete asset and asset map by a given id
+   * Swap entity of asset map by given ids
    */
-  deleteAssetAndAssetMap = async (assets: { [id: string]: string }) => {
-    const ids = Object.keys(assets)
+  swapAssetMapEntity = async (
+    assetMapIds: string[],
+    entityTypeId: string,
+    entityId: string
+  ) =>
+    this.knex('asset_map').whereIn('id', assetMapIds).update({
+      entityTypeId,
+      entityId,
+    })
+
+  /**
+   * Delete asset and asset map by the given id:path maps
+   */
+  deleteAssetAndAssetMap = async (assetPaths: { [id: string]: string }) => {
+    const ids = Object.keys(assetPaths)
+    const paths = Object.keys(assetPaths)
 
     await this.knex.transaction(async (trx) => {
       await trx('asset_map').whereIn('asset_id', ids).del()
@@ -181,11 +192,7 @@ export class SystemService extends BaseService {
     })
 
     try {
-      await Promise.all(
-        Object.values(assets).map((key: any) => {
-          this.aws.baseDeleteFile(key)
-        })
-      )
+      await Promise.all(paths.map((path) => this.aws.baseDeleteFile(path)))
     } catch (e) {
       logger.error(e)
     }

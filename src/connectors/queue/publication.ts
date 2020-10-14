@@ -100,7 +100,7 @@ class PublicationQueue extends BaseQueue {
 
       // mark draft as published and copy data from article
       // TODO: deprecated once article table is altered
-      // @see {@url https://github.com/thematters/matters-server/pull/1509}
+      // @see {@url https://github.com/thematters/matters-server/pull/1510}
       await this.draftService.baseUpdate(draft.id, {
         articleId: article.id,
         wordCount: article.wordCount,
@@ -116,6 +116,20 @@ class PublicationQueue extends BaseQueue {
       await this.handleCollection({ draft, article })
       job.progress(40)
 
+      // handle tags
+      const tags = await this.handleTags({ draft, article })
+      job.progress(50)
+
+      /**
+       * Handle Assets
+       *
+       * Relationship between asset_map and entity:
+       *
+       * cover -> article
+       * embed -> draft
+       *
+       * @see {@url https://github.com/thematters/matters-server/pull/1510}
+       */
       const [
         { id: draftEntityTypeId },
         { id: articleEntityTypeId },
@@ -126,20 +140,20 @@ class PublicationQueue extends BaseQueue {
 
       // Remove unused assets
       await this.deleteUnusedAssets({ draftEntityTypeId, draft })
-      job.progress(45)
+      job.progress(60)
 
-      // Swap assets from draft to article
-      await this.systemService.replaceAssetMapEntityTypeAndId(
-        draftEntityTypeId,
-        draft.id,
+      // Swap cover assets from draft to article
+      const coverAssets = await this.systemService.findAssetAndAssetMap({
+        entityTypeId: draftEntityTypeId,
+        entityId: draft.id,
+        assetType: 'cover',
+      })
+      await this.systemService.swapAssetMapEntity(
+        coverAssets.map((ast) => ast.id),
         articleEntityTypeId,
         article.id
       )
-      job.progress(50)
-
-      // handle tags
-      const tags = await this.handleTags({ draft, article })
-      job.progress(60)
+      job.progress(70)
 
       // add to search
       const author = await this.userService.baseFindById(article.authorId)
@@ -319,27 +333,26 @@ class PublicationQueue extends BaseQueue {
     draft: any
   }) => {
     try {
-      const [assetMap, uuids] = await Promise.all([
-        this.systemService.findAssetAndAssetMap(draftEntityTypeId, draft.id),
+      const [assets, uuids] = await Promise.all([
+        this.systemService.findAssetAndAssetMap({
+          entityTypeId: draftEntityTypeId,
+          entityId: draft.id,
+        }),
         extractAssetDataFromHtml(draft.content),
       ])
 
-      const assets = assetMap.reduce(
-        (data: { [id: string]: string }, asset: any) => {
-          const isCover = draft.cover === asset.assetId
-          const isEmbed = uuids && uuids.includes(asset.uuid)
+      const unusedAssetPaths: { [id: string]: string } = {}
+      assets.forEach((asset) => {
+        const isCover = draft.cover === asset.assetId
+        const isEmbed = uuids && uuids.includes(asset.uuid)
 
-          if (!isCover && !isEmbed) {
-            data[`${asset.assetId}`] = asset.path
-          }
+        if (!isCover && !isEmbed) {
+          unusedAssetPaths[`${asset.assetId}`] = asset.path
+        }
+      })
 
-          return data
-        },
-        {}
-      )
-
-      if (assets && Object.keys(assets).length > 0) {
-        await this.systemService.deleteAssetAndAssetMap(assets)
+      if (Object.keys(unusedAssetPaths).length > 0) {
+        await this.systemService.deleteAssetAndAssetMap(unusedAssetPaths)
       }
     } catch (e) {
       logger.error(e)
