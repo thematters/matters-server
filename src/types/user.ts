@@ -100,7 +100,7 @@ export default /* GraphQL */ `
     "Articles authored by current user."
     articles(input: ConnectionArgs!): ArticleConnection!
 
-    "Tags owned by current user."
+    "Tags owned and maintained by current user."
     tags(input: ConnectionArgs!): TagConnection!
 
     "Drafts authored by current user."

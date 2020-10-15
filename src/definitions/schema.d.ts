@@ -333,7 +333,7 @@ export interface GQLUser extends GQLNode {
   articles: GQLArticleConnection
 
   /**
-   * Tags owned by current user.
+   * Tags owned and maintained by current user.
    */
   tags: GQLTagConnection
 
