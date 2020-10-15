@@ -14,23 +14,23 @@ export const trans = {
   verificationCode: {
     register: i18n({
       zh_hant: 'Matters | 註冊驗證',
-      zh_hans: 'Matters | 注册驗證',
+      zh_hans: 'Matters | 注册验证',
     }),
     email_reset: i18n({
       zh_hant: 'Matters | 修改電子信箱驗證',
-      zh_hans: 'Matters | 修改电子邮箱驗證',
+      zh_hans: 'Matters | 修改邮箱验证',
     }),
     email_reset_confirm: i18n({
       zh_hant: 'Matters | 修改電子信箱驗證',
-      zh_hans: 'Matters | 修改电子邮箱驗證',
+      zh_hans: 'Matters | 修改邮箱验证',
     }),
     password_reset: i18n({
       zh_hant: 'Matters | 修改密碼驗證',
-      zh_hans: 'Matters | 修改密碼驗證',
+      zh_hans: 'Matters | 修改密码验证',
     }),
     payment_password_reset: i18n({
       zh_hant: 'Matters | 修改交易密碼驗證',
-      zh_hans: 'Matters | 修改交易密碼驗證',
+      zh_hans: 'Matters | 修改交易密码验证',
     }),
   },
   registerSuccess: i18n({
