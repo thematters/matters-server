@@ -20,13 +20,16 @@ export const topics: RecommendationToTopicsResolver = async (
   const where = { 'article.state': ARTICLE_STATE.active }
   const offset = cursorToIndex(after) + 1
   const totalCount = await articleService.baseCount(where)
+  const articles = await articleService.recommendTopics({
+    offset,
+    limit: first,
+    where,
+    oss,
+  })
   return connectionFromPromisedArray(
-    articleService.recommendTopics({
-      offset,
-      limit: first,
-      where,
-      oss,
-    }),
+    articleService.linkedDraftLoader.loadMany(
+      articles.map((article) => article.id)
+    ),
     input,
     totalCount
   )

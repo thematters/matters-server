@@ -31,26 +31,33 @@ export const hottest: RecommendationToHottestResolver = async (
    * TODO: to update after finish A/B testing
    */
   if (viewer.group === 'b') {
-    return connectionFromPromisedArray(
-      articleService.recommendByScoreB({
-        offset,
-        limit: first,
-        where,
-        oss,
-        score: 'activity',
-      }),
-      input,
-      totalCount
-    )
-  }
-  return connectionFromPromisedArray(
-    articleService.recommendByScore({
+    const groupBData = await articleService.recommendByScoreB({
       offset,
       limit: first,
       where,
       oss,
       score: 'activity',
-    }),
+    })
+    return connectionFromPromisedArray(
+      articleService.linkedDraftLoader.loadMany(
+        groupBData.map((article) => article.id)
+      ),
+      input,
+      totalCount
+    )
+  }
+
+  const groupAData = await articleService.recommendByScore({
+    offset,
+    limit: first,
+    where,
+    oss,
+    score: 'activity',
+  })
+  return connectionFromPromisedArray(
+    articleService.linkedDraftLoader.loadMany(
+      groupAData.map((article) => article.id)
+    ),
     input,
     totalCount
   )

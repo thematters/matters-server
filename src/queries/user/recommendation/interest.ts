@@ -25,13 +25,16 @@ export const interest: RecommendationToValuedResolver = async (
   const totalCount = await articleService.countRecommendInterest({
     userId: viewer.id,
   })
+  const articles = await articleService.recommendByInterest({
+    offset,
+    limit: first,
+    userId: viewer.id,
+  })
 
   return connectionFromPromisedArray(
-    articleService.recommendByInterest({
-      offset,
-      limit: first,
-      userId: viewer.id,
-    }),
+    articleService.linkedDraftLoader.loadMany(
+      articles.map((article) => article.id)
+    ),
     input,
     totalCount
   )

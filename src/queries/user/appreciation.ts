@@ -45,11 +45,13 @@ export const Appreciation: GQLAppreciationTypeResolver = {
     switch (trx.purpose) {
       case APPRECIATION_PURPOSE.appreciate:
       case APPRECIATION_PURPOSE.superlike:
-        const article = await articleService.dataloader.load(trx.referenceId)
-        if (!article) {
+        const node = await articleService.linkedDraftLoader.load(
+          trx.referenceId
+        )
+        if (!node) {
           throw new ArticleNotFoundError('reference article not found')
         }
-        return article.title
+        return node.title
       case APPRECIATION_PURPOSE.appreciateSubsidy:
         return trans.appreciateSubsidy(viewer.language, {})
       case APPRECIATION_PURPOSE.systemSubsidy:
@@ -74,7 +76,7 @@ export const Appreciation: GQLAppreciationTypeResolver = {
     trx.recipientId ? userService.dataloader.load(trx.recipientId) : null,
   target: (trx, _, { dataSources: { articleService } }) => {
     if (trx.purpose === APPRECIATION_PURPOSE.appreciate && trx.referenceId) {
-      return articleService.dataloader.load(trx.referenceId)
+      return articleService.linkedDraftLoader.load(trx.referenceId)
     } else {
       return null
     }

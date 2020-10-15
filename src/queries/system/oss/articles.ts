@@ -9,12 +9,13 @@ export const articles: OSSToArticlesResolver = async (
   const { first, after } = connectionArgs
   const offset = cursorToIndex(after) + 1
   const totalCount = await articleService.baseCount()
+  const items = await articleService.baseFind({
+    offset,
+    limit: first,
+  })
 
   return connectionFromPromisedArray(
-    articleService.baseFind({
-      offset,
-      limit: first,
-    }),
+    articleService.linkedDraftLoader.loadMany(items.map((item) => item.id)),
     connectionArgs,
     totalCount
   )

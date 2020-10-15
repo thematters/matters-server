@@ -6,8 +6,11 @@ const resolver: UserToCommentedArticlesResolver = async (
   { input },
   { dataSources: { articleService } }
 ) => {
+  const articles = await articleService.findByCommentedAuthor(id)
   return connectionFromPromisedArray(
-    articleService.findByCommentedAuthor(id),
+    articleService.linkedDraftLoader.loadMany(
+      articles.map((article) => article.id)
+    ),
     input
   )
 }

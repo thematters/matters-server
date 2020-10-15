@@ -5,7 +5,7 @@ import { RecommendationToFolloweeArticlesResolver } from 'definitions'
 export const followeeArticles: RecommendationToFolloweeArticlesResolver = async (
   { id }: { id: string },
   { input },
-  { dataSources: { userService } }
+  { dataSources: { articleService, userService } }
 ) => {
   if (!id) {
     throw new AuthenticationError('visitor has no permission')
@@ -13,8 +13,15 @@ export const followeeArticles: RecommendationToFolloweeArticlesResolver = async 
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
   const totalCount = await userService.countFolloweeArticles(id)
+  const articles = await userService.followeeArticles({
+    userId: id,
+    offset,
+    limit: first,
+  })
   return connectionFromPromisedArray(
-    userService.followeeArticles({ userId: id, offset, limit: first }),
+    articleService.linkedDraftLoader.loadMany(
+      articles.map((article) => article.id)
+    ),
     input,
     totalCount
   )

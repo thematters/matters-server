@@ -26,14 +26,17 @@ export const valued: RecommendationToValuedResolver = async (
     where: id ? {} : where,
     oss,
   })
+  const articles = await articleService.recommendByScore({
+    offset,
+    limit: first,
+    where,
+    oss,
+    score: 'value',
+  })
   return connectionFromPromisedArray(
-    articleService.recommendByScore({
-      offset,
-      limit: first,
-      where,
-      oss,
-      score: 'value',
-    }),
+    articleService.linkedDraftLoader.loadMany(
+      articles.map((article) => article.id)
+    ),
     input,
     totalCount
   )

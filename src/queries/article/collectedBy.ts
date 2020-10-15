@@ -19,16 +19,19 @@ const resolver: ArticleToCollectedByResolver = async (
     limit: first,
     offset,
   })
+  const articles = await articleService.dataloader
+    .loadMany(
+      collections.map(({ entranceId }: { entranceId: string }) => entranceId)
+    )
+    .then(loadManyFilterError)
+    .then((result) =>
+      result.filter(({ state }) => state === ARTICLE_STATE.active)
+    )
 
   return connectionFromPromisedArray(
-    articleService.dataloader
-      .loadMany(
-        collections.map(({ entranceId }: { entranceId: string }) => entranceId)
-      )
-      .then(loadManyFilterError)
-      .then((articles) =>
-        articles.filter(({ state }) => state === ARTICLE_STATE.active)
-      ),
+    articleService.linkedDraftLoader.loadMany(
+      articles.map((article) => article.id)
+    ),
     input,
     totalCount
   )

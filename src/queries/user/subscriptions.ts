@@ -16,7 +16,7 @@ const resolver: UserToSubscriptionsResolver = async (
   })
 
   return connectionFromPromisedArray(
-    articleService.dataloader.loadMany(
+    articleService.linkedDraftLoader.loadMany(
       actions.map(({ targetId }: { targetId: string }) => targetId)
     ),
     input,

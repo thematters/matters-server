@@ -41,14 +41,17 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
     articleId,
     notIn,
   })
+  const articles = await articleService.findRelatedDonations({
+    articleId,
+    offset,
+    notIn,
+    limit: first,
+  })
 
   return connectionFromPromisedArray(
-    articleService.findRelatedDonations({
-      articleId,
-      offset,
-      notIn,
-      limit: first,
-    }),
+    articleService.linkedDraftLoader.loadMany(
+      articles.map((article) => article.id)
+    ),
     input,
     // @ts-ignore
     totalCount

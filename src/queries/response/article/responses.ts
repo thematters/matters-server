@@ -51,7 +51,7 @@ const resolver: ArticleToResponsesResolver = async (
     sources.map((source: { [key: string]: any }) => {
       switch (source.type) {
         case 'Article': {
-          return articleService.baseFindById(source.entityId)
+          return articleService.linkedDraftLoader.load(source.entityId)
         }
         case 'Comment': {
           return commentService.baseFindById(source.entityId)

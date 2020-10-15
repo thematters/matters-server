@@ -24,14 +24,17 @@ export const newest: RecommendationToNewestResolver = async (
     where,
     oss,
   })
+  const articles = await articleService.recommendNewest({
+    offset,
+    limit: first,
+    where,
+    oss,
+  })
 
   return connectionFromPromisedArray(
-    articleService.recommendNewest({
-      offset,
-      limit: first,
-      where,
-      oss,
-    }),
+    articleService.linkedDraftLoader.loadMany(
+      articles.map((article) => article.id)
+    ),
     input,
     totalCount
   )

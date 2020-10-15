@@ -21,7 +21,7 @@ const resolver: ArticleToCollectionResolver = async (
   })
 
   return connectionFromPromisedArray(
-    articleService.dataloader
+    articleService.linkedDraftLoader
       .loadMany(
         collections.map(({ articleId: id }: { articleId: string }) => id)
       )

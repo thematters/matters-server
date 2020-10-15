@@ -102,7 +102,11 @@ const resolver: ArticleToRelatedArticlesResolver = async (
     _.sampleSize(articles.slice(recommendationSize - randomPick), randomPick)
   )
 
-  return connectionFromArray(pick, input)
+  // fetch data from latest linked draft
+  const nodes = await articleService.linkedDraftLoader.loadMany(
+    pick.map((item) => item.id)
+  )
+  return connectionFromArray(nodes, input)
 }
 
 export default resolver

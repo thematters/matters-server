@@ -24,7 +24,9 @@ export const recommendArticles: RecommendationToRecommendArticlesResolver = asyn
         limit: first,
       }),
     ])
-    return connectionFromArray(articles, input, totalCount)
+    const articleIds = articles.map((article) => article.id)
+    const nodes = await articleService.linkedDraftLoader.loadMany(articleIds)
+    return connectionFromArray(nodes, input, totalCount)
   }
 
   // fallback for visitors
@@ -49,16 +51,16 @@ export const recommendArticles: RecommendationToRecommendArticlesResolver = asyn
 
     const ids = recommendedArtices.map(({ id: aid }: { id: any }) => aid)
 
-    // get articles
-    const [totalCount, articles] = await Promise.all([
+    // get articles' linked draft
+    const [totalCount, nodes] = await Promise.all([
       articleService.baseCount({ state: ARTICLE_STATE.active }),
-      articleService.dataloader.loadMany(ids).then(loadManyFilterError),
+      articleService.linkedDraftLoader.loadMany(ids).then(loadManyFilterError),
     ])
 
-    if (!articles || articles.length === 0) {
+    if (!nodes || nodes.length === 0) {
       return fallback
     }
-    return connectionFromArray(articles, input, totalCount)
+    return connectionFromArray(nodes, input, totalCount)
   } catch (err) {
     logger.error(
       `error in recommendation to user via ES: ${JSON.stringify(err)}`

@@ -16,5 +16,8 @@ export const icymi: RecommendationToIcymiResolver = async (
       limit: first,
     }),
   ])
-  return connectionFromArray(articles, input, totalCount)
+  const nodes = await articleService.linkedDraftLoader.loadMany(
+    articles.map((article) => article.id)
+  )
+  return connectionFromArray(nodes, input, totalCount)
 }
