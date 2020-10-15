@@ -22,7 +22,7 @@ const resolver: QueryToSearchResolver = async (
       : input.key.slice(0, SEARCH_KEY_TRUNCATE_LENGTH)
   }
 
-  if (input.type !== 'User' && input.key) {
+  if (input.key && input.record) {
     systemService.baseCreate(
       { userId: viewer ? viewer.id : null, searchKey: input.key },
       'search_history'
