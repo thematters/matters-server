@@ -110,6 +110,18 @@ export class TagService extends BaseService {
       .orderBy('id', 'desc')
 
   /**
+   * Find tags by a given maintainer id (user).
+   *
+   */
+  findByMaintainer = async (userId: string) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({ owner: userId })
+      .orWhere(this.knex.raw(`editors @> ARRAY['${userId}']`))
+      .orderBy('id', 'desc')
+
+  /**
    * Create a tag, but return one if it's existing.
    *
    */

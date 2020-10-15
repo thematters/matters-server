@@ -333,7 +333,7 @@ export interface GQLUser extends GQLNode {
   articles: GQLArticleConnection
 
   /**
-   * Tags owned by current user.
+   * Tags owned and maintained by current user.
    */
   tags: GQLTagConnection
 
@@ -1560,6 +1560,11 @@ export interface GQLSearchInput {
   after?: string
   first?: number
   filter?: GQLSearchFilter
+
+  /**
+   * whether this search operation should be recorded in search history
+   */
+  record?: boolean
   oss?: boolean
 }
 
