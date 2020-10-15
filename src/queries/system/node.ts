@@ -16,28 +16,24 @@ const resolver: QueryToNodeResolver = async (
     },
   }
 ) => {
-  const serviceMap = {
-    Article: articleService,
-    User: userService,
-    Comment: commentService,
-    Draft: draftService,
-    Tag: tagService,
+  const loaders = {
+    Article: articleService.linkedDraftLoader,
+    User: userService.dataloader,
+    Comment: commentService.dataloader,
+    Draft: draftService.dataloader,
+    Tag: tagService.dataloader,
   }
 
   const { type, id: dbId } = fromGlobalId(id) as {
     type: NodeTypes
     id: string
   }
-  let node = await serviceMap[type].dataloader.load(dbId)
+  const node = await loaders[type].load(dbId)
 
   if (!node) {
     throw new EntityNotFoundError('target does not exist')
   }
 
-  if (type === 'Article') {
-    // fetch data from latest linked draft
-    node = await draftService.dataloader.load(node.draftId)
-  }
   if (type === 'Draft' && viewer.id !== node.authorId) {
     throw new ForbiddenError('only author is allowed to view draft')
   }

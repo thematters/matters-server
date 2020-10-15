@@ -69,17 +69,7 @@ const resolver: QueryToNodesResolver = async (
   })
 
   // fetch by bulk
-  const articles = await Promise.all(
-    (await articleService.dataloader.loadMany(articleDbIds)).map(
-      async (node: Item | Error) => {
-        if (!node || node instanceof Error) {
-          return node
-        }
-        // fetch data from latest linked draft
-        return draftService.dataloader.load(node.draftId)
-      }
-    )
-  )
+  const articles = await articleService.linkedDraftLoader.loadMany(articleDbIds)
   const users = await userService.dataloader.loadMany(userDbIds)
   const comments = await commentService.dataloader.loadMany(commentDbIds)
   const drafts = await draftService.dataloader.loadMany(draftDbIds)

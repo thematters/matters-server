@@ -29,10 +29,11 @@ import {
   stripHtml,
 } from 'common/utils'
 import { BaseService, gcp, ipfs, SystemService, UserService } from 'connectors'
-import { GQLSearchInput, ItemData } from 'definitions'
+import { GQLSearchInput, Item, ItemData } from 'definitions'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
+  linkedDraftLoader: DataLoader<string, Item>
 
   constructor() {
     super('article')
@@ -55,6 +56,21 @@ export class ArticleService extends BaseService {
         throw new ArticleNotFoundError('Cannot find article')
       }
 
+      return result
+    })
+
+    this.linkedDraftLoader = new DataLoader(async (ids: readonly string[]) => {
+      const items = await this.baseFindByIds(ids)
+
+      if (items.findIndex((item: any) => !item) >= 0) {
+        throw new ArticleNotFoundError('Cannot find article')
+      }
+
+      const draftIds = items.map((item: any) => item.draftId)
+      const result = await this.baseFindByIds(draftIds, 'draft')
+      if (result.findIndex((item: any) => !item) >= 0) {
+        throw new ArticleNotFoundError('Cannot find article linked draft')
+      }
       return result
     })
   }

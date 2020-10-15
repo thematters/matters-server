@@ -11,7 +11,7 @@ const resolver: DraftToCollectionResolver = (
   }
 
   return connectionFromPromisedArray(
-    articleService.dataloader.loadMany(collection),
+    articleService.linkedDraftLoader.loadMany(collection),
     input
   )
 }

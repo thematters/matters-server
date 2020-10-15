@@ -19,7 +19,7 @@ export const followingTagsArticles: RecommendationToFollowingTagsArticlesResolve
   ])
 
   return connectionFromPromisedArray(
-    articleService.dataloader.loadMany(
+    articleService.linkedDraftLoader.loadMany(
       articleIds.map(({ articleId }) => articleId)
     ),
     input,

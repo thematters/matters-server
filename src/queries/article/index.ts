@@ -18,7 +18,10 @@ import language from './language'
 import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
+import remark from './remark'
 import rootArticle from './rootArticle'
+import state from './state'
+import sticky from './sticky'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
 import summary from './summary'
@@ -65,8 +68,11 @@ export default {
     oss: (root: any) => root,
     relatedArticles,
     relatedDonationArticles,
+    remark,
     slug: ({ slug, title }: { slug: string; title: string }) =>
       slug || slugify(title),
+    state,
+    sticky,
     subscribed,
     subscribers,
     summary,
