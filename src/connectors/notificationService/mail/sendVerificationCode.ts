@@ -23,10 +23,7 @@ export const sendVerificationCode = async ({
   language?: LANGUAGES
 }) => {
   const templateId = EMAIL_TEMPLATE_ID.verificationCode[language]
-  const codeTypeStr = trans.verificationCode[type](language, {})
-  const subject = trans.verificationCode.subject(language, {
-    type: codeTypeStr,
-  })
+  const subject = trans.verificationCode[type](language, {})
 
   // construct email verification link
   const hasQs = redirectUrl && redirectUrl.indexOf('?') >= 0
@@ -42,7 +39,15 @@ export const sendVerificationCode = async ({
         dynamic_template_data: {
           subject,
           siteDomain: environment.siteDomain,
-          type: codeTypeStr,
+          type: {
+            register: type === VERIFICATION_CODE_TYPES.register,
+            emailReset: type === VERIFICATION_CODE_TYPES.email_reset,
+            emailResetConfirm:
+              type === VERIFICATION_CODE_TYPES.email_reset_confirm,
+            passwordReset: type === VERIFICATION_CODE_TYPES.password_reset,
+            paymentPasswordReset:
+              type === VERIFICATION_CODE_TYPES.payment_password_reset,
+          },
           recipient,
           ...(redirectUrl ? { link } : { code }),
         },

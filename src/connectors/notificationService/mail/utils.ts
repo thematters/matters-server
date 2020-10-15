@@ -12,29 +12,25 @@ import { User } from 'definitions'
 
 export const trans = {
   verificationCode: {
-    subject: i18n<{ type: string }>({
-      zh_hant: ({ type }) => `Matters | ${type}驗證碼`,
-      zh_hans: ({ type }) => `Matters | ${type}验证码`,
-    }),
     register: i18n({
-      zh_hant: '註冊',
-      zh_hans: '注册',
+      zh_hant: 'Matters | 註冊驗證',
+      zh_hans: 'Matters | 注册驗證',
     }),
     email_reset: i18n({
-      zh_hant: '修改電子信箱',
-      zh_hans: '修改电子邮箱',
+      zh_hant: 'Matters | 修改電子信箱驗證',
+      zh_hans: 'Matters | 修改电子邮箱驗證',
     }),
     email_reset_confirm: i18n({
-      zh_hant: '修改電子信箱',
-      zh_hans: '修改电子邮箱',
+      zh_hant: 'Matters | 修改電子信箱驗證',
+      zh_hans: 'Matters | 修改电子邮箱驗證',
     }),
     password_reset: i18n({
-      zh_hant: '修改密碼',
-      zh_hans: '修改密碼',
+      zh_hant: 'Matters | 修改密碼驗證',
+      zh_hans: 'Matters | 修改密碼驗證',
     }),
     payment_password_reset: i18n({
-      zh_hant: '修改交易密碼',
-      zh_hans: '修改交易密碼',
+      zh_hant: 'Matters | 修改交易密碼驗證',
+      zh_hans: 'Matters | 修改交易密碼驗證',
     }),
   },
   registerSuccess: i18n({
@@ -83,32 +79,32 @@ export const trans = {
   },
   payment: {
     passwordSet: i18n({
-      zh_hant: 'Matters 通知 | 你的交易密碼已成功設定',
-      zh_hans: 'Matters 通知 | 你的交易密码已成功设定',
+      zh_hant: 'Matters | 你的交易密碼已成功設定',
+      zh_hans: 'Matters | 你的交易密码已成功设定',
     }),
     passwordChanged: i18n({
-      zh_hant: 'Matters 通知 | 你的交易密碼已修改成功',
-      zh_hans: 'Matters 通知 | 你的交易密码已修改成功',
+      zh_hant: 'Matters | 你的交易密碼已修改成功',
+      zh_hans: 'Matters | 你的交易密码已修改成功',
     }),
     creditAdded: i18n({
-      zh_hant: 'Matters 通知 | 儲值成功',
-      zh_hans: 'Matters 通知 | 储值成功',
+      zh_hant: 'Matters | 儲值成功',
+      zh_hans: 'Matters | 储值成功',
     }),
     donated: i18n({
-      zh_hant: 'Matters 通知 | 支付成功',
-      zh_hans: 'Matters 通知 | 支付成功',
+      zh_hant: 'Matters | 支付成功',
+      zh_hans: 'Matters | 支付成功',
     }),
     receivedDonation: i18n({
-      zh_hant: 'Matters 通知 | 你收到一筆來自他人的支持',
-      zh_hans: 'Matters 通知 | 你收到一笔来自他人的支持',
+      zh_hant: 'Matters | 你收到一筆來自他人的支持',
+      zh_hans: 'Matters | 你收到一笔来自他人的支持',
     }),
     receivedDonationLikeCoin: i18n({
-      zh_hant: 'Matters 通知 | 你收到一筆來自他人的支持',
-      zh_hans: 'Matters 通知 | 你收到一笔来自他人的支持',
+      zh_hant: 'Matters | 你收到一筆來自他人的支持',
+      zh_hans: 'Matters | 你收到一笔来自他人的支持',
     }),
     payout: i18n({
-      zh_hant: 'Matters 通知 | 你的提現流程已經啟動',
-      zh_hans: 'Matters 通知 | 你的提现流程已经启动',
+      zh_hant: 'Matters | 你的提現流程已經啟動',
+      zh_hans: 'Matters | 你的提现流程已经启动',
     }),
   },
   tag: {
