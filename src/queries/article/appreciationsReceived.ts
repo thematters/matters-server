@@ -2,17 +2,17 @@ import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { ArticleToAppreciationsReceivedResolver } from 'definitions'
 
 const resolver: ArticleToAppreciationsReceivedResolver = async (
-  { id },
+  { articleId },
   { input },
   { dataSources: { articleService } }
 ) => {
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.countAppreciations(id)
+  const totalCount = await articleService.countAppreciations(articleId)
 
   return connectionFromPromisedArray(
     articleService.findAppreciations({
-      referenceId: id,
+      referenceId: articleId,
       offset,
       limit: first,
     }),

@@ -6,7 +6,7 @@ import { RecommendationToValuedResolver } from 'definitions'
 export const valued: RecommendationToValuedResolver = async (
   { id },
   { input },
-  { viewer, dataSources: { articleService } }
+  { viewer, dataSources: { articleService, draftService } }
 ) => {
   const { oss = false } = input
 
@@ -16,17 +16,13 @@ export const valued: RecommendationToValuedResolver = async (
     }
   }
 
-  const where = { 'article.state': ARTICLE_STATE.active } as {
-    [key: string]: any
-  }
+  const where = { 'article.state': ARTICLE_STATE.active }
 
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.countRecommendHottest({
-    where: id ? {} : where,
-    oss,
-  })
-  return connectionFromPromisedArray(
+
+  const [totalCount, articles] = await Promise.all([
+    articleService.countRecommendHottest({ where: id ? {} : where, oss }),
     articleService.recommendByScore({
       offset,
       limit: first,
@@ -34,6 +30,11 @@ export const valued: RecommendationToValuedResolver = async (
       oss,
       score: 'value',
     }),
+  ])
+  return connectionFromPromisedArray(
+    draftService.dataloader.loadMany(
+      articles.map((article) => article.draftId)
+    ),
     input,
     totalCount
   )

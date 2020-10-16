@@ -56,4 +56,10 @@ export class DraftService extends BaseService {
       .from(this.table)
       .where({ authorId })
       .andWhereNot({ publishState: PUBLISH_STATE.published })
+
+  /**
+   * Find draft by media hash.
+   */
+  findByMediaHash = async (mediaHash: string) =>
+    this.knex.select().from(this.table).where({ mediaHash }).first()
 }

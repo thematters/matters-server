@@ -1,7 +1,7 @@
 import { ArticleToAssetsResolver } from 'definitions'
 
 const resolver: ArticleToAssetsResolver = async (
-  { id, draftId },
+  { id, articleId },
   _,
   { dataSources: { systemService } }
 ) => {
@@ -11,18 +11,18 @@ const resolver: ArticleToAssetsResolver = async (
   )
   const articleAssets = await systemService.findAssetAndAssetMap({
     entityTypeId: articleEntityTypeId,
-    entityId: id,
+    entityId: articleId,
   })
 
   // assets belonged to linked latest draft
   let draftAssets: any[] = []
-  if (draftId) {
+  if (id) {
     const { id: draftEntityTypeId } = await systemService.baseFindEntityTypeId(
       'draft'
     )
     draftAssets = await systemService.findAssetAndAssetMap({
       entityTypeId: draftEntityTypeId,
-      entityId: draftId,
+      entityId: id,
     })
   }
 

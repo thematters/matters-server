@@ -5,7 +5,15 @@ import { MutationToUpdateArticleStateResolver } from 'definitions'
 const resolver: MutationToUpdateArticleStateResolver = async (
   _,
   { input: { id, state } },
-  { viewer, dataSources: { userService, articleService, notificationService } }
+  {
+    viewer,
+    dataSources: {
+      userService,
+      articleService,
+      draftService,
+      notificationService,
+    },
+  }
 ) => {
   const { id: dbId } = fromGlobalId(id)
 
@@ -24,7 +32,8 @@ const resolver: MutationToUpdateArticleStateResolver = async (
     })
   }
 
-  return article
+  const node = await draftService.baseFindById(article.draftId)
+  return node
 }
 
 export default resolver

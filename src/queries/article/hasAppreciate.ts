@@ -1,7 +1,7 @@
 import { ArticleToHasAppreciateResolver } from 'definitions'
 
 const resolver: ArticleToHasAppreciateResolver = (
-  { id },
+  { articleId },
   _,
   { viewer, dataSources: { articleService } }
 ) => {
@@ -11,7 +11,7 @@ const resolver: ArticleToHasAppreciateResolver = (
 
   return articleService.hasAppreciate({
     userId: viewer.id,
-    articleId: id,
+    articleId,
   })
 }
 

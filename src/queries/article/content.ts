@@ -3,20 +3,18 @@ import { ArticleToContentResolver } from 'definitions'
 
 // ACL for article content
 const resolver: ArticleToContentResolver = async (
-  { draftId, state, authorId },
+  { articleId, authorId, content },
   _,
-  { viewer, dataSources: { draftService } }
+  { viewer, dataSources: { articleService } }
 ) => {
-  const isActive = state === ARTICLE_STATE.active
+  const article = await articleService.dataloader.load(articleId)
+
+  const isActive = article.state === ARTICLE_STATE.active
   const isAdmin = viewer.hasRole('admin')
   const isAuthor = authorId === viewer.id
 
   if (isActive || isAdmin || isAuthor) {
-    // find the linked draft
-    const draft = await draftService.dataloader.load(draftId)
-    if (draft && draft.content) {
-      return draft.content
-    }
+    return content
   }
 
   return ''

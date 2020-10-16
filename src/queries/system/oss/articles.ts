@@ -4,17 +4,16 @@ import { OSSToArticlesResolver } from 'definitions'
 export const articles: OSSToArticlesResolver = async (
   root,
   { input: { ...connectionArgs } },
-  { viewer, dataSources: { articleService } }
+  { viewer, dataSources: { articleService, draftService } }
 ) => {
   const { first, after } = connectionArgs
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.baseCount()
-
+  const [totalCount, items] = await Promise.all([
+    articleService.baseCount(),
+    articleService.baseFind({ offset, limit: first }),
+  ])
   return connectionFromPromisedArray(
-    articleService.baseFind({
-      offset,
-      limit: first,
-    }),
+    draftService.dataloader.loadMany(items.map((item) => item.draftId)),
     connectionArgs,
     totalCount
   )
