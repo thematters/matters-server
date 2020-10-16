@@ -21,7 +21,6 @@ import updateUserState from './updateUserState'
 import userLogin from './userLogin'
 import userLogout from './userLogout'
 import userRegister from './userRegister'
-import verifyEmail from './verifyEmail'
 
 export default {
   Mutation: {
@@ -29,7 +28,6 @@ export default {
     confirmVerificationCode,
     resetPassword,
     changeEmail,
-    verifyEmail,
     userRegister,
     userLogin,
     userLogout,
