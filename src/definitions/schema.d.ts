@@ -1917,11 +1917,6 @@ export interface GQLMutation {
   changeEmail: GQLUser
 
   /**
-   * Verify user email.
-   */
-  verifyEmail?: boolean
-
-  /**
    * Register user, can only be used on matters.news website.
    */
   userRegister: GQLAuthResult
@@ -2248,6 +2243,12 @@ export interface GQLSendVerificationCodeInput {
   email: GQLEmail
   type: GQLVerificationCodeType
   token?: string
+
+  /**
+   * Redirect URL embedded in the verification email,
+   * use code instead if not provided.
+   */
+  redirectUrl?: GQLURL
 }
 
 export const enum GQLVerificationCodeType {
@@ -2256,7 +2257,6 @@ export const enum GQLVerificationCodeType {
   email_reset_confirm = 'email_reset_confirm',
   password_reset = 'password_reset',
   payment_password_reset = 'payment_password_reset',
-  email_verify = 'email_verify',
 }
 
 export interface GQLConfirmVerificationCodeInput {
@@ -2281,10 +2281,6 @@ export interface GQLChangeEmailInput {
   oldEmailCodeId: string
   newEmail: GQLEmail
   newEmailCodeId: string
-}
-
-export interface GQLVerifyEmailInput {
-  codeId: string
 }
 
 export interface GQLUserRegisterInput {
@@ -3121,6 +3117,10 @@ export interface GQLUserNewFollowerNotice extends GQLNotice {
    * List of new followers.
    */
   actors?: Array<GQLUser | null>
+}
+
+export interface GQLVerifyEmailInput {
+  codeId: string
 }
 
 /*********************************
@@ -7357,7 +7357,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
   changeEmail?: MutationToChangeEmailResolver<TParent>
-  verifyEmail?: MutationToVerifyEmailResolver<TParent>
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
   userLogout?: MutationToUserLogoutResolver<TParent>
@@ -7883,18 +7882,6 @@ export interface MutationToChangeEmailResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToChangeEmailArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToVerifyEmailArgs {
-  input: GQLVerifyEmailInput
-}
-export interface MutationToVerifyEmailResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToVerifyEmailArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
