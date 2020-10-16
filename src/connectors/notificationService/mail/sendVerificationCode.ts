@@ -48,7 +48,10 @@ export const sendVerificationCode = async ({
             paymentPasswordReset:
               type === VERIFICATION_CODE_TYPES.payment_password_reset,
           },
-          recipient,
+          recipient: {
+            ...recipient,
+            email: to,
+          },
           ...(redirectUrl ? { link } : { code }),
         },
       },
