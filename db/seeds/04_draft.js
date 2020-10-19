@@ -27,6 +27,20 @@ exports.seed = function (knex, Promise) {
           summary: 'Some text of sumamry',
           content: '<div>some html string</div>',
         },
+        {
+          uuid: '00000000-0000-0000-0000-000000000004',
+          author_id: '1',
+          title: 'test draft 4',
+          summary: 'Some text of sumamry',
+          content: '<div>some html string</div>',
+        },
+        {
+          uuid: '00000000-0000-0000-0000-000000000005',
+          author_id: '7',
+          title: 'test draft 5',
+          summary: 'Some text of sumamry',
+          content: '<div>some html string</div>',
+        },
       ])
     })
 }

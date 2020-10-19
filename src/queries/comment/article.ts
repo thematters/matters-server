@@ -4,6 +4,6 @@ const resolver: CommentToArticleResolver = (
   { articleId },
   _,
   { dataSources: { articleService } }
-) => articleService.dataloader.load(articleId)
+) => articleService.draftLoader.load(articleId)
 
 export default resolver

@@ -6,7 +6,7 @@ import { RecommendationToNewestResolver } from 'definitions'
 export const newest: RecommendationToNewestResolver = async (
   { id },
   { input },
-  { viewer, dataSources: { articleService } }
+  { viewer, dataSources: { articleService, draftService } }
 ) => {
   const { oss = false } = input
 
@@ -20,18 +20,15 @@ export const newest: RecommendationToNewestResolver = async (
 
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.countRecommendNewest({
-    where,
-    oss,
-  })
+  const [totalCount, articles] = await Promise.all([
+    articleService.countRecommendNewest({ where, oss }),
+    articleService.recommendNewest({ offset, limit: first, where, oss }),
+  ])
 
   return connectionFromPromisedArray(
-    articleService.recommendNewest({
-      offset,
-      limit: first,
-      where,
-      oss,
-    }),
+    draftService.dataloader.loadMany(
+      articles.map((article) => article.draftId)
+    ),
     input,
     totalCount
   )

@@ -31,7 +31,7 @@ export const Transaction: GQLTransactionTypeResolver = {
 
     let target
     if (table === 'article') {
-      target = await articleService.dataloader.load(trx.targetId)
+      target = await articleService.draftLoader.load(trx.targetId)
     } else if (table === 'transaction') {
       target = await paymentService.dataloader.load(trx.targetId)
     }

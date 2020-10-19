@@ -5,10 +5,10 @@ import { MutationToToggleArticleLiveResolver } from 'definitions'
 const resolver: MutationToToggleArticleLiveResolver = async (
   root,
   { input: { id, enabled } },
-  { viewer, dataSources: { articleService } }
+  { viewer, dataSources: { articleService, draftService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.dataloader.load(dbId)
+  const article = await articleService.baseFindById(dbId)
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
@@ -18,7 +18,8 @@ const resolver: MutationToToggleArticleLiveResolver = async (
     updatedAt: new Date(),
   })
 
-  return updatedArticle
+  const node = await draftService.baseFindById(article.draftId)
+  return node
 }
 
 export default resolver

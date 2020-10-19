@@ -1,7 +1,7 @@
 import { ArticleToAppreciateLeftResolver } from 'definitions'
 
 const resolver: ArticleToAppreciateLeftResolver = async (
-  { id },
+  { articleId },
   _,
   { viewer, dataSources: { articleService } }
 ) => {
@@ -10,7 +10,7 @@ const resolver: ArticleToAppreciateLeftResolver = async (
   }
 
   return articleService.appreciateLeftByUser({
-    articleId: id,
+    articleId,
     userId: viewer.id,
   })
 }

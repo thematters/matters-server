@@ -11,7 +11,7 @@ export const interest: RecommendationToValuedResolver = async (
 ) => {
   const {
     viewer,
-    dataSources: { articleService },
+    dataSources: { articleService, draftService },
   } = context
 
   // falback to icymi for visitor
@@ -22,16 +22,19 @@ export const interest: RecommendationToValuedResolver = async (
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
 
-  const totalCount = await articleService.countRecommendInterest({
-    userId: viewer.id,
-  })
-
-  return connectionFromPromisedArray(
+  const [totalCount, articles] = await Promise.all([
+    articleService.countRecommendInterest({ userId: viewer.id }),
     articleService.recommendByInterest({
       offset,
       limit: first,
       userId: viewer.id,
     }),
+  ])
+
+  return connectionFromPromisedArray(
+    draftService.dataloader.loadMany(
+      articles.map((article) => article.draftId)
+    ),
     input,
     totalCount
   )

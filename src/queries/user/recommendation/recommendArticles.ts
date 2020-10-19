@@ -10,7 +10,7 @@ import { RecommendationToRecommendArticlesResolver } from 'definitions'
 export const recommendArticles: RecommendationToRecommendArticlesResolver = async (
   { id }: { id: string },
   { input },
-  { dataSources: { userService, articleService } }
+  { dataSources: { userService, articleService, draftService } }
 ) => {
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
@@ -19,12 +19,12 @@ export const recommendArticles: RecommendationToRecommendArticlesResolver = asyn
   const fallback = async () => {
     const [totalCount, articles] = await Promise.all([
       articleService.countRecommendIcymi(),
-      articleService.recommendIcymi({
-        offset,
-        limit: first,
-      }),
+      articleService.recommendIcymi({ offset, limit: first }),
     ])
-    return connectionFromArray(articles, input, totalCount)
+    const nodes = await draftService.dataloader.loadMany(
+      articles.map((article) => article.draftId)
+    )
+    return connectionFromArray(nodes, input, totalCount)
   }
 
   // fallback for visitors
@@ -38,6 +38,7 @@ export const recommendArticles: RecommendationToRecommendArticlesResolver = asyn
     limit: 10000,
   })
   const readHistoryIds = readHistory.map(({ article }) => article.id)
+
   try {
     const recommendedArtices = await userService.recommendItems({
       userId: id,
@@ -49,16 +50,16 @@ export const recommendArticles: RecommendationToRecommendArticlesResolver = asyn
 
     const ids = recommendedArtices.map(({ id: aid }: { id: any }) => aid)
 
-    // get articles
-    const [totalCount, articles] = await Promise.all([
+    // get nodes
+    const [totalCount, nodes] = await Promise.all([
       articleService.baseCount({ state: ARTICLE_STATE.active }),
-      articleService.dataloader.loadMany(ids).then(loadManyFilterError),
+      articleService.draftLoader.loadMany(ids).then(loadManyFilterError),
     ])
 
-    if (!articles || articles.length === 0) {
+    if (!nodes || nodes.length === 0) {
       return fallback
     }
-    return connectionFromArray(articles, input, totalCount)
+    return connectionFromArray(nodes, input, totalCount)
   } catch (err) {
     logger.error(
       `error in recommendation to user via ES: ${JSON.stringify(err)}`

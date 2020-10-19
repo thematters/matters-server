@@ -216,8 +216,8 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Result
    */
-  const newArticle = await articleService.baseFindById(dbId)
-  return newArticle
+  const node = await draftService.baseFindById(article.draftId)
+  return node
 }
 
 export default resolver

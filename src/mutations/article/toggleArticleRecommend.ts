@@ -5,7 +5,7 @@ import { MutationToToggleArticleRecommendResolver } from 'definitions'
 const resolver: MutationToToggleArticleRecommendResolver = async (
   root,
   { input: { id, enabled, type } },
-  { viewer, dataSources: { articleService } }
+  { viewer, dataSources: { articleService, draftService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
@@ -33,8 +33,8 @@ const resolver: MutationToToggleArticleRecommendResolver = async (
       break
   }
 
-  const updatedArticle = await articleService.dataloader.load(dbId)
-  return updatedArticle
+  const node = await draftService.baseFindById(article.draftId)
+  return node
 }
 
 export default resolver

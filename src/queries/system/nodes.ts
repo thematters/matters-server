@@ -69,7 +69,7 @@ const resolver: QueryToNodesResolver = async (
   })
 
   // fetch by bulk
-  const articles = await articleService.dataloader.loadMany(articleDbIds)
+  const articles = await articleService.draftLoader.loadMany(articleDbIds)
   const users = await userService.dataloader.loadMany(userDbIds)
   const comments = await commentService.dataloader.loadMany(commentDbIds)
   const drafts = await draftService.dataloader.loadMany(draftDbIds)

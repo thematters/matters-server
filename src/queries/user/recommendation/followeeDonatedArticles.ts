@@ -34,7 +34,7 @@ export const followeeDonatedArticles: RecommendationToFolloweeDonatedArticlesRes
   )) as Array<Record<string, any>>
   const data = await Promise.all(
     txs.map(async (tx) => {
-      const article = await articleService.dataloader.load(tx.targetId)
+      const article = await articleService.draftLoader.load(tx.targetId)
       const followee = await userService.dataloader.load(tx.senderId)
       return { __cursor: tx.id, article, followee }
     })

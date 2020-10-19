@@ -1,11 +1,11 @@
 import { ArticleToAppreciationsReceivedTotalResolver } from 'definitions'
 
 const resolver: ArticleToAppreciationsReceivedTotalResolver = async (
-  { id },
+  { articleId },
   _: any,
   { dataSources: { articleService } }
 ) => {
-  return articleService.sumAppreciation(id)
+  return articleService.sumAppreciation(articleId)
 }
 
 export default resolver

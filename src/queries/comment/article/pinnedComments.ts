@@ -1,9 +1,9 @@
 import { ArticleToPinnedCommentsResolver } from 'definitions'
 
 const resolver: ArticleToPinnedCommentsResolver = (
-  { id },
+  { articleId },
   _,
   { dataSources: { commentService } }
-) => commentService.findPinnedByArticle(id)
+) => commentService.findPinnedByArticle(articleId)
 
 export default resolver

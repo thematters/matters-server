@@ -16,19 +16,19 @@ const resolver: QueryToNodeResolver = async (
     },
   }
 ) => {
-  const serviceMap = {
-    Article: articleService,
-    User: userService,
-    Comment: commentService,
-    Draft: draftService,
-    Tag: tagService,
+  const loaders = {
+    Article: articleService.draftLoader,
+    User: userService.dataloader,
+    Comment: commentService.dataloader,
+    Draft: draftService.dataloader,
+    Tag: tagService.dataloader,
   }
 
   const { type, id: dbId } = fromGlobalId(id) as {
     type: NodeTypes
     id: string
   }
-  const node = await serviceMap[type].dataloader.load(dbId)
+  const node = await loaders[type].load(dbId)
 
   if (!node) {
     throw new EntityNotFoundError('target does not exist')
