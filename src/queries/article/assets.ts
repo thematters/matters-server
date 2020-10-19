@@ -1,10 +1,17 @@
 import { ArticleToAssetsResolver } from 'definitions'
 
 const resolver: ArticleToAssetsResolver = async (
-  { id, articleId },
+  { id, authorId, articleId },
   _,
-  { dataSources: { systemService } }
+  { viewer, dataSources: { systemService } }
 ) => {
+  // Check inside resolver instead of `@auth(mode: "${AUTH_MODE.oauth}")`
+  // since `@auth` now only supports scope starting with `viewer`.
+  const isAuthor = authorId === viewer.id
+  if (!isAuthor) {
+    return []
+  }
+
   // assets belonged to this article
   const { id: articleEntityTypeId } = await systemService.baseFindEntityTypeId(
     'article'
