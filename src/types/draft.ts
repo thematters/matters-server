@@ -49,7 +49,7 @@ export default /* GraphQL */ `
     "State of draft during publihsing."
     publishState: PublishState!
 
-    "List of asstets are belonged to this draft."
+    "List of assets are belonged to this draft."
     assets: [Asset!]!
 
     "Published article"
