@@ -4,8 +4,8 @@ import jwt from 'jsonwebtoken'
 
 import {
   AUTH_MODE,
-  COOKIE_AB_GROUP,
   COOKIE_TOKEN_NAME,
+  COOKIE_USER_GROUP,
   LANGUAGE,
   USER_ROLE,
   USER_STATE,
@@ -129,6 +129,7 @@ export const getViewerFromReq = async ({
   // const isWeb = headers['x-client-name'] === 'web'
   const language = getLanguage(LANGUAGE.zh_hant as string)
   const agentHash = headers['x-user-agent-hash'] as string
+  const userGroup = headers['x-user-group'] as string
   const userAgent = headers['user-agent'] as string
 
   // user infomation from request
@@ -146,7 +147,8 @@ export const getViewerFromReq = async ({
     cookie.parse(headers.cookie || '')[COOKIE_TOKEN_NAME] ||
     headers['x-access-token'] ||
     ''
-  const group = cookie.parse(headers.cookie || '')[COOKIE_AB_GROUP] || ''
+  const group =
+    userGroup || cookie.parse(headers.cookie || '')[COOKIE_USER_GROUP] || ''
 
   if (!token) {
     logger.info('User is not logged in, viewing as guest')
