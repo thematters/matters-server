@@ -115,7 +115,11 @@ const server = new ProtectedApolloServer({
   },
   plugins: [
     responseCachePlugin({
-      sessionId: ({ context }) => _.get(context, 'viewer.id', null),
+      sessionId: ({ context }) => {
+        const viewerId = _.get(context, 'viewer.id', '')
+        const viewerGroup = _.get(context, 'viewer.group', '')
+        return JSON.stringify({ id: viewerId, group: viewerGroup })
+      },
       nodeFQCTTL: CACHE_TTL.PUBLIC_QUERY,
     }),
   ],
