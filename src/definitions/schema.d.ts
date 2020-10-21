@@ -204,6 +204,11 @@ export interface GQLArticle extends GQLNode {
   remark?: string
 
   /**
+   * Drafts linked to this article.
+   */
+  drafts?: Array<GQLDraft>
+
+  /**
    * The counting number of comments.
    */
   commentCount: number
@@ -3424,6 +3429,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
+  drafts?: ArticleToDraftsResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
   pinCommentLimit?: ArticleToPinCommentLimitResolver<TParent>
   pinCommentLeft?: ArticleToPinCommentLeftResolver<TParent>
@@ -3774,6 +3780,15 @@ export interface ArticleToOssResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToDraftsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

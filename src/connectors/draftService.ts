@@ -62,4 +62,18 @@ export class DraftService extends BaseService {
    */
   findByMediaHash = async (mediaHash: string) =>
     this.knex.select().from(this.table).where({ mediaHash }).first()
+
+  /**
+   * Find published drafts by given article id.
+   */
+  findByArticleId = async ({ articleId }: { articleId: string }) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({
+        articleId,
+        archived: true,
+        publishState: PUBLISH_STATE.published,
+      })
+      .orderBy('created_at', 'desc')
 }
