@@ -410,7 +410,7 @@ export const INVALID_NAMES = [
 ]
 
 export const COOKIE_TOKEN_NAME = '__token'
-export const COOKIE_AB_GROUP = '__abgroup'
+export const COOKIE_USER_GROUP = '__user_group'
 
 export const USER_ACCESS_TOKEN_EXPIRES_IN_MS = DAY * 90 // 90 days
 export const OAUTH_AUTHORIZATION_TOKEN_EXPIRES_IN_MS = MINUTE * 10 // 10 mins
