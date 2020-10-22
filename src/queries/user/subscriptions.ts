@@ -16,10 +16,12 @@ const resolver: UserToSubscriptionsResolver = async (
       limit: first,
     }),
   ])
+  const articles = (await articleService.dataloader.loadMany(
+    actions.map(({ targetId }: { targetId: string }) => targetId)
+  )) as any[]
+
   return connectionFromPromisedArray(
-    draftService.dataloader.loadMany(
-      actions.map(({ targetId }: { targetId: string }) => targetId)
-    ),
+    draftService.dataloader.loadMany(articles.map(({ draftId }) => draftId)),
     input,
     totalCount
   )

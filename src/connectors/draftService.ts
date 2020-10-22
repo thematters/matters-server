@@ -30,16 +30,6 @@ export class DraftService extends BaseService {
   }
 
   /**
-   *  Find drafts by a given author id (user).
-   */
-  findByAuthor = async (authorId: string) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .where({ authorId, archived: false })
-      .orderBy('updated_at', 'desc')
-
-  /**
    * Find drafts by publish state
    */
   findByPublishState = async (publishState: string) =>
@@ -54,8 +44,9 @@ export class DraftService extends BaseService {
     this.knex
       .select()
       .from(this.table)
-      .where({ authorId })
+      .where({ authorId, archived: false })
       .andWhereNot({ publishState: PUBLISH_STATE.published })
+      .orderBy('updated_at', 'desc')
 
   /**
    * Find draft by media hash.

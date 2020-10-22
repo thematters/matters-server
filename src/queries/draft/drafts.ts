@@ -5,6 +5,7 @@ const resolver: UserToDraftsResolver = (
   { id },
   { input },
   { dataSources: { draftService } }
-) => connectionFromPromisedArray(draftService.findByAuthor(id), input)
+) =>
+  connectionFromPromisedArray(draftService.findUnpublishedByAuthor(id), input)
 
 export default resolver
