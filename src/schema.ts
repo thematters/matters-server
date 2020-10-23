@@ -35,11 +35,11 @@ const typeResolver = (type: string, result: any) => {
 }
 
 const idResolver = (type: string, result: any) => {
-  if (type === NODE_TYPES.article && result.articleId) {
+  if (type === NODE_TYPES.article && result?.articleId) {
     return result.articleId
   }
 
-  return result.id
+  return result?.id
 }
 
 const schema = makeExecutableSchema({
