@@ -29,7 +29,7 @@ const user = {
 beforeAll(async () => {
   try {
     const { id } = await putDraft({ draft })
-    await publishArticle({ id, delay: 0 })
+    await publishArticle({ id })
     await registerUser(user)
     await updateUserDescription({
       email: user.email,
@@ -118,7 +118,7 @@ describe('query nodes of different type', () => {
       variables: { input: { id } },
     })
     const node = data && data.node
-    expect(node).toEqual({ id, title: 'test article 1' })
+    expect(node).toEqual({ id, title: 'test draft 1' })
   })
 
   test('query comment node', async () => {

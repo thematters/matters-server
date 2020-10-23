@@ -1,9 +1,9 @@
 import { ArticleToCommentCountResolver } from 'definitions'
 
 const resolver: ArticleToCommentCountResolver = (
-  { id },
+  { articleId },
   _,
   { dataSources: { commentService } }
-) => commentService.countByArticle(id)
+) => commentService.countByArticle(articleId)
 
 export default resolver

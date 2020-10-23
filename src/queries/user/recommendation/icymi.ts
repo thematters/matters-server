@@ -1,10 +1,10 @@
-import { connectionFromArray, cursorToIndex } from 'common/utils'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { RecommendationToIcymiResolver } from 'definitions'
 
 export const icymi: RecommendationToIcymiResolver = async (
   { id },
   { input },
-  { dataSources: { articleService } }
+  { dataSources: { articleService, draftService } }
 ) => {
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
@@ -16,5 +16,11 @@ export const icymi: RecommendationToIcymiResolver = async (
       limit: first,
     }),
   ])
-  return connectionFromArray(articles, input, totalCount)
+  return connectionFromPromisedArray(
+    draftService.dataloader.loadMany(
+      articles.map((article) => article.draftId)
+    ),
+    input,
+    totalCount
+  )
 }

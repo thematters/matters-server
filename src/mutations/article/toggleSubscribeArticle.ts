@@ -10,7 +10,7 @@ import { MutationToToggleSubscribeArticleResolver } from 'definitions'
 const resolver: MutationToToggleSubscribeArticleResolver = async (
   root,
   { input: { id, enabled } },
-  { viewer, dataSources: { articleService, notificationService } }
+  { viewer, dataSources: { articleService, draftService, notificationService } }
 ) => {
   // checks
   if (!viewer.id) {
@@ -22,7 +22,7 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.dataloader.load(dbId)
+  const article = await articleService.baseFindById(dbId)
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
   }
@@ -60,7 +60,8 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
     await articleService.unsubscribe(article.id, viewer.id)
   }
 
-  return article
+  const node = await draftService.baseFindById(article.draftId)
+  return node
 }
 
 export default resolver

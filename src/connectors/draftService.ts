@@ -1,5 +1,6 @@
 import DataLoader from 'dataloader'
 
+import { PUBLISH_STATE } from 'common/enums'
 import { BaseService } from 'connectors'
 
 export class DraftService extends BaseService {
@@ -29,16 +30,6 @@ export class DraftService extends BaseService {
   }
 
   /**
-   *  Find drafts by a given author id (user).
-   */
-  findByAuthor = async (authorId: string) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .where({ authorId, archived: false })
-      .orderBy('updated_at', 'desc')
-
-  /**
    * Find drafts by publish state
    */
   findByPublishState = async (publishState: string) =>
@@ -47,13 +38,19 @@ export class DraftService extends BaseService {
     })
 
   /**
-   * Find or Delete drafts that aren't linked to articles by a given author id (user).
+   * Find unpublished drafts by a given author id (user).
    */
-  findUnlinkedDraftsByAuthor = (authorId: string) =>
+  findUnpublishedByAuthor = (authorId: string) =>
     this.knex
-      .select('draft.*', 'article.draft_id')
+      .select()
       .from(this.table)
-      .leftOuterJoin('article', 'article.draft_id', 'draft.id')
-      .whereNull('draft_id')
-      .andWhere({ 'draft.author_id': authorId })
+      .where({ authorId, archived: false })
+      .andWhereNot({ publishState: PUBLISH_STATE.published })
+      .orderBy('updated_at', 'desc')
+
+  /**
+   * Find draft by media hash.
+   */
+  findByMediaHash = async (mediaHash: string) =>
+    this.knex.select().from(this.table).where({ mediaHash }).first()
 }

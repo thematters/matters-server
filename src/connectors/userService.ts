@@ -3,6 +3,7 @@ import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import jwt from 'jsonwebtoken'
 import _ from 'lodash'
+import { nanoid } from 'nanoid'
 import { v4 } from 'uuid'
 
 import {
@@ -377,7 +378,7 @@ export class UserService extends BaseService {
       })
       .andWhere(
         this.knex.raw(
-          '2 * COALESCE("total", 0) + COALESCE("read_count", 0) >= 30'
+          '2 * COALESCE("total", 0) + COALESCE("read_count", 0) >= 10'
         )
       )
 
@@ -1396,22 +1397,27 @@ export class UserService extends BaseService {
     userId,
     email,
     type,
+    strong,
   }: {
     userId?: string | null
     email: string
     type: string
-  }) =>
-    this.baseCreate(
+    strong?: boolean
+  }) => {
+    const code = strong ? nanoid(40) : _.random(100000, 999999)
+
+    return this.baseCreate(
       {
         uuid: v4(),
         userId,
         email,
         type,
-        code: _.random(100000, 999999),
+        code,
         expiredAt: new Date(Date.now() + VERIFICATION_CODE_EXIPRED_AFTER),
       },
       'verification_code'
     )
+  }
 
   findVerificationCodes = async ({
     where,

@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import {
   AUTH_MODE,
   COOKIE_TOKEN_NAME,
+  COOKIE_USER_GROUP,
   LANGUAGE,
   USER_ROLE,
   USER_STATE,
@@ -49,12 +50,12 @@ export const getUserGroup = ({
   return num % 2 === 0 ? 'a' : 'b'
 }
 
-export const getViewerFromUser = async (user: any) => {
+export const getViewerFromUser = async (user: any, group?: string) => {
   // overwrite default by user
   const viewer = { role: USER_ROLE.visitor, ...user }
 
   // append uesr group
-  viewer.group = getUserGroup(user)
+  viewer.group = group ? group : getUserGroup(user)
 
   // append hepler functions (keep it till we fully utilize scope)
   viewer.hasRole = (requires: string) =>
@@ -128,6 +129,7 @@ export const getViewerFromReq = async ({
   // const isWeb = headers['x-client-name'] === 'web'
   const language = getLanguage(LANGUAGE.zh_hant as string)
   const agentHash = headers['x-user-agent-hash'] as string
+  const userGroup = headers['x-user-group'] as string
   const userAgent = headers['user-agent'] as string
 
   // user infomation from request
@@ -145,10 +147,12 @@ export const getViewerFromReq = async ({
     cookie.parse(headers.cookie || '')[COOKIE_TOKEN_NAME] ||
     headers['x-access-token'] ||
     ''
+  const group =
+    userGroup || cookie.parse(headers.cookie || '')[COOKIE_USER_GROUP] || ''
 
   if (!token) {
     logger.info('User is not logged in, viewing as guest')
-    return getViewerFromUser(user)
+    return getViewerFromUser(user, group)
   }
 
   try {
@@ -166,5 +170,5 @@ export const getViewerFromReq = async ({
     throw err
   }
 
-  return getViewerFromUser(user)
+  return getViewerFromUser(user, group)
 }

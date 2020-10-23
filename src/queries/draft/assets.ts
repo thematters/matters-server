@@ -1,24 +1,24 @@
-import { extractAssetDataFromHtml } from 'common/utils'
 import { DraftToAssetsResolver } from 'definitions'
 
 const resolver: DraftToAssetsResolver = async (
-  { id, content },
+  { id },
   _,
   { dataSources: { systemService } }
 ) => {
-  // gather assets from raw content
-  const uuids = (extractAssetDataFromHtml(content) || []).filter(
-    (uuid) => uuid && uuid !== 'embed'
+  const { id: draftEntityTypeId } = await systemService.baseFindEntityTypeId(
+    'draft'
   )
-  return (await systemService.baseFindByUUIDs(uuids, 'asset')).map(
-    (item: any) => {
-      const { path } = item
-      return {
-        ...item,
-        path: path ? `${systemService.aws.s3Endpoint}/${path}` : null,
-      }
+  const assets = await systemService.findAssetAndAssetMap({
+    entityTypeId: draftEntityTypeId,
+    entityId: id,
+  })
+
+  return assets.map((asset) => {
+    return {
+      ...asset,
+      path: asset.path ? `${systemService.aws.s3Endpoint}/${asset.path}` : null,
     }
-  )
+  })
 }
 
 export default resolver

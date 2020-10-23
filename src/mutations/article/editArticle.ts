@@ -1,8 +1,9 @@
 import { difference, uniq } from 'lodash'
 
-import { ARTICLE_STATE, USER_STATE } from 'common/enums'
+import { ARTICLE_STATE, ASSET_TYPE, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  AssetNotFoundError,
   AuthenticationError,
   EntityNotFoundError,
   ForbiddenByStateError,
@@ -13,11 +14,12 @@ import { MutationToEditArticleResolver } from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
-  { input: { id, state, sticky, tags, collection } },
+  { input: { id, state, sticky, tags, cover, collection } },
   {
     viewer,
     dataSources: {
-      userService,
+      draftService,
+      systemService,
       articleService,
       tagService,
       notificationService,
@@ -121,6 +123,31 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   /**
+   * Cover
+   */
+  if (cover) {
+    const asset = await systemService.findAssetByUUID(cover)
+
+    if (
+      !asset ||
+      [ASSET_TYPE.embed, ASSET_TYPE.cover].indexOf(asset.type) < 0 ||
+      asset.authorId !== viewer.id
+    ) {
+      throw new AssetNotFoundError('article cover does not exists')
+    }
+
+    await articleService.baseUpdate(dbId, {
+      cover: asset.id,
+      updatedAt: new Date(),
+    })
+  } else if (cover === null) {
+    await articleService.baseUpdate(dbId, {
+      cover: null,
+      updatedAt: new Date(),
+    })
+  }
+
+  /**
    * Collection
    */
   if (collection) {
@@ -189,8 +216,8 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Result
    */
-  const newArticle = await articleService.baseFindById(dbId)
-  return newArticle
+  const node = await draftService.baseFindById(article.draftId)
+  return node
 }
 
 export default resolver

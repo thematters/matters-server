@@ -2,12 +2,14 @@ import { ARTICLE_STATE } from 'common/enums'
 import { ArticleToContentResolver } from 'definitions'
 
 // ACL for article content
-const resolver: ArticleToContentResolver = (
-  { content, state, authorId },
+const resolver: ArticleToContentResolver = async (
+  { articleId, authorId, content },
   _,
-  { viewer }
+  { viewer, dataSources: { articleService } }
 ) => {
-  const isActive = state === ARTICLE_STATE.active
+  const article = await articleService.dataloader.load(articleId)
+
+  const isActive = article.state === ARTICLE_STATE.active
   const isAdmin = viewer.hasRole('admin')
   const isAuthor = authorId === viewer.id
 

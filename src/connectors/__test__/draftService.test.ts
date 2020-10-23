@@ -7,7 +7,7 @@ test('countByAuthor', async () => {
   expect(count).toBeDefined()
 })
 
-test('findByAuthor', async () => {
-  const drafts = await service.findByAuthor('1')
+test('findUnpublishedByAuthor', async () => {
+  const drafts = await service.findUnpublishedByAuthor('1')
   expect(drafts[0]).toBeDefined()
 })

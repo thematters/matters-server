@@ -11,9 +11,9 @@ directive @privateCache(strict: Boolean! = false) on FIELD_DEFINITION
 
 directive @objectCache(maxAge: Int = 1000) on OBJECT | FIELD_DEFINITION
 
-directive @logCache(type: String!, identifier: String = "id") on FIELD_DEFINITION
+directive @logCache(type: String!) on FIELD_DEFINITION
 
-directive @purgeCache(type: String!, identifier: String = "id") on FIELD_DEFINITION
+directive @purgeCache(type: String!) on FIELD_DEFINITION
 
 input AddArticlesTagsInput {
   id: ID!
@@ -112,6 +112,9 @@ type Article implements Node {
   """Article cover's link."""
   cover: URL
 
+  """List of assets are belonged to this article."""
+  assets: [Asset!]!
+
   """A short summary for this article."""
   summary: String!
 
@@ -122,10 +125,10 @@ type Article implements Node {
   wordCount: Int
 
   """IPFS hash of this article."""
-  dataHash: String
+  dataHash: String!
 
   """Media hash, composed of cid encoding, of this article."""
-  mediaHash: String
+  mediaHash: String!
 
   """Content of this article."""
   content: String!
@@ -464,6 +467,7 @@ type Asset {
 """Enums for asset types."""
 enum AssetType {
   avatar
+  cover
   embed
   embedaudio
   profileCover
@@ -752,9 +756,6 @@ type Draft implements Node {
   """Content of this draft."""
   content: String
 
-  """Time of this draft was scheduled for publishing."""
-  scheduledAt: DateTime
-
   """Time of this draft was created."""
   createdAt: DateTime!
 
@@ -773,7 +774,7 @@ type Draft implements Node {
   """State of draft during publihsing."""
   publishState: PublishState!
 
-  """List of asstets are belonged to this draft."""
+  """List of assets are belonged to this draft."""
   assets: [Asset!]!
 
   """Published article"""
@@ -796,6 +797,7 @@ input EditArticleInput {
   state: ArticleState
   sticky: Boolean
   tags: [String!]
+  cover: ID
   collection: [ID!]
 }
 
@@ -1005,9 +1007,6 @@ type Mutation {
 
   """Change user email."""
   changeEmail(input: ChangeEmailInput!): User!
-
-  """Verify user email."""
-  verifyEmail(input: VerifyEmailInput!): Boolean
 
   """Register user, can only be used on matters.news website."""
   userRegister(input: UserRegisterInput!): AuthResult!
@@ -1304,7 +1303,6 @@ scalar PositiveInt
 
 input PublishArticleInput {
   id: ID!
-  delay: Int
 }
 
 """Enums for publishing state."""
@@ -1325,7 +1323,7 @@ input PutDraftInput {
   title: String
   content: String
   tags: [String]
-  coverAssetId: ID
+  cover: ID
   collection: [ID]
 }
 
@@ -1556,6 +1554,9 @@ input SearchInput {
   after: String
   first: Int
   filter: SearchFilter
+
+  """whether this search operation should be recorded in search history"""
+  record: Boolean
   oss: Boolean
 }
 
@@ -1580,6 +1581,12 @@ input SendVerificationCodeInput {
   email: Email!
   type: VerificationCodeType!
   token: String
+
+  """
+  Redirect URL embedded in the verification email,
+  use code instead if not provided.
+  """
+  redirectUrl: URL
 }
 
 input SetBoostInput {
@@ -1691,7 +1698,7 @@ type Tag implements Node {
   description: String
 
   """Editors of this tag."""
-  editors: [User!]
+  editors(input: TagEditorsInput): [User!]
 
   """Creator of this tag."""
   creator: User
@@ -1705,10 +1712,49 @@ type Tag implements Node {
   """Followers of this tag."""
   followers(input: ConnectionArgs!): UserConnection!
 
+  """Participants of this tag."""
+  participants(input: ConnectionArgs!): UserConnection!
+
   """OSS"""
   oss: TagOSS!
   remark: String
   deleted: Boolean!
+}
+
+"""
+This notice type contains info about editors has been added into a tag.
+"""
+type TagAddEditorNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """The user who added editor to a tag."""
+  actor: User!
+  tag: Tag
+}
+
+"""This notice type contains info about a tag has been adopted by a user."""
+type TagAdoptionNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """The user who adopted a tag."""
+  actor: User!
+
+  """The tag adopted by user."""
+  tag: Tag
 }
 
 input TagArticlesInput {
@@ -1727,6 +1773,45 @@ type TagConnection implements Connection {
 type TagEdge {
   cursor: String!
   node: Tag!
+}
+
+input TagEditorsInput {
+  excludeAdmin: Boolean
+  excludeOwner: Boolean
+}
+
+"""This notice type contains info about a editor left a tag."""
+type TagLeaveEditorNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """The user who leave from tag editors."""
+  actor: User!
+  tag: Tag
+}
+
+"""This notice type contains info about a user left a tag."""
+type TagLeaveNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """The user who leave a tag."""
+  actor: User!
+
+  """The tag left by user."""
+  tag: Tag
 }
 
 type TagOSS {
@@ -1871,11 +1956,15 @@ input UpdateNotificationSettingInput {
 input UpdateTagSettingInput {
   id: ID!
   type: UpdateTagSettingType!
+  editors: [ID!]
 }
 
 enum UpdateTagSettingType {
   adopt
   leave
+  add_editor
+  remove_editor
+  leave_editor
 }
 
 input UpdateUserInfoInput {
@@ -1948,7 +2037,7 @@ type User implements Node {
   """Articles authored by current user."""
   articles(input: ConnectionArgs!): ArticleConnection!
 
-  """Tags owned by current user."""
+  """Tags owned and maintained by current user."""
   tags(input: ConnectionArgs!): TagConnection!
 
   """Drafts authored by current user."""
@@ -2171,7 +2260,6 @@ enum VerificationCodeType {
   email_reset_confirm
   password_reset
   payment_password_reset
-  email_verify
 }
 
 input VerifyEmailInput {

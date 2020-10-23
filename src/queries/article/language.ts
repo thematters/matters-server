@@ -1,10 +1,10 @@
 import { stripHtml } from 'common/utils'
 import { ArticleToLanguageResolver } from 'definitions'
 
-const resolver: ArticleToLanguageResolver = (
+const resolver: ArticleToLanguageResolver = async (
   { id, content, language: storedLanguage },
   _,
-  { dataSources: { articleService } }
+  { dataSources: { articleService, draftService } }
 ) => {
   if (storedLanguage) {
     return storedLanguage
@@ -12,8 +12,9 @@ const resolver: ArticleToLanguageResolver = (
 
   articleService
     .detectLanguage(stripHtml(content.slice(0, 300)))
-    .then((language) => language && articleService.baseUpdate(id, { language }))
-  // return  first to prevent blocking
+    .then((language) => language && draftService.baseUpdate(id, { language }))
+
+  // return first to prevent blocking
   return
 }
 

@@ -8,13 +8,13 @@ import {
 import { ArticleToRelatedDonationArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedDonationArticlesResolver = async (
-  { id },
+  { articleId },
   { input },
-  { dataSources: { articleService } }
+  { dataSources: { articleService, draftService } }
 ) => {
   const { first, after, random } = input
 
-  const notIn = [id]
+  const notIn = [articleId]
 
   /**
    * Pick randomly
@@ -24,7 +24,7 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
     const randomDraw = first || 5
 
     const articlePool = await articleService.findRelatedDonations({
-      articleId: id,
+      articleId,
       notIn,
       limit: MAX_RANDOM_INDEX * randomDraw,
     })
@@ -33,24 +33,31 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
     const index = Math.min(random, MAX_RANDOM_INDEX, chunks.length - 1)
     const filteredArticles = chunks[index] || []
 
-    return connectionFromArray(filteredArticles, input, articlePool.length)
+    return connectionFromPromisedArray(
+      draftService.dataloader.loadMany(
+        filteredArticles.map((article) => article.draftId)
+      ),
+      input,
+      articlePool.length
+    )
   }
 
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.countRelatedDonations({
-    articleId: id,
-    notIn,
-  })
-
-  return connectionFromPromisedArray(
+  const [totalCount, articles] = await Promise.all([
+    articleService.countRelatedDonations({ articleId, notIn }),
     articleService.findRelatedDonations({
-      articleId: id,
+      articleId,
       offset,
       notIn,
       limit: first,
     }),
+  ])
+
+  return connectionFromPromisedArray(
+    draftService.dataloader.loadMany(
+      articles.map((article) => article.draftId)
+    ),
     input,
-    // @ts-ignore
     totalCount
   )
 }

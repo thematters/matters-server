@@ -1,11 +1,12 @@
 import slugify from '@matters/slugify'
 
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
-import { makeSummary, toGlobalId } from 'common/utils'
+import { toGlobalId } from 'common/utils'
 
 import appreciateLeft from './appreciateLeft'
 import appreciationsReceived from './appreciationsReceived'
 import appreciationsReceivedTotal from './appreciationsReceivedTotal'
+import assets from './assets'
 import author from './author'
 import canSuperLike from './canSuperLike'
 import collectedBy from './collectedBy'
@@ -14,12 +15,17 @@ import content from './content'
 import articleCover from './cover'
 import hasAppreciate from './hasAppreciate'
 import language from './language'
+import live from './live'
 import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
+import remark from './remark'
 import rootArticle from './rootArticle'
+import state from './state'
+import sticky from './sticky'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
+import summary from './summary'
 import tagArticles from './tag/articles'
 import tagCover from './tag/cover'
 import tagCreator from './tag/creator'
@@ -28,6 +34,7 @@ import tagFollowers from './tag/followers'
 import tagIsFollower from './tag/isFollower'
 import * as tagOSS from './tag/oss'
 import tagOwner from './tag/owner'
+import tagParticipants from './tag/participants'
 import tagSelected from './tag/selected'
 import tags from './tags'
 import transactionsReceivedBy from './transactionsReceivedBy'
@@ -51,26 +58,26 @@ export default {
     appreciateLeft,
     author,
     cover: articleCover,
+    assets,
     collection,
     collectedBy,
-    id: ({ id }: { id: string }) => toGlobalId({ type: 'Article', id }),
+    id: ({ articleId }: { articleId: string }) =>
+      toGlobalId({ type: 'Article', id: articleId }),
     hasAppreciate,
     canSuperLike,
     language,
+    live,
     oss: (root: any) => root,
     relatedArticles,
     relatedDonationArticles,
+    remark,
     slug: ({ slug, title }: { slug: string; title: string }) =>
-      slug || slugify(title), // handle missing slug from migration
+      slug || slugify(title),
+    state,
+    sticky,
     subscribed,
     subscribers,
-    summary: ({
-      content: articleContent,
-      cover,
-    }: {
-      cover?: string
-      content: string
-    }) => makeSummary(articleContent, cover ? 110 : 140),
+    summary,
     tags,
     translation,
     topicScore: ({ score }: { score: number }) =>
@@ -88,6 +95,7 @@ export default {
     followers: tagFollowers,
     oss: (root: any) => root,
     cover: tagCover,
+    participants: tagParticipants,
   },
   ArticleOSS: {
     boost: articleOSS.boost,

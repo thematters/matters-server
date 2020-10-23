@@ -6,7 +6,7 @@ import { RecommendationToTopicsResolver } from 'definitions'
 export const topics: RecommendationToTopicsResolver = async (
   { id },
   { input },
-  { dataSources: { articleService }, viewer }
+  { dataSources: { articleService, draftService }, viewer }
 ) => {
   const { oss = false } = input
 
@@ -16,17 +16,18 @@ export const topics: RecommendationToTopicsResolver = async (
     }
   }
 
-  const { first, after } = input
   const where = { 'article.state': ARTICLE_STATE.active }
+
+  const { first, after } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.baseCount(where)
+  const [totalCount, articles] = await Promise.all([
+    articleService.baseCount(where),
+    articleService.recommendTopics({ offset, limit: first, where, oss }),
+  ])
   return connectionFromPromisedArray(
-    articleService.recommendTopics({
-      offset,
-      limit: first,
-      where,
-      oss,
-    }),
+    draftService.dataloader.loadMany(
+      articles.map((article) => article.draftId)
+    ),
     input,
     totalCount
   )

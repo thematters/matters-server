@@ -152,6 +152,8 @@ export default /* GraphQL */ `
     after: String
     first: Int
     filter: SearchFilter
+    "whether this search operation should be recorded in search history"
+    record: Boolean
     oss: Boolean
   }
 
@@ -236,6 +238,7 @@ export default /* GraphQL */ `
   "Enums for asset types."
   enum AssetType {
     avatar
+    cover
     embed
     embedaudio
     profileCover
@@ -312,7 +315,7 @@ export default /* GraphQL */ `
 
   directive @objectCache(maxAge: Int = 1000) on OBJECT | FIELD_DEFINITION
 
-  directive @logCache(type: String!, identifier: String = "id") on FIELD_DEFINITION
+  directive @logCache(type: String!) on FIELD_DEFINITION
 
-  directive @purgeCache(type: String!, identifier: String = "id") on FIELD_DEFINITION
+  directive @purgeCache(type: String!) on FIELD_DEFINITION
 `

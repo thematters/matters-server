@@ -4,7 +4,7 @@ import { fromGlobalId, toGlobalId } from 'common/utils'
 import { ArticleToResponsesResolver } from 'definitions'
 
 const resolver: ArticleToResponsesResolver = async (
-  { id },
+  { articleId },
   { input: { sort, first, ...restParams } },
   { dataSources: { articleService, commentService } }
 ) => {
@@ -29,7 +29,7 @@ const resolver: ArticleToResponsesResolver = async (
   const { includeAfter, includeBefore, articleOnly } = restParams
   const [sources, range] = await Promise.all([
     articleService.findResponses({
-      id,
+      id: articleId,
       order,
       state,
       after,
@@ -40,7 +40,7 @@ const resolver: ArticleToResponsesResolver = async (
       articleOnly,
     }),
     articleService.responseRange({
-      id,
+      id: articleId,
       order,
       state,
     }),
@@ -51,7 +51,7 @@ const resolver: ArticleToResponsesResolver = async (
     sources.map((source: { [key: string]: any }) => {
       switch (source.type) {
         case 'Article': {
-          return articleService.baseFindById(source.entityId)
+          return articleService.draftLoader.load(source.entityId)
         }
         case 'Comment': {
           return commentService.baseFindById(source.entityId)

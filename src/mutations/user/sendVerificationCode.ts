@@ -10,13 +10,13 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { isFeatureEnabled } from 'common/utils'
+import { isFeatureEnabled, resolveUrl } from 'common/utils'
 import { gcp } from 'connectors'
 import { MutationToSendVerificationCodeResolver } from 'definitions'
 
 const resolver: MutationToSendVerificationCodeResolver = async (
   _,
-  { input: { email: rawEmail, type, token } },
+  { input: { email: rawEmail, type, token, redirectUrl } },
   { viewer, dataSources: { userService, notificationService, systemService } }
 ) => {
   const email = rawEmail ? rawEmail.toLowerCase() : null
@@ -25,6 +25,10 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     throw new AuthenticationError(
       `visitor cannot send verification code of ${type}`
     )
+  }
+
+  if (redirectUrl) {
+    redirectUrl = resolveUrl(redirectUrl)
   }
 
   let user
@@ -115,6 +119,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     userId: viewer.id,
     email,
     type,
+    strong: !!redirectUrl, // strong random code for link
   })
 
   // send verification email
@@ -122,6 +127,7 @@ const resolver: MutationToSendVerificationCodeResolver = async (
     to: email,
     type,
     code,
+    redirectUrl,
     recipient: {
       displayName: user && user.displayName,
     },

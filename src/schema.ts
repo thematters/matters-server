@@ -34,6 +34,14 @@ const typeResolver = (type: string, result: any) => {
   return type
 }
 
+const idResolver = (type: string, result: any) => {
+  if (type === NODE_TYPES.article && result?.articleId) {
+    return result.articleId
+  }
+
+  return result?.id
+}
+
 const schema = makeExecutableSchema({
   typeDefs,
   schemaDirectives: {
@@ -46,9 +54,10 @@ const schema = makeExecutableSchema({
     // caching
     privateCache: PrivateCacheDirective,
     objectCache: ObjectCacheDirective,
-    logCache: LogCacheDirective({ typeResolver }),
+    logCache: LogCacheDirective({ typeResolver, idResolver }),
     purgeCache: PurgeCacheDirective({
       typeResolver,
+      idResolver,
       extraNodesPath: CACHE_KEYWORD,
     }),
   },

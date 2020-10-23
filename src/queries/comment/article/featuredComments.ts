@@ -2,12 +2,12 @@ import { connectionFromArray } from 'common/utils'
 import { ArticleToFeaturedCommentsResolver } from 'definitions'
 
 const resolver: ArticleToFeaturedCommentsResolver = async (
-  { id },
+  { articleId },
   { input: { first, after } },
   { dataSources: { commentService } }
 ) => {
   const featureComments = await commentService.findFeaturedCommentsByArticle({
-    id,
+    id: articleId,
   })
 
   // use simple pagination for now

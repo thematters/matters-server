@@ -8,12 +8,18 @@ import { MutationToReadArticleResolver } from 'definitions'
 const resolver: MutationToReadArticleResolver = async (
   root,
   { input: { id } },
-  { viewer, dataSources: { articleService, userService } }
+  { viewer, dataSources: { articleService, draftService, userService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.dataloader.load(dbId)
+  const article = await articleService.baseFindById(dbId)
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
+  }
+  const node = await draftService.baseFindById(article.draftId)
+  if (!node) {
+    throw new ArticleNotFoundError(
+      'target article linked draft does not exists'
+    )
   }
 
   // only record if viewer read others articles
@@ -40,7 +46,7 @@ const resolver: MutationToReadArticleResolver = async (
           likerIp: viewer.ip,
           userAgent: viewer.userAgent,
           authorLikerId: author.likerId,
-          url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+          url: `${environment.siteDomain}/@${author.userName}/${node.slug}-${node.mediaHash}`,
         })
       } catch (error) {
         logger.error(error)
@@ -48,7 +54,7 @@ const resolver: MutationToReadArticleResolver = async (
     }
   }
 
-  return article
+  return node
 }
 
 export default resolver

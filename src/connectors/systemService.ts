@@ -1,6 +1,7 @@
 import { v4 } from 'uuid'
 
 import {
+  ASSET_TYPE,
   BATCH_SIZE,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SKIPPED_LIST_ITEM_TYPES,
@@ -48,7 +49,7 @@ export class SystemService extends BaseService {
       query.where(
         'created_at',
         '>=',
-        this.knex.raw(`now() -  interval '14 days'`)
+        this.knex.raw(`now() -  interval '1 days'`)
       )
     }
 
@@ -142,51 +143,56 @@ export class SystemService extends BaseService {
   }
 
   /**
-   * Find asset map by given entity type and id
+   * Find asset and asset map by given entity type and id
    */
-  findAssetMap = async (entityTypeId: string, entityId: string) =>
-    this.knex('asset_map')
-      .select('asset_id', 'uuid', 'path', 'entityId')
-      .where({ entityTypeId, entityId })
+  findAssetAndAssetMap = async ({
+    entityTypeId,
+    entityId,
+    assetType,
+  }: {
+    entityTypeId: string
+    entityId: string
+    assetType?: keyof typeof ASSET_TYPE
+  }) => {
+    let qs = this.knex('asset_map')
+      .select('asset_map.*', 'uuid', 'path', 'type', 'created_at')
       .rightJoin('asset', 'asset_map.asset_id', 'asset.id')
+      .where({ entityTypeId, entityId })
+
+    if (assetType) {
+      qs = qs.andWhere({ type: assetType })
+    }
+
+    return qs
+  }
 
   /**
-   * Update asset map by given entity type and id
+   * Swap entity of asset map by given ids
    */
-  replaceAssetMapEntityTypeAndId = async (
-    oldEntityTypeId: string,
-    oldEntityId: string,
-    newEntityTypeId: string,
-    newEntityId: string
+  swapAssetMapEntity = async (
+    assetMapIds: string[],
+    entityTypeId: string,
+    entityId: string
   ) =>
-    this.knex('asset_map')
-      .where({
-        entityTypeId: oldEntityTypeId,
-        entityId: oldEntityId,
-      })
-      .update({
-        entityTypeId: newEntityTypeId,
-        entityId: newEntityId,
-      })
+    this.knex('asset_map').whereIn('id', assetMapIds).update({
+      entityTypeId,
+      entityId,
+    })
 
   /**
-   * Delete asset and asset map by a given id
+   * Delete asset and asset map by the given id:path maps
    */
-  deleteAssetAndAssetMap = async (assets: { [key: string]: string }) => {
-    const ids = Object.keys(assets)
+  deleteAssetAndAssetMap = async (assetPaths: { [id: string]: string }) => {
+    const ids = Object.keys(assetPaths)
+    const paths = Object.keys(assetPaths)
 
     await this.knex.transaction(async (trx) => {
       await trx('asset_map').whereIn('asset_id', ids).del()
-
       await trx('asset').whereIn('id', ids).del()
     })
 
     try {
-      await Promise.all(
-        Object.values(assets).map((key: any) => {
-          this.aws.baseDeleteFile(key)
-        })
-      )
+      await Promise.all(paths.map((path) => this.aws.baseDeleteFile(path)))
     } catch (e) {
       logger.error(e)
     }

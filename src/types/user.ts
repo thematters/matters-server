@@ -19,9 +19,6 @@ export default /* GraphQL */ `
     "Change user email."
     changeEmail(input: ChangeEmailInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.user}")
 
-    "Verify user email."
-    verifyEmail(input: VerifyEmailInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}")
-
     "Register user, can only be used on matters.news website."
     userRegister(input: UserRegisterInput!): AuthResult!
 
@@ -103,7 +100,7 @@ export default /* GraphQL */ `
     "Articles authored by current user."
     articles(input: ConnectionArgs!): ArticleConnection!
 
-    "Tags owned by current user."
+    "Tags owned and maintained by current user."
     tags(input: ConnectionArgs!): TagConnection!
 
     "Drafts authored by current user."
@@ -419,6 +416,12 @@ export default /* GraphQL */ `
     email: Email!
     type: VerificationCodeType!
     token: String
+
+    """
+    Redirect URL embedded in the verification email,
+    use code instead if not provided.
+    """
+    redirectUrl: URL
   }
 
   input ConfirmVerificationCodeInput {
@@ -518,7 +521,6 @@ export default /* GraphQL */ `
     email_reset_confirm
     password_reset
     payment_password_reset
-    email_verify
   }
 
   enum ResetPasswordType {
