@@ -33,7 +33,13 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
     const index = Math.min(random, MAX_RANDOM_INDEX, chunks.length - 1)
     const filteredArticles = chunks[index] || []
 
-    return connectionFromArray(filteredArticles, input, articlePool.length)
+    return connectionFromPromisedArray(
+      draftService.dataloader.loadMany(
+        filteredArticles.map((article) => article.draftId)
+      ),
+      input,
+      articlePool.length
+    )
   }
 
   const offset = cursorToIndex(after) + 1
