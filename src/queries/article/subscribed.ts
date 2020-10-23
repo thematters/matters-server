@@ -1,7 +1,7 @@
 import { ArticleToSubscribedResolver } from 'definitions'
 
 const resolver: ArticleToSubscribedResolver = (
-  { id },
+  { articleId },
   _,
   { viewer, dataSources: { articleService } }
 ) => {
@@ -11,7 +11,7 @@ const resolver: ArticleToSubscribedResolver = (
 
   return articleService.isSubscribed({
     userId: viewer.id,
-    targetId: id,
+    targetId: articleId,
   })
 }
 

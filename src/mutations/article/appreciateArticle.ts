@@ -21,6 +21,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     dataSources: {
       userService,
       articleService,
+      draftService,
       notificationService,
       systemService,
     },
@@ -46,6 +47,12 @@ const resolver: MutationToAppreciateArticleResolver = async (
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
     throw new ArticleNotFoundError('target article does not exists')
+  }
+  const node = await draftService.baseFindById(article.draftId)
+  if (!node) {
+    throw new ArticleNotFoundError(
+      'target article linked draft does not exists'
+    )
   }
 
   if (article.authorId === viewer.id && !superLike) {
@@ -74,7 +81,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
 
     const canSuperLike = await userService.likecoin.canSuperLike({
       liker,
-      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+      url: `${environment.siteDomain}/@${author.userName}/${node.slug}-${node.mediaHash}`,
       likerIp: viewer.ip,
       userAgent: viewer.userAgent,
     })
@@ -88,7 +95,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
       likerIp: viewer.ip,
       userAgent: viewer.userAgent,
       authorLikerId: author.likerId,
-      url: `${environment.siteDomain}/@${author.userName}/${article.slug}-${article.mediaHash}`,
+      url: `${environment.siteDomain}/@${author.userName}/${node.slug}-${node.mediaHash}`,
     })
 
     // insert record
@@ -100,7 +107,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
       type: APPRECIATION_TYPES.like,
     })
 
-    return article
+    return node
   }
 
   /**
@@ -136,7 +143,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     userAgent: viewer.userAgent,
   })
 
-  return article
+  return node
 }
 
 export default resolver

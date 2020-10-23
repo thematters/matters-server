@@ -12,6 +12,7 @@ export class PrivateCacheDirective extends SchemaDirectiveVisitor {
       const { strict } = this.args
       const [root, _, { viewer }, { fieldName, cacheControl }] = args
       const logged = viewer.id && viewer.hasRole('user')
+      const grouped = !!viewer.group
 
       let maxAge: number | undefined
       if (strict && logged) {
@@ -25,6 +26,8 @@ export class PrivateCacheDirective extends SchemaDirectiveVisitor {
           CACHE_TTL.PRIVATE_QUERY,
           cacheControl.cacheHint.maxAge || 0
         )
+      } else if (grouped) {
+        scope = CacheScope.Private
       }
 
       if (typeof maxAge === 'number') {

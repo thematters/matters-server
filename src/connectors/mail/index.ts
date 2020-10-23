@@ -27,6 +27,14 @@ class MailService {
       //     enable: isDev
       //   }
       // }
+      trackingSettings: {
+        ganalytics: {
+          enable: false,
+        },
+        clickTracking: {
+          enable: false,
+        },
+      },
     })
   }
 }

@@ -4,10 +4,13 @@ import { UserToCommentedArticlesResolver } from 'definitions'
 const resolver: UserToCommentedArticlesResolver = async (
   { id },
   { input },
-  { dataSources: { articleService } }
+  { dataSources: { articleService, draftService } }
 ) => {
+  const articles = await articleService.findByCommentedAuthor(id)
   return connectionFromPromisedArray(
-    articleService.findByCommentedAuthor(id),
+    draftService.dataloader.loadMany(
+      articles.map((article) => article.draftId)
+    ),
     input
   )
 }

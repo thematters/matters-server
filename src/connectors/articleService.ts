@@ -29,10 +29,11 @@ import {
   stripHtml,
 } from 'common/utils'
 import { BaseService, gcp, ipfs, SystemService, UserService } from 'connectors'
-import { GQLSearchInput, ItemData } from 'definitions'
+import { GQLSearchInput, Item, ItemData } from 'definitions'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
+  draftLoader: DataLoader<string, Item>
 
   constructor() {
     super('article')
@@ -57,19 +58,22 @@ export class ArticleService extends BaseService {
 
       return result
     })
-  }
 
-  /**
-   * Create a new article item.
-   */
-  create = async (articleData: ItemData & { content: string }) => {
-    // craete article
-    const article = await this.baseCreate({
-      uuid: v4(),
-      wordCount: countWords(articleData.content),
-      ...articleData,
+    this.draftLoader = new DataLoader(async (ids: readonly string[]) => {
+      const items = await this.baseFindByIds(ids)
+
+      if (items.findIndex((item: any) => !item) >= 0) {
+        throw new ArticleNotFoundError('Cannot find article')
+      }
+
+      const draftIds = items.map((item: any) => item.draftId)
+      const result = await this.baseFindByIds(draftIds, 'draft')
+      if (result.findIndex((item: any) => !item) >= 0) {
+        throw new ArticleNotFoundError("Cannot find article's linked draft")
+      }
+
+      return result
     })
-    return article
   }
 
   /**
@@ -87,6 +91,7 @@ export class ArticleService extends BaseService {
   }) => {
     const userService = new UserService()
     const systemService = new SystemService()
+
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
     const now = new Date()
@@ -142,11 +147,13 @@ export class ArticleService extends BaseService {
     })
     const mediaHash = cid.toBaseEncodedString()
 
-    // edit db record
-    const article = await this.create({
+    // craete article
+    const article = await this.baseCreate({
+      uuid: v4(),
       authorId,
       title,
       slug: slugify(title),
+      wordCount: countWords(content),
       summary,
       content,
       cover,
@@ -475,7 +482,7 @@ export class ArticleService extends BaseService {
       const ids = idsByTitle.concat(
         hits.hits.map(({ _id }: { _id: any }) => _id)
       )
-      const nodes = await this.baseFindByIds(ids, this.table)
+      const nodes = await this.draftLoader.loadMany(ids)
 
       return {
         nodes,
@@ -513,8 +520,61 @@ export class ArticleService extends BaseService {
     let table
     if (score === 'activity') {
       table = oss
-        ? VIEW.articleActivity
-        : MATERIALIZED_VIEW.articleActivityMaterialized
+        ? VIEW.articleHottestA
+        : MATERIALIZED_VIEW.articleHottestAMaterialized
+    } else {
+      table = oss
+        ? VIEW.articleValue
+        : MATERIALIZED_VIEW.articleValueMaterialized
+    }
+
+    let qs = this.knex(`${table} as view`)
+      .select('view.id', 'setting.in_hottest', 'article.*')
+      .rightJoin('article', 'view.id', 'article.id')
+      .leftJoin(
+        'article_recommend_setting as setting',
+        'view.id',
+        'setting.article_id'
+      )
+      .orderByRaw('score desc nulls last')
+      .orderBy([{ column: 'view.id', order: 'desc' }])
+      .where({ 'article.state': ARTICLE_STATE.active, ...where })
+      .limit(limit)
+      .offset(offset)
+
+    if (!oss) {
+      qs = qs.andWhere(function () {
+        this.where({ inHottest: true }).orWhereNull('in_hottest')
+      })
+    }
+
+    const result = await qs
+    return result
+  }
+
+  /**
+   * TODO: temporary for A/B testing of hottest
+   */
+  recommendByScoreB = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+    where = {},
+    oss = false,
+    score = 'activity',
+  }: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+    oss?: boolean
+    score?: 'activity' | 'value'
+  }) => {
+    // use view when oss for real time update
+    // use materialized in other cases
+    let table
+    if (score === 'activity') {
+      table = oss
+        ? VIEW.articleHottestB
+        : MATERIALIZED_VIEW.articleHottestBMaterialized
     } else {
       table = oss
         ? VIEW.articleValue

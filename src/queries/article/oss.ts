@@ -7,37 +7,37 @@ import {
 } from 'definitions'
 
 export const boost: ArticleOSSToBoostResolver = (
-  { id },
+  { articleId },
   _,
   { dataSources: { articleService } }
-) => articleService.findBoost(id)
+) => articleService.findBoost(articleId)
 
 export const score: ArticleOSSToScoreResolver = (
-  { id },
+  { articleId },
   _,
   { dataSources: { articleService } }
-) => articleService.findScore(id)
+) => articleService.findScore(articleId)
 
 export const inRecommendIcymi: ArticleOSSToInRecommendIcymiResolver = async (
-  { id },
+  { articleId },
   _,
   { dataSources: { articleService } }
-) => !!(await articleService.findRecommendIcymi(id))
+) => !!(await articleService.findRecommendIcymi(articleId))
 
 export const inRecommendHottest: ArticleOSSToInRecommendHottestResolver = async (
-  { id },
+  { articleId },
   _,
   { dataSources: { articleService } }
 ) => {
-  const recommendSetting = await articleService.findRecommendSetting(id)
+  const recommendSetting = await articleService.findRecommendSetting(articleId)
   return recommendSetting.inHottest
 }
 
 export const inRecommendNewest: ArticleOSSToInRecommendNewestResolver = async (
-  { id },
+  { articleId },
   _,
   { dataSources: { articleService } }
 ) => {
-  const recommendSetting = await articleService.findRecommendSetting(id)
+  const recommendSetting = await articleService.findRecommendSetting(articleId)
   return recommendSetting.inNewest
 }

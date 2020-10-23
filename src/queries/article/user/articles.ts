@@ -2,17 +2,21 @@ import { ARTICLE_STATE } from 'common/enums'
 import { connectionFromPromisedArray } from 'common/utils'
 import { UserToArticlesResolver } from 'definitions'
 
-const resolver: UserToArticlesResolver = (
+const resolver: UserToArticlesResolver = async (
   { id },
   { input },
-  { dataSources: { articleService }, viewer }
+  { dataSources: { articleService, draftService }, viewer }
 ) => {
   const isViewer = viewer.id === id
-  const filter =
-    isViewer || viewer.hasRole('admin') ? {} : { state: ARTICLE_STATE.active }
+  const isAdmin = viewer.hasRole('admin')
+
+  const filter = isViewer || isAdmin ? {} : { state: ARTICLE_STATE.active }
+  const articles = await articleService.findByAuthor(id, filter, true)
 
   return connectionFromPromisedArray(
-    articleService.findByAuthor(id, filter, true),
+    draftService.dataloader.loadMany(
+      articles.map((article) => article.draftId)
+    ),
     input
   )
 }

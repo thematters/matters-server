@@ -83,6 +83,11 @@ export interface GQLArticle extends GQLNode {
   cover?: GQLURL
 
   /**
+   * List of assets are belonged to this article.
+   */
+  assets: Array<GQLAsset>
+
+  /**
    * A short summary for this article.
    */
   summary: string
@@ -100,12 +105,12 @@ export interface GQLArticle extends GQLNode {
   /**
    * IPFS hash of this article.
    */
-  dataHash?: string
+  dataHash: string
 
   /**
    * Media hash, composed of cid encoding, of this article.
    */
-  mediaHash?: string
+  mediaHash: string
 
   /**
    * Content of this article.
@@ -328,7 +333,7 @@ export interface GQLUser extends GQLNode {
   articles: GQLArticleConnection
 
   /**
-   * Tags owned by current user.
+   * Tags owned and maintained by current user.
    */
   tags: GQLTagConnection
 
@@ -867,6 +872,11 @@ export interface GQLTag extends GQLNode {
   followers: GQLUserConnection
 
   /**
+   * Participants of this tag.
+   */
+  participants: GQLUserConnection
+
+  /**
    * OSS
    */
   oss: GQLTagOSS
@@ -884,6 +894,11 @@ export interface GQLTagArticlesInput {
 export interface GQLTagSelectedInput {
   id?: string
   mediaHash?: string
+}
+
+export interface GQLTagEditorsInput {
+  excludeAdmin?: boolean
+  excludeOwner?: boolean
 }
 
 export interface GQLUserConnection extends GQLConnection {
@@ -979,11 +994,6 @@ export interface GQLDraft extends GQLNode {
   content?: string
 
   /**
-   * Time of this draft was scheduled for publishing.
-   */
-  scheduledAt?: GQLDateTime
-
-  /**
    * Time of this draft was created.
    */
   createdAt: GQLDateTime
@@ -1014,7 +1024,7 @@ export interface GQLDraft extends GQLNode {
   publishState: GQLPublishState
 
   /**
-   * List of asstets are belonged to this draft.
+   * List of assets are belonged to this draft.
    */
   assets: Array<GQLAsset>
 
@@ -1064,6 +1074,7 @@ export interface GQLAsset {
  */
 export const enum GQLAssetType {
   avatar = 'avatar',
+  cover = 'cover',
   embed = 'embed',
   embedaudio = 'embedaudio',
   profileCover = 'profileCover',
@@ -1299,6 +1310,10 @@ export type GQLPossibleNoticeTypeNames =
   | 'PaymentPayoutNotice'
   | 'PaymentReceivedDonationNotice'
   | 'SubscribedArticleNewCommentNotice'
+  | 'TagAddEditorNotice'
+  | 'TagAdoptionNotice'
+  | 'TagLeaveEditorNotice'
+  | 'TagLeaveNotice'
   | 'UpstreamArticleArchivedNotice'
   | 'UserNewFollowerNotice'
 
@@ -1322,6 +1337,10 @@ export interface GQLNoticeNameMap {
   PaymentPayoutNotice: GQLPaymentPayoutNotice
   PaymentReceivedDonationNotice: GQLPaymentReceivedDonationNotice
   SubscribedArticleNewCommentNotice: GQLSubscribedArticleNewCommentNotice
+  TagAddEditorNotice: GQLTagAddEditorNotice
+  TagAdoptionNotice: GQLTagAdoptionNotice
+  TagLeaveEditorNotice: GQLTagLeaveEditorNotice
+  TagLeaveNotice: GQLTagLeaveNotice
   UpstreamArticleArchivedNotice: GQLUpstreamArticleArchivedNotice
   UserNewFollowerNotice: GQLUserNewFollowerNotice
 }
@@ -1541,6 +1560,11 @@ export interface GQLSearchInput {
   after?: string
   first?: number
   filter?: GQLSearchFilter
+
+  /**
+   * whether this search operation should be recorded in search history
+   */
+  record?: boolean
   oss?: boolean
 }
 
@@ -1893,11 +1917,6 @@ export interface GQLMutation {
   changeEmail: GQLUser
 
   /**
-   * Verify user email.
-   */
-  verifyEmail?: boolean
-
-  /**
    * Register user, can only be used on matters.news website.
    */
   userRegister: GQLAuthResult
@@ -1995,7 +2014,6 @@ export interface GQLMutation {
 
 export interface GQLPublishArticleInput {
   id: string
-  delay?: number
 }
 
 export interface GQLEditArticleInput {
@@ -2003,6 +2021,7 @@ export interface GQLEditArticleInput {
   state?: GQLArticleState
   sticky?: boolean
   tags?: Array<string>
+  cover?: string
   collection?: Array<string>
 }
 
@@ -2035,11 +2054,15 @@ export interface GQLPutTagInput {
 export interface GQLUpdateTagSettingInput {
   id: string
   type: GQLUpdateTagSettingType
+  editors?: Array<string>
 }
 
 export const enum GQLUpdateTagSettingType {
   adopt = 'adopt',
   leave = 'leave',
+  add_editor = 'add_editor',
+  remove_editor = 'remove_editor',
+  leave_editor = 'leave_editor',
 }
 
 export interface GQLAddArticlesTagsInput {
@@ -2137,7 +2160,7 @@ export interface GQLPutDraftInput {
   title?: string
   content?: string
   tags?: Array<string | null>
-  coverAssetId?: string
+  cover?: string
   collection?: Array<string | null>
 }
 
@@ -2220,6 +2243,12 @@ export interface GQLSendVerificationCodeInput {
   email: GQLEmail
   type: GQLVerificationCodeType
   token?: string
+
+  /**
+   * Redirect URL embedded in the verification email,
+   * use code instead if not provided.
+   */
+  redirectUrl?: GQLURL
 }
 
 export const enum GQLVerificationCodeType {
@@ -2228,7 +2257,6 @@ export const enum GQLVerificationCodeType {
   email_reset_confirm = 'email_reset_confirm',
   password_reset = 'password_reset',
   payment_password_reset = 'payment_password_reset',
-  email_verify = 'email_verify',
 }
 
 export interface GQLConfirmVerificationCodeInput {
@@ -2253,10 +2281,6 @@ export interface GQLChangeEmailInput {
   oldEmailCodeId: string
   newEmail: GQLEmail
   newEmailCodeId: string
-}
-
-export interface GQLVerifyEmailInput {
-  codeId: string
 }
 
 export interface GQLUserRegisterInput {
@@ -2940,6 +2964,118 @@ export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
   comment?: GQLComment
 }
 
+/**
+ * This notice type contains info about editors has been added into a tag.
+ */
+export interface GQLTagAddEditorNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The user who added editor to a tag.
+   */
+  actor: GQLUser
+  tag?: GQLTag
+}
+
+/**
+ * This notice type contains info about a tag has been adopted by a user.
+ */
+export interface GQLTagAdoptionNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The user who adopted a tag.
+   */
+  actor: GQLUser
+
+  /**
+   * The tag adopted by user.
+   */
+  tag?: GQLTag
+}
+
+/**
+ * This notice type contains info about a editor left a tag.
+ */
+export interface GQLTagLeaveEditorNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The user who leave from tag editors.
+   */
+  actor: GQLUser
+  tag?: GQLTag
+}
+
+/**
+ * This notice type contains info about a user left a tag.
+ */
+export interface GQLTagLeaveNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The user who leave a tag.
+   */
+  actor: GQLUser
+
+  /**
+   * The tag left by user.
+   */
+  tag?: GQLTag
+}
+
 export type GQLTime = any
 
 export interface GQLUpstreamArticleArchivedNotice extends GQLNotice {
@@ -2981,6 +3117,10 @@ export interface GQLUserNewFollowerNotice extends GQLNotice {
    * List of new followers.
    */
   actors?: Array<GQLUser | null>
+}
+
+export interface GQLVerifyEmailInput {
+  codeId: string
 }
 
 /*********************************
@@ -3115,6 +3255,10 @@ export interface GQLResolver {
   PaymentPayoutNotice?: GQLPaymentPayoutNoticeTypeResolver
   PaymentReceivedDonationNotice?: GQLPaymentReceivedDonationNoticeTypeResolver
   SubscribedArticleNewCommentNotice?: GQLSubscribedArticleNewCommentNoticeTypeResolver
+  TagAddEditorNotice?: GQLTagAddEditorNoticeTypeResolver
+  TagAdoptionNotice?: GQLTagAdoptionNoticeTypeResolver
+  TagLeaveEditorNotice?: GQLTagLeaveEditorNoticeTypeResolver
+  TagLeaveNotice?: GQLTagLeaveNoticeTypeResolver
   Time?: GraphQLScalarType
   UpstreamArticleArchivedNotice?: GQLUpstreamArticleArchivedNoticeTypeResolver
   UserNewFollowerNotice?: GQLUserNewFollowerNoticeTypeResolver
@@ -3253,6 +3397,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   author?: ArticleToAuthorResolver<TParent>
   title?: ArticleToTitleResolver<TParent>
   cover?: ArticleToCoverResolver<TParent>
+  assets?: ArticleToAssetsResolver<TParent>
   summary?: ArticleToSummaryResolver<TParent>
   tags?: ArticleToTagsResolver<TParent>
   wordCount?: ArticleToWordCountResolver<TParent>
@@ -3362,6 +3507,15 @@ export interface ArticleToTitleResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToAssetsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5097,6 +5251,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   owner?: TagToOwnerResolver<TParent>
   isFollower?: TagToIsFollowerResolver<TParent>
   followers?: TagToFollowersResolver<TParent>
+  participants?: TagToParticipantsResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
   deleted?: TagToDeletedResolver<TParent>
@@ -5171,10 +5326,13 @@ export interface TagToDescriptionResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface TagToEditorsArgs {
+  input?: GQLTagEditorsInput
+}
 export interface TagToEditorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: {},
+    args: TagToEditorsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5214,6 +5372,18 @@ export interface TagToFollowersResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: TagToFollowersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToParticipantsArgs {
+  input: GQLConnectionArgs
+}
+export interface TagToParticipantsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: TagToParticipantsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5400,7 +5570,6 @@ export interface GQLDraftTypeResolver<TParent = any> {
   slug?: DraftToSlugResolver<TParent>
   summary?: DraftToSummaryResolver<TParent>
   content?: DraftToContentResolver<TParent>
-  scheduledAt?: DraftToScheduledAtResolver<TParent>
   createdAt?: DraftToCreatedAtResolver<TParent>
   updatedAt?: DraftToUpdatedAtResolver<TParent>
   wordCount?: DraftToWordCountResolver<TParent>
@@ -5460,15 +5629,6 @@ export interface DraftToSummaryResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToContentResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface DraftToScheduledAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6213,6 +6373,10 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'PaymentPayoutNotice'
     | 'PaymentReceivedDonationNotice'
     | 'SubscribedArticleNewCommentNotice'
+    | 'TagAddEditorNotice'
+    | 'TagAdoptionNotice'
+    | 'TagLeaveEditorNotice'
+    | 'TagLeaveNotice'
     | 'UpstreamArticleArchivedNotice'
     | 'UserNewFollowerNotice'
 }
@@ -7193,7 +7357,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
   changeEmail?: MutationToChangeEmailResolver<TParent>
-  verifyEmail?: MutationToVerifyEmailResolver<TParent>
   userRegister?: MutationToUserRegisterResolver<TParent>
   userLogin?: MutationToUserLoginResolver<TParent>
   userLogout?: MutationToUserLogoutResolver<TParent>
@@ -7719,18 +7882,6 @@ export interface MutationToChangeEmailResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToChangeEmailArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToVerifyEmailArgs {
-  input: GQLVerifyEmailInput
-}
-export interface MutationToVerifyEmailResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: MutationToVerifyEmailArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -9402,6 +9553,254 @@ export interface SubscribedArticleNewCommentNoticeToCommentResolver<
   TParent = any,
   TResult = any
 > {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagAddEditorNoticeTypeResolver<TParent = any> {
+  id?: TagAddEditorNoticeToIdResolver<TParent>
+  unread?: TagAddEditorNoticeToUnreadResolver<TParent>
+  createdAt?: TagAddEditorNoticeToCreatedAtResolver<TParent>
+  actor?: TagAddEditorNoticeToActorResolver<TParent>
+  tag?: TagAddEditorNoticeToTagResolver<TParent>
+}
+
+export interface TagAddEditorNoticeToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAddEditorNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAddEditorNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAddEditorNoticeToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAddEditorNoticeToTagResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagAdoptionNoticeTypeResolver<TParent = any> {
+  id?: TagAdoptionNoticeToIdResolver<TParent>
+  unread?: TagAdoptionNoticeToUnreadResolver<TParent>
+  createdAt?: TagAdoptionNoticeToCreatedAtResolver<TParent>
+  actor?: TagAdoptionNoticeToActorResolver<TParent>
+  tag?: TagAdoptionNoticeToTagResolver<TParent>
+}
+
+export interface TagAdoptionNoticeToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAdoptionNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAdoptionNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAdoptionNoticeToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagAdoptionNoticeToTagResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagLeaveEditorNoticeTypeResolver<TParent = any> {
+  id?: TagLeaveEditorNoticeToIdResolver<TParent>
+  unread?: TagLeaveEditorNoticeToUnreadResolver<TParent>
+  createdAt?: TagLeaveEditorNoticeToCreatedAtResolver<TParent>
+  actor?: TagLeaveEditorNoticeToActorResolver<TParent>
+  tag?: TagLeaveEditorNoticeToTagResolver<TParent>
+}
+
+export interface TagLeaveEditorNoticeToIdResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveEditorNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveEditorNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveEditorNoticeToActorResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveEditorNoticeToTagResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTagLeaveNoticeTypeResolver<TParent = any> {
+  id?: TagLeaveNoticeToIdResolver<TParent>
+  unread?: TagLeaveNoticeToUnreadResolver<TParent>
+  createdAt?: TagLeaveNoticeToCreatedAtResolver<TParent>
+  actor?: TagLeaveNoticeToActorResolver<TParent>
+  tag?: TagLeaveNoticeToTagResolver<TParent>
+}
+
+export interface TagLeaveNoticeToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveNoticeToUnreadResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveNoticeToActorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagLeaveNoticeToTagResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

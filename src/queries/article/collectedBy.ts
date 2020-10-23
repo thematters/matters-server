@@ -7,28 +7,27 @@ import {
 import { ArticleToCollectedByResolver } from 'definitions'
 
 const resolver: ArticleToCollectedByResolver = async (
-  { id },
+  { articleId },
   { input },
-  { dataSources: { articleService } }
+  { dataSources: { articleService, draftService } }
 ) => {
   const { after, first } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.countCollectedBy(id)
-  const collections = await articleService.findCollectedBy({
-    articleId: id,
-    limit: first,
-    offset,
-  })
+  const [totalCount, collections] = await Promise.all([
+    articleService.countCollectedBy(articleId),
+    articleService.findCollectedBy({ articleId, limit: first, offset }),
+  ])
+  const articles = await articleService.dataloader
+    .loadMany(collections.map((collection) => collection.entranceId))
+    .then(loadManyFilterError)
+    .then((items) =>
+      items.filter(({ state }) => state === ARTICLE_STATE.active)
+    )
 
   return connectionFromPromisedArray(
-    articleService.dataloader
-      .loadMany(
-        collections.map(({ entranceId }: { entranceId: string }) => entranceId)
-      )
-      .then(loadManyFilterError)
-      .then((articles) =>
-        articles.filter(({ state }) => state === ARTICLE_STATE.active)
-      ),
+    draftService.dataloader.loadMany(
+      articles.map((article) => article.draftId)
+    ),
     input,
     totalCount
   )

@@ -6,7 +6,7 @@ import { RecommendationToHottestResolver } from 'definitions'
 export const hottest: RecommendationToHottestResolver = async (
   { id },
   { input },
-  { viewer, dataSources: { articleService } }
+  { viewer, dataSources: { articleService, draftService } }
 ) => {
   const { oss = false } = input
 
@@ -16,24 +16,25 @@ export const hottest: RecommendationToHottestResolver = async (
     }
   }
 
+  const recommendHottest =
+    viewer.group === 'b'
+      ? articleService.recommendByScoreB
+      : articleService.recommendByScore
   const where = { 'article.state': ARTICLE_STATE.active } as {
     [key: string]: any
   }
 
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
-  const totalCount = await articleService.countRecommendHottest({
-    where: id ? {} : where,
-    oss,
-  })
+  const [totalCount, articles] = await Promise.all([
+    articleService.countRecommendHottest({ where: id ? {} : where, oss }),
+    recommendHottest({ offset, limit: first, where, oss, score: 'activity' }),
+  ])
+
   return connectionFromPromisedArray(
-    articleService.recommendByScore({
-      offset,
-      limit: first,
-      where,
-      oss,
-      score: 'activity',
-    }),
+    draftService.dataloader.loadMany(
+      articles.map((article) => article.draftId)
+    ),
     input,
     totalCount
   )

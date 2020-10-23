@@ -31,9 +31,6 @@ export default /* GraphQL */ `
     "Content of this draft."
     content: String
 
-    "Time of this draft was scheduled for publishing."
-    scheduledAt: DateTime
-
     "Time of this draft was created."
     createdAt: DateTime!
 
@@ -52,7 +49,7 @@ export default /* GraphQL */ `
     "State of draft during publihsing."
     publishState: PublishState!
 
-    "List of asstets are belonged to this draft."
+    "List of assets are belonged to this draft."
     assets: [Asset!]!
 
     "Published article"
@@ -75,7 +72,7 @@ export default /* GraphQL */ `
     title: String
     content: String
     tags: [String]
-    coverAssetId: ID
+    cover: ID
     collection: [ID]
   }
 

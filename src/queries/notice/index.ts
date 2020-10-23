@@ -18,6 +18,10 @@ import {
   GQLPaymentPayoutNoticeTypeResolver,
   GQLPaymentReceivedDonationNoticeTypeResolver,
   GQLSubscribedArticleNewCommentNoticeTypeResolver,
+  GQLTagAddEditorNoticeTypeResolver,
+  GQLTagAdoptionNoticeTypeResolver,
+  GQLTagLeaveEditorNoticeTypeResolver,
+  GQLTagLeaveNoticeTypeResolver,
   GQLUpstreamArticleArchivedNoticeTypeResolver,
   GQLUserNewFollowerNoticeTypeResolver,
   GQLUserTypeResolver,
@@ -48,6 +52,10 @@ const notice: {
   ArticleTagHasBeenUnselectedNotice: GQLArticleTagHasBeenUnselectedNoticeTypeResolver
   PaymentReceivedDonationNotice: GQLPaymentReceivedDonationNoticeTypeResolver
   PaymentPayoutNotice: GQLPaymentPayoutNoticeTypeResolver
+  TagAdoptionNotice: GQLTagAdoptionNoticeTypeResolver
+  TagLeaveNotice: GQLTagLeaveNoticeTypeResolver
+  TagAddEditorNotice: GQLTagAddEditorNoticeTypeResolver
+  TagLeaveEditorNotice: GQLTagLeaveEditorNoticeTypeResolver
 } = {
   User: {
     notices,
@@ -78,6 +86,11 @@ const notice: {
         // payment
         payment_received_donation: 'PaymentReceivedDonationNotice',
         payment_payout: 'PaymentPayoutNotice',
+        // tag
+        tag_adoption: 'TagAdoptionNotice',
+        tag_leave: 'TagLeaveNotice',
+        tag_add_editor: 'TagAddEditorNotice',
+        tag_leave_editor: 'TagLeaveEditorNotice',
 
         // official
         official_announcement: 'OfficialAnnouncementNotice',
@@ -90,51 +103,65 @@ const notice: {
   },
   ArticlePublishedNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
   },
   ArticleNewDownstreamNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target,
-    downstream: ({ entities }) => entities.downstream,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
+    downstream: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.downstream.draftId),
   },
   ArticleNewCollectedNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }) => entities.target,
-    collection: ({ entities }) => entities.collection,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
+    collection: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.collection.draftId),
   },
   ArticleNewAppreciationNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
   },
   ArticleNewSubscriberNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
   },
   ArticleNewCommentNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
     comment: ({ entities }) => entities.comment,
   },
   ArticleMentionedYouNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }) => entities.target,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
   },
   SubscribedArticleNewCommentNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
     comment: ({ entities }) => entities.comment,
   },
   UpstreamArticleArchivedNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target,
-    upstream: ({ entities }) => entities.upstream,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
+    upstream: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.upstream.draftId),
   },
   DownstreamArticleArchivedNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target,
-    downstream: ({ entities }) => entities.downstream,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
+    downstream: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.downstream.draftId),
   },
   CommentPinnedNotice: {
     id: ({ uuid }) => uuid,
@@ -161,19 +188,22 @@ const notice: {
   ArticleTagHasBeenAddedNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }) => entities.target,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
     tag: ({ entities }) => entities.tag,
   },
   ArticleTagHasBeenRemovedNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }) => entities.target,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
     tag: ({ entities }) => entities.tag,
   },
   ArticleTagHasBeenUnselectedNotice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }) => entities.target,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
     tag: ({ entities }) => entities.tag,
   },
   PaymentReceivedDonationNotice: {
@@ -184,6 +214,26 @@ const notice: {
   PaymentPayoutNotice: {
     id: ({ uuid }) => uuid,
     target: ({ entities }) => entities.target,
+  },
+  TagAdoptionNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    tag: ({ entities }) => entities.target,
+  },
+  TagLeaveNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    tag: ({ entities }) => entities.target,
+  },
+  TagAddEditorNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    tag: ({ entities }) => entities.target,
+  },
+  TagLeaveEditorNotice: {
+    id: ({ uuid }) => uuid,
+    actor: ({ actors }: { actors: any[] }) => actors[0],
+    tag: ({ entities }) => entities.target,
   },
 }
 
