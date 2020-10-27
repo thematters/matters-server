@@ -190,6 +190,26 @@ export class NotEnoughMatError extends ApolloError {
   }
 }
 
+export class ArticleRevisionContentInvalidError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'ARTICLE_REVISION_CONTENT_INVALID')
+
+    Object.defineProperty(this, 'name', {
+      value: 'ArticleRevisionContentInvalidError',
+    })
+  }
+}
+
+export class ArticleRevisionReachLimitError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'ARTICLE_REVISION_REACH_LIMIT')
+
+    Object.defineProperty(this, 'name', {
+      value: 'ArticleRevisionReachLimitError',
+    })
+  }
+}
+
 /*********************************
  *                               *
  *              Tag              *

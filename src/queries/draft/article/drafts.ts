@@ -10,7 +10,7 @@ const resolver: ArticleToDraftsResolver = async (
   if (!isAuthor) {
     return []
   }
-  return draftService.findByArticleId({ articleId })
+  return draftService.findValidByArticleId({ articleId })
 }
 
 export default resolver

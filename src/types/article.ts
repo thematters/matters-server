@@ -275,6 +275,7 @@ export default /* GraphQL */ `
     state: ArticleState
     sticky: Boolean
     tags: [String!]
+    content: String
     cover: ID
     collection: [ID!]
   }

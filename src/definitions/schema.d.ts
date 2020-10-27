@@ -1037,6 +1037,11 @@ export interface GQLDraft extends GQLNode {
    * Published article
    */
   article?: GQLArticle
+
+  /**
+   * Media hash, composed of cid encoding, of this draft.
+   */
+  mediaHash?: string
 }
 
 /**
@@ -2026,6 +2031,7 @@ export interface GQLEditArticleInput {
   state?: GQLArticleState
   sticky?: boolean
   tags?: Array<string>
+  content?: string
   cover?: string
   collection?: Array<string>
 }
@@ -5593,6 +5599,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   publishState?: DraftToPublishStateResolver<TParent>
   assets?: DraftToAssetsResolver<TParent>
   article?: DraftToArticleResolver<TParent>
+  mediaHash?: DraftToMediaHashResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -5716,6 +5723,15 @@ export interface DraftToAssetsResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToArticleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToMediaHashResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

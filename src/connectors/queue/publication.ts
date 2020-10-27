@@ -367,9 +367,11 @@ class PublicationQueue extends BaseQueue {
     done
   ) => {
     try {
-      const drafts = await this.draftService.findByPublishState(
-        PUBLISH_STATE.pending
-      )
+      // find pending draft which article id is null
+      const drafts = await this.draftService.findByPublishState({
+        articleIdIsNull: true,
+        publishState: PUBLISH_STATE.pending,
+      })
       const pendingDraftIds: string[] = []
 
       drafts.forEach((draft: any, index: number) => {

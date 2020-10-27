@@ -254,6 +254,10 @@ export const QUEUE_JOB = {
 
   // Appreciation
   appreciation: 'appreciation',
+
+  // Revision
+  publishRevisedArticle: 'publishRevisedArticle',
+  publishPendingRevisionDrafts: 'publishPendingRevisionDrafts',
 }
 
 export const QUEUE_NAME = {
@@ -268,10 +272,12 @@ export const QUEUE_NAME = {
   payTo: 'payTo',
   appreciation: 'appreciation',
   txTimeout: 'txTimeout',
+  revision: 'revision',
 }
 
 export const QUEUE_CONCURRENCY = {
   publishArticle: 100,
+  publishRevisedArticle: 100,
   migration: 2,
 }
 

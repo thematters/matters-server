@@ -782,6 +782,9 @@ type Draft implements Node {
 
   """Published article"""
   article: Article
+
+  """Media hash, composed of cid encoding, of this draft."""
+  mediaHash: String
 }
 
 type DraftConnection implements Connection {
@@ -800,6 +803,7 @@ input EditArticleInput {
   state: ArticleState
   sticky: Boolean
   tags: [String!]
+  content: String
   cover: ID
   collection: [ID!]
 }

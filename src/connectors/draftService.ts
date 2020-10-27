@@ -42,10 +42,25 @@ export class DraftService extends BaseService {
   /**
    * Find drafts by publish state
    */
-  findByPublishState = async (publishState: string) =>
-    this.knex.select().from(this.table).where({
+  findByPublishState = async ({
+    articleIdIsNull,
+    publishState,
+  }: {
+    articleIdIsNull: boolean
+    publishState: string
+  }) => {
+    const query = this.knex.select().from(this.table).where({
       publishState,
     })
+
+    if (articleIdIsNull === false) {
+      query.whereNotNull('article_id')
+    }
+    if (articleIdIsNull === true) {
+      query.whereNull('article_id')
+    }
+    return query
+  }
 
   /**
    * Find unpublished drafts by a given author id (user).
@@ -64,16 +79,45 @@ export class DraftService extends BaseService {
     this.knex.select().from(this.table).where({ mediaHash }).first()
 
   /**
-   * Find published drafts by given article id.
+   * Count pending and published drafts by given article id.
    */
-  findByArticleId = async ({ articleId }: { articleId: string }) =>
+  countValidByArticleId = async ({ articleId }: { articleId: string }) => {
+    const result = await this.knex(this.table)
+      .where({
+        articleId,
+      })
+      .andWhere(
+        this.knex.raw(`
+        (
+          (archived = true and publish_state = '${PUBLISH_STATE.published}')
+          OR
+          (archived = false and publish_state = '${PUBLISH_STATE.pending}')
+        )
+        `)
+      )
+      .count()
+      .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  /**
+   * Find pending and published drafts by given article id.
+   */
+  findValidByArticleId = async ({ articleId }: { articleId: string }) =>
     this.knex
       .select()
       .from(this.table)
       .where({
         articleId,
-        archived: true,
-        publishState: PUBLISH_STATE.published,
       })
+      .andWhere(
+        this.knex.raw(`
+        (
+          (archived = true and publish_state = '${PUBLISH_STATE.published}')
+          OR
+          (archived = false and publish_state = '${PUBLISH_STATE.pending}')
+        )
+        `)
+      )
       .orderBy('created_at', 'desc')
 }

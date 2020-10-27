@@ -21,6 +21,7 @@ export * from './makeStreamToBuffer'
 export * from './content'
 export * from './scope'
 export * from './payment'
+export * from './text'
 export * from './time'
 export * from './featureFlag'
 
