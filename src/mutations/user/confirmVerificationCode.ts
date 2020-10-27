@@ -1,14 +1,10 @@
-import {
-  CodeExpiredError,
-  CodeInvalidError,
-  UserInputError,
-} from 'common/errors'
+import { CodeExpiredError, CodeInvalidError } from 'common/errors'
 import { MutationToConfirmVerificationCodeResolver } from 'definitions'
 
 const resolver: MutationToConfirmVerificationCodeResolver = async (
   _,
   { input },
-  { viewer, dataSources: { userService } }
+  { dataSources: { userService } }
 ) => {
   const { email: rawEmail } = input
   const email = rawEmail ? rawEmail.toLowerCase() : null

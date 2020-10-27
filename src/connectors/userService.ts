@@ -378,7 +378,7 @@ export class UserService extends BaseService {
       })
       .andWhere(
         this.knex.raw(
-          '2 * COALESCE("total", 0) + COALESCE("read_count", 0) >= 30'
+          '2 * COALESCE("total", 0) + COALESCE("read_count", 0) >= 10'
         )
       )
 

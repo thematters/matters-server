@@ -83,7 +83,7 @@ export interface GQLArticle extends GQLNode {
   cover?: GQLURL
 
   /**
-   * List of asstets are belonged to this article.
+   * List of assets are belonged to this article.
    */
   assets: Array<GQLAsset>
 
@@ -1029,7 +1029,7 @@ export interface GQLDraft extends GQLNode {
   publishState: GQLPublishState
 
   /**
-   * List of asstets are belonged to this draft.
+   * List of assets are belonged to this draft.
    */
   assets: Array<GQLAsset>
 

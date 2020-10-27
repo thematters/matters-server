@@ -49,7 +49,7 @@ export class SystemService extends BaseService {
       query.where(
         'created_at',
         '>=',
-        this.knex.raw(`now() -  interval '14 days'`)
+        this.knex.raw(`now() -  interval '1 days'`)
       )
     }
 
