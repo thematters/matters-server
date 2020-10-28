@@ -149,10 +149,23 @@ class RevisionQueue extends BaseQueue {
       })
       job.progress(50)
 
-      // Note: collection and tags are handled in edit resolver. Also,
-      // we don't swap cover assets from draft to article in revision since
-      // them will be processed in resolver as well.
+      // Note: collection and tags are handled in edit resolver.
       // @see src/mutations/article/editArticle.ts
+      // swap assets belonged to from linked draft
+      const {
+        id: entityTypeId,
+      } = await this.systemService.baseFindEntityTypeId('draft')
+      const assetMapIds = (
+        await this.systemService.findAssetAndAssetMap({
+          entityTypeId,
+          entityId: preDraft.id,
+        })
+      ).map((assetMap) => assetMap.id)
+      await this.systemService.swapAssetMapEntity(
+        assetMapIds,
+        entityTypeId,
+        draft.id
+      )
       job.progress(60)
 
       // add to search

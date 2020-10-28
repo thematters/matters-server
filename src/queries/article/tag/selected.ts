@@ -5,15 +5,15 @@ import { TagToSelectedResolver } from 'definitions'
 const resolver: TagToSelectedResolver = async (
   { id },
   { input },
-  { dataSources: { tagService, articleService } }
+  { dataSources: { tagService, articleService, draftService } }
 ) => {
   let articleId: string | undefined
 
   if (input.id) {
     articleId = fromGlobalId(input.id).id
   } else if (input.mediaHash) {
-    const article = await articleService.findByMediaHash(input.mediaHash)
-    articleId = article.id
+    const node = await draftService.findByMediaHash(input.mediaHash)
+    articleId = node.id
   }
 
   if (!articleId) {

@@ -261,32 +261,6 @@ const resolver: MutationToEditArticleResolver = async (
       }
       const revisedDraft = await draftService.baseCreate(data)
 
-      // copy assets belonged to current linked draft from s3
-      const { id: entityTypeId } = await systemService.baseFindEntityTypeId(
-        'draft'
-      )
-      const currAssets = await systemService.findAssetAndAssetMap({
-        entityTypeId,
-        entityId: currDraft.id,
-      })
-      await Promise.all(
-        currAssets.map(async ({ path, type }) => {
-          const uuid = v4()
-          const key = await systemService.aws.baseCopyFile(path, type, uuid)
-          const copiedAsset: ItemData = {
-            uuid,
-            authorId: revisedDraft.authorId,
-            type,
-            path: key,
-          }
-          const newAsset = await systemService.createAssetAndAssetMap(
-            copiedAsset,
-            entityTypeId,
-            revisedDraft.id
-          )
-        })
-      )
-
       // add job to publish queue
       revisionQueue.publishRevisedArticle({ draftId: revisedDraft.id })
     }
