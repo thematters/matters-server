@@ -94,6 +94,7 @@ export class ArticleService extends BaseService {
     const { dataHash, mediaHash } = await this.publishToIPFS({
       authorId,
       title,
+      content,
       cover,
       summary,
     })
