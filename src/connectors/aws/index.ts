@@ -96,43 +96,6 @@ export class AWSService {
         Key: key,
       })
       .promise()
-
-  /**
-   * Copy file from AWS S3.
-   */
-  baseCopyFile = async (source: string, folder: string, uuid: string) => {
-    try {
-      const file = await this.s3
-        .getObject({
-          Bucket: this.s3Bucket,
-          Key: source,
-        })
-        .promise()
-
-      if (!file) {
-        throw new Error('File not found.')
-      }
-
-      const extension = mime.extension(file.ContentType || '')
-      if (!extension) {
-        throw new Error('Invalid file type.')
-      }
-
-      const key = `${folder}/${uuid}.${extension}`
-
-      await this.s3
-        .copyObject({
-          Bucket: this.s3Bucket,
-          CopySource: source,
-          Key: key,
-        })
-        .promise()
-
-      return key
-    } catch (error) {
-      throw new Error('Could not able to copy file.')
-    }
-  }
 }
 
 export const aws = new AWSService()

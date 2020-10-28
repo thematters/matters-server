@@ -39,9 +39,7 @@ export class DraftService extends BaseService {
     articleIdIsNull: boolean
     publishState: string
   }) => {
-    const query = this.knex.select().from(this.table).where({
-      publishState,
-    })
+    const query = this.knex.select().from(this.table).where({ publishState })
 
     if (articleIdIsNull === false) {
       query.whereNotNull('article_id')
@@ -73,18 +71,15 @@ export class DraftService extends BaseService {
    * Count pending and published drafts by given article id.
    */
   countValidByArticleId = async ({ articleId }: { articleId: string }) => {
-    const result = await this.knex(this.table)
-      .where({
-        articleId,
-      })
+    const result = await this.knex
+      .from(this.table)
+      .where({ articleId })
       .andWhere(
-        this.knex.raw(`
-        (
+        this.knex.raw(`(
           (archived = true and publish_state = '${PUBLISH_STATE.published}')
           OR
           (archived = false and publish_state = '${PUBLISH_STATE.pending}')
-        )
-        `)
+        )`)
       )
       .count()
       .first()
@@ -96,19 +91,14 @@ export class DraftService extends BaseService {
    */
   findValidByArticleId = async ({ articleId }: { articleId: string }) =>
     this.knex
-      .select()
       .from(this.table)
-      .where({
-        articleId,
-      })
+      .where({ articleId })
       .andWhere(
-        this.knex.raw(`
-        (
+        this.knex.raw(`(
           (archived = true and publish_state = '${PUBLISH_STATE.published}')
           OR
           (archived = false and publish_state = '${PUBLISH_STATE.pending}')
-        )
-        `)
+        )`)
       )
       .orderBy('created_at', 'desc')
 }

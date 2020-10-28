@@ -529,6 +529,8 @@ class Notice extends BaseService {
       tag_leave: true,
       tag_add_editor: true,
       tag_leave_editor: true,
+      revised_article_published: true,
+      revised_article_not_published: true,
     }
 
     return noticeSettingMap[event]

@@ -1319,6 +1319,8 @@ export type GQLPossibleNoticeTypeNames =
   | 'OfficialAnnouncementNotice'
   | 'PaymentPayoutNotice'
   | 'PaymentReceivedDonationNotice'
+  | 'RevisedArticleNotPublishedNotice'
+  | 'RevisedArticlePublishedNotice'
   | 'SubscribedArticleNewCommentNotice'
   | 'TagAddEditorNotice'
   | 'TagAdoptionNotice'
@@ -1346,6 +1348,8 @@ export interface GQLNoticeNameMap {
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
   PaymentPayoutNotice: GQLPaymentPayoutNotice
   PaymentReceivedDonationNotice: GQLPaymentReceivedDonationNotice
+  RevisedArticleNotPublishedNotice: GQLRevisedArticleNotPublishedNotice
+  RevisedArticlePublishedNotice: GQLRevisedArticlePublishedNotice
   SubscribedArticleNewCommentNotice: GQLSubscribedArticleNewCommentNotice
   TagAddEditorNotice: GQLTagAddEditorNotice
   TagAdoptionNotice: GQLTagAdoptionNotice
@@ -2932,6 +2936,56 @@ export interface GQLReportsInput {
 }
 
 /**
+ * This type has info about user's revised article publihsed unsuccessfully.
+ */
+export interface GQLRevisedArticleNotPublishedNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The article that has been published.
+   */
+  target?: GQLArticle
+}
+
+/**
+ * This type has info about user's revised article publihsed successfully.
+ */
+export interface GQLRevisedArticlePublishedNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * The article that has been published.
+   */
+  target?: GQLArticle
+}
+
+/**
  * Enums for user roles.
  */
 export const enum GQLRole {
@@ -3265,6 +3319,8 @@ export interface GQLResolver {
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
   PaymentPayoutNotice?: GQLPaymentPayoutNoticeTypeResolver
   PaymentReceivedDonationNotice?: GQLPaymentReceivedDonationNoticeTypeResolver
+  RevisedArticleNotPublishedNotice?: GQLRevisedArticleNotPublishedNoticeTypeResolver
+  RevisedArticlePublishedNotice?: GQLRevisedArticlePublishedNoticeTypeResolver
   SubscribedArticleNewCommentNotice?: GQLSubscribedArticleNewCommentNoticeTypeResolver
   TagAddEditorNotice?: GQLTagAddEditorNoticeTypeResolver
   TagAdoptionNotice?: GQLTagAdoptionNoticeTypeResolver
@@ -6403,6 +6459,8 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'OfficialAnnouncementNotice'
     | 'PaymentPayoutNotice'
     | 'PaymentReceivedDonationNotice'
+    | 'RevisedArticleNotPublishedNotice'
+    | 'RevisedArticlePublishedNotice'
     | 'SubscribedArticleNewCommentNotice'
     | 'TagAddEditorNotice'
     | 'TagAdoptionNotice'
@@ -9498,6 +9556,118 @@ export interface PaymentReceivedDonationNoticeToActorResolver<
 }
 
 export interface PaymentReceivedDonationNoticeToTargetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLRevisedArticleNotPublishedNoticeTypeResolver<
+  TParent = any
+> {
+  id?: RevisedArticleNotPublishedNoticeToIdResolver<TParent>
+  unread?: RevisedArticleNotPublishedNoticeToUnreadResolver<TParent>
+  createdAt?: RevisedArticleNotPublishedNoticeToCreatedAtResolver<TParent>
+  target?: RevisedArticleNotPublishedNoticeToTargetResolver<TParent>
+}
+
+export interface RevisedArticleNotPublishedNoticeToIdResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RevisedArticleNotPublishedNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RevisedArticleNotPublishedNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RevisedArticleNotPublishedNoticeToTargetResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLRevisedArticlePublishedNoticeTypeResolver<TParent = any> {
+  id?: RevisedArticlePublishedNoticeToIdResolver<TParent>
+  unread?: RevisedArticlePublishedNoticeToUnreadResolver<TParent>
+  createdAt?: RevisedArticlePublishedNoticeToCreatedAtResolver<TParent>
+  target?: RevisedArticlePublishedNoticeToTargetResolver<TParent>
+}
+
+export interface RevisedArticlePublishedNoticeToIdResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RevisedArticlePublishedNoticeToUnreadResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RevisedArticlePublishedNoticeToCreatedAtResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RevisedArticlePublishedNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {

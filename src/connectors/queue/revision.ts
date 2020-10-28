@@ -128,7 +128,17 @@ class RevisionQueue extends BaseQueue {
           publishState: PUBLISH_STATE.error,
         })
 
-        // TODO add notification
+        this.notificationService.trigger({
+          event: 'revised_article_not_published',
+          recipientId: article.authorId,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'article',
+              entity: article,
+            },
+          ],
+        })
         throw error
       }
       job.progress(30)
@@ -149,9 +159,9 @@ class RevisionQueue extends BaseQueue {
       })
       job.progress(50)
 
+      // Step 4: transfer previous draft assets to current draft
       // Note: collection and tags are handled in edit resolver.
       // @see src/mutations/article/editArticle.ts
-      // swap assets belonged to from linked draft
       const {
         id: entityTypeId,
       } = await this.systemService.baseFindEntityTypeId('draft')
@@ -168,7 +178,7 @@ class RevisionQueue extends BaseQueue {
       )
       job.progress(60)
 
-      // add to search
+      // Step 5: add to search
       const author = await this.userService.baseFindById(article.authorId)
       const { userName, displayName } = author
       await this.articleService.addToSearch({
@@ -179,7 +189,7 @@ class RevisionQueue extends BaseQueue {
       })
       job.progress(70)
 
-      // handle newly added mentions
+      // Step 6: handle newly added mentions
       await this.handleMentions({
         article: updatedArticle,
         preDraftContent: preDraft.content,
@@ -187,9 +197,9 @@ class RevisionQueue extends BaseQueue {
       })
       job.progress(90)
 
-      // trigger notifications
+      // Step 7: trigger notifications
       this.notificationService.trigger({
-        event: 'article_published',
+        event: 'revised_article_published',
         recipientId: article.authorId,
         entities: [
           {
@@ -199,15 +209,19 @@ class RevisionQueue extends BaseQueue {
           },
         ],
       })
-
       job.progress(95)
 
-      // invalidate user cache
-      await invalidateFQC({
-        node: { type: NODE_TYPES.user, id: article.authorId },
-        redis: this.cacheService.redis,
-      })
-
+      // Step 8: invalidate article and user cache
+      await Promise.all([
+        invalidateFQC({
+          node: { type: NODE_TYPES.user, id: article.authorId },
+          redis: this.cacheService.redis,
+        }),
+        invalidateFQC({
+          node: { type: NODE_TYPES.article, id: article.id },
+          redis: this.cacheService.redis,
+        }),
+      ])
       job.progress(100)
 
       done(null, {

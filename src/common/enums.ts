@@ -556,6 +556,8 @@ export const DB_NOTICE_TYPES: DBNoticeType[] = [
   'subscribed_article_new_comment',
   'upstream_article_archived',
   'downstream_article_archived',
+  'revised_article_published',
+  'revised_article_not_published',
   // tag
   'article_tag_has_been_added',
   'article_tag_has_been_removed',

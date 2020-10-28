@@ -17,6 +17,8 @@ import {
   GQLOfficialAnnouncementNoticeTypeResolver,
   GQLPaymentPayoutNoticeTypeResolver,
   GQLPaymentReceivedDonationNoticeTypeResolver,
+  GQLRevisedArticleNotPublishedNoticeTypeResolver,
+  GQLRevisedArticlePublishedNoticeTypeResolver,
   GQLSubscribedArticleNewCommentNoticeTypeResolver,
   GQLTagAddEditorNoticeTypeResolver,
   GQLTagAdoptionNoticeTypeResolver,
@@ -56,6 +58,8 @@ const notice: {
   TagLeaveNotice: GQLTagLeaveNoticeTypeResolver
   TagAddEditorNotice: GQLTagAddEditorNoticeTypeResolver
   TagLeaveEditorNotice: GQLTagLeaveEditorNoticeTypeResolver
+  RevisedArticlePublishedNotice: GQLRevisedArticlePublishedNoticeTypeResolver
+  RevisedArticleNotPublishedNotice: GQLRevisedArticleNotPublishedNoticeTypeResolver
 } = {
   User: {
     notices,
@@ -79,6 +83,8 @@ const notice: {
         article_tag_has_been_added: 'ArticleTagHasBeenAddedNotice',
         article_tag_has_been_removed: 'ArticleTagHasBeenRemovedNotice',
         article_tag_has_been_unselected: 'ArticleTagHasBeenUnselectedNotice',
+        revised_article_published: 'RevisedArticlePublishedNotice',
+        revised_article_not_published: 'RevisedArticleNotPublishedNotice',
         // comment
         comment_pinned: 'CommentPinnedNotice',
         comment_new_reply: 'CommentNewReplyNotice',
@@ -234,6 +240,16 @@ const notice: {
     id: ({ uuid }) => uuid,
     actor: ({ actors }: { actors: any[] }) => actors[0],
     tag: ({ entities }) => entities.target,
+  },
+  RevisedArticlePublishedNotice: {
+    id: ({ uuid }) => uuid,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
+  },
+  RevisedArticleNotPublishedNotice: {
+    id: ({ uuid }) => uuid,
+    target: ({ entities }, _, { dataSources: { draftService } }) =>
+      draftService.dataloader.load(entities.target.draftId),
   },
 }
 

@@ -27,6 +27,8 @@ const actorsRequired = {
   tag_leave: true,
   tag_add_editor: true,
   tag_leave_editor: true,
+  revised_article_published: false,
+  revised_article_not_published: false,
 }
 const entitiesRequired = {
   user_new_follower: false,
@@ -53,6 +55,8 @@ const entitiesRequired = {
   tag_leave: true,
   tag_add_editor: true,
   tag_leave_editor: true,
+  revised_article_published: true,
+  revised_article_not_published: true,
 }
 const messageRequired = {
   user_new_follower: false,
@@ -79,6 +83,8 @@ const messageRequired = {
   tag_leave: false,
   tag_add_editor: false,
   tag_leave_editor: false,
+  revised_article_published: false,
+  revised_article_not_published: false,
 }
 
 type NoticeEdges = Array<{ node: NoticeItem; cursor: string }>

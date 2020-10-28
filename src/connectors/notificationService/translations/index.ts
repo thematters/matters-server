@@ -175,4 +175,16 @@ export default {
     en: ({ title }) =>
       `Your article "${title}" has been reported by other users`,
   }),
+  revised_article_published: i18n<{ title: string }>({
+    zh_hant: ({ title }) => `你的修訂作品《${title}》已發布到分佈式網絡`,
+    zh_hans: ({ title }) => `你的修订作品《${title}》已发布到分布式网络`,
+    en: ({ title }) =>
+      `Your revised article "${title}" has been published to IPFS`,
+  }),
+  revised_article_not_published: i18n<{ title: string }>({
+    zh_hant: ({ title }) => `你的修訂作品《${title}》發布失敗`,
+    zh_hans: ({ title }) => `你的修订作品《${title}》发布失败`,
+    en: ({ title }) =>
+      `Your revised article "${title}" has not been published to IPFS`,
+  }),
 }
