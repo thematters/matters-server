@@ -13,6 +13,7 @@ import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
 import articleCover from './cover'
+import createdAt from './createdAt'
 import hasAppreciate from './hasAppreciate'
 import language from './language'
 import live from './live'
@@ -83,6 +84,7 @@ export default {
     topicScore: ({ score }: { score: number }) =>
       score ? Math.round(score) : null,
     transactionsReceivedBy,
+    createdAt,
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
