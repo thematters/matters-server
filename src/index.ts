@@ -7,7 +7,7 @@ import http from 'http'
 import 'module-alias/register'
 import requestIp from 'request-ip'
 
-import { CORS_OPTIONS } from 'common/enums'
+import { CORS_OPTIONS, SERVER_TIMEOUT } from 'common/enums'
 import { environment } from 'common/environment'
 
 import * as routes from './routes'
@@ -65,3 +65,4 @@ httpServer.listen(PORT, () => {
     `🚀 Subscriptions ready at ws://localhost:${PORT}${server.subscriptionsPath}`
   )
 })
+httpServer.setTimeout(SERVER_TIMEOUT)
