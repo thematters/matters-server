@@ -42,6 +42,14 @@ const stripeConnectHandler = async (
     return res.redirect(url)
   }
 
+  // check if viewer is valid
+  if (!viewer.id) {
+    return redirectFailure({
+      code: OAUTH_CALLBACK_ERROR_CODE.userNotFound,
+      message: 'viewer not found.',
+    })
+  }
+
   // check if viewer already has a payout account
   const payoutAccount = (
     await paymentService.findPayoutAccount({ userId: viewer.id })
