@@ -1,3 +1,5 @@
+import slugify from '@matters/slugify'
+
 import { environment } from 'common/environment'
 import { ArticleNotFoundError } from 'common/errors'
 import logger from 'common/logger'
@@ -40,13 +42,14 @@ const resolver: MutationToReadArticleResolver = async (
         }
 
         const author = await userService.dataloader.load(article.authorId)
+        const slug = slugify(node.title)
 
         likeCoinQueue.sendPV({
           likerId: liker ? liker.likerId : undefined,
           likerIp: viewer.ip,
           userAgent: viewer.userAgent,
           authorLikerId: author.likerId,
-          url: `${environment.siteDomain}/@${author.userName}/${node.slug}-${node.mediaHash}`,
+          url: `${environment.siteDomain}/@${author.userName}/${slug}-${node.mediaHash}`,
         })
       } catch (error) {
         logger.error(error)
