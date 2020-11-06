@@ -461,9 +461,13 @@ export class ArticleService extends BaseService {
       const re = /^([0-9a-zA-Z]{49,59})$/gi
       const match = re.exec(key)
       if (match) {
-        const matched = await this.searchByMediaHash({ key: match[1], oss, filter })
+        const matched = await this.searchByMediaHash({
+          key: match[1],
+          oss,
+          filter,
+        })
         const items = await this.draftLoader.loadMany(
-          matched.nodes.map(item => item.id)
+          matched.nodes.map((item) => item.id)
         )
         return { nodes: items, totalCount: matched.totalCount }
       }
