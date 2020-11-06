@@ -159,23 +159,17 @@ class RevisionQueue extends BaseQueue {
       })
       job.progress(50)
 
-      // Step 4: transfer previous draft assets to current draft
+      // Step 4: copy previous draft asset maps for current draft
       // Note: collection and tags are handled in edit resolver.
       // @see src/mutations/article/editArticle.ts
       const {
         id: entityTypeId,
       } = await this.systemService.baseFindEntityTypeId('draft')
-      const assetMapIds = (
-        await this.systemService.findAssetAndAssetMap({
-          entityTypeId,
-          entityId: preDraft.id,
-        })
-      ).map((assetMap) => assetMap.id)
-      await this.systemService.swapAssetMapEntity(
-        assetMapIds,
+      await this.systemService.copyAssetMapEntities({
+        source: preDraft.id,
+        target: draft.id,
         entityTypeId,
-        draft.id
-      )
+      })
       job.progress(60)
 
       // Step 5: add to search
