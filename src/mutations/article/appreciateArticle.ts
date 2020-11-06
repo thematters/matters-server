@@ -1,3 +1,5 @@
+import slugify from '@matters/slugify'
+
 import { APPRECIATION_TYPES, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
@@ -79,9 +81,10 @@ const resolver: MutationToAppreciateArticleResolver = async (
       throw new ForbiddenError('viewer or author has no liker id')
     }
 
+    const slug = slugify(node.title)
     const canSuperLike = await userService.likecoin.canSuperLike({
       liker,
-      url: `${environment.siteDomain}/@${author.userName}/${node.slug}-${node.mediaHash}`,
+      url: `${environment.siteDomain}/@${author.userName}/${slug}-${node.mediaHash}`,
       likerIp: viewer.ip,
       userAgent: viewer.userAgent,
     })
@@ -95,7 +98,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
       likerIp: viewer.ip,
       userAgent: viewer.userAgent,
       authorLikerId: author.likerId,
-      url: `${environment.siteDomain}/@${author.userName}/${node.slug}-${node.mediaHash}`,
+      url: `${environment.siteDomain}/@${author.userName}/${slug}-${node.mediaHash}`,
     })
 
     // insert record

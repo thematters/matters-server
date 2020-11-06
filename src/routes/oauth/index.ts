@@ -9,6 +9,7 @@ import {
   OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS,
 } from 'common/enums'
 import { environment } from 'common/environment'
+import logger from 'common/logger'
 import { getViewerFromReq } from 'common/utils/getViewer'
 import { OAuthService } from 'connectors'
 
@@ -58,8 +59,14 @@ oAuthRouter.use(passport.initialize())
 oAuthRouter.use(bodyParser.json())
 oAuthRouter.use(bodyParser.urlencoded({ extended: false }))
 oAuthRouter.use(async (req, res, next) => {
-  const viewer = await getViewerFromReq({ req, res })
-  req.app.locals.viewer = viewer
+  try {
+    const viewer = await getViewerFromReq({ req, res })
+    req.app.locals.viewer = viewer
+  } catch (error) {
+    // FIXME: current code is to avoid request hanging up
+    req.app.locals.viewer = {}
+    logger.error(error)
+  }
   next()
 })
 
