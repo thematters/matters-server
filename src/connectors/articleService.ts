@@ -1301,9 +1301,11 @@ export class ArticleService extends BaseService {
       return { newRead: false }
     }
 
-    // if lapse is longer than 5 minutes
+    // if lapse is longer than 5 minutes,
+    // or total length longer than 30 minutes,
+    // or if a visitor read with a new ip,
     // add a new count and update last read timestamp
-    if (lapse > MINUTE * 5 || readLength > MINUTE * 30) {
+    if (lapse > MINUTE * 5 || readLength > MINUTE * 30 || (!userId && ip !== oldData.ip)) {
       await this.baseUpdate(
         oldData.id,
         {
