@@ -187,6 +187,9 @@ type Article implements Node {
   oss: ArticleOSS!
   remark: String
 
+  """Drafts linked to this article."""
+  drafts: [Draft!]
+
   """The counting number of comments."""
   commentCount: Int!
 
@@ -779,6 +782,9 @@ type Draft implements Node {
 
   """Published article"""
   article: Article
+
+  """Media hash, composed of cid encoding, of this draft."""
+  mediaHash: String
 }
 
 type DraftConnection implements Connection {
@@ -797,6 +803,7 @@ input EditArticleInput {
   state: ArticleState
   sticky: Boolean
   tags: [String!]
+  content: String
   cover: ID
   collection: [ID!]
 }
@@ -1535,6 +1542,40 @@ input ResponsesInput {
 enum ResponseSort {
   oldest
   newest
+}
+
+"""
+This type has info about user's revised article publihsed unsuccessfully.
+"""
+type RevisedArticleNotPublishedNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """The article that has been published."""
+  target: Article
+}
+
+"""
+This type has info about user's revised article publihsed successfully.
+"""
+type RevisedArticlePublishedNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """The article that has been published."""
+  target: Article
 }
 
 """Enums for user roles."""
