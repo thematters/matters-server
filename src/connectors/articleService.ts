@@ -483,7 +483,15 @@ export class ArticleService extends BaseService {
       const re = /^([0-9a-zA-Z]{49,59})$/gi
       const match = re.exec(key)
       if (match) {
-        return this.searchByMediaHash({ key: match[1], oss, filter })
+        const matched = await this.searchByMediaHash({
+          key: match[1],
+          oss,
+          filter,
+        })
+        const items = await this.draftLoader.loadMany(
+          matched.nodes.map((item) => item.id)
+        )
+        return { nodes: items, totalCount: matched.totalCount }
       }
 
       // take the condition that searching for exact article title into consideration
