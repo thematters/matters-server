@@ -23,6 +23,7 @@ import {
   makeSummary,
   measureDiffs,
   sanitize,
+  stripClass,
   stripHtml,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
@@ -222,10 +223,12 @@ const resolver: MutationToEditArticleResolver = async (
         )
       }
 
+      const cleanedContent = stripClass(content, 'u-area-disable')
+
       // check diff distances reaches limit or not
       const diffs = measureDiffs(
         stripHtml(currDraft.content, ''),
-        stripHtml(content, '')
+        stripHtml(cleanedContent, '')
       )
       if (diffs > 50) {
         throw new ArticleRevisionContentInvalidError('revised content invalid')
@@ -248,12 +251,12 @@ const resolver: MutationToEditArticleResolver = async (
         authorId: currDraft.authorId,
         articleId: currArticle.id,
         title: currDraft.title,
-        summary: makeSummary(content),
-        content: sanitize(content),
+        summary: makeSummary(cleanedContent),
+        content: sanitize(cleanedContent),
         tags: currTagContents,
         cover: currArticle.cover,
         collection: currCollectionIds,
-        wordCount: countWords(content),
+        wordCount: countWords(cleanedContent),
         archived: false,
         publishState: PUBLISH_STATE.pending,
         createdAt: new Date(),
