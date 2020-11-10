@@ -50,6 +50,8 @@ export class NotificationService extends BaseService {
       case 'article_published':
       case 'comment_pinned':
       case 'payment_payout':
+      case 'revised_article_published':
+      case 'revised_article_not_published':
         return {
           type: params.event,
           recipientId: params.recipientId,

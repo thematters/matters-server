@@ -180,6 +180,33 @@ export class SystemService extends BaseService {
     })
 
   /**
+   * Copy entity of asset map by given ids
+   */
+  copyAssetMapEntities = async ({
+    source,
+    target,
+    entityTypeId,
+  }: {
+    source: string
+    target: string
+    entityTypeId: string
+  }) => {
+    const maps = await this.knex
+      .select()
+      .from('asset_map')
+      .where({ entityTypeId, entityId: source })
+
+    await Promise.all(
+      maps.map((map) =>
+        this.baseCreate(
+          { ...map, id: undefined, entityId: target },
+          'asset_map'
+        )
+      )
+    )
+  }
+
+  /**
    * Delete asset and asset map by the given id:path maps
    */
   deleteAssetAndAssetMap = async (assetPaths: { [id: string]: string }) => {

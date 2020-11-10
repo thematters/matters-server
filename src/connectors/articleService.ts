@@ -82,28 +82,66 @@ export class ArticleService extends BaseService {
   publish = async ({
     id,
     authorId,
-    title,
+    content,
     cover,
     summary: draftSummary,
+    title,
+  }: Record<string, any>) => {
+    // pre-process data
+    const summary = draftSummary || makeSummary(content)
+
+    // publish content to IPFS
+    const { dataHash, mediaHash } = await this.publishToIPFS({
+      authorId,
+      title,
+      content,
+      cover,
+      summary,
+    })
+
+    // craete article
+    const article = await this.baseCreate({
+      uuid: v4(),
+      authorId,
+      title,
+      slug: slugify(title),
+      wordCount: countWords(content),
+      summary,
+      content,
+      cover,
+      dataHash,
+      mediaHash,
+      state: ARTICLE_STATE.active,
+      draftId: id,
+    })
+
+    return article
+  }
+
+  /**
+   * Publish data to IPFS
+   */
+  publishToIPFS = async ({
+    authorId,
+    title,
+    cover,
+    summary,
     content,
-  }: {
-    [key: string]: string
-  }) => {
+  }: Record<string, any>) => {
     const userService = new UserService()
     const systemService = new SystemService()
+    const now = new Date()
 
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
-    const now = new Date()
-    const summary = draftSummary || makeSummary(content)
-    const userImg =
-      author.avatar && (await systemService.findAssetUrl(author.avatar))
+    const { avatar, description, displayName, userName } = author
+    const userImg = avatar && (await systemService.findAssetUrl(avatar))
     const articleImg = cover && (await systemService.findAssetUrl(cover))
 
     // add content to ipfs
     const html = this.ipfs.makeHTML({
       title,
-      author: { userName: author.userName, displayName: author.displayName },
+      author: { userName, displayName },
       summary,
       content: outputCleanHTML(content),
       publishedAt: now,
@@ -116,10 +154,10 @@ export class ArticleService extends BaseService {
       '@type': 'Article',
       '@id': `ipfs://ipfs/${dataHash}`,
       author: {
-        name: author.userName,
+        name: userName,
         image: userImg,
-        url: `https://matters.news/@${author.userName}`,
-        description: author.description,
+        url: `https://matters.news/@${userName}`,
+        description,
       },
       dateCreated: now.toISOString(),
       description: summary,
@@ -147,23 +185,7 @@ export class ArticleService extends BaseService {
     })
     const mediaHash = cid.toBaseEncodedString()
 
-    // craete article
-    const article = await this.baseCreate({
-      uuid: v4(),
-      authorId,
-      title,
-      slug: slugify(title),
-      wordCount: countWords(content),
-      summary,
-      content,
-      cover,
-      dataHash,
-      mediaHash,
-      state: ARTICLE_STATE.active,
-      draftId: id,
-    })
-
-    return article
+    return { dataHash, mediaHash }
   }
 
   /**
@@ -461,7 +483,15 @@ export class ArticleService extends BaseService {
       const re = /^([0-9a-zA-Z]{49,59})$/gi
       const match = re.exec(key)
       if (match) {
-        return this.searchByMediaHash({ key: match[1], oss, filter })
+        const matched = await this.searchByMediaHash({
+          key: match[1],
+          oss,
+          filter,
+        })
+        const items = await this.draftLoader.loadMany(
+          matched.nodes.map((item) => item.id)
+        )
+        return { nodes: items, totalCount: matched.totalCount }
       }
 
       // take the condition that searching for exact article title into consideration

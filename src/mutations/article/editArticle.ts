@@ -1,20 +1,37 @@
 import { difference, uniq } from 'lodash'
+import { v4 } from 'uuid'
 
-import { ARTICLE_STATE, ASSET_TYPE, USER_STATE } from 'common/enums'
+import {
+  ARTICLE_STATE,
+  ASSET_TYPE,
+  PUBLISH_STATE,
+  USER_STATE,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  ArticleRevisionContentInvalidError,
+  ArticleRevisionReachLimitError,
   AssetNotFoundError,
   AuthenticationError,
   EntityNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
-import { MutationToEditArticleResolver } from 'definitions'
+import {
+  countWords,
+  fromGlobalId,
+  makeSummary,
+  measureDiffs,
+  sanitize,
+  stripClass,
+  stripHtml,
+} from 'common/utils'
+import { revisionQueue } from 'connectors/queue'
+import { ItemData, MutationToEditArticleResolver } from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
-  { input: { id, state, sticky, tags, cover, collection } },
+  { input: { id, state, sticky, tags, content, cover, collection } },
   {
     viewer,
     dataSources: {
@@ -36,11 +53,15 @@ const resolver: MutationToEditArticleResolver = async (
 
   // checks
   const { id: dbId } = fromGlobalId(id)
-  const article = await articleService.dataloader.load(dbId)
+  const article = await articleService.baseFindById(dbId)
   if (!article) {
     throw new EntityNotFoundError('article does not exist')
   }
-  if (article.authorId !== viewer.id) {
+  const currDraft = await draftService.baseFindById(article.draftId)
+  if (!currDraft) {
+    throw new EntityNotFoundError('article linked draft does not exist')
+  }
+  if (currDraft.authorId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')
   }
   if (article.state !== ARTICLE_STATE.active) {
@@ -189,6 +210,63 @@ const resolver: MutationToEditArticleResolver = async (
       entranceId: article.id,
       articleIds: difference(oldIds, newIds),
     })
+
+    // revise content
+    if (content) {
+      const revisionCount = await draftService.countValidByArticleId({
+        articleId: article.id,
+      })
+      // cannot have drafts more than first draft plus 3 pending or published revision
+      if (revisionCount > 4) {
+        throw new ArticleRevisionReachLimitError(
+          'number of revisions reach limit'
+        )
+      }
+
+      const cleanedContent = stripClass(content, 'u-area-disable')
+
+      // check diff distances reaches limit or not
+      const diffs = measureDiffs(
+        stripHtml(currDraft.content, ''),
+        stripHtml(cleanedContent, '')
+      )
+      if (diffs > 50) {
+        throw new ArticleRevisionContentInvalidError('revised content invalid')
+      }
+
+      // fetch updated data before create draft
+      const [currArticle, currCollections, currTags] = await Promise.all([
+        articleService.baseFindById(dbId),
+        articleService.findCollections({ entranceId: article.id, limit: null }),
+        tagService.findByArticleId({ articleId: article.id }),
+      ])
+      const currTagContents = currTags.map((currTag) => currTag.content)
+      const currCollectionIds = currCollections.map(
+        ({ articleId }: { articleId: string }) => articleId
+      )
+
+      // create draft linked to this article
+      const data: ItemData = {
+        uuid: v4(),
+        authorId: currDraft.authorId,
+        articleId: currArticle.id,
+        title: currDraft.title,
+        summary: makeSummary(cleanedContent),
+        content: sanitize(cleanedContent),
+        tags: currTagContents,
+        cover: currArticle.cover,
+        collection: currCollectionIds,
+        wordCount: countWords(cleanedContent),
+        archived: false,
+        publishState: PUBLISH_STATE.pending,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+      const revisedDraft = await draftService.baseCreate(data)
+
+      // add job to publish queue
+      revisionQueue.publishRevisedArticle({ draftId: revisedDraft.id })
+    }
 
     // trigger notifications
     diff.forEach(async (articleId) => {

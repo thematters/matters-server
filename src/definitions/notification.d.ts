@@ -17,6 +17,8 @@ export type DBNoticeType =
   | 'article_tag_has_been_added'
   | 'article_tag_has_been_removed'
   | 'article_tag_has_been_unselected'
+  | 'revised_article_published'
+  | 'revised_article_not_published'
   // comment
   | 'comment_pinned'
   | 'comment_new_reply'
@@ -173,6 +175,20 @@ export interface NoticeDownstreamArticleArchivedParams
     NotificationEntity<'target', 'article'>,
     NotificationEntity<'downstream', 'article'>
   ]
+}
+
+export interface NoticeRevisedArticlePublishedParams
+  extends NotificationRequiredParams {
+  event: 'revised_article_published'
+  recipientId: string
+  entities: [NotificationEntity<'target', 'article'>]
+}
+
+export interface NoticeRevisedArticleNotPublishedParams
+  extends NotificationRequiredParams {
+  event: 'revised_article_not_published'
+  recipientId: string
+  entities: [NotificationEntity<'target', 'article'>]
 }
 
 /**
@@ -384,6 +400,8 @@ export type NotificationPrarms =
   | NoticeTagLeaveParams
   | NoticeTagAddEditorParams
   | NoticeTagLeaveEditorParams
+  | NoticeRevisedArticlePublishedParams
+  | NoticeRevisedArticleNotPublishedParams
 
 export type NoticeUserId = string
 
