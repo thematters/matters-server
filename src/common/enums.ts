@@ -255,6 +255,10 @@ export const QUEUE_JOB = {
 
   // Appreciation
   appreciation: 'appreciation',
+
+  // Revision
+  publishRevisedArticle: 'publishRevisedArticle',
+  publishPendingRevisionDrafts: 'publishPendingRevisionDrafts',
 }
 
 export const QUEUE_NAME = {
@@ -269,10 +273,12 @@ export const QUEUE_NAME = {
   payTo: 'payTo',
   appreciation: 'appreciation',
   txTimeout: 'txTimeout',
+  revision: 'revision',
 }
 
 export const QUEUE_CONCURRENCY = {
   publishArticle: 100,
+  publishRevisedArticle: 100,
   migration: 2,
 }
 
@@ -551,6 +557,8 @@ export const DB_NOTICE_TYPES: DBNoticeType[] = [
   'subscribed_article_new_comment',
   'upstream_article_archived',
   'downstream_article_archived',
+  'revised_article_published',
+  'revised_article_not_published',
   // tag
   'article_tag_has_been_added',
   'article_tag_has_been_removed',

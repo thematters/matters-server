@@ -51,3 +51,14 @@ export const outputCleanHTML = (html: string) => {
 
   return $.html()
 }
+
+/**
+ * Strip specific class from html string
+ */
+export const stripClass = (html: string, name: string) => {
+  const $ = cheerio.load(html, { decodeEntities: false, xmlMode: true })
+
+  $(`.${name}`).removeClass(name)
+
+  return $.html()
+}
