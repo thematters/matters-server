@@ -35,6 +35,7 @@ import logger from 'common/logger'
 import { generatePasswordhash } from 'common/utils'
 import { BaseService, OAuthService } from 'connectors'
 import {
+  GQLAuthorsType,
   GQLResetPasswordType,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
@@ -1171,11 +1172,13 @@ export class UserService extends BaseService {
     offset = 0,
     notIn = [],
     oss = false,
+    type = GQLAuthorsType.default,
   }: {
     limit?: number
     offset?: number
     notIn?: string[]
     oss?: boolean
+    type?: GQLAuthorsType
   }) => {
     const table = oss
       ? 'user_reader_view'

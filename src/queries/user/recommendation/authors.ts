@@ -13,7 +13,7 @@ export const authors: RecommendationToAuthorsResolver = async (
   { input },
   { dataSources: { userService }, viewer }
 ) => {
-  const { first, after, filter, oss = false } = input
+  const { first, after, filter, oss = false, type } = input
 
   if (oss) {
     if (!viewer.hasRole('admin')) {
@@ -45,6 +45,7 @@ export const authors: RecommendationToAuthorsResolver = async (
       limit: MAX_RANDOM_INDEX * randomDraw,
       notIn,
       oss,
+      type,
     })
 
     const chunks = chunk(authorPool, randomDraw)
@@ -64,6 +65,7 @@ export const authors: RecommendationToAuthorsResolver = async (
       offset,
       notIn,
       limit: first,
+      type,
     }),
     input,
     totalCount

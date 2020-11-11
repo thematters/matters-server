@@ -193,6 +193,7 @@ export default /* GraphQL */ `
     first: Int
     oss: Boolean
     filter: AuthorsFilter
+    type: AuthorsType
   }
 
   input AuthorsFilter {
@@ -589,5 +590,12 @@ export default /* GraphQL */ `
 
   enum MigrationType {
     medium
+  }
+
+  enum AuthorsType {
+    active
+    appreciated
+    default
+    trendy
   }
 `
