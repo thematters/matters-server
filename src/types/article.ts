@@ -76,6 +76,9 @@ export default /* GraphQL */ `
     "Time of this article was created."
     createdAt: DateTime!
 
+    "Time of this article was revised."
+    revisedAt: DateTime
+
     "State of this article."
     state: ArticleState!
 

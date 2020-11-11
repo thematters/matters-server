@@ -101,4 +101,17 @@ export class DraftService extends BaseService {
         )`)
       )
       .orderBy('created_at', 'desc')
+
+  /**
+   * Find published drafts by given article id.
+   */
+  findPublishedByArticleId = async ({ articleId }: { articleId: string }) =>
+    this.knex
+      .from(this.table)
+      .where({
+        articleId,
+        archived: true,
+        publishState: PUBLISH_STATE.published,
+      })
+      .orderBy('created_at', 'desc')
 }

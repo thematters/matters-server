@@ -21,6 +21,7 @@ import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
 import remark from './remark'
+import revisedAt from './revisedAt'
 import rootArticle from './rootArticle'
 import state from './state'
 import sticky from './sticky'
@@ -85,6 +86,7 @@ export default {
       score ? Math.round(score) : null,
     transactionsReceivedBy,
     createdAt,
+    revisedAt,
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),

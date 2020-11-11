@@ -58,6 +58,11 @@ export interface GQLArticle extends GQLNode {
   createdAt: GQLDateTime
 
   /**
+   * Time of this article was revised.
+   */
+  revisedAt?: GQLDateTime
+
+  /**
    * State of this article.
    */
   state: GQLArticleState
@@ -3459,6 +3464,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   topicScore?: ArticleToTopicScoreResolver<TParent>
   slug?: ArticleToSlugResolver<TParent>
   createdAt?: ArticleToCreatedAtResolver<TParent>
+  revisedAt?: ArticleToRevisedAtResolver<TParent>
   state?: ArticleToStateResolver<TParent>
   live?: ArticleToLiveResolver<TParent>
   author?: ArticleToAuthorResolver<TParent>
@@ -3530,6 +3536,15 @@ export interface ArticleToSlugResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToRevisedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
