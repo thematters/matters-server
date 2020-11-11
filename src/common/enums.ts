@@ -46,6 +46,10 @@ export const MATERIALIZED_VIEW = {
   /* Hottest articles A/B test */
   articleHottestAMaterialized: 'article_hottest_a_materialized',
   articleHottestBMaterialized: 'article_hottest_b_materialized',
+
+  mostActiveAuthorMaterialized: 'most_active_author_materialized',
+  mostAppreciatedAuthorMaterialized: 'most_appreciated_author_materialized',
+  mostTrendyAuthorMaterialized: 'most_trendy_author_materialized',
 }
 
 // cache TTL in seconds
@@ -244,6 +248,10 @@ export const QUEUE_JOB = {
   /* Refresh Views - hottest articles A/B test*/
   refreshArticleHottestAView: 'refreshArticleHottestAView',
   refreshArticleHottestBView: 'refreshArticleHottestBView',
+
+  refreshMostActiveAuthorView: 'refreshMostActiveAuthorView',
+  refreshMostAppreciatedAuthorView: 'refreshMostAppreciatedAuthorView',
+  refreshMostTrendyAuthorView: 'refreshMostTrendyAuthorView',
 
   // Migration
   migration: 'migration',

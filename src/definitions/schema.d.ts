@@ -943,6 +943,7 @@ export interface GQLAuthorsInput {
   first?: number
   oss?: boolean
   filter?: GQLAuthorsFilter
+  type?: GQLAuthorsType
 }
 
 export interface GQLAuthorsFilter {
@@ -951,6 +952,13 @@ export interface GQLAuthorsFilter {
    */
   random?: GQLNonNegativeInt
   followed?: boolean
+}
+
+export const enum GQLAuthorsType {
+  active = 'active',
+  appreciated = 'appreciated',
+  default = 'default',
+  trendy = 'trendy',
 }
 
 export interface GQLDraftConnection extends GQLConnection {
