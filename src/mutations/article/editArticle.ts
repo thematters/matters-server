@@ -216,8 +216,8 @@ const resolver: MutationToEditArticleResolver = async (
       const revisionCount = await draftService.countValidByArticleId({
         articleId: article.id,
       })
-      // cannot have drafts more than first draft plus 3 pending or published revision
-      if (revisionCount > 4) {
+      // cannot have drafts more than first draft plus 2 pending or published revision
+      if (revisionCount > 3) {
         throw new ArticleRevisionReachLimitError(
           'number of revisions reach limit'
         )
