@@ -28,7 +28,7 @@ const getCookieOption = ({
     httpOnly,
     secure: req.protocol === 'https',
     domain,
-    // sameSite: isLocalDev ? undefined : 'strict',
+    sameSite: isLocalDev ? undefined : 'strict',
   } as CookieOptions
 }
 
