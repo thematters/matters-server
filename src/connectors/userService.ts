@@ -1152,7 +1152,7 @@ export class UserService extends BaseService {
   countAuthor = async ({
     notIn = [],
     oss = false,
-    type = GQLAuthorsType.default
+    type = GQLAuthorsType.default,
   }: {
     notIn?: string[]
     oss?: boolean
@@ -1173,15 +1173,17 @@ export class UserService extends BaseService {
       case GQLAuthorsType.active:
       case GQLAuthorsType.appreciated:
       case GQLAuthorsType.trendy: {
-        const view = type === GQLAuthorsType.active
-          ? 'most_active_author_materialized'
-          : type === GQLAuthorsType.appreciated
-          ? 'most_appreciated_author_materialized'
-          : 'most_trendy_author_materialized'
-        const result = await this.knex(view)
-          .innerJoin('user', 'view.user_id', 'user.id')
+        const view =
+          type === GQLAuthorsType.active
+            ? 'most_active_author_materialized'
+            : type === GQLAuthorsType.appreciated
+            ? 'most_appreciated_author_materialized'
+            : 'most_trendy_author_materialized'
+        const result = await this.knex
+          .from({ view })
+          .innerJoin('user', 'view.id', 'user.id')
           .where({ state: USER_STATE.active })
-          .whereNotIn('id', notIn)
+          .whereNotIn('view.id', notIn)
           .count()
           .first()
         return parseInt(result ? (result.count as string) : '0', 10)
@@ -1203,7 +1205,7 @@ export class UserService extends BaseService {
     oss?: boolean
     type?: GQLAuthorsType
   }) => {
-    switch(type) {
+    switch (type) {
       case GQLAuthorsType.default: {
         const table = oss
           ? 'user_reader_view'
@@ -1221,19 +1223,21 @@ export class UserService extends BaseService {
       case GQLAuthorsType.active:
       case GQLAuthorsType.appreciated:
       case GQLAuthorsType.trendy: {
-        const view = type === GQLAuthorsType.active
-          ? 'most_active_author_materialized'
-          : type === GQLAuthorsType.appreciated
-          ? 'most_appreciated_author_materialized'
-          : 'most_trendy_author_materialized'
+        const view =
+          type === GQLAuthorsType.active
+            ? 'most_active_author_materialized'
+            : type === GQLAuthorsType.appreciated
+            ? 'most_appreciated_author_materialized'
+            : 'most_trendy_author_materialized'
 
-        const result = await this.knex(view)
+        const result = await this.knex
           .select()
-          .innerJoin('user', 'view.user_id', 'user.id')
+          .from({ view })
+          .innerJoin('user', 'view.id', 'user.id')
           .offset(offset)
           .limit(limit)
           .where({ state: USER_STATE.active })
-          .whereNotIn('id', notIn)
+          .whereNotIn('view.id', notIn)
         return result
       }
     }
