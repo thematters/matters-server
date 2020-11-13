@@ -11,7 +11,7 @@ exports.up = async (knex) => {
   await knex.raw(`
     CREATE MATERIALIZED VIEW ${activeView} AS
     SELECT
-      author_id as user_id,
+      author_id as id,
       up,
       down
     FROM (
@@ -45,7 +45,7 @@ exports.up = async (knex) => {
   await knex.raw(`
     CREATE MATERIALIZED VIEW ${appreciatedView} AS
     SELECT
-      recipient_id as user_id,
+      recipient_id as id,
       SUM(amount) AS sum
     FROM
       "transaction"
@@ -63,7 +63,7 @@ exports.up = async (knex) => {
   await knex.raw(`
     CREATE MATERIALIZED VIEW ${trendyView} AS
     SELECT
-      target_id as user_id,
+      target_id as id,
       COUNT(DISTINCT user_id) AS count
     FROM
       action_user

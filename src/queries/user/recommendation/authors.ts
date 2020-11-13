@@ -13,7 +13,13 @@ export const authors: RecommendationToAuthorsResolver = async (
   { input },
   { dataSources: { userService }, viewer }
 ) => {
-  const { first, after, filter, oss = false, type = GQLAuthorsType.default } = input
+  const {
+    first,
+    after,
+    filter,
+    oss = false,
+    type = GQLAuthorsType.default,
+  } = input
 
   if (oss) {
     if (!viewer.hasRole('admin')) {
