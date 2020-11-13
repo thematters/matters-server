@@ -48,7 +48,7 @@ export const authors: RecommendationToAuthorsResolver = async (
    */
   if (isAppreciated) {
     const trendyAuthors = await userService.recommendAuthor({ limit: 60, type })
-    notIn = [...notIn, ...trendyAuthors.map(({ userId }) => userId)]
+    notIn = [...notIn, ...trendyAuthors.map((author) => author.id)]
   }
 
   /**
