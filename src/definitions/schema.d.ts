@@ -589,6 +589,11 @@ export interface GQLRecommendation {
   tags: GQLTagConnection
 
   /**
+   * Hottest tag list
+   */
+  hottestTags: GQLTagConnection
+
+  /**
    * Gloabl article list, sort by activities in recent 72 hours.
    */
   topics: GQLArticleConnection
@@ -927,18 +932,19 @@ export interface GQLTagOSS {
   score: GQLNonNegativeFloat
 }
 
-export interface GQLRecommendationTagsInput {
+export interface GQLRecommendInput {
   after?: string
   first?: number
   oss?: boolean
-  filter?: GQLRecommendationTagsFilter
+  filter?: GQLFilterInput
 }
 
-export interface GQLRecommendationTagsFilter {
+export interface GQLFilterInput {
   /**
-   * index of tag list, min: 0, max: 49
+   * index of list, min: 0, max: 49
    */
   random?: GQLNonNegativeInt
+  followed?: boolean
 }
 
 export type GQLNonNegativeInt = any
@@ -4642,6 +4648,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   icymi?: RecommendationToIcymiResolver<TParent>
   valued?: RecommendationToValuedResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
+  hottestTags?: RecommendationToHottestTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
   authors?: RecommendationToAuthorsResolver<TParent>
   interest?: RecommendationToInterestResolver<TParent>
@@ -4772,12 +4779,27 @@ export interface RecommendationToValuedResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToTagsArgs {
-  input: GQLRecommendationTagsInput
+  input: GQLRecommendInput
 }
 export interface RecommendationToTagsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: RecommendationToTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToHottestTagsArgs {
+  input: GQLRecommendInput
+}
+export interface RecommendationToHottestTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToHottestTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -4796,7 +4818,7 @@ export interface RecommendationToTopicsResolver<TParent = any, TResult = any> {
 }
 
 export interface RecommendationToAuthorsArgs {
-  input: GQLAuthorsInput
+  input: GQLRecommendInput
 }
 export interface RecommendationToAuthorsResolver<TParent = any, TResult = any> {
   (

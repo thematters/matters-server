@@ -173,13 +173,16 @@ export default /* GraphQL */ `
     valued(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global tag list, sort by activities in recent 14 days."
-    tags(input: RecommendationTagsInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
+    tags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
+
+    "Hottest tag list"
+    hottestTags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
     "Gloabl article list, sort by activities in recent 72 hours."
     topics(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global user list, sort by activities in recent 6 month."
-    authors(input: AuthorsInput!): UserConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
+    authors(input: RecommendInput!): UserConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
 
     "Personalized recommendation based on interaction with tags."
     interest(input: ConnectionArgs!): ArticleConnection!
@@ -188,16 +191,16 @@ export default /* GraphQL */ `
     recommendArticles(input: ConnectionArgs!): ArticleConnection!
   }
 
-  input AuthorsInput {
+  input RecommendInput {
     after: String
     first: Int
     oss: Boolean
-    filter: AuthorsFilter
+    filter: FilterInput
     type: AuthorsType
   }
 
-  input AuthorsFilter {
-    "index of author list, min: 0, max: 49"
+  input FilterInput {
+    "index of list, min: 0, max: 49"
     random: NonNegativeInt
     followed: Boolean
   }
@@ -498,18 +501,6 @@ export default /* GraphQL */ `
   input MigrationInput {
     type: MigrationType
     files: [Upload]!
-  }
-
-  input RecommendationTagsInput {
-    after: String
-    first: Int
-    oss: Boolean
-    filter: RecommendationTagsFilter
-  }
-
-  input RecommendationTagsFilter {
-    "index of tag list, min: 0, max: 49"
-    random: NonNegativeInt
   }
 
   enum BadgeType {
