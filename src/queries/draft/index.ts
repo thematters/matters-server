@@ -3,12 +3,16 @@ import slugify from '@matters/slugify'
 import { countWords, makeSummary, toGlobalId } from 'common/utils'
 
 import article from './article'
+import articleDrafts from './article/drafts'
 import assets from './assets'
 import collection from './collection'
 import draftCover from './cover'
 import drafts from './drafts'
 
 export default {
+  Article: {
+    drafts: articleDrafts,
+  },
   User: {
     drafts,
   },

@@ -145,7 +145,7 @@ jobs:
 
       - name: Deploy to EB (develop)
         if: github.ref == 'refs/heads/develop'
-        uses: einaregilsson/beanstalk-deploy@v11
+        uses: einaregilsson/beanstalk-deploy@v14
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -182,7 +182,7 @@ jobs:
 
       - name: Deploy to EB (stage)
         if: github.ref == 'refs/heads/stage'
-        uses: einaregilsson/beanstalk-deploy@v11
+        uses: einaregilsson/beanstalk-deploy@v14
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -243,7 +243,7 @@ jobs:
 
       - name: Deploy to EB (production)
         if: github.ref == 'refs/heads/master'
-        uses: einaregilsson/beanstalk-deploy@v11
+        uses: einaregilsson/beanstalk-deploy@v14
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
