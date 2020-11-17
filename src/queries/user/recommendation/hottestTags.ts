@@ -1,4 +1,4 @@
-import { sampleSize } from 'lodash'
+import { chunk } from 'lodash'
 
 import {
   connectionFromArray,
@@ -21,13 +21,15 @@ export const hottestTags: RecommendationToHottestTagsResolver = async (
     const MAX_RANDOM_INDEX = 50
     const randomDraw = first || 5
 
-    const authorPool = await userService.recommendTags({
+    const tagPool = await userService.recommendTags({
       limit: MAX_RANDOM_INDEX * randomDraw,
     })
 
-    const filteredAuthors = sampleSize(authorPool, MAX_RANDOM_INDEX) || []
+    const chunks = chunk(tagPool, randomDraw)
+    const index = Math.min(filter.random, MAX_RANDOM_INDEX, chunks.length - 1)
+    const tags = chunks[index] || []
 
-    return connectionFromArray(filteredAuthors, input, authorPool.length)
+    return connectionFromArray(tags, input, tagPool.length)
   }
 
   const offset = cursorToIndex(after) + 1

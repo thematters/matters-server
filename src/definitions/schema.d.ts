@@ -594,6 +594,11 @@ export interface GQLRecommendation {
   hottestTags: GQLTagConnection
 
   /**
+   * Selected tag list
+   */
+  selectedTags: GQLTagConnection
+
+  /**
    * Gloabl article list, sort by activities in recent 72 hours.
    */
   topics: GQLArticleConnection
@@ -1846,10 +1851,12 @@ export interface GQLMutation {
    * #############
    *      OSS    #
    * #############
+   * @deprecated No longer in use
    */
   toggleArticleLive: GQLArticle
   toggleArticleRecommend: GQLArticle
   updateArticleState: GQLArticle
+  toggleTagRecommend: GQLTag
   deleteTags?: boolean
   renameTag: GQLTag
   mergeTags: GQLTag
@@ -2116,10 +2123,10 @@ export interface GQLDeleteArticlesTagsInput {
   articles?: Array<string>
 }
 
-export interface GQLToggleArticleRecommendInput {
+export interface GQLToggleRecommendInput {
   id: string
   enabled: boolean
-  type: GQLRecommendTypes
+  type?: GQLRecommendTypes
 }
 
 /**
@@ -4649,6 +4656,7 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   valued?: RecommendationToValuedResolver<TParent>
   tags?: RecommendationToTagsResolver<TParent>
   hottestTags?: RecommendationToHottestTagsResolver<TParent>
+  selectedTags?: RecommendationToSelectedTagsResolver<TParent>
   topics?: RecommendationToTopicsResolver<TParent>
   authors?: RecommendationToAuthorsResolver<TParent>
   interest?: RecommendationToInterestResolver<TParent>
@@ -4800,6 +4808,21 @@ export interface RecommendationToHottestTagsResolver<
   (
     parent: TParent,
     args: RecommendationToHottestTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RecommendationToSelectedTagsArgs {
+  input: GQLRecommendInput
+}
+export interface RecommendationToSelectedTagsResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: RecommendationToSelectedTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7467,6 +7490,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
   updateArticleState?: MutationToUpdateArticleStateResolver<TParent>
+  toggleTagRecommend?: MutationToToggleTagRecommendResolver<TParent>
   deleteTags?: MutationToDeleteTagsResolver<TParent>
   renameTag?: MutationToRenameTagResolver<TParent>
   mergeTags?: MutationToMergeTagsResolver<TParent>
@@ -7686,7 +7710,7 @@ export interface MutationToToggleArticleLiveResolver<
 }
 
 export interface MutationToToggleArticleRecommendArgs {
-  input: GQLToggleArticleRecommendInput
+  input: GQLToggleRecommendInput
 }
 export interface MutationToToggleArticleRecommendResolver<
   TParent = any,
@@ -7710,6 +7734,21 @@ export interface MutationToUpdateArticleStateResolver<
   (
     parent: TParent,
     args: MutationToUpdateArticleStateArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleTagRecommendArgs {
+  input: GQLToggleRecommendInput
+}
+export interface MutationToToggleTagRecommendResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleTagRecommendArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

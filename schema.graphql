@@ -1300,8 +1300,10 @@ type Mutation {
   #############
   """
   toggleArticleLive(input: ToggleItemInput!): Article!
-  toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article!
+    @deprecated(reason: "No longer in use")
+  toggleArticleRecommend(input: ToggleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
+  toggleTagRecommend(input: ToggleRecommendInput!): Tag!
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
@@ -1966,6 +1968,11 @@ type Recommendation {
   hottestTags(input: RecommendInput!): TagConnection!
 
   """
+  Selected tag list
+  """
+  selectedTags(input: RecommendInput!): TagConnection!
+
+  """
   Gloabl article list, sort by activities in recent 72 hours.
   """
   topics(input: ConnectionArgs!): ArticleConnection!
@@ -2520,18 +2527,18 @@ enum TagsSort {
 
 scalar Time
 
-input ToggleArticleRecommendInput {
-  id: ID!
-  enabled: Boolean!
-  type: RecommendTypes!
-}
-
 """
 Common input to toggle single item for `toggleXXX` mutations
 """
 input ToggleItemInput {
   id: ID!
   enabled: Boolean
+}
+
+input ToggleRecommendInput {
+  id: ID!
+  enabled: Boolean!
+  type: RecommendTypes
 }
 
 type Transaction {

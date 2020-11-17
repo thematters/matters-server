@@ -176,7 +176,10 @@ export default /* GraphQL */ `
     tags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
     "Hottest tag list"
-    hottestTags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    hottestTags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
+
+    "Selected tag list"
+    selectedTags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
     "Gloabl article list, sort by activities in recent 72 hours."
     topics(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
