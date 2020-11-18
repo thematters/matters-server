@@ -80,4 +80,3 @@ exports.down = function (knex) {
   drop view ${view} cascade;
   `)
 }
-
