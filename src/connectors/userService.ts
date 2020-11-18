@@ -35,6 +35,7 @@ import logger from 'common/logger'
 import { generatePasswordhash } from 'common/utils'
 import { BaseService, OAuthService } from 'connectors'
 import {
+  GQLAuthorsType,
   GQLResetPasswordType,
   GQLSearchInput,
   GQLUpdateUserInfoInput,
@@ -1154,19 +1155,44 @@ export class UserService extends BaseService {
   countAuthor = async ({
     notIn = [],
     oss = false,
+    type = GQLAuthorsType.default,
   }: {
     notIn?: string[]
     oss?: boolean
+    type: GQLAuthorsType
   }) => {
-    const table = oss
-      ? 'user_reader_view'
-      : MATERIALIZED_VIEW.userReaderMaterialized
-    const result = await this.knex(table)
-      .where({ state: USER_STATE.active })
-      .whereNotIn('id', notIn)
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
+    switch (type) {
+      case GQLAuthorsType.default: {
+        const table = oss
+          ? 'user_reader_view'
+          : MATERIALIZED_VIEW.userReaderMaterialized
+        const result = await this.knex(table)
+          .where({ state: USER_STATE.active })
+          .whereNotIn('id', notIn)
+          .count()
+          .first()
+        return parseInt(result ? (result.count as string) : '0', 10)
+      }
+      case GQLAuthorsType.active:
+      case GQLAuthorsType.appreciated:
+      case GQLAuthorsType.trendy: {
+        const view =
+          type === GQLAuthorsType.active
+            ? 'most_active_author_materialized'
+            : type === GQLAuthorsType.appreciated
+            ? 'most_appreciated_author_materialized'
+            : 'most_trendy_author_materialized'
+        const result = await this.knex
+          .from({ view })
+          .innerJoin('user', 'view.id', 'user.id')
+          .where({ state: USER_STATE.active })
+          .whereNotIn('view.id', notIn)
+          .count()
+          .first()
+        return parseInt(result ? (result.count as string) : '0', 10)
+      }
+    }
+    return 0
   }
 
   recommendAuthor = async ({
@@ -1174,24 +1200,51 @@ export class UserService extends BaseService {
     offset = 0,
     notIn = [],
     oss = false,
+    type = GQLAuthorsType.default,
   }: {
     limit?: number
     offset?: number
     notIn?: string[]
     oss?: boolean
+    type?: GQLAuthorsType
   }) => {
-    const table = oss
-      ? 'user_reader_view'
-      : MATERIALIZED_VIEW.userReaderMaterialized
-    const result = await this.knex(table)
-      .select()
-      .orderByRaw('author_score DESC NULLS LAST')
-      .orderBy('id', 'desc')
-      .offset(offset)
-      .limit(limit)
-      .where({ state: USER_STATE.active })
-      .whereNotIn('id', notIn)
-    return result
+    switch (type) {
+      case GQLAuthorsType.default: {
+        const table = oss
+          ? 'user_reader_view'
+          : MATERIALIZED_VIEW.userReaderMaterialized
+        const result = await this.knex(table)
+          .select()
+          .orderByRaw('author_score DESC NULLS LAST')
+          .orderBy('id', 'desc')
+          .offset(offset)
+          .limit(limit)
+          .where({ state: USER_STATE.active })
+          .whereNotIn('id', notIn)
+        return result
+      }
+      case GQLAuthorsType.active:
+      case GQLAuthorsType.appreciated:
+      case GQLAuthorsType.trendy: {
+        const view =
+          type === GQLAuthorsType.active
+            ? 'most_active_author_materialized'
+            : type === GQLAuthorsType.appreciated
+            ? 'most_appreciated_author_materialized'
+            : 'most_trendy_author_materialized'
+
+        const result = await this.knex
+          .select()
+          .from({ view })
+          .innerJoin('user', 'view.id', 'user.id')
+          .offset(offset)
+          .limit(limit)
+          .where({ state: USER_STATE.active })
+          .whereNotIn('view.id', notIn)
+        return result
+      }
+    }
+    return []
   }
 
   findBoost = async (userId: string) => {

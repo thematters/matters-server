@@ -6,20 +6,29 @@ import {
   connectionFromPromisedArray,
   cursorToIndex,
 } from 'common/utils'
-import { RecommendationToAuthorsResolver } from 'definitions'
+import { GQLAuthorsType, RecommendationToAuthorsResolver } from 'definitions'
 
 export const authors: RecommendationToAuthorsResolver = async (
   { id },
   { input },
   { dataSources: { userService }, viewer }
 ) => {
-  const { first, after, filter, oss = false } = input
+  const {
+    first,
+    after,
+    filter,
+    oss = false,
+    type = GQLAuthorsType.default,
+  } = input
 
   if (oss) {
     if (!viewer.hasRole('admin')) {
       throw new ForbiddenError('only admin can access oss')
     }
   }
+
+  const isDefault = type === GQLAuthorsType.default
+  const isAppreciated = type === GQLAuthorsType.appreciated
 
   /**
    * Filter out followed users
@@ -35,16 +44,25 @@ export const authors: RecommendationToAuthorsResolver = async (
   }
 
   /**
+   * Filter out top 60 trendy authors if type is most appreciated
+   */
+  if (isAppreciated) {
+    const trendyAuthors = await userService.recommendAuthor({ limit: 60, type })
+    notIn = [...notIn, ...trendyAuthors.map((author) => author.id)]
+  }
+
+  /**
    * Pick randomly
    */
   if (typeof filter?.random === 'number') {
-    const MAX_RANDOM_INDEX = 50
-    const randomDraw = first || 5
+    const MAX_RANDOM_INDEX = isDefault ? 50 : 6
+    const randomDraw = isDefault ? first || 5 : 10
 
     const authorPool = await userService.recommendAuthor({
       limit: MAX_RANDOM_INDEX * randomDraw,
       notIn,
       oss,
+      type,
     })
 
     const chunks = chunk(authorPool, randomDraw)
@@ -57,6 +75,7 @@ export const authors: RecommendationToAuthorsResolver = async (
   const offset = cursorToIndex(after) + 1
   const totalCount = await userService.countAuthor({
     notIn,
+    type,
   })
 
   return connectionFromPromisedArray(
@@ -64,6 +83,7 @@ export const authors: RecommendationToAuthorsResolver = async (
       offset,
       notIn,
       limit: first,
+      type,
     }),
     input,
     totalCount

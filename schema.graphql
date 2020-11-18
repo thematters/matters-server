@@ -492,6 +492,14 @@ input AuthorsInput {
   first: Int
   oss: Boolean
   filter: AuthorsFilter
+  type: AuthorsType
+}
+
+enum AuthorsType {
+  active
+  appreciated
+  default
+  trendy
 }
 
 type AuthResult {

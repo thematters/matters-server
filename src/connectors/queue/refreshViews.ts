@@ -139,6 +139,42 @@ class RefreshViewsQueue extends BaseQueue {
         },
       }
     )
+
+    // refresh most active author view every 6 hours
+    this.q.add(
+      QUEUE_JOB.refreshMostActiveAuthorView,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: HOUR * 6, // every 6 hours
+        },
+      }
+    )
+
+    // refresh most appreciated authors view every 6.1 hours
+    this.q.add(
+      QUEUE_JOB.refreshMostAppreciatedAuthorView,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: HOUR * 6.1, // every 6.1 hours
+        },
+      }
+    )
+
+    // refresh most trendy authors view every 6.2 hours
+    this.q.add(
+      QUEUE_JOB.refreshMostTrendyAuthorView,
+      {},
+      {
+        priority: QUEUE_PRIORITY.MEDIUM,
+        repeat: {
+          every: HOUR * 6.2, // every 6.2 hours
+        },
+      }
+    )
   }
 
   /**
@@ -185,6 +221,18 @@ class RefreshViewsQueue extends BaseQueue {
     this.q.process(
       QUEUE_JOB.refreshArticleHottestBView,
       this.handleRefreshView('article_hottest_b_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshMostActiveAuthorView,
+      this.handleRefreshView('most_active_author_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshMostAppreciatedAuthorView,
+      this.handleRefreshView('most_appreciated_author_materialized')
+    )
+    this.q.process(
+      QUEUE_JOB.refreshMostTrendyAuthorView,
+      this.handleRefreshView('most_trendy_author_materialized')
     )
   }
 
