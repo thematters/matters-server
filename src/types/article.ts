@@ -76,6 +76,9 @@ export default /* GraphQL */ `
     "Time of this article was created."
     createdAt: DateTime!
 
+    "Time of this article was revised."
+    revisedAt: DateTime
+
     "State of this article."
     state: ArticleState!
 
@@ -163,6 +166,9 @@ export default /* GraphQL */ `
     # OSS
     oss: ArticleOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
+
+    "Drafts linked to this article."
+    drafts: [Draft!]
   }
 
   "This type contains content, count and related data of an article tag."
@@ -272,6 +278,7 @@ export default /* GraphQL */ `
     state: ArticleState
     sticky: Boolean
     tags: [String!]
+    content: String
     cover: ID
     collection: [ID!]
   }

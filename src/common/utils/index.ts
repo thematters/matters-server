@@ -21,6 +21,7 @@ export * from './makeStreamToBuffer'
 export * from './content'
 export * from './scope'
 export * from './payment'
+export * from './text'
 export * from './time'
 export * from './featureFlag'
 
@@ -35,7 +36,7 @@ export const makeUserName = (email: string): string => {
     return ''
   }
 
-  return matched.join('').substring(0, 18)
+  return matched.join('').substring(0, 12)
 }
 
 export const extractAssetDataFromHtml = (

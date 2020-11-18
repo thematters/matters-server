@@ -233,6 +233,40 @@ export default /* GraphQL */ `
     target: Article @logCache(type: "${NODE_TYPES.article}")
   }
 
+  """
+  This type has info about user's revised article publihsed successfully.
+  """
+  type RevisedArticlePublishedNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "The article that has been published."
+    target: Article @logCache(type: "${NODE_TYPES.article}")
+  }
+
+  """
+  This type has info about user's revised article publihsed unsuccessfully.
+  """
+  type RevisedArticleNotPublishedNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "The article that has been published."
+    target: Article @logCache(type: "${NODE_TYPES.article}")
+  }
+
   #################################
   #                               #
   #           Comment             #
