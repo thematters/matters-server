@@ -54,6 +54,9 @@ export default /* GraphQL */ `
 
     "Published article"
     article: Article @logCache(type: "${NODE_TYPES.article}")
+
+    "Media hash, composed of cid encoding, of this draft."
+    mediaHash: String
   }
 
   type DraftConnection implements Connection {

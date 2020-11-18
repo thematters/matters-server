@@ -92,6 +92,7 @@ export type TableName =
   | 'action_tag'
   | 'transaction'
   | 'asset'
+  | 'asset_map'
   | 'article'
   | 'article_read_count'
   | 'article_tag'

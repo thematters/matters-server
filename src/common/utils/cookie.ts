@@ -13,10 +13,12 @@ const getCookieOption = ({
   req,
   httpOnly,
   publicSuffix,
+  sameSite,
 }: {
   req: Request
   httpOnly?: boolean
   publicSuffix?: boolean
+  sameSite: boolean | 'strict' | 'lax' | 'none' | undefined
 }) => {
   const origin = req.headers.origin || ''
   const isLocalDev = /(localhost|127\.0\.0\.1):\d+$/.test(origin)
@@ -28,7 +30,7 @@ const getCookieOption = ({
     httpOnly,
     secure: req.protocol === 'https',
     domain,
-    sameSite: isLocalDev ? undefined : 'strict',
+    sameSite: isLocalDev ? undefined : sameSite,
   } as CookieOptions
 }
 
@@ -48,18 +50,35 @@ export const setCookie = ({
     return
   }
 
-  res.cookie(COOKIE_TOKEN_NAME, token, getCookieOption({ req, httpOnly: true }))
+  res.cookie(
+    COOKIE_TOKEN_NAME,
+    token,
+    getCookieOption({ req, httpOnly: true, sameSite: 'strict' })
+  )
   res.cookie(
     COOKIE_USER_GROUP,
     getUserGroup(user),
-    getCookieOption({ req, httpOnly: false, publicSuffix: true })
+    getCookieOption({
+      req,
+      httpOnly: false,
+      publicSuffix: true,
+      sameSite: 'lax',
+    })
   )
 }
 
 export const clearCookie = ({ req, res }: { req: Request; res: Response }) => {
-  res.clearCookie(COOKIE_TOKEN_NAME, getCookieOption({ req, httpOnly: true }))
+  res.clearCookie(
+    COOKIE_TOKEN_NAME,
+    getCookieOption({ req, httpOnly: true, sameSite: 'strict' })
+  )
   res.clearCookie(
     COOKIE_USER_GROUP,
-    getCookieOption({ req, httpOnly: false, publicSuffix: true })
+    getCookieOption({
+      req,
+      httpOnly: false,
+      publicSuffix: true,
+      sameSite: 'lax',
+    })
   )
 }
