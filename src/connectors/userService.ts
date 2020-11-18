@@ -909,7 +909,10 @@ export class UserService extends BaseService {
    *
    */
   countFollowingTags = async (userId: string) => {
-    const result = await this.knex('action_tag').where({ userId }).first()
+    const result = await this.knex('action_tag')
+      .where({ userId })
+      .count()
+      .first()
 
     return parseInt(result ? (result.count as string) : '0', 10)
   }
