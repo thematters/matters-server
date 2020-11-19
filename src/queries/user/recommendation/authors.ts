@@ -55,8 +55,8 @@ export const authors: RecommendationToAuthorsResolver = async (
    * Pick randomly
    */
   if (typeof filter?.random === 'number') {
-    const MAX_RANDOM_INDEX = isDefault ? 50 : 6
-    const randomDraw = isDefault ? first || 5 : 10
+    const MAX_RANDOM_INDEX = isDefault ? 50 : 12
+    const randomDraw = isDefault ? first || 5 : 5
 
     const authorPool = await userService.recommendAuthor({
       limit: MAX_RANDOM_INDEX * randomDraw,
