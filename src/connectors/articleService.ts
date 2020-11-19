@@ -77,42 +77,24 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Publish an article to IPFS
+   * Create a active article with linked draft
    */
-  publish = async ({
-    id,
-    authorId,
-    content,
-    cover,
-    summary: draftSummary,
-    title,
-  }: Record<string, any>) => {
-    // pre-process data
-    const summary = draftSummary || makeSummary(content)
-
-    // publish content to IPFS
-    const { dataHash, mediaHash } = await this.publishToIPFS({
-      authorId,
-      title,
-      content,
-      cover,
-      summary,
-    })
-
-    // craete article
+  createArticle = async (draft: {
+    draftId: string
+    authorId: string
+    title: string
+    slug: string
+    wordCount: number
+    summary: string
+    content: string
+    cover: string
+    dataHash: string
+    mediaHash: string
+  }) => {
     const article = await this.baseCreate({
       uuid: v4(),
-      authorId,
-      title,
-      slug: slugify(title),
-      wordCount: countWords(content),
-      summary,
-      content,
-      cover,
-      dataHash,
-      mediaHash,
       state: ARTICLE_STATE.active,
-      draftId: id,
+      ...draft,
     })
 
     return article
@@ -1335,7 +1317,11 @@ export class ArticleService extends BaseService {
     // or total length longer than 30 minutes,
     // or if a visitor read with a new ip,
     // add a new count and update last read timestamp
-    if (lapse > MINUTE * 5 || readLength > MINUTE * 30 || (!userId && ip !== oldData.ip)) {
+    if (
+      lapse > MINUTE * 5 ||
+      readLength > MINUTE * 30 ||
+      (!userId && ip !== oldData.ip)
+    ) {
       await this.baseUpdate(
         oldData.id,
         {
