@@ -79,22 +79,31 @@ export class ArticleService extends BaseService {
   /**
    * Create a active article with linked draft
    */
-  createArticle = async (draft: {
-    draftId: string
-    authorId: string
-    title: string
-    slug: string
-    wordCount: number
-    summary: string
-    content: string
-    cover: string
-    dataHash: string
-    mediaHash: string
-  }) => {
+  createArticle = async ({
+    draftId,
+    authorId,
+    title,
+    slug,
+    wordCount,
+    summary,
+    content,
+    cover,
+    dataHash,
+    mediaHash,
+  }: Record<string, any>) => {
     const article = await this.baseCreate({
       uuid: v4(),
       state: ARTICLE_STATE.active,
-      ...draft,
+      draftId,
+      authorId,
+      title,
+      slug,
+      wordCount,
+      summary,
+      content,
+      cover,
+      dataHash,
+      mediaHash,
     })
 
     return article
