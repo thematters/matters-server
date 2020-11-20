@@ -122,6 +122,7 @@ export type TableName =
   | 'user_boost'
   | 'matters_today'
   | 'matters_choice'
+  | 'matters_choice_tag'
   | 'article_recommend_setting'
   | 'log_record'
   | 'oauth_client'

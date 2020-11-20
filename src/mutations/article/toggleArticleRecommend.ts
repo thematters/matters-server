@@ -4,7 +4,7 @@ import { MutationToToggleArticleRecommendResolver } from 'definitions'
 
 const resolver: MutationToToggleArticleRecommendResolver = async (
   root,
-  { input: { id, enabled, type } },
+  { input: { id, enabled, type = 'icymi' } },
   { viewer, dataSources: { articleService, draftService } }
 ) => {
   const { id: dbId } = fromGlobalId(id)

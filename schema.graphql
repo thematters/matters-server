@@ -481,20 +481,6 @@ enum AssetType {
   tagCover
 }
 
-input AuthorsFilter {
-  """index of author list, min: 0, max: 49"""
-  random: NonNegativeInt
-  followed: Boolean
-}
-
-input AuthorsInput {
-  after: String
-  first: Int
-  oss: Boolean
-  filter: AuthorsFilter
-  type: AuthorsType
-}
-
 enum AuthorsType {
   active
   appreciated
@@ -854,6 +840,12 @@ enum FeatureName {
   tag_adoption
 }
 
+input FilterInput {
+  """index of list, min: 0, max: 49"""
+  random: NonNegativeInt
+  followed: Boolean
+}
+
 type FolloweeDonatedArticle {
   article: Article!
   followee: User!
@@ -958,9 +950,10 @@ type Mutation {
        OSS    #
   #############
   """
-  toggleArticleLive(input: ToggleItemInput!): Article!
-  toggleArticleRecommend(input: ToggleArticleRecommendInput!): Article!
+  toggleArticleLive(input: ToggleItemInput!): Article! @deprecated(reason: "No longer in use")
+  toggleArticleRecommend(input: ToggleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
+  toggleTagRecommend(input: ToggleRecommendInput!): Tag!
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
@@ -1451,13 +1444,19 @@ type Recommendation {
   valued(input: ConnectionArgs!): ArticleConnection!
 
   """Global tag list, sort by activities in recent 14 days."""
-  tags(input: RecommendationTagsInput!): TagConnection!
+  tags(input: RecommendInput!): TagConnection!
+
+  """Hottest tag list"""
+  hottestTags(input: RecommendInput!): TagConnection!
+
+  """Selected tag list"""
+  selectedTags(input: RecommendInput!): TagConnection!
 
   """Gloabl article list, sort by activities in recent 72 hours."""
   topics(input: ConnectionArgs!): ArticleConnection!
 
   """Global user list, sort by activities in recent 6 month."""
-  authors(input: AuthorsInput!): UserConnection!
+  authors(input: RecommendInput!): UserConnection!
 
   """Personalized recommendation based on interaction with tags."""
   interest(input: ConnectionArgs!): ArticleConnection!
@@ -1466,16 +1465,12 @@ type Recommendation {
   recommendArticles(input: ConnectionArgs!): ArticleConnection!
 }
 
-input RecommendationTagsFilter {
-  """index of tag list, min: 0, max: 49"""
-  random: NonNegativeInt
-}
-
-input RecommendationTagsInput {
+input RecommendInput {
   after: String
   first: Int
   oss: Boolean
-  filter: RecommendationTagsFilter
+  filter: FilterInput
+  type: AuthorsType
 }
 
 """Enums for types of recommend articles."""
@@ -1891,16 +1886,16 @@ enum TagsSort {
 
 scalar Time
 
-input ToggleArticleRecommendInput {
-  id: ID!
-  enabled: Boolean!
-  type: RecommendTypes!
-}
-
 """Common input to toggle single item for `toggleXXX` mutations"""
 input ToggleItemInput {
   id: ID!
   enabled: Boolean
+}
+
+input ToggleRecommendInput {
+  id: ID!
+  enabled: Boolean!
+  type: RecommendTypes
 }
 
 type Transaction {
