@@ -11,6 +11,7 @@ import renameTag from './renameTag'
 import toggleArticleLive from './toggleArticleLive'
 import toggleArticleRecommend from './toggleArticleRecommend'
 import toggleSubscribeArticle from './toggleSubscribeArticle'
+import toggleTagRecommend from './toggleTagRecommend'
 import updateArticlesTags from './updateArticlesTags'
 import updateArticleState from './updateArticleState'
 import updateTagSetting from './updateTagSetting'
@@ -33,5 +34,6 @@ export default {
     deleteArticlesTags,
     updateArticlesTags,
     updateTagSetting,
+    toggleTagRecommend,
   },
 }

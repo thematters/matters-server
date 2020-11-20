@@ -441,30 +441,6 @@ export class TagService extends BaseService {
    *                               *
    *********************************/
 
-  /**
-   * Find all tags in score-based order.
-   *
-   */
-  recommendTags = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-    oss = false,
-  }: {
-    limit?: number
-    offset?: number
-    oss?: boolean
-  }) => {
-    const table = oss
-      ? 'tag_count_view'
-      : MATERIALIZED_VIEW.tagCountMaterialized
-    return this.knex(table)
-      .select()
-      .orderByRaw('tag_score DESC NULLS LAST')
-      .orderBy('count', 'desc')
-      .limit(limit)
-      .offset(offset)
-  }
-
   findBoost = async (tagId: string) => {
     const tagBoost = await this.knex('tag_boost')
       .select()
@@ -576,6 +552,40 @@ export class TagService extends BaseService {
       .offset(offset)
     return query
   }
+
+  /**
+   *
+   * query, add and remove tag recommendation
+   */
+
+  selected = async ({
+    limit = BATCH_SIZE,
+    offset = 0,
+  }: {
+    limit?: number
+    offset?: number
+  }) =>
+    this.knex('tag')
+      .select('tag.*', 'c.updated_at as chose_at')
+      .join('matters_choice_tag as c', 'c.tag_id', 'tag.id')
+      .orderBy('chose_at', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+  countSelectedTags = async () => {
+    const result = await this.knex('matters_choice_tag').count().first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
+  addTagRecommendation = (tagId: string) =>
+    this.baseFindOrCreate({
+      where: { tagId },
+      data: { tagId },
+      table: 'matters_choice_tag',
+    })
+
+  removeTagRecommendation = (tagId: string) =>
+    this.knex('matters_choice_tag').where({ tagId }).del()
 
   /*********************************
    *                               *

@@ -1330,6 +1330,86 @@ export class UserService extends BaseService {
     return body.hits.hits.map((hit: any) => ({ ...hit, id: hit._id }))
   }
 
+  recommendTags = ({ limit = 5, offset = 0 }) =>
+    this.knex('tag')
+      .select('*')
+      .join(
+        this.knex('article_tag')
+          .select('tag_id')
+          .max('created_at', { as: 'last_article_added' })
+          .count('id', { as: 'article_count' })
+          .groupBy('tag_id')
+          .as('t1'),
+        function () {
+          this.on('t1.tag_id', '=', 'tag.id')
+        }
+      )
+      .join(
+        this.knex('action_tag')
+          .select('target_id')
+          .max('created_at', { as: 'last_follower_added' })
+          .count('id', { as: 'follower_count' })
+          .where('action', 'follow')
+          .groupBy('target_id')
+          .as('t2'),
+        function () {
+          this.on('t2.target_id', '=', 'tag.id')
+        }
+      )
+      .where(
+        'last_article_added',
+        '>=',
+        this.knex.raw(`now() - interval '2 month'`)
+      )
+      .orWhere(
+        'last_follower_added',
+        '>=',
+        this.knex.raw(`now() - interval '2 month'`)
+      )
+      .andWhere('article_count', '>=', 8)
+      .orderBy('follower_count', 'desc')
+      .offset(offset)
+      .limit(limit)
+
+  countRecommendTags = async () => {
+    const result = await this.knex()
+      .count('*')
+      .from(
+        this.knex('article_tag')
+          .select('tag_id')
+          .max('created_at', { as: 'last_article_added' })
+          .count('id', { as: 'article_count' })
+          .groupBy('tag_id')
+          .as('t1')
+      )
+      .fullOuterJoin(
+        this.knex('action_tag')
+          .select('target_id')
+          .max('created_at', { as: 'last_follower_added' })
+          .count('id', { as: 'follower_count' })
+          .where('action', 'follow')
+          .groupBy('target_id')
+          .as('t2'),
+        function () {
+          this.on('t2.target_id', '=', 't1.tag_id')
+        }
+      )
+      .where(
+        'last_article_added',
+        '>=',
+        this.knex.raw(`now() - interval '2 month'`)
+      )
+      .orWhere(
+        'last_follower_added',
+        '>=',
+        this.knex.raw(`now() - interval '2 month'`)
+      )
+      .andWhere('article_count', '>=', 8)
+      .first()
+
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
+
   /*********************************
    *                               *
    *         Notify Setting        *

@@ -191,7 +191,7 @@ query($input: ConnectionArgs!) {
 `
 
 const GET_VIEWER_RECOMMENDATION_TAGS = `
-query($input: RecommendationTagsInput!) {
+query($input: RecommendInput!) {
   viewer {
     recommendation {
       tags(input: $input) {
@@ -207,7 +207,7 @@ query($input: RecommendationTagsInput!) {
 `
 
 const GET_AUTHOR_RECOMMENDATION = (list: string) => `
-query($input: AuthorsInput!) {
+query($input: RecommendInput!) {
   viewer {
     recommendation {
       ${list}(input: $input) {
