@@ -942,6 +942,7 @@ export interface GQLRecommendInput {
   first?: number
   oss?: boolean
   filter?: GQLFilterInput
+  type?: GQLAuthorsType
 }
 
 export interface GQLFilterInput {
@@ -953,22 +954,6 @@ export interface GQLFilterInput {
 }
 
 export type GQLNonNegativeInt = any
-
-export interface GQLAuthorsInput {
-  after?: string
-  first?: number
-  oss?: boolean
-  filter?: GQLAuthorsFilter
-  type?: GQLAuthorsType
-}
-
-export interface GQLAuthorsFilter {
-  /**
-   * index of author list, min: 0, max: 49
-   */
-  random?: GQLNonNegativeInt
-  followed?: boolean
-}
 
 export const enum GQLAuthorsType {
   active = 'active',

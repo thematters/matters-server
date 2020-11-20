@@ -1,17 +1,8 @@
-directive @cacheControl(
-  maxAge: Int
-  scope: CacheScope
-) on OBJECT | FIELD | FIELD_DEFINITION
+directive @cacheControl(maxAge: Int, scope: CacheScope) on OBJECT | FIELD | FIELD_DEFINITION
 
-directive @cost(
-  multipliers: [String]
-  useMultipliers: Boolean
-  complexity: CostComplexity
-) on OBJECT | FIELD_DEFINITION
+directive @cost(multipliers: [String], useMultipliers: Boolean, complexity: CostComplexity) on OBJECT | FIELD_DEFINITION
 
-"""
-Rate limit within a given period of time, in seconds
-"""
+"""Rate limit within a given period of time, in seconds"""
 directive @rateLimit(period: Int!, limit: Int!) on FIELD_DEFINITION
 
 directive @auth(mode: String!, group: String) on FIELD_DEFINITION
@@ -30,9 +21,7 @@ input AddArticlesTagsInput {
   selected: Boolean
 }
 
-"""
-Add Credit
-"""
+"""Add Credit"""
 input AddCreditInput {
   amount: PositiveFloat!
 }
@@ -40,9 +29,7 @@ input AddCreditInput {
 type AddCreditResult {
   transaction: Transaction!
 
-  """
-  The client secret of this PaymentIntent.
-  """
+  """The client secret of this PaymentIntent."""
   client_secret: String!
 }
 
@@ -58,24 +45,16 @@ type Appreciation {
   purpose: AppreciationPurpose!
   content: String!
 
-  """
-  Timestamp of appreciation.
-  """
+  """Timestamp of appreciation."""
   createdAt: DateTime!
 
-  """
-  Recipient of appreciation.
-  """
+  """Recipient of appreciation."""
   recipient: User!
 
-  """
-  Sender of appreciation.
-  """
+  """Sender of appreciation."""
   sender: User
 
-  """
-  Object that appreciation is meant for.
-  """
+  """Object that appreciation is meant for."""
   target: Article
 }
 
@@ -106,156 +85,94 @@ This type contains metadata, content, hash and related data of an article. If yo
 want information about article's comments. Please check Comment type.
 """
 type Article implements Node {
-  """
-  Unique ID of this article
-  """
+  """Unique ID of this article"""
   id: ID!
 
-  """
-  The number represents how popular is this article.
-  """
+  """The number represents how popular is this article."""
   topicScore: Int
 
-  """
-  Slugified article title.
-  """
+  """Slugified article title."""
   slug: String!
 
-  """
-  Time of this article was created.
-  """
+  """Time of this article was created."""
   createdAt: DateTime!
 
-  """
-  Time of this article was revised.
-  """
+  """Time of this article was revised."""
   revisedAt: DateTime
 
-  """
-  State of this article.
-  """
+  """State of this article."""
   state: ArticleState!
 
-  """
-  This value determines if this article is under Subscription or not.
-  """
+  """This value determines if this article is under Subscription or not."""
   live: Boolean!
 
-  """
-  Author of this article.
-  """
+  """Author of this article."""
   author: User!
 
-  """
-  Article title.
-  """
+  """Article title."""
   title: String!
 
-  """
-  Article cover's link.
-  """
+  """Article cover's link."""
   cover: URL
 
-  """
-  List of assets are belonged to this article.
-  """
+  """List of assets are belonged to this article."""
   assets: [Asset!]!
 
-  """
-  A short summary for this article.
-  """
+  """A short summary for this article."""
   summary: String!
 
-  """
-  Tags attached to this article.
-  """
+  """Tags attached to this article."""
   tags: [Tag!]
 
-  """
-  Word count of this article.
-  """
+  """Word count of this article."""
   wordCount: Int
 
-  """
-  IPFS hash of this article.
-  """
+  """IPFS hash of this article."""
   dataHash: String!
 
-  """
-  Media hash, composed of cid encoding, of this article.
-  """
+  """Media hash, composed of cid encoding, of this article."""
   mediaHash: String!
 
-  """
-  Content of this article.
-  """
+  """Content of this article."""
   content: String!
 
-  """
-  Original language of content
-  """
+  """Original language of content"""
   language: String
 
-  """
-  List of articles which added this article into their collections.
-  """
+  """List of articles which added this article into their collections."""
   collectedBy(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  List of articles added into this article' collection.
-  """
+  """List of articles added into this article' collection."""
   collection(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Related articles to this article.
-  """
+  """Related articles to this article."""
   relatedArticles(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Donation-related articles to this article.
-  """
-  relatedDonationArticles(
-    input: RelatedDonationArticlesInput!
-  ): ArticleConnection!
+  """Donation-related articles to this article."""
+  relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection!
 
-  """
-  Appreciations history of this article.
-  """
+  """Appreciations history of this article."""
   appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
 
-  """
-  Total number of appreciations recieved of this article.
-  """
+  """Total number of appreciations recieved of this article."""
   appreciationsReceivedTotal: Int!
 
-  """
-  Subscribers of this article.
-  """
+  """Subscribers of this article."""
   subscribers(input: ConnectionArgs!): UserConnection!
 
-  """
-  Limit the nuhmber of appreciate per user.
-  """
+  """Limit the nuhmber of appreciate per user."""
   appreciateLimit: Int!
 
-  """
-  Number represents how many times per user can appreciate this article.
-  """
+  """Number represents how many times per user can appreciate this article."""
   appreciateLeft: Int!
 
-  """
-  This value determines if current viewer has appreciated or not.
-  """
+  """This value determines if current viewer has appreciated or not."""
   hasAppreciate: Boolean!
 
-  """
-  This value determines if current viewer can SuperLike or not.
-  """
+  """This value determines if current viewer can SuperLike or not."""
   canSuperLike: Boolean!
 
-  """
-  This value determines if current Viewer has subscribed of not.
-  """
+  """This value determines if current Viewer has subscribed of not."""
   subscribed: Boolean!
 
   """
@@ -263,65 +180,41 @@ type Article implements Node {
   """
   sticky: Boolean!
 
-  """
-  Translation of article title and content.
-  """
+  """Translation of article title and content."""
   translation(input: TranslationArgs): ArticleTranslation
 
-  """
-  Transactions history of this article.
-  """
+  """Transactions history of this article."""
   transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
-  """
-  OSS
-  """
+  """OSS"""
   oss: ArticleOSS!
   remark: String
 
-  """
-  Drafts linked to this article.
-  """
+  """Drafts linked to this article."""
   drafts: [Draft!]
 
-  """
-  The counting number of comments.
-  """
+  """The counting number of comments."""
   commentCount: Int!
 
-  """
-  The number determines how many pinned comments can be set.
-  """
+  """The number determines how many pinned comments can be set."""
   pinCommentLimit: Int!
 
-  """
-  The number determines how many comments can be set as pinned comment.
-  """
+  """The number determines how many comments can be set as pinned comment."""
   pinCommentLeft: Int!
 
-  """
-  List of pinned comments.
-  """
+  """List of pinned comments."""
   pinnedComments: [Comment!]
 
-  """
-  List of featured comments of this article.
-  """
+  """List of featured comments of this article."""
   featuredComments(input: FeaturedCommentsInput!): CommentConnection!
 
-  """
-  List of comments of this article.
-  """
+  """List of comments of this article."""
   comments(input: CommentsInput!): CommentConnection!
 
-  """
-  The counting number of this article.
-  """
+  """The counting number of this article."""
   responseCount: Int!
 
-  """
-  List of responses of a article.
-  """
+  """List of responses of a article."""
   responses(input: ResponsesInput!): ResponseConnection!
 }
 
@@ -345,29 +238,19 @@ input ArticleInput {
 This notice type contains info about current user has been mentioned in an article.
 """
 type ArticleMentionedYouNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who mentioned current user.
-  """
+  """The user who mentioned current user."""
   actor: User!
 
-  """
-  The article that current user has been mentioned in.
-  """
+  """The article that current user has been mentioned in."""
   target: Article
 }
 
@@ -375,29 +258,19 @@ type ArticleMentionedYouNotice implements Notice {
 This notice type contains info about current user's article has been appreciated by others.
 """
 type ArticleNewAppreciationNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  List of users who appreciated current user's article.
-  """
+  """List of users who appreciated current user's article."""
   actors: [User]
 
-  """
-  The article that has been appreciated.
-  """
+  """The article that has been appreciated."""
   target: Article
 }
 
@@ -405,34 +278,22 @@ type ArticleNewAppreciationNotice implements Notice {
 This notice type contains info about current user's article has been collected by others.
 """
 type ArticleNewCollectedNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user collect current user's articles.
-  """
+  """The user collect current user's articles."""
   actor: User!
 
-  """
-  The article that collected current user's articles.
-  """
+  """The article that collected current user's articles."""
   collection: Article
 
-  """
-  The article that has been collected.
-  """
+  """The article that has been collected."""
   target: Article
 }
 
@@ -440,34 +301,22 @@ type ArticleNewCollectedNotice implements Notice {
 This notice type contains info about current user's article has new comment.
 """
 type ArticleNewCommentNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who comment current user's article.
-  """
+  """The user who comment current user's article."""
   actors: [User]
 
-  """
-  The article that has new comment.
-  """
+  """The article that has new comment."""
   target: Article
 
-  """
-  The comment data.
-  """
+  """The comment data."""
   comment: Comment
 }
 
@@ -484,29 +333,19 @@ type ArticleNewDownstreamNotice implements Notice {
 This notice type contains info about current user's article has been subscribed by others.
 """
 type ArticleNewSubscriberNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  List of users who subscribed current user's article.
-  """
+  """List of users who subscribed current user's article."""
   actors: [User]
 
-  """
-  The article that has been subscribed.
-  """
+  """The article that has been subscribed."""
   target: Article
 }
 
@@ -522,30 +361,20 @@ type ArticleOSS {
 This notice type contains info about current user's article publihsed successfully.
 """
 type ArticlePublishedNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The article that has been published.
-  """
+  """The article that has been published."""
   target: Article
 }
 
-"""
-Enums for an article state.
-"""
+"""Enums for an article state."""
 enum ArticleState {
   active
   archived
@@ -556,34 +385,22 @@ enum ArticleState {
 This notice type contains info about one user has added current user's article, and set it as selected.
 """
 type ArticleTagHasBeenAddedNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who replied current user's comment.
-  """
+  """The user who replied current user's comment."""
   actor: User!
 
-  """
-  The article has a new tag.
-  """
+  """The article has a new tag."""
   target: Article
 
-  """
-  The tag has been attached to an article.
-  """
+  """The tag has been attached to an article."""
   tag: Tag
 }
 
@@ -591,34 +408,22 @@ type ArticleTagHasBeenAddedNotice implements Notice {
 This notice type contains info about one uer has removed a tag from current user's article.
 """
 type ArticleTagHasBeenRemovedNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who replied current user's comment.
-  """
+  """The user who replied current user's comment."""
   actor: User!
 
-  """
-  The article loses a tag.
-  """
+  """The article loses a tag."""
   target: Article
 
-  """
-  The tag has been deattached from an article.
-  """
+  """The tag has been deattached from an article."""
   tag: Tag
 }
 
@@ -626,34 +431,22 @@ type ArticleTagHasBeenRemovedNotice implements Notice {
 This notice type contains info about one user has set current user's article unselected.
 """
 type ArticleTagHasBeenUnselectedNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who replied current user's comment.
-  """
+  """The user who replied current user's comment."""
   actor: User!
 
-  """
-  The article has a new tag.
-  """
+  """The article has a new tag."""
   target: Article
 
-  """
-  The tag has been attached to an article.
-  """
+  """The tag has been attached to an article."""
   tag: Tag
 }
 
@@ -662,34 +455,22 @@ type ArticleTranslation {
   content: String
 }
 
-"""
-This type contains type, link and related data of an asset.
-"""
+"""This type contains type, link and related data of an asset."""
 type Asset {
-  """
-  Unique ID of this Asset.
-  """
+  """Unique ID of this Asset."""
   id: ID!
 
-  """
-  Types of this asset.
-  """
+  """Types of this asset."""
   type: AssetType!
 
-  """
-  Link of this asset.
-  """
+  """Link of this asset."""
   path: String!
 
-  """
-  Time of this asset was created.
-  """
+  """Time of this asset was created."""
   createdAt: DateTime!
 }
 
-"""
-Enums for asset types.
-"""
+"""Enums for asset types."""
 enum AssetType {
   avatar
   cover
@@ -698,22 +479,6 @@ enum AssetType {
   profileCover
   oauthClientAvatar
   tagCover
-}
-
-input AuthorsFilter {
-  """
-  index of author list, min: 0, max: 49
-  """
-  random: NonNegativeInt
-  followed: Boolean
-}
-
-input AuthorsInput {
-  after: String
-  first: Int
-  oss: Boolean
-  filter: AuthorsFilter
-  type: AuthorsType
 }
 
 enum AuthorsType {
@@ -766,69 +531,43 @@ input ClearReadHistoryInput {
 This type contains content, author, descendant comments and related data of a comment.
 """
 type Comment implements Node {
-  """
-  Unique ID of this comment.
-  """
+  """Unique ID of this comment."""
   id: ID!
 
-  """
-  State of this comment.
-  """
+  """State of this comment."""
   state: CommentState!
 
-  """
-  Time of this comment was created.
-  """
+  """Time of this comment was created."""
   createdAt: DateTime!
 
-  """
-  Article that the comment is belonged to.
-  """
+  """Article that the comment is belonged to."""
   article: Article!
 
-  """
-  Content of this comment.
-  """
+  """Content of this comment."""
   content: String
 
-  """
-  Author of this comment.
-  """
+  """Author of this comment."""
   author: User!
 
-  """
-  This value determines this comment is pinned or not.
-  """
+  """This value determines this comment is pinned or not."""
   pinned: Boolean!
 
-  """
-  The counting number of upvotes.
-  """
+  """The counting number of upvotes."""
   upvotes: Int!
 
-  """
-  The counting number of downvotes.
-  """
+  """The counting number of downvotes."""
   downvotes: Int!
 
-  """
-  The value determines current user's vote.
-  """
+  """The value determines current user's vote."""
   myVote: Vote
 
-  """
-  Descendant comments of this comment.
-  """
+  """Descendant comments of this comment."""
   comments(input: CommentCommentsInput!): CommentConnection!
 
-  """
-  Parent comment of this comment.
-  """
+  """Parent comment of this comment."""
   parentComment: Comment
 
-  """
-  A Comment that this comment replied to.
-  """
+  """A Comment that this comment replied to."""
   replyTo: Comment
   remark: String
 }
@@ -871,34 +610,22 @@ type CommentMentionedYouNotice implements Notice {
 This notice type contains info about current user's comment has new reply.
 """
 type CommentNewReplyNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who replied current user's comment.
-  """
+  """The user who replied current user's comment."""
   actors: [User]
 
-  """
-  The comment that has new replied.
-  """
+  """The comment that has new replied."""
   target: Comment
 
-  """
-  The comment that replied to current user's existing comment.
-  """
+  """The comment that replied to current user's existing comment."""
   reply: Comment
 }
 
@@ -906,29 +633,19 @@ type CommentNewReplyNotice implements Notice {
 This notice type contains info about current user's comment has been pinned.
 """
 type CommentPinnedNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who pinned current user's comment.
-  """
+  """The user who pinned current user's comment."""
   actor: User!
 
-  """
-  The comment data.
-  """
+  """The comment data."""
   target: Comment
 }
 
@@ -948,17 +665,13 @@ input CommentsInput {
   filter: CommentsFilter
 }
 
-"""
-Enums for sorting comments by time.
-"""
+"""Enums for sorting comments by time."""
 enum CommentSort {
   oldest
   newest
 }
 
-"""
-Enums for comment state.
-"""
+"""Enums for comment state."""
 enum CommentState {
   active
   archived
@@ -1025,79 +738,49 @@ type DownstreamArticleArchivedNotice implements Notice {
 This type contains content, collections, assets and related data of a draft.
 """
 type Draft implements Node {
-  """
-  Unique ID of this draft.
-  """
+  """Unique ID of this draft."""
   id: ID!
 
-  """
-  Collection list of this draft.
-  """
+  """Collection list of this draft."""
   collection(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Draft title.
-  """
+  """Draft title."""
   title: String
 
-  """
-  Slugified draft title.
-  """
+  """Slugified draft title."""
   slug: String!
 
-  """
-  Summary of this draft.
-  """
+  """Summary of this draft."""
   summary: String
 
-  """
-  Content of this draft.
-  """
+  """Content of this draft."""
   content: String
 
-  """
-  Time of this draft was created.
-  """
+  """Time of this draft was created."""
   createdAt: DateTime!
 
-  """
-  Last time of this draft was upadted.
-  """
+  """Last time of this draft was upadted."""
   updatedAt: DateTime!
 
-  """
-  The counting number of words in this draft.
-  """
+  """The counting number of words in this draft."""
   wordCount: Int!
 
-  """
-  Tags are attached to this draft.
-  """
+  """Tags are attached to this draft."""
   tags: [String!]
 
-  """
-  Draft's cover link.
-  """
+  """Draft's cover link."""
   cover: URL
 
-  """
-  State of draft during publihsing.
-  """
+  """State of draft during publihsing."""
   publishState: PublishState!
 
-  """
-  List of assets are belonged to this draft.
-  """
+  """List of assets are belonged to this draft."""
   assets: [Asset!]!
 
-  """
-  Published article
-  """
+  """Published article"""
   article: Article
 
-  """
-  Media hash, composed of cid encoding, of this draft.
-  """
+  """Media hash, composed of cid encoding, of this draft."""
   mediaHash: String
 }
 
@@ -1158,9 +841,7 @@ enum FeatureName {
 }
 
 input FilterInput {
-  """
-  index of list, min: 0, max: 49
-  """
+  """index of list, min: 0, max: 49"""
   random: NonNegativeInt
   followed: Boolean
 }
@@ -1194,24 +875,16 @@ enum GrantType {
 scalar JSON
 
 type Liker {
-  """
-  Liker ID of LikeCoin
-  """
+  """Liker ID of LikeCoin"""
   likerId: String
 
-  """
-  Whether liker is a civic liker
-  """
+  """Whether liker is a civic liker"""
   civicLiker: Boolean!
 
-  """
-  Total LIKE left in wallet.
-  """
+  """Total LIKE left in wallet."""
   total: NonNegativeFloat!
 
-  """
-  Rate of LikeCoin/USD
-  """
+  """Rate of LikeCoin/USD"""
   rateUSD: NonNegativeFloat
 }
 
@@ -1239,59 +912,37 @@ enum MigrationType {
 }
 
 type Mutation {
-  """
-  Publish an article onto IPFS.
-  """
+  """Publish an article onto IPFS."""
   publishArticle(input: PublishArticleInput!): Draft!
 
-  """
-  Edit an article.
-  """
+  """Edit an article."""
   editArticle(input: EditArticleInput!): Article!
 
-  """
-  Subscribe or Unsubscribe article
-  """
+  """Subscribe or Unsubscribe article"""
   toggleSubscribeArticle(input: ToggleItemInput!): Article!
 
-  """
-  Appreciate an article.
-  """
+  """Appreciate an article."""
   appreciateArticle(input: AppreciateArticleInput!): Article!
 
-  """
-  Read an article.
-  """
+  """Read an article."""
   readArticle(input: ReadArticleInput!): Article!
 
-  """
-  Follow or unfollow tag.
-  """
+  """Follow or unfollow tag."""
   toggleFollowTag(input: ToggleItemInput!): Tag!
 
-  """
-  Create or update tag.
-  """
+  """Create or update tag."""
   putTag(input: PutTagInput!): Tag!
 
-  """
-  Update member, permission and othters of a tag.
-  """
+  """Update member, permission and othters of a tag."""
   updateTagSetting(input: UpdateTagSettingInput!): Tag!
 
-  """
-  Add one tag to articles.
-  """
+  """Add one tag to articles."""
   addArticlesTags(input: AddArticlesTagsInput!): Tag!
 
-  """
-  Update articles' tag.
-  """
+  """Update articles' tag."""
   updateArticlesTags(input: UpdateArticlesTagsInput!): Tag!
 
-  """
-  Delete one tag from articles
-  """
+  """Delete one tag from articles"""
   deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag!
 
   """
@@ -1299,8 +950,7 @@ type Mutation {
        OSS    #
   #############
   """
-  toggleArticleLive(input: ToggleItemInput!): Article!
-    @deprecated(reason: "No longer in use")
+  toggleArticleLive(input: ToggleItemInput!): Article! @deprecated(reason: "No longer in use")
   toggleArticleRecommend(input: ToggleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
   toggleTagRecommend(input: ToggleRecommendInput!): Tag!
@@ -1308,69 +958,43 @@ type Mutation {
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
 
-  """
-  Publish a comment.
-  """
+  """Publish a comment."""
   putComment(input: PutCommentInput!): Comment!
 
-  """
-  Remove a comment.
-  """
+  """Remove a comment."""
   deleteComment(input: DeleteCommentInput!): Comment!
 
-  """
-  Pin or Unpin a comment.
-  """
+  """Pin or Unpin a comment."""
   togglePinComment(input: ToggleItemInput!): Comment!
 
-  """
-  Upvote or downvote a comment.
-  """
+  """Upvote or downvote a comment."""
   voteComment(input: VoteCommentInput!): Comment!
 
-  """
-  Unvote a comment.
-  """
+  """Unvote a comment."""
   unvoteComment(input: UnvoteCommentInput!): Comment!
 
-  """
-  Update a comments' state.
-  """
+  """Update a comments' state."""
   updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]!
 
-  """
-  Pin a comment.
-  """
+  """Pin a comment."""
   pinComment(input: PinCommentInput!): Comment!
 
-  """
-  Unpin a comment.
-  """
+  """Unpin a comment."""
   unpinComment(input: UnpinCommentInput!): Comment!
 
-  """
-  Create or update a draft.
-  """
+  """Create or update a draft."""
   putDraft(input: PutDraftInput!): Draft!
 
-  """
-  Remove a draft.
-  """
+  """Remove a draft."""
   deleteDraft(input: DeleteDraftInput!): Boolean
 
-  """
-  Mark all received notices as read.
-  """
+  """Mark all received notices as read."""
   markAllNoticesAsRead: Boolean
 
-  """
-  Upload a single file.
-  """
+  """Upload a single file."""
   singleFileUpload(input: SingleFileUploadInput!): Asset!
 
-  """
-  Add specific user behavior record.
-  """
+  """Add specific user behavior record."""
   logRecord(input: LogRecordInput!): Boolean
 
   """
@@ -1383,119 +1007,73 @@ type Mutation {
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
   setFeature(input: SetFeatureInput!): Feature!
 
-  """
-  Send verification code for email.
-  """
+  """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
 
-  """
-  Confirm verification code from email.
-  """
+  """Confirm verification code from email."""
   confirmVerificationCode(input: ConfirmVerificationCodeInput!): ID!
 
-  """
-  Reset user or payment password.
-  """
+  """Reset user or payment password."""
   resetPassword(input: ResetPasswordInput!): Boolean
 
-  """
-  Change user email.
-  """
+  """Change user email."""
   changeEmail(input: ChangeEmailInput!): User!
 
-  """
-  Register user, can only be used on matters.news website.
-  """
+  """Register user, can only be used on matters.news website."""
   userRegister(input: UserRegisterInput!): AuthResult!
 
-  """
-  Login user.
-  """
+  """Login user."""
   userLogin(input: UserLoginInput!): AuthResult!
 
-  """
-  Logout user.
-  """
+  """Logout user."""
   userLogout: Boolean!
 
-  """
-  Generate or claim a Liker ID through LikeCoin
-  """
+  """Generate or claim a Liker ID through LikeCoin"""
   generateLikerId: User!
 
-  """
-  Update user information.
-  """
+  """Update user information."""
   updateUserInfo(input: UpdateUserInfoInput!): User!
 
-  """
-  Update user notification settings.
-  """
+  """Update user notification settings."""
   updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
 
-  """
-  Follow or Unfollow current user.
-  """
+  """Follow or Unfollow current user."""
   toggleFollowUser(input: ToggleItemInput!): User!
 
-  """
-  Block or Unblock a given user.
-  """
+  """Block or Unblock a given user."""
   toggleBlockUser(input: ToggleItemInput!): User!
 
-  """
-  Subscribe/ Unsubscribe Push Notification.
-  """
+  """Subscribe/ Unsubscribe Push Notification."""
   toggleSubscribePush(input: ToggleItemInput!): User!
 
-  """
-  Clear read history for user.
-  """
+  """Clear read history for user."""
   clearReadHistory(input: ClearReadHistoryInput!): Boolean
 
-  """
-  Clear search history for user.
-  """
+  """Clear search history for user."""
   clearSearchHistory: Boolean
 
-  """
-  Migrate articles from other service provider.
-  """
+  """Migrate articles from other service provider."""
   migration(input: MigrationInput!): Boolean
 
-  """
-  Update state of a user, used in OSS.
-  """
+  """Update state of a user, used in OSS."""
   updateUserState(input: UpdateUserStateInput!): [User!]
 
-  """
-  Update state of a user, used in OSS.
-  """
+  """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
 
-  """
-  Add Credit to User Wallet
-  """
+  """Add Credit to User Wallet"""
   addCredit(input: AddCreditInput!): AddCreditResult!
 
-  """
-  Pay to another user or article
-  """
+  """Pay to another user or article"""
   payTo(input: PayToInput!): PayToResult!
 
-  """
-  Payout to user
-  """
+  """Payout to user"""
   payout(input: PayoutInput!): Transaction!
 
-  """
-  Create Stripe Connect account for Payout
-  """
+  """Create Stripe Connect account for Payout"""
   connectStripeAccount: ConnectStripeAccountResult!
 
-  """
-  Create or Update an OAuth Client, used in OSS.
-  """
+  """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
 }
 
@@ -1527,23 +1105,15 @@ scalar NonPositiveFloat
 
 scalar NonPositiveInt
 
-"""
-This interface contains common fields of a notice.
-"""
+"""This interface contains common fields of a notice."""
 interface Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 }
 
@@ -1591,59 +1161,37 @@ enum NotificationSettingType {
 }
 
 type OAuthClient {
-  """
-  Unique Client ID of this OAuth Client.
-  """
+  """Unique Client ID of this OAuth Client."""
   id: ID!
 
-  """
-  App name
-  """
+  """App name"""
   name: String!
 
-  """
-  App Description
-  """
+  """App Description"""
   description: String
 
-  """
-  URL for oauth client's official website
-  """
+  """URL for oauth client's official website"""
   website: URL
 
-  """
-  Scopes
-  """
+  """Scopes"""
   scope: [String!]
 
-  """
-  URL for oauth client's avatar.
-  """
+  """URL for oauth client's avatar."""
   avatar: URL
 
-  """
-  Client secret
-  """
+  """Client secret"""
   secret: String!
 
-  """
-  Redirect URIs
-  """
+  """Redirect URIs"""
   redirectURIs: [URL!]
 
-  """
-  Grant Types
-  """
+  """Grant Types"""
   grantTypes: [GrantType!]
 
-  """
-  Linked Developer Account
-  """
+  """Linked Developer Account"""
   user: User
 
-  """
-  Creation Date
-  """
+  """Creation Date"""
   createdAt: Date!
 }
 
@@ -1662,43 +1210,27 @@ input OAuthClientInput {
   id: ID!
 }
 
-"""
-This type contains system-wise settings.
-"""
+"""This type contains system-wise settings."""
 type Official {
-  """
-  Feature flag
-  """
+  """Feature flag"""
   features: [Feature!]!
 }
 
-"""
-The notice type contains info about official announcement.
-"""
+"""The notice type contains info about official announcement."""
 type OfficialAnnouncementNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The message content.
-  """
+  """The message content."""
   message: String!
 
-  """
-  The link to a specific page if provided.
-  """
+  """The link to a specific page if provided."""
   link: URL
 }
 
@@ -1718,58 +1250,36 @@ type PageInfo {
   hasPreviousPage: Boolean!
 }
 
-"""
-This notice type contains info about current user requested to payout.
-"""
+"""This notice type contains info about current user requested to payout."""
 type PaymentPayoutNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The transaction data.
-  """
+  """The transaction data."""
   target: Transaction
 }
 
-"""
-This notice type contains info about current user received a donation.
-"""
+"""This notice type contains info about current user received a donation."""
 type PaymentReceivedDonationNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who donated to current user.
-  """
+  """The user who donated to current user."""
   actor: User!
 
-  """
-  The transaction data.
-  """
+  """The transaction data."""
   target: Transaction
 }
 
@@ -1790,9 +1300,7 @@ input PayToInput {
 type PayToResult {
   transaction: Transaction!
 
-  """
-  Only available when paying with LIKE.
-  """
+  """Only available when paying with LIKE."""
   redirectUrl: URL
 }
 
@@ -1808,9 +1316,7 @@ input PublishArticleInput {
   id: ID!
 }
 
-"""
-Enums for publishing state.
-"""
+"""Enums for publishing state."""
 enum PublishState {
   unpublished
   pending
@@ -1910,86 +1416,52 @@ type RecentSearchEdge {
 }
 
 type Recommendation {
-  """
-  Articles published by user's followees.
-  """
+  """Articles published by user's followees."""
   followeeArticles(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Comments published by user's followees.
-  """
+  """Comments published by user's followees."""
   followeeComments(input: ConnectionArgs!): CommentConnection!
 
-  """
-  Articles that followee donated
-  """
-  followeeDonatedArticles(
-    input: ConnectionArgs!
-  ): FolloweeDonatedArticleConnection!
+  """Articles that followee donated"""
+  followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
 
-  """
-  Tags that user followed.
-  """
+  """Tags that user followed."""
   followingTags(input: ConnectionArgs!): TagConnection!
 
-  """
-  Articles has been added into followed tags.
-  """
+  """Articles has been added into followed tags."""
   followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Global articles sort by publish time.
-  """
+  """Global articles sort by publish time."""
   newest(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Global articles sort by latest activity time.
-  """
+  """Global articles sort by latest activity time."""
   hottest(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  'In case you missed it' recommendation.
-  """
+  """'In case you missed it' recommendation."""
   icymi(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Global articles sort by appreciate, donation and subscription.
-  """
+  """Global articles sort by appreciate, donation and subscription."""
   valued(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Global tag list, sort by activities in recent 14 days.
-  """
+  """Global tag list, sort by activities in recent 14 days."""
   tags(input: RecommendInput!): TagConnection!
 
-  """
-  Hottest tag list
-  """
+  """Hottest tag list"""
   hottestTags(input: RecommendInput!): TagConnection!
 
-  """
-  Selected tag list
-  """
+  """Selected tag list"""
   selectedTags(input: RecommendInput!): TagConnection!
 
-  """
-  Gloabl article list, sort by activities in recent 72 hours.
-  """
+  """Gloabl article list, sort by activities in recent 72 hours."""
   topics(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Global user list, sort by activities in recent 6 month.
-  """
+  """Global user list, sort by activities in recent 6 month."""
   authors(input: RecommendInput!): UserConnection!
 
-  """
-  Personalized recommendation based on interaction with tags.
-  """
+  """Personalized recommendation based on interaction with tags."""
   interest(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Recommend articles with collaborative filtering
-  """
+  """Recommend articles with collaborative filtering"""
   recommendArticles(input: ConnectionArgs!): ArticleConnection!
 }
 
@@ -1998,11 +1470,10 @@ input RecommendInput {
   first: Int
   oss: Boolean
   filter: FilterInput
+  type: AuthorsType
 }
 
-"""
-Enums for types of recommend articles.
-"""
+"""Enums for types of recommend articles."""
 enum RecommendTypes {
   icymi
   hottest
@@ -2014,9 +1485,7 @@ input RelatedDonationArticlesInput {
   first: Int
   oss: Boolean
 
-  """
-  index of article list, min: 0, max: 49
-  """
+  """index of article list, min: 0, max: 49"""
   random: NonNegativeInt
 }
 
@@ -2075,9 +1544,7 @@ input ResponsesInput {
   articleOnly: Boolean
 }
 
-"""
-Enums for sorting responses.
-"""
+"""Enums for sorting responses."""
 enum ResponseSort {
   oldest
   newest
@@ -2087,24 +1554,16 @@ enum ResponseSort {
 This type has info about user's revised article publihsed unsuccessfully.
 """
 type RevisedArticleNotPublishedNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The article that has been published.
-  """
+  """The article that has been published."""
   target: Article
 }
 
@@ -2112,30 +1571,20 @@ type RevisedArticleNotPublishedNotice implements Notice {
 This type has info about user's revised article publihsed successfully.
 """
 type RevisedArticlePublishedNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The article that has been published.
-  """
+  """The article that has been published."""
   target: Article
 }
 
-"""
-Enums for user roles.
-"""
+"""Enums for user roles."""
 enum Role {
   vistor
   user
@@ -2153,9 +1602,7 @@ input SearchInput {
   first: Int
   filter: SearchFilter
 
-  """
-  whether this search operation should be recorded in search history
-  """
+  """whether this search operation should be recorded in search history"""
   record: Boolean
   oss: Boolean
 }
@@ -2241,9 +1688,7 @@ enum SkippedListItemType {
   domain
 }
 
-"""
-Stripe Account
-"""
+"""Stripe Account"""
 type StripeAccount {
   id: ID!
   loginUrl: URL!
@@ -2253,34 +1698,22 @@ type StripeAccount {
 This notice type contains info about current user's subscribed article has new comment.
 """
 type SubscribedArticleNewCommentNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who made new comment to current user's subscribed article.
-  """
+  """The user who made new comment to current user's subscribed article."""
   actors: [User]
 
-  """
-  The article that current user has been subscribed.
-  """
+  """The article that current user has been subscribed."""
   target: Article
 
-  """
-  The comment data.
-  """
+  """The comment data."""
   comment: Comment
 }
 
@@ -2288,78 +1721,48 @@ type Subscription {
   nodeEdited(input: NodeEditedInput!): Node!
 }
 
-"""
-This type contains content, count and related data of an article tag.
-"""
+"""This type contains content, count and related data of an article tag."""
 type Tag implements Node {
-  """
-  Unique id of this tag.
-  """
+  """Unique id of this tag."""
   id: ID!
 
-  """
-  Content of this tag.
-  """
+  """Content of this tag."""
   content: String!
 
-  """
-  List of how many articles were attached with this tag.
-  """
+  """List of how many articles were attached with this tag."""
   articles(input: TagArticlesInput!): ArticleConnection!
 
-  """
-  This value determines if this article is selected by this tag or not.
-  """
+  """This value determines if this article is selected by this tag or not."""
   selected(input: TagSelectedInput!): Boolean!
 
-  """
-  Time of this tag was created.
-  """
+  """Time of this tag was created."""
   createdAt: DateTime!
 
-  """
-  Tag's cover link.
-  """
+  """Tag's cover link."""
   cover: URL
 
-  """
-  Description of this tag.
-  """
+  """Description of this tag."""
   description: String
 
-  """
-  Editors of this tag.
-  """
+  """Editors of this tag."""
   editors(input: TagEditorsInput): [User!]
 
-  """
-  Creator of this tag.
-  """
+  """Creator of this tag."""
   creator: User
 
-  """
-  Owner of this tag.
-  """
+  """Owner of this tag."""
   owner: User
 
-  """
-  This value determines if current viewer is following or not.
-  """
+  """This value determines if current viewer is following or not."""
   isFollower: Boolean
 
-  """
-  Followers of this tag.
-  """
+  """Followers of this tag."""
   followers(input: ConnectionArgs!): UserConnection!
 
-  """
-  Participants of this tag.
-  """
+  """Participants of this tag."""
   participants(input: ConnectionArgs!): UserConnection!
 
-  """
-  OSS
-  """
+  """OSS"""
   oss: TagOSS!
   remark: String
   deleted: Boolean!
@@ -2369,55 +1772,35 @@ type Tag implements Node {
 This notice type contains info about editors has been added into a tag.
 """
 type TagAddEditorNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who added editor to a tag.
-  """
+  """The user who added editor to a tag."""
   actor: User!
   tag: Tag
 }
 
-"""
-This notice type contains info about a tag has been adopted by a user.
-"""
+"""This notice type contains info about a tag has been adopted by a user."""
 type TagAdoptionNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who adopted a tag.
-  """
+  """The user who adopted a tag."""
   actor: User!
 
-  """
-  The tag adopted by user.
-  """
+  """The tag adopted by user."""
   tag: Tag
 }
 
@@ -2444,59 +1827,37 @@ input TagEditorsInput {
   excludeOwner: Boolean
 }
 
-"""
-This notice type contains info about a editor left a tag.
-"""
+"""This notice type contains info about a editor left a tag."""
 type TagLeaveEditorNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who leave from tag editors.
-  """
+  """The user who leave from tag editors."""
   actor: User!
   tag: Tag
 }
 
-"""
-This notice type contains info about a user left a tag.
-"""
+"""This notice type contains info about a user left a tag."""
 type TagLeaveNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  The user who leave a tag.
-  """
+  """The user who leave a tag."""
   actor: User!
 
-  """
-  The tag left by user.
-  """
+  """The tag left by user."""
   tag: Tag
 }
 
@@ -2516,9 +1877,7 @@ input TagsInput {
   sort: TagsSort
 }
 
-"""
-Enums for sorting tags.
-"""
+"""Enums for sorting tags."""
 enum TagsSort {
   newest
   oldest
@@ -2527,9 +1886,7 @@ enum TagsSort {
 
 scalar Time
 
-"""
-Common input to toggle single item for `toggleXXX` mutations
-"""
+"""Common input to toggle single item for `toggleXXX` mutations"""
 input ToggleItemInput {
   id: ID!
   enabled: Boolean
@@ -2549,29 +1906,19 @@ type Transaction {
   fee: NonNegativeFloat!
   currency: TransactionCurrency!
 
-  """
-  Timestamp of transaction.
-  """
+  """Timestamp of transaction."""
   createdAt: DateTime!
 
-  """
-  Recipient of transaction.
-  """
+  """Recipient of transaction."""
   recipient: User
 
-  """
-  Sender of transaction.
-  """
+  """Sender of transaction."""
   sender: User
 
-  """
-  Related target article or transaction.
-  """
+  """Related target article or transaction."""
   target: TransactionTarget
 
-  """
-  Message for end user, including reason of failure.
-  """
+  """Message for end user, including reason of failure."""
   message: String
 }
 
@@ -2704,168 +2051,104 @@ type UpstreamArticleArchivedNotice implements Notice {
 scalar URL
 
 type User implements Node {
-  """
-  Global id of an user.
-  """
+  """Global id of an user."""
   id: ID!
 
-  """
-  UUID of an user, for backward compatibility.
-  """
+  """UUID of an user, for backward compatibility."""
   uuid: UUID!
 
-  """
-  Global unique user name of a user.
-  """
+  """Global unique user name of a user."""
   userName: String
 
-  """
-  Display name on user profile, can be duplicated.
-  """
+  """Display name on user profile, can be duplicated."""
   displayName: String
 
-  """
-  LikerID of LikeCoin, being used by LikeCoin OAuth
-  """
+  """LikerID of LikeCoin, being used by LikeCoin OAuth"""
   likerId: String
 
-  """
-  Liker info of current user
-  """
+  """Liker info of current user"""
   liker: Liker!
 
-  """
-  URL for user avatar.
-  """
+  """URL for user avatar."""
   avatar: URL
 
-  """
-  User information.
-  """
+  """User information."""
   info: UserInfo!
 
-  """
-  User settings.
-  """
+  """User settings."""
   settings: UserSettings!
 
-  """
-  Article recommendations for current user.
-  """
+  """Article recommendations for current user."""
   recommendation: Recommendation!
 
-  """
-  Articles authored by current user.
-  """
+  """Articles authored by current user."""
   articles(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Tags owned and maintained by current user.
-  """
+  """Tags owned and maintained by current user."""
   tags(input: ConnectionArgs!): TagConnection!
 
-  """
-  Drafts authored by current user.
-  """
+  """Drafts authored by current user."""
   drafts(input: ConnectionArgs!): DraftConnection!
 
-  """
-  Articles current user commented on
-  """
+  """Articles current user commented on"""
   commentedArticles(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Artilces current user subscribed to.
-  """
+  """Artilces current user subscribed to."""
   subscriptions(input: ConnectionArgs!): ArticleConnection!
 
-  """
-  Record of user activity, only accessable by current user.
-  """
+  """Record of user activity, only accessable by current user."""
   activity: UserActivity!
 
-  """
-  Followers of this user.
-  """
+  """Followers of this user."""
   followers(input: ConnectionArgs!): UserConnection!
 
-  """
-  Users that this user follows.
-  """
+  """Users that this user follows."""
   followees(input: ConnectionArgs!): UserConnection!
 
-  """
-  Whether current user is following viewer.
-  """
+  """Whether current user is following viewer."""
   isFollower: Boolean!
 
-  """
-  Whether viewer is following current user.
-  """
+  """Whether viewer is following current user."""
   isFollowee: Boolean!
 
-  """
-  Users that blocked by current user.
-  """
+  """Users that blocked by current user."""
   blockList(input: ConnectionArgs!): UserConnection!
 
-  """
-  Whether current user is blocking viewer.
-  """
+  """Whether current user is blocking viewer."""
   isBlocking: Boolean!
 
-  """
-  Whether current user is blocked by viewer.
-  """
+  """Whether current user is blocked by viewer."""
   isBlocked: Boolean!
 
-  """
-  Status of current user.
-  """
+  """Status of current user."""
   status: UserStatus
 
-  """
-  OSS
-  """
+  """OSS"""
   oss: UserOSS!
   remark: String
   notices(input: ConnectionArgs!): NoticeConnection!
 
-  """
-  User Wallet
-  """
+  """User Wallet"""
   wallet: Wallet!
 }
 
 type UserActivity {
-  """
-  User reading history.
-  """
+  """User reading history."""
   history(input: ConnectionArgs!): ReadHistoryConnection!
 
-  """
-  User search history.
-  """
+  """User search history."""
   recentSearches(input: ConnectionArgs!): RecentSearchConnection!
 
-  """
-  Appreciations current user gave.
-  """
+  """Appreciations current user gave."""
   appreciationsSent(input: ConnectionArgs!): AppreciationConnection!
 
-  """
-  Total number of appreciation current user gave.
-  """
+  """Total number of appreciation current user gave."""
   appreciationsSentTotal: Int!
 
-  """
-  Appreciations current user received.
-  """
+  """Appreciations current user received."""
   appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
 
-  """
-  Total number of appreciation current user received.
-  """
+  """Total number of appreciation current user received."""
   appreciationsReceivedTotal: Int!
 }
 
@@ -2886,44 +2169,28 @@ enum UserGroup {
 }
 
 type UserInfo {
-  """
-  Timestamp of registration.
-  """
+  """Timestamp of registration."""
   createdAt: DateTime
 
-  """
-  Is user name editable.
-  """
+  """Is user name editable."""
   userNameEditable: Boolean!
 
-  """
-  User desciption.
-  """
+  """User desciption."""
   description: String
 
-  """
-  User email.
-  """
+  """User email."""
   email: Email
 
-  """
-  User badges.
-  """
+  """User badges."""
   badges: [Badge!]
 
-  """
-  Timestamp of user agreement.
-  """
+  """Timestamp of user agreement."""
   agreeOn: DateTime
 
-  """
-  Cover of profile page.
-  """
+  """Cover of profile page."""
   profileCover: URL
 
-  """
-  Type of group.
-  """
+  """Type of group."""
   group: UserGroup!
 }
 
@@ -2950,28 +2217,18 @@ input UserLoginInput {
   password: String!
 }
 
-"""
-This notice type contains info about current user has new followers.
-"""
+"""This notice type contains info about current user has new followers."""
 type UserNewFollowerNotice implements Notice {
-  """
-  Unique ID of this notice.
-  """
+  """Unique ID of this notice."""
   id: ID!
 
-  """
-  The value determines if the notice is unread or not.
-  """
+  """The value determines if the notice is unread or not."""
   unread: Boolean!
 
-  """
-  Time of this notice was created.
-  """
+  """Time of this notice was created."""
   createdAt: DateTime!
 
-  """
-  List of new followers.
-  """
+  """List of new followers."""
   actors: [User]
 }
 
@@ -2995,14 +2252,10 @@ enum UserRole {
 }
 
 type UserSettings {
-  """
-  User language setting.
-  """
+  """User language setting."""
   language: UserLanguage!
 
-  """
-  Notification settings.
-  """
+  """Notification settings."""
   notification: NotificationSetting!
 }
 
@@ -3015,54 +2268,34 @@ enum UserState {
 }
 
 type UserStatus {
-  """
-  User state.
-  """
+  """User state."""
   state: UserState!
 
-  """
-  User role and access level.
-  """
+  """User role and access level."""
   role: UserRole!
 
-  """
-  Number of articles published by user
-  """
+  """Number of articles published by user"""
   articleCount: Int!
 
-  """
-  Number of comments posted by user.
-  """
+  """Number of comments posted by user."""
   commentCount: Int!
 
-  """
-  Number of unread notices.
-  """
+  """Number of unread notices."""
   unreadNoticeCount: Int!
 
-  """
-  Whether there are unread articles from followees.
-  """
+  """Whether there are unread articles from followees."""
   unreadFolloweeArticles: Boolean!
 
-  """
-  Whether user already set payment password.
-  """
+  """Whether user already set payment password."""
   hasPaymentPassword: Boolean!
 
-  """
-  Number of total written words.
-  """
+  """Number of total written words."""
   totalWordCount: Int!
 
-  """
-  Number of articles donated by user
-  """
+  """Number of articles donated by user"""
   donatedArticleCount: Int!
 
-  """
-  Number of times of donations received by user
-  """
+  """Number of times of donations received by user"""
   receivedDonationCount: Int!
 }
 
@@ -3080,9 +2313,7 @@ input VerifyEmailInput {
   codeId: ID!
 }
 
-"""
-Enums for vote types.
-"""
+"""Enums for vote types."""
 enum Vote {
   up
   down
