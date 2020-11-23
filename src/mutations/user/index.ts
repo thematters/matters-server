@@ -9,6 +9,7 @@ import migration from './migration'
 import payout from './payout'
 import payTo from './payTo'
 import resetPassword from './resetPassword'
+import reward from './reward'
 import sendVerificationCode from './sendVerificationCode'
 import toggleBlockUser from './toggleBlockUser'
 import toggleFollowTag from './toggleFollowTag'
@@ -47,5 +48,6 @@ export default {
     payTo,
     payout,
     connectStripeAccount,
+    reward,
   },
 }

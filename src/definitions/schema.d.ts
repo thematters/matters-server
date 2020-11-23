@@ -2032,6 +2032,11 @@ export interface GQLMutation {
   connectStripeAccount: GQLConnectStripeAccountResult
 
   /**
+   * Reward LIKE to users from Matters' Pool
+   */
+  reward?: Array<GQLRewardResult>
+
+  /**
    * Create or Update an OAuth Client, used in OSS.
    */
   putOAuthClient?: GQLOAuthClient
@@ -2375,7 +2380,7 @@ export const enum GQLMigrationType {
 
 export interface GQLUpdateUserStateInput {
   id?: string
-  emails?: Array<string>
+  emails?: Array<GQLEmail>
   state: GQLUserState
   banDays?: GQLPositiveInt
   password?: string
@@ -2431,6 +2436,29 @@ export interface GQLPayoutInput {
 
 export interface GQLConnectStripeAccountResult {
   redirectUrl: GQLURL
+}
+
+/**
+ * Reward
+ */
+export interface GQLRewardToInput {
+  type: GQLRewardType
+  recipientEmails?: Array<GQLEmail>
+}
+
+export const enum GQLRewardType {
+  firstArticle = 'firstArticle',
+}
+
+export interface GQLRewardResult {
+  recipient: GQLUser
+  state?: GQLRewardState
+}
+
+export const enum GQLRewardState {
+  skipped = 'skipped',
+  succeeded = 'succeeded',
+  failed = 'failed',
 }
 
 export interface GQLPutOAuthClientInput {
@@ -3307,6 +3335,7 @@ export interface GQLResolver {
   AddCreditResult?: GQLAddCreditResultTypeResolver
   PayToResult?: GQLPayToResultTypeResolver
   ConnectStripeAccountResult?: GQLConnectStripeAccountResultTypeResolver
+  RewardResult?: GQLRewardResultTypeResolver
   Subscription?: GQLSubscriptionTypeResolver
   ArticleMentionedYouNotice?: GQLArticleMentionedYouNoticeTypeResolver
   ArticleNewAppreciationNotice?: GQLArticleNewAppreciationNoticeTypeResolver
@@ -7520,6 +7549,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   payTo?: MutationToPayToResolver<TParent>
   payout?: MutationToPayoutResolver<TParent>
   connectStripeAccount?: MutationToConnectStripeAccountResolver<TParent>
+  reward?: MutationToRewardResolver<TParent>
   putOAuthClient?: MutationToPutOAuthClientResolver<TParent>
 }
 
@@ -8282,6 +8312,18 @@ export interface MutationToConnectStripeAccountResolver<
   ): TResult
 }
 
+export interface MutationToRewardArgs {
+  input: GQLRewardToInput
+}
+export interface MutationToRewardResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToRewardArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface MutationToPutOAuthClientArgs {
   input: GQLPutOAuthClientInput
 }
@@ -8386,6 +8428,29 @@ export interface ConnectStripeAccountResultToRedirectUrlResolver<
   TParent = any,
   TResult = any
 > {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLRewardResultTypeResolver<TParent = any> {
+  recipient?: RewardResultToRecipientResolver<TParent>
+  state?: RewardResultToStateResolver<TParent>
+}
+
+export interface RewardResultToRecipientResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface RewardResultToStateResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

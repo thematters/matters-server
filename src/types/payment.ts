@@ -13,6 +13,13 @@ export default /* GraphQL */ `
 
     "Create Stripe Connect account for Payout"
     connectStripeAccount: ConnectStripeAccountResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+
+
+    ##############
+    #     OSS    #
+    ##############
+    "Reward LIKE to users from Matters' Pool"
+    reward(input: RewardToInput!): [RewardResult!] @auth(mode: "${AUTH_MODE.admin}")
   }
 
   extend type User {
@@ -146,5 +153,26 @@ export default /* GraphQL */ `
 
   type ConnectStripeAccountResult {
     redirectUrl: URL!
+  }
+
+  # Reward
+  input RewardToInput {
+    type: RewardType!
+    recipientEmails: [Email!]
+  }
+
+  type RewardResult {
+    recipient: User!
+    state: RewardState
+  }
+
+  enum RewardState {
+    skipped
+    succeeded
+    failed
+  }
+
+  enum RewardType {
+    firstArticle
   }
 `

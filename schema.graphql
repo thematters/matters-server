@@ -1073,6 +1073,9 @@ type Mutation {
   """Create Stripe Connect account for Payout"""
   connectStripeAccount: ConnectStripeAccountResult!
 
+  """Reward LIKE to users from Matters' Pool"""
+  reward(input: RewardToInput!): [RewardResult!]
+
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
 }
@@ -1584,6 +1587,27 @@ type RevisedArticlePublishedNotice implements Notice {
   target: Article
 }
 
+type RewardResult {
+  recipient: User!
+  state: RewardState
+}
+
+enum RewardState {
+  skipped
+  succeeded
+  failed
+}
+
+"""Reward"""
+input RewardToInput {
+  type: RewardType!
+  recipientEmails: [Email!]
+}
+
+enum RewardType {
+  firstArticle
+}
+
 """Enums for user roles."""
 enum Role {
   vistor
@@ -2032,7 +2056,7 @@ input UpdateUserRoleInput {
 
 input UpdateUserStateInput {
   id: ID
-  emails: [String!]
+  emails: [Email!]
   state: UserState!
   banDays: PositiveInt
   password: String

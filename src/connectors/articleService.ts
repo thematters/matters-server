@@ -225,6 +225,17 @@ export class ArticleService extends BaseService {
   }
 
   /**
+   *  Find first article by a given author id (user).
+   */
+  findFirstArticleByAuthor = async (authorId: string) =>
+    this.knex
+      .select()
+      .from(this.table)
+      .where({ authorId, state: ARTICLE_STATE.active })
+      .orderBy('id', 'asc')
+      .first()
+
+  /**
    * Find article by media hash
    */
   findByMediaHash = async (mediaHash: string) =>

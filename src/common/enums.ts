@@ -456,10 +456,14 @@ export const ACCEPTED_UPLOAD_MIGRATION_TYPES: string[] = ['text/html']
 export const IMAGE_DIMENSION_LIMIT = 1400
 
 export const LOG_RECORD_TYPES = {
+  // App
   ReadFolloweeArticles: 'read_followee_articles',
   ReadResponseInfoPopUp: 'read_response_info_pop_up',
+  // Emails
   SentNewRegisterChurnEmail: 'sent_new_register_churn_email',
   SentMediumTermChurnEmail: 'sent_medium_term_churn_email',
+  // Rewards
+  RewardFirstArticle: 'reward_first_article',
 }
 
 export const UTM_PARAMETER = {

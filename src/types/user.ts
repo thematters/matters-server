@@ -486,7 +486,7 @@ export default /* GraphQL */ `
 
   input UpdateUserStateInput {
     id: ID
-    emails: [String!]
+    emails: [Email!]
     state: UserState!
     banDays: PositiveInt
     password: String
