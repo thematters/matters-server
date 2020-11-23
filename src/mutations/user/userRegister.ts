@@ -24,7 +24,12 @@ import { MutationToUserRegisterResolver } from 'definitions'
 const resolver: MutationToUserRegisterResolver = async (
   root,
   { input },
-  { viewer, dataSources: { tagService, userService, notificationService }, req, res }
+  {
+    viewer,
+    dataSources: { tagService, userService, notificationService },
+    req,
+    res,
+  }
 ) => {
   const { email: rawEmail, userName, displayName, password, codeId } = input
   const email = rawEmail ? rawEmail.toLowerCase() : null
@@ -101,13 +106,17 @@ const resolver: MutationToUserRegisterResolver = async (
   await userService.follow(newUser.id, environment.mattyId)
 
   // auto follow tags
-  const items = await Promise.all(AUTO_FOLLOW_TAGS.map(content => tagService.findByContent({ content })))
-  await Promise.all(items.map(tags => {
-    const tag = tags[0]
-    if (tag) {
-      return tagService.follow({ targetId: tag.id, userId: newUser.id })
-    }
-  }))
+  const items = await Promise.all(
+    AUTO_FOLLOW_TAGS.map((content) => tagService.findByContent({ content }))
+  )
+  await Promise.all(
+    items.map((tags) => {
+      const tag = tags[0]
+      if (tag) {
+        return tagService.follow({ targetId: tag.id, userId: newUser.id })
+      }
+    })
+  )
 
   // mark code status as used
   await userService.markVerificationCodeAs({

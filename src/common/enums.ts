@@ -727,7 +727,4 @@ export const TAG_ACTION = {
   follow: 'follow',
 }
 
-export const AUTO_FOLLOW_TAGS = [
-  'Matters新人打卡',
-  '玩轉Matters實用指南',
-]
+export const AUTO_FOLLOW_TAGS = ['Matters新人打卡', '玩轉Matters實用指南']
