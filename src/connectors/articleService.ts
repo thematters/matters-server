@@ -77,42 +77,33 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Publish an article to IPFS
+   * Create a active article with linked draft
    */
-  publish = async ({
-    id,
+  createArticle = async ({
+    draftId,
     authorId,
+    title,
+    slug,
+    wordCount,
+    summary,
     content,
     cover,
-    summary: draftSummary,
-    title,
+    dataHash,
+    mediaHash,
   }: Record<string, any>) => {
-    // pre-process data
-    const summary = draftSummary || makeSummary(content)
-
-    // publish content to IPFS
-    const { dataHash, mediaHash } = await this.publishToIPFS({
-      authorId,
-      title,
-      content,
-      cover,
-      summary,
-    })
-
-    // craete article
     const article = await this.baseCreate({
       uuid: v4(),
+      state: ARTICLE_STATE.active,
+      draftId,
       authorId,
       title,
-      slug: slugify(title),
-      wordCount: countWords(content),
+      slug,
+      wordCount,
       summary,
       content,
       cover,
       dataHash,
       mediaHash,
-      state: ARTICLE_STATE.active,
-      draftId: id,
     })
 
     return article
