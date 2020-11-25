@@ -16,10 +16,6 @@ export const hottest: RecommendationToHottestResolver = async (
     }
   }
 
-  const recommendHottest =
-    viewer.group === 'b'
-      ? articleService.recommendByScoreB
-      : articleService.recommendByScore
   const where = { 'article.state': ARTICLE_STATE.active } as {
     [key: string]: any
   }
@@ -28,7 +24,13 @@ export const hottest: RecommendationToHottestResolver = async (
   const offset = cursorToIndex(after) + 1
   const [totalCount, articles] = await Promise.all([
     articleService.countRecommendHottest({ where: id ? {} : where, oss }),
-    recommendHottest({ offset, limit: first, where, oss, score: 'activity' }),
+    articleService.recommendByScoreB({
+      offset,
+      limit: first,
+      where,
+      oss,
+      score: 'activity',
+    }),
   ])
 
   return connectionFromPromisedArray(
