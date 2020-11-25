@@ -26,6 +26,7 @@ const resolver: WalletToTransactionsResolver = async (
     userId,
     id: txId,
     states: states as any,
+    excludeCanceledLIKE: true,
   })
 
   // no-cache for single transaction query, used by client polling
@@ -40,6 +41,7 @@ const resolver: WalletToTransactionsResolver = async (
     userId,
     id: txId,
     states: states as any,
+    excludeCanceledLIKE: true,
     limit: first,
     offset,
   })

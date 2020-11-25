@@ -54,47 +54,18 @@ export class PaymentService extends BaseService {
     return Math.max(parseInt(result[0].total || 0, 10), 0)
   }
 
-  // count transactions by given conditions
-  totalTransactionCount = async ({
-    userId,
-    id,
-    states,
-  }: {
-    userId: string
-    id?: string
-    states?: TRANSACTION_STATE[]
-  }) => {
-    let qs = this.knex('transaction_delta_view').where({
-      userId,
-    })
-
-    if (id) {
-      qs = qs.where({ id })
-    }
-
-    if (states) {
-      qs = qs.whereIn('state', states)
-    }
-
-    const result = await qs.count()
-    return parseInt(`${result[0].count}` || '0', 10)
-  }
-
-  // find transactions by given conditions
-  findTransactions = async ({
+  makeTransactionsQuery = ({
     userId,
     id,
     providerTxId,
     states,
-    offset = 0,
-    limit = BATCH_SIZE,
+    excludeCanceledLIKE,
   }: {
     userId?: string
     id?: string
     providerTxId?: string
     states?: TRANSACTION_STATE[]
-    offset?: number
-    limit?: number
+    excludeCanceledLIKE?: boolean
   }) => {
     let qs = this.knex('transaction_delta_view').select()
 
@@ -113,6 +84,64 @@ export class PaymentService extends BaseService {
     if (states) {
       qs = qs.whereIn('state', states)
     }
+
+    if (excludeCanceledLIKE) {
+      let subQs = this.knex('transaction_delta_view').where({
+        userId,
+      })
+
+      if (id) {
+        subQs = subQs.where({ id })
+      }
+
+      if (states) {
+        subQs = subQs.whereIn('state', states)
+      }
+
+      qs = qs
+        .leftJoin(
+          subQs
+            .select('id')
+            .where('state', TRANSACTION_STATE.canceled)
+            .andWhere('currency', PAYMENT_CURRENCY.LIKE)
+            .as('canceled_like_txs'),
+          'transaction_delta_view.id',
+          'canceled_like_txs.id'
+        )
+        .whereNull('canceled_like_txs.id')
+    }
+
+    return qs
+  }
+
+  // count transactions by given conditions
+  totalTransactionCount = async (params: {
+    userId: string
+    id?: string
+    states?: TRANSACTION_STATE[]
+    excludeCanceledLIKE?: boolean
+  }) => {
+    const qs = this.makeTransactionsQuery(params)
+    const result = await qs.count()
+
+    return parseInt(`${result[0].count}` || '0', 10)
+  }
+
+  // find transactions by given conditions
+  findTransactions = ({
+    offset = 0,
+    limit = BATCH_SIZE,
+    ...restParams
+  }: {
+    userId?: string
+    id?: string
+    providerTxId?: string
+    states?: TRANSACTION_STATE[]
+    excludeCanceledLIKE?: boolean
+    offset?: number
+    limit?: number
+  }) => {
+    const qs = this.makeTransactionsQuery(restParams)
 
     return qs.orderBy('created_at', 'desc').offset(offset).limit(limit)
   }
