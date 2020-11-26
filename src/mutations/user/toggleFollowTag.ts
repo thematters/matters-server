@@ -44,7 +44,7 @@ const resolver: MutationToToggleFollowTagResolver = async (
     {
       id: viewer.id,
       type: NODE_TYPES.user,
-    }
+    },
   ]
 
   return tag
