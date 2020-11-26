@@ -659,6 +659,13 @@ export enum SLACK_MESSAGE_STATE {
   successful = 'successful',
 }
 
+export enum TRANSACTION_REMARK {
+  // LIKE
+  TIME_OUT = 'time_out',
+
+  // STRIPE
+}
+
 export const TransactionRemarkText = {
   [LANGUAGE.zh_hant]: {
     amount_too_large: '金額高於最大允許金額',

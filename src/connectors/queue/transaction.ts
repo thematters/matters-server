@@ -6,6 +6,7 @@ import {
   QUEUE_NAME,
   QUEUE_PRIORITY,
   TRANSACTION_PURPOSE,
+  TRANSACTION_REMARK,
   TRANSACTION_STATE,
 } from 'common/enums'
 import logger from 'common/logger'
@@ -55,7 +56,10 @@ class TxTimeoutQueue extends BaseQueue {
       logger.info(`[schedule job] canceling timeout pending transactions`)
       const result = await this.paymentService
         .knex(this.paymentService.table)
-        .update({ state: TRANSACTION_STATE.canceled, remark: 'time_out' })
+        .update({
+          state: TRANSACTION_STATE.canceled,
+          remark: TRANSACTION_REMARK.TIME_OUT,
+        })
         .where(
           'created_at',
           '<',
