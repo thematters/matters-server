@@ -11,6 +11,7 @@ import author from './author'
 import comments from './comments'
 import content from './content'
 import downvotes from './downvotes'
+import fromDonator from './fromDonator'
 import myVote from './myVote'
 import parentComment from './parentComment'
 import replyTo from './replyTo'
@@ -40,5 +41,6 @@ export default {
     myVote,
     comments,
     parentComment,
+    fromDonator,
   },
 }

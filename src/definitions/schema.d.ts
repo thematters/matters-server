@@ -736,6 +736,11 @@ export interface GQLComment extends GQLNode {
   pinned: boolean
 
   /**
+   * This value determines this comment is from article donator or not.
+   */
+  fromDonator: boolean
+
+  /**
    * The counting number of upvotes.
    */
   upvotes: number
@@ -5069,6 +5074,7 @@ export interface GQLCommentTypeResolver<TParent = any> {
   content?: CommentToContentResolver<TParent>
   author?: CommentToAuthorResolver<TParent>
   pinned?: CommentToPinnedResolver<TParent>
+  fromDonator?: CommentToFromDonatorResolver<TParent>
   upvotes?: CommentToUpvotesResolver<TParent>
   downvotes?: CommentToDownvotesResolver<TParent>
   myVote?: CommentToMyVoteResolver<TParent>
@@ -5133,6 +5139,15 @@ export interface CommentToAuthorResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToPinnedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToFromDonatorResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

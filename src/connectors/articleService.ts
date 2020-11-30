@@ -1951,4 +1951,32 @@ export class ArticleService extends BaseService {
 
     return query.orderBy('score').limit(limit).offset(offset)
   }
+
+  /**
+   * Whether the user donated to the specified article
+   */
+  isDonator = async ({
+    articleId,
+    userId,
+  }: {
+    articleId: string
+    userId: string
+  }) => {
+    const { id: entityTypeId } = await this.baseFindEntityTypeId(
+      TRANSACTION_TARGET_TYPE.article
+    )
+
+    const result = await this.knex('transaction')
+      .select()
+      .where({
+        targetId: articleId,
+        targetType: entityTypeId,
+        senderId: userId,
+        state: TRANSACTION_STATE.succeeded,
+        purpose: TRANSACTION_PURPOSE.donation,
+      })
+      .first()
+
+    return !!result
+  }
 }
