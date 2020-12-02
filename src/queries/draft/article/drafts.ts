@@ -1,4 +1,8 @@
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import {
+  connectionFromPromisedArray,
+  correctHtml,
+  cursorToIndex,
+} from 'common/utils'
 import { ArticleToDraftsResolver } from 'definitions'
 
 const resolver: ArticleToDraftsResolver = async (
@@ -10,7 +14,13 @@ const resolver: ArticleToDraftsResolver = async (
   if (!isAuthor) {
     return []
   }
-  return draftService.findValidByArticleId({ articleId })
+  const drafts = (await draftService.findValidByArticleId({ articleId })).map(
+    (draft) => ({
+      ...draft,
+      content: correctHtml(draft.content),
+    })
+  )
+  return drafts
 }
 
 export default resolver

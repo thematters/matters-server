@@ -51,7 +51,7 @@ export class CommentService extends BaseService {
     [key: string]: any
   }) => {
     // create comment
-    const comemnt = await this.baseCreate({
+    const comment = await this.baseCreate({
       uuid: v4(),
       authorId,
       articleId,
@@ -59,7 +59,7 @@ export class CommentService extends BaseService {
       content,
       replyTo,
     })
-    return comemnt
+    return comment
   }
 
   update = async ({

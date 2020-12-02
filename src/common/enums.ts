@@ -46,6 +46,10 @@ export const MATERIALIZED_VIEW = {
   /* Hottest articles A/B test */
   articleHottestAMaterialized: 'article_hottest_a_materialized',
   articleHottestBMaterialized: 'article_hottest_b_materialized',
+
+  mostActiveAuthorMaterialized: 'most_active_author_materialized',
+  mostAppreciatedAuthorMaterialized: 'most_appreciated_author_materialized',
+  mostTrendyAuthorMaterialized: 'most_trendy_author_materialized',
 }
 
 // cache TTL in seconds
@@ -244,6 +248,10 @@ export const QUEUE_JOB = {
   /* Refresh Views - hottest articles A/B test*/
   refreshArticleHottestAView: 'refreshArticleHottestAView',
   refreshArticleHottestBView: 'refreshArticleHottestBView',
+
+  refreshMostActiveAuthorView: 'refreshMostActiveAuthorView',
+  refreshMostAppreciatedAuthorView: 'refreshMostAppreciatedAuthorView',
+  refreshMostTrendyAuthorView: 'refreshMostTrendyAuthorView',
 
   // Migration
   migration: 'migration',
@@ -651,6 +659,13 @@ export enum SLACK_MESSAGE_STATE {
   successful = 'successful',
 }
 
+export enum TRANSACTION_REMARK {
+  // LIKE
+  TIME_OUT = 'time_out',
+
+  // STRIPE
+}
+
 export const TransactionRemarkText = {
   [LANGUAGE.zh_hant]: {
     amount_too_large: '金額高於最大允許金額',
@@ -718,3 +733,5 @@ export const TransactionRemarkText = {
 export const TAG_ACTION = {
   follow: 'follow',
 }
+
+export const AUTO_FOLLOW_TAGS = ['Matters新人打卡', '玩轉Matters實用指南']

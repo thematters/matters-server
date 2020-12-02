@@ -1,4 +1,4 @@
-import { difference, uniq } from 'lodash'
+import { difference, flow, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -18,6 +18,7 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import {
+  correctHtml,
   countWords,
   fromGlobalId,
   makeSummary,
@@ -246,17 +247,16 @@ const resolver: MutationToEditArticleResolver = async (
       )
 
       // create draft linked to this article
+      const pipe = flow(sanitize, correctHtml)
       const data: ItemData = {
         uuid: v4(),
         authorId: currDraft.authorId,
         articleId: currArticle.id,
         title: currDraft.title,
-        summary: makeSummary(cleanedContent),
-        content: sanitize(cleanedContent),
+        content: pipe(cleanedContent),
         tags: currTagContents,
         cover: currArticle.cover,
         collection: currCollectionIds,
-        wordCount: countWords(cleanedContent),
         archived: false,
         publishState: PUBLISH_STATE.pending,
         createdAt: new Date(),

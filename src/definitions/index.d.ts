@@ -122,6 +122,7 @@ export type TableName =
   | 'user_boost'
   | 'matters_today'
   | 'matters_choice'
+  | 'matters_choice_tag'
   | 'article_recommend_setting'
   | 'log_record'
   | 'oauth_client'
@@ -146,6 +147,9 @@ export type MaterializedView =
   | 'curation_tag_materialized'
   | 'article_hottest_a_materialized'
   | 'article_hottest_b_materialized'
+  | 'most_active_author_materialized'
+  | 'most_appreciated_author_materialized'
+  | 'most_trendy_author_materialized'
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'

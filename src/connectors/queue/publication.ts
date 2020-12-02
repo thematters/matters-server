@@ -1,4 +1,5 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
 
@@ -13,7 +14,12 @@ import {
 } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import logger from 'common/logger'
-import { extractAssetDataFromHtml, fromGlobalId } from 'common/utils'
+import {
+  countWords,
+  extractAssetDataFromHtml,
+  fromGlobalId,
+  makeSummary,
+} from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
 
@@ -21,20 +27,6 @@ class PublicationQueue extends BaseQueue {
   constructor() {
     super(QUEUE_NAME.publication)
     this.addConsumers()
-  }
-
-  addRepeatJobs = async () => {
-    // publish pending draft every 20 minutes
-    this.q.add(
-      QUEUE_JOB.publishPendingDrafts,
-      {},
-      {
-        priority: QUEUE_PRIORITY.HIGH,
-        repeat: {
-          every: MINUTE * 20, // every 20 mins
-        },
-      }
-    )
   }
 
   publishArticle = ({ draftId }: { draftId: string }) => {
@@ -61,9 +53,6 @@ class PublicationQueue extends BaseQueue {
       QUEUE_CONCURRENCY.publishArticle,
       this.handlePublishArticle
     )
-
-    // publish pending drafts
-    this.q.process(QUEUE_JOB.publishPendingDrafts, this.publishPendingDrafts)
   }
 
   /**
@@ -73,131 +62,150 @@ class PublicationQueue extends BaseQueue {
     job,
     done
   ) => {
+    const { draftId } = job.data as { draftId: string }
+    const draft = await this.draftService.baseFindById(draftId)
+
+    // Step 1: checks
+    if (draft.publishState !== PUBLISH_STATE.pending) {
+      job.progress(100)
+      done(null, `Draft ${draftId} isn\'t in pending state.`)
+      return
+    }
+    job.progress(5)
+
     try {
-      const { draftId } = job.data as { draftId: string }
-      const draft = await this.draftService.baseFindById(draftId)
+      const summary = draft.summary || makeSummary(draft.content)
+      const wordCount = countWords(draft.content)
 
-      // checks
-      if (draft.publishState !== PUBLISH_STATE.pending) {
-        job.progress(100)
-        done(null, `Publication of draft ${draftId} is not pending.`)
-        return
-      }
-
-      job.progress(5)
-
-      // publish to IPFS
-      let article: any
-      try {
-        article = await this.articleService.publish(draft)
-      } catch (e) {
-        await this.draftService.baseUpdate(draft.id, {
-          publishState: PUBLISH_STATE.error,
-        })
-        throw e
-      }
+      // Step 2: publish content to IPFS
+      const { dataHash, mediaHash } = await this.articleService.publishToIPFS({
+        ...draft,
+        summary,
+        wordCount,
+      })
       job.progress(10)
 
-      // mark draft as published and copy data from article
-      // TODO: deprecated once article table is altered
-      // @see {@url https://github.com/thematters/matters-server/pull/1510}
-      await this.draftService.baseUpdate(draft.id, {
+      // Step 3: create an article
+      const article = await this.articleService.createArticle({
+        ...draft,
+        draftId: draft.id,
+        dataHash,
+        mediaHash,
+        summary,
+        wordCount,
+        slug: slugify(draft.title),
+      })
+      job.progress(20)
+
+      // Step 4: update draft
+      const publishedDraft = await this.draftService.baseUpdate(draft.id, {
         articleId: article.id,
-        wordCount: article.wordCount,
-        dataHash: article.dataHash,
-        mediaHash: article.mediaHash,
+        summary,
+        wordCount,
+        dataHash,
+        mediaHash,
         archived: true,
         publishState: PUBLISH_STATE.published,
         updatedAt: new Date(),
       })
-      job.progress(20)
+      job.progress(30)
 
-      // handle collection
-      await this.handleCollection({ draft, article })
-      job.progress(40)
+      // Note: the following steps won't affect the publication.
+      try {
+        // Step 5: handle collection, tags & mentions
+        await this.handleCollection({ draft, article })
+        job.progress(40)
 
-      // handle tags
-      const tags = await this.handleTags({ draft, article })
-      job.progress(50)
+        const tags = await this.handleTags({ draft, article })
+        job.progress(50)
 
-      /**
-       * Handle Assets
-       *
-       * Relationship between asset_map and entity:
-       *
-       * cover -> article
-       * embed -> draft
-       *
-       * @see {@url https://github.com/thematters/matters-server/pull/1510}
-       */
-      const [
-        { id: draftEntityTypeId },
-        { id: articleEntityTypeId },
-      ] = await Promise.all([
-        this.systemService.baseFindEntityTypeId('draft'),
-        this.systemService.baseFindEntityTypeId('article'),
-      ])
+        await this.handleMentions({ draft, article })
+        job.progress(60)
 
-      // Remove unused assets
-      await this.deleteUnusedAssets({ draftEntityTypeId, draft })
-      job.progress(60)
+        /**
+         * Step 6: Handle Assets
+         *
+         * Relationship between asset_map and entity:
+         *
+         * cover -> article
+         * embed -> draft
+         *
+         * @see {@url https://github.com/thematters/matters-server/pull/1510}
+         */
+        const [
+          { id: draftEntityTypeId },
+          { id: articleEntityTypeId },
+        ] = await Promise.all([
+          this.systemService.baseFindEntityTypeId('draft'),
+          this.systemService.baseFindEntityTypeId('article'),
+        ])
 
-      // Swap cover assets from draft to article
-      const coverAssets = await this.systemService.findAssetAndAssetMap({
-        entityTypeId: draftEntityTypeId,
-        entityId: draft.id,
-        assetType: 'cover',
-      })
-      await this.systemService.swapAssetMapEntity(
-        coverAssets.map((ast) => ast.id),
-        articleEntityTypeId,
-        article.id
-      )
-      job.progress(70)
+        // Remove unused assets
+        await this.deleteUnusedAssets({ draftEntityTypeId, draft })
+        job.progress(70)
 
-      // add to search
-      const author = await this.userService.baseFindById(article.authorId)
-      const { userName, displayName } = author
-      await this.articleService.addToSearch({
-        ...article,
-        userName,
-        displayName,
-        tags,
-      })
-      job.progress(80)
+        // Swap cover assets from draft to article
+        const coverAssets = await this.systemService.findAssetAndAssetMap({
+          entityTypeId: draftEntityTypeId,
+          entityId: draft.id,
+          assetType: 'cover',
+        })
+        await this.systemService.swapAssetMapEntity(
+          coverAssets.map((ast) => ast.id),
+          articleEntityTypeId,
+          article.id
+        )
+        job.progress(75)
 
-      // handle mentions
-      await this.handleMentions({ article })
-      job.progress(90)
+        // Step 7: add to search
+        const author = await this.userService.baseFindById(article.authorId)
+        const { userName, displayName } = author
+        await this.articleService.addToSearch({
+          id: article.id,
+          title: draft.title,
+          content: draft.content,
+          authorId: article.authorId,
+          userName,
+          displayName,
+          tags,
+        })
+        job.progress(80)
 
-      // trigger notifications
-      this.notificationService.trigger({
-        event: 'article_published',
-        recipientId: article.authorId,
-        entities: [
-          {
-            type: 'target',
-            entityTable: 'article',
-            entity: article,
-          },
-        ],
-      })
+        // Step 8: trigger notifications
+        this.notificationService.trigger({
+          event: 'article_published',
+          recipientId: article.authorId,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'article',
+              entity: article,
+            },
+          ],
+        })
+        job.progress(95)
 
-      job.progress(95)
-
-      // invalidate user cache
-      await invalidateFQC({
-        node: { type: NODE_TYPES.user, id: article.authorId },
-        redis: this.cacheService.redis,
-      })
-
-      job.progress(100)
+        // Step 9: invalidate user cache
+        await invalidateFQC({
+          node: { type: NODE_TYPES.user, id: article.authorId },
+          redis: this.cacheService.redis,
+        })
+        job.progress(100)
+      } catch (e) {
+        // ignore errors caused by these steps
+        logger.error(e)
+      }
 
       done(null, {
-        dataHash: article.dataHash,
-        mediaHash: article.mediaHash,
+        articleId: article.id,
+        draftId: publishedDraft.id,
+        dataHash: publishedDraft.dataHash,
+        mediaHash: publishedDraft.mediaHash,
       })
     } catch (e) {
+      await this.draftService.baseUpdate(draft.id, {
+        publishState: PUBLISH_STATE.error,
+      })
       done(e)
     }
   }
@@ -289,8 +297,14 @@ class PublicationQueue extends BaseQueue {
     return tags
   }
 
-  private handleMentions = async ({ article }: { article: any }) => {
-    const $ = cheerio.load(article.content)
+  private handleMentions = async ({
+    draft,
+    article,
+  }: {
+    draft: any
+    article: any
+  }) => {
+    const $ = cheerio.load(draft.content)
     const mentionIds = $('a.mention')
       .map((index: number, node: any) => {
         const id = $(node).attr('data-id')
@@ -356,34 +370,6 @@ class PublicationQueue extends BaseQueue {
       }
     } catch (e) {
       logger.error(e)
-    }
-  }
-
-  /**
-   * Publish pending drafts
-   */
-  private publishPendingDrafts: Queue.ProcessCallbackFunction<unknown> = async (
-    job,
-    done
-  ) => {
-    try {
-      // find pending draft which article id is null
-      const drafts = await this.draftService.findByPublishState({
-        articleIdIsNull: true,
-        publishState: PUBLISH_STATE.pending,
-      })
-      const pendingDraftIds: string[] = []
-
-      drafts.forEach((draft: any, index: number) => {
-        publicationQueue.publishArticle({ draftId: draft.id })
-        pendingDraftIds.push(draft.id)
-        job.progress(((index + 1) / drafts.length) * 100)
-      })
-
-      job.progress(100)
-      done(null, pendingDraftIds)
-    } catch (e) {
-      done(e)
     }
   }
 }

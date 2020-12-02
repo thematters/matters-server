@@ -56,6 +56,9 @@ export default /* GraphQL */ `
     "This value determines this comment is pinned or not."
     pinned: Boolean!
 
+    "This value determines this comment is from article donator or not."
+    fromDonator: Boolean!
+
     "The counting number of upvotes."
     upvotes: Int!
 

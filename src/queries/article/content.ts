@@ -1,4 +1,5 @@
 import { ARTICLE_STATE } from 'common/enums'
+import { correctHtml } from 'common/utils'
 import { ArticleToContentResolver } from 'definitions'
 
 // ACL for article content
@@ -14,7 +15,7 @@ const resolver: ArticleToContentResolver = async (
   const isAuthor = authorId === viewer.id
 
   if (isActive || isAdmin || isAuthor) {
-    return content
+    return correctHtml(content)
   }
 
   return ''
