@@ -99,6 +99,10 @@ export const environment = {
   stripeCustomerId: process.env.MATTERS_STRIPE_CUSTOMER_ID || '',
   slackToken: process.env.MATTERS_SLACK_TOKEN || '',
   slackPayoutChannel: process.env.MATTERS_SLACK_PAYOUT_CHANNEL || '',
+  rewardLikerId: process.env.MATTERS_REWARD_LIKER_ID || '',
+  rewardUserId: process.env.MATTERS_REWARD_USER_ID || '',
+  rewardAmountFirstArticle:
+    process.env.MATTERS_REWARD_AMOUNT_FIRST_ARTICLE || '0',
 }
 
 export const isLocal = environment.env === 'local'

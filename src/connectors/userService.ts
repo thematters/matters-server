@@ -225,6 +225,9 @@ export class UserService extends BaseService {
   ): Promise<{ uuid: string; [key: string]: string }> =>
     this.knex.select().from(this.table).where({ email }).first()
 
+  findByEmails = async (emails: string[]) =>
+    this.knex.select().from(this.table).whereIn('email', emails)
+
   /**
    * Find users by a given user name.
    */

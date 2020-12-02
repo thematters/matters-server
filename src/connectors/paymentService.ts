@@ -161,7 +161,7 @@ export class PaymentService extends BaseService {
     senderId,
 
     targetId,
-    targetType = TRANSACTION_TARGET_TYPE.article,
+    targetType,
   }: {
     amount: number
     fee?: number

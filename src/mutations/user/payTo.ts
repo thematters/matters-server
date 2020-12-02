@@ -6,7 +6,6 @@ import {
   PAYMENT_MAXIMUM_AMOUNT,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
-  TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
   USER_STATE,
 } from 'common/enums'
@@ -24,8 +23,7 @@ import {
   UserInputError,
   UserNotFoundError,
 } from 'common/errors'
-import { fromGlobalId, numRound } from 'common/utils'
-import { CacheService } from 'connectors'
+import { fromGlobalId } from 'common/utils'
 import { payToQueue } from 'connectors/queue'
 import { MutationToPayToResolver } from 'definitions'
 
@@ -116,6 +114,7 @@ const resolver: MutationToPayToResolver = async (
     recipientId: recipient.id,
     senderId: viewer.id,
     targetId: target.id,
+    targetType: TRANSACTION_TARGET_TYPE.article,
   }
 
   switch (currency) {
