@@ -253,6 +253,7 @@ const resolver: MutationToEditArticleResolver = async (
         authorId: currDraft.authorId,
         articleId: currArticle.id,
         title: currDraft.title,
+        summary: makeSummary(cleanedContent),
         content: pipe(cleanedContent),
         tags: currTagContents,
         cover: currArticle.cover,
