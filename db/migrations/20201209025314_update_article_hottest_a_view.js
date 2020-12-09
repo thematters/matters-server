@@ -1,5 +1,5 @@
-const view = `article_hottest_b_view`
-const materialized = `article_hottest_b_materialized`
+const view = `article_hottest_a_view`
+const materialized = `article_hottest_a_materialized`
 
 const time_window = 3
 const donation_decay_factor = 0.8
