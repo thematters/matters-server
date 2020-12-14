@@ -111,5 +111,6 @@ export default {
   TagOSS: {
     boost: tagOSS.boost,
     score: tagOSS.score,
+    selected: tagOSS.selected,
   },
 }

@@ -940,6 +940,7 @@ export interface GQLUserEdge {
 export interface GQLTagOSS {
   boost: GQLNonNegativeFloat
   score: GQLNonNegativeFloat
+  selected: boolean
 }
 
 export interface GQLRecommendInput {
@@ -5626,6 +5627,7 @@ export interface UserEdgeToNodeResolver<TParent = any, TResult = any> {
 export interface GQLTagOSSTypeResolver<TParent = any> {
   boost?: TagOSSToBoostResolver<TParent>
   score?: TagOSSToScoreResolver<TParent>
+  selected?: TagOSSToSelectedResolver<TParent>
 }
 
 export interface TagOSSToBoostResolver<TParent = any, TResult = any> {
@@ -5638,6 +5640,15 @@ export interface TagOSSToBoostResolver<TParent = any, TResult = any> {
 }
 
 export interface TagOSSToScoreResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagOSSToSelectedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
