@@ -692,7 +692,7 @@ export const TransactionRemarkText = {
     rate_limit: '操作過於頻繁',
 
     // likecoin
-    unknown_likecoin_failue: 'Like pay支付失敗',
+    unknown_likecoin_failue: 'LIKE Pay 支付失敗',
 
     // fallback
     unknow_error: '未知支付錯誤',
@@ -723,7 +723,7 @@ export const TransactionRemarkText = {
     rate_limit: '操作过于频繁',
 
     // likecoin
-    unknown_likecoin_failue: 'Like pay支付失败',
+    unknown_likecoin_failue: 'LIKE Pay 支付失败',
 
     // fallback
     unknow_error: '未知支付错误',
