@@ -27,7 +27,6 @@ class TxTimeoutQueue extends BaseQueue {
    * Producers
    */
   addRepeatJobs = async () => {
-    // refresh articleActivityMaterialized every 2 minutes, for hottest recommendation
     this.q.add(
       QUEUE_JOB.txTimeout,
       {},
