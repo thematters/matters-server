@@ -8,16 +8,27 @@ const articleService = new ArticleService()
 // })
 
 test('publish', async () => {
-  const articlePublished = await articleService.publish({
-    id: '1',
+  const { mediaHash, dataHash } = await articleService.publishToIPFS({
     authorId: '1',
     title: 'test',
     cover: '1',
     summary: 'test-summary',
     content: '<div>test-html-string</div>',
   })
-  expect(articlePublished.mediaHash).toBeDefined()
-  expect(articlePublished.dataHash).toBeDefined()
+  const articlePublished = await articleService.createArticle({
+    draftId: '1',
+    authorId: '1',
+    title: 'test',
+    slug: 'test',
+    cover: '1',
+    wordCount: 0,
+    summary: 'test-summary',
+    content: '<div>test-html-string</div>',
+    dataHash,
+    mediaHash,
+  })
+  expect(mediaHash).toBeDefined()
+  expect(dataHash).toBeDefined()
   expect(articlePublished.state).toBe('active')
 })
 

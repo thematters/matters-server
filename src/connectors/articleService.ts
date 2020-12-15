@@ -77,42 +77,33 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Publish an article to IPFS
+   * Create a active article with linked draft
    */
-  publish = async ({
-    id,
+  createArticle = async ({
+    draftId,
     authorId,
+    title,
+    slug,
+    wordCount,
+    summary,
     content,
     cover,
-    summary: draftSummary,
-    title,
+    dataHash,
+    mediaHash,
   }: Record<string, any>) => {
-    // pre-process data
-    const summary = draftSummary || makeSummary(content)
-
-    // publish content to IPFS
-    const { dataHash, mediaHash } = await this.publishToIPFS({
-      authorId,
-      title,
-      content,
-      cover,
-      summary,
-    })
-
-    // craete article
     const article = await this.baseCreate({
       uuid: v4(),
+      state: ARTICLE_STATE.active,
+      draftId,
       authorId,
       title,
-      slug: slugify(title),
-      wordCount: countWords(content),
+      slug,
+      wordCount,
       summary,
       content,
       cover,
       dataHash,
       mediaHash,
-      state: ARTICLE_STATE.active,
-      draftId: id,
     })
 
     return article
@@ -1335,7 +1326,11 @@ export class ArticleService extends BaseService {
     // or total length longer than 30 minutes,
     // or if a visitor read with a new ip,
     // add a new count and update last read timestamp
-    if (lapse > MINUTE * 5 || readLength > MINUTE * 30 || (!userId && ip !== oldData.ip)) {
+    if (
+      lapse > MINUTE * 5 ||
+      readLength > MINUTE * 30 ||
+      (!userId && ip !== oldData.ip)
+    ) {
       await this.baseUpdate(
         oldData.id,
         {
@@ -1955,5 +1950,33 @@ export class ArticleService extends BaseService {
     })
 
     return query.orderBy('score').limit(limit).offset(offset)
+  }
+
+  /**
+   * Whether the user donated to the specified article
+   */
+  isDonator = async ({
+    articleId,
+    userId,
+  }: {
+    articleId: string
+    userId: string
+  }) => {
+    const { id: entityTypeId } = await this.baseFindEntityTypeId(
+      TRANSACTION_TARGET_TYPE.article
+    )
+
+    const result = await this.knex('transaction')
+      .select()
+      .where({
+        targetId: articleId,
+        targetType: entityTypeId,
+        senderId: userId,
+        state: TRANSACTION_STATE.succeeded,
+        purpose: TRANSACTION_PURPOSE.donation,
+      })
+      .first()
+
+    return !!result
   }
 }
