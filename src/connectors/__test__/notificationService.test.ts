@@ -18,18 +18,46 @@ const recipientId = '1'
  * Notification Service
  */
 describe('user notify setting', () => {
-  const defaultNoifySetting: { [key in NotificationType]: boolean } = {
+  const defaultNoifySetting: Record<NotificationType, boolean> = {
+    // user
     user_new_follower: true,
+
+    // article
     article_published: true,
-    article_new_collected: true,
     article_new_appreciation: true,
     article_new_subscriber: false,
-    article_new_comment: true,
     article_mentioned_you: true,
-    subscribed_article_new_comment: false,
+    revised_article_published: true,
+    revised_article_not_published: true,
+
+    // article-article
+    article_new_collected: true,
+
+    // comment
     comment_pinned: true,
-    comment_new_reply: true,
     comment_mentioned_you: true,
+    article_new_comment: true,
+    subscribed_article_new_comment: false,
+
+    // comment-comment
+    comment_new_reply: true,
+
+    // article-tag
+    article_tag_has_been_added: true,
+    article_tag_has_been_removed: true,
+    article_tag_has_been_unselected: true,
+
+    // tag
+    tag_adoption: true,
+    tag_leave: true,
+    tag_add_editor: true,
+    tag_leave_editor: true,
+
+    // transaction
+    payment_received_donation: true,
+    payment_payout: true,
+
+    // misc
     official_announcement: true,
     user_activated: true,
     user_banned: true,
@@ -39,17 +67,6 @@ describe('user notify setting', () => {
     article_banned: false,
     comment_reported: false,
     article_reported: false,
-    article_tag_has_been_added: true,
-    article_tag_has_been_removed: true,
-    article_tag_has_been_unselected: true,
-    payment_received_donation: true,
-    payment_payout: true,
-    tag_adoption: true,
-    tag_leave: true,
-    tag_add_editor: true,
-    tag_leave_editor: true,
-    revised_article_published: true,
-    revised_article_not_published: true,
   }
 
   test('user receives notifications', async () => {

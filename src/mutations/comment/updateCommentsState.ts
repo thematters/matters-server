@@ -1,4 +1,4 @@
-import { COMMENT_STATE } from 'common/enums'
+import { COMMENT_STATE, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { MutationToUpdateCommentsStateResolver } from 'definitions'
@@ -66,7 +66,7 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
         const user = await userService.dataloader.load(comment.authorId)
 
         notificationService.trigger({
-          event: 'comment_banned',
+          event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned,
           entities: [
             { type: 'target', entityTable: 'comment', entity: comment },
           ],

@@ -1,4 +1,4 @@
-import { USER_STATE } from 'common/enums'
+import { DB_NOTICE_TYPE, USER_STATE } from 'common/enums'
 import {
   ArticleNotFoundError,
   AuthenticationError,
@@ -45,7 +45,7 @@ const resolver: MutationToToggleSubscribeArticleResolver = async (
 
     // trigger notifications
     notificationService.trigger({
-      event: 'article_new_subscriber',
+      event: DB_NOTICE_TYPE.article_new_subscriber,
       actorId: viewer.id,
       recipientId: article.authorId,
       entities: [

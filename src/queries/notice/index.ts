@@ -1,3 +1,4 @@
+import { DB_NOTICE_TYPE } from 'common/enums'
 import {
   DBNoticeType,
   GQLArticleArticleNoticeType,
@@ -52,7 +53,7 @@ const notice: {
   },
   Notice: {
     __resolveType: ({ type }: { type: DBNoticeType }) => {
-      const noticeTypeMap = {
+      const noticeTypeMap: Record<DBNoticeType, NOTICE_TYPE> = {
         // user
         user_new_follower: NOTICE_TYPE.UserNotice,
 
@@ -102,12 +103,12 @@ const notice: {
     id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
-        case 'user_new_follower':
+        case DB_NOTICE_TYPE.user_new_follower:
           return GQLUserNoticeType.UserNewFollower
       }
     },
     target: ({ entities, type }, _, { viewer }) => {
-      if (type === 'user_new_follower') {
+      if (type === DB_NOTICE_TYPE.user_new_follower) {
         return viewer
       }
       return null
@@ -117,17 +118,17 @@ const notice: {
     id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
-        case 'article_published':
+        case DB_NOTICE_TYPE.article_published:
           return GQLArticleNoticeType.ArticlePublished
-        case 'article_new_appreciation':
+        case DB_NOTICE_TYPE.article_new_appreciation:
           return GQLArticleNoticeType.ArticleNewAppreciation
-        case 'article_new_subscriber':
+        case DB_NOTICE_TYPE.article_new_subscriber:
           return GQLArticleNoticeType.ArticleNewSubscriber
-        case 'article_mentioned_you':
+        case DB_NOTICE_TYPE.article_mentioned_you:
           return GQLArticleNoticeType.ArticleMentionedYou
-        case 'revised_article_published':
+        case DB_NOTICE_TYPE.revised_article_published:
           return GQLArticleNoticeType.RevisedArticlePublished
-        case 'revised_article_not_published':
+        case DB_NOTICE_TYPE.revised_article_not_published:
           return GQLArticleNoticeType.RevisedArticleNotPublished
       }
     },
@@ -138,14 +139,14 @@ const notice: {
     id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
-        case 'article_new_collected':
+        case DB_NOTICE_TYPE.article_new_collected:
           return GQLArticleArticleNoticeType.ArticleNewCollected
       }
     },
     target: ({ entities }, _, { dataSources: { draftService } }) =>
       draftService.dataloader.load(entities.target.draftId),
     article: ({ entities, type }, _, { dataSources: { draftService } }) => {
-      if (type === 'article_new_collected') {
+      if (type === DB_NOTICE_TYPE.article_new_collected) {
         return draftService.dataloader.load(entities.collection.draftId)
       }
       return null
@@ -155,11 +156,11 @@ const notice: {
     id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
-        case 'article_tag_has_been_added':
+        case DB_NOTICE_TYPE.article_tag_has_been_added:
           return GQLArticleTagNoticeType.ArticleTagAdded
-        case 'article_tag_has_been_removed':
+        case DB_NOTICE_TYPE.article_tag_has_been_removed:
           return GQLArticleTagNoticeType.ArticleTagRemoved
-        case 'article_tag_has_been_unselected':
+        case DB_NOTICE_TYPE.article_tag_has_been_unselected:
           return GQLArticleTagNoticeType.ArticleTagUnselected
       }
     },
@@ -171,13 +172,13 @@ const notice: {
     id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
-        case 'tag_adoption':
+        case DB_NOTICE_TYPE.tag_adoption:
           return GQLTagNoticeType.TagAdoption
-        case 'tag_leave':
+        case DB_NOTICE_TYPE.tag_leave:
           return GQLTagNoticeType.TagLeave
-        case 'tag_add_editor':
+        case DB_NOTICE_TYPE.tag_add_editor:
           return GQLTagNoticeType.TagAddEditor
-        case 'tag_leave_editor':
+        case DB_NOTICE_TYPE.tag_leave_editor:
           return GQLTagNoticeType.TagAddEditor
       }
     },
@@ -187,13 +188,13 @@ const notice: {
     id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
-        case 'comment_pinned':
+        case DB_NOTICE_TYPE.comment_pinned:
           return GQLCommentNoticeType.ArticleCommentPinned
-        case 'comment_mentioned_you':
+        case DB_NOTICE_TYPE.comment_mentioned_you:
           return GQLCommentNoticeType.ArticleCommentMentionedYou
-        case 'article_new_comment':
+        case DB_NOTICE_TYPE.article_new_comment:
           return GQLCommentNoticeType.ArticleNewComment
-        case 'subscribed_article_new_comment':
+        case DB_NOTICE_TYPE.subscribed_article_new_comment:
           return GQLCommentNoticeType.SubscribedArticleNewComment
       }
     },
@@ -203,13 +204,13 @@ const notice: {
     id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
-        case 'comment_new_reply':
+        case DB_NOTICE_TYPE.comment_new_reply:
           return GQLCommentCommentNoticeType.CommentNewReply
       }
     },
     target: ({ entities }) => entities.target,
     comment: ({ entities, type }) => {
-      if (type === 'comment_new_reply') {
+      if (type === DB_NOTICE_TYPE.comment_new_reply) {
         return entities.reply
       }
       return null
@@ -219,9 +220,9 @@ const notice: {
     id: ({ uuid }) => uuid,
     type: ({ type }) => {
       switch (type) {
-        case 'payment_received_donation':
+        case DB_NOTICE_TYPE.payment_received_donation:
           return GQLTransactionNoticeType.PaymentReceivedDonation
-        case 'payment_payout':
+        case DB_NOTICE_TYPE.payment_payout:
           return GQLTransactionNoticeType.PaymentPayout
       }
     },
