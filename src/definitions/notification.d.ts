@@ -5,15 +5,12 @@ export type DBNoticeType =
   | 'user_new_follower'
   // article
   | 'article_published'
-  | 'article_new_downstream'
   | 'article_new_collected'
   | 'article_new_appreciation'
   | 'article_new_subscriber'
   | 'article_new_comment'
   | 'article_mentioned_you'
   | 'subscribed_article_new_comment'
-  | 'upstream_article_archived'
-  | 'downstream_article_archived'
   | 'article_tag_has_been_added'
   | 'article_tag_has_been_removed'
   | 'article_tag_has_been_unselected'
@@ -46,8 +43,6 @@ export type OfficialNoticeExtendType =
 
 export type NoticeEntityType =
   | 'target'
-  | 'downstream'
-  | 'upstream'
   | 'comment'
   | 'reply'
   | 'collection'
@@ -87,17 +82,6 @@ export interface NoticeArticlePublishedParams
   event: 'article_published'
   recipientId: string
   entities: [NotificationEntity<'target', 'article'>]
-}
-
-export interface NoticeArticleNewDownstreamParams
-  extends NotificationRequiredParams {
-  event: 'article_new_downstream'
-  recipientId: string
-  actorId: string
-  entities: [
-    NotificationEntity<'target', 'article'>,
-    NotificationEntity<'downstream', 'article'>
-  ]
 }
 
 export interface NoticeArticleNewCollectedParams
@@ -154,26 +138,6 @@ export interface NoticeSubscribedArticleNewCommentParams
   entities: [
     NotificationEntity<'target', 'article'>,
     NotificationEntity<'comment', 'comment'>
-  ]
-}
-
-export interface NoticeUpstreamArticleArchivedParams
-  extends NotificationRequiredParams {
-  event: 'upstream_article_archived'
-  recipientId: string
-  entities: [
-    NotificationEntity<'target', 'article'>,
-    NotificationEntity<'upstream', 'article'>
-  ]
-}
-
-export interface NoticeDownstreamArticleArchivedParams
-  extends NotificationRequiredParams {
-  event: 'downstream_article_archived'
-  recipientId: string
-  entities: [
-    NotificationEntity<'target', 'article'>,
-    NotificationEntity<'downstream', 'article'>
   ]
 }
 
@@ -370,15 +334,12 @@ export interface NoticeTagLeaveEditorParams extends NotificationRequiredParams {
 export type NotificationPrarms =
   | NoticeUserNewFollowerParams
   | NoticeArticlePublishedParams
-  | NoticeArticleNewDownstreamParams
   | NoticeArticleNewCollectedParams
   | NoticeArticleNewAppreciationParams
   | NoticeArticleNewSubscriberParams
   | NoticeArticleNewCommentParams
   | NoticeArticleMentionedYouParams
   | NoticeSubscribedArticleNewCommentParams
-  | NoticeUpstreamArticleArchivedParams
-  | NoticeDownstreamArticleArchivedParams
   | NoticeCommentPinnedParams
   | NoticeCommentNewReplyParams
   | NoticeCommentMentionedYouParams

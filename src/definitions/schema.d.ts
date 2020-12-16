@@ -1317,61 +1317,27 @@ export interface GQLNotice {
 
 /** Use this to resolve interface type Notice */
 export type GQLPossibleNoticeTypeNames =
-  | 'ArticleMentionedYouNotice'
-  | 'ArticleNewAppreciationNotice'
-  | 'ArticleNewCollectedNotice'
-  | 'ArticleNewCommentNotice'
-  | 'ArticleNewDownstreamNotice'
-  | 'ArticleNewSubscriberNotice'
-  | 'ArticlePublishedNotice'
-  | 'ArticleTagHasBeenAddedNotice'
-  | 'ArticleTagHasBeenRemovedNotice'
-  | 'ArticleTagHasBeenUnselectedNotice'
-  | 'CommentMentionedYouNotice'
-  | 'CommentNewReplyNotice'
-  | 'CommentPinnedNotice'
-  | 'DownstreamArticleArchivedNotice'
+  | 'ArticleArticleNotice'
+  | 'ArticleNotice'
+  | 'ArticleTagNotice'
+  | 'CommentCommentNotice'
+  | 'CommentNotice'
   | 'OfficialAnnouncementNotice'
-  | 'PaymentPayoutNotice'
-  | 'PaymentReceivedDonationNotice'
-  | 'RevisedArticleNotPublishedNotice'
-  | 'RevisedArticlePublishedNotice'
-  | 'SubscribedArticleNewCommentNotice'
-  | 'TagAddEditorNotice'
-  | 'TagAdoptionNotice'
-  | 'TagLeaveEditorNotice'
-  | 'TagLeaveNotice'
-  | 'UpstreamArticleArchivedNotice'
-  | 'UserNewFollowerNotice'
+  | 'TagNotice'
+  | 'TransactionNotice'
+  | 'UserNotice'
 
 export interface GQLNoticeNameMap {
   Notice: GQLNotice
-  ArticleMentionedYouNotice: GQLArticleMentionedYouNotice
-  ArticleNewAppreciationNotice: GQLArticleNewAppreciationNotice
-  ArticleNewCollectedNotice: GQLArticleNewCollectedNotice
-  ArticleNewCommentNotice: GQLArticleNewCommentNotice
-  ArticleNewDownstreamNotice: GQLArticleNewDownstreamNotice
-  ArticleNewSubscriberNotice: GQLArticleNewSubscriberNotice
-  ArticlePublishedNotice: GQLArticlePublishedNotice
-  ArticleTagHasBeenAddedNotice: GQLArticleTagHasBeenAddedNotice
-  ArticleTagHasBeenRemovedNotice: GQLArticleTagHasBeenRemovedNotice
-  ArticleTagHasBeenUnselectedNotice: GQLArticleTagHasBeenUnselectedNotice
-  CommentMentionedYouNotice: GQLCommentMentionedYouNotice
-  CommentNewReplyNotice: GQLCommentNewReplyNotice
-  CommentPinnedNotice: GQLCommentPinnedNotice
-  DownstreamArticleArchivedNotice: GQLDownstreamArticleArchivedNotice
+  ArticleArticleNotice: GQLArticleArticleNotice
+  ArticleNotice: GQLArticleNotice
+  ArticleTagNotice: GQLArticleTagNotice
+  CommentCommentNotice: GQLCommentCommentNotice
+  CommentNotice: GQLCommentNotice
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
-  PaymentPayoutNotice: GQLPaymentPayoutNotice
-  PaymentReceivedDonationNotice: GQLPaymentReceivedDonationNotice
-  RevisedArticleNotPublishedNotice: GQLRevisedArticleNotPublishedNotice
-  RevisedArticlePublishedNotice: GQLRevisedArticlePublishedNotice
-  SubscribedArticleNewCommentNotice: GQLSubscribedArticleNewCommentNotice
-  TagAddEditorNotice: GQLTagAddEditorNotice
-  TagAdoptionNotice: GQLTagAdoptionNotice
-  TagLeaveEditorNotice: GQLTagLeaveEditorNotice
-  TagLeaveNotice: GQLTagLeaveNotice
-  UpstreamArticleArchivedNotice: GQLUpstreamArticleArchivedNotice
-  UserNewFollowerNotice: GQLUserNewFollowerNotice
+  TagNotice: GQLTagNotice
+  TransactionNotice: GQLTransactionNotice
+  UserNotice: GQLUserNotice
 }
 
 export interface GQLWallet {
@@ -2460,10 +2426,7 @@ export interface GQLNodeEditedInput {
   id: string
 }
 
-/**
- * This notice type contains info about current user has been mentioned in an article.
- */
-export interface GQLArticleMentionedYouNotice extends GQLNotice {
+export interface GQLArticleArticleNotice extends GQLNotice {
   /**
    * Unique ID of this notice.
    */
@@ -2480,20 +2443,26 @@ export interface GQLArticleMentionedYouNotice extends GQLNotice {
   createdAt: GQLDateTime
 
   /**
-   * The user who mentioned current user.
+   * List of notice actors.
    */
-  actor: GQLUser
+  actors?: Array<GQLUser>
+  type: GQLArticleArticleNoticeType
+  target: GQLArticle
+  article: GQLArticle
+}
 
-  /**
-   * The article that current user has been mentioned in.
-   */
-  target?: GQLArticle
+export const enum GQLArticleArticleNoticeType {
+  ArticleNewCollected = 'ArticleNewCollected',
 }
 
 /**
- * This notice type contains info about current user's article has been appreciated by others.
+ * ################################
+ *                                #
+ *            Article             #
+ *                                #
+ * ################################
  */
-export interface GQLArticleNewAppreciationNotice extends GQLNotice {
+export interface GQLArticleNotice extends GQLNotice {
   /**
    * Unique ID of this notice.
    */
@@ -2510,20 +2479,31 @@ export interface GQLArticleNewAppreciationNotice extends GQLNotice {
   createdAt: GQLDateTime
 
   /**
-   * List of users who appreciated current user's article.
+   * List of notice actors.
    */
-  actors?: Array<GQLUser | null>
-
-  /**
-   * The article that has been appreciated.
-   */
+  actors?: Array<GQLUser>
+  type: GQLArticleNoticeType
   target?: GQLArticle
 }
 
+export const enum GQLArticleNoticeType {
+  ArticlePublished = 'ArticlePublished',
+  ArticleMentionedYou = 'ArticleMentionedYou',
+  ArticleNewSubscriber = 'ArticleNewSubscriber',
+  ArticleNewAppreciation = 'ArticleNewAppreciation',
+  RevisedArticlePublished = 'RevisedArticlePublished',
+  RevisedArticleNotPublished = 'RevisedArticleNotPublished',
+  CircleNewArticle = 'CircleNewArticle',
+}
+
 /**
- * This notice type contains info about current user's article has been collected by others.
+ * ################################
+ *                                #
+ *              Tag               #
+ *                                #
+ * ################################
  */
-export interface GQLArticleNewCollectedNotice extends GQLNotice {
+export interface GQLArticleTagNotice extends GQLNotice {
   /**
    * Unique ID of this notice.
    */
@@ -2540,223 +2520,18 @@ export interface GQLArticleNewCollectedNotice extends GQLNotice {
   createdAt: GQLDateTime
 
   /**
-   * The user collect current user's articles.
+   * List of notice actors.
    */
-  actor: GQLUser
-
-  /**
-   * The article that collected current user's articles.
-   */
-  collection?: GQLArticle
-
-  /**
-   * The article that has been collected.
-   */
+  actors?: Array<GQLUser>
+  type: GQLArticleTagNoticeType
   target?: GQLArticle
-}
-
-/**
- * This notice type contains info about current user's article has new comment.
- */
-export interface GQLArticleNewCommentNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The user who comment current user's article.
-   */
-  actors?: Array<GQLUser | null>
-
-  /**
-   * The article that has new comment.
-   */
-  target?: GQLArticle
-
-  /**
-   * The comment data.
-   */
-  comment?: GQLComment
-}
-
-export interface GQLArticleNewDownstreamNotice extends GQLNotice {
-  id: string
-  unread: boolean
-  createdAt: GQLDateTime
-  actors?: Array<GQLUser | null>
-  downstream?: GQLArticle
-  target?: GQLArticle
-}
-
-/**
- * This notice type contains info about current user's article has been subscribed by others.
- */
-export interface GQLArticleNewSubscriberNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * List of users who subscribed current user's article.
-   */
-  actors?: Array<GQLUser | null>
-
-  /**
-   * The article that has been subscribed.
-   */
-  target?: GQLArticle
-}
-
-/**
- * This notice type contains info about current user's article publihsed successfully.
- */
-export interface GQLArticlePublishedNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The article that has been published.
-   */
-  target?: GQLArticle
-}
-
-/**
- * This notice type contains info about one user has added current user's article, and set it as selected.
- */
-export interface GQLArticleTagHasBeenAddedNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The user who replied current user's comment.
-   */
-  actor: GQLUser
-
-  /**
-   * The article has a new tag.
-   */
-  target?: GQLArticle
-
-  /**
-   * The tag has been attached to an article.
-   */
   tag?: GQLTag
 }
 
-/**
- * This notice type contains info about one uer has removed a tag from current user's article.
- */
-export interface GQLArticleTagHasBeenRemovedNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The user who replied current user's comment.
-   */
-  actor: GQLUser
-
-  /**
-   * The article loses a tag.
-   */
-  target?: GQLArticle
-
-  /**
-   * The tag has been deattached from an article.
-   */
-  tag?: GQLTag
-}
-
-/**
- * This notice type contains info about one user has set current user's article unselected.
- */
-export interface GQLArticleTagHasBeenUnselectedNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The user who replied current user's comment.
-   */
-  actor: GQLUser
-
-  /**
-   * The article has a new tag.
-   */
-  target?: GQLArticle
-
-  /**
-   * The tag has been attached to an article.
-   */
-  tag?: GQLTag
+export const enum GQLArticleTagNoticeType {
+  ArticleTagAdded = 'ArticleTagAdded',
+  ArticleTagRemoved = 'ArticleTagRemoved',
+  ArticleTagUnselected = 'ArticleTagUnselected',
 }
 
 export const enum GQLCacheScope {
@@ -2764,18 +2539,7 @@ export const enum GQLCacheScope {
   PRIVATE = 'PRIVATE',
 }
 
-export interface GQLCommentMentionedYouNotice extends GQLNotice {
-  id: string
-  unread: boolean
-  createdAt: GQLDateTime
-  actor: GQLUser
-  target?: GQLComment
-}
-
-/**
- * This notice type contains info about current user's comment has new reply.
- */
-export interface GQLCommentNewReplyNotice extends GQLNotice {
+export interface GQLCommentCommentNotice extends GQLNotice {
   /**
    * Unique ID of this notice.
    */
@@ -2792,25 +2556,26 @@ export interface GQLCommentNewReplyNotice extends GQLNotice {
   createdAt: GQLDateTime
 
   /**
-   * The user who replied current user's comment.
+   * List of notice actors.
    */
-  actors?: Array<GQLUser | null>
-
-  /**
-   * The comment that has new replied.
-   */
+  actors?: Array<GQLUser>
+  type: GQLCommentCommentNoticeType
   target?: GQLComment
+  comment?: GQLComment
+}
 
-  /**
-   * The comment that replied to current user's existing comment.
-   */
-  reply?: GQLComment
+export const enum GQLCommentCommentNoticeType {
+  CommentNewReply = 'CommentNewReply',
 }
 
 /**
- * This notice type contains info about current user's comment has been pinned.
+ * ################################
+ *                                #
+ *            Comment             #
+ *                                #
+ * ################################
  */
-export interface GQLCommentPinnedNotice extends GQLNotice {
+export interface GQLCommentNotice extends GQLNotice {
   /**
    * Unique ID of this notice.
    */
@@ -2827,27 +2592,25 @@ export interface GQLCommentPinnedNotice extends GQLNotice {
   createdAt: GQLDateTime
 
   /**
-   * The user who pinned current user's comment.
+   * List of notice actors.
    */
-  actor: GQLUser
-
-  /**
-   * The comment data.
-   */
+  actors?: Array<GQLUser>
+  type: GQLCommentNoticeType
   target?: GQLComment
+}
+
+export const enum GQLCommentNoticeType {
+  ArticleCommentPinned = 'ArticleCommentPinned',
+  ArticleCommentMentionedYou = 'ArticleCommentMentionedYou',
+  ArticleNewComment = 'ArticleNewComment',
+  SubscribedArticleNewComment = 'SubscribedArticleNewComment',
+  CircleNewDiscussion = 'CircleNewDiscussion',
+  CircleNewBoardcast = 'CircleNewBoardcast',
 }
 
 export interface GQLCostComplexity {
   min?: number
   max?: number
-}
-
-export interface GQLDownstreamArticleArchivedNotice extends GQLNotice {
-  id: string
-  unread: boolean
-  createdAt: GQLDateTime
-  downstream?: GQLArticle
-  target?: GQLArticle
 }
 
 export type GQLJSON = any
@@ -2890,116 +2653,11 @@ export interface GQLOfficialAnnouncementNotice extends GQLNotice {
   link?: GQLURL
 }
 
-/**
- * This notice type contains info about current user requested to payout.
- */
-export interface GQLPaymentPayoutNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The transaction data.
-   */
-  target?: GQLTransaction
-}
-
-/**
- * This notice type contains info about current user received a donation.
- */
-export interface GQLPaymentReceivedDonationNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The user who donated to current user.
-   */
-  actor: GQLUser
-
-  /**
-   * The transaction data.
-   */
-  target?: GQLTransaction
-}
-
 export interface GQLReportsInput {
   article: boolean
   comment: boolean
   after?: string
   first?: number
-}
-
-/**
- * This type has info about user's revised article publihsed unsuccessfully.
- */
-export interface GQLRevisedArticleNotPublishedNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The article that has been published.
-   */
-  target?: GQLArticle
-}
-
-/**
- * This type has info about user's revised article publihsed successfully.
- */
-export interface GQLRevisedArticlePublishedNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The article that has been published.
-   */
-  target?: GQLArticle
 }
 
 /**
@@ -3011,10 +2669,7 @@ export const enum GQLRole {
   admin = 'admin',
 }
 
-/**
- * This notice type contains info about current user's subscribed article has new comment.
- */
-export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
+export interface GQLTagNotice extends GQLNotice {
   /**
    * Unique ID of this notice.
    */
@@ -3031,141 +2686,56 @@ export interface GQLSubscribedArticleNewCommentNotice extends GQLNotice {
   createdAt: GQLDateTime
 
   /**
-   * The user who made new comment to current user's subscribed article.
+   * List of notice actors.
    */
-  actors?: Array<GQLUser | null>
-
-  /**
-   * The article that current user has been subscribed.
-   */
-  target?: GQLArticle
-
-  /**
-   * The comment data.
-   */
-  comment?: GQLComment
+  actors?: Array<GQLUser>
+  type: GQLTagNoticeType
+  target?: GQLTag
 }
 
-/**
- * This notice type contains info about editors has been added into a tag.
- */
-export interface GQLTagAddEditorNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The user who added editor to a tag.
-   */
-  actor: GQLUser
-  tag?: GQLTag
-}
-
-/**
- * This notice type contains info about a tag has been adopted by a user.
- */
-export interface GQLTagAdoptionNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The user who adopted a tag.
-   */
-  actor: GQLUser
-
-  /**
-   * The tag adopted by user.
-   */
-  tag?: GQLTag
-}
-
-/**
- * This notice type contains info about a editor left a tag.
- */
-export interface GQLTagLeaveEditorNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The user who leave from tag editors.
-   */
-  actor: GQLUser
-  tag?: GQLTag
-}
-
-/**
- * This notice type contains info about a user left a tag.
- */
-export interface GQLTagLeaveNotice extends GQLNotice {
-  /**
-   * Unique ID of this notice.
-   */
-  id: string
-
-  /**
-   * The value determines if the notice is unread or not.
-   */
-  unread: boolean
-
-  /**
-   * Time of this notice was created.
-   */
-  createdAt: GQLDateTime
-
-  /**
-   * The user who leave a tag.
-   */
-  actor: GQLUser
-
-  /**
-   * The tag left by user.
-   */
-  tag?: GQLTag
+export const enum GQLTagNoticeType {
+  TagAdoption = 'TagAdoption',
+  TagLeave = 'TagLeave',
+  TagAddEditor = 'TagAddEditor',
+  TagLeaveEditor = 'TagLeaveEditor',
 }
 
 export type GQLTime = any
 
-export interface GQLUpstreamArticleArchivedNotice extends GQLNotice {
+/**
+ * ################################
+ *                                #
+ *          Transaction           #
+ *                                #
+ * ################################
+ */
+export interface GQLTransactionNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
   id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
   unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
   createdAt: GQLDateTime
-  upstream?: GQLArticle
-  target?: GQLArticle
+
+  /**
+   * List of notice actors.
+   */
+  actors?: Array<GQLUser>
+  type: GQLTransactionNoticeType
+  target?: GQLTransaction
+}
+
+export const enum GQLTransactionNoticeType {
+  PaymentReceivedDonation = 'PaymentReceivedDonation',
+  PaymentPayout = 'PaymentPayout',
 }
 
 export const enum GQLUserInfoFields {
@@ -3177,9 +2747,13 @@ export const enum GQLUserInfoFields {
 }
 
 /**
- * This notice type contains info about current user has new followers.
+ * ################################
+ *                                #
+ *              User              #
+ *                                #
+ * ################################
  */
-export interface GQLUserNewFollowerNotice extends GQLNotice {
+export interface GQLUserNotice extends GQLNotice {
   /**
    * Unique ID of this notice.
    */
@@ -3196,9 +2770,15 @@ export interface GQLUserNewFollowerNotice extends GQLNotice {
   createdAt: GQLDateTime
 
   /**
-   * List of new followers.
+   * List of notice actors.
    */
-  actors?: Array<GQLUser | null>
+  actors?: Array<GQLUser>
+  type: GQLUserNoticeType
+  target: GQLUser
+}
+
+export const enum GQLUserNoticeType {
+  UserNewFollower = 'UserNewFollower',
 }
 
 export interface GQLVerifyEmailInput {
@@ -3314,38 +2894,21 @@ export interface GQLResolver {
   PayToResult?: GQLPayToResultTypeResolver
   ConnectStripeAccountResult?: GQLConnectStripeAccountResultTypeResolver
   Subscription?: GQLSubscriptionTypeResolver
-  ArticleMentionedYouNotice?: GQLArticleMentionedYouNoticeTypeResolver
-  ArticleNewAppreciationNotice?: GQLArticleNewAppreciationNoticeTypeResolver
-  ArticleNewCollectedNotice?: GQLArticleNewCollectedNoticeTypeResolver
-  ArticleNewCommentNotice?: GQLArticleNewCommentNoticeTypeResolver
-  ArticleNewDownstreamNotice?: GQLArticleNewDownstreamNoticeTypeResolver
-  ArticleNewSubscriberNotice?: GQLArticleNewSubscriberNoticeTypeResolver
-  ArticlePublishedNotice?: GQLArticlePublishedNoticeTypeResolver
-  ArticleTagHasBeenAddedNotice?: GQLArticleTagHasBeenAddedNoticeTypeResolver
-  ArticleTagHasBeenRemovedNotice?: GQLArticleTagHasBeenRemovedNoticeTypeResolver
-  ArticleTagHasBeenUnselectedNotice?: GQLArticleTagHasBeenUnselectedNoticeTypeResolver
-  CommentMentionedYouNotice?: GQLCommentMentionedYouNoticeTypeResolver
-  CommentNewReplyNotice?: GQLCommentNewReplyNoticeTypeResolver
-  CommentPinnedNotice?: GQLCommentPinnedNoticeTypeResolver
-  DownstreamArticleArchivedNotice?: GQLDownstreamArticleArchivedNoticeTypeResolver
+  ArticleArticleNotice?: GQLArticleArticleNoticeTypeResolver
+  ArticleNotice?: GQLArticleNoticeTypeResolver
+  ArticleTagNotice?: GQLArticleTagNoticeTypeResolver
+  CommentCommentNotice?: GQLCommentCommentNoticeTypeResolver
+  CommentNotice?: GQLCommentNoticeTypeResolver
   JSON?: GraphQLScalarType
   NegativeFloat?: GraphQLScalarType
   NegativeInt?: GraphQLScalarType
   NonPositiveFloat?: GraphQLScalarType
   NonPositiveInt?: GraphQLScalarType
   OfficialAnnouncementNotice?: GQLOfficialAnnouncementNoticeTypeResolver
-  PaymentPayoutNotice?: GQLPaymentPayoutNoticeTypeResolver
-  PaymentReceivedDonationNotice?: GQLPaymentReceivedDonationNoticeTypeResolver
-  RevisedArticleNotPublishedNotice?: GQLRevisedArticleNotPublishedNoticeTypeResolver
-  RevisedArticlePublishedNotice?: GQLRevisedArticlePublishedNoticeTypeResolver
-  SubscribedArticleNewCommentNotice?: GQLSubscribedArticleNewCommentNoticeTypeResolver
-  TagAddEditorNotice?: GQLTagAddEditorNoticeTypeResolver
-  TagAdoptionNotice?: GQLTagAdoptionNoticeTypeResolver
-  TagLeaveEditorNotice?: GQLTagLeaveEditorNoticeTypeResolver
-  TagLeaveNotice?: GQLTagLeaveNoticeTypeResolver
+  TagNotice?: GQLTagNoticeTypeResolver
   Time?: GraphQLScalarType
-  UpstreamArticleArchivedNotice?: GQLUpstreamArticleArchivedNoticeTypeResolver
-  UserNewFollowerNotice?: GQLUserNewFollowerNoticeTypeResolver
+  TransactionNotice?: GQLTransactionNoticeTypeResolver
+  UserNotice?: GQLUserNoticeTypeResolver
 }
 export interface GQLQueryTypeResolver<TParent = any> {
   article?: QueryToArticleResolver<TParent>
@@ -6521,32 +6084,15 @@ export interface NoticeEdgeToNodeResolver<TParent = any, TResult = any> {
 
 export interface GQLNoticeTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
-    | 'ArticleMentionedYouNotice'
-    | 'ArticleNewAppreciationNotice'
-    | 'ArticleNewCollectedNotice'
-    | 'ArticleNewCommentNotice'
-    | 'ArticleNewDownstreamNotice'
-    | 'ArticleNewSubscriberNotice'
-    | 'ArticlePublishedNotice'
-    | 'ArticleTagHasBeenAddedNotice'
-    | 'ArticleTagHasBeenRemovedNotice'
-    | 'ArticleTagHasBeenUnselectedNotice'
-    | 'CommentMentionedYouNotice'
-    | 'CommentNewReplyNotice'
-    | 'CommentPinnedNotice'
-    | 'DownstreamArticleArchivedNotice'
+    | 'ArticleArticleNotice'
+    | 'ArticleNotice'
+    | 'ArticleTagNotice'
+    | 'CommentCommentNotice'
+    | 'CommentNotice'
     | 'OfficialAnnouncementNotice'
-    | 'PaymentPayoutNotice'
-    | 'PaymentReceivedDonationNotice'
-    | 'RevisedArticleNotPublishedNotice'
-    | 'RevisedArticlePublishedNotice'
-    | 'SubscribedArticleNewCommentNotice'
-    | 'TagAddEditorNotice'
-    | 'TagAdoptionNotice'
-    | 'TagLeaveEditorNotice'
-    | 'TagLeaveNotice'
-    | 'UpstreamArticleArchivedNotice'
-    | 'UserNewFollowerNotice'
+    | 'TagNotice'
+    | 'TransactionNotice'
+    | 'UserNotice'
 }
 export interface GQLWalletTypeResolver<TParent = any> {
   balance?: WalletToBalanceResolver<TParent>
@@ -8445,485 +7991,17 @@ export interface SubscriptionToNodeEditedResolver<
   ) => AsyncIterator<TResult>
 }
 
-export interface GQLArticleMentionedYouNoticeTypeResolver<TParent = any> {
-  id?: ArticleMentionedYouNoticeToIdResolver<TParent>
-  unread?: ArticleMentionedYouNoticeToUnreadResolver<TParent>
-  createdAt?: ArticleMentionedYouNoticeToCreatedAtResolver<TParent>
-  actor?: ArticleMentionedYouNoticeToActorResolver<TParent>
-  target?: ArticleMentionedYouNoticeToTargetResolver<TParent>
-}
-
-export interface ArticleMentionedYouNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleMentionedYouNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleMentionedYouNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleMentionedYouNoticeToActorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleMentionedYouNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLArticleNewAppreciationNoticeTypeResolver<TParent = any> {
-  id?: ArticleNewAppreciationNoticeToIdResolver<TParent>
-  unread?: ArticleNewAppreciationNoticeToUnreadResolver<TParent>
-  createdAt?: ArticleNewAppreciationNoticeToCreatedAtResolver<TParent>
-  actors?: ArticleNewAppreciationNoticeToActorsResolver<TParent>
-  target?: ArticleNewAppreciationNoticeToTargetResolver<TParent>
-}
-
-export interface ArticleNewAppreciationNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewAppreciationNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewAppreciationNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewAppreciationNoticeToActorsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewAppreciationNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLArticleNewCollectedNoticeTypeResolver<TParent = any> {
-  id?: ArticleNewCollectedNoticeToIdResolver<TParent>
-  unread?: ArticleNewCollectedNoticeToUnreadResolver<TParent>
-  createdAt?: ArticleNewCollectedNoticeToCreatedAtResolver<TParent>
-  actor?: ArticleNewCollectedNoticeToActorResolver<TParent>
-  collection?: ArticleNewCollectedNoticeToCollectionResolver<TParent>
-  target?: ArticleNewCollectedNoticeToTargetResolver<TParent>
-}
-
-export interface ArticleNewCollectedNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewCollectedNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewCollectedNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewCollectedNoticeToActorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewCollectedNoticeToCollectionResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewCollectedNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLArticleNewCommentNoticeTypeResolver<TParent = any> {
-  id?: ArticleNewCommentNoticeToIdResolver<TParent>
-  unread?: ArticleNewCommentNoticeToUnreadResolver<TParent>
-  createdAt?: ArticleNewCommentNoticeToCreatedAtResolver<TParent>
-  actors?: ArticleNewCommentNoticeToActorsResolver<TParent>
-  target?: ArticleNewCommentNoticeToTargetResolver<TParent>
-  comment?: ArticleNewCommentNoticeToCommentResolver<TParent>
-}
-
-export interface ArticleNewCommentNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewCommentNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewCommentNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewCommentNoticeToActorsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewCommentNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewCommentNoticeToCommentResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLArticleNewDownstreamNoticeTypeResolver<TParent = any> {
-  id?: ArticleNewDownstreamNoticeToIdResolver<TParent>
-  unread?: ArticleNewDownstreamNoticeToUnreadResolver<TParent>
-  createdAt?: ArticleNewDownstreamNoticeToCreatedAtResolver<TParent>
-  actors?: ArticleNewDownstreamNoticeToActorsResolver<TParent>
-  downstream?: ArticleNewDownstreamNoticeToDownstreamResolver<TParent>
-  target?: ArticleNewDownstreamNoticeToTargetResolver<TParent>
-}
-
-export interface ArticleNewDownstreamNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewDownstreamNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewDownstreamNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewDownstreamNoticeToActorsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewDownstreamNoticeToDownstreamResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewDownstreamNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLArticleNewSubscriberNoticeTypeResolver<TParent = any> {
-  id?: ArticleNewSubscriberNoticeToIdResolver<TParent>
-  unread?: ArticleNewSubscriberNoticeToUnreadResolver<TParent>
-  createdAt?: ArticleNewSubscriberNoticeToCreatedAtResolver<TParent>
-  actors?: ArticleNewSubscriberNoticeToActorsResolver<TParent>
-  target?: ArticleNewSubscriberNoticeToTargetResolver<TParent>
-}
-
-export interface ArticleNewSubscriberNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewSubscriberNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewSubscriberNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewSubscriberNoticeToActorsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleNewSubscriberNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLArticlePublishedNoticeTypeResolver<TParent = any> {
-  id?: ArticlePublishedNoticeToIdResolver<TParent>
-  unread?: ArticlePublishedNoticeToUnreadResolver<TParent>
-  createdAt?: ArticlePublishedNoticeToCreatedAtResolver<TParent>
-  target?: ArticlePublishedNoticeToTargetResolver<TParent>
-}
-
-export interface ArticlePublishedNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticlePublishedNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
+export interface GQLArticleArticleNoticeTypeResolver<TParent = any> {
+  id?: ArticleArticleNoticeToIdResolver<TParent>
+  unread?: ArticleArticleNoticeToUnreadResolver<TParent>
+  createdAt?: ArticleArticleNoticeToCreatedAtResolver<TParent>
+  actors?: ArticleArticleNoticeToActorsResolver<TParent>
+  type?: ArticleArticleNoticeToTypeResolver<TParent>
+  target?: ArticleArticleNoticeToTargetResolver<TParent>
+  article?: ArticleArticleNoticeToArticleResolver<TParent>
 }
 
-export interface ArticlePublishedNoticeToCreatedAtResolver<
+export interface ArticleArticleNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
@@ -8935,7 +8013,7 @@ export interface ArticlePublishedNoticeToCreatedAtResolver<
   ): TResult
 }
 
-export interface ArticlePublishedNoticeToTargetResolver<
+export interface ArticleArticleNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
@@ -8947,52 +8025,7 @@ export interface ArticlePublishedNoticeToTargetResolver<
   ): TResult
 }
 
-export interface GQLArticleTagHasBeenAddedNoticeTypeResolver<TParent = any> {
-  id?: ArticleTagHasBeenAddedNoticeToIdResolver<TParent>
-  unread?: ArticleTagHasBeenAddedNoticeToUnreadResolver<TParent>
-  createdAt?: ArticleTagHasBeenAddedNoticeToCreatedAtResolver<TParent>
-  actor?: ArticleTagHasBeenAddedNoticeToActorResolver<TParent>
-  target?: ArticleTagHasBeenAddedNoticeToTargetResolver<TParent>
-  tag?: ArticleTagHasBeenAddedNoticeToTagResolver<TParent>
-}
-
-export interface ArticleTagHasBeenAddedNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleTagHasBeenAddedNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleTagHasBeenAddedNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleTagHasBeenAddedNoticeToActorResolver<
+export interface ArticleArticleNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -9004,7 +8037,7 @@ export interface ArticleTagHasBeenAddedNoticeToActorResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenAddedNoticeToTargetResolver<
+export interface ArticleArticleNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
@@ -9016,7 +8049,7 @@ export interface ArticleTagHasBeenAddedNoticeToTargetResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenAddedNoticeToTagResolver<
+export interface ArticleArticleNoticeToTypeResolver<
   TParent = any,
   TResult = any
 > {
@@ -9026,18 +8059,9 @@ export interface ArticleTagHasBeenAddedNoticeToTagResolver<
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
-}
-
-export interface GQLArticleTagHasBeenRemovedNoticeTypeResolver<TParent = any> {
-  id?: ArticleTagHasBeenRemovedNoticeToIdResolver<TParent>
-  unread?: ArticleTagHasBeenRemovedNoticeToUnreadResolver<TParent>
-  createdAt?: ArticleTagHasBeenRemovedNoticeToCreatedAtResolver<TParent>
-  actor?: ArticleTagHasBeenRemovedNoticeToActorResolver<TParent>
-  target?: ArticleTagHasBeenRemovedNoticeToTargetResolver<TParent>
-  tag?: ArticleTagHasBeenRemovedNoticeToTagResolver<TParent>
 }
 
-export interface ArticleTagHasBeenRemovedNoticeToIdResolver<
+export interface ArticleArticleNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
@@ -9049,7 +8073,7 @@ export interface ArticleTagHasBeenRemovedNoticeToIdResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenRemovedNoticeToUnreadResolver<
+export interface ArticleArticleNoticeToArticleResolver<
   TParent = any,
   TResult = any
 > {
@@ -9061,22 +8085,16 @@ export interface ArticleTagHasBeenRemovedNoticeToUnreadResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenRemovedNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
+export interface GQLArticleNoticeTypeResolver<TParent = any> {
+  id?: ArticleNoticeToIdResolver<TParent>
+  unread?: ArticleNoticeToUnreadResolver<TParent>
+  createdAt?: ArticleNoticeToCreatedAtResolver<TParent>
+  actors?: ArticleNoticeToActorsResolver<TParent>
+  type?: ArticleNoticeToTypeResolver<TParent>
+  target?: ArticleNoticeToTargetResolver<TParent>
 }
 
-export interface ArticleTagHasBeenRemovedNoticeToActorResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface ArticleNoticeToIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9085,10 +8103,7 @@ export interface ArticleTagHasBeenRemovedNoticeToActorResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenRemovedNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface ArticleNoticeToUnreadResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9097,7 +8112,7 @@ export interface ArticleTagHasBeenRemovedNoticeToTargetResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenRemovedNoticeToTagResolver<
+export interface ArticleNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -9109,21 +8124,7 @@ export interface ArticleTagHasBeenRemovedNoticeToTagResolver<
   ): TResult
 }
 
-export interface GQLArticleTagHasBeenUnselectedNoticeTypeResolver<
-  TParent = any
-> {
-  id?: ArticleTagHasBeenUnselectedNoticeToIdResolver<TParent>
-  unread?: ArticleTagHasBeenUnselectedNoticeToUnreadResolver<TParent>
-  createdAt?: ArticleTagHasBeenUnselectedNoticeToCreatedAtResolver<TParent>
-  actor?: ArticleTagHasBeenUnselectedNoticeToActorResolver<TParent>
-  target?: ArticleTagHasBeenUnselectedNoticeToTargetResolver<TParent>
-  tag?: ArticleTagHasBeenUnselectedNoticeToTagResolver<TParent>
-}
-
-export interface ArticleTagHasBeenUnselectedNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface ArticleNoticeToActorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9132,10 +8133,7 @@ export interface ArticleTagHasBeenUnselectedNoticeToIdResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenUnselectedNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface ArticleNoticeToTypeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9144,10 +8142,7 @@ export interface ArticleTagHasBeenUnselectedNoticeToUnreadResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenUnselectedNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface ArticleNoticeToTargetResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9156,22 +8151,17 @@ export interface ArticleTagHasBeenUnselectedNoticeToCreatedAtResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenUnselectedNoticeToActorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
+export interface GQLArticleTagNoticeTypeResolver<TParent = any> {
+  id?: ArticleTagNoticeToIdResolver<TParent>
+  unread?: ArticleTagNoticeToUnreadResolver<TParent>
+  createdAt?: ArticleTagNoticeToCreatedAtResolver<TParent>
+  actors?: ArticleTagNoticeToActorsResolver<TParent>
+  type?: ArticleTagNoticeToTypeResolver<TParent>
+  target?: ArticleTagNoticeToTargetResolver<TParent>
+  tag?: ArticleTagNoticeToTagResolver<TParent>
 }
 
-export interface ArticleTagHasBeenUnselectedNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface ArticleTagNoticeToIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9180,7 +8170,7 @@ export interface ArticleTagHasBeenUnselectedNoticeToTargetResolver<
   ): TResult
 }
 
-export interface ArticleTagHasBeenUnselectedNoticeToTagResolver<
+export interface ArticleTagNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
@@ -9190,17 +8180,9 @@ export interface ArticleTagHasBeenUnselectedNoticeToTagResolver<
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
-}
-
-export interface GQLCommentMentionedYouNoticeTypeResolver<TParent = any> {
-  id?: CommentMentionedYouNoticeToIdResolver<TParent>
-  unread?: CommentMentionedYouNoticeToUnreadResolver<TParent>
-  createdAt?: CommentMentionedYouNoticeToCreatedAtResolver<TParent>
-  actor?: CommentMentionedYouNoticeToActorResolver<TParent>
-  target?: CommentMentionedYouNoticeToTargetResolver<TParent>
 }
 
-export interface CommentMentionedYouNoticeToIdResolver<
+export interface ArticleTagNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -9212,7 +8194,7 @@ export interface CommentMentionedYouNoticeToIdResolver<
   ): TResult
 }
 
-export interface CommentMentionedYouNoticeToUnreadResolver<
+export interface ArticleTagNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
@@ -9224,10 +8206,7 @@ export interface CommentMentionedYouNoticeToUnreadResolver<
   ): TResult
 }
 
-export interface CommentMentionedYouNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface ArticleTagNoticeToTypeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9236,7 +8215,7 @@ export interface CommentMentionedYouNoticeToCreatedAtResolver<
   ): TResult
 }
 
-export interface CommentMentionedYouNoticeToActorResolver<
+export interface ArticleTagNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
@@ -9248,40 +8227,26 @@ export interface CommentMentionedYouNoticeToActorResolver<
   ): TResult
 }
 
-export interface CommentMentionedYouNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface ArticleTagNoticeToTagResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
-}
-
-export interface GQLCommentNewReplyNoticeTypeResolver<TParent = any> {
-  id?: CommentNewReplyNoticeToIdResolver<TParent>
-  unread?: CommentNewReplyNoticeToUnreadResolver<TParent>
-  createdAt?: CommentNewReplyNoticeToCreatedAtResolver<TParent>
-  actors?: CommentNewReplyNoticeToActorsResolver<TParent>
-  target?: CommentNewReplyNoticeToTargetResolver<TParent>
-  reply?: CommentNewReplyNoticeToReplyResolver<TParent>
 }
 
-export interface CommentNewReplyNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
+export interface GQLCommentCommentNoticeTypeResolver<TParent = any> {
+  id?: CommentCommentNoticeToIdResolver<TParent>
+  unread?: CommentCommentNoticeToUnreadResolver<TParent>
+  createdAt?: CommentCommentNoticeToCreatedAtResolver<TParent>
+  actors?: CommentCommentNoticeToActorsResolver<TParent>
+  type?: CommentCommentNoticeToTypeResolver<TParent>
+  target?: CommentCommentNoticeToTargetResolver<TParent>
+  comment?: CommentCommentNoticeToCommentResolver<TParent>
 }
 
-export interface CommentNewReplyNoticeToUnreadResolver<
+export interface CommentCommentNoticeToIdResolver<
   TParent = any,
   TResult = any
 > {
@@ -9293,7 +8258,7 @@ export interface CommentNewReplyNoticeToUnreadResolver<
   ): TResult
 }
 
-export interface CommentNewReplyNoticeToCreatedAtResolver<
+export interface CommentCommentNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
@@ -9305,7 +8270,7 @@ export interface CommentNewReplyNoticeToCreatedAtResolver<
   ): TResult
 }
 
-export interface CommentNewReplyNoticeToActorsResolver<
+export interface CommentCommentNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -9317,7 +8282,7 @@ export interface CommentNewReplyNoticeToActorsResolver<
   ): TResult
 }
 
-export interface CommentNewReplyNoticeToTargetResolver<
+export interface CommentCommentNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
@@ -9329,27 +8294,10 @@ export interface CommentNewReplyNoticeToTargetResolver<
   ): TResult
 }
 
-export interface CommentNewReplyNoticeToReplyResolver<
+export interface CommentCommentNoticeToTypeResolver<
   TParent = any,
   TResult = any
 > {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLCommentPinnedNoticeTypeResolver<TParent = any> {
-  id?: CommentPinnedNoticeToIdResolver<TParent>
-  unread?: CommentPinnedNoticeToUnreadResolver<TParent>
-  createdAt?: CommentPinnedNoticeToCreatedAtResolver<TParent>
-  actor?: CommentPinnedNoticeToActorResolver<TParent>
-  target?: CommentPinnedNoticeToTargetResolver<TParent>
-}
-
-export interface CommentPinnedNoticeToIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9358,7 +8306,7 @@ export interface CommentPinnedNoticeToIdResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface CommentPinnedNoticeToUnreadResolver<
+export interface CommentCommentNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
@@ -9370,7 +8318,7 @@ export interface CommentPinnedNoticeToUnreadResolver<
   ): TResult
 }
 
-export interface CommentPinnedNoticeToCreatedAtResolver<
+export interface CommentCommentNoticeToCommentResolver<
   TParent = any,
   TResult = any
 > {
@@ -9382,42 +8330,25 @@ export interface CommentPinnedNoticeToCreatedAtResolver<
   ): TResult
 }
 
-export interface CommentPinnedNoticeToActorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
+export interface GQLCommentNoticeTypeResolver<TParent = any> {
+  id?: CommentNoticeToIdResolver<TParent>
+  unread?: CommentNoticeToUnreadResolver<TParent>
+  createdAt?: CommentNoticeToCreatedAtResolver<TParent>
+  actors?: CommentNoticeToActorsResolver<TParent>
+  type?: CommentNoticeToTypeResolver<TParent>
+  target?: CommentNoticeToTargetResolver<TParent>
 }
 
-export interface CommentPinnedNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface CommentNoticeToIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
-}
-
-export interface GQLDownstreamArticleArchivedNoticeTypeResolver<TParent = any> {
-  id?: DownstreamArticleArchivedNoticeToIdResolver<TParent>
-  unread?: DownstreamArticleArchivedNoticeToUnreadResolver<TParent>
-  createdAt?: DownstreamArticleArchivedNoticeToCreatedAtResolver<TParent>
-  downstream?: DownstreamArticleArchivedNoticeToDownstreamResolver<TParent>
-  target?: DownstreamArticleArchivedNoticeToTargetResolver<TParent>
 }
 
-export interface DownstreamArticleArchivedNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface CommentNoticeToUnreadResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9426,7 +8357,7 @@ export interface DownstreamArticleArchivedNoticeToIdResolver<
   ): TResult
 }
 
-export interface DownstreamArticleArchivedNoticeToUnreadResolver<
+export interface CommentNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -9438,10 +8369,7 @@ export interface DownstreamArticleArchivedNoticeToUnreadResolver<
   ): TResult
 }
 
-export interface DownstreamArticleArchivedNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface CommentNoticeToActorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9450,10 +8378,7 @@ export interface DownstreamArticleArchivedNoticeToCreatedAtResolver<
   ): TResult
 }
 
-export interface DownstreamArticleArchivedNoticeToDownstreamResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface CommentNoticeToTypeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9462,10 +8387,7 @@ export interface DownstreamArticleArchivedNoticeToDownstreamResolver<
   ): TResult
 }
 
-export interface DownstreamArticleArchivedNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface CommentNoticeToTargetResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9542,14 +8464,16 @@ export interface OfficialAnnouncementNoticeToLinkResolver<
   ): TResult
 }
 
-export interface GQLPaymentPayoutNoticeTypeResolver<TParent = any> {
-  id?: PaymentPayoutNoticeToIdResolver<TParent>
-  unread?: PaymentPayoutNoticeToUnreadResolver<TParent>
-  createdAt?: PaymentPayoutNoticeToCreatedAtResolver<TParent>
-  target?: PaymentPayoutNoticeToTargetResolver<TParent>
+export interface GQLTagNoticeTypeResolver<TParent = any> {
+  id?: TagNoticeToIdResolver<TParent>
+  unread?: TagNoticeToUnreadResolver<TParent>
+  createdAt?: TagNoticeToCreatedAtResolver<TParent>
+  actors?: TagNoticeToActorsResolver<TParent>
+  type?: TagNoticeToTypeResolver<TParent>
+  target?: TagNoticeToTargetResolver<TParent>
 }
 
-export interface PaymentPayoutNoticeToIdResolver<TParent = any, TResult = any> {
+export interface TagNoticeToIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9558,7 +8482,70 @@ export interface PaymentPayoutNoticeToIdResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface PaymentPayoutNoticeToUnreadResolver<
+export interface TagNoticeToUnreadResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagNoticeToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagNoticeToActorsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagNoticeToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagNoticeToTargetResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLTransactionNoticeTypeResolver<TParent = any> {
+  id?: TransactionNoticeToIdResolver<TParent>
+  unread?: TransactionNoticeToUnreadResolver<TParent>
+  createdAt?: TransactionNoticeToCreatedAtResolver<TParent>
+  actors?: TransactionNoticeToActorsResolver<TParent>
+  type?: TransactionNoticeToTypeResolver<TParent>
+  target?: TransactionNoticeToTargetResolver<TParent>
+}
+
+export interface TransactionNoticeToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TransactionNoticeToUnreadResolver<
   TParent = any,
   TResult = any
 > {
@@ -9570,7 +8557,7 @@ export interface PaymentPayoutNoticeToUnreadResolver<
   ): TResult
 }
 
-export interface PaymentPayoutNoticeToCreatedAtResolver<
+export interface TransactionNoticeToCreatedAtResolver<
   TParent = any,
   TResult = any
 > {
@@ -9582,7 +8569,7 @@ export interface PaymentPayoutNoticeToCreatedAtResolver<
   ): TResult
 }
 
-export interface PaymentPayoutNoticeToTargetResolver<
+export interface TransactionNoticeToActorsResolver<
   TParent = any,
   TResult = any
 > {
@@ -9594,15 +8581,16 @@ export interface PaymentPayoutNoticeToTargetResolver<
   ): TResult
 }
 
-export interface GQLPaymentReceivedDonationNoticeTypeResolver<TParent = any> {
-  id?: PaymentReceivedDonationNoticeToIdResolver<TParent>
-  unread?: PaymentReceivedDonationNoticeToUnreadResolver<TParent>
-  createdAt?: PaymentReceivedDonationNoticeToCreatedAtResolver<TParent>
-  actor?: PaymentReceivedDonationNoticeToActorResolver<TParent>
-  target?: PaymentReceivedDonationNoticeToTargetResolver<TParent>
+export interface TransactionNoticeToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
-export interface PaymentReceivedDonationNoticeToIdResolver<
+export interface TransactionNoticeToTargetResolver<
   TParent = any,
   TResult = any
 > {
@@ -9614,10 +8602,16 @@ export interface PaymentReceivedDonationNoticeToIdResolver<
   ): TResult
 }
 
-export interface PaymentReceivedDonationNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface GQLUserNoticeTypeResolver<TParent = any> {
+  id?: UserNoticeToIdResolver<TParent>
+  unread?: UserNoticeToUnreadResolver<TParent>
+  createdAt?: UserNoticeToCreatedAtResolver<TParent>
+  actors?: UserNoticeToActorsResolver<TParent>
+  type?: UserNoticeToTypeResolver<TParent>
+  target?: UserNoticeToTargetResolver<TParent>
+}
+
+export interface UserNoticeToIdResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9626,10 +8620,7 @@ export interface PaymentReceivedDonationNoticeToUnreadResolver<
   ): TResult
 }
 
-export interface PaymentReceivedDonationNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface UserNoticeToUnreadResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9638,10 +8629,7 @@ export interface PaymentReceivedDonationNoticeToCreatedAtResolver<
   ): TResult
 }
 
-export interface PaymentReceivedDonationNoticeToActorResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface UserNoticeToCreatedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9650,10 +8638,7 @@ export interface PaymentReceivedDonationNoticeToActorResolver<
   ): TResult
 }
 
-export interface PaymentReceivedDonationNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface UserNoticeToActorsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9662,19 +8647,7 @@ export interface PaymentReceivedDonationNoticeToTargetResolver<
   ): TResult
 }
 
-export interface GQLRevisedArticleNotPublishedNoticeTypeResolver<
-  TParent = any
-> {
-  id?: RevisedArticleNotPublishedNoticeToIdResolver<TParent>
-  unread?: RevisedArticleNotPublishedNoticeToUnreadResolver<TParent>
-  createdAt?: RevisedArticleNotPublishedNoticeToCreatedAtResolver<TParent>
-  target?: RevisedArticleNotPublishedNoticeToTargetResolver<TParent>
-}
-
-export interface RevisedArticleNotPublishedNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface UserNoticeToTypeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -9683,543 +8656,7 @@ export interface RevisedArticleNotPublishedNoticeToIdResolver<
   ): TResult
 }
 
-export interface RevisedArticleNotPublishedNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RevisedArticleNotPublishedNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RevisedArticleNotPublishedNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLRevisedArticlePublishedNoticeTypeResolver<TParent = any> {
-  id?: RevisedArticlePublishedNoticeToIdResolver<TParent>
-  unread?: RevisedArticlePublishedNoticeToUnreadResolver<TParent>
-  createdAt?: RevisedArticlePublishedNoticeToCreatedAtResolver<TParent>
-  target?: RevisedArticlePublishedNoticeToTargetResolver<TParent>
-}
-
-export interface RevisedArticlePublishedNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RevisedArticlePublishedNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RevisedArticlePublishedNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RevisedArticlePublishedNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLSubscribedArticleNewCommentNoticeTypeResolver<
-  TParent = any
-> {
-  id?: SubscribedArticleNewCommentNoticeToIdResolver<TParent>
-  unread?: SubscribedArticleNewCommentNoticeToUnreadResolver<TParent>
-  createdAt?: SubscribedArticleNewCommentNoticeToCreatedAtResolver<TParent>
-  actors?: SubscribedArticleNewCommentNoticeToActorsResolver<TParent>
-  target?: SubscribedArticleNewCommentNoticeToTargetResolver<TParent>
-  comment?: SubscribedArticleNewCommentNoticeToCommentResolver<TParent>
-}
-
-export interface SubscribedArticleNewCommentNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface SubscribedArticleNewCommentNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface SubscribedArticleNewCommentNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface SubscribedArticleNewCommentNoticeToActorsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface SubscribedArticleNewCommentNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface SubscribedArticleNewCommentNoticeToCommentResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLTagAddEditorNoticeTypeResolver<TParent = any> {
-  id?: TagAddEditorNoticeToIdResolver<TParent>
-  unread?: TagAddEditorNoticeToUnreadResolver<TParent>
-  createdAt?: TagAddEditorNoticeToCreatedAtResolver<TParent>
-  actor?: TagAddEditorNoticeToActorResolver<TParent>
-  tag?: TagAddEditorNoticeToTagResolver<TParent>
-}
-
-export interface TagAddEditorNoticeToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagAddEditorNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagAddEditorNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagAddEditorNoticeToActorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagAddEditorNoticeToTagResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLTagAdoptionNoticeTypeResolver<TParent = any> {
-  id?: TagAdoptionNoticeToIdResolver<TParent>
-  unread?: TagAdoptionNoticeToUnreadResolver<TParent>
-  createdAt?: TagAdoptionNoticeToCreatedAtResolver<TParent>
-  actor?: TagAdoptionNoticeToActorResolver<TParent>
-  tag?: TagAdoptionNoticeToTagResolver<TParent>
-}
-
-export interface TagAdoptionNoticeToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagAdoptionNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagAdoptionNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagAdoptionNoticeToActorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagAdoptionNoticeToTagResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLTagLeaveEditorNoticeTypeResolver<TParent = any> {
-  id?: TagLeaveEditorNoticeToIdResolver<TParent>
-  unread?: TagLeaveEditorNoticeToUnreadResolver<TParent>
-  createdAt?: TagLeaveEditorNoticeToCreatedAtResolver<TParent>
-  actor?: TagLeaveEditorNoticeToActorResolver<TParent>
-  tag?: TagLeaveEditorNoticeToTagResolver<TParent>
-}
-
-export interface TagLeaveEditorNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagLeaveEditorNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagLeaveEditorNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagLeaveEditorNoticeToActorResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagLeaveEditorNoticeToTagResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLTagLeaveNoticeTypeResolver<TParent = any> {
-  id?: TagLeaveNoticeToIdResolver<TParent>
-  unread?: TagLeaveNoticeToUnreadResolver<TParent>
-  createdAt?: TagLeaveNoticeToCreatedAtResolver<TParent>
-  actor?: TagLeaveNoticeToActorResolver<TParent>
-  tag?: TagLeaveNoticeToTagResolver<TParent>
-}
-
-export interface TagLeaveNoticeToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagLeaveNoticeToUnreadResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagLeaveNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagLeaveNoticeToActorResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface TagLeaveNoticeToTagResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLUpstreamArticleArchivedNoticeTypeResolver<TParent = any> {
-  id?: UpstreamArticleArchivedNoticeToIdResolver<TParent>
-  unread?: UpstreamArticleArchivedNoticeToUnreadResolver<TParent>
-  createdAt?: UpstreamArticleArchivedNoticeToCreatedAtResolver<TParent>
-  upstream?: UpstreamArticleArchivedNoticeToUpstreamResolver<TParent>
-  target?: UpstreamArticleArchivedNoticeToTargetResolver<TParent>
-}
-
-export interface UpstreamArticleArchivedNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UpstreamArticleArchivedNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UpstreamArticleArchivedNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UpstreamArticleArchivedNoticeToUpstreamResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UpstreamArticleArchivedNoticeToTargetResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLUserNewFollowerNoticeTypeResolver<TParent = any> {
-  id?: UserNewFollowerNoticeToIdResolver<TParent>
-  unread?: UserNewFollowerNoticeToUnreadResolver<TParent>
-  createdAt?: UserNewFollowerNoticeToCreatedAtResolver<TParent>
-  actors?: UserNewFollowerNoticeToActorsResolver<TParent>
-}
-
-export interface UserNewFollowerNoticeToIdResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserNewFollowerNoticeToUnreadResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserNewFollowerNoticeToCreatedAtResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserNewFollowerNoticeToActorsResolver<
-  TParent = any,
-  TResult = any
-> {
+export interface UserNoticeToTargetResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

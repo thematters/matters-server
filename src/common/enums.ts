@@ -556,15 +556,12 @@ export const DB_NOTICE_TYPES: DBNoticeType[] = [
   'user_new_follower',
   // article
   'article_published',
-  'article_new_downstream',
   'article_new_collected',
   'article_new_appreciation',
   'article_new_subscriber',
   'article_new_comment',
   'article_mentioned_you',
   'subscribed_article_new_comment',
-  'upstream_article_archived',
-  'downstream_article_archived',
   'revised_article_published',
   'revised_article_not_published',
   // tag

@@ -23,10 +23,8 @@ class Push extends BaseService {
   > => {
     const actor = actorId ? await this.baseFindById(actorId, 'user') : null
     const target = _.find(entities, ['type', 'target'])
-    const downstream = _.find(entities, ['type', 'downstream'])
     const collection = _.find(entities, ['type', 'collection'])
     // const comment = _.find(entities, ['type', 'comment'])
-    // const upstream = _.find(entities, ['type', 'upstream'])
     // const reply = _.find(entities, ['type', 'reply'])
 
     switch (type) {
@@ -41,15 +39,6 @@ class Push extends BaseService {
         return (
           target &&
           trans.article_published(language, { title: target.entity.title })
-        )
-      case 'article_new_downstream':
-        return (
-          actor &&
-          target &&
-          trans.article_new_downstream(language, {
-            displayName: actor.displayName,
-            title: target.entity.title,
-          })
         )
       case 'article_new_collected':
         return (

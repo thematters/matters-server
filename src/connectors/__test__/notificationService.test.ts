@@ -21,15 +21,12 @@ describe('user notify setting', () => {
   const defaultNoifySetting: { [key in NotificationType]: boolean } = {
     user_new_follower: true,
     article_published: true,
-    article_new_downstream: true,
     article_new_collected: true,
     article_new_appreciation: true,
     article_new_subscriber: false,
     article_new_comment: true,
     article_mentioned_you: true,
     subscribed_article_new_comment: false,
-    upstream_article_archived: true,
-    downstream_article_archived: true,
     comment_pinned: true,
     comment_new_reply: true,
     comment_mentioned_you: true,
@@ -119,15 +116,15 @@ describe('bundle notices', () => {
 
   test('unbundleable', async () => {
     // notice without actors
-    const bundleables = await notificationService.notice.findBundleables({
-      type: 'article_new_downstream',
-      recipientId,
-      entities: [
-        { type: 'target', entityTable: 'article', entity: { id: '1' } },
-        { type: 'downstream', entityTable: 'article', entity: { id: '3' } },
-      ],
-    })
-    expect(bundleables.length).toBe(0)
+    // const bundleables = await notificationService.notice.findBundleables({
+    //   type: 'article_new_downstream',
+    //   recipientId,
+    //   entities: [
+    //     { type: 'target', entityTable: 'article', entity: { id: '1' } },
+    //     { type: 'downstream', entityTable: 'article', entity: { id: '3' } },
+    //   ],
+    // })
+    // expect(bundleables.length).toBe(0)
   })
 
   test('bundle successs', async () => {
