@@ -1867,6 +1867,7 @@ type TagLeaveNotice implements Notice {
 type TagOSS {
   boost: NonNegativeFloat!
   score: NonNegativeFloat!
+  selected: Boolean!
 }
 
 input TagSelectedInput {
