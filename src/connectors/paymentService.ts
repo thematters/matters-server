@@ -101,14 +101,14 @@ export class PaymentService extends BaseService {
       qs = qs
         .leftJoin(
           subQs
-            .select('id')
+            .select('id as tx_id')
             .where('state', TRANSACTION_STATE.canceled)
             .andWhere('currency', PAYMENT_CURRENCY.LIKE)
             .as('canceled_like_txs'),
           'transaction_delta_view.id',
-          'canceled_like_txs.id'
+          'canceled_like_txs.tx_id'
         )
-        .whereNull('canceled_like_txs.id')
+        .whereNull('canceled_like_txs.tx_id')
     }
 
     return qs
