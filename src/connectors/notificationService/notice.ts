@@ -317,15 +317,19 @@ class Notice extends BaseService {
 
     if (expand) {
       const _entities = {} as any
-      entities.forEach(async ({ type, entityId, table }: any) => {
-        const entity = await this.knex
-          .select()
-          .from(table)
-          .where({ id: entityId })
-          .first()
 
-        _entities[type] = entity
-      })
+      await Promise.all(
+        entities.map(async ({ type, entityId, table }: any) => {
+          const entity = await this.knex
+            .select()
+            .from(table)
+            .where({ id: entityId })
+            .first()
+
+          _entities[type] = entity
+        })
+      )
+
       return _entities
     }
 

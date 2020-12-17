@@ -198,7 +198,16 @@ const notice: {
           return GQLCommentNoticeType.SubscribedArticleNewComment
       }
     },
-    target: ({ entities }) => entities.target,
+    target: ({ entities, type }) => {
+      switch (type) {
+        case DB_NOTICE_TYPE.comment_pinned:
+        case DB_NOTICE_TYPE.comment_mentioned_you:
+          return entities.target
+        case DB_NOTICE_TYPE.article_new_comment:
+        case DB_NOTICE_TYPE.subscribed_article_new_comment:
+          return entities.comment
+      }
+    },
   },
   CommentCommentNotice: {
     id: ({ uuid }) => uuid,
