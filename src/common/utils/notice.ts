@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import { DBNoticeType, NoticeItem } from 'definitions'
 
-const actorsOptional: Partial<Record<DBNoticeType, boolean>> = {
+const actorsRequired: Partial<Record<DBNoticeType, boolean>> = {
   article_published: false,
   official_announcement: false,
   payment_payout: false,
@@ -10,7 +10,7 @@ const actorsOptional: Partial<Record<DBNoticeType, boolean>> = {
   revised_article_not_published: false,
 }
 
-const entitiesOptional: Partial<Record<DBNoticeType, boolean>> = {
+const entitiesRequired: Partial<Record<DBNoticeType, boolean>> = {
   user_new_follower: false,
 }
 
@@ -27,12 +27,12 @@ export const filterMissingFieldNoticeEdges = (
     const noticeType = notice.type
 
     // check actors
-    if (!actorsOptional[noticeType] && _.isEmpty(notice.actors)) {
+    if (actorsRequired[noticeType] && _.isEmpty(notice.actors)) {
       return false
     }
 
     // check entities
-    if (!entitiesOptional[noticeType] && _.isEmpty(notice.entities)) {
+    if (entitiesRequired[noticeType] && _.isEmpty(notice.entities)) {
       return false
     }
 
