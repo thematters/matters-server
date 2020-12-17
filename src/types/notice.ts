@@ -84,7 +84,7 @@ export default /* GraphQL */ `
 
     type: ArticleNoticeType!
 
-    target: Article @logCache(type: "${NODE_TYPES.article}")
+    target: Article! @logCache(type: "${NODE_TYPES.article}")
   }
 
   enum ArticleNoticeType {
@@ -143,7 +143,7 @@ export default /* GraphQL */ `
 
     type: CommentNoticeType!
 
-    target: Comment @logCache(type: "${NODE_TYPES.comment}")
+    target: Comment! @logCache(type: "${NODE_TYPES.comment}")
   }
 
   enum CommentNoticeType {
@@ -170,9 +170,9 @@ export default /* GraphQL */ `
 
     type: CommentCommentNoticeType!
 
-    target: Comment @logCache(type: "${NODE_TYPES.comment}")
+    target: Comment! @logCache(type: "${NODE_TYPES.comment}")
 
-    comment: Comment @logCache(type: "${NODE_TYPES.comment}")
+    comment: Comment! @logCache(type: "${NODE_TYPES.comment}")
   }
 
   enum CommentCommentNoticeType {
@@ -199,9 +199,9 @@ export default /* GraphQL */ `
 
     type: ArticleTagNoticeType!
 
-    target: Article @logCache(type: "${NODE_TYPES.article}")
+    target: Article! @logCache(type: "${NODE_TYPES.article}")
 
-    tag: Tag @logCache(type: "${NODE_TYPES.tag}")
+    tag: Tag! @logCache(type: "${NODE_TYPES.tag}")
   }
 
   enum ArticleTagNoticeType {
@@ -225,7 +225,7 @@ export default /* GraphQL */ `
 
     type: TagNoticeType!
 
-    target: Tag @logCache(type: "${NODE_TYPES.tag}")
+    target: Tag! @logCache(type: "${NODE_TYPES.tag}")
   }
 
   enum TagNoticeType {
@@ -256,7 +256,7 @@ export default /* GraphQL */ `
 
     type: TransactionNoticeType!
 
-    target: Transaction @logCache(type: "${NODE_TYPES.transaction}")
+    target: Transaction! @logCache(type: "${NODE_TYPES.transaction}")
   }
 
   enum TransactionNoticeType {

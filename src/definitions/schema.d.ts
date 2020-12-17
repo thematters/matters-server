@@ -2483,7 +2483,7 @@ export interface GQLArticleNotice extends GQLNotice {
    */
   actors?: Array<GQLUser>
   type: GQLArticleNoticeType
-  target?: GQLArticle
+  target: GQLArticle
 }
 
 export const enum GQLArticleNoticeType {
@@ -2524,8 +2524,8 @@ export interface GQLArticleTagNotice extends GQLNotice {
    */
   actors?: Array<GQLUser>
   type: GQLArticleTagNoticeType
-  target?: GQLArticle
-  tag?: GQLTag
+  target: GQLArticle
+  tag: GQLTag
 }
 
 export const enum GQLArticleTagNoticeType {
@@ -2560,8 +2560,8 @@ export interface GQLCommentCommentNotice extends GQLNotice {
    */
   actors?: Array<GQLUser>
   type: GQLCommentCommentNoticeType
-  target?: GQLComment
-  comment?: GQLComment
+  target: GQLComment
+  comment: GQLComment
 }
 
 export const enum GQLCommentCommentNoticeType {
@@ -2596,7 +2596,7 @@ export interface GQLCommentNotice extends GQLNotice {
    */
   actors?: Array<GQLUser>
   type: GQLCommentNoticeType
-  target?: GQLComment
+  target: GQLComment
 }
 
 export const enum GQLCommentNoticeType {
@@ -2690,7 +2690,7 @@ export interface GQLTagNotice extends GQLNotice {
    */
   actors?: Array<GQLUser>
   type: GQLTagNoticeType
-  target?: GQLTag
+  target: GQLTag
 }
 
 export const enum GQLTagNoticeType {
@@ -2730,7 +2730,7 @@ export interface GQLTransactionNotice extends GQLNotice {
    */
   actors?: Array<GQLUser>
   type: GQLTransactionNoticeType
-  target?: GQLTransaction
+  target: GQLTransaction
 }
 
 export const enum GQLTransactionNoticeType {

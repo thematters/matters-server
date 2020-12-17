@@ -275,7 +275,7 @@ type ArticleNotice implements Notice {
   """List of notice actors."""
   actors: [User!]
   type: ArticleNoticeType!
-  target: Article
+  target: Article!
 }
 
 enum ArticleNoticeType {
@@ -323,8 +323,8 @@ type ArticleTagNotice implements Notice {
   """List of notice actors."""
   actors: [User!]
   type: ArticleTagNoticeType!
-  target: Article
-  tag: Tag
+  target: Article!
+  tag: Tag!
 }
 
 enum ArticleTagNoticeType {
@@ -471,8 +471,8 @@ type CommentCommentNotice implements Notice {
   """List of notice actors."""
   actors: [User!]
   type: CommentCommentNoticeType!
-  target: Comment
-  comment: Comment
+  target: Comment!
+  comment: Comment!
 }
 
 enum CommentCommentNoticeType {
@@ -525,7 +525,7 @@ type CommentNotice implements Notice {
   """List of notice actors."""
   actors: [User!]
   type: CommentNoticeType!
-  target: Comment
+  target: Comment!
 }
 
 enum CommentNoticeType {
@@ -1594,7 +1594,7 @@ type TagNotice implements Notice {
   """List of notice actors."""
   actors: [User!]
   type: TagNoticeType!
-  target: Tag
+  target: Tag!
 }
 
 enum TagNoticeType {
@@ -1702,7 +1702,7 @@ type TransactionNotice implements Notice {
   """List of notice actors."""
   actors: [User!]
   type: TransactionNoticeType!
-  target: Transaction
+  target: Transaction!
 }
 
 enum TransactionNoticeType {

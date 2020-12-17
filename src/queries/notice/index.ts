@@ -182,7 +182,7 @@ const notice: {
           return GQLTagNoticeType.TagAddEditor
       }
     },
-    target: ({ entities }) => entities.tag,
+    target: ({ entities }) => entities.target,
   },
   CommentNotice: {
     id: ({ uuid }) => uuid,
