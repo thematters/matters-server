@@ -1,16 +1,18 @@
 import { RedisCache } from 'apollo-server-cache-redis'
 import { Request, Response } from 'express'
+import Knex from 'knex'
 
 import {
-  UserService,
   ArticleService,
+  AtomService,
   CommentService,
   DraftService,
-  SystemService,
-  TagService,
   NotificationService,
   OAuthService,
   PaymentService,
+  SystemService,
+  TagService,
+  UserService,
 } from 'connectors'
 
 export * from './schema'
@@ -69,9 +71,11 @@ export type RequestContext = {
   viewer: Viewer
   req: Request
   res: Response
+  knex: Knex
 }
 
 export type DataSources = {
+  atomService: InstanceType<typeof AtomService>
   articleService: InstanceType<typeof ArticleService>
   commentService: InstanceType<typeof CommentService>
   draftService: InstanceType<typeof DraftService>

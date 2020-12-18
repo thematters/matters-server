@@ -3,6 +3,7 @@ import { Request, Response } from 'express'
 import { cloneDeep } from 'lodash'
 
 import { getViewerFromReq, toGlobalId } from 'common/utils'
+import { knex } from 'connectors'
 import { RequestContext } from 'definitions'
 
 const purgeSentryData = (req?: Request): any => {
@@ -60,5 +61,6 @@ export const makeContext = async ({
     viewer,
     req,
     res,
+    knex,
   }
 }
