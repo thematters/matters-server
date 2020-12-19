@@ -1318,7 +1318,7 @@ export class ArticleService extends BaseService {
 
     // if original read longer than 30 minutes
     // skip
-    if (readLength > MINUTE * 30) {
+    if (userId && readLength > MINUTE * 30) {
       return { newRead: false }
     }
 
