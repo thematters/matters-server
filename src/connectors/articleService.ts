@@ -1290,7 +1290,10 @@ export class ArticleService extends BaseService {
     }
 
     // past record
-    const record = await this.baseFind({ where: { articleId, userId }, table })
+    // if visitor, distinguish base on ip address
+    const record = userId ?
+      await this.baseFind({ where: { articleId, userId }, table }) :
+      await this.baseFind({ where: { articleId, ip }, table })
 
     // create create new record if none exists
     if (!record || record.length === 0) {
@@ -1318,7 +1321,7 @@ export class ArticleService extends BaseService {
 
     // if original read longer than 30 minutes
     // skip
-    if (userId && readLength > MINUTE * 30) {
+    if (readLength > MINUTE * 30) {
       return { newRead: false }
     }
 
