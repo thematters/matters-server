@@ -393,18 +393,6 @@ export class TagService extends BaseService {
     }
   }
 
-  deleteSearch = async ({ id }: { [key: string]: any }) => {
-    try {
-      const result = await this.es.client.delete({
-        index: this.table,
-        id,
-      })
-      return result
-    } catch (error) {
-      logger.error(error)
-    }
-  }
-
   search = async ({
     key,
     first = 20,
@@ -761,20 +749,6 @@ export class TagService extends BaseService {
    *              OSS              *
    *                               *
    *********************************/
-  deleteTags = async (tagIds: string[]) => {
-    // delete article tags
-    await this.knex('article_tag').whereIn('tag_id', tagIds).del()
-
-    // delete action tag
-    await this.knex('action_tag')
-      .whereIn('target_id', tagIds)
-      .andWhere('action', 'follow')
-      .del()
-
-    // delete tags
-    await this.baseBatchDelete(tagIds)
-  }
-
   renameTag = async ({ tagId, content }: { tagId: string; content: string }) =>
     this.baseUpdate(tagId, { content, updatedAt: new Date() })
 
@@ -824,8 +798,6 @@ export class TagService extends BaseService {
 
     // delete tags
     await this.baseBatchDelete(tagIds)
-
-    await Promise.all(tagIds.map((id: string) => this.deleteSearch({ id })))
 
     return newTag
   }
