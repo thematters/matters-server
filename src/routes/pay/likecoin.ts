@@ -1,7 +1,7 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { Router } from 'express'
 
-import { NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
+import { DB_NOTICE_TYPE, NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { numRound } from 'common/utils'
@@ -72,7 +72,7 @@ likecoinRouter.get('/', async (req, res) => {
 
     // send to recipient
     notificationService.trigger({
-      event: 'payment_received_donation',
+      event: DB_NOTICE_TYPE.payment_received_donation,
       actorId: sender.id,
       recipientId: recipient.id,
       entities: [

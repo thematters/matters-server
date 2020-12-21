@@ -2,6 +2,7 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 import Queue from 'bull'
 
 import {
+  DB_NOTICE_TYPE,
   NODE_TYPES,
   PAYMENT_MAXIMUM_AMOUNT,
   QUEUE_JOB,
@@ -151,7 +152,7 @@ class PayToQueue extends BaseQueue {
 
       // send email to recipient
       this.notificationService.trigger({
-        event: 'payment_received_donation',
+        event: DB_NOTICE_TYPE.payment_received_donation,
         actorId: sender.id,
         recipientId: recipient.id,
         entities: [

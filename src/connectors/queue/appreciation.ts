@@ -3,6 +3,7 @@ import Queue from 'bull'
 
 import {
   APPRECIATION_TYPES,
+  DB_NOTICE_TYPE,
   NODE_TYPES,
   QUEUE_JOB,
   QUEUE_NAME,
@@ -140,7 +141,7 @@ class AppreciationQueue extends BaseQueue {
 
       // trigger notifications
       this.notificationService.trigger({
-        event: 'article_new_appreciation',
+        event: DB_NOTICE_TYPE.article_new_appreciation,
         actorId: sender.id,
         recipientId: author.id,
         entities: [

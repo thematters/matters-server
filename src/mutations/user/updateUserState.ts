@@ -1,9 +1,8 @@
-import { NODE_TYPES, USER_STATE } from 'common/enums'
+import { OFFICIAL_NOTICE_EXTEND_TYPE, USER_STATE } from 'common/enums'
 import { ActionFailedError, UserInputError } from 'common/errors'
 import { fromGlobalId, getPunishExpiredDate } from 'common/utils'
-import { CacheService } from 'connectors'
 import { userQueue } from 'connectors/queue'
-import { MutationToUpdateUserStateResolver, User } from 'definitions'
+import { MutationToUpdateUserStateResolver } from 'definitions'
 
 const resolver: MutationToUpdateUserStateResolver = async (
   _,
@@ -14,7 +13,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
   const handleBan = async (userId: string) => {
     // trigger notification
     notificationService.trigger({
-      event: 'user_banned',
+      event: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned,
       recipientId: userId,
     })
 

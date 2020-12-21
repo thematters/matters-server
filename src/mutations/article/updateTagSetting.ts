@@ -2,7 +2,12 @@ import _difference from 'lodash/difference'
 import _some from 'lodash/some'
 import _uniq from 'lodash/uniq'
 
-import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
+import {
+  CACHE_KEYWORD,
+  DB_NOTICE_TYPE,
+  NODE_TYPES,
+  USER_STATE,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import {
   AuthenticationError,
@@ -94,7 +99,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       participants.map(async (participant) => {
         await notificationService.trigger({
-          event: 'tag_adoption',
+          event: DB_NOTICE_TYPE.tag_adoption,
           recipientId: participant.authorId,
           actorId: viewer.id,
           entities: [
@@ -129,7 +134,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       if (newEditors && newEditors.length > 0) {
         newEditors.map(async (editor: string) => {
           await notificationService.trigger({
-            event: 'tag_leave',
+            event: DB_NOTICE_TYPE.tag_leave,
             recipientId: editor,
             actorId: viewer.id,
             entities: [
@@ -203,7 +208,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         })
 
         await notificationService.trigger({
-          event: 'tag_add_editor',
+          event: DB_NOTICE_TYPE.tag_add_editor,
           recipientId: recipient.id,
           actorId: viewer.id,
           entities: [
@@ -261,7 +266,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
       // send notice
       if (tag.owner) {
         await notificationService.trigger({
-          event: 'tag_leave_editor',
+          event: DB_NOTICE_TYPE.tag_leave_editor,
           recipientId: tag.owner,
           actorId: viewer.id,
           entities: [
