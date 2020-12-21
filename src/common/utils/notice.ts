@@ -12,6 +12,7 @@ const actorsRequired: Partial<Record<DBNoticeType, boolean>> = {
 
 const entitiesRequired: Partial<Record<DBNoticeType, boolean>> = {
   user_new_follower: false,
+  official_announcement: false,
 }
 
 const messageRequired: Partial<Record<DBNoticeType, boolean>> = {
