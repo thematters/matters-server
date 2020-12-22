@@ -3,6 +3,7 @@ import Queue from 'bull'
 import {
   ASSET_TYPE,
   MINUTE,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
@@ -167,7 +168,7 @@ class UserQueue extends BaseQueue {
           try {
             await this.userService.activate({ id: user.id })
             this.notificationService.trigger({
-              event: 'user_activated',
+              event: OFFICIAL_NOTICE_EXTEND_TYPE.user_activated,
               recipientId: user.id,
             })
             activatedUsers.push(user.id)
@@ -211,7 +212,7 @@ class UserQueue extends BaseQueue {
               'punish_record'
             )
             this.notificationService.trigger({
-              event: 'user_unbanned',
+              event: OFFICIAL_NOTICE_EXTEND_TYPE.user_unbanned,
               recipientId: record.userId,
             })
             users.push(record.userId)

@@ -10,6 +10,7 @@ export * from './gcp'
 
 export * from './baseService'
 export * from './articleService'
+export * from './atomService'
 export * from './commentService'
 export * from './draftService'
 export * from './systemService'
