@@ -75,3 +75,7 @@ test('update', async () => {
   })
   expect(article.state).toEqual('archived')
 })
+test('readArticle', async () => {
+  await articleService.read({ userId: '1', articleId: '1' })
+  await articleService.read({ ip:'127.0.0.1', articleId: '1' })
+})

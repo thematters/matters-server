@@ -1291,9 +1291,9 @@ export class ArticleService extends BaseService {
 
     // past record
     // if visitor, distinguish base on ip address
-    const record = userId ?
-      await this.baseFind({ where: { articleId, userId }, table }) :
-      await this.baseFind({ where: { articleId, ip }, table })
+    const record = userId
+      ? await this.baseFind({ where: { articleId, userId }, table })
+      : await this.baseFind({ where: { articleId, ip }, table })
 
     // create create new record if none exists
     if (!record || record.length === 0) {
