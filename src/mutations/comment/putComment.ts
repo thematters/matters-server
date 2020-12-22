@@ -1,6 +1,11 @@
 import _ from 'lodash'
 
-import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
+import {
+  CACHE_KEYWORD,
+  DB_NOTICE_TYPE,
+  NODE_TYPES,
+  USER_STATE,
+} from 'common/enums'
 import {
   ArticleNotFoundError,
   AuthenticationError,
@@ -9,7 +14,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, sanitize, toGlobalId } from 'common/utils'
+import { fromGlobalId, sanitize } from 'common/utils'
 import { MutationToPutCommentResolver } from 'definitions'
 
 const resolver: MutationToPutCommentResolver = async (
@@ -137,7 +142,7 @@ const resolver: MutationToPutCommentResolver = async (
         articleAuthor !== replyToCommentAuthor)
     if (shouldNotifyArticleAuthor) {
       notificationService.trigger({
-        event: 'article_new_comment',
+        event: DB_NOTICE_TYPE.article_new_comment,
         actorId: viewer.id,
         recipientId: articleAuthor,
         entities: [
@@ -160,7 +165,7 @@ const resolver: MutationToPutCommentResolver = async (
       isReplyingLevel1Comment || parentCommentAuthor !== replyToCommentAuthor
     if (shouldNotifyParentCommentAuthor) {
       notificationService.trigger({
-        event: 'comment_new_reply',
+        event: DB_NOTICE_TYPE.comment_new_reply,
         actorId: viewer.id,
         recipientId: parentCommentAuthor,
         entities: [
@@ -182,7 +187,7 @@ const resolver: MutationToPutCommentResolver = async (
     const shouldNotifyReplyToCommentAuthor = isReplyingLevel2Comment
     if (shouldNotifyReplyToCommentAuthor) {
       notificationService.trigger({
-        event: 'comment_new_reply',
+        event: DB_NOTICE_TYPE.comment_new_reply,
         actorId: viewer.id,
         recipientId: replyToCommentAuthor,
         entities: [
@@ -209,7 +214,7 @@ const resolver: MutationToPutCommentResolver = async (
         return
       }
       notificationService.trigger({
-        event: 'subscribed_article_new_comment',
+        event: DB_NOTICE_TYPE.subscribed_article_new_comment,
         actorId: viewer.id,
         recipientId: subscriber.id,
         entities: [
@@ -242,7 +247,7 @@ const resolver: MutationToPutCommentResolver = async (
   if (data.mentionedUserIds) {
     data.mentionedUserIds.forEach((userId: string) => {
       notificationService.trigger({
-        event: 'comment_mentioned_you',
+        event: DB_NOTICE_TYPE.comment_mentioned_you,
         actorId: viewer.id,
         recipientId: userId,
         entities: [

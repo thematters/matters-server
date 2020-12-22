@@ -2,7 +2,7 @@ import _difference from 'lodash/difference'
 import _some from 'lodash/some'
 import _uniq from 'lodash/uniq'
 
-import { USER_STATE } from 'common/enums'
+import { DB_NOTICE_TYPE, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   AuthenticationError,
@@ -40,7 +40,7 @@ const triggerNotice = async ({
 
   users.map(async (user) => {
     await notificationService.trigger({
-      event: 'article_tag_has_been_added',
+      event: DB_NOTICE_TYPE.article_tag_has_been_added,
       recipientId: user,
       actorId: viewerId,
       entities: [
