@@ -8,18 +8,34 @@ import { MutationToDeleteTagsResolver } from 'definitions'
 const resolver: MutationToDeleteTagsResolver = async (
   root,
   { input: { ids } },
-  { viewer, dataSources: { tagService } }
+  { viewer, dataSources: { atomService } }
 ) => {
-  const tagDbIds = ids.map((id) => fromGlobalId(id).id)
-  await tagService.deleteTags(tagDbIds)
+  const tagIds = ids.map((id) => fromGlobalId(id).id)
+
+  // delete article tags
+  await atomService.deleteMany({
+    table: 'article_tag',
+    whereIn: ['tag_id', tagIds],
+  })
+
+  // delete action tags
+  await atomService.deleteMany({
+    table: 'action_tag',
+    where: { action: 'follow' },
+    whereIn: ['target_id', tagIds],
+  })
+
+  // delete tags
+  await atomService.deleteMany({ table: 'tag', whereIn: ['id', tagIds] })
+
   await Promise.all(
-    tagDbIds.map((id: string) => tagService.deleteSearch({ id }))
+    tagIds.map((id: string) => atomService.deleteSearch({ table: 'tag', id }))
   )
 
   // manually invalidate cache since it returns nothing
   const cacheService = new CacheService()
   await Promise.all(
-    tagDbIds.map((id) =>
+    tagIds.map((id) =>
       invalidateFQC({
         node: { type: NODE_TYPES.tag, id },
         redis: cacheService.redis,

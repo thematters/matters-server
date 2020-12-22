@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-import { EMAIL_TEMPLATE_ID } from 'common/enums'
+import { DB_NOTICE_TYPE, EMAIL_TEMPLATE_ID } from 'common/enums'
 import { environment } from 'common/environment'
 import { notificationQueue } from 'connectors/queue/notification'
 import { LANGUAGES, NoticeItem } from 'definitions'
@@ -103,15 +103,15 @@ export const sendDailySummary = async ({
           section: {
             follow: !!_.get(notices.user_new_follower, '0'),
             article: [
-              'article_new_collected',
-              'article_new_appreciation',
-              'article_new_subscriber',
-              'article_new_comment',
+              DB_NOTICE_TYPE.article_new_collected,
+              DB_NOTICE_TYPE.article_new_appreciation,
+              DB_NOTICE_TYPE.article_new_subscriber,
+              DB_NOTICE_TYPE.article_new_comment,
             ].some((type) => _.get(notices, `${type}.0`)),
             mention: [
-              'article_mentioned_you',
-              'comment_mentioned_you',
-              'comment_new_reply',
+              DB_NOTICE_TYPE.article_mentioned_you,
+              DB_NOTICE_TYPE.comment_mentioned_you,
+              DB_NOTICE_TYPE.comment_new_reply,
             ].some((type) => _.get(notices, `${type}.0`)),
           },
           notices: {

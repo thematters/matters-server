@@ -22,6 +22,7 @@ import logger from 'common/logger'
 import { initSubscriptions, makeContext } from 'common/utils'
 import {
   ArticleService,
+  AtomService,
   CommentService,
   DraftService,
   NotificationService,
@@ -88,6 +89,9 @@ const server = new ProtectedApolloServer({
   },
   subscriptions: initSubscriptions(),
   dataSources: () => ({
+    atomService: new AtomService(),
+
+    // below services will be deprecated
     userService: new UserService(),
     articleService: new ArticleService(),
     commentService: new CommentService(),

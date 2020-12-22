@@ -1,53 +1,17 @@
+import {
+  DB_NOTICE_TYPE,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
+} from 'common/enums/notification'
 import { TableName, User } from 'definitions'
 
-export type DBNoticeType =
-  // user
-  | 'user_new_follower'
-  // article
-  | 'article_published'
-  | 'article_new_downstream'
-  | 'article_new_collected'
-  | 'article_new_appreciation'
-  | 'article_new_subscriber'
-  | 'article_new_comment'
-  | 'article_mentioned_you'
-  | 'subscribed_article_new_comment'
-  | 'upstream_article_archived'
-  | 'downstream_article_archived'
-  | 'article_tag_has_been_added'
-  | 'article_tag_has_been_removed'
-  | 'article_tag_has_been_unselected'
-  | 'revised_article_published'
-  | 'revised_article_not_published'
-  // comment
-  | 'comment_pinned'
-  | 'comment_new_reply'
-  | 'comment_mentioned_you'
-  // payment
-  | 'payment_received_donation'
-  | 'payment_payout'
-  // official
-  | 'official_announcement'
-  // tag
-  | 'tag_adoption'
-  | 'tag_leave'
-  | 'tag_add_editor'
-  | 'tag_leave_editor'
+export type DBNoticeType = keyof typeof DB_NOTICE_TYPE
 
-export type OfficialNoticeExtendType =
-  | 'user_activated'
-  | 'user_banned'
-  | 'user_frozen'
-  | 'user_unbanned'
-  | 'comment_banned'
-  | 'article_banned'
-  | 'article_reported'
-  | 'comment_reported'
+export type OfficialNoticeExtendType = keyof typeof OFFICIAL_NOTICE_EXTEND_TYPE
 
 export type NoticeEntityType =
+  // primary target
   | 'target'
-  | 'downstream'
-  | 'upstream'
+  // secondary target
   | 'comment'
   | 'reply'
   | 'collection'
@@ -74,9 +38,14 @@ export type NotificationEntity<
  */
 export interface NoticeUserNewFollowerParams
   extends NotificationRequiredParams {
-  event: 'user_new_follower'
+  event: DB_NOTICE_TYPE.user_new_follower
   recipientId: string
   actorId: string
+}
+
+export interface NoticeUserActivatedParams extends NotificationRequiredParams {
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.user_activated
+  recipientId: string
 }
 
 /**
@@ -84,25 +53,14 @@ export interface NoticeUserNewFollowerParams
  */
 export interface NoticeArticlePublishedParams
   extends NotificationRequiredParams {
-  event: 'article_published'
+  event: DB_NOTICE_TYPE.article_published
   recipientId: string
   entities: [NotificationEntity<'target', 'article'>]
 }
 
-export interface NoticeArticleNewDownstreamParams
-  extends NotificationRequiredParams {
-  event: 'article_new_downstream'
-  recipientId: string
-  actorId: string
-  entities: [
-    NotificationEntity<'target', 'article'>,
-    NotificationEntity<'downstream', 'article'>
-  ]
-}
-
 export interface NoticeArticleNewCollectedParams
   extends NotificationRequiredParams {
-  event: 'article_new_collected'
+  event: DB_NOTICE_TYPE.article_new_collected
   recipientId: string
   actorId: string
   entities: [
@@ -113,7 +71,7 @@ export interface NoticeArticleNewCollectedParams
 
 export interface NoticeArticleNewAppreciationParams
   extends NotificationRequiredParams {
-  event: 'article_new_appreciation'
+  event: DB_NOTICE_TYPE.article_new_appreciation
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'article'>]
@@ -121,7 +79,7 @@ export interface NoticeArticleNewAppreciationParams
 
 export interface NoticeArticleNewSubscriberParams
   extends NotificationRequiredParams {
-  event: 'article_new_subscriber'
+  event: DB_NOTICE_TYPE.article_new_subscriber
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'article'>]
@@ -129,7 +87,7 @@ export interface NoticeArticleNewSubscriberParams
 
 export interface NoticeArticleNewCommentParams
   extends NotificationRequiredParams {
-  event: 'article_new_comment'
+  event: DB_NOTICE_TYPE.article_new_comment
   recipientId: string
   actorId: string
   entities: [
@@ -140,7 +98,7 @@ export interface NoticeArticleNewCommentParams
 
 export interface NoticeArticleMentionedYouParams
   extends NotificationRequiredParams {
-  event: 'article_mentioned_you'
+  event: DB_NOTICE_TYPE.article_mentioned_you
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'article'>]
@@ -148,7 +106,7 @@ export interface NoticeArticleMentionedYouParams
 
 export interface NoticeSubscribedArticleNewCommentParams
   extends NotificationRequiredParams {
-  event: 'subscribed_article_new_comment'
+  event: DB_NOTICE_TYPE.subscribed_article_new_comment
   recipientId: string
   actorId: string
   entities: [
@@ -157,36 +115,16 @@ export interface NoticeSubscribedArticleNewCommentParams
   ]
 }
 
-export interface NoticeUpstreamArticleArchivedParams
-  extends NotificationRequiredParams {
-  event: 'upstream_article_archived'
-  recipientId: string
-  entities: [
-    NotificationEntity<'target', 'article'>,
-    NotificationEntity<'upstream', 'article'>
-  ]
-}
-
-export interface NoticeDownstreamArticleArchivedParams
-  extends NotificationRequiredParams {
-  event: 'downstream_article_archived'
-  recipientId: string
-  entities: [
-    NotificationEntity<'target', 'article'>,
-    NotificationEntity<'downstream', 'article'>
-  ]
-}
-
 export interface NoticeRevisedArticlePublishedParams
   extends NotificationRequiredParams {
-  event: 'revised_article_published'
+  event: DB_NOTICE_TYPE.revised_article_published
   recipientId: string
   entities: [NotificationEntity<'target', 'article'>]
 }
 
 export interface NoticeRevisedArticleNotPublishedParams
   extends NotificationRequiredParams {
-  event: 'revised_article_not_published'
+  event: DB_NOTICE_TYPE.revised_article_not_published
   recipientId: string
   entities: [NotificationEntity<'target', 'article'>]
 }
@@ -195,7 +133,7 @@ export interface NoticeRevisedArticleNotPublishedParams
  * Comment
  */
 export interface NoticeCommentPinnedParams extends NotificationRequiredParams {
-  event: 'comment_pinned'
+  event: DB_NOTICE_TYPE.comment_pinned
   actorId: string
   recipientId: string
   entities: [NotificationEntity<'target', 'comment'>]
@@ -203,7 +141,7 @@ export interface NoticeCommentPinnedParams extends NotificationRequiredParams {
 
 export interface NoticeCommentNewReplyParams
   extends NotificationRequiredParams {
-  event: 'comment_new_reply'
+  event: DB_NOTICE_TYPE.comment_new_reply
   recipientId: string
   actorId: string
   entities: [
@@ -214,7 +152,7 @@ export interface NoticeCommentNewReplyParams
 
 export interface NoticeCommentMentionedYouParams
   extends NotificationRequiredParams {
-  event: 'comment_mentioned_you'
+  event: DB_NOTICE_TYPE.comment_mentioned_you
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'comment'>]
@@ -225,7 +163,7 @@ export interface NoticeCommentMentionedYouParams
  */
 export interface NoticeArticleTagHasBeenAddedParams
   extends NotificationRequiredParams {
-  event: 'article_tag_has_been_added'
+  event: DB_NOTICE_TYPE.article_tag_has_been_added
   recipientId: string
   actorId: string
   entities: [
@@ -236,7 +174,7 @@ export interface NoticeArticleTagHasBeenAddedParams
 
 export interface NoticeArticleTagHasBeenRemovedParams
   extends NotificationRequiredParams {
-  event: 'article_tag_has_been_removed'
+  event: DB_NOTICE_TYPE.article_tag_has_been_removed
   recipientId: string
   actorId: string
   entities: [
@@ -247,7 +185,7 @@ export interface NoticeArticleTagHasBeenRemovedParams
 
 export interface NoticeArticleTagHasBeenUnselectedParams
   extends NotificationRequiredParams {
-  event: 'article_tag_has_been_unselected'
+  event: DB_NOTICE_TYPE.article_tag_has_been_unselected
   recipientId: string
   actorId: string
   entities: [
@@ -256,24 +194,19 @@ export interface NoticeArticleTagHasBeenUnselectedParams
   ]
 }
 
-export interface NoticeUserActivatedParams extends NotificationRequiredParams {
-  event: 'user_activated'
-  recipientId: string
-}
-
 /**
  * Payment
  */
 export interface NoticePaymentReceivedDonationParams
   extends NotificationRequiredParams {
-  event: 'payment_received_donation'
+  event: DB_NOTICE_TYPE.payment_received_donation
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'transaction'>]
 }
 
 export interface NoticePaymentPayoutParams extends NotificationRequiredParams {
-  event: 'payment_payout'
+  event: DB_NOTICE_TYPE.payment_payout
   recipientId: string
   entities: [NotificationEntity<'target', 'transaction'>]
 }
@@ -283,7 +216,7 @@ export interface NoticePaymentPayoutParams extends NotificationRequiredParams {
  */
 export interface NoticeOfficialAnnouncementParams
   extends NotificationRequiredParams {
-  event: 'official_announcement'
+  event: DB_NOTICE_TYPE.official_announcement
   recipientId: string
   message: string
   data: { url: string }
@@ -293,28 +226,28 @@ export interface NoticeOfficialAnnouncementParams
  * Punish
  */
 export interface NoticeUserBannedParams extends NotificationRequiredParams {
-  event: 'user_banned'
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned
   recipientId: string
 }
 
 export interface NoticeUserFrozenParams extends NotificationRequiredParams {
-  event: 'user_frozen'
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.user_frozen
   recipientId: string
 }
 
 export interface NoticeUserUnbannedParams extends NotificationRequiredParams {
-  event: 'user_unbanned'
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.user_unbanned
   recipientId: string
 }
 
 export interface NoticeCommentBannedParams extends NotificationRequiredParams {
-  event: 'comment_banned'
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned
   entities: [NotificationEntity<'target', 'comment'>]
   recipientId: string
 }
 
 export interface NoticeArticleBannedParams extends NotificationRequiredParams {
-  event: 'article_banned'
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.article_banned
   entities: [NotificationEntity<'target', 'article'>]
   recipientId: string
 }
@@ -324,14 +257,14 @@ export interface NoticeArticleBannedParams extends NotificationRequiredParams {
  */
 export interface NoticeArticleReportedParams
   extends NotificationRequiredParams {
-  event: 'article_reported'
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.article_reported
   entities: [NotificationEntity<'target', 'article'>]
   recipientId: string
 }
 
 export interface NoticeCommentReportedParams
   extends NotificationRequiredParams {
-  event: 'comment_reported'
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.comment_reported
   entities: [NotificationEntity<'target', 'comment'>]
   recipientId: string
 }
@@ -340,28 +273,28 @@ export interface NoticeCommentReportedParams
  * Tag
  */
 export interface NoticeTagAdoptionParams extends NotificationRequiredParams {
-  event: 'tag_adoption'
+  event: DB_NOTICE_TYPE.tag_adoption
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'tag'>]
 }
 
 export interface NoticeTagLeaveParams extends NotificationRequiredParams {
-  event: 'tag_leave'
+  event: DB_NOTICE_TYPE.tag_leave
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'tag'>]
 }
 
 export interface NoticeTagAddEditorParams extends NotificationRequiredParams {
-  event: 'tag_add_editor'
+  event: DB_NOTICE_TYPE.tag_add_editor
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'tag'>]
 }
 
 export interface NoticeTagLeaveEditorParams extends NotificationRequiredParams {
-  event: 'tag_leave_editor'
+  event: DB_NOTICE_TYPE.tag_leave_editor
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'tag'>]
@@ -370,15 +303,12 @@ export interface NoticeTagLeaveEditorParams extends NotificationRequiredParams {
 export type NotificationPrarms =
   | NoticeUserNewFollowerParams
   | NoticeArticlePublishedParams
-  | NoticeArticleNewDownstreamParams
   | NoticeArticleNewCollectedParams
   | NoticeArticleNewAppreciationParams
   | NoticeArticleNewSubscriberParams
   | NoticeArticleNewCommentParams
   | NoticeArticleMentionedYouParams
   | NoticeSubscribedArticleNewCommentParams
-  | NoticeUpstreamArticleArchivedParams
-  | NoticeDownstreamArticleArchivedParams
   | NoticeCommentPinnedParams
   | NoticeCommentNewReplyParams
   | NoticeCommentMentionedYouParams
@@ -411,7 +341,7 @@ export type NoticeEntity = {
   entityId: string
 }
 
-export type NoticeEntitiesMap = { [key in NoticeEntityType]: any }
+export type NoticeEntitiesMap = Record<NoticeEntityType, any>
 export type NoticeMessage = string
 export type NoticeData = {
   url?: string

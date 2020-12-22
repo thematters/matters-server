@@ -5,6 +5,7 @@ import { Request } from 'express'
 import { authModes, roleAccess } from 'common/utils'
 import {
   ArticleService,
+  AtomService,
   CommentService,
   DraftService,
   NotificationService,
@@ -121,6 +122,7 @@ export const testClient = async (
       return { req, ..._context }
     },
     dataSources: (): DataSources => ({
+      atomService: new AtomService(),
       userService: new UserService(),
       articleService: new ArticleService(),
       commentService: new CommentService(),
