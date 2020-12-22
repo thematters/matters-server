@@ -25,7 +25,7 @@ exports.up = async (knex) => {
       .references('id')
       .inTable('user')
       .onUpdate('CASCADE')
-      .onDelete('CASCADE')
+      .onDelete('RESTRICT')
     t.foreign('cover')
       .references('id')
       .inTable('asset')
@@ -43,7 +43,7 @@ exports.up = async (knex) => {
 
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
-    t.bigIncrements('id')
+    t.bigIncrements('id').primary()
     t.enu('action', ['follow']).defaultTo('follow')
     t.bigInteger('user_id').unsigned().notNullable()
     t.bigInteger('target_id').unsigned().notNullable()
@@ -68,11 +68,13 @@ exports.up = async (knex) => {
 
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
-    t.bigIncrements('id')
+    t.bigIncrements('id').primary()
 
     t.string('name').notNullable().unique()
-    t.integer('amount').notNullable()
+    t.decimal('amount').notNullable()
     t.enu('state', ['active', 'banned', 'archived'])
+      .notNullable()
+      .defaultTo('active')
     t.enu('currency', ['HKD', 'LIKE']).notNullable().defaultTo('HKD')
     t.bigInteger('circle_id').unsigned().notNullable()
 
@@ -94,10 +96,9 @@ exports.up = async (knex) => {
 
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
-    t.bigIncrements('id')
+    t.bigIncrements('id').primary()
     t.bigInteger('article_id').unsigned().notNullable()
     t.bigInteger('circle_id').unsigned().notNullable()
-    t.bigInteger('creator').unsigned().notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
@@ -112,11 +113,6 @@ exports.up = async (knex) => {
       .inTable('circle')
       .onUpdate('CASCADE')
       .onDelete('CASCADE')
-    t.foreign('creator')
-      .references('id')
-      .inTable('user')
-      .onUpdate('CASCADE')
-      .onDelete('SET NULL')
   })
 
   // table for user - subscription relationship
@@ -124,8 +120,18 @@ exports.up = async (knex) => {
 
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
-    t.bigIncrements('id')
-    t.enu('state', ['active', 'archived'])
+    t.bigIncrements('id').primary()
+    t.enu('state', [
+      'active',
+      'past_due',
+      'unpaid',
+      'canceled',
+      'incomplete',
+      'incomplete_expired',
+      'trialing',
+    ])
+      .notNullable()
+      .defaultTo('active')
     t.bigInteger('user_id').unsigned().notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
@@ -142,20 +148,22 @@ exports.up = async (knex) => {
   })
 
   // table for subscription - price relationship
-  table = 'subscription_price'
+  table = 'circle_subscription_item'
 
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
-    t.bigIncrements('id')
+    t.bigIncrements('id').primary()
     t.enu('state', ['active', 'archived'])
-    t.bigInteger('creator').unsigned().notNullable()
+    t.bigInteger('user_id').unsigned().notNullable()
     t.bigInteger('subscription_id').unsigned().notNullable()
     t.bigInteger('price_id').unsigned().notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
+    t.enu('provider', ['stripe']).notNullable().defaultTo('stripe')
+    t.string('provider_subscription_item_id').notNullable().unique()
 
     // foreign keys
-    t.foreign('creator')
+    t.foreign('user_id')
       .references('id')
       .inTable('user')
       .onUpdate('CASCADE')
@@ -203,7 +211,7 @@ exports.up = async (knex) => {
 }
 
 exports.down = async (knex) => {
-  await baseDown('subscription_price')(knex)
+  await baseDown('circle_subscription_item')(knex)
   await baseDown('circle_subscription')(knex)
   await baseDown('article_circle')(knex)
   await baseDown('circle_price')(knex)
