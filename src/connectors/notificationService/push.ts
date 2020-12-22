@@ -1,5 +1,6 @@
 import _ from 'lodash'
 
+import { DB_NOTICE_TYPE } from 'common/enums'
 import { numRound } from 'common/utils'
 import { BaseService } from 'connectors'
 import { notificationQueue } from 'connectors/queue/notification'
@@ -23,35 +24,24 @@ class Push extends BaseService {
   > => {
     const actor = actorId ? await this.baseFindById(actorId, 'user') : null
     const target = _.find(entities, ['type', 'target'])
-    const downstream = _.find(entities, ['type', 'downstream'])
     const collection = _.find(entities, ['type', 'collection'])
     // const comment = _.find(entities, ['type', 'comment'])
-    // const upstream = _.find(entities, ['type', 'upstream'])
     // const reply = _.find(entities, ['type', 'reply'])
 
     switch (type) {
-      case 'user_new_follower':
+      case DB_NOTICE_TYPE.user_new_follower:
         return (
           actor &&
           trans.user_new_follower(language, {
             displayName: actor.displayName,
           })
         )
-      case 'article_published':
+      case DB_NOTICE_TYPE.article_published:
         return (
           target &&
           trans.article_published(language, { title: target.entity.title })
         )
-      case 'article_new_downstream':
-        return (
-          actor &&
-          target &&
-          trans.article_new_downstream(language, {
-            displayName: actor.displayName,
-            title: target.entity.title,
-          })
-        )
-      case 'article_new_collected':
+      case DB_NOTICE_TYPE.article_new_collected:
         return (
           actor &&
           target &&
@@ -62,14 +52,14 @@ class Push extends BaseService {
             title: target.entity.title,
           })
         )
-      case 'article_new_appreciation':
+      case DB_NOTICE_TYPE.article_new_appreciation:
         return (
           actor &&
           trans.article_new_appreciation(language, {
             displayName: actor.displayName,
           })
         )
-      case 'article_new_subscriber':
+      case DB_NOTICE_TYPE.article_new_subscriber:
         return (
           actor &&
           target &&
@@ -78,7 +68,7 @@ class Push extends BaseService {
             title: target.entity.title,
           })
         )
-      case 'article_new_comment':
+      case DB_NOTICE_TYPE.article_new_comment:
         return (
           actor &&
           target &&
@@ -87,7 +77,7 @@ class Push extends BaseService {
             title: target.entity.title,
           })
         )
-      case 'article_mentioned_you':
+      case DB_NOTICE_TYPE.article_mentioned_you:
         return (
           actor &&
           target &&
@@ -96,7 +86,7 @@ class Push extends BaseService {
             title: target.entity.title,
           })
         )
-      case 'subscribed_article_new_comment':
+      case DB_NOTICE_TYPE.subscribed_article_new_comment:
         return (
           actor &&
           target &&
@@ -105,28 +95,28 @@ class Push extends BaseService {
             title: target.entity.title,
           })
         )
-      case 'comment_pinned':
+      case DB_NOTICE_TYPE.comment_pinned:
         return (
           actor &&
           trans.comment_pinned(language, { displayName: actor.displayName })
         )
-      case 'comment_new_reply':
+      case DB_NOTICE_TYPE.comment_new_reply:
         return (
           actor &&
           trans.comment_new_reply(language, {
             displayName: actor.displayName,
           })
         )
-      case 'comment_mentioned_you':
+      case DB_NOTICE_TYPE.comment_mentioned_you:
         return (
           actor &&
           trans.comment_mentioned_you(language, {
             displayName: actor.displayName,
           })
         )
-      case 'official_announcement':
+      case DB_NOTICE_TYPE.official_announcement:
         return message && trans.official_announcement(language, { message })
-      case 'payment_received_donation':
+      case DB_NOTICE_TYPE.payment_received_donation:
         return (
           actor &&
           target &&

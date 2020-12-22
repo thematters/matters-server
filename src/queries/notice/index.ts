@@ -1,255 +1,245 @@
+import { DB_NOTICE_TYPE } from 'common/enums'
 import {
   DBNoticeType,
-  GQLArticleMentionedYouNoticeTypeResolver,
-  GQLArticleNewAppreciationNoticeTypeResolver,
-  GQLArticleNewCollectedNoticeTypeResolver,
-  GQLArticleNewCommentNoticeTypeResolver,
-  GQLArticleNewDownstreamNoticeTypeResolver,
-  GQLArticleNewSubscriberNoticeTypeResolver,
-  GQLArticlePublishedNoticeTypeResolver,
-  GQLArticleTagHasBeenAddedNoticeTypeResolver,
-  GQLArticleTagHasBeenRemovedNoticeTypeResolver,
-  GQLArticleTagHasBeenUnselectedNoticeTypeResolver,
-  GQLCommentMentionedYouNoticeTypeResolver,
-  GQLCommentNewReplyNoticeTypeResolver,
-  GQLCommentPinnedNoticeTypeResolver,
-  GQLDownstreamArticleArchivedNoticeTypeResolver,
+  GQLArticleArticleNoticeType,
+  GQLArticleArticleNoticeTypeResolver,
+  GQLArticleNoticeType,
+  GQLArticleNoticeTypeResolver,
+  GQLArticleTagNoticeType,
+  GQLArticleTagNoticeTypeResolver,
+  GQLCommentCommentNoticeType,
+  GQLCommentCommentNoticeTypeResolver,
+  GQLCommentNoticeType,
+  GQLCommentNoticeTypeResolver,
   GQLOfficialAnnouncementNoticeTypeResolver,
-  GQLPaymentPayoutNoticeTypeResolver,
-  GQLPaymentReceivedDonationNoticeTypeResolver,
-  GQLRevisedArticleNotPublishedNoticeTypeResolver,
-  GQLRevisedArticlePublishedNoticeTypeResolver,
-  GQLSubscribedArticleNewCommentNoticeTypeResolver,
-  GQLTagAddEditorNoticeTypeResolver,
-  GQLTagAdoptionNoticeTypeResolver,
-  GQLTagLeaveEditorNoticeTypeResolver,
-  GQLTagLeaveNoticeTypeResolver,
-  GQLUpstreamArticleArchivedNoticeTypeResolver,
-  GQLUserNewFollowerNoticeTypeResolver,
+  GQLTagNoticeType,
+  GQLTagNoticeTypeResolver,
+  GQLTransactionNoticeType,
+  GQLTransactionNoticeTypeResolver,
+  GQLUserNoticeType,
+  GQLUserNoticeTypeResolver,
   GQLUserTypeResolver,
 } from 'definitions'
 
 import notices from './notices'
 
+enum NOTICE_TYPE {
+  UserNotice = 'UserNotice',
+  ArticleNotice = 'ArticleNotice',
+  ArticleArticleNotice = 'ArticleArticleNotice',
+  CommentNotice = 'CommentNotice',
+  CommentCommentNotice = 'CommentCommentNotice',
+  ArticleTagNotice = 'ArticleTagNotice',
+  TagNotice = 'TagNotice',
+  TransactionNotice = 'TransactionNotice',
+  OfficialAnnouncementNotice = 'OfficialAnnouncementNotice',
+}
+
 const notice: {
   User: GQLUserTypeResolver
   Notice: any
-  UserNewFollowerNotice: GQLUserNewFollowerNoticeTypeResolver
-  ArticlePublishedNotice: GQLArticlePublishedNoticeTypeResolver
-  ArticleNewDownstreamNotice: GQLArticleNewDownstreamNoticeTypeResolver
-  ArticleNewCollectedNotice: GQLArticleNewCollectedNoticeTypeResolver
-  ArticleNewAppreciationNotice: GQLArticleNewAppreciationNoticeTypeResolver
-  ArticleNewSubscriberNotice: GQLArticleNewSubscriberNoticeTypeResolver
-  ArticleNewCommentNotice: GQLArticleNewCommentNoticeTypeResolver
-  ArticleMentionedYouNotice: GQLArticleMentionedYouNoticeTypeResolver
-  UpstreamArticleArchivedNotice: GQLUpstreamArticleArchivedNoticeTypeResolver
-  SubscribedArticleNewCommentNotice: GQLSubscribedArticleNewCommentNoticeTypeResolver
-  DownstreamArticleArchivedNotice: GQLDownstreamArticleArchivedNoticeTypeResolver
-  CommentPinnedNotice: GQLCommentPinnedNoticeTypeResolver
-  CommentNewReplyNotice: GQLCommentNewReplyNoticeTypeResolver
-  CommentMentionedYouNotice: GQLCommentMentionedYouNoticeTypeResolver
+  UserNotice: GQLUserNoticeTypeResolver
+  ArticleNotice: GQLArticleNoticeTypeResolver
+  ArticleArticleNotice: GQLArticleArticleNoticeTypeResolver
+  ArticleTagNotice: GQLArticleTagNoticeTypeResolver
+  TagNotice: GQLTagNoticeTypeResolver
+  CommentNotice: GQLCommentNoticeTypeResolver
+  CommentCommentNotice: GQLCommentCommentNoticeTypeResolver
+  TransactionNotice: GQLTransactionNoticeTypeResolver
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNoticeTypeResolver
-  ArticleTagHasBeenAddedNotice: GQLArticleTagHasBeenAddedNoticeTypeResolver
-  ArticleTagHasBeenRemovedNotice: GQLArticleTagHasBeenRemovedNoticeTypeResolver
-  ArticleTagHasBeenUnselectedNotice: GQLArticleTagHasBeenUnselectedNoticeTypeResolver
-  PaymentReceivedDonationNotice: GQLPaymentReceivedDonationNoticeTypeResolver
-  PaymentPayoutNotice: GQLPaymentPayoutNoticeTypeResolver
-  TagAdoptionNotice: GQLTagAdoptionNoticeTypeResolver
-  TagLeaveNotice: GQLTagLeaveNoticeTypeResolver
-  TagAddEditorNotice: GQLTagAddEditorNoticeTypeResolver
-  TagLeaveEditorNotice: GQLTagLeaveEditorNoticeTypeResolver
-  RevisedArticlePublishedNotice: GQLRevisedArticlePublishedNoticeTypeResolver
-  RevisedArticleNotPublishedNotice: GQLRevisedArticleNotPublishedNoticeTypeResolver
 } = {
   User: {
     notices,
   },
   Notice: {
     __resolveType: ({ type }: { type: DBNoticeType }) => {
-      const noticeTypeMap = {
+      const noticeTypeMap: Record<DBNoticeType, NOTICE_TYPE> = {
         // user
-        user_new_follower: 'UserNewFollowerNotice',
+        user_new_follower: NOTICE_TYPE.UserNotice,
+
         // article
-        article_published: 'ArticlePublishedNotice',
-        article_new_downstream: 'ArticleNewDownstreamNotice',
-        article_new_collected: 'ArticleNewCollectedNotice',
-        article_new_appreciation: 'ArticleNewAppreciationNotice',
-        article_new_subscriber: 'ArticleNewSubscriberNotice',
-        article_new_comment: 'ArticleNewCommentNotice',
-        article_mentioned_you: 'ArticleMentionedYouNotice',
-        subscribed_article_new_comment: 'SubscribedArticleNewCommentNotice',
-        upstream_article_archived: 'UpstreamArticleArchivedNotice',
-        downstream_article_archived: 'DownstreamArticleArchivedNotice',
-        article_tag_has_been_added: 'ArticleTagHasBeenAddedNotice',
-        article_tag_has_been_removed: 'ArticleTagHasBeenRemovedNotice',
-        article_tag_has_been_unselected: 'ArticleTagHasBeenUnselectedNotice',
-        revised_article_published: 'RevisedArticlePublishedNotice',
-        revised_article_not_published: 'RevisedArticleNotPublishedNotice',
-        // comment
-        comment_pinned: 'CommentPinnedNotice',
-        comment_new_reply: 'CommentNewReplyNotice',
-        comment_mentioned_you: 'CommentMentionedYouNotice',
-        // payment
-        payment_received_donation: 'PaymentReceivedDonationNotice',
-        payment_payout: 'PaymentPayoutNotice',
+        article_published: NOTICE_TYPE.ArticleNotice,
+        article_new_appreciation: NOTICE_TYPE.ArticleNotice,
+        article_new_subscriber: NOTICE_TYPE.ArticleNotice,
+        article_mentioned_you: NOTICE_TYPE.ArticleNotice,
+        revised_article_published: NOTICE_TYPE.ArticleNotice,
+        revised_article_not_published: NOTICE_TYPE.ArticleNotice,
+
+        // article-artilce
+        article_new_collected: NOTICE_TYPE.ArticleArticleNotice,
+
+        // article-tag
+        article_tag_has_been_added: NOTICE_TYPE.ArticleTagNotice,
+        article_tag_has_been_removed: NOTICE_TYPE.ArticleTagNotice,
+        article_tag_has_been_unselected: NOTICE_TYPE.ArticleTagNotice,
+
         // tag
-        tag_adoption: 'TagAdoptionNotice',
-        tag_leave: 'TagLeaveNotice',
-        tag_add_editor: 'TagAddEditorNotice',
-        tag_leave_editor: 'TagLeaveEditorNotice',
+        tag_adoption: NOTICE_TYPE.TagNotice,
+        tag_leave: NOTICE_TYPE.TagNotice,
+        tag_add_editor: NOTICE_TYPE.TagNotice,
+        tag_leave_editor: NOTICE_TYPE.TagNotice,
+
+        // comment
+        comment_pinned: NOTICE_TYPE.CommentNotice,
+        comment_mentioned_you: NOTICE_TYPE.CommentNotice,
+        article_new_comment: NOTICE_TYPE.CommentNotice,
+        subscribed_article_new_comment: NOTICE_TYPE.CommentNotice,
+
+        // comment-comment
+        comment_new_reply: NOTICE_TYPE.CommentCommentNotice,
+
+        // transaction
+        payment_received_donation: NOTICE_TYPE.TransactionNotice,
+        payment_payout: NOTICE_TYPE.TransactionNotice,
 
         // official
-        official_announcement: 'OfficialAnnouncementNotice',
+        official_announcement: NOTICE_TYPE.OfficialAnnouncementNotice,
       }
+
       return noticeTypeMap[type]
     },
   },
-  UserNewFollowerNotice: {
+  UserNotice: {
     id: ({ uuid }) => uuid,
+    type: ({ type }) => {
+      switch (type) {
+        case DB_NOTICE_TYPE.user_new_follower:
+          return GQLUserNoticeType.UserNewFollower
+      }
+    },
+    target: ({ entities, type }, _, { viewer }) => {
+      if (type === DB_NOTICE_TYPE.user_new_follower) {
+        return viewer
+      }
+      return null
+    },
   },
-  ArticlePublishedNotice: {
+  ArticleNotice: {
     id: ({ uuid }) => uuid,
+    type: ({ type }) => {
+      switch (type) {
+        case DB_NOTICE_TYPE.article_published:
+          return GQLArticleNoticeType.ArticlePublished
+        case DB_NOTICE_TYPE.article_new_appreciation:
+          return GQLArticleNoticeType.ArticleNewAppreciation
+        case DB_NOTICE_TYPE.article_new_subscriber:
+          return GQLArticleNoticeType.ArticleNewSubscriber
+        case DB_NOTICE_TYPE.article_mentioned_you:
+          return GQLArticleNoticeType.ArticleMentionedYou
+        case DB_NOTICE_TYPE.revised_article_published:
+          return GQLArticleNoticeType.RevisedArticlePublished
+        case DB_NOTICE_TYPE.revised_article_not_published:
+          return GQLArticleNoticeType.RevisedArticleNotPublished
+      }
+    },
     target: ({ entities }, _, { dataSources: { draftService } }) =>
       draftService.dataloader.load(entities.target.draftId),
   },
-  ArticleNewDownstreamNotice: {
+  ArticleArticleNotice: {
     id: ({ uuid }) => uuid,
+    type: ({ type }) => {
+      switch (type) {
+        case DB_NOTICE_TYPE.article_new_collected:
+          return GQLArticleArticleNoticeType.ArticleNewCollected
+      }
+    },
     target: ({ entities }, _, { dataSources: { draftService } }) =>
       draftService.dataloader.load(entities.target.draftId),
-    downstream: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.downstream.draftId),
+    article: ({ entities, type }, _, { dataSources: { draftService } }) => {
+      if (type === DB_NOTICE_TYPE.article_new_collected) {
+        return draftService.dataloader.load(entities.collection.draftId)
+      }
+      return null
+    },
   },
-  ArticleNewCollectedNotice: {
+  ArticleTagNotice: {
     id: ({ uuid }) => uuid,
-    actor: ({ actors }: { actors: any[] }) => actors[0],
+    type: ({ type }) => {
+      switch (type) {
+        case DB_NOTICE_TYPE.article_tag_has_been_added:
+          return GQLArticleTagNoticeType.ArticleTagAdded
+        case DB_NOTICE_TYPE.article_tag_has_been_removed:
+          return GQLArticleTagNoticeType.ArticleTagRemoved
+        case DB_NOTICE_TYPE.article_tag_has_been_unselected:
+          return GQLArticleTagNoticeType.ArticleTagUnselected
+      }
+    },
     target: ({ entities }, _, { dataSources: { draftService } }) =>
       draftService.dataloader.load(entities.target.draftId),
-    collection: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.collection.draftId),
+    tag: ({ entities }) => entities.tag,
   },
-  ArticleNewAppreciationNotice: {
+  TagNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
-  },
-  ArticleNewSubscriberNotice: {
-    id: ({ uuid }) => uuid,
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
-  },
-  ArticleNewCommentNotice: {
-    id: ({ uuid }) => uuid,
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
-    comment: ({ entities }) => entities.comment,
-  },
-  ArticleMentionedYouNotice: {
-    id: ({ uuid }) => uuid,
-    actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
-  },
-  SubscribedArticleNewCommentNotice: {
-    id: ({ uuid }) => uuid,
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
-    comment: ({ entities }) => entities.comment,
-  },
-  UpstreamArticleArchivedNotice: {
-    id: ({ uuid }) => uuid,
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
-    upstream: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.upstream.draftId),
-  },
-  DownstreamArticleArchivedNotice: {
-    id: ({ uuid }) => uuid,
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
-    downstream: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.downstream.draftId),
-  },
-  CommentPinnedNotice: {
-    id: ({ uuid }) => uuid,
-    actor: ({ entities }, _: any, { dataSources: { userService } }) => {
-      const target = entities.target
-      return userService.dataloader.load(target.authorId)
+    type: ({ type }) => {
+      switch (type) {
+        case DB_NOTICE_TYPE.tag_adoption:
+          return GQLTagNoticeType.TagAdoption
+        case DB_NOTICE_TYPE.tag_leave:
+          return GQLTagNoticeType.TagLeave
+        case DB_NOTICE_TYPE.tag_add_editor:
+          return GQLTagNoticeType.TagAddEditor
+        case DB_NOTICE_TYPE.tag_leave_editor:
+          return GQLTagNoticeType.TagAddEditor
+      }
     },
     target: ({ entities }) => entities.target,
   },
-  CommentNewReplyNotice: {
+  CommentNotice: {
     id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target,
-    reply: ({ entities }) => entities.reply,
+    type: ({ type }) => {
+      switch (type) {
+        case DB_NOTICE_TYPE.comment_pinned:
+          return GQLCommentNoticeType.ArticleCommentPinned
+        case DB_NOTICE_TYPE.comment_mentioned_you:
+          return GQLCommentNoticeType.ArticleCommentMentionedYou
+        case DB_NOTICE_TYPE.article_new_comment:
+          return GQLCommentNoticeType.ArticleNewComment
+        case DB_NOTICE_TYPE.subscribed_article_new_comment:
+          return GQLCommentNoticeType.SubscribedArticleNewComment
+      }
+    },
+    target: ({ entities, type }) => {
+      switch (type) {
+        case DB_NOTICE_TYPE.comment_pinned:
+        case DB_NOTICE_TYPE.comment_mentioned_you:
+          return entities.target
+        case DB_NOTICE_TYPE.article_new_comment:
+        case DB_NOTICE_TYPE.subscribed_article_new_comment:
+          return entities.comment
+      }
+    },
   },
-  CommentMentionedYouNotice: {
+  CommentCommentNotice: {
     id: ({ uuid }) => uuid,
-    actor: ({ actors }: { actors: any[] }) => actors[0],
+    type: ({ type }) => {
+      switch (type) {
+        case DB_NOTICE_TYPE.comment_new_reply:
+          return GQLCommentCommentNoticeType.CommentNewReply
+      }
+    },
+    target: ({ entities }) => entities.target,
+    comment: ({ entities, type }) => {
+      if (type === DB_NOTICE_TYPE.comment_new_reply) {
+        return entities.reply
+      }
+      return null
+    },
+  },
+  TransactionNotice: {
+    id: ({ uuid }) => uuid,
+    type: ({ type }) => {
+      switch (type) {
+        case DB_NOTICE_TYPE.payment_received_donation:
+          return GQLTransactionNoticeType.PaymentReceivedDonation
+        case DB_NOTICE_TYPE.payment_payout:
+          return GQLTransactionNoticeType.PaymentPayout
+      }
+    },
     target: ({ entities }) => entities.target,
   },
   OfficialAnnouncementNotice: {
     id: ({ uuid }) => uuid,
     link: ({ data }: { data: any }) => data && data.link,
-  },
-  ArticleTagHasBeenAddedNotice: {
-    id: ({ uuid }) => uuid,
-    actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
-    tag: ({ entities }) => entities.tag,
-  },
-  ArticleTagHasBeenRemovedNotice: {
-    id: ({ uuid }) => uuid,
-    actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
-    tag: ({ entities }) => entities.tag,
-  },
-  ArticleTagHasBeenUnselectedNotice: {
-    id: ({ uuid }) => uuid,
-    actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
-    tag: ({ entities }) => entities.tag,
-  },
-  PaymentReceivedDonationNotice: {
-    id: ({ uuid }) => uuid,
-    actor: ({ actors }: { actors: any[] }) => actors[0],
-    target: ({ entities }) => entities.target,
-  },
-  PaymentPayoutNotice: {
-    id: ({ uuid }) => uuid,
-    target: ({ entities }) => entities.target,
-  },
-  TagAdoptionNotice: {
-    id: ({ uuid }) => uuid,
-    actor: ({ actors }: { actors: any[] }) => actors[0],
-    tag: ({ entities }) => entities.target,
-  },
-  TagLeaveNotice: {
-    id: ({ uuid }) => uuid,
-    actor: ({ actors }: { actors: any[] }) => actors[0],
-    tag: ({ entities }) => entities.target,
-  },
-  TagAddEditorNotice: {
-    id: ({ uuid }) => uuid,
-    actor: ({ actors }: { actors: any[] }) => actors[0],
-    tag: ({ entities }) => entities.target,
-  },
-  TagLeaveEditorNotice: {
-    id: ({ uuid }) => uuid,
-    actor: ({ actors }: { actors: any[] }) => actors[0],
-    tag: ({ entities }) => entities.target,
-  },
-  RevisedArticlePublishedNotice: {
-    id: ({ uuid }) => uuid,
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
-  },
-  RevisedArticleNotPublishedNotice: {
-    id: ({ uuid }) => uuid,
-    target: ({ entities }, _, { dataSources: { draftService } }) =>
-      draftService.dataloader.load(entities.target.draftId),
   },
 }
 

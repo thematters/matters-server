@@ -2,6 +2,7 @@ import Queue from 'bull'
 
 import {
   DAY,
+  DB_NOTICE_TYPE,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
@@ -9,6 +10,7 @@ import {
 } from 'common/enums'
 import logger from 'common/logger'
 import { getArticleDigest } from 'connectors/notificationService/mail/utils'
+import { DBNoticeType } from 'definitions'
 
 import { BaseQueue } from './baseQueue'
 
@@ -73,7 +75,7 @@ class EmailsQueue extends BaseQueue {
           return
         }
 
-        const filterNotices = (type: string) =>
+        const filterNotices = (type: DBNoticeType) =>
           notices.filter((notice) => notice.noticeType === type)
 
         this.notificationService.mail.sendDailySummary({
@@ -82,14 +84,26 @@ class EmailsQueue extends BaseQueue {
             displayName: user.displayName,
           },
           notices: {
-            user_new_follower: filterNotices('user_new_follower'),
-            article_new_collected: filterNotices('article_new_collected'),
-            article_new_appreciation: filterNotices('article_new_appreciation'),
-            article_new_subscriber: filterNotices('article_new_subscriber'),
-            article_new_comment: filterNotices('article_new_comment'),
-            article_mentioned_you: filterNotices('article_mentioned_you'),
-            comment_new_reply: filterNotices('comment_new_reply'),
-            comment_mentioned_you: filterNotices('comment_mentioned_you'),
+            user_new_follower: filterNotices(DB_NOTICE_TYPE.user_new_follower),
+            article_new_collected: filterNotices(
+              DB_NOTICE_TYPE.article_new_collected
+            ),
+            article_new_appreciation: filterNotices(
+              DB_NOTICE_TYPE.article_new_appreciation
+            ),
+            article_new_subscriber: filterNotices(
+              DB_NOTICE_TYPE.article_new_subscriber
+            ),
+            article_new_comment: filterNotices(
+              DB_NOTICE_TYPE.article_new_comment
+            ),
+            article_mentioned_you: filterNotices(
+              DB_NOTICE_TYPE.article_mentioned_you
+            ),
+            comment_new_reply: filterNotices(DB_NOTICE_TYPE.comment_new_reply),
+            comment_mentioned_you: filterNotices(
+              DB_NOTICE_TYPE.comment_mentioned_you
+            ),
           },
           language: user.language,
         })
