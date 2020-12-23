@@ -44,7 +44,7 @@ exports.up = async (knex) => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
-    t.enu('action', ['follow']).defaultTo('follow')
+    t.enu('action', ['follow', 'join']).defaultTo('follow')
     t.bigInteger('user_id').unsigned().notNullable()
     t.bigInteger('target_id').unsigned().notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
@@ -70,7 +70,6 @@ exports.up = async (knex) => {
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
 
-    t.string('name').notNullable().unique()
     t.decimal('amount').notNullable()
     t.enu('state', ['active', 'banned', 'archived'])
       .notNullable()
@@ -153,7 +152,6 @@ exports.up = async (knex) => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
-    t.enu('state', ['active', 'archived'])
     t.bigInteger('user_id').unsigned().notNullable()
     t.bigInteger('subscription_id').unsigned().notNullable()
     t.bigInteger('price_id').unsigned().notNullable()
