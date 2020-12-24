@@ -4,6 +4,7 @@ import { v4 } from 'uuid'
 import {
   ARTICLE_STATE,
   ASSET_TYPE,
+  DB_NOTICE_TYPE,
   PUBLISH_STATE,
   USER_STATE,
 } from 'common/enums'
@@ -19,9 +20,7 @@ import {
 } from 'common/errors'
 import {
   correctHtml,
-  countWords,
   fromGlobalId,
-  makeSummary,
   measureDiffs,
   sanitize,
   stripClass,
@@ -272,7 +271,7 @@ const resolver: MutationToEditArticleResolver = async (
     diff.forEach(async (articleId) => {
       const targetCollection = await articleService.baseFindById(articleId)
       notificationService.trigger({
-        event: 'article_new_collected',
+        event: DB_NOTICE_TYPE.article_new_collected,
         recipientId: targetCollection.authorId,
         actorId: article.authorId,
         entities: [

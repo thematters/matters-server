@@ -235,6 +235,7 @@ export default /* GraphQL */ `
   type TagOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
     boost: NonNegativeFloat!
     score: NonNegativeFloat!
+    selected: Boolean!
   }
 
   type ArticleConnection implements Connection {
