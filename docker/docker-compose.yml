@@ -25,6 +25,7 @@ services:
     container_name: db
     environment:
       - POSTGRES_DB=matters-dev
+      - POSTGRES_PASSWORD=postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
