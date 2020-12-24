@@ -20,6 +20,9 @@ exports.up = async (knex) => {
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
 
+    // index
+    t.index(['name', 'state', 'owner'])
+
     // foreign keys
     t.foreign('owner')
       .references('id')
@@ -38,7 +41,7 @@ exports.up = async (knex) => {
       .onDelete('RESTRICT')
   })
 
-  // table for actions on circle, e.g. follow
+  // table for actions on circle, e.g. follow, join
   table = 'action_circle'
 
   await knex('entity_type').insert({ table })
@@ -49,6 +52,9 @@ exports.up = async (knex) => {
     t.bigInteger('target_id').unsigned().notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
+
+    // index
+    t.index(['action', 'user_id', 'target_id'])
 
     // foreign keys
     t.foreign('user_id')
@@ -63,13 +69,12 @@ exports.up = async (knex) => {
       .onDelete('CASCADE')
   })
 
-  // article_circle table
+  // price object
   table = 'circle_price'
 
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
-
     t.decimal('amount').notNullable()
     t.enu('state', ['active', 'banned', 'archived'])
       .notNullable()
@@ -81,6 +86,9 @@ exports.up = async (knex) => {
     t.string('provider_price_id').notNullable().unique()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
+
+    // index
+    t.index(['state', 'circle_id'])
 
     // foreign keys
     t.foreign('circle_id')
@@ -100,6 +108,9 @@ exports.up = async (knex) => {
     t.bigInteger('circle_id').unsigned().notNullable()
     t.timestamp('created_at').defaultTo(knex.fn.now())
     t.timestamp('updated_at').defaultTo(knex.fn.now())
+
+    // index
+    t.index(['article_id', 'circle_id'])
 
     // foreign keys
     t.foreign('article_id')
@@ -138,6 +149,9 @@ exports.up = async (knex) => {
     t.enu('provider', ['stripe']).notNullable().defaultTo('stripe')
     t.string('provider_subscription_id').notNullable().unique()
 
+    // index
+    t.index(['state', 'user_id'])
+
     // foreign keys
     t.foreign('user_id')
       .references('id')
@@ -159,6 +173,9 @@ exports.up = async (knex) => {
     t.timestamp('updated_at').defaultTo(knex.fn.now())
     t.enu('provider', ['stripe']).notNullable().defaultTo('stripe')
     t.string('provider_subscription_item_id').notNullable().unique()
+
+    // index
+    t.index(['subscription_id', 'price_id'])
 
     // foreign keys
     t.foreign('user_id')
@@ -203,6 +220,8 @@ exports.up = async (knex) => {
   `)
   // add constrains
   await knex.schema.alterTable(table, (t) => {
+    t.index(['target_id', 'target_type_id'])
+
     t.bigInteger('target_id').notNullable().alter()
     t.bigInteger('target_type_id').notNullable().alter()
   })
