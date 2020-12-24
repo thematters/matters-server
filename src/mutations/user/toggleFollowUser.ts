@@ -1,4 +1,9 @@
-import { CACHE_KEYWORD, NODE_TYPES, USER_STATE } from 'common/enums'
+import {
+  CACHE_KEYWORD,
+  DB_NOTICE_TYPE,
+  NODE_TYPES,
+  USER_STATE,
+} from 'common/enums'
 import {
   ActionFailedError,
   AuthenticationError,
@@ -56,7 +61,7 @@ const resolver: MutationToToggleFollowUserResolver = async (
 
     // trigger notificaiton
     notificationService.trigger({
-      event: 'user_new_follower',
+      event: DB_NOTICE_TYPE.user_new_follower,
       actorId: viewer.id,
       recipientId: user.id,
     })

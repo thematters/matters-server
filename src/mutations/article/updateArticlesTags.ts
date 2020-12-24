@@ -1,7 +1,7 @@
 import _some from 'lodash/some'
 import _uniq from 'lodash/uniq'
 
-import { USER_STATE } from 'common/enums'
+import { DB_NOTICE_TYPE, USER_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   AuthenticationError,
@@ -41,8 +41,8 @@ const triggerNotice = async ({
 
   const event =
     selected === true
-      ? 'article_tag_has_been_added'
-      : 'article_tag_has_been_unselected'
+      ? DB_NOTICE_TYPE.article_tag_has_been_added
+      : DB_NOTICE_TYPE.article_tag_has_been_unselected
 
   users.map(async (user) => {
     await notificationService.trigger({

@@ -1,4 +1,3 @@
-import { APPRECIATION_REWARD } from 'common/enums'
 import { makeSummary } from 'common/utils'
 import { i18n } from 'common/utils/i18n'
 
@@ -12,17 +11,6 @@ export default {
     zh_hant: ({ title }) => `你的作品《${title}》已發佈到分佈式網絡`,
     zh_hans: ({ title }) => `你的作品《${title}》已发布到分布式网络`,
     en: ({ title }) => `Your article "${title}" has been published to IPFS`,
-  }),
-  article_new_downstream: i18n<{
-    displayName: string
-    title: string
-  }>({
-    zh_hant: ({ displayName, title }) =>
-      `${displayName} 引申了你的作品《${title}》`,
-    zh_hans: ({ displayName, title }) =>
-      `${displayName} 引申了你的作品《${title}》`,
-    en: ({ displayName, title }) =>
-      `${displayName} extended your article "${title}"`,
   }),
   article_new_collected: i18n<{
     displayName: string
@@ -70,16 +58,6 @@ export default {
       `${displayName} 评论了你收藏的作品 ${title}`,
     en: ({ displayName, title }) =>
       `${displayName} commented on your favorited article "${title}"`,
-  }),
-  upstream_article_archived: i18n({
-    zh_hant: '你的作品上游已断开',
-    zh_hans: '你的作品上游已断开',
-    en: "Your article's upstream was archived",
-  }),
-  downstream_article_archived: i18n<{ title: string }>({
-    zh_hant: ({ title }) => `你的作品的引申作品《${title}》被隐藏`,
-    zh_hans: ({ title }) => `你的作品的引申作品《${title}》被隐藏`,
-    en: ({ title }) => `Your article's downstream "${title}" was archived`,
   }),
   comment_pinned: i18n<{ displayName: string }>({
     zh_hant: ({ displayName }) => `${displayName} 置頂了你的評論`,

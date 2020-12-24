@@ -1,5 +1,5 @@
+import { DB_NOTICE_TYPE, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
 import logger from 'common/logger'
-import { toGlobalId } from 'common/utils'
 import { BaseService, UserService } from 'connectors'
 import {
   LANGUAGES,
@@ -41,106 +41,105 @@ export class NotificationService extends BaseService {
     language: LANGUAGES
   ): Promise<PutNoticeParams | undefined> => {
     switch (params.event) {
-      case 'user_new_follower':
+      case DB_NOTICE_TYPE.user_new_follower:
         return {
           type: params.event,
           recipientId: params.recipientId,
           actorId: params.actorId,
         }
-      case 'article_published':
-      case 'comment_pinned':
-      case 'payment_payout':
-      case 'revised_article_published':
-      case 'revised_article_not_published':
+      case DB_NOTICE_TYPE.article_published:
+      case DB_NOTICE_TYPE.comment_pinned:
+      case DB_NOTICE_TYPE.payment_payout:
+      case DB_NOTICE_TYPE.revised_article_published:
+      case DB_NOTICE_TYPE.revised_article_not_published:
         return {
           type: params.event,
           recipientId: params.recipientId,
           entities: params.entities,
         }
-      case 'article_new_downstream':
-      case 'article_new_collected':
-      case 'article_new_appreciation':
-      case 'article_new_subscriber':
-      case 'article_mentioned_you':
-      case 'comment_mentioned_you':
-      case 'article_new_comment':
-      case 'subscribed_article_new_comment':
-      case 'comment_new_reply':
-      case 'article_tag_has_been_added':
-      case 'article_tag_has_been_removed':
-      case 'article_tag_has_been_unselected':
-      case 'payment_received_donation':
-      case 'tag_adoption':
-      case 'tag_leave':
-      case 'tag_add_editor':
-      case 'tag_leave_editor':
+      case DB_NOTICE_TYPE.article_new_collected:
+      case DB_NOTICE_TYPE.article_new_appreciation:
+      case DB_NOTICE_TYPE.article_new_subscriber:
+      case DB_NOTICE_TYPE.article_mentioned_you:
+      case DB_NOTICE_TYPE.comment_mentioned_you:
+      case DB_NOTICE_TYPE.article_new_comment:
+      case DB_NOTICE_TYPE.subscribed_article_new_comment:
+      case DB_NOTICE_TYPE.comment_new_reply:
+      case DB_NOTICE_TYPE.article_tag_has_been_added:
+      case DB_NOTICE_TYPE.article_tag_has_been_removed:
+      case DB_NOTICE_TYPE.article_tag_has_been_unselected:
+      case DB_NOTICE_TYPE.payment_received_donation:
+      case DB_NOTICE_TYPE.tag_adoption:
+      case DB_NOTICE_TYPE.tag_leave:
+      case DB_NOTICE_TYPE.tag_add_editor:
+      case DB_NOTICE_TYPE.tag_leave_editor:
         return {
           type: params.event,
           recipientId: params.recipientId,
           actorId: params.actorId,
           entities: params.entities,
         }
-      case 'official_announcement':
+      case DB_NOTICE_TYPE.official_announcement:
         return {
-          type: 'official_announcement',
+          type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: params.message,
           data: params.data,
         }
-      case 'user_activated':
+      case OFFICIAL_NOTICE_EXTEND_TYPE.user_activated:
         return {
-          type: 'official_announcement',
+          type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.user_activiated(language, {}),
         }
-      case 'user_banned':
+      case OFFICIAL_NOTICE_EXTEND_TYPE.user_banned:
         return {
-          type: 'official_announcement',
+          type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.user_banned(language, {}),
         }
-      case 'user_frozen':
+      case OFFICIAL_NOTICE_EXTEND_TYPE.user_frozen:
         return {
-          type: 'official_announcement',
+          type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.user_frozen(language, {}),
         }
-      case 'user_unbanned':
+      case OFFICIAL_NOTICE_EXTEND_TYPE.user_unbanned:
         return {
-          type: 'official_announcement',
+          type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.user_unbanned(language, {}),
         }
-      case 'comment_banned':
+      case OFFICIAL_NOTICE_EXTEND_TYPE.comment_banned:
         return {
-          type: 'official_announcement',
+          type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.comment_banned(language, {
             content: params.entities[0].entity.content,
           }),
           entities: params.entities,
         }
-      case 'article_banned':
+      case OFFICIAL_NOTICE_EXTEND_TYPE.article_banned:
         return {
-          type: 'official_announcement',
+          type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.article_banned(language, {
             title: params.entities[0].entity.title,
           }),
           entities: params.entities,
         }
-      case 'comment_reported':
+      case OFFICIAL_NOTICE_EXTEND_TYPE.comment_reported:
         return {
-          type: 'official_announcement',
+          type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.comment_reported(language, {
             content: params.entities[0].entity.content,
           }),
           entities: params.entities,
         }
-      case 'article_reported':
+      case OFFICIAL_NOTICE_EXTEND_TYPE.article_reported:
         return {
-          type: 'official_announcement',
+          type: DB_NOTICE_TYPE.official_announcement,
           recipientId: params.recipientId,
           message: trans.article_reported(language, {
             title: params.entities[0].entity.title,

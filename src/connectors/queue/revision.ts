@@ -6,7 +6,7 @@ import _difference from 'lodash/difference'
 
 import {
   ARTICLE_STATE,
-  MINUTE,
+  DB_NOTICE_TYPE,
   NODE_TYPES,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
@@ -154,7 +154,7 @@ class RevisionQueue extends BaseQueue {
 
         // Step 8: trigger notifications
         this.notificationService.trigger({
-          event: 'revised_article_published',
+          event: DB_NOTICE_TYPE.revised_article_published,
           recipientId: article.authorId,
           entities: [
             {
@@ -195,7 +195,7 @@ class RevisionQueue extends BaseQueue {
       })
 
       this.notificationService.trigger({
-        event: 'revised_article_not_published',
+        event: DB_NOTICE_TYPE.revised_article_not_published,
         recipientId: article.authorId,
         entities: [
           {
@@ -242,7 +242,7 @@ class RevisionQueue extends BaseQueue {
       }
 
       this.notificationService.trigger({
-        event: 'article_mentioned_you',
+        event: DB_NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
         recipientId,
         entities: [

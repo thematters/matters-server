@@ -4,7 +4,7 @@ import Queue from 'bull'
 import * as cheerio from 'cheerio'
 
 import {
-  MINUTE,
+  DB_NOTICE_TYPE,
   NODE_TYPES,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
@@ -173,7 +173,7 @@ class PublicationQueue extends BaseQueue {
 
         // Step 8: trigger notifications
         this.notificationService.trigger({
-          event: 'article_published',
+          event: DB_NOTICE_TYPE.article_published,
           recipientId: article.authorId,
           entities: [
             {
@@ -231,7 +231,7 @@ class PublicationQueue extends BaseQueue {
     draft.collection.forEach(async (id: string) => {
       const collection = await this.articleService.baseFindById(id)
       this.notificationService.trigger({
-        event: 'article_new_collected',
+        event: DB_NOTICE_TYPE.article_new_collected,
         recipientId: collection.authorId,
         actorId: article.authorId,
         entities: [
@@ -322,7 +322,7 @@ class PublicationQueue extends BaseQueue {
       }
 
       this.notificationService.trigger({
-        event: 'article_mentioned_you',
+        event: DB_NOTICE_TYPE.article_mentioned_you,
         actorId: article.authorId,
         recipientId,
         entities: [

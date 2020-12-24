@@ -2,10 +2,11 @@ import DataLoader from 'dataloader'
 import { isEqual, uniqBy } from 'lodash'
 import { v4 } from 'uuid'
 
-import { BATCH_SIZE, DAY, DB_NOTICE_TYPES } from 'common/enums'
+import { BATCH_SIZE, DAY, DB_NOTICE_TYPE } from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import {
+  DBNoticeType,
   NoticeDetail,
   NoticeEntitiesMap,
   NoticeEntity,
@@ -267,7 +268,7 @@ class Notice extends BaseService {
         'notice_detail.id'
       )
       .orderBy('updated_at', 'desc')
-      .whereIn('notice_detail.notice_type', DB_NOTICE_TYPES)
+      .whereIn('notice_detail.notice_type', Object.values(DB_NOTICE_TYPE))
 
     if (where) {
       where.forEach((w) => {
@@ -316,15 +317,19 @@ class Notice extends BaseService {
 
     if (expand) {
       const _entities = {} as any
-      entities.forEach(async ({ type, entityId, table }: any) => {
-        const entity = await this.knex
-          .select()
-          .from(table)
-          .where({ id: entityId })
-          .first()
 
-        _entities[type] = entity
-      })
+      await Promise.all(
+        entities.map(async ({ type, entityId, table }: any) => {
+          const entity = await this.knex
+            .select()
+            .from(table)
+            .where({ id: entityId })
+            .first()
+
+          _entities[type] = entity
+        })
+      )
+
       return _entities
     }
 
@@ -433,15 +438,15 @@ class Notice extends BaseService {
   findDailySummaryNoticesByUser = async (
     userId: string
   ): Promise<NoticeItem[]> => {
-    const validNoticeTypes = [
-      'user_new_follower',
-      'article_new_collected',
-      'article_new_appreciation',
-      'article_new_subscriber',
-      'article_new_comment',
-      'article_mentioned_you',
-      'comment_new_reply',
-      'comment_mentioned_you',
+    const validNoticeTypes: DBNoticeType[] = [
+      DB_NOTICE_TYPE.user_new_follower,
+      DB_NOTICE_TYPE.article_new_collected,
+      DB_NOTICE_TYPE.article_new_appreciation,
+      DB_NOTICE_TYPE.article_new_subscriber,
+      DB_NOTICE_TYPE.article_new_comment,
+      DB_NOTICE_TYPE.article_mentioned_you,
+      DB_NOTICE_TYPE.comment_new_reply,
+      DB_NOTICE_TYPE.comment_mentioned_you,
     ]
     const noticeDetails = await this.findDetail({
       where: [
@@ -496,21 +501,46 @@ class Notice extends BaseService {
       return false
     }
 
-    const noticeSettingMap: { [key in NotificationType]: boolean } = {
+    const noticeSettingMap: Record<NotificationType, boolean> = {
+      // user
       user_new_follower: setting.follow,
+
+      // article
       article_published: true,
-      article_new_downstream: setting.downstream,
-      article_new_collected: setting.downstream,
       article_new_appreciation: setting.appreciation,
       article_new_subscriber: setting.articleSubscription,
-      article_new_comment: setting.comment,
       article_mentioned_you: setting.mention,
-      subscribed_article_new_comment: setting.commentSubscribed,
-      upstream_article_archived: setting.downstream,
-      downstream_article_archived: setting.downstream,
+      revised_article_published: true,
+      revised_article_not_published: true,
+
+      // article-article
+      article_new_collected: setting.downstream,
+
+      // comment
       comment_pinned: setting.commentPinned,
-      comment_new_reply: setting.comment,
       comment_mentioned_you: setting.mention,
+      article_new_comment: setting.comment,
+      subscribed_article_new_comment: setting.commentSubscribed,
+
+      // comment-comment
+      comment_new_reply: setting.comment,
+
+      // article-tag
+      article_tag_has_been_added: setting.tag,
+      article_tag_has_been_removed: setting.tag,
+      article_tag_has_been_unselected: setting.tag,
+
+      // tag
+      tag_adoption: true,
+      tag_leave: true,
+      tag_add_editor: true,
+      tag_leave_editor: true,
+
+      // transaction
+      payment_received_donation: true,
+      payment_payout: true,
+
+      // misc
       official_announcement: setting.officialNotice,
       user_activated: true,
       user_banned: true,
@@ -520,17 +550,6 @@ class Notice extends BaseService {
       article_banned: setting.reportFeedback,
       comment_reported: setting.reportFeedback,
       article_reported: setting.reportFeedback,
-      article_tag_has_been_added: setting.tag,
-      article_tag_has_been_removed: setting.tag,
-      article_tag_has_been_unselected: setting.tag,
-      payment_received_donation: true,
-      payment_payout: true,
-      tag_adoption: true,
-      tag_leave: true,
-      tag_add_editor: true,
-      tag_leave_editor: true,
-      revised_article_published: true,
-      revised_article_not_published: true,
     }
 
     return noticeSettingMap[event]

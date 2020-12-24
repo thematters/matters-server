@@ -1,3 +1,4 @@
+import { DB_NOTICE_TYPE } from 'common/enums'
 import {
   ActionLimitExceededError,
   AuthenticationError,
@@ -56,7 +57,7 @@ const resolver: MutationToTogglePinCommentResolver = async (
 
     // trigger notifications
     notificationService.trigger({
-      event: 'comment_pinned',
+      event: DB_NOTICE_TYPE.comment_pinned,
       actorId: viewer.id,
       recipientId: comment.authorId,
       entities: [
