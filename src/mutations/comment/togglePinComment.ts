@@ -22,6 +22,7 @@ const resolver: MutationToTogglePinCommentResolver = async (
 
   const { id: dbId } = fromGlobalId(id)
   const comment = await commentService.dataloader.load(dbId)
+  // TODO: update for comment in circles
   const article = await articleService.dataloader.load(comment.articleId)
 
   if (article.authorId !== viewer.id) {

@@ -17,6 +17,8 @@ const resolver: MutationToUnvoteCommentResolver = async (
 
   const { id: dbId } = fromGlobalId(id)
   const comment = await commentService.dataloader.load(dbId)
+
+  // TODO: update for comment in circles
   const article = await articleService.dataloader.load(comment.articleId)
 
   // disallow onboarding user unvote in others' articles, and forbid archived user operation
