@@ -193,6 +193,9 @@ type Article implements Node {
   """Drafts linked to this article."""
   drafts: [Draft!]
 
+  """Current article belongs to which Circle."""
+  belongTo: [Circle!]
+
   """The counting number of comments."""
   commentCount: Int!
 
@@ -406,6 +409,82 @@ input ChangeEmailInput {
   newEmailCodeId: ID!
 }
 
+type Circle implements Node {
+  """Unique ID."""
+  id: ID!
+
+  """Circle avatar's link."""
+  avatar: URL
+
+  """Circle cover's link."""
+  cover: URL
+
+  """Slugified name of this Circle."""
+  circleName: String!
+
+  """Human readable name of this Circle."""
+  displayName: String!
+
+  """A short description of this Circle."""
+  description: String
+
+  """Prices offered by this Circle."""
+  prices: [Price!]
+
+  """Circle owner."""
+  owner: User!
+
+  """List of Circle member."""
+  members(input: ConnectionArgs!): MemberConnection!
+
+  """List of Circle follower."""
+  followers(input: ConnectionArgs!): UserConnection!
+
+  """List of works belong to this Circle."""
+  works(input: ConnectionArgs!): ArticleConnection!
+
+  """State of this Circle."""
+  state: CircleState!
+
+  """Created time."""
+  createdAt: DateTime!
+
+  """Updated time."""
+  updatedAt: DateTime!
+
+  """This value determines if current viewer is following Circle or not."""
+  isFollower: Boolean!
+
+  """This value determines if current viewer is Member or not."""
+  isMember: Boolean!
+
+  """Setting of this Circle."""
+  setting: CircleSetting
+
+  """Comments broadcasted by Circle owner."""
+  broadcast(input: ConnectionArgs!): CommentConnection!
+
+  """Comments made by Circle member."""
+  discussion(input: ConnectionArgs!): CommentConnection!
+}
+
+input CircleInput {
+  name: String!
+}
+
+type CircleSetting {
+  """Whether broadcast is enabled or not."""
+  enableBroadcast: Boolean!
+
+  """Whther discussion is enabled or not."""
+  enableDiscussion: Boolean!
+}
+
+enum CircleState {
+  active
+  archived
+}
+
 input ClearReadHistoryInput {
   id: ID!
 }
@@ -456,6 +535,9 @@ type Comment implements Node {
   """A Comment that this comment replied to."""
   replyTo: Comment
   remark: String
+
+  """Current comment belongs to which Node."""
+  belongTo: Node!
 }
 
 type CommentCommentNotice implements Notice {
@@ -775,6 +857,28 @@ input LogRecordInput {
 enum LogRecordTypes {
   ReadFolloweeArticles
   ReadResponseInfoPopUp
+}
+
+type Member {
+  """User who join to a Circle."""
+  user: User!
+
+  """Price chosen by user when joining a Circle."""
+  price: Price!
+
+  """This value determines if this member is invited by owner or not."""
+  isInvited: Boolean!
+}
+
+type MemberConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [MemberEdge!]
+}
+
+type MemberEdge {
+  cursor: String!
+  node: Member!
 }
 
 input MergeTagsInput {
@@ -1159,6 +1263,38 @@ scalar PositiveFloat
 
 scalar PositiveInt
 
+type Price {
+  """Unique ID."""
+  id: ID!
+
+  """Name of Price."""
+  name: String!
+
+  """Amount of Price."""
+  amount: NonNegativeFloat!
+
+  """Currency of Price."""
+  currency: TransactionCurrency!
+
+  """Billing cycle of Price."""
+  billingCycle: PriceBillingCycle
+
+  """Current Price belongs to whcih Circle."""
+  belongTo: Circle!
+
+  """State of Price."""
+  state: PriceState
+}
+
+enum PriceBillingCycle {
+  monthly
+}
+
+enum PriceState {
+  active
+  archived
+}
+
 input PublishArticleInput {
   id: ID!
 }
@@ -1220,6 +1356,7 @@ input PutTagInput {
 
 type Query {
   article(input: ArticleInput!): Article
+  circle(input: CircleInput!): Circle
   node(input: NodeInput!): Node
   nodes(input: NodesInput!): [Node!]
   frequentSearch(input: FrequentSearchInput!): [String!]
@@ -1886,6 +2023,12 @@ type User implements Node {
 
   """Status of current user."""
   status: UserStatus
+
+  """Circles belong to current user."""
+  ownerOf: [Circle!]
+
+  """Circles whiches user has joined."""
+  memberOf: [Circle!]
 
   """OSS"""
   oss: UserOSS!

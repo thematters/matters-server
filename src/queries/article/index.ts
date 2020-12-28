@@ -8,6 +8,7 @@ import appreciationsReceived from './appreciationsReceived'
 import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
+import belongTo from './belongTo'
 import canSuperLike from './canSuperLike'
 import collectedBy from './collectedBy'
 import collection from './collection'
@@ -87,6 +88,7 @@ export default {
     transactionsReceivedBy,
     createdAt,
     revisedAt,
+    belongTo,
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),

@@ -33,8 +33,10 @@ import isFollowee from './isFollowee'
 import isFollower from './isFollower'
 import Liker from './liker'
 import likerId from './liker/likerId'
+import memberOf from './memberOf'
 import notification from './notification'
 import { boost, score } from './oss'
+import ownerOf from './ownerOf'
 import profileCover from './profileCover'
 import receivedDonationCount from './receivedDonationCount'
 import Recommendation from './recommendation'
@@ -96,6 +98,8 @@ const user: {
     blockList,
     isBlocking,
     isBlocked,
+    ownerOf,
+    memberOf,
   },
   UserInfo: {
     badges,

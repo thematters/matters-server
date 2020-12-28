@@ -139,6 +139,12 @@ export default /* GraphQL */ `
     "Status of current user."
     status: UserStatus
 
+    "Circles belong to current user."
+    ownerOf: [Circle!]
+
+    "Circles whiches user has joined."
+    memberOf: [Circle!]
+
     # OSS
     oss: UserOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")

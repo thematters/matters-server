@@ -8,12 +8,14 @@ export const toGlobalId = ({
 }: {
   type:
     | 'Article'
+    | 'Circle'
     | 'Comment'
     | 'User'
     | 'Tag'
     | 'Draft'
     | 'SkippedListItem'
     | 'Transaction'
+    | 'Price'
   id: number | string
 }) => Base64.encodeURI(`${type}:${id}`)
 

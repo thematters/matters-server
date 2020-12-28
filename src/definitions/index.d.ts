@@ -139,6 +139,11 @@ export type TableName =
   | 'customer'
   | 'payout_account'
   | 'punish_record'
+  | 'entity_type'
+  | 'circle'
+  | 'circle_price'
+  | 'action_circle'
+  | 'article_circle'
 
 export type MaterializedView =
   | 'article_count_materialized'

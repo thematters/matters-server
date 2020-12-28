@@ -8,6 +8,9 @@ import articleFeaturedComments from './article/featuredComments'
 import pinCommentLeft from './article/pinCommentLeft'
 import articlePinnedComments from './article/pinnedComments'
 import author from './author'
+import belongTo from './belongTo'
+import circleBroadcast from './circle/broadcast'
+import circleDiscussion from './circle/discussion'
 import comments from './comments'
 import content from './content'
 import downvotes from './downvotes'
@@ -42,5 +45,10 @@ export default {
     comments,
     parentComment,
     fromDonator,
+    belongTo,
+  },
+  Circle: {
+    broadcast: circleBroadcast,
+    discussion: circleDiscussion,
   },
 }
