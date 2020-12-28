@@ -1,11 +1,11 @@
 import { CircleToCoverResolver } from 'definitions'
 
 const resolver: CircleToCoverResolver = async (
-  { avatar },
+  { cover },
   _,
   { dataSources: { atomService } }
 ) => {
-  return avatar ? atomService.findAssetUrl({ where: { id: avatar } }) : null
+  return cover ? atomService.findAssetUrl({ where: { id: cover } }) : null
 }
 
 export default resolver
