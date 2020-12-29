@@ -55,6 +55,9 @@ export class CommentService extends BaseService {
       uuid: v4(),
       authorId,
       articleId,
+      targetId: articleId,
+      // only use `article` entity type for now
+      targetTypeId: 4,
       parentCommentId,
       content,
       replyTo,
@@ -73,6 +76,9 @@ export class CommentService extends BaseService {
     // update comment
     const comemnt = await this.baseUpdate(id, {
       articleId,
+      targetId: articleId,
+      // only use `article` entity type for now
+      targetTypeId: 4,
       parentCommentId,
       content,
       updatedAt: new Date(),
