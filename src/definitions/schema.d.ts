@@ -1388,7 +1388,7 @@ export interface GQLCircle extends GQLNode {
   /**
    * Setting of this Circle.
    */
-  setting?: GQLCircleSetting
+  setting: GQLCircleSetting
 
   /**
    * Comments broadcasted by Circle owner.
@@ -1406,11 +1406,6 @@ export interface GQLPrice {
    * Unique ID.
    */
   id: string
-
-  /**
-   * Name of Price.
-   */
-  name: string
 
   /**
    * Amount of Price.
@@ -1436,6 +1431,16 @@ export interface GQLPrice {
    * State of Price.
    */
   state?: GQLPriceState
+
+  /**
+   * Created time.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * Updated time.
+   */
+  updatedAt: GQLDateTime
 }
 
 export const enum GQLTransactionCurrency {
@@ -6562,24 +6567,16 @@ export interface CircleToDiscussionResolver<TParent = any, TResult = any> {
 
 export interface GQLPriceTypeResolver<TParent = any> {
   id?: PriceToIdResolver<TParent>
-  name?: PriceToNameResolver<TParent>
   amount?: PriceToAmountResolver<TParent>
   circle?: PriceToCircleResolver<TParent>
   currency?: PriceToCurrencyResolver<TParent>
   billingCycle?: PriceToBillingCycleResolver<TParent>
   state?: PriceToStateResolver<TParent>
+  createdAt?: PriceToCreatedAtResolver<TParent>
+  updatedAt?: PriceToUpdatedAtResolver<TParent>
 }
 
 export interface PriceToIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface PriceToNameResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6625,6 +6622,24 @@ export interface PriceToBillingCycleResolver<TParent = any, TResult = any> {
 }
 
 export interface PriceToStateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PriceToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PriceToUpdatedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

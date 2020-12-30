@@ -459,7 +459,7 @@ type Circle implements Node {
   isMember: Boolean!
 
   """Setting of this Circle."""
-  setting: CircleSetting
+  setting: CircleSetting!
 
   """Comments broadcasted by Circle owner."""
   broadcast(input: ConnectionArgs!): CommentConnection!
@@ -1280,9 +1280,6 @@ type Price {
   """Unique ID."""
   id: ID!
 
-  """Name of Price."""
-  name: String!
-
   """Amount of Price."""
   amount: NonNegativeFloat!
 
@@ -1297,6 +1294,12 @@ type Price {
 
   """State of Price."""
   state: PriceState
+
+  """Created time."""
+  createdAt: DateTime!
+
+  """Updated time."""
+  updatedAt: DateTime!
 }
 
 enum PriceBillingCycle {

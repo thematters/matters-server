@@ -18,16 +18,18 @@ const resolver: CircleToWorksResolver = async (
   const { first: take, after } = input
   const skip = cursorToIndex(after) + 1
 
-  // base query
-  const query = knex
+  const countQuery = knex
+    .from('article_circle')
+    .innerJoin('article', 'article.id', 'article_circle.article_id')
+    .where({ circleId: id, 'article.state': ARTICLE_STATE.active })
+    .count()
+    .first()
+
+  const articlesQuery = knex
     .select()
     .from('article_circle')
     .innerJoin('article', 'article.id', 'article_circle.article_id')
     .where({ circleId: id, 'article.state': ARTICLE_STATE.active })
-
-  const countQuery = query.count().first()
-
-  const articlesQuery = query
     .orderBy('article_circle.created_at', 'desc')
     .offset(skip)
     .limit(take || BATCH_SIZE)

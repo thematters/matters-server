@@ -141,19 +141,34 @@ class StripeService {
 
   createProduct = async ({
     name,
-    description,
     owner,
   }: {
     name: string
-    description: string
     owner: string
   }) => {
     try {
       const product = await this.stripe.products.create({
         name,
-        description,
         metadata: { owner },
       })
+      return product
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  updateProduct = async ({
+    id,
+    name
+  }: {
+    id: string
+    name: string
+  }) => {
+    try {
+      const product = await this.stripe.products.update(
+        id,
+        { name }
+      )
       return product
     } catch (error) {
       this.handleError(error)

@@ -86,7 +86,7 @@ export class AtomService extends DataSource {
     const batchFn = async (keys: readonly string[]) => {
       const records = await this.findMany({
         table,
-        where: { [mode]: keys },
+        whereIn: [mode, keys as string[]],
       })
       if (records.findIndex((item: any) => !item) >= 0) {
         throw new EntityNotFoundError(`Cannot find entity from ${table}`)

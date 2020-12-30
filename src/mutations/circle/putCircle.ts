@@ -64,8 +64,7 @@ const resolver: MutationToPutCircleResolver = async (
 
       // create a stripe product
       const stripeProduct = await paymentService.stripe.createProduct({
-        name: trimedDisplayName,
-        description: trimedDescription,
+        name: trimedName,
         owner: viewer.id,
       })
 
@@ -105,10 +104,11 @@ const resolver: MutationToPutCircleResolver = async (
             circleId: record.id,
             providerPriceId: stripePrice.id,
           })
-          .into('circle_priice')
+          .into('circle_price')
 
         return record
       })
+
       return circle
     }
 
@@ -173,6 +173,10 @@ const resolver: MutationToPutCircleResolver = async (
         }
       }
 
+      if (trimedDisplayName) {
+        data = { ...data, displayName: trimedDisplayName }
+      }
+
       if (trimedDescription) {
         data = { ...data, description: trimedDescription }
       }
@@ -182,6 +186,14 @@ const resolver: MutationToPutCircleResolver = async (
         where: { id: circleId },
         data,
       })
+
+      // update stripe product name
+      if (data.name) {
+        await paymentService.stripe.updateProduct({
+          id: updatedCircle.providerProductId,
+          name: data.name,
+        })
+      }
 
       // delete unused assets
       const unusedAssets = await atomService.findMany({

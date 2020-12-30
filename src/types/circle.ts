@@ -76,7 +76,7 @@ export default `
     isMember: Boolean!
 
     "Setting of this Circle."
-    setting: CircleSetting @auth(mode: "${MODE.oauth}")
+    setting: CircleSetting!
   }
 
   type CircleSetting {
@@ -102,9 +102,6 @@ export default `
     "Unique ID."
     id: ID!
 
-    "Name of Price."
-    name: String!
-
     "Amount of Price."
     amount: NonNegativeFloat!
 
@@ -119,6 +116,12 @@ export default `
 
     "State of Price."
     state: PriceState
+
+    "Created time."
+    createdAt: DateTime!
+
+    "Updated time."
+    updatedAt: DateTime!
   }
 
   type MemberConnection implements Connection {

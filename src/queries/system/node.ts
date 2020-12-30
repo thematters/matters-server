@@ -9,6 +9,7 @@ const resolver: QueryToNodeResolver = async (
     viewer,
     dataSources: {
       articleService,
+      atomService,
       userService,
       commentService,
       draftService,
@@ -22,6 +23,7 @@ const resolver: QueryToNodeResolver = async (
     Comment: commentService.dataloader,
     Draft: draftService.dataloader,
     Tag: tagService.dataloader,
+    Circle: atomService.circleIdLoader,
   }
 
   const { type, id: dbId } = fromGlobalId(id) as {
