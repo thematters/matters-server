@@ -139,13 +139,7 @@ class StripeService {
     }
   }
 
-  createProduct = async ({
-    name,
-    owner,
-  }: {
-    name: string
-    owner: string
-  }) => {
+  createProduct = async ({ name, owner }: { name: string; owner: string }) => {
     try {
       const product = await this.stripe.products.create({
         name,
@@ -157,18 +151,9 @@ class StripeService {
     }
   }
 
-  updateProduct = async ({
-    id,
-    name
-  }: {
-    id: string
-    name: string
-  }) => {
+  updateProduct = async ({ id, name }: { id: string; name: string }) => {
     try {
-      const product = await this.stripe.products.update(
-        id,
-        { name }
-      )
+      const product = await this.stripe.products.update(id, { name })
       return product
     } catch (error) {
       this.handleError(error)

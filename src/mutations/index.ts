@@ -9,4 +9,13 @@ import oauthClient from './oauthClient'
 import system from './system'
 import user from './user'
 
-export default merge(article, circle, comment, draft, system, user, notice, oauthClient)
+export default merge(
+  article,
+  circle,
+  comment,
+  draft,
+  system,
+  user,
+  notice,
+  oauthClient
+)
