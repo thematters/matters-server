@@ -62,13 +62,15 @@ const resolver: MutationToToggleCircleSubscriptionResolver = async (
     },
   })
 
-  const item = await atomService.findFirst({
-    table: 'circle_subscription_item',
-    where: {
-      subscriptionId: subscription.id,
-      priceId: price.id,
-    },
-  })
+  const item = subscription
+    ? await atomService.findFirst({
+        table: 'circle_subscription_item',
+        where: {
+          subscriptionId: subscription.id,
+          priceId: price.id,
+        },
+      })
+    : null
 
   switch (action) {
     case ACTION.subscribe: {
@@ -76,7 +78,7 @@ const resolver: MutationToToggleCircleSubscriptionResolver = async (
         throw new DuplicateCircleSubscribeError('circle subscribed alraedy')
       }
 
-      // reinit subscription if it doesn't exist
+      // re-init subscription if it doesn't exist
       if (!subscription) {
         const stripeSubscription = await paymentService.stripe.createSubscription(
           {
