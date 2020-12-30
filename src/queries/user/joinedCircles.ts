@@ -1,7 +1,7 @@
 import { CIRCLE_ACTION } from 'common/enums'
-import { UserToMemberOfResolver } from 'definitions'
+import { UserToJoinedCirclesResolver } from 'definitions'
 
-const resolver: UserToMemberOfResolver = async (
+const resolver: UserToJoinedCirclesResolver = async (
   { id },
   _,
   { dataSources: { atomService } }

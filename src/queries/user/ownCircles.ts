@@ -1,6 +1,6 @@
-import { UserToOwnerOfResolver } from 'definitions'
+import { UserToOwnCirclesResolver } from 'definitions'
 
-const resolver: UserToOwnerOfResolver = async (
+const resolver: UserToOwnCirclesResolver = async (
   { id },
   _,
   { dataSources: { atomService } }

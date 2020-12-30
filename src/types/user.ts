@@ -140,10 +140,10 @@ export default /* GraphQL */ `
     status: UserStatus
 
     "Circles belong to current user."
-    ownerOf: [Circle!]
+    ownCircles: [Circle!]
 
     "Circles whiches user has joined."
-    memberOf: [Circle!]
+    joinedCircles: [Circle!]
 
     # OSS
     oss: UserOSS! @auth(mode: "${AUTH_MODE.admin}")

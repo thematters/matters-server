@@ -142,6 +142,8 @@ export type TableName =
   | 'entity_type'
   | 'circle'
   | 'circle_price'
+  | 'circle_subscription'
+  | 'circle_subscription_item'
   | 'action_circle'
   | 'article_circle'
 

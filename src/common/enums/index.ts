@@ -72,10 +72,26 @@ export const PUBLISH_STATE = {
   published: 'published',
 }
 
+export const CIRCLE_STATE = {
+  active: 'active',
+  archived: 'archived',
+  banned: 'banned',
+}
+
 export const PRICE_STATE = {
   active: 'active',
   archived: 'archived',
   banned: 'banned',
+}
+
+export const SUBSCRIPTION_STATE = {
+  active: 'active',
+  pastDue: 'past_due',
+  unpaid: 'unpaid',
+  canceled: 'canceled',
+  incomplete: 'incomplete',
+  incompleteExpired: 'incomplete_expired',
+  trialing: 'trialing',
 }
 
 export const APPRECIATION_REWARD = {

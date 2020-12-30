@@ -138,6 +138,98 @@ class StripeService {
       this.handleError(error)
     }
   }
+
+  createProduct = async ({
+    name,
+    description,
+    owner,
+  }: {
+    name: string
+    description: string
+    owner: string
+  }) => {
+    try {
+      const product = await this.stripe.products.create({
+        name,
+        description,
+        metadata: { owner },
+      })
+      return product
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  createPrice = async ({
+    amount,
+    currency,
+    interval,
+    productId,
+  }: {
+    amount: number
+    currency: PAYMENT_CURRENCY
+    interval: 'month'
+    productId: string
+  }) => {
+    try {
+      const price = await this.stripe.prices.create({
+        currency,
+        product: productId,
+        recurring: { interval },
+        unit_amount: amount,
+      })
+      return price
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  createSubscription = async ({
+    customer,
+    price,
+  }: {
+    customer: string
+    price: string
+  }) => {
+    try {
+      const subscription = await this.stripe.subscriptions.create({
+        customer,
+        items: [{ price }],
+        proration_behavior: 'none',
+      })
+      return subscription
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  createSubscriptionItem = async ({
+    price,
+    subscription,
+  }: {
+    price: string
+    subscription: string
+  }) => {
+    try {
+      const item = await this.stripe.subscriptionItems.create({
+        price,
+        proration_behavior: 'none',
+        quantity: 1,
+        subscription,
+      })
+      return item
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  deleteSubscriptionItem = async ({ id }: { id: string }) => {
+    try {
+      await this.stripe.subscriptionItems.del(id)
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
 }
 
 export const stripe = new StripeService()

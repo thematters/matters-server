@@ -1,8 +1,27 @@
-import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
+import {
+  AUTH_MODE as MODE,
+  CACHE_TTL,
+  NODE_TYPES as NODE,
+  SCOPE_GROUP as GROUP,
+} from 'common/enums'
 
 export default `
   extend type Query {
-    circle(input: CircleInput!): Circle @privateCache @logCache(type: "${NODE_TYPES.circle}")
+    circle(input: CircleInput!): Circle @privateCache @logCache(type: "${NODE.circle}")
+  }
+
+  extend type Mutation {
+    "Put a Circle."
+    putCircle(input: PutCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
+
+    "Add or remove a Circle member."
+    toggleCircleMember(input: ToggleCircleMemberInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
+
+    "Star or stop a Circle subscription."
+    toggleCircleSubscription(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
+
+    "Follow or unfollow a Circle."
+    toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
   }
 
   type Circle implements Node {
@@ -16,7 +35,7 @@ export default `
     cover: URL
 
     "Slugified name of this Circle."
-    circleName: String!
+    name: String!
 
     "Human readable name of this Circle."
     displayName: String!
@@ -25,10 +44,10 @@ export default `
     description: String
 
     "Prices offered by this Circle."
-    prices: [Price!] @logCache(type: "${NODE_TYPES.price}")
+    prices: [Price!] @logCache(type: "${NODE.price}")
 
     "Circle owner."
-    owner: User! @logCache(type: "${NODE_TYPES.user}")
+    owner: User! @logCache(type: "${NODE.user}")
 
     "List of Circle member."
     members(input: ConnectionArgs!): MemberConnection!
@@ -57,7 +76,7 @@ export default `
     isMember: Boolean!
 
     "Setting of this Circle."
-    setting: CircleSetting @auth(mode: "${AUTH_MODE.oauth}")
+    setting: CircleSetting @auth(mode: "${MODE.oauth}")
   }
 
   type CircleSetting {
@@ -70,13 +89,13 @@ export default `
 
   type Member {
     "User who join to a Circle."
-    user: User! @logCache(type: "${NODE_TYPES.user}")
+    user: User! @logCache(type: "${NODE.user}")
 
     "Price chosen by user when joining a Circle."
     price: Price!
 
     "This value determines if this member is invited by owner or not."
-    isInvited: Boolean! @auth(mode: "${AUTH_MODE.oauth}")
+    isInvited: Boolean! @auth(mode: "${MODE.oauth}")
   }
 
   type Price {
@@ -89,14 +108,14 @@ export default `
     "Amount of Price."
     amount: NonNegativeFloat!
 
+    "Current Price belongs to whcih Circle."
+    circle: Circle!
+
     "Currency of Price."
     currency: TransactionCurrency!
 
     "Billing cycle of Price."
     billingCycle: PriceBillingCycle
-
-    "Current Price belongs to whcih Circle."
-    belongTo: Circle!
 
     "State of Price."
     state: PriceState
@@ -114,7 +133,42 @@ export default `
   }
 
   input CircleInput {
+    "Slugified name of a Circle."
     name: String!
+  }
+
+  input PutCircleInput {
+    "Unique ID."
+    id: ID
+
+    "Unique ID of a Circle's avatar."
+    avatar: ID
+
+    "Unique ID of a Circle's cover."
+    cover: ID
+
+    "Slugified name of a Circle."
+    name: String
+
+    "Human readable name of this Circle."
+    displayName: String
+
+    "A short description of this Circle."
+    description: String
+
+    "Circle's subscription fee."
+    amount: NonNegativeFloat!
+  }
+
+  input ToggleCircleMemberInput {
+    "Unique ID."
+    id: ID!
+
+    "Toggle value."
+    enabled: Boolean!
+
+    "Unique ID of target user."
+    targetId: ID!
   }
 
   enum CircleState {
@@ -123,7 +177,7 @@ export default `
   }
 
   enum PriceBillingCycle {
-    monthly
+    month
   }
 
   enum PriceState {

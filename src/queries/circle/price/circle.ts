@@ -1,6 +1,6 @@
-import { PriceToBelongToResolver } from 'definitions'
+import { PriceToCircleResolver } from 'definitions'
 
-const resolver: PriceToBelongToResolver = async (
+const resolver: PriceToCircleResolver = async (
   { circle_id },
   _,
   { viewer, dataSources: { atomService } }

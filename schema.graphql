@@ -194,7 +194,7 @@ type Article implements Node {
   drafts: [Draft!]
 
   """Current article belongs to which Circle."""
-  belongTo: [Circle!]
+  circle: Circle!
 
   """The counting number of comments."""
   commentCount: Int!
@@ -420,7 +420,7 @@ type Circle implements Node {
   cover: URL
 
   """Slugified name of this Circle."""
-  circleName: String!
+  name: String!
 
   """Human readable name of this Circle."""
   displayName: String!
@@ -469,6 +469,7 @@ type Circle implements Node {
 }
 
 input CircleInput {
+  """Slugified name of a Circle."""
   name: String!
 }
 
@@ -537,7 +538,7 @@ type Comment implements Node {
   remark: String
 
   """Current comment belongs to which Node."""
-  belongTo: Node!
+  node: Node!
 }
 
 type CommentCommentNotice implements Notice {
@@ -942,6 +943,18 @@ type Mutation {
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
 
+  """Put a Circle."""
+  putCircle(input: PutCircleInput!): Circle!
+
+  """Add or remove a Circle member."""
+  toggleCircleMember(input: ToggleCircleMemberInput!): Circle!
+
+  """Star or stop a Circle subscription."""
+  toggleCircleSubscription(input: ToggleItemInput!): Circle!
+
+  """Follow or unfollow a Circle."""
+  toggleFollowCircle(input: ToggleItemInput!): Circle!
+
   """Publish a comment."""
   putComment(input: PutCommentInput!): Comment!
 
@@ -1273,21 +1286,21 @@ type Price {
   """Amount of Price."""
   amount: NonNegativeFloat!
 
+  """Current Price belongs to whcih Circle."""
+  circle: Circle!
+
   """Currency of Price."""
   currency: TransactionCurrency!
 
   """Billing cycle of Price."""
   billingCycle: PriceBillingCycle
 
-  """Current Price belongs to whcih Circle."""
-  belongTo: Circle!
-
   """State of Price."""
   state: PriceState
 }
 
 enum PriceBillingCycle {
-  monthly
+  month
 }
 
 enum PriceState {
@@ -1305,6 +1318,29 @@ enum PublishState {
   pending
   error
   published
+}
+
+input PutCircleInput {
+  """Unique ID."""
+  id: ID
+
+  """Unique ID of a Circle's avatar."""
+  avatar: ID
+
+  """Unique ID of a Circle's cover."""
+  cover: ID
+
+  """Slugified name of a Circle."""
+  name: String
+
+  """Human readable name of this Circle."""
+  displayName: String
+
+  """A short description of this Circle."""
+  description: String
+
+  """Circle's subscription fee."""
+  amount: NonNegativeFloat!
 }
 
 input PutCommentInput {
@@ -1767,6 +1803,17 @@ enum TagsSort {
 
 scalar Time
 
+input ToggleCircleMemberInput {
+  """Unique ID."""
+  id: ID!
+
+  """Toggle value."""
+  enabled: Boolean!
+
+  """Unique ID of target user."""
+  targetId: ID!
+}
+
 """Common input to toggle single item for `toggleXXX` mutations"""
 input ToggleItemInput {
   id: ID!
@@ -2025,10 +2072,10 @@ type User implements Node {
   status: UserStatus
 
   """Circles belong to current user."""
-  ownerOf: [Circle!]
+  ownCircles: [Circle!]
 
   """Circles whiches user has joined."""
-  memberOf: [Circle!]
+  joinedCircles: [Circle!]
 
   """OSS"""
   oss: UserOSS!

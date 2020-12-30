@@ -80,7 +80,7 @@ export default /* GraphQL */ `
     remark: String @auth(mode: "${AUTH_MODE.admin}")
 
     "Current comment belongs to which Node."
-    belongTo: Node!
+    node: Node!
   }
 
   extend type Article {

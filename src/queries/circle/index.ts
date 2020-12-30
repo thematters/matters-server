@@ -17,7 +17,7 @@ import memberPrice from './member/price'
 import memberUser from './member/User'
 import members from './members'
 import owner from './owner'
-import priceBelongTo from './price/belongTo'
+import priceCircle from './price/circle'
 import prices from './prices'
 import rootCircle from './rootCircle'
 import enableBroadcast from './setting/enableBroadcast'
@@ -63,7 +63,7 @@ const circle: {
 
   Price: {
     id: ({ id }) => (id ? toGlobalId({ type: 'Price', id }) : ''),
-    belongTo: priceBelongTo,
+    circle: priceCircle,
   },
 }
 

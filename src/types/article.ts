@@ -172,7 +172,7 @@ export default /* GraphQL */ `
     drafts: [Draft!]
 
     "Current article belongs to which Circle."
-    belongTo: [Circle!]
+    circle: Circle!
   }
 
   "This type contains content, count and related data of an article tag."

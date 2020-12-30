@@ -217,7 +217,7 @@ export interface GQLArticle extends GQLNode {
   /**
    * Current article belongs to which Circle.
    */
-  belongTo?: Array<GQLCircle>
+  circle: GQLCircle
 
   /**
    * The counting number of comments.
@@ -418,12 +418,12 @@ export interface GQLUser extends GQLNode {
   /**
    * Circles belong to current user.
    */
-  ownerOf?: Array<GQLCircle>
+  ownCircles?: Array<GQLCircle>
 
   /**
    * Circles whiches user has joined.
    */
-  memberOf?: Array<GQLCircle>
+  joinedCircles?: Array<GQLCircle>
 
   /**
    * OSS
@@ -794,7 +794,7 @@ export interface GQLComment extends GQLNode {
   /**
    * Current comment belongs to which Node.
    */
-  belongTo: GQLNode
+  node: GQLNode
 }
 
 /**
@@ -1323,7 +1323,7 @@ export interface GQLCircle extends GQLNode {
   /**
    * Slugified name of this Circle.
    */
-  circleName: string
+  name: string
 
   /**
    * Human readable name of this Circle.
@@ -1418,6 +1418,11 @@ export interface GQLPrice {
   amount: GQLNonNegativeFloat
 
   /**
+   * Current Price belongs to whcih Circle.
+   */
+  circle: GQLCircle
+
+  /**
    * Currency of Price.
    */
   currency: GQLTransactionCurrency
@@ -1426,11 +1431,6 @@ export interface GQLPrice {
    * Billing cycle of Price.
    */
   billingCycle?: GQLPriceBillingCycle
-
-  /**
-   * Current Price belongs to whcih Circle.
-   */
-  belongTo: GQLCircle
 
   /**
    * State of Price.
@@ -1444,7 +1444,7 @@ export const enum GQLTransactionCurrency {
 }
 
 export const enum GQLPriceBillingCycle {
-  monthly = 'monthly',
+  month = 'month',
 }
 
 export const enum GQLPriceState {
@@ -1750,6 +1750,9 @@ export interface GQLResponseNameMap {
 }
 
 export interface GQLCircleInput {
+  /**
+   * Slugified name of a Circle.
+   */
   name: string
 }
 
@@ -2034,6 +2037,26 @@ export interface GQLMutation {
   deleteTags?: boolean
   renameTag: GQLTag
   mergeTags: GQLTag
+
+  /**
+   * Put a Circle.
+   */
+  putCircle: GQLCircle
+
+  /**
+   * Add or remove a Circle member.
+   */
+  toggleCircleMember: GQLCircle
+
+  /**
+   * Star or stop a Circle subscription.
+   */
+  toggleCircleSubscription: GQLCircle
+
+  /**
+   * Follow or unfollow a Circle.
+   */
+  toggleFollowCircle: GQLCircle
 
   /**
    * Publish a comment.
@@ -2329,6 +2352,60 @@ export interface GQLRenameTagInput {
 export interface GQLMergeTagsInput {
   ids: Array<string>
   content: string
+}
+
+export interface GQLPutCircleInput {
+  /**
+   * Unique ID.
+   */
+  id?: string
+
+  /**
+   * Unique ID of a Circle's avatar.
+   */
+  avatar?: string
+
+  /**
+   * Unique ID of a Circle's cover.
+   */
+  cover?: string
+
+  /**
+   * Slugified name of a Circle.
+   */
+  name?: string
+
+  /**
+   * Human readable name of this Circle.
+   */
+  displayName?: string
+
+  /**
+   * A short description of this Circle.
+   */
+  description?: string
+
+  /**
+   * Circle's subscription fee.
+   */
+  amount: GQLNonNegativeFloat
+}
+
+export interface GQLToggleCircleMemberInput {
+  /**
+   * Unique ID.
+   */
+  id: string
+
+  /**
+   * Toggle value.
+   */
+  enabled: boolean
+
+  /**
+   * Unique ID of target user.
+   */
+  targetId: string
 }
 
 export interface GQLPutCommentInput {
@@ -3309,7 +3386,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   drafts?: ArticleToDraftsResolver<TParent>
-  belongTo?: ArticleToBelongToResolver<TParent>
+  circle?: ArticleToCircleResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
   pinCommentLimit?: ArticleToPinCommentLimitResolver<TParent>
   pinCommentLeft?: ArticleToPinCommentLeftResolver<TParent>
@@ -3686,7 +3763,7 @@ export interface ArticleToDraftsResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface ArticleToBelongToResolver<TParent = any, TResult = any> {
+export interface ArticleToCircleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -3816,8 +3893,8 @@ export interface GQLUserTypeResolver<TParent = any> {
   isBlocking?: UserToIsBlockingResolver<TParent>
   isBlocked?: UserToIsBlockedResolver<TParent>
   status?: UserToStatusResolver<TParent>
-  ownerOf?: UserToOwnerOfResolver<TParent>
-  memberOf?: UserToMemberOfResolver<TParent>
+  ownCircles?: UserToOwnCirclesResolver<TParent>
+  joinedCircles?: UserToJoinedCirclesResolver<TParent>
   oss?: UserToOssResolver<TParent>
   remark?: UserToRemarkResolver<TParent>
   notices?: UserToNoticesResolver<TParent>
@@ -4064,7 +4141,7 @@ export interface UserToStatusResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface UserToOwnerOfResolver<TParent = any, TResult = any> {
+export interface UserToOwnCirclesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4073,7 +4150,7 @@ export interface UserToOwnerOfResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface UserToMemberOfResolver<TParent = any, TResult = any> {
+export interface UserToJoinedCirclesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4914,7 +4991,7 @@ export interface GQLCommentTypeResolver<TParent = any> {
   parentComment?: CommentToParentCommentResolver<TParent>
   replyTo?: CommentToReplyToResolver<TParent>
   remark?: CommentToRemarkResolver<TParent>
-  belongTo?: CommentToBelongToResolver<TParent>
+  node?: CommentToNodeResolver<TParent>
 }
 
 export interface CommentToIdResolver<TParent = any, TResult = any> {
@@ -5055,7 +5132,7 @@ export interface CommentToRemarkResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface CommentToBelongToResolver<TParent = any, TResult = any> {
+export interface CommentToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6279,7 +6356,7 @@ export interface GQLCircleTypeResolver<TParent = any> {
   id?: CircleToIdResolver<TParent>
   avatar?: CircleToAvatarResolver<TParent>
   cover?: CircleToCoverResolver<TParent>
-  circleName?: CircleToCircleNameResolver<TParent>
+  name?: CircleToNameResolver<TParent>
   displayName?: CircleToDisplayNameResolver<TParent>
   description?: CircleToDescriptionResolver<TParent>
   prices?: CircleToPricesResolver<TParent>
@@ -6324,7 +6401,7 @@ export interface CircleToCoverResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface CircleToCircleNameResolver<TParent = any, TResult = any> {
+export interface CircleToNameResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6487,9 +6564,9 @@ export interface GQLPriceTypeResolver<TParent = any> {
   id?: PriceToIdResolver<TParent>
   name?: PriceToNameResolver<TParent>
   amount?: PriceToAmountResolver<TParent>
+  circle?: PriceToCircleResolver<TParent>
   currency?: PriceToCurrencyResolver<TParent>
   billingCycle?: PriceToBillingCycleResolver<TParent>
-  belongTo?: PriceToBelongToResolver<TParent>
   state?: PriceToStateResolver<TParent>
 }
 
@@ -6520,6 +6597,15 @@ export interface PriceToAmountResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface PriceToCircleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface PriceToCurrencyResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -6530,15 +6616,6 @@ export interface PriceToCurrencyResolver<TParent = any, TResult = any> {
 }
 
 export interface PriceToBillingCycleResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface PriceToBelongToResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7734,6 +7811,10 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteTags?: MutationToDeleteTagsResolver<TParent>
   renameTag?: MutationToRenameTagResolver<TParent>
   mergeTags?: MutationToMergeTagsResolver<TParent>
+  putCircle?: MutationToPutCircleResolver<TParent>
+  toggleCircleMember?: MutationToToggleCircleMemberResolver<TParent>
+  toggleCircleSubscription?: MutationToToggleCircleSubscriptionResolver<TParent>
+  toggleFollowCircle?: MutationToToggleFollowCircleResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   togglePinComment?: MutationToTogglePinCommentResolver<TParent>
@@ -8025,6 +8106,63 @@ export interface MutationToMergeTagsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToMergeTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutCircleArgs {
+  input: GQLPutCircleInput
+}
+export interface MutationToPutCircleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPutCircleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleCircleMemberArgs {
+  input: GQLToggleCircleMemberInput
+}
+export interface MutationToToggleCircleMemberResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleCircleMemberArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleCircleSubscriptionArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToToggleCircleSubscriptionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleCircleSubscriptionArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleFollowCircleArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToToggleFollowCircleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleFollowCircleArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

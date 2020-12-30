@@ -26,10 +26,15 @@ interface FindFirstInput {
 interface FindManyInput {
   table: TableName
   select?: string[]
-  where: Record<string, any>
+  where?: Record<string, any>
   whereIn?: [string, string[]]
   skip?: number
   take?: number
+}
+
+interface CreateInput {
+  table: TableName
+  data: Record<string, any>
 }
 
 interface UpdateInput {
@@ -122,7 +127,11 @@ export class AtomService extends DataSource {
     skip,
     take,
   }: FindManyInput) => {
-    const query = this.knex.select(select).from(table).where(where)
+    const query = this.knex.select(select).from(table)
+
+    if (where) {
+      query.where(where)
+    }
 
     if (whereIn) {
       query.whereIn(...whereIn)
@@ -136,6 +145,16 @@ export class AtomService extends DataSource {
       query.limit(take)
     }
     return query
+  }
+
+  /**
+   * Create a new record by given data.
+   *
+   * A Prisma like method for creating one record.
+   */
+  create = async ({ table, data }: CreateInput) => {
+    const [record] = await this.knex(table).insert(data).returning('*')
+    return record
   }
 
   /**

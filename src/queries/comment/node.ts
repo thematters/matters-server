@@ -1,6 +1,6 @@
-import { CommentToBelongToResolver } from 'definitions'
+import { CommentToNodeResolver } from 'definitions'
 
-const resolver: CommentToBelongToResolver = async (
+const resolver: CommentToNodeResolver = async (
   { id, targetId, targetEntityId },
   _,
   { dataSources: { atomService } }

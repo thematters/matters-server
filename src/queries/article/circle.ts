@@ -1,6 +1,6 @@
-import { ArticleToBelongToResolver } from 'definitions'
+import { ArticleToCircleResolver } from 'definitions'
 
-const resolver: ArticleToBelongToResolver = async (
+const resolver: ArticleToCircleResolver = async (
   { id },
   _,
   { dataSources: { atomService } }
