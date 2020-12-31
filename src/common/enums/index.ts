@@ -26,6 +26,8 @@ export const BATCH_SIZE = 10
 
 export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
 
+export const IPFS_PREFIX = 'article'
+
 export const USER_ACTION = {
   follow: 'follow',
   block: 'block',
