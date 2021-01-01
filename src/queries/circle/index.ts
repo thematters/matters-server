@@ -12,7 +12,6 @@ import cover from './cover'
 import followers from './followers'
 import isFollower from './isFollower'
 import isMember from './isMember'
-import memberIsInvited from './member/isInvited'
 import memberPrice from './member/price'
 import memberUser from './member/user'
 import members from './members'
@@ -58,7 +57,6 @@ const circle: {
   Member: {
     user: memberUser,
     price: memberPrice,
-    isInvited: memberIsInvited,
   },
 
   Price: {

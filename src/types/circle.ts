@@ -14,9 +14,6 @@ export default `
     "Put a Circle."
     putCircle(input: PutCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
 
-    "Add or remove a Circle member."
-    toggleCircleMember(input: ToggleCircleMemberInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
-
     "Star or stop a Circle subscription."
     toggleCircleSubscription(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
 
@@ -44,7 +41,7 @@ export default `
     description: String
 
     "Prices offered by this Circle."
-    prices: [Price!] @logCache(type: "${NODE.price}")
+    prices: [Price!]
 
     "Circle owner."
     owner: User! @logCache(type: "${NODE.user}")
@@ -93,9 +90,6 @@ export default `
 
     "Price chosen by user when joining a Circle."
     price: Price!
-
-    "This value determines if this member is invited by owner or not."
-    isInvited: Boolean! @auth(mode: "${MODE.oauth}")
   }
 
   type Price {
@@ -112,10 +106,10 @@ export default `
     currency: TransactionCurrency!
 
     "Billing cycle of Price."
-    billingCycle: PriceBillingCycle
+    billingCycle: PriceBillingCycle!
 
     "State of Price."
-    state: PriceState
+    state: PriceState!
 
     "Created time."
     createdAt: DateTime!
@@ -160,7 +154,7 @@ export default `
     description: String
 
     "Circle's subscription fee."
-    amount: NonNegativeFloat!
+    amount: NonNegativeFloat
   }
 
   input ToggleCircleMemberInput {

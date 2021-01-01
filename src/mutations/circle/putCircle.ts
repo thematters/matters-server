@@ -6,6 +6,7 @@ import {
   AuthenticationError,
   DuplicateCircleError,
   EntityNotFoundError,
+  ForbiddenError,
   ServerError,
   UserInputError,
 } from 'common/errors'
@@ -56,7 +57,7 @@ const resolver: MutationToPutCircleResolver = async (
       ])
 
       if (hasCircle > 0) {
-        throw new DuplicateCircleError('alredy own a circle')
+        throw new ForbiddenError('already own a circle')
       }
       if (sameCircle > 0) {
         throw new DuplicateCircleError(`duplicate circle name: ${trimedName}`)

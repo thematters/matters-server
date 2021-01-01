@@ -1425,12 +1425,12 @@ export interface GQLPrice {
   /**
    * Billing cycle of Price.
    */
-  billingCycle?: GQLPriceBillingCycle
+  billingCycle: GQLPriceBillingCycle
 
   /**
    * State of Price.
    */
-  state?: GQLPriceState
+  state: GQLPriceState
 
   /**
    * Created time.
@@ -1478,11 +1478,6 @@ export interface GQLMember {
    * Price chosen by user when joining a Circle.
    */
   price: GQLPrice
-
-  /**
-   * This value determines if this member is invited by owner or not.
-   */
-  isInvited: boolean
 }
 
 export const enum GQLCircleState {
@@ -2049,11 +2044,6 @@ export interface GQLMutation {
   putCircle: GQLCircle
 
   /**
-   * Add or remove a Circle member.
-   */
-  toggleCircleMember: GQLCircle
-
-  /**
    * Star or stop a Circle subscription.
    */
   toggleCircleSubscription: GQLCircle
@@ -2393,24 +2383,7 @@ export interface GQLPutCircleInput {
   /**
    * Circle's subscription fee.
    */
-  amount: GQLNonNegativeFloat
-}
-
-export interface GQLToggleCircleMemberInput {
-  /**
-   * Unique ID.
-   */
-  id: string
-
-  /**
-   * Toggle value.
-   */
-  enabled: boolean
-
-  /**
-   * Unique ID of target user.
-   */
-  targetId: string
+  amount?: GQLNonNegativeFloat
 }
 
 export interface GQLPutCommentInput {
@@ -3000,6 +2973,23 @@ export const enum GQLTagNoticeType {
 }
 
 export type GQLTime = any
+
+export interface GQLToggleCircleMemberInput {
+  /**
+   * Unique ID.
+   */
+  id: string
+
+  /**
+   * Toggle value.
+   */
+  enabled: boolean
+
+  /**
+   * Unique ID of target user.
+   */
+  targetId: string
+}
 
 /**
  * ################################
@@ -6713,7 +6703,6 @@ export interface MemberEdgeToNodeResolver<TParent = any, TResult = any> {
 export interface GQLMemberTypeResolver<TParent = any> {
   user?: MemberToUserResolver<TParent>
   price?: MemberToPriceResolver<TParent>
-  isInvited?: MemberToIsInvitedResolver<TParent>
 }
 
 export interface MemberToUserResolver<TParent = any, TResult = any> {
@@ -6726,15 +6715,6 @@ export interface MemberToUserResolver<TParent = any, TResult = any> {
 }
 
 export interface MemberToPriceResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MemberToIsInvitedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7827,7 +7807,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   renameTag?: MutationToRenameTagResolver<TParent>
   mergeTags?: MutationToMergeTagsResolver<TParent>
   putCircle?: MutationToPutCircleResolver<TParent>
-  toggleCircleMember?: MutationToToggleCircleMemberResolver<TParent>
   toggleCircleSubscription?: MutationToToggleCircleSubscriptionResolver<TParent>
   toggleFollowCircle?: MutationToToggleFollowCircleResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
@@ -8133,21 +8112,6 @@ export interface MutationToPutCircleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToPutCircleArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToToggleCircleMemberArgs {
-  input: GQLToggleCircleMemberInput
-}
-export interface MutationToToggleCircleMemberResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToToggleCircleMemberArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -866,9 +866,6 @@ type Member {
 
   """Price chosen by user when joining a Circle."""
   price: Price!
-
-  """This value determines if this member is invited by owner or not."""
-  isInvited: Boolean!
 }
 
 type MemberConnection implements Connection {
@@ -945,9 +942,6 @@ type Mutation {
 
   """Put a Circle."""
   putCircle(input: PutCircleInput!): Circle!
-
-  """Add or remove a Circle member."""
-  toggleCircleMember(input: ToggleCircleMemberInput!): Circle!
 
   """Star or stop a Circle subscription."""
   toggleCircleSubscription(input: ToggleItemInput!): Circle!
@@ -1290,10 +1284,10 @@ type Price {
   currency: TransactionCurrency!
 
   """Billing cycle of Price."""
-  billingCycle: PriceBillingCycle
+  billingCycle: PriceBillingCycle!
 
   """State of Price."""
-  state: PriceState
+  state: PriceState!
 
   """Created time."""
   createdAt: DateTime!
@@ -1343,7 +1337,7 @@ input PutCircleInput {
   description: String
 
   """Circle's subscription fee."""
-  amount: NonNegativeFloat!
+  amount: NonNegativeFloat
 }
 
 input PutCommentInput {
