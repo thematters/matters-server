@@ -17,7 +17,7 @@ import {
   numRound,
 } from 'common/utils'
 import { BaseService } from 'connectors'
-import { User } from 'definitions'
+import { Customer, User } from 'definitions'
 
 import { stripe } from './stripe'
 
@@ -334,6 +334,19 @@ export class PaymentService extends BaseService {
     }
 
     return qs.del()
+  }
+
+  getCustomerPortal = async ({ userId }: { userId: string }) => {
+    const qs = await this.findCustomer({
+      userId,
+      provider: PAYMENT_PROVIDER.stripe,
+    })
+    const customer = qs[0] as Customer
+    if (customer) {
+      const customerId = customer.customerId
+      return this.stripe.getCustomerPortal({ customerId })
+    }
+    return null
   }
 
   /*********************************

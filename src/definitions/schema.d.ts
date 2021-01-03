@@ -1344,6 +1344,7 @@ export interface GQLWallet {
   balance: GQLBalance
   transactions: GQLTransactionConnection
   stripeAccount?: GQLStripeAccount
+  customerPortal?: GQLURL
 }
 
 export interface GQLBalance {
@@ -6098,6 +6099,7 @@ export interface GQLWalletTypeResolver<TParent = any> {
   balance?: WalletToBalanceResolver<TParent>
   transactions?: WalletToTransactionsResolver<TParent>
   stripeAccount?: WalletToStripeAccountResolver<TParent>
+  customerPortal?: WalletToCustomerPortalResolver<TParent>
 }
 
 export interface WalletToBalanceResolver<TParent = any, TResult = any> {
@@ -6122,6 +6124,15 @@ export interface WalletToTransactionsResolver<TParent = any, TResult = any> {
 }
 
 export interface WalletToStripeAccountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface WalletToCustomerPortalResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

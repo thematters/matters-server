@@ -34,6 +34,7 @@ export default /* GraphQL */ `
     balance: Balance! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
     transactions(input: TransactionsArgs!): TransactionConnection!
     stripeAccount: StripeAccount
+    customerPortal: URL
   }
 
   type Balance {
