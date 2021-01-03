@@ -1318,7 +1318,7 @@ export class ArticleService extends BaseService {
 
     // if original read longer than 30 minutes
     // skip
-    if (readLength > MINUTE * 30) {
+    if (userId && readLength > MINUTE * 30) {
       return { newRead: false }
     }
 
@@ -1346,12 +1346,16 @@ export class ArticleService extends BaseService {
     }
 
     // other wise accumulate time
+    // NOTE: we don't accumulate read time for visitors
+    const readTime = userId
+      ? Math.round(parseInt(oldData.readTime, 10) + lapse / 1000)
+      : null
     await this.baseUpdate(
       oldData.id,
       {
         ...oldData,
         ...newData,
-        readTime: Math.round(parseInt(oldData.readTime, 10) + lapse / 1000),
+        readTime,
       },
       table
     )
