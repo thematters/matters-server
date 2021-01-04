@@ -89,7 +89,7 @@ const resolver: MutationToSubscribeCircleResolver = async (
     })
   }
 
-  // create stripe subscroption item
+  // create stripe subscription item
   const stripeItem = await paymentService.stripe.createSubscriptionItem({
     price: price.providerPriceId,
     subscription: subscription.id,
