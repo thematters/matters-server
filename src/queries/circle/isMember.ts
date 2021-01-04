@@ -1,24 +1,26 @@
-import { CIRCLE_ACTION } from 'common/enums'
+import { PRICE_STATE } from 'common/enums'
 import { CircleToIsMemberResolver } from 'definitions'
 
 const resolver: CircleToIsMemberResolver = async (
   { id },
   _,
-  { viewer, dataSources: { atomService } }
+  { viewer, dataSources: { atomService }, knex }
 ) => {
   if (!viewer.id) {
     return false
   }
 
-  const record = await atomService.findFirst({
-    table: 'action_circle',
-    where: {
-      action: CIRCLE_ACTION.join,
-      targetId: id,
-      userId: viewer.id,
-    },
-  })
-  return !!record
+  const records = await knex
+    .select()
+    .from('circle_subscription_item as csi')
+    .innerJoin('price', 'pirce.id', 'csi.price_id')
+    .where({
+      'csi.user_id': viewer.id,
+      'csi.circle_id': id,
+      'price.state': PRICE_STATE.active,
+    })
+
+  return records && records.length > 0
 }
 
 export default resolver

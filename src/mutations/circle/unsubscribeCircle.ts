@@ -74,16 +74,10 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
     item.providerSubscriptionItemId
   )
 
-  // remove subscription item and join action
-  await knex.transaction(async (trx) => {
-    await trx('circle_subscription_item').where({ id: item.id }).del()
-    await trx('action_circle')
-      .where({
-        action: CIRCLE_ACTION.join,
-        userId: viewer.id,
-        targetId: circleId,
-      })
-      .del()
+  // remove subscription item
+  await atomService.deleteMany({
+    table: 'circle_subscription_item',
+    where: { id: item.id },
   })
 
   // invalidate cache

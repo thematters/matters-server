@@ -184,7 +184,7 @@ class StripeService {
         currency,
         product: productId,
         recurring: { interval },
-        unit_amount: amount,
+        unit_amount: toProviderAmount({ amount }),
       })
       return price
     } catch (error) {
