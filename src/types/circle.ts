@@ -14,11 +14,14 @@ export default `
     "Put a Circle."
     putCircle(input: PutCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
 
-    "Star or stop a Circle subscription."
-    toggleCircleSubscription(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
-
     "Follow or unfollow a Circle."
     toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
+
+    "Subscribe a Circle."
+    subscribeCircle(input: ToggleItemInput!): SubscribeCircleResult! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
+
+    "Unsubscribe a Circle."
+    unsubscribeCircle(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
   }
 
   type Circle implements Node {
@@ -127,6 +130,10 @@ export default `
   type MemberEdge {
     cursor: String!
     node: Member!
+  }
+
+  type SubscribeCircleResult {
+    client_secret: String!
   }
 
   input CircleInput {

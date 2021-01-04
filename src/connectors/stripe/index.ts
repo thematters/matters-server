@@ -4,7 +4,7 @@ import { PAYMENT_CURRENCY } from 'common/enums'
 import { environment } from 'common/environment'
 import { PaymentAmountInvalidError, ServerError } from 'common/errors'
 import logger from 'common/logger'
-import { toProviderAmount } from 'common/utils'
+import { getUTC8NextMonthDayOne, toProviderAmount } from 'common/utils'
 import { User } from 'definitions'
 
 /**
@@ -160,6 +160,14 @@ class StripeService {
     }
   }
 
+  deleteProduct = async ({ id }: { id: string }) => {
+    try {
+      await this.stripe.products.del(id)
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
   createPrice = async ({
     amount,
     currency,
@@ -192,7 +200,9 @@ class StripeService {
     price: string
   }) => {
     try {
+      const anchorTime = getUTC8NextMonthDayOne()
       const subscription = await this.stripe.subscriptions.create({
+        billing_cycle_anchor: anchorTime,
         customer,
         items: [{ price }],
         proration_behavior: 'none',

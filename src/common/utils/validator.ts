@@ -49,11 +49,11 @@ export const isValidUserName = (name: string): boolean => {
  *
  * @see https://mattersnews.slack.com/archives/G8877EQMS/p1546446430005500
  */
-export const isValidDisplayName = (name: string): boolean => {
+export const isValidDisplayName = (name: string, size = 20): boolean => {
   if (
     !name ||
     name.length < 2 ||
-    name.length > 20 ||
+    name.length > size ||
     INVALID_NAMES.includes(name.toLowerCase())
   ) {
     return false
@@ -92,4 +92,17 @@ export const isEnglish = (str: string): boolean => {
     return false
   }
   return /^[a-zA-Z0-9]*$/.test(str)
+}
+
+/**
+ * Validate circle name. It only accepts alphabets, chinese characters and _.
+ */
+export const isValidCircleName = (name: string, size = 20): boolean => {
+  // TODO: add common disallowed names
+  if (!name || name.length < 2 || name.length > size) {
+    return false
+  }
+  return /^[_A-Za-z\u4E00-\u9FFF\u3400-\u4DFF\uF900-\uFAFF\u2e80-\u33ffh]*$/.test(
+    name
+  )
 }

@@ -10,7 +10,12 @@ import {
   ServerError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import logger from 'common/logger'
+import {
+  fromGlobalId,
+  isValidCircleName,
+  isValidDisplayName,
+} from 'common/utils'
 import { MutationToPutCircleResolver } from 'definitions'
 
 enum ACTION {
@@ -32,6 +37,18 @@ const resolver: MutationToPutCircleResolver = async (
   const trimedDisplayName = _trim(displayName)
   const trimedDescription = _trim(description)
 
+  if (trimedName && !isValidCircleName(trimedName)) {
+    throw new UserInputError('invalid circle name')
+  }
+
+  if (trimedDisplayName && !isValidDisplayName(trimedDisplayName, 12)) {
+    throw new UserInputError('invalid display name')
+  }
+
+  if (trimedDescription && trimedDescription.length > 200) {
+    throw new UserInputError('invalid description')
+  }
+
   switch (action) {
     case ACTION.add: {
       // checks: valid amount, duplicate circle
@@ -39,9 +56,6 @@ const resolver: MutationToPutCircleResolver = async (
         throw new UserInputError(
           'circleName and displayName is required for creation'
         )
-      }
-      if (amount < 0) {
-        throw new UserInputError('minimal amount is 0')
       }
       const places = amount % 1 ? amount.toString().split('.')[1].length : 0
       if (places > 2) {
@@ -85,30 +99,38 @@ const resolver: MutationToPutCircleResolver = async (
         throw new ServerError('cannot retrieve stripe price')
       }
 
-      const circle = await knex.transaction(async (trx) => {
-        // create a matters circle
-        const [record] = await trx
-          .insert({
-            name: trimedName,
-            displayName: trimedDisplayName,
-            description: trimedDescription,
-            owner: viewer.id,
-            providerProductId: stripeProduct.id,
-          })
-          .into('circle')
-          .returning('*')
+      let circle
+      try {
+        circle = await knex.transaction(async (trx) => {
+          // create a matters circle
+          const [record] = await trx
+            .insert({
+              name: trimedName,
+              displayName: trimedDisplayName,
+              description: trimedDescription,
+              owner: viewer.id,
+              providerProductId: stripeProduct.id,
+            })
+            .into('circle')
+            .returning('*')
 
-        // creat a matters price
-        await trx
-          .insert({
-            amount,
-            circleId: record.id,
-            providerPriceId: stripePrice.id,
-          })
-          .into('circle_price')
+          // creat a matters price
+          await trx
+            .insert({
+              amount,
+              circleId: record.id,
+              providerPriceId: stripePrice.id,
+            })
+            .into('circle_price')
 
-        return record
-      })
+          return record
+        })
+      } catch (error) {
+        // remove prooduct and price if insertion failed
+        await paymentService.stripe.deleteProduct({ id: stripeProduct.id })
+        logger.error(error)
+        throw new ServerError('could not create circle or circle price')
+      }
 
       return circle
     }
@@ -146,7 +168,8 @@ const resolver: MutationToPutCircleResolver = async (
           where: { uuid: avatar },
         })
 
-        if (!avatarAsset ||
+        if (
+          !avatarAsset ||
           avatarAsset.type !== ASSET_TYPE.circleAvatar ||
           avatarAsset.authorId !== viewer.id
         ) {
@@ -166,7 +189,8 @@ const resolver: MutationToPutCircleResolver = async (
           where: { uuid: cover },
         })
 
-        if (!coverAsset ||
+        if (
+          !coverAsset ||
           coverAsset.type !== ASSET_TYPE.circleCover ||
           coverAsset.authorId !== viewer.id
         ) {
@@ -202,6 +226,7 @@ const resolver: MutationToPutCircleResolver = async (
         })
       }
 
+      // TODO: move delete unused assets into queue
       // delete unused assets
       const unusedAssets = await atomService.findMany({
         table: 'asset',

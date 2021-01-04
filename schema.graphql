@@ -943,11 +943,14 @@ type Mutation {
   """Put a Circle."""
   putCircle(input: PutCircleInput!): Circle!
 
-  """Star or stop a Circle subscription."""
-  toggleCircleSubscription(input: ToggleItemInput!): Circle!
-
   """Follow or unfollow a Circle."""
   toggleFollowCircle(input: ToggleItemInput!): Circle!
+
+  """Subscribe a Circle."""
+  subscribeCircle(input: ToggleItemInput!): SubscribeCircleResult!
+
+  """Unsubscribe a Circle."""
+  unsubscribeCircle(input: ToggleItemInput!): Circle!
 
   """Publish a comment."""
   putComment(input: PutCommentInput!): Comment!
@@ -1675,6 +1678,10 @@ enum SkippedListItemType {
 type StripeAccount {
   id: ID!
   loginUrl: URL!
+}
+
+type SubscribeCircleResult {
+  client_secret: String!
 }
 
 type Subscription {

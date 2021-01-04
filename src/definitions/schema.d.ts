@@ -2044,14 +2044,19 @@ export interface GQLMutation {
   putCircle: GQLCircle
 
   /**
-   * Star or stop a Circle subscription.
-   */
-  toggleCircleSubscription: GQLCircle
-
-  /**
    * Follow or unfollow a Circle.
    */
   toggleFollowCircle: GQLCircle
+
+  /**
+   * Subscribe a Circle.
+   */
+  subscribeCircle: GQLSubscribeCircleResult
+
+  /**
+   * Unsubscribe a Circle.
+   */
+  unsubscribeCircle: GQLCircle
 
   /**
    * Publish a comment.
@@ -2384,6 +2389,10 @@ export interface GQLPutCircleInput {
    * Circle's subscription fee.
    */
   amount?: GQLNonNegativeFloat
+}
+
+export interface GQLSubscribeCircleResult {
+  client_secret: string
 }
 
 export interface GQLPutCommentInput {
@@ -3181,6 +3190,7 @@ export interface GQLResolver {
   SkippedListItemEdge?: GQLSkippedListItemEdgeTypeResolver
   SkippedListItem?: GQLSkippedListItemTypeResolver
   Mutation?: GQLMutationTypeResolver
+  SubscribeCircleResult?: GQLSubscribeCircleResultTypeResolver
   Upload?: GraphQLScalarType
   AuthResult?: GQLAuthResultTypeResolver
   PositiveInt?: GraphQLScalarType
@@ -7807,8 +7817,9 @@ export interface GQLMutationTypeResolver<TParent = any> {
   renameTag?: MutationToRenameTagResolver<TParent>
   mergeTags?: MutationToMergeTagsResolver<TParent>
   putCircle?: MutationToPutCircleResolver<TParent>
-  toggleCircleSubscription?: MutationToToggleCircleSubscriptionResolver<TParent>
   toggleFollowCircle?: MutationToToggleFollowCircleResolver<TParent>
+  subscribeCircle?: MutationToSubscribeCircleResolver<TParent>
+  unsubscribeCircle?: MutationToUnsubscribeCircleResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   togglePinComment?: MutationToTogglePinCommentResolver<TParent>
@@ -8117,21 +8128,6 @@ export interface MutationToPutCircleResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToToggleCircleSubscriptionArgs {
-  input: GQLToggleItemInput
-}
-export interface MutationToToggleCircleSubscriptionResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToToggleCircleSubscriptionArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface MutationToToggleFollowCircleArgs {
   input: GQLToggleItemInput
 }
@@ -8142,6 +8138,36 @@ export interface MutationToToggleFollowCircleResolver<
   (
     parent: TParent,
     args: MutationToToggleFollowCircleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSubscribeCircleArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToSubscribeCircleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToSubscribeCircleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnsubscribeCircleArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToUnsubscribeCircleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUnsubscribeCircleArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8664,6 +8690,22 @@ export interface MutationToPutOAuthClientResolver<
   (
     parent: TParent,
     args: MutationToPutOAuthClientArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLSubscribeCircleResultTypeResolver<TParent = any> {
+  client_secret?: SubscribeCircleResultToClient_secretResolver<TParent>
+}
+
+export interface SubscribeCircleResultToClient_secretResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

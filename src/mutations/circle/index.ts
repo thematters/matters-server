@@ -1,11 +1,13 @@
 import putCircle from './putCircle'
-import toggleCircleSubscription from './toggleCircleSubscription'
+import subscribeCircle from './subscribeCircle'
 import toggleFollowCircle from './toggleFollowCircle'
+import unsubscribeCircle from './unsubscribeCircle'
 
 export default {
   Mutation: {
     putCircle,
-    toggleCircleSubscription,
+    subscribeCircle,
     toggleFollowCircle,
+    unsubscribeCircle,
   },
 }
