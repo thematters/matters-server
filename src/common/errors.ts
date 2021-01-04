@@ -457,13 +457,3 @@ export class DuplicateCircleError extends ApolloError {
     Object.defineProperty(this, 'name', { value: 'DuplicateCircleError' })
   }
 }
-
-export class DuplicateCircleSubscribeError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'DUPLICATE_CIRLCE_SUBSCRIBE')
-
-    Object.defineProperty(this, 'name', {
-      value: 'DuplicateCircleSubscribeError',
-    })
-  }
-}

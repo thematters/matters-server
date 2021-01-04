@@ -1,6 +1,6 @@
 import _trim from 'lodash/trim'
 
-import { PAYMENT_CURRENCY } from 'common/enums'
+import { ASSET_TYPE, PAYMENT_CURRENCY } from 'common/enums'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -146,7 +146,10 @@ const resolver: MutationToPutCircleResolver = async (
           where: { uuid: avatar },
         })
 
-        if (!avatarAsset) {
+        if (!avatarAsset ||
+          avatarAsset.type !== ASSET_TYPE.circleAvatar ||
+          avatarAsset.authorId !== viewer.id
+        ) {
           throw new AssetNotFoundError('circle avatar not found')
         }
         data = { ...data, avatar: avatarAsset.id }
@@ -163,7 +166,10 @@ const resolver: MutationToPutCircleResolver = async (
           where: { uuid: cover },
         })
 
-        if (!coverAsset) {
+        if (!coverAsset ||
+          coverAsset.type !== ASSET_TYPE.circleCover ||
+          coverAsset.authorId !== viewer.id
+        ) {
           throw new AssetNotFoundError('circle avatar not found')
         }
         data = { ...data, cover: coverAsset.id }

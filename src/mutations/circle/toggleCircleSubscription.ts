@@ -8,7 +8,7 @@ import {
 import { environment } from 'common/environment'
 import {
   AuthenticationError,
-  DuplicateCircleSubscribeError,
+  DuplicateCircleError,
   EntityNotFoundError,
   ServerError,
   UserInputError,
@@ -75,7 +75,7 @@ const resolver: MutationToToggleCircleSubscriptionResolver = async (
   switch (action) {
     case ACTION.subscribe: {
       if (item) {
-        throw new DuplicateCircleSubscribeError('circle subscribed alraedy')
+        throw new DuplicateCircleError('circle subscribed alraedy')
       }
 
       // re-init subscription if it doesn't exist
@@ -99,9 +99,9 @@ const resolver: MutationToToggleCircleSubscriptionResolver = async (
         })
       }
 
-      // craete stripe subscroption item
+      // create stripe subscroption item
       const stripeItem = await paymentService.stripe.createSubscriptionItem({
-        price: price.id,
+        price: price.providerPriceId,
         subscription: subscription.id,
       })
 

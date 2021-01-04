@@ -9,14 +9,12 @@ const resolver: ArticleToCircleResolver = async (
     return []
   }
 
-  const circleIds = await atomService.findMany({
+  const circleId = await atomService.findFirst({
     table: 'article_circle',
     where: { articleId: id },
   })
-  const circles = await atomService.circleIdLoader.loadMany(
-    circleIds.map(({ circleId }) => circleId)
-  )
-  return circles
+  const circle = await atomService.circleIdLoader.load(circleId)
+  return circle
 }
 
 export default resolver
