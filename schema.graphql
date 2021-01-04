@@ -362,6 +362,8 @@ enum AssetType {
   profileCover
   oauthClientAvatar
   tagCover
+  circleAvatar
+  circleCover
 }
 
 enum AuthorsType {

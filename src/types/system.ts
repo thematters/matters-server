@@ -244,6 +244,8 @@ export default /* GraphQL */ `
     profileCover
     oauthClientAvatar
     tagCover
+    circleAvatar
+    circleCover
   }
 
   enum EntityType {
