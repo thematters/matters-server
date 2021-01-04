@@ -1,4 +1,8 @@
-import slugify from '@matters/slugify'
+import {
+  makeHtmlBundle,
+  makeMetaData,
+  stripHtml,
+} from '@matters/matters-html-formatter'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
@@ -10,6 +14,7 @@ import {
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
+  IPFS_PREFIX,
   MATERIALIZED_VIEW,
   MINUTE,
   TRANSACTION_PURPOSE,
@@ -21,13 +26,6 @@ import {
 import { isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import logger from 'common/logger'
-import {
-  countWords,
-  makeSummary,
-  outputCleanHTML,
-  removeEmpty,
-  stripHtml,
-} from 'common/utils'
 import { BaseService, gcp, ipfs, SystemService, UserService } from 'connectors'
 import { GQLSearchInput, Item, ItemData } from 'definitions'
 
@@ -130,53 +128,44 @@ export class ArticleService extends BaseService {
     const articleImg = cover && (await systemService.findAssetUrl(cover))
 
     // add content to ipfs
-    const html = this.ipfs.makeHTML({
+    const bundle = await makeHtmlBundle({
       title,
       author: { userName, displayName },
       summary,
-      content: outputCleanHTML(content),
-      publishedAt: now,
+      content,
+      prefix: IPFS_PREFIX,
     })
-    const dataHash = await this.ipfs.addHTML(html)
+
+    const result = await this.ipfs.client.add(bundle)
+
+    // filter out the hash for the bundle
+    const [{ hash: contentHash }] = result.filter(
+      ({ path }: { path: string }) => path === IPFS_PREFIX
+    )
 
     // add meta data to ipfs
-    const mediaObj: { [key: string]: any } = {
-      '@context': 'http://schema.org',
-      '@type': 'Article',
-      '@id': `ipfs://ipfs/${dataHash}`,
+    const articleInfo = {
+      contentHash,
       author: {
         name: userName,
-        image: userImg,
+        image: userImg || undefined,
         url: `https://matters.news/@${userName}`,
         description,
       },
-      dateCreated: now.toISOString(),
       description: summary,
       image: articleImg,
     }
 
-    // add cover to ipfs
-    // TODO: check data type for cover
-    if (articleImg) {
-      const coverData = await this.ipfs.getDataAsFile(articleImg, '/')
-      if (coverData && coverData.content) {
-        const [{ hash }] = await this.ipfs.client.add(coverData.content, {
-          pin: true,
-        })
-        mediaObj.cover = { '/': hash }
-      }
-    }
+    const metaData = makeMetaData(articleInfo)
 
-    const mediaObjectCleaned = removeEmpty(mediaObj)
-
-    const cid = await this.ipfs.client.dag.put(mediaObjectCleaned, {
+    const cid = await this.ipfs.client.dag.put(metaData, {
       format: 'dag-cbor',
       pin: true,
       hashAlg: 'sha2-256',
     })
     const mediaHash = cid.toBaseEncodedString()
 
-    return { dataHash, mediaHash }
+    return { contentHash, mediaHash }
   }
 
   /**
