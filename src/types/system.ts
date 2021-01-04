@@ -253,6 +253,7 @@ export default /* GraphQL */ `
     draft
     tag
     user
+    circle
   }
 
   "Enums for user roles."

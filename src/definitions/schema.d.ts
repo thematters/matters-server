@@ -2183,6 +2183,7 @@ export const enum GQLEntityType {
   draft = 'draft',
   tag = 'tag',
   user = 'user',
+  circle = 'circle',
 }
 
 export interface GQLLogRecordInput {

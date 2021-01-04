@@ -694,6 +694,7 @@ enum EntityType {
   draft
   tag
   user
+  circle
 }
 
 type Feature {
