@@ -47,9 +47,12 @@ likecoinRouter.get('/', async (req, res) => {
 
     // check like chain tx state
     const rate = 10 * 10
-    const cosmosData = await userService.likecoin.getCosmosTxData({ hash: tx_hash })
+    const cosmosData = await userService.likecoin.getCosmosTxData({
+      hash: tx_hash,
+    })
     const cosmosAmount = NP.divide(cosmosData.amount, rate)
-    const cosmosState = success === true ? TRANSACTION_STATE.succeeded : TRANSACTION_STATE.failed
+    const cosmosState =
+      success === true ? TRANSACTION_STATE.succeeded : TRANSACTION_STATE.failed
     const updateParams: Record<string, any> = {
       id: tx.id,
       provider_tx_id: tx_hash,
