@@ -1,5 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import { Router } from 'express'
+import NP from 'number-precision'
 
 import { DB_NOTICE_TYPE, NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
 import { environment } from 'common/environment'
@@ -23,7 +24,7 @@ likecoinRouter.get('/', async (req, res) => {
   const notificationService = new NotificationService()
 
   try {
-    const { tx_hash, state } = req.query
+    const { tx_hash, state, success } = req.query
 
     if (!tx_hash) {
       throw new Error('callback has no "tx_hash"')
@@ -33,6 +34,10 @@ likecoinRouter.get('/', async (req, res) => {
       throw new Error('callback has no "state"')
     }
 
+    if (!success) {
+      throw new Error('callback has no "success"')
+    }
+
     // get pending transaction
     const tx = (
       await paymentService.findTransactions({
@@ -40,13 +45,32 @@ likecoinRouter.get('/', async (req, res) => {
       })
     )[0]
 
-    // mark transaction state as "succeeded"
-    paymentService.baseUpdate(tx.id, {
+    // check like chain tx state
+    const rate = 10 * 10
+    const cosmosData = await userService.likecoin.getCosmosTxData({
+      hash: tx_hash,
+    })
+    const cosmosAmount = NP.divide(cosmosData.amount, rate)
+    const cosmosState =
+      success === true ? TRANSACTION_STATE.succeeded : TRANSACTION_STATE.failed
+    const updateParams: Record<string, any> = {
       id: tx.id,
       provider_tx_id: tx_hash,
-      state: TRANSACTION_STATE.succeeded,
+      state: cosmosState,
       updatedAt: new Date(),
-    })
+    }
+
+    // correct amount if it changed via LikePay
+    if (tx.amount !== cosmosAmount) {
+      updateParams.amount = cosmosAmount
+    }
+
+    // update transaction
+    paymentService.baseUpdate(tx.id, updateParams)
+
+    if (cosmosState === TRANSACTION_STATE.failed) {
+      throw new Error('like pay failure')
+    }
 
     /**
      * trigger notifications
