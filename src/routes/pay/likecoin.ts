@@ -46,7 +46,7 @@ likecoinRouter.get('/', async (req, res) => {
     )[0]
 
     // check like chain tx state
-    const rate = 10 * 10
+    const rate = Math.pow(10, 10)
     const cosmosData = await userService.likecoin.getCosmosTxData({
       hash: tx_hash,
     })
