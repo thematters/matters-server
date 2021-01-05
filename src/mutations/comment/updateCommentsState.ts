@@ -23,6 +23,7 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
     const authorComments = await Promise.all(
       dbIds.map(async (commentDbId) => {
         const comment = await commentService.dataloader.load(commentDbId)
+        // TODO: update for comment in circles
         const article = await articleService.dataloader.load(comment.articleId)
         const isArticleAuthor = viewer.id === article.authorId
         const isValidFromState =

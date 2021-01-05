@@ -41,6 +41,7 @@ const resolver: MutationToDeleteCommentResolver = async (
   })
 
   // invalidate extra nodes
+  // TODO: update for comment in circles
   const article = await articleService.dataloader.load(articleId)
   comment[CACHE_KEYWORD] = [
     {

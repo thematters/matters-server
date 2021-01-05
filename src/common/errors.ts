@@ -445,3 +445,16 @@ export class PaymentQueueJobDataError extends ApolloError {
     })
   }
 }
+
+/*********************************
+ *                               *
+ *            Circle             *
+ *                               *
+ *********************************/
+export class DuplicateCircleError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'DUPLICATE_CIRCLE')
+
+    Object.defineProperty(this, 'name', { value: 'DuplicateCircleError' })
+  }
+}

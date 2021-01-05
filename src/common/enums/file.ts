@@ -6,6 +6,8 @@ export const ASSET_TYPE = {
   profileCover: 'profileCover',
   oauthClientAvatar: 'oauthClientAvatar',
   tagCover: 'tagCover',
+  circleAvatar: 'circleAvatar',
+  circleCover: 'circleCover',
 }
 
 export const ACCEPTED_UPLOAD_IMAGE_TYPES: string[] = [

@@ -1,5 +1,6 @@
+import { makeSummary } from '@matters/matters-html-formatter'
+
 import { ARTICLE_STATE } from 'common/enums'
-import { makeSummary } from 'common/utils'
 import { ArticleToSummaryResolver } from 'definitions'
 
 const resolver: ArticleToSummaryResolver = async (

@@ -1,3 +1,4 @@
+import { makeSummary } from '@matters/matters-html-formatter'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -15,7 +16,7 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
 } from 'common/errors'
-import { fromGlobalId, makeSummary, sanitize } from 'common/utils'
+import { fromGlobalId, sanitize } from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const resolver: MutationToPutDraftResolver = async (

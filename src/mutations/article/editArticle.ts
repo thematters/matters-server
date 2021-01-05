@@ -1,3 +1,4 @@
+import { stripHtml } from '@matters/matters-html-formatter'
 import { difference, flow, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
@@ -24,7 +25,6 @@ import {
   measureDiffs,
   sanitize,
   stripClass,
-  stripHtml,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { ItemData, MutationToEditArticleResolver } from 'definitions'

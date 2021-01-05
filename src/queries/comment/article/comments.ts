@@ -27,6 +27,7 @@ const resolver: ArticleToCommentsResolver = async (
   }
 
   // handle filter
+  // TODO: update for comment in circles
   let filter = { articleId } as { [key: string]: any }
   if (rest.filter) {
     const { parentComment, author, state } = rest.filter
