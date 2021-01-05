@@ -52,7 +52,7 @@ likecoinRouter.get('/', async (req, res) => {
     })
     const cosmosAmount = NP.divide(cosmosData.amount, rate)
     const cosmosState =
-      success === true ? TRANSACTION_STATE.succeeded : TRANSACTION_STATE.failed
+      success === 'true' ? TRANSACTION_STATE.succeeded : TRANSACTION_STATE.failed
     const updateParams: Record<string, any> = {
       id: tx.id,
       provider_tx_id: tx_hash,

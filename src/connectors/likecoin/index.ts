@@ -495,7 +495,7 @@ export class LikeCoin {
     }
     const msg = _.get(data, 'tx.value.msg')
     const msgSend = _.find(msg, { type: 'cosmos-sdk/MsgSend' })
-    const amount = _.get(msgSend, 'value.amount[0]')
+    const amount = _.get(msgSend, 'value.amount[0].amount')
     return { amount }
   }
 }
