@@ -144,7 +144,6 @@ export const NODE_TYPES = {
   appreciation: 'Appreciation',
   transaction: 'Transaction',
   circle: 'Circle',
-  price: 'Price',
 
   // Unions & Interfaces
   node: 'Node',

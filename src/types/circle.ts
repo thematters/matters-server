@@ -5,7 +5,7 @@ import {
   SCOPE_GROUP as GROUP,
 } from 'common/enums'
 
-export default `
+export default /* GraphQL */ `
   extend type Query {
     circle(input: CircleInput!): Circle @privateCache @logCache(type: "${NODE.circle}")
   }

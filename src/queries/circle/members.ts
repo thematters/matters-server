@@ -14,11 +14,14 @@ const resolver: CircleToMembersResolver = async (
   const { first: take, after } = input
   const skip = cursorToIndex(after) + 1
 
-  const where = { 'csi.circle_id': id, 'price.state': PRICE_STATE.active }
+  const where = {
+    'circle_price.circle_id': id,
+    'circle_price.state': PRICE_STATE.active,
+  }
   const record = await knex
     .count()
     .from('circle_subscription_item as csi')
-    .innerJoin('price', 'price.id', 'csi.price_id')
+    .innerJoin('circle_price', 'circle_price.id', 'csi.price_id')
     .where(where)
     .first()
   const totalCount = parseInt(record ? (record.count as string) : '0', 10)
@@ -26,7 +29,7 @@ const resolver: CircleToMembersResolver = async (
   const query = knex
     .select('csi.user_id')
     .from('circle_subscription_item as csi')
-    .innerJoin('price', 'price.id', 'csi.price_id')
+    .innerJoin('circle_price', 'circle_price.id', 'csi.price_id')
     .where(where)
 
   if (skip) {
