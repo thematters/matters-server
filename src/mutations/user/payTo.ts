@@ -145,6 +145,7 @@ const resolver: MutationToPayToResolver = async (
       params.append('fee', '0')
       params.append('state', pendingTxId)
       params.append('redirect_uri', likecoinPayCallbackURL)
+      params.append('blocking', 'true')
 
       redirectUrl = `${likecoinPayURL}?${params}`
       break
