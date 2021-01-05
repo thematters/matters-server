@@ -11,7 +11,7 @@ const resolver: QueryToCircleResolver = async (
 
   const circle = await atomService.findFirst({
     table: 'circle',
-    where: { circleName: name },
+    where: { name },
   })
 
   return circle

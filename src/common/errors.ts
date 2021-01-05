@@ -445,6 +445,7 @@ export class PaymentQueueJobDataError extends ApolloError {
     })
   }
 }
+
 /*********************************
  *                               *
  *            Circle             *
