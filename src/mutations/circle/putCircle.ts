@@ -99,38 +99,30 @@ const resolver: MutationToPutCircleResolver = async (
         throw new ServerError('cannot retrieve stripe price')
       }
 
-      let circle
-      try {
-        circle = await knex.transaction(async (trx) => {
-          // create a matters circle
-          const [record] = await trx
-            .insert({
-              name: trimedName,
-              displayName: trimedDisplayName,
-              description: trimedDescription,
-              owner: viewer.id,
-              providerProductId: stripeProduct.id,
-            })
-            .into('circle')
-            .returning('*')
+      const circle = await knex.transaction(async (trx) => {
+        // create a matters circle
+        const [record] = await trx
+          .insert({
+            name: trimedName,
+            displayName: trimedDisplayName,
+            description: trimedDescription,
+            owner: viewer.id,
+            providerProductId: stripeProduct.id,
+          })
+          .into('circle')
+          .returning('*')
 
-          // creat a matters price
-          await trx
-            .insert({
-              amount,
-              circleId: record.id,
-              providerPriceId: stripePrice.id,
-            })
-            .into('circle_price')
+        // creat a matters price
+        await trx
+          .insert({
+            amount,
+            circleId: record.id,
+            providerPriceId: stripePrice.id,
+          })
+          .into('circle_price')
 
-          return record
-        })
-      } catch (error) {
-        // remove prooduct and price if insertion failed
-        await paymentService.stripe.deleteProduct({ id: stripeProduct.id })
-        logger.error(error)
-        throw new ServerError('could not create circle or circle price')
-      }
+        return record
+      })
 
       return circle
     }

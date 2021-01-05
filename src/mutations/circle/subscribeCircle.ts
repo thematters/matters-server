@@ -28,6 +28,9 @@ const resolver: MutationToSubscribeCircleResolver = async (
   if (typeof enabled !== 'boolean') {
     throw new UserInputError('parameter "enabled" is required')
   }
+  if (!environment.stripePriceId) {
+    throw new ServerError('matters price id not found')
+  }
 
   const { id: circleId } = fromGlobalId(id || '')
   const [circle, price] = await Promise.all([
@@ -70,11 +73,11 @@ const resolver: MutationToSubscribeCircleResolver = async (
     throw new DuplicateCircleError('circle subscribed alraedy')
   }
 
-  // init subscription if it doesn't exist
+  // init subscription with matters price placeholder if it doesn't exist
   if (!subscription) {
     const stripeSubscription = await paymentService.stripe.createSubscription({
       customer: environment.stripeCustomerId, // temp customer id
-      price: price.id,
+      price: environment.stripePriceId,
     })
     if (!stripeSubscription) {
       throw new ServerError('cannot retrieve stripe subscription')
@@ -92,7 +95,7 @@ const resolver: MutationToSubscribeCircleResolver = async (
   // create stripe subscription item
   const stripeItem = await paymentService.stripe.createSubscriptionItem({
     price: price.providerPriceId,
-    subscription: subscription.id,
+    subscription: subscription.providerSubscriptionId,
   })
 
   if (!stripeItem) {
