@@ -25,8 +25,6 @@ likecoinRouter.get('/', async (req, res) => {
 
   try {
     const { tx_hash, state, success } = req.query
-    logger.info(req.query)
-    logger.info(tx_hash, state, success)
 
     if (!tx_hash) {
       throw new Error('callback has no "tx_hash"')
@@ -52,7 +50,6 @@ likecoinRouter.get('/', async (req, res) => {
     const cosmosData = await userService.likecoin.getCosmosTxData({
       hash: tx_hash,
     })
-    logger.info(cosmosData)
     const cosmosAmount = NP.divide(cosmosData.amount, rate)
     const cosmosState =
       success === true ? TRANSACTION_STATE.succeeded : TRANSACTION_STATE.failed
@@ -64,8 +61,6 @@ likecoinRouter.get('/', async (req, res) => {
     }
 
     // correct amount if it changed via LikePay
-    logger.info(tx.amount)
-    logger.info(cosmosAmount)
     if (tx.amount !== cosmosAmount) {
       updateParams.amount = cosmosAmount
     }
