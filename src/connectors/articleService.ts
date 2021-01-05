@@ -1299,7 +1299,7 @@ export class ArticleService extends BaseService {
           ...newData,
           count: 1,
           timedCount: 1,
-          readTime: 0,
+          readTime: userId ? 0 : null,
           lastRead: new Date(),
         },
         table
@@ -1309,7 +1309,28 @@ export class ArticleService extends BaseService {
 
     // get old data
     const oldData = record[0]
+    const updateReadCount = async () => {
+      await this.baseUpdate(
+        oldData.id,
+        {
+          ...oldData,
+          ...newData,
+          count: parseInt(oldData.count, 10) + 1,
+          timedCount: parseInt(oldData.timedCount, 10) + 1,
+          lastRead: new Date(),
+        },
+        table
+      )
+    }
 
+    // visitor
+    // add a new count and update last read timestamp for visitors
+    if (!userId) {
+      await updateReadCount()
+      return { newRead: true }
+    }
+
+    // logged-in user
     // calculate heart beat lapsed time in secondes
     const lapse = Date.now() - new Date(oldData.updatedAt).getTime()
 
@@ -1324,32 +1345,15 @@ export class ArticleService extends BaseService {
 
     // if lapse is longer than 5 minutes,
     // or total length longer than 30 minutes,
-    // or if a visitor read with a new ip,
     // add a new count and update last read timestamp
-    if (
-      lapse > MINUTE * 5 ||
-      readLength > MINUTE * 30 ||
-      (!userId && ip !== oldData.ip)
-    ) {
-      await this.baseUpdate(
-        oldData.id,
-        {
-          ...oldData,
-          ...newData,
-          count: parseInt(oldData.count, 10) + 1,
-          timedCount: parseInt(oldData.timedCount, 10) + 1,
-          lastRead: new Date(),
-        },
-        table
-      )
+    if (lapse > MINUTE * 5 || readLength > MINUTE * 30) {
+      await updateReadCount()
       return { newRead: true }
     }
 
     // other wise accumulate time
     // NOTE: we don't accumulate read time for visitors
-    const readTime = userId
-      ? Math.round(parseInt(oldData.readTime, 10) + lapse / 1000)
-      : null
+    const readTime = Math.round(parseInt(oldData.readTime, 10) + lapse / 1000)
     await this.baseUpdate(
       oldData.id,
       {
