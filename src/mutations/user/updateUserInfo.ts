@@ -6,10 +6,10 @@ import {
   AuthenticationError,
   DisplayNameInvalidError,
   ForbiddenError,
+  NameExistsError,
+  NameInvalidError,
   PasswordInvalidError,
   UserInputError,
-  UsernameExistsError,
-  UsernameInvalidError,
 } from 'common/errors'
 import {
   generatePasswordhash,
@@ -69,11 +69,11 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       throw new ForbiddenError('userName is not allow to edit')
     }
     if (!isValidUserName(input.userName)) {
-      throw new UsernameInvalidError('invalid user name')
+      throw new NameInvalidError('invalid user name')
     }
     const isUserNameExisted = await userService.countUserNames(input.userName)
     if (isUserNameExisted > 0) {
-      throw new UsernameExistsError('user name already exists')
+      throw new NameExistsError('user name already exists')
     }
     updateParams.userName = input.userName
   }
