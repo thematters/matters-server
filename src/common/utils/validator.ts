@@ -68,7 +68,7 @@ export const isValidDisplayName = (name: string, maxLen = 20): boolean => {
     return false
   }
 
-  return REGEXP_ALL_PUNCTUATIONS.test(name)
+  return !REGEXP_ALL_PUNCTUATIONS.test(name)
 }
 
 /**
