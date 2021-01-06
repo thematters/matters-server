@@ -1423,11 +1423,6 @@ export interface GQLPrice {
   currency: GQLTransactionCurrency
 
   /**
-   * Billing cycle of Price.
-   */
-  billingCycle: GQLPriceBillingCycle
-
-  /**
    * State of Price.
    */
   state: GQLPriceState
@@ -1446,10 +1441,6 @@ export interface GQLPrice {
 export const enum GQLTransactionCurrency {
   HKD = 'HKD',
   LIKE = 'LIKE',
-}
-
-export const enum GQLPriceBillingCycle {
-  month = 'month',
 }
 
 export const enum GQLPriceState {
@@ -6570,7 +6561,6 @@ export interface GQLPriceTypeResolver<TParent = any> {
   amount?: PriceToAmountResolver<TParent>
   circle?: PriceToCircleResolver<TParent>
   currency?: PriceToCurrencyResolver<TParent>
-  billingCycle?: PriceToBillingCycleResolver<TParent>
   state?: PriceToStateResolver<TParent>
   createdAt?: PriceToCreatedAtResolver<TParent>
   updatedAt?: PriceToUpdatedAtResolver<TParent>
@@ -6604,15 +6594,6 @@ export interface PriceToCircleResolver<TParent = any, TResult = any> {
 }
 
 export interface PriceToCurrencyResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface PriceToBillingCycleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

@@ -108,9 +108,6 @@ export default /* GraphQL */ `
     "Currency of Price."
     currency: TransactionCurrency!
 
-    "Billing cycle of Price."
-    billingCycle: PriceBillingCycle!
-
     "State of Price."
     state: PriceState!
 
@@ -178,10 +175,6 @@ export default /* GraphQL */ `
   enum CircleState {
     active
     archived
-  }
-
-  enum PriceBillingCycle {
-    month
   }
 
   enum PriceState {
