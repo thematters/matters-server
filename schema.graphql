@@ -1286,9 +1286,6 @@ type Price {
   """Currency of Price."""
   currency: TransactionCurrency!
 
-  """Billing cycle of Price."""
-  billingCycle: PriceBillingCycle!
-
   """State of Price."""
   state: PriceState!
 
@@ -1297,10 +1294,6 @@ type Price {
 
   """Updated time."""
   updatedAt: DateTime!
-}
-
-enum PriceBillingCycle {
-  month
 }
 
 enum PriceState {
