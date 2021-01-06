@@ -1,6 +1,7 @@
+import { makeSummary } from '@matters/matters-html-formatter'
 import _ from 'lodash'
 
-import { makeSummary, toGlobalId } from 'common/utils'
+import { toGlobalId } from 'common/utils'
 import { i18n } from 'common/utils/i18n'
 import {
   ArticleService,

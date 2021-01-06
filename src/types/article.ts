@@ -170,6 +170,9 @@ export default /* GraphQL */ `
 
     "Drafts linked to this article."
     drafts: [Draft!]
+
+    "Current article belongs to which Circle."
+    circle: Circle! @logCache(type: "${NODE_TYPES.circle}")
   }
 
   "This type contains content, count and related data of an article tag."

@@ -14,6 +14,7 @@ import { GraphQLResolveInfo, GraphQLScalarType } from 'graphql'
  *******************************/
 export interface GQLQuery {
   article?: GQLArticle
+  circle?: GQLCircle
   node?: GQLNode
   nodes?: Array<GQLNode>
   frequentSearch?: Array<string>
@@ -214,6 +215,11 @@ export interface GQLArticle extends GQLNode {
   drafts?: Array<GQLDraft>
 
   /**
+   * Current article belongs to which Circle.
+   */
+  circle: GQLCircle
+
+  /**
    * The counting number of comments.
    */
   commentCount: number
@@ -265,6 +271,7 @@ export type GQLPossibleNodeTypeNames =
   | 'Comment'
   | 'Tag'
   | 'Draft'
+  | 'Circle'
 
 export interface GQLNodeNameMap {
   Node: GQLNode
@@ -273,6 +280,7 @@ export interface GQLNodeNameMap {
   Comment: GQLComment
   Tag: GQLTag
   Draft: GQLDraft
+  Circle: GQLCircle
 }
 
 export type GQLDateTime = any
@@ -406,6 +414,16 @@ export interface GQLUser extends GQLNode {
    * Status of current user.
    */
   status?: GQLUserStatus
+
+  /**
+   * Circles belong to current user.
+   */
+  ownCircles?: Array<GQLCircle>
+
+  /**
+   * Circles whiches user has joined.
+   */
+  joinedCircles?: Array<GQLCircle>
 
   /**
    * OSS
@@ -647,6 +665,7 @@ export type GQLPossibleConnectionTypeNames =
   | 'ReadHistoryConnection'
   | 'RecentSearchConnection'
   | 'AppreciationConnection'
+  | 'MemberConnection'
   | 'NoticeConnection'
   | 'TransactionConnection'
   | 'ResponseConnection'
@@ -665,6 +684,7 @@ export interface GQLConnectionNameMap {
   ReadHistoryConnection: GQLReadHistoryConnection
   RecentSearchConnection: GQLRecentSearchConnection
   AppreciationConnection: GQLAppreciationConnection
+  MemberConnection: GQLMemberConnection
   NoticeConnection: GQLNoticeConnection
   TransactionConnection: GQLTransactionConnection
   ResponseConnection: GQLResponseConnection
@@ -770,6 +790,11 @@ export interface GQLComment extends GQLNode {
    */
   replyTo?: GQLComment
   remark?: string
+
+  /**
+   * Current comment belongs to which Node.
+   */
+  node: GQLNode
 }
 
 /**
@@ -1281,6 +1306,190 @@ export const enum GQLUserRole {
   admin = 'admin',
 }
 
+export interface GQLCircle extends GQLNode {
+  /**
+   * Unique ID.
+   */
+  id: string
+
+  /**
+   * Circle avatar's link.
+   */
+  avatar?: GQLURL
+
+  /**
+   * Circle cover's link.
+   */
+  cover?: GQLURL
+
+  /**
+   * Slugified name of this Circle.
+   */
+  name: string
+
+  /**
+   * Human readable name of this Circle.
+   */
+  displayName: string
+
+  /**
+   * A short description of this Circle.
+   */
+  description?: string
+
+  /**
+   * Prices offered by this Circle.
+   */
+  prices?: Array<GQLPrice>
+
+  /**
+   * Circle owner.
+   */
+  owner: GQLUser
+
+  /**
+   * List of Circle member.
+   */
+  members: GQLMemberConnection
+
+  /**
+   * List of Circle follower.
+   */
+  followers: GQLUserConnection
+
+  /**
+   * List of works belong to this Circle.
+   */
+  works: GQLArticleConnection
+
+  /**
+   * State of this Circle.
+   */
+  state: GQLCircleState
+
+  /**
+   * Created time.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * Updated time.
+   */
+  updatedAt: GQLDateTime
+
+  /**
+   * This value determines if current viewer is following Circle or not.
+   */
+  isFollower: boolean
+
+  /**
+   * This value determines if current viewer is Member or not.
+   */
+  isMember: boolean
+
+  /**
+   * Setting of this Circle.
+   */
+  setting: GQLCircleSetting
+
+  /**
+   * Comments broadcasted by Circle owner.
+   */
+  broadcast: GQLCommentConnection
+
+  /**
+   * Comments made by Circle member.
+   */
+  discussion: GQLCommentConnection
+}
+
+export interface GQLPrice {
+  /**
+   * Unique ID.
+   */
+  id: string
+
+  /**
+   * Amount of Price.
+   */
+  amount: GQLNonNegativeFloat
+
+  /**
+   * Current Price belongs to whcih Circle.
+   */
+  circle: GQLCircle
+
+  /**
+   * Currency of Price.
+   */
+  currency: GQLTransactionCurrency
+
+  /**
+   * State of Price.
+   */
+  state: GQLPriceState
+
+  /**
+   * Created time.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * Updated time.
+   */
+  updatedAt: GQLDateTime
+}
+
+export const enum GQLTransactionCurrency {
+  HKD = 'HKD',
+  LIKE = 'LIKE',
+}
+
+export const enum GQLPriceState {
+  active = 'active',
+  archived = 'archived',
+}
+
+export interface GQLMemberConnection extends GQLConnection {
+  totalCount: number
+  pageInfo: GQLPageInfo
+  edges?: Array<GQLMemberEdge>
+}
+
+export interface GQLMemberEdge {
+  cursor: string
+  node: GQLMember
+}
+
+export interface GQLMember {
+  /**
+   * User who join to a Circle.
+   */
+  user: GQLUser
+
+  /**
+   * Price chosen by user when joining a Circle.
+   */
+  price: GQLPrice
+}
+
+export const enum GQLCircleState {
+  active = 'active',
+  archived = 'archived',
+}
+
+export interface GQLCircleSetting {
+  /**
+   * Whether broadcast is enabled or not.
+   */
+  enableBroadcast: boolean
+
+  /**
+   * Whther discussion is enabled or not.
+   */
+  enableDiscussion: boolean
+}
+
 export interface GQLUserOSS {
   boost: GQLNonNegativeFloat
   score: GQLNonNegativeFloat
@@ -1418,11 +1627,6 @@ export const enum GQLTransactionPurpose {
   payout = 'payout',
 }
 
-export const enum GQLTransactionCurrency {
-  HKD = 'HKD',
-  LIKE = 'LIKE',
-}
-
 export type GQLTransactionTarget = GQLArticle | GQLTransaction
 
 /** Use this to resolve union type TransactionTarget */
@@ -1536,6 +1740,13 @@ export interface GQLResponseNameMap {
   Response: GQLResponse
   Article: GQLArticle
   Comment: GQLComment
+}
+
+export interface GQLCircleInput {
+  /**
+   * Slugified name of a Circle.
+   */
+  name: string
 }
 
 export interface GQLNodeInput {
@@ -1819,6 +2030,26 @@ export interface GQLMutation {
   deleteTags?: boolean
   renameTag: GQLTag
   mergeTags: GQLTag
+
+  /**
+   * Put a Circle.
+   */
+  putCircle: GQLCircle
+
+  /**
+   * Follow or unfollow a Circle.
+   */
+  toggleFollowCircle: GQLCircle
+
+  /**
+   * Subscribe a Circle.
+   */
+  subscribeCircle: GQLSubscribeCircleResult
+
+  /**
+   * Unsubscribe a Circle.
+   */
+  unsubscribeCircle: GQLCircle
 
   /**
    * Publish a comment.
@@ -2114,6 +2345,47 @@ export interface GQLRenameTagInput {
 export interface GQLMergeTagsInput {
   ids: Array<string>
   content: string
+}
+
+export interface GQLPutCircleInput {
+  /**
+   * Unique ID.
+   */
+  id?: string
+
+  /**
+   * Unique ID of a Circle's avatar.
+   */
+  avatar?: string
+
+  /**
+   * Unique ID of a Circle's cover.
+   */
+  cover?: string
+
+  /**
+   * Slugified name of a Circle.
+   */
+  name?: string
+
+  /**
+   * Human readable name of this Circle.
+   */
+  displayName?: string
+
+  /**
+   * A short description of this Circle.
+   */
+  description?: string
+
+  /**
+   * Circle's subscription fee.
+   */
+  amount?: GQLNonNegativeFloat
+}
+
+export interface GQLSubscribeCircleResult {
+  client_secret: string
 }
 
 export interface GQLPutCommentInput {
@@ -2705,6 +2977,23 @@ export const enum GQLTagNoticeType {
 
 export type GQLTime = any
 
+export interface GQLToggleCircleMemberInput {
+  /**
+   * Unique ID.
+   */
+  id: string
+
+  /**
+   * Toggle value.
+   */
+  enabled: boolean
+
+  /**
+   * Unique ID of target user.
+   */
+  targetId: string
+}
+
 /**
  * ################################
  *                                #
@@ -2851,6 +3140,12 @@ export interface GQLResolver {
   AppreciationEdge?: GQLAppreciationEdgeTypeResolver
   Appreciation?: GQLAppreciationTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
+  Circle?: GQLCircleTypeResolver
+  Price?: GQLPriceTypeResolver
+  MemberConnection?: GQLMemberConnectionTypeResolver
+  MemberEdge?: GQLMemberEdgeTypeResolver
+  Member?: GQLMemberTypeResolver
+  CircleSetting?: GQLCircleSettingTypeResolver
   UserOSS?: GQLUserOSSTypeResolver
   NoticeConnection?: GQLNoticeConnectionTypeResolver
   NoticeEdge?: GQLNoticeEdgeTypeResolver
@@ -2889,6 +3184,7 @@ export interface GQLResolver {
   SkippedListItemEdge?: GQLSkippedListItemEdgeTypeResolver
   SkippedListItem?: GQLSkippedListItemTypeResolver
   Mutation?: GQLMutationTypeResolver
+  SubscribeCircleResult?: GQLSubscribeCircleResultTypeResolver
   Upload?: GraphQLScalarType
   AuthResult?: GQLAuthResultTypeResolver
   PositiveInt?: GraphQLScalarType
@@ -2915,6 +3211,7 @@ export interface GQLResolver {
 }
 export interface GQLQueryTypeResolver<TParent = any> {
   article?: QueryToArticleResolver<TParent>
+  circle?: QueryToCircleResolver<TParent>
   node?: QueryToNodeResolver<TParent>
   nodes?: QueryToNodesResolver<TParent>
   frequentSearch?: QueryToFrequentSearchResolver<TParent>
@@ -2933,6 +3230,18 @@ export interface QueryToArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: QueryToArticleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface QueryToCircleArgs {
+  input: GQLCircleInput
+}
+export interface QueryToCircleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: QueryToCircleArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -3076,6 +3385,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   drafts?: ArticleToDraftsResolver<TParent>
+  circle?: ArticleToCircleResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
   pinCommentLimit?: ArticleToPinCommentLimitResolver<TParent>
   pinCommentLeft?: ArticleToPinCommentLeftResolver<TParent>
@@ -3452,6 +3762,15 @@ export interface ArticleToDraftsResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface ArticleToCircleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface ArticleToCommentCountResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -3546,6 +3865,7 @@ export interface GQLNodeTypeResolver<TParent = any> {
     | 'Comment'
     | 'Tag'
     | 'Draft'
+    | 'Circle'
 }
 export interface GQLUserTypeResolver<TParent = any> {
   id?: UserToIdResolver<TParent>
@@ -3572,6 +3892,8 @@ export interface GQLUserTypeResolver<TParent = any> {
   isBlocking?: UserToIsBlockingResolver<TParent>
   isBlocked?: UserToIsBlockedResolver<TParent>
   status?: UserToStatusResolver<TParent>
+  ownCircles?: UserToOwnCirclesResolver<TParent>
+  joinedCircles?: UserToJoinedCirclesResolver<TParent>
   oss?: UserToOssResolver<TParent>
   remark?: UserToRemarkResolver<TParent>
   notices?: UserToNoticesResolver<TParent>
@@ -3810,6 +4132,24 @@ export interface UserToIsBlockedResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToStatusResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToOwnCirclesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToJoinedCirclesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4492,6 +4832,7 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'ReadHistoryConnection'
     | 'RecentSearchConnection'
     | 'AppreciationConnection'
+    | 'MemberConnection'
     | 'NoticeConnection'
     | 'TransactionConnection'
     | 'ResponseConnection'
@@ -4649,6 +4990,7 @@ export interface GQLCommentTypeResolver<TParent = any> {
   parentComment?: CommentToParentCommentResolver<TParent>
   replyTo?: CommentToReplyToResolver<TParent>
   remark?: CommentToRemarkResolver<TParent>
+  node?: CommentToNodeResolver<TParent>
 }
 
 export interface CommentToIdResolver<TParent = any, TResult = any> {
@@ -4781,6 +5123,15 @@ export interface CommentToReplyToResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToNodeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6000,6 +6351,401 @@ export interface UserStatusToReceivedDonationCountResolver<
   ): TResult
 }
 
+export interface GQLCircleTypeResolver<TParent = any> {
+  id?: CircleToIdResolver<TParent>
+  avatar?: CircleToAvatarResolver<TParent>
+  cover?: CircleToCoverResolver<TParent>
+  name?: CircleToNameResolver<TParent>
+  displayName?: CircleToDisplayNameResolver<TParent>
+  description?: CircleToDescriptionResolver<TParent>
+  prices?: CircleToPricesResolver<TParent>
+  owner?: CircleToOwnerResolver<TParent>
+  members?: CircleToMembersResolver<TParent>
+  followers?: CircleToFollowersResolver<TParent>
+  works?: CircleToWorksResolver<TParent>
+  state?: CircleToStateResolver<TParent>
+  createdAt?: CircleToCreatedAtResolver<TParent>
+  updatedAt?: CircleToUpdatedAtResolver<TParent>
+  isFollower?: CircleToIsFollowerResolver<TParent>
+  isMember?: CircleToIsMemberResolver<TParent>
+  setting?: CircleToSettingResolver<TParent>
+  broadcast?: CircleToBroadcastResolver<TParent>
+  discussion?: CircleToDiscussionResolver<TParent>
+}
+
+export interface CircleToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToAvatarResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToCoverResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToDisplayNameResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToDescriptionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToPricesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToOwnerResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToMembersArgs {
+  input: GQLConnectionArgs
+}
+export interface CircleToMembersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: CircleToMembersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToFollowersArgs {
+  input: GQLConnectionArgs
+}
+export interface CircleToFollowersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: CircleToFollowersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToWorksArgs {
+  input: GQLConnectionArgs
+}
+export interface CircleToWorksResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: CircleToWorksArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToStateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToUpdatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToIsFollowerResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToIsMemberResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToSettingResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToBroadcastArgs {
+  input: GQLConnectionArgs
+}
+export interface CircleToBroadcastResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: CircleToBroadcastArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToDiscussionArgs {
+  input: GQLConnectionArgs
+}
+export interface CircleToDiscussionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: CircleToDiscussionArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLPriceTypeResolver<TParent = any> {
+  id?: PriceToIdResolver<TParent>
+  amount?: PriceToAmountResolver<TParent>
+  circle?: PriceToCircleResolver<TParent>
+  currency?: PriceToCurrencyResolver<TParent>
+  state?: PriceToStateResolver<TParent>
+  createdAt?: PriceToCreatedAtResolver<TParent>
+  updatedAt?: PriceToUpdatedAtResolver<TParent>
+}
+
+export interface PriceToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PriceToAmountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PriceToCircleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PriceToCurrencyResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PriceToStateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PriceToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface PriceToUpdatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLMemberConnectionTypeResolver<TParent = any> {
+  totalCount?: MemberConnectionToTotalCountResolver<TParent>
+  pageInfo?: MemberConnectionToPageInfoResolver<TParent>
+  edges?: MemberConnectionToEdgesResolver<TParent>
+}
+
+export interface MemberConnectionToTotalCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MemberConnectionToPageInfoResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MemberConnectionToEdgesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLMemberEdgeTypeResolver<TParent = any> {
+  cursor?: MemberEdgeToCursorResolver<TParent>
+  node?: MemberEdgeToNodeResolver<TParent>
+}
+
+export interface MemberEdgeToCursorResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MemberEdgeToNodeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLMemberTypeResolver<TParent = any> {
+  user?: MemberToUserResolver<TParent>
+  price?: MemberToPriceResolver<TParent>
+}
+
+export interface MemberToUserResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MemberToPriceResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleSettingTypeResolver<TParent = any> {
+  enableBroadcast?: CircleSettingToEnableBroadcastResolver<TParent>
+  enableDiscussion?: CircleSettingToEnableDiscussionResolver<TParent>
+}
+
+export interface CircleSettingToEnableBroadcastResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleSettingToEnableDiscussionResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLUserOSSTypeResolver<TParent = any> {
   boost?: UserOSSToBoostResolver<TParent>
   score?: UserOSSToScoreResolver<TParent>
@@ -7054,6 +7800,10 @@ export interface GQLMutationTypeResolver<TParent = any> {
   deleteTags?: MutationToDeleteTagsResolver<TParent>
   renameTag?: MutationToRenameTagResolver<TParent>
   mergeTags?: MutationToMergeTagsResolver<TParent>
+  putCircle?: MutationToPutCircleResolver<TParent>
+  toggleFollowCircle?: MutationToToggleFollowCircleResolver<TParent>
+  subscribeCircle?: MutationToSubscribeCircleResolver<TParent>
+  unsubscribeCircle?: MutationToUnsubscribeCircleResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   togglePinComment?: MutationToTogglePinCommentResolver<TParent>
@@ -7345,6 +8095,63 @@ export interface MutationToMergeTagsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToMergeTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutCircleArgs {
+  input: GQLPutCircleInput
+}
+export interface MutationToPutCircleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToPutCircleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleFollowCircleArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToToggleFollowCircleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleFollowCircleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToSubscribeCircleArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToSubscribeCircleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToSubscribeCircleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToUnsubscribeCircleArgs {
+  input: GQLToggleItemInput
+}
+export interface MutationToUnsubscribeCircleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToUnsubscribeCircleArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7867,6 +8674,22 @@ export interface MutationToPutOAuthClientResolver<
   (
     parent: TParent,
     args: MutationToPutOAuthClientArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLSubscribeCircleResultTypeResolver<TParent = any> {
+  client_secret?: SubscribeCircleResultToClient_secretResolver<TParent>
+}
+
+export interface SubscribeCircleResultToClient_secretResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
