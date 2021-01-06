@@ -458,3 +458,11 @@ export class DuplicateCircleError extends ApolloError {
     Object.defineProperty(this, 'name', { value: 'DuplicateCircleError' })
   }
 }
+
+export class CircleNameInvalidError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'CIRCLE_NAME_INVALID')
+
+    Object.defineProperty(this, 'name', { value: 'CircleNameInvalidError' })
+  }
+}

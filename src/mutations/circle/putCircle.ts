@@ -4,13 +4,14 @@ import { ASSET_TYPE, PAYMENT_CURRENCY } from 'common/enums'
 import {
   AssetNotFoundError,
   AuthenticationError,
+  CircleNameInvalidError,
+  DisplayNameInvalidError,
   DuplicateCircleError,
   EntityNotFoundError,
   ForbiddenError,
   ServerError,
   UserInputError,
 } from 'common/errors'
-import logger from 'common/logger'
 import {
   fromGlobalId,
   isValidCircleName,
@@ -38,11 +39,11 @@ const resolver: MutationToPutCircleResolver = async (
   const trimedDescription = _trim(description)
 
   if (trimedName && !isValidCircleName(trimedName)) {
-    throw new UserInputError('invalid circle name')
+    throw new CircleNameInvalidError('invalid circle name')
   }
 
   if (trimedDisplayName && !isValidDisplayName(trimedDisplayName, 12)) {
-    throw new UserInputError('invalid display name')
+    throw new DisplayNameInvalidError('invalid display name')
   }
 
   if (trimedDescription && trimedDescription.length > 200) {
