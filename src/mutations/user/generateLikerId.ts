@@ -11,6 +11,8 @@ const resolver: MutationToGenerateLikerIdResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
+  const { ip } = viewer
+
   const liker = await userService.findLiker({ userId: viewer.id })
 
   // generate
@@ -18,6 +20,7 @@ const resolver: MutationToGenerateLikerIdResolver = async (
     await userService.registerLikerId({
       userId: viewer.id,
       userName: viewer.userName,
+      ip,
     })
   }
 
@@ -27,6 +30,7 @@ const resolver: MutationToGenerateLikerIdResolver = async (
       await userService.claimLikerId({
         userId: viewer.id,
         liker,
+        ip,
       })
     }
   }

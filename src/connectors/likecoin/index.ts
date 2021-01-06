@@ -221,9 +221,11 @@ export class LikeCoin {
     email,
     locale = 'zh',
     isEmailEnabled,
+    ip,
   }: {
     user: string
     token: string
+    ip?: string
     displayName?: string
     email?: string
     locale?: LikeCoinLocale
@@ -233,6 +235,9 @@ export class LikeCoin {
       endpoint: ENDPOINTS.register,
       withClientCredential: true,
       method: 'POST',
+      headers: {
+        'X-LIKECOIN-REAL-IP': ip,
+      },
       data: {
         user,
         token,
@@ -257,13 +262,18 @@ export class LikeCoin {
   edit = async ({
     action,
     payload,
+    ip,
   }: {
     action: 'claim' | 'transfer' | 'bind'
     payload: { [key: string]: any }
+    ip?: string
   }) => {
     const res = await this.request({
       endpoint: ENDPOINTS.edit,
       withClientCredential: true,
+      headers: {
+        'X-LIKECOIN-REAL-IP': ip,
+      },
       method: 'POST',
       data: {
         action,
