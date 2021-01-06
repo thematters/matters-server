@@ -1,7 +1,6 @@
-import isPlainObject from 'lodash/isPlainObject'
 import isEmail from 'validator/lib/isEmail'
 
-import { INVALID_NAMES } from 'common/enums'
+import { RESERVED_NAMES } from 'common/enums'
 
 /**
  * Validate email address.
@@ -45,7 +44,7 @@ export const isValidUserName = (name: string): boolean => {
     !name ||
     name.length < 4 ||
     name.length > 15 ||
-    INVALID_NAMES.includes(name.toLowerCase())
+    RESERVED_NAMES.includes(name.toLowerCase())
   ) {
     return false
   }
@@ -63,7 +62,7 @@ export const isValidDisplayName = (name: string, maxLen = 20): boolean => {
     !name ||
     name.length < 2 ||
     name.length > maxLen ||
-    INVALID_NAMES.includes(name.toLowerCase())
+    RESERVED_NAMES.includes(name.toLowerCase())
   ) {
     return false
   }
