@@ -4,11 +4,12 @@ import { ASSET_TYPE, PAYMENT_CURRENCY } from 'common/enums'
 import {
   AssetNotFoundError,
   AuthenticationError,
-  CircleNameInvalidError,
   DisplayNameInvalidError,
   DuplicateCircleError,
   EntityNotFoundError,
   ForbiddenError,
+  NameExistsError,
+  NameInvalidError,
   ServerError,
   UserInputError,
 } from 'common/errors'
@@ -39,7 +40,7 @@ const resolver: MutationToPutCircleResolver = async (
   const trimedDescription = _trim(description)
 
   if (trimedName && !isValidCircleName(trimedName)) {
-    throw new CircleNameInvalidError('invalid circle name')
+    throw new NameInvalidError('invalid circle name')
   }
 
   if (trimedDisplayName && !isValidDisplayName(trimedDisplayName, 12)) {
@@ -75,7 +76,7 @@ const resolver: MutationToPutCircleResolver = async (
         throw new ForbiddenError('already own a circle')
       }
       if (sameCircle > 0) {
-        throw new DuplicateCircleError(`duplicate circle name: ${trimedName}`)
+        throw new NameExistsError(`duplicate circle name: ${trimedName}`)
       }
 
       // create a stripe product
