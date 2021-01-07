@@ -15,6 +15,28 @@ import {
 
 const likecoinRouter = Router()
 
+const invalidateCache = async ({
+  id,
+  typeId,
+  userService,
+}: {
+  id: string
+  typeId: string
+  userService: InstanceType<typeof UserService>
+}) => {
+  if (typeId) {
+    const cache = new CacheService()
+    const result = await userService.baseFindEntityTypeTable(typeId)
+    const type = NODE_TYPES[(result?.table as keyof typeof NODE_TYPES) || '']
+    if (type) {
+      await invalidateFQC({
+        node: { type, id },
+        redis: cache.redis,
+      })
+    }
+  }
+}
+
 likecoinRouter.get('/', async (req, res) => {
   const successRedirect = `${environment.siteDomain}/pay/likecoin/success`
   const failureRedirect = `${environment.siteDomain}/pay/likecoin/failure`
@@ -45,8 +67,12 @@ likecoinRouter.get('/', async (req, res) => {
       })
     )[0]
 
+    if (!tx) {
+      throw new Error('could not found tx id passing from like pay')
+    }
+
     // check like chain tx state
-    const rate = Math.pow(10, 10)
+    const rate = Math.pow(10, 9)
     const cosmosData = await userService.likecoin.getCosmosTxData({
       hash: tx_hash,
     })
@@ -68,17 +94,22 @@ likecoinRouter.get('/', async (req, res) => {
     }
 
     // update transaction
-    paymentService.baseUpdate(tx.id, updateParams)
+    const updatedTx = await paymentService.baseUpdate(tx.id, updateParams)
 
     if (cosmosState === TRANSACTION_STATE.failed) {
+      invalidateCache({
+        id: updatedTx.targetId,
+        typeId: updatedTx.targetType,
+        userService,
+      })
       throw new Error('like pay failure')
     }
 
     /**
      * trigger notifications
      */
-    const sender = await userService.baseFindById(tx.senderId)
-    const recipient = await userService.baseFindById(tx.recipientId)
+    const sender = await userService.baseFindById(updatedTx.senderId)
+    const recipient = await userService.baseFindById(updatedTx.recipientId)
 
     // send to sender
     notificationService.mail.sendPayment({
@@ -91,8 +122,8 @@ likecoinRouter.get('/', async (req, res) => {
       tx: {
         recipient,
         sender,
-        amount: numRound(tx.amount),
-        currency: tx.currency,
+        amount: numRound(updatedTx.amount),
+        currency: updatedTx.currency,
       },
     })
 
@@ -105,7 +136,7 @@ likecoinRouter.get('/', async (req, res) => {
         {
           type: 'target',
           entityTable: 'transaction',
-          entity: tx,
+          entity: updatedTx,
         },
       ],
     })
@@ -119,26 +150,17 @@ likecoinRouter.get('/', async (req, res) => {
       tx: {
         recipient,
         sender,
-        amount: numRound(tx.amount),
-        currency: tx.currency,
+        amount: numRound(updatedTx.amount),
+        currency: updatedTx.currency,
       },
     })
 
     // manaully invalidate cache
-    if (tx.targetType) {
-      const cacheService = new CacheService()
-      const entityResult = await userService.baseFindEntityTypeTable(
-        tx.targetType
-      )
-      const targetType =
-        NODE_TYPES[(entityResult?.table as keyof typeof NODE_TYPES) || '']
-      if (targetType) {
-        await invalidateFQC({
-          node: { type: targetType, id: tx.targetId },
-          redis: cacheService.redis,
-        })
-      }
-    }
+    invalidateCache({
+      id: updatedTx.targetId,
+      typeId: updatedTx.targetType,
+      userService,
+    })
   } catch (error) {
     logger.error(error)
     return res.redirect(failureRedirect)
