@@ -365,6 +365,8 @@ enum AssetType {
   profileCover
   oauthClientAvatar
   tagCover
+  circleAvatar
+  circleCover
 }
 
 enum AuthorsType {
@@ -775,6 +777,7 @@ enum EntityType {
   draft
   tag
   user
+  circle
 }
 
 type Feature {
