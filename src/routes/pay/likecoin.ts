@@ -15,6 +15,28 @@ import {
 
 const likecoinRouter = Router()
 
+const invalidateCache = async ({
+  id,
+  typeId,
+  userService,
+}: {
+  id: string
+  typeId: string
+  userService: InstanceType<typeof UserService>
+}) => {
+  if (typeId) {
+    const cache = new CacheService()
+    const result = await userService.baseFindEntityTypeTable(typeId)
+    const type = NODE_TYPES[(result?.table as keyof typeof NODE_TYPES) || '']
+    if (type) {
+      await invalidateFQC({
+        node: { type, id },
+        redis: cache.redis,
+      })
+    }
+  }
+}
+
 likecoinRouter.get('/', async (req, res) => {
   const successRedirect = `${environment.siteDomain}/pay/likecoin/success`
   const failureRedirect = `${environment.siteDomain}/pay/likecoin/failure`
@@ -45,6 +67,10 @@ likecoinRouter.get('/', async (req, res) => {
       })
     )[0]
 
+    if (!tx) {
+      throw new Error('could not found tx id passing from like pay')
+    }
+
     // check like chain tx state
     const rate = Math.pow(10, 9)
     const cosmosData = await userService.likecoin.getCosmosTxData({
@@ -71,6 +97,11 @@ likecoinRouter.get('/', async (req, res) => {
     const updatedTx = await paymentService.baseUpdate(tx.id, updateParams)
 
     if (cosmosState === TRANSACTION_STATE.failed) {
+      invalidateCache({
+        id: updatedTx.targetId,
+        typeId: updatedTx.targetType,
+        userService,
+      })
       throw new Error('like pay failure')
     }
 
@@ -125,20 +156,11 @@ likecoinRouter.get('/', async (req, res) => {
     })
 
     // manaully invalidate cache
-    if (updatedTx.targetType) {
-      const cacheService = new CacheService()
-      const entityResult = await userService.baseFindEntityTypeTable(
-        updatedTx.targetType
-      )
-      const targetType =
-        NODE_TYPES[(entityResult?.table as keyof typeof NODE_TYPES) || '']
-      if (targetType) {
-        await invalidateFQC({
-          node: { type: targetType, id: tx.targetId },
-          redis: cacheService.redis,
-        })
-      }
-    }
+    invalidateCache({
+      id: updatedTx.targetId,
+      typeId: updatedTx.targetType,
+      userService,
+    })
   } catch (error) {
     logger.error(error)
     return res.redirect(failureRedirect)
