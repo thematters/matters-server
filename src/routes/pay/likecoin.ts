@@ -100,7 +100,7 @@ likecoinRouter.get('/', async (req, res) => {
       invalidateCache({
         id: updatedTx.targetId,
         typeId: updatedTx.targetType,
-        userService
+        userService,
       })
       throw new Error('like pay failure')
     }
@@ -159,7 +159,7 @@ likecoinRouter.get('/', async (req, res) => {
     invalidateCache({
       id: updatedTx.targetId,
       typeId: updatedTx.targetType,
-      userService
+      userService,
     })
   } catch (error) {
     logger.error(error)
