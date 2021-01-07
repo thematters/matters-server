@@ -1,6 +1,13 @@
 import Queue from 'bull'
 
-import { ASSET_TYPE, MINUTE, QUEUE_CONCURRENCY, QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
+import {
+  ASSET_TYPE,
+  MINUTE,
+  QUEUE_CONCURRENCY,
+  QUEUE_JOB,
+  QUEUE_NAME,
+  QUEUE_PRIORITY,
+} from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
 
@@ -54,7 +61,7 @@ class AssetQueue extends BaseQueue {
 
       const assets = await this.atomService.findMany({
         table: 'asset',
-        whereIn: ['id', ids]
+        whereIn: ['id', ids],
       })
 
       // delete db records
