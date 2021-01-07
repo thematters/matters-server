@@ -46,7 +46,7 @@ likecoinRouter.get('/', async (req, res) => {
     )[0]
 
     // check like chain tx state
-    const rate = Math.pow(10, 10)
+    const rate = Math.pow(10, 9)
     const cosmosData = await userService.likecoin.getCosmosTxData({
       hash: tx_hash,
     })
@@ -68,7 +68,7 @@ likecoinRouter.get('/', async (req, res) => {
     }
 
     // update transaction
-    paymentService.baseUpdate(tx.id, updateParams)
+    const updatedTx = await paymentService.baseUpdate(tx.id, updateParams)
 
     if (cosmosState === TRANSACTION_STATE.failed) {
       throw new Error('like pay failure')
@@ -77,8 +77,8 @@ likecoinRouter.get('/', async (req, res) => {
     /**
      * trigger notifications
      */
-    const sender = await userService.baseFindById(tx.senderId)
-    const recipient = await userService.baseFindById(tx.recipientId)
+    const sender = await userService.baseFindById(updatedTx.senderId)
+    const recipient = await userService.baseFindById(updatedTx.recipientId)
 
     // send to sender
     notificationService.mail.sendPayment({
@@ -91,8 +91,8 @@ likecoinRouter.get('/', async (req, res) => {
       tx: {
         recipient,
         sender,
-        amount: numRound(tx.amount),
-        currency: tx.currency,
+        amount: numRound(updatedTx.amount),
+        currency: updatedTx.currency,
       },
     })
 
@@ -105,7 +105,7 @@ likecoinRouter.get('/', async (req, res) => {
         {
           type: 'target',
           entityTable: 'transaction',
-          entity: tx,
+          entity: updatedTx,
         },
       ],
     })
@@ -119,16 +119,16 @@ likecoinRouter.get('/', async (req, res) => {
       tx: {
         recipient,
         sender,
-        amount: numRound(tx.amount),
-        currency: tx.currency,
+        amount: numRound(updatedTx.amount),
+        currency: updatedTx.currency,
       },
     })
 
     // manaully invalidate cache
-    if (tx.targetType) {
+    if (updatedTx.targetType) {
       const cacheService = new CacheService()
       const entityResult = await userService.baseFindEntityTypeTable(
-        tx.targetType
+        updatedTx.targetType
       )
       const targetType =
         NODE_TYPES[(entityResult?.table as keyof typeof NODE_TYPES) || '']
