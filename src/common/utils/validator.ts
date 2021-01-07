@@ -92,13 +92,11 @@ export const isValidPaymentPassword = (password: string): boolean => {
 }
 
 /**
- * Validate if string is in english.
+ * Validate tag name.
+ *
  */
-export const isEnglish = (str: string): boolean => {
-  if (!str) {
-    return false
-  }
-  return /^[a-zA-Z0-9]*$/.test(str)
+export const isValidTagName = (name: string, maxLen = 20): boolean => {
+  return !REGEXP_ALL_PUNCTUATIONS.test(name)
 }
 
 /**

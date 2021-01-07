@@ -1,5 +1,5 @@
 import { stripHtml } from '@matters/matters-html-formatter'
-import { difference, flow, uniq } from 'lodash'
+import { difference, flow, trim, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
@@ -18,10 +18,12 @@ import {
   EntityNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
+  NameInvalidError,
 } from 'common/errors'
 import {
   correctHtml,
   fromGlobalId,
+  isValidTagName,
   measureDiffs,
   sanitize,
   stripClass,
@@ -110,17 +112,24 @@ const resolver: MutationToEditArticleResolver = async (
       ? [environment.mattyId, article.authorId]
       : [article.authorId]
 
+    tags = uniq(tags)
+      .map((tag) => {
+        if (!isValidTagName(tag)) {
+          throw new NameInvalidError(`invalid tag: ${tag}`)
+        }
+        return trim(tag)
+      })
+      .filter((t) => !!t)
+
     // create tag records
     const dbTags = ((await Promise.all(
-      uniq(
-        tags.map((tag: string) =>
-          tagService.create({
-            content: tag,
-            creator: article.authorId,
-            editors: tagEditors,
-            owner: article.authorId,
-          })
-        )
+      tags.map((tag: string) =>
+        tagService.create({
+          content: tag,
+          creator: article.authorId,
+          editors: tagEditors,
+          owner: article.authorId,
+        })
       )
     )) as unknown) as [{ id: string; content: string }]
 
