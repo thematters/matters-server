@@ -1130,6 +1130,8 @@ export const enum GQLAssetType {
   profileCover = 'profileCover',
   oauthClientAvatar = 'oauthClientAvatar',
   tagCover = 'tagCover',
+  circleAvatar = 'circleAvatar',
+  circleCover = 'circleCover',
 }
 
 export interface GQLUserActivity {
@@ -2453,6 +2455,7 @@ export const enum GQLEntityType {
   draft = 'draft',
   tag = 'tag',
   user = 'user',
+  circle = 'circle',
 }
 
 export interface GQLLogRecordInput {
