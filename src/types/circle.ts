@@ -18,10 +18,10 @@ export default /* GraphQL */ `
     toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
 
     "Subscribe a Circle."
-    subscribeCircle(input: ToggleItemInput!): SubscribeCircleResult! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
+    subscribeCircle(input: CircleSubscriptionInput!): SubscribeCircleResult! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
 
     "Unsubscribe a Circle."
-    unsubscribeCircle(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
+    unsubscribeCircle(input: CircleSubscriptionInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
   }
 
   type Circle implements Node {
@@ -170,6 +170,11 @@ export default /* GraphQL */ `
 
     "Unique ID of target user."
     targetId: ID!
+  }
+
+  input CircleSubscriptionInput {
+    "Unique ID."
+    id: ID!
   }
 
   enum CircleState {
