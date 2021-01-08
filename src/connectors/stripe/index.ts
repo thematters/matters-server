@@ -26,6 +26,8 @@ class StripeService {
     if (isTest) {
       options = LOCAL_STRIPE
     }
+    console.log(options)
+    console.log(environment.pgHost)
 
     this.stripe = new Stripe(environment.stripeSecret, {
       apiVersion: '2020-03-02',

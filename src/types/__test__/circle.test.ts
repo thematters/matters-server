@@ -96,7 +96,7 @@ describe('circle CRUD', () => {
     input.displayName = 'Circle 1'
     const data5 = await mutate({
       mutation: PUT_CIRCLE,
-      variables: { input }
+      variables: { input },
     })
     console.log(data5)
     expect(_get(data5, `${path}.name`)).toBe('circle1')
@@ -107,15 +107,18 @@ describe('circle CRUD', () => {
     // test create multiple circles
     const data6 = await mutate({
       mutation: PUT_CIRCLE,
-      variables: { input }
+      variables: { input },
     })
     expect(_get(data6, errorPath)).toBe('FORBIDDEN')
 
     // test create a duplicate circle
-    const { mutate: adminMutate } = await testClient({ isAuth: true, isAdmin: true })
+    const { mutate: adminMutate } = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
     const data7 = await adminMutate({
       mutation: PUT_CIRCLE,
-      variables: { input }
+      variables: { input },
     })
     expect(_get(data7, errorPath)).toBe('NAME_EXISTS')
   })
@@ -129,7 +132,7 @@ describe('circle CRUD', () => {
     const circle = _get(data, 'viewer.ownCircles[0]')
     const input: Record<string, any> = {
       id: circle.id,
-      name: 'very_long_circle_name'
+      name: 'very_long_circle_name',
     }
 
     // test cricle name
@@ -186,18 +189,21 @@ describe('circle CRUD', () => {
     const circle = _get(data, 'viewer.ownCircles[0]')
 
     // test follow circle
-    const { mutate: adminMutate } = await testClient({ isAuth: true, isAdmin: true })
+    const { mutate: adminMutate } = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
     const updatedData1 = await adminMutate({
       mutation: TOGGLE_FOLLOW_CIRCLE,
-      variables: { input: { id: circle.id, enabled: true } }
+      variables: { input: { id: circle.id, enabled: true } },
     })
-    expect((_get(updatedData1, `${path}.followers.edges`)).length).toBe(1)
+    expect(_get(updatedData1, `${path}.followers.edges`).length).toBe(1)
 
     // test unfollow circle
     const updatedData2 = await adminMutate({
       mutation: TOGGLE_FOLLOW_CIRCLE,
-      variables: { input: { id: circle.id, enabled: false } }
+      variables: { input: { id: circle.id, enabled: false } },
     })
-    expect((_get(updatedData2, `${path}.followers.edges`)).length).toBe(0)
+    expect(_get(updatedData2, `${path}.followers.edges`).length).toBe(0)
   })
 })
