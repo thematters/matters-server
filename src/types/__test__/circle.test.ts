@@ -67,7 +67,7 @@ const TOGGLE_FOLLOW_CIRCLE = `
 `
 
 const SUBSCRIBE_CIRCLE = `
-  mutation($input: CircleSubscriptionInput!) {
+  mutation($input: SubscribeCircleInput!) {
     subscribeCircle(input: $input) {
       client_secret
     }
@@ -75,7 +75,7 @@ const SUBSCRIBE_CIRCLE = `
 `
 
 const UNSUBSCRIBE_CIRCLE = `
-  mutation($input: CircleSubscriptionInput!) {
+  mutation($input: UnsubscribeCircleInput!) {
     unsubscribeCircle(input: $input) {
       id
       members(input: { first: null }) {
@@ -250,7 +250,7 @@ describe('circle CRUD', () => {
     const { mutate: adminMutate } = await testClient(adminClient)
     const updatedData = await adminMutate({
       mutation: SUBSCRIBE_CIRCLE,
-      variables: { input: { id: circle.id } },
+      variables: { input: { id: circle.id, password: 'foobar' } },
     })
     expect(_get(updatedData, 'data.subscribeCircle.client_secret')).toBe('')
 
