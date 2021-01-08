@@ -276,6 +276,8 @@ describe('circle CRUD', () => {
       mutation: UNSUBSCRIBE_CIRCLE,
       variables: { input: { id: circle.id } },
     })
-    expect(_get(updatedData, 'data.unsubscribeCircle.members.totalCount')).toBe(0)
+    expect(_get(updatedData, 'data.unsubscribeCircle.members.totalCount')).toBe(
+      0
+    )
   })
 })
