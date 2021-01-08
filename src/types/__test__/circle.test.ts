@@ -50,7 +50,34 @@ const TOGGLE_FOLLOW_CIRCLE = `
   }
 `
 
+const SUBSCRIBE_CIRCLE = `
+  mutation($input: ToggleItemInput!) {
+    subscribeCircle(input: $input) {
+      client_secret
+    }
+  }
+`
+
+const UNSUBSCRIBE_CIRCLE = `
+  mutation($input: ToggleItemInput!) {
+    unsubscribeCircle(input: $input) {
+      id
+      members(input: { first: null }) {
+        totoalCount
+        edges {
+          node {
+            user {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 describe('circle CRUD', () => {
+  // shared setting
   const errorPath = 'errors.0.extensions.code'
 
   test('create circle', async () => {
@@ -204,5 +231,25 @@ describe('circle CRUD', () => {
       variables: { input: { id: circle.id, enabled: false } },
     })
     expect(_get(updatedData2, `${path}.followers.edges`).length).toBe(0)
+  })
+
+  test('subscribe circle', async () => {
+    const { query } = await testClient({ isAuth: true, isAdmin: false })
+    const { data } = await query({
+      query: GET_VIEWER_OWN_CIRCLES,
+    })
+    const circle = _get(data, 'viewer.ownCircles[0]')
+
+    // subscribe
+    const { query: adminQuery, mutate: adminMutate } = await testClient({ isAuth: true, isAdmin: true })
+    const updatedData = await adminMutate({
+      mutation: SUBSCRIBE_CIRCLE,
+      variables: { id: circle.id }
+    })
+
+  })
+
+  test('unsuscribe cricle', async () => {
+    // TODO
   })
 })
