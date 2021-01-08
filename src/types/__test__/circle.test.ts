@@ -98,6 +98,7 @@ describe('circle CRUD', () => {
       mutation: PUT_CIRCLE,
       variables: { input }
     })
+    console.log(data5)
     expect(_get(data5, `${path}.name`)).toBe('circle1')
     expect(_get(data5, `${path}.displayName`)).toBe('Circle 1')
     expect(_get(data5, `${path}.prices[0].amount`)).toBe(10)
