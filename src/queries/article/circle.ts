@@ -1,19 +1,25 @@
 import { ArticleToCircleResolver } from 'definitions'
 
 const resolver: ArticleToCircleResolver = async (
-  { id },
+  { articleId },
   _,
   { dataSources: { atomService } }
 ) => {
-  if (!id) {
-    return []
+  if (!articleId) {
+    return
   }
 
-  const circleId = await atomService.findFirst({
+  const articleCircle = await atomService.findFirst({
     table: 'article_circle',
-    where: { articleId: id },
+    where: { articleId },
   })
-  const circle = await atomService.circleIdLoader.load(circleId)
+
+  if (!articleCircle || !articleCircle.circleId) {
+    return
+  }
+
+  const circle = await atomService.circleIdLoader.load(articleCircle.circleId)
+
   return circle
 }
 
