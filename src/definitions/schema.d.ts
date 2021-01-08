@@ -217,7 +217,7 @@ export interface GQLArticle extends GQLNode {
   /**
    * Current article belongs to which Circle.
    */
-  circle: GQLCircle
+  circle?: GQLCircle
 
   /**
    * The counting number of comments.
