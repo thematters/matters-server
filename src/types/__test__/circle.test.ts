@@ -9,6 +9,22 @@ const GET_VIEWER_OWN_CIRCLES = `
     viewer {
       ownCircles {
         id
+        members(input: { first: null }) {
+          totalCount
+        }
+      }
+    }
+  }
+`
+
+const QUERY_CIRCLE = `
+  query($input: NodeInput!) {
+    node(input: $input) {
+      ... on Circle {
+        id
+        members(input: { first: null }) {
+          totalCount
+        }
       }
     }
   }
@@ -51,7 +67,7 @@ const TOGGLE_FOLLOW_CIRCLE = `
 `
 
 const SUBSCRIBE_CIRCLE = `
-  mutation($input: ToggleItemInput!) {
+  mutation($input: CircleSubscriptionInput!) {
     subscribeCircle(input: $input) {
       client_secret
     }
@@ -59,18 +75,11 @@ const SUBSCRIBE_CIRCLE = `
 `
 
 const UNSUBSCRIBE_CIRCLE = `
-  mutation($input: ToggleItemInput!) {
+  mutation($input: CircleSubscriptionInput!) {
     unsubscribeCircle(input: $input) {
       id
       members(input: { first: null }) {
-        totoalCount
-        edges {
-          node {
-            user {
-              id
-            }
-          }
-        }
+        totalCount
       }
     }
   }
@@ -80,9 +89,12 @@ describe('circle CRUD', () => {
   // shared setting
   const errorPath = 'errors.0.extensions.code'
 
+  const userClient = { isAuth: true, isAdmin: false }
+  const adminClient = { isAuth: true, isAdmin: true }
+
   test('create circle', async () => {
     const path = 'data.putCircle'
-    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
+    const { mutate } = await testClient(userClient)
     const input: Record<string, any> = {
       name: 'very_long_circle_name',
       displayName: 'very long circle name',
@@ -138,10 +150,7 @@ describe('circle CRUD', () => {
     expect(_get(data6, errorPath)).toBe('FORBIDDEN')
 
     // test create a duplicate circle
-    const { mutate: adminMutate } = await testClient({
-      isAuth: true,
-      isAdmin: true,
-    })
+    const { mutate: adminMutate } = await testClient(adminClient)
     const data7 = await adminMutate({
       mutation: PUT_CIRCLE,
       variables: { input },
@@ -151,7 +160,7 @@ describe('circle CRUD', () => {
 
   test('update circle', async () => {
     const path = 'data.putCircle'
-    const { query, mutate } = await testClient({ isAuth: true, isAdmin: false })
+    const { query, mutate } = await testClient(userClient)
     const { data } = await query({
       query: GET_VIEWER_OWN_CIRCLES,
     })
@@ -208,17 +217,14 @@ describe('circle CRUD', () => {
 
   test('toggle follow circle', async () => {
     const path = 'data.toggleFollowCircle'
-    const { query, mutate } = await testClient({ isAuth: true, isAdmin: false })
+    const { query, mutate } = await testClient(userClient)
     const { data } = await query({
       query: GET_VIEWER_OWN_CIRCLES,
     })
     const circle = _get(data, 'viewer.ownCircles[0]')
 
     // test follow circle
-    const { mutate: adminMutate } = await testClient({
-      isAuth: true,
-      isAdmin: true,
-    })
+    const { mutate: adminMutate } = await testClient(adminClient)
     const updatedData1 = await adminMutate({
       mutation: TOGGLE_FOLLOW_CIRCLE,
       variables: { input: { id: circle.id, enabled: true } },
@@ -234,24 +240,42 @@ describe('circle CRUD', () => {
   })
 
   test('subscribe circle', async () => {
-    const { query } = await testClient({ isAuth: true, isAdmin: false })
-    const { data } = await query({
+    const { query } = await testClient(userClient)
+    const { data: data1 } = await query({
       query: GET_VIEWER_OWN_CIRCLES,
     })
-    const circle = _get(data, 'viewer.ownCircles[0]')
+    const circle = _get(data1, 'viewer.ownCircles[0]')
 
     // subscribe
-    const { query: adminQuery, mutate: adminMutate } = await testClient({
-      isAuth: true,
-      isAdmin: true,
-    })
+    const { mutate: adminMutate } = await testClient(adminClient)
     const updatedData = await adminMutate({
       mutation: SUBSCRIBE_CIRCLE,
-      variables: { id: circle.id },
+      variables: { input: { id: circle.id } },
     })
+    expect(_get(updatedData, 'data.subscribeCircle.client_secret')).toBe('')
+
+    // check members
+    const { data: data2 } = await query({
+      query: QUERY_CIRCLE,
+      variables: { input: { id: circle.id } },
+    })
+    expect(_get(data2, 'node.members.totalCount')).toBe(1)
   })
 
   test('unsuscribe cricle', async () => {
-    // TODO
+    const { query } = await testClient(userClient)
+    const { data: data1 } = await query({
+      query: GET_VIEWER_OWN_CIRCLES,
+    })
+    const circle = _get(data1, 'viewer.ownCircles[0]')
+    expect(_get(circle, 'members.totalCount')).toBe(1)
+
+    // unsubscribe
+    const { mutate: adminMutate } = await testClient(adminClient)
+    const updatedData = await adminMutate({
+      mutation: UNSUBSCRIBE_CIRCLE,
+      variables: { input: { id: circle.id } },
+    })
+    expect(_get(updatedData, 'data.unsubscribeCircle.members.totalCount')).toBe(0)
   })
 })
