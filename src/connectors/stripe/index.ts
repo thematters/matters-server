@@ -1,7 +1,7 @@
 import Stripe from 'stripe'
 
-import { PAYMENT_CURRENCY } from 'common/enums'
-import { environment } from 'common/environment'
+import { LOCAL_STRIPE, PAYMENT_CURRENCY } from 'common/enums'
+import { environment, isTest } from 'common/environment'
 import { PaymentAmountInvalidError, ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { getUTC8NextMonthDayOne, toProviderAmount } from 'common/utils'
@@ -22,8 +22,14 @@ class StripeService {
   stripe: Stripe
 
   constructor() {
+    let options: Record<string, any> = {}
+    if (isTest) {
+      options = LOCAL_STRIPE
+    }
+
     this.stripe = new Stripe(environment.stripeSecret, {
       apiVersion: '2020-03-02',
+      ...options,
     })
   }
 

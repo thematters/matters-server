@@ -30,6 +30,11 @@ jobs:
         image: ipfs/go-ipfs:latest
         ports:
           - 5001:5001
+      stripe:
+        image: stripemock/stripe-mock:latest
+        ports:
+          - 12111:12111
+          - 12112:12112
 
     steps:
       - name: Checkout Repo
