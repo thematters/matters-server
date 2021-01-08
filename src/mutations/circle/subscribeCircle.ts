@@ -19,7 +19,7 @@ import { MutationToSubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToSubscribeCircleResolver = async (
   root,
-  { input: { id } },
+  { input: { id, password } },
   { viewer, dataSources: { atomService, paymentService }, knex }
 ) => {
   if (!viewer.id) {
@@ -28,6 +28,8 @@ const resolver: MutationToSubscribeCircleResolver = async (
   if (!environment.stripePriceId) {
     throw new ServerError('matters price id not found')
   }
+
+  // TODO: add password checker
 
   const { id: circleId } = fromGlobalId(id || '')
   const [circle, price] = await Promise.all([

@@ -67,9 +67,9 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
   }
 
   // remove stripe subscription item
-  await paymentService.stripe.deleteSubscriptionItem(
-    item.providerSubscriptionItemId
-  )
+  await paymentService.stripe.deleteSubscriptionItem({
+    id: item.providerSubscriptionItemId,
+  })
 
   // remove subscription item
   await atomService.deleteMany({
