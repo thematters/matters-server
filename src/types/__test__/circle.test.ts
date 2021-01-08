@@ -241,12 +241,14 @@ describe('circle CRUD', () => {
     const circle = _get(data, 'viewer.ownCircles[0]')
 
     // subscribe
-    const { query: adminQuery, mutate: adminMutate } = await testClient({ isAuth: true, isAdmin: true })
+    const { query: adminQuery, mutate: adminMutate } = await testClient({
+      isAuth: true,
+      isAdmin: true,
+    })
     const updatedData = await adminMutate({
       mutation: SUBSCRIBE_CIRCLE,
-      variables: { id: circle.id }
+      variables: { id: circle.id },
     })
-
   })
 
   test('unsuscribe cricle', async () => {
