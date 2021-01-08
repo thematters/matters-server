@@ -31,9 +31,6 @@ class StripeService {
       apiVersion: '2020-03-02',
       ...options,
     })
-
-    // @ts-ignore
-    console.log(this.stripe._api)
   }
 
   handleError(err: Stripe.StripeError) {
