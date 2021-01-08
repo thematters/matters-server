@@ -28,6 +28,7 @@ class StripeService {
     }
     console.log(options)
     console.log(environment.pgHost)
+    console.log(environment.stripeSecret)
 
     this.stripe = new Stripe(environment.stripeSecret, {
       apiVersion: '2020-03-02',

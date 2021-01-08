@@ -189,7 +189,7 @@ export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
 }
 
 export const LOCAL_STRIPE = {
-  host: '0.0.0.0',
+  host: 'localhost',
   port: '12111',
   protocol: 'http',
 }
