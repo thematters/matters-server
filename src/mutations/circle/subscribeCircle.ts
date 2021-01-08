@@ -19,14 +19,11 @@ import { MutationToSubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToSubscribeCircleResolver = async (
   root,
-  { input: { id, enabled } },
+  { input: { id } },
   { viewer, dataSources: { atomService, paymentService }, knex }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
-  }
-  if (typeof enabled !== 'boolean') {
-    throw new UserInputError('parameter "enabled" is required')
   }
   if (!environment.stripePriceId) {
     throw new ServerError('matters price id not found')
