@@ -1,3 +1,5 @@
+import { compare } from 'bcrypt'
+
 import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
@@ -10,6 +12,8 @@ import {
   AuthenticationError,
   DuplicateCircleError,
   EntityNotFoundError,
+  PasswordInvalidError,
+  PaymentPasswordNotSetError,
   ServerError,
   UserInputError,
 } from 'common/errors'
@@ -28,8 +32,13 @@ const resolver: MutationToSubscribeCircleResolver = async (
   if (!environment.stripePriceId) {
     throw new ServerError('matters price id not found')
   }
-
-  // TODO: add password checker
+  if (!viewer.paymentPasswordHash) {
+    throw new PaymentPasswordNotSetError('viewer payment password has not set')
+  }
+  const verified = await compare(password, viewer.paymentPasswordHash)
+  if (!verified) {
+    throw new PasswordInvalidError('password is incorrect, pay failed.')
+  }
 
   const { id: circleId } = fromGlobalId(id || '')
   const [circle, price] = await Promise.all([
