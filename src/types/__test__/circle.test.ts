@@ -250,7 +250,7 @@ describe('circle CRUD', () => {
     const { mutate: adminMutate } = await testClient(adminClient)
     const updatedData = await adminMutate({
       mutation: SUBSCRIBE_CIRCLE,
-      variables: { input: { id: circle.id, password: 'foobar' } },
+      variables: { input: { id: circle.id, password: '123456' } },
     })
     expect(_get(updatedData, 'data.subscribeCircle.client_secret')).toBe('')
 
