@@ -18,6 +18,7 @@ import {
   isValidCircleName,
   isValidDisplayName,
 } from 'common/utils'
+import { assetQueue } from 'connectors/queue'
 import { MutationToPutCircleResolver } from 'definitions'
 
 enum ACTION {
@@ -220,19 +221,8 @@ const resolver: MutationToPutCircleResolver = async (
         })
       }
 
-      // TODO: move delete unused assets into queue
-      // delete unused assets
-      const unusedAssets = await atomService.findMany({
-        table: 'asset',
-        whereIn: ['id', unusedAssetIds],
-      })
-      await knex.transaction(async (trx) => {
-        await trx('asset_map').whereIn('asset_id', unusedAssetIds).del()
-        await trx('asset').whereIn('id', unusedAssetIds).del()
-      })
-      await Promise.all(
-        unusedAssets.map((asset) => atomService.aws.baseDeleteFile(asset.path))
-      )
+      // TODO: move unused asset deletion into queue
+      assetQueue.remove({ ids: unusedAssetIds })
 
       return updatedCircle
     }
