@@ -950,10 +950,10 @@ type Mutation {
   toggleFollowCircle(input: ToggleItemInput!): Circle!
 
   """Subscribe a Circle."""
-  subscribeCircle(input: ToggleItemInput!): SubscribeCircleResult!
+  subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult!
 
   """Unsubscribe a Circle."""
-  unsubscribeCircle(input: ToggleItemInput!): Circle!
+  unsubscribeCircle(input: UnsubscribeCircleInput!): Circle!
 
   """Publish a comment."""
   putComment(input: PutCommentInput!): Comment!
@@ -1676,6 +1676,14 @@ type StripeAccount {
   loginUrl: URL!
 }
 
+input SubscribeCircleInput {
+  """Unique ID."""
+  id: ID!
+
+  """Wallet password."""
+  password: String!
+}
+
 type SubscribeCircleResult {
   client_secret: String!
 }
@@ -1928,6 +1936,11 @@ input TranslationArgs {
 }
 
 input UnpinCommentInput {
+  id: ID!
+}
+
+input UnsubscribeCircleInput {
+  """Unique ID."""
   id: ID!
 }
 

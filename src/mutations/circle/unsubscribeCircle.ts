@@ -18,14 +18,11 @@ import { MutationToUnsubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToUnsubscribeCircleResolver = async (
   root,
-  { input: { id, enabled } },
+  { input: { id } },
   { viewer, dataSources: { atomService, paymentService }, knex }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
-  }
-  if (typeof enabled !== 'boolean') {
-    throw new UserInputError('parameter "enabled" is required')
   }
 
   const { id: circleId } = fromGlobalId(id || '')
@@ -70,9 +67,9 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
   }
 
   // remove stripe subscription item
-  await paymentService.stripe.deleteSubscriptionItem(
-    item.providerSubscriptionItemId
-  )
+  await paymentService.stripe.deleteSubscriptionItem({
+    id: item.providerSubscriptionItemId,
+  })
 
   // remove subscription item
   await atomService.deleteMany({

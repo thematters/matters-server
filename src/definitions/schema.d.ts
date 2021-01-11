@@ -2384,8 +2384,27 @@ export interface GQLPutCircleInput {
   amount?: GQLNonNegativeFloat
 }
 
+export interface GQLSubscribeCircleInput {
+  /**
+   * Unique ID.
+   */
+  id: string
+
+  /**
+   * Wallet password.
+   */
+  password: string
+}
+
 export interface GQLSubscribeCircleResult {
   client_secret: string
+}
+
+export interface GQLUnsubscribeCircleInput {
+  /**
+   * Unique ID.
+   */
+  id: string
 }
 
 export interface GQLPutCommentInput {
@@ -8128,7 +8147,7 @@ export interface MutationToToggleFollowCircleResolver<
 }
 
 export interface MutationToSubscribeCircleArgs {
-  input: GQLToggleItemInput
+  input: GQLSubscribeCircleInput
 }
 export interface MutationToSubscribeCircleResolver<
   TParent = any,
@@ -8143,7 +8162,7 @@ export interface MutationToSubscribeCircleResolver<
 }
 
 export interface MutationToUnsubscribeCircleArgs {
-  input: GQLToggleItemInput
+  input: GQLUnsubscribeCircleInput
 }
 export interface MutationToUnsubscribeCircleResolver<
   TParent = any,

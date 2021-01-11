@@ -1,3 +1,5 @@
+import { compare } from 'bcrypt'
+
 import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
@@ -10,6 +12,8 @@ import {
   AuthenticationError,
   DuplicateCircleError,
   EntityNotFoundError,
+  PasswordInvalidError,
+  PaymentPasswordNotSetError,
   ServerError,
   UserInputError,
 } from 'common/errors'
@@ -19,17 +23,21 @@ import { MutationToSubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToSubscribeCircleResolver = async (
   root,
-  { input: { id, enabled } },
+  { input: { id, password } },
   { viewer, dataSources: { atomService, paymentService }, knex }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
-  if (typeof enabled !== 'boolean') {
-    throw new UserInputError('parameter "enabled" is required')
-  }
   if (!environment.stripePriceId) {
     throw new ServerError('matters price id not found')
+  }
+  if (!viewer.paymentPasswordHash) {
+    throw new PaymentPasswordNotSetError('viewer payment password has not set')
+  }
+  const verified = await compare(password, viewer.paymentPasswordHash)
+  if (!verified) {
+    throw new PasswordInvalidError('password is incorrect, pay failed.')
   }
 
   const { id: circleId } = fromGlobalId(id || '')
