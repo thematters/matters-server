@@ -252,7 +252,6 @@ describe('circle CRUD', () => {
       mutation: SUBSCRIBE_CIRCLE,
       variables: { input: { id: circle.id, password: '123456' } },
     })
-    console.log(updatedData)
     expect(_get(updatedData, 'data.subscribeCircle.client_secret')).toBe('')
 
     // check members
