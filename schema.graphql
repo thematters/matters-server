@@ -194,7 +194,7 @@ type Article implements Node {
   drafts: [Draft!]
 
   """Current article belongs to which Circle."""
-  circle: Circle!
+  circle: Circle
 
   """The counting number of comments."""
   commentCount: Int!
