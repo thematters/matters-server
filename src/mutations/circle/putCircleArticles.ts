@@ -77,7 +77,6 @@ const resolver: MutationToPutCircleArticlesResolver = async (
           create: data,
           update: data,
         })
-        console.log({ res })
       }
       break
     case 'remove':
