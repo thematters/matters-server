@@ -144,9 +144,12 @@ class StripeService {
    */
   getCustomerPortal = async ({ customerId }: { customerId: string }) => {
     try {
+      if (!environment.stripeReturnURL) {
+        throw new ServerError('matters stripe return URL has not been set')
+      }
       const session = await this.stripe.billingPortal.sessions.create({
         customer: customerId,
-        return_url: 'https://example.com/account',
+        return_url: environment.stripeReturnURL,
       })
       return session.url
     } catch (error) {
