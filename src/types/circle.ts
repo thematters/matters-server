@@ -118,6 +118,17 @@ export default /* GraphQL */ `
     updatedAt: DateTime!
   }
 
+  type CircleConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [CircleEdge!]
+  }
+
+  type CircleEdge {
+    cursor: String!
+    node: Circle! @logCache(type: "${NODE.circle}")
+  }
+
   type MemberConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
