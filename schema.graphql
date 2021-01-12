@@ -470,6 +470,17 @@ type Circle implements Node {
   discussion(input: ConnectionArgs!): CommentConnection!
 }
 
+type CircleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CircleEdge!]
+}
+
+type CircleEdge {
+  cursor: String!
+  node: Circle!
+}
+
 input CircleInput {
   """Slugified name of a Circle."""
   name: String!
@@ -1479,6 +1490,12 @@ type Recommendation {
 
   """Recommend articles with collaborative filtering"""
   recommendArticles(input: ConnectionArgs!): ArticleConnection!
+
+  """Global circles sort by created time."""
+  newestCircles(input: ConnectionArgs!): CircleConnection!
+
+  """Global circles sort by latest activity time."""
+  hottestCircles(input: ConnectionArgs!): CircleConnection!
 }
 
 input RecommendInput {

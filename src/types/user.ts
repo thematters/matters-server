@@ -198,6 +198,12 @@ export default /* GraphQL */ `
 
     "Recommend articles with collaborative filtering"
     recommendArticles(input: ConnectionArgs!): ArticleConnection!
+
+    "Global circles sort by created time."
+    newestCircles(input: ConnectionArgs!): CircleConnection! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+
+    "Global circles sort by latest activity time."
+    hottestCircles(input: ConnectionArgs!): CircleConnection! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
   }
 
   input RecommendInput {
