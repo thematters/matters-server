@@ -2055,7 +2055,7 @@ export interface GQLMutation {
   mergeTags: GQLTag
 
   /**
-   * Put a Circle.
+   * Create or update a Circle.
    */
   putCircle: GQLCircle
 
@@ -2075,7 +2075,12 @@ export interface GQLMutation {
   unsubscribeCircle: GQLCircle
 
   /**
-   * Publish a comment.
+   * Add or remove Circle's articles
+   */
+  putCircleArticles: GQLCircle
+
+  /**
+   * Publish or update a comment.
    */
   putComment: GQLComment
 
@@ -2428,6 +2433,28 @@ export interface GQLUnsubscribeCircleInput {
    * Unique ID.
    */
   id: string
+}
+
+export interface GQLPutCircleArticlesInput {
+  /**
+   * Circle ID
+   */
+  id: string
+
+  /**
+   * Article Ids
+   */
+  articles?: Array<string>
+
+  /**
+   * Action Type
+   */
+  type: GQLPutCircleArticlesType
+}
+
+export const enum GQLPutCircleArticlesType {
+  add = 'add',
+  remove = 'remove',
 }
 
 export interface GQLPutCommentInput {
@@ -7943,6 +7970,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleFollowCircle?: MutationToToggleFollowCircleResolver<TParent>
   subscribeCircle?: MutationToSubscribeCircleResolver<TParent>
   unsubscribeCircle?: MutationToUnsubscribeCircleResolver<TParent>
+  putCircleArticles?: MutationToPutCircleArticlesResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   togglePinComment?: MutationToTogglePinCommentResolver<TParent>
@@ -8291,6 +8319,21 @@ export interface MutationToUnsubscribeCircleResolver<
   (
     parent: TParent,
     args: MutationToUnsubscribeCircleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutCircleArticlesArgs {
+  input: GQLPutCircleArticlesInput
+}
+export interface MutationToPutCircleArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToPutCircleArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -141,7 +141,7 @@ const resolver: MutationToPutCircleResolver = async (
       })
 
       if (!circle) {
-        throw new EntityNotFoundError(`Circle ${circleId} not found`)
+        throw new EntityNotFoundError(`Circle ${id} not found`)
       }
 
       // transform update paramters

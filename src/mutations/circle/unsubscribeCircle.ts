@@ -38,10 +38,10 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
   ])
 
   if (!circle) {
-    throw new EntityNotFoundError(`circle ${circleId} not found`)
+    throw new EntityNotFoundError(`circle ${id} not found`)
   }
   if (!price) {
-    throw new EntityNotFoundError(`price of circle ${circleId} not found`)
+    throw new EntityNotFoundError(`price of circle ${id} not found`)
   }
 
   const subscription = await atomService.findFirst({
