@@ -9,7 +9,7 @@ import logger from 'common/logger'
 import { CacheService, PaymentService } from 'connectors'
 
 const stripe = new Stripe(environment.stripeSecret, {
-  apiVersion: '2020-03-02',
+  apiVersion: '2020-08-27',
 })
 
 /**
@@ -65,7 +65,7 @@ const stripeConnectHandler = async (
   try {
     const { stripe_user_id: accountId } = await stripe.oauth.token({
       grant_type: 'authorization_code',
-      code: authCode,
+      code: authCode as string,
     })
 
     if (!accountId) {

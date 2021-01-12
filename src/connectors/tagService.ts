@@ -31,7 +31,7 @@ export class TagService extends BaseService {
     offset?: number
     sort?: 'newest' | 'oldest' | 'hottest'
   }) => {
-    let query = null
+    let query
 
     const sortCreatedAt = (by: 'desc' | 'asc') =>
       this.knex.select().from(this.table).orderBy('created_at', by)

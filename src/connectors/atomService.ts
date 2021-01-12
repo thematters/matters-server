@@ -46,7 +46,7 @@ interface UpdateInput {
 
 interface UpsertInput {
   table: TableName
-  where?: Record<string, any>
+  where: Record<string, any>
   create: Record<string, any>
   update: Record<string, any>
 }

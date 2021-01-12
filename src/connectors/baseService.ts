@@ -11,7 +11,7 @@ import { Item, ItemData, TableName } from 'definitions'
 export class BaseService extends DataSource {
   es: typeof es
   aws: typeof aws
-  knex: Knex
+  knex: Knex<any, any>
   dataloader: DataLoader<string, Item>
   uuidLoader: DataLoader<string, Item>
   table: TableName

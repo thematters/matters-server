@@ -31,7 +31,7 @@ const resolver: ArticleToRelatedDonationArticlesResolver = async (
 
     const chunks = chunk(articlePool, randomDraw)
     const index = Math.min(random, MAX_RANDOM_INDEX, chunks.length - 1)
-    const filteredArticles = chunks[index] || []
+    const filteredArticles = (chunks[index] || []) as any[]
 
     return connectionFromPromisedArray(
       draftService.dataloader.loadMany(

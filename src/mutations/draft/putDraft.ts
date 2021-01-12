@@ -51,7 +51,7 @@ const resolver: MutationToPutDraftResolver = async (
 
   // check for collection existence
   // add to dbId array if ok
-  let collectionIds = null
+  let collectionIds
   if (collection) {
     collectionIds = await Promise.all(
       collection.map(async (articleGlobalId) => {

@@ -37,7 +37,7 @@ class PushService {
       await userService.findPushDevices({
         userIds: recipients,
       })
-    ).map(({ deviceId }) => deviceId)
+    ).map(({ deviceId }: any) => deviceId)
     const URL_LOGO = 'https://matters.news/static/icon-192x192.png'
 
     if (!deviceIds || deviceIds.length <= 0) {
