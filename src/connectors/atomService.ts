@@ -46,9 +46,9 @@ interface UpdateInput {
 
 interface UpsertInput {
   table: TableName
-  where: Record<string, any>
   create: Record<string, any>
   update: Record<string, any>
+  constraints: string[]
 }
 
 interface DeleteManyInput {
@@ -189,23 +189,14 @@ export class AtomService extends DataSource {
    *
    * A Prisma like method for updating or creating a record.
    */
-  upsert = async ({ table, where, create, update }: UpsertInput) => {
-    // TODO: Use onConflict instead
-    // @see {@url https://github.com/knex/knex/pull/3763}
-    const record = await this.knex(table).select().where(where).first()
-
-    // create
-    if (!record) {
-      return this.knex(table).insert(create).returning('*')
-    }
-
-    // update
-    const [updatedRecord] = await this.knex(table)
-      .where(where)
-      .update(update)
+  upsert = async ({ table, create, update, constraints }: UpsertInput) => {
+    const [record] = await this.knex(table)
+      .insert(create)
+      .onConflict(constraints)
+      .merge(update)
       .returning('*')
 
-    return updatedRecord
+    return record
   }
 
   /**

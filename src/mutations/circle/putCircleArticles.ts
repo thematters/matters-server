@@ -71,11 +71,14 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     case 'add':
       for (const articleId of targetArticleIds) {
         const data = { articleId, circleId: circle.id }
-        const res = await atomService.upsert({
+        await atomService.upsert({
           table: 'article_circle',
-          where: data,
           create: data,
-          update: data,
+          update: {
+            updatedAt: new Date(),
+            ...data,
+          },
+          constraints: ['article_id', 'circle_id'],
         })
       }
       break
