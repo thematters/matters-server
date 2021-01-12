@@ -51,6 +51,7 @@ const ENDPOINTS = {
   like: '/like/likebutton',
   rate: '/misc/price',
   superlike: '/like/share',
+  cosmosTx: '/cosmos/lcd/txs',
 }
 
 /**
@@ -220,9 +221,11 @@ export class LikeCoin {
     email,
     locale = 'zh',
     isEmailEnabled,
+    ip,
   }: {
     user: string
     token: string
+    ip?: string
     displayName?: string
     email?: string
     locale?: LikeCoinLocale
@@ -232,6 +235,9 @@ export class LikeCoin {
       endpoint: ENDPOINTS.register,
       withClientCredential: true,
       method: 'POST',
+      headers: {
+        'X-LIKECOIN-REAL-IP': ip,
+      },
       data: {
         user,
         token,
@@ -256,13 +262,18 @@ export class LikeCoin {
   edit = async ({
     action,
     payload,
+    ip,
   }: {
     action: 'claim' | 'transfer' | 'bind'
     payload: { [key: string]: any }
+    ip?: string
   }) => {
     const res = await this.request({
       endpoint: ENDPOINTS.edit,
       withClientCredential: true,
+      headers: {
+        'X-LIKECOIN-REAL-IP': ip,
+      },
       method: 'POST',
       data: {
         action,
@@ -479,6 +490,23 @@ export class LikeCoin {
     }
 
     return data.canSuperLike
+  }
+
+  getCosmosTxData = async ({ hash }: { hash: string }) => {
+    const endpoint = `${ENDPOINTS.cosmosTx}/${hash}`
+    const result = await this.request({
+      endpoint,
+      method: 'GET',
+    })
+    const data = _.get(result, 'data')
+
+    if (!data) {
+      throw result
+    }
+    const msg = _.get(data, 'tx.value.msg')
+    const msgSend = _.find(msg, { type: 'cosmos-sdk/MsgSend' })
+    const amount = _.get(msgSend, 'value.amount[0].amount')
+    return { amount }
   }
 }
 

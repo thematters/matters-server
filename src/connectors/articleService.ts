@@ -368,7 +368,7 @@ export class ArticleService extends BaseService {
     displayName,
     tags,
   }: {
-    [key: string]: string
+    [key: string]: any
   }) => {
     const result = await this.es.indexItems({
       index: this.table,
@@ -1288,7 +1288,7 @@ export class ArticleService extends BaseService {
           ...newData,
           count: 1,
           timedCount: 1,
-          readTime: 0,
+          readTime: userId ? 0 : null,
           lastRead: new Date(),
         },
         table
@@ -1298,28 +1298,7 @@ export class ArticleService extends BaseService {
 
     // get old data
     const oldData = record[0]
-
-    // calculate heart beat lapsed time in secondes
-    const lapse = Date.now() - new Date(oldData.updatedAt).getTime()
-
-    // calculate last read total time
-    const readLength = Date.now() - new Date(oldData.lastRead).getTime()
-
-    // if original read longer than 30 minutes
-    // skip
-    if (readLength > MINUTE * 30) {
-      return { newRead: false }
-    }
-
-    // if lapse is longer than 5 minutes,
-    // or total length longer than 30 minutes,
-    // or if a visitor read with a new ip,
-    // add a new count and update last read timestamp
-    if (
-      lapse > MINUTE * 5 ||
-      readLength > MINUTE * 30 ||
-      (!userId && ip !== oldData.ip)
-    ) {
+    const updateReadCount = async () => {
       await this.baseUpdate(
         oldData.id,
         {
@@ -1331,16 +1310,45 @@ export class ArticleService extends BaseService {
         },
         table
       )
+    }
+
+    // visitor
+    // add a new count and update last read timestamp for visitors
+    if (!userId) {
+      await updateReadCount()
+      return { newRead: true }
+    }
+
+    // logged-in user
+    // calculate heart beat lapsed time in secondes
+    const lapse = Date.now() - new Date(oldData.updatedAt).getTime()
+
+    // calculate last read total time
+    const readLength = Date.now() - new Date(oldData.lastRead).getTime()
+
+    // if original read longer than 30 minutes
+    // skip
+    if (userId && readLength > MINUTE * 30) {
+      return { newRead: false }
+    }
+
+    // if lapse is longer than 5 minutes,
+    // or total length longer than 30 minutes,
+    // add a new count and update last read timestamp
+    if (lapse > MINUTE * 5 || readLength > MINUTE * 30) {
+      await updateReadCount()
       return { newRead: true }
     }
 
     // other wise accumulate time
+    // NOTE: we don't accumulate read time for visitors
+    const readTime = Math.round(parseInt(oldData.readTime, 10) + lapse / 1000)
     await this.baseUpdate(
       oldData.id,
       {
         ...oldData,
         ...newData,
-        readTime: Math.round(parseInt(oldData.readTime, 10) + lapse / 1000),
+        readTime,
       },
       table
     )

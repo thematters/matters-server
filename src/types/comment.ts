@@ -78,6 +78,9 @@ export default /* GraphQL */ `
     replyTo: Comment @logCache(type: "${NODE_TYPES.comment}")
 
     remark: String @auth(mode: "${AUTH_MODE.admin}")
+
+    "Current comment belongs to which Node."
+    node: Node!
   }
 
   extend type Article {
@@ -98,6 +101,14 @@ export default /* GraphQL */ `
 
     "List of comments of this article."
     comments(input: CommentsInput!): CommentConnection!
+  }
+
+  extend type Circle {
+    "Comments broadcasted by Circle owner."
+    broadcast(input: ConnectionArgs!): CommentConnection!
+
+    "Comments made by Circle member."
+    discussion(input: ConnectionArgs!): CommentConnection!
   }
 
   type CommentConnection implements Connection {

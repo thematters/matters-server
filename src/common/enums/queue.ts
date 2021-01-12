@@ -60,6 +60,9 @@ export const QUEUE_JOB = {
   // Revision
   publishRevisedArticle: 'publishRevisedArticle',
   publishPendingRevisionDrafts: 'publishPendingRevisionDrafts',
+
+  // Asset
+  deleteAsset: 'deleteAsset',
 }
 
 export const QUEUE_NAME = {
@@ -75,6 +78,7 @@ export const QUEUE_NAME = {
   appreciation: 'appreciation',
   txTimeout: 'txTimeout',
   revision: 'revision',
+  asset: 'asset',
 }
 
 export const QUEUE_CONCURRENCY = {

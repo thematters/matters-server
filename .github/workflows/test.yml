@@ -30,6 +30,11 @@ jobs:
         image: ipfs/go-ipfs:latest
         ports:
           - 5001:5001
+      stripe:
+        image: stripemock/stripe-mock:latest
+        ports:
+          - 12111:12111
+          - 12112:12112
 
     steps:
       - name: Checkout Repo
@@ -76,6 +81,8 @@ jobs:
           MATTERS_IPFS_HOST: localhost
           MATTERS_IPFS_PORT: 5001
           MATTERS_OICD_PRIVATE_KEY: .ebextensions/oicd_rsa_private_local.pem
+          MATTERS_STRIPE_SECRET: sk_test_foobar
+          MATTERS_STRIPE_PRICE_ID: price_test_foobar
 
       - name: Build
         run: npm run build

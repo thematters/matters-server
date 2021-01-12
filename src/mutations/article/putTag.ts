@@ -11,10 +11,11 @@ import {
   DuplicateTagError,
   ForbiddenByStateError,
   ForbiddenError,
+  NameInvalidError,
   TagNotFoundError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, isValidTagName } from 'common/utils'
 import { MutationToPutTagResolver } from 'definitions'
 
 const resolver: MutationToPutTagResolver = async (
@@ -47,6 +48,10 @@ const resolver: MutationToPutTagResolver = async (
   }
 
   const tagContent = content ? _trim(content) : ''
+
+  if (tagContent && !isValidTagName(tagContent)) {
+    throw new NameInvalidError('invalid tag name')
+  }
 
   if (!id) {
     // create tag
