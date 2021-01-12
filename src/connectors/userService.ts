@@ -158,44 +158,6 @@ export class UserService extends BaseService {
     }
   }
 
-  updateInfo = async (
-    id: string,
-    input: GQLUpdateUserInfoInput & {
-      email?: string
-      emailVerified?: boolean
-      state?: string
-      role?: UserRole
-    }
-  ) => {
-    const user = await this.baseUpdate(id, { updatedAt: new Date(), ...input })
-
-    // remove null and undefined, and write into search
-    const { description, displayName, userName, state, role } = input
-
-    if (!(description || displayName || userName || state || role)) {
-      return user
-    }
-
-    const searchable = _.omitBy(
-      { description, displayName, userName, state },
-      _.isNil
-    )
-
-    try {
-      await this.es.client.update({
-        index: this.table,
-        id,
-        body: {
-          doc: searchable,
-        },
-      })
-    } catch (e) {
-      logger.error(e)
-    }
-
-    return user
-  }
-
   changePassword = async ({
     userId,
     password,

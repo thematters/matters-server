@@ -5,6 +5,8 @@ import {
 } from 'common/errors'
 import { MutationToChangeEmailResolver } from 'definitions'
 
+import { updateUserInfo } from './utils'
+
 const resolver: MutationToChangeEmailResolver = async (
   _,
   {
@@ -55,7 +57,7 @@ const resolver: MutationToChangeEmailResolver = async (
   }
 
   // update email
-  const newUser = await userService.updateInfo(user.id, {
+  const newUser = await updateUserInfo(user.id, {
     email: newCode.email,
   })
 

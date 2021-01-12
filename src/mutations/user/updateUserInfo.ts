@@ -19,6 +19,8 @@ import {
 } from 'common/utils'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
 
+import { updateUserInfo } from './utils'
+
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
   { input },
@@ -110,12 +112,21 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     )
   }
 
+  // check payment pointer
+  if (input.paymentPointer) {
+    if (!input.paymentPointer.startsWith('$')) {
+      throw new UserInputError('Payment pointer must start with `$`')
+    } else {
+      updateParams.paymentPointer = input.paymentPointer
+    }
+  }
+
   if (isEmpty(updateParams)) {
     throw new UserInputError('bad request')
   }
 
   // update user info
-  const user = await userService.updateInfo(viewer.id, updateParams)
+  const user = await updateUserInfo(viewer.id, updateParams)
 
   // add user name edit history
   if (input.userName) {
