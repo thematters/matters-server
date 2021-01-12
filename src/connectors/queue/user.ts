@@ -11,7 +11,7 @@ import {
 } from 'common/enums'
 import logger from 'common/logger'
 
-import { updateUserInfo } from '../../mutations/user/utils'
+import { updateDbEs } from '../../mutations/user/utils'
 import { BaseQueue } from './baseQueue'
 
 interface ArchiveUserData {
@@ -204,7 +204,7 @@ class UserQueue extends BaseQueue {
       await Promise.all(
         records.map(async (record, index) => {
           try {
-            await updateUserInfo(record.userId, {
+            await updateDbEs(record.userId, {
               state: USER_STATE.active,
             })
             await this.userService.baseUpdate(

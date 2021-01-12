@@ -19,7 +19,8 @@ import {
 } from 'common/utils'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
 
-import { updateUserInfo } from './utils'
+import { updateDbEs } from '../utils'
+import addUserNameEditHistory from './addUserNameEditHistory'
 
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
@@ -73,8 +74,8 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     if (!isValidUserName(input.userName)) {
       throw new NameInvalidError('invalid user name')
     }
-    const isUserNameExisted = await userService.countUserNames(input.userName)
-    if (isUserNameExisted > 0) {
+
+    if (await userService.checkUserNameExists(input.userName)) {
       throw new NameExistsError('user name already exists')
     }
     updateParams.userName = input.userName
@@ -126,11 +127,11 @@ const resolver: MutationToUpdateUserInfoResolver = async (
   }
 
   // update user info
-  const user = await updateUserInfo(viewer.id, updateParams)
+  const user = await updateDbEs(viewer.id, updateParams)
 
   // add user name edit history
   if (input.userName) {
-    await userService.addUserNameEditHistory({
+    await addUserNameEditHistory({
       userId: viewer.id,
       previous: viewer.userName,
     })

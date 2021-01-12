@@ -1,7 +1,7 @@
 import { fromGlobalId } from 'common/utils'
 import { MutationToUpdateUserRoleResolver } from 'definitions'
 
-import { updateUserInfo } from './utils'
+import { updateDbEs } from './utils'
 
 const resolver: MutationToUpdateUserRoleResolver = async (
   _,
@@ -10,7 +10,7 @@ const resolver: MutationToUpdateUserRoleResolver = async (
 ) => {
   const { id: dbId } = fromGlobalId(id)
 
-  const user = await updateUserInfo(dbId, { role })
+  const user = await updateDbEs(dbId, { role })
 
   return user
 }

@@ -9,7 +9,7 @@ import { GQLUpdateUserInfoInput, UserRole } from 'definitions'
  * @param id: user id
  * @param data: data to be updated
  */
-export const updateUserInfo = async (
+export const updateDbEs = async (
   id: string,
   data: GQLUpdateUserInfoInput & {
     email?: string

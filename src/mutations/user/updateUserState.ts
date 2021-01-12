@@ -4,7 +4,7 @@ import { fromGlobalId, getPunishExpiredDate } from 'common/utils'
 import { userQueue } from 'connectors/queue'
 import { MutationToUpdateUserStateResolver } from 'definitions'
 
-import { updateUserInfo } from './utils'
+import { updateDbEs } from './utils'
 
 const resolver: MutationToUpdateUserStateResolver = async (
   _,
@@ -115,7 +115,7 @@ const resolver: MutationToUpdateUserStateResolver = async (
   /**
    * active, banned, frozen
    */
-  const updatedUser = await updateUserInfo(dbId, {
+  const updatedUser = await updateDbEs(dbId, {
     state,
   })
 

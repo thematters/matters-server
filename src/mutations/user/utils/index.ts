@@ -1,1 +1,1 @@
-export * from './updateUserInfo'
+export * from './updateDbEs'
