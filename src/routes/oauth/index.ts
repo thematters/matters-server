@@ -74,7 +74,7 @@ oAuthRouter.use(async (req, res, next) => {
  * Routes:Provider
  */
 oAuthRouter.use('/authorize', async (req, res, next) => {
-  const qs = querystring.stringify(req.query)
+  const qs = querystring.stringify(req.query as any)
   const grantUrl = `${environment.oauthSiteDomain}/oauth/authorize?${qs}`
   const loginUrl = `${
     environment.oauthSiteDomain

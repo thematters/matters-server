@@ -107,7 +107,7 @@ class UserQueue extends BaseQueue {
 
     // delete assets
     await Promise.all(
-      drafts.map(async (draft) => {
+      drafts.map(async (draft: any) => {
         const assets = await this.systemService.findAssetAndAssetMap({
           entityTypeId: draftEntityTypeId,
           entityId: draft.id,
@@ -156,15 +156,16 @@ class UserQueue extends BaseQueue {
   /**
    * Activate onboarding users
    */
-  private activateOnboardingUsers: Queue.ProcessCallbackFunction<
-    unknown
-  > = async (job, done) => {
+  private activateOnboardingUsers: Queue.ProcessCallbackFunction<unknown> = async (
+    job,
+    done
+  ) => {
     try {
       const activatableUsers = await this.userService.findActivatableUsers()
       const activatedUsers: Array<string | number> = []
 
       await Promise.all(
-        activatableUsers.map(async (user, index) => {
+        activatableUsers.map(async (user: any, index: number) => {
           try {
             await this.userService.activate({ id: user.id })
             this.notificationService.trigger({

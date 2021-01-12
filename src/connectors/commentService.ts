@@ -120,7 +120,7 @@ export class CommentService extends BaseService {
       parentCommentId: id,
     }
 
-    let query = null
+    let query
     const sortCreatedAt = (by: 'desc' | 'asc') =>
       this.knex.select().from(this.table).where(where).orderBy('created_at', by)
 

@@ -61,7 +61,7 @@ const resolver: ArticleToResponsesResolver = async (
   )
 
   // re-process edges
-  const edges = items.map((item: { [key: string]: any }) => {
+  const edges = items.map((item: any) => {
     const type = !!item.title ? 'Article' : 'Comment'
     return {
       cursor: toGlobalId({ type, id: item.id }),

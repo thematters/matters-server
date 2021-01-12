@@ -3441,9 +3441,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   relatedArticles?: ArticleToRelatedArticlesResolver<TParent>
   relatedDonationArticles?: ArticleToRelatedDonationArticlesResolver<TParent>
   appreciationsReceived?: ArticleToAppreciationsReceivedResolver<TParent>
-  appreciationsReceivedTotal?: ArticleToAppreciationsReceivedTotalResolver<
-    TParent
-  >
+  appreciationsReceivedTotal?: ArticleToAppreciationsReceivedTotalResolver<TParent>
   subscribers?: ArticleToSubscribersResolver<TParent>
   appreciateLimit?: ArticleToAppreciateLimitResolver<TParent>
   appreciateLeft?: ArticleToAppreciateLeftResolver<TParent>
@@ -4443,9 +4441,7 @@ export interface GQLNotificationSettingTypeResolver<TParent = any> {
   follow?: NotificationSettingToFollowResolver<TParent>
   comment?: NotificationSettingToCommentResolver<TParent>
   appreciation?: NotificationSettingToAppreciationResolver<TParent>
-  articleSubscription?: NotificationSettingToArticleSubscriptionResolver<
-    TParent
-  >
+  articleSubscription?: NotificationSettingToArticleSubscriptionResolver<TParent>
   commentSubscribed?: NotificationSettingToCommentSubscribedResolver<TParent>
   downstream?: NotificationSettingToDownstreamResolver<TParent>
   commentPinned?: NotificationSettingToCommentPinnedResolver<TParent>
@@ -4613,9 +4609,7 @@ export interface NotificationSettingToReportFeedbackResolver<
 export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeArticles?: RecommendationToFolloweeArticlesResolver<TParent>
   followeeComments?: RecommendationToFolloweeCommentsResolver<TParent>
-  followeeDonatedArticles?: RecommendationToFolloweeDonatedArticlesResolver<
-    TParent
-  >
+  followeeDonatedArticles?: RecommendationToFolloweeDonatedArticlesResolver<TParent>
   followingTags?: RecommendationToFollowingTagsResolver<TParent>
   followingTagsArticles?: RecommendationToFollowingTagsArticlesResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
@@ -6402,9 +6396,7 @@ export interface GQLUserActivityTypeResolver<TParent = any> {
   appreciationsSent?: UserActivityToAppreciationsSentResolver<TParent>
   appreciationsSentTotal?: UserActivityToAppreciationsSentTotalResolver<TParent>
   appreciationsReceived?: UserActivityToAppreciationsReceivedResolver<TParent>
-  appreciationsReceivedTotal?: UserActivityToAppreciationsReceivedTotalResolver<
-    TParent
-  >
+  appreciationsReceivedTotal?: UserActivityToAppreciationsReceivedTotalResolver<TParent>
 }
 
 export interface UserActivityToHistoryArgs {
@@ -7997,9 +7989,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   userLogout?: MutationToUserLogoutResolver<TParent>
   generateLikerId?: MutationToGenerateLikerIdResolver<TParent>
   updateUserInfo?: MutationToUpdateUserInfoResolver<TParent>
-  updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<
-    TParent
-  >
+  updateNotificationSetting?: MutationToUpdateNotificationSettingResolver<TParent>
   toggleFollowUser?: MutationToToggleFollowUserResolver<TParent>
   toggleBlockUser?: MutationToToggleBlockUserResolver<TParent>
   toggleSubscribePush?: MutationToToggleSubscribePushResolver<TParent>

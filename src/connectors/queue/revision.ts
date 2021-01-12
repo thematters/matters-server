@@ -56,9 +56,10 @@ class RevisionQueue extends BaseQueue {
   /**
    * Publish revised article
    */
-  private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<
-    unknown
-  > = async (job, done) => {
+  private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<unknown> = async (
+    job,
+    done
+  ) => {
     const { draftId } = job.data as { draftId: string }
     const draft = await this.draftService.baseFindById(draftId)
 

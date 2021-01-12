@@ -59,9 +59,10 @@ class EmailsQueue extends BaseQueue {
     // this.q.process(QUEUE_JOB.sendChurnEmails, this.sendChurnEmails)
   }
 
-  private sendDailySummaryEmails: Queue.ProcessCallbackFunction<
-    unknown
-  > = async (job, done) => {
+  private sendDailySummaryEmails: Queue.ProcessCallbackFunction<unknown> = async (
+    job,
+    done
+  ) => {
     try {
       logger.info(`[schedule job] send daily summary email`)
       const users = await this.notificationService.notice.findDailySummaryUsers()
@@ -146,14 +147,14 @@ class EmailsQueue extends BaseQueue {
         since: monthAgo,
       })
       const topArticleDigests = await Promise.all(
-        topArticles.map(async (article) => getArticleDigest(article))
+        topArticles.map(async (article: any) => getArticleDigest(article))
       )
 
       if (topArticleDigests.length <= 0) {
         return
       }
 
-      newRegisterUsers.forEach(async (user, index) => {
+      newRegisterUsers.forEach(async (user: any, index: number) => {
         const isCommentable = user.state !== USER_STATE.onboarding
 
         this.notificationService.mail.sendChurn({

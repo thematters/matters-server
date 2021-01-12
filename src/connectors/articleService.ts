@@ -469,13 +469,13 @@ export class ArticleService extends BaseService {
           filter,
         })
         const items = await this.draftLoader.loadMany(
-          matched.nodes.map((item) => item.id)
+          matched.nodes.map((item: any) => item.id)
         )
         return { nodes: items, totalCount: matched.totalCount }
       }
 
       // take the condition that searching for exact article title into consideration
-      const idsByTitle = []
+      const idsByTitle: string[] = []
       if (key.length >= 5 && offset === 0) {
         const articles = await this.findByTitle({ title: key, oss, filter })
         for (const article of articles) {

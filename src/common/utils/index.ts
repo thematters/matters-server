@@ -54,7 +54,7 @@ export const extractAssetDataFromHtml = (
   }
 
   return $(selector)
-    .map((index: number, element: CheerioElement) => {
+    .map((index, element) => {
       const uuid = $(element).attr('data-asset-id')
 
       if (uuid) {
