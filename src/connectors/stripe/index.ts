@@ -1,10 +1,10 @@
 import Stripe from 'stripe'
 
-import { PAYMENT_CURRENCY } from 'common/enums'
-import { environment } from 'common/environment'
+import { LOCAL_STRIPE, PAYMENT_CURRENCY } from 'common/enums'
+import { environment, isTest } from 'common/environment'
 import { PaymentAmountInvalidError, ServerError } from 'common/errors'
 import logger from 'common/logger'
-import { toProviderAmount } from 'common/utils'
+import { getUTC8NextMonthDayOne, toProviderAmount } from 'common/utils'
 import { User } from 'definitions'
 
 /**
@@ -22,8 +22,14 @@ class StripeService {
   stripe: Stripe
 
   constructor() {
+    let options: Record<string, any> = {}
+    if (isTest) {
+      options = LOCAL_STRIPE
+    }
+
     this.stripe = new Stripe(environment.stripeSecret, {
       apiVersion: '2020-03-02',
+      ...options,
     })
   }
 
@@ -134,6 +140,108 @@ class StripeService {
           destination: recipientStripeConnectedId,
         },
       })
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  createProduct = async ({ name, owner }: { name: string; owner: string }) => {
+    try {
+      const product = await this.stripe.products.create({
+        name,
+        metadata: { owner },
+      })
+      return product
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  updateProduct = async ({ id, name }: { id: string; name: string }) => {
+    try {
+      const product = await this.stripe.products.update(id, { name })
+      return product
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  deleteProduct = async ({ id }: { id: string }) => {
+    try {
+      await this.stripe.products.del(id)
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  createPrice = async ({
+    amount,
+    currency,
+    interval,
+    productId,
+  }: {
+    amount: number
+    currency: PAYMENT_CURRENCY
+    interval: 'month'
+    productId: string
+  }) => {
+    try {
+      const price = await this.stripe.prices.create({
+        currency,
+        product: productId,
+        recurring: { interval },
+        unit_amount: toProviderAmount({ amount }),
+      })
+      return price
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  createSubscription = async ({
+    customer,
+    price,
+  }: {
+    customer: string
+    price: string
+  }) => {
+    try {
+      const anchorTime = getUTC8NextMonthDayOne()
+      const subscription = await this.stripe.subscriptions.create({
+        billing_cycle_anchor: anchorTime,
+        customer,
+        items: [{ price }],
+        proration_behavior: 'none',
+      })
+      return subscription
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  createSubscriptionItem = async ({
+    price,
+    subscription,
+  }: {
+    price: string
+    subscription: string
+  }) => {
+    try {
+      const item = await this.stripe.subscriptionItems.create({
+        price,
+        proration_behavior: 'none',
+        quantity: 1,
+        subscription,
+      })
+      return item
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  deleteSubscriptionItem = async ({ id }: { id: string }) => {
+    try {
+      await this.stripe.subscriptionItems.del(id)
     } catch (error) {
       this.handleError(error)
     }

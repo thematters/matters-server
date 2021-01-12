@@ -193,6 +193,9 @@ type Article implements Node {
   """Drafts linked to this article."""
   drafts: [Draft!]
 
+  """Current article belongs to which Circle."""
+  circle: Circle
+
   """The counting number of comments."""
   commentCount: Int!
 
@@ -362,6 +365,8 @@ enum AssetType {
   profileCover
   oauthClientAvatar
   tagCover
+  circleAvatar
+  circleCover
 }
 
 enum AuthorsType {
@@ -404,6 +409,94 @@ input ChangeEmailInput {
   oldEmailCodeId: ID!
   newEmail: Email!
   newEmailCodeId: ID!
+}
+
+type Circle implements Node {
+  """Unique ID."""
+  id: ID!
+
+  """Circle avatar's link."""
+  avatar: URL
+
+  """Circle cover's link."""
+  cover: URL
+
+  """Slugified name of this Circle."""
+  name: String!
+
+  """Human readable name of this Circle."""
+  displayName: String!
+
+  """A short description of this Circle."""
+  description: String
+
+  """Prices offered by this Circle."""
+  prices: [Price!]
+
+  """Circle owner."""
+  owner: User!
+
+  """List of Circle member."""
+  members(input: ConnectionArgs!): MemberConnection!
+
+  """List of Circle follower."""
+  followers(input: ConnectionArgs!): UserConnection!
+
+  """List of works belong to this Circle."""
+  works(input: ConnectionArgs!): ArticleConnection!
+
+  """State of this Circle."""
+  state: CircleState!
+
+  """Created time."""
+  createdAt: DateTime!
+
+  """Updated time."""
+  updatedAt: DateTime!
+
+  """This value determines if current viewer is following Circle or not."""
+  isFollower: Boolean!
+
+  """This value determines if current viewer is Member or not."""
+  isMember: Boolean!
+
+  """Setting of this Circle."""
+  setting: CircleSetting!
+
+  """Comments broadcasted by Circle owner."""
+  broadcast(input: ConnectionArgs!): CommentConnection!
+
+  """Comments made by Circle member."""
+  discussion(input: ConnectionArgs!): CommentConnection!
+}
+
+type CircleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CircleEdge!]
+}
+
+type CircleEdge {
+  cursor: String!
+  node: Circle!
+}
+
+input CircleInput {
+  """Slugified name of a Circle."""
+  name: String!
+}
+
+type CircleSetting {
+  """Whether broadcast is enabled or not."""
+  enableBroadcast: Boolean!
+
+  """Whther discussion is enabled or not."""
+  enableDiscussion: Boolean!
+}
+
+enum CircleState {
+  active
+  archived
 }
 
 input ClearReadHistoryInput {
@@ -456,6 +549,9 @@ type Comment implements Node {
   """A Comment that this comment replied to."""
   replyTo: Comment
   remark: String
+
+  """Current comment belongs to which Node."""
+  node: Node!
 }
 
 type CommentCommentNotice implements Notice {
@@ -692,6 +788,7 @@ enum EntityType {
   draft
   tag
   user
+  circle
 }
 
 type Feature {
@@ -777,6 +874,25 @@ enum LogRecordTypes {
   ReadResponseInfoPopUp
 }
 
+type Member {
+  """User who join to a Circle."""
+  user: User!
+
+  """Price chosen by user when joining a Circle."""
+  price: Price!
+}
+
+type MemberConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [MemberEdge!]
+}
+
+type MemberEdge {
+  cursor: String!
+  node: Member!
+}
+
 input MergeTagsInput {
   ids: [ID!]!
   content: String!
@@ -837,6 +953,18 @@ type Mutation {
   deleteTags(input: DeleteTagsInput!): Boolean
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
+
+  """Put a Circle."""
+  putCircle(input: PutCircleInput!): Circle!
+
+  """Follow or unfollow a Circle."""
+  toggleFollowCircle(input: ToggleItemInput!): Circle!
+
+  """Subscribe a Circle."""
+  subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult!
+
+  """Unsubscribe a Circle."""
+  unsubscribeCircle(input: UnsubscribeCircleInput!): Circle!
 
   """Publish a comment."""
   putComment(input: PutCommentInput!): Comment!
@@ -1159,6 +1287,34 @@ scalar PositiveFloat
 
 scalar PositiveInt
 
+type Price {
+  """Unique ID."""
+  id: ID!
+
+  """Amount of Price."""
+  amount: NonNegativeFloat!
+
+  """Current Price belongs to whcih Circle."""
+  circle: Circle!
+
+  """Currency of Price."""
+  currency: TransactionCurrency!
+
+  """State of Price."""
+  state: PriceState!
+
+  """Created time."""
+  createdAt: DateTime!
+
+  """Updated time."""
+  updatedAt: DateTime!
+}
+
+enum PriceState {
+  active
+  archived
+}
+
 input PublishArticleInput {
   id: ID!
 }
@@ -1169,6 +1325,29 @@ enum PublishState {
   pending
   error
   published
+}
+
+input PutCircleInput {
+  """Unique ID."""
+  id: ID
+
+  """Unique ID of a Circle's avatar."""
+  avatar: ID
+
+  """Unique ID of a Circle's cover."""
+  cover: ID
+
+  """Slugified name of a Circle."""
+  name: String
+
+  """Human readable name of this Circle."""
+  displayName: String
+
+  """A short description of this Circle."""
+  description: String
+
+  """Circle's subscription fee."""
+  amount: NonNegativeFloat
 }
 
 input PutCommentInput {
@@ -1220,6 +1399,7 @@ input PutTagInput {
 
 type Query {
   article(input: ArticleInput!): Article
+  circle(input: CircleInput!): Circle
   node(input: NodeInput!): Node
   nodes(input: NodesInput!): [Node!]
   frequentSearch(input: FrequentSearchInput!): [String!]
@@ -1310,6 +1490,12 @@ type Recommendation {
 
   """Recommend articles with collaborative filtering"""
   recommendArticles(input: ConnectionArgs!): ArticleConnection!
+
+  """Global circles sort by created time."""
+  newestCircles(input: ConnectionArgs!): CircleConnection!
+
+  """Global circles sort by latest activity time."""
+  hottestCircles(input: ConnectionArgs!): CircleConnection!
 }
 
 input RecommendInput {
@@ -1507,6 +1693,18 @@ type StripeAccount {
   loginUrl: URL!
 }
 
+input SubscribeCircleInput {
+  """Unique ID."""
+  id: ID!
+
+  """Wallet password."""
+  password: String!
+}
+
+type SubscribeCircleResult {
+  client_secret: String!
+}
+
 type Subscription {
   nodeEdited(input: NodeEditedInput!): Node!
 }
@@ -1630,6 +1828,17 @@ enum TagsSort {
 
 scalar Time
 
+input ToggleCircleMemberInput {
+  """Unique ID."""
+  id: ID!
+
+  """Toggle value."""
+  enabled: Boolean!
+
+  """Unique ID of target user."""
+  targetId: ID!
+}
+
 """Common input to toggle single item for `toggleXXX` mutations"""
 input ToggleItemInput {
   id: ID!
@@ -1744,6 +1953,11 @@ input TranslationArgs {
 }
 
 input UnpinCommentInput {
+  id: ID!
+}
+
+input UnsubscribeCircleInput {
+  """Unique ID."""
   id: ID!
 }
 
@@ -1886,6 +2100,12 @@ type User implements Node {
 
   """Status of current user."""
   status: UserStatus
+
+  """Circles belong to current user."""
+  ownCircles: [Circle!]
+
+  """Circles whiches user has joined."""
+  joinedCircles: [Circle!]
 
   """OSS"""
   oss: UserOSS!

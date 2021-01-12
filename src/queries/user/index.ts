@@ -31,10 +31,12 @@ import isBlocked from './isBlocked'
 import isBlocking from './isBlocking'
 import isFollowee from './isFollowee'
 import isFollower from './isFollower'
+import joinedCircles from './joinedCircles'
 import Liker from './liker'
 import likerId from './liker/likerId'
 import notification from './notification'
 import { boost, score } from './oss'
+import ownCircles from './ownCircles'
 import profileCover from './profileCover'
 import receivedDonationCount from './receivedDonationCount'
 import Recommendation from './recommendation'
@@ -96,6 +98,8 @@ const user: {
     blockList,
     isBlocking,
     isBlocked,
+    ownCircles,
+    joinedCircles,
   },
   UserInfo: {
     badges,

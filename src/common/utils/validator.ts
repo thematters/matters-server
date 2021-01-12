@@ -1,7 +1,6 @@
-import isPlainObject from 'lodash/isPlainObject'
 import isEmail from 'validator/lib/isEmail'
 
-import { INVALID_NAMES } from 'common/enums'
+import { RESERVED_NAMES } from 'common/enums'
 
 /**
  * Validate email address.
@@ -11,6 +10,14 @@ export interface ValidEmailOptions {
 }
 
 const EMAIL_DOMAIN_WHITELIST = ['matters.news', 'like.co']
+
+const PUNCTUATION_CHINESE =
+  '\u3002\uff1f\uff01\uff0c\u3001\uff1b\uff1a\u201c\u201d\u2018\u2019\uff08\uff09\u300a\u300b\u3008\u3009\u3010\u3011\u300e\u300f\u300c\u300d\ufe43\ufe44\u3014\u3015\u2026\u2014\uff5e\ufe4f\uffe5'
+const PUNCTUATION_ASCII = '\x00-\x2f\x3a-\x40\x5b-\x60\x7a-\x7f'
+const REGEXP_ALL_PUNCTUATIONS = new RegExp(
+  `^[${PUNCTUATION_CHINESE}${PUNCTUATION_ASCII}]*$`,
+  'g'
+)
 
 export const isValidEmail = (str: string, options: ValidEmailOptions) => {
   const { allowPlusSign } = options
@@ -37,30 +44,30 @@ export const isValidUserName = (name: string): boolean => {
     !name ||
     name.length < 4 ||
     name.length > 15 ||
-    INVALID_NAMES.includes(name.toLowerCase())
+    RESERVED_NAMES.includes(name.toLowerCase())
   ) {
     return false
   }
+
   return /^[a-zA-Z0-9_]*$/.test(name)
 }
 
 /**
- * Validate user display name. It only accepts alphabets, chinese characters and numbers.
+ * Validate user display name.
  *
  * @see https://mattersnews.slack.com/archives/G8877EQMS/p1546446430005500
  */
-export const isValidDisplayName = (name: string): boolean => {
+export const isValidDisplayName = (name: string, maxLen = 20): boolean => {
   if (
     !name ||
     name.length < 2 ||
-    name.length > 20 ||
-    INVALID_NAMES.includes(name.toLowerCase())
+    name.length > maxLen ||
+    RESERVED_NAMES.includes(name.toLowerCase())
   ) {
     return false
   }
-  return /^[A-Za-z0-9\u4E00-\u9FFF\u3400-\u4DFF\uF900-\uFAFF\u2e80-\u33ffh]*$/.test(
-    name
-  )
+
+  return !REGEXP_ALL_PUNCTUATIONS.test(name)
 }
 
 /**
@@ -85,11 +92,20 @@ export const isValidPaymentPassword = (password: string): boolean => {
 }
 
 /**
- * Validate if string is in english.
+ * Validate tag name.
+ *
  */
-export const isEnglish = (str: string): boolean => {
-  if (!str) {
+export const isValidTagName = (name: string, maxLen = 20): boolean => {
+  return !REGEXP_ALL_PUNCTUATIONS.test(name)
+}
+
+/**
+ * Validate circle name. It only accepts alphabets, numbers and _.
+ */
+export const isValidCircleName = (name: string): boolean => {
+  if (!name || name.length < 2 || name.length > 20) {
     return false
   }
-  return /^[a-zA-Z0-9]*$/.test(str)
+
+  return /^[a-zA-Z0-9_]*$/.test(name)
 }

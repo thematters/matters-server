@@ -244,6 +244,8 @@ export default /* GraphQL */ `
     profileCover
     oauthClientAvatar
     tagCover
+    circleAvatar
+    circleCover
   }
 
   enum EntityType {
@@ -251,6 +253,7 @@ export default /* GraphQL */ `
     draft
     tag
     user
+    circle
   }
 
   "Enums for user roles."

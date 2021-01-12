@@ -97,6 +97,7 @@ export const environment = {
   stripeConnectCallbackURL:
     process.env.MATTERS_STRIPE_CONNECT_CALLBACK_URL || '',
   stripeCustomerId: process.env.MATTERS_STRIPE_CUSTOMER_ID || '',
+  stripePriceId: process.env.MATTERS_STRIPE_PRICE_ID || '',
   stripeReturnURL: process.env.MATTERS_STRIPE_RETURN_URL || '',
   slackToken: process.env.MATTERS_SLACK_TOKEN || '',
   slackPayoutChannel: process.env.MATTERS_SLACK_PAYOUT_CHANNEL || '',

@@ -1,6 +1,7 @@
+import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 
-import { countWords, makeSummary, toGlobalId } from 'common/utils'
+import { countWords, toGlobalId } from 'common/utils'
 
 import article from './article'
 import articleDrafts from './article/drafts'

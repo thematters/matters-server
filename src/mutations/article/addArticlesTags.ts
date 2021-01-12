@@ -126,7 +126,7 @@ const resolver: MutationToAddArticlesTagsResolver = async (
 
   // trigger notification for adding article tag by maintainer
   if (isMaintainer) {
-    addIds.forEach(async (articleId: string) => {
+    for (const articleId of addIds) {
       await triggerNotice({
         articleId,
         articleService,
@@ -135,7 +135,7 @@ const resolver: MutationToAddArticlesTagsResolver = async (
         viewerId: viewer.id,
         isOwner,
       })
-    })
+    }
   }
 
   return tag

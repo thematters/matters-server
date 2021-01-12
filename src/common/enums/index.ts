@@ -2,6 +2,7 @@ import { NotificationType, SkippedListItemType } from 'definitions'
 
 import { DB_NOTICE_TYPE, OFFICIAL_NOTICE_EXTEND_TYPE } from './notification'
 
+export * from './action'
 export * from './email'
 export * from './language'
 export * from './notification'
@@ -26,17 +27,7 @@ export const BATCH_SIZE = 10
 
 export const LOCAL_S3_ENDPOINT = 'http://localhost:4569'
 
-export const USER_ACTION = {
-  follow: 'follow',
-  block: 'block',
-  subscribe: 'subscribe',
-  upVote: 'up_vote',
-  downVote: 'down_vote',
-}
-
-export const TAG_ACTION = {
-  follow: 'follow',
-}
+export const IPFS_PREFIX = 'article'
 
 export const APPRECIATION_PURPOSE = {
   appreciate: 'appreciate',
@@ -81,6 +72,28 @@ export const PUBLISH_STATE = {
   pending: 'pending',
   error: 'error',
   published: 'published',
+}
+
+export const CIRCLE_STATE = {
+  active: 'active',
+  archived: 'archived',
+  banned: 'banned',
+}
+
+export const PRICE_STATE = {
+  active: 'active',
+  archived: 'archived',
+  banned: 'banned',
+}
+
+export const SUBSCRIPTION_STATE = {
+  active: 'active',
+  pastDue: 'past_due',
+  unpaid: 'unpaid',
+  canceled: 'canceled',
+  incomplete: 'incomplete',
+  incompleteExpired: 'incomplete_expired',
+  trialing: 'trialing',
 }
 
 export const APPRECIATION_REWARD = {
@@ -130,6 +143,7 @@ export const NODE_TYPES = {
   tag: 'Tag',
   appreciation: 'Appreciation',
   transaction: 'Transaction',
+  circle: 'Circle',
 
   // Unions & Interfaces
   node: 'Node',
@@ -172,4 +186,10 @@ export const SKIPPED_LIST_ITEM_TYPES: Record<string, SkippedListItemType> = {
   AGENT_HASH: 'agent_hash',
   EMAIL: 'email',
   DOMAIN: 'domain',
+}
+
+export const LOCAL_STRIPE = {
+  host: 'localhost',
+  port: '12111',
+  protocol: 'http',
 }

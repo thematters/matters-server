@@ -1,7 +1,9 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
+import { trim, uniq } from 'lodash'
 
 import {
   DB_NOTICE_TYPE,
@@ -18,7 +20,6 @@ import {
   countWords,
   extractAssetDataFromHtml,
   fromGlobalId,
-  makeSummary,
 } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
@@ -78,7 +79,10 @@ class PublicationQueue extends BaseQueue {
       const wordCount = countWords(draft.content)
 
       // Step 2: publish content to IPFS
-      const { dataHash, mediaHash } = await this.articleService.publishToIPFS({
+      const {
+        contentHash: dataHash,
+        mediaHash,
+      } = await this.articleService.publishToIPFS({
         ...draft,
         summary,
         wordCount,
@@ -257,13 +261,17 @@ class PublicationQueue extends BaseQueue {
     draft: any
     article: any
   }) => {
-    let tags = draft.tags
+    let tags = draft.tags as string[]
 
     if (tags && tags.length > 0) {
       // get tag editor
       const tagEditors = environment.mattyId
         ? [environment.mattyId, article.authorId]
         : [article.authorId]
+
+      tags = uniq(tags)
+        .map(trim)
+        .filter((t) => !!t)
 
       // create tag records, return tag record if already exists
       const dbTags = ((await Promise.all(
