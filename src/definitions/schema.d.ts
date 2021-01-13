@@ -1221,9 +1221,9 @@ export interface GQLDraft extends GQLNode {
   id: string
 
   /**
-   * Collection list of this draft.
+   * Media hash, composed of cid encoding, of this draft.
    */
-  collection: GQLArticleConnection
+  mediaHash?: string
 
   /**
    * Draft title.
@@ -1286,9 +1286,14 @@ export interface GQLDraft extends GQLNode {
   article?: GQLArticle
 
   /**
-   * Media hash, composed of cid encoding, of this draft.
+   * Collection list of this draft.
    */
-  mediaHash?: string
+  collection: GQLArticleConnection
+
+  /**
+   * Circle list of this draft.
+   */
+  circle?: GQLCircle
 }
 
 /**
@@ -2505,7 +2510,7 @@ export interface GQLPutDraftInput {
   tags?: Array<string | null>
   cover?: string
   collection?: Array<string | null>
-  circles?: Array<string | null>
+  circle?: string
 }
 
 export interface GQLDeleteDraftInput {
@@ -6202,7 +6207,7 @@ export interface DraftEdgeToNodeResolver<TParent = any, TResult = any> {
 
 export interface GQLDraftTypeResolver<TParent = any> {
   id?: DraftToIdResolver<TParent>
-  collection?: DraftToCollectionResolver<TParent>
+  mediaHash?: DraftToMediaHashResolver<TParent>
   title?: DraftToTitleResolver<TParent>
   slug?: DraftToSlugResolver<TParent>
   summary?: DraftToSummaryResolver<TParent>
@@ -6215,7 +6220,8 @@ export interface GQLDraftTypeResolver<TParent = any> {
   publishState?: DraftToPublishStateResolver<TParent>
   assets?: DraftToAssetsResolver<TParent>
   article?: DraftToArticleResolver<TParent>
-  mediaHash?: DraftToMediaHashResolver<TParent>
+  collection?: DraftToCollectionResolver<TParent>
+  circle?: DraftToCircleResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -6227,13 +6233,10 @@ export interface DraftToIdResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface DraftToCollectionArgs {
-  input: GQLConnectionArgs
-}
-export interface DraftToCollectionResolver<TParent = any, TResult = any> {
+export interface DraftToMediaHashResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: DraftToCollectionArgs,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6347,7 +6350,19 @@ export interface DraftToArticleResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface DraftToMediaHashResolver<TParent = any, TResult = any> {
+export interface DraftToCollectionArgs {
+  input: GQLConnectionArgs
+}
+export interface DraftToCollectionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: DraftToCollectionArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToCircleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

@@ -717,8 +717,8 @@ type Draft implements Node {
   """Unique ID of this draft."""
   id: ID!
 
-  """Collection list of this draft."""
-  collection(input: ConnectionArgs!): ArticleConnection!
+  """Media hash, composed of cid encoding, of this draft."""
+  mediaHash: String
 
   """Draft title."""
   title: String
@@ -756,8 +756,11 @@ type Draft implements Node {
   """Published article"""
   article: Article
 
-  """Media hash, composed of cid encoding, of this draft."""
-  mediaHash: String
+  """Collection list of this draft."""
+  collection(input: ConnectionArgs!): ArticleConnection!
+
+  """Circle list of this draft."""
+  circle: Circle
 }
 
 type DraftConnection implements Connection {
@@ -1383,7 +1386,7 @@ input PutDraftInput {
   tags: [String]
   cover: ID
   collection: [ID]
-  circles: [ID]
+  circle: ID
 }
 
 input PutOAuthClientInput {

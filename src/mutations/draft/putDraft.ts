@@ -37,7 +37,7 @@ const resolver: MutationToPutDraftResolver = async (
     tags,
     cover,
     collection,
-    circles,
+    circle: circleGlobalId,
   } = input
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -93,37 +93,27 @@ const resolver: MutationToPutDraftResolver = async (
     collectionIds = collectionIds.filter((_id) => !!_id)
   }
 
-  // check for circles existence
-  // add to dbId array if ok
+  // check circle
   let circleIds = null
-  if (circles) {
-    circleIds = await Promise.all(
-      circles.map(async (circleGlobalId) => {
-        if (!circleGlobalId) {
-          return
-        }
+  if (circleGlobalId) {
+    const { id: circleId } = fromGlobalId(circleGlobalId)
+    const circle = await atomService.findFirst({
+      table: 'circle',
+      where: { id: circleId },
+    })
 
-        const { id: circleId } = fromGlobalId(circleGlobalId)
-        const circle = await atomService.findFirst({
-          table: 'circle',
-          where: { id: circleId },
-        })
+    if (!circle) {
+      throw new CircleNotFoundError(`Cannot find circle ${circleGlobalId}`)
+    } else if (circle.owner !== viewer.id) {
+      throw new ForbiddenError(
+        `Viewer isn't the owner of circle ${circleGlobalId}.`
+      )
+    } else if (circle.state !== CIRCLE_STATE.active) {
+      throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
+    }
 
-        if (!circle) {
-          throw new CircleNotFoundError(`Cannot find circle ${circleGlobalId}`)
-        } else if (circle.owner !== viewer.id) {
-          throw new ForbiddenError(
-            `Viewer isn't the owner of circle ${circleGlobalId}.`
-          )
-        } else if (circle.state !== CIRCLE_STATE.active) {
-          throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
-        } else {
-          return circleId
-        }
-      })
-    )
-
-    circleIds = circleIds.filter((_id) => !!_id)
+    // supports adding one circle currently
+    circleIds = [circleId]
   }
 
   // assemble data
