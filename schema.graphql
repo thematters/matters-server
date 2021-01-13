@@ -954,7 +954,7 @@ type Mutation {
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
 
-  """Put a Circle."""
+  """Create or update a Circle."""
   putCircle(input: PutCircleInput!): Circle!
 
   """Follow or unfollow a Circle."""
@@ -966,7 +966,10 @@ type Mutation {
   """Unsubscribe a Circle."""
   unsubscribeCircle(input: UnsubscribeCircleInput!): Circle!
 
-  """Publish a comment."""
+  """Add or remove Circle's articles"""
+  putCircleArticles(input: PutCircleArticlesInput!): Circle!
+
+  """Publish or update a comment."""
   putComment(input: PutCommentInput!): Comment!
 
   """Remove a comment."""
@@ -1325,6 +1328,22 @@ enum PublishState {
   pending
   error
   published
+}
+
+input PutCircleArticlesInput {
+  """Circle ID"""
+  id: ID!
+
+  """Article Ids"""
+  articles: [ID!]
+
+  """Action Type"""
+  type: PutCircleArticlesType!
+}
+
+enum PutCircleArticlesType {
+  add
+  remove
 }
 
 input PutCircleInput {
