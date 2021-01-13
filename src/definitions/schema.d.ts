@@ -2278,6 +2278,7 @@ export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
   sticky?: boolean
+  summary?: string
   tags?: Array<string>
   content?: string
   cover?: string
@@ -2499,10 +2500,12 @@ export interface GQLUnpinCommentInput {
 export interface GQLPutDraftInput {
   id?: string
   title?: string
+  summary?: string
   content?: string
   tags?: Array<string | null>
   cover?: string
   collection?: Array<string | null>
+  circles?: Array<string | null>
 }
 
 export interface GQLDeleteDraftInput {

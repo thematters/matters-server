@@ -775,6 +775,7 @@ input EditArticleInput {
   id: ID!
   state: ArticleState
   sticky: Boolean
+  summary: String
   tags: [String!]
   content: String
   cover: ID
@@ -1377,10 +1378,12 @@ input PutCommentInput {
 input PutDraftInput {
   id: ID
   title: String
+  summary: String
   content: String
   tags: [String]
   cover: ID
   collection: [ID]
+  circles: [ID]
 }
 
 input PutOAuthClientInput {

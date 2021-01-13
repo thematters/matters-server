@@ -1,16 +1,13 @@
 import {
   CACHE_KEYWORD,
-  CIRCLE_ACTION,
   NODE_TYPES,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
 } from 'common/enums'
-import { environment } from 'common/environment'
 import {
   AuthenticationError,
-  DuplicateCircleError,
+  CircleNotFoundError,
   EntityNotFoundError,
-  ServerError,
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
@@ -38,7 +35,7 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
   ])
 
   if (!circle) {
-    throw new EntityNotFoundError(`circle ${id} not found`)
+    throw new CircleNotFoundError(`circle ${id} not found`)
   }
   if (!price) {
     throw new EntityNotFoundError(`price of circle ${id} not found`)

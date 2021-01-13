@@ -1,7 +1,7 @@
 import { CACHE_KEYWORD, CIRCLE_ACTION, NODE_TYPES } from 'common/enums'
 import {
   AuthenticationError,
-  EntityNotFoundError,
+  CircleNotFoundError,
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
@@ -33,7 +33,7 @@ const resolver: MutationToToggleFollowCircleResolver = async (
   })
 
   if (!circle) {
-    throw new EntityNotFoundError(`ciircle ${circleId} not found`)
+    throw new CircleNotFoundError(`ciircle ${circleId} not found`)
   }
 
   switch (action) {

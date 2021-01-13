@@ -116,9 +116,12 @@ class PublicationQueue extends BaseQueue {
 
       // Note: the following steps won't affect the publication.
       try {
-        // Step 5: handle collection, tags & mentions
+        // Step 5: handle collection, circles, tags & mentions
         await this.handleCollection({ draft, article })
         job.progress(40)
+
+        await this.handleCircles({ draft, article })
+        job.progress(45)
 
         const tags = await this.handleTags({ draft, article })
         job.progress(50)
@@ -252,6 +255,30 @@ class PublicationQueue extends BaseQueue {
         ],
       })
     })
+  }
+
+  private handleCircles = async ({
+    draft,
+    article,
+  }: {
+    draft: any
+    article: any
+  }) => {
+    if (!draft.circles || draft.circles.length <= 0) {
+      return
+    }
+
+    await Promise.all(
+      draft.circles.map((circleId: string) => {
+        const data = { articleId: article.id, circleId }
+        return this.atomService.upsert({
+          table: 'article_circle',
+          where: data,
+          create: data,
+          update: data,
+        })
+      })
+    )
   }
 
   private handleTags = async ({

@@ -11,11 +11,12 @@ import {
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  ArticleNotFoundError,
   ArticleRevisionContentInvalidError,
   ArticleRevisionReachLimitError,
   AssetNotFoundError,
   AuthenticationError,
-  EntityNotFoundError,
+  DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   NameInvalidError,
@@ -33,7 +34,7 @@ import { ItemData, MutationToEditArticleResolver } from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
-  { input: { id, state, sticky, tags, content, cover, collection } },
+  { input: { id, state, sticky, tags, content, summary, cover, collection } },
   {
     viewer,
     dataSources: {
@@ -57,11 +58,11 @@ const resolver: MutationToEditArticleResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.baseFindById(dbId)
   if (!article) {
-    throw new EntityNotFoundError('article does not exist')
+    throw new ArticleNotFoundError('article does not exist')
   }
   const currDraft = await draftService.baseFindById(article.draftId)
   if (!currDraft) {
-    throw new EntityNotFoundError('article linked draft does not exist')
+    throw new DraftNotFoundError('article linked draft does not exist')
   }
   if (currDraft.authorId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')
@@ -261,6 +262,7 @@ const resolver: MutationToEditArticleResolver = async (
         authorId: currDraft.authorId,
         articleId: currArticle.id,
         title: currDraft.title,
+        summary,
         content: pipe(cleanedContent),
         tags: currTagContents,
         cover: currArticle.cover,

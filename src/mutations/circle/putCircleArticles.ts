@@ -9,8 +9,9 @@ import {
   USER_STATE,
 } from 'common/enums'
 import {
+  ArticleNotFoundError,
   AuthenticationError,
-  EntityNotFoundError,
+  CircleNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
@@ -53,10 +54,10 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   ])
 
   if (!circle) {
-    throw new EntityNotFoundError(`circle ${id} not found`)
+    throw new CircleNotFoundError(`circle ${id} not found`)
   }
   if (!targetArticles || targetArticles.length <= 0) {
-    throw new EntityNotFoundError('articles not found')
+    throw new ArticleNotFoundError('articles not found')
   }
 
   // check ownership
@@ -71,13 +72,12 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     case 'add':
       for (const articleId of targetArticleIds) {
         const data = { articleId, circleId: circle.id }
-        const res = await atomService.upsert({
+        await atomService.upsert({
           table: 'article_circle',
           where: data,
           create: data,
           update: data,
         })
-        console.log({ res })
       }
       break
     case 'remove':

@@ -73,10 +73,12 @@ export default /* GraphQL */ `
   input PutDraftInput {
     id: ID
     title: String
+    summary: String
     content: String
     tags: [String]
     cover: ID
     collection: [ID]
+    circles: [ID]
   }
 
   input DeleteDraftInput {
