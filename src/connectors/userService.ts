@@ -1724,11 +1724,9 @@ export class UserService extends BaseService {
   registerLikerId = async ({
     userId,
     userName,
-    ip,
   }: {
     userId: string
     userName: string
-    ip?: string
   }) => {
     // check
     const likerId = await this.likecoin.check({ user: userName })
@@ -1739,7 +1737,6 @@ export class UserService extends BaseService {
     const { accessToken, refreshToken, scope } = await this.likecoin.register({
       user: likerId,
       token: tokens.accessToken,
-      ip,
     })
 
     // save to db
@@ -1757,11 +1754,9 @@ export class UserService extends BaseService {
   claimLikerId = async ({
     userId,
     liker,
-    ip,
   }: {
     userId: string
     liker: UserOAuthLikeCoin
-    ip?: string
   }) => {
     const oAuthService = new OAuthService()
     const tokens = await oAuthService.generateTokenForLikeCoin({ userId })
@@ -1769,7 +1764,6 @@ export class UserService extends BaseService {
     await this.likecoin.edit({
       action: 'claim',
       payload: { user: liker.likerId, platformToken: tokens.accessToken },
-      ip,
     })
 
     return this.knex('user_oauth_likecoin')
