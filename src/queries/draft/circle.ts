@@ -2,15 +2,15 @@ import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
 import { DraftToCircleResolver } from 'definitions'
 
 const resolver: DraftToCircleResolver = (
-  { circles },
+  { circleId },
   _,
   { dataSources: { atomService } }
 ) => {
-  if (!circles || circles.length <= 0) {
+  if (!circleId) {
     return
   }
 
-  return atomService.circleIdLoader.load(circles[0])
+  return atomService.circleIdLoader.load(circleId)
 }
 
 export default resolver

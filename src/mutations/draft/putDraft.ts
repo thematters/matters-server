@@ -94,12 +94,12 @@ const resolver: MutationToPutDraftResolver = async (
   }
 
   // check circle
-  let circleIds = null
+  let circleId = null
   if (circleGlobalId) {
-    const { id: circleId } = fromGlobalId(circleGlobalId)
+    const { id: cId } = fromGlobalId(circleGlobalId)
     const circle = await atomService.findFirst({
       table: 'circle',
-      where: { id: circleId },
+      where: { id: cId },
     })
 
     if (!circle) {
@@ -112,8 +112,7 @@ const resolver: MutationToPutDraftResolver = async (
       throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
     }
 
-    // supports adding one circle currently
-    circleIds = [circleId]
+    circleId = cId
   }
 
   // assemble data
@@ -126,7 +125,7 @@ const resolver: MutationToPutDraftResolver = async (
       tags,
       cover: coverId,
       collection: collectionIds,
-      circles: circleIds,
+      circleId,
     },
     _.isNil
   )
@@ -161,6 +160,8 @@ const resolver: MutationToPutDraftResolver = async (
       ...data,
       updatedAt: new Date(),
       cover: cover === null ? null : data.cover || draft.cover,
+      circleId:
+        circleGlobalId === null ? null : data.circleId || draft.circleId,
     })
   }
 
