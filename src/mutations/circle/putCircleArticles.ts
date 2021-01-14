@@ -81,11 +81,14 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       }
       break
     case 'remove':
-      await atomService.deleteMany({
-        table: 'article_circle',
-        where: { circleId: circle.id },
-        whereIn: ['article_id', targetArticleIds],
-      })
+      throw new ForbiddenError(
+        `removing articles from circle is unsupported now.`
+      )
+      // await atomService.deleteMany({
+      //   table: 'article_circle',
+      //   where: { circleId: circle.id },
+      //   whereIn: ['article_id', targetArticleIds],
+      // })
       break
   }
 

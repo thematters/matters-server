@@ -2288,6 +2288,7 @@ export interface GQLEditArticleInput {
   content?: string
   cover?: string
   collection?: Array<string>
+  circle?: string
 }
 
 /**

@@ -287,6 +287,7 @@ export default /* GraphQL */ `
     content: String
     cover: ID
     collection: [ID!]
+    circle: ID
   }
 
   input AppreciateArticleInput {
