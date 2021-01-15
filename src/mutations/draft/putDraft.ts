@@ -5,6 +5,7 @@ import { v4 } from 'uuid'
 import {
   ARTICLE_STATE,
   ASSET_TYPE,
+  CIRCLE_STATE,
   PUBLISH_STATE,
   USER_STATE,
 } from 'common/enums'
@@ -12,6 +13,7 @@ import {
   ArticleNotFoundError,
   AssetNotFoundError,
   AuthenticationError,
+  CircleNotFoundError,
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
@@ -22,9 +24,21 @@ import { ItemData, MutationToPutDraftResolver } from 'definitions'
 const resolver: MutationToPutDraftResolver = async (
   root,
   { input },
-  { viewer, dataSources: { draftService, systemService, articleService } }
+  {
+    viewer,
+    dataSources: { draftService, systemService, articleService, atomService },
+  }
 ) => {
-  const { id, title, content, tags, cover, collection } = input
+  const {
+    id,
+    title,
+    content,
+    summary,
+    tags,
+    cover,
+    collection,
+    circle: circleGlobalId,
+  } = input
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
@@ -56,25 +70,49 @@ const resolver: MutationToPutDraftResolver = async (
     collectionIds = await Promise.all(
       collection.map(async (articleGlobalId) => {
         if (!articleGlobalId) {
-          throw new ArticleNotFoundError(
-            `Cannot find article ${articleGlobalId}`
-          )
+          return
         }
+
         const { id: articleId } = fromGlobalId(articleGlobalId)
         const article = await articleService.baseFindById(articleId)
+
         if (!article) {
           throw new ArticleNotFoundError(
             `Cannot find article ${articleGlobalId}`
           )
         } else if (article.state !== ARTICLE_STATE.active) {
           throw new ForbiddenError(
-            `Article ${article.title} cannot be collected.`
+            `Article ${articleGlobalId} cannot be collected.`
           )
         } else {
           return articleId
         }
       })
     )
+
+    collectionIds = collectionIds.filter((_id) => !!_id)
+  }
+
+  // check circle
+  let circleId = null
+  if (circleGlobalId) {
+    const { id: cId } = fromGlobalId(circleGlobalId)
+    const circle = await atomService.findFirst({
+      table: 'circle',
+      where: { id: cId },
+    })
+
+    if (!circle) {
+      throw new CircleNotFoundError(`Cannot find circle ${circleGlobalId}`)
+    } else if (circle.owner !== viewer.id) {
+      throw new ForbiddenError(
+        `Viewer isn't the owner of circle ${circleGlobalId}.`
+      )
+    } else if (circle.state !== CIRCLE_STATE.active) {
+      throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
+    }
+
+    circleId = cId
   }
 
   // assemble data
@@ -82,11 +120,12 @@ const resolver: MutationToPutDraftResolver = async (
     {
       authorId: id ? undefined : viewer.id,
       title,
-      summary: content && makeSummary(content),
+      summary: summary || (content && makeSummary(content)),
       content: content && sanitize(content),
       tags,
       cover: coverId,
       collection: collectionIds,
+      circleId,
     },
     _.isNil
   )
@@ -121,6 +160,8 @@ const resolver: MutationToPutDraftResolver = async (
       ...data,
       updatedAt: new Date(),
       cover: cover === null ? null : data.cover || draft.cover,
+      circleId:
+        circleGlobalId === null ? null : data.circleId || draft.circleId,
     })
   }
 

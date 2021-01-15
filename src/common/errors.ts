@@ -201,6 +201,14 @@ export class NoticeNotFoundError extends ApolloError {
   }
 }
 
+export class CircleNotFoundError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'CIRCLE_NOT_FOUND')
+
+    Object.defineProperty(this, 'name', { value: 'CircleNotFoundError' })
+  }
+}
+
 /*********************************
  *                               *
  *           Article             *

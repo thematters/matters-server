@@ -1,21 +1,15 @@
 import { compare } from 'bcrypt'
 
-import {
-  CACHE_KEYWORD,
-  CIRCLE_ACTION,
-  NODE_TYPES,
-  PRICE_STATE,
-  SUBSCRIPTION_STATE,
-} from 'common/enums'
+import { PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   AuthenticationError,
+  CircleNotFoundError,
   DuplicateCircleError,
   EntityNotFoundError,
   PasswordInvalidError,
   PaymentPasswordNotSetError,
   ServerError,
-  UserInputError,
 } from 'common/errors'
 import logger from 'common/logger'
 import { fromGlobalId } from 'common/utils'
@@ -53,7 +47,7 @@ const resolver: MutationToSubscribeCircleResolver = async (
   ])
 
   if (!circle) {
-    throw new EntityNotFoundError(`circle ${id} not found`)
+    throw new CircleNotFoundError(`circle ${id} not found`)
   }
   if (!price) {
     throw new EntityNotFoundError(`price of circle ${id} not found`)

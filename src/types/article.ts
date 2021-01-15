@@ -282,10 +282,12 @@ export default /* GraphQL */ `
     id: ID!
     state: ArticleState
     sticky: Boolean
+    summary: String
     tags: [String!]
     content: String
     cover: ID
     collection: [ID!]
+    circle: ID
   }
 
   input AppreciateArticleInput {
