@@ -5,8 +5,6 @@ import {
 } from 'common/errors'
 import { MutationToChangeEmailResolver } from 'definitions'
 
-import { updateDbEs } from './utils'
-
 const resolver: MutationToChangeEmailResolver = async (
   _,
   {
@@ -17,7 +15,7 @@ const resolver: MutationToChangeEmailResolver = async (
       newEmailCodeId,
     },
   },
-  { viewer, dataSources: { userService } }
+  { viewer, dataSources: { userService, atomService } }
 ) => {
   const oldEmail = rawOldEmail ? rawOldEmail.toLowerCase() : null
   const newEmail = rawNewEmail ? rawNewEmail.toLowerCase() : null
@@ -57,8 +55,22 @@ const resolver: MutationToChangeEmailResolver = async (
   }
 
   // update email
-  const newUser = await updateDbEs(user.id, {
+  const data = {
     email: newCode.email,
+  }
+
+  const newUser = await atomService.update({
+    table: 'user',
+    where: { id: user.id },
+    data,
+  })
+
+  await atomService.es.client.update({
+    index: 'user',
+    id: user.id,
+    body: {
+      doc: data,
+    },
   })
 
   // mark code status as used

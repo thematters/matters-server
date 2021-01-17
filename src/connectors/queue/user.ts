@@ -11,7 +11,6 @@ import {
 } from 'common/enums'
 import logger from 'common/logger'
 
-import { updateDbEs } from '../../mutations/user/utils'
 import { BaseQueue } from './baseQueue'
 
 interface ArchiveUserData {
@@ -204,9 +203,23 @@ class UserQueue extends BaseQueue {
       await Promise.all(
         records.map(async (record, index) => {
           try {
-            await updateDbEs(record.userId, {
+            const data = {
               state: USER_STATE.active,
+            }
+
+            await this.atomService.update({
+              table: 'user',
+              where: { id: record.userId },
+              data,
             })
+            await this.atomService.es.client.update({
+              index: 'user',
+              id: record.userId,
+              body: {
+                doc: data,
+              },
+            })
+
             await this.userService.baseUpdate(
               record.id,
               { archived: true },

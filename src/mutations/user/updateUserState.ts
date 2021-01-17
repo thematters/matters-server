@@ -4,12 +4,10 @@ import { fromGlobalId, getPunishExpiredDate } from 'common/utils'
 import { userQueue } from 'connectors/queue'
 import { MutationToUpdateUserStateResolver } from 'definitions'
 
-import { updateDbEs } from './utils'
-
 const resolver: MutationToUpdateUserStateResolver = async (
   _,
   { input: { id, state, banDays, password, emails } },
-  { viewer, dataSources: { userService, notificationService } }
+  { viewer, dataSources: { userService, notificationService, atomService } }
 ) => {
   // handlers for cleanup and notification
   const handleBan = async (userId: string) => {
@@ -115,8 +113,22 @@ const resolver: MutationToUpdateUserStateResolver = async (
   /**
    * active, banned, frozen
    */
-  const updatedUser = await updateDbEs(dbId, {
-    state,
+  const updatedUser = await atomService.update({
+    table: 'user',
+    where: { id: dbId },
+    data: {
+      state,
+    },
+  })
+
+  await atomService.es.client.update({
+    index: 'user',
+    id: dbId,
+    body: {
+      doc: {
+        state,
+      },
+    },
   })
 
   if (state === USER_STATE.banned) {

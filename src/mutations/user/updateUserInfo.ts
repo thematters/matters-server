@@ -1,4 +1,4 @@
-import { has, isEmpty } from 'lodash'
+import { has, isEmpty, isNil, omitBy } from 'lodash'
 
 import { ASSET_TYPE } from 'common/enums'
 import {
@@ -11,6 +11,7 @@ import {
   PasswordInvalidError,
   UserInputError,
 } from 'common/errors'
+import logger from 'common/logger'
 import {
   generatePasswordhash,
   isValidDisplayName,
@@ -19,13 +20,18 @@ import {
 } from 'common/utils'
 import { MutationToUpdateUserInfoResolver } from 'definitions'
 
-import { updateDbEs } from '../utils'
-import addUserNameEditHistory from './addUserNameEditHistory'
-
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
   { input },
-  { viewer, dataSources: { userService, systemService, notificationService } }
+  {
+    viewer,
+    dataSources: {
+      userService,
+      systemService,
+      notificationService,
+      atomService,
+    },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -126,16 +132,44 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     throw new UserInputError('bad request')
   }
 
-  // update user info
-  const user = await updateDbEs(viewer.id, updateParams)
+  // update user info to db and es
+  const user = await atomService.update({
+    table: 'user',
+    where: { id: viewer.id },
+    data: { updatedAt: new Date(), ...updateParams },
+  })
+  logger.info(`Updated id ${viewer.id} in "user"`)
 
   // add user name edit history
   if (input.userName) {
-    await addUserNameEditHistory({
-      userId: viewer.id,
-      previous: viewer.userName,
+    await atomService.create({
+      table: 'username_edit_history',
+      data: {
+        userId: viewer.id,
+        previous: viewer.userName,
+      },
     })
   }
+
+  // update user info to es
+  const { description, displayName, userName, state, role } = updateParams
+
+  if (!(description || displayName || userName || state || role)) {
+    return user
+  }
+
+  const searchable = omitBy(
+    { description, displayName, userName, state },
+    isNil
+  )
+
+  await atomService.es.client.update({
+    index: 'user',
+    id: viewer.id,
+    body: {
+      doc: searchable,
+    },
+  })
 
   // trigger notifications
   if (updateParams.paymentPasswordHash) {
