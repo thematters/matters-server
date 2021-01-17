@@ -717,8 +717,8 @@ type Draft implements Node {
   """Unique ID of this draft."""
   id: ID!
 
-  """Collection list of this draft."""
-  collection(input: ConnectionArgs!): ArticleConnection!
+  """Media hash, composed of cid encoding, of this draft."""
+  mediaHash: String
 
   """Draft title."""
   title: String
@@ -756,8 +756,11 @@ type Draft implements Node {
   """Published article"""
   article: Article
 
-  """Media hash, composed of cid encoding, of this draft."""
-  mediaHash: String
+  """Collection list of this draft."""
+  collection(input: ConnectionArgs!): ArticleConnection!
+
+  """Circle list of this draft."""
+  circle: Circle
 }
 
 type DraftConnection implements Connection {
@@ -775,10 +778,12 @@ input EditArticleInput {
   id: ID!
   state: ArticleState
   sticky: Boolean
+  summary: String
   tags: [String!]
   content: String
   cover: ID
   collection: [ID!]
+  circle: ID
 }
 
 scalar Email
@@ -954,7 +959,7 @@ type Mutation {
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
 
-  """Put a Circle."""
+  """Create or update a Circle."""
   putCircle(input: PutCircleInput!): Circle!
 
   """Follow or unfollow a Circle."""
@@ -966,7 +971,10 @@ type Mutation {
   """Unsubscribe a Circle."""
   unsubscribeCircle(input: UnsubscribeCircleInput!): Circle!
 
-  """Publish a comment."""
+  """Add or remove Circle's articles"""
+  putCircleArticles(input: PutCircleArticlesInput!): Circle!
+
+  """Publish or update a comment."""
   putComment(input: PutCommentInput!): Comment!
 
   """Remove a comment."""
@@ -1327,6 +1335,22 @@ enum PublishState {
   published
 }
 
+input PutCircleArticlesInput {
+  """Circle ID"""
+  id: ID!
+
+  """Article Ids"""
+  articles: [ID!]
+
+  """Action Type"""
+  type: PutCircleArticlesType!
+}
+
+enum PutCircleArticlesType {
+  add
+  remove
+}
+
 input PutCircleInput {
   """Unique ID."""
   id: ID
@@ -1358,10 +1382,12 @@ input PutCommentInput {
 input PutDraftInput {
   id: ID
   title: String
+  summary: String
   content: String
   tags: [String]
   cover: ID
   collection: [ID]
+  circle: ID
 }
 
 input PutOAuthClientInput {

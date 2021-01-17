@@ -16,8 +16,8 @@ export default /* GraphQL */ `
     "Unique ID of this draft."
     id: ID! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
-    "Collection list of this draft."
-    collection(input: ConnectionArgs!): ArticleConnection!
+    "Media hash, composed of cid encoding, of this draft."
+    mediaHash: String
 
     "Draft title."
     title: String
@@ -55,8 +55,11 @@ export default /* GraphQL */ `
     "Published article"
     article: Article @logCache(type: "${NODE_TYPES.article}")
 
-    "Media hash, composed of cid encoding, of this draft."
-    mediaHash: String
+    "Collection list of this draft."
+    collection(input: ConnectionArgs!): ArticleConnection!
+
+    "Circle list of this draft."
+    circle: Circle @logCache(type: "${NODE_TYPES.circle}")
   }
 
   type DraftConnection implements Connection {
@@ -73,10 +76,12 @@ export default /* GraphQL */ `
   input PutDraftInput {
     id: ID
     title: String
+    summary: String
     content: String
     tags: [String]
     cover: ID
     collection: [ID]
+    circle: ID
   }
 
   input DeleteDraftInput {

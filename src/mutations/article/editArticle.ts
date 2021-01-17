@@ -5,17 +5,22 @@ import { v4 } from 'uuid'
 import {
   ARTICLE_STATE,
   ASSET_TYPE,
+  CACHE_KEYWORD,
+  CIRCLE_STATE,
   DB_NOTICE_TYPE,
+  NODE_TYPES,
   PUBLISH_STATE,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  ArticleNotFoundError,
   ArticleRevisionContentInvalidError,
   ArticleRevisionReachLimitError,
   AssetNotFoundError,
   AuthenticationError,
-  EntityNotFoundError,
+  CircleNotFoundError,
+  DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   NameInvalidError,
@@ -33,7 +38,19 @@ import { ItemData, MutationToEditArticleResolver } from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
-  { input: { id, state, sticky, tags, content, cover, collection } },
+  {
+    input: {
+      id,
+      state,
+      sticky,
+      tags,
+      content,
+      summary,
+      cover,
+      collection,
+      circle: circleGlobalId,
+    },
+  },
   {
     viewer,
     dataSources: {
@@ -42,6 +59,7 @@ const resolver: MutationToEditArticleResolver = async (
       articleService,
       tagService,
       notificationService,
+      atomService,
     },
   }
 ) => {
@@ -57,11 +75,11 @@ const resolver: MutationToEditArticleResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.baseFindById(dbId)
   if (!article) {
-    throw new EntityNotFoundError('article does not exist')
+    throw new ArticleNotFoundError('article does not exist')
   }
   const currDraft = await draftService.baseFindById(article.draftId)
   if (!currDraft) {
-    throw new EntityNotFoundError('article linked draft does not exist')
+    throw new DraftNotFoundError('article linked draft does not exist')
   }
   if (currDraft.authorId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')
@@ -220,62 +238,6 @@ const resolver: MutationToEditArticleResolver = async (
       articleIds: difference(oldIds, newIds),
     })
 
-    // revise content
-    if (content) {
-      const revisionCount = await draftService.countValidByArticleId({
-        articleId: article.id,
-      })
-      // cannot have drafts more than first draft plus 2 pending or published revision
-      if (revisionCount > 3) {
-        throw new ArticleRevisionReachLimitError(
-          'number of revisions reach limit'
-        )
-      }
-
-      const cleanedContent = stripClass(content, 'u-area-disable')
-
-      // check diff distances reaches limit or not
-      const diffs = measureDiffs(
-        stripHtml(currDraft.content, ''),
-        stripHtml(cleanedContent, '')
-      )
-      if (diffs > 50) {
-        throw new ArticleRevisionContentInvalidError('revised content invalid')
-      }
-
-      // fetch updated data before create draft
-      const [currArticle, currCollections, currTags] = await Promise.all([
-        articleService.baseFindById(dbId),
-        articleService.findCollections({ entranceId: article.id, limit: null }),
-        tagService.findByArticleId({ articleId: article.id }),
-      ])
-      const currTagContents = currTags.map((currTag) => currTag.content)
-      const currCollectionIds = currCollections.map(
-        ({ articleId }: { articleId: string }) => articleId
-      )
-
-      // create draft linked to this article
-      const pipe = flow(sanitize, correctHtml)
-      const data: ItemData = {
-        uuid: v4(),
-        authorId: currDraft.authorId,
-        articleId: currArticle.id,
-        title: currDraft.title,
-        content: pipe(cleanedContent),
-        tags: currTagContents,
-        cover: currArticle.cover,
-        collection: currCollectionIds,
-        archived: false,
-        publishState: PUBLISH_STATE.pending,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-      const revisedDraft = await draftService.baseCreate(data)
-
-      // add job to publish queue
-      revisionQueue.publishRevisedArticle({ draftId: revisedDraft.id })
-    }
-
     // trigger notifications
     diff.forEach(async (articleId) => {
       const targetCollection = await articleService.baseFindById(articleId)
@@ -297,6 +259,98 @@ const resolver: MutationToEditArticleResolver = async (
         ],
       })
     })
+  }
+
+  /**
+   * Circle
+   */
+  if (circleGlobalId) {
+    const { id: circleId } = fromGlobalId(circleGlobalId)
+    const circle = await atomService.findFirst({
+      table: 'circle',
+      where: { id: circleId },
+    })
+
+    if (!circle) {
+      throw new CircleNotFoundError(`Cannot find circle ${circleGlobalId}`)
+    } else if (circle.owner !== viewer.id) {
+      throw new ForbiddenError(
+        `Viewer isn't the owner of circle ${circleGlobalId}.`
+      )
+    } else if (circle.state !== CIRCLE_STATE.active) {
+      throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
+    }
+    // insert to db
+    const data = { articleId: article.id, circleId: circle.id }
+    await atomService.upsert({
+      table: 'article_circle',
+      where: data,
+      create: data,
+      update: data,
+    })
+  } else if (circleGlobalId === null) {
+    throw new ForbiddenError(
+      `removing articles from circle is unsupported now.`
+    )
+  }
+
+  /**
+   * Content
+   */
+  if (content) {
+    const revisionCount = await draftService.countValidByArticleId({
+      articleId: article.id,
+    })
+    // cannot have drafts more than first draft plus 2 pending or published revision
+    if (revisionCount > 3) {
+      throw new ArticleRevisionReachLimitError(
+        'number of revisions reach limit'
+      )
+    }
+
+    const cleanedContent = stripClass(content, 'u-area-disable')
+
+    // check diff distances reaches limit or not
+    const diffs = measureDiffs(
+      stripHtml(currDraft.content, ''),
+      stripHtml(cleanedContent, '')
+    )
+    if (diffs > 50) {
+      throw new ArticleRevisionContentInvalidError('revised content invalid')
+    }
+
+    // fetch updated data before create draft
+    const [currArticle, currCollections, currTags] = await Promise.all([
+      articleService.baseFindById(dbId), // fetch latest record
+      articleService.findCollections({ entranceId: article.id, limit: null }),
+      tagService.findByArticleId({ articleId: article.id }),
+    ])
+    const currTagContents = currTags.map((currTag) => currTag.content)
+    const currCollectionIds = currCollections.map(
+      ({ articleId }: { articleId: string }) => articleId
+    )
+
+    // create draft linked to this article
+    const pipe = flow(sanitize, correctHtml)
+    const data: ItemData = {
+      uuid: v4(),
+      authorId: currDraft.authorId,
+      articleId: currArticle.id,
+      title: currDraft.title,
+      summary,
+      content: pipe(cleanedContent),
+      tags: currTagContents,
+      cover: currArticle.cover,
+      collection: currCollectionIds,
+      archived: false,
+      publishState: PUBLISH_STATE.pending,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    const revisedDraft = await draftService.baseCreate(data)
+
+    // add job to publish queue
+    revisionQueue.publishRevisedArticle({ draftId: revisedDraft.id })
   }
 
   /**
