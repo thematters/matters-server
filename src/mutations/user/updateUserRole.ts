@@ -1,3 +1,4 @@
+import logger from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 import { MutationToUpdateUserRoleResolver } from 'definitions'
 
@@ -16,13 +17,17 @@ const resolver: MutationToUpdateUserRoleResolver = async (
     data,
   })
 
-  await atomService.es.client.update({
-    index: 'user',
-    id: dbId,
-    body: {
-      doc: data,
-    },
-  })
+  try {
+    await atomService.es.client.update({
+      index: 'user',
+      id: dbId,
+      body: {
+        doc: data,
+      },
+    })
+  } catch (err) {
+    logger.error(err)
+  }
 
   return user
 }

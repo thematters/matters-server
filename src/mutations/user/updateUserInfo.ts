@@ -163,13 +163,17 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     isNil
   )
 
-  await atomService.es.client.update({
-    index: 'user',
-    id: viewer.id,
-    body: {
-      doc: searchable,
-    },
-  })
+  try {
+    await atomService.es.client.update({
+      index: 'user',
+      id: viewer.id,
+      body: {
+        doc: searchable,
+      },
+    })
+  } catch (err) {
+    logger.error(err)
+  }
 
   // trigger notifications
   if (updateParams.paymentPasswordHash) {

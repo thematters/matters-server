@@ -54,22 +54,11 @@ const resolver: MutationToChangeEmailResolver = async (
     throw new EmailExistsError('email already exists')
   }
 
-  // update email
-  const data = {
-    email: newCode.email,
-  }
-
   const newUser = await atomService.update({
     table: 'user',
     where: { id: user.id },
-    data,
-  })
-
-  await atomService.es.client.update({
-    index: 'user',
-    id: user.id,
-    body: {
-      doc: data,
+    data: {
+      email: newCode.email,
     },
   })
 
