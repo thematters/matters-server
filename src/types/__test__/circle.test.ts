@@ -1,7 +1,5 @@
 import _get from 'lodash/get'
 
-import { fromGlobalId } from 'common/utils'
-
 import { testClient } from './utils'
 
 const GET_VIEWER_OWN_CIRCLES = `
@@ -11,6 +9,13 @@ const GET_VIEWER_OWN_CIRCLES = `
         id
         members(input: { first: null }) {
           totalCount
+        }
+      }
+      articles(input: { first: 1 }) {
+        edges {
+          node {
+            id
+          }
         }
       }
     }
@@ -85,6 +90,22 @@ const UNSUBSCRIBE_CIRCLE = `
   }
 `
 
+const PUT_CIRCLE_ARTICLES = `
+  mutation($input: PutCircleArticlesInput!) {
+    putCircleArticles(input: $input) {
+      id
+      works(input: { first: 0 }) {
+        totalCount
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+`
+
 describe('circle CRUD', () => {
   // shared setting
   const errorPath = 'errors.0.extensions.code'
@@ -137,6 +158,7 @@ describe('circle CRUD', () => {
       mutation: PUT_CIRCLE,
       variables: { input },
     })
+
     expect(_get(data5, `${path}.name`)).toBe('circle1')
     expect(_get(data5, `${path}.displayName`)).toBe('Circle 1')
     expect(_get(data5, `${path}.prices[0].amount`)).toBe(10)
@@ -279,5 +301,37 @@ describe('circle CRUD', () => {
     expect(_get(updatedData, 'data.unsubscribeCircle.members.totalCount')).toBe(
       0
     )
+  })
+
+  test('toggle circle articles', async () => {
+    const path = 'data.putCircleArticles'
+    const { query, mutate } = await testClient(userClient)
+    const { data } = await query({
+      query: GET_VIEWER_OWN_CIRCLES,
+    })
+    const circle = _get(data, 'viewer.ownCircles[0]')
+    const article = _get(data, 'viewer.articles.edges[0].node')
+
+    // add
+    const input: Record<string, any> = {
+      id: circle.id,
+      articles: [article.id],
+      type: 'add',
+    }
+
+    const addedData = await mutate({
+      mutation: PUT_CIRCLE_ARTICLES,
+      variables: { input },
+    })
+    expect(_get(addedData, `${path}.works.edges[0].node.id`)).toBe(article.id)
+    expect(_get(addedData, `${path}.works.totalCount`)).toBe(1)
+
+    // remove
+    input.type = 'remove'
+    const removedData = await mutate({
+      mutation: PUT_CIRCLE_ARTICLES,
+      variables: { input },
+    })
+    expect(_get(removedData, errorPath)).toBe('FORBIDDEN')
   })
 })

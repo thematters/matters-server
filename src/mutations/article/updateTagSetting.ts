@@ -132,8 +132,8 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       // send notices
       if (newEditors && newEditors.length > 0) {
-        newEditors.map(async (editor: string) => {
-          await notificationService.trigger({
+        newEditors.map((editor: string) => {
+          notificationService.trigger({
             event: DB_NOTICE_TYPE.tag_leave,
             recipientId: editor,
             actorId: viewer.id,
@@ -192,7 +192,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
         newEditors
       )) as Array<Record<string, any>>
 
-      recipients.map(async (recipient) => {
+      recipients.map((recipient) => {
         notificationService.mail.sendAssignAsTagEditor({
           to: recipient.email,
           language: recipient.language,
@@ -207,7 +207,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
           tag: { id, content: tag.content },
         })
 
-        await notificationService.trigger({
+        notificationService.trigger({
           event: DB_NOTICE_TYPE.tag_add_editor,
           recipientId: recipient.id,
           actorId: viewer.id,
@@ -265,7 +265,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
       // send notice
       if (tag.owner) {
-        await notificationService.trigger({
+        notificationService.trigger({
           event: DB_NOTICE_TYPE.tag_leave_editor,
           recipientId: tag.owner,
           actorId: viewer.id,
