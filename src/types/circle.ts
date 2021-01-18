@@ -11,7 +11,7 @@ export default /* GraphQL */ `
   }
 
   extend type Mutation {
-    "Put a Circle."
+    "Create or update a Circle."
     putCircle(input: PutCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
 
     "Follow or unfollow a Circle."
@@ -22,6 +22,9 @@ export default /* GraphQL */ `
 
     "Unsubscribe a Circle."
     unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
+
+    "Add or remove Circle's articles"
+    putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
   }
 
   type Circle implements Node {
@@ -196,6 +199,17 @@ export default /* GraphQL */ `
     id: ID!
   }
 
+  input PutCircleArticlesInput {
+    "Circle ID"
+    id: ID!
+
+    "Article Ids"
+    articles: [ID!]
+
+    "Action Type"
+    type: PutCircleArticlesType!
+  }
+
   enum CircleState {
     active
     archived
@@ -204,5 +218,10 @@ export default /* GraphQL */ `
   enum PriceState {
     active
     archived
+  }
+
+  enum PutCircleArticlesType {
+    add
+    remove
   }
 `

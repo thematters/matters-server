@@ -2,7 +2,7 @@ import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
-    "Publish a comment."
+    "Publish or update a comment."
     putComment(input: PutCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.comment}") @rateLimit(limit:3, period:120)
 
     "Remove a comment."

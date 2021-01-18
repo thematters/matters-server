@@ -38,11 +38,9 @@ import {
   GQLAuthorsType,
   GQLResetPasswordType,
   GQLSearchInput,
-  GQLUpdateUserInfoInput,
   ItemData,
   UserOAuthLikeCoin,
   UserOAuthLikeCoinAccountType,
-  UserRole,
 } from 'definitions'
 
 import { likecoin } from './likecoin'
@@ -158,44 +156,6 @@ export class UserService extends BaseService {
     }
   }
 
-  updateInfo = async (
-    id: string,
-    input: GQLUpdateUserInfoInput & {
-      email?: string
-      emailVerified?: boolean
-      state?: string
-      role?: UserRole
-    }
-  ) => {
-    const user = await this.baseUpdate(id, { updatedAt: new Date(), ...input })
-
-    // remove null and undefined, and write into search
-    const { description, displayName, userName, state, role } = input
-
-    if (!(description || displayName || userName || state || role)) {
-      return user
-    }
-
-    const searchable = _.omitBy(
-      { description, displayName, userName, state },
-      _.isNil
-    )
-
-    try {
-      await this.es.client.update({
-        index: this.table,
-        id,
-        body: {
-          doc: searchable,
-        },
-      })
-    } catch (e) {
-      logger.error(e)
-    }
-
-    return user
-  }
-
   changePassword = async ({
     userId,
     password,
@@ -242,25 +202,15 @@ export class UserService extends BaseService {
   }
 
   /**
-   * Add user name edit history
+   * Check if user name exists.
    */
-  addUserNameEditHistory = async ({
-    userId,
-    previous,
-  }: {
-    userId: string
-    previous: string
-  }) => this.baseCreate({ userId, previous }, 'username_edit_history')
-
-  /**
-   * Count same user names by a given user name.
-   */
-  countUserNames = async (userName: string) => {
+  checkUserNameExists = async (userName: string) => {
     const result = await this.knex(this.table)
       .countDistinct('id')
       .where({ userName })
       .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
+    const count = parseInt(result ? (result.count as string) : '0', 10)
+    return count > 0
   }
 
   /**

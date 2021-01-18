@@ -4,9 +4,9 @@ import { ASSET_TYPE, PAYMENT_CURRENCY } from 'common/enums'
 import {
   AssetNotFoundError,
   AuthenticationError,
+  CircleNotFoundError,
   DisplayNameInvalidError,
   DuplicateCircleError,
-  EntityNotFoundError,
   ForbiddenError,
   NameExistsError,
   NameInvalidError,
@@ -141,7 +141,7 @@ const resolver: MutationToPutCircleResolver = async (
       })
 
       if (!circle) {
-        throw new EntityNotFoundError(`Circle ${circleId} not found`)
+        throw new CircleNotFoundError(`Circle ${id} not found`)
       }
 
       // transform update paramters

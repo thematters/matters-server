@@ -1,6 +1,6 @@
 import { random } from 'lodash'
 
-import { AUTO_FOLLOW_TAGS, USER_STATE } from 'common/enums'
+import { AUTO_FOLLOW_TAGS } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   CodeInvalidError,
@@ -74,7 +74,7 @@ const resolver: MutationToUserRegisterResolver = async (
       throw new NameInvalidError('invalid user name')
     }
 
-    if (await userService.countUserNames(userName)) {
+    if (await userService.checkUserNameExists(userName)) {
       throw new NameExistsError('user name already exists')
     }
 
@@ -86,7 +86,7 @@ const resolver: MutationToUserRegisterResolver = async (
     newUserName = mainName
     while (
       !isValidUserName(newUserName) ||
-      (await userService.countUserNames(newUserName)) > 0
+      (await userService.checkUserNameExists(newUserName))
     ) {
       if (retries >= 20) {
         throw new NameInvalidError('cannot generate user name')

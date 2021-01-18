@@ -321,6 +321,11 @@ export interface GQLUser extends GQLNode {
   likerId?: string
 
   /**
+   * Payment pointer that resolves to Open Payments endpoints
+   */
+  paymentPointer?: string
+
+  /**
    * Liker info of current user
    */
   liker: GQLLiker
@@ -1221,9 +1226,9 @@ export interface GQLDraft extends GQLNode {
   id: string
 
   /**
-   * Collection list of this draft.
+   * Media hash, composed of cid encoding, of this draft.
    */
-  collection: GQLArticleConnection
+  mediaHash?: string
 
   /**
    * Draft title.
@@ -1286,9 +1291,14 @@ export interface GQLDraft extends GQLNode {
   article?: GQLArticle
 
   /**
-   * Media hash, composed of cid encoding, of this draft.
+   * Collection list of this draft.
    */
-  mediaHash?: string
+  collection: GQLArticleConnection
+
+  /**
+   * Circle list of this draft.
+   */
+  circle?: GQLCircle
 }
 
 /**
@@ -2056,7 +2066,7 @@ export interface GQLMutation {
   mergeTags: GQLTag
 
   /**
-   * Put a Circle.
+   * Create or update a Circle.
    */
   putCircle: GQLCircle
 
@@ -2076,7 +2086,12 @@ export interface GQLMutation {
   unsubscribeCircle: GQLCircle
 
   /**
-   * Publish a comment.
+   * Add or remove Circle's articles
+   */
+  putCircleArticles: GQLCircle
+
+  /**
+   * Publish or update a comment.
    */
   putComment: GQLComment
 
@@ -2274,10 +2289,12 @@ export interface GQLEditArticleInput {
   id: string
   state?: GQLArticleState
   sticky?: boolean
+  summary?: string
   tags?: Array<string>
   content?: string
   cover?: string
   collection?: Array<string>
+  circle?: string
 }
 
 /**
@@ -2431,6 +2448,28 @@ export interface GQLUnsubscribeCircleInput {
   id: string
 }
 
+export interface GQLPutCircleArticlesInput {
+  /**
+   * Circle ID
+   */
+  id: string
+
+  /**
+   * Article Ids
+   */
+  articles?: Array<string>
+
+  /**
+   * Action Type
+   */
+  type: GQLPutCircleArticlesType
+}
+
+export const enum GQLPutCircleArticlesType {
+  add = 'add',
+  remove = 'remove',
+}
+
 export interface GQLPutCommentInput {
   comment: GQLCommentInput
   id?: string
@@ -2473,10 +2512,12 @@ export interface GQLUnpinCommentInput {
 export interface GQLPutDraftInput {
   id?: string
   title?: string
+  summary?: string
   content?: string
   tags?: Array<string | null>
   cover?: string
   collection?: Array<string | null>
+  circle?: string
 }
 
 export interface GQLDeleteDraftInput {
@@ -2627,6 +2668,7 @@ export interface GQLUpdateUserInfoInput {
   agreeOn?: boolean
   profileCover?: string
   paymentPassword?: string
+  paymentPointer?: string
 }
 
 export interface GQLUpdateNotificationSettingInput {
@@ -3918,6 +3960,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   userName?: UserToUserNameResolver<TParent>
   displayName?: UserToDisplayNameResolver<TParent>
   likerId?: UserToLikerIdResolver<TParent>
+  paymentPointer?: UserToPaymentPointerResolver<TParent>
   liker?: UserToLikerResolver<TParent>
   avatar?: UserToAvatarResolver<TParent>
   info?: UserToInfoResolver<TParent>
@@ -3982,6 +4025,15 @@ export interface UserToDisplayNameResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToLikerIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToPaymentPointerResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6173,7 +6225,7 @@ export interface DraftEdgeToNodeResolver<TParent = any, TResult = any> {
 
 export interface GQLDraftTypeResolver<TParent = any> {
   id?: DraftToIdResolver<TParent>
-  collection?: DraftToCollectionResolver<TParent>
+  mediaHash?: DraftToMediaHashResolver<TParent>
   title?: DraftToTitleResolver<TParent>
   slug?: DraftToSlugResolver<TParent>
   summary?: DraftToSummaryResolver<TParent>
@@ -6186,7 +6238,8 @@ export interface GQLDraftTypeResolver<TParent = any> {
   publishState?: DraftToPublishStateResolver<TParent>
   assets?: DraftToAssetsResolver<TParent>
   article?: DraftToArticleResolver<TParent>
-  mediaHash?: DraftToMediaHashResolver<TParent>
+  collection?: DraftToCollectionResolver<TParent>
+  circle?: DraftToCircleResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -6198,13 +6251,10 @@ export interface DraftToIdResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface DraftToCollectionArgs {
-  input: GQLConnectionArgs
-}
-export interface DraftToCollectionResolver<TParent = any, TResult = any> {
+export interface DraftToMediaHashResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: DraftToCollectionArgs,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6318,7 +6368,19 @@ export interface DraftToArticleResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface DraftToMediaHashResolver<TParent = any, TResult = any> {
+export interface DraftToCollectionArgs {
+  input: GQLConnectionArgs
+}
+export interface DraftToCollectionResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: DraftToCollectionArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToCircleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7954,6 +8016,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   toggleFollowCircle?: MutationToToggleFollowCircleResolver<TParent>
   subscribeCircle?: MutationToSubscribeCircleResolver<TParent>
   unsubscribeCircle?: MutationToUnsubscribeCircleResolver<TParent>
+  putCircleArticles?: MutationToPutCircleArticlesResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   togglePinComment?: MutationToTogglePinCommentResolver<TParent>
@@ -8302,6 +8365,21 @@ export interface MutationToUnsubscribeCircleResolver<
   (
     parent: TParent,
     args: MutationToUnsubscribeCircleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToPutCircleArticlesArgs {
+  input: GQLPutCircleArticlesInput
+}
+export interface MutationToPutCircleArticlesResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToPutCircleArticlesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

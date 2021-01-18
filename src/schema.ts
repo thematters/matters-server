@@ -35,6 +35,7 @@ const typeResolver = (type: string, result: any) => {
 }
 
 const idResolver = (type: string, result: any) => {
+  // correct the article id since we return draft as article in resolver
   if (type === NODE_TYPES.article && result?.articleId) {
     return result.articleId
   }
