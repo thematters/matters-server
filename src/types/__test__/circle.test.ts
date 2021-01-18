@@ -99,6 +99,7 @@ const PUT_CIRCLE_ARTICLES = `
         edges {
           node {
             id
+            limitedFree
           }
         }
       }
@@ -325,6 +326,9 @@ describe('circle CRUD', () => {
     })
     expect(_get(addedData, `${path}.works.edges[0].node.id`)).toBe(article.id)
     expect(_get(addedData, `${path}.works.totalCount`)).toBe(1)
+    expect(_get(addedData, `${path}.works.edges[0].node.limitedFree`)).toBe(
+      true
+    )
 
     // remove
     input.type = 'remove'
