@@ -252,7 +252,9 @@ class StripeService {
    */
   getCustomerPortal = async ({ customerId }: { customerId: string }) => {
     try {
-      const session = await this.stripe.billingPortal.sessions.create({ customer: customerId })
+      const session = await this.stripe.billingPortal.sessions.create({
+        customer: customerId,
+      })
       return session.url
     } catch (error) {
       this.handleError(error)
