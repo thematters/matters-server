@@ -35,3 +35,9 @@ export const getUTC8NextMonthDayOne = () => {
   date.setHours(date.getHours() - 8)
   return date.getTime()
 }
+
+export const isArticleLimitedFree = (date: string | Date) => {
+  const now = Date.now()
+  const endAt = new Date(date).getTime() + HOUR * 24
+  return now <= endAt
+}

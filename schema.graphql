@@ -186,15 +186,24 @@ type Article implements Node {
   """Transactions history of this article."""
   transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
-  """OSS"""
-  oss: ArticleOSS!
-  remark: String
-
   """Drafts linked to this article."""
   drafts: [Draft!]
 
+  """
+  This value determines if this article is free for a limited time or not.
+  """
+  limitedFree: Boolean!
+
   """Current article belongs to which Circle."""
   circle: Circle
+
+  """
+  #############
+       OSS    #
+  #############
+  """
+  oss: ArticleOSS!
+  remark: String
 
   """The counting number of comments."""
   commentCount: Int!
@@ -759,7 +768,7 @@ type Draft implements Node {
   """Collection list of this draft."""
   collection(input: ConnectionArgs!): ArticleConnection!
 
-  """Circle list of this draft."""
+  """Circle of this draft."""
   circle: Circle
 }
 
@@ -1776,7 +1785,11 @@ type Tag implements Node {
   """Participants of this tag."""
   participants(input: ConnectionArgs!): UserConnection!
 
-  """OSS"""
+  """
+  #############
+       OSS    #
+  #############
+  """
   oss: TagOSS!
   remark: String
   deleted: Boolean!
@@ -2133,7 +2146,11 @@ type User implements Node {
   """Circles whiches user has joined."""
   joinedCircles: [Circle!]
 
-  """OSS"""
+  """
+  #############
+       OSS    #
+  #############
+  """
   oss: UserOSS!
   remark: String
   notices(input: ConnectionArgs!): NoticeConnection!

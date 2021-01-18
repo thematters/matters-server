@@ -164,15 +164,20 @@ export default /* GraphQL */ `
     "Transactions history of this article."
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
-    # OSS
-    oss: ArticleOSS! @auth(mode: "${AUTH_MODE.admin}")
-    remark: String @auth(mode: "${AUTH_MODE.admin}")
-
     "Drafts linked to this article."
     drafts: [Draft!]
 
+    "This value determines if this article is free for a limited time or not."
+    limitedFree: Boolean!
+
     "Current article belongs to which Circle."
     circle: Circle @logCache(type: "${NODE_TYPES.circle}")
+
+    ##############
+    #     OSS    #
+    ##############
+    oss: ArticleOSS! @auth(mode: "${AUTH_MODE.admin}")
+    remark: String @auth(mode: "${AUTH_MODE.admin}")
   }
 
   "This type contains content, count and related data of an article tag."
@@ -216,7 +221,9 @@ export default /* GraphQL */ `
     "Participants of this tag."
     participants(input: ConnectionArgs!): UserConnection!
 
-    # OSS
+    ##############
+    #     OSS    #
+    ##############
     oss: TagOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
     deleted: Boolean! @auth(mode: "${AUTH_MODE.admin}")
