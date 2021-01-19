@@ -148,7 +148,9 @@ export default /* GraphQL */ `
     "Circles whiches user has joined."
     joinedCircles: [Circle!] @logCache(type: "${NODE_TYPES.circle}")
 
-    # OSS
+    ##############
+    #     OSS    #
+    ##############
     oss: UserOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
   }

@@ -204,20 +204,27 @@ export interface GQLArticle extends GQLNode {
   transactionsReceivedBy: GQLUserConnection
 
   /**
-   * OSS
-   */
-  oss: GQLArticleOSS
-  remark?: string
-
-  /**
    * Drafts linked to this article.
    */
   drafts?: Array<GQLDraft>
 
   /**
+   * This value determines if this article is free for a limited time or not.
+   */
+  limitedFree: boolean
+
+  /**
    * Current article belongs to which Circle.
    */
   circle?: GQLCircle
+
+  /**
+   * #############
+   *      OSS    #
+   * #############
+   */
+  oss: GQLArticleOSS
+  remark?: string
 
   /**
    * The counting number of comments.
@@ -431,7 +438,9 @@ export interface GQLUser extends GQLNode {
   joinedCircles?: Array<GQLCircle>
 
   /**
-   * OSS
+   * #############
+   *      OSS    #
+   * #############
    */
   oss: GQLUserOSS
   remark?: string
@@ -944,7 +953,9 @@ export interface GQLTag extends GQLNode {
   participants: GQLUserConnection
 
   /**
-   * OSS
+   * #############
+   *      OSS    #
+   * #############
    */
   oss: GQLTagOSS
   remark?: string
@@ -1296,7 +1307,7 @@ export interface GQLDraft extends GQLNode {
   collection: GQLArticleConnection
 
   /**
-   * Circle list of this draft.
+   * Circle of this draft.
    */
   circle?: GQLCircle
 }
@@ -3468,10 +3479,11 @@ export interface GQLArticleTypeResolver<TParent = any> {
   sticky?: ArticleToStickyResolver<TParent>
   translation?: ArticleToTranslationResolver<TParent>
   transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
+  drafts?: ArticleToDraftsResolver<TParent>
+  limitedFree?: ArticleToLimitedFreeResolver<TParent>
+  circle?: ArticleToCircleResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
-  drafts?: ArticleToDraftsResolver<TParent>
-  circle?: ArticleToCircleResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
   pinCommentLimit?: ArticleToPinCommentLimitResolver<TParent>
   pinCommentLeft?: ArticleToPinCommentLeftResolver<TParent>
@@ -3821,6 +3833,33 @@ export interface ArticleToTransactionsReceivedByResolver<
   ): TResult
 }
 
+export interface ArticleToDraftsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToLimitedFreeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToCircleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface ArticleToOssResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -3831,24 +3870,6 @@ export interface ArticleToOssResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToRemarkResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleToDraftsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleToCircleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

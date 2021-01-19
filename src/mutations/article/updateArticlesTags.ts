@@ -44,8 +44,8 @@ const triggerNotice = async ({
       ? DB_NOTICE_TYPE.article_tag_has_been_added
       : DB_NOTICE_TYPE.article_tag_has_been_unselected
 
-  users.map(async (user) => {
-    await notificationService.trigger({
+  users.map((user) => {
+    notificationService.trigger({
       event,
       recipientId: user,
       actorId: viewerId,
