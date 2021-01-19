@@ -17,6 +17,7 @@ import articleCover from './cover'
 import createdAt from './createdAt'
 import hasAppreciate from './hasAppreciate'
 import language from './language'
+import limitedFree from './limitedFree'
 import live from './live'
 import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
@@ -88,6 +89,7 @@ export default {
     transactionsReceivedBy,
     createdAt,
     revisedAt,
+    limitedFree,
     circle,
   },
   Tag: {

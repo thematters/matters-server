@@ -58,7 +58,7 @@ export default /* GraphQL */ `
     "Collection list of this draft."
     collection(input: ConnectionArgs!): ArticleConnection!
 
-    "Circle list of this draft."
+    "Circle of this draft."
     circle: Circle @logCache(type: "${NODE_TYPES.circle}")
   }
 
