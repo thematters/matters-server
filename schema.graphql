@@ -2048,6 +2048,7 @@ input UpdateUserInfoInput {
   agreeOn: Boolean
   profileCover: ID
   paymentPassword: String
+  paymentPointer: String
 }
 
 input UpdateUserRoleInput {
@@ -2082,6 +2083,9 @@ type User implements Node {
 
   """LikerID of LikeCoin, being used by LikeCoin OAuth"""
   likerId: String
+
+  """Payment pointer that resolves to Open Payments endpoints"""
+  paymentPointer: String
 
   """Liker info of current user"""
   liker: Liker!

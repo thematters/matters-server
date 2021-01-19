@@ -328,6 +328,11 @@ export interface GQLUser extends GQLNode {
   likerId?: string
 
   /**
+   * Payment pointer that resolves to Open Payments endpoints
+   */
+  paymentPointer?: string
+
+  /**
    * Liker info of current user
    */
   liker: GQLLiker
@@ -2673,6 +2678,7 @@ export interface GQLUpdateUserInfoInput {
   agreeOn?: boolean
   profileCover?: string
   paymentPassword?: string
+  paymentPointer?: string
 }
 
 export interface GQLUpdateNotificationSettingInput {
@@ -3974,6 +3980,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   userName?: UserToUserNameResolver<TParent>
   displayName?: UserToDisplayNameResolver<TParent>
   likerId?: UserToLikerIdResolver<TParent>
+  paymentPointer?: UserToPaymentPointerResolver<TParent>
   liker?: UserToLikerResolver<TParent>
   avatar?: UserToAvatarResolver<TParent>
   info?: UserToInfoResolver<TParent>
@@ -4038,6 +4045,15 @@ export interface UserToDisplayNameResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToLikerIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToPaymentPointerResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

@@ -15,7 +15,7 @@ const resolver: MutationToChangeEmailResolver = async (
       newEmailCodeId,
     },
   },
-  { viewer, dataSources: { userService } }
+  { viewer, dataSources: { userService, atomService } }
 ) => {
   const oldEmail = rawOldEmail ? rawOldEmail.toLowerCase() : null
   const newEmail = rawNewEmail ? rawNewEmail.toLowerCase() : null
@@ -54,9 +54,12 @@ const resolver: MutationToChangeEmailResolver = async (
     throw new EmailExistsError('email already exists')
   }
 
-  // update email
-  const newUser = await userService.updateInfo(user.id, {
-    email: newCode.email,
+  const newUser = await atomService.update({
+    table: 'user',
+    where: { id: user.id },
+    data: {
+      email: newCode.email,
+    },
   })
 
   // mark code status as used

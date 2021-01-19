@@ -1,5 +1,6 @@
 import { OFFICIAL_NOTICE_EXTEND_TYPE, USER_STATE } from 'common/enums'
 import { ActionFailedError, UserInputError } from 'common/errors'
+import logger from 'common/logger'
 import { fromGlobalId, getPunishExpiredDate } from 'common/utils'
 import { userQueue } from 'connectors/queue'
 import { MutationToUpdateUserStateResolver } from 'definitions'
@@ -7,7 +8,7 @@ import { MutationToUpdateUserStateResolver } from 'definitions'
 const resolver: MutationToUpdateUserStateResolver = async (
   _,
   { input: { id, state, banDays, password, emails } },
-  { viewer, dataSources: { userService, notificationService } }
+  { viewer, dataSources: { userService, notificationService, atomService } }
 ) => {
   // handlers for cleanup and notification
   const handleBan = async (userId: string) => {
@@ -113,9 +114,27 @@ const resolver: MutationToUpdateUserStateResolver = async (
   /**
    * active, banned, frozen
    */
-  const updatedUser = await userService.updateInfo(dbId, {
-    state,
+  const updatedUser = await atomService.update({
+    table: 'user',
+    where: { id: dbId },
+    data: {
+      state,
+    },
   })
+
+  try {
+    await atomService.es.client.update({
+      index: 'user',
+      id: dbId,
+      body: {
+        doc: {
+          state,
+        },
+      },
+    })
+  } catch (err) {
+    logger.error(err)
+  }
 
   if (state === USER_STATE.banned) {
     handleBan(updatedUser.id)

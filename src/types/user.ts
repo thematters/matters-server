@@ -82,6 +82,9 @@ export default /* GraphQL */ `
     "LikerID of LikeCoin, being used by LikeCoin OAuth"
     likerId: String
 
+    "Payment pointer that resolves to Open Payments endpoints"
+    paymentPointer: String
+
     "Liker info of current user"
     liker: Liker!
 
@@ -496,6 +499,7 @@ export default /* GraphQL */ `
     agreeOn: Boolean
     profileCover: ID
     paymentPassword: String
+    paymentPointer: String
   }
 
   input UpdateUserStateInput {

@@ -203,9 +203,28 @@ class UserQueue extends BaseQueue {
       await Promise.all(
         records.map(async (record, index) => {
           try {
-            await this.userService.updateInfo(record.userId, {
+            const data = {
               state: USER_STATE.active,
+            }
+
+            await this.atomService.update({
+              table: 'user',
+              where: { id: record.userId },
+              data,
             })
+
+            try {
+              await this.atomService.es.client.update({
+                index: 'user',
+                id: record.userId,
+                body: {
+                  doc: data,
+                },
+              })
+            } catch (err) {
+              logger.error(err)
+            }
+
             await this.userService.baseUpdate(
               record.id,
               { archived: true },
