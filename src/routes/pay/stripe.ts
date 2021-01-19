@@ -107,6 +107,18 @@ const updateTxState = async (
   }
 }
 
+/*
+ * handle subscription invoice events
+ */
+const handleInvoice = async (
+  invoice: any /*Stripe.Invoice*/,
+  eventType: 'invoice.payment_succeeded' | 'invoice.payment_failed'
+) => {
+  console.log('=======================================================')
+  console.log(invoice)
+  console.log(eventType)
+}
+
 const createRefundTxs = async (refunds: Stripe.ApiList<Stripe.Refund>) => {
   const paymentService = new PaymentService()
 
@@ -200,6 +212,10 @@ stripeRouter.post('/', async (req, res) => {
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object as Stripe.PaymentIntent
       await updateTxState(paymentIntent, event.type)
+      break
+    case 'invoice.payment_succeeded':
+      const invoice = event.data.object as Stripe.Invoice
+      await handleInvoice(invoice, event.type)
       break
     case 'charge.refunded':
       const charge = event.data.object as Stripe.Charge
