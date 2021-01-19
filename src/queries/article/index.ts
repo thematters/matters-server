@@ -1,3 +1,4 @@
+import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
@@ -29,7 +30,6 @@ import state from './state'
 import sticky from './sticky'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
-import summary from './summary'
 import tagArticles from './tag/articles'
 import tagCover from './tag/cover'
 import tagCreator from './tag/creator'
@@ -56,6 +56,13 @@ export default {
   },
   Article: {
     content,
+    summary: ({
+      summary,
+      content: cont,
+    }: {
+      summary?: string
+      content: string
+    }) => summary || makeSummary(cont),
     appreciationsReceived,
     appreciationsReceivedTotal,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
@@ -81,7 +88,6 @@ export default {
     sticky,
     subscribed,
     subscribers,
-    summary,
     tags,
     translation,
     topicScore: ({ score }: { score: number }) =>

@@ -179,15 +179,18 @@ export const putDraft = async ({ draft, client }: PutDraftInput) => {
       putDraft(input: $input) {
         id
         collection(input: { first: 10 }) {
+          totalCount
           edges {
             node {
               id
             }
           }
         }
+        tags
         cover
         title
         summary
+        summaryCustomized
         content
         createdAt
       }
