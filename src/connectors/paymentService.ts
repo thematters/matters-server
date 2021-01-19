@@ -259,32 +259,6 @@ export class PaymentService extends BaseService {
    *            Customer           *
    *                               *
    *********************************/
-  findCustomer = async ({
-    userId,
-    customerId,
-    provider,
-  }: {
-    userId?: string
-    customerId?: string
-    provider?: PAYMENT_PROVIDER
-  }) => {
-    let qs = this.knex('customer')
-
-    if (userId) {
-      qs = qs.where({ userId })
-    }
-
-    if (customerId) {
-      qs = qs.where({ customerId })
-    }
-
-    if (provider) {
-      qs = qs.where({ provider })
-    }
-
-    return qs
-  }
-
   createCustomer = async ({
     user,
     provider,
@@ -394,32 +368,6 @@ export class PaymentService extends BaseService {
    *             Payout            *
    *                               *
    *********************************/
-  findPayoutAccount = async ({
-    userId,
-    accountId,
-    provider = PAYMENT_PROVIDER.stripe,
-  }: {
-    userId?: string
-    accountId?: string
-    provider?: PAYMENT_PROVIDER.stripe
-  }) => {
-    let qs = this.knex('payout_account')
-
-    if (userId) {
-      qs = qs.where({ userId })
-    }
-
-    if (accountId) {
-      qs = qs.where({ accountId })
-    }
-
-    if (provider) {
-      qs = qs.where({ provider })
-    }
-
-    return qs
-  }
-
   createPayoutAccount = async ({
     user,
     accountId,
