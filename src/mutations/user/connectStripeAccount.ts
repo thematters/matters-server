@@ -9,16 +9,18 @@ import { MutationToConnectStripeAccountResolver } from 'definitions'
 const resolver: MutationToConnectStripeAccountResolver = async (
   _,
   __,
-  { viewer, dataSources: { paymentService } }
+  { viewer, dataSources: { atomService, paymentService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
 
   // check if payout account already exists
-  const payoutAccount = (
-    await paymentService.findPayoutAccount({ userId: viewer.id })
-  )[0]
+  const payoutAccount = await atomService.findFirst({
+    table: 'payout_account',
+    where: { userId: viewer.id, archived: false },
+  })
+
   if (payoutAccount) {
     throw new PaymentPayoutAccountExistsError('payout account already exists.')
   }
