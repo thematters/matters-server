@@ -1,4 +1,3 @@
-import { makeSummary } from '@matters/matters-html-formatter'
 import _ from 'lodash'
 import { v4 } from 'uuid'
 
@@ -32,13 +31,14 @@ const resolver: MutationToPutDraftResolver = async (
   const {
     id,
     title,
-    content,
     summary,
+    content,
     tags,
     cover,
     collection,
     circle: circleGlobalId,
   } = input
+
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
@@ -116,11 +116,19 @@ const resolver: MutationToPutDraftResolver = async (
   }
 
   // assemble data
+  const resetSummary = summary === null || summary === ''
+  const resetCover = cover === null
+  const resetCircle = circleGlobalId === null
+  const resetCollection =
+    collection === null || (collection && collection.length === 0)
+  const resetTags = tags === null || (tags && tags.length === 0)
+
   const data: ItemData = _.omitBy(
     {
       authorId: id ? undefined : viewer.id,
       title,
-      summary: summary || (content && makeSummary(content)),
+      summary,
+      summaryCustomized: summary === undefined ? undefined : !resetSummary,
       content: content && sanitize(content),
       tags,
       cover: coverId,
@@ -159,9 +167,12 @@ const resolver: MutationToPutDraftResolver = async (
     return draftService.baseUpdate(dbId, {
       ...data,
       updatedAt: new Date(),
-      cover: cover === null ? null : data.cover || draft.cover,
-      circleId:
-        circleGlobalId === null ? null : data.circleId || draft.circleId,
+      // reset fields
+      summary: resetSummary ? null : data.summary || draft.summary,
+      cover: resetCover ? null : data.cover || draft.cover,
+      collection: resetCollection ? null : data.collection || draft.collection,
+      tags: resetTags ? null : data.tags || draft.tags,
+      circleId: resetCircle ? null : data.circleId || draft.circleId,
     })
   }
 
