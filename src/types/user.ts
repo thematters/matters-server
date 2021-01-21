@@ -145,8 +145,8 @@ export default /* GraphQL */ `
     "Circles belong to current user."
     ownCircles: [Circle!] @logCache(type: "${NODE_TYPES.circle}")
 
-    "Circles whiches user has joined."
-    joinedCircles: [Circle!] @logCache(type: "${NODE_TYPES.circle}")
+    "Circles whiches user has subscribed."
+    subscribedCircles(input: ConnectionArgs!): CircleConnection! @logCache(type: "${NODE_TYPES.circle}")
 
     ##############
     #     OSS    #

@@ -438,9 +438,9 @@ export interface GQLUser extends GQLNode {
   ownCircles?: Array<GQLCircle>
 
   /**
-   * Circles whiches user has joined.
+   * Circles whiches user has subscribed.
    */
-  joinedCircles?: Array<GQLCircle>
+  subscribedCircles: GQLCircleConnection
 
   /**
    * #############
@@ -4024,7 +4024,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   isBlocked?: UserToIsBlockedResolver<TParent>
   status?: UserToStatusResolver<TParent>
   ownCircles?: UserToOwnCirclesResolver<TParent>
-  joinedCircles?: UserToJoinedCirclesResolver<TParent>
+  subscribedCircles?: UserToSubscribedCirclesResolver<TParent>
   oss?: UserToOssResolver<TParent>
   remark?: UserToRemarkResolver<TParent>
   notices?: UserToNoticesResolver<TParent>
@@ -4289,10 +4289,13 @@ export interface UserToOwnCirclesResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface UserToJoinedCirclesResolver<TParent = any, TResult = any> {
+export interface UserToSubscribedCirclesArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToSubscribedCirclesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: {},
+    args: UserToSubscribedCirclesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
