@@ -44,7 +44,7 @@ const resolver: MutationToAddCreditResolver = async (
     where: {
       userId: viewer.id,
       provider,
-      archvied: false,
+      archived: false,
     },
   })) as Customer
 
