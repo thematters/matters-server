@@ -26,7 +26,7 @@ import { MutationToPayoutResolver } from 'definitions'
 const resolver: MutationToPayoutResolver = async (
   parent,
   { input: { amount, password } },
-  { viewer, dataSources: { paymentService } }
+  { viewer, dataSources: { atomService, paymentService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -54,7 +54,10 @@ const resolver: MutationToPayoutResolver = async (
       userId: viewer.id,
     }),
     paymentService.countPendingPayouts({ userId: viewer.id }),
-    paymentService.findPayoutAccount({ userId: viewer.id }),
+    atomService.findFirst({
+      table: 'payout_account',
+      where: { userId: viewer.id, archived: false },
+    }),
   ])
 
   if (pending > 0) {
@@ -67,7 +70,7 @@ const resolver: MutationToPayoutResolver = async (
     throw new PaymentBalanceInsufficientError('viewer has insufficient balance')
   }
 
-  const recipient = customer[0]
+  const recipient = customer
   if (!recipient || !recipient.accountId) {
     throw new EntityNotFoundError(`payout recipient is not found`)
   }

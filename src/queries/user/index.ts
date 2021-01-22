@@ -31,7 +31,6 @@ import isBlocked from './isBlocked'
 import isBlocking from './isBlocking'
 import isFollowee from './isFollowee'
 import isFollower from './isFollower'
-import joinedCircles from './joinedCircles'
 import Liker from './liker'
 import likerId from './liker/likerId'
 import notification from './notification'
@@ -42,6 +41,7 @@ import receivedDonationCount from './receivedDonationCount'
 import Recommendation from './recommendation'
 import rootUser from './rootUser'
 import StripeAccount from './stripeAccount'
+import subscribedCircles from './subscribedCircles'
 import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
@@ -99,7 +99,7 @@ const user: {
     isBlocking,
     isBlocked,
     ownCircles,
-    joinedCircles,
+    subscribedCircles,
   },
   UserInfo: {
     badges,
