@@ -165,6 +165,7 @@ const createRefundTxs = async (refunds: Stripe.ApiList<Stripe.Refund>) => {
 stripeRouter.use(bodyParser.raw({ type: 'application/json' }))
 
 stripeRouter.post('/', async (req, res) => {
+  const slack = new SlackService()
   const paymentService = new PaymentService()
 
   const sig = req.headers['stripe-signature'] as string
@@ -179,39 +180,57 @@ stripeRouter.post('/', async (req, res) => {
     )
   } catch (err) {
     logger.error(err)
+    slack.sendStripeAlert({
+      data: event,
+      message: 'Signature verification failed',
+    })
     res.status(400).send(`Webhook Error: ${err.message}`)
   }
 
   if (!event) {
+    slack.sendStripeAlert({ message: 'Empty event object' })
     return res.status(400).send(`Webhook Error: empty event object`)
   }
 
-  // Handle the event
-  switch (event.type) {
-    case 'payment_intent.canceled':
-      const canceled = event.data.object as Stripe.PaymentIntent
-      await updateTxState(canceled, event.type, canceled.cancellation_reason)
-      break
-    case 'payment_intent.payment_failed':
-      const failed = event.data.object as Stripe.PaymentIntent
-      await updateTxState(failed, event.type, failed.last_payment_error?.code)
-      break
-    case 'payment_intent.processing':
-    case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object as Stripe.PaymentIntent
-      await updateTxState(paymentIntent, event.type)
-      break
-    case 'charge.refunded':
-      const charge = event.data.object as Stripe.Charge
-      await createRefundTxs(charge.refunds)
-      break
-    case 'customer.deleted':
-      const customer = event.data.object as Stripe.Customer
-      await paymentService.deleteCustomer({ customerId: customer.id })
-      break
-    default:
-      logger.error('Unexpected event type', event.type)
-      break
+  try {
+    // Handle the event
+    switch (event.type) {
+      case 'payment_intent.canceled':
+        const canceled = event.data.object as Stripe.PaymentIntent
+        await updateTxState(canceled, event.type, canceled.cancellation_reason)
+        break
+      case 'payment_intent.payment_failed':
+        const failed = event.data.object as Stripe.PaymentIntent
+        await updateTxState(failed, event.type, failed.last_payment_error?.code)
+        break
+      case 'payment_intent.processing':
+      case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object as Stripe.PaymentIntent
+        await updateTxState(paymentIntent, event.type)
+        break
+      case 'charge.refunded':
+        const charge = event.data.object as Stripe.Charge
+        await createRefundTxs(charge.refunds)
+        break
+      case 'customer.deleted':
+        const customer = event.data.object as Stripe.Customer
+        await paymentService.deleteCustomer({ customerId: customer.id })
+        break
+      default:
+        logger.error('Unexpected event type', event.type)
+        slack.sendStripeAlert({
+          data: event,
+          message: 'Unexpected event type',
+        })
+        break
+    }
+  } catch (error) {
+    logger.error(error)
+    slack.sendStripeAlert({
+      data: event,
+      message: `Server error: ${error.message}`,
+    })
+    throw error
   }
 
   // Return a 200 res to acknowledge receipt of the event
