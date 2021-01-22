@@ -77,11 +77,11 @@ const resolver: MutationToEditArticleResolver = async (
   if (!article) {
     throw new ArticleNotFoundError('article does not exist')
   }
-  const currDraft = await draftService.baseFindById(article.draftId)
-  if (!currDraft) {
+  const draft = await draftService.baseFindById(article.draftId)
+  if (!draft) {
     throw new DraftNotFoundError('article linked draft does not exist')
   }
-  if (currDraft.authorId !== viewer.id) {
+  if (draft.authorId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')
   }
   if (article.state !== ARTICLE_STATE.active) {
@@ -124,6 +124,7 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Tags
    */
+  const resetTags = tags === null || (tags && tags.length === 0)
   if (tags) {
     // get tag editor
     const tagEditors = environment.mattyId
@@ -168,11 +169,21 @@ const resolver: MutationToEditArticleResolver = async (
       articleId: article.id,
       tagIds: difference(oldIds, newIds),
     })
+  } else if (resetTags) {
+    const oldIds = (
+      await tagService.findByArticleId({ articleId: article.id })
+    ).map(({ id: tagId }: { id: string }) => tagId)
+
+    await tagService.deleteArticleTagsByTagIds({
+      articleId: article.id,
+      tagIds: oldIds,
+    })
   }
 
   /**
    * Cover
    */
+  const resetCover = cover === null
   if (cover) {
     const asset = await systemService.findAssetByUUID(cover)
 
@@ -188,7 +199,7 @@ const resolver: MutationToEditArticleResolver = async (
       cover: asset.id,
       updatedAt: new Date(),
     })
-  } else if (cover === null) {
+  } else if (resetCover) {
     await articleService.baseUpdate(dbId, {
       cover: null,
       updatedAt: new Date(),
@@ -198,6 +209,8 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Collection
    */
+  const resetCollection =
+    collection === null || (collection && collection.length === 0)
   if (collection) {
     // compare new and old collections
     const oldIds = (
@@ -259,11 +272,14 @@ const resolver: MutationToEditArticleResolver = async (
         ],
       })
     })
+  } else if (resetCollection) {
+    await articleService.deleteCollection({ entranceId: article.id })
   }
 
   /**
    * Circle
    */
+  const resetCircle = circleGlobalId === null
   if (circleGlobalId) {
     const { id: circleId } = fromGlobalId(circleGlobalId)
     const circle = await atomService.findFirst({
@@ -288,10 +304,28 @@ const resolver: MutationToEditArticleResolver = async (
       create: data,
       update: data,
     })
-  } else if (circleGlobalId === null) {
+  } else if (resetCircle) {
     throw new ForbiddenError(
       `removing articles from circle is unsupported now.`
     )
+  }
+
+  /**
+   * Summary
+   */
+  const resetSummary = summary === null || summary === ''
+  if (summary) {
+    await draftService.baseUpdate(dbId, {
+      summary,
+      summaryCustomized: true,
+      updatedAt: new Date(),
+    })
+  } else if (resetSummary) {
+    await draftService.baseUpdate(dbId, {
+      summary: null,
+      summaryCustomized: false,
+      updatedAt: new Date(),
+    })
   }
 
   /**
@@ -312,7 +346,7 @@ const resolver: MutationToEditArticleResolver = async (
 
     // check diff distances reaches limit or not
     const diffs = measureDiffs(
-      stripHtml(currDraft.content, ''),
+      stripHtml(draft.content, ''),
       stripHtml(cleanedContent, '')
     )
     if (diffs > 50) {
@@ -320,8 +354,14 @@ const resolver: MutationToEditArticleResolver = async (
     }
 
     // fetch updated data before create draft
-    const [currArticle, currCollections, currTags] = await Promise.all([
-      articleService.baseFindById(dbId), // fetch latest record
+    const [
+      currDraft,
+      currArticle,
+      currCollections,
+      currTags,
+    ] = await Promise.all([
+      draftService.baseFindById(article.draftId), // fetch latest draft
+      articleService.baseFindById(dbId), // fetch latest article
       articleService.findCollections({ entranceId: article.id, limit: null }),
       tagService.findByArticleId({ articleId: article.id }),
     ])
@@ -337,7 +377,8 @@ const resolver: MutationToEditArticleResolver = async (
       authorId: currDraft.authorId,
       articleId: currArticle.id,
       title: currDraft.title,
-      summary,
+      summary: currDraft.summary,
+      summaryCustomized: currDraft.summaryCustomized,
       content: pipe(cleanedContent),
       tags: currTagContents,
       cover: currArticle.cover,

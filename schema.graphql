@@ -121,6 +121,9 @@ type Article implements Node {
   """A short summary for this article."""
   summary: String!
 
+  """This value determines if the summary is customized or not."""
+  summaryCustomized: Boolean!
+
   """Tags attached to this article."""
   tags: [Tag!]
 
@@ -737,6 +740,9 @@ type Draft implements Node {
 
   """Summary of this draft."""
   summary: String
+
+  """This value determines if the summary is customized or not."""
+  summaryCustomized: Boolean!
 
   """Content of this draft."""
   content: String
@@ -2147,8 +2153,8 @@ type User implements Node {
   """Circles belong to current user."""
   ownCircles: [Circle!]
 
-  """Circles whiches user has joined."""
-  joinedCircles: [Circle!]
+  """Circles whiches user has subscribed."""
+  subscribedCircles(input: ConnectionArgs!): CircleConnection!
 
   """
   #############

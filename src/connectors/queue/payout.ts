@@ -10,7 +10,7 @@ import {
 import { PaymentQueueJobDataError } from 'common/errors'
 import logger from 'common/logger'
 import { numRound } from 'common/utils'
-import { PaymentService } from 'connectors'
+import { AtomService, PaymentService } from 'connectors'
 
 import { BaseQueue } from './baseQueue'
 
@@ -23,6 +23,7 @@ class PayoutQueue extends BaseQueue {
 
   constructor() {
     super(QUEUE_NAME.payout)
+    this.atomService = new AtomService()
     this.paymentService = new PaymentService()
     this.addConsumers()
   }
@@ -102,10 +103,13 @@ class PayoutQueue extends BaseQueue {
 
       const [balance, customer, pending] = await Promise.all([
         this.paymentService.calculateHKDBalance({ userId: tx.senderId }),
-        this.paymentService.findPayoutAccount({ userId: tx.senderId }),
+        this.atomService.findFirst({
+          table: 'payout_account',
+          where: { userId: tx.senderId, archived: false },
+        }),
         this.paymentService.countPendingPayouts({ userId: tx.senderId }),
       ])
-      const recipient = customer[0]
+      const recipient = customer
 
       // cancel payout if:
       // 1. balance including pending amounts < 0

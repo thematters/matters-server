@@ -23,8 +23,8 @@ export default {
     slug: ({ title }: { title: string }) => slugify(title),
     wordCount: ({ content }: { content?: string }) =>
       content ? countWords(content) : 0,
-    summary: ({ summary, cover }: { summary: string; cover?: string }) =>
-      makeSummary(summary || '', cover ? 110 : 140),
+    summary: ({ summary, content }: { summary?: string; content: string }) =>
+      summary || makeSummary(content),
     cover: draftCover,
     collection,
     assets,

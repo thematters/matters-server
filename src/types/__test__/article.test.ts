@@ -1,18 +1,14 @@
 import _get from 'lodash/get'
 
-import { PUBLISH_STATE } from 'common/enums'
+import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
-import {
-  GQLAppreciateArticleInput,
-  GQLNodeInput,
-  GQLPublishArticleInput,
-} from 'definitions'
+import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
 
 import { publishArticle, putDraft, testClient, updateUserState } from './utils'
 
 const mediaHash = 'someIpfsMediaHash1'
 
-const ARTICLE_ID = toGlobalId({ type: 'Article', id: 2 })
+const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
 
 const GET_ARTICLES = `
   query ($input: ConnectionArgs!) {
@@ -40,6 +36,7 @@ const GET_ARTICLE_TAGS = `
     }
   }
 `
+
 const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = `
   query ($input: NodeInput!) {
     node(input: $input) {
@@ -49,6 +46,7 @@ const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = `
     }
   }
 `
+
 const APPRECIATE_ARTICLE = `
   mutation($input: AppreciateArticleInput!) {
     appreciateArticle(input: $input) {
@@ -69,6 +67,31 @@ const TOGGLE_SUBSCRIBE_ARTICLE = `
   mutation($input: ToggleItemInput!) {
     toggleSubscribeArticle(input: $input) {
       subscribed
+    }
+  }
+`
+
+const EDIT_ARTICLE = `
+  mutation($input: EditArticleInput!) {
+    editArticle(input: $input) {
+      id
+      summary
+      summaryCustomized
+      content
+      collection(input: { first: null }) {
+        totalCount
+        edges {
+          node {
+            id
+          }
+        }
+      }
+      tags {
+        id
+        content
+      }
+      sticky
+      state
     }
   }
 `
@@ -157,7 +180,7 @@ describe('query tag on article', () => {
 })
 
 describe('publish article', () => {
-  test('create draft, publish and recall', async () => {
+  test('create a draft & publish it', async () => {
     jest.setTimeout(10000)
     const draft = {
       title: Math.random().toString(),
@@ -287,5 +310,187 @@ describe('frozen user do muations to article', () => {
       client: { isFrozen: true },
     })
     expect(_get(result, errorPath)).toBe('FORBIDDEN_BY_STATE')
+  })
+})
+
+describe('edit article', () => {
+  test('edit article summary', async () => {
+    const summary = 'my customized summary'
+    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
+    const result = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          summary,
+        },
+      },
+    })
+    expect(_get(result, 'data.editArticle.summary')).toBe(summary)
+    expect(_get(result, 'data.editArticle.summaryCustomized')).toBe(true)
+
+    // reset summary
+    const resetResult1 = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          summary: null,
+        },
+      },
+    })
+    expect(
+      _get(resetResult1, 'data.editArticle.summary.length')
+    ).toBeGreaterThan(0)
+    expect(_get(resetResult1, 'data.editArticle.summaryCustomized')).toBe(false)
+
+    const resetResult2 = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          summary: '',
+        },
+      },
+    })
+    expect(_get(resetResult2, 'data.editArticle.summaryCustomized')).toBe(false)
+  })
+
+  test('edit article tags', async () => {
+    const tags = ['abc', '123']
+    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
+    const result = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          tags,
+        },
+      },
+    })
+    expect(_get(result, 'data.editArticle.tags.length')).toBe(2)
+    expect(_get(result, 'data.editArticle.tags.0.content')).toBe(tags[0])
+    expect(_get(result, 'data.editArticle.tags.1.content')).toBe(tags[1])
+
+    // reset tags
+    const resetResult1 = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          tags: [],
+        },
+      },
+    })
+    expect(_get(resetResult1, 'data.editArticle.tags.length')).toBe(0)
+
+    const resetResult2 = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          tags: null,
+        },
+      },
+    })
+    expect(_get(resetResult2, 'data.editArticle.tags.length')).toBe(0)
+  })
+
+  test('edit article collection', async () => {
+    const collection = [
+      toGlobalId({ type: 'Article', id: 3 }),
+      toGlobalId({ type: 'Article', id: 4 }),
+    ]
+    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
+    const result = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          collection,
+        },
+      },
+    })
+    expect(_get(result, 'data.editArticle.collection.totalCount')).toBe(2)
+    expect(
+      [
+        _get(result, 'data.editArticle.collection.edges.0.node.id'),
+        _get(result, 'data.editArticle.collection.edges.1.node.id'),
+      ].sort()
+    ).toEqual(collection.sort())
+
+    // reset collection
+    const resetResult1 = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          collection: [],
+        },
+      },
+    })
+    expect(_get(resetResult1, 'data.editArticle.collection.totalCount')).toBe(0)
+
+    const resetResult2 = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          collection: null,
+        },
+      },
+    })
+    expect(_get(resetResult2, 'data.editArticle.collection.totalCount')).toBe(0)
+  })
+
+  test('toggle article sticky', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
+    const enableResult = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          sticky: true,
+        },
+      },
+    })
+    expect(_get(enableResult, 'data.editArticle.sticky')).toBe(true)
+
+    const disableResult = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          sticky: false,
+        },
+      },
+    })
+    expect(_get(disableResult, 'data.editArticle.sticky')).toBe(false)
+  })
+
+  test('archive article', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
+    const result = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          state: ARTICLE_STATE.archived,
+        },
+      },
+    })
+    expect(_get(result, 'data.editArticle.state')).toBe(ARTICLE_STATE.archived)
   })
 })

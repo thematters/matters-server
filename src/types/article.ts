@@ -101,6 +101,9 @@ export default /* GraphQL */ `
     "A short summary for this article."
     summary: String!
 
+    "This value determines if the summary is customized or not."
+    summaryCustomized: Boolean!
+
     "Tags attached to this article."
     tags: [Tag!] @logCache(type: "${NODE_TYPES.tag}")
 
