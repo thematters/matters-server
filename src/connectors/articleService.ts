@@ -144,15 +144,19 @@ export class ArticleService extends BaseService {
 
     // paywall info
     if (circleId) {
-      const [
-        { name: circleName, displayName: circleDisplayName },
-      ] = await this.knex('circle')
+      const circleResult = await this.knex('circle')
         .select('name', 'displayName')
         .where({ id: circleId })
-      console.log({ name: circleName, displayName: circleDisplayName })
-      bundleInfo.readMore = {
-        url: `${environment.domain}/~${circleName}`,
-        text: circleDisplayName,
+
+      if (circleResult) {
+        const [
+          { name: circleName, displayName: circleDisplayName },
+        ] = circleResult
+
+        bundleInfo.readMore = {
+          url: `${environment.domain}/~${circleName}`,
+          text: circleDisplayName,
+        }
       }
     }
     if (paymentPointer) {
