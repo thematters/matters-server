@@ -40,6 +40,8 @@ type RequestProps = {
   headers?: { [key: string]: any }
   liker?: UserOAuthLikeCoin
   withClientCredential?: boolean
+  ip?: string
+  userAgent?: string
 } & AxiosRequestConfig
 
 const ENDPOINTS = {
@@ -74,6 +76,8 @@ export class LikeCoin {
     endpoint,
     liker,
     withClientCredential,
+    ip,
+    userAgent,
     headers = {},
     ...axiosOptions
   }: RequestProps) => {
@@ -83,6 +87,18 @@ export class LikeCoin {
         headers = {
           ...headers,
           Authorization: `Bearer ${accessToken}`,
+        }
+      }
+      if (ip) {
+        headers = {
+          ...headers,
+          'X-LIKECOIN-REAL-IP': ip,
+        }
+      }
+      if (userAgent) {
+        headers = {
+          ...headers,
+          'X-LIKECOIN-USER-AGENT': userAgent,
         }
       }
 
@@ -235,9 +251,6 @@ export class LikeCoin {
       endpoint: ENDPOINTS.register,
       withClientCredential: true,
       method: 'POST',
-      headers: {
-        'X-LIKECOIN-REAL-IP': ip,
-      },
       data: {
         user,
         token,
@@ -246,6 +259,7 @@ export class LikeCoin {
         locale,
         isEmailEnabled,
       },
+      ip,
     })
     const data = _.get(res, 'data')
 
@@ -271,14 +285,12 @@ export class LikeCoin {
     const res = await this.request({
       endpoint: ENDPOINTS.edit,
       withClientCredential: true,
-      headers: {
-        'X-LIKECOIN-REAL-IP': ip,
-      },
       method: 'POST',
       data: {
         action,
         payload,
       },
+      ip,
     })
     const data = _.get(res, 'data')
 
@@ -353,10 +365,8 @@ export class LikeCoin {
       endpoint,
       method: 'GET',
       liker,
-      headers: {
-        'X-LIKECOIN-REAL-IP': likerIp,
-        'X-LIKECOIN-USER-AGENT': userAgent,
-      },
+      ip: likerIp,
+      userAgent,
       withClientCredential: true,
       params: {
         referrer: encodeURI(url),
@@ -392,10 +402,8 @@ export class LikeCoin {
     try {
       const endpoint = `${ENDPOINTS.like}/${authorLikerId}/${amount}`
       const result = await this.request({
-        headers: {
-          'X-LIKECOIN-REAL-IP': likerIp,
-          'X-LIKECOIN-USER-AGENT': userAgent,
-        },
+        ip: likerIp,
+        userAgent,
         endpoint,
         withClientCredential: true,
         method: 'POST',
@@ -434,10 +442,8 @@ export class LikeCoin {
     try {
       const endpoint = `${ENDPOINTS.superlike}/${authorLikerId}/`
       const result = await this.request({
-        headers: {
-          'X-LIKECOIN-REAL-IP': likerIp,
-          'X-LIKECOIN-USER-AGENT': userAgent,
-        },
+        ip: likerIp,
+        userAgent,
         endpoint,
         withClientCredential: true,
         method: 'POST',
@@ -473,10 +479,8 @@ export class LikeCoin {
     const res = await this.request({
       endpoint,
       method: 'GET',
-      headers: {
-        'X-LIKECOIN-REAL-IP': likerIp,
-        'X-LIKECOIN-USER-AGENT': userAgent,
-      },
+      ip: likerIp,
+      userAgent,
       withClientCredential: true,
       params: {
         referrer: encodeURI(url),
