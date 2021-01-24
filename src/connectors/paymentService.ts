@@ -16,18 +16,21 @@ import {
   getUTC8Midnight,
   numRound,
 } from 'common/utils'
-import { BaseService } from 'connectors'
+import { AtomService, BaseService } from 'connectors'
 import { Customer, User } from 'definitions'
 
 import { stripe } from './stripe'
 
 export class PaymentService extends BaseService {
   stripe: typeof stripe
+  atomService: AtomService
 
   constructor() {
     super('transaction')
 
     this.stripe = stripe
+
+    this.atomService = new AtomService()
 
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
@@ -311,11 +314,16 @@ export class PaymentService extends BaseService {
   }
 
   getCustomerPortal = async ({ userId }: { userId: string }) => {
-    const qs = await this.findCustomer({
-      userId,
-      provider: PAYMENT_PROVIDER.stripe,
-    })
-    const customer = qs[0] as Customer
+    // retrieve customer
+    const customer = (await this.atomService.findFirst({
+      table: 'customer',
+      where: {
+        userId,
+        provider: PAYMENT_PROVIDER.stripe,
+        archived: false,
+      },
+    })) as Customer
+
     if (customer) {
       const customerId = customer.customerId
       return this.stripe.getCustomerPortal({ customerId })
