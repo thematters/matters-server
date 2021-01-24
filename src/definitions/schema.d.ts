@@ -99,6 +99,11 @@ export interface GQLArticle extends GQLNode {
   summary: string
 
   /**
+   * This value determines if the summary is customized or not.
+   */
+  summaryCustomized: boolean
+
+  /**
    * Tags attached to this article.
    */
   tags?: Array<GQLTag>
@@ -433,9 +438,9 @@ export interface GQLUser extends GQLNode {
   ownCircles?: Array<GQLCircle>
 
   /**
-   * Circles whiches user has joined.
+   * Circles whiches user has subscribed.
    */
-  joinedCircles?: Array<GQLCircle>
+  subscribedCircles: GQLCircleConnection
 
   /**
    * #############
@@ -1257,6 +1262,11 @@ export interface GQLDraft extends GQLNode {
   summary?: string
 
   /**
+   * This value determines if the summary is customized or not.
+   */
+  summaryCustomized: boolean
+
+  /**
    * Content of this draft.
    */
   content?: string
@@ -1599,6 +1609,7 @@ export interface GQLWallet {
   balance: GQLBalance
   transactions: GQLTransactionConnection
   stripeAccount?: GQLStripeAccount
+  customerPortal?: GQLURL
 }
 
 export interface GQLBalance {
@@ -3456,6 +3467,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   cover?: ArticleToCoverResolver<TParent>
   assets?: ArticleToAssetsResolver<TParent>
   summary?: ArticleToSummaryResolver<TParent>
+  summaryCustomized?: ArticleToSummaryCustomizedResolver<TParent>
   tags?: ArticleToTagsResolver<TParent>
   wordCount?: ArticleToWordCountResolver<TParent>
   dataHash?: ArticleToDataHashResolver<TParent>
@@ -3594,6 +3606,18 @@ export interface ArticleToAssetsResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToSummaryResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToSummaryCustomizedResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -4001,7 +4025,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   isBlocked?: UserToIsBlockedResolver<TParent>
   status?: UserToStatusResolver<TParent>
   ownCircles?: UserToOwnCirclesResolver<TParent>
-  joinedCircles?: UserToJoinedCirclesResolver<TParent>
+  subscribedCircles?: UserToSubscribedCirclesResolver<TParent>
   oss?: UserToOssResolver<TParent>
   remark?: UserToRemarkResolver<TParent>
   notices?: UserToNoticesResolver<TParent>
@@ -4266,10 +4290,13 @@ export interface UserToOwnCirclesResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface UserToJoinedCirclesResolver<TParent = any, TResult = any> {
+export interface UserToSubscribedCirclesArgs {
+  input: GQLConnectionArgs
+}
+export interface UserToSubscribedCirclesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
-    args: {},
+    args: UserToSubscribedCirclesArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6249,6 +6276,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   title?: DraftToTitleResolver<TParent>
   slug?: DraftToSlugResolver<TParent>
   summary?: DraftToSummaryResolver<TParent>
+  summaryCustomized?: DraftToSummaryCustomizedResolver<TParent>
   content?: DraftToContentResolver<TParent>
   createdAt?: DraftToCreatedAtResolver<TParent>
   updatedAt?: DraftToUpdatedAtResolver<TParent>
@@ -6299,6 +6327,18 @@ export interface DraftToSlugResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToSummaryResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToSummaryCustomizedResolver<
+  TParent = any,
+  TResult = any
+> {
   (
     parent: TParent,
     args: {},
@@ -7069,6 +7109,7 @@ export interface GQLWalletTypeResolver<TParent = any> {
   balance?: WalletToBalanceResolver<TParent>
   transactions?: WalletToTransactionsResolver<TParent>
   stripeAccount?: WalletToStripeAccountResolver<TParent>
+  customerPortal?: WalletToCustomerPortalResolver<TParent>
 }
 
 export interface WalletToBalanceResolver<TParent = any, TResult = any> {
@@ -7093,6 +7134,15 @@ export interface WalletToTransactionsResolver<TParent = any, TResult = any> {
 }
 
 export interface WalletToStripeAccountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface WalletToCustomerPortalResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

@@ -6,7 +6,7 @@ import Stripe from 'stripe'
 import { NODE_TYPES, OAUTH_CALLBACK_ERROR_CODE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { CacheService, PaymentService } from 'connectors'
+import { AtomService, CacheService, PaymentService } from 'connectors'
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-03-02',
@@ -23,6 +23,7 @@ const stripeConnectHandler = async (
   res: Response,
   next: NextFunction
 ) => {
+  const atomService = new AtomService()
   const paymentService = new PaymentService()
   const cacheService = new CacheService()
 
@@ -51,9 +52,10 @@ const stripeConnectHandler = async (
   }
 
   // check if viewer already has a payout account
-  const payoutAccount = (
-    await paymentService.findPayoutAccount({ userId: viewer.id })
-  )[0]
+  const payoutAccount = await atomService.findFirst({
+    table: 'payout_account',
+    where: { userId: viewer.id, archived: false },
+  })
 
   if (payoutAccount) {
     return redirectFailure({

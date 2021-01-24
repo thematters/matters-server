@@ -18,7 +18,7 @@ const MAX_DECIMAL_PLACES = 2
 const resolver: MutationToAddCreditResolver = async (
   parent,
   { input: { amount } },
-  { viewer, dataSources: { paymentService } }
+  { viewer, dataSources: { atomService, paymentService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -39,12 +39,14 @@ const resolver: MutationToAddCreditResolver = async (
   const currency = PAYMENT_CURRENCY.HKD
 
   // retrieve or create customer
-  let customer = (
-    await paymentService.findCustomer({
+  let customer = (await atomService.findFirst({
+    table: 'customer',
+    where: {
       userId: viewer.id,
       provider,
-    })
-  )[0] as Customer
+      archived: false,
+    },
+  })) as Customer
 
   if (!customer) {
     customer = (await paymentService.createCustomer({

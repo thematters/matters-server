@@ -82,11 +82,7 @@ class PublicationQueue extends BaseQueue {
       const {
         contentHash: dataHash,
         mediaHash,
-      } = await this.articleService.publishToIPFS({
-        ...draft,
-        summary,
-        wordCount,
-      })
+      } = await this.articleService.publishToIPFS(draft)
       job.progress(10)
 
       // Step 3: create an article

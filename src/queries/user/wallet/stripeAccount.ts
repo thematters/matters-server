@@ -3,11 +3,12 @@ import { WalletToStripeAccountResolver } from 'definitions'
 const resolver: WalletToStripeAccountResolver = async (
   { id },
   _,
-  { dataSources: { paymentService } }
+  { dataSources: { atomService } }
 ) => {
-  const payoutAccount = (
-    await paymentService.findPayoutAccount({ userId: id })
-  )[0]
+  const payoutAccount = await atomService.findFirst({
+    table: 'payout_account',
+    where: { userId: id, archived: false },
+  })
 
   if (!payoutAccount) {
     return null

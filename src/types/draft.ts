@@ -28,6 +28,9 @@ export default /* GraphQL */ `
     "Summary of this draft."
     summary: String
 
+    "This value determines if the summary is customized or not."
+    summaryCustomized: Boolean!
+
     "Content of this draft."
     content: String
 
