@@ -490,4 +490,43 @@ export class PaymentService extends BaseService {
     }
     return parseInt(`${result[0].count}` || '0', 10)
   }
+
+  /*********************************
+   *                               *
+   *             Invoice           *
+   *                               *
+   *********************************/
+  findInvoice = async ({
+    id,
+    userId,
+    providerInvoiceId,
+    offset = 0,
+    limit = BATCH_SIZE
+  }:{
+    id?: number
+    userId?: number
+    providerInvoiceId?: string
+    offset?: number
+    limit?: number
+  }) => {
+    let qs = this.knex('circle_invoice').select()
+
+    if (userId) {
+      qs = qs.where({ userId })
+    }
+
+    if (id) {
+      qs = qs.where({ id })
+    }
+
+    if (providerInvoiceId) {
+      qs = qs.where({ providerInvoiceId })
+    }
+
+    return qs.orderBy('created_at', 'desc').offset(offset).limit(limit)
+  }
+
+  createInvoice = async () => {
+    console.log("========== create invoice ==========")
+  }
 }

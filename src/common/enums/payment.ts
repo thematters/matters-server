@@ -13,6 +13,8 @@ export enum TRANSACTION_PURPOSE {
   refund = 'refund',
   fee = 'fee',
   payout = 'payout',
+  subscription = 'subscription',
+  subscribeCircle = 'subscribe-circle'
 }
 
 export enum TRANSACTION_TARGET_TYPE {
