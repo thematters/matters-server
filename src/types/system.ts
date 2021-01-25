@@ -281,6 +281,7 @@ export default /* GraphQL */ `
     verify_appreciate
     fingerprint
     tag_adoption
+    circle
   }
 
   enum FeatureFlag {

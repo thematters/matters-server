@@ -1874,6 +1874,7 @@ export const enum GQLFeatureName {
   verify_appreciate = 'verify_appreciate',
   fingerprint = 'fingerprint',
   tag_adoption = 'tag_adoption',
+  circle = 'circle',
 }
 
 export interface GQLOSS {

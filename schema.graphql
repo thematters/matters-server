@@ -835,6 +835,7 @@ enum FeatureName {
   verify_appreciate
   fingerprint
   tag_adoption
+  circle
 }
 
 input FilterInput {
