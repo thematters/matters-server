@@ -2377,4 +2377,5 @@ type Wallet {
   balance: Balance!
   transactions(input: TransactionsArgs!): TransactionConnection!
   stripeAccount: StripeAccount
+  customerPortal: URL
 }

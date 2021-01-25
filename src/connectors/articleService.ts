@@ -1,4 +1,5 @@
 import {
+  FormatterVars,
   makeHtmlBundle,
   makeMetaData,
   stripHtml,
@@ -23,11 +24,11 @@ import {
   USER_ACTION,
   VIEW,
 } from 'common/enums'
-import { isTest } from 'common/environment'
+import { environment, isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService, gcp, ipfs, SystemService, UserService } from 'connectors'
-import { GQLSearchInput, Item, ItemData } from 'definitions'
+import { GQLSearchInput, Item } from 'definitions'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
@@ -108,33 +109,62 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Publish data to IPFS
+   * Publish draft data to IPFS
    */
   publishToIPFS = async ({
     authorId,
     title,
     cover,
-    summary,
     content,
+    circleId,
+    summary,
   }: Record<string, any>) => {
     const userService = new UserService()
     const systemService = new SystemService()
-    const now = new Date()
 
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
-    const { avatar, description, displayName, userName } = author
+    const {
+      avatar,
+      description,
+      displayName,
+      userName,
+      paymentPointer,
+    } = author
     const userImg = avatar && (await systemService.findAssetUrl(avatar))
     const articleImg = cover && (await systemService.findAssetUrl(cover))
 
-    // add content to ipfs
-    const bundle = await makeHtmlBundle({
+    const bundleInfo = {
       title,
       author: { userName, displayName },
       summary,
       content,
       prefix: IPFS_PREFIX,
-    })
+    } as FormatterVars
+
+    // paywall info
+    if (circleId) {
+      const circleResult = await this.knex('circle')
+        .select('name', 'displayName')
+        .where({ id: circleId })
+
+      if (circleResult) {
+        const [
+          { name: circleName, displayName: circleDisplayName },
+        ] = circleResult
+
+        bundleInfo.readMore = {
+          url: `${environment.domain}/~${circleName}`,
+          text: circleDisplayName,
+        }
+      }
+    }
+    if (paymentPointer) {
+      bundleInfo.paymentPointer = paymentPointer
+    }
+
+    // add content to ipfs
+    const bundle = await makeHtmlBundle(bundleInfo)
 
     const result = await this.ipfs.client.add(bundle)
 

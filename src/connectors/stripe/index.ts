@@ -247,7 +247,21 @@ class StripeService {
     }
   }
 
-  listDeliveryFailedEvents = async () => {
+  /**
+   * Get customer portal URL
+   */
+  getCustomerPortal = async ({ customerId }: { customerId: string }) => {
+    try {
+      const session = await this.stripe.billingPortal.sessions.create({
+        customer: customerId,
+      })
+      return session.url
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  getDeliveryFailedEvents = async () => {
     try {
       const events = await this.stripe.events.list({
         delivery_success: false,

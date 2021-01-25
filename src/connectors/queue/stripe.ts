@@ -50,7 +50,7 @@ class StripeQueue extends BaseQueue {
       logger.info('[schedule job] sync delivery failed events')
 
       // query delivery failed events
-      const result = await this.paymentService.stripe.listDeliveryFailedEvents()
+      const result = await this.paymentService.stripe.getDeliveryFailedEvents()
       job.progress(30)
 
       if (result?.data && result?.data?.length > 0) {
