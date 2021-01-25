@@ -501,8 +501,8 @@ export class PaymentService extends BaseService {
     userId,
     providerInvoiceId,
     offset = 0,
-    limit = BATCH_SIZE
-  }:{
+    limit = BATCH_SIZE,
+  }: {
     id?: number
     userId?: number
     providerInvoiceId?: string
@@ -527,6 +527,6 @@ export class PaymentService extends BaseService {
   }
 
   createInvoice = async () => {
-    console.log("========== create invoice ==========")
+    console.log('========== create invoice ==========')
   }
 }

@@ -14,7 +14,7 @@ export enum TRANSACTION_PURPOSE {
   fee = 'fee',
   payout = 'payout',
   subscription = 'subscription',
-  subscribeCircle = 'subscribe-circle'
+  subscribeCircle = 'subscribe-circle',
 }
 
 export enum TRANSACTION_TARGET_TYPE {
