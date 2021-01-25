@@ -57,6 +57,14 @@ class StripeService {
     }
   }
 
+  /**
+   * Creates a PaymentIntent object.
+   *
+   * @param customerId ID of the Customer this PaymentIntent belongs to.
+   * @param amount Amount intended to be collected by this PaymentIntent.
+   * @param currency
+   *
+   */
   createPaymentIntent = async ({
     customerId,
     amount,
