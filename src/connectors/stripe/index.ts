@@ -246,6 +246,17 @@ class StripeService {
       this.handleError(error)
     }
   }
+
+  listDeliveryFailedEvents = async () => {
+    try {
+      const events = await this.stripe.events.list({
+        delivery_success: false,
+      })
+      return events
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
 }
 
 export const stripe = new StripeService()
