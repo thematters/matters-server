@@ -15,6 +15,7 @@ import {
 } from 'common/errors'
 import {
   fromGlobalId,
+  isFeatureEnabled,
   isValidCircleName,
   isValidDisplayName,
 } from 'common/utils'
@@ -33,6 +34,15 @@ const resolver: MutationToPutCircleResolver = async (
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  // check feature is enabled or not
+  const feature = await atomService.findFirst({
+    table: 'feature_flag',
+    where: { name: 'circle' },
+  })
+  if (feature && !isFeatureEnabled(feature.flag, viewer)) {
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const action = id ? ACTION.update : ACTION.add

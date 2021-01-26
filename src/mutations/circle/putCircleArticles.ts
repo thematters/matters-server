@@ -16,7 +16,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, isFeatureEnabled } from 'common/utils'
 import { MutationToPutCircleArticlesResolver } from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (
@@ -34,6 +34,15 @@ const resolver: MutationToPutCircleArticlesResolver = async (
 
   if (!articles) {
     throw new UserInputError('"articles" is required')
+  }
+
+  // check feature is enabled or not
+  const feature = await atomService.findFirst({
+    table: 'feature_flag',
+    where: { name: 'circle' },
+  })
+  if (feature && !isFeatureEnabled(feature.flag, viewer)) {
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const { id: circleId } = fromGlobalId(id || '')
