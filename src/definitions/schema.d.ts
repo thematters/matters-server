@@ -333,11 +333,6 @@ export interface GQLUser extends GQLNode {
   likerId?: string
 
   /**
-   * Payment pointer that resolves to Open Payments endpoints
-   */
-  paymentPointer?: string
-
-  /**
    * Liker info of current user
    */
   liker: GQLLiker
@@ -455,6 +450,11 @@ export interface GQLUser extends GQLNode {
    * User Wallet
    */
   wallet: GQLWallet
+
+  /**
+   * Payment pointer that resolves to Open Payments endpoints
+   */
+  paymentPointer?: string
 }
 
 export interface GQLLiker {
@@ -1511,14 +1511,14 @@ export interface GQLUserStatus {
   unreadFolloweeArticles: boolean
 
   /**
-   * Whether user already set payment password.
-   */
-  hasPaymentPassword: boolean
-
-  /**
    * Number of total written words.
    */
   totalWordCount: number
+
+  /**
+   * Whether user already set payment password.
+   */
+  hasPaymentPassword: boolean
 
   /**
    * Number of articles donated by user
@@ -1608,8 +1608,21 @@ export interface GQLNoticeNameMap {
 export interface GQLWallet {
   balance: GQLBalance
   transactions: GQLTransactionConnection
+
+  /**
+   * Account of Stripe Connect to manage payout
+   */
   stripeAccount?: GQLStripeAccount
+
+  /**
+   * URL of Stripe Dashboard to manage subscription invoice and payment method
+   */
   customerPortal?: GQLURL
+
+  /**
+   * The last four digits of the card.
+   */
+  cardLast4?: string
 }
 
 export interface GQLBalance {
@@ -2455,7 +2468,7 @@ export interface GQLSubscribeCircleInput {
   /**
    * Wallet password.
    */
-  password: string
+  password?: string
 }
 
 export interface GQLSubscribeCircleResult {
@@ -4004,7 +4017,6 @@ export interface GQLUserTypeResolver<TParent = any> {
   userName?: UserToUserNameResolver<TParent>
   displayName?: UserToDisplayNameResolver<TParent>
   likerId?: UserToLikerIdResolver<TParent>
-  paymentPointer?: UserToPaymentPointerResolver<TParent>
   liker?: UserToLikerResolver<TParent>
   avatar?: UserToAvatarResolver<TParent>
   info?: UserToInfoResolver<TParent>
@@ -4030,6 +4042,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   remark?: UserToRemarkResolver<TParent>
   notices?: UserToNoticesResolver<TParent>
   wallet?: UserToWalletResolver<TParent>
+  paymentPointer?: UserToPaymentPointerResolver<TParent>
 }
 
 export interface UserToIdResolver<TParent = any, TResult = any> {
@@ -4069,15 +4082,6 @@ export interface UserToDisplayNameResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToLikerIdResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToPaymentPointerResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -4333,6 +4337,15 @@ export interface UserToNoticesResolver<TParent = any, TResult = any> {
 }
 
 export interface UserToWalletResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToPaymentPointerResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6888,8 +6901,8 @@ export interface GQLUserStatusTypeResolver<TParent = any> {
   commentCount?: UserStatusToCommentCountResolver<TParent>
   unreadNoticeCount?: UserStatusToUnreadNoticeCountResolver<TParent>
   unreadFolloweeArticles?: UserStatusToUnreadFolloweeArticlesResolver<TParent>
-  hasPaymentPassword?: UserStatusToHasPaymentPasswordResolver<TParent>
   totalWordCount?: UserStatusToTotalWordCountResolver<TParent>
+  hasPaymentPassword?: UserStatusToHasPaymentPasswordResolver<TParent>
   donatedArticleCount?: UserStatusToDonatedArticleCountResolver<TParent>
   receivedDonationCount?: UserStatusToReceivedDonationCountResolver<TParent>
 }
@@ -6960,7 +6973,7 @@ export interface UserStatusToUnreadFolloweeArticlesResolver<
   ): TResult
 }
 
-export interface UserStatusToHasPaymentPasswordResolver<
+export interface UserStatusToTotalWordCountResolver<
   TParent = any,
   TResult = any
 > {
@@ -6972,7 +6985,7 @@ export interface UserStatusToHasPaymentPasswordResolver<
   ): TResult
 }
 
-export interface UserStatusToTotalWordCountResolver<
+export interface UserStatusToHasPaymentPasswordResolver<
   TParent = any,
   TResult = any
 > {
@@ -7110,6 +7123,7 @@ export interface GQLWalletTypeResolver<TParent = any> {
   transactions?: WalletToTransactionsResolver<TParent>
   stripeAccount?: WalletToStripeAccountResolver<TParent>
   customerPortal?: WalletToCustomerPortalResolver<TParent>
+  cardLast4?: WalletToCardLast4Resolver<TParent>
 }
 
 export interface WalletToBalanceResolver<TParent = any, TResult = any> {
@@ -7143,6 +7157,15 @@ export interface WalletToStripeAccountResolver<TParent = any, TResult = any> {
 }
 
 export interface WalletToCustomerPortalResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface WalletToCardLast4Resolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

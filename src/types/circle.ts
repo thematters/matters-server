@@ -191,7 +191,7 @@ export default /* GraphQL */ `
     id: ID!
 
     "Wallet password."
-    password: String!
+    password: String
   }
 
   input UnsubscribeCircleInput {

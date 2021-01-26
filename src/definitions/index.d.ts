@@ -253,6 +253,7 @@ export type Customer = {
   userId: string
   provider: string
   customerId: string
+  cardLast4: string
 }
 
 export type CircleSubscription = {
