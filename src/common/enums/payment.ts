@@ -20,6 +20,7 @@ export enum TRANSACTION_PURPOSE {
 export enum TRANSACTION_TARGET_TYPE {
   article = 'article',
   transaction = 'transaction',
+  circlePrice = 'circle_price',
 }
 
 export enum PAYMENT_CURRENCY {

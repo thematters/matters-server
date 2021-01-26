@@ -2,6 +2,7 @@ import { RedisCache } from 'apollo-server-cache-redis'
 import { Request, Response } from 'express'
 import Knex from 'knex'
 
+import { PAYMENT_CURRENCY, PAYMENT_PROVIDER } from 'common/enums'
 import {
   ArticleService,
   AtomService,
@@ -252,4 +253,21 @@ export type Customer = {
   userId: string
   provider: string
   customerId: string
+}
+
+export type CircleSubscription = {
+  id: number
+  state: string
+  userId: string
+  provider: string
+  providerSubscriptionId: string
+}
+
+export type CirclePrice = {
+  id: number
+  amount: number
+  currency: PAYMENT_CURRENCY
+  circleId: number
+  provider: PAYMENT_PROVIDER
+  providerPriceId: string
 }

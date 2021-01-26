@@ -14,8 +14,14 @@ import {
 import { environment } from 'common/environment'
 import logger from 'common/logger'
 import { numRound, toDBAmount } from 'common/utils'
-import { NotificationService, PaymentService, UserService } from 'connectors'
+import {
+  AtomService,
+  NotificationService,
+  PaymentService,
+  UserService,
+} from 'connectors'
 import SlackService from 'connectors/slack'
+import { CirclePrice, CircleSubscription, Customer } from 'definitions'
 
 const stripe = new Stripe(environment.stripeSecret, {
   apiVersion: '2020-03-02',
@@ -111,12 +117,56 @@ const updateTxState = async (
  * handle subscription invoice events
  */
 const handleInvoice = async (
-  invoice: any /*Stripe.Invoice*/,
-  eventType: 'invoice.payment_succeeded' | 'invoice.payment_failed'
+  invoice: Stripe.Invoice,
+  eventType: 'invoice.payment_succeeded'
 ) => {
-  console.log('=======================================================')
-  console.log(invoice)
-  console.log(eventType)
+  if (eventType === 'invoice.payment_succeeded') {
+    const atomService = new AtomService()
+    const paymentService = new PaymentService()
+    const providerInvoiceId = invoice.id as string
+    const providerTxId = invoice.payment_intent as string
+    const amount = toDBAmount({ amount: invoice.amount_paid })
+    const currency = _.toUpper(invoice.currency) as PAYMENT_CURRENCY
+    const tx = (await paymentService.findTransactions({ providerTxId }))[0]
+    // retrieve customer
+    const customer = (await atomService.findFirst({
+      table: 'customer',
+      where: {
+        customer_id: invoice.customer,
+        provider: PAYMENT_PROVIDER.stripe,
+      },
+    })) as Customer
+
+    // retrieve subscription
+    const subscription = (await atomService.findFirst({
+      table: 'circle_subscription',
+      where: {
+        providerSubscriptionId: invoice.subscription,
+        provider: PAYMENT_PROVIDER.stripe,
+      },
+    })) as CircleSubscription
+
+    // retrieve prices
+    const providerPriceIds = invoice.lines.data.map((item) =>
+      item.price ? item.price.id : ''
+    )
+    const prices = (await atomService.findMany({
+      table: 'circle_price',
+      whereIn: ['providerPriceId', providerPriceIds],
+    })) as CirclePrice[]
+
+    if (!tx) {
+      await paymentService.createInvoiceWithTransactions({
+        amount,
+        currency,
+        providerTxId,
+        providerInvoiceId,
+        subscriptionId: subscription.id,
+        userId: customer.userId,
+        prices,
+      })
+    }
+  }
 }
 
 const createRefundTxs = async (refunds: Stripe.ApiList<Stripe.Refund>) => {

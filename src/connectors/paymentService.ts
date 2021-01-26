@@ -10,6 +10,7 @@ import {
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
+import logger from 'common/logger'
 import {
   calcMattersFee,
   // calcStripeFee,
@@ -17,7 +18,7 @@ import {
   numRound,
 } from 'common/utils'
 import { AtomService, BaseService } from 'connectors'
-import { Customer, User } from 'definitions'
+import { CirclePrice, Customer, User } from 'definitions'
 
 import { stripe } from './stripe'
 
@@ -526,7 +527,107 @@ export class PaymentService extends BaseService {
     return qs.orderBy('created_at', 'desc').offset(offset).limit(limit)
   }
 
-  createInvoice = async () => {
-    console.log('========== create invoice ==========')
+  createInvoiceWithTransactions = async ({
+    amount,
+    currency,
+    providerTxId,
+    providerInvoiceId,
+    subscriptionId,
+    userId,
+    prices,
+  }: {
+    amount: number
+    currency: string
+    providerTxId: string
+    providerInvoiceId: string
+    subscriptionId: number
+    userId: string
+    prices: CirclePrice[]
+  }) => {
+    const trx = await this.knex.transaction()
+    try {
+      // create subscription top up transaction
+      const transactionId = await trx('transaction')
+        .insert({
+          amount,
+          currency,
+          state: TRANSACTION_STATE.succeeded,
+          purpose: TRANSACTION_PURPOSE.subscription,
+
+          provider: PAYMENT_PROVIDER.stripe,
+          providerTxId,
+          senderId: undefined,
+          recipientId: userId,
+
+          targetType: undefined,
+          targetId: undefined,
+        })
+        .returning('id')
+
+      // create circle invoice
+      await trx('circle_invoice')
+        .insert({
+          userId,
+          transactionId: transactionId[0],
+          subscriptionId,
+          provider: PAYMENT_PROVIDER.stripe,
+          providerInvoiceId,
+        })
+        .returning('id')
+
+      // verify if it is OK to split the payment given the circle prices
+      for (const p of prices) {
+        if (p.currency !== currency) {
+          throw new ServerError(
+            `currency for '${providerTxId}' if not the same to '${p.providerPriceId}'`
+          )
+        }
+      }
+
+      const totalAmount = prices
+        .map((p) => Number(p.amount))
+        .reduce((p1, p2) => p1 + p2)
+      if (totalAmount !== amount) {
+        throw new ServerError(
+          `sum of plan prices '${totalAmount}' != invoice paid amount '${amount}'`
+        )
+      }
+
+      // create transactions to split the invoice payment to circles
+      const { id: entityTypeId } = await this.baseFindEntityTypeId(
+        TRANSACTION_TARGET_TYPE.circlePrice
+      )
+      for (const p of prices) {
+        const circle = await this.atomService.findFirst({
+          table: 'circle',
+          where: {
+            id: p.circleId,
+          },
+        })
+        // await trx('transaction').insert({
+        //   amount: p.amount,
+        //   currency: p.currency,
+        //   state: TRANSACTION_STATE.succeeded,
+        //   purpose: TRANSACTION_PURPOSE.subscriptionSplit,
+
+        //   provider: undefined,
+        //   providerTxId: undefined,
+
+        //   senderId: userId,
+        //   recipientId: circle.owner,
+
+        //   targetType: entityTypeId,
+        //   targetId: p.id
+        // })
+      }
+      logger.info(
+        `invoice '${providerInvoiceId}' has been successfully paid and splitted.`
+      )
+
+      await trx.commit()
+    } catch (e) {
+      await trx.rollback()
+      throw e
+    }
   }
 }
