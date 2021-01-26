@@ -8,8 +8,6 @@ export const features: OfficialToFeaturesResolver = async (
 ) => {
   const featureFlags = await systemService.getFeatureFlags()
 
-  // TODO: add seeding users and filter for circle
-
   return featureFlags.map(({ name, flag }) => ({
     name,
     enabled: isFeatureEnabled(flag, viewer),
