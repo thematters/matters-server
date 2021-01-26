@@ -276,7 +276,7 @@ stripeRouter.post('/', async (req, res) => {
       case 'invoice.payment_succeeded':
         const invoice = event.data.object as Stripe.Invoice
         await handleInvoice(invoice, event.type)
-      break
+        break
       case 'charge.refunded':
         const charge = event.data.object as Stripe.Charge
         await createRefundTxs(charge.refunds)
