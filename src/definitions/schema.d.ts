@@ -2472,7 +2472,12 @@ export interface GQLSubscribeCircleInput {
 }
 
 export interface GQLSubscribeCircleResult {
-  client_secret: string
+  circle: GQLCircle
+
+  /**
+   * client secret for SetupIntent.
+   */
+  client_secret?: string
 }
 
 export interface GQLUnsubscribeCircleInput {
@@ -8991,7 +8996,20 @@ export interface MutationToPutOAuthClientResolver<
 }
 
 export interface GQLSubscribeCircleResultTypeResolver<TParent = any> {
+  circle?: SubscribeCircleResultToCircleResolver<TParent>
   client_secret?: SubscribeCircleResultToClient_secretResolver<TParent>
+}
+
+export interface SubscribeCircleResultToCircleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface SubscribeCircleResultToClient_secretResolver<

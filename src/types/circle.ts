@@ -21,7 +21,7 @@ export default /* GraphQL */ `
     subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
 
     "Unsubscribe a Circle."
-    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
+    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
 
     "Add or remove Circle's articles"
     putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
@@ -144,7 +144,10 @@ export default /* GraphQL */ `
   }
 
   type SubscribeCircleResult {
-    client_secret: String!
+    circle: Circle!
+
+    "client secret for SetupIntent."
+    client_secret: String
   }
 
   input CircleInput {

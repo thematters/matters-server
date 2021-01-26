@@ -1743,7 +1743,10 @@ input SubscribeCircleInput {
 }
 
 type SubscribeCircleResult {
-  client_secret: String!
+  circle: Circle!
+
+  """client secret for SetupIntent."""
+  client_secret: String
 }
 
 type Subscription {

@@ -119,3 +119,10 @@ export const TransactionRemarkText = {
     unknow_error: '未知支付错误',
   },
 }
+
+export enum METADATA_KEY {
+  USER_ID = 'db_user_id',
+  CUSTOMER_ID = 'db_customer_id',
+  CIRCLE_ID = 'db_circle_id',
+  CIRCLE_PRICE_ID = 'db_circle_price_id',
+}
