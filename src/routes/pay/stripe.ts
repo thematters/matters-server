@@ -181,7 +181,10 @@ stripeRouter.post('/', async (req, res) => {
   } catch (err) {
     logger.error(err)
     slack.sendStripeAlert({
-      data: event,
+      data: {
+        id: event?.id,
+        type: event?.type,
+      },
       message: 'Signature verification failed',
     })
     res.status(400).send(`Webhook Error: ${err.message}`)
@@ -219,7 +222,10 @@ stripeRouter.post('/', async (req, res) => {
       default:
         logger.error('Unexpected event type', event.type)
         slack.sendStripeAlert({
-          data: event,
+          data: {
+            id: event.id,
+            type: event.type,
+          },
           message: 'Unexpected event type',
         })
         break
@@ -227,7 +233,10 @@ stripeRouter.post('/', async (req, res) => {
   } catch (error) {
     logger.error(error)
     slack.sendStripeAlert({
-      data: event,
+      data: {
+        id: event.id,
+        type: event.type,
+      },
       message: `Server error: ${error.message}`,
     })
     throw error

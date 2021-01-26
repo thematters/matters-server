@@ -1,6 +1,6 @@
 import Queue from 'bull'
 
-import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
+import { HOUR, QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import logger from 'common/logger'
 import { PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
@@ -22,13 +22,13 @@ class StripeQueue extends BaseQueue {
    * Producers
    */
   addRepeatJobs = async () => {
-    // daily sync delivery failed event at 10:00
+    // daily sync delivery failed event every 3 hours
     this.q.add(
       QUEUE_JOB.syncDeliveryFailedEvents,
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: { cron: '0 10 * * *', tz: 'Asia/Hong_Kong' },
+        repeat: { every: HOUR * 3 },
       }
     )
   }
