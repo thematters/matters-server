@@ -146,6 +146,7 @@ export type TableName =
   | 'circle_subscription_item'
   | 'action_circle'
   | 'article_circle'
+  | 'feature_flag'
 
 export type MaterializedView =
   | 'article_count_materialized'
