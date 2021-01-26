@@ -54,6 +54,9 @@ export const QUEUE_JOB = {
   payTo: 'payTo',
   txTimeout: 'txTimeout',
 
+  // Stripe
+  syncDeliveryFailedEvents: 'syncDeliveryFailedEvents',
+
   // Appreciation
   appreciation: 'appreciation',
 
@@ -79,6 +82,7 @@ export const QUEUE_NAME = {
   txTimeout: 'txTimeout',
   revision: 'revision',
   asset: 'asset',
+  stripe: 'stripe',
 }
 
 export const QUEUE_CONCURRENCY = {
