@@ -14,7 +14,6 @@ import typeDefs from './types'
 import {
   AuthDirective,
   DeprecatedDirective,
-  FeatureDirective,
   ObjectCacheDirective,
   PrivateCacheDirective,
   RateLimitDirective,
@@ -52,7 +51,6 @@ const schema = makeExecutableSchema({
     // limitation
     auth: AuthDirective,
     rateLimit: RateLimitDirective,
-    feature: FeatureDirective,
 
     // caching
     privateCache: PrivateCacheDirective,

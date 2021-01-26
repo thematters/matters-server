@@ -322,6 +322,4 @@ export default /* GraphQL */ `
   directive @logCache(type: String!) on FIELD_DEFINITION
 
   directive @purgeCache(type: String!) on FIELD_DEFINITION
-
-  directive @feature(name: FeatureName!) on FIELD_DEFINITION
 `

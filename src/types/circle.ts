@@ -12,19 +12,19 @@ export default /* GraphQL */ `
 
   extend type Mutation {
     "Create or update a Circle."
-    putCircle(input: PutCircleInput!): Circle! @feature(name: circle) @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
+    putCircle(input: PutCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
 
     "Follow or unfollow a Circle."
-    toggleFollowCircle(input: ToggleItemInput!): Circle! @feature(name: circle) @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
+    toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
 
     "Subscribe a Circle."
-    subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult! @feature(name: circle) @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
+    subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
 
     "Unsubscribe a Circle."
-    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @feature(name: circle) @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
+    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
 
     "Add or remove Circle's articles"
-    putCircleArticles(input: PutCircleArticlesInput!): Circle! @feature(name: circle) @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
+    putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
   }
 
   type Circle implements Node {

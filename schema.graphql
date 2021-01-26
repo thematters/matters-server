@@ -15,8 +15,6 @@ directive @logCache(type: String!) on FIELD_DEFINITION
 
 directive @purgeCache(type: String!) on FIELD_DEFINITION
 
-directive @feature(name: FeatureName!) on FIELD_DEFINITION
-
 input AddArticlesTagsInput {
   id: ID!
   articles: [ID!]
