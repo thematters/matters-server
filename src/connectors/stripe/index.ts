@@ -57,6 +57,14 @@ class StripeService {
     }
   }
 
+  /**
+   * Creates a PaymentIntent object.
+   *
+   * @param customerId ID of the Customer this PaymentIntent belongs to.
+   * @param amount Amount intended to be collected by this PaymentIntent.
+   * @param currency
+   *
+   */
   createPaymentIntent = async ({
     customerId,
     amount,
@@ -256,6 +264,17 @@ class StripeService {
         customer: customerId,
       })
       return session.url
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  getDeliveryFailedEvents = async () => {
+    try {
+      const events = await this.stripe.events.list({
+        delivery_success: false,
+      })
+      return events
     } catch (error) {
       this.handleError(error)
     }

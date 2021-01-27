@@ -1740,7 +1740,7 @@ input SubscribeCircleInput {
   id: ID!
 
   """Wallet password."""
-  password: String!
+  password: String
 }
 
 type SubscribeCircleResult {
@@ -2091,9 +2091,6 @@ type User implements Node {
   """LikerID of LikeCoin, being used by LikeCoin OAuth"""
   likerId: String
 
-  """Payment pointer that resolves to Open Payments endpoints"""
-  paymentPointer: String
-
   """Liker info of current user"""
   liker: Liker!
 
@@ -2168,6 +2165,9 @@ type User implements Node {
 
   """User Wallet"""
   wallet: Wallet!
+
+  """Payment pointer that resolves to Open Payments endpoints"""
+  paymentPointer: String
 }
 
 type UserActivity {
@@ -2336,11 +2336,11 @@ type UserStatus {
   """Whether there are unread articles from followees."""
   unreadFolloweeArticles: Boolean!
 
-  """Whether user already set payment password."""
-  hasPaymentPassword: Boolean!
-
   """Number of total written words."""
   totalWordCount: Int!
+
+  """Whether user already set payment password."""
+  hasPaymentPassword: Boolean!
 
   """Number of articles donated by user"""
   donatedArticleCount: Int!
@@ -2377,6 +2377,15 @@ input VoteCommentInput {
 type Wallet {
   balance: Balance!
   transactions(input: TransactionsArgs!): TransactionConnection!
+
+  """Account of Stripe Connect to manage payout"""
   stripeAccount: StripeAccount
+
+  """
+  URL of Stripe Dashboard to manage subscription invoice and payment method
+  """
   customerPortal: URL
+
+  """The last four digits of the card."""
+  cardLast4: String
 }

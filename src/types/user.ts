@@ -82,9 +82,6 @@ export default /* GraphQL */ `
     "LikerID of LikeCoin, being used by LikeCoin OAuth"
     likerId: String
 
-    "Payment pointer that resolves to Open Payments endpoints"
-    paymentPointer: String
-
     "Liker info of current user"
     liker: Liker!
 
@@ -297,9 +294,6 @@ export default /* GraphQL */ `
 
     "Whether there are unread articles from followees."
     unreadFolloweeArticles: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
-
-    "Whether user already set payment password."
-    hasPaymentPassword: Boolean!
 
     "Number of total written words."
     totalWordCount: Int!
