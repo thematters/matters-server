@@ -39,12 +39,12 @@ export const createQueue = (
 
   queue.on('waiting', (jobId) => {
     // A Job is waiting to be processed as soon as a worker is idling.
-    logger.info(`Job#${jobId} is waiting.`)
+    // logger.info(`Job#${jobId} is waiting.`)
   })
 
   queue.on('active', (job, jobPromise) => {
     // A job has started. You can use `jobPromise.cancel()`` to abort it.
-    logger.info(`Job#${job.id} has started.`)
+    // logger.info(`Job#${job.id} has started.`)
   })
 
   queue.on('stalled', (job) => {
@@ -56,12 +56,12 @@ export const createQueue = (
 
   queue.on('progress', (job, progress) => {
     // A job's progress was updated!
-    logger.info(`Job#${job.id} progress was updated: ${progress}.`)
+    // logger.info(`Job#${job.id} progress was updated: ${progress}.`)
   })
 
   queue.on('completed', (job, result) => {
     // A job successfully completed with a `result`.
-    logger.info(`Job#${job.id} has been completed: ${JSON.stringify(result)}.`)
+    // logger.info(`Job#${job.id} has been completed: ${JSON.stringify(result)}.`)
   })
 
   queue.on('failed', (job, err) => {
@@ -72,18 +72,18 @@ export const createQueue = (
 
   queue.on('paused', () => {
     // The queue has been paused.
-    logger.info('The queue has been paused.')
+    // logger.info('The queue has been paused.')
   })
 
   queue.on('resumed', () => {
     // The queue has been resumed.
-    logger.info('The queue has been resumed.')
+    // logger.info('The queue has been resumed.')
   })
 
   queue.on('cleaned', (jobs, type) => {
     // Old jobs have been cleaned from the queue. `jobs` is an array of cleaned
     // jobs, and `type` is the type of jobs cleaned.
-    logger.info(`Jobs (${jobs.map((job) => `#${job.id}`)} have been cleaned.`)
+    // logger.info(`Jobs (${jobs.map((job) => `#${job.id}`)} have been cleaned.`)
   })
 
   queue.on('drained', () => {
@@ -93,7 +93,7 @@ export const createQueue = (
 
   queue.on('removed', (job) => {
     // A job successfully removed.
-    logger.info(`Job#${job.id} has been removed.`)
+    // logger.info(`Job#${job.id} has been removed.`)
   })
 
   return queue

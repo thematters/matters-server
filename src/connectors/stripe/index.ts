@@ -298,7 +298,7 @@ class StripeService {
 
   getDeliveryFailedEvents = async () => {
     try {
-      const events = await this.stripe.events.list({
+      const events = await this.stripeAPI.events.list({
         delivery_success: false,
       })
       return events

@@ -8,7 +8,7 @@ import logger from 'common/logger'
 import { PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
 
-import { completeCircleSubscription } from './circle'
+import { completeCircleSubscription, updateSubscription } from './circle'
 import { updateCustomerCard } from './customer'
 import { createRefundTxs, updateTxState } from './transaction'
 
@@ -56,6 +56,11 @@ stripeRouter.post('/', async (req, res) => {
     return res.status(400).send(`Webhook Error: empty event object`)
   }
 
+  const slackEventData = {
+    id: event.id,
+    type: event.type,
+  }
+
   try {
     // Handle the event
     switch (event.type) {
@@ -80,22 +85,28 @@ stripeRouter.post('/', async (req, res) => {
         const customer = event.data.object as Stripe.Customer
         await paymentService.deleteCustomer({ customerId: customer.id })
         break
+      case 'customer.subscription.updated':
+      case 'customer.subscription.trial_will_end':
+      case 'customer.subscription.deleted':
+      case 'customer.subscription.pending_update_applied':
+      case 'customer.subscription.pending_update_expired': {
+        const subscription = event.data.object as Stripe.Subscription
+        await updateSubscription({ subscription, event })
+        break
+      }
       case 'setup_intent.succeeded':
         const setupIntent = event.data.object as Stripe.SetupIntent
-        const dbCustomer = await updateCustomerCard(setupIntent)
+        const dbCustomer = await updateCustomerCard({ setupIntent, event })
 
         if (dbCustomer) {
-          await completeCircleSubscription(setupIntent, dbCustomer)
+          await completeCircleSubscription({ setupIntent, dbCustomer, event })
         }
 
         break
       default:
         logger.error('Unexpected event type', event.type)
         slack.sendStripeAlert({
-          data: {
-            id: event.id,
-            type: event.type,
-          },
+          data: slackEventData,
           message: 'Unexpected event type',
         })
         break
@@ -103,10 +114,7 @@ stripeRouter.post('/', async (req, res) => {
   } catch (error) {
     logger.error(error)
     slack.sendStripeAlert({
-      data: {
-        id: event.id,
-        type: event.type,
-      },
+      data: slackEventData,
       message: `Server error: ${error.message}`,
     })
     throw error

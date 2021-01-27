@@ -3,16 +3,32 @@ import Stripe from 'stripe'
 
 import { PAYMENT_PROVIDER } from 'common/enums'
 import { AtomService, PaymentService } from 'connectors'
+import SlackService from 'connectors/slack'
 import { Customer } from 'definitions'
 
-export const updateCustomerCard = async (setupIntent: Stripe.SetupIntent) => {
+export const updateCustomerCard = async ({
+  setupIntent,
+  event,
+}: {
+  setupIntent: Stripe.SetupIntent
+  event: Stripe.Event
+}) => {
   const atomService = new AtomService()
   const paymentService = new PaymentService()
+  const slack = new SlackService()
+  const slackEventData = {
+    id: event.id,
+    type: event.type,
+  }
 
   const customerId = setupIntent.customer as string
   const paymentMethodId = setupIntent.payment_method as string
 
   if (!customerId || !paymentMethodId) {
+    slack.sendStripeAlert({
+      data: slackEventData,
+      message: `customer (${customerId}) or paymentMethod (${paymentMethodId}) doesn't exist.`,
+    })
     return
   }
 
@@ -26,6 +42,10 @@ export const updateCustomerCard = async (setupIntent: Stripe.SetupIntent) => {
   })) as Customer
 
   if (!customer) {
+    slack.sendStripeAlert({
+      data: slackEventData,
+      message: `can't find customer ${customerId}.`,
+    })
     return
   }
 
@@ -36,6 +56,10 @@ export const updateCustomerCard = async (setupIntent: Stripe.SetupIntent) => {
   const cardLast4 = _.get(paymentMethod, 'card.last4')
 
   if (!cardLast4) {
+    slack.sendStripeAlert({
+      data: slackEventData,
+      message: `cardLast4 doesn't exist.`,
+    })
     return
   }
 
