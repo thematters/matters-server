@@ -57,6 +57,36 @@ class SlackService {
       logger.error(error)
     }
   }
+
+  /**
+   * Send alert realted to stripe issues.
+   */
+  sendStripeAlert = async ({
+    data,
+    message,
+  }: {
+    data?: Record<string, any> | null
+    message: string
+  }) => {
+    try {
+      await this.client.chat.postMessage({
+        channel: environment.slackStripeAlertChannel,
+        text: `[${environment.env}] - Alert`,
+        attachments: [
+          {
+            color: this.getMessageColor(SLACK_MESSAGE_STATE.failed),
+            text:
+              '\n' +
+              `\n- *Message*: ${message}` +
+              `\n- *Data*: ${JSON.stringify(data || {})}`,
+          },
+        ],
+        markdownn: true,
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
 }
 
 export default SlackService
