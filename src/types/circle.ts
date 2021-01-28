@@ -1,6 +1,7 @@
 import {
   AUTH_MODE as MODE,
   CACHE_TTL,
+  NODE_TYPES,
   NODE_TYPES as NODE,
   SCOPE_GROUP as GROUP,
 } from 'common/enums'
@@ -80,6 +81,14 @@ export default /* GraphQL */ `
 
     "Setting of this Circle."
     setting: CircleSetting!
+  }
+
+  extend type User {
+    "Circles belong to current user."
+    ownCircles: [Circle!] @logCache(type: "${NODE_TYPES.circle}")
+
+    "Circles whiches user has subscribed."
+    subscribedCircles(input: ConnectionArgs!): CircleConnection! @logCache(type: "${NODE_TYPES.circle}")
   }
 
   type CircleSetting {

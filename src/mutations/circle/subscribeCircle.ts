@@ -37,6 +37,21 @@ const resolver: MutationToSubscribeCircleResolver = async (
   //   throw new ServerError('matters price id not found')
   // }
 
+  // check password
+  if (password) {
+    if (!viewer.paymentPasswordHash) {
+      throw new PaymentPasswordNotSetError(
+        'viewer payment password has not set'
+      )
+    }
+
+    const verified = await compare(password, viewer.paymentPasswordHash)
+
+    if (!verified) {
+      throw new PasswordInvalidError('password is incorrect.')
+    }
+  }
+
   // check circle
   const { id: circleId } = fromGlobalId(id || '')
   const [circle, price] = await Promise.all([
@@ -134,17 +149,6 @@ const resolver: MutationToSubscribeCircleResolver = async (
       )
     }
 
-    if (!viewer.paymentPasswordHash) {
-      throw new PaymentPasswordNotSetError(
-        'viewer payment password has not set'
-      )
-    }
-
-    const verified = await compare(password, viewer.paymentPasswordHash)
-    if (!verified) {
-      throw new PasswordInvalidError('password is incorrect.')
-    }
-
     // create stripe subscription item
     const stripeItem = await paymentService.stripe.createSubscriptionItem({
       price: price.providerPriceId,
@@ -176,10 +180,14 @@ const resolver: MutationToSubscribeCircleResolver = async (
       throw new ServerError('could not create circle subscription item')
     }
 
-    // invalidate circle
+    // invalidate user & circle
     const cacheService = new CacheService()
     invalidateFQC({
       node: { type: NODE_TYPES.circle, id: circle.id },
+      redis: cacheService.redis,
+    })
+    invalidateFQC({
+      node: { type: NODE_TYPES.user, id: viewer.id },
       redis: cacheService.redis,
     })
 

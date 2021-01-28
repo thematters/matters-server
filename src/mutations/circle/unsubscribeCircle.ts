@@ -60,7 +60,7 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
     : null
 
   if (!item) {
-    throw new UserInputError('circle unsubscribed already')
+    return circle
   }
 
   // remove stripe subscription item
