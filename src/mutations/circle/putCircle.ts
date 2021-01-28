@@ -20,7 +20,7 @@ import {
   isValidDisplayName,
 } from 'common/utils'
 import { assetQueue } from 'connectors/queue'
-import { MutationToPutCircleResolver } from 'definitions'
+import { GQLFeatureName, MutationToPutCircleResolver } from 'definitions'
 
 enum ACTION {
   add = 'add',
@@ -39,7 +39,7 @@ const resolver: MutationToPutCircleResolver = async (
   // check feature is enabled or not
   const feature = await atomService.findFirst({
     table: 'feature_flag',
-    where: { name: 'circle_management' },
+    where: { name: GQLFeatureName.circle_management },
   })
   if (feature && !isFeatureEnabled(feature.flag, viewer)) {
     throw new ForbiddenError('viewer has no permission')

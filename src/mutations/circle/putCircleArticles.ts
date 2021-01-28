@@ -17,7 +17,10 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId, isFeatureEnabled } from 'common/utils'
-import { MutationToPutCircleArticlesResolver } from 'definitions'
+import {
+  GQLFeatureName,
+  MutationToPutCircleArticlesResolver,
+} from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (
   root,
@@ -39,7 +42,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   // check feature is enabled or not
   const feature = await atomService.findFirst({
     table: 'feature_flag',
-    where: { name: 'circle_management' },
+    where: { name: GQLFeatureName.circle_management },
   })
   if (feature && !isFeatureEnabled(feature.flag, viewer)) {
     throw new ForbiddenError('viewer has no permission')

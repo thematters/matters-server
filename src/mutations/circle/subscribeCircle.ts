@@ -14,7 +14,7 @@ import {
 } from 'common/errors'
 import logger from 'common/logger'
 import { fromGlobalId, isFeatureEnabled } from 'common/utils'
-import { MutationToSubscribeCircleResolver } from 'definitions'
+import { GQLFeatureName, MutationToSubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToSubscribeCircleResolver = async (
   root,
@@ -31,7 +31,7 @@ const resolver: MutationToSubscribeCircleResolver = async (
   // check feature is enabled or not
   const feature = await atomService.findFirst({
     table: 'feature_flag',
-    where: { name: 'circle_interact' },
+    where: { name: GQLFeatureName.circle_interact },
   })
   if (feature && !isFeatureEnabled(feature.flag, viewer)) {
     throw new ForbiddenError('viewer has no permission')
