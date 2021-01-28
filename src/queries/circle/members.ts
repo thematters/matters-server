@@ -17,6 +17,7 @@ const resolver: CircleToMembersResolver = async (
   const where = {
     'circle_price.circle_id': id,
     'circle_price.state': PRICE_STATE.active,
+    'csi.archived': false,
   }
   const record = await knex
     .count()

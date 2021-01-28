@@ -5,6 +5,7 @@ import _uniq from 'lodash/uniq'
 import {
   ARTICLE_STATE,
   CACHE_KEYWORD,
+  CIRCLE_STATE,
   NODE_TYPES,
   USER_STATE,
 } from 'common/enums'
@@ -39,9 +40,9 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   const { id: circleId } = fromGlobalId(id || '')
   const articleIds = articles.map((articleId) => fromGlobalId(articleId).id)
   const [circle, targetArticles] = await Promise.all([
-    atomService.findUnique({
+    atomService.findFirst({
       table: 'circle',
-      where: { id: circleId },
+      where: { id: circleId, state: CIRCLE_STATE.active },
     }),
     atomService.findMany({
       table: 'article',

@@ -18,6 +18,7 @@ const resolver: CircleToIsMemberResolver = async (
     .where({
       'cs.state': SUBSCRIPTION_STATE.active,
       'csi.user_id': viewer.id,
+      'csi.archived': false,
       'circle_price.circle_id': id,
       'circle_price.state': PRICE_STATE.active,
     })

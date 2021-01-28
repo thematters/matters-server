@@ -3,8 +3,10 @@ import _ from 'lodash'
 import Stripe from 'stripe'
 
 import {
+  CIRCLE_STATE,
   METADATA_KEY,
   NODE_TYPES,
+  PAYMENT_PROVIDER,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
 } from 'common/enums'
@@ -44,7 +46,7 @@ export const completeCircleSubscription = async ({
   const circleId = _.get(metadata, METADATA_KEY.CIRCLE_ID)
   const priceId = _.get(metadata, METADATA_KEY.CIRCLE_PRICE_ID)
 
-  // checck circle & price
+  // checck circle, price & customer
   if (!circleId || !priceId) {
     slack.sendStripeAlert({
       data: slackEventData,
@@ -53,26 +55,33 @@ export const completeCircleSubscription = async ({
     return
   }
 
-  const [circle, price] = await Promise.all([
-    atomService.findUnique({
+  const [circle, price, customer] = await Promise.all([
+    atomService.findFirst({
       table: 'circle',
-      where: { id: circleId },
+      where: { id: circleId, state: CIRCLE_STATE.active },
     }),
     atomService.findFirst({
       table: 'circle_price',
       where: { circleId, state: PRICE_STATE.active },
     }),
+    atomService.findFirst({
+      table: 'customer',
+      where: {
+        userId,
+        provider: PAYMENT_PROVIDER.stripe,
+        archived: false,
+      },
+    }),
   ])
 
-  if (!circle || !price) {
+  if (!circle || !price || !customer) {
     slack.sendStripeAlert({
       data: slackEventData,
-      message: `can't find circle (${circleId}) or price (${priceId}).`,
+      message: `can't find circle (${circleId}), price (${priceId}) or customer.`,
     })
     return
   }
 
-  // check subscription
   const subscription = await atomService.findFirst({
     table: 'circle_subscription',
     where: {
@@ -82,47 +91,20 @@ export const completeCircleSubscription = async ({
   })
 
   if (!subscription) {
-    slack.sendStripeAlert({
-      data: slackEventData,
-      message: `user (${userId}) hasn't subscription.`,
+    await paymentService.createSubscription({
+      userId,
+      priceId: price.id,
+      providerCustomerId: customer.customerId,
+      providerPriceId: price.providerPriceId,
     })
-    return
-  }
-
-  // subscribe circle
-  const stripeItem = await paymentService.stripe.createSubscriptionItem({
-    price: price.providerPriceId,
-    subscription: subscription.providerSubscriptionId,
-  })
-
-  if (!stripeItem) {
-    throw new ServerError('cannot create stripe subscription item')
-  }
-
-  try {
-    await atomService.create({
-      table: 'circle_subscription_item',
-      data: {
-        priceId: price.id,
-        providerSubscriptionItemId: stripeItem.id,
-        subscriptionId: subscription.id,
-        userId,
-      },
+  } else {
+    await paymentService.createSubscriptionItem({
+      userId,
+      priceId: price.id,
+      subscriptionId: subscription.id,
+      providerPriceId: price.providerPriceId,
+      providerSubscriptionId: subscription.providerSubscriptionId,
     })
-  } catch (error) {
-    logger.error(error)
-
-    slack.sendStripeAlert({
-      data: slackEventData,
-      message: `cannot create circle subscription item.`,
-    })
-
-    // remove stripe subscription item if insertion failed
-    await paymentService.stripe.deleteSubscriptionItem({
-      id: stripeItem.id,
-    })
-
-    throw new ServerError('could not create circle subscription item')
   }
 
   // invalidate user & circle
@@ -171,6 +153,10 @@ export const updateSubscription = async ({
     return
   }
 
+  if (dbSubscription.state === subscription.status) {
+    return
+  }
+
   const userId = dbSubscription.userId
   const subscriptionId = dbSubscription.id
 
@@ -178,19 +164,17 @@ export const updateSubscription = async ({
    * subscription
    */
   try {
-    if (dbSubscription.state !== subscription.status) {
-      await atomService.update({
-        table: 'circle_subscription',
-        where: { id: dbSubscription.id },
-        data: {
-          state: subscription.status,
-          canceledAt: subscription.canceled_at
-            ? new Date(subscription.canceled_at * 1000)
-            : undefined,
-          updatedAt: new Date(),
-        },
-      })
-    }
+    await atomService.update({
+      table: 'circle_subscription',
+      where: { id: dbSubscription.id },
+      data: {
+        state: subscription.status,
+        canceledAt: subscription.canceled_at
+          ? new Date(subscription.canceled_at * 1000)
+          : undefined,
+        updatedAt: new Date(),
+      },
+    })
   } catch (error) {
     logger.error(error)
     throw new ServerError('failed to update subscription')
@@ -203,36 +187,38 @@ export const updateSubscription = async ({
   let removedPriceIds = []
   try {
     // retrieve all subscription items
-    const [stripeSubscriptionItems, dbSubscriptionItems] = await Promise.all([
-      await paymentService.stripe.stripeAPI.subscriptionItems.list({
-        subscription: subscription.id,
-        limit: 100,
-      }),
+    const [stripeSubItems, dbSubItems] = await Promise.all([
+      paymentService.stripe.listSubscriptionItems(subscription.id),
       atomService.findMany({
         table: 'circle_subscription_item',
         where: {
           userId,
           subscriptionId,
+          archived: false,
         },
       }),
     ])
+
+    if (!stripeSubItems) {
+      return
+    }
 
     const dbPriceIds = (
       await atomService.findMany({
         table: 'circle_price',
         whereIn: [
           'provider_price_id',
-          stripeSubscriptionItems.data.map((item) => item.price.id),
+          stripeSubItems.data.map((item) => item.price.id),
         ],
       })
     ).map((item) => item.id)
-    const dbCurrPriceIds = dbSubscriptionItems.map((item) => item.priceId)
+    const dbCurrPriceIds = dbSubItems.map((item) => item.priceId)
 
     // added
     addedPriceIds = _.difference(dbPriceIds, dbCurrPriceIds)
     await Promise.all(
       addedPriceIds.map(async (priceId) => {
-        const providerSubscriptionItemId = stripeSubscriptionItems.data.find(
+        const providerSubscriptionItemId = stripeSubItems.data.find(
           (item) => item.price.id === priceId
         )
         await atomService.create({
@@ -249,14 +235,22 @@ export const updateSubscription = async ({
 
     // removed
     removedPriceIds = _.difference(dbCurrPriceIds, dbPriceIds)
-    await atomService.deleteMany({
-      table: 'circle_subscription_item',
-      where: {
-        userId,
-        subscriptionId,
-      },
-      whereIn: ['price_id', removedPriceIds],
-    })
+    await Promise.all(
+      removedPriceIds.map(async (priceId) => {
+        await atomService.update({
+          table: 'circle_subscription_item',
+          where: {
+            userId,
+            subscriptionId,
+            priceId,
+          },
+          data: {
+            archived: true,
+            updatedAt: new Date(),
+          },
+        })
+      })
+    )
   } catch (error) {
     logger.error(error)
     throw new ServerError('failed to update subscription items')

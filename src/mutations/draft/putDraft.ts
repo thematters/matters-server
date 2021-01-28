@@ -99,7 +99,7 @@ const resolver: MutationToPutDraftResolver = async (
     const { id: cId } = fromGlobalId(circleGlobalId)
     const circle = await atomService.findFirst({
       table: 'circle',
-      where: { id: cId },
+      where: { id: cId, state: CIRCLE_STATE.active },
     })
 
     if (!circle) {

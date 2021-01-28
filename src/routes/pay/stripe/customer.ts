@@ -50,7 +50,7 @@ export const updateCustomerCard = async ({
   }
 
   // retrieve payment method and update to DB customer
-  const paymentMethod = await paymentService.stripe.stripeAPI.paymentMethods.retrieve(
+  const paymentMethod = await paymentService.stripe.getPaymentMethod(
     paymentMethodId
   )
   const cardLast4 = _.get(paymentMethod, 'card.last4')
@@ -72,10 +72,9 @@ export const updateCustomerCard = async ({
   })) as Customer
 
   // set as default payment method
-  await paymentService.stripe.stripeAPI.customers.update(customerId, {
-    invoice_settings: {
-      default_payment_method: paymentMethodId,
-    },
+  await paymentService.stripe.updateCustomer({
+    id: customerId,
+    paymentMethod: paymentMethodId,
   })
 
   return updatedCustomer

@@ -3,6 +3,7 @@ import { ForbiddenError } from 'apollo-server-express'
 import { compare } from 'bcrypt'
 
 import {
+  CIRCLE_STATE,
   METADATA_KEY,
   NODE_TYPES,
   PAYMENT_PROVIDER,
@@ -19,7 +20,6 @@ import {
   PaymentPasswordNotSetError,
   ServerError,
 } from 'common/errors'
-import logger from 'common/logger'
 import { fromGlobalId } from 'common/utils'
 import { CacheService } from 'connectors'
 import { Customer, MutationToSubscribeCircleResolver } from 'definitions'
@@ -32,10 +32,6 @@ const resolver: MutationToSubscribeCircleResolver = async (
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
-
-  // if (!environment.stripePriceId) {
-  //   throw new ServerError('matters price id not found')
-  // }
 
   // check password
   if (password) {
@@ -55,9 +51,9 @@ const resolver: MutationToSubscribeCircleResolver = async (
   // check circle
   const { id: circleId } = fromGlobalId(id || '')
   const [circle, price] = await Promise.all([
-    atomService.findUnique({
+    atomService.findFirst({
       table: 'circle',
-      where: { id: circleId },
+      where: { id: circleId, state: CIRCLE_STATE.active },
     }),
     atomService.findFirst({
       table: 'circle_price',
@@ -92,49 +88,27 @@ const resolver: MutationToSubscribeCircleResolver = async (
     })) as Customer
   }
 
-  /**
-   * Retrieve or create a Subscription
-   */
-  let subscription = await atomService.findFirst({
+  // check subscription
+  const subscription = await atomService.findFirst({
     table: 'circle_subscription',
     where: {
-      state: SUBSCRIPTION_STATE.active,
       userId: viewer.id,
+      state: SUBSCRIPTION_STATE.active,
     },
   })
-
   const item = subscription
     ? await atomService.findFirst({
         table: 'circle_subscription_item',
         where: {
           subscriptionId: subscription.id,
           priceId: price.id,
+          archived: false,
         },
       })
     : null
 
   if (item) {
     throw new DuplicateCircleError('circle subscribed alraedy')
-  }
-
-  // init subscription with matters price placeholder if it doesn't exist
-  if (!subscription) {
-    const stripeSubscription = await paymentService.stripe.createSubscription({
-      customer: customer.customerId,
-      price: environment.stripePriceId,
-    })
-
-    if (!stripeSubscription) {
-      throw new ServerError('cannot create stripe subscription')
-    }
-
-    subscription = await atomService.create({
-      table: 'circle_subscription',
-      data: {
-        providerSubscriptionId: stripeSubscription.id,
-        userId: viewer.id,
-      },
-    })
   }
 
   /**
@@ -149,35 +123,21 @@ const resolver: MutationToSubscribeCircleResolver = async (
       )
     }
 
-    // create stripe subscription item
-    const stripeItem = await paymentService.stripe.createSubscriptionItem({
-      price: price.providerPriceId,
-      subscription: subscription.providerSubscriptionId,
-    })
-
-    if (!stripeItem) {
-      throw new ServerError('cannot create stripe subscription item')
-    }
-
-    try {
-      await atomService.create({
-        table: 'circle_subscription_item',
-        data: {
-          priceId: price.id,
-          providerSubscriptionItemId: stripeItem.id,
-          subscriptionId: subscription.id,
-          userId: viewer.id,
-        },
+    if (!subscription) {
+      await paymentService.createSubscription({
+        userId: viewer.id,
+        priceId: price.id,
+        providerCustomerId: customer.customerId,
+        providerPriceId: price.providerPriceId,
       })
-    } catch (error) {
-      logger.error(error)
-
-      // remove stripe subscription item if insertion failed
-      await paymentService.stripe.deleteSubscriptionItem({
-        id: stripeItem.id,
+    } else {
+      await paymentService.createSubscriptionItem({
+        userId: viewer.id,
+        priceId: price.id,
+        subscriptionId: subscription.id,
+        providerPriceId: price.providerPriceId,
+        providerSubscriptionId: subscription.providerSubscriptionId,
       })
-
-      throw new ServerError('could not create circle subscription item')
     }
 
     // invalidate user & circle

@@ -1,3 +1,4 @@
+import { CIRCLE_STATE } from 'common/enums'
 import { UserToOwnCirclesResolver } from 'definitions'
 
 const resolver: UserToOwnCirclesResolver = async (
@@ -11,7 +12,7 @@ const resolver: UserToOwnCirclesResolver = async (
 
   const circles = await atomService.findMany({
     table: 'circle',
-    where: { owner: id },
+    where: { owner: id, state: CIRCLE_STATE.active },
   })
 
   return circles

@@ -17,6 +17,7 @@ const resolver: UserToSubscribedCirclesResolver = async (
   const where = {
     'cs.state': SUBSCRIPTION_STATE.active,
     'csi.user_id': id,
+    'csi.archived': false,
     'circle_price.state': PRICE_STATE.active,
   }
   const record = await knex

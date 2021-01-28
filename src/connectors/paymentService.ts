@@ -490,4 +490,92 @@ export class PaymentService extends BaseService {
     }
     return parseInt(`${result[0].count}` || '0', 10)
   }
+
+  /*********************************
+   *                               *
+   *         Subscription          *
+   *                               *
+   *********************************/
+  /**
+   * Create a subscription by a given circle price
+   */
+  createSubscription = async (data: {
+    userId: string
+    priceId: string
+    providerCustomerId: string
+    providerPriceId: string
+  }) => {
+    const atomService = new AtomService()
+
+    const { userId, priceId, providerCustomerId, providerPriceId } = data
+
+    // Create from Stripe
+    const stripeSubscription = await this.stripe.createSubscription({
+      customer: providerCustomerId,
+      price: providerPriceId,
+    })
+
+    if (!stripeSubscription) {
+      throw new ServerError('failed to create stripe subscription')
+    }
+
+    // Save to DB
+    const subscription = await atomService.create({
+      table: 'circle_subscription',
+      data: {
+        providerSubscriptionId: stripeSubscription.id,
+        userId,
+      },
+    })
+    await atomService.create({
+      table: 'circle_subscription_item',
+      data: {
+        priceId,
+        providerSubscriptionItemId: stripeSubscription.items.data[0].id,
+        subscriptionId: subscription.id,
+        userId,
+      },
+    })
+  }
+
+  /**
+   * Create a subscription item by a given circle price
+   */
+  createSubscriptionItem = async (data: {
+    userId: string
+    priceId: string
+    subscriptionId: string
+    providerPriceId: string
+    providerSubscriptionId: string
+  }) => {
+    const atomService = new AtomService()
+
+    const {
+      userId,
+      priceId,
+      subscriptionId,
+      providerPriceId,
+      providerSubscriptionId,
+    } = data
+
+    // Create from Stripe
+    const stripeItem = await this.stripe.createSubscriptionItem({
+      price: providerPriceId,
+      subscription: providerSubscriptionId,
+    })
+
+    if (!stripeItem) {
+      throw new ServerError('failed to create stripe subscription item')
+    }
+
+    await atomService.create({
+      table: 'circle_subscription_item',
+      data: {
+        priceId,
+        providerSubscriptionItemId: stripeItem.id,
+        subscriptionId,
+        userId,
+      },
+    })
+  }
 }

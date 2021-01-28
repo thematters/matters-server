@@ -40,10 +40,13 @@ class StripeService {
       case 'parameter_invalid_integer':
         throw new PaymentAmountInvalidError('maximum 2 decimal places')
       default:
-        throw new ServerError('failed to process the payment request')
+        throw new ServerError('failed to process the stripe request')
     }
   }
 
+  /**
+   * Customer
+   */
   createCustomer = async ({ user }: { user: User }) => {
     try {
       return await this.stripeAPI.customers.create({
@@ -52,6 +55,32 @@ class StripeService {
           [METADATA_KEY.USER_ID]: user.id,
         },
       })
+    } catch (err) {
+      this.handleError(err)
+    }
+  }
+
+  updateCustomer = async ({
+    id,
+    paymentMethod,
+  }: {
+    id: string
+    paymentMethod: string
+  }) => {
+    try {
+      return await this.stripeAPI.customers.update(id, {
+        invoice_settings: {
+          default_payment_method: paymentMethod,
+        },
+      })
+    } catch (err) {
+      this.handleError(err)
+    }
+  }
+
+  getPaymentMethod = async (id: string) => {
+    try {
+      return await this.stripeAPI.paymentMethods.retrieve(id)
     } catch (err) {
       this.handleError(err)
     }
@@ -180,13 +209,15 @@ class StripeService {
     }
   }
 
+  /**
+   * Product & Price
+   */
   createProduct = async ({ name, owner }: { name: string; owner: string }) => {
     try {
-      const product = await this.stripeAPI.products.create({
+      return await this.stripeAPI.products.create({
         name,
         metadata: { [METADATA_KEY.USER_ID]: owner },
       })
-      return product
     } catch (error) {
       this.handleError(error)
     }
@@ -194,16 +225,7 @@ class StripeService {
 
   updateProduct = async ({ id, name }: { id: string; name: string }) => {
     try {
-      const product = await this.stripeAPI.products.update(id, { name })
-      return product
-    } catch (error) {
-      this.handleError(error)
-    }
-  }
-
-  deleteProduct = async ({ id }: { id: string }) => {
-    try {
-      await this.stripeAPI.products.del(id)
+      return await this.stripeAPI.products.update(id, { name })
     } catch (error) {
       this.handleError(error)
     }
@@ -221,18 +243,20 @@ class StripeService {
     productId: string
   }) => {
     try {
-      const price = await this.stripeAPI.prices.create({
+      return await this.stripeAPI.prices.create({
         currency,
         product: productId,
         recurring: { interval },
         unit_amount: toProviderAmount({ amount }),
       })
-      return price
     } catch (error) {
       this.handleError(error)
     }
   }
 
+  /**
+   * Subscription
+   */
   createSubscription = async ({
     customer,
     price,
@@ -254,6 +278,14 @@ class StripeService {
     }
   }
 
+  cancelSubscription = async (id: string) => {
+    try {
+      return await this.stripeAPI.subscriptions.del(id)
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
   createSubscriptionItem = async ({
     price,
     subscription,
@@ -262,21 +294,31 @@ class StripeService {
     subscription: string
   }) => {
     try {
-      const item = await this.stripeAPI.subscriptionItems.create({
+      return await this.stripeAPI.subscriptionItems.create({
         price,
         proration_behavior: 'none',
         quantity: 1,
         subscription,
       })
-      return item
     } catch (error) {
       this.handleError(error)
     }
   }
 
-  deleteSubscriptionItem = async ({ id }: { id: string }) => {
+  deleteSubscriptionItem = async (id: string) => {
     try {
-      await this.stripeAPI.subscriptionItems.del(id)
+      return await this.stripeAPI.subscriptionItems.del(id)
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  listSubscriptionItems = async (id: string) => {
+    try {
+      return await this.stripeAPI.subscriptionItems.list({
+        subscription: id,
+        limit: 100,
+      })
     } catch (error) {
       this.handleError(error)
     }

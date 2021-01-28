@@ -1,4 +1,9 @@
-import { CACHE_KEYWORD, CIRCLE_ACTION, NODE_TYPES } from 'common/enums'
+import {
+  CACHE_KEYWORD,
+  CIRCLE_ACTION,
+  CIRCLE_STATE,
+  NODE_TYPES,
+} from 'common/enums'
 import {
   AuthenticationError,
   CircleNotFoundError,
@@ -27,9 +32,9 @@ const resolver: MutationToToggleFollowCircleResolver = async (
 
   const action = enabled ? ACTION.follow : ACTION.unfollow
   const { id: circleId } = fromGlobalId(id || '')
-  const circle = await atomService.findUnique({
+  const circle = await atomService.findFirst({
     table: 'circle',
-    where: { id: circleId },
+    where: { id: circleId, state: CIRCLE_STATE.active },
   })
 
   if (!circle) {
