@@ -4,8 +4,7 @@ import { GQLFeatureFlag, Viewer } from 'definitions'
 
 export const isFeatureEnabled = async (
   flag: GQLFeatureFlag,
-  viewer: Viewer,
-  service?: AtomService
+  viewer: Viewer
 ) => {
   switch (flag) {
     case GQLFeatureFlag.on: {
@@ -15,7 +14,7 @@ export const isFeatureEnabled = async (
       return viewer.role === USER_ROLE.admin
     }
     case GQLFeatureFlag.seeding: {
-      if (!('userName' in viewer) || !service) {
+      if (!('userName' in viewer)) {
         return false
       }
 
@@ -23,6 +22,7 @@ export const isFeatureEnabled = async (
         return true
       }
 
+      const service = new AtomService()
       const seedingUser = await service.count({
         table: 'seeding_user',
         where: { userName: viewer.userName },
