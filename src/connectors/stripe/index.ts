@@ -241,9 +241,9 @@ class StripeService {
     price: string
   }) => {
     try {
-      const anchorTime = getUTC8NextMonthDayOne() / 1000
+      const trialEndAt = getUTC8NextMonthDayOne() / 1000
       const subscription = await this.stripeAPI.subscriptions.create({
-        billing_cycle_anchor: anchorTime,
+        trial_end: trialEndAt,
         customer,
         items: [{ price }],
         proration_behavior: 'none',
