@@ -12,7 +12,10 @@ import {
   UserInputError,
 } from 'common/errors'
 import { fromGlobalId, isFeatureEnabled } from 'common/utils'
-import { GQLFeatureName, MutationToUnsubscribeCircleResolver } from 'definitions'
+import {
+  GQLFeatureName,
+  MutationToUnsubscribeCircleResolver,
+} from 'definitions'
 
 const resolver: MutationToUnsubscribeCircleResolver = async (
   root,
@@ -28,7 +31,7 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
     table: 'feature_flag',
     where: { name: GQLFeatureName.circle_interact },
   })
-  if (feature && !isFeatureEnabled(feature.flag, viewer)) {
+  if (feature && !(await isFeatureEnabled(feature.flag, viewer))) {
     throw new ForbiddenError('viewer has no permission')
   }
 

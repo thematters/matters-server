@@ -67,7 +67,8 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   } = SKIPPED_LIST_ITEM_TYPES
 
   const feature = await systemService.getFeatureFlag('fingerprint')
-  const isFingerprintEnabled = feature && isFeatureEnabled(feature.flag, viewer)
+  const isFingerprintEnabled =
+    feature && (await isFeatureEnabled(feature.flag, viewer))
 
   // verify email if it's in blocklist
   const banEmail = await systemService.findSkippedItem(TYPE_EMAIL, email)

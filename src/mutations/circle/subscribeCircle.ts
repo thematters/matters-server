@@ -33,7 +33,7 @@ const resolver: MutationToSubscribeCircleResolver = async (
     table: 'feature_flag',
     where: { name: GQLFeatureName.circle_interact },
   })
-  if (feature && !isFeatureEnabled(feature.flag, viewer)) {
+  if (feature && !(await isFeatureEnabled(feature.flag, viewer))) {
     throw new ForbiddenError('viewer has no permission')
   }
 

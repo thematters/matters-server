@@ -7,10 +7,8 @@ const resolver: MutationToSetFeatureResolver = async (
   { dataSources: { systemService }, viewer }
 ) => {
   const updated = await systemService.setFeatureFlag({ name, flag })
-  return {
-    name: updated.name,
-    enabled: isFeatureEnabled(updated.flag, viewer),
-  }
+  const enabled = await isFeatureEnabled(updated.flag, viewer)
+  return { name: updated.name, enabled }
 }
 
 export default resolver

@@ -7,9 +7,11 @@ export const features: OfficialToFeaturesResolver = async (
   { viewer, dataSources: { systemService } }
 ) => {
   const featureFlags = await systemService.getFeatureFlags()
-
-  return featureFlags.map(({ name, flag }) => ({
-    name,
-    enabled: isFeatureEnabled(flag, viewer),
-  }))
+  const result = await Promise.all(
+    featureFlags.map(async ({ name, flag }) => ({
+      name,
+      enabled: await isFeatureEnabled(flag, viewer),
+    }))
+  )
+  return result
 }

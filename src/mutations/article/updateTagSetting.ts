@@ -62,7 +62,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
     case UpdateType.adopt: {
       // check feature is enabled
       const feature = await systemService.getFeatureFlag('tag_adoption')
-      if (feature && !isFeatureEnabled(feature.flag, viewer)) {
+      if (feature && !(await isFeatureEnabled(feature.flag, viewer))) {
         throw new ForbiddenError('viewer has no permission')
       }
 

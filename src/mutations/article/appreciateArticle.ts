@@ -130,7 +130,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
   // protect from scripting
   const feature = await systemService.getFeatureFlag('verify_appreciate')
 
-  if (feature && isFeatureEnabled(feature.flag, viewer)) {
+  if (feature && (await isFeatureEnabled(feature.flag, viewer))) {
     const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
     if (!isHuman) {
       throw new ForbiddenError('appreciate via script is not allowed')

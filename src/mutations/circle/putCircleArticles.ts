@@ -44,7 +44,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     table: 'feature_flag',
     where: { name: GQLFeatureName.circle_management },
   })
-  if (feature && !isFeatureEnabled(feature.flag, viewer)) {
+  if (feature && !(await isFeatureEnabled(feature.flag, viewer))) {
     throw new ForbiddenError('viewer has no permission')
   }
 
