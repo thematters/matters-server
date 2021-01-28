@@ -39,7 +39,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   // check feature is enabled or not
   const feature = await atomService.findFirst({
     table: 'feature_flag',
-    where: { name: 'circle' },
+    where: { name: 'circle_management' },
   })
   if (feature && !isFeatureEnabled(feature.flag, viewer)) {
     throw new ForbiddenError('viewer has no permission')

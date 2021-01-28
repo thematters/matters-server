@@ -8,9 +8,10 @@ import {
   AuthenticationError,
   CircleNotFoundError,
   EntityNotFoundError,
+  ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, isFeatureEnabled } from 'common/utils'
 import { MutationToUnsubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToUnsubscribeCircleResolver = async (
@@ -20,6 +21,15 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  // check feature is enabled or not
+  const feature = await atomService.findFirst({
+    table: 'feature_flag',
+    where: { name: 'circle_interact' },
+  })
+  if (feature && !isFeatureEnabled(feature.flag, viewer)) {
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const { id: circleId } = fromGlobalId(id || '')

@@ -2,9 +2,10 @@ import { CACHE_KEYWORD, CIRCLE_ACTION, NODE_TYPES } from 'common/enums'
 import {
   AuthenticationError,
   CircleNotFoundError,
+  ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, isFeatureEnabled } from 'common/utils'
 import { MutationToToggleFollowCircleResolver } from 'definitions'
 
 // local enums
@@ -23,6 +24,15 @@ const resolver: MutationToToggleFollowCircleResolver = async (
   }
   if (typeof enabled !== 'boolean') {
     throw new UserInputError('parameter "enabled" is required')
+  }
+
+  // check feature is enabled or not
+  const feature = await atomService.findFirst({
+    table: 'feature_flag',
+    where: { name: 'circle_interact' },
+  })
+  if (feature && !isFeatureEnabled(feature.flag, viewer)) {
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const action = enabled ? ACTION.follow : ACTION.unfollow

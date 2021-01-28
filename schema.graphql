@@ -826,6 +826,7 @@ enum FeatureFlag {
   on
   off
   admin
+  seeding
 }
 
 enum FeatureName {
@@ -835,7 +836,8 @@ enum FeatureName {
   verify_appreciate
   fingerprint
   tag_adoption
-  circle
+  circle_management
+  circle_interact
 }
 
 input FilterInput {

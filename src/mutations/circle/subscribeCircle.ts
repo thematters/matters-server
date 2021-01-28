@@ -7,12 +7,13 @@ import {
   CircleNotFoundError,
   DuplicateCircleError,
   EntityNotFoundError,
+  ForbiddenError,
   PasswordInvalidError,
   PaymentPasswordNotSetError,
   ServerError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, isFeatureEnabled } from 'common/utils'
 import { MutationToSubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToSubscribeCircleResolver = async (
@@ -26,6 +27,16 @@ const resolver: MutationToSubscribeCircleResolver = async (
   if (!environment.stripePriceId) {
     throw new ServerError('matters price id not found')
   }
+
+  // check feature is enabled or not
+  const feature = await atomService.findFirst({
+    table: 'feature_flag',
+    where: { name: 'circle_interact' },
+  })
+  if (feature && !isFeatureEnabled(feature.flag, viewer)) {
+    throw new ForbiddenError('viewer has no permission')
+  }
+
   if (!viewer.paymentPasswordHash) {
     throw new PaymentPasswordNotSetError('viewer payment password has not set')
   }
