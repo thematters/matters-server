@@ -13,11 +13,6 @@ exports.up = async (knex) => {
       'subscription-split',
     ])
   )
-
-  // await knex.schema.alterTable(table, (t) => {
-  //   t.string('provider').nullable().alter()
-  //   t.string('provider_tx_id').nullable().alter()
-  // })
 }
 
 exports.down = async (knex) => {
@@ -29,9 +24,4 @@ exports.down = async (knex) => {
       'payout',
     ])
   )
-
-  // await knex.schema.alterTable(table, (t) => {
-  //   t.string('provider').notNullable().alter()
-  //   t.string('provider_tx_id').notNullable().alter()
-  // })
 }

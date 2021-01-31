@@ -120,6 +120,7 @@ const handleInvoice = async (
   invoice: Stripe.Invoice,
   eventType: 'invoice.payment_succeeded'
 ) => {
+  logger.info(`proceeding ${eventType} event...`)
   if (eventType === 'invoice.payment_succeeded') {
     const atomService = new AtomService()
     const paymentService = new PaymentService()
@@ -155,7 +156,7 @@ const handleInvoice = async (
       whereIn: ['providerPriceId', providerPriceIds],
     })) as CirclePrice[]
 
-    if (!tx) {
+    if (!tx && customer && subscription && prices) {
       await paymentService.createInvoiceWithTransactions({
         amount,
         currency,
@@ -165,6 +166,8 @@ const handleInvoice = async (
         userId: customer.userId,
         prices,
       })
+    } else {
+      logger.error(`cannot proceed the invoice: ${invoice.id}`)
     }
   }
 }
@@ -286,7 +289,7 @@ stripeRouter.post('/', async (req, res) => {
         await paymentService.deleteCustomer({ customerId: customer.id })
         break
       default:
-        logger.error('Unexpected event type', event.type)
+        logger.error(`Unexpected event type: ${event.type}`, event.type)
         slack.sendStripeAlert({
           data: {
             id: event.id,

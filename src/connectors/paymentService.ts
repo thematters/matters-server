@@ -1,4 +1,5 @@
 import DataLoader from 'dataloader'
+import { v4 } from 'uuid'
 
 import {
   BATCH_SIZE,
@@ -604,21 +605,21 @@ export class PaymentService extends BaseService {
             id: p.circleId,
           },
         })
-        // await trx('transaction').insert({
-        //   amount: p.amount,
-        //   currency: p.currency,
-        //   state: TRANSACTION_STATE.succeeded,
-        //   purpose: TRANSACTION_PURPOSE.subscriptionSplit,
+        await trx('transaction').insert({
+          amount: p.amount,
+          currency: p.currency,
+          state: TRANSACTION_STATE.succeeded,
+          purpose: TRANSACTION_PURPOSE.subscriptionSplit,
 
-        //   provider: undefined,
-        //   providerTxId: undefined,
+          provider: PAYMENT_PROVIDER.matters,
+          providerTxId: v4(),
 
-        //   senderId: userId,
-        //   recipientId: circle.owner,
+          senderId: userId,
+          recipientId: circle.owner,
 
-        //   targetType: entityTypeId,
-        //   targetId: p.id
-        // })
+          targetType: entityTypeId,
+          targetId: p.id,
+        })
       }
       logger.info(
         `invoice '${providerInvoiceId}' has been successfully paid and splitted.`
