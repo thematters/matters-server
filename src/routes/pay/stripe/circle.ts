@@ -354,5 +354,9 @@ export const completeCircleInvoice = async ({
     }
   } catch (error) {
     logger.error(error)
+    slack.sendStripeAlert({
+      data: slackEventData,
+      message: error,
+    })
   }
 }
