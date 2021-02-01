@@ -13,13 +13,13 @@ import {
   ServerError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { fromGlobalId, isFeatureEnabled } from 'common/utils'
-import { GQLFeatureName, MutationToSubscribeCircleResolver } from 'definitions'
+import { fromGlobalId } from 'common/utils'
+import { MutationToSubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToSubscribeCircleResolver = async (
   root,
   { input: { id, password } },
-  { viewer, dataSources: { atomService, paymentService }, knex }
+  { viewer, dataSources: { atomService, paymentService, systemService }, knex }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -29,11 +29,11 @@ const resolver: MutationToSubscribeCircleResolver = async (
   }
 
   // check feature is enabled or not
-  const feature = await atomService.findFirst({
-    table: 'feature_flag',
-    where: { name: GQLFeatureName.circle_interact },
-  })
-  if (feature && !(await isFeatureEnabled(feature.flag, viewer))) {
+  const feature = await systemService.getFeatureFlag('circle_interact')
+  if (
+    feature &&
+    !(await systemService.isFeatureEnabled(feature.flag, viewer))
+  ) {
     throw new ForbiddenError('viewer has no permission')
   }
 

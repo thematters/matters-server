@@ -1,4 +1,3 @@
-import { isFeatureEnabled } from 'common/utils'
 import { MutationToSetFeatureResolver } from 'definitions'
 
 const resolver: MutationToSetFeatureResolver = async (
@@ -7,7 +6,7 @@ const resolver: MutationToSetFeatureResolver = async (
   { dataSources: { systemService }, viewer }
 ) => {
   const updated = await systemService.setFeatureFlag({ name, flag })
-  const enabled = await isFeatureEnabled(updated.flag, viewer)
+  const enabled = await systemService.isFeatureEnabled(updated.flag, viewer)
   return { name: updated.name, enabled }
 }
 

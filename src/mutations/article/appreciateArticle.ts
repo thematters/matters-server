@@ -10,7 +10,7 @@ import {
   ForbiddenByTargetStateError,
   ForbiddenError,
 } from 'common/errors'
-import { fromGlobalId, isFeatureEnabled } from 'common/utils'
+import { fromGlobalId } from 'common/utils'
 import { gcp } from 'connectors'
 import { appreciationQueue } from 'connectors/queue'
 import { MutationToAppreciateArticleResolver } from 'definitions'
@@ -130,7 +130,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
   // protect from scripting
   const feature = await systemService.getFeatureFlag('verify_appreciate')
 
-  if (feature && (await isFeatureEnabled(feature.flag, viewer))) {
+  if (feature && (await systemService.isFeatureEnabled(feature.flag, viewer))) {
     const isHuman = await gcp.recaptcha({ token, ip: viewer.ip })
     if (!isHuman) {
       throw new ForbiddenError('appreciate via script is not allowed')

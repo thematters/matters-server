@@ -5,11 +5,8 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, isFeatureEnabled } from 'common/utils'
-import {
-  GQLFeatureName,
-  MutationToToggleFollowCircleResolver,
-} from 'definitions'
+import { fromGlobalId } from 'common/utils'
+import { MutationToToggleFollowCircleResolver } from 'definitions'
 
 // local enums
 enum ACTION {
@@ -20,7 +17,7 @@ enum ACTION {
 const resolver: MutationToToggleFollowCircleResolver = async (
   root,
   { input: { id, enabled } },
-  { viewer, dataSources: { atomService } }
+  { viewer, dataSources: { atomService, systemService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -30,11 +27,11 @@ const resolver: MutationToToggleFollowCircleResolver = async (
   }
 
   // check feature is enabled or not
-  const feature = await atomService.findFirst({
-    table: 'feature_flag',
-    where: { name: GQLFeatureName.circle_interact },
-  })
-  if (feature && !(await isFeatureEnabled(feature.flag, viewer))) {
+  const feature = await systemService.getFeatureFlag('circle_interact')
+  if (
+    feature &&
+    !(await systemService.isFeatureEnabled(feature.flag, viewer))
+  ) {
     throw new ForbiddenError('viewer has no permission')
   }
 

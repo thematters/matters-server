@@ -1,4 +1,3 @@
-import { isFeatureEnabled } from 'common/utils'
 import { OfficialToFeaturesResolver } from 'definitions'
 
 export const features: OfficialToFeaturesResolver = async (
@@ -10,7 +9,7 @@ export const features: OfficialToFeaturesResolver = async (
   const result = await Promise.all(
     featureFlags.map(async ({ name, flag }) => ({
       name,
-      enabled: await isFeatureEnabled(flag, viewer),
+      enabled: await systemService.isFeatureEnabled(flag, viewer),
     }))
   )
   return result

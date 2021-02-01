@@ -15,12 +15,11 @@ import {
 } from 'common/errors'
 import {
   fromGlobalId,
-  isFeatureEnabled,
   isValidCircleName,
   isValidDisplayName,
 } from 'common/utils'
 import { assetQueue } from 'connectors/queue'
-import { GQLFeatureName, MutationToPutCircleResolver } from 'definitions'
+import { MutationToPutCircleResolver } from 'definitions'
 
 enum ACTION {
   add = 'add',
@@ -30,18 +29,18 @@ enum ACTION {
 const resolver: MutationToPutCircleResolver = async (
   root,
   { input: { id, avatar, cover, name, displayName, description, amount } },
-  { viewer, dataSources: { atomService, paymentService }, knex }
+  { viewer, dataSources: { atomService, paymentService, systemService }, knex }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
 
   // check feature is enabled or not
-  const feature = await atomService.findFirst({
-    table: 'feature_flag',
-    where: { name: GQLFeatureName.circle_management },
-  })
-  if (feature && !(await isFeatureEnabled(feature.flag, viewer))) {
+  const feature = await systemService.getFeatureFlag('circle_management')
+  if (
+    feature &&
+    !(await systemService.isFeatureEnabled(feature.flag, viewer))
+  ) {
     throw new ForbiddenError('viewer has no permission')
   }
 
