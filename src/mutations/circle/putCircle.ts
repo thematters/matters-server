@@ -29,10 +29,19 @@ enum ACTION {
 const resolver: MutationToPutCircleResolver = async (
   root,
   { input: { id, avatar, cover, name, displayName, description, amount } },
-  { viewer, dataSources: { atomService, paymentService }, knex }
+  { viewer, dataSources: { atomService, paymentService, systemService }, knex }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  // check feature is enabled or not
+  const feature = await systemService.getFeatureFlag('circle_management')
+  if (
+    feature &&
+    !(await systemService.isFeatureEnabled(feature.flag, viewer))
+  ) {
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const action = id ? ACTION.update : ACTION.add

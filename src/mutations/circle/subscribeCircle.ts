@@ -1,5 +1,4 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
-import { ForbiddenError } from 'apollo-server-express'
 import { compare } from 'bcrypt'
 
 import {
@@ -10,12 +9,12 @@ import {
   PRICE_STATE,
   SUBSCRIPTION_STATE,
 } from 'common/enums'
-import { environment } from 'common/environment'
 import {
   AuthenticationError,
   CircleNotFoundError,
   DuplicateCircleError,
   EntityNotFoundError,
+  ForbiddenError,
   PasswordInvalidError,
   PaymentPasswordNotSetError,
   ServerError,
@@ -27,10 +26,19 @@ import { Customer, MutationToSubscribeCircleResolver } from 'definitions'
 const resolver: MutationToSubscribeCircleResolver = async (
   root,
   { input: { id, password } },
-  { viewer, dataSources: { atomService, paymentService }, knex }
+  { viewer, dataSources: { atomService, paymentService, systemService }, knex }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  // check feature is enabled or not
+  const feature = await systemService.getFeatureFlag('circle_interact')
+  if (
+    feature &&
+    !(await systemService.isFeatureEnabled(feature.flag, viewer))
+  ) {
+    throw new ForbiddenError('viewer has no permission')
   }
 
   // check password

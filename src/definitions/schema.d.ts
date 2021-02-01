@@ -1887,6 +1887,8 @@ export const enum GQLFeatureName {
   verify_appreciate = 'verify_appreciate',
   fingerprint = 'fingerprint',
   tag_adoption = 'tag_adoption',
+  circle_management = 'circle_management',
+  circle_interact = 'circle_interact',
 }
 
 export interface GQLOSS {
@@ -2633,6 +2635,7 @@ export const enum GQLFeatureFlag {
   on = 'on',
   off = 'off',
   admin = 'admin',
+  seeding = 'seeding',
 }
 
 export interface GQLSendVerificationCodeInput {
