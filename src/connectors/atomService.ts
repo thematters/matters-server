@@ -40,7 +40,7 @@ interface CreateInput {
 
 interface UpdateInput {
   table: TableName
-  where: { id: string }
+  where: Record<string, any>
   data: Record<string, any>
 }
 
@@ -173,7 +173,7 @@ export class AtomService extends DataSource {
   /**
    * Update an unique record.
    *
-   * A Prisma like method for updating a record by specified id.
+   * A Prisma like method for updating a record.
    */
   update = async ({ table, where, data }: UpdateInput) => {
     const [record] = await this.knex

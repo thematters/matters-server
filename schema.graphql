@@ -1746,7 +1746,10 @@ input SubscribeCircleInput {
 }
 
 type SubscribeCircleResult {
-  client_secret: String!
+  circle: Circle!
+
+  """client secret for SetupIntent."""
+  client_secret: String
 }
 
 type Subscription {
@@ -2150,12 +2153,6 @@ type User implements Node {
   """Status of current user."""
   status: UserStatus
 
-  """Circles belong to current user."""
-  ownCircles: [Circle!]
-
-  """Circles whiches user has subscribed."""
-  subscribedCircles(input: ConnectionArgs!): CircleConnection!
-
   """
   #############
        OSS    #
@@ -2163,6 +2160,12 @@ type User implements Node {
   """
   oss: UserOSS!
   remark: String
+
+  """Circles belong to current user."""
+  ownCircles: [Circle!]
+
+  """Circles whiches user has subscribed."""
+  subscribedCircles(input: ConnectionArgs!): CircleConnection!
   notices(input: ConnectionArgs!): NoticeConnection!
 
   """User Wallet"""

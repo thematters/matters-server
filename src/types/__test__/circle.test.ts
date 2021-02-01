@@ -262,48 +262,6 @@ describe('circle CRUD', () => {
     expect(_get(updatedData2, `${path}.followers.edges`).length).toBe(0)
   })
 
-  test('subscribe circle', async () => {
-    const { query } = await testClient(userClient)
-    const { data: data1 } = await query({
-      query: GET_VIEWER_OWN_CIRCLES,
-    })
-    const circle = _get(data1, 'viewer.ownCircles[0]')
-
-    // subscribe
-    const { mutate: adminMutate } = await testClient(adminClient)
-    const updatedData = await adminMutate({
-      mutation: SUBSCRIBE_CIRCLE,
-      variables: { input: { id: circle.id, password: '123456' } },
-    })
-    expect(_get(updatedData, 'data.subscribeCircle.client_secret')).toBe('')
-
-    // check members
-    const { data: data2 } = await query({
-      query: QUERY_CIRCLE,
-      variables: { input: { id: circle.id } },
-    })
-    expect(_get(data2, 'node.members.totalCount')).toBe(1)
-  })
-
-  test('unsuscribe cricle', async () => {
-    const { query } = await testClient(userClient)
-    const { data: data1 } = await query({
-      query: GET_VIEWER_OWN_CIRCLES,
-    })
-    const circle = _get(data1, 'viewer.ownCircles[0]')
-    expect(_get(circle, 'members.totalCount')).toBe(1)
-
-    // unsubscribe
-    const { mutate: adminMutate } = await testClient(adminClient)
-    const updatedData = await adminMutate({
-      mutation: UNSUBSCRIBE_CIRCLE,
-      variables: { input: { id: circle.id } },
-    })
-    expect(_get(updatedData, 'data.unsubscribeCircle.members.totalCount')).toBe(
-      0
-    )
-  })
-
   test('toggle circle articles', async () => {
     const path = 'data.putCircleArticles'
     const { query, mutate } = await testClient(userClient)

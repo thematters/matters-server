@@ -284,7 +284,7 @@ const resolver: MutationToEditArticleResolver = async (
     const { id: circleId } = fromGlobalId(circleGlobalId)
     const circle = await atomService.findFirst({
       table: 'circle',
-      where: { id: circleId },
+      where: { id: circleId, state: CIRCLE_STATE.active },
     })
 
     if (!circle) {

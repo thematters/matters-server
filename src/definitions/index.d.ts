@@ -251,6 +251,7 @@ export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
  * Payment
  */
 export type Customer = {
+  id: string
   userId: string
   provider: string
   customerId: string

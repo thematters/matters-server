@@ -18,6 +18,7 @@ const resolver: MemberToPriceResolver = async (
       'cp.circle_id': circleId,
       'cp.state': PRICE_STATE.active,
       'csi.user_id': id,
+      'csi.archived': false,
     })
     .first()
 

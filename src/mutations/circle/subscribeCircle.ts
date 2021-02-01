@@ -1,7 +1,14 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import { compare } from 'bcrypt'
 
-import { PRICE_STATE, SUBSCRIPTION_STATE } from 'common/enums'
-import { environment } from 'common/environment'
+import {
+  CIRCLE_STATE,
+  METADATA_KEY,
+  NODE_TYPES,
+  PAYMENT_PROVIDER,
+  PRICE_STATE,
+  SUBSCRIPTION_STATE,
+} from 'common/enums'
 import {
   AuthenticationError,
   CircleNotFoundError,
@@ -12,9 +19,9 @@ import {
   PaymentPasswordNotSetError,
   ServerError,
 } from 'common/errors'
-import logger from 'common/logger'
 import { fromGlobalId } from 'common/utils'
-import { MutationToSubscribeCircleResolver } from 'definitions'
+import { CacheService } from 'connectors'
+import { Customer, MutationToSubscribeCircleResolver } from 'definitions'
 
 const resolver: MutationToSubscribeCircleResolver = async (
   root,
@@ -23,9 +30,6 @@ const resolver: MutationToSubscribeCircleResolver = async (
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
-  }
-  if (!environment.stripePriceId) {
-    throw new ServerError('matters price id not found')
   }
 
   // check feature is enabled or not
@@ -37,26 +41,33 @@ const resolver: MutationToSubscribeCircleResolver = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-  if (!viewer.paymentPasswordHash) {
-    throw new PaymentPasswordNotSetError('viewer payment password has not set')
-  }
-  const verified = await compare(password, viewer.paymentPasswordHash)
-  if (!verified) {
-    throw new PasswordInvalidError('password is incorrect, pay failed.')
+  // check password
+  if (password) {
+    if (!viewer.paymentPasswordHash) {
+      throw new PaymentPasswordNotSetError(
+        'viewer payment password has not set'
+      )
+    }
+
+    const verified = await compare(password, viewer.paymentPasswordHash)
+
+    if (!verified) {
+      throw new PasswordInvalidError('password is incorrect.')
+    }
   }
 
+  // check circle
   const { id: circleId } = fromGlobalId(id || '')
   const [circle, price] = await Promise.all([
-    atomService.findUnique({
+    atomService.findFirst({
       table: 'circle',
-      where: { id: circleId },
+      where: { id: circleId, state: CIRCLE_STATE.active },
     }),
     atomService.findFirst({
       table: 'circle_price',
       where: { circleId, state: PRICE_STATE.active },
     }),
   ])
-
   if (!circle) {
     throw new CircleNotFoundError(`circle ${id} not found`)
   }
@@ -64,20 +75,42 @@ const resolver: MutationToSubscribeCircleResolver = async (
     throw new EntityNotFoundError(`price of circle ${id} not found`)
   }
 
-  let subscription = await atomService.findFirst({
+  const provider = PAYMENT_PROVIDER.stripe
+
+  /**
+   * Retrieve or create a Customer
+   */
+  let customer = (await atomService.findFirst({
+    table: 'customer',
+    where: {
+      userId: viewer.id,
+      provider,
+      archived: false,
+    },
+  })) as Customer
+
+  if (!customer) {
+    customer = (await paymentService.createCustomer({
+      user: viewer,
+      provider,
+    })) as Customer
+  }
+
+  // check subscription
+  const subscription = await atomService.findFirst({
     table: 'circle_subscription',
     where: {
-      state: SUBSCRIPTION_STATE.active,
       userId: viewer.id,
+      state: SUBSCRIPTION_STATE.active,
     },
   })
-
   const item = subscription
     ? await atomService.findFirst({
         table: 'circle_subscription_item',
         where: {
           subscriptionId: subscription.id,
           priceId: price.id,
+          archived: false,
         },
       })
     : null
@@ -86,55 +119,70 @@ const resolver: MutationToSubscribeCircleResolver = async (
     throw new DuplicateCircleError('circle subscribed alraedy')
   }
 
-  // init subscription with matters price placeholder if it doesn't exist
-  if (!subscription) {
-    const stripeSubscription = await paymentService.stripe.createSubscription({
-      customer: environment.stripeCustomerId, // temp customer id
-      price: environment.stripePriceId,
-    })
-    if (!stripeSubscription) {
-      throw new ServerError('cannot retrieve stripe subscription')
+  /**
+   * (Sync) Subscribe via payment password
+   *
+   * @returns {{ circle: Circle }}
+   */
+  if (password) {
+    if (!customer.cardLast4) {
+      throw new ForbiddenError(
+        'subscribe via password requires a pre-filled credit card.'
+      )
     }
 
-    subscription = await atomService.create({
-      table: 'circle_subscription',
-      data: {
-        providerSubscriptionId: stripeSubscription.id,
+    if (!subscription) {
+      await paymentService.createSubscription({
         userId: viewer.id,
-      },
+        priceId: price.id,
+        providerCustomerId: customer.customerId,
+        providerPriceId: price.providerPriceId,
+      })
+    } else {
+      await paymentService.createSubscriptionItem({
+        userId: viewer.id,
+        priceId: price.id,
+        subscriptionId: subscription.id,
+        providerPriceId: price.providerPriceId,
+        providerSubscriptionId: subscription.providerSubscriptionId,
+      })
+    }
+
+    // invalidate user & circle
+    const cacheService = new CacheService()
+    invalidateFQC({
+      node: { type: NODE_TYPES.circle, id: circle.id },
+      redis: cacheService.redis,
     })
+    invalidateFQC({
+      node: { type: NODE_TYPES.user, id: viewer.id },
+      redis: cacheService.redis,
+    })
+
+    return { circle }
   }
 
-  // create stripe subscription item
-  const stripeItem = await paymentService.stripe.createSubscriptionItem({
-    price: price.providerPriceId,
-    subscription: subscription.providerSubscriptionId,
+  /**
+   * (Async) Subscirbe via credit card
+   *
+   * @see /src/routes/pay/stripe.ts
+   * @returns {{ circle: Circle, client_secret: string }}
+   */
+  const setupIntent = await paymentService.stripe.createSetupIntent({
+    customerId: customer.customerId,
+    metadata: {
+      [METADATA_KEY.CIRCLE_ID]: circle.id,
+      [METADATA_KEY.CIRCLE_PRICE_ID]: price.id,
+      [METADATA_KEY.USER_ID]: viewer.id,
+      [METADATA_KEY.CUSTOMER_ID]: customer.id,
+    },
   })
 
-  if (!stripeItem) {
-    throw new ServerError('cannot retrieve stripe subscription item')
+  if (!setupIntent) {
+    throw new ServerError('failed to create setup')
   }
 
-  try {
-    await atomService.create({
-      table: 'circle_subscription_item',
-      data: {
-        priceId: price.id,
-        providerSubscriptionItemId: stripeItem.id,
-        subscriptionId: subscription.id,
-        userId: viewer.id,
-      },
-    })
-  } catch (error) {
-    // remove stripe subscription item if insertion failed
-    await paymentService.stripe.deleteSubscriptionItem({
-      id: stripeItem.id,
-    })
-    logger.error(error)
-    throw new ServerError('could not create circle subscription item')
-  }
-
-  return { client_secret: '' } // correct after using real customer id
+  return { circle, client_secret: setupIntent.client_secret }
 }
 
 export default resolver

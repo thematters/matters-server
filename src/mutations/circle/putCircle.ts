@@ -1,6 +1,6 @@
 import _trim from 'lodash/trim'
 
-import { ASSET_TYPE, PAYMENT_CURRENCY } from 'common/enums'
+import { ASSET_TYPE, CIRCLE_STATE, PAYMENT_CURRENCY } from 'common/enums'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -75,7 +75,10 @@ const resolver: MutationToPutCircleResolver = async (
       }
 
       const [hasCircle, sameCircle] = await Promise.all([
-        atomService.count({ table: 'circle', where: { owner: viewer.id } }),
+        atomService.count({
+          table: 'circle',
+          where: { owner: viewer.id, state: CIRCLE_STATE.active },
+        }),
         atomService.count({
           table: 'circle',
           where: { name: trimedName },
@@ -146,7 +149,7 @@ const resolver: MutationToPutCircleResolver = async (
       const { id: circleId } = fromGlobalId(id || '')
       const circle = await atomService.findFirst({
         table: 'circle',
-        where: { id: circleId, owner: viewer.id },
+        where: { id: circleId, owner: viewer.id, state: CIRCLE_STATE.active },
       })
 
       if (!circle) {
@@ -218,7 +221,7 @@ const resolver: MutationToPutCircleResolver = async (
 
       const updatedCircle = await atomService.update({
         table: 'circle',
-        where: { id: circleId },
+        where: { id: circleId, state: CIRCLE_STATE.active },
         data,
       })
 

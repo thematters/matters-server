@@ -428,6 +428,14 @@ export interface GQLUser extends GQLNode {
   status?: GQLUserStatus
 
   /**
+   * #############
+   *      OSS    #
+   * #############
+   */
+  oss: GQLUserOSS
+  remark?: string
+
+  /**
    * Circles belong to current user.
    */
   ownCircles?: Array<GQLCircle>
@@ -436,14 +444,6 @@ export interface GQLUser extends GQLNode {
    * Circles whiches user has subscribed.
    */
   subscribedCircles: GQLCircleConnection
-
-  /**
-   * #############
-   *      OSS    #
-   * #############
-   */
-  oss: GQLUserOSS
-  remark?: string
   notices: GQLNoticeConnection
 
   /**
@@ -2474,7 +2474,12 @@ export interface GQLSubscribeCircleInput {
 }
 
 export interface GQLSubscribeCircleResult {
-  client_secret: string
+  circle: GQLCircle
+
+  /**
+   * client secret for SetupIntent.
+   */
+  client_secret?: string
 }
 
 export interface GQLUnsubscribeCircleInput {
@@ -4039,10 +4044,10 @@ export interface GQLUserTypeResolver<TParent = any> {
   isBlocking?: UserToIsBlockingResolver<TParent>
   isBlocked?: UserToIsBlockedResolver<TParent>
   status?: UserToStatusResolver<TParent>
-  ownCircles?: UserToOwnCirclesResolver<TParent>
-  subscribedCircles?: UserToSubscribedCirclesResolver<TParent>
   oss?: UserToOssResolver<TParent>
   remark?: UserToRemarkResolver<TParent>
+  ownCircles?: UserToOwnCirclesResolver<TParent>
+  subscribedCircles?: UserToSubscribedCirclesResolver<TParent>
   notices?: UserToNoticesResolver<TParent>
   wallet?: UserToWalletResolver<TParent>
   paymentPointer?: UserToPaymentPointerResolver<TParent>
@@ -4288,6 +4293,24 @@ export interface UserToStatusResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface UserToOssResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface UserToOwnCirclesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -4304,24 +4327,6 @@ export interface UserToSubscribedCirclesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToSubscribedCirclesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToOssResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface UserToRemarkResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8994,7 +8999,20 @@ export interface MutationToPutOAuthClientResolver<
 }
 
 export interface GQLSubscribeCircleResultTypeResolver<TParent = any> {
+  circle?: SubscribeCircleResultToCircleResolver<TParent>
   client_secret?: SubscribeCircleResultToClient_secretResolver<TParent>
+}
+
+export interface SubscribeCircleResultToCircleResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
 }
 
 export interface SubscribeCircleResultToClient_secretResolver<

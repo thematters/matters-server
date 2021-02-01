@@ -1,5 +1,6 @@
 import {
   CACHE_KEYWORD,
+  CIRCLE_STATE,
   NODE_TYPES,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
@@ -34,9 +35,9 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
 
   const { id: circleId } = fromGlobalId(id || '')
   const [circle, price] = await Promise.all([
-    atomService.findUnique({
+    atomService.findFirst({
       table: 'circle',
-      where: { id: circleId },
+      where: { id: circleId, state: CIRCLE_STATE.active },
     }),
     atomService.findFirst({
       table: 'circle_price',
@@ -54,35 +55,61 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
   const subscription = await atomService.findFirst({
     table: 'circle_subscription',
     where: {
-      state: SUBSCRIPTION_STATE.active,
       userId: viewer.id,
+      state: SUBSCRIPTION_STATE.active,
     },
   })
-
-  const item = subscription
-    ? await atomService.findFirst({
+  const items = subscription
+    ? await atomService.findMany({
         table: 'circle_subscription_item',
         where: {
           subscriptionId: subscription.id,
-          priceId: price.id,
+          archived: false,
         },
       })
-    : null
+    : []
+  const targetItem = items.find((item) => item.priceId === price.id)
 
-  if (!item) {
-    throw new UserInputError('circle unsubscribed already')
+  if (!targetItem) {
+    return circle
   }
 
-  // remove stripe subscription item
-  await paymentService.stripe.deleteSubscriptionItem({
-    id: item.providerSubscriptionItemId,
-  })
+  if (items.length <= 1) {
+    // cancel stripe subscription
+    const stripeSubscription = await paymentService.stripe.cancelSubscription(
+      subscription.providerSubscriptionId
+    )
 
-  // remove subscription item
-  await atomService.deleteMany({
-    table: 'circle_subscription_item',
-    where: { id: item.id },
-  })
+    // update db subscription
+    if (stripeSubscription) {
+      await atomService.update({
+        table: 'circle_subscription',
+        where: { id: subscription.id },
+        data: {
+          state: stripeSubscription.status,
+          canceledAt: stripeSubscription.canceled_at
+            ? new Date(stripeSubscription.canceled_at * 1000)
+            : undefined,
+          updatedAt: new Date(),
+        },
+      })
+    }
+  } else {
+    // remove stripe subscription item
+    await paymentService.stripe.deleteSubscriptionItem(
+      targetItem.providerSubscriptionItemId
+    )
+
+    // archive subscription item
+    await atomService.update({
+      table: 'circle_subscription_item',
+      where: { id: targetItem.id },
+      data: {
+        archived: true,
+        updatedAt: new Date(),
+      },
+    })
+  }
 
   // invalidate cache
   circle[CACHE_KEYWORD] = [
