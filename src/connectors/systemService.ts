@@ -117,7 +117,7 @@ export class SystemService extends BaseService {
           {
             userId: viewer.id,
           },
-          'feature_flag'
+          'seeding_user'
         )
         return seedingUser > 0
       }
