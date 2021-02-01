@@ -5,6 +5,7 @@ import _uniq from 'lodash/uniq'
 import {
   ARTICLE_STATE,
   CACHE_KEYWORD,
+  CIRCLE_STATE,
   NODE_TYPES,
   USER_STATE,
 } from 'common/enums'
@@ -22,7 +23,7 @@ import { MutationToPutCircleArticlesResolver } from 'definitions'
 const resolver: MutationToPutCircleArticlesResolver = async (
   root,
   { input: { id, articles, type } },
-  { viewer, dataSources: { atomService } }
+  { viewer, dataSources: { atomService, systemService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -36,12 +37,21 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     throw new UserInputError('"articles" is required')
   }
 
+  // check feature is enabled or not
+  const feature = await systemService.getFeatureFlag('circle_management')
+  if (
+    feature &&
+    !(await systemService.isFeatureEnabled(feature.flag, viewer))
+  ) {
+    throw new ForbiddenError('viewer has no permission')
+  }
+
   const { id: circleId } = fromGlobalId(id || '')
   const articleIds = articles.map((articleId) => fromGlobalId(articleId).id)
   const [circle, targetArticles] = await Promise.all([
-    atomService.findUnique({
+    atomService.findFirst({
       table: 'circle',
-      where: { id: circleId },
+      where: { id: circleId, state: CIRCLE_STATE.active },
     }),
     atomService.findMany({
       table: 'article',

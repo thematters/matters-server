@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 
-import { LOCAL_STRIPE, PAYMENT_CURRENCY } from 'common/enums'
+import { LOCAL_STRIPE, METADATA_KEY, PAYMENT_CURRENCY } from 'common/enums'
 import { environment, isTest } from 'common/environment'
 import { PaymentAmountInvalidError, ServerError } from 'common/errors'
 import logger from 'common/logger'
@@ -19,7 +19,7 @@ import { User } from 'definitions'
  * @see {@url https://stripe.com/docs/api/errors/handling}
  */
 class StripeService {
-  stripe: Stripe
+  stripeAPI: Stripe
 
   constructor() {
     let options: Record<string, any> = {}
@@ -27,7 +27,7 @@ class StripeService {
       options = LOCAL_STRIPE
     }
 
-    this.stripe = new Stripe(environment.stripeSecret, {
+    this.stripeAPI = new Stripe(environment.stripeSecret, {
       apiVersion: '2020-03-02',
       ...options,
     })
@@ -40,18 +40,47 @@ class StripeService {
       case 'parameter_invalid_integer':
         throw new PaymentAmountInvalidError('maximum 2 decimal places')
       default:
-        throw new ServerError('failed to process the payment request')
+        throw new ServerError('failed to process the stripe request')
     }
   }
 
+  /**
+   * Customer
+   */
   createCustomer = async ({ user }: { user: User }) => {
     try {
-      return await this.stripe.customers.create({
+      return await this.stripeAPI.customers.create({
         email: user.email,
         metadata: {
-          user_id: user.id,
+          [METADATA_KEY.USER_ID]: user.id,
         },
       })
+    } catch (err) {
+      this.handleError(err)
+    }
+  }
+
+  updateCustomer = async ({
+    id,
+    paymentMethod,
+  }: {
+    id: string
+    paymentMethod: string
+  }) => {
+    try {
+      return await this.stripeAPI.customers.update(id, {
+        invoice_settings: {
+          default_payment_method: paymentMethod,
+        },
+      })
+    } catch (err) {
+      this.handleError(err)
+    }
+  }
+
+  getPaymentMethod = async (id: string) => {
+    try {
+      return await this.stripeAPI.paymentMethods.retrieve(id)
     } catch (err) {
       this.handleError(err)
     }
@@ -75,10 +104,37 @@ class StripeService {
     currency: PAYMENT_CURRENCY
   }) => {
     try {
-      return await this.stripe.paymentIntents.create({
+      return await this.stripeAPI.paymentIntents.create({
         customer: customerId,
         amount: toProviderAmount({ amount }),
         currency,
+      })
+    } catch (err) {
+      this.handleError(err)
+    }
+  }
+
+  /**
+   * Collect customer's credit card via SetupIntent, used by circle subscription.
+   *
+   * @param customerId ID of the Customer this PaymentIntent belongs to.
+   * @param amount Amount intended to be collected by this PaymentIntent.
+   * @param currency
+   *
+   */
+  createSetupIntent = async ({
+    customerId,
+    metadata,
+  }: {
+    customerId: string
+    metadata?: Stripe.MetadataParam
+  }) => {
+    try {
+      return await this.stripeAPI.setupIntents.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        usage: 'off_session',
+        metadata,
       })
     } catch (err) {
       this.handleError(err)
@@ -92,7 +148,7 @@ class StripeService {
    * @see {@url https://stripe.com/docs/connect/express-accounts#integrating-oauth}
    */
   createOAuthLink = ({ user }: { user: User }) => {
-    return this.stripe.oauth.authorizeUrl(
+    return this.stripeAPI.oauth.authorizeUrl(
       {
         client_id: environment.stripeConnectClientId,
         response_type: 'code',
@@ -111,7 +167,7 @@ class StripeService {
   }
 
   createExpressLoginLink = async (accountId: string) => {
-    const { url } = await this.stripe.accounts.createLoginLink(accountId)
+    const { url } = await this.stripeAPI.accounts.createLoginLink(accountId)
     return url
   }
 
@@ -136,7 +192,7 @@ class StripeService {
         throw new ServerError('matters stripe customer id has not been set')
       }
 
-      return await this.stripe.paymentIntents.create({
+      return await this.stripeAPI.paymentIntents.create({
         amount: toProviderAmount({ amount }),
         application_fee_amount: toProviderAmount({ amount: fee }),
         confirm: true,
@@ -153,13 +209,15 @@ class StripeService {
     }
   }
 
+  /**
+   * Product & Price
+   */
   createProduct = async ({ name, owner }: { name: string; owner: string }) => {
     try {
-      const product = await this.stripe.products.create({
+      return await this.stripeAPI.products.create({
         name,
-        metadata: { owner },
+        metadata: { [METADATA_KEY.USER_ID]: owner },
       })
-      return product
     } catch (error) {
       this.handleError(error)
     }
@@ -167,16 +225,7 @@ class StripeService {
 
   updateProduct = async ({ id, name }: { id: string; name: string }) => {
     try {
-      const product = await this.stripe.products.update(id, { name })
-      return product
-    } catch (error) {
-      this.handleError(error)
-    }
-  }
-
-  deleteProduct = async ({ id }: { id: string }) => {
-    try {
-      await this.stripe.products.del(id)
+      return await this.stripeAPI.products.update(id, { name })
     } catch (error) {
       this.handleError(error)
     }
@@ -194,18 +243,20 @@ class StripeService {
     productId: string
   }) => {
     try {
-      const price = await this.stripe.prices.create({
+      return await this.stripeAPI.prices.create({
         currency,
         product: productId,
         recurring: { interval },
         unit_amount: toProviderAmount({ amount }),
       })
-      return price
     } catch (error) {
       this.handleError(error)
     }
   }
 
+  /**
+   * Subscription
+   */
   createSubscription = async ({
     customer,
     price,
@@ -214,14 +265,22 @@ class StripeService {
     price: string
   }) => {
     try {
-      const anchorTime = getUTC8NextMonthDayOne()
-      const subscription = await this.stripe.subscriptions.create({
-        billing_cycle_anchor: anchorTime,
+      const trialEndAt = getUTC8NextMonthDayOne() / 1000
+      const subscription = await this.stripeAPI.subscriptions.create({
+        trial_end: trialEndAt,
         customer,
         items: [{ price }],
         proration_behavior: 'none',
       })
       return subscription
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  cancelSubscription = async (id: string) => {
+    try {
+      return await this.stripeAPI.subscriptions.del(id)
     } catch (error) {
       this.handleError(error)
     }
@@ -235,21 +294,31 @@ class StripeService {
     subscription: string
   }) => {
     try {
-      const item = await this.stripe.subscriptionItems.create({
+      return await this.stripeAPI.subscriptionItems.create({
         price,
         proration_behavior: 'none',
         quantity: 1,
         subscription,
       })
-      return item
     } catch (error) {
       this.handleError(error)
     }
   }
 
-  deleteSubscriptionItem = async ({ id }: { id: string }) => {
+  deleteSubscriptionItem = async (id: string) => {
     try {
-      await this.stripe.subscriptionItems.del(id)
+      return await this.stripeAPI.subscriptionItems.del(id)
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
+
+  listSubscriptionItems = async (id: string) => {
+    try {
+      return await this.stripeAPI.subscriptionItems.list({
+        subscription: id,
+        limit: 100,
+      })
     } catch (error) {
       this.handleError(error)
     }
@@ -260,7 +329,7 @@ class StripeService {
    */
   getCustomerPortal = async ({ customerId }: { customerId: string }) => {
     try {
-      const session = await this.stripe.billingPortal.sessions.create({
+      const session = await this.stripeAPI.billingPortal.sessions.create({
         customer: customerId,
       })
       return session.url
@@ -271,7 +340,7 @@ class StripeService {
 
   getDeliveryFailedEvents = async () => {
     try {
-      const events = await this.stripe.events.list({
+      const events = await this.stripeAPI.events.list({
         delivery_success: false,
       })
       return events

@@ -1,3 +1,4 @@
+import { CIRCLE_STATE } from 'common/enums'
 import { QueryToCircleResolver } from 'definitions'
 
 const resolver: QueryToCircleResolver = async (
@@ -11,7 +12,7 @@ const resolver: QueryToCircleResolver = async (
 
   const circle = await atomService.findFirst({
     table: 'circle',
-    where: { name },
+    where: { name, state: CIRCLE_STATE.active },
   })
 
   return circle

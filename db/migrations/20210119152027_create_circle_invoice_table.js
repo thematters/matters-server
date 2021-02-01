@@ -6,9 +6,9 @@ exports.up = async (knex) => {
   await knex('entity_type').insert({ table })
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
-    t.bigInteger('user_id').unsigned().notNullable
-    t.bigInteger('transaction_id').unsigned().notNullable
-    t.bigInteger('subscription_id').unsigned().notNullable
+    t.bigInteger('user_id').unsigned().notNullable()
+    t.bigInteger('transaction_id').unsigned().notNullable()
+    t.bigInteger('subscription_id').unsigned().notNullable()
     t.enu('provider', ['stripe']).notNullable().defaultTo('stripe')
     t.string('provider_invoice_id').notNullable().unique()
     t.timestamp('created_at').defaultTo(knex.fn.now())

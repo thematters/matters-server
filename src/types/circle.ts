@@ -1,6 +1,7 @@
 import {
   AUTH_MODE as MODE,
   CACHE_TTL,
+  NODE_TYPES,
   NODE_TYPES as NODE,
   SCOPE_GROUP as GROUP,
 } from 'common/enums'
@@ -21,7 +22,7 @@ export default /* GraphQL */ `
     subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
 
     "Unsubscribe a Circle."
-    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
+    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
 
     "Add or remove Circle's articles"
     putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
@@ -80,6 +81,14 @@ export default /* GraphQL */ `
 
     "Setting of this Circle."
     setting: CircleSetting!
+  }
+
+  extend type User {
+    "Circles belong to current user."
+    ownCircles: [Circle!] @logCache(type: "${NODE_TYPES.circle}")
+
+    "Circles whiches user has subscribed."
+    subscribedCircles(input: ConnectionArgs!): CircleConnection! @logCache(type: "${NODE_TYPES.circle}")
   }
 
   type CircleSetting {
@@ -144,7 +153,10 @@ export default /* GraphQL */ `
   }
 
   type SubscribeCircleResult {
-    client_secret: String!
+    circle: Circle!
+
+    "client secret for SetupIntent."
+    client_secret: String
   }
 
   input CircleInput {

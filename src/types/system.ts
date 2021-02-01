@@ -281,12 +281,15 @@ export default /* GraphQL */ `
     verify_appreciate
     fingerprint
     tag_adoption
+    circle_management
+    circle_interact
   }
 
   enum FeatureFlag {
     on
     off
     admin
+    seeding
   }
 
   input CostComplexity {

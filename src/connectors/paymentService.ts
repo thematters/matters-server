@@ -32,8 +32,6 @@ export class PaymentService extends BaseService {
 
     this.stripe = stripe
 
-    this.atomService = new AtomService()
-
     this.dataloader = new DataLoader(this.baseFindByIds)
   }
 
@@ -317,14 +315,15 @@ export class PaymentService extends BaseService {
 
   getCustomerPortal = async ({ userId }: { userId: string }) => {
     // retrieve customer
-    const customer = (await this.atomService.findFirst({
-      table: 'customer',
-      where: {
+    const customer = (await this.knex
+      .select()
+      .from('customer')
+      .where({
         userId,
         provider: PAYMENT_PROVIDER.stripe,
         archived: false,
-      },
-    })) as Customer
+      })
+      .first()) as Customer
 
     if (customer) {
       const customerId = customer.customerId
@@ -580,7 +579,7 @@ export class PaymentService extends BaseService {
       for (const p of prices) {
         if (p.currency !== currency) {
           throw new ServerError(
-            `currency for '${providerTxId}' if not the same to '${p.providerPriceId}'`
+            `currency for '${providerTxId}' is not the same to '${p.providerPriceId}'`
           )
         }
       }
@@ -599,12 +598,7 @@ export class PaymentService extends BaseService {
         TRANSACTION_TARGET_TYPE.circlePrice
       )
       for (const p of prices) {
-        const circle = await this.atomService.findFirst({
-          table: 'circle',
-          where: {
-            id: p.circleId,
-          },
-        })
+        const circle = await this.baseFindById(p.circleId.toString(), 'circle')
         await trx('transaction').insert({
           amount: p.amount,
           currency: p.currency,
@@ -621,14 +615,102 @@ export class PaymentService extends BaseService {
           targetId: p.id,
         })
       }
+      await trx.commit()
+
       logger.info(
         `invoice '${providerInvoiceId}' has been successfully paid and splitted.`
       )
-
-      await trx.commit()
     } catch (e) {
       await trx.rollback()
       throw e
     }
+  }
+
+  /*********************************
+   *                               *
+   *         Subscription          *
+   *                               *
+   *********************************/
+  /**
+   * Create a subscription by a given circle price
+   */
+  createSubscription = async (data: {
+    userId: string
+    priceId: string
+    providerCustomerId: string
+    providerPriceId: string
+  }) => {
+    const atomService = new AtomService()
+
+    const { userId, priceId, providerCustomerId, providerPriceId } = data
+
+    // Create from Stripe
+    const stripeSubscription = await this.stripe.createSubscription({
+      customer: providerCustomerId,
+      price: providerPriceId,
+    })
+
+    if (!stripeSubscription) {
+      throw new ServerError('failed to create stripe subscription')
+    }
+
+    // Save to DB
+    const subscription = await atomService.create({
+      table: 'circle_subscription',
+      data: {
+        providerSubscriptionId: stripeSubscription.id,
+        userId,
+      },
+    })
+    await atomService.create({
+      table: 'circle_subscription_item',
+      data: {
+        priceId,
+        providerSubscriptionItemId: stripeSubscription.items.data[0].id,
+        subscriptionId: subscription.id,
+        userId,
+      },
+    })
+  }
+
+  /**
+   * Create a subscription item by a given circle price
+   */
+  createSubscriptionItem = async (data: {
+    userId: string
+    priceId: string
+    subscriptionId: string
+    providerPriceId: string
+    providerSubscriptionId: string
+  }) => {
+    const atomService = new AtomService()
+
+    const {
+      userId,
+      priceId,
+      subscriptionId,
+      providerPriceId,
+      providerSubscriptionId,
+    } = data
+
+    // Create from Stripe
+    const stripeItem = await this.stripe.createSubscriptionItem({
+      price: providerPriceId,
+      subscription: providerSubscriptionId,
+    })
+
+    if (!stripeItem) {
+      throw new ServerError('failed to create stripe subscription item')
+    }
+
+    await atomService.create({
+      table: 'circle_subscription_item',
+      data: {
+        priceId,
+        providerSubscriptionItemId: stripeItem.id,
+        subscriptionId,
+        userId,
+      },
+    })
   }
 }

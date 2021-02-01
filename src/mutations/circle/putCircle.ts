@@ -1,6 +1,6 @@
 import _trim from 'lodash/trim'
 
-import { ASSET_TYPE, PAYMENT_CURRENCY } from 'common/enums'
+import { ASSET_TYPE, CIRCLE_STATE, PAYMENT_CURRENCY } from 'common/enums'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -29,10 +29,19 @@ enum ACTION {
 const resolver: MutationToPutCircleResolver = async (
   root,
   { input: { id, avatar, cover, name, displayName, description, amount } },
-  { viewer, dataSources: { atomService, paymentService }, knex }
+  { viewer, dataSources: { atomService, paymentService, systemService }, knex }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
+  }
+
+  // check feature is enabled or not
+  const feature = await systemService.getFeatureFlag('circle_management')
+  if (
+    feature &&
+    !(await systemService.isFeatureEnabled(feature.flag, viewer))
+  ) {
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const action = id ? ACTION.update : ACTION.add
@@ -66,7 +75,10 @@ const resolver: MutationToPutCircleResolver = async (
       }
 
       const [hasCircle, sameCircle] = await Promise.all([
-        atomService.count({ table: 'circle', where: { owner: viewer.id } }),
+        atomService.count({
+          table: 'circle',
+          where: { owner: viewer.id, state: CIRCLE_STATE.active },
+        }),
         atomService.count({
           table: 'circle',
           where: { name: trimedName },
@@ -137,7 +149,7 @@ const resolver: MutationToPutCircleResolver = async (
       const { id: circleId } = fromGlobalId(id || '')
       const circle = await atomService.findFirst({
         table: 'circle',
-        where: { id: circleId, owner: viewer.id },
+        where: { id: circleId, owner: viewer.id, state: CIRCLE_STATE.active },
       })
 
       if (!circle) {
@@ -209,7 +221,7 @@ const resolver: MutationToPutCircleResolver = async (
 
       const updatedCircle = await atomService.update({
         table: 'circle',
-        where: { id: circleId },
+        where: { id: circleId, state: CIRCLE_STATE.active },
         data,
       })
 

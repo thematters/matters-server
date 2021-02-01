@@ -147,6 +147,8 @@ export type TableName =
   | 'circle_subscription_item'
   | 'action_circle'
   | 'article_circle'
+  | 'feature_flag'
+  | 'seeding_user'
 
 export type MaterializedView =
   | 'article_count_materialized'
@@ -250,6 +252,7 @@ export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
  * Payment
  */
 export type Customer = {
+  id: string
   userId: string
   provider: string
   customerId: string
