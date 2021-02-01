@@ -5,6 +5,7 @@ import {
   BATCH_SIZE,
   SEARCH_KEY_TRUNCATE_LENGTH,
   SKIPPED_LIST_ITEM_TYPES,
+  USER_ROLE,
 } from 'common/enums'
 import logger from 'common/logger'
 import { BaseService } from 'connectors'
@@ -12,6 +13,7 @@ import {
   GQLFeatureFlag,
   GQLFeatureName,
   SkippedListItemType,
+  Viewer,
 } from 'definitions'
 
 export class SystemService extends BaseService {
@@ -92,6 +94,35 @@ export class SystemService extends BaseService {
       .into(this.featureFlagTable)
       .returning('*')
     return featureFlag
+  }
+
+  isFeatureEnabled = async (flag: GQLFeatureFlag, viewer: Viewer) => {
+    switch (flag) {
+      case GQLFeatureFlag.on: {
+        return true
+      }
+      case GQLFeatureFlag.admin: {
+        return viewer.role === USER_ROLE.admin
+      }
+      case GQLFeatureFlag.seeding: {
+        if (!('id' in viewer)) {
+          return false
+        }
+
+        if (viewer.role === USER_ROLE.admin) {
+          return true
+        }
+
+        const seedingUser = await this.baseCount(
+          {
+            userId: viewer.id,
+          },
+          'seeding_user'
+        )
+        return seedingUser > 0
+      }
+    }
+    return false
   }
 
   /*********************************

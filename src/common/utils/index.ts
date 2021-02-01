@@ -23,7 +23,6 @@ export * from './scope'
 export * from './payment'
 export * from './text'
 export * from './time'
-export * from './featureFlag'
 
 /**
  * Make a valid user name based on a given email address. It removes all special characters including _.

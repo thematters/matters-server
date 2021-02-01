@@ -7,6 +7,7 @@ import {
   CircleNotFoundError,
   DuplicateCircleError,
   EntityNotFoundError,
+  ForbiddenError,
   PasswordInvalidError,
   PaymentPasswordNotSetError,
   ServerError,
@@ -18,7 +19,7 @@ import { MutationToSubscribeCircleResolver } from 'definitions'
 const resolver: MutationToSubscribeCircleResolver = async (
   root,
   { input: { id, password } },
-  { viewer, dataSources: { atomService, paymentService }, knex }
+  { viewer, dataSources: { atomService, paymentService, systemService }, knex }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -26,6 +27,16 @@ const resolver: MutationToSubscribeCircleResolver = async (
   if (!environment.stripePriceId) {
     throw new ServerError('matters price id not found')
   }
+
+  // check feature is enabled or not
+  const feature = await systemService.getFeatureFlag('circle_interact')
+  if (
+    feature &&
+    !(await systemService.isFeatureEnabled(feature.flag, viewer))
+  ) {
+    throw new ForbiddenError('viewer has no permission')
+  }
+
   if (!viewer.paymentPasswordHash) {
     throw new PaymentPasswordNotSetError('viewer payment password has not set')
   }

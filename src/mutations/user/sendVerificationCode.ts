@@ -10,7 +10,7 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import logger from 'common/logger'
-import { isFeatureEnabled, resolveUrl } from 'common/utils'
+import { resolveUrl } from 'common/utils'
 import { gcp } from 'connectors'
 import { MutationToSendVerificationCodeResolver } from 'definitions'
 
@@ -67,7 +67,8 @@ const resolver: MutationToSendVerificationCodeResolver = async (
   } = SKIPPED_LIST_ITEM_TYPES
 
   const feature = await systemService.getFeatureFlag('fingerprint')
-  const isFingerprintEnabled = feature && isFeatureEnabled(feature.flag, viewer)
+  const isFingerprintEnabled =
+    feature && (await systemService.isFeatureEnabled(feature.flag, viewer))
 
   // verify email if it's in blocklist
   const banEmail = await systemService.findSkippedItem(TYPE_EMAIL, email)
