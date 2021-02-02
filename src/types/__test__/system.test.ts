@@ -218,12 +218,14 @@ describe.skip('Search', () => {
 })
 
 describe('manage feature flag', () => {
-
   const errorPath = 'errors.0.extensions.code'
   const adminClient = { isAuth: true, isAdmin: true }
   const userClient = { isAuth: true, isAdmin: false }
 
-  const reducer = (result: Record<string, any>, feature: { name: string, enabled: boolean }) => ({
+  const reducer = (
+    result: Record<string, any>,
+    feature: { name: string; enabled: boolean }
+  ) => ({
     ...result,
     [feature.name]: feature.enabled,
   })
@@ -253,7 +255,9 @@ describe('manage feature flag', () => {
     expect(_get(updateData, errorPath)).toBe('FORBIDDEN')
 
     // set feature off
-    const { query: adminQuery, mutate: adminMutate } = await testClient(adminClient)
+    const { query: adminQuery, mutate: adminMutate } = await testClient(
+      adminClient
+    )
     const updateData2 = await adminMutate({
       mutation: SET_FEATURE,
       variables: { input: { name: 'circle_management', flag: 'off' } },
@@ -298,7 +302,10 @@ describe('manage feature flag', () => {
     const features6 = (queryData6?.official?.features || []).reduce(reducer, {})
     expect(features6.circle_management).toBe(true)
 
-    const { query: otherQuery } = await testClient({ isAuth: true, isOnboarding: true })
+    const { query: otherQuery } = await testClient({
+      isAuth: true,
+      isOnboarding: true,
+    })
     const { data: queryData7 } = await otherQuery({ query: QUERY_FEATURES })
     const features7 = (queryData7?.official?.features || []).reduce(reducer, {})
     expect(features7.circle_management).toBe(true)
