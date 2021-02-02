@@ -24,6 +24,7 @@ export default /* GraphQL */ `
     putRemark(input: PutRemarkInput!): String @auth(mode: "${AUTH_MODE.admin}")
     putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @auth(mode: "${AUTH_MODE.admin}")
     setFeature(input: SetFeatureInput!): Feature! @auth(mode: "${AUTH_MODE.admin}")
+    toggleSeedingUser(input: ToggleSeedingUserInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   extend type Subscription {
@@ -64,6 +65,7 @@ export default /* GraphQL */ `
     tags(input: TagsInput!): TagConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
     skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
+    seedingUsers(input: ConnectionArgs!): UserConnection!
   }
 
 
@@ -207,6 +209,11 @@ export default /* GraphQL */ `
   input SetFeatureInput {
     name: FeatureName!
     flag: FeatureFlag!
+  }
+
+  input ToggleSeedingUserInput {
+    id: ID!
+    enabled: Boolean!
   }
 
   enum SearchTypes {
