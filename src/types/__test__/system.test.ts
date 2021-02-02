@@ -95,6 +95,26 @@ const SEARCH = `
   }
 `
 
+const QUERY_FEATURES = `
+  query {
+    official {
+      features {
+        name
+        enabled
+      }
+    }
+  }
+`
+
+const SET_FEATURE = `
+  mutation($input: SetFeatureInput!) {
+    setFeature(input: $input) {
+      name
+      enabled
+    }
+  }
+`
+
 describe('query nodes of different type', () => {
   test('query user node', async () => {
     const id = toGlobalId({ type: 'User', id: 1 })
@@ -194,5 +214,107 @@ describe.skip('Search', () => {
       'data.search.edges.0.node.info.description'
     )
     expect(description).toBe(userDescription)
+  })
+})
+
+describe('manage feature flag', () => {
+  const errorPath = 'errors.0.extensions.code'
+  const adminClient = { isAuth: true, isAdmin: true }
+  const userClient = { isAuth: true, isAdmin: false }
+
+  const reducer = (
+    result: Record<string, any>,
+    feature: { name: string; enabled: boolean }
+  ) => ({
+    ...result,
+    [feature.name]: feature.enabled,
+  })
+
+  test('query feature flag', async () => {
+    const { query } = await testClient(userClient)
+    const { data } = await query({ query: QUERY_FEATURES })
+
+    const features = (data?.official?.features || []).reduce(reducer, {})
+
+    expect(features.add_credit).toBe(true)
+    expect(features.circle_management).toBe(true)
+    expect(features.circle_interact).toBe(true)
+    expect(features.fingerprint).toBe(true)
+    expect(features.payment).toBe(true)
+    expect(features.payout).toBe(true)
+    expect(features.verify_appreciate).toBe(false)
+  })
+
+  test('update feature flag', async () => {
+    const { query, mutate } = await testClient(userClient)
+
+    const updateData = await mutate({
+      mutation: SET_FEATURE,
+      variables: { input: { name: 'circle_management', flag: 'off' } },
+    })
+    expect(_get(updateData, errorPath)).toBe('FORBIDDEN')
+
+    // set feature off
+    const { query: adminQuery, mutate: adminMutate } = await testClient(
+      adminClient
+    )
+    const updateData2 = await adminMutate({
+      mutation: SET_FEATURE,
+      variables: { input: { name: 'circle_management', flag: 'off' } },
+    })
+    expect(_get(updateData2, 'data.setFeature.enabled')).toBe(false)
+
+    const { data: queryData } = await query({ query: QUERY_FEATURES })
+    const features = (queryData?.official?.features || []).reduce(reducer, {})
+    expect(features.circle_management).toBe(false)
+
+    const { data: queryData2 } = await adminQuery({ query: QUERY_FEATURES })
+    const features2 = (queryData2?.official?.features || []).reduce(reducer, {})
+    expect(features2.circle_management).toBe(false)
+
+    // set feature as admin
+    const updateData3 = await adminMutate({
+      mutation: SET_FEATURE,
+      variables: { input: { name: 'circle_management', flag: 'admin' } },
+    })
+    expect(_get(updateData3, 'data.setFeature.enabled')).toBe(true)
+
+    const { data: queryData3 } = await query({ query: QUERY_FEATURES })
+    const features3 = (queryData3?.official?.features || []).reduce(reducer, {})
+    expect(features3.circle_management).toBe(false)
+
+    const { data: queryData4 } = await adminQuery({ query: QUERY_FEATURES })
+    const features4 = (queryData4?.official?.features || []).reduce(reducer, {})
+    expect(features4.circle_management).toBe(true)
+
+    // set feature as seeding
+    const updateData4 = await adminMutate({
+      mutation: SET_FEATURE,
+      variables: { input: { name: 'circle_management', flag: 'seeding' } },
+    })
+    expect(_get(updateData4, 'data.setFeature.enabled')).toBe(true)
+
+    const { data: queryData5 } = await query({ query: QUERY_FEATURES })
+    const features5 = (queryData5?.official?.features || []).reduce(reducer, {})
+    expect(features5.circle_management).toBe(false)
+
+    const { data: queryData6 } = await adminQuery({ query: QUERY_FEATURES })
+    const features6 = (queryData6?.official?.features || []).reduce(reducer, {})
+    expect(features6.circle_management).toBe(true)
+
+    const { query: otherQuery } = await testClient({
+      isAuth: true,
+      isOnboarding: true,
+    })
+    const { data: queryData7 } = await otherQuery({ query: QUERY_FEATURES })
+    const features7 = (queryData7?.official?.features || []).reduce(reducer, {})
+    expect(features7.circle_management).toBe(true)
+
+    // reset feature as on
+    const updateData5 = await adminMutate({
+      mutation: SET_FEATURE,
+      variables: { input: { name: 'circle_management', flag: 'on' } },
+    })
+    expect(_get(updateData5, 'data.setFeature.enabled')).toBe(true)
   })
 })
