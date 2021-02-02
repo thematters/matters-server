@@ -24,7 +24,7 @@ export default /* GraphQL */ `
     putRemark(input: PutRemarkInput!): String @auth(mode: "${AUTH_MODE.admin}")
     putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @auth(mode: "${AUTH_MODE.admin}")
     setFeature(input: SetFeatureInput!): Feature! @auth(mode: "${AUTH_MODE.admin}")
-    toggleSeedingUser(input: ToggleSeedingUserInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    toggleSeedingUsers(input: ToggleSeedingUserInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   extend type Subscription {
@@ -212,7 +212,7 @@ export default /* GraphQL */ `
   }
 
   input ToggleSeedingUserInput {
-    id: ID!
+    ids: [ID!]
     enabled: Boolean!
   }
 

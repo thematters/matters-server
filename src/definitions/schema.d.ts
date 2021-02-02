@@ -2201,7 +2201,7 @@ export interface GQLMutation {
   putRemark?: string
   putSkippedListItem?: Array<GQLSkippedListItem>
   setFeature: GQLFeature
-  toggleSeedingUser: boolean
+  toggleSeedingUsers: boolean
 
   /**
    * Send verification code for email.
@@ -2641,7 +2641,7 @@ export const enum GQLFeatureFlag {
 }
 
 export interface GQLToggleSeedingUserInput {
-  id: string
+  ids?: Array<string>
   enabled: boolean
 }
 
@@ -8145,7 +8145,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   putRemark?: MutationToPutRemarkResolver<TParent>
   putSkippedListItem?: MutationToPutSkippedListItemResolver<TParent>
   setFeature?: MutationToSetFeatureResolver<TParent>
-  toggleSeedingUser?: MutationToToggleSeedingUserResolver<TParent>
+  toggleSeedingUsers?: MutationToToggleSeedingUsersResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -8713,16 +8713,16 @@ export interface MutationToSetFeatureResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface MutationToToggleSeedingUserArgs {
+export interface MutationToToggleSeedingUsersArgs {
   input: GQLToggleSeedingUserInput
 }
-export interface MutationToToggleSeedingUserResolver<
+export interface MutationToToggleSeedingUsersResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: MutationToToggleSeedingUserArgs,
+    args: MutationToToggleSeedingUsersArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
