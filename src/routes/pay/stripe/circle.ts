@@ -318,6 +318,7 @@ export const completeCircleInvoice = async ({
       where: {
         customer_id: invoice.customer,
         provider: PAYMENT_PROVIDER.stripe,
+        archived: false,
       },
     })) as Customer
 
