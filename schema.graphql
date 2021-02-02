@@ -529,7 +529,7 @@ type Comment implements Node {
   createdAt: DateTime!
 
   """Article that the comment is belonged to."""
-  article: Article!
+  article: Article
 
   """Content of this comment."""
   content: String
@@ -608,9 +608,13 @@ type CommentEdge {
 input CommentInput {
   content: String!
   replyTo: ID
-  articleId: ID!
   parentId: ID
   mentions: [ID!]
+  type: CommentType!
+
+  """one of the following ids is required"""
+  articleId: ID
+  circleId: ID
 }
 
 """
@@ -673,6 +677,12 @@ enum CommentState {
   archived
   banned
   collapsed
+}
+
+enum CommentType {
+  article
+  circleDiscussion
+  circleBroadcast
 }
 
 input ConfirmVerificationCodeInput {
@@ -1394,6 +1404,8 @@ input PutCircleInput {
 
 input PutCommentInput {
   comment: CommentInput!
+
+  """edit comment if id is provided"""
   id: ID
 }
 

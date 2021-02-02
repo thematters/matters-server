@@ -41,51 +41,6 @@ export class CommentService extends BaseService {
     })
   }
 
-  create = async ({
-    authorId,
-    articleId,
-    parentCommentId,
-    content,
-    replyTo,
-  }: {
-    [key: string]: any
-  }) => {
-    // create comment
-    const comment = await this.baseCreate({
-      uuid: v4(),
-      authorId,
-      articleId,
-      targetId: articleId,
-      // only use `article` entity type for now
-      targetTypeId: 4,
-      parentCommentId,
-      content,
-      replyTo,
-    })
-    return comment
-  }
-
-  update = async ({
-    id,
-    articleId,
-    parentCommentId,
-    content,
-  }: {
-    [key: string]: any
-  }) => {
-    // update comment
-    const comemnt = await this.baseUpdate(id, {
-      articleId,
-      targetId: articleId,
-      // only use `article` entity type for now
-      targetTypeId: 4,
-      parentCommentId,
-      content,
-      updatedAt: new Date(),
-    })
-    return comemnt
-  }
-
   /**
    * Count comments by a given author id (user).
    */

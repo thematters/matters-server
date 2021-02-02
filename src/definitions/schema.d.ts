@@ -769,7 +769,7 @@ export interface GQLComment extends GQLNode {
   /**
    * Article that the comment is belonged to.
    */
-  article: GQLArticle
+  article?: GQLArticle
 
   /**
    * Content of this comment.
@@ -2513,15 +2513,31 @@ export const enum GQLPutCircleArticlesType {
 
 export interface GQLPutCommentInput {
   comment: GQLCommentInput
+
+  /**
+   * edit comment if id is provided
+   */
   id?: string
 }
 
 export interface GQLCommentInput {
   content: string
   replyTo?: string
-  articleId: string
   parentId?: string
   mentions?: Array<string>
+  type: GQLCommentType
+
+  /**
+   * one of the following ids is required
+   */
+  articleId?: string
+  circleId?: string
+}
+
+export const enum GQLCommentType {
+  article = 'article',
+  circleDiscussion = 'circleDiscussion',
+  circleBroadcast = 'circleBroadcast',
 }
 
 export interface GQLDeleteCommentInput {

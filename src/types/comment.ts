@@ -45,7 +45,7 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "Article that the comment is belonged to."
-    article: Article! @logCache(type: "${NODE_TYPES.article}")
+    article: Article @logCache(type: "${NODE_TYPES.article}")
 
     "Content of this comment."
     content: String
@@ -124,15 +124,21 @@ export default /* GraphQL */ `
 
   input PutCommentInput {
     comment: CommentInput!
+
+    # edit comment if id is provided
     id: ID
   }
 
   input CommentInput {
     content: String!
     replyTo: ID
-    articleId: ID!
     parentId: ID
     mentions: [ID!]
+    type: CommentType!
+
+    # one of the following ids is required
+    articleId: ID
+    circleId: ID
   }
 
   input CommentCommentsInput {
@@ -208,5 +214,11 @@ export default /* GraphQL */ `
     archived
     banned
     collapsed
+  }
+
+  enum CommentType {
+    article
+    circleDiscussion
+    circleBroadcast
   }
 `

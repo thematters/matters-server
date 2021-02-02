@@ -144,7 +144,7 @@ describe('query comment list on article', () => {
 describe('mutations on comment', () => {
   const commentId = toGlobalId({ type: 'Comment', id: 3 })
 
-  test('create a comment', async () => {
+  test('create a article comment', async () => {
     const { mutate } = await testClient({ isAuth: true })
 
     const result = await mutate({
@@ -157,6 +157,7 @@ describe('mutations on comment', () => {
             parentId: COMMENT_ID,
             replyTo: COMMENT_ID,
             articleId: ARTICLE_ID,
+            type: 'article',
           },
         },
       },
