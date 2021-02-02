@@ -13,7 +13,7 @@ const resolver: MemberToPriceResolver = async (
   const price = await knex
     .select()
     .from('circle_price as cp')
-    .innerJoin('circle_subscription_item as csi', 'csi.price_id', 'cp.id')
+    .join('circle_subscription_item as csi', 'csi.price_id', 'cp.id')
     .where({
       'cp.circle_id': circleId,
       'cp.state': PRICE_STATE.active,
