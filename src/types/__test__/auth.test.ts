@@ -98,7 +98,12 @@ const UPDATE_USER_INFO_DESCRIPTION = `
 
 const CREATE_COMMENT = `
   mutation($content: String!) {
-    putComment(input: { comment: { content: $content, articleId: "${ARTICLE_ID}" } }) {
+    putComment(input: {
+      comment: {
+        content: $content,
+        type: article,
+        articleId: "${ARTICLE_ID}" }
+      }) {
       id
       content
     }
