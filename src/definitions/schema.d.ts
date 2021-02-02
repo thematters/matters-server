@@ -2640,7 +2640,7 @@ export const enum GQLFeatureFlag {
   seeding = 'seeding',
 }
 
-export interface GQLToggleSeedingUserInput {
+export interface GQLToggleSeedingUsersInput {
   ids?: Array<string>
   enabled: boolean
 }
@@ -8714,7 +8714,7 @@ export interface MutationToSetFeatureResolver<TParent = any, TResult = any> {
 }
 
 export interface MutationToToggleSeedingUsersArgs {
-  input: GQLToggleSeedingUserInput
+  input: GQLToggleSeedingUsersInput
 }
 export interface MutationToToggleSeedingUsersResolver<
   TParent = any,

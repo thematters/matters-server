@@ -1040,7 +1040,7 @@ type Mutation {
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
   setFeature(input: SetFeatureInput!): Feature!
-  toggleSeedingUsers(input: ToggleSeedingUserInput!): Boolean!
+  toggleSeedingUsers(input: ToggleSeedingUsersInput!): Boolean!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1904,7 +1904,7 @@ input ToggleRecommendInput {
   type: RecommendTypes
 }
 
-input ToggleSeedingUserInput {
+input ToggleSeedingUsersInput {
   ids: [ID!]
   enabled: Boolean!
 }

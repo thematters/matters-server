@@ -4,6 +4,7 @@ import putSkippedListItem from './putSkippedListItem'
 import setBoost from './setBoost'
 import setFeature from './setFeature'
 import singleFileUpload from './singleFileUpload'
+import toggleSeedingUsers from './toggleSeedingUsers'
 
 export default {
   Mutation: {
@@ -13,5 +14,6 @@ export default {
     logRecord,
     putSkippedListItem,
     setFeature,
+    toggleSeedingUsers,
   },
 }
