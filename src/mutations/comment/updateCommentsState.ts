@@ -9,6 +9,7 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
   {
     viewer,
     dataSources: {
+      atomService,
       userService,
       articleService,
       commentService,
@@ -18,37 +19,59 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
 ) => {
   const dbIds = (ids || []).map((id) => fromGlobalId(id).id)
 
+  const updateCommentState = async (id: string) => {
+    const comment = await commentService.dataloader.load(id)
+
+    // check target
+    const [articleTypeId, circleTypeId] = (
+      await atomService.findMany({
+        table: 'entity_type',
+        whereIn: ['table', ['article', 'circle']],
+      })
+    ).map((types) => types.id)
+    const isTargetArticle = articleTypeId === comment.targetTypeId
+    const isTargetCircle = circleTypeId === comment.targetTypeId
+
+    let article: any
+    let circle: any
+    let targetAuthor: any
+    if (isTargetArticle) {
+      article = await articleService.dataloader.load(comment.targetId)
+      targetAuthor = article.authorId
+    } else if (isTargetCircle) {
+      circle = await articleService.dataloader.load(comment.targetId)
+      targetAuthor = circle.owner
+    }
+
+    // check permission
+    const isTargetAuthor = targetAuthor === viewer.id
+    const isValidFromState =
+      [COMMENT_STATE.active, COMMENT_STATE.collapsed].indexOf(comment.state) >=
+      0
+    const isValidToState =
+      [COMMENT_STATE.active, COMMENT_STATE.collapsed].indexOf(state) >= 0
+
+    if (!isTargetAuthor || !isValidFromState || !isValidToState) {
+      throw new ForbiddenError(
+        `viewer has no permission on ${toGlobalId({
+          type: 'Comment',
+          id,
+        })}`
+      )
+    }
+
+    const newComment = await commentService.baseUpdate(comment.id, {
+      state,
+      updatedAt: new Date(),
+    })
+
+    return newComment
+  }
+
   // bulk update to active or collapsed for article author
   if (!viewer.hasRole('admin')) {
     const authorComments = await Promise.all(
-      dbIds.map(async (commentDbId) => {
-        const comment = await commentService.dataloader.load(commentDbId)
-        // TODO: update for comment in circles
-        const article = await articleService.dataloader.load(comment.articleId)
-        const isArticleAuthor = viewer.id === article.authorId
-        const isValidFromState =
-          [COMMENT_STATE.active, COMMENT_STATE.collapsed].indexOf(
-            comment.state
-          ) >= 0
-        const isValidToState =
-          [COMMENT_STATE.active, COMMENT_STATE.collapsed].indexOf(state) >= 0
-
-        if (!isArticleAuthor || !isValidFromState || !isValidToState) {
-          throw new ForbiddenError(
-            `viewer has no permission on ${toGlobalId({
-              type: 'Comment',
-              id: commentDbId,
-            })}`
-          )
-        }
-
-        const newComment = await commentService.baseUpdate(comment.id, {
-          state,
-          updatedAt: new Date(),
-        })
-
-        return newComment
-      })
+      dbIds.map((id) => updateCommentState(id))
     )
 
     return authorComments

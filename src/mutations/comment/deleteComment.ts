@@ -15,10 +15,7 @@ import { MutationToDeleteCommentResolver } from 'definitions'
 const resolver: MutationToDeleteCommentResolver = async (
   _,
   { input: { id } },
-  {
-    viewer,
-    dataSources: { commentService, articleService, notificationService },
-  }
+  { viewer, dataSources: { atomService, commentService, articleService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -29,27 +26,49 @@ const resolver: MutationToDeleteCommentResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const { authorId, articleId } = await commentService.dataloader.load(dbId)
+  const comment = await commentService.dataloader.load(dbId)
 
-  if (authorId !== viewer.id) {
+  // check target
+  const [articleTypeId, circleTypeId] = (
+    await atomService.findMany({
+      table: 'entity_type',
+      whereIn: ['table', ['article', 'circle']],
+    })
+  ).map((types) => types.id)
+  const isTargetArticle = articleTypeId === comment.targetTypeId
+  const isTargetCircle = circleTypeId === comment.targetTypeId
+
+  let article: any
+  let circle: any
+  let targetAuthor: any
+  if (isTargetArticle) {
+    article = await articleService.dataloader.load(comment.targetId)
+    targetAuthor = article.authorId
+  } else if (isTargetCircle) {
+    circle = await articleService.dataloader.load(comment.targetId)
+    targetAuthor = circle.owner
+  }
+
+  // check permission
+  const isTargetAuthor = targetAuthor === viewer.id
+  if (!isTargetAuthor) {
     throw new ForbiddenError('viewer has no permission')
   }
 
-  const comment = await commentService.baseUpdate(dbId, {
+  // archive comment
+  const newComment = await commentService.baseUpdate(dbId, {
     state: COMMENT_STATE.archived,
     updatedAt: new Date(),
   })
 
   // invalidate extra nodes
-  // TODO: update for comment in circles
-  const article = await articleService.dataloader.load(articleId)
-  comment[CACHE_KEYWORD] = [
+  newComment[CACHE_KEYWORD] = [
     {
-      id: article.id,
-      type: NODE_TYPES.article,
+      id: article ? article.id : circle.id,
+      type: article ? NODE_TYPES.article : NODE_TYPES.circle,
     },
   ]
 
-  return comment
+  return newComment
 }
 export default resolver

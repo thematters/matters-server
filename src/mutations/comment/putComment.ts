@@ -156,16 +156,10 @@ const resolver: MutationToPutCommentResolver = async (
         'circle_price.circle_id': id,
         'circle_price.state': PRICE_STATE.active,
       })
-
-    // TODO: check feature flag
     const isCircleMember = records && records.length > 0
 
-    if (!isCircleMember) {
-      throw new ForbiddenError('only circle member can put a discussion')
-    }
-
-    if (isCircleBroadcast) {
-      throw new ForbiddenError('only circle owner can put a broadcast')
+    if (!isCircleMember || isCircleBroadcast) {
+      throw new ForbiddenError('only circle members have the permission')
     }
   }
 
@@ -227,7 +221,11 @@ const resolver: MutationToPutCommentResolver = async (
       table: 'comment',
       where: { id: commentDbId },
       data: {
-        ...data,
+        content: data.content,
+        authorId: data.authorId,
+        parentCommentId: data.parentCommentId,
+        replyTo: data.replyTo,
+        mentionedUserIds: data.mentionedUserIds,
         updatedAt: new Date(),
       },
     })
@@ -381,8 +379,8 @@ const resolver: MutationToPutCommentResolver = async (
   // invalidate extra nodes
   newComment[CACHE_KEYWORD] = [
     {
-      id: article.id,
-      type: NODE_TYPES.article,
+      id: article ? article.id : circle.id,
+      type: article ? NODE_TYPES.article : NODE_TYPES.circle,
     },
   ]
 

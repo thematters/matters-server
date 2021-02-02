@@ -87,7 +87,7 @@ export type DataSources = {
   paymentService: InstanceType<typeof PaymentService>
 }
 
-export type TableName =
+export type BasicTableName =
   | 'action'
   | 'article_boost'
   | 'action_user'
@@ -163,6 +163,8 @@ export type MaterializedView =
   | 'most_active_author_materialized'
   | 'most_appreciated_author_materialized'
   | 'most_trendy_author_materialized'
+
+export type TableName = BasicTableName | MaterializedView
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'

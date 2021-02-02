@@ -1,9 +1,17 @@
-import { ArticleToPinnedCommentsResolver } from 'definitions'
+import { ArticleToPinnedCommentsResolver, GQLCommentType } from 'definitions'
 
 const resolver: ArticleToPinnedCommentsResolver = (
   { articleId },
   _,
-  { dataSources: { commentService } }
-) => commentService.findPinnedByArticle(articleId)
+  { dataSources: { atomService, commentService } }
+) =>
+  atomService.findMany({
+    table: 'comment',
+    where: {
+      targetId: articleId,
+      pinned: true,
+      type: GQLCommentType.article,
+    },
+  })
 
 export default resolver
