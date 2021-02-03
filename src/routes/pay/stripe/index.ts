@@ -8,7 +8,11 @@ import logger from 'common/logger'
 import { PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
 
-import { completeCircleSubscription, updateSubscription } from './circle'
+import {
+  completeCircleInvoice,
+  completeCircleSubscription,
+  updateSubscription,
+} from './circle'
 import { updateCustomerCard } from './customer'
 import { createRefundTxs, updateTxState } from './transaction'
 
@@ -76,6 +80,10 @@ stripeRouter.post('/', async (req, res) => {
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object as Stripe.PaymentIntent
         await updateTxState(paymentIntent, event.type)
+        break
+      case 'invoice.payment_succeeded':
+        const invoice = event.data.object as Stripe.Invoice
+        await completeCircleInvoice({ invoice, event })
         break
       case 'charge.refunded':
         const charge = event.data.object as Stripe.Charge
