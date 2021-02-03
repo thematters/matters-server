@@ -53,6 +53,12 @@ export const COMMENT_STATE = {
   collapsed: 'collapsed',
 }
 
+export const COMMENT_TYPE = {
+  article: 'article',
+  circleDiscussion: 'circle_discussion',
+  circleBroadcast: 'circle_broadcast',
+}
+
 export const USER_STATE = {
   frozen: 'frozen',
   onboarding: 'onboarding',

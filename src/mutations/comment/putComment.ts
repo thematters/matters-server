@@ -3,6 +3,7 @@ import { v4 } from 'uuid'
 
 import {
   CACHE_KEYWORD,
+  COMMENT_TYPE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
   PRICE_STATE,
@@ -122,9 +123,9 @@ const resolver: MutationToPutCommentResolver = async (
     )
   } else {
     data.type = {
-      [GQLCommentType.article]: 'article',
-      [GQLCommentType.circleBroadcast]: 'circle_announcement',
-      [GQLCommentType.circleDiscussion]: 'circle_discussion',
+      [GQLCommentType.article]: COMMENT_TYPE.article,
+      [GQLCommentType.circleBroadcast]: COMMENT_TYPE.circleBroadcast,
+      [GQLCommentType.circleDiscussion]: COMMENT_TYPE.circleDiscussion,
     }[type]
   }
 
