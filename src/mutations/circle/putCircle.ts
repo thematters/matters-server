@@ -1,6 +1,7 @@
 import _trim from 'lodash/trim'
 
 import { ASSET_TYPE, CIRCLE_STATE, PAYMENT_CURRENCY } from 'common/enums'
+import { isProd } from 'common/environment'
 import {
   AssetNotFoundError,
   AuthenticationError,
@@ -20,6 +21,8 @@ import {
 } from 'common/utils'
 import { assetQueue } from 'connectors/queue'
 import { MutationToPutCircleResolver } from 'definitions'
+
+const INTERVAL = isProd ? 'month' : 'week'
 
 enum ACTION {
   add = 'add',
@@ -106,7 +109,7 @@ const resolver: MutationToPutCircleResolver = async (
       const stripePrice = await paymentService.stripe.createPrice({
         amount,
         currency: PAYMENT_CURRENCY.HKD,
-        interval: 'month',
+        interval: INTERVAL,
         productId: stripeProduct.id,
       })
 

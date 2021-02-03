@@ -1,10 +1,14 @@
 import Stripe from 'stripe'
 
 import { LOCAL_STRIPE, METADATA_KEY, PAYMENT_CURRENCY } from 'common/enums'
-import { environment, isTest } from 'common/environment'
+import { environment, isProd, isTest } from 'common/environment'
 import { PaymentAmountInvalidError, ServerError } from 'common/errors'
 import logger from 'common/logger'
-import { getUTC8NextMonthDayOne, toProviderAmount } from 'common/utils'
+import {
+  getUTC8NextMonday,
+  getUTC8NextMonthDayOne,
+  toProviderAmount,
+} from 'common/utils'
 import { User } from 'definitions'
 
 /**
@@ -239,7 +243,7 @@ class StripeService {
   }: {
     amount: number
     currency: PAYMENT_CURRENCY
-    interval: 'month'
+    interval: 'month' | 'week'
     productId: string
   }) => {
     try {
@@ -265,7 +269,8 @@ class StripeService {
     price: string
   }) => {
     try {
-      const trialEndAt = getUTC8NextMonthDayOne() / 1000
+      const trialEndAt =
+        (isProd ? getUTC8NextMonthDayOne() : getUTC8NextMonday()) / 1000
       const subscription = await this.stripeAPI.subscriptions.create({
         trial_end: trialEndAt,
         customer,
