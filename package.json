@@ -74,7 +74,7 @@
     "graphql-tools": "^4.0.8",
     "graphql-upload": "^11.0.0",
     "helmet": "^3.23.3",
-    "ipfs-http-client": "^41.0.0",
+    "ipfs-http-client": "^49.0.1",
     "js-base64": "^3.4.5",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.19.5",
