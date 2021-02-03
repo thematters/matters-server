@@ -1040,6 +1040,7 @@ type Mutation {
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
   setFeature(input: SetFeatureInput!): Feature!
+  toggleSeedingUsers(input: ToggleSeedingUsersInput!): Boolean!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1275,6 +1276,7 @@ type OSS {
   tags(input: TagsInput!): TagConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
+  seedingUsers(input: ConnectionArgs!): UserConnection!
 }
 
 type PageInfo {
@@ -1900,6 +1902,11 @@ input ToggleRecommendInput {
   id: ID!
   enabled: Boolean!
   type: RecommendTypes
+}
+
+input ToggleSeedingUsersInput {
+  ids: [ID!]
+  enabled: Boolean!
 }
 
 type Transaction {
