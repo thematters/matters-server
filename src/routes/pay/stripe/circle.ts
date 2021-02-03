@@ -6,15 +6,17 @@ import {
   CIRCLE_STATE,
   METADATA_KEY,
   NODE_TYPES,
+  PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
+import { toDBAmount } from 'common/utils'
 import { AtomService, CacheService, PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
-import { Customer } from 'definitions'
+import { CirclePrice, CircleSubscription, Customer } from 'definitions'
 
 /**
  * Complete the circle subscription that
@@ -277,4 +279,85 @@ export const updateSubscription = async ({
   }
 
   return
+}
+
+/**
+ * handle circle invoice
+ */
+export const completeCircleInvoice = async ({
+  invoice,
+  event,
+}: {
+  invoice: Stripe.Invoice
+  event: Stripe.Event
+}) => {
+  const slack = new SlackService()
+  const slackEventData = {
+    id: event.id,
+    type: event.type,
+  }
+  logger.info(`proceeding ${event.type} event...`)
+  try {
+    const atomService = new AtomService()
+    const paymentService = new PaymentService()
+    const providerInvoiceId = invoice.id as string
+    const providerTxId = invoice.payment_intent as string
+    const amount = toDBAmount({ amount: invoice.amount_paid })
+    const currency = _.toUpper(invoice.currency) as PAYMENT_CURRENCY
+    const tx = (await paymentService.findTransactions({ providerTxId }))[0]
+
+    if (tx) {
+      throw new ServerError(
+        `transaction already exists for invoice ${providerInvoiceId}`
+      )
+    }
+
+    // retrieve customer
+    const customer = (await atomService.findFirst({
+      table: 'customer',
+      where: {
+        customer_id: invoice.customer,
+        provider: PAYMENT_PROVIDER.stripe,
+        archived: false,
+      },
+    })) as Customer
+
+    // retrieve subscription
+    const subscription = (await atomService.findFirst({
+      table: 'circle_subscription',
+      where: {
+        providerSubscriptionId: invoice.subscription,
+        provider: PAYMENT_PROVIDER.stripe,
+      },
+    })) as CircleSubscription
+
+    // retrieve prices
+    const providerPriceIds = invoice.lines.data.map((item) =>
+      item.price ? item.price.id : ''
+    )
+    const prices = (await atomService.findMany({
+      table: 'circle_price',
+      whereIn: ['providerPriceId', providerPriceIds],
+    })) as CirclePrice[]
+
+    if (customer && subscription && prices) {
+      await paymentService.createInvoiceWithTransactions({
+        amount,
+        currency,
+        providerTxId,
+        providerInvoiceId,
+        subscriptionId: subscription.id,
+        userId: customer.userId,
+        prices,
+      })
+    } else {
+      throw new ServerError(`failed to complete invoice ${providerInvoiceId}`)
+    }
+  } catch (error) {
+    logger.error(error)
+    slack.sendStripeAlert({
+      data: slackEventData,
+      message: error,
+    })
+  }
 }
