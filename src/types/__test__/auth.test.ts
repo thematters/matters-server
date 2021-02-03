@@ -21,8 +21,8 @@ const mutationScopes = [
 
 const mutationLevel3Scope = [`${SCOPE_PREFIX.mutation}:level3`]
 
-const VIEWER_SCOPED_PRIVATE = `
-  query ($input: UserInput!) {
+const VIEWER_SCOPED_PRIVATE = /* GraphQL */ `
+  query($input: UserInput!) {
     viewer {
       id
       displayName
@@ -37,7 +37,7 @@ const VIEWER_SCOPED_PRIVATE = `
   }
 `
 
-const VIEWER_NO_SCOPED_PRIVATE = `
+const VIEWER_NO_SCOPED_PRIVATE = /* GraphQL */ `
   query {
     viewer {
       settings {
@@ -49,8 +49,8 @@ const VIEWER_NO_SCOPED_PRIVATE = `
   }
 `
 
-const VIEWER_SCOPED_WITH_OTHER_PRIVATE = `
-  query ($input: UserInput!){
+const VIEWER_SCOPED_WITH_OTHER_PRIVATE = /* GraphQL */ `
+  query($input: UserInput!) {
     viewer {
       info {
         email
@@ -64,7 +64,7 @@ const VIEWER_SCOPED_WITH_OTHER_PRIVATE = `
   }
 `
 
-const VIEWER_NESTED_OTHER_PARIVATE = `
+const VIEWER_NESTED_OTHER_PARIVATE = /* GraphQL */ `
   query {
     viewer {
       info {
@@ -86,7 +86,7 @@ const VIEWER_NESTED_OTHER_PARIVATE = `
   }
 `
 
-const UPDATE_USER_INFO_DESCRIPTION = `
+const UPDATE_USER_INFO_DESCRIPTION = /* GraphQL */ `
   mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
     updateUserInfo(input: $input) {
       info {
@@ -96,7 +96,7 @@ const UPDATE_USER_INFO_DESCRIPTION = `
   }
 `
 
-const CREATE_COMMENT = `
+const CREATE_COMMENT = /* GraphQL */ `
   mutation($content: String!) {
     putComment(input: {
       comment: {
@@ -110,7 +110,7 @@ const CREATE_COMMENT = `
   }
 `
 
-const COLLAPSE_COMMENT = `
+const COLLAPSE_COMMENT = /* GraphQL */ `
   mutation CollapseComment($id: ID!) {
     updateCommentsState(input: { ids: [$id], state: collapsed }) {
       id
@@ -119,7 +119,7 @@ const COLLAPSE_COMMENT = `
   }
 `
 
-const CLEAR_SEARCH_HISTORY = `
+const CLEAR_SEARCH_HISTORY = /* GraphQL */ `
   mutation {
     clearSearchHistory
   }

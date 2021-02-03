@@ -1,4 +1,5 @@
-import { ArticleToPinnedCommentsResolver, GQLCommentType } from 'definitions'
+import { COMMENT_TYPE } from 'common/enums'
+import { ArticleToPinnedCommentsResolver } from 'definitions'
 
 const resolver: ArticleToPinnedCommentsResolver = (
   { articleId },
@@ -10,7 +11,7 @@ const resolver: ArticleToPinnedCommentsResolver = (
     where: {
       targetId: articleId,
       pinned: true,
-      type: GQLCommentType.article,
+      type: COMMENT_TYPE.article,
     },
   })
 

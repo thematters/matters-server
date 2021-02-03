@@ -20,7 +20,7 @@ beforeAll(async () => {
   // await userService.initSearch()
 })
 
-const USER_LOGIN = `
+const USER_LOGIN = /* GraphQL */ `
   mutation UserLogin($input: UserLoginInput!) {
     userLogin(input: $input) {
       auth
@@ -29,7 +29,7 @@ const USER_LOGIN = `
   }
 `
 
-const TOGGLE_FOLLOW_USER = `
+const TOGGLE_FOLLOW_USER = /* GraphQL */ `
   mutation($input: ToggleItemInput!) {
     toggleFollowUser(input: $input) {
       id
@@ -38,7 +38,7 @@ const TOGGLE_FOLLOW_USER = `
   }
 `
 
-const TOGGLE_BLOCK_USER = `
+const TOGGLE_BLOCK_USER = /* GraphQL */ `
   mutation($input: ToggleItemInput!) {
     toggleBlockUser(input: $input) {
       id
@@ -47,7 +47,7 @@ const TOGGLE_BLOCK_USER = `
   }
 `
 
-const UPDATE_USER_INFO_DESCRIPTION = `
+const UPDATE_USER_INFO_DESCRIPTION = /* GraphQL */ `
   mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
     updateUserInfo(input: $input) {
       info {
@@ -56,7 +56,7 @@ const UPDATE_USER_INFO_DESCRIPTION = `
     }
   }
 `
-const UPDATE_USER_INFO_AVATAR = `
+const UPDATE_USER_INFO_AVATAR = /* GraphQL */ `
   mutation UpdateUserInfo($input: UpdateUserInfoInput!) {
     updateUserInfo(input: $input) {
       id
@@ -64,7 +64,7 @@ const UPDATE_USER_INFO_AVATAR = `
     }
   }
 `
-const UPDATE_NOTIFICARION_SETTINGS = `
+const UPDATE_NOTIFICARION_SETTINGS = /* GraphQL */ `
   mutation UpdateNotificationSetting($input: UpdateNotificationSettingInput!) {
     updateNotificationSetting(input: $input) {
       settings {
@@ -75,8 +75,8 @@ const UPDATE_NOTIFICARION_SETTINGS = `
     }
   }
 `
-const GET_USER_BY_USERNAME = `
-  query ($input: UserInput!) {
+const GET_USER_BY_USERNAME = /* GraphQL */ `
+  query($input: UserInput!) {
     user(input: $input) {
       id
       userName
@@ -84,7 +84,7 @@ const GET_USER_BY_USERNAME = `
   }
 `
 
-const GET_VIEWER_INFO = `
+const GET_VIEWER_INFO = /* GraphQL */ `
   query {
     viewer {
       uuid
@@ -99,8 +99,8 @@ const GET_VIEWER_INFO = `
     }
   }
 `
-const GET_VIEW_ARTICLES = `
-  query ($input: ConnectionArgs!) {
+const GET_VIEW_ARTICLES = /* GraphQL */ `
+  query($input: ConnectionArgs!) {
     viewer {
       articles(input: $input) {
         edges {
@@ -112,7 +112,7 @@ const GET_VIEW_ARTICLES = `
     }
   }
 `
-const GET_VIEWER_SETTINGS = `
+const GET_VIEWER_SETTINGS = /* GraphQL */ `
   query {
     viewer {
       settings {
@@ -125,8 +125,8 @@ const GET_VIEWER_SETTINGS = `
   }
 `
 
-const GET_VIEWER_SUBSCRIPTIONS = `
-  query ($input: ConnectionArgs!) {
+const GET_VIEWER_SUBSCRIPTIONS = /* GraphQL */ `
+  query($input: ConnectionArgs!) {
     viewer {
       subscriptions(input: $input) {
         edges {
@@ -138,8 +138,8 @@ const GET_VIEWER_SUBSCRIPTIONS = `
     }
   }
 `
-const GET_VIEWER_FOLLOWERS = `
-  query ($input: ConnectionArgs!) {
+const GET_VIEWER_FOLLOWERS = /* GraphQL */ `
+  query($input: ConnectionArgs!) {
     viewer {
       followers(input: $input) {
         edges {
@@ -151,8 +151,8 @@ const GET_VIEWER_FOLLOWERS = `
     }
   }
 `
-const GET_VIEWER_FOLLOWEES = `
-  query ($input: ConnectionArgs!) {
+const GET_VIEWER_FOLLOWEES = /* GraphQL */ `
+  query($input: ConnectionArgs!) {
     viewer {
       followees(input: $input) {
         edges {
@@ -164,7 +164,7 @@ const GET_VIEWER_FOLLOWEES = `
     }
   }
 `
-const GET_VIEWER_STATUS = `
+const GET_VIEWER_STATUS = /* GraphQL */ `
   query {
     viewer {
       status {
@@ -222,7 +222,7 @@ query($input: RecommendInput!) {
 }
 `
 
-const GET_VIEWER_BADGES = `
+const GET_VIEWER_BADGES = /* GraphQL */ `
   query {
     viewer {
       info {
@@ -234,12 +234,12 @@ const GET_VIEWER_BADGES = `
   }
 `
 
-const SEND_VERIFICATION_CODE = `
+const SEND_VERIFICATION_CODE = /* GraphQL */ `
   mutation SendVerificationCode($input: SendVerificationCodeInput!) {
     sendVerificationCode(input: $input)
   }
 `
-const CONFIRM_VERIFICATION_CODE = `
+const CONFIRM_VERIFICATION_CODE = /* GraphQL */ `
   mutation ConfirmVerificationCode($input: ConfirmVerificationCodeInput!) {
     confirmVerificationCode(input: $input)
   }

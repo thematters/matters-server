@@ -13,8 +13,8 @@ import {
 
 import { setFeature, testClient } from './utils'
 
-const QUERY_TAG = `
-  query ($input: NodeInput!) {
+const QUERY_TAG = /* GraphQL */ `
+  query($input: NodeInput!) {
     node(input: $input) {
       ... on Tag {
         id
@@ -25,8 +25,8 @@ const QUERY_TAG = `
   }
 `
 
-const PUT_TAG = `
-  mutation ($input: PutTagInput!) {
+const PUT_TAG = /* GraphQL */ `
+  mutation($input: PutTagInput!) {
     putTag(input: $input) {
       id
       content
@@ -41,8 +41,8 @@ const PUT_TAG = `
   }
 `
 
-const UPDATE_TAG_SETTING = `
-  mutation ($input: UpdateTagSettingInput!) {
+const UPDATE_TAG_SETTING = /* GraphQL */ `
+  mutation($input: UpdateTagSettingInput!) {
     updateTagSetting(input: $input) {
       id
       content
@@ -56,8 +56,8 @@ const UPDATE_TAG_SETTING = `
   }
 `
 
-const RENAME_TAG = `
-  mutation ($input: RenameTagInput!) {
+const RENAME_TAG = /* GraphQL */ `
+  mutation($input: RenameTagInput!) {
     renameTag(input: $input) {
       id
       content
@@ -65,8 +65,8 @@ const RENAME_TAG = `
   }
 `
 
-const MERGE_TAG = `
-  mutation ($input: MergeTagsInput!) {
+const MERGE_TAG = /* GraphQL */ `
+  mutation($input: MergeTagsInput!) {
     mergeTags(input: $input) {
       ... on Tag {
         id
@@ -79,14 +79,14 @@ const MERGE_TAG = `
   }
 `
 
-const DELETE_TAG = `
-  mutation ($input: DeleteTagsInput!) {
+const DELETE_TAG = /* GraphQL */ `
+  mutation($input: DeleteTagsInput!) {
     deleteTags(input: $input)
   }
 `
 
-const ADD_ARTICLES_TAGS = `
-  mutation ($input: AddArticlesTagsInput!) {
+const ADD_ARTICLES_TAGS = /* GraphQL */ `
+  mutation($input: AddArticlesTagsInput!) {
     addArticlesTags(input: $input) {
       id
       articles(input: { after: null, first: null, oss: true }) {
@@ -102,8 +102,8 @@ const ADD_ARTICLES_TAGS = `
   }
 `
 
-const UPDATE_ARTICLES_TAGS = `
-  mutation ($input: UpdateArticlesTagsInput!) {
+const UPDATE_ARTICLES_TAGS = /* GraphQL */ `
+  mutation($input: UpdateArticlesTagsInput!) {
     updateArticlesTags(input: $input) {
       id
       articles(input: { after: null, first: null, oss: true }) {
@@ -119,8 +119,8 @@ const UPDATE_ARTICLES_TAGS = `
   }
 `
 
-const DELETE_ARTICLES_TAGS = `
-  mutation ($input: DeleteArticlesTagsInput!) {
+const DELETE_ARTICLES_TAGS = /* GraphQL */ `
+  mutation($input: DeleteArticlesTagsInput!) {
     deleteArticlesTags(input: $input) {
       id
       articles(input: { after: null, first: null, oss: true }) {

@@ -1,21 +1,14 @@
 import DataLoader from 'dataloader'
-import { v4 } from 'uuid'
 
 import {
   ARTICLE_PIN_COMMENT_LIMIT,
-  BATCH_SIZE,
   COMMENT_STATE,
-  MATERIALIZED_VIEW,
+  COMMENT_TYPE,
   USER_ACTION,
 } from 'common/enums'
 import { CommentNotFoundError } from 'common/errors'
 import { BaseService } from 'connectors'
-import {
-  GQLCommentCommentsInput,
-  GQLCommentsInput,
-  GQLCommentType,
-  GQLVote,
-} from 'definitions'
+import { GQLCommentCommentsInput, GQLCommentsInput, GQLVote } from 'definitions'
 
 interface CommentFilter {
   targetId?: string
@@ -55,7 +48,7 @@ export class CommentService extends BaseService {
       .where({
         targetId: articleId,
         state: COMMENT_STATE.active,
-        type: GQLCommentType.article,
+        type: COMMENT_TYPE.article,
       })
       .count()
       .first()
@@ -317,7 +310,7 @@ export class CommentService extends BaseService {
     if (activeOnly) {
       qs = qs.where({
         state: COMMENT_STATE.active,
-        type: GQLCommentType.article,
+        type: COMMENT_TYPE.article,
       })
     }
 

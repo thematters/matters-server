@@ -1,4 +1,4 @@
-import { COMMENT_STATE } from 'common/enums'
+import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
 import { connectionFromArray, cursorToIndex } from 'common/utils'
 import { CircleToBroadcastResolver } from 'definitions'
 
@@ -14,18 +14,13 @@ const resolver: CircleToBroadcastResolver = async (
   const { first: take, after } = input
   const skip = cursorToIndex(after) + 1
 
-  const { id: typeId } = await atomService.findFirst({
-    table: 'entity_type',
-    where: { table: 'comment' },
-  })
-  // TODO: add filter for broadcast
   const [totalCount, comments] = await Promise.all([
     atomService.count({
       table: 'comment',
       where: {
         state: COMMENT_STATE.active,
         targetId: id,
-        targetTypeId: typeId,
+        type: COMMENT_TYPE.circleBroadcast,
       },
     }),
     atomService.findMany({
@@ -33,7 +28,7 @@ const resolver: CircleToBroadcastResolver = async (
       where: {
         state: COMMENT_STATE.active,
         targetId: id,
-        targetTypeId: typeId,
+        type: COMMENT_TYPE.circleBroadcast,
       },
       skip,
       take,

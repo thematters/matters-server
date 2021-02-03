@@ -1,16 +1,17 @@
+import { COMMENT_TYPE } from 'common/enums'
 import { connectionFromArray } from 'common/utils'
-import { ArticleToFeaturedCommentsResolver, GQLCommentType } from 'definitions'
+import { ArticleToFeaturedCommentsResolver } from 'definitions'
 
 const resolver: ArticleToFeaturedCommentsResolver = async (
   { articleId },
   { input: { first, after } },
-  { dataSources: { atomService, commentService } }
+  { dataSources: { atomService } }
 ) => {
   const featureComments = await atomService.findMany({
     table: 'featured_comment_materialized',
     where: {
       targetId: articleId,
-      type: GQLCommentType.article,
+      type: COMMENT_TYPE.article,
     },
     orderBy: [
       { column: 'pinned', order: 'desc' },

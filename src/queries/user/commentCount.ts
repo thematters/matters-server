@@ -1,5 +1,5 @@
-import { COMMENT_STATE } from 'common/enums'
-import { GQLCommentType, UserStatusToCommentCountResolver } from 'definitions'
+import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
+import { UserStatusToCommentCountResolver } from 'definitions'
 
 const resolver: UserStatusToCommentCountResolver = async (
   { id },
@@ -13,7 +13,7 @@ const resolver: UserStatusToCommentCountResolver = async (
     .where({
       authorId: id,
       state: COMMENT_STATE.active,
-      type: GQLCommentType.article,
+      type: COMMENT_TYPE.article,
     })
     .first()
 
