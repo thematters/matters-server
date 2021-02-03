@@ -260,7 +260,7 @@ export type Customer = {
 }
 
 export type CircleSubscription = {
-  id: number
+  id: string
   state: string
   userId: string
   provider: string
@@ -268,10 +268,10 @@ export type CircleSubscription = {
 }
 
 export type CirclePrice = {
-  id: number
+  id: string
   amount: number
   currency: PAYMENT_CURRENCY
-  circleId: number
+  circleId: string
   provider: PAYMENT_PROVIDER
   providerPriceId: string
 }

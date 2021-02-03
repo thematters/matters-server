@@ -540,7 +540,7 @@ export class PaymentService extends BaseService {
     currency: string
     providerTxId: string
     providerInvoiceId: string
-    subscriptionId: number
+    subscriptionId: string
     userId: string
     prices: CirclePrice[]
   }) => {
@@ -598,7 +598,7 @@ export class PaymentService extends BaseService {
         TRANSACTION_TARGET_TYPE.circlePrice
       )
       for (const p of prices) {
-        const circle = await this.baseFindById(p.circleId.toString(), 'circle')
+        const circle = await this.baseFindById(p.circleId, 'circle')
         await trx('transaction').insert({
           amount: p.amount,
           currency: p.currency,
