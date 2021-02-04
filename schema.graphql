@@ -531,9 +531,6 @@ type Comment implements Node {
   """Time of this comment was created."""
   createdAt: DateTime!
 
-  """Article that the comment is belonged to."""
-  article: Article
-
   """Content of this comment."""
   content: String
 

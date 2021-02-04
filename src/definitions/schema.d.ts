@@ -767,11 +767,6 @@ export interface GQLComment extends GQLNode {
   createdAt: GQLDateTime
 
   /**
-   * Article that the comment is belonged to.
-   */
-  article?: GQLArticle
-
-  /**
    * Content of this comment.
    */
   content?: string
@@ -5204,7 +5199,6 @@ export interface GQLCommentTypeResolver<TParent = any> {
   id?: CommentToIdResolver<TParent>
   state?: CommentToStateResolver<TParent>
   createdAt?: CommentToCreatedAtResolver<TParent>
-  article?: CommentToArticleResolver<TParent>
   content?: CommentToContentResolver<TParent>
   author?: CommentToAuthorResolver<TParent>
   pinned?: CommentToPinnedResolver<TParent>
@@ -5238,15 +5232,6 @@ export interface CommentToStateResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

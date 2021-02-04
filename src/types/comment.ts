@@ -44,9 +44,6 @@ export default /* GraphQL */ `
     "Time of this comment was created."
     createdAt: DateTime!
 
-    "Article that the comment is belonged to."
-    article: Article @logCache(type: "${NODE_TYPES.article}")
-
     "Content of this comment."
     content: String
 
