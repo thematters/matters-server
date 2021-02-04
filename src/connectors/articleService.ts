@@ -15,6 +15,7 @@ import {
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
+  COMMENT_TYPE,
   IPFS_PREFIX,
   MATERIALIZED_VIEW,
   MINUTE,
@@ -1604,7 +1605,11 @@ export class ArticleService extends BaseService {
                   )
                 )
                 .from('comment')
-                .where({ articleId: id, parentCommentId: null })
+                .where({
+                  targetId: id,
+                  parentCommentId: null,
+                  type: COMMENT_TYPE.article,
+                })
             })
           }
 

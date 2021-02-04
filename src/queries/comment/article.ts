@@ -1,8 +1,8 @@
-import { ARTICLE_STATE } from 'common/enums'
+import { ARTICLE_STATE, COMMENT_TYPE } from 'common/enums'
 import { CommentToArticleResolver } from 'definitions'
 
 const resolver: CommentToArticleResolver = async (
-  { targetId, targetTypeId },
+  { targetId, targetTypeId, type },
   _,
   { dataSources: { atomService } }
 ) => {
@@ -10,12 +10,7 @@ const resolver: CommentToArticleResolver = async (
     return
   }
 
-  const { table } = await atomService.findFirst({
-    table: 'entity_type',
-    where: { id: targetTypeId },
-  })
-
-  if (table !== 'article') {
+  if (type !== COMMENT_TYPE.article) {
     return
   }
 

@@ -92,10 +92,7 @@ const resolver: MutationToPutCommentResolver = async (
     targetAuthor = article.authorId
   } else if (circleId) {
     const { id: circleDbId } = fromGlobalId(circleId)
-    circle = await atomService.findFirst({
-      table: 'circle',
-      where: { id: circleDbId, state: CIRCLE_STATE.active },
-    })
+    circle = await atomService.circleIdLoader.load(circleDbId)
 
     if (!circle) {
       throw new CircleNotFoundError('target circle does not exists')

@@ -1,6 +1,9 @@
 import {
+  ARTICLE_STATE,
   CACHE_KEYWORD,
+  CIRCLE_STATE,
   COMMENT_STATE,
+  COMMENT_TYPE,
   NODE_TYPES,
   USER_STATE,
 } from 'common/enums'
@@ -29,29 +32,16 @@ const resolver: MutationToDeleteCommentResolver = async (
   const comment = await commentService.dataloader.load(dbId)
 
   // check target
-  const [articleTypeId, circleTypeId] = (
-    await atomService.findMany({
-      table: 'entity_type',
-      whereIn: ['table', ['article', 'circle']],
-    })
-  ).map((types) => types.id)
-  const isTargetArticle = articleTypeId === comment.targetTypeId
-  const isTargetCircle = circleTypeId === comment.targetTypeId
-
   let article: any
   let circle: any
-  let targetAuthor: any
-  if (isTargetArticle) {
+  if (comment.type === COMMENT_TYPE.article) {
     article = await articleService.dataloader.load(comment.targetId)
-    targetAuthor = article.authorId
-  } else if (isTargetCircle) {
-    circle = await articleService.dataloader.load(comment.targetId)
-    targetAuthor = circle.owner
+  } else {
+    circle = await atomService.circleIdLoader.load(comment.targetId)
   }
 
   // check permission
-  const isTargetAuthor = targetAuthor === viewer.id
-  if (!isTargetAuthor) {
+  if (comment.authorId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')
   }
 

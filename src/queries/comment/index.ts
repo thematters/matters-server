@@ -10,6 +10,7 @@ import articlePinnedComments from './article/pinnedComments'
 import author from './author'
 import circleBroadcast from './circle/broadcast'
 import circleDiscussion from './circle/discussion'
+import circlePinnedBroadcast from './circle/pinnedBroadcast'
 import comments from './comments'
 import content from './content'
 import downvotes from './downvotes'
@@ -49,6 +50,7 @@ export default {
   },
   Circle: {
     broadcast: circleBroadcast,
+    pinnedBroadcast: circlePinnedBroadcast,
     discussion: circleDiscussion,
   },
 }

@@ -86,6 +86,15 @@ const PUT_CIRCLE_COMMENT = /* GraphQL */ /* GraphQL */ `
   }
 `
 
+const TOGGLE_PIN_COMMENT = /* GraphQL */ `
+  mutation($input: ToggleItemInput!) {
+    togglePinComment(input: $input) {
+      id
+      pinned
+    }
+  }
+`
+
 const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
   query($input: CircleInput!) {
     circle(input: $input) {
@@ -97,6 +106,9 @@ const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
             id
           }
         }
+      }
+      pinnedBroadCast {
+        id
       }
       broadcast(input: { first: null }) {
         totalCount
@@ -363,6 +375,18 @@ describe('circle CRUD', () => {
     const commentId = _get(addedData, `data.putComment.id`)
     expect(commentId).toBeTruthy()
 
+    // pin
+    const pinnedData = await mutate({
+      mutation: TOGGLE_PIN_COMMENT,
+      variables: {
+        input: {
+          id: commentId,
+          enabled: true,
+        },
+      },
+    })
+    expect(_get(pinnedData, 'data.togglePinComment.pinned')).toBe(true)
+
     // retrieve
     const retrieveData = await query({
       query: QUERY_CIRCLE_COMMENTS,
@@ -374,6 +398,9 @@ describe('circle CRUD', () => {
       _get(retrieveData, 'data.circle.broadcast.totalCount')
     ).toBeGreaterThan(0)
     expect(_get(retrieveData, 'data.circle.broadcast.edges.0.node.id')).toBe(
+      commentId
+    )
+    expect(_get(retrieveData, 'data.circle.pinnedBroadcast.0.id')).toBe(
       commentId
     )
   })

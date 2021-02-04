@@ -1,4 +1,9 @@
-import { PRICE_STATE, SUBSCRIPTION_STATE, USER_STATE } from 'common/enums'
+import {
+  COMMENT_TYPE,
+  PRICE_STATE,
+  SUBSCRIPTION_STATE,
+  USER_STATE,
+} from 'common/enums'
 import {
   AuthenticationError,
   ForbiddenByStateError,
@@ -20,23 +25,14 @@ const resolver: MutationToUnvoteCommentResolver = async (
   const comment = await commentService.dataloader.load(dbId)
 
   // check target
-  const [articleTypeId, circleTypeId] = (
-    await atomService.findMany({
-      table: 'entity_type',
-      whereIn: ['table', ['article', 'circle']],
-    })
-  ).map((types) => types.id)
-  const isTargetArticle = articleTypeId === comment.targetTypeId
-  const isTargetCircle = circleTypeId === comment.targetTypeId
-
   let article: any
   let circle: any
   let targetAuthor: any
-  if (isTargetArticle) {
+  if (comment.type === COMMENT_TYPE.article) {
     article = await articleService.dataloader.load(comment.targetId)
     targetAuthor = article.authorId
-  } else if (isTargetCircle) {
-    circle = await articleService.dataloader.load(comment.targetId)
+  } else {
+    circle = await atomService.circleIdLoader.load(comment.targetId)
     targetAuthor = circle.owner
   }
 

@@ -478,6 +478,9 @@ type Circle implements Node {
   """Comments broadcasted by Circle owner."""
   broadcast(input: ConnectionArgs!): CommentConnection!
 
+  """Pinned comments broadcasted by Circle owner."""
+  pinnedBroadcast: [Comment!]
+
   """Comments made by Circle member."""
   discussion(input: ConnectionArgs!): CommentConnection!
 }

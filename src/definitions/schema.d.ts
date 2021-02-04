@@ -1129,6 +1129,11 @@ export interface GQLCircle extends GQLNode {
   broadcast: GQLCommentConnection
 
   /**
+   * Pinned comments broadcasted by Circle owner.
+   */
+  pinnedBroadcast?: Array<GQLComment>
+
+  /**
    * Comments made by Circle member.
    */
   discussion: GQLCommentConnection
@@ -5876,6 +5881,7 @@ export interface GQLCircleTypeResolver<TParent = any> {
   isMember?: CircleToIsMemberResolver<TParent>
   setting?: CircleToSettingResolver<TParent>
   broadcast?: CircleToBroadcastResolver<TParent>
+  pinnedBroadcast?: CircleToPinnedBroadcastResolver<TParent>
   discussion?: CircleToDiscussionResolver<TParent>
 }
 
@@ -6048,6 +6054,15 @@ export interface CircleToBroadcastResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: CircleToBroadcastArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToPinnedBroadcastResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

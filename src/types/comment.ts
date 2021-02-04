@@ -80,7 +80,7 @@ export default /* GraphQL */ `
     remark: String @auth(mode: "${AUTH_MODE.admin}")
 
     "Current comment belongs to which Node."
-    node: Node!
+    node: Node! @logCache(type: "${NODE_TYPES.node}")
   }
 
   extend type Article {
@@ -106,6 +106,9 @@ export default /* GraphQL */ `
   extend type Circle {
     "Comments broadcasted by Circle owner."
     broadcast(input: ConnectionArgs!): CommentConnection!
+
+    "Pinned comments broadcasted by Circle owner."
+    pinnedBroadcast: [Comment!] @logCache(type: "${NODE_TYPES.comment}")
 
     "Comments made by Circle member."
     discussion(input: ConnectionArgs!): CommentConnection!

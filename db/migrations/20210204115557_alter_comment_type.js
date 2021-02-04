@@ -32,9 +32,8 @@ exports.up = async (knex) => {
   `)
 
   /**
-   * Step 1: add back views
+   * Step 1: alter comment
    */
-  // alter comment
   await knex.schema.table(commentTable, (t) => {
     t.dropIndex(['article_id', 'state'])
     t.index(['state', 'type'])

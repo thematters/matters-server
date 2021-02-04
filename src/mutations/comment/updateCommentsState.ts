@@ -1,4 +1,8 @@
-import { COMMENT_STATE, OFFICIAL_NOTICE_EXTEND_TYPE } from 'common/enums'
+import {
+  COMMENT_STATE,
+  COMMENT_TYPE,
+  OFFICIAL_NOTICE_EXTEND_TYPE,
+} from 'common/enums'
 import { ForbiddenError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { MutationToUpdateCommentsStateResolver } from 'definitions'
@@ -23,33 +27,27 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
     const comment = await commentService.dataloader.load(id)
 
     // check target
-    const [articleTypeId, circleTypeId] = (
-      await atomService.findMany({
-        table: 'entity_type',
-        whereIn: ['table', ['article', 'circle']],
-      })
-    ).map((types) => types.id)
-    const isTargetArticle = articleTypeId === comment.targetTypeId
-    const isTargetCircle = circleTypeId === comment.targetTypeId
-
     let article: any
     let circle: any
     let targetAuthor: any
-    if (isTargetArticle) {
+    if (comment.type === COMMENT_TYPE.article) {
       article = await articleService.dataloader.load(comment.targetId)
       targetAuthor = article.authorId
-    } else if (isTargetCircle) {
-      circle = await articleService.dataloader.load(comment.targetId)
+    } else {
+      circle = await atomService.circleIdLoader.load(comment.targetId)
       targetAuthor = circle.owner
     }
 
     // check permission
     const isTargetAuthor = targetAuthor === viewer.id
-    const isValidFromState =
-      [COMMENT_STATE.active, COMMENT_STATE.collapsed].indexOf(comment.state) >=
-      0
-    const isValidToState =
-      [COMMENT_STATE.active, COMMENT_STATE.collapsed].indexOf(state) >= 0
+    const isValidFromState = [
+      COMMENT_STATE.active,
+      COMMENT_STATE.collapsed,
+    ].includes(comment.state)
+    const isValidToState = [
+      COMMENT_STATE.active,
+      COMMENT_STATE.collapsed,
+    ].includes(state)
 
     if (!isTargetAuthor || !isValidFromState || !isValidToState) {
       throw new ForbiddenError(
