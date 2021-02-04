@@ -86,7 +86,6 @@ const resolver: MutationToPutCommentResolver = async (
       where: { table: 'article' },
     })
     data.targetTypeId = typeId
-    data.articleId = article.id
     data.targetId = article.id
 
     targetAuthor = article.authorId
@@ -226,6 +225,7 @@ const resolver: MutationToPutCommentResolver = async (
         content: data.content,
         authorId: data.authorId,
         parentCommentId: data.parentCommentId,
+        type: data.type,
         replyTo: data.replyTo,
         mentionedUserIds: data.mentionedUserIds,
         updatedAt: new Date(),
@@ -238,8 +238,13 @@ const resolver: MutationToPutCommentResolver = async (
     newComment = await atomService.create({
       table: 'comment',
       data: {
-        ...data,
         uuid: v4(),
+        content: data.content,
+        authorId: data.authorId,
+        targetId: data.targetId,
+        targetTypeId: data.targetTypeId,
+        parentCommentId: data.parentCommentId,
+        replyTo: data.replyTo,
       },
     })
 

@@ -4,28 +4,25 @@ import { CommentToNodeResolver } from 'definitions'
 const resolver: CommentToNodeResolver = async (
   { targetId, targetTypeId, type },
   _,
-  { dataSources: { atomService } }
+  { dataSources: { atomService, articleService } }
 ) => {
   if (!targetId || !targetTypeId) {
     return
   }
 
   if (type === COMMENT_TYPE.article) {
-    return atomService.findFirst({
-      table: 'article',
-      where: {
-        id: targetId,
-        state: ARTICLE_STATE.active,
-      },
-    })
+    const draft = await articleService.draftLoader.load(targetId)
+    return { ...draft, __type: 'Article' }
   } else {
-    return atomService.findFirst({
+    const circle = await atomService.findFirst({
       table: 'circle',
       where: {
         id: targetId,
         state: CIRCLE_STATE.active,
       },
     })
+
+    return { ...circle, __type: 'Circle' }
   }
 }
 
