@@ -296,7 +296,7 @@ describe('manage feature flag', () => {
 
     const { data: queryData5 } = await query({ query: QUERY_FEATURES })
     const features5 = (queryData5?.official?.features || []).reduce(reducer, {})
-    expect(features5.circle_management).toBe(false)
+    expect(features5.circle_management).toBe(true)
 
     const { data: queryData6 } = await adminQuery({ query: QUERY_FEATURES })
     const features6 = (queryData6?.official?.features || []).reduce(reducer, {})
@@ -308,7 +308,7 @@ describe('manage feature flag', () => {
     })
     const { data: queryData7 } = await otherQuery({ query: QUERY_FEATURES })
     const features7 = (queryData7?.official?.features || []).reduce(reducer, {})
-    expect(features7.circle_management).toBe(true)
+    expect(features7.circle_management).toBe(false)
 
     // reset feature as on
     const updateData5 = await adminMutate({

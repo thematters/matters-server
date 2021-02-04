@@ -1,9 +1,9 @@
 export const VIEW = {
+  articleCount: 'article_count_view',
   articleValue: 'article_value_view',
   articleActivity: 'article_activity_view',
 
   /* Hottest articles A/B test */
-  articleHottestA: 'article_hottest_a_view',
   articleHottestB: 'article_hottest_b_view',
 }
 
@@ -17,7 +17,6 @@ export const MATERIALIZED_VIEW = {
   curationTagMaterialized: 'curation_tag_materialized',
 
   /* Hottest articles A/B test */
-  articleHottestAMaterialized: 'article_hottest_a_materialized',
   articleHottestBMaterialized: 'article_hottest_b_materialized',
 
   mostActiveAuthorMaterialized: 'most_active_author_materialized',

@@ -39,7 +39,6 @@ export const QUEUE_JOB = {
   refreshCurationTagMaterialView: 'refreshCurationTagMaterialView',
 
   /* Refresh Views - hottest articles A/B test*/
-  refreshArticleHottestAView: 'refreshArticleHottestAView',
   refreshArticleHottestBView: 'refreshArticleHottestBView',
 
   refreshMostActiveAuthorView: 'refreshMostActiveAuthorView',

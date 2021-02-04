@@ -542,31 +542,22 @@ export class ArticleService extends BaseService {
   /**
    * Find Many
    */
-  recommendByScore = async ({
+  recommendByValue = async ({
     limit = BATCH_SIZE,
     offset = 0,
     where = {},
     oss = false,
-    score = 'activity',
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
     oss?: boolean
-    score?: 'activity' | 'value'
   }) => {
     // use view when oss for real time update
     // use materialized in other cases
-    let table
-    if (score === 'activity') {
-      table = oss
-        ? VIEW.articleHottestA
-        : MATERIALIZED_VIEW.articleHottestAMaterialized
-    } else {
-      table = oss
-        ? VIEW.articleValue
-        : MATERIALIZED_VIEW.articleValueMaterialized
-    }
+    const table = oss
+      ? VIEW.articleValue
+      : MATERIALIZED_VIEW.articleValueMaterialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
@@ -595,31 +586,22 @@ export class ArticleService extends BaseService {
   /**
    * TODO: temporary for A/B testing of hottest
    */
-  recommendByScoreB = async ({
+  recommendByHottestB = async ({
     limit = BATCH_SIZE,
     offset = 0,
     where = {},
     oss = false,
-    score = 'activity',
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
     oss?: boolean
-    score?: 'activity' | 'value'
   }) => {
     // use view when oss for real time update
     // use materialized in other cases
-    let table
-    if (score === 'activity') {
-      table = oss
-        ? VIEW.articleHottestB
-        : MATERIALIZED_VIEW.articleHottestBMaterialized
-    } else {
-      table = oss
-        ? VIEW.articleValue
-        : MATERIALIZED_VIEW.articleValueMaterialized
-    }
+    const table = oss
+      ? VIEW.articleHottestB
+      : MATERIALIZED_VIEW.articleHottestBMaterialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
@@ -705,7 +687,7 @@ export class ArticleService extends BaseService {
     oss?: boolean
   }) => {
     const table = oss
-      ? 'article_count_view'
+      ? VIEW.articleCount
       : MATERIALIZED_VIEW.articleCountMaterialized
 
     return this.knex(`${table} as view`)
@@ -844,7 +826,7 @@ export class ArticleService extends BaseService {
     // use view when oss for real time update
     // use materialized in other cases
     const table = oss
-      ? 'article_activity_view'
+      ? VIEW.articleActivity
       : MATERIALIZED_VIEW.articleActivityMaterialized
 
     let qs = this.knex(`${table} as view`)

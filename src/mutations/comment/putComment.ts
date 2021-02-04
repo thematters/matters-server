@@ -3,6 +3,7 @@ import { v4 } from 'uuid'
 
 import {
   CACHE_KEYWORD,
+  CIRCLE_STATE,
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
@@ -91,7 +92,10 @@ const resolver: MutationToPutCommentResolver = async (
     targetAuthor = article.authorId
   } else if (circleId) {
     const { id: circleDbId } = fromGlobalId(circleId)
-    circle = await articleService.dataloader.load(circleDbId)
+    circle = await atomService.findFirst({
+      table: 'circle',
+      where: { id: circleDbId, state: CIRCLE_STATE.active },
+    })
 
     if (!circle) {
       throw new CircleNotFoundError('target circle does not exists')

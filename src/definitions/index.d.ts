@@ -159,7 +159,6 @@ export type MaterializedView =
   | 'featured_comment_materialized'
   | 'article_interest_materialized'
   | 'curation_tag_materialized'
-  | 'article_hottest_a_materialized'
   | 'article_hottest_b_materialized'
   | 'most_active_author_materialized'
   | 'most_appreciated_author_materialized'

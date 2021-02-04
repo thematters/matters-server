@@ -4,7 +4,7 @@ import { GQLCommentType } from 'definitions'
 
 import { testClient } from './utils'
 
-const GET_VIEWER_OWN_CIRCLES = /* GraphQL */ `
+const GET_VIEWER_OWN_CIRCLES = `
   query {
     viewer {
       ownCircles {
@@ -86,7 +86,7 @@ const PUT_CIRCLE_COMMENT = /* GraphQL */ /* GraphQL */ `
   }
 `
 
-const QUERY_CIRCLE_COMMENTS = /* GraphQL */ /* GraphQL */ `
+const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
   query($input: CircleInput!) {
     circle(input: $input) {
       id
@@ -328,11 +328,9 @@ describe('circle CRUD', () => {
     const retrieveData = await query({
       query: QUERY_CIRCLE_COMMENTS,
       variables: {
-        name: circle.name,
+        input: { name: circle.name },
       },
     })
-
-    console.log({ retrieveData })
 
     expect(
       _get(retrieveData, 'data.circle.discussion.totalCount')
@@ -369,7 +367,7 @@ describe('circle CRUD', () => {
     const retrieveData = await query({
       query: QUERY_CIRCLE_COMMENTS,
       variables: {
-        name: circle.name,
+        input: { name: circle.name },
       },
     })
     expect(

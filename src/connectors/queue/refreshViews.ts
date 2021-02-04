@@ -117,17 +117,6 @@ class RefreshViewsQueue extends BaseQueue {
     )
 
     /* Hottest articles A/B test */
-    // refresh articleHottestAMaterialized every 2 minutes, for hottest recommendation
-    this.q.add(
-      QUEUE_JOB.refreshArticleHottestAView,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: MINUTE * 2.3, // every 2.3 minutes
-        },
-      }
-    )
     // refresh articleHottestBMaterialized every 2 minutes, for hottest recommendation
     this.q.add(
       QUEUE_JOB.refreshArticleHottestBView,
@@ -214,10 +203,6 @@ class RefreshViewsQueue extends BaseQueue {
       this.handleRefreshView('curation_tag_materialized')
     )
 
-    this.q.process(
-      QUEUE_JOB.refreshArticleHottestAView,
-      this.handleRefreshView('article_hottest_a_materialized')
-    )
     this.q.process(
       QUEUE_JOB.refreshArticleHottestBView,
       this.handleRefreshView('article_hottest_b_materialized')
