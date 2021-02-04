@@ -225,7 +225,6 @@ const resolver: MutationToPutCommentResolver = async (
         content: data.content,
         authorId: data.authorId,
         parentCommentId: data.parentCommentId,
-        type: data.type,
         replyTo: data.replyTo,
         mentionedUserIds: data.mentionedUserIds,
         updatedAt: new Date(),
@@ -245,6 +244,7 @@ const resolver: MutationToPutCommentResolver = async (
         targetTypeId: data.targetTypeId,
         parentCommentId: data.parentCommentId,
         replyTo: data.replyTo,
+        type: data.type,
       },
     })
 
