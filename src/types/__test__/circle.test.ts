@@ -107,7 +107,7 @@ const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
           }
         }
       }
-      pinnedBroadCast {
+      pinnedBroadcast {
         id
       }
       broadcast(input: { first: null }) {
@@ -394,6 +394,7 @@ describe('circle CRUD', () => {
         input: { name: circle.name },
       },
     })
+
     expect(
       _get(retrieveData, 'data.circle.broadcast.totalCount')
     ).toBeGreaterThan(0)
