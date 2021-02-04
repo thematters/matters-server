@@ -1898,6 +1898,7 @@ export interface GQLOSS {
   tags: GQLTagConnection
   oauthClients: GQLOAuthClientConnection
   skippedListItems: GQLSkippedListItemsConnection
+  seedingUsers: GQLUserConnection
 }
 
 export interface GQLTagsInput {
@@ -2200,6 +2201,7 @@ export interface GQLMutation {
   putRemark?: string
   putSkippedListItem?: Array<GQLSkippedListItem>
   setFeature: GQLFeature
+  toggleSeedingUsers: boolean
 
   /**
    * Send verification code for email.
@@ -2652,6 +2654,11 @@ export const enum GQLFeatureFlag {
   off = 'off',
   admin = 'admin',
   seeding = 'seeding',
+}
+
+export interface GQLToggleSeedingUsersInput {
+  ids?: Array<string>
+  enabled: boolean
 }
 
 export interface GQLSendVerificationCodeInput {
@@ -7689,6 +7696,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   tags?: OSSToTagsResolver<TParent>
   oauthClients?: OSSToOauthClientsResolver<TParent>
   skippedListItems?: OSSToSkippedListItemsResolver<TParent>
+  seedingUsers?: OSSToSeedingUsersResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -7758,6 +7766,18 @@ export interface OSSToSkippedListItemsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToSkippedListItemsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToSeedingUsersArgs {
+  input: GQLConnectionArgs
+}
+export interface OSSToSeedingUsersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToSeedingUsersArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8141,6 +8161,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   putRemark?: MutationToPutRemarkResolver<TParent>
   putSkippedListItem?: MutationToPutSkippedListItemResolver<TParent>
   setFeature?: MutationToSetFeatureResolver<TParent>
+  toggleSeedingUsers?: MutationToToggleSeedingUsersResolver<TParent>
   sendVerificationCode?: MutationToSendVerificationCodeResolver<TParent>
   confirmVerificationCode?: MutationToConfirmVerificationCodeResolver<TParent>
   resetPassword?: MutationToResetPasswordResolver<TParent>
@@ -8703,6 +8724,21 @@ export interface MutationToSetFeatureResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: MutationToSetFeatureArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleSeedingUsersArgs {
+  input: GQLToggleSeedingUsersInput
+}
+export interface MutationToToggleSeedingUsersResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleSeedingUsersArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

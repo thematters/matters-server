@@ -115,6 +115,28 @@ const SET_FEATURE = /* GraphQL */ `
   }
 `
 
+const QUERY_SEEDING_USERS = `
+  query($input: ConnectionArgs!) {
+    oss {
+      seedingUsers(input: $input) {
+        totalCount
+        edges {
+          node {
+            id
+            userName
+          }
+        }
+      }
+    }
+  }
+`
+
+const TOGGLE_SEEDING_USERS = `
+  mutation($input: ToggleSeedingUsersInput!) {
+    toggleSeedingUsers(input: $input)
+  }
+`
+
 describe('query nodes of different type', () => {
   test('query user node', async () => {
     const id = toGlobalId({ type: 'User', id: 1 })
@@ -316,5 +338,55 @@ describe('manage feature flag', () => {
       variables: { input: { name: 'circle_management', flag: 'on' } },
     })
     expect(_get(updateData5, 'data.setFeature.enabled')).toBe(true)
+  })
+
+  test('manage seeding user', async () => {
+    const { query: adminQuery, mutate: adminMutate } = await testClient(
+      adminClient
+    )
+    const { data } = await adminQuery({
+      query: QUERY_SEEDING_USERS,
+      variables: { input: { first: null } },
+    })
+    expect(_get(data, 'oss.seedingUsers.totalCount')).toBe(1)
+
+    // remove existing seeding user
+    const seedingUser = _get(data, 'oss.seedingUsers.edges[0].node')
+    const updateData = await adminMutate({
+      mutation: TOGGLE_SEEDING_USERS,
+      variables: { input: { ids: [seedingUser.id], enabled: false } },
+    })
+    const { data: data2 } = await adminQuery({
+      query: QUERY_SEEDING_USERS,
+      variables: { input: { first: null } },
+    })
+    expect(_get(data2, 'oss.seedingUsers.totalCount')).toBe(0)
+
+    // re-add seeding user
+    const updateData2 = await adminMutate({
+      mutation: TOGGLE_SEEDING_USERS,
+      variables: { input: { ids: [seedingUser.id], enabled: true } },
+    })
+    const { data: data3 } = await adminQuery({
+      query: QUERY_SEEDING_USERS,
+      variables: { input: { first: null } },
+    })
+    expect(_get(data3, 'oss.seedingUsers.totalCount')).toBe(1)
+
+    // check user couldn't query and mutate
+    const { query: userQuery, mutate: userMutate } = await testClient(
+      userClient
+    )
+    const result = await userQuery({
+      query: QUERY_SEEDING_USERS,
+      variables: { input: { first: null } },
+    })
+    expect(_get(result, errorPath)).toBe('FORBIDDEN')
+
+    const updateData3 = await userMutate({
+      mutation: TOGGLE_SEEDING_USERS,
+      variables: { input: { ids: [seedingUser.id], enabled: false } },
+    })
+    expect(_get(updateData3, errorPath)).toBe('FORBIDDEN')
   })
 })
