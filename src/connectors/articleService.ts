@@ -541,8 +541,8 @@ export class ArticleService extends BaseService {
    *                               *
    *********************************/
   makeRecommendByValueQuery = ({
-    limit = BATCH_SIZE,
-    offset = 0,
+    limit,
+    offset,
     where = {},
     oss = false,
   }: {
@@ -568,8 +568,14 @@ export class ArticleService extends BaseService {
       .orderByRaw('score desc nulls last')
       .orderBy([{ column: 'view.id', order: 'desc' }])
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
-      .limit(limit)
-      .offset(offset)
+
+    if (limit) {
+      qs = qs.limit(limit)
+    }
+
+    if (offset) {
+      qs = qs.offset(offset)
+    }
 
     if (!oss) {
       qs = qs.andWhere(function () {
@@ -586,12 +592,16 @@ export class ArticleService extends BaseService {
     where?: { [key: string]: any }
     oss?: boolean
   }) => {
-    return this.makeRecommendByValueQuery(params)
+    return this.makeRecommendByValueQuery({
+      ...params,
+      limit: params.limit || BATCH_SIZE,
+      offset: params.offset || 0,
+    })
   }
 
   makeRecommendByHottestQuery = ({
-    limit = BATCH_SIZE,
-    offset = 0,
+    limit,
+    offset,
     where = {},
     oss = false,
   }: {
@@ -617,8 +627,14 @@ export class ArticleService extends BaseService {
       .orderByRaw('score desc nulls last')
       .orderBy([{ column: 'view.id', order: 'desc' }])
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
-      .limit(limit)
-      .offset(offset)
+
+    if (limit) {
+      qs = qs.limit(limit)
+    }
+
+    if (offset) {
+      qs = qs.offset(offset)
+    }
 
     if (!oss) {
       qs = qs.andWhere(function () {
@@ -635,7 +651,11 @@ export class ArticleService extends BaseService {
     where?: { [key: string]: any }
     oss?: boolean
   }) => {
-    return this.makeRecommendByHottestQuery(params)
+    return this.makeRecommendByHottestQuery({
+      ...params,
+      limit: params.limit || BATCH_SIZE,
+      offset: params.offset || 0,
+    })
   }
 
   recommendNewest = async ({
@@ -831,7 +851,10 @@ export class ArticleService extends BaseService {
     where?: { [key: string]: any }
     oss?: boolean
   }) => {
-    const result = (await this.makeRecommendByHottestQuery(params)) as any
+    const result = await this.knex()
+      .from(this.makeRecommendByHottestQuery(params).as('view'))
+      .count()
+      .first()
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
@@ -839,7 +862,10 @@ export class ArticleService extends BaseService {
     where?: { [key: string]: any }
     oss?: boolean
   }) => {
-    const result = (await this.makeRecommendByValueQuery(params)) as any
+    const result = await this.knex()
+      .from(this.makeRecommendByValueQuery(params).as('view'))
+      .count()
+      .first()
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
