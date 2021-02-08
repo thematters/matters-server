@@ -77,9 +77,7 @@ const resolver: MutationToSubscribeCircleResolver = async (
 
   const provider = PAYMENT_PROVIDER.stripe
 
-  /**
-   * Retrieve or create a Customer
-   */
+  // retrieve or create a Customer
   let customer = (await atomService.findFirst({
     table: 'customer',
     where: {
@@ -117,6 +115,25 @@ const resolver: MutationToSubscribeCircleResolver = async (
 
   if (item) {
     throw new DuplicateCircleError('circle subscribed alraedy')
+  }
+
+  // FIXME: check subscribed circles
+  // @see {@url https://stripe.com/docs/billing/subscriptions/multiple-products#restrictions}
+  const record = await knex
+    .count()
+    .from('circle_subscription_item as csi')
+    .join('circle_price', 'circle_price.id', 'csi.price_id')
+    .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+    .where({
+      'cs.state': SUBSCRIPTION_STATE.active,
+      'csi.user_id': viewer.id,
+      'csi.archived': false,
+      'circle_price.state': PRICE_STATE.active,
+    })
+    .first()
+  const subscribedCount = parseInt(record ? (record.count as string) : '0', 10)
+  if (subscribedCount > 20) {
+    throw new ForbiddenError('limited to subscribe up to 20 circles.')
   }
 
   /**
