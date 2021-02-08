@@ -32,16 +32,11 @@ export const QUEUE_JOB = {
   refreshArticleCountView: 'refreshArticleCountView',
   refreshTagCountMaterialView: 'refreshTagCountMaterialView',
   refreshUserReaderView: 'refreshUserReaderView',
-  refreshArticleActivityView: 'refreshArticleActivityView',
   refreshArticleValueView: 'refreshArticleValueView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
   refreshArticleInterestView: 'refreshArticleInterestView',
   refreshCurationTagMaterialView: 'refreshCurationTagMaterialView',
-
-  /* Refresh Views - hottest articles A/B test*/
-  refreshArticleHottestAView: 'refreshArticleHottestAView',
-  refreshArticleHottestBView: 'refreshArticleHottestBView',
-
+  refreshArticleHottestView: 'refreshArticleHottestView',
   refreshMostActiveAuthorView: 'refreshMostActiveAuthorView',
   refreshMostAppreciatedAuthorView: 'refreshMostAppreciatedAuthorView',
   refreshMostTrendyAuthorView: 'refreshMostTrendyAuthorView',

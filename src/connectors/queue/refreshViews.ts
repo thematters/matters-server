@@ -24,19 +24,7 @@ class RefreshViewsQueue extends BaseQueue {
    * Producers
    */
   addRepeatJobs = async () => {
-    // refresh articleActivityMaterialized every 2 minutes, for hottest recommendation
-    this.q.add(
-      QUEUE_JOB.refreshArticleActivityView,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: MINUTE * 2.1, // every 2.1 minutes
-        },
-      }
-    )
-
-    // refresh articleActivityMaterialized every 2 minutes, for hottest recommendation
+    // refresh refreshArticleValueMaterialized every 2 minutes, for hottest recommendation
     this.q.add(
       QUEUE_JOB.refreshArticleValueView,
       {},
@@ -116,21 +104,9 @@ class RefreshViewsQueue extends BaseQueue {
       }
     )
 
-    /* Hottest articles A/B test */
-    // refresh articleHottestAMaterialized every 2 minutes, for hottest recommendation
+    // refresh articleHottestMaterialized every 2 minutes, for hottest recommendation
     this.q.add(
-      QUEUE_JOB.refreshArticleHottestAView,
-      {},
-      {
-        priority: QUEUE_PRIORITY.MEDIUM,
-        repeat: {
-          every: MINUTE * 2.3, // every 2.3 minutes
-        },
-      }
-    )
-    // refresh articleHottestBMaterialized every 2 minutes, for hottest recommendation
-    this.q.add(
-      QUEUE_JOB.refreshArticleHottestBView,
+      QUEUE_JOB.refreshArticleHottestView,
       {},
       {
         priority: QUEUE_PRIORITY.MEDIUM,
@@ -182,10 +158,6 @@ class RefreshViewsQueue extends BaseQueue {
    */
   private addConsumers = () => {
     this.q.process(
-      QUEUE_JOB.refreshArticleActivityView,
-      this.handleRefreshView('article_activity_materialized')
-    )
-    this.q.process(
       QUEUE_JOB.refreshArticleValueView,
       this.handleRefreshView('article_value_materialized')
     )
@@ -213,14 +185,9 @@ class RefreshViewsQueue extends BaseQueue {
       QUEUE_JOB.refreshCurationTagMaterialView,
       this.handleRefreshView('curation_tag_materialized')
     )
-
     this.q.process(
-      QUEUE_JOB.refreshArticleHottestAView,
-      this.handleRefreshView('article_hottest_a_materialized')
-    )
-    this.q.process(
-      QUEUE_JOB.refreshArticleHottestBView,
-      this.handleRefreshView('article_hottest_b_materialized')
+      QUEUE_JOB.refreshArticleHottestView,
+      this.handleRefreshView('article_hottest_materialized')
     )
     this.q.process(
       QUEUE_JOB.refreshMostActiveAuthorView,

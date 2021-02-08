@@ -15,6 +15,7 @@ import {
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
+  COMMENT_TYPE,
   IPFS_PREFIX,
   MATERIALIZED_VIEW,
   MINUTE,
@@ -539,34 +540,22 @@ export class ArticleService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
-  /**
-   * Find Many
-   */
-  recommendByScore = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
+  makeRecommendByValueQuery = ({
+    limit,
+    offset,
     where = {},
     oss = false,
-    score = 'activity',
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
     oss?: boolean
-    score?: 'activity' | 'value'
   }) => {
     // use view when oss for real time update
     // use materialized in other cases
-    let table
-    if (score === 'activity') {
-      table = oss
-        ? VIEW.articleHottestA
-        : MATERIALIZED_VIEW.articleHottestAMaterialized
-    } else {
-      table = oss
-        ? VIEW.articleValue
-        : MATERIALIZED_VIEW.articleValueMaterialized
-    }
+    const table = oss
+      ? VIEW.articleValue
+      : MATERIALIZED_VIEW.articleValueMaterialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
@@ -579,8 +568,14 @@ export class ArticleService extends BaseService {
       .orderByRaw('score desc nulls last')
       .orderBy([{ column: 'view.id', order: 'desc' }])
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
-      .limit(limit)
-      .offset(offset)
+
+    if (limit) {
+      qs = qs.limit(limit)
+    }
+
+    if (offset) {
+      qs = qs.offset(offset)
+    }
 
     if (!oss) {
       qs = qs.andWhere(function () {
@@ -588,38 +583,38 @@ export class ArticleService extends BaseService {
       })
     }
 
-    const result = await qs
-    return result
+    return qs
   }
 
-  /**
-   * TODO: temporary for A/B testing of hottest
-   */
-  recommendByScoreB = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
+  recommendByValue = (params: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+    oss?: boolean
+  }) => {
+    return this.makeRecommendByValueQuery({
+      ...params,
+      limit: params.limit || BATCH_SIZE,
+      offset: params.offset || 0,
+    })
+  }
+
+  makeRecommendByHottestQuery = ({
+    limit,
+    offset,
     where = {},
     oss = false,
-    score = 'activity',
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
     oss?: boolean
-    score?: 'activity' | 'value'
   }) => {
     // use view when oss for real time update
     // use materialized in other cases
-    let table
-    if (score === 'activity') {
-      table = oss
-        ? VIEW.articleHottestB
-        : MATERIALIZED_VIEW.articleHottestBMaterialized
-    } else {
-      table = oss
-        ? VIEW.articleValue
-        : MATERIALIZED_VIEW.articleValueMaterialized
-    }
+    const table = oss
+      ? VIEW.articleHottest
+      : MATERIALIZED_VIEW.articleHottestMaterialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
@@ -632,8 +627,14 @@ export class ArticleService extends BaseService {
       .orderByRaw('score desc nulls last')
       .orderBy([{ column: 'view.id', order: 'desc' }])
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
-      .limit(limit)
-      .offset(offset)
+
+    if (limit) {
+      qs = qs.limit(limit)
+    }
+
+    if (offset) {
+      qs = qs.offset(offset)
+    }
 
     if (!oss) {
       qs = qs.andWhere(function () {
@@ -641,8 +642,20 @@ export class ArticleService extends BaseService {
       })
     }
 
-    const result = await qs
-    return result
+    return qs
+  }
+
+  recommendByHottest = (params: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+    oss?: boolean
+  }) => {
+    return this.makeRecommendByHottestQuery({
+      ...params,
+      limit: params.limit || BATCH_SIZE,
+      offset: params.offset || 0,
+    })
   }
 
   recommendNewest = async ({
@@ -705,7 +718,7 @@ export class ArticleService extends BaseService {
     oss?: boolean
   }) => {
     const table = oss
-      ? 'article_count_view'
+      ? VIEW.articleCount
       : MATERIALIZED_VIEW.articleCountMaterialized
 
     return this.knex(`${table} as view`)
@@ -834,36 +847,25 @@ export class ArticleService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  countRecommendHottest = async ({
-    where = {},
-    oss = false,
-  }: {
+  countRecommendHottest = async (params: {
     where?: { [key: string]: any }
     oss?: boolean
   }) => {
-    // use view when oss for real time update
-    // use materialized in other cases
-    const table = oss
-      ? 'article_activity_view'
-      : MATERIALIZED_VIEW.articleActivityMaterialized
-
-    let qs = this.knex(`${table} as view`)
-      .leftJoin(
-        'article_recommend_setting as setting',
-        'view.id',
-        'setting.article_id'
-      )
-      .join('article', 'article.id', 'view.id')
-      .where(where)
+    const result = await this.knex()
+      .from(this.makeRecommendByHottestQuery(params).as('view'))
       .count()
       .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
 
-    if (!oss) {
-      qs = qs.andWhere(function () {
-        this.where({ inHottest: true }).orWhereNull('in_hottest')
-      })
-    }
-    const result = await qs
+  countRecommendValue = async (params: {
+    where?: { [key: string]: any }
+    oss?: boolean
+  }) => {
+    const result = await this.knex()
+      .from(this.makeRecommendByValueQuery(params).as('view'))
+      .count()
+      .first()
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
@@ -1581,7 +1583,6 @@ export class ArticleService extends BaseService {
    *           Response            *
    *                               *
    *********************************/
-
   makeResponseQuery = ({
     id,
     order,
@@ -1622,7 +1623,11 @@ export class ArticleService extends BaseService {
                   )
                 )
                 .from('comment')
-                .where({ articleId: id, parentCommentId: null })
+                .where({
+                  targetId: id,
+                  parentCommentId: null,
+                  type: COMMENT_TYPE.article,
+                })
             })
           }
 

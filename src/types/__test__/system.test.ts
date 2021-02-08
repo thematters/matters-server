@@ -40,7 +40,7 @@ beforeAll(async () => {
   }
 })
 
-const GET_USER = `
+const GET_USER = /* GraphQL */ `
   query($input: NodeInput!) {
     node(input: $input) {
       ... on User {
@@ -49,7 +49,7 @@ const GET_USER = `
     }
   }
 `
-const GET_ARTICLE = `
+const GET_ARTICLE = /* GraphQL */ `
   query($input: NodeInput!) {
     node(input: $input) {
       ... on Article {
@@ -59,7 +59,7 @@ const GET_ARTICLE = `
     }
   }
 `
-const GET_COMMENT = `
+const GET_COMMENT = /* GraphQL */ `
   query($input: NodeInput!) {
     node(input: $input) {
       ... on Comment {
@@ -69,7 +69,7 @@ const GET_COMMENT = `
     }
   }
 `
-const SEARCH = `
+const SEARCH = /* GraphQL */ `
   query($input: SearchInput!) {
     search(input: $input) {
       edges {
@@ -95,7 +95,7 @@ const SEARCH = `
   }
 `
 
-const QUERY_FEATURES = `
+const QUERY_FEATURES = /* GraphQL */ `
   query {
     official {
       features {
@@ -106,7 +106,7 @@ const QUERY_FEATURES = `
   }
 `
 
-const SET_FEATURE = `
+const SET_FEATURE = /* GraphQL */ `
   mutation($input: SetFeatureInput!) {
     setFeature(input: $input) {
       name
@@ -318,7 +318,7 @@ describe('manage feature flag', () => {
 
     const { data: queryData5 } = await query({ query: QUERY_FEATURES })
     const features5 = (queryData5?.official?.features || []).reduce(reducer, {})
-    expect(features5.circle_management).toBe(false)
+    expect(features5.circle_management).toBe(true)
 
     const { data: queryData6 } = await adminQuery({ query: QUERY_FEATURES })
     const features6 = (queryData6?.official?.features || []).reduce(reducer, {})
@@ -330,7 +330,7 @@ describe('manage feature flag', () => {
     })
     const { data: queryData7 } = await otherQuery({ query: QUERY_FEATURES })
     const features7 = (queryData7?.official?.features || []).reduce(reducer, {})
-    expect(features7.circle_management).toBe(true)
+    expect(features7.circle_management).toBe(false)
 
     // reset feature as on
     const updateData5 = await adminMutate({

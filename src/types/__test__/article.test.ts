@@ -10,8 +10,8 @@ const mediaHash = 'someIpfsMediaHash1'
 
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
 
-const GET_ARTICLES = `
-  query ($input: ConnectionArgs!) {
+const GET_ARTICLES = /* GraphQL */ `
+  query($input: ConnectionArgs!) {
     oss {
       articles(input: $input) {
         edges {
@@ -24,8 +24,8 @@ const GET_ARTICLES = `
   }
 `
 
-const GET_ARTICLE_TAGS = `
-  query ($input: NodeInput!) {
+const GET_ARTICLE_TAGS = /* GraphQL */ `
+  query($input: NodeInput!) {
     node(input: $input) {
       ... on Article {
         id
@@ -37,8 +37,8 @@ const GET_ARTICLE_TAGS = `
   }
 `
 
-const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = `
-  query ($input: NodeInput!) {
+const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = /* GraphQL */ `
+  query($input: NodeInput!) {
     node(input: $input) {
       ... on Article {
         appreciationsReceivedTotal
@@ -47,7 +47,7 @@ const GET_ARTICLE_APPRECIATIONS_RECEIVED_TOTAL = `
   }
 `
 
-const APPRECIATE_ARTICLE = `
+const APPRECIATE_ARTICLE = /* GraphQL */ `
   mutation($input: AppreciateArticleInput!) {
     appreciateArticle(input: $input) {
       appreciationsReceivedTotal
@@ -55,7 +55,7 @@ const APPRECIATE_ARTICLE = `
   }
 `
 
-const TOGGLE_ARTICLE_LIVE = `
+const TOGGLE_ARTICLE_LIVE = /* GraphQL */ `
   mutation($input: ToggleItemInput!) {
     toggleArticleLive(input: $input) {
       live
@@ -63,7 +63,7 @@ const TOGGLE_ARTICLE_LIVE = `
   }
 `
 
-const TOGGLE_SUBSCRIBE_ARTICLE = `
+const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
   mutation($input: ToggleItemInput!) {
     toggleSubscribeArticle(input: $input) {
       subscribed
@@ -71,7 +71,7 @@ const TOGGLE_SUBSCRIBE_ARTICLE = `
   }
 `
 
-const EDIT_ARTICLE = `
+const EDIT_ARTICLE = /* GraphQL */ `
   mutation($input: EditArticleInput!) {
     editArticle(input: $input) {
       id
@@ -96,8 +96,8 @@ const EDIT_ARTICLE = `
   }
 `
 
-const GET_RELATED_ARTICLES = `
-  query ($input: ArticleInput!) {
+const GET_RELATED_ARTICLES = /* GraphQL */ `
+  query($input: ArticleInput!) {
     article(input: $input) {
       relatedArticles(input: {}) {
         edges {

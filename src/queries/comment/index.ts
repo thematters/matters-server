@@ -1,7 +1,6 @@
 import { ARTICLE_PIN_COMMENT_LIMIT } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
-import article from './article'
 import articleCommentCount from './article/commentCount'
 import articleComments from './article/comments'
 import articleFeaturedComments from './article/featuredComments'
@@ -10,6 +9,7 @@ import articlePinnedComments from './article/pinnedComments'
 import author from './author'
 import circleBroadcast from './circle/broadcast'
 import circleDiscussion from './circle/discussion'
+import circlePinnedBroadcast from './circle/pinnedBroadcast'
 import comments from './comments'
 import content from './content'
 import downvotes from './downvotes'
@@ -36,7 +36,6 @@ export default {
   Comment: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Comment', id }),
     replyTo,
-    article,
     content,
     author,
     upvotes,
@@ -49,6 +48,7 @@ export default {
   },
   Circle: {
     broadcast: circleBroadcast,
+    pinnedBroadcast: circlePinnedBroadcast,
     discussion: circleDiscussion,
   },
 }

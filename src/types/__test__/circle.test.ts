@@ -1,5 +1,7 @@
 import _get from 'lodash/get'
 
+import { GQLCommentType } from 'definitions'
+
 import { testClient } from './utils'
 
 const GET_VIEWER_OWN_CIRCLES = `
@@ -7,6 +9,7 @@ const GET_VIEWER_OWN_CIRCLES = `
     viewer {
       ownCircles {
         id
+        name
         members(input: { first: null }) {
           totalCount
         }
@@ -22,20 +25,7 @@ const GET_VIEWER_OWN_CIRCLES = `
   }
 `
 
-const QUERY_CIRCLE = `
-  query($input: NodeInput!) {
-    node(input: $input) {
-      ... on Circle {
-        id
-        members(input: { first: null }) {
-          totalCount
-        }
-      }
-    }
-  }
-`
-
-const PUT_CIRCLE = `
+const PUT_CIRCLE = /* GraphQL */ `
   mutation($input: PutCircleInput!) {
     putCircle(input: $input) {
       id
@@ -53,7 +43,7 @@ const PUT_CIRCLE = `
   }
 `
 
-const TOGGLE_FOLLOW_CIRCLE = `
+const TOGGLE_FOLLOW_CIRCLE = /* GraphQL */ `
   mutation($input: ToggleItemInput!) {
     toggleFollowCircle(input: $input) {
       id
@@ -61,7 +51,7 @@ const TOGGLE_FOLLOW_CIRCLE = `
         totalCount
         edges {
           node {
-            ...on User {
+            ... on User {
               id
             }
           }
@@ -71,26 +61,7 @@ const TOGGLE_FOLLOW_CIRCLE = `
   }
 `
 
-const SUBSCRIBE_CIRCLE = `
-  mutation($input: SubscribeCircleInput!) {
-    subscribeCircle(input: $input) {
-      client_secret
-    }
-  }
-`
-
-const UNSUBSCRIBE_CIRCLE = `
-  mutation($input: UnsubscribeCircleInput!) {
-    unsubscribeCircle(input: $input) {
-      id
-      members(input: { first: null }) {
-        totalCount
-      }
-    }
-  }
-`
-
-const PUT_CIRCLE_ARTICLES = `
+const PUT_CIRCLE_ARTICLES = /* GraphQL */ `
   mutation($input: PutCircleArticlesInput!) {
     putCircleArticles(input: $input) {
       id
@@ -100,6 +71,50 @@ const PUT_CIRCLE_ARTICLES = `
           node {
             id
             limitedFree
+          }
+        }
+      }
+    }
+  }
+`
+
+const PUT_CIRCLE_COMMENT = /* GraphQL */ /* GraphQL */ `
+  mutation($input: PutCommentInput!) {
+    putComment(input: $input) {
+      id
+    }
+  }
+`
+
+const TOGGLE_PIN_COMMENT = /* GraphQL */ `
+  mutation($input: ToggleItemInput!) {
+    togglePinComment(input: $input) {
+      id
+      pinned
+    }
+  }
+`
+
+const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
+  query($input: CircleInput!) {
+    circle(input: $input) {
+      id
+      discussion(input: { first: null }) {
+        totalCount
+        edges {
+          node {
+            id
+          }
+        }
+      }
+      pinnedBroadcast {
+        id
+      }
+      broadcast(input: { first: null }) {
+        totalCount
+        edges {
+          node {
+            id
           }
         }
       }
@@ -295,5 +310,99 @@ describe('circle CRUD', () => {
       variables: { input },
     })
     expect(_get(removedData, errorPath)).toBe('FORBIDDEN')
+  })
+
+  test('add and retrieve discussion', async () => {
+    const { query, mutate } = await testClient(userClient)
+    const { data } = await query({
+      query: GET_VIEWER_OWN_CIRCLES,
+    })
+    const circle = _get(data, 'viewer.ownCircles[0]')
+
+    // add
+    const addedData = await mutate({
+      mutation: PUT_CIRCLE_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'discussion',
+            circleId: circle.id,
+            type: GQLCommentType.circleDiscussion,
+          },
+        },
+      },
+    })
+    const commentId = _get(addedData, `data.putComment.id`)
+
+    expect(commentId).toBeTruthy()
+
+    // retrieve
+    const retrieveData = await query({
+      query: QUERY_CIRCLE_COMMENTS,
+      variables: {
+        input: { name: circle.name },
+      },
+    })
+
+    expect(
+      _get(retrieveData, 'data.circle.discussion.totalCount')
+    ).toBeGreaterThan(0)
+    expect(_get(retrieveData, 'data.circle.discussion.edges.0.node.id')).toBe(
+      commentId
+    )
+  })
+
+  test('add, pin and retrieve broadcast', async () => {
+    const { query, mutate } = await testClient(userClient)
+    const { data } = await query({
+      query: GET_VIEWER_OWN_CIRCLES,
+    })
+    const circle = _get(data, 'viewer.ownCircles[0]')
+
+    // add
+    const addedData = await mutate({
+      mutation: PUT_CIRCLE_COMMENT,
+      variables: {
+        input: {
+          comment: {
+            content: 'broadcast',
+            circleId: circle.id,
+            type: GQLCommentType.circleBroadcast,
+          },
+        },
+      },
+    })
+    const commentId = _get(addedData, `data.putComment.id`)
+    expect(commentId).toBeTruthy()
+
+    // pin
+    const pinnedData = await mutate({
+      mutation: TOGGLE_PIN_COMMENT,
+      variables: {
+        input: {
+          id: commentId,
+          enabled: true,
+        },
+      },
+    })
+    expect(_get(pinnedData, 'data.togglePinComment.pinned')).toBe(true)
+
+    // retrieve
+    const retrieveData = await query({
+      query: QUERY_CIRCLE_COMMENTS,
+      variables: {
+        input: { name: circle.name },
+      },
+    })
+
+    expect(
+      _get(retrieveData, 'data.circle.broadcast.totalCount')
+    ).toBeGreaterThan(0)
+    expect(_get(retrieveData, 'data.circle.broadcast.edges.0.node.id')).toBe(
+      commentId
+    )
+    expect(_get(retrieveData, 'data.circle.pinnedBroadcast.0.id')).toBe(
+      commentId
+    )
   })
 })
