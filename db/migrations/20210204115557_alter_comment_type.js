@@ -1,29 +1,45 @@
 const { alterEnumString } = require('../utils')
 
 const commentTable = 'comment'
-const hottestView = 'article_activity_view'
-const hottestMaterilized = 'article_activity_materialized'
+const activityView = 'article_activity_view'
+const activityMaterilized = 'article_activity_materialized'
 const topicView = 'article_count_view'
 const topicMaterialized = 'article_count_materialized'
 const valueView = `article_value_view`
 const valueMaterialized = `article_value_materialized`
 const hottestAView = `article_hottest_a_view`
 const hottestAMaterialized = `article_hottest_a_materialized`
+const hottestBView = `article_hottest_b_view`
+const hottestBMaterialized = `article_hottest_b_materialized`
+const hottestView = `article_hottest_view`
+const hottestMaterialized = `article_hottest_materialized`
 const featuredCommentMaterialized = 'featured_comment_materialized'
+
+const time_window = 3
+const donation_decay_factor = 0.8
+const boost = 1
+const boost_window = 3
+const matty_donation_decay_factor = 0.95
 
 exports.up = async (knex) => {
   /**
    * Step 0: drop views
    */
+  // deprecated
   await knex.raw(/* sql */ `
     DROP VIEW IF EXISTS ${hottestAView} CASCADE;
     DROP MATERIALIZED VIEW IF EXISTS ${hottestAMaterialized} CASCADE;
 
+    DROP VIEW IF EXISTS ${hottestBView} CASCADE;
+    DROP MATERIALIZED VIEW IF EXISTS ${hottestBMaterialized} CASCADE;
+
+    DROP VIEW IF EXISTS ${activityView} CASCADE;
+    DROP MATERIALIZED VIEW IF EXISTS ${activityMaterilized} CASCADE;
+  `)
+  // to be altered
+  await knex.raw(/* sql */ `
     DROP VIEW IF EXISTS ${topicView} CASCADE;
     DROP MATERIALIZED VIEW IF EXISTS ${topicMaterialized} CASCADE;
-
-    DROP VIEW IF EXISTS ${hottestView} CASCADE;
-    DROP MATERIALIZED VIEW IF EXISTS ${hottestMaterilized} CASCADE;
 
     DROP VIEW IF EXISTS ${valueView} CASCADE;
     DROP MATERIALIZED VIEW IF EXISTS ${valueMaterialized} CASCADE;
@@ -48,7 +64,6 @@ exports.up = async (knex) => {
   )
 
   await knex.schema.alterTable(commentTable, (t) => {
-    t.dropForeign('article_id')
     t.bigInteger('article_id').unsigned().nullable().alter()
   })
 
@@ -109,97 +124,120 @@ exports.up = async (knex) => {
 
   // hottest
   await knex.raw(/*sql*/ `
-    CREATE VIEW ${hottestView} AS
+    CREATE VIEW ${hottestView} AS WITH original_score AS (
       SELECT
-        *,
-        base_score + boost_score_1 + boost_score_2 AS score
+        max(read_time_efficiency_boost) AS max_efficiency
       FROM (
         SELECT
-          article.id,
-          article.title,
-          article.created_at,
-          least((0.5 * coalesce(comment_12_hrs, 0) + 2 * coalesce(like_24_hrs, 0)) * (2 + post_days) / (1 + post_days), 300) AS base_score,
-          (15 * coalesce(comment_30_mins, 0) + 60 * coalesce(like_30_mins, 0)) AS boost_score_1,
-          greatest(120 - 2 * since_comment, 0) + greatest(240 - 2 * since_like, 0) AS boost_score_2
+          a.id,
+          CASE WHEN extract(epoch FROM now() - a.created_at) <= ${boost_window} * 3600 THEN
+            ${boost} * (sum(arc.read_time)::decimal / least(extract(epoch FROM now() - a.created_at)::decimal + 1,
+                ${time_window} * 24 * 3600)) ^ 0.5
+          ELSE
+            (sum(arc.read_time)::decimal / least(extract(epoch FROM now() - a.created_at)::decimal + 1,
+                ${time_window} * 24 * 3600)) ^ 0.5
+          END AS read_time_efficiency_boost
         FROM
-          article
-          /* past comment count */
-        LEFT JOIN (
-          SELECT
-            target_id,
-            sum((created_at >= now() - interval '12 hours')::int) AS comment_12_hrs,
-            sum((created_at >= now() - interval '30 minutes')::int) AS comment_30_mins
-          FROM
-            comment
-          WHERE
-            "comment"."type" = 'article'
-          GROUP BY
-            target_id) AS cc ON cc.target_id = article.id
-          /* past 2 days like */
-        LEFT JOIN (
-          SELECT
-            reference_id,
-            sum(amount) AS like_24_hrs
-          FROM
-            appreciation
-          WHERE
-            purpose = 'appreciate'
-            AND created_at >= now() - interval '24 hours'
-          GROUP BY
-            reference_id) AS lc1 ON lc1.reference_id = article.id
-          /* past 30 minutes like */
-        LEFT JOIN (
-          SELECT
-            reference_id,
-            sum(amount) AS like_30_mins
-          FROM
-            appreciation
-          WHERE
-            purpose = 'appreciate'
-            AND created_at >= now() - interval '30 minutes'
-          GROUP BY
-            reference_id) AS lc2 ON lc2.reference_id = article.id
-          /* number of days since published */
-        LEFT JOIN (
-          SELECT
-            id,
-            CURRENT_DATE - created_at::date AS post_days
-          FROM
-            article) AS pd ON pd.id = article.id
-          /* minutes since first comment */
+          article a
+          JOIN public.user u ON a.author_id = u.id
+          JOIN article_read_count arc ON a.id = arc.article_id
+        WHERE
+          a.state = 'active'
+          AND arc.created_at >= to_timestamp((extract(epoch FROM now()) - ${time_window} * 24 * 3600))
+          AND arc.user_id IS NOT NULL
+        GROUP BY
+          a.id) t
+    )
+    SELECT
+      article.id,
+      article.title,
+      article.created_at,
+      'https://matters.news/@-/-' || article.media_hash AS link,
+      coalesce(t.score, 0) AS score
+    FROM
+      article
+      LEFT JOIN (
+        SELECT
+          t1.*,
+          t2.latest_transaction,
+          t3.latest_transaction_matty,
+          (
+            SELECT
+              max_efficiency
+            FROM
+              original_score) AS max_efficiency,
+            greatest((
+              SELECT
+                max_efficiency FROM original_score) * coalesce(${donation_decay_factor} ^ (extract(epoch FROM now() - t2.latest_transaction)::decimal / 3600), 0), (
+                SELECT
+                  max_efficiency FROM original_score) * coalesce(${matty_donation_decay_factor} ^ (extract(epoch FROM now() - t3.latest_transaction_matty)::decimal / 3600), 0)) AS donation_score,
+            t1.read_time_efficiency_boost + greatest((
+              SELECT
+                max_efficiency FROM original_score) * coalesce(${donation_decay_factor} ^ (extract(epoch FROM now() - t2.latest_transaction)::decimal / 3600), 0), (
+                SELECT
+                  max_efficiency FROM original_score) * coalesce(${matty_donation_decay_factor} ^ (extract(epoch FROM now() - t3.latest_transaction_matty)::decimal / 3600), 0)) AS score
+          FROM (
+            SELECT
+              a.id,
+              a.title,
+              a.created_at,
+              u.display_name,
+              'https://matters.news/@-/-' || a.media_hash AS link,
+              sum(arc.read_time) AS read_seconds_in_time_window,
+              (sum(arc.read_time)::decimal / least(extract(epoch FROM now() - a.created_at)::decimal + 1, ${time_window} * 24 * 3600)) ^ 0.5 AS read_time_efficiency,
+              CASE WHEN extract(epoch FROM now() - a.created_at) <= ${boost_window} * 3600 THEN
+                ${boost} * (sum(arc.read_time)::decimal / least(extract(epoch FROM now() - a.created_at)::decimal + 1, ${time_window} * 24 * 3600)) ^ 0.5
+              ELSE
+                (sum(arc.read_time)::decimal / least(extract(epoch FROM now() - a.created_at)::decimal + 1, ${time_window} * 24 * 3600)) ^ 0.5
+              END AS read_time_efficiency_boost
+            FROM
+              article a
+              JOIN public.user u ON a.author_id = u.id
+              JOIN article_read_count arc ON a.id = arc.article_id
+            WHERE
+              a.state = 'active'
+              AND arc.created_at > to_timestamp((extract(epoch FROM now()) - ${time_window} * 24 * 3600))
+              AND arc.user_id IS NOT NULL
+            GROUP BY
+              a.id,
+              u.display_name) t1
           LEFT JOIN (
             SELECT
               target_id,
-              extract(epoch FROM now() - min(created_at)) / 60 AS since_comment
+              max(updated_at) AS latest_transaction
             FROM
-              comment
+              TRANSACTION
             WHERE
-              created_at >= now() - interval '30 days'
-              AND "comment"."type" = 'article'
+              target_type = 4
+              AND state = 'succeeded'
+              AND purpose = 'donation'
+              and(currency = 'LIKE'
+                AND amount >= 100
+                OR currency = 'HKD')
+              AND sender_id NOT in(81, 20053)
             GROUP BY
-              target_id) AS fc ON fc.target_id = article.id
-            /* minutes since first like */
+              target_id) t2 ON t1.id = t2.target_id
           LEFT JOIN (
             SELECT
-              reference_id,
-              extract(epoch FROM now() - min(created_at)) / 60 AS since_like
+              target_id,
+              max(updated_at) AS latest_transaction_matty
             FROM
-              appreciation
+              TRANSACTION
             WHERE
-              purpose = 'appreciate'
-              AND created_at >= now() - interval '30 days'
+              target_type = 4
+              AND state = 'succeeded'
+              AND purpose = 'donation'
+              AND sender_id in(81, 20053)
             GROUP BY
-              reference_id) AS fl ON fl.reference_id = article.id) AS scores
-      WHERE
-        id NOT in(
-          SELECT
-            article_id FROM matters_today
-          ORDER BY
-            updated_at DESC
-          LIMIT 1
-      );
+              target_id) t3 ON t1.id = t3.target_id -- Matty boost
+    ) t ON article.id = t.id
+    WHERE
+      article.state = 'active'
+    ORDER BY
+      score DESC,
+      created_at DESC;
 
-    CREATE materialized VIEW ${hottestMaterilized} AS
+    CREATE materialized VIEW ${hottestMaterialized} AS
       SELECT
         *
       FROM
@@ -354,22 +392,23 @@ exports.down = async (knex) => {
     DROP VIEW IF EXISTS ${hottestAView} CASCADE;
     DROP MATERIALIZED VIEW IF EXISTS ${hottestAMaterialized} CASCADE;
 
+    DROP VIEW IF EXISTS ${hottestBView} CASCADE;
+    DROP MATERIALIZED VIEW IF EXISTS ${hottestBMaterialized} CASCADE;
+
+    DROP VIEW IF EXISTS ${hottestView} CASCADE;
+    DROP MATERIALIZED VIEW IF EXISTS ${hottestMaterialized} CASCADE;
+
     DROP VIEW IF EXISTS ${topicView} CASCADE;
     DROP MATERIALIZED VIEW IF EXISTS ${topicMaterialized} CASCADE;
 
-    DROP VIEW IF EXISTS ${hottestView} CASCADE;
-    DROP MATERIALIZED VIEW IF EXISTS ${hottestMaterilized} CASCADE;
+    DROP VIEW IF EXISTS ${activityView} CASCADE;
+    DROP MATERIALIZED VIEW IF EXISTS ${activityMaterilized} CASCADE;
 
     DROP VIEW IF EXISTS ${valueView} CASCADE;
     DROP MATERIALIZED VIEW IF EXISTS ${valueMaterialized} CASCADE;
 
     DROP MATERIALIZED VIEW IF EXISTS ${featuredCommentMaterialized} CASCADE;
   `)
-
-  await knex.schema.alterTable(commentTable, function (t) {
-    t.bigInteger('article_id').unsigned().notNullable().alter()
-    t.foreign('article_id').references('id').inTable('article')
-  })
 
   await knex.raw(
     alterEnumString(commentTable, 'type', [

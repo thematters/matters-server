@@ -24,7 +24,7 @@ export const hottest: RecommendationToHottestResolver = async (
   const offset = cursorToIndex(after) + 1
   const [totalCount, articles] = await Promise.all([
     articleService.countRecommendHottest({ where: id ? {} : where, oss }),
-    articleService.recommendByHottestB({
+    articleService.recommendByHottest({
       offset,
       limit: first,
       where,
