@@ -15,7 +15,6 @@ const resolver: CircleToMembersResolver = async (
   const skip = cursorToIndex(after) + 1
 
   const where = {
-    'cs.state': SUBSCRIPTION_STATE.active,
     'circle_price.circle_id': id,
     'circle_price.state': PRICE_STATE.active,
     'csi.archived': false,
@@ -26,6 +25,10 @@ const resolver: CircleToMembersResolver = async (
     .join('circle_price', 'circle_price.id', 'csi.price_id')
     .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
     .where(where)
+    .whereIn('cs.state', [
+      SUBSCRIPTION_STATE.active,
+      SUBSCRIPTION_STATE.trialing,
+    ])
     .first()
   const totalCount = parseInt(record ? (record.count as string) : '0', 10)
 
@@ -35,6 +38,10 @@ const resolver: CircleToMembersResolver = async (
     .join('circle_price', 'circle_price.id', 'csi.price_id')
     .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
     .where(where)
+    .whereIn('cs.state', [
+      SUBSCRIPTION_STATE.active,
+      SUBSCRIPTION_STATE.trialing,
+    ])
 
   if (skip) {
     query.offset(skip)

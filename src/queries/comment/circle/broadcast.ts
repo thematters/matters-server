@@ -32,6 +32,10 @@ const resolver: CircleToBroadcastResolver = async (
       },
       skip,
       take,
+      orderBy: [
+        { column: 'pinned', order: 'desc' },
+        { column: 'created_at', order: 'desc' },
+      ],
     }),
   ])
 

@@ -1,4 +1,9 @@
-import { COMMENT_TYPE, DB_NOTICE_TYPE } from 'common/enums'
+import {
+  CACHE_KEYWORD,
+  COMMENT_TYPE,
+  DB_NOTICE_TYPE,
+  NODE_TYPES,
+} from 'common/enums'
 import {
   ActionLimitExceededError,
   AuthenticationError,
@@ -64,11 +69,6 @@ const resolver: MutationToTogglePinCommentResolver = async (
       }
     }
 
-    // check is pinned before
-    if (comment.pinned) {
-      return comment
-    }
-
     pinnedComment = await commentService.togglePinned({
       commentId: dbId,
       pinned: true,
@@ -93,6 +93,14 @@ const resolver: MutationToTogglePinCommentResolver = async (
       pinned: false,
     })
   }
+
+  // invalidate extra nodes
+  pinnedComment[CACHE_KEYWORD] = [
+    {
+      id: article ? article.id : circle.id,
+      type: article ? NODE_TYPES.article : NODE_TYPES.circle,
+    },
+  ]
 
   return pinnedComment
 }
