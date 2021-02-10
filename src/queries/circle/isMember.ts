@@ -16,12 +16,15 @@ const resolver: CircleToIsMemberResolver = async (
     .join('circle_price', 'circle_price.id', 'csi.price_id')
     .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
     .where({
-      'cs.state': SUBSCRIPTION_STATE.active,
       'csi.user_id': viewer.id,
       'csi.archived': false,
       'circle_price.circle_id': id,
       'circle_price.state': PRICE_STATE.active,
     })
+    .whereIn('cs.state', [
+      SUBSCRIPTION_STATE.active,
+      SUBSCRIPTION_STATE.trialing,
+    ])
 
   return records && records.length > 0
 }
