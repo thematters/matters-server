@@ -1,4 +1,5 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import bodyParser from 'body-parser'
 import { Router } from 'express'
 import NP from 'number-precision'
 
@@ -36,6 +37,8 @@ const invalidateCache = async ({
     }
   }
 }
+
+likecoinRouter.use(bodyParser.json())
 
 likecoinRouter.get('/', async (req, res) => {
   const successRedirect = `${environment.siteDomain}/pay/likecoin/success`
@@ -167,6 +170,29 @@ likecoinRouter.get('/', async (req, res) => {
   }
 
   return res.redirect(successRedirect)
+})
+
+/**
+ * Handling Incoming Like Pay Webhook Events
+ *
+ * @see {@url https://docs.like.co/developer/like-pay/web-widget/webhook}
+ */
+likecoinRouter.post('/', async (req, res, next) => {
+  try {
+    const { tx, metadata } = req.body
+    if (!tx) {
+      throw new Error('callback has no "tx"')
+    }
+
+    if (!metadata) {
+      throw new Error('callback has no "metadata"')
+    }
+
+    res.json({ received: true })
+  } catch (error) {
+    logger.error(error)
+    next(error)
+  }
 })
 
 export default likecoinRouter
