@@ -285,7 +285,7 @@ class StripeService {
 
   cancelSubscription = async (id: string) => {
     try {
-      return await this.stripeAPI.subscriptions.del(id)
+      return await this.stripeAPI.subscriptions.del(id, { prorate: false })
     } catch (error) {
       this.handleError(error)
     }
@@ -312,7 +312,9 @@ class StripeService {
 
   deleteSubscriptionItem = async (id: string) => {
     try {
-      return await this.stripeAPI.subscriptionItems.del(id)
+      return await this.stripeAPI.subscriptionItems.del(id, {
+        proration_behavior: 'none',
+      })
     } catch (error) {
       this.handleError(error)
     }
