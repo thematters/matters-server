@@ -767,11 +767,6 @@ export interface GQLComment extends GQLNode {
   createdAt: GQLDateTime
 
   /**
-   * Article that the comment is belonged to.
-   */
-  article: GQLArticle
-
-  /**
    * Content of this comment.
    */
   content?: string
@@ -1127,6 +1122,11 @@ export interface GQLCircle extends GQLNode {
    * Comments broadcasted by Circle owner.
    */
   broadcast: GQLCommentConnection
+
+  /**
+   * Pinned comments broadcasted by Circle owner.
+   */
+  pinnedBroadcast?: Array<GQLComment>
 
   /**
    * Comments made by Circle member.
@@ -2515,15 +2515,31 @@ export const enum GQLPutCircleArticlesType {
 
 export interface GQLPutCommentInput {
   comment: GQLCommentInput
+
+  /**
+   * edit comment if id is provided
+   */
   id?: string
 }
 
 export interface GQLCommentInput {
   content: string
   replyTo?: string
-  articleId: string
   parentId?: string
   mentions?: Array<string>
+  type: GQLCommentType
+
+  /**
+   * one of the following ids is required
+   */
+  articleId?: string
+  circleId?: string
+}
+
+export const enum GQLCommentType {
+  article = 'article',
+  circleDiscussion = 'circleDiscussion',
+  circleBroadcast = 'circleBroadcast',
 }
 
 export interface GQLDeleteCommentInput {
@@ -5183,7 +5199,6 @@ export interface GQLCommentTypeResolver<TParent = any> {
   id?: CommentToIdResolver<TParent>
   state?: CommentToStateResolver<TParent>
   createdAt?: CommentToCreatedAtResolver<TParent>
-  article?: CommentToArticleResolver<TParent>
   content?: CommentToContentResolver<TParent>
   author?: CommentToAuthorResolver<TParent>
   pinned?: CommentToPinnedResolver<TParent>
@@ -5217,15 +5232,6 @@ export interface CommentToStateResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToCreatedAtResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5860,6 +5866,7 @@ export interface GQLCircleTypeResolver<TParent = any> {
   isMember?: CircleToIsMemberResolver<TParent>
   setting?: CircleToSettingResolver<TParent>
   broadcast?: CircleToBroadcastResolver<TParent>
+  pinnedBroadcast?: CircleToPinnedBroadcastResolver<TParent>
   discussion?: CircleToDiscussionResolver<TParent>
 }
 
@@ -6032,6 +6039,15 @@ export interface CircleToBroadcastResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: CircleToBroadcastArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToPinnedBroadcastResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -1,11 +1,9 @@
 import DataLoader from 'dataloader'
-import { v4 } from 'uuid'
 
 import {
   ARTICLE_PIN_COMMENT_LIMIT,
-  BATCH_SIZE,
   COMMENT_STATE,
-  MATERIALIZED_VIEW,
+  COMMENT_TYPE,
   USER_ACTION,
 } from 'common/enums'
 import { CommentNotFoundError } from 'common/errors'
@@ -13,7 +11,8 @@ import { BaseService } from 'connectors'
 import { GQLCommentCommentsInput, GQLCommentsInput, GQLVote } from 'definitions'
 
 interface CommentFilter {
-  articleId?: string
+  targetId?: string
+  targetTypeId?: string
   authorId?: string
   state?: string
   parentCommentId?: string | null
@@ -41,68 +40,16 @@ export class CommentService extends BaseService {
     })
   }
 
-  create = async ({
-    authorId,
-    articleId,
-    parentCommentId,
-    content,
-    replyTo,
-  }: {
-    [key: string]: any
-  }) => {
-    // create comment
-    const comment = await this.baseCreate({
-      uuid: v4(),
-      authorId,
-      articleId,
-      targetId: articleId,
-      // only use `article` entity type for now
-      targetTypeId: 4,
-      parentCommentId,
-      content,
-      replyTo,
-    })
-    return comment
-  }
-
-  update = async ({
-    id,
-    articleId,
-    parentCommentId,
-    content,
-  }: {
-    [key: string]: any
-  }) => {
-    // update comment
-    const comemnt = await this.baseUpdate(id, {
-      articleId,
-      targetId: articleId,
-      // only use `article` entity type for now
-      targetTypeId: 4,
-      parentCommentId,
-      content,
-      updatedAt: new Date(),
-    })
-    return comemnt
-  }
-
-  /**
-   * Count comments by a given author id (user).
-   */
-  countByAuthor = async (authorId: string) => {
-    const result = await this.knex(this.table)
-      .where({ authorId, state: COMMENT_STATE.active })
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
-
   /**
    * Count comments by a given article id.
    */
   countByArticle = async (articleId: string) => {
     const result = await this.knex(this.table)
-      .where({ articleId, state: COMMENT_STATE.active })
+      .where({
+        targetId: articleId,
+        state: COMMENT_STATE.active,
+        type: COMMENT_TYPE.article,
+      })
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
@@ -144,16 +91,13 @@ export class CommentService extends BaseService {
    */
   find = async ({
     order = 'desc',
-    filter,
+    where,
     after,
     first,
     before,
     includeAfter = false,
     includeBefore = false,
-  }: GQLCommentsInput & { filter: CommentFilter; order?: string }) => {
-    // build where clause
-    const where = filter
-
+  }: GQLCommentsInput & { where: CommentFilter; order?: string }) => {
     const query = this.knex
       .select()
       .from(this.table)
@@ -186,11 +130,11 @@ export class CommentService extends BaseService {
   /**
    * Find id range with given filter
    */
-  range = async (filter: CommentFilter) => {
+  range = async (where: CommentFilter) => {
     const { count, max, min } = await this.knex
       .select()
       .from(this.table)
-      .where(filter)
+      .where(where)
       .min('id')
       .max('id')
       .count()
@@ -317,31 +261,6 @@ export class CommentService extends BaseService {
    *                               *
    *********************************/
 
-  /**
-   * Find featured comments by a given article id.
-   */
-  findFeaturedCommentsByArticle = async ({
-    id,
-    first = BATCH_SIZE,
-    after = 0,
-  }: {
-    id: string
-    first?: number
-    after?: number
-  }) => {
-    const result = await this.knex
-      .select('*')
-      .from(MATERIALIZED_VIEW.featuredCommentMaterialized)
-      .where({ articleId: id })
-      .orderBy([
-        { column: 'pinned', order: 'desc' },
-        { column: 'score', order: 'desc' },
-      ])
-      .limit(first)
-      .offset(after)
-    return result
-  }
-
   /*********************************
    *                               *
    *              Pin              *
@@ -376,9 +295,6 @@ export class CommentService extends BaseService {
   /**
    * Find pinned comments by a given article id.
    */
-  findPinnedByArticle = async (articleId: string) =>
-    this.knex.select().from(this.table).where({ articleId, pinned: true })
-
   countPinnedByArticle = async ({
     articleId,
     activeOnly,
@@ -388,11 +304,14 @@ export class CommentService extends BaseService {
   }) => {
     let qs = this.knex(this.table)
       .count()
-      .where({ articleId, pinned: true })
+      .where({ targetId: articleId, pinned: true })
       .first()
 
     if (activeOnly) {
-      qs = qs.where({ state: COMMENT_STATE.active })
+      qs = qs.where({
+        state: COMMENT_STATE.active,
+        type: COMMENT_TYPE.article,
+      })
     }
 
     const result = await qs

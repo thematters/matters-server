@@ -119,6 +119,7 @@ export class SystemService extends BaseService {
           },
           'seeding_user'
         )
+
         return seedingUser > 0
       }
     }

@@ -1,8 +1,8 @@
 import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
-import { ArticleToPinnedCommentsResolver } from 'definitions'
+import { CircleToPinnedBroadcastResolver } from 'definitions'
 
-const resolver: ArticleToPinnedCommentsResolver = (
-  { articleId },
+const resolver: CircleToPinnedBroadcastResolver = async (
+  { id },
   _,
   { dataSources: { atomService } }
 ) =>
@@ -11,9 +11,10 @@ const resolver: ArticleToPinnedCommentsResolver = (
     where: {
       pinned: true,
       state: COMMENT_STATE.active,
-      targetId: articleId,
-      type: COMMENT_TYPE.article,
+      targetId: id,
+      type: COMMENT_TYPE.circleBroadcast,
     },
+    orderBy: [{ column: 'created_at', order: 'desc' }],
   })
 
 export default resolver

@@ -1,15 +1,21 @@
-import { USER_STATE } from 'common/enums'
-import { AuthenticationError, ForbiddenByStateError } from 'common/errors'
+import {
+  COMMENT_TYPE,
+  PRICE_STATE,
+  SUBSCRIPTION_STATE,
+  USER_STATE,
+} from 'common/enums'
+import {
+  AuthenticationError,
+  ForbiddenByStateError,
+  ForbiddenError,
+} from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToVoteCommentResolver } from 'definitions'
 
 const resolver: MutationToVoteCommentResolver = async (
   _,
   { input: { id, vote } },
-  {
-    viewer,
-    dataSources: { articleService, commentService, notificationService },
-  }
+  { viewer, dataSources: { atomService, articleService, commentService }, knex }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -17,15 +23,53 @@ const resolver: MutationToVoteCommentResolver = async (
 
   const { id: dbId } = fromGlobalId(id)
   const comment = await commentService.dataloader.load(dbId)
-  // TODO: update for comment in circles
-  const article = await articleService.dataloader.load(comment.articleId)
 
-  // disallow onboarding user vote in others' articles, and forbid archived user operation
+  // check target
+  let article: any
+  let circle: any
+  let targetAuthor: any
+  if (comment.type === COMMENT_TYPE.article) {
+    article = await articleService.dataloader.load(comment.targetId)
+    targetAuthor = article.authorId
+  } else {
+    circle = await atomService.circleIdLoader.load(comment.targetId)
+    targetAuthor = circle.owner
+  }
+
+  // check permission
+  const isTargetAuthor = targetAuthor === viewer.id
   const isOnboarding = viewer.state === USER_STATE.onboarding
-  const isInactive =
-    viewer.state === USER_STATE.archived || viewer.state === USER_STATE.frozen
-  if ((article.authorId !== viewer.id && isOnboarding) || isInactive) {
+  const isInactive = [
+    USER_STATE.banned,
+    USER_STATE.archived,
+    USER_STATE.frozen,
+  ].includes(viewer.state)
+
+  if ((isOnboarding && !isTargetAuthor) || isInactive) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
+  }
+
+  if (circle && !isTargetAuthor) {
+    const records = await knex
+      .select()
+      .from('circle_subscription_item as csi')
+      .join('circle_price', 'circle_price.id', 'csi.price_id')
+      .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+      .where({
+        'csi.user_id': viewer.id,
+        'csi.archived': false,
+        'circle_price.circle_id': circle.id,
+        'circle_price.state': PRICE_STATE.active,
+      })
+      .whereIn('cs.state', [
+        SUBSCRIPTION_STATE.active,
+        SUBSCRIPTION_STATE.trialing,
+      ])
+    const isCircleMember = records && records.length > 0
+
+    if (!isCircleMember) {
+      throw new ForbiddenError('only circle members have the permission')
+    }
   }
 
   // check is voted before
@@ -41,15 +85,6 @@ const resolver: MutationToVoteCommentResolver = async (
   }
 
   await commentService.vote({ commentId: dbId, vote, userId: viewer.id })
-
-  // publish a PubSub event
-  // notificationService.pubsub.publish(
-  //   toGlobalId({
-  //     type: 'Article',
-  //     id: article.id,
-  //   }),
-  //   article
-  // )
 
   return comment
 }

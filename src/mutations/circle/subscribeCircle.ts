@@ -125,11 +125,14 @@ const resolver: MutationToSubscribeCircleResolver = async (
     .join('circle_price', 'circle_price.id', 'csi.price_id')
     .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
     .where({
-      'cs.state': SUBSCRIPTION_STATE.active,
       'csi.user_id': viewer.id,
       'csi.archived': false,
       'circle_price.state': PRICE_STATE.active,
     })
+    .whereIn('cs.state', [
+      SUBSCRIPTION_STATE.active,
+      SUBSCRIPTION_STATE.trialing,
+    ])
     .first()
   const subscribedCount = parseInt(record ? (record.count as string) : '0', 10)
   if (subscribedCount > 20) {

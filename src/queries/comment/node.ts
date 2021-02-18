@@ -1,29 +1,29 @@
+import { ARTICLE_STATE, CIRCLE_STATE, COMMENT_TYPE } from 'common/enums'
 import { CommentToNodeResolver } from 'definitions'
 
 const resolver: CommentToNodeResolver = async (
-  { id, targetId, targetEntityId },
+  { targetId, targetTypeId, type },
   _,
-  { dataSources: { atomService } }
+  { dataSources: { atomService, articleService } }
 ) => {
-  if (!id) {
-    return null
+  if (!targetId || !targetTypeId) {
+    return
   }
 
-  const record = await atomService.findUnique({
-    table: 'entity_type',
-    where: { id: targetEntityId },
-  })
+  if (type === COMMENT_TYPE.article) {
+    const draft = await articleService.draftLoader.load(targetId)
+    return { ...draft, __type: 'Article' }
+  } else {
+    const circle = await atomService.findFirst({
+      table: 'circle',
+      where: {
+        id: targetId,
+        state: CIRCLE_STATE.active,
+      },
+    })
 
-  if (!record) {
-    return null
+    return { ...circle, __type: 'Circle' }
   }
-
-  const node = await atomService.findUnique({
-    table: record.table,
-    where: { id: targetId },
-  })
-
-  return node
 }
 
 export default resolver

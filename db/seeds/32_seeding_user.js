@@ -4,7 +4,7 @@ exports.seed = async (knex) => {
   await knex(table).del()
   await knex(table).insert([
     {
-      user_id: 7,
+      user_id: 1,
     },
   ])
 }
