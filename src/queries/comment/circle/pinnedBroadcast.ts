@@ -14,7 +14,7 @@ const resolver: CircleToPinnedBroadcastResolver = async (
       targetId: id,
       type: COMMENT_TYPE.circleBroadcast,
     },
-    orderBy: [{ column: 'created_at', order: 'desc' }],
+    orderBy: [{ column: 'updated_at', order: 'desc' }],
   })
 
 export default resolver
