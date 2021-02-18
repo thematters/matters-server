@@ -32,6 +32,7 @@ const resolver: CircleToDiscussionResolver = async (
       },
       skip,
       take,
+      orderBy: [{ column: 'created_at', order: 'desc' }],
     }),
   ])
   return connectionFromArray(comments, input, totalCount)
