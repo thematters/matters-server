@@ -121,36 +121,6 @@ export const TransactionRemarkText = {
     // fallback
     unknow_error: '未知支付错误',
   },
-  [LANGUAGE.zh_hant]: {
-    amount_too_large: '金額高於最大允許金額',
-    amount_too_small: '金額低於最小允許金額',
-    card_decline_rate_limit_exceeded: '銀行卡被拒絕多次，請等待24小時',
-    card_declined: '銀行卡被拒絕',
-    expired_card: '銀行卡已過期',
-    incorrect_address: '銀行卡地址錯誤',
-    incorrect_cvc: '安全碼錯誤',
-    invalid_cvc: '無效安全碼',
-    incomplete_cvc: '無效安全碼',
-    incorrect_number: '卡號錯誤',
-    incorrect_zip: '郵編錯誤',
-    incomplete_zip: '郵編錯誤',
-    invalid_expiry_month: '銀行卡有效期錯誤',
-    invalid_expiry_month_past: '銀行卡有效期錯誤',
-    invalid_expiry_year: '銀行卡有效期錯誤',
-    invalid_expiry_year_past: '銀行卡有效期錯誤',
-    incomplete_expiry: '銀行卡有效期錯誤',
-    invalid_number: '無效卡號',
-    incomplete_number: '無效卡號',
-    postal_code_invalid: '無效郵政編碼',
-    processing_error: '操作失敗',
-    rate_limit: '操作過於頻繁',
-
-    // likecoin
-    unknown_likecoin_failue: 'LIKE Pay 支付失敗',
-
-    // fallback
-    unknow_error: '未知支付錯誤',
-  },
 
   [LANGUAGE.en]: {
     amount_too_large: 'amount is larger than upper limit',
