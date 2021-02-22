@@ -63,12 +63,14 @@ export class PaymentService extends BaseService {
     providerTxId,
     states,
     excludeCanceledLIKE,
+    notIn,
   }: {
     userId?: string
     id?: string
     providerTxId?: string
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
+    notIn?: [string, string[]]
   }) => {
     let qs = this.knex('transaction_delta_view').select()
 
@@ -114,6 +116,10 @@ export class PaymentService extends BaseService {
         .whereNull('canceled_like_txs.tx_id')
     }
 
+    if (notIn) {
+      qs.whereNotIn(...notIn)
+    }
+
     return qs
   }
 
@@ -123,6 +129,7 @@ export class PaymentService extends BaseService {
     id?: string
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
+    notIn?: [string, string[]]
   }) => {
     const qs = this.makeTransactionsQuery(params)
     const result = await qs.count()
@@ -141,6 +148,7 @@ export class PaymentService extends BaseService {
     providerTxId?: string
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
+    notIn?: [string, string[]]
     offset?: number
     limit?: number
   }) => {
