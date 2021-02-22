@@ -1,37 +1,56 @@
-import { difference, flow, uniq } from 'lodash'
+import { stripHtml } from '@matters/matters-html-formatter'
+import { difference, flow, trim, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
   ARTICLE_STATE,
   ASSET_TYPE,
+  CACHE_KEYWORD,
+  CIRCLE_STATE,
   DB_NOTICE_TYPE,
+  NODE_TYPES,
   PUBLISH_STATE,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
 import {
+  ArticleNotFoundError,
   ArticleRevisionContentInvalidError,
   ArticleRevisionReachLimitError,
   AssetNotFoundError,
   AuthenticationError,
-  EntityNotFoundError,
+  CircleNotFoundError,
+  DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
+  NameInvalidError,
 } from 'common/errors'
 import {
   correctHtml,
   fromGlobalId,
+  isValidTagName,
   measureDiffs,
   sanitize,
   stripClass,
-  stripHtml,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { ItemData, MutationToEditArticleResolver } from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
-  { input: { id, state, sticky, tags, content, cover, collection } },
+  {
+    input: {
+      id,
+      state,
+      sticky,
+      tags,
+      content,
+      summary,
+      cover,
+      collection,
+      circle: circleGlobalId,
+    },
+  },
   {
     viewer,
     dataSources: {
@@ -40,6 +59,7 @@ const resolver: MutationToEditArticleResolver = async (
       articleService,
       tagService,
       notificationService,
+      atomService,
     },
   }
 ) => {
@@ -55,13 +75,13 @@ const resolver: MutationToEditArticleResolver = async (
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.baseFindById(dbId)
   if (!article) {
-    throw new EntityNotFoundError('article does not exist')
+    throw new ArticleNotFoundError('article does not exist')
   }
-  const currDraft = await draftService.baseFindById(article.draftId)
-  if (!currDraft) {
-    throw new EntityNotFoundError('article linked draft does not exist')
+  const draft = await draftService.baseFindById(article.draftId)
+  if (!draft) {
+    throw new DraftNotFoundError('article linked draft does not exist')
   }
-  if (currDraft.authorId !== viewer.id) {
+  if (draft.authorId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')
   }
   if (article.state !== ARTICLE_STATE.active) {
@@ -104,23 +124,31 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Tags
    */
+  const resetTags = tags === null || (tags && tags.length === 0)
   if (tags) {
     // get tag editor
     const tagEditors = environment.mattyId
       ? [environment.mattyId, article.authorId]
       : [article.authorId]
 
+    tags = uniq(tags)
+      .map((tag) => {
+        if (!isValidTagName(tag)) {
+          throw new NameInvalidError(`invalid tag: ${tag}`)
+        }
+        return trim(tag)
+      })
+      .filter((t) => !!t)
+
     // create tag records
     const dbTags = ((await Promise.all(
-      uniq(
-        tags.map((tag: string) =>
-          tagService.create({
-            content: tag,
-            creator: article.authorId,
-            editors: tagEditors,
-            owner: article.authorId,
-          })
-        )
+      tags.map((tag: string) =>
+        tagService.create({
+          content: tag,
+          creator: article.authorId,
+          editors: tagEditors,
+          owner: article.authorId,
+        })
       )
     )) as unknown) as [{ id: string; content: string }]
 
@@ -141,11 +169,21 @@ const resolver: MutationToEditArticleResolver = async (
       articleId: article.id,
       tagIds: difference(oldIds, newIds),
     })
+  } else if (resetTags) {
+    const oldIds = (
+      await tagService.findByArticleId({ articleId: article.id })
+    ).map(({ id: tagId }: { id: string }) => tagId)
+
+    await tagService.deleteArticleTagsByTagIds({
+      articleId: article.id,
+      tagIds: oldIds,
+    })
   }
 
   /**
    * Cover
    */
+  const resetCover = cover === null
   if (cover) {
     const asset = await systemService.findAssetByUUID(cover)
 
@@ -161,7 +199,7 @@ const resolver: MutationToEditArticleResolver = async (
       cover: asset.id,
       updatedAt: new Date(),
     })
-  } else if (cover === null) {
+  } else if (resetCover) {
     await articleService.baseUpdate(dbId, {
       cover: null,
       updatedAt: new Date(),
@@ -171,6 +209,8 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Collection
    */
+  const resetCollection =
+    collection === null || (collection && collection.length === 0)
   if (collection) {
     // compare new and old collections
     const oldIds = (
@@ -211,62 +251,6 @@ const resolver: MutationToEditArticleResolver = async (
       articleIds: difference(oldIds, newIds),
     })
 
-    // revise content
-    if (content) {
-      const revisionCount = await draftService.countValidByArticleId({
-        articleId: article.id,
-      })
-      // cannot have drafts more than first draft plus 2 pending or published revision
-      if (revisionCount > 3) {
-        throw new ArticleRevisionReachLimitError(
-          'number of revisions reach limit'
-        )
-      }
-
-      const cleanedContent = stripClass(content, 'u-area-disable')
-
-      // check diff distances reaches limit or not
-      const diffs = measureDiffs(
-        stripHtml(currDraft.content, ''),
-        stripHtml(cleanedContent, '')
-      )
-      if (diffs > 50) {
-        throw new ArticleRevisionContentInvalidError('revised content invalid')
-      }
-
-      // fetch updated data before create draft
-      const [currArticle, currCollections, currTags] = await Promise.all([
-        articleService.baseFindById(dbId),
-        articleService.findCollections({ entranceId: article.id, limit: null }),
-        tagService.findByArticleId({ articleId: article.id }),
-      ])
-      const currTagContents = currTags.map((currTag) => currTag.content)
-      const currCollectionIds = currCollections.map(
-        ({ articleId }: { articleId: string }) => articleId
-      )
-
-      // create draft linked to this article
-      const pipe = flow(sanitize, correctHtml)
-      const data: ItemData = {
-        uuid: v4(),
-        authorId: currDraft.authorId,
-        articleId: currArticle.id,
-        title: currDraft.title,
-        content: pipe(cleanedContent),
-        tags: currTagContents,
-        cover: currArticle.cover,
-        collection: currCollectionIds,
-        archived: false,
-        publishState: PUBLISH_STATE.pending,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-      const revisedDraft = await draftService.baseCreate(data)
-
-      // add job to publish queue
-      revisionQueue.publishRevisedArticle({ draftId: revisedDraft.id })
-    }
-
     // trigger notifications
     diff.forEach(async (articleId) => {
       const targetCollection = await articleService.baseFindById(articleId)
@@ -288,6 +272,126 @@ const resolver: MutationToEditArticleResolver = async (
         ],
       })
     })
+  } else if (resetCollection) {
+    await articleService.deleteCollection({ entranceId: article.id })
+  }
+
+  /**
+   * Circle
+   */
+  const resetCircle = circleGlobalId === null
+  if (circleGlobalId) {
+    const { id: circleId } = fromGlobalId(circleGlobalId)
+    const circle = await atomService.findFirst({
+      table: 'circle',
+      where: { id: circleId, state: CIRCLE_STATE.active },
+    })
+
+    if (!circle) {
+      throw new CircleNotFoundError(`Cannot find circle ${circleGlobalId}`)
+    } else if (circle.owner !== viewer.id) {
+      throw new ForbiddenError(
+        `Viewer isn't the owner of circle ${circleGlobalId}.`
+      )
+    } else if (circle.state !== CIRCLE_STATE.active) {
+      throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
+    }
+    // insert to db
+    const data = { articleId: article.id, circleId: circle.id }
+    await atomService.upsert({
+      table: 'article_circle',
+      where: data,
+      create: data,
+      update: data,
+    })
+  } else if (resetCircle) {
+    throw new ForbiddenError(
+      `removing articles from circle is unsupported now.`
+    )
+  }
+
+  /**
+   * Summary
+   */
+  const resetSummary = summary === null || summary === ''
+  if (summary) {
+    await draftService.baseUpdate(dbId, {
+      summary,
+      summaryCustomized: true,
+      updatedAt: new Date(),
+    })
+  } else if (resetSummary) {
+    await draftService.baseUpdate(dbId, {
+      summary: null,
+      summaryCustomized: false,
+      updatedAt: new Date(),
+    })
+  }
+
+  /**
+   * Content
+   */
+  if (content) {
+    const revisionCount = await draftService.countValidByArticleId({
+      articleId: article.id,
+    })
+    // cannot have drafts more than first draft plus 2 pending or published revision
+    if (revisionCount > 3) {
+      throw new ArticleRevisionReachLimitError(
+        'number of revisions reach limit'
+      )
+    }
+
+    const cleanedContent = stripClass(content, 'u-area-disable')
+
+    // check diff distances reaches limit or not
+    const diffs = measureDiffs(
+      stripHtml(draft.content, ''),
+      stripHtml(cleanedContent, '')
+    )
+    if (diffs > 50) {
+      throw new ArticleRevisionContentInvalidError('revised content invalid')
+    }
+
+    // fetch updated data before create draft
+    const [
+      currDraft,
+      currArticle,
+      currCollections,
+      currTags,
+    ] = await Promise.all([
+      draftService.baseFindById(article.draftId), // fetch latest draft
+      articleService.baseFindById(dbId), // fetch latest article
+      articleService.findCollections({ entranceId: article.id, limit: null }),
+      tagService.findByArticleId({ articleId: article.id }),
+    ])
+    const currTagContents = currTags.map((currTag) => currTag.content)
+    const currCollectionIds = currCollections.map(
+      ({ articleId }: { articleId: string }) => articleId
+    )
+
+    // create draft linked to this article
+    const pipe = flow(sanitize, correctHtml)
+    const data: ItemData = {
+      uuid: v4(),
+      authorId: currDraft.authorId,
+      articleId: currArticle.id,
+      title: currDraft.title,
+      summary: currDraft.summary,
+      summaryCustomized: currDraft.summaryCustomized,
+      content: pipe(cleanedContent),
+      tags: currTagContents,
+      cover: currArticle.cover,
+      collection: currCollectionIds,
+      archived: false,
+      publishState: PUBLISH_STATE.pending,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    const revisedDraft = await draftService.baseCreate(data)
+
+    // add job to publish queue
+    revisionQueue.publishRevisedArticle({ draftId: revisedDraft.id })
   }
 
   /**

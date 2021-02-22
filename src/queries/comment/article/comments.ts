@@ -1,11 +1,10 @@
-import { COMMENT_STATE } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { ArticleToCommentsResolver } from 'definitions'
 
 const resolver: ArticleToCommentsResolver = async (
   { articleId },
   { input: { sort, first, ...rest } },
-  { dataSources: { commentService } }
+  { dataSources: { atomService, commentService } }
 ) => {
   // resolve sort to order
   const order = sort === 'oldest' ? 'asc' : 'desc'
@@ -27,25 +26,29 @@ const resolver: ArticleToCommentsResolver = async (
   }
 
   // handle filter
-  let filter = { articleId } as { [key: string]: any }
+  const { id: targetTypeId } = await atomService.findFirst({
+    table: 'entity_type',
+    where: { table: 'article' },
+  })
+  let where = { targetId: articleId, targetTypeId } as { [key: string]: any }
   if (rest.filter) {
     const { parentComment, author, state } = rest.filter
     if (parentComment || parentComment === null) {
-      filter = {
+      where = {
         parentCommentId: parentComment ? fromGlobalId(parentComment).id : null,
-        ...filter,
+        ...where,
       }
     }
     if (author) {
-      filter = {
+      where = {
         authorId: fromGlobalId(author).id,
-        ...filter,
+        ...where,
       }
     }
     if (state) {
-      filter = {
+      where = {
         state,
-        ...filter,
+        ...where,
       }
     }
   }
@@ -56,12 +59,12 @@ const resolver: ArticleToCommentsResolver = async (
       before,
       after,
       first,
-      filter,
+      where,
       order,
       includeAfter: rest.includeAfter,
       includeBefore: rest.includeBefore,
     }),
-    commentService.range(filter),
+    commentService.range(where),
   ])
 
   const edges = comments.map((comment: { [key: string]: string }) => ({

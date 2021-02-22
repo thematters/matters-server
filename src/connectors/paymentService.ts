@@ -1,4 +1,5 @@
 import DataLoader from 'dataloader'
+import { v4 } from 'uuid'
 
 import {
   BATCH_SIZE,
@@ -10,19 +11,21 @@ import {
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
+import logger from 'common/logger'
 import {
   calcMattersFee,
   // calcStripeFee,
   getUTC8Midnight,
   numRound,
 } from 'common/utils'
-import { BaseService } from 'connectors'
-import { User } from 'definitions'
+import { AtomService, BaseService } from 'connectors'
+import { CirclePrice, Customer, User } from 'definitions'
 
 import { stripe } from './stripe'
 
 export class PaymentService extends BaseService {
   stripe: typeof stripe
+  atomService: AtomService
 
   constructor() {
     super('transaction')
@@ -259,32 +262,6 @@ export class PaymentService extends BaseService {
    *            Customer           *
    *                               *
    *********************************/
-  findCustomer = async ({
-    userId,
-    customerId,
-    provider,
-  }: {
-    userId?: string
-    customerId?: string
-    provider?: PAYMENT_PROVIDER
-  }) => {
-    let qs = this.knex('customer')
-
-    if (userId) {
-      qs = qs.where({ userId })
-    }
-
-    if (customerId) {
-      qs = qs.where({ customerId })
-    }
-
-    if (provider) {
-      qs = qs.where({ provider })
-    }
-
-    return qs
-  }
-
   createCustomer = async ({
     user,
     provider,
@@ -334,6 +311,25 @@ export class PaymentService extends BaseService {
     }
 
     return qs.del()
+  }
+
+  getCustomerPortal = async ({ userId }: { userId: string }) => {
+    // retrieve customer
+    const customer = (await this.knex
+      .select()
+      .from('customer')
+      .where({
+        userId,
+        provider: PAYMENT_PROVIDER.stripe,
+        archived: false,
+      })
+      .first()) as Customer
+
+    if (customer) {
+      const customerId = customer.customerId
+      return this.stripe.getCustomerPortal({ customerId })
+    }
+    return null
   }
 
   /*********************************
@@ -394,32 +390,6 @@ export class PaymentService extends BaseService {
    *             Payout            *
    *                               *
    *********************************/
-  findPayoutAccount = async ({
-    userId,
-    accountId,
-    provider = PAYMENT_PROVIDER.stripe,
-  }: {
-    userId?: string
-    accountId?: string
-    provider?: PAYMENT_PROVIDER.stripe
-  }) => {
-    let qs = this.knex('payout_account')
-
-    if (userId) {
-      qs = qs.where({ userId })
-    }
-
-    if (accountId) {
-      qs = qs.where({ accountId })
-    }
-
-    if (provider) {
-      qs = qs.where({ provider })
-    }
-
-    return qs
-  }
-
   createPayoutAccount = async ({
     user,
     accountId,
@@ -520,5 +490,227 @@ export class PaymentService extends BaseService {
       return 0
     }
     return parseInt(`${result[0].count}` || '0', 10)
+  }
+
+  /*********************************
+   *                               *
+   *             Invoice           *
+   *                               *
+   *********************************/
+  findInvoice = async ({
+    id,
+    userId,
+    providerInvoiceId,
+    offset = 0,
+    limit = BATCH_SIZE,
+  }: {
+    id?: number
+    userId?: number
+    providerInvoiceId?: string
+    offset?: number
+    limit?: number
+  }) => {
+    let qs = this.knex('circle_invoice').select()
+
+    if (userId) {
+      qs = qs.where({ userId })
+    }
+
+    if (id) {
+      qs = qs.where({ id })
+    }
+
+    if (providerInvoiceId) {
+      qs = qs.where({ providerInvoiceId })
+    }
+
+    return qs.orderBy('created_at', 'desc').offset(offset).limit(limit)
+  }
+
+  createInvoiceWithTransactions = async ({
+    amount,
+    currency,
+    providerTxId,
+    providerInvoiceId,
+    subscriptionId,
+    userId,
+    prices,
+  }: {
+    amount: number
+    currency: string
+    providerTxId: string
+    providerInvoiceId: string
+    subscriptionId: string
+    userId: string
+    prices: CirclePrice[]
+  }) => {
+    const trx = await this.knex.transaction()
+    try {
+      // create subscription top up transaction
+      const transactionId = await trx('transaction')
+        .insert({
+          amount,
+          currency,
+          state: TRANSACTION_STATE.succeeded,
+          purpose: TRANSACTION_PURPOSE.subscription,
+
+          provider: PAYMENT_PROVIDER.stripe,
+          providerTxId,
+          senderId: undefined,
+          recipientId: userId,
+
+          targetType: undefined,
+          targetId: undefined,
+        })
+        .returning('id')
+
+      // create circle invoice
+      await trx('circle_invoice')
+        .insert({
+          userId,
+          transactionId: transactionId[0],
+          subscriptionId,
+          provider: PAYMENT_PROVIDER.stripe,
+          providerInvoiceId,
+        })
+        .returning('id')
+
+      // verify if it is OK to split the payment given the circle prices
+      for (const p of prices) {
+        if (p.currency !== currency) {
+          throw new ServerError(
+            `currency for '${providerTxId}' is not the same to '${p.providerPriceId}'`
+          )
+        }
+      }
+
+      const totalAmount = prices
+        .map((p) => Number(p.amount))
+        .reduce((p1, p2) => p1 + p2)
+      if (totalAmount !== amount) {
+        throw new ServerError(
+          `sum of plan prices '${totalAmount}' != invoice paid amount '${amount}'`
+        )
+      }
+
+      // create transactions to split the invoice payment to circles
+      const { id: entityTypeId } = await this.baseFindEntityTypeId(
+        TRANSACTION_TARGET_TYPE.circlePrice
+      )
+      for (const p of prices) {
+        const circle = await this.baseFindById(p.circleId, 'circle')
+        await trx('transaction').insert({
+          amount: p.amount,
+          currency: p.currency,
+          state: TRANSACTION_STATE.succeeded,
+          purpose: TRANSACTION_PURPOSE.subscriptionSplit,
+
+          provider: PAYMENT_PROVIDER.matters,
+          providerTxId: v4(),
+
+          senderId: userId,
+          recipientId: circle.owner,
+
+          targetType: entityTypeId,
+          targetId: p.id,
+        })
+      }
+      await trx.commit()
+
+      logger.info(
+        `invoice '${providerInvoiceId}' has been successfully paid and splitted.`
+      )
+    } catch (e) {
+      await trx.rollback()
+      throw e
+    }
+  }
+
+  /*********************************
+   *                               *
+   *         Subscription          *
+   *                               *
+   *********************************/
+  /**
+   * Create a subscription by a given circle price
+   */
+  createSubscription = async (data: {
+    userId: string
+    priceId: string
+    providerCustomerId: string
+    providerPriceId: string
+  }) => {
+    const atomService = new AtomService()
+
+    const { userId, priceId, providerCustomerId, providerPriceId } = data
+
+    // Create from Stripe
+    const stripeSubscription = await this.stripe.createSubscription({
+      customer: providerCustomerId,
+      price: providerPriceId,
+    })
+
+    if (!stripeSubscription) {
+      throw new ServerError('failed to create stripe subscription')
+    }
+
+    // Save to DB
+    const subscription = await atomService.create({
+      table: 'circle_subscription',
+      data: {
+        providerSubscriptionId: stripeSubscription.id,
+        userId,
+      },
+    })
+    await atomService.create({
+      table: 'circle_subscription_item',
+      data: {
+        priceId,
+        providerSubscriptionItemId: stripeSubscription.items.data[0].id,
+        subscriptionId: subscription.id,
+        userId,
+      },
+    })
+  }
+
+  /**
+   * Create a subscription item by a given circle price
+   */
+  createSubscriptionItem = async (data: {
+    userId: string
+    priceId: string
+    subscriptionId: string
+    providerPriceId: string
+    providerSubscriptionId: string
+  }) => {
+    const atomService = new AtomService()
+
+    const {
+      userId,
+      priceId,
+      subscriptionId,
+      providerPriceId,
+      providerSubscriptionId,
+    } = data
+
+    // Create from Stripe
+    const stripeItem = await this.stripe.createSubscriptionItem({
+      price: providerPriceId,
+      subscription: providerSubscriptionId,
+    })
+
+    if (!stripeItem) {
+      throw new ServerError('failed to create stripe subscription item')
+    }
+
+    await atomService.create({
+      table: 'circle_subscription_item',
+      data: {
+        priceId,
+        providerSubscriptionItemId: stripeItem.id,
+        subscriptionId,
+        userId,
+      },
+    })
   }
 }

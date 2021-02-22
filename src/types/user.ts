@@ -139,7 +139,9 @@ export default /* GraphQL */ `
     "Status of current user."
     status: UserStatus
 
-    # OSS
+    ##############
+    #     OSS    #
+    ##############
     oss: UserOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
   }
@@ -192,6 +194,12 @@ export default /* GraphQL */ `
 
     "Recommend articles with collaborative filtering"
     recommendArticles(input: ConnectionArgs!): ArticleConnection!
+
+    "Global circles sort by created time."
+    newestCircles(input: ConnectionArgs!): CircleConnection! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+
+    "Global circles sort by latest activity time."
+    hottestCircles(input: ConnectionArgs!): CircleConnection! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
   }
 
   input RecommendInput {
@@ -280,9 +288,6 @@ export default /* GraphQL */ `
 
     "Whether there are unread articles from followees."
     unreadFolloweeArticles: Boolean! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
-
-    "Whether user already set payment password."
-    hasPaymentPassword: Boolean!
 
     "Number of total written words."
     totalWordCount: Int!
@@ -482,6 +487,7 @@ export default /* GraphQL */ `
     agreeOn: Boolean
     profileCover: ID
     paymentPassword: String
+    paymentPointer: String
   }
 
   input UpdateUserStateInput {

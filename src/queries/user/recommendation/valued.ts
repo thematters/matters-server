@@ -22,13 +22,12 @@ export const valued: RecommendationToValuedResolver = async (
   const offset = cursorToIndex(after) + 1
 
   const [totalCount, articles] = await Promise.all([
-    articleService.countRecommendHottest({ where: id ? {} : where, oss }),
-    articleService.recommendByScore({
+    articleService.countRecommendValue({ where: id ? {} : where, oss }),
+    articleService.recommendByValue({
       offset,
       limit: first,
       where,
       oss,
-      score: 'value',
     }),
   ])
   return connectionFromPromisedArray(

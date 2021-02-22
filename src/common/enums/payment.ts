@@ -13,11 +13,14 @@ export enum TRANSACTION_PURPOSE {
   refund = 'refund',
   fee = 'fee',
   payout = 'payout',
+  subscription = 'subscription',
+  subscriptionSplit = 'subscription-split',
 }
 
 export enum TRANSACTION_TARGET_TYPE {
   article = 'article',
   transaction = 'transaction',
+  circlePrice = 'circle_price',
 }
 
 export enum PAYMENT_CURRENCY {
@@ -180,4 +183,11 @@ export const TransactionRemarkText = {
     // fallback
     unknow_error: 'unknown error',
   },
+}
+
+export enum METADATA_KEY {
+  USER_ID = 'db_user_id',
+  CUSTOMER_ID = 'db_customer_id',
+  CIRCLE_ID = 'db_circle_id',
+  CIRCLE_PRICE_ID = 'db_circle_price_id',
 }

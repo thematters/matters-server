@@ -1,3 +1,4 @@
+import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
@@ -9,6 +10,7 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import canSuperLike from './canSuperLike'
+import circle from './circle'
 import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
@@ -16,6 +18,7 @@ import articleCover from './cover'
 import createdAt from './createdAt'
 import hasAppreciate from './hasAppreciate'
 import language from './language'
+import limitedFree from './limitedFree'
 import live from './live'
 import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
@@ -27,7 +30,6 @@ import state from './state'
 import sticky from './sticky'
 import subscribed from './subscribed'
 import subscribers from './subscribers'
-import summary from './summary'
 import tagArticles from './tag/articles'
 import tagCover from './tag/cover'
 import tagCreator from './tag/creator'
@@ -54,6 +56,13 @@ export default {
   },
   Article: {
     content,
+    summary: ({
+      summary,
+      content: cont,
+    }: {
+      summary?: string
+      content: string
+    }) => summary || makeSummary(cont),
     appreciationsReceived,
     appreciationsReceivedTotal,
     appreciateLimit: () => ARTICLE_APPRECIATE_LIMIT,
@@ -79,7 +88,6 @@ export default {
     sticky,
     subscribed,
     subscribers,
-    summary,
     tags,
     translation,
     topicScore: ({ score }: { score: number }) =>
@@ -87,6 +95,8 @@ export default {
     transactionsReceivedBy,
     createdAt,
     revisedAt,
+    limitedFree,
+    circle,
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),

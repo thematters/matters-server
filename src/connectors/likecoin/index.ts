@@ -40,6 +40,8 @@ type RequestProps = {
   headers?: { [key: string]: any }
   liker?: UserOAuthLikeCoin
   withClientCredential?: boolean
+  ip?: string
+  userAgent?: string
 } & AxiosRequestConfig
 
 const ENDPOINTS = {
@@ -51,6 +53,7 @@ const ENDPOINTS = {
   like: '/like/likebutton',
   rate: '/misc/price',
   superlike: '/like/share',
+  cosmosTx: '/cosmos/lcd/txs',
 }
 
 /**
@@ -73,6 +76,8 @@ export class LikeCoin {
     endpoint,
     liker,
     withClientCredential,
+    ip,
+    userAgent,
     headers = {},
     ...axiosOptions
   }: RequestProps) => {
@@ -82,6 +87,18 @@ export class LikeCoin {
         headers = {
           ...headers,
           Authorization: `Bearer ${accessToken}`,
+        }
+      }
+      if (ip) {
+        headers = {
+          ...headers,
+          'X-LIKECOIN-REAL-IP': ip,
+        }
+      }
+      if (userAgent) {
+        headers = {
+          ...headers,
+          'X-LIKECOIN-USER-AGENT': userAgent,
         }
       }
 
@@ -220,9 +237,11 @@ export class LikeCoin {
     email,
     locale = 'zh',
     isEmailEnabled,
+    ip,
   }: {
     user: string
     token: string
+    ip?: string
     displayName?: string
     email?: string
     locale?: LikeCoinLocale
@@ -240,6 +259,7 @@ export class LikeCoin {
         locale,
         isEmailEnabled,
       },
+      ip,
     })
     const data = _.get(res, 'data')
 
@@ -256,9 +276,11 @@ export class LikeCoin {
   edit = async ({
     action,
     payload,
+    ip,
   }: {
     action: 'claim' | 'transfer' | 'bind'
     payload: { [key: string]: any }
+    ip?: string
   }) => {
     const res = await this.request({
       endpoint: ENDPOINTS.edit,
@@ -268,6 +290,7 @@ export class LikeCoin {
         action,
         payload,
       },
+      ip,
     })
     const data = _.get(res, 'data')
 
@@ -342,10 +365,8 @@ export class LikeCoin {
       endpoint,
       method: 'GET',
       liker,
-      headers: {
-        'X-LIKECOIN-REAL-IP': likerIp,
-        'X-LIKECOIN-USER-AGENT': userAgent,
-      },
+      ip: likerIp,
+      userAgent,
       withClientCredential: true,
       params: {
         referrer: encodeURI(url),
@@ -381,10 +402,8 @@ export class LikeCoin {
     try {
       const endpoint = `${ENDPOINTS.like}/${authorLikerId}/${amount}`
       const result = await this.request({
-        headers: {
-          'X-LIKECOIN-REAL-IP': likerIp,
-          'X-LIKECOIN-USER-AGENT': userAgent,
-        },
+        ip: likerIp,
+        userAgent,
         endpoint,
         withClientCredential: true,
         method: 'POST',
@@ -423,10 +442,8 @@ export class LikeCoin {
     try {
       const endpoint = `${ENDPOINTS.superlike}/${authorLikerId}/`
       const result = await this.request({
-        headers: {
-          'X-LIKECOIN-REAL-IP': likerIp,
-          'X-LIKECOIN-USER-AGENT': userAgent,
-        },
+        ip: likerIp,
+        userAgent,
         endpoint,
         withClientCredential: true,
         method: 'POST',
@@ -462,10 +479,8 @@ export class LikeCoin {
     const res = await this.request({
       endpoint,
       method: 'GET',
-      headers: {
-        'X-LIKECOIN-REAL-IP': likerIp,
-        'X-LIKECOIN-USER-AGENT': userAgent,
-      },
+      ip: likerIp,
+      userAgent,
       withClientCredential: true,
       params: {
         referrer: encodeURI(url),
@@ -479,6 +494,23 @@ export class LikeCoin {
     }
 
     return data.canSuperLike
+  }
+
+  getCosmosTxData = async ({ hash }: { hash: string }) => {
+    const endpoint = `${ENDPOINTS.cosmosTx}/${hash}`
+    const result = await this.request({
+      endpoint,
+      method: 'GET',
+    })
+    const data = _.get(result, 'data')
+
+    if (!data) {
+      throw result
+    }
+    const msg = _.get(data, 'tx.value.msg')
+    const msgSend = _.find(msg, { type: 'cosmos-sdk/MsgSend' })
+    const amount = _.get(msgSend, 'value.amount[0].amount')
+    return { amount }
   }
 }
 

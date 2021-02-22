@@ -1,4 +1,9 @@
-import { DB_NOTICE_TYPE } from 'common/enums'
+import {
+  CACHE_KEYWORD,
+  COMMENT_TYPE,
+  DB_NOTICE_TYPE,
+  NODE_TYPES,
+} from 'common/enums'
 import {
   ActionLimitExceededError,
   AuthenticationError,
@@ -12,19 +17,36 @@ const resolver: MutationToTogglePinCommentResolver = async (
   { input: { id, enabled } },
   {
     viewer,
-    dataSources: { commentService, articleService, notificationService },
+    dataSources: {
+      atomService,
+      commentService,
+      articleService,
+      notificationService,
+    },
   }
 ) => {
-  // checks
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
 
   const { id: dbId } = fromGlobalId(id)
   const comment = await commentService.dataloader.load(dbId)
-  const article = await articleService.dataloader.load(comment.articleId)
 
-  if (article.authorId !== viewer.id) {
+  // check target
+  let article: any
+  let circle: any
+  let targetAuthor: any
+  if (comment.type === COMMENT_TYPE.article) {
+    article = await articleService.dataloader.load(comment.targetId)
+    targetAuthor = article.authorId
+  } else {
+    circle = await atomService.circleIdLoader.load(comment.targetId)
+    targetAuthor = circle.owner
+  }
+
+  // check permission
+  const isTargetAuthor = targetAuthor === viewer.id
+  if (!isTargetAuthor) {
     throw new ForbiddenError('viewer has no permission')
   }
 
@@ -40,14 +62,11 @@ const resolver: MutationToTogglePinCommentResolver = async (
   // run action
   let pinnedComment
   if (action === 'pin') {
-    const pinLeft = await commentService.pinLeftByArticle(comment.articleId)
-    if (pinLeft <= 0) {
-      throw new ActionLimitExceededError('reach pin limit')
-    }
-
-    // check is pinned before
-    if (comment.pinned) {
-      return comment
+    if (article) {
+      const pinLeft = await commentService.pinLeftByArticle(article.id)
+      if (pinLeft <= 0) {
+        throw new ActionLimitExceededError('reach pin limit')
+      }
     }
 
     pinnedComment = await commentService.togglePinned({
@@ -74,6 +93,14 @@ const resolver: MutationToTogglePinCommentResolver = async (
       pinned: false,
     })
   }
+
+  // invalidate extra nodes
+  pinnedComment[CACHE_KEYWORD] = [
+    {
+      id: article ? article.id : circle.id,
+      type: article ? NODE_TYPES.article : NODE_TYPES.circle,
+    },
+  ]
 
   return pinnedComment
 }

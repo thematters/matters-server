@@ -1,7 +1,9 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
+import { trim, uniq } from 'lodash'
 
 import {
   DB_NOTICE_TYPE,
@@ -18,7 +20,6 @@ import {
   countWords,
   extractAssetDataFromHtml,
   fromGlobalId,
-  makeSummary,
 } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
@@ -78,11 +79,10 @@ class PublicationQueue extends BaseQueue {
       const wordCount = countWords(draft.content)
 
       // Step 2: publish content to IPFS
-      const { dataHash, mediaHash } = await this.articleService.publishToIPFS({
-        ...draft,
-        summary,
-        wordCount,
-      })
+      const {
+        contentHash: dataHash,
+        mediaHash,
+      } = await this.articleService.publishToIPFS(draft)
       job.progress(10)
 
       // Step 3: create an article
@@ -112,9 +112,12 @@ class PublicationQueue extends BaseQueue {
 
       // Note: the following steps won't affect the publication.
       try {
-        // Step 5: handle collection, tags & mentions
+        // Step 5: handle collection, circles, tags & mentions
         await this.handleCollection({ draft, article })
         job.progress(40)
+
+        await this.handleCircle({ draft, article })
+        job.progress(45)
 
         const tags = await this.handleTags({ draft, article })
         job.progress(50)
@@ -250,6 +253,27 @@ class PublicationQueue extends BaseQueue {
     })
   }
 
+  private handleCircle = async ({
+    draft,
+    article,
+  }: {
+    draft: any
+    article: any
+  }) => {
+    if (!draft.circleId) {
+      return
+    }
+
+    const data = { articleId: article.id, circleId: draft.circleId }
+
+    await this.atomService.upsert({
+      table: 'article_circle',
+      where: data,
+      create: data,
+      update: data,
+    })
+  }
+
   private handleTags = async ({
     draft,
     article,
@@ -257,13 +281,17 @@ class PublicationQueue extends BaseQueue {
     draft: any
     article: any
   }) => {
-    let tags = draft.tags
+    let tags = draft.tags as string[]
 
     if (tags && tags.length > 0) {
       // get tag editor
       const tagEditors = environment.mattyId
         ? [environment.mattyId, article.authorId]
         : [article.authorId]
+
+      tags = uniq(tags)
+        .map(trim)
+        .filter((t) => !!t)
 
       // create tag records, return tag record if already exists
       const dbTags = ((await Promise.all(

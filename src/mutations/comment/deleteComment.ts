@@ -1,6 +1,9 @@
 import {
+  ARTICLE_STATE,
   CACHE_KEYWORD,
+  CIRCLE_STATE,
   COMMENT_STATE,
+  COMMENT_TYPE,
   NODE_TYPES,
   USER_STATE,
 } from 'common/enums'
@@ -15,10 +18,7 @@ import { MutationToDeleteCommentResolver } from 'definitions'
 const resolver: MutationToDeleteCommentResolver = async (
   _,
   { input: { id } },
-  {
-    viewer,
-    dataSources: { commentService, articleService, notificationService },
-  }
+  { viewer, dataSources: { atomService, commentService, articleService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -29,26 +29,36 @@ const resolver: MutationToDeleteCommentResolver = async (
   }
 
   const { id: dbId } = fromGlobalId(id)
-  const { authorId, articleId } = await commentService.dataloader.load(dbId)
+  const comment = await commentService.dataloader.load(dbId)
 
-  if (authorId !== viewer.id) {
+  // check target
+  let article: any
+  let circle: any
+  if (comment.type === COMMENT_TYPE.article) {
+    article = await articleService.dataloader.load(comment.targetId)
+  } else {
+    circle = await atomService.circleIdLoader.load(comment.targetId)
+  }
+
+  // check permission
+  if (comment.authorId !== viewer.id) {
     throw new ForbiddenError('viewer has no permission')
   }
 
-  const comment = await commentService.baseUpdate(dbId, {
+  // archive comment
+  const newComment = await commentService.baseUpdate(dbId, {
     state: COMMENT_STATE.archived,
     updatedAt: new Date(),
   })
 
   // invalidate extra nodes
-  const article = await articleService.dataloader.load(articleId)
-  comment[CACHE_KEYWORD] = [
+  newComment[CACHE_KEYWORD] = [
     {
-      id: article.id,
-      type: NODE_TYPES.article,
+      id: article ? article.id : circle.id,
+      type: article ? NODE_TYPES.article : NODE_TYPES.circle,
     },
   ]
 
-  return comment
+  return newComment
 }
 export default resolver

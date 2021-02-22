@@ -1,4 +1,5 @@
-import { stripHtml } from 'common/utils'
+import { stripHtml } from '@matters/matters-html-formatter'
+
 import { ArticleToLanguageResolver } from 'definitions'
 
 const resolver: ArticleToLanguageResolver = async (

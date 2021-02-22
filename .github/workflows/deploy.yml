@@ -38,6 +38,11 @@ jobs:
         image: ipfs/go-ipfs:latest
         ports:
           - 5001:5001
+      stripe:
+        image: stripemock/stripe-mock:latest
+        ports:
+          - 12111:12111
+          - 12112:12112
 
     steps:
       - name: Checkout Repo
@@ -50,7 +55,7 @@ jobs:
 
       - name: Cache Dependencies
         id: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -84,6 +89,8 @@ jobs:
           MATTERS_IPFS_HOST: localhost
           MATTERS_IPFS_PORT: 5001
           MATTERS_OICD_PRIVATE_KEY: .ebextensions/oicd_rsa_private_local.pem
+          MATTERS_STRIPE_SECRET: sk_test_foobar
+          MATTERS_STRIPE_PRICE_ID: price_test_foobar
 
       - name: Build
         run: npm run build
@@ -145,7 +152,7 @@ jobs:
 
       - name: Deploy to EB (develop)
         if: github.ref == 'refs/heads/develop'
-        uses: einaregilsson/beanstalk-deploy@v14
+        uses: einaregilsson/beanstalk-deploy@v16
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -182,7 +189,7 @@ jobs:
 
       - name: Deploy to EB (stage)
         if: github.ref == 'refs/heads/stage'
-        uses: einaregilsson/beanstalk-deploy@v14
+        uses: einaregilsson/beanstalk-deploy@v16
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -243,7 +250,7 @@ jobs:
 
       - name: Deploy to EB (production)
         if: github.ref == 'refs/heads/master'
-        uses: einaregilsson/beanstalk-deploy@v14
+        uses: einaregilsson/beanstalk-deploy@v16
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

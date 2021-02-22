@@ -35,11 +35,13 @@ import Liker from './liker'
 import likerId from './liker/likerId'
 import notification from './notification'
 import { boost, score } from './oss'
+import ownCircles from './ownCircles'
 import profileCover from './profileCover'
 import receivedDonationCount from './receivedDonationCount'
 import Recommendation from './recommendation'
 import rootUser from './rootUser'
 import StripeAccount from './stripeAccount'
+import subscribedCircles from './subscribedCircles'
 import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
@@ -96,6 +98,8 @@ const user: {
     blockList,
     isBlocking,
     isBlocked,
+    ownCircles,
+    subscribedCircles,
   },
   UserInfo: {
     badges,

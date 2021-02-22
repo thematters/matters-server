@@ -2,7 +2,7 @@ import Knex from 'knex'
 import { knexSnakeCaseMappers } from 'objection'
 
 import { environment } from 'common/environment'
-import { MaterializedView } from 'definitions'
+import { MaterializedView, TableName } from 'definitions'
 
 // @ts-ignore
 import knexConfig from '../../../knexfile'

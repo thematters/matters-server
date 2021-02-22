@@ -61,6 +61,30 @@ export class UnableToUploadFromUrl extends ApolloError {
   }
 }
 
+export class NameInvalidError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'NAME_INVALID')
+
+    Object.defineProperty(this, 'name', { value: 'NameInvalidError' })
+  }
+}
+
+export class NameExistsError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'NAME_EXISTS')
+
+    Object.defineProperty(this, 'name', { value: 'NameExistsError' })
+  }
+}
+
+export class DisplayNameInvalidError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'DISPLAYNAME_INVALID')
+
+    Object.defineProperty(this, 'name', { value: 'DisplayNameInvalidError' })
+  }
+}
+
 /*********************************
  *                               *
  *             Auth              *
@@ -177,6 +201,14 @@ export class NoticeNotFoundError extends ApolloError {
   }
 }
 
+export class CircleNotFoundError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'CIRCLE_NOT_FOUND')
+
+    Object.defineProperty(this, 'name', { value: 'CircleNotFoundError' })
+  }
+}
+
 /*********************************
  *                               *
  *           Article             *
@@ -265,30 +297,6 @@ export class PasswordInvalidError extends ApolloError {
     super(message, 'USER_PASSWORD_INVALID')
 
     Object.defineProperty(this, 'name', { value: 'PasswordInvalidError' })
-  }
-}
-
-export class UsernameInvalidError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'USER_USERNAME_INVALID')
-
-    Object.defineProperty(this, 'name', { value: 'UsernameInvalidError' })
-  }
-}
-
-export class UsernameExistsError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'USER_USERNAME_EXISTS')
-
-    Object.defineProperty(this, 'name', { value: 'UsernameExistsError' })
-  }
-}
-
-export class DisplayNameInvalidError extends ApolloError {
-  constructor(message: string) {
-    super(message, 'USER_DISPLAYNAME_INVALID')
-
-    Object.defineProperty(this, 'name', { value: 'DisplayNameInvalidError' })
   }
 }
 
@@ -443,5 +451,18 @@ export class PaymentQueueJobDataError extends ApolloError {
     Object.defineProperty(this, 'name', {
       value: 'PaymentQueueJobDataError',
     })
+  }
+}
+
+/*********************************
+ *                               *
+ *            Circle             *
+ *                               *
+ *********************************/
+export class DuplicateCircleError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'DUPLICATE_CIRCLE')
+
+    Object.defineProperty(this, 'name', { value: 'DuplicateCircleError' })
   }
 }

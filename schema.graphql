@@ -121,6 +121,9 @@ type Article implements Node {
   """A short summary for this article."""
   summary: String!
 
+  """This value determines if the summary is customized or not."""
+  summaryCustomized: Boolean!
+
   """Tags attached to this article."""
   tags: [Tag!]
 
@@ -186,12 +189,24 @@ type Article implements Node {
   """Transactions history of this article."""
   transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
-  """OSS"""
-  oss: ArticleOSS!
-  remark: String
-
   """Drafts linked to this article."""
   drafts: [Draft!]
+
+  """
+  This value determines if this article is free for a limited time or not.
+  """
+  limitedFree: Boolean!
+
+  """Current article belongs to which Circle."""
+  circle: Circle
+
+  """
+  #############
+       OSS    #
+  #############
+  """
+  oss: ArticleOSS!
+  remark: String
 
   """The counting number of comments."""
   commentCount: Int!
@@ -362,6 +377,8 @@ enum AssetType {
   profileCover
   oauthClientAvatar
   tagCover
+  circleAvatar
+  circleCover
 }
 
 enum AuthorsType {
@@ -406,6 +423,97 @@ input ChangeEmailInput {
   newEmailCodeId: ID!
 }
 
+type Circle implements Node {
+  """Unique ID."""
+  id: ID!
+
+  """Circle avatar's link."""
+  avatar: URL
+
+  """Circle cover's link."""
+  cover: URL
+
+  """Slugified name of this Circle."""
+  name: String!
+
+  """Human readable name of this Circle."""
+  displayName: String!
+
+  """A short description of this Circle."""
+  description: String
+
+  """Prices offered by this Circle."""
+  prices: [Price!]
+
+  """Circle owner."""
+  owner: User!
+
+  """List of Circle member."""
+  members(input: ConnectionArgs!): MemberConnection!
+
+  """List of Circle follower."""
+  followers(input: ConnectionArgs!): UserConnection!
+
+  """List of works belong to this Circle."""
+  works(input: ConnectionArgs!): ArticleConnection!
+
+  """State of this Circle."""
+  state: CircleState!
+
+  """Created time."""
+  createdAt: DateTime!
+
+  """Updated time."""
+  updatedAt: DateTime!
+
+  """This value determines if current viewer is following Circle or not."""
+  isFollower: Boolean!
+
+  """This value determines if current viewer is Member or not."""
+  isMember: Boolean!
+
+  """Setting of this Circle."""
+  setting: CircleSetting!
+
+  """Comments broadcasted by Circle owner."""
+  broadcast(input: ConnectionArgs!): CommentConnection!
+
+  """Pinned comments broadcasted by Circle owner."""
+  pinnedBroadcast: [Comment!]
+
+  """Comments made by Circle member."""
+  discussion(input: ConnectionArgs!): CommentConnection!
+}
+
+type CircleConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [CircleEdge!]
+}
+
+type CircleEdge {
+  cursor: String!
+  node: Circle!
+}
+
+input CircleInput {
+  """Slugified name of a Circle."""
+  name: String!
+}
+
+type CircleSetting {
+  """Whether broadcast is enabled or not."""
+  enableBroadcast: Boolean!
+
+  """Whther discussion is enabled or not."""
+  enableDiscussion: Boolean!
+}
+
+enum CircleState {
+  active
+  archived
+}
+
 input ClearReadHistoryInput {
   id: ID!
 }
@@ -422,9 +530,6 @@ type Comment implements Node {
 
   """Time of this comment was created."""
   createdAt: DateTime!
-
-  """Article that the comment is belonged to."""
-  article: Article!
 
   """Content of this comment."""
   content: String
@@ -456,6 +561,9 @@ type Comment implements Node {
   """A Comment that this comment replied to."""
   replyTo: Comment
   remark: String
+
+  """Current comment belongs to which Node."""
+  node: Node!
 }
 
 type CommentCommentNotice implements Notice {
@@ -500,9 +608,13 @@ type CommentEdge {
 input CommentInput {
   content: String!
   replyTo: ID
-  articleId: ID!
   parentId: ID
   mentions: [ID!]
+  type: CommentType!
+
+  """one of the following ids is required"""
+  articleId: ID
+  circleId: ID
 }
 
 """
@@ -567,6 +679,12 @@ enum CommentState {
   collapsed
 }
 
+enum CommentType {
+  article
+  circleDiscussion
+  circleBroadcast
+}
+
 input ConfirmVerificationCodeInput {
   email: Email!
   type: VerificationCodeType!
@@ -621,8 +739,8 @@ type Draft implements Node {
   """Unique ID of this draft."""
   id: ID!
 
-  """Collection list of this draft."""
-  collection(input: ConnectionArgs!): ArticleConnection!
+  """Media hash, composed of cid encoding, of this draft."""
+  mediaHash: String
 
   """Draft title."""
   title: String
@@ -632,6 +750,9 @@ type Draft implements Node {
 
   """Summary of this draft."""
   summary: String
+
+  """This value determines if the summary is customized or not."""
+  summaryCustomized: Boolean!
 
   """Content of this draft."""
   content: String
@@ -660,8 +781,11 @@ type Draft implements Node {
   """Published article"""
   article: Article
 
-  """Media hash, composed of cid encoding, of this draft."""
-  mediaHash: String
+  """Collection list of this draft."""
+  collection(input: ConnectionArgs!): ArticleConnection!
+
+  """Circle of this draft."""
+  circle: Circle
 }
 
 type DraftConnection implements Connection {
@@ -679,10 +803,12 @@ input EditArticleInput {
   id: ID!
   state: ArticleState
   sticky: Boolean
+  summary: String
   tags: [String!]
   content: String
   cover: ID
   collection: [ID!]
+  circle: ID
 }
 
 scalar Email
@@ -692,6 +818,7 @@ enum EntityType {
   draft
   tag
   user
+  circle
 }
 
 type Feature {
@@ -709,6 +836,7 @@ enum FeatureFlag {
   on
   off
   admin
+  seeding
 }
 
 enum FeatureName {
@@ -718,6 +846,8 @@ enum FeatureName {
   verify_appreciate
   fingerprint
   tag_adoption
+  circle_management
+  circle_interact
 }
 
 input FilterInput {
@@ -775,6 +905,25 @@ input LogRecordInput {
 enum LogRecordTypes {
   ReadFolloweeArticles
   ReadResponseInfoPopUp
+}
+
+type Member {
+  """User who join to a Circle."""
+  user: User!
+
+  """Price chosen by user when joining a Circle."""
+  price: Price!
+}
+
+type MemberConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [MemberEdge!]
+}
+
+type MemberEdge {
+  cursor: String!
+  node: Member!
 }
 
 input MergeTagsInput {
@@ -838,7 +987,22 @@ type Mutation {
   renameTag(input: RenameTagInput!): Tag!
   mergeTags(input: MergeTagsInput!): Tag!
 
-  """Publish a comment."""
+  """Create or update a Circle."""
+  putCircle(input: PutCircleInput!): Circle!
+
+  """Follow or unfollow a Circle."""
+  toggleFollowCircle(input: ToggleItemInput!): Circle!
+
+  """Subscribe a Circle."""
+  subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult!
+
+  """Unsubscribe a Circle."""
+  unsubscribeCircle(input: UnsubscribeCircleInput!): Circle!
+
+  """Add or remove Circle's articles"""
+  putCircleArticles(input: PutCircleArticlesInput!): Circle!
+
+  """Publish or update a comment."""
   putComment(input: PutCommentInput!): Comment!
 
   """Remove a comment."""
@@ -886,6 +1050,7 @@ type Mutation {
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
   setFeature(input: SetFeatureInput!): Feature!
+  toggleSeedingUsers(input: ToggleSeedingUsersInput!): Boolean!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1121,6 +1286,7 @@ type OSS {
   tags(input: TagsInput!): TagConnection!
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
+  seedingUsers(input: ConnectionArgs!): UserConnection!
 }
 
 type PageInfo {
@@ -1159,6 +1325,34 @@ scalar PositiveFloat
 
 scalar PositiveInt
 
+type Price {
+  """Unique ID."""
+  id: ID!
+
+  """Amount of Price."""
+  amount: NonNegativeFloat!
+
+  """Current Price belongs to whcih Circle."""
+  circle: Circle!
+
+  """Currency of Price."""
+  currency: TransactionCurrency!
+
+  """State of Price."""
+  state: PriceState!
+
+  """Created time."""
+  createdAt: DateTime!
+
+  """Updated time."""
+  updatedAt: DateTime!
+}
+
+enum PriceState {
+  active
+  archived
+}
+
 input PublishArticleInput {
   id: ID!
 }
@@ -1171,18 +1365,61 @@ enum PublishState {
   published
 }
 
+input PutCircleArticlesInput {
+  """Circle ID"""
+  id: ID!
+
+  """Article Ids"""
+  articles: [ID!]
+
+  """Action Type"""
+  type: PutCircleArticlesType!
+}
+
+enum PutCircleArticlesType {
+  add
+  remove
+}
+
+input PutCircleInput {
+  """Unique ID."""
+  id: ID
+
+  """Unique ID of a Circle's avatar."""
+  avatar: ID
+
+  """Unique ID of a Circle's cover."""
+  cover: ID
+
+  """Slugified name of a Circle."""
+  name: String
+
+  """Human readable name of this Circle."""
+  displayName: String
+
+  """A short description of this Circle."""
+  description: String
+
+  """Circle's subscription fee."""
+  amount: NonNegativeFloat
+}
+
 input PutCommentInput {
   comment: CommentInput!
+
+  """edit comment if id is provided"""
   id: ID
 }
 
 input PutDraftInput {
   id: ID
   title: String
+  summary: String
   content: String
   tags: [String]
   cover: ID
   collection: [ID]
+  circle: ID
 }
 
 input PutOAuthClientInput {
@@ -1220,6 +1457,7 @@ input PutTagInput {
 
 type Query {
   article(input: ArticleInput!): Article
+  circle(input: CircleInput!): Circle
   node(input: NodeInput!): Node
   nodes(input: NodesInput!): [Node!]
   frequentSearch(input: FrequentSearchInput!): [String!]
@@ -1310,6 +1548,12 @@ type Recommendation {
 
   """Recommend articles with collaborative filtering"""
   recommendArticles(input: ConnectionArgs!): ArticleConnection!
+
+  """Global circles sort by created time."""
+  newestCircles(input: ConnectionArgs!): CircleConnection!
+
+  """Global circles sort by latest activity time."""
+  hottestCircles(input: ConnectionArgs!): CircleConnection!
 }
 
 input RecommendInput {
@@ -1507,6 +1751,21 @@ type StripeAccount {
   loginUrl: URL!
 }
 
+input SubscribeCircleInput {
+  """Unique ID."""
+  id: ID!
+
+  """Wallet password."""
+  password: String
+}
+
+type SubscribeCircleResult {
+  circle: Circle!
+
+  """client secret for SetupIntent."""
+  client_secret: String
+}
+
 type Subscription {
   nodeEdited(input: NodeEditedInput!): Node!
 }
@@ -1552,7 +1811,11 @@ type Tag implements Node {
   """Participants of this tag."""
   participants(input: ConnectionArgs!): UserConnection!
 
-  """OSS"""
+  """
+  #############
+       OSS    #
+  #############
+  """
   oss: TagOSS!
   remark: String
   deleted: Boolean!
@@ -1630,6 +1893,17 @@ enum TagsSort {
 
 scalar Time
 
+input ToggleCircleMemberInput {
+  """Unique ID."""
+  id: ID!
+
+  """Toggle value."""
+  enabled: Boolean!
+
+  """Unique ID of target user."""
+  targetId: ID!
+}
+
 """Common input to toggle single item for `toggleXXX` mutations"""
 input ToggleItemInput {
   id: ID!
@@ -1640,6 +1914,11 @@ input ToggleRecommendInput {
   id: ID!
   enabled: Boolean!
   type: RecommendTypes
+}
+
+input ToggleSeedingUsersInput {
+  ids: [ID!]
+  enabled: Boolean!
 }
 
 type Transaction {
@@ -1747,6 +2026,11 @@ input UnpinCommentInput {
   id: ID!
 }
 
+input UnsubscribeCircleInput {
+  """Unique ID."""
+  id: ID!
+}
+
 input UnvoteCommentInput {
   id: ID!
 }
@@ -1795,6 +2079,7 @@ input UpdateUserInfoInput {
   agreeOn: Boolean
   profileCover: ID
   paymentPassword: String
+  paymentPointer: String
 }
 
 input UpdateUserRoleInput {
@@ -1887,13 +2172,26 @@ type User implements Node {
   """Status of current user."""
   status: UserStatus
 
-  """OSS"""
+  """
+  #############
+       OSS    #
+  #############
+  """
   oss: UserOSS!
   remark: String
+
+  """Circles belong to current user."""
+  ownCircles: [Circle!]
+
+  """Circles whiches user has subscribed."""
+  subscribedCircles(input: ConnectionArgs!): CircleConnection!
   notices(input: ConnectionArgs!): NoticeConnection!
 
   """User Wallet"""
   wallet: Wallet!
+
+  """Payment pointer that resolves to Open Payments endpoints"""
+  paymentPointer: String
 }
 
 type UserActivity {
@@ -2062,11 +2360,11 @@ type UserStatus {
   """Whether there are unread articles from followees."""
   unreadFolloweeArticles: Boolean!
 
-  """Whether user already set payment password."""
-  hasPaymentPassword: Boolean!
-
   """Number of total written words."""
   totalWordCount: Int!
+
+  """Whether user already set payment password."""
+  hasPaymentPassword: Boolean!
 
   """Number of articles donated by user"""
   donatedArticleCount: Int!
@@ -2103,5 +2401,15 @@ input VoteCommentInput {
 type Wallet {
   balance: Balance!
   transactions(input: TransactionsArgs!): TransactionConnection!
+
+  """Account of Stripe Connect to manage payout"""
   stripeAccount: StripeAccount
+
+  """
+  URL of Stripe Dashboard to manage subscription invoice and payment method
+  """
+  customerPortal: URL
+
+  """The last four digits of the card."""
+  cardLast4: String
 }

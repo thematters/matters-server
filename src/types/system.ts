@@ -24,6 +24,7 @@ export default /* GraphQL */ `
     putRemark(input: PutRemarkInput!): String @auth(mode: "${AUTH_MODE.admin}")
     putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @auth(mode: "${AUTH_MODE.admin}")
     setFeature(input: SetFeatureInput!): Feature! @auth(mode: "${AUTH_MODE.admin}")
+    toggleSeedingUsers(input: ToggleSeedingUsersInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
   }
 
   extend type Subscription {
@@ -64,6 +65,7 @@ export default /* GraphQL */ `
     tags(input: TagsInput!): TagConnection!
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
     skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
+    seedingUsers(input: ConnectionArgs!): UserConnection!
   }
 
 
@@ -209,6 +211,11 @@ export default /* GraphQL */ `
     flag: FeatureFlag!
   }
 
+  input ToggleSeedingUsersInput {
+    ids: [ID!]
+    enabled: Boolean!
+  }
+
   enum SearchTypes {
     Article
     User
@@ -244,6 +251,8 @@ export default /* GraphQL */ `
     profileCover
     oauthClientAvatar
     tagCover
+    circleAvatar
+    circleCover
   }
 
   enum EntityType {
@@ -251,6 +260,7 @@ export default /* GraphQL */ `
     draft
     tag
     user
+    circle
   }
 
   "Enums for user roles."
@@ -278,12 +288,15 @@ export default /* GraphQL */ `
     verify_appreciate
     fingerprint
     tag_adoption
+    circle_management
+    circle_interact
   }
 
   enum FeatureFlag {
     on
     off
     admin
+    seeding
   }
 
   input CostComplexity {
