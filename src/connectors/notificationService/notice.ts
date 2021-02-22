@@ -7,6 +7,7 @@ import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import {
   DBNoticeType,
+  GQLNotificationSettingType,
   NoticeDetail,
   NoticeEntitiesMap,
   NoticeEntity,
@@ -17,6 +18,8 @@ import {
   PutNoticeParams,
   User,
 } from 'definitions'
+
+export type DBNotificationSettingType = keyof typeof GQLNotificationSettingType
 
 class Notice extends BaseService {
   constructor() {
@@ -495,7 +498,7 @@ class Notice extends BaseService {
     setting,
   }: {
     event: NotificationType
-    setting: any
+    setting: { [key: string]: boolean }
   }) => {
     if (!setting || !setting.enable) {
       return false
@@ -514,13 +517,15 @@ class Notice extends BaseService {
       revised_article_not_published: true,
 
       // article-article
-      article_new_collected: setting.downstream,
+      article_new_collected: true,
 
       // comment
       comment_pinned: setting.commentPinned,
       comment_mentioned_you: setting.mention,
       article_new_comment: setting.comment,
       subscribed_article_new_comment: setting.commentSubscribed,
+      circle_new_broadcast: true,
+      circle_new_discussion: setting.circleNewDiscussion,
 
       // comment-comment
       comment_new_reply: setting.comment,
@@ -540,16 +545,21 @@ class Notice extends BaseService {
       payment_received_donation: true,
       payment_payout: true,
 
+      // circle
+      circle_new_follower: setting.circleNewFollower,
+      circle_new_subscriber: true,
+      circle_new_unsubscriber: true,
+
       // misc
-      official_announcement: setting.officialNotice,
+      official_announcement: true,
       user_activated: true,
       user_banned: true,
       user_frozen: true,
       user_unbanned: true,
-      comment_banned: setting.reportFeedback,
-      article_banned: setting.reportFeedback,
-      comment_reported: setting.reportFeedback,
-      article_reported: setting.reportFeedback,
+      comment_banned: true,
+      article_banned: true,
+      comment_reported: true,
+      article_reported: true,
     }
 
     return noticeSettingMap[event]

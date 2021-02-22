@@ -38,6 +38,8 @@ describe('user notify setting', () => {
     comment_mentioned_you: true,
     article_new_comment: true,
     subscribed_article_new_comment: false,
+    circle_new_discussion: true,
+    circle_new_broadcast: true,
 
     // comment-comment
     comment_new_reply: true,
@@ -57,16 +59,21 @@ describe('user notify setting', () => {
     payment_received_donation: true,
     payment_payout: true,
 
+    // circle
+    circle_new_follower: true,
+    circle_new_subscriber: true,
+    circle_new_unsubscriber: true,
+
     // misc
     official_announcement: true,
     user_activated: true,
     user_banned: true,
     user_frozen: true,
     user_unbanned: true,
-    comment_banned: false,
-    article_banned: false,
-    comment_reported: false,
-    article_reported: false,
+    comment_banned: true,
+    article_banned: true,
+    comment_reported: true,
+    article_reported: true,
   }
 
   test('user receives notifications', async () => {

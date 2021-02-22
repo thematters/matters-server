@@ -339,11 +339,9 @@ export default /* GraphQL */ `
     appreciation: Boolean!
     articleSubscription: Boolean!
     commentSubscribed: Boolean!
-    downstream: Boolean!
     commentPinned: Boolean!
-    commentVoted: Boolean!
-    officialNotice: Boolean!
-    reportFeedback: Boolean!
+    circleNewFollower: Boolean!
+    circleNewDiscussion: Boolean!
   }
 
   type ReadHistory {
@@ -552,11 +550,9 @@ export default /* GraphQL */ `
     appreciation
     articleSubscription
     commentSubscribed
-    downstream
     commentPinned
-    commentVoted
-    officialNotice
-    reportFeedback
+    circleNewFollower
+    circleNewDiscussion
   }
 
   enum UserState {

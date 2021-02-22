@@ -567,11 +567,9 @@ export interface GQLNotificationSetting {
   appreciation: boolean
   articleSubscription: boolean
   commentSubscribed: boolean
-  downstream: boolean
   commentPinned: boolean
-  commentVoted: boolean
-  officialNotice: boolean
-  reportFeedback: boolean
+  circleNewFollower: boolean
+  circleNewDiscussion: boolean
 }
 
 export interface GQLRecommendation {
@@ -1585,6 +1583,7 @@ export type GQLPossibleNoticeTypeNames =
   | 'ArticleArticleNotice'
   | 'ArticleNotice'
   | 'ArticleTagNotice'
+  | 'CircleNotice'
   | 'CommentCommentNotice'
   | 'CommentNotice'
   | 'OfficialAnnouncementNotice'
@@ -1597,6 +1596,7 @@ export interface GQLNoticeNameMap {
   ArticleArticleNotice: GQLArticleArticleNotice
   ArticleNotice: GQLArticleNotice
   ArticleTagNotice: GQLArticleTagNotice
+  CircleNotice: GQLCircleNotice
   CommentCommentNotice: GQLCommentCommentNotice
   CommentNotice: GQLCommentNotice
   OfficialAnnouncementNotice: GQLOfficialAnnouncementNotice
@@ -2750,11 +2750,9 @@ export const enum GQLNotificationSettingType {
   appreciation = 'appreciation',
   articleSubscription = 'articleSubscription',
   commentSubscribed = 'commentSubscribed',
-  downstream = 'downstream',
   commentPinned = 'commentPinned',
-  commentVoted = 'commentVoted',
-  officialNotice = 'officialNotice',
-  reportFeedback = 'reportFeedback',
+  circleNewFollower = 'circleNewFollower',
+  circleNewDiscussion = 'circleNewDiscussion',
 }
 
 export interface GQLClearReadHistoryInput {
@@ -2962,6 +2960,43 @@ export const enum GQLArticleTagNoticeType {
 export const enum GQLCacheScope {
   PUBLIC = 'PUBLIC',
   PRIVATE = 'PRIVATE',
+}
+
+/**
+ * ################################
+ *                                #
+ *             Circle             #
+ *                                #
+ * ################################
+ */
+export interface GQLCircleNotice extends GQLNotice {
+  /**
+   * Unique ID of this notice.
+   */
+  id: string
+
+  /**
+   * The value determines if the notice is unread or not.
+   */
+  unread: boolean
+
+  /**
+   * Time of this notice was created.
+   */
+  createdAt: GQLDateTime
+
+  /**
+   * List of notice actors.
+   */
+  actors?: Array<GQLUser>
+  type: GQLCircleNoticeType
+  target: GQLCircle
+}
+
+export const enum GQLCircleNoticeType {
+  CircleNewFollower = 'CircleNewFollower',
+  CircleNewSubscriber = 'CircleNewSubscriber',
+  CircleNewUnsubscriber = 'CircleNewUnsubscriber',
 }
 
 export interface GQLCommentCommentNotice extends GQLNotice {
@@ -3348,6 +3383,7 @@ export interface GQLResolver {
   ArticleArticleNotice?: GQLArticleArticleNoticeTypeResolver
   ArticleNotice?: GQLArticleNoticeTypeResolver
   ArticleTagNotice?: GQLArticleTagNoticeTypeResolver
+  CircleNotice?: GQLCircleNoticeTypeResolver
   CommentCommentNotice?: GQLCommentCommentNoticeTypeResolver
   CommentNotice?: GQLCommentNoticeTypeResolver
   JSON?: GraphQLScalarType
@@ -4564,11 +4600,11 @@ export interface GQLNotificationSettingTypeResolver<TParent = any> {
     TParent
   >
   commentSubscribed?: NotificationSettingToCommentSubscribedResolver<TParent>
-  downstream?: NotificationSettingToDownstreamResolver<TParent>
   commentPinned?: NotificationSettingToCommentPinnedResolver<TParent>
-  commentVoted?: NotificationSettingToCommentVotedResolver<TParent>
-  officialNotice?: NotificationSettingToOfficialNoticeResolver<TParent>
-  reportFeedback?: NotificationSettingToReportFeedbackResolver<TParent>
+  circleNewFollower?: NotificationSettingToCircleNewFollowerResolver<TParent>
+  circleNewDiscussion?: NotificationSettingToCircleNewDiscussionResolver<
+    TParent
+  >
 }
 
 export interface NotificationSettingToEnableResolver<
@@ -4667,18 +4703,6 @@ export interface NotificationSettingToCommentSubscribedResolver<
   ): TResult
 }
 
-export interface NotificationSettingToDownstreamResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
 export interface NotificationSettingToCommentPinnedResolver<
   TParent = any,
   TResult = any
@@ -4691,7 +4715,7 @@ export interface NotificationSettingToCommentPinnedResolver<
   ): TResult
 }
 
-export interface NotificationSettingToCommentVotedResolver<
+export interface NotificationSettingToCircleNewFollowerResolver<
   TParent = any,
   TResult = any
 > {
@@ -4703,19 +4727,7 @@ export interface NotificationSettingToCommentVotedResolver<
   ): TResult
 }
 
-export interface NotificationSettingToOfficialNoticeResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface NotificationSettingToReportFeedbackResolver<
+export interface NotificationSettingToCircleNewDiscussionResolver<
   TParent = any,
   TResult = any
 > {
@@ -7142,6 +7154,7 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'ArticleArticleNotice'
     | 'ArticleNotice'
     | 'ArticleTagNotice'
+    | 'CircleNotice'
     | 'CommentCommentNotice'
     | 'CommentNotice'
     | 'OfficialAnnouncementNotice'
@@ -9438,6 +9451,69 @@ export interface ArticleTagNoticeToTargetResolver<
 }
 
 export interface ArticleTagNoticeToTagResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLCircleNoticeTypeResolver<TParent = any> {
+  id?: CircleNoticeToIdResolver<TParent>
+  unread?: CircleNoticeToUnreadResolver<TParent>
+  createdAt?: CircleNoticeToCreatedAtResolver<TParent>
+  actors?: CircleNoticeToActorsResolver<TParent>
+  type?: CircleNoticeToTypeResolver<TParent>
+  target?: CircleNoticeToTargetResolver<TParent>
+}
+
+export interface CircleNoticeToIdResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleNoticeToUnreadResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleNoticeToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleNoticeToActorsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleNoticeToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleNoticeToTargetResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
