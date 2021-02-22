@@ -6,7 +6,7 @@ import { environment, isTest } from 'common/environment'
 import { ActionFailedError, UserInputError } from 'common/errors'
 import logger from 'common/logger'
 
-const { zh_hans, zh_hant } = LANGUAGE
+const { zh_hans, zh_hant, en } = LANGUAGE
 
 class GCP {
   translateAPI: TranslateAPI.Translate
@@ -27,6 +27,7 @@ class GCP {
     const langMap: { [key: string]: string } = {
       'zh-CN': zh_hans,
       'zh-TW': zh_hant,
+      en,
     }
 
     return langMap[externalLang] || externalLang
@@ -36,6 +37,7 @@ class GCP {
     const langMap: { [key: string]: string } = {
       [zh_hans]: 'zh-CN',
       [zh_hant]: 'zh-TW',
+      [en]: 'en',
     }
 
     return langMap[internalLang] || 'zh-TW'
