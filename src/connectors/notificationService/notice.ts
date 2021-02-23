@@ -498,7 +498,7 @@ class Notice extends BaseService {
     setting,
   }: {
     event: NotificationType
-    setting: { [key: string]: boolean }
+    setting: { [key in DBNotificationSettingType]: boolean }
   }) => {
     if (!setting || !setting.enable) {
       return false
@@ -506,12 +506,12 @@ class Notice extends BaseService {
 
     const noticeSettingMap: Record<NotificationType, boolean> = {
       // user
-      user_new_follower: setting.follow,
+      user_new_follower: setting.userNewFollower,
 
       // article
       article_published: true,
-      article_new_appreciation: setting.appreciation,
-      article_new_subscriber: setting.articleSubscription,
+      article_new_appreciation: setting.articleNewAppreciation,
+      article_new_subscriber: setting.articleNewSubscription,
       article_mentioned_you: setting.mention,
       revised_article_published: true,
       revised_article_not_published: true,
@@ -520,20 +520,20 @@ class Notice extends BaseService {
       article_new_collected: true,
 
       // comment
-      comment_pinned: setting.commentPinned,
+      comment_pinned: setting.articleCommentPinned,
       comment_mentioned_you: setting.mention,
-      article_new_comment: setting.comment,
-      subscribed_article_new_comment: setting.commentSubscribed,
+      article_new_comment: setting.articleNewComment,
+      subscribed_article_new_comment: setting.articleSubscribedNewComment,
       circle_new_broadcast: true,
       circle_new_discussion: setting.circleNewDiscussion,
 
       // comment-comment
-      comment_new_reply: setting.comment,
+      comment_new_reply: setting.articleNewComment,
 
       // article-tag
-      article_tag_has_been_added: setting.tag,
-      article_tag_has_been_removed: setting.tag,
-      article_tag_has_been_unselected: setting.tag,
+      article_tag_has_been_added: true,
+      article_tag_has_been_removed: true,
+      article_tag_has_been_unselected: true,
 
       // tag
       tag_adoption: true,
@@ -550,7 +550,7 @@ class Notice extends BaseService {
       circle_new_subscriber: true,
       circle_new_unsubscriber: true,
 
-      // misc
+      // system
       official_announcement: true,
       user_activated: true,
       user_banned: true,

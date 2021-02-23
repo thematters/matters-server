@@ -562,12 +562,12 @@ export interface GQLNotificationSetting {
   enable: boolean
   email: boolean
   mention: boolean
-  follow: boolean
-  comment: boolean
-  appreciation: boolean
-  articleSubscription: boolean
-  commentSubscribed: boolean
-  commentPinned: boolean
+  userNewFollower: boolean
+  articleNewComment: boolean
+  articleNewAppreciation: boolean
+  articleNewSubscription: boolean
+  articleSubscribedNewComment: boolean
+  articleCommentPinned: boolean
   circleNewFollower: boolean
   circleNewDiscussion: boolean
 }
@@ -2745,12 +2745,12 @@ export const enum GQLNotificationSettingType {
   enable = 'enable',
   email = 'email',
   mention = 'mention',
-  follow = 'follow',
-  comment = 'comment',
-  appreciation = 'appreciation',
-  articleSubscription = 'articleSubscription',
-  commentSubscribed = 'commentSubscribed',
-  commentPinned = 'commentPinned',
+  userNewFollower = 'userNewFollower',
+  articleNewComment = 'articleNewComment',
+  articleNewAppreciation = 'articleNewAppreciation',
+  articleNewSubscription = 'articleNewSubscription',
+  articleSubscribedNewComment = 'articleSubscribedNewComment',
+  articleCommentPinned = 'articleCommentPinned',
   circleNewFollower = 'circleNewFollower',
   circleNewDiscussion = 'circleNewDiscussion',
 }
@@ -4593,14 +4593,20 @@ export interface GQLNotificationSettingTypeResolver<TParent = any> {
   enable?: NotificationSettingToEnableResolver<TParent>
   email?: NotificationSettingToEmailResolver<TParent>
   mention?: NotificationSettingToMentionResolver<TParent>
-  follow?: NotificationSettingToFollowResolver<TParent>
-  comment?: NotificationSettingToCommentResolver<TParent>
-  appreciation?: NotificationSettingToAppreciationResolver<TParent>
-  articleSubscription?: NotificationSettingToArticleSubscriptionResolver<
+  userNewFollower?: NotificationSettingToUserNewFollowerResolver<TParent>
+  articleNewComment?: NotificationSettingToArticleNewCommentResolver<TParent>
+  articleNewAppreciation?: NotificationSettingToArticleNewAppreciationResolver<
     TParent
   >
-  commentSubscribed?: NotificationSettingToCommentSubscribedResolver<TParent>
-  commentPinned?: NotificationSettingToCommentPinnedResolver<TParent>
+  articleNewSubscription?: NotificationSettingToArticleNewSubscriptionResolver<
+    TParent
+  >
+  articleSubscribedNewComment?: NotificationSettingToArticleSubscribedNewCommentResolver<
+    TParent
+  >
+  articleCommentPinned?: NotificationSettingToArticleCommentPinnedResolver<
+    TParent
+  >
   circleNewFollower?: NotificationSettingToCircleNewFollowerResolver<TParent>
   circleNewDiscussion?: NotificationSettingToCircleNewDiscussionResolver<
     TParent
@@ -4643,7 +4649,7 @@ export interface NotificationSettingToMentionResolver<
   ): TResult
 }
 
-export interface NotificationSettingToFollowResolver<
+export interface NotificationSettingToUserNewFollowerResolver<
   TParent = any,
   TResult = any
 > {
@@ -4655,7 +4661,7 @@ export interface NotificationSettingToFollowResolver<
   ): TResult
 }
 
-export interface NotificationSettingToCommentResolver<
+export interface NotificationSettingToArticleNewCommentResolver<
   TParent = any,
   TResult = any
 > {
@@ -4667,7 +4673,7 @@ export interface NotificationSettingToCommentResolver<
   ): TResult
 }
 
-export interface NotificationSettingToAppreciationResolver<
+export interface NotificationSettingToArticleNewAppreciationResolver<
   TParent = any,
   TResult = any
 > {
@@ -4679,7 +4685,7 @@ export interface NotificationSettingToAppreciationResolver<
   ): TResult
 }
 
-export interface NotificationSettingToArticleSubscriptionResolver<
+export interface NotificationSettingToArticleNewSubscriptionResolver<
   TParent = any,
   TResult = any
 > {
@@ -4691,7 +4697,7 @@ export interface NotificationSettingToArticleSubscriptionResolver<
   ): TResult
 }
 
-export interface NotificationSettingToCommentSubscribedResolver<
+export interface NotificationSettingToArticleSubscribedNewCommentResolver<
   TParent = any,
   TResult = any
 > {
@@ -4703,7 +4709,7 @@ export interface NotificationSettingToCommentSubscribedResolver<
   ): TResult
 }
 
-export interface NotificationSettingToCommentPinnedResolver<
+export interface NotificationSettingToArticleCommentPinnedResolver<
   TParent = any,
   TResult = any
 > {
