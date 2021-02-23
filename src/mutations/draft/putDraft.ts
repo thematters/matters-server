@@ -16,6 +16,7 @@ import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
+  UserInputError,
 } from 'common/errors'
 import { fromGlobalId, sanitize } from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
@@ -161,6 +162,11 @@ const resolver: MutationToPutDraftResolver = async (
       throw new ForbiddenError(
         'current publishState is not allow to be updated'
       )
+    }
+
+    // check for summary length limit
+    if (data?.summary?.length > 200) {
+      throw new UserInputError('summary reach length limit')
     }
 
     // update
