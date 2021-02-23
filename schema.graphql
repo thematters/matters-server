@@ -675,7 +675,7 @@ enum CommentNoticeType {
   ArticleNewComment
   SubscribedArticleNewComment
   CircleNewDiscussion
-  CircleNewBoardcast
+  CircleNewBroadcast
 }
 
 input CommentsFilter {

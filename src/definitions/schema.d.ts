@@ -3070,7 +3070,7 @@ export const enum GQLCommentNoticeType {
   ArticleNewComment = 'ArticleNewComment',
   SubscribedArticleNewComment = 'SubscribedArticleNewComment',
   CircleNewDiscussion = 'CircleNewDiscussion',
-  CircleNewBoardcast = 'CircleNewBoardcast',
+  CircleNewBroadcast = 'CircleNewBroadcast',
 }
 
 export interface GQLCostComplexity {

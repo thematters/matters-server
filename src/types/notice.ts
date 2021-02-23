@@ -152,7 +152,7 @@ export default /* GraphQL */ `
     ArticleNewComment
     SubscribedArticleNewComment
     CircleNewDiscussion
-    CircleNewBoardcast
+    CircleNewBroadcast
   }
 
   type CommentCommentNotice implements Notice {

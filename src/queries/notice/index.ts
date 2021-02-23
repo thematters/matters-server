@@ -212,7 +212,7 @@ const notice: {
         case DB_NOTICE_TYPE.circle_new_discussion:
           return GQLCommentNoticeType.CircleNewDiscussion
         case DB_NOTICE_TYPE.circle_new_broadcast:
-          return GQLCommentNoticeType.CircleNewBoardcast
+          return GQLCommentNoticeType.CircleNewBroadcast
       }
     },
     target: ({ entities, type }) => {
