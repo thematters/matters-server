@@ -91,6 +91,13 @@ export interface NoticeRevisedArticleNotPublishedParams
   entities: [NotificationEntity<'target', 'article'>]
 }
 
+export interface NoticeCircleNewArticleParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_new_article
+  recipientId: string
+  entities: [NotificationEntity<'target', 'article'>]
+}
+
 // Article-Article
 export interface NoticeArticleNewCollectedParams
   extends NotificationRequiredParams {
@@ -350,6 +357,7 @@ export type NotificationPrarms =
   | NoticeArticleMentionedYouParams
   | NoticeRevisedArticlePublishedParams
   | NoticeRevisedArticleNotPublishedParams
+  | NoticeCircleNewArticleParams
   // Comment
   | NoticeCommentPinnedParams
   | NoticeCommentNewReplyParams

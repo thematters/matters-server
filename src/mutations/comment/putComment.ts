@@ -254,7 +254,6 @@ const resolver: MutationToPutCommentResolver = async (
     /**
      * Notifications
      */
-    const articleAuthor = _.get(article, 'authorId')
     const parentCommentAuthor = _.get(parentComment, 'authorId')
     const parentCommentId = _.get(parentComment, 'id')
     const replyToCommentAuthor = _.get(replyToComment, 'authorId')
@@ -270,14 +269,14 @@ const resolver: MutationToPutCommentResolver = async (
     const shouldNotifyArticleAuthor =
       article &&
       (isLevel1Comment ||
-        (articleAuthor !== parentCommentAuthor &&
-          articleAuthor !== replyToCommentAuthor))
+        (targetAuthor !== parentCommentAuthor &&
+          targetAuthor !== replyToCommentAuthor))
 
     if (shouldNotifyArticleAuthor) {
       notificationService.trigger({
         event: DB_NOTICE_TYPE.article_new_comment,
         actorId: viewer.id,
-        recipientId: articleAuthor,
+        recipientId: targetAuthor,
         entities: [
           {
             type: 'target',
@@ -344,9 +343,6 @@ const resolver: MutationToPutCommentResolver = async (
         id: article.id,
       })
       articleSubscribers.forEach((subscriber: any) => {
-        if (subscriber.id === articleAuthor) {
-          return
-        }
         notificationService.trigger({
           event: DB_NOTICE_TYPE.subscribed_article_new_comment,
           actorId: viewer.id,
@@ -359,6 +355,40 @@ const resolver: MutationToPutCommentResolver = async (
             },
             {
               type: 'comment',
+              entityTable: 'comment',
+              entity: newComment,
+            },
+          ],
+        })
+      })
+    }
+
+    // notify cirlce members
+    if (circle && (isCircleBroadcast || isCircleDiscussion)) {
+      const circleMembers = await knex
+        .from('circle_subscription_item as csi')
+        .join('circle_price', 'circle_price.id', 'csi.price_id')
+        .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+        .where({
+          'circle_price.circle_id': id,
+          'circle_price.state': PRICE_STATE.active,
+          'csi.archived': false,
+        })
+        .whereIn('cs.state', [
+          SUBSCRIPTION_STATE.active,
+          SUBSCRIPTION_STATE.trialing,
+        ])
+
+      circleMembers.forEach((member: any) => {
+        notificationService.trigger({
+          event: isCircleDiscussion
+            ? DB_NOTICE_TYPE.circle_new_discussion
+            : DB_NOTICE_TYPE.circle_new_broadcast,
+          actorId: viewer.id,
+          recipientId: member.id,
+          entities: [
+            {
+              type: 'target',
               entityTable: 'comment',
               entity: newComment,
             },

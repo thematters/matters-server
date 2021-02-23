@@ -1,6 +1,7 @@
 import {
   CACHE_KEYWORD,
   CIRCLE_STATE,
+  DB_NOTICE_TYPE,
   NODE_TYPES,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
@@ -18,7 +19,16 @@ import { MutationToUnsubscribeCircleResolver } from 'definitions'
 const resolver: MutationToUnsubscribeCircleResolver = async (
   root,
   { input: { id } },
-  { viewer, dataSources: { atomService, paymentService, systemService }, knex }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      paymentService,
+      systemService,
+      notificationService,
+    },
+    knex,
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -110,6 +120,20 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
       },
     })
   }
+
+  // trigger notificaiton
+  notificationService.trigger({
+    event: DB_NOTICE_TYPE.circle_new_unsubscriber,
+    actorId: viewer.id,
+    recipientId: circle.owner,
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'circle',
+        entity: circle,
+      },
+    ],
+  })
 
   // invalidate cache
   circle[CACHE_KEYWORD] = [
