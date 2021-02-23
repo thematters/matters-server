@@ -280,6 +280,7 @@ export class CommentService extends BaseService {
     this.baseUpdate(commentId, {
       pinned,
       updatedAt: new Date(),
+      pinnedAt: pinned ? new Date() : null,
     })
 
   /**

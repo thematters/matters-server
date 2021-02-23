@@ -34,7 +34,7 @@ const resolver: CircleToBroadcastResolver = async (
         pinned DESC,
         CASE pinned
         WHEN true THEN
-          updated_at
+          pinned_at
         WHEN false THEN
           created_at
         END DESC
