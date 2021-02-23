@@ -178,15 +178,123 @@ likecoinRouter.get('/', async (req, res) => {
  * @see {@url https://docs.like.co/developer/like-pay/web-widget/webhook}
  */
 likecoinRouter.post('/', async (req, res, next) => {
+  const userService = new UserService()
+  const paymentService = new PaymentService()
+  const notificationService = new NotificationService()
+
   try {
     const { tx, metadata } = req.body
-    if (!tx) {
+    if (!tx || !tx.txHash) {
       throw new Error('callback has no "tx"')
     }
 
     if (!metadata) {
       throw new Error('callback has no "metadata"')
     }
+
+    const trans = (
+      await paymentService.findTransactions({
+        providerTxId: tx.txHash,
+      })
+    )[0]
+
+    if (!trans) {
+      throw new Error(`counld not find tx hash ${tx.txHash}`)
+    }
+
+    // check like chain tx state
+    // 1 like is 10^9 nanolike
+    const rate = Math.pow(10, 9)
+    const cosmosData = await userService.likecoin.getCosmosTxData({
+      hash: tx.txHash,
+    })
+    const cosmosAmount = NP.divide(cosmosData.amount, rate)
+    const cosmosState =
+      tx.status === 'success'
+        ? TRANSACTION_STATE.succeeded
+        : tx.status === 'failed'
+        ? TRANSACTION_STATE.failed
+        : tx.status === 'timeout'
+        ? TRANSACTION_STATE.failed
+        : TRANSACTION_STATE.pending
+
+    const updateParams: Record<string, any> = {
+      id: trans.id,
+      provider_tx_id: tx.txHash,
+      state: cosmosState,
+      updatedAt: new Date(),
+    }
+
+    // correct amount if it changed via LikePay
+    if (trans.amount !== cosmosAmount) {
+      updateParams.amount = cosmosAmount
+    }
+
+    // update transaction
+    const updatedTx = await paymentService.baseUpdate(trans.id, updateParams)
+
+    if (cosmosState === TRANSACTION_STATE.failed) {
+      invalidateCache({
+        id: updatedTx.targetId,
+        typeId: updatedTx.targetType,
+        userService,
+      })
+      throw new Error('like pay failure')
+    }
+
+    // notification
+    const sender = await userService.baseFindById(updatedTx.senderId)
+    const recipient = await userService.baseFindById(updatedTx.recipientId)
+
+    // to sender
+    notificationService.mail.sendPayment({
+      to: sender.email,
+      recipient: {
+        displayName: sender.displayName,
+        userName: sender.userName,
+      },
+      type: 'donated',
+      tx: {
+        recipient,
+        sender,
+        amount: numRound(updatedTx.amount),
+        currency: updatedTx.currency,
+      },
+    })
+    // to recipient
+    notificationService.trigger({
+      event: DB_NOTICE_TYPE.payment_received_donation,
+      actorId: sender.id,
+      recipientId: recipient.id,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'transaction',
+          entity: updatedTx,
+        },
+      ],
+    })
+    notificationService.mail.sendPayment({
+      to: recipient.email,
+      recipient: {
+        displayName: recipient.displayName,
+        userName: recipient.userName,
+      },
+      type: 'receivedDonationLikeCoin',
+      tx: {
+        recipient,
+        sender,
+        amount: numRound(updatedTx.amount),
+        currency: updatedTx.currency,
+      },
+    })
+
+    // manaully invalidate cache
+    invalidateCache({
+      id: updatedTx.targetId,
+      typeId: updatedTx.targetType,
+      userService,
+    })
 
     res.json({ received: true })
   } catch (error) {
