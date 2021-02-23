@@ -2019,6 +2019,7 @@ enum TransactionPurpose {
   addCredit
   refund
   payout
+  subscriptionSplit
 }
 
 input TransactionsArgs {
@@ -2041,7 +2042,7 @@ enum TransactionState {
   canceled
 }
 
-union TransactionTarget = Article | Transaction
+union TransactionTarget = Article | Circle | Transaction
 
 input TranslationArgs {
   language: UserLanguage!
