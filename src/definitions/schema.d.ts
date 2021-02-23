@@ -1693,16 +1693,21 @@ export const enum GQLTransactionPurpose {
   addCredit = 'addCredit',
   refund = 'refund',
   payout = 'payout',
+  subscriptionSplit = 'subscriptionSplit',
 }
 
-export type GQLTransactionTarget = GQLArticle | GQLTransaction
+export type GQLTransactionTarget = GQLArticle | GQLCircle | GQLTransaction
 
 /** Use this to resolve union type TransactionTarget */
-export type GQLPossibleTransactionTargetTypeNames = 'Article' | 'Transaction'
+export type GQLPossibleTransactionTargetTypeNames =
+  | 'Article'
+  | 'Circle'
+  | 'Transaction'
 
 export interface GQLTransactionTargetNameMap {
   TransactionTarget: GQLTransactionTarget
   Article: GQLArticle
+  Circle: GQLCircle
   Transaction: GQLTransaction
 }
 
@@ -7399,6 +7404,7 @@ export interface TransactionToMessageResolver<TParent = any, TResult = any> {
 export interface GQLTransactionTargetTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'Article'
+    | 'Circle'
     | 'Transaction'
 }
 export interface GQLStripeAccountTypeResolver<TParent = any> {
