@@ -24,7 +24,7 @@ export default {
     wordCount: ({ content }: { content?: string }) =>
       content ? countWords(content) : 0,
     summary: ({ summary, content }: { summary?: string; content: string }) =>
-      summary || makeSummary(content),
+      summary || makeSummary(content || ''),
     cover: draftCover,
     collection,
     assets,

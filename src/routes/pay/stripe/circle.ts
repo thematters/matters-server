@@ -48,12 +48,8 @@ export const completeCircleSubscription = async ({
   const circleId = _.get(metadata, METADATA_KEY.CIRCLE_ID)
   const priceId = _.get(metadata, METADATA_KEY.CIRCLE_PRICE_ID)
 
-  // checck circle, price & customer
+  // check circle, price & customer
   if (!circleId || !priceId) {
-    slack.sendStripeAlert({
-      data: slackEventData,
-      message: `circle (${circleId}) or price (${priceId}) doesn't exist.`,
-    })
     return
   }
 
@@ -304,6 +300,11 @@ export const completeCircleInvoice = async ({
     const providerTxId = invoice.payment_intent as string
     const amount = toDBAmount({ amount: invoice.amount_paid })
     const currency = _.toUpper(invoice.currency) as PAYMENT_CURRENCY
+
+    if (!providerTxId) {
+      return
+    }
+
     const tx = (await paymentService.findTransactions({ providerTxId }))[0]
 
     if (tx) {
