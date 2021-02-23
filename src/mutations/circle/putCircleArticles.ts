@@ -89,7 +89,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     .join('circle_price', 'circle_price.id', 'csi.price_id')
     .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
     .where({
-      'circle_price.circle_id': id,
+      'circle_price.circle_id': circleId,
       'circle_price.state': PRICE_STATE.active,
       'csi.archived': false,
     })
@@ -113,7 +113,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
         circleMembers.forEach((member: any) => {
           notificationService.trigger({
             event: DB_NOTICE_TYPE.circle_new_article,
-            recipientId: member.id,
+            recipientId: member.userId,
             entities: [
               {
                 type: 'target',

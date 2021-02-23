@@ -80,6 +80,8 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.circle_new_follower:
       case DB_NOTICE_TYPE.circle_new_subscriber:
       case DB_NOTICE_TYPE.circle_new_unsubscriber:
+      case DB_NOTICE_TYPE.circle_new_broadcast:
+      case DB_NOTICE_TYPE.circle_new_discussion:
         return {
           type: params.event,
           recipientId: params.recipientId,
