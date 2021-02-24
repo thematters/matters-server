@@ -34,7 +34,7 @@ export default /* GraphQL */ `
     receivedDonationCount: Int!
   }
 
-  union TransactionTarget = Article | Transaction
+  union TransactionTarget = Article | Circle | Transaction
 
   type Wallet {
     balance: Balance! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
@@ -113,6 +113,7 @@ export default /* GraphQL */ `
     addCredit
     refund
     payout
+    subscriptionSplit
   }
 
   enum TransactionCurrency {

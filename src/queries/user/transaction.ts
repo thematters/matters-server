@@ -14,7 +14,7 @@ export const Transaction: GQLTransactionTypeResolver = {
   target: async (
     trx,
     _,
-    { dataSources: { articleService, paymentService } }
+    { dataSources: { articleService, atomService, paymentService } }
   ) => {
     if (!trx.targetId || !trx.targetType) {
       return null
@@ -22,18 +22,36 @@ export const Transaction: GQLTransactionTypeResolver = {
 
     const tableTypeMap = {
       article: 'Article',
+      circle_price: 'Circle',
       transaction: 'Transaction',
     }
 
-    const { table } = (await paymentService.baseFindEntityTypeTable(
-      trx.targetType
-    )) as { table: keyof typeof tableTypeMap }
+    const { table } = (await atomService.findFirst({
+      table: 'entity_type',
+      where: { id: trx.targetType },
+    })) as { table: keyof typeof tableTypeMap }
 
     let target
-    if (table === 'article') {
-      target = await articleService.draftLoader.load(trx.targetId)
-    } else if (table === 'transaction') {
-      target = await paymentService.dataloader.load(trx.targetId)
+    switch (table) {
+      case 'article': {
+        target = await articleService.draftLoader.load(trx.targetId)
+        break
+      }
+      case 'circle_price': {
+        const price = await atomService.findUnique({
+          table: 'circle_price',
+          where: { id: trx.targetId },
+        })
+        target = await atomService.findUnique({
+          table: 'circle',
+          where: { id: price?.circleId },
+        })
+        break
+      }
+      case 'transaction': {
+        target = await paymentService.dataloader.load(trx.targetId)
+        break
+      }
     }
 
     return {
