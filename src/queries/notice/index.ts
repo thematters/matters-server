@@ -202,9 +202,9 @@ const notice: {
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.comment_pinned:
-          return GQLCommentNoticeType.ArticleCommentPinned
+          return GQLCommentNoticeType.CommentPinned
         case DB_NOTICE_TYPE.comment_mentioned_you:
-          return GQLCommentNoticeType.ArticleCommentMentionedYou
+          return GQLCommentNoticeType.CommentMentionedYou
         case DB_NOTICE_TYPE.article_new_comment:
           return GQLCommentNoticeType.ArticleNewComment
         case DB_NOTICE_TYPE.subscribed_article_new_comment:

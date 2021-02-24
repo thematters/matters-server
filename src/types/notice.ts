@@ -147,8 +147,8 @@ export default /* GraphQL */ `
   }
 
   enum CommentNoticeType {
-    ArticleCommentPinned
-    ArticleCommentMentionedYou
+    CommentPinned
+    CommentMentionedYou
     ArticleNewComment
     SubscribedArticleNewComment
     CircleNewDiscussion

@@ -3065,8 +3065,8 @@ export interface GQLCommentNotice extends GQLNotice {
 }
 
 export const enum GQLCommentNoticeType {
-  ArticleCommentPinned = 'ArticleCommentPinned',
-  ArticleCommentMentionedYou = 'ArticleCommentMentionedYou',
+  CommentPinned = 'CommentPinned',
+  CommentMentionedYou = 'CommentMentionedYou',
   ArticleNewComment = 'ArticleNewComment',
   SubscribedArticleNewComment = 'SubscribedArticleNewComment',
   CircleNewDiscussion = 'CircleNewDiscussion',
