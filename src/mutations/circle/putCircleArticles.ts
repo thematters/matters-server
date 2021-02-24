@@ -1,10 +1,9 @@
-import _difference from 'lodash/difference'
-import _some from 'lodash/some'
-import _uniq from 'lodash/uniq'
+import _ from 'lodash'
 
 import {
   ARTICLE_STATE,
   CACHE_KEYWORD,
+  CIRCLE_ACTION,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
@@ -83,23 +82,32 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     throw new ForbiddenError('only circle owner has the access')
   }
 
-  // retrieve circle members
-  const circleMembers = await knex
-    .from('circle_subscription_item as csi')
-    .join('circle_price', 'circle_price.id', 'csi.price_id')
-    .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
-    .where({
-      'circle_price.circle_id': circleId,
-      'circle_price.state': PRICE_STATE.active,
-      'csi.archived': false,
-    })
-    .whereIn('cs.state', [
-      SUBSCRIPTION_STATE.active,
-      SUBSCRIPTION_STATE.trialing,
-    ])
-
   switch (type) {
     case 'add':
+      // retrieve circle members and followers
+      const members = await knex
+        .from('circle_subscription_item as csi')
+        .join('circle_price', 'circle_price.id', 'csi.price_id')
+        .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+        .where({
+          'circle_price.circle_id': circleId,
+          'circle_price.state': PRICE_STATE.active,
+          'csi.archived': false,
+        })
+        .whereIn('cs.state', [
+          SUBSCRIPTION_STATE.active,
+          SUBSCRIPTION_STATE.trialing,
+        ])
+      const followers = await atomService.findMany({
+        table: 'action_circle',
+        select: ['user_id'],
+        where: { targetId: circleId, action: CIRCLE_ACTION.follow },
+      })
+      const recipients = _.uniq([
+        ...members.map((m) => m.userId),
+        ...followers.map((f) => f.userId),
+      ])
+
       for (const article of targetArticles) {
         const data = { articleId: article.id, circleId: circle.id }
         await atomService.upsert({
@@ -109,11 +117,11 @@ const resolver: MutationToPutCircleArticlesResolver = async (
           update: data,
         })
 
-        // notify cirlce members
-        circleMembers.forEach((member: any) => {
+        // notify
+        recipients.forEach((recipientId: any) => {
           notificationService.trigger({
             event: DB_NOTICE_TYPE.circle_new_article,
-            recipientId: member.userId,
+            recipientId,
             entities: [
               {
                 type: 'target',
