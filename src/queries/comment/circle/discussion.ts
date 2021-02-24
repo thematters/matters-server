@@ -14,22 +14,20 @@ const resolver: CircleToDiscussionResolver = async (
   const { first: take, after } = input
   const skip = cursorToIndex(after) + 1
 
+  const where = {
+    state: COMMENT_STATE.active,
+    parentCommentId: null,
+    targetId: id,
+    type: COMMENT_TYPE.circleDiscussion,
+  }
   const [totalCount, comments] = await Promise.all([
     atomService.count({
       table: 'comment',
-      where: {
-        state: COMMENT_STATE.active,
-        targetId: id,
-        type: COMMENT_TYPE.circleDiscussion,
-      },
+      where,
     }),
     atomService.findMany({
       table: 'comment',
-      where: {
-        state: COMMENT_STATE.active,
-        targetId: id,
-        type: COMMENT_TYPE.circleDiscussion,
-      },
+      where,
       skip,
       take,
       orderBy: [{ column: 'created_at', order: 'desc' }],
