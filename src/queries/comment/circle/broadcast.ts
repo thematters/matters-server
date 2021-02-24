@@ -14,28 +14,31 @@ const resolver: CircleToBroadcastResolver = async (
   const { first: take, after } = input
   const skip = cursorToIndex(after) + 1
 
+  const where = {
+    state: COMMENT_STATE.active,
+    parentCommentId: null,
+    targetId: id,
+    type: COMMENT_TYPE.circleBroadcast,
+  }
   const [totalCount, comments] = await Promise.all([
     atomService.count({
       table: 'comment',
-      where: {
-        state: COMMENT_STATE.active,
-        targetId: id,
-        type: COMMENT_TYPE.circleBroadcast,
-      },
+      where,
     }),
     atomService.findMany({
       table: 'comment',
-      where: {
-        state: COMMENT_STATE.active,
-        targetId: id,
-        type: COMMENT_TYPE.circleBroadcast,
-      },
+      where,
       skip,
       take,
-      orderBy: [
-        { column: 'pinned', order: 'desc' },
-        { column: 'created_at', order: 'desc' },
-      ],
+      orderByRaw: `
+        pinned DESC,
+        CASE pinned
+        WHEN true THEN
+          pinned_at
+        WHEN false THEN
+          created_at
+        END DESC
+      `,
     }),
   ])
 

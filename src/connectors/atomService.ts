@@ -29,6 +29,7 @@ interface FindManyInput {
   where?: Record<string, any>
   whereIn?: [string, string[]]
   orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
+  orderByRaw?: string
   skip?: number
   take?: number
 }
@@ -133,6 +134,7 @@ export class AtomService extends DataSource {
     where,
     whereIn,
     orderBy,
+    orderByRaw,
     skip,
     take,
   }: FindManyInput) => {
@@ -148,6 +150,10 @@ export class AtomService extends DataSource {
 
     if (orderBy) {
       query.orderBy(orderBy)
+    }
+
+    if (orderByRaw) {
+      query.orderByRaw(orderByRaw)
     }
 
     if (skip) {
