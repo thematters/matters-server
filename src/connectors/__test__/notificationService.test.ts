@@ -92,7 +92,9 @@ describe('user notify setting', () => {
 
   test('user disable "user_new_follower"', async () => {
     const notifySetting = await userService.findNotifySetting(recipientId)
-    await userService.updateNotifySetting(notifySetting.id, { follow: false })
+    await userService.updateNotifySetting(notifySetting.id, {
+      userNewFollower: false,
+    })
     const newNotifySetting = await userService.findNotifySetting(recipientId)
     await Promise.all(
       NOTIFICATION_TYPES.map(async (type) => {
