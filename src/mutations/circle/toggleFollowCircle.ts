@@ -2,6 +2,7 @@ import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
   CIRCLE_STATE,
+  DB_NOTICE_TYPE,
   NODE_TYPES,
 } from 'common/enums'
 import {
@@ -22,7 +23,7 @@ enum ACTION {
 const resolver: MutationToToggleFollowCircleResolver = async (
   root,
   { input: { id, enabled } },
-  { viewer, dataSources: { atomService, systemService } }
+  { viewer, dataSources: { atomService, systemService, notificationService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -72,6 +73,20 @@ const resolver: MutationToToggleFollowCircleResolver = async (
           },
         })
       }
+
+      // trigger notificaiton
+      notificationService.trigger({
+        event: DB_NOTICE_TYPE.circle_new_follower,
+        actorId: viewer.id,
+        recipientId: circle.owner,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'circle',
+            entity: circle,
+          },
+        ],
+      })
       break
     }
     case ACTION.unfollow: {

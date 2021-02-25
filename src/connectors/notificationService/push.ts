@@ -127,6 +127,7 @@ class Push extends BaseService {
             currency: target.entity.currency,
           })
         )
+      // TODO: circle notices
     }
   }
 

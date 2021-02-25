@@ -42,7 +42,7 @@ const VIEWER_NO_SCOPED_PRIVATE = /* GraphQL */ `
     viewer {
       settings {
         notification {
-          officialNotice
+          mention
         }
       }
     }
@@ -404,9 +404,7 @@ describe('General viewer query and mutation', () => {
     const { context, query } = await prepare({ email: defaultTestUser.email })
     // query no scope field error
     const { data } = await query({ query: VIEWER_NO_SCOPED_PRIVATE })
-    expect(_.get(data, 'viewer.settings.notification.officialNotice')).toBe(
-      true
-    )
+    expect(_.get(data, 'viewer.settings.notification.mention')).toBe(true)
 
     // query other private field error
     const otherUserName = 'test2'
@@ -495,9 +493,7 @@ describe('Admin viewer query and mutation', () => {
 
     // query no scope field error
     const { data } = await query({ query: VIEWER_NO_SCOPED_PRIVATE })
-    expect(_.get(data, 'viewer.settings.notification.officialNotice')).toBe(
-      true
-    )
+    expect(_.get(data, 'viewer.settings.notification.mention')).toBe(true)
 
     // query other private field error
     const otherUserName = 'test2'

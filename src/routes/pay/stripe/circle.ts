@@ -4,6 +4,7 @@ import Stripe from 'stripe'
 
 import {
   CIRCLE_STATE,
+  DB_NOTICE_TYPE,
   METADATA_KEY,
   NODE_TYPES,
   PAYMENT_CURRENCY,
@@ -14,7 +15,12 @@ import {
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { toDBAmount } from 'common/utils'
-import { AtomService, CacheService, PaymentService } from 'connectors'
+import {
+  AtomService,
+  CacheService,
+  NotificationService,
+  PaymentService,
+} from 'connectors'
 import SlackService from 'connectors/slack'
 import { CirclePrice, CircleSubscription, Customer } from 'definitions'
 
@@ -37,6 +43,7 @@ export const completeCircleSubscription = async ({
 }) => {
   const atomService = new AtomService()
   const paymentService = new PaymentService()
+  const notificationService = new NotificationService()
   const slack = new SlackService()
   const slackEventData = {
     id: event.id,
@@ -104,6 +111,20 @@ export const completeCircleSubscription = async ({
       providerSubscriptionId: subscription.providerSubscriptionId,
     })
   }
+
+  // trigger notificaiton
+  notificationService.trigger({
+    event: DB_NOTICE_TYPE.circle_new_subscriber,
+    actorId: userId,
+    recipientId: circle.owner,
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'circle',
+        entity: circle,
+      },
+    ],
+  })
 
   // invalidate user & circle
   const cacheService = new CacheService()

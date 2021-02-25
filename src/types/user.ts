@@ -334,16 +334,14 @@ export default /* GraphQL */ `
     enable: Boolean!
     email: Boolean!
     mention: Boolean!
-    follow: Boolean!
-    comment: Boolean!
-    appreciation: Boolean!
-    articleSubscription: Boolean!
-    commentSubscribed: Boolean!
-    downstream: Boolean!
-    commentPinned: Boolean!
-    commentVoted: Boolean!
-    officialNotice: Boolean!
-    reportFeedback: Boolean!
+    userNewFollower: Boolean!
+    articleNewComment: Boolean!
+    articleNewAppreciation: Boolean!
+    articleNewSubscription: Boolean!
+    articleSubscribedNewComment: Boolean!
+    articleCommentPinned: Boolean!
+    circleNewFollower: Boolean!
+    circleNewDiscussion: Boolean!
   }
 
   type ReadHistory {
@@ -547,16 +545,14 @@ export default /* GraphQL */ `
     enable
     email
     mention
-    follow
-    comment
-    appreciation
-    articleSubscription
-    commentSubscribed
-    downstream
-    commentPinned
-    commentVoted
-    officialNotice
-    reportFeedback
+    userNewFollower
+    articleNewComment
+    articleNewAppreciation
+    articleNewSubscription
+    articleSubscribedNewComment
+    articleCommentPinned
+    circleNewFollower
+    circleNewDiscussion
   }
 
   enum UserState {
