@@ -66,9 +66,13 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.article_new_subscriber:
       case DB_NOTICE_TYPE.article_mentioned_you:
       case DB_NOTICE_TYPE.comment_mentioned_you:
+      case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
+      case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
       case DB_NOTICE_TYPE.article_new_comment:
       case DB_NOTICE_TYPE.subscribed_article_new_comment:
       case DB_NOTICE_TYPE.comment_new_reply:
+      case DB_NOTICE_TYPE.circle_broadcast_new_reply:
+      case DB_NOTICE_TYPE.circle_discussion_new_reply:
       case DB_NOTICE_TYPE.article_tag_has_been_added:
       case DB_NOTICE_TYPE.article_tag_has_been_removed:
       case DB_NOTICE_TYPE.article_tag_has_been_unselected:
@@ -81,7 +85,6 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.circle_new_subscriber:
       case DB_NOTICE_TYPE.circle_new_unsubscriber:
       case DB_NOTICE_TYPE.circle_new_broadcast:
-      case DB_NOTICE_TYPE.circle_new_discussion:
         return {
           type: params.event,
           recipientId: params.recipientId,

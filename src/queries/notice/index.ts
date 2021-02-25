@@ -87,13 +87,16 @@ const notice: {
         // comment
         comment_pinned: NOTICE_TYPE.CommentNotice,
         comment_mentioned_you: NOTICE_TYPE.CommentNotice,
+        circle_broadcast_mentioned_you: NOTICE_TYPE.CommentNotice,
+        circle_discussion_mentioned_you: NOTICE_TYPE.CommentNotice,
         article_new_comment: NOTICE_TYPE.CommentNotice,
         subscribed_article_new_comment: NOTICE_TYPE.CommentNotice,
         circle_new_broadcast: NOTICE_TYPE.CommentNotice,
-        circle_new_discussion: NOTICE_TYPE.CommentNotice,
 
         // comment-comment
         comment_new_reply: NOTICE_TYPE.CommentCommentNotice,
+        circle_broadcast_new_reply: NOTICE_TYPE.CommentCommentNotice,
+        circle_discussion_new_reply: NOTICE_TYPE.CommentCommentNotice,
 
         // transaction
         payment_received_donation: NOTICE_TYPE.TransactionNotice,
@@ -204,13 +207,13 @@ const notice: {
         case DB_NOTICE_TYPE.comment_pinned:
           return GQLCommentNoticeType.CommentPinned
         case DB_NOTICE_TYPE.comment_mentioned_you:
+        case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
+        case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
           return GQLCommentNoticeType.CommentMentionedYou
         case DB_NOTICE_TYPE.article_new_comment:
           return GQLCommentNoticeType.ArticleNewComment
         case DB_NOTICE_TYPE.subscribed_article_new_comment:
           return GQLCommentNoticeType.SubscribedArticleNewComment
-        case DB_NOTICE_TYPE.circle_new_discussion:
-          return GQLCommentNoticeType.CircleNewDiscussion
         case DB_NOTICE_TYPE.circle_new_broadcast:
           return GQLCommentNoticeType.CircleNewBroadcast
       }
@@ -219,7 +222,6 @@ const notice: {
       switch (type) {
         case DB_NOTICE_TYPE.comment_pinned:
         case DB_NOTICE_TYPE.comment_mentioned_you:
-        case DB_NOTICE_TYPE.circle_new_discussion:
         case DB_NOTICE_TYPE.circle_new_broadcast:
           return entities.target
         case DB_NOTICE_TYPE.article_new_comment:
@@ -233,6 +235,8 @@ const notice: {
     type: ({ type }) => {
       switch (type) {
         case DB_NOTICE_TYPE.comment_new_reply:
+        case DB_NOTICE_TYPE.circle_broadcast_new_reply:
+        case DB_NOTICE_TYPE.circle_discussion_new_reply:
           return GQLCommentCommentNoticeType.CommentNewReply
       }
     },

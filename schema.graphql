@@ -674,7 +674,6 @@ enum CommentNoticeType {
   CommentMentionedYou
   ArticleNewComment
   SubscribedArticleNewComment
-  CircleNewDiscussion
   CircleNewBroadcast
 }
 

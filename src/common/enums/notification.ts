@@ -28,13 +28,16 @@ export enum DB_NOTICE_TYPE {
   // comment
   comment_pinned = 'comment_pinned',
   comment_mentioned_you = 'comment_mentioned_you',
+  circle_broadcast_mentioned_you = 'circle_broadcast_mentioned_you',
+  circle_discussion_mentioned_you = 'circle_discussion_mentioned_you',
   article_new_comment = 'article_new_comment',
   subscribed_article_new_comment = 'subscribed_article_new_comment',
-  circle_new_discussion = 'circle_new_discussion',
   circle_new_broadcast = 'circle_new_broadcast',
 
   // comment-comment
   comment_new_reply = 'comment_new_reply',
+  circle_broadcast_new_reply = 'circle_broadcast_new_reply',
+  circle_discussion_new_reply = 'circle_discussion_new_reply',
 
   // transaction
   payment_received_donation = 'payment_received_donation',

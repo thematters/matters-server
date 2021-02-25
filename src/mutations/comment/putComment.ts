@@ -3,6 +3,7 @@ import { v4 } from 'uuid'
 
 import {
   CACHE_KEYWORD,
+  CIRCLE_ACTION,
   CIRCLE_STATE,
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
@@ -293,11 +294,16 @@ const resolver: MutationToPutCommentResolver = async (
     }
 
     // notify parentComment's author
+    const replyEvent = isCircleBroadcast
+      ? DB_NOTICE_TYPE.circle_broadcast_new_reply
+      : isCircleDiscussion
+      ? DB_NOTICE_TYPE.circle_discussion_new_reply
+      : DB_NOTICE_TYPE.comment_new_reply
     const shouldNotifyParentCommentAuthor =
       isReplyLevel1Comment || parentCommentAuthor !== replyToCommentAuthor
     if (shouldNotifyParentCommentAuthor) {
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.comment_new_reply,
+        event: replyEvent,
         actorId: viewer.id,
         recipientId: parentCommentAuthor,
         entities: [
@@ -319,7 +325,7 @@ const resolver: MutationToPutCommentResolver = async (
     const shouldNotifyReplyToCommentAuthor = isReplyingLevel2Comment
     if (shouldNotifyReplyToCommentAuthor) {
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.comment_new_reply,
+        event: replyEvent,
         actorId: viewer.id,
         recipientId: replyToCommentAuthor,
         entities: [
@@ -363,9 +369,10 @@ const resolver: MutationToPutCommentResolver = async (
       })
     }
 
-    // notify cirlce members
-    if (circle && (isCircleBroadcast || isCircleDiscussion)) {
-      const circleMembers = await knex
+    // notify cirlce members and followers
+    if (circle && isCircleBroadcast) {
+      // retrieve circle members and followers
+      const members = await knex
         .from('circle_subscription_item as csi')
         .join('circle_price', 'circle_price.id', 'csi.price_id')
         .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
@@ -379,13 +386,21 @@ const resolver: MutationToPutCommentResolver = async (
           SUBSCRIPTION_STATE.trialing,
         ])
 
-      circleMembers.forEach((member: any) => {
+      const followers = await atomService.findMany({
+        table: 'action_circle',
+        select: ['user_id'],
+        where: { targetId: circleId, action: CIRCLE_ACTION.follow },
+      })
+      const recipients = _.uniq([
+        ...members.map((m) => m.userId),
+        ...followers.map((f) => f.userId),
+      ])
+
+      recipients.forEach((recipientId) => {
         notificationService.trigger({
-          event: isCircleDiscussion
-            ? DB_NOTICE_TYPE.circle_new_discussion
-            : DB_NOTICE_TYPE.circle_new_broadcast,
+          event: DB_NOTICE_TYPE.circle_new_broadcast,
           actorId: viewer.id,
-          recipientId: member.userId,
+          recipientId,
           entities: [
             {
               type: 'target',
@@ -400,9 +415,14 @@ const resolver: MutationToPutCommentResolver = async (
 
   // notify mentioned users
   if (data.mentionedUserIds) {
+    const mentionedEvent = isCircleBroadcast
+      ? DB_NOTICE_TYPE.circle_broadcast_mentioned_you
+      : isCircleDiscussion
+      ? DB_NOTICE_TYPE.circle_discussion_mentioned_you
+      : DB_NOTICE_TYPE.comment_mentioned_you
     data.mentionedUserIds.forEach((userId: string) => {
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.comment_mentioned_you,
+        event: mentionedEvent,
         actorId: viewer.id,
         recipientId: userId,
         entities: [
