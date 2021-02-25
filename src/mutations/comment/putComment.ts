@@ -389,7 +389,7 @@ const resolver: MutationToPutCommentResolver = async (
       const followers = await atomService.findMany({
         table: 'action_circle',
         select: ['user_id'],
-        where: { targetId: circleId, action: CIRCLE_ACTION.follow },
+        where: { targetId: circle.id, action: CIRCLE_ACTION.follow },
       })
       const recipients = _.uniq([
         ...members.map((m) => m.userId),

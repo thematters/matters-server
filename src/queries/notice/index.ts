@@ -222,6 +222,8 @@ const notice: {
       switch (type) {
         case DB_NOTICE_TYPE.comment_pinned:
         case DB_NOTICE_TYPE.comment_mentioned_you:
+        case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
+        case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
         case DB_NOTICE_TYPE.circle_new_broadcast:
           return entities.target
         case DB_NOTICE_TYPE.article_new_comment:
@@ -242,10 +244,12 @@ const notice: {
     },
     target: ({ entities }) => entities.target,
     comment: ({ entities, type }) => {
-      if (type === DB_NOTICE_TYPE.comment_new_reply) {
-        return entities.reply
+      switch (type) {
+        case DB_NOTICE_TYPE.comment_new_reply:
+        case DB_NOTICE_TYPE.circle_broadcast_new_reply:
+        case DB_NOTICE_TYPE.circle_discussion_new_reply:
+          return entities.reply
       }
-      return null
     },
   },
   TransactionNotice: {
