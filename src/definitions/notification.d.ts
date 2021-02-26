@@ -139,6 +139,22 @@ export interface NoticeCommentMentionedYouParams
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
+export interface NoticeCircleBroadcastMentionedYouParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_broadcast_mentioned_you
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeCircleDiscussionMentionedYouParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_discussion_mentioned_you
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
 export interface NoticeSubscribedArticleNewCommentParams
   extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.subscribed_article_new_comment
@@ -148,14 +164,6 @@ export interface NoticeSubscribedArticleNewCommentParams
     NotificationEntity<'target', 'article'>,
     NotificationEntity<'comment', 'comment'>
   ]
-}
-
-export interface NoticeCircleNewDiscussionParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.circle_new_discussion
-  recipientId: string
-  actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
 }
 
 export interface NoticeCircleNewBroadcastParams
@@ -170,6 +178,28 @@ export interface NoticeCircleNewBroadcastParams
 export interface NoticeCommentNewReplyParams
   extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.comment_new_reply
+  recipientId: string
+  actorId: string
+  entities: [
+    NotificationEntity<'target', 'comment'>,
+    NotificationEntity<'reply', 'comment'>
+  ]
+}
+
+export interface NoticeCircleBroadcastNewReplyParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_broadcast_new_reply
+  recipientId: string
+  actorId: string
+  entities: [
+    NotificationEntity<'target', 'comment'>,
+    NotificationEntity<'reply', 'comment'>
+  ]
+}
+
+export interface NoticeCircleDiscussionNewReplyParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_discussion_new_reply
   recipientId: string
   actorId: string
   entities: [
@@ -360,11 +390,15 @@ export type NotificationPrarms =
   | NoticeCircleNewArticleParams
   // Comment
   | NoticeCommentPinnedParams
-  | NoticeCommentNewReplyParams
   | NoticeCommentMentionedYouParams
+  | NoticeCircleBroadcastMentionedYouParams
+  | NoticeCircleDiscussionMentionedYouParams
   | NoticeSubscribedArticleNewCommentParams
-  | NoticeCircleNewDiscussionParams
   | NoticeCircleNewBroadcastParams
+  // Comment-Comment
+  | NoticeCommentNewReplyParams
+  | NoticeCircleBroadcastNewReplyParams
+  | NoticeCircleDiscussionNewReplyParams
   // Tag
   | NoticeArticleTagHasBeenAddedParams
   | NoticeArticleTagHasBeenRemovedParams

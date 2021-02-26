@@ -523,13 +523,16 @@ class Notice extends BaseService {
       // comment
       comment_pinned: setting.articleCommentPinned,
       comment_mentioned_you: setting.mention,
+      circle_broadcast_mentioned_you: setting.mention,
+      circle_discussion_mentioned_you: setting.mention,
       article_new_comment: setting.articleNewComment,
       subscribed_article_new_comment: setting.articleSubscribedNewComment,
       circle_new_broadcast: true,
-      circle_new_discussion: setting.circleNewDiscussion,
 
       // comment-comment
       comment_new_reply: setting.articleNewComment,
+      circle_broadcast_new_reply: true,
+      circle_discussion_new_reply: setting.circleNewDiscussion,
 
       // article-tag
       article_tag_has_been_added: true,

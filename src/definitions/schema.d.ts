@@ -3069,7 +3069,6 @@ export const enum GQLCommentNoticeType {
   CommentMentionedYou = 'CommentMentionedYou',
   ArticleNewComment = 'ArticleNewComment',
   SubscribedArticleNewComment = 'SubscribedArticleNewComment',
-  CircleNewDiscussion = 'CircleNewDiscussion',
   CircleNewBroadcast = 'CircleNewBroadcast',
 }
 

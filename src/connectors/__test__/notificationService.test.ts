@@ -37,13 +37,16 @@ describe('user notify setting', () => {
     // comment
     comment_pinned: true,
     comment_mentioned_you: true,
+    circle_broadcast_mentioned_you: true,
+    circle_discussion_mentioned_you: true,
     article_new_comment: true,
     subscribed_article_new_comment: false,
-    circle_new_discussion: true,
     circle_new_broadcast: true,
 
     // comment-comment
     comment_new_reply: true,
+    circle_broadcast_new_reply: true,
+    circle_discussion_new_reply: true,
 
     // article-tag
     article_tag_has_been_added: true,

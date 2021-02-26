@@ -151,7 +151,6 @@ export default /* GraphQL */ `
     CommentMentionedYou
     ArticleNewComment
     SubscribedArticleNewComment
-    CircleNewDiscussion
     CircleNewBroadcast
   }
 
