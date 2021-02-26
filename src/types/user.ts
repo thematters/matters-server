@@ -148,19 +148,19 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    followeeArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Comments published by user's followees."
-    followeeComments(input: ConnectionArgs!): CommentConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    followeeComments(input: ConnectionArgs!): CommentConnection!
 
     "Articles that followee donated"
-    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
 
     "Tags that user followed."
-    followingTags(input: ConnectionArgs!): TagConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    followingTags(input: ConnectionArgs!): TagConnection!
 
     "Articles has been added into followed tags."
-    followingTagsArticles(input: ConnectionArgs!): ArticleConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
