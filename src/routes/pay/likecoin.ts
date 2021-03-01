@@ -1,6 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import bodyParser from 'body-parser'
-import { Router } from 'express'
+import { Request, RequestHandler, Response, Router } from 'express'
 import NP from 'number-precision'
 
 import { DB_NOTICE_TYPE, NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
@@ -170,6 +170,22 @@ likecoinRouter.get('/', async (req, res) => {
   }
 
   return res.redirect(successRedirect)
+})
+
+/**
+ * Basic Auth for Like Pay Webhook Events
+ */
+likecoinRouter.use(async (req, res, next) => {
+  const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
+  const secret = Buffer.from(b64auth, 'base64').toString()
+
+  if (secret === environment.likecoinPayWebhookSecret) {
+    next()
+  } else {
+    // deny webhook call
+    res.set('WWW-Authenticate', 'Basic realm="incorrect webhook credential"')
+    res.status(401).send('401 Unauthorized')
+  }
 })
 
 /**
