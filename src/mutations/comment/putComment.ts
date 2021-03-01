@@ -189,7 +189,7 @@ const resolver: MutationToPutCommentResolver = async (
       ])
     const isCircleMember = records && records.length > 0
     const isReplyToBroadcast =
-      replyToComment.type === COMMENT_TYPE.circleBroadcast
+      replyToComment?.type === COMMENT_TYPE.circleBroadcast
 
     if (!isCircleMember || (isCircleBroadcast && !isReplyToBroadcast)) {
       throw new ForbiddenError('only circle members have the permission')
