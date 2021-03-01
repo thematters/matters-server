@@ -44,9 +44,7 @@ likecoinRouter.get('/', async (req, res) => {
   const successRedirect = `${environment.siteDomain}/pay/likecoin/success`
   const failureRedirect = `${environment.siteDomain}/pay/likecoin/failure`
 
-  const userService = new UserService()
   const paymentService = new PaymentService()
-  const notificationService = new NotificationService()
 
   try {
     const { tx_hash, state, success } = req.query
@@ -66,104 +64,13 @@ likecoinRouter.get('/', async (req, res) => {
     // get pending transaction
     const tx = (
       await paymentService.findTransactions({
-        providerTxId: state,
+        providerTxId: tx_hash,
       })
     )[0]
 
     if (!tx) {
       throw new Error('could not found tx id passing from like pay')
     }
-
-    // check like chain tx state
-    const rate = Math.pow(10, 9)
-    const cosmosData = await userService.likecoin.getCosmosTxData({
-      hash: tx_hash,
-    })
-    const cosmosAmount = NP.divide(cosmosData.amount, rate)
-    const cosmosState =
-      success === 'true'
-        ? TRANSACTION_STATE.succeeded
-        : TRANSACTION_STATE.failed
-    const updateParams: Record<string, any> = {
-      id: tx.id,
-      provider_tx_id: tx_hash,
-      state: cosmosState,
-      updatedAt: new Date(),
-    }
-
-    // correct amount if it changed via LikePay
-    if (tx.amount !== cosmosAmount) {
-      updateParams.amount = cosmosAmount
-    }
-
-    // update transaction
-    const updatedTx = await paymentService.baseUpdate(tx.id, updateParams)
-
-    if (cosmosState === TRANSACTION_STATE.failed) {
-      invalidateCache({
-        id: updatedTx.targetId,
-        typeId: updatedTx.targetType,
-        userService,
-      })
-      throw new Error('like pay failure')
-    }
-
-    /**
-     * trigger notifications
-     */
-    const sender = await userService.baseFindById(updatedTx.senderId)
-    const recipient = await userService.baseFindById(updatedTx.recipientId)
-
-    // send to sender
-    notificationService.mail.sendPayment({
-      to: sender.email,
-      recipient: {
-        displayName: sender.displayName,
-        userName: sender.userName,
-      },
-      type: 'donated',
-      tx: {
-        recipient,
-        sender,
-        amount: numRound(updatedTx.amount),
-        currency: updatedTx.currency,
-      },
-    })
-
-    // send to recipient
-    notificationService.trigger({
-      event: DB_NOTICE_TYPE.payment_received_donation,
-      actorId: sender.id,
-      recipientId: recipient.id,
-      entities: [
-        {
-          type: 'target',
-          entityTable: 'transaction',
-          entity: updatedTx,
-        },
-      ],
-    })
-    notificationService.mail.sendPayment({
-      to: recipient.email,
-      recipient: {
-        displayName: recipient.displayName,
-        userName: recipient.userName,
-      },
-      type: 'receivedDonationLikeCoin',
-      tx: {
-        recipient,
-        sender,
-        amount: numRound(updatedTx.amount),
-        currency: updatedTx.currency,
-      },
-    })
-
-    // manaully invalidate cache
-    invalidateCache({
-      id: updatedTx.targetId,
-      typeId: updatedTx.targetType,
-      userService,
-    })
   } catch (error) {
     logger.error(error)
     return res.redirect(failureRedirect)
