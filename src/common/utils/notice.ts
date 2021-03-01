@@ -8,6 +8,7 @@ const actorsOptional: Partial<Record<DBNoticeType, boolean>> = {
   payment_payout: true,
   revised_article_published: true,
   revised_article_not_published: true,
+  circle_new_article: true,
 }
 
 const entitiesOptional: Partial<Record<DBNoticeType, boolean>> = {

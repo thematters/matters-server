@@ -1,5 +1,8 @@
-import { AuthenticationError } from 'common/errors'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import {
+  connectionFromArray,
+  connectionFromPromisedArray,
+  cursorToIndex,
+} from 'common/utils'
 import { RecommendationToFolloweeCommentsResolver } from 'definitions'
 
 export const followeeComments: RecommendationToFolloweeCommentsResolver = async (
@@ -8,8 +11,9 @@ export const followeeComments: RecommendationToFolloweeCommentsResolver = async 
   { dataSources: { commentService, userService } }
 ) => {
   if (!id) {
-    throw new AuthenticationError('visitor has no permission')
+    return connectionFromArray([], input)
   }
+
   const { first, after } = input
   const offset = cursorToIndex(after) + 1
   const totalCount = await userService.countFolloweeComments(id)

@@ -501,6 +501,35 @@ input CircleInput {
   name: String!
 }
 
+"""
+################################
+                               #
+            Circle             #
+                               #
+################################
+"""
+type CircleNotice implements Notice {
+  """Unique ID of this notice."""
+  id: ID!
+
+  """The value determines if the notice is unread or not."""
+  unread: Boolean!
+
+  """Time of this notice was created."""
+  createdAt: DateTime!
+
+  """List of notice actors."""
+  actors: [User!]
+  type: CircleNoticeType!
+  target: Circle!
+}
+
+enum CircleNoticeType {
+  CircleNewFollower
+  CircleNewSubscriber
+  CircleNewUnsubscriber
+}
+
 type CircleSetting {
   """Whether broadcast is enabled or not."""
   enableBroadcast: Boolean!
@@ -641,12 +670,11 @@ type CommentNotice implements Notice {
 }
 
 enum CommentNoticeType {
-  ArticleCommentPinned
-  ArticleCommentMentionedYou
+  CommentPinned
+  CommentMentionedYou
   ArticleNewComment
   SubscribedArticleNewComment
-  CircleNewDiscussion
-  CircleNewBoardcast
+  CircleNewBroadcast
 }
 
 input CommentsFilter {
@@ -1177,32 +1205,28 @@ type NotificationSetting {
   enable: Boolean!
   email: Boolean!
   mention: Boolean!
-  follow: Boolean!
-  comment: Boolean!
-  appreciation: Boolean!
-  articleSubscription: Boolean!
-  commentSubscribed: Boolean!
-  downstream: Boolean!
-  commentPinned: Boolean!
-  commentVoted: Boolean!
-  officialNotice: Boolean!
-  reportFeedback: Boolean!
+  userNewFollower: Boolean!
+  articleNewComment: Boolean!
+  articleNewAppreciation: Boolean!
+  articleNewSubscription: Boolean!
+  articleSubscribedNewComment: Boolean!
+  articleCommentPinned: Boolean!
+  circleNewFollower: Boolean!
+  circleNewDiscussion: Boolean!
 }
 
 enum NotificationSettingType {
   enable
   email
   mention
-  follow
-  comment
-  appreciation
-  articleSubscription
-  commentSubscribed
-  downstream
-  commentPinned
-  commentVoted
-  officialNotice
-  reportFeedback
+  userNewFollower
+  articleNewComment
+  articleNewAppreciation
+  articleNewSubscription
+  articleSubscribedNewComment
+  articleCommentPinned
+  circleNewFollower
+  circleNewDiscussion
 }
 
 type OAuthClient {
