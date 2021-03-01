@@ -131,6 +131,32 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   /**
+   * check parentComment
+   */
+  let parentComment: any
+  if (parentId) {
+    const { id: parentDbId } = fromGlobalId(parentId)
+    parentComment = await commentService.dataloader.load(parentDbId)
+    if (!parentComment) {
+      throw new CommentNotFoundError('target parentComment does not exists')
+    }
+    data.parentCommentId = parentComment.id
+  }
+
+  /**
+   * check reply to
+   */
+  let replyToComment: any
+  if (replyTo) {
+    const { id: replyToDBId } = fromGlobalId(replyTo)
+    replyToComment = await commentService.dataloader.load(replyToDBId)
+    if (!replyToComment) {
+      throw new CommentNotFoundError('target replyToComment does not exists')
+    }
+    data.replyTo = replyToDBId
+  }
+
+  /**
    * check permission
    */
   const isTargetAuthor = targetAuthor === viewer.id
@@ -162,8 +188,10 @@ const resolver: MutationToPutCommentResolver = async (
         SUBSCRIPTION_STATE.trialing,
       ])
     const isCircleMember = records && records.length > 0
+    const isReplyToBroadcast =
+      replyToComment.type === COMMENT_TYPE.circleBroadcast
 
-    if (!isCircleMember || isCircleBroadcast) {
+    if (!isCircleMember || (isCircleBroadcast && !isReplyToBroadcast)) {
       throw new ForbiddenError('only circle members have the permission')
     }
   }
@@ -175,29 +203,6 @@ const resolver: MutationToPutCommentResolver = async (
   })
   if (isBlocked) {
     throw new ForbiddenError('viewer is blocked by target author')
-  }
-
-  /**
-   * check parentComment
-   */
-  let parentComment: any
-  if (parentId) {
-    const { id: parentDbId } = fromGlobalId(parentId)
-    parentComment = await commentService.dataloader.load(parentDbId)
-    if (!parentComment) {
-      throw new CommentNotFoundError('target parentComment does not exists')
-    }
-    data.parentCommentId = parentComment.id
-  }
-
-  /**
-   * check reply to
-   */
-  let replyToComment: any
-  if (replyTo) {
-    const { id: replyToDBId } = fromGlobalId(replyTo)
-    replyToComment = await commentService.dataloader.load(replyToDBId)
-    data.replyTo = replyToDBId
   }
 
   /**
