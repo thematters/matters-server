@@ -188,7 +188,6 @@ const resolver: MutationToPutCommentResolver = async (
         SUBSCRIPTION_STATE.trialing,
       ])
     const isCircleMember = records && records.length > 0
-    //
     const isReplyToBroadcast =
       replyToComment?.type === COMMENT_TYPE.circleBroadcast
 
