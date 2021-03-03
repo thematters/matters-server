@@ -93,13 +93,18 @@ export class AtomService extends DataSource {
    */
   initLoader = ({ table, mode }: InitLoaderInput) => {
     const batchFn = async (keys: readonly string[]) => {
-      const records = await this.findMany({
+      let records = await this.findMany({
         table,
         whereIn: [mode, keys as string[]],
       })
+
       if (records.findIndex((item: any) => !item) >= 0) {
         throw new EntityNotFoundError(`Cannot find entity from ${table}`)
       }
+
+      // fix order based on keys
+      records = keys.map((key) => records.find((r: any) => r[mode] === key))
+
       return records
     }
     return new DataLoader(batchFn)
