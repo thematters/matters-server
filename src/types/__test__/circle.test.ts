@@ -135,7 +135,7 @@ describe('circle CRUD', () => {
     const input: Record<string, any> = {
       name: 'very_long_circle_name',
       displayName: 'very long circle name',
-      amount: 10,
+      amount: 20,
     }
 
     // test long circle name
