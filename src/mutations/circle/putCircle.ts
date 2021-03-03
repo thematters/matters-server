@@ -56,23 +56,6 @@ const resolver: MutationToPutCircleResolver = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-  // check amount
-  if (amount < PAYMENT_MINIMAL_CIRCLE_AMOUNT.HKD) {
-    throw new PaymentAmountTooSmallError(
-      `The minimal amount is ${PAYMENT_MINIMAL_CIRCLE_AMOUNT.HKD}`
-    )
-  }
-  if (amount > PAYMENT_MAXIMUM_CIRCLE_AMOUNT.HKD) {
-    throw new PaymentReachMaximumLimitError('payment reached maximum limit')
-  }
-
-  const places = amount % 1 ? amount.toString().split('.')[1].length : 0
-  if (places > PAYMENT_MAX_DECIMAL_PLACES) {
-    throw new UserInputError(
-      `maximum ${PAYMENT_MAX_DECIMAL_PLACES} decimal places`
-    )
-  }
-
   const action = id ? ACTION.update : ACTION.add
   const trimedName = _trim(name)
   const trimedDisplayName = _trim(displayName)
@@ -96,6 +79,22 @@ const resolver: MutationToPutCircleResolver = async (
       if (!trimedName || !trimedDisplayName) {
         throw new UserInputError(
           'circleName and displayName is required for creation'
+        )
+      }
+
+      if (amount < PAYMENT_MINIMAL_CIRCLE_AMOUNT.HKD) {
+        throw new PaymentAmountTooSmallError(
+          `The minimal amount is ${PAYMENT_MINIMAL_CIRCLE_AMOUNT.HKD}`
+        )
+      }
+      if (amount > PAYMENT_MAXIMUM_CIRCLE_AMOUNT.HKD) {
+        throw new PaymentReachMaximumLimitError('payment reached maximum limit')
+      }
+
+      const places = amount % 1 ? amount.toString().split('.')[1].length : 0
+      if (places > PAYMENT_MAX_DECIMAL_PLACES) {
+        throw new UserInputError(
+          `maximum ${PAYMENT_MAX_DECIMAL_PLACES} decimal places`
         )
       }
 
