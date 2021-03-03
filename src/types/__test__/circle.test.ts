@@ -177,7 +177,7 @@ describe('circle CRUD', () => {
 
     expect(_get(data5, `${path}.name`)).toBe('circle1')
     expect(_get(data5, `${path}.displayName`)).toBe('Circle 1')
-    expect(_get(data5, `${path}.prices[0].amount`)).toBe(10)
+    expect(_get(data5, `${path}.prices[0].amount`)).toBe(20)
     expect(_get(data5, `${path}.prices[0].currency`)).toBe('HKD')
 
     // test create multiple circles
