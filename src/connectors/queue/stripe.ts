@@ -74,3 +74,5 @@ class StripeQueue extends BaseQueue {
     }
   }
 }
+
+export const stripeQueue = new StripeQueue()

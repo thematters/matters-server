@@ -1,8 +1,4 @@
-import {
-  connectionFromPromisedArray,
-  correctHtml,
-  cursorToIndex,
-} from 'common/utils'
+import { correctHtml } from 'common/utils'
 import { ArticleToDraftsResolver } from 'definitions'
 
 const resolver: ArticleToDraftsResolver = async (

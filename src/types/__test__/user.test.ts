@@ -628,8 +628,8 @@ describe('verification code', () => {
 
 describe('frozen user do mutations', () => {
   // frozen user shared settings
-  const frozenUser = { isAuth: true, isFrozen: true }
-  const errorPath = 'errors.0.extensions.code'
+  // const frozenUser = { isAuth: true, isFrozen: true }
+  // const errorPath = 'errors.0.extensions.code'
 
   // make sure user state in db is correct
   beforeAll(async () => {

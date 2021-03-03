@@ -1,6 +1,13 @@
 import _trim from 'lodash/trim'
 
-import { ASSET_TYPE, CIRCLE_STATE, PAYMENT_CURRENCY } from 'common/enums'
+import {
+  ASSET_TYPE,
+  CIRCLE_STATE,
+  PAYMENT_CURRENCY,
+  PAYMENT_MAX_DECIMAL_PLACES,
+  PAYMENT_MAXIMUM_CIRCLE_AMOUNT,
+  PAYMENT_MINIMAL_CIRCLE_AMOUNT,
+} from 'common/enums'
 import { isProd } from 'common/environment'
 import {
   AssetNotFoundError,
@@ -11,6 +18,8 @@ import {
   ForbiddenError,
   NameExistsError,
   NameInvalidError,
+  PaymentAmountTooSmallError,
+  PaymentReachMaximumLimitError,
   ServerError,
   UserInputError,
 } from 'common/errors'
@@ -47,6 +56,23 @@ const resolver: MutationToPutCircleResolver = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
+  // check amount
+  if (amount < PAYMENT_MINIMAL_CIRCLE_AMOUNT.HKD) {
+    throw new PaymentAmountTooSmallError(
+      `The minimal amount is ${PAYMENT_MINIMAL_CIRCLE_AMOUNT.HKD}`
+    )
+  }
+  if (amount > PAYMENT_MAXIMUM_CIRCLE_AMOUNT.HKD) {
+    throw new PaymentReachMaximumLimitError('payment reached maximum limit')
+  }
+
+  const places = amount % 1 ? amount.toString().split('.')[1].length : 0
+  if (places > PAYMENT_MAX_DECIMAL_PLACES) {
+    throw new UserInputError(
+      `maximum ${PAYMENT_MAX_DECIMAL_PLACES} decimal places`
+    )
+  }
+
   const action = id ? ACTION.update : ACTION.add
   const trimedName = _trim(name)
   const trimedDisplayName = _trim(displayName)
@@ -71,10 +97,6 @@ const resolver: MutationToPutCircleResolver = async (
         throw new UserInputError(
           'circleName and displayName is required for creation'
         )
-      }
-      const places = amount % 1 ? amount.toString().split('.')[1].length : 0
-      if (places > 2) {
-        throw new UserInputError('maximum 2 decimal places')
       }
 
       const [hasCircle, sameCircle] = await Promise.all([

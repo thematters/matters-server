@@ -255,7 +255,7 @@ describe('circle CRUD', () => {
 
   test('toggle follow circle', async () => {
     const path = 'data.toggleFollowCircle'
-    const { query, mutate } = await testClient(userClient)
+    const { query } = await testClient(userClient)
     const { data } = await query({
       query: GET_VIEWER_OWN_CIRCLES,
     })

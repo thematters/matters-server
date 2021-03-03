@@ -4,7 +4,7 @@ import Queue from 'bull'
 import {
   DB_NOTICE_TYPE,
   NODE_TYPES,
-  PAYMENT_MAXIMUM_AMOUNT,
+  PAYMENT_MAXIMUM_PAYTO_AMOUNT,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
@@ -119,8 +119,8 @@ class PayToQueue extends BaseQueue {
       // 4. recipient or sender not existed
       if (
         balance < 0 ||
-        tx.amount > PAYMENT_MAXIMUM_AMOUNT.HKD ||
-        tx.amount + hasPaid > PAYMENT_MAXIMUM_AMOUNT.HKD ||
+        tx.amount > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD ||
+        tx.amount + hasPaid > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD ||
         !recipient ||
         !sender
       ) {

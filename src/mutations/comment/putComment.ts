@@ -4,7 +4,6 @@ import { v4 } from 'uuid'
 import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
-  CIRCLE_STATE,
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
   NODE_TYPES,

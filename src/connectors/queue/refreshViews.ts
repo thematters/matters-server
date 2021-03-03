@@ -1,7 +1,6 @@
 import Queue from 'bull'
 
 import {
-  DAY,
   HOUR,
   MINUTE,
   QUEUE_JOB,
