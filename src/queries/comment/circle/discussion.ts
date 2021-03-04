@@ -8,7 +8,7 @@ import { connectionFromArray, cursorToIndex } from 'common/utils'
 import { CircleToDiscussionResolver } from 'definitions'
 
 const resolver: CircleToDiscussionResolver = async (
-  { id },
+  { id, owner },
   { input },
   { viewer, dataSources: { atomService }, knex }
 ) => {
@@ -32,9 +32,10 @@ const resolver: CircleToDiscussionResolver = async (
       SUBSCRIPTION_STATE.trialing,
     ])
   const isCircleMember = records && records.length > 0
+  const isCircleOwner = viewer.id === owner
 
-  if (!isCircleMember) {
-    return []
+  if (!isCircleMember && !isCircleOwner) {
+    return connectionFromArray([], input)
   }
 
   const { first: take, after } = input
