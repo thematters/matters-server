@@ -1,4 +1,3 @@
-import logger from 'common/logger'
 import { getUserGroup } from 'common/utils'
 import { UserInfoToGroupResolver } from 'definitions'
 

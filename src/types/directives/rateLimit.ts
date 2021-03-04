@@ -70,7 +70,7 @@ export class RateLimitDirective extends SchemaDirectiveVisitor {
     const { limit, period } = this.args
 
     field.resolve = async function (...args) {
-      const [root, _, { viewer }] = args
+      const [, , { viewer }] = args
 
       const pass = await checkOperationLimit({
         user: viewer.id || viewer.ip,

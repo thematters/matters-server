@@ -1,4 +1,3 @@
-import { PUBLISH_STATE } from 'common/enums'
 import { ArticleToLiveResolver } from 'definitions'
 
 const resolver: ArticleToLiveResolver = async (

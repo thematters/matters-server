@@ -35,11 +35,6 @@ export interface PageInfo {
   hasNextPage?: boolean | null
 }
 
-interface ArraySliceMetaInfo {
-  sliceStart: number
-  arrayLength: number
-}
-
 const PREFIX = 'arrayconnection'
 
 export const cursorToOffset = (

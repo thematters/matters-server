@@ -16,7 +16,6 @@ import {
   TagEditorsReachLimitError,
   TagNotFoundError,
   UserInputError,
-  UserNotFoundError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import {

@@ -169,7 +169,7 @@ describe('mutations on comment', () => {
 
   test('upvote a comment', async () => {
     const { mutate } = await testClient({ isAuth: true })
-    const { upvotes, downvotes } = await getCommentVotes(commentId)
+    const { upvotes } = await getCommentVotes(commentId)
 
     // upvote
     const { data } = await mutate({

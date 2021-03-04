@@ -135,7 +135,7 @@ describe('circle CRUD', () => {
     const input: Record<string, any> = {
       name: 'very_long_circle_name',
       displayName: 'very long circle name',
-      amount: 10,
+      amount: 20,
     }
 
     // test long circle name
@@ -177,7 +177,7 @@ describe('circle CRUD', () => {
 
     expect(_get(data5, `${path}.name`)).toBe('circle1')
     expect(_get(data5, `${path}.displayName`)).toBe('Circle 1')
-    expect(_get(data5, `${path}.prices[0].amount`)).toBe(10)
+    expect(_get(data5, `${path}.prices[0].amount`)).toBe(20)
     expect(_get(data5, `${path}.prices[0].currency`)).toBe('HKD')
 
     // test create multiple circles
@@ -255,7 +255,7 @@ describe('circle CRUD', () => {
 
   test('toggle follow circle', async () => {
     const path = 'data.toggleFollowCircle'
-    const { query, mutate } = await testClient(userClient)
+    const { query } = await testClient(userClient)
     const { data } = await query({
       query: GET_VIEWER_OWN_CIRCLES,
     })

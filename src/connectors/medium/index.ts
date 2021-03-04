@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios'
+import axios from 'axios'
 import * as cheerio from 'cheerio'
 import Knex from 'knex'
 import { v4 } from 'uuid'
@@ -7,7 +7,6 @@ import {
   ACCEPTED_UPLOAD_IMAGE_TYPES,
   UPLOAD_FILE_SIZE_LIMIT,
 } from 'common/enums'
-import { UserInputError } from 'common/errors'
 import logger from 'common/logger'
 import { getFileName } from 'common/utils'
 import { aws, knex } from 'connectors'

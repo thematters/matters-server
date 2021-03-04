@@ -11,7 +11,6 @@ import {
   CircleNotFoundError,
   EntityNotFoundError,
   ForbiddenError,
-  UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToUnsubscribeCircleResolver } from 'definitions'

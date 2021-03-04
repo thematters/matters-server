@@ -1,13 +1,6 @@
 import Queue from 'bull'
 
-import {
-  ASSET_TYPE,
-  MINUTE,
-  QUEUE_CONCURRENCY,
-  QUEUE_JOB,
-  QUEUE_NAME,
-  QUEUE_PRIORITY,
-} from 'common/enums'
+import { QUEUE_JOB, QUEUE_NAME, QUEUE_PRIORITY } from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
 

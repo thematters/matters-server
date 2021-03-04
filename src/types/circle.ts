@@ -1,6 +1,5 @@
 import {
   AUTH_MODE as MODE,
-  CACHE_TTL,
   NODE_TYPES,
   NODE_TYPES as NODE,
   SCOPE_GROUP as GROUP,

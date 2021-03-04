@@ -1,6 +1,11 @@
 import Stripe from 'stripe'
 
-import { LOCAL_STRIPE, METADATA_KEY, PAYMENT_CURRENCY } from 'common/enums'
+import {
+  LOCAL_STRIPE,
+  METADATA_KEY,
+  PAYMENT_CURRENCY,
+  PAYMENT_MAX_DECIMAL_PLACES,
+} from 'common/enums'
 import { environment, isProd, isTest } from 'common/environment'
 import { PaymentAmountInvalidError, ServerError } from 'common/errors'
 import logger from 'common/logger'
@@ -42,7 +47,9 @@ class StripeService {
 
     switch (err.code) {
       case 'parameter_invalid_integer':
-        throw new PaymentAmountInvalidError('maximum 2 decimal places')
+        throw new PaymentAmountInvalidError(
+          `maximum ${PAYMENT_MAX_DECIMAL_PLACES} decimal places`
+        )
       default:
         throw new ServerError('failed to process the stripe request')
     }
