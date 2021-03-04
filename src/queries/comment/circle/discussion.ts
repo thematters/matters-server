@@ -1,14 +1,40 @@
-import { COMMENT_STATE, COMMENT_TYPE } from 'common/enums'
+import {
+  COMMENT_STATE,
+  COMMENT_TYPE,
+  PRICE_STATE,
+  SUBSCRIPTION_STATE,
+} from 'common/enums'
 import { connectionFromArray, cursorToIndex } from 'common/utils'
 import { CircleToDiscussionResolver } from 'definitions'
 
 const resolver: CircleToDiscussionResolver = async (
   { id },
   { input },
-  { dataSources: { atomService } }
+  { viewer, dataSources: { atomService }, knex }
 ) => {
   if (!id) {
     return connectionFromArray([], input)
+  }
+
+  const records = await knex
+    .select()
+    .from('circle_subscription_item as csi')
+    .join('circle_price', 'circle_price.id', 'csi.price_id')
+    .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+    .where({
+      'csi.user_id': viewer.id,
+      'csi.archived': false,
+      'circle_price.circle_id': id,
+      'circle_price.state': PRICE_STATE.active,
+    })
+    .whereIn('cs.state', [
+      SUBSCRIPTION_STATE.active,
+      SUBSCRIPTION_STATE.trialing,
+    ])
+  const isCircleMember = records && records.length > 0
+
+  if (!isCircleMember) {
+    return []
   }
 
   const { first: take, after } = input
