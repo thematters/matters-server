@@ -6,6 +6,8 @@ import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE,
+  PRICE_STATE,
+  SUBSCRIPTION_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -639,6 +641,36 @@ export class PaymentService extends BaseService {
    *         Subscription          *
    *                               *
    *********************************/
+  /**
+   * Check if user is circle member
+   */
+  isCircleMember = async ({
+    circleId,
+    userId,
+  }: {
+    circleId: string
+    userId: string
+  }) => {
+    const records = await this.knex
+      .select()
+      .from('circle_subscription_item as csi')
+      .join('circle_price', 'circle_price.id', 'csi.price_id')
+      .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+      .where({
+        'csi.user_id': userId,
+        'csi.archived': false,
+        'circle_price.circle_id': circleId,
+        'circle_price.state': PRICE_STATE.active,
+      })
+      .whereIn('cs.state', [
+        SUBSCRIPTION_STATE.active,
+        SUBSCRIPTION_STATE.trialing,
+      ])
+    const isCircleMember = records && records.length > 0
+
+    return isCircleMember
+  }
+
   /**
    * Create a subscription by a given circle price
    */
