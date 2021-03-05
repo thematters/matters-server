@@ -1,9 +1,4 @@
-import {
-  COMMENT_TYPE,
-  PRICE_STATE,
-  SUBSCRIPTION_STATE,
-  USER_STATE,
-} from 'common/enums'
+import { COMMENT_TYPE, USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
   ForbiddenByStateError,
@@ -15,7 +10,16 @@ import { MutationToVoteCommentResolver } from 'definitions'
 const resolver: MutationToVoteCommentResolver = async (
   _,
   { input: { id, vote } },
-  { viewer, dataSources: { atomService, articleService, commentService }, knex }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      articleService,
+      paymentService,
+      commentService,
+    },
+    knex,
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -50,22 +54,10 @@ const resolver: MutationToVoteCommentResolver = async (
   }
 
   if (circle && !isTargetAuthor) {
-    const records = await knex
-      .select()
-      .from('circle_subscription_item as csi')
-      .join('circle_price', 'circle_price.id', 'csi.price_id')
-      .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
-      .where({
-        'csi.user_id': viewer.id,
-        'csi.archived': false,
-        'circle_price.circle_id': circle.id,
-        'circle_price.state': PRICE_STATE.active,
-      })
-      .whereIn('cs.state', [
-        SUBSCRIPTION_STATE.active,
-        SUBSCRIPTION_STATE.trialing,
-      ])
-    const isCircleMember = records && records.length > 0
+    const isCircleMember = await paymentService.isCircleMember({
+      userId: viewer.id,
+      circleId: circle.id,
+    })
 
     if (!isCircleMember) {
       throw new ForbiddenError('only circle members have the permission')

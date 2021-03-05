@@ -49,6 +49,10 @@ export const isValidUserName = (name: string): boolean => {
     return false
   }
 
+  if (REGEXP_ALL_PUNCTUATIONS.test(name)) {
+    return false
+  }
+
   return /^[a-zA-Z0-9_]*$/.test(name)
 }
 
@@ -104,6 +108,10 @@ export const isValidTagName = (name: string, maxLen = 20): boolean => {
  */
 export const isValidCircleName = (name: string): boolean => {
   if (!name || name.length < 2 || name.length > 20) {
+    return false
+  }
+
+  if (REGEXP_ALL_PUNCTUATIONS.test(name)) {
     return false
   }
 
