@@ -164,6 +164,35 @@ const GET_VIEWER_FOLLOWEES = /* GraphQL */ `
     }
   }
 `
+const GET_VIEWER_FOLLOWINGS = /* GraphQL */ `
+  query($input: ConnectionArgs!) {
+    viewer {
+      following {
+        circles(input: $input) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+        tags(input: $input) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+        users(input: $input) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+`
 const GET_VIEWER_STATUS = /* GraphQL */ `
   query {
     viewer {
@@ -394,6 +423,23 @@ describe('user query fields', () => {
     })
     const followees = _get(data, 'viewer.followees.edges')
     expect(followees.length).toBeTruthy()
+  })
+
+  test('retrive following', async () => {
+    const { query } = await testClient({
+      isAuth: true,
+    })
+    const { data } = await query({
+      query: GET_VIEWER_FOLLOWINGS,
+      // @ts-ignore
+      variables: { input: {} },
+    })
+    const circles = _get(data, 'viewer.following.circles.edges')
+    const users = _get(data, 'viewer.following.users.edges')
+    const tags = _get(data, 'viewer.following.tags.edges')
+    expect(circles.length).toBe(0)
+    expect(users.length).toBe(1)
+    expect(tags.length).toBe(2)
   })
 
   test('retrive UserStatus', async () => {
