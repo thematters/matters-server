@@ -1130,6 +1130,16 @@ export interface GQLCircle extends GQLNode {
    * Comments made by Circle member.
    */
   discussion: GQLCommentConnection
+
+  /**
+   * Discussion (exclude replies) count of this circle.
+   */
+  discussionThreadCount: number
+
+  /**
+   * Discussion (include replies) count of this circle.
+   */
+  discussionCount: number
 }
 
 export interface GQLPrice {
@@ -5890,6 +5900,8 @@ export interface GQLCircleTypeResolver<TParent = any> {
   broadcast?: CircleToBroadcastResolver<TParent>
   pinnedBroadcast?: CircleToPinnedBroadcastResolver<TParent>
   discussion?: CircleToDiscussionResolver<TParent>
+  discussionThreadCount?: CircleToDiscussionThreadCountResolver<TParent>
+  discussionCount?: CircleToDiscussionCountResolver<TParent>
 }
 
 export interface CircleToIdResolver<TParent = any, TResult = any> {
@@ -6082,6 +6094,27 @@ export interface CircleToDiscussionResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: CircleToDiscussionArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToDiscussionThreadCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToDiscussionCountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

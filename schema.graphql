@@ -483,6 +483,12 @@ type Circle implements Node {
 
   """Comments made by Circle member."""
   discussion(input: ConnectionArgs!): CommentConnection!
+
+  """Discussion (exclude replies) count of this circle."""
+  discussionThreadCount: Int!
+
+  """Discussion (include replies) count of this circle."""
+  discussionCount: Int!
 }
 
 type CircleConnection implements Connection {
