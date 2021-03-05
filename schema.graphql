@@ -597,6 +597,9 @@ type Comment implements Node {
   replyTo: Comment
   remark: String
 
+  """Article that the comment is belonged to."""
+  article: Article @deprecated(reason: "No longer in use")
+
   """Current comment belongs to which Node."""
   node: Node!
 }
