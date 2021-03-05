@@ -119,7 +119,7 @@ export default /* GraphQL */ `
     followers(input: ConnectionArgs!): UserConnection!
 
     "Users that this user follows."
-    followees(input: ConnectionArgs!): UserConnection!
+    followees(input: ConnectionArgs!): UserConnection! @deprecated(reason: "Move to a new field")
 
     "Following contents of this user."
     following: Following!
@@ -160,7 +160,7 @@ export default /* GraphQL */ `
     followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
 
     "Tags that user followed."
-    followingTags(input: ConnectionArgs!): TagConnection!
+    followingTags(input: ConnectionArgs!): TagConnection! @deprecated(reason: "Move to a new field")
 
     "Articles has been added into followed tags."
     followingTagsArticles(input: ConnectionArgs!): ArticleConnection!

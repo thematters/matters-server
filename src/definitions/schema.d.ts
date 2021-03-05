@@ -394,6 +394,7 @@ export interface GQLUser extends GQLNode {
 
   /**
    * Users that this user follows.
+   * @deprecated Move to a new field
    */
   followees: GQLUserConnection
 
@@ -595,6 +596,7 @@ export interface GQLRecommendation {
 
   /**
    * Tags that user followed.
+   * @deprecated Move to a new field
    */
   followingTags: GQLTagConnection
 
