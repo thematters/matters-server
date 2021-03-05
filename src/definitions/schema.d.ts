@@ -398,6 +398,11 @@ export interface GQLUser extends GQLNode {
   followees: GQLUserConnection
 
   /**
+   * Following contents of this user.
+   */
+  following: GQLFollowing
+
+  /**
    * Whether current user is following viewer.
    */
   isFollower: boolean
@@ -1475,6 +1480,12 @@ export const enum GQLAppreciationPurpose {
   joinByTask = 'joinByTask',
   firstPost = 'firstPost',
   systemSubsidy = 'systemSubsidy',
+}
+
+export interface GQLFollowing {
+  circles: GQLCircleConnection
+  tags: GQLTagConnection
+  users: GQLUserConnection
 }
 
 export interface GQLUserStatus {
@@ -3336,6 +3347,7 @@ export interface GQLResolver {
   AppreciationConnection?: GQLAppreciationConnectionTypeResolver
   AppreciationEdge?: GQLAppreciationEdgeTypeResolver
   Appreciation?: GQLAppreciationTypeResolver
+  Following?: GQLFollowingTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
   UserOSS?: GQLUserOSSTypeResolver
   NoticeConnection?: GQLNoticeConnectionTypeResolver
@@ -4101,6 +4113,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   activity?: UserToActivityResolver<TParent>
   followers?: UserToFollowersResolver<TParent>
   followees?: UserToFolloweesResolver<TParent>
+  following?: UserToFollowingResolver<TParent>
   isFollower?: UserToIsFollowerResolver<TParent>
   isFollowee?: UserToIsFolloweeResolver<TParent>
   blockList?: UserToBlockListResolver<TParent>
@@ -4294,6 +4307,15 @@ export interface UserToFolloweesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToFolloweesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToFollowingResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6942,6 +6964,48 @@ export interface AppreciationToTargetResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLFollowingTypeResolver<TParent = any> {
+  circles?: FollowingToCirclesResolver<TParent>
+  tags?: FollowingToTagsResolver<TParent>
+  users?: FollowingToUsersResolver<TParent>
+}
+
+export interface FollowingToCirclesArgs {
+  input: GQLConnectionArgs
+}
+export interface FollowingToCirclesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: FollowingToCirclesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface FollowingToTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface FollowingToTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: FollowingToTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface FollowingToUsersArgs {
+  input: GQLConnectionArgs
+}
+export interface FollowingToUsersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: FollowingToUsersArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

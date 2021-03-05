@@ -900,6 +900,12 @@ type FolloweeDonatedArticleEdge {
   node: FolloweeDonatedArticle!
 }
 
+type Following {
+  circles(input: ConnectionArgs!): CircleConnection!
+  tags(input: ConnectionArgs!): TagConnection!
+  users(input: ConnectionArgs!): UserConnection!
+}
+
 input FrequentSearchInput {
   key: String
   first: Int
@@ -2178,6 +2184,9 @@ type User implements Node {
 
   """Users that this user follows."""
   followees(input: ConnectionArgs!): UserConnection!
+
+  """Following contents of this user."""
+  following: Following!
 
   """Whether current user is following viewer."""
   isFollower: Boolean!
