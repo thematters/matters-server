@@ -3,6 +3,7 @@ import _ from 'lodash'
 import Stripe from 'stripe'
 
 import {
+  CIRCLE_ACTION,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   METADATA_KEY,
@@ -125,6 +126,26 @@ export const completeCircleSubscription = async ({
       },
     ],
   })
+
+  // auto follow circle without notification
+  const hasFollow = await atomService.count({
+    table: 'action_circle',
+    where: {
+      action: CIRCLE_ACTION.follow,
+      userId,
+      targetId: circleId,
+    },
+  })
+  if (hasFollow === 0) {
+    await atomService.create({
+      table: 'action_circle',
+      data: {
+        action: CIRCLE_ACTION.follow,
+        userId,
+        targetId: circleId,
+      },
+    })
+  }
 
   // invalidate user & circle
   const cacheService = new CacheService()
