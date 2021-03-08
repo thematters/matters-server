@@ -14,6 +14,7 @@ import {
   getUTC8NextMonthDayOne,
   toProviderAmount,
 } from 'common/utils'
+import SlackService from 'connectors/slack'
 import { User } from 'definitions'
 
 /**
@@ -43,6 +44,8 @@ class StripeService {
   }
 
   handleError(err: Stripe.StripeError) {
+    const slack = new SlackService()
+
     logger.error(err)
 
     switch (err.code) {
@@ -51,7 +54,13 @@ class StripeService {
           `maximum ${PAYMENT_MAX_DECIMAL_PLACES} decimal places`
         )
       default:
-        throw new ServerError('failed to process the stripe request')
+        slack.sendStripeAlert({
+          data: { type: err.type, code: err.code },
+          message: err.message,
+        })
+        throw new ServerError(
+          `failed to process the stripe request: ${err.message}`
+        )
     }
   }
 

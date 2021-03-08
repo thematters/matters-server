@@ -51,7 +51,7 @@ export const getUTC8NextMonday = () => {
   date.setUTCHours(0, 0, 0, 0)
 
   // set date
-  const offset = (1 + 7 - date.getDay()) % 7
+  const offset = ((7 - date.getDay()) % 7) + 1
   date.setDate(date.getDate() + offset)
 
   date.setHours(date.getHours() - 8)
