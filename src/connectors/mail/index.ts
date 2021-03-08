@@ -1,7 +1,7 @@
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail'
 import sgMail from '@sendgrid/mail'
 
-import { environment, isDev, isTest } from 'common/environment'
+import { environment, isTest } from 'common/environment'
 
 class MailService {
   mail: typeof sgMail

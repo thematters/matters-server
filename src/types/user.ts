@@ -119,7 +119,10 @@ export default /* GraphQL */ `
     followers(input: ConnectionArgs!): UserConnection!
 
     "Users that this user follows."
-    followees(input: ConnectionArgs!): UserConnection!
+    followees(input: ConnectionArgs!): UserConnection! @deprecated(reason: "Move to a new field")
+
+    "Following contents of this user."
+    following: Following!
 
     "Whether current user is following viewer."
     isFollower: Boolean!
@@ -157,7 +160,7 @@ export default /* GraphQL */ `
     followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
 
     "Tags that user followed."
-    followingTags(input: ConnectionArgs!): TagConnection!
+    followingTags(input: ConnectionArgs!): TagConnection! @deprecated(reason: "Move to a new field")
 
     "Articles has been added into followed tags."
     followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
@@ -416,6 +419,12 @@ export default /* GraphQL */ `
   type FolloweeDonatedArticle {
     article: Article! @logCache(type: "${NODE_TYPES.article}")
     followee: User! @logCache(type: "${NODE_TYPES.user}")
+  }
+
+  type Following {
+    circles(input: ConnectionArgs!): CircleConnection!
+    tags(input: ConnectionArgs!): TagConnection!
+    users(input: ConnectionArgs!): UserConnection!
   }
 
   input UserInput {

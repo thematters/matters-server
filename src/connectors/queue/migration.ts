@@ -112,7 +112,7 @@ class MigrationQueue extends BaseQueue {
                 })
 
                 // add asset and assetmap
-                const result = await Promise.all(
+                await Promise.all(
                   assets.map((asset) =>
                     this.systemService.createAssetAndAssetMap(
                       {

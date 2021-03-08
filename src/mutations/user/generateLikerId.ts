@@ -1,5 +1,4 @@
-import { USER_STATE } from 'common/enums'
-import { AuthenticationError, ForbiddenError } from 'common/errors'
+import { AuthenticationError } from 'common/errors'
 import { MutationToGenerateLikerIdResolver } from 'definitions'
 
 const resolver: MutationToGenerateLikerIdResolver = async (

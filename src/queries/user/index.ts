@@ -1,6 +1,7 @@
 import { toGlobalId } from 'common/utils'
 import {
   GQLAppreciationTypeResolver,
+  GQLFollowingTypeResolver,
   GQLLikerTypeResolver,
   GQLQueryTypeResolver,
   GQLRecommendationTypeResolver,
@@ -25,6 +26,7 @@ import commentCount from './commentCount'
 import donatedArticleCount from './donatedArticleCount'
 import followees from './followees'
 import followers from './followers'
+import Following from './following'
 import group from './group'
 import hasPaymentPassword from './hasPaymentPassword'
 import isBlocked from './isBlocked'
@@ -60,6 +62,7 @@ const user: {
   UserActivity: GQLUserActivityTypeResolver
   UserStatus: GQLUserStatusTypeResolver
   Appreciation: GQLAppreciationTypeResolver
+  Following: GQLFollowingTypeResolver
   Recommendation: GQLRecommendationTypeResolver
 
   Liker: GQLLikerTypeResolver
@@ -87,6 +90,7 @@ const user: {
     settings: (root) => root,
     status: (root) => (root.id ? root : null),
     activity: (root) => root,
+    following: (root) => root,
     recommendation: (root) => root,
     oss: (root) => root,
     // hasFollowed,
@@ -124,6 +128,7 @@ const user: {
     receivedDonationCount,
   },
   Appreciation,
+  Following,
   Recommendation,
 
   // LikeCoin

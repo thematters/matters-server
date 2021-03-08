@@ -394,8 +394,14 @@ export interface GQLUser extends GQLNode {
 
   /**
    * Users that this user follows.
+   * @deprecated Move to a new field
    */
   followees: GQLUserConnection
+
+  /**
+   * Following contents of this user.
+   */
+  following: GQLFollowing
 
   /**
    * Whether current user is following viewer.
@@ -590,6 +596,7 @@ export interface GQLRecommendation {
 
   /**
    * Tags that user followed.
+   * @deprecated Move to a new field
    */
   followingTags: GQLTagConnection
 
@@ -814,6 +821,12 @@ export interface GQLComment extends GQLNode {
    */
   replyTo?: GQLComment
   remark?: string
+
+  /**
+   * Article that the comment is belonged to.
+   * @deprecated No longer in use
+   */
+  article?: GQLArticle
 
   /**
    * Current comment belongs to which Node.
@@ -1130,6 +1143,16 @@ export interface GQLCircle extends GQLNode {
    * Comments made by Circle member.
    */
   discussion: GQLCommentConnection
+
+  /**
+   * Discussion (exclude replies) count of this circle.
+   */
+  discussionThreadCount: number
+
+  /**
+   * Discussion (include replies) count of this circle.
+   */
+  discussionCount: number
 }
 
 export interface GQLPrice {
@@ -1475,6 +1498,12 @@ export const enum GQLAppreciationPurpose {
   joinByTask = 'joinByTask',
   firstPost = 'firstPost',
   systemSubsidy = 'systemSubsidy',
+}
+
+export interface GQLFollowing {
+  circles: GQLCircleConnection
+  tags: GQLTagConnection
+  users: GQLUserConnection
 }
 
 export interface GQLUserStatus {
@@ -3336,6 +3365,7 @@ export interface GQLResolver {
   AppreciationConnection?: GQLAppreciationConnectionTypeResolver
   AppreciationEdge?: GQLAppreciationEdgeTypeResolver
   Appreciation?: GQLAppreciationTypeResolver
+  Following?: GQLFollowingTypeResolver
   UserStatus?: GQLUserStatusTypeResolver
   UserOSS?: GQLUserOSSTypeResolver
   NoticeConnection?: GQLNoticeConnectionTypeResolver
@@ -4081,6 +4111,7 @@ export interface GQLNodeTypeResolver<TParent = any> {
     | 'Tag'
     | 'Circle'
     | 'Draft'
+    | Promise<'Article' | 'User' | 'Comment' | 'Tag' | 'Circle' | 'Draft'>
 }
 export interface GQLUserTypeResolver<TParent = any> {
   id?: UserToIdResolver<TParent>
@@ -4101,6 +4132,7 @@ export interface GQLUserTypeResolver<TParent = any> {
   activity?: UserToActivityResolver<TParent>
   followers?: UserToFollowersResolver<TParent>
   followees?: UserToFolloweesResolver<TParent>
+  following?: UserToFollowingResolver<TParent>
   isFollower?: UserToIsFollowerResolver<TParent>
   isFollowee?: UserToIsFolloweeResolver<TParent>
   blockList?: UserToBlockListResolver<TParent>
@@ -4294,6 +4326,15 @@ export interface UserToFolloweesResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: UserToFolloweesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface UserToFollowingResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -5082,6 +5123,25 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'SearchResultConnection'
     | 'OAuthClientConnection'
     | 'SkippedListItemsConnection'
+    | Promise<
+        | 'ArticleConnection'
+        | 'CommentConnection'
+        | 'FolloweeDonatedArticleConnection'
+        | 'TagConnection'
+        | 'UserConnection'
+        | 'CircleConnection'
+        | 'MemberConnection'
+        | 'DraftConnection'
+        | 'ReadHistoryConnection'
+        | 'RecentSearchConnection'
+        | 'AppreciationConnection'
+        | 'NoticeConnection'
+        | 'TransactionConnection'
+        | 'ResponseConnection'
+        | 'SearchResultConnection'
+        | 'OAuthClientConnection'
+        | 'SkippedListItemsConnection'
+      >
 }
 export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
@@ -5232,6 +5292,7 @@ export interface GQLCommentTypeResolver<TParent = any> {
   parentComment?: CommentToParentCommentResolver<TParent>
   replyTo?: CommentToReplyToResolver<TParent>
   remark?: CommentToRemarkResolver<TParent>
+  article?: CommentToArticleResolver<TParent>
   node?: CommentToNodeResolver<TParent>
 }
 
@@ -5356,6 +5417,15 @@ export interface CommentToReplyToResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToRemarkResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CommentToArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5890,6 +5960,8 @@ export interface GQLCircleTypeResolver<TParent = any> {
   broadcast?: CircleToBroadcastResolver<TParent>
   pinnedBroadcast?: CircleToPinnedBroadcastResolver<TParent>
   discussion?: CircleToDiscussionResolver<TParent>
+  discussionThreadCount?: CircleToDiscussionThreadCountResolver<TParent>
+  discussionCount?: CircleToDiscussionCountResolver<TParent>
 }
 
 export interface CircleToIdResolver<TParent = any, TResult = any> {
@@ -6082,6 +6154,27 @@ export interface CircleToDiscussionResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: CircleToDiscussionArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToDiscussionThreadCountResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToDiscussionCountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6947,6 +7040,48 @@ export interface AppreciationToTargetResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface GQLFollowingTypeResolver<TParent = any> {
+  circles?: FollowingToCirclesResolver<TParent>
+  tags?: FollowingToTagsResolver<TParent>
+  users?: FollowingToUsersResolver<TParent>
+}
+
+export interface FollowingToCirclesArgs {
+  input: GQLConnectionArgs
+}
+export interface FollowingToCirclesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: FollowingToCirclesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface FollowingToTagsArgs {
+  input: GQLConnectionArgs
+}
+export interface FollowingToTagsResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: FollowingToTagsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface FollowingToUsersArgs {
+  input: GQLConnectionArgs
+}
+export interface FollowingToUsersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: FollowingToUsersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLUserStatusTypeResolver<TParent = any> {
   state?: UserStatusToStateResolver<TParent>
   role?: UserStatusToRoleResolver<TParent>
@@ -7171,6 +7306,18 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'TagNotice'
     | 'TransactionNotice'
     | 'UserNotice'
+    | Promise<
+        | 'ArticleArticleNotice'
+        | 'ArticleNotice'
+        | 'ArticleTagNotice'
+        | 'CircleNotice'
+        | 'CommentCommentNotice'
+        | 'CommentNotice'
+        | 'OfficialAnnouncementNotice'
+        | 'TagNotice'
+        | 'TransactionNotice'
+        | 'UserNotice'
+      >
 }
 export interface GQLWalletTypeResolver<TParent = any> {
   balance?: WalletToBalanceResolver<TParent>
@@ -7424,6 +7571,7 @@ export interface GQLTransactionTargetTypeResolver<TParent = any> {
     | 'Article'
     | 'Circle'
     | 'Transaction'
+    | Promise<'Article' | 'Circle' | 'Transaction'>
 }
 export interface GQLStripeAccountTypeResolver<TParent = any> {
   id?: StripeAccountToIdResolver<TParent>
@@ -7608,6 +7756,7 @@ export interface GQLResponseTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'Article'
     | 'Comment'
+    | Promise<'Article' | 'Comment'>
 }
 export interface GQLSearchResultConnectionTypeResolver<TParent = any> {
   totalCount?: SearchResultConnectionToTotalCountResolver<TParent>

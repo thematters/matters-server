@@ -6,7 +6,6 @@ import {
   AUTH_MODE,
   COOKIE_TOKEN_NAME,
   COOKIE_USER_GROUP,
-  LANGUAGE,
   USER_ROLE,
   USER_STATE,
 } from 'common/enums'

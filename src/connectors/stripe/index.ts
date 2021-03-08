@@ -1,6 +1,11 @@
 import Stripe from 'stripe'
 
-import { LOCAL_STRIPE, METADATA_KEY, PAYMENT_CURRENCY } from 'common/enums'
+import {
+  LOCAL_STRIPE,
+  METADATA_KEY,
+  PAYMENT_CURRENCY,
+  PAYMENT_MAX_DECIMAL_PLACES,
+} from 'common/enums'
 import { environment, isProd, isTest } from 'common/environment'
 import { PaymentAmountInvalidError, ServerError } from 'common/errors'
 import logger from 'common/logger'
@@ -9,6 +14,7 @@ import {
   getUTC8NextMonthDayOne,
   toProviderAmount,
 } from 'common/utils'
+import SlackService from 'connectors/slack'
 import { User } from 'definitions'
 
 /**
@@ -38,13 +44,23 @@ class StripeService {
   }
 
   handleError(err: Stripe.StripeError) {
+    const slack = new SlackService()
+
     logger.error(err)
 
     switch (err.code) {
       case 'parameter_invalid_integer':
-        throw new PaymentAmountInvalidError('maximum 2 decimal places')
+        throw new PaymentAmountInvalidError(
+          `maximum ${PAYMENT_MAX_DECIMAL_PLACES} decimal places`
+        )
       default:
-        throw new ServerError('failed to process the stripe request')
+        slack.sendStripeAlert({
+          data: { type: err.type, code: err.code },
+          message: err.message,
+        })
+        throw new ServerError(
+          `failed to process the stripe request: ${err.message}`
+        )
     }
   }
 

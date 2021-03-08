@@ -272,6 +272,11 @@ class PublicationQueue extends BaseQueue {
       create: data,
       update: data,
     })
+
+    await invalidateFQC({
+      node: { type: NODE_TYPES.circle, id: draft.circleId },
+      redis: this.cacheService.redis,
+    })
   }
 
   private handleTags = async ({
