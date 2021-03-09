@@ -2,7 +2,9 @@ import { invalidateFQC } from '@matters/apollo-response-cache'
 import { compare } from 'bcrypt'
 
 import {
+  CIRCLE_ACTION,
   CIRCLE_STATE,
+  DB_NOTICE_TYPE,
   METADATA_KEY,
   NODE_TYPES,
   PAYMENT_PROVIDER,
@@ -26,7 +28,16 @@ import { Customer, MutationToSubscribeCircleResolver } from 'definitions'
 const resolver: MutationToSubscribeCircleResolver = async (
   root,
   { input: { id, password } },
-  { viewer, dataSources: { atomService, paymentService, systemService }, knex }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      paymentService,
+      notificationService,
+      systemService,
+    },
+    knex,
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -168,6 +179,40 @@ const resolver: MutationToSubscribeCircleResolver = async (
         subscriptionId: subscription.id,
         providerPriceId: price.providerPriceId,
         providerSubscriptionId: subscription.providerSubscriptionId,
+      })
+    }
+
+    // trigger notificaiton
+    notificationService.trigger({
+      event: DB_NOTICE_TYPE.circle_new_subscriber,
+      actorId: viewer.id,
+      recipientId: circle.owner,
+      entities: [
+        {
+          type: 'target',
+          entityTable: 'circle',
+          entity: circle,
+        },
+      ],
+    })
+
+    // auto follow circle without notification
+    const hasFollow = await atomService.count({
+      table: 'action_circle',
+      where: {
+        action: CIRCLE_ACTION.follow,
+        userId: viewer.id,
+        targetId: circleId,
+      },
+    })
+    if (hasFollow === 0) {
+      await atomService.create({
+        table: 'action_circle',
+        data: {
+          action: CIRCLE_ACTION.follow,
+          userId: viewer.id,
+          targetId: circleId,
+        },
       })
     }
 
