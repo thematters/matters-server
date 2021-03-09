@@ -11,7 +11,6 @@ import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PRICE_STATE,
-  SUBSCRIPTION_STATE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
@@ -88,15 +87,8 @@ export const completeCircleSubscription = async ({
     return
   }
 
-  const subscriptions = await atomService.findMany({
-    table: 'circle_subscription',
-    where: { userId },
-    whereIn: [
-      'state',
-      [SUBSCRIPTION_STATE.active, SUBSCRIPTION_STATE.trialing],
-    ],
-  })
-  const subscription = subscriptions && subscriptions[0]
+  const subscriptions = await paymentService.findSubscriptions({ userId })
+  const subscription = subscriptions[0]
 
   if (!subscription) {
     await paymentService.createSubscription({

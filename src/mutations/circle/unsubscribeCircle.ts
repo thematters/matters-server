@@ -4,7 +4,6 @@ import {
   DB_NOTICE_TYPE,
   NODE_TYPES,
   PRICE_STATE,
-  SUBSCRIPTION_STATE,
 } from 'common/enums'
 import {
   AuthenticationError,
@@ -61,15 +60,9 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
     throw new EntityNotFoundError(`price of circle ${id} not found`)
   }
 
-  const subscriptions =
-    (await atomService.findMany({
-      table: 'circle_subscription',
-      where: { userId: viewer.id },
-      whereIn: [
-        'state',
-        [SUBSCRIPTION_STATE.active, SUBSCRIPTION_STATE.trialing],
-      ],
-    })) || []
+  const subscriptions = await paymentService.findSubscriptions({
+    userId: viewer.id,
+  })
 
   await Promise.all(
     subscriptions.map(async (subscription) => {

@@ -106,13 +106,8 @@ const resolver: MutationToSubscribeCircleResolver = async (
   }
 
   // check subscription
-  const subscriptions = await atomService.findMany({
-    table: 'circle_subscription',
-    where: { userId: viewer.id },
-    whereIn: [
-      'state',
-      [SUBSCRIPTION_STATE.active, SUBSCRIPTION_STATE.trialing],
-    ],
+  const subscriptions = await paymentService.findSubscriptions({
+    userId: viewer.id,
   })
   const subscription = subscriptions[0]
   const items =
