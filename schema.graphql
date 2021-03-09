@@ -483,6 +483,12 @@ type Circle implements Node {
 
   """Comments made by Circle member."""
   discussion(input: ConnectionArgs!): CommentConnection!
+
+  """Discussion (exclude replies) count of this circle."""
+  discussionThreadCount: Int!
+
+  """Discussion (include replies) count of this circle."""
+  discussionCount: Int!
 }
 
 type CircleConnection implements Connection {
@@ -590,6 +596,9 @@ type Comment implements Node {
   """A Comment that this comment replied to."""
   replyTo: Comment
   remark: String
+
+  """Article that the comment is belonged to."""
+  article: Article @deprecated(reason: "No longer in use")
 
   """Current comment belongs to which Node."""
   node: Node!
@@ -898,6 +907,12 @@ type FolloweeDonatedArticleConnection implements Connection {
 type FolloweeDonatedArticleEdge {
   cursor: String!
   node: FolloweeDonatedArticle!
+}
+
+type Following {
+  circles(input: ConnectionArgs!): CircleConnection!
+  tags(input: ConnectionArgs!): TagConnection!
+  users(input: ConnectionArgs!): UserConnection!
 }
 
 input FrequentSearchInput {
@@ -1535,7 +1550,7 @@ type Recommendation {
   followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
 
   """Tags that user followed."""
-  followingTags(input: ConnectionArgs!): TagConnection!
+  followingTags(input: ConnectionArgs!): TagConnection! @deprecated(reason: "Move to a new field")
 
   """Articles has been added into followed tags."""
   followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
@@ -2177,7 +2192,10 @@ type User implements Node {
   followers(input: ConnectionArgs!): UserConnection!
 
   """Users that this user follows."""
-  followees(input: ConnectionArgs!): UserConnection!
+  followees(input: ConnectionArgs!): UserConnection! @deprecated(reason: "Move to a new field")
+
+  """Following contents of this user."""
+  following: Following!
 
   """Whether current user is following viewer."""
   isFollower: Boolean!

@@ -4,7 +4,6 @@ import { v4 } from 'uuid'
 import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
-  CIRCLE_STATE,
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
@@ -189,7 +188,7 @@ const resolver: MutationToPutCommentResolver = async (
       ])
     const isCircleMember = records && records.length > 0
     const isReplyToBroadcast =
-      replyToComment.type === COMMENT_TYPE.circleBroadcast
+      replyToComment?.type === COMMENT_TYPE.circleBroadcast
 
     if (!isCircleMember || (isCircleBroadcast && !isReplyToBroadcast)) {
       throw new ForbiddenError('only circle members have the permission')
@@ -235,7 +234,6 @@ const resolver: MutationToPutCommentResolver = async (
         authorId: data.authorId,
         parentCommentId: data.parentCommentId,
         replyTo: data.replyTo,
-        mentionedUserIds: data.mentionedUserIds,
         updatedAt: new Date(),
       },
     })

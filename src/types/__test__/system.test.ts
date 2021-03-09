@@ -352,7 +352,7 @@ describe('manage feature flag', () => {
 
     // remove existing seeding user
     const seedingUser = _get(data, 'oss.seedingUsers.edges[0].node')
-    const updateData = await adminMutate({
+    await adminMutate({
       mutation: TOGGLE_SEEDING_USERS,
       variables: { input: { ids: [seedingUser.id], enabled: false } },
     })
@@ -363,7 +363,7 @@ describe('manage feature flag', () => {
     expect(_get(data2, 'oss.seedingUsers.totalCount')).toBe(0)
 
     // re-add seeding user
-    const updateData2 = await adminMutate({
+    await adminMutate({
       mutation: TOGGLE_SEEDING_USERS,
       variables: { input: { ids: [seedingUser.id], enabled: true } },
     })

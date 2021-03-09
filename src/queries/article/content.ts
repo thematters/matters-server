@@ -6,7 +6,7 @@ import { ArticleToContentResolver } from 'definitions'
 const resolver: ArticleToContentResolver = async (
   { articleId, authorId, content },
   _,
-  { viewer, dataSources: { articleService, atomService } }
+  { viewer, dataSources: { articleService, atomService, paymentService } }
 ) => {
   const article = await articleService.dataloader.load(articleId)
 
@@ -24,19 +24,30 @@ const resolver: ArticleToContentResolver = async (
   }
 
   // active
-  const record = await atomService.findFirst({
+  const articleCircle = await atomService.findFirst({
     table: 'article_circle',
     where: { articleId },
   })
 
   // not in circle
-  if (!record) {
+  if (!articleCircle) {
     return correctHtml(content)
   }
 
-  // not under the free period
-  if (!isArticleLimitedFree(record.createdAt)) {
+  if (!viewer.id) {
     return ''
+  }
+
+  // not under the free period or not circle member
+  if (!isArticleLimitedFree(articleCircle.createdAt)) {
+    const isCircleMember = await paymentService.isCircleMember({
+      userId: viewer.id,
+      circleId: articleCircle.circleId,
+    })
+
+    if (!isCircleMember) {
+      return ''
+    }
   }
 
   return correctHtml(content)

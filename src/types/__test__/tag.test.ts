@@ -5,7 +5,6 @@ import { toGlobalId } from 'common/utils'
 import {
   GQLFeatureFlag,
   GQLFeatureName,
-  GQLNodeInput,
   GQLPutTagInput,
   GQLUpdateTagSettingInput,
   GQLUpdateTagSettingType,
@@ -229,7 +228,7 @@ describe('manage tag', () => {
     const createTagId = createResult?.id
     expect(createTagId).toBeDefined()
 
-    const { mutate, query } = await testClient({
+    const { mutate } = await testClient({
       isAuth: true,
       isAdmin: true,
       isMatty: true,
@@ -270,7 +269,7 @@ describe('manage article tag', () => {
     const createTagId = createResult?.id
     expect(createTagId).toBeDefined()
 
-    const { mutate, query } = await testClient({
+    const { mutate } = await testClient({
       isAuth: true,
       isAdmin: true,
       isMatty: true,
@@ -333,7 +332,7 @@ describe('manage settings of a tag', () => {
     const mattyId = toGlobalId({ type: 'User', id: 6 })
 
     // matty enable user can adopt tag
-    const test = await setFeature({
+    await setFeature({
       isAdmin: true,
       isMatty: true,
       input: {
@@ -594,7 +593,7 @@ describe('manage settings of a tag', () => {
 
   test('leave editor from a tag', async () => {
     const user1Id = toGlobalId({ type: 'User', id: 1 })
-    const user2Id = toGlobalId({ type: 'User', id: 2 })
+    // const user2Id = toGlobalId({ type: 'User', id: 2 })
     const mattyId = toGlobalId({ type: 'User', id: 6 })
 
     // matty create tag

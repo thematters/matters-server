@@ -280,9 +280,10 @@ const resolver: MutationToEditArticleResolver = async (
    * Circle
    */
   const resetCircle = circleGlobalId === null
+  let circle: any
   if (circleGlobalId) {
     const { id: circleId } = fromGlobalId(circleGlobalId)
-    const circle = await atomService.findFirst({
+    circle = await atomService.findFirst({
       table: 'circle',
       where: { id: circleId, state: CIRCLE_STATE.active },
     })
@@ -398,6 +399,17 @@ const resolver: MutationToEditArticleResolver = async (
    * Result
    */
   const node = await draftService.baseFindById(article.draftId)
+
+  // invalidate circle
+  if (circle) {
+    node[CACHE_KEYWORD] = [
+      {
+        id: circle.id,
+        type: NODE_TYPES.circle,
+      },
+    ]
+  }
+
   return node
 }
 

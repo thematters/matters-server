@@ -76,6 +76,9 @@ export default /* GraphQL */ `
 
     remark: String @auth(mode: "${AUTH_MODE.admin}")
 
+    "Article that the comment is belonged to."
+    article: Article @logCache(type: "${NODE_TYPES.article}") @deprecated(reason: "No longer in use")
+
     "Current comment belongs to which Node."
     node: Node! @logCache(type: "${NODE_TYPES.node}")
   }
@@ -109,6 +112,12 @@ export default /* GraphQL */ `
 
     "Comments made by Circle member."
     discussion(input: ConnectionArgs!): CommentConnection!
+
+    "Discussion (exclude replies) count of this circle."
+    discussionThreadCount: Int!
+
+    "Discussion (include replies) count of this circle."
+    discussionCount: Int!
   }
 
   type CommentConnection implements Connection {

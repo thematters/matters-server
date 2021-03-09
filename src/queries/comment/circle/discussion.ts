@@ -3,11 +3,21 @@ import { connectionFromArray, cursorToIndex } from 'common/utils'
 import { CircleToDiscussionResolver } from 'definitions'
 
 const resolver: CircleToDiscussionResolver = async (
-  { id },
+  { id, owner },
   { input },
-  { dataSources: { atomService } }
+  { viewer, dataSources: { atomService, paymentService } }
 ) => {
-  if (!id) {
+  if (!id || !viewer.id) {
+    return connectionFromArray([], input)
+  }
+
+  const isCircleMember = await paymentService.isCircleMember({
+    userId: viewer.id,
+    circleId: id,
+  })
+  const isCircleOwner = viewer.id === owner
+
+  if (!isCircleMember && !isCircleOwner) {
     return connectionFromArray([], input)
   }
 
