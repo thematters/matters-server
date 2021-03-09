@@ -1,8 +1,10 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import _trim from 'lodash/trim'
 
 import {
   ASSET_TYPE,
   CIRCLE_STATE,
+  NODE_TYPES,
   PAYMENT_CURRENCY,
   PAYMENT_MAX_DECIMAL_PLACES,
   PAYMENT_MAXIMUM_CIRCLE_AMOUNT,
@@ -28,6 +30,7 @@ import {
   isValidCircleName,
   isValidDisplayName,
 } from 'common/utils'
+import { CacheService } from 'connectors'
 import { assetQueue } from 'connectors/queue'
 import { MutationToPutCircleResolver } from 'definitions'
 
@@ -161,6 +164,13 @@ const resolver: MutationToPutCircleResolver = async (
           .into('circle_price')
 
         return record
+      })
+
+      // invalidate user
+      const cacheService = new CacheService()
+      invalidateFQC({
+        node: { type: NODE_TYPES.user, id: viewer.id },
+        redis: cacheService.redis,
       })
 
       return circle
