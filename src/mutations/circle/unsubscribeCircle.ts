@@ -4,7 +4,6 @@ import {
   DB_NOTICE_TYPE,
   NODE_TYPES,
   PRICE_STATE,
-  SUBSCRIPTION_STATE,
 } from 'common/enums'
 import {
   AuthenticationError,
@@ -61,64 +60,65 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
     throw new EntityNotFoundError(`price of circle ${id} not found`)
   }
 
-  const subscription = await atomService.findFirst({
-    table: 'circle_subscription',
-    where: {
-      userId: viewer.id,
-      state: SUBSCRIPTION_STATE.active,
-    },
+  const subscriptions = await paymentService.findSubscriptions({
+    userId: viewer.id,
   })
-  const items = subscription
-    ? await atomService.findMany({
-        table: 'circle_subscription_item',
-        where: {
-          subscriptionId: subscription.id,
-          archived: false,
-        },
-      })
-    : []
-  const targetItem = items.find((item) => item.priceId === price.id)
 
-  if (!targetItem) {
-    return circle
-  }
+  await Promise.all(
+    subscriptions.map(async (subscription) => {
+      const items = subscription
+        ? await atomService.findMany({
+            table: 'circle_subscription_item',
+            where: {
+              subscriptionId: subscription.id,
+              archived: false,
+            },
+          })
+        : []
+      const targetItem = items.find((item) => item.priceId === price.id)
 
-  if (items.length <= 1) {
-    // cancel stripe subscription
-    const stripeSubscription = await paymentService.stripe.cancelSubscription(
-      subscription.providerSubscriptionId
-    )
+      if (!targetItem) {
+        return circle
+      }
 
-    // update db subscription
-    if (stripeSubscription) {
-      await atomService.update({
-        table: 'circle_subscription',
-        where: { id: subscription.id },
-        data: {
-          state: stripeSubscription.status,
-          canceledAt: stripeSubscription.canceled_at
-            ? new Date(stripeSubscription.canceled_at * 1000)
-            : undefined,
-          updatedAt: new Date(),
-        },
-      })
-    }
-  } else {
-    // remove stripe subscription item
-    await paymentService.stripe.deleteSubscriptionItem(
-      targetItem.providerSubscriptionItemId
-    )
+      if (items.length <= 1) {
+        // cancel stripe subscription
+        const stripeSubscription = await paymentService.stripe.cancelSubscription(
+          subscription.providerSubscriptionId
+        )
 
-    // archive subscription item
-    await atomService.update({
-      table: 'circle_subscription_item',
-      where: { id: targetItem.id },
-      data: {
-        archived: true,
-        updatedAt: new Date(),
-      },
+        // update db subscription
+        if (stripeSubscription) {
+          await atomService.update({
+            table: 'circle_subscription',
+            where: { id: subscription.id },
+            data: {
+              state: stripeSubscription.status,
+              canceledAt: stripeSubscription.canceled_at
+                ? new Date(stripeSubscription.canceled_at * 1000)
+                : undefined,
+              updatedAt: new Date(),
+            },
+          })
+        }
+      } else {
+        // remove stripe subscription item
+        await paymentService.stripe.deleteSubscriptionItem(
+          targetItem.providerSubscriptionItemId
+        )
+
+        // archive subscription item
+        await atomService.update({
+          table: 'circle_subscription_item',
+          where: { id: targetItem.id },
+          data: {
+            archived: true,
+            updatedAt: new Date(),
+          },
+        })
+      }
     })
-  }
+  )
 
   // trigger notificaiton
   notificationService.trigger({
@@ -141,6 +141,8 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
       type: NODE_TYPES.user,
     },
   ]
+
+  console.log(circle)
 
   return circle
 }
