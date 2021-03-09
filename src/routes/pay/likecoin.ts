@@ -1,6 +1,6 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
 import bodyParser from 'body-parser'
-import { Request, RequestHandler, Response, Router } from 'express'
+import { Router } from 'express'
 import NP from 'number-precision'
 
 import { DB_NOTICE_TYPE, NODE_TYPES, TRANSACTION_STATE } from 'common/enums'
@@ -162,7 +162,7 @@ likecoinRouter.post('/', async (req, res, next) => {
         typeId: updatedTx.targetType,
         userService,
       })
-      throw new Error('like pay failure')
+      throw new Error(`like pay failure, tx hash ${tx.txHash}`)
     }
 
     // notification
