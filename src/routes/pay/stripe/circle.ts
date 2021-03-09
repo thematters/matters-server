@@ -88,13 +88,15 @@ export const completeCircleSubscription = async ({
     return
   }
 
-  const subscription = await atomService.findFirst({
+  const subscriptions = await atomService.findMany({
     table: 'circle_subscription',
-    where: {
-      state: SUBSCRIPTION_STATE.active,
-      userId,
-    },
+    where: { userId },
+    whereIn: [
+      'state',
+      [SUBSCRIPTION_STATE.active, SUBSCRIPTION_STATE.trialing],
+    ],
   })
+  const subscription = subscriptions && subscriptions[0]
 
   if (!subscription) {
     await paymentService.createSubscription({

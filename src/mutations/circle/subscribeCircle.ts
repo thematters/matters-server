@@ -95,25 +95,28 @@ const resolver: MutationToSubscribeCircleResolver = async (
   }
 
   // check subscription
-  const subscription = await atomService.findFirst({
+  const subscriptions = await atomService.findMany({
     table: 'circle_subscription',
-    where: {
-      userId: viewer.id,
-      state: SUBSCRIPTION_STATE.active,
-    },
+    where: { userId: viewer.id },
+    whereIn: [
+      'state',
+      [SUBSCRIPTION_STATE.active, SUBSCRIPTION_STATE.trialing],
+    ],
   })
-  const item = subscription
-    ? await atomService.findFirst({
-        table: 'circle_subscription_item',
-        where: {
-          subscriptionId: subscription.id,
-          priceId: price.id,
-          archived: false,
-        },
-      })
-    : null
+  const subscription = subscriptions[0]
+  const items =
+    subscriptions && subscriptions.length > 0
+      ? await atomService.findMany({
+          table: 'circle_subscription_item',
+          where: {
+            priceId: price.id,
+            archived: false,
+          },
+          whereIn: ['subscription_id', subscriptions.map((sub) => sub.id)],
+        })
+      : null
 
-  if (item) {
+  if (items && items.length > 0) {
     throw new DuplicateCircleError('circle subscribed alraedy')
   }
 
