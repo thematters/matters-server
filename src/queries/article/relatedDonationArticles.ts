@@ -1,10 +1,6 @@
 import { chunk } from 'lodash'
 
-import {
-  connectionFromArray,
-  connectionFromPromisedArray,
-  cursorToIndex,
-} from 'common/utils'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { ArticleToRelatedDonationArticlesResolver } from 'definitions'
 
 const resolver: ArticleToRelatedDonationArticlesResolver = async (

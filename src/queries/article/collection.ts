@@ -1,4 +1,3 @@
-import { ARTICLE_STATE } from 'common/enums'
 import {
   connectionFromPromisedArray,
   cursorToIndex,

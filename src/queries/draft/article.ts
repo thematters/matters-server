@@ -1,4 +1,3 @@
-import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
 import { DraftToArticleResolver } from 'definitions'
 
 const resolver: DraftToArticleResolver = (

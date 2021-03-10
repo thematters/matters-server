@@ -147,12 +147,11 @@ export default /* GraphQL */ `
   }
 
   enum CommentNoticeType {
-    ArticleCommentPinned
-    ArticleCommentMentionedYou
+    CommentPinned
+    CommentMentionedYou
     ArticleNewComment
     SubscribedArticleNewComment
-    CircleNewDiscussion
-    CircleNewBoardcast
+    CircleNewBroadcast
   }
 
   type CommentCommentNotice implements Notice {
@@ -262,6 +261,36 @@ export default /* GraphQL */ `
   enum TransactionNoticeType {
     PaymentReceivedDonation
     PaymentPayout
+  }
+
+
+  #################################
+  #                               #
+  #            Circle             #
+  #                               #
+  #################################
+  type CircleNotice implements Notice {
+    "Unique ID of this notice."
+    id: ID!
+
+    "The value determines if the notice is unread or not."
+    unread: Boolean!
+
+    "Time of this notice was created."
+    createdAt: DateTime!
+
+    "List of notice actors."
+    actors: [User!] @logCache(type: "${NODE_TYPES.user}")
+
+    type: CircleNoticeType!
+
+    target: Circle! @logCache(type: "${NODE_TYPES.circle}")
+  }
+
+  enum CircleNoticeType {
+    CircleNewFollower
+    CircleNewSubscriber
+    CircleNewUnsubscriber
   }
 
 

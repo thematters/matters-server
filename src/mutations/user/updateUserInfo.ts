@@ -1,4 +1,4 @@
-import { has, isEmpty } from 'lodash'
+import { has, isEmpty, isNil, omitBy } from 'lodash'
 
 import { ASSET_TYPE } from 'common/enums'
 import {
@@ -6,11 +6,12 @@ import {
   AuthenticationError,
   DisplayNameInvalidError,
   ForbiddenError,
+  NameExistsError,
+  NameInvalidError,
   PasswordInvalidError,
   UserInputError,
-  UsernameExistsError,
-  UsernameInvalidError,
 } from 'common/errors'
+import logger from 'common/logger'
 import {
   generatePasswordhash,
   isValidDisplayName,
@@ -22,7 +23,15 @@ import { MutationToUpdateUserInfoResolver } from 'definitions'
 const resolver: MutationToUpdateUserInfoResolver = async (
   _,
   { input },
-  { viewer, dataSources: { userService, systemService, notificationService } }
+  {
+    viewer,
+    dataSources: {
+      userService,
+      systemService,
+      notificationService,
+      atomService,
+    },
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -69,11 +78,11 @@ const resolver: MutationToUpdateUserInfoResolver = async (
       throw new ForbiddenError('userName is not allow to edit')
     }
     if (!isValidUserName(input.userName)) {
-      throw new UsernameInvalidError('invalid user name')
+      throw new NameInvalidError('invalid user name')
     }
-    const isUserNameExisted = await userService.countUserNames(input.userName)
-    if (isUserNameExisted > 0) {
-      throw new UsernameExistsError('user name already exists')
+
+    if (await userService.checkUserNameExists(input.userName)) {
+      throw new NameExistsError('user name already exists')
     }
     updateParams.userName = input.userName
   }
@@ -110,19 +119,60 @@ const resolver: MutationToUpdateUserInfoResolver = async (
     )
   }
 
+  // check payment pointer
+  if (input.paymentPointer) {
+    if (!input.paymentPointer.startsWith('$')) {
+      throw new UserInputError('Payment pointer must start with `$`')
+    } else {
+      updateParams.paymentPointer = input.paymentPointer
+    }
+  }
+
   if (isEmpty(updateParams)) {
     throw new UserInputError('bad request')
   }
 
-  // update user info
-  const user = await userService.updateInfo(viewer.id, updateParams)
+  // update user info to db and es
+  const user = await atomService.update({
+    table: 'user',
+    where: { id: viewer.id },
+    data: { updatedAt: new Date(), ...updateParams },
+  })
+  logger.info(`Updated id ${viewer.id} in "user"`)
 
   // add user name edit history
   if (input.userName) {
-    await userService.addUserNameEditHistory({
-      userId: viewer.id,
-      previous: viewer.userName,
+    await atomService.create({
+      table: 'username_edit_history',
+      data: {
+        userId: viewer.id,
+        previous: viewer.userName,
+      },
     })
+  }
+
+  // update user info to es
+  const { description, displayName, userName, state, role } = updateParams
+
+  if (!(description || displayName || userName || state || role)) {
+    return user
+  }
+
+  const searchable = omitBy(
+    { description, displayName, userName, state },
+    isNil
+  )
+
+  try {
+    await atomService.es.client.update({
+      index: 'user',
+      id: viewer.id,
+      body: {
+        doc: searchable,
+      },
+    })
+  } catch (err) {
+    logger.error(err)
   }
 
   // trigger notifications

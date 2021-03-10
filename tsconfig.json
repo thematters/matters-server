@@ -3,6 +3,8 @@
     "module": "commonjs",
     "strict": true,
     "removeComments": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
     "preserveConstEnums": true,
     "sourceMap": true,
     "target": "es2017",

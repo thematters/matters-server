@@ -18,9 +18,15 @@ export default /* GraphQL */ `
   extend type User {
     "User Wallet"
     wallet: Wallet! @auth(mode: "${AUTH_MODE.oauth}")
+
+    "Payment pointer that resolves to Open Payments endpoints"
+    paymentPointer: String
   }
 
   extend type UserStatus {
+    "Whether user already set payment password."
+    hasPaymentPassword: Boolean!
+
     "Number of articles donated by user"
     donatedArticleCount: Int!
 
@@ -28,12 +34,21 @@ export default /* GraphQL */ `
     receivedDonationCount: Int!
   }
 
-  union TransactionTarget = Article | Transaction
+  union TransactionTarget = Article | Circle | Transaction
 
   type Wallet {
     balance: Balance! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+
     transactions(input: TransactionsArgs!): TransactionConnection!
+
+    "Account of Stripe Connect to manage payout"
     stripeAccount: StripeAccount
+
+    "URL of Stripe Dashboard to manage subscription invoice and payment method"
+    customerPortal: URL
+
+    "The last four digits of the card."
+    cardLast4: String
   }
 
   type Balance {
@@ -98,6 +113,7 @@ export default /* GraphQL */ `
     addCredit
     refund
     payout
+    subscriptionSplit
   }
 
   enum TransactionCurrency {

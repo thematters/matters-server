@@ -1,6 +1,7 @@
 import { merge } from 'lodash'
 
 import article from './article'
+import circle from './circle'
 import comment from './comment'
 import draft from './draft'
 import notice from './notice'
@@ -13,6 +14,7 @@ import user from './user'
 export default merge(
   scalars,
   article,
+  circle,
   comment,
   user,
   draft,

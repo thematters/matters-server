@@ -10,7 +10,7 @@ export class PrivateCacheDirective extends SchemaDirectiveVisitor {
 
     field.resolve = async (...args) => {
       const { strict } = this.args
-      const [root, _, { viewer }, { fieldName, cacheControl }] = args
+      const [, , { viewer }, { cacheControl }] = args
       const logged = viewer.id && viewer.hasRole('user')
       const grouped = !!viewer.group
 

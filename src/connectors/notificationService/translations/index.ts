@@ -1,4 +1,5 @@
-import { makeSummary } from 'common/utils'
+import { makeSummary } from '@matters/matters-html-formatter'
+
 import { i18n } from 'common/utils/i18n'
 
 export default {
@@ -21,6 +22,8 @@ export default {
       `恭喜！你的大作《${title}》已被 ${displayName} 在其作品 《${collectionTitle}》 中關聯推薦`,
     zh_hans: ({ displayName, title, collectionTitle }) =>
       `恭喜！你的大作《${title}》已被 ${displayName} 在其作品 《${collectionTitle}》 中关联推荐`,
+    en: ({ displayName, title, collectionTitle }) =>
+      `Congratulations! Your work ${title} is been replied by ${displayName} in ${collectionTitle}`,
   }),
   article_new_appreciation: i18n<{ displayName: string }>({
     zh_hant: ({ displayName }) => `${displayName} 讚賞了你的作品`,
@@ -95,6 +98,8 @@ export default {
   user_activiated: i18n({
     zh_hant: '恭喜！你已解鎖評論權限，快去參與討論吧。謝謝你喜歡 Matters 💗',
     zh_hans: '恭喜！你已解锁评论权限，快去参与讨论吧。谢谢你喜欢 Matters 💗',
+    en:
+      'Congratulations! You have unlocked comment feature, and can now participate in the discussion. Thank you for enjoying Matters 💗',
   }),
   user_banned: i18n<{ banDays?: number }>({
     zh_hant: ({ banDays }) =>

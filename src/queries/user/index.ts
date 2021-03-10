@@ -1,6 +1,7 @@
 import { toGlobalId } from 'common/utils'
 import {
   GQLAppreciationTypeResolver,
+  GQLFollowingTypeResolver,
   GQLLikerTypeResolver,
   GQLQueryTypeResolver,
   GQLRecommendationTypeResolver,
@@ -25,6 +26,7 @@ import commentCount from './commentCount'
 import donatedArticleCount from './donatedArticleCount'
 import followees from './followees'
 import followers from './followers'
+import Following from './following'
 import group from './group'
 import hasPaymentPassword from './hasPaymentPassword'
 import isBlocked from './isBlocked'
@@ -35,11 +37,13 @@ import Liker from './liker'
 import likerId from './liker/likerId'
 import notification from './notification'
 import { boost, score } from './oss'
+import ownCircles from './ownCircles'
 import profileCover from './profileCover'
 import receivedDonationCount from './receivedDonationCount'
 import Recommendation from './recommendation'
 import rootUser from './rootUser'
 import StripeAccount from './stripeAccount'
+import subscribedCircles from './subscribedCircles'
 import subscriptions from './subscriptions'
 import totalWordCount from './totalWordCount'
 import { Transaction, TransactionTarget } from './transaction'
@@ -58,6 +62,7 @@ const user: {
   UserActivity: GQLUserActivityTypeResolver
   UserStatus: GQLUserStatusTypeResolver
   Appreciation: GQLAppreciationTypeResolver
+  Following: GQLFollowingTypeResolver
   Recommendation: GQLRecommendationTypeResolver
 
   Liker: GQLLikerTypeResolver
@@ -85,6 +90,7 @@ const user: {
     settings: (root) => root,
     status: (root) => (root.id ? root : null),
     activity: (root) => root,
+    following: (root) => root,
     recommendation: (root) => root,
     oss: (root) => root,
     // hasFollowed,
@@ -96,6 +102,8 @@ const user: {
     blockList,
     isBlocking,
     isBlocked,
+    ownCircles,
+    subscribedCircles,
   },
   UserInfo: {
     badges,
@@ -120,6 +128,7 @@ const user: {
     receivedDonationCount,
   },
   Appreciation,
+  Following,
   Recommendation,
 
   // LikeCoin

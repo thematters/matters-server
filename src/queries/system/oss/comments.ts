@@ -1,5 +1,3 @@
-import { isNil } from 'lodash'
-
 import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { OSSToCommentsResolver } from 'definitions'
 

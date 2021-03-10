@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio'
 import getStream from 'get-stream'
 
-import { OAUTH_PROVIDER, UPLOAD_MIGRATION_SIZE_LIMIT } from 'common/enums'
+import { UPLOAD_MIGRATION_SIZE_LIMIT } from 'common/enums'
 import {
   AuthenticationError,
   MigrationReachLimitError,

@@ -2,11 +2,7 @@ import { chunk } from 'lodash'
 
 import { environment } from 'common/environment'
 import { ForbiddenError } from 'common/errors'
-import {
-  connectionFromArray,
-  connectionFromPromisedArray,
-  cursorToIndex,
-} from 'common/utils'
+import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
 import { RecommendationToTagsResolver } from 'definitions'
 
 export const tags: RecommendationToTagsResolver = async (

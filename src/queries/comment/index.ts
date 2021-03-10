@@ -8,11 +8,17 @@ import articleFeaturedComments from './article/featuredComments'
 import pinCommentLeft from './article/pinCommentLeft'
 import articlePinnedComments from './article/pinnedComments'
 import author from './author'
+import circleBroadcast from './circle/broadcast'
+import circleDiscussion from './circle/discussion'
+import circleDiscussionCount from './circle/discussionCount'
+import circleDiscussionThreadCount from './circle/discussionThreadCount'
+import circlePinnedBroadcast from './circle/pinnedBroadcast'
 import comments from './comments'
 import content from './content'
 import downvotes from './downvotes'
 import fromDonator from './fromDonator'
 import myVote from './myVote'
+import node from './node'
 import parentComment from './parentComment'
 import replyTo from './replyTo'
 import upvotes from './upvotes'
@@ -42,5 +48,13 @@ export default {
     comments,
     parentComment,
     fromDonator,
+    node,
+  },
+  Circle: {
+    broadcast: circleBroadcast,
+    pinnedBroadcast: circlePinnedBroadcast,
+    discussion: circleDiscussion,
+    discussionCount: circleDiscussionCount,
+    discussionThreadCount: circleDiscussionThreadCount,
   },
 }

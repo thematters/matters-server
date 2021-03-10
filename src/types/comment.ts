@@ -2,7 +2,7 @@ import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
-    "Publish a comment."
+    "Publish or update a comment."
     putComment(input: PutCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.comment}") @rateLimit(limit:3, period:120)
 
     "Remove a comment."
@@ -44,9 +44,6 @@ export default /* GraphQL */ `
     "Time of this comment was created."
     createdAt: DateTime!
 
-    "Article that the comment is belonged to."
-    article: Article! @logCache(type: "${NODE_TYPES.article}")
-
     "Content of this comment."
     content: String
 
@@ -78,6 +75,12 @@ export default /* GraphQL */ `
     replyTo: Comment @logCache(type: "${NODE_TYPES.comment}")
 
     remark: String @auth(mode: "${AUTH_MODE.admin}")
+
+    "Article that the comment is belonged to."
+    article: Article @logCache(type: "${NODE_TYPES.article}") @deprecated(reason: "No longer in use")
+
+    "Current comment belongs to which Node."
+    node: Node! @logCache(type: "${NODE_TYPES.node}")
   }
 
   extend type Article {
@@ -100,6 +103,23 @@ export default /* GraphQL */ `
     comments(input: CommentsInput!): CommentConnection!
   }
 
+  extend type Circle {
+    "Comments broadcasted by Circle owner."
+    broadcast(input: ConnectionArgs!): CommentConnection!
+
+    "Pinned comments broadcasted by Circle owner."
+    pinnedBroadcast: [Comment!] @logCache(type: "${NODE_TYPES.comment}")
+
+    "Comments made by Circle member."
+    discussion(input: ConnectionArgs!): CommentConnection!
+
+    "Discussion (exclude replies) count of this circle."
+    discussionThreadCount: Int!
+
+    "Discussion (include replies) count of this circle."
+    discussionCount: Int!
+  }
+
   type CommentConnection implements Connection {
     totalCount: Int!
     pageInfo: PageInfo!
@@ -113,15 +133,21 @@ export default /* GraphQL */ `
 
   input PutCommentInput {
     comment: CommentInput!
+
+    # edit comment if id is provided
     id: ID
   }
 
   input CommentInput {
     content: String!
     replyTo: ID
-    articleId: ID!
     parentId: ID
     mentions: [ID!]
+    type: CommentType!
+
+    # one of the following ids is required
+    articleId: ID
+    circleId: ID
   }
 
   input CommentCommentsInput {
@@ -197,5 +223,11 @@ export default /* GraphQL */ `
     archived
     banned
     collapsed
+  }
+
+  enum CommentType {
+    article
+    circleDiscussion
+    circleBroadcast
   }
 `

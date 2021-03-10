@@ -1,8 +1,9 @@
-import Queue, { RateLimiter } from 'bull'
+import Queue from 'bull'
 
 import logger from 'common/logger'
 import {
   ArticleService,
+  AtomService,
   CacheService,
   DraftService,
   NotificationService,
@@ -22,6 +23,7 @@ export class BaseQueue {
   tagService: InstanceType<typeof TagService>
   systemService: InstanceType<typeof SystemService>
   notificationService: InstanceType<typeof NotificationService>
+  atomService: InstanceType<typeof AtomService>
   cacheService: InstanceType<typeof CacheService>
 
   constructor(queueName: string, customOpts?: CustomQueueOpts) {
@@ -33,6 +35,7 @@ export class BaseQueue {
     this.tagService = new TagService()
     this.systemService = new SystemService()
     this.notificationService = new NotificationService()
+    this.atomService = new AtomService()
     this.cacheService = new CacheService()
 
     this.startScheduledJobs()

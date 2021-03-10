@@ -1,4 +1,5 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
@@ -16,7 +17,7 @@ import {
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
-import { countWords, fromGlobalId, makeSummary } from 'common/utils'
+import { countWords, fromGlobalId } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
 
@@ -91,7 +92,10 @@ class RevisionQueue extends BaseQueue {
       const wordCount = countWords(draft.content)
 
       // Step 2: publish content to IPFS
-      const { dataHash, mediaHash } = await this.articleService.publishToIPFS({
+      const {
+        contentHash: dataHash,
+        mediaHash,
+      } = await this.articleService.publishToIPFS({
         ...draft,
         summary,
       })
