@@ -5,11 +5,11 @@ import { toGlobalId } from 'common/utils'
 import { testClient } from './utils'
 
 const USER_ID = toGlobalId({ type: 'User', id: 1 })
-const GET_NOTICES = `
+const GET_NOTICES = /* GraphQL */ `
   query($nodeInput: NodeInput!) {
     node(input: $nodeInput) {
       ... on User {
-        notices(input:{ first: 100 }) {
+        notices(input: { first: 100 }) {
           edges {
             node {
               id

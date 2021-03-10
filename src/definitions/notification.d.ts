@@ -43,11 +43,6 @@ export interface NoticeUserNewFollowerParams
   actorId: string
 }
 
-export interface NoticeUserActivatedParams extends NotificationRequiredParams {
-  event: OFFICIAL_NOTICE_EXTEND_TYPE.user_activated
-  recipientId: string
-}
-
 /**
  * Article
  */
@@ -56,17 +51,6 @@ export interface NoticeArticlePublishedParams
   event: DB_NOTICE_TYPE.article_published
   recipientId: string
   entities: [NotificationEntity<'target', 'article'>]
-}
-
-export interface NoticeArticleNewCollectedParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.article_new_collected
-  recipientId: string
-  actorId: string
-  entities: [
-    NotificationEntity<'target', 'article'>,
-    NotificationEntity<'collection', 'article'>
-  ]
 }
 
 export interface NoticeArticleNewAppreciationParams
@@ -85,34 +69,12 @@ export interface NoticeArticleNewSubscriberParams
   entities: [NotificationEntity<'target', 'article'>]
 }
 
-export interface NoticeArticleNewCommentParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.article_new_comment
-  recipientId: string
-  actorId: string
-  entities: [
-    NotificationEntity<'target', 'article'>,
-    NotificationEntity<'comment', 'comment'>
-  ]
-}
-
 export interface NoticeArticleMentionedYouParams
   extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.article_mentioned_you
   recipientId: string
   actorId: string
   entities: [NotificationEntity<'target', 'article'>]
-}
-
-export interface NoticeSubscribedArticleNewCommentParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.subscribed_article_new_comment
-  recipientId: string
-  actorId: string
-  entities: [
-    NotificationEntity<'target', 'article'>,
-    NotificationEntity<'comment', 'comment'>
-  ]
 }
 
 export interface NoticeRevisedArticlePublishedParams
@@ -129,9 +91,39 @@ export interface NoticeRevisedArticleNotPublishedParams
   entities: [NotificationEntity<'target', 'article'>]
 }
 
+export interface NoticeCircleNewArticleParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_new_article
+  recipientId: string
+  entities: [NotificationEntity<'target', 'article'>]
+}
+
+// Article-Article
+export interface NoticeArticleNewCollectedParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.article_new_collected
+  recipientId: string
+  actorId: string
+  entities: [
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'collection', 'article'>
+  ]
+}
+
 /**
  * Comment
  */
+export interface NoticeArticleNewCommentParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.article_new_comment
+  recipientId: string
+  actorId: string
+  entities: [
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'comment', 'comment'>
+  ]
+}
+
 export interface NoticeCommentPinnedParams extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.comment_pinned
   actorId: string
@@ -139,6 +131,50 @@ export interface NoticeCommentPinnedParams extends NotificationRequiredParams {
   entities: [NotificationEntity<'target', 'comment'>]
 }
 
+export interface NoticeCommentMentionedYouParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.comment_mentioned_you
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeCircleBroadcastMentionedYouParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_broadcast_mentioned_you
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeCircleDiscussionMentionedYouParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_discussion_mentioned_you
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+export interface NoticeSubscribedArticleNewCommentParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.subscribed_article_new_comment
+  recipientId: string
+  actorId: string
+  entities: [
+    NotificationEntity<'target', 'article'>,
+    NotificationEntity<'comment', 'comment'>
+  ]
+}
+
+export interface NoticeCircleNewBroadcastParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_new_broadcast
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'comment'>]
+}
+
+// Comment-Comment
 export interface NoticeCommentNewReplyParams
   extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.comment_new_reply
@@ -150,17 +186,60 @@ export interface NoticeCommentNewReplyParams
   ]
 }
 
-export interface NoticeCommentMentionedYouParams
+export interface NoticeCircleBroadcastNewReplyParams
   extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.comment_mentioned_you
+  event: DB_NOTICE_TYPE.circle_broadcast_new_reply
   recipientId: string
   actorId: string
-  entities: [NotificationEntity<'target', 'comment'>]
+  entities: [
+    NotificationEntity<'target', 'comment'>,
+    NotificationEntity<'reply', 'comment'>
+  ]
+}
+
+export interface NoticeCircleDiscussionNewReplyParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_discussion_new_reply
+  recipientId: string
+  actorId: string
+  entities: [
+    NotificationEntity<'target', 'comment'>,
+    NotificationEntity<'reply', 'comment'>
+  ]
 }
 
 /**
  * Tag
  */
+export interface NoticeTagAdoptionParams extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.tag_adoption
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'tag'>]
+}
+
+export interface NoticeTagLeaveParams extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.tag_leave
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'tag'>]
+}
+
+export interface NoticeTagAddEditorParams extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.tag_add_editor
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'tag'>]
+}
+
+export interface NoticeTagLeaveEditorParams extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.tag_leave_editor
+  recipientId: string
+  actorId: string
+  entities: [NotificationEntity<'target', 'tag'>]
+}
+
+// Article-Tag
 export interface NoticeArticleTagHasBeenAddedParams
   extends NotificationRequiredParams {
   event: DB_NOTICE_TYPE.article_tag_has_been_added
@@ -195,7 +274,7 @@ export interface NoticeArticleTagHasBeenUnselectedParams
 }
 
 /**
- * Payment
+ * Transaction
  */
 export interface NoticePaymentReceivedDonationParams
   extends NotificationRequiredParams {
@@ -212,7 +291,34 @@ export interface NoticePaymentPayoutParams extends NotificationRequiredParams {
 }
 
 /**
- * Official Announcement
+ * Circle
+ */
+export interface NoticeCircleNewFollowerParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_new_follower
+  actorId: string
+  recipientId: string
+  entities: [NotificationEntity<'target', 'circle'>]
+}
+
+export interface NoticeCircleNewSubscriberParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_new_subscriber
+  actorId: string
+  recipientId: string
+  entities: [NotificationEntity<'target', 'circle'>]
+}
+
+export interface NoticeCircleNewUnsubscriberParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_new_unsubscriber
+  actorId: string
+  recipientId: string
+  entities: [NotificationEntity<'target', 'circle'>]
+}
+
+/**
+ * System
  */
 export interface NoticeOfficialAnnouncementParams
   extends NotificationRequiredParams {
@@ -222,9 +328,12 @@ export interface NoticeOfficialAnnouncementParams
   data: { url: string }
 }
 
-/**
- * Punish
- */
+export interface NoticeUserActivatedParams extends NotificationRequiredParams {
+  event: OFFICIAL_NOTICE_EXTEND_TYPE.user_activated
+  recipientId: string
+}
+
+// Punish
 export interface NoticeUserBannedParams extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.user_banned
   recipientId: string
@@ -252,9 +361,6 @@ export interface NoticeArticleBannedParams extends NotificationRequiredParams {
   recipientId: string
 }
 
-/**
- * Report
- */
 export interface NoticeArticleReportedParams
   extends NotificationRequiredParams {
   event: OFFICIAL_NOTICE_EXTEND_TYPE.article_reported
@@ -269,60 +375,31 @@ export interface NoticeCommentReportedParams
   recipientId: string
 }
 
-/**
- * Tag
- */
-export interface NoticeTagAdoptionParams extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.tag_adoption
-  recipientId: string
-  actorId: string
-  entities: [NotificationEntity<'target', 'tag'>]
-}
-
-export interface NoticeTagLeaveParams extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.tag_leave
-  recipientId: string
-  actorId: string
-  entities: [NotificationEntity<'target', 'tag'>]
-}
-
-export interface NoticeTagAddEditorParams extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.tag_add_editor
-  recipientId: string
-  actorId: string
-  entities: [NotificationEntity<'target', 'tag'>]
-}
-
-export interface NoticeTagLeaveEditorParams extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.tag_leave_editor
-  recipientId: string
-  actorId: string
-  entities: [NotificationEntity<'target', 'tag'>]
-}
-
 export type NotificationPrarms =
+  // User
   | NoticeUserNewFollowerParams
+  // Article
   | NoticeArticlePublishedParams
   | NoticeArticleNewCollectedParams
   | NoticeArticleNewAppreciationParams
   | NoticeArticleNewSubscriberParams
   | NoticeArticleNewCommentParams
   | NoticeArticleMentionedYouParams
-  | NoticeSubscribedArticleNewCommentParams
+  | NoticeRevisedArticlePublishedParams
+  | NoticeRevisedArticleNotPublishedParams
+  | NoticeCircleNewArticleParams
+  // Comment
   | NoticeCommentPinnedParams
-  | NoticeCommentNewReplyParams
   | NoticeCommentMentionedYouParams
-  | NoticeOfficialAnnouncementParams
-  | NoticeUserActivatedParams
-  | NoticePaymentReceivedDonationParams
-  | NoticePaymentPayoutParams
-  | NoticeUserBannedParams
-  | NoticeUserFrozenParams
-  | NoticeUserUnbannedParams
-  | NoticeCommentBannedParams
-  | NoticeArticleBannedParams
-  | NoticeArticleReportedParams
-  | NoticeCommentReportedParams
+  | NoticeCircleBroadcastMentionedYouParams
+  | NoticeCircleDiscussionMentionedYouParams
+  | NoticeSubscribedArticleNewCommentParams
+  | NoticeCircleNewBroadcastParams
+  // Comment-Comment
+  | NoticeCommentNewReplyParams
+  | NoticeCircleBroadcastNewReplyParams
+  | NoticeCircleDiscussionNewReplyParams
+  // Tag
   | NoticeArticleTagHasBeenAddedParams
   | NoticeArticleTagHasBeenRemovedParams
   | NoticeArticleTagHasBeenUnselectedParams
@@ -330,8 +407,23 @@ export type NotificationPrarms =
   | NoticeTagLeaveParams
   | NoticeTagAddEditorParams
   | NoticeTagLeaveEditorParams
-  | NoticeRevisedArticlePublishedParams
-  | NoticeRevisedArticleNotPublishedParams
+  // Payment
+  | NoticePaymentReceivedDonationParams
+  | NoticePaymentPayoutParams
+  // Circle
+  | NoticeCircleNewFollowerParams
+  | NoticeCircleNewSubscriberParams
+  | NoticeCircleNewUnsubscriberParams
+  // Official
+  | NoticeOfficialAnnouncementParams
+  | NoticeUserActivatedParams
+  | NoticeUserBannedParams
+  | NoticeUserFrozenParams
+  | NoticeUserUnbannedParams
+  | NoticeCommentBannedParams
+  | NoticeArticleBannedParams
+  | NoticeArticleReportedParams
+  | NoticeCommentReportedParams
 
 export type NoticeUserId = string
 

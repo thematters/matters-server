@@ -1,3 +1,4 @@
+import { makeSummary } from '@matters/matters-html-formatter'
 import { v4 } from 'uuid'
 
 import {
@@ -11,7 +12,7 @@ import {
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
-import { makeSummary, sanitize } from 'common/utils'
+import { sanitize } from 'common/utils'
 
 import { BaseQueue } from './baseQueue'
 
@@ -111,7 +112,7 @@ class MigrationQueue extends BaseQueue {
                 })
 
                 // add asset and assetmap
-                const result = await Promise.all(
+                await Promise.all(
                   assets.map((asset) =>
                     this.systemService.createAssetAndAssetMap(
                       {

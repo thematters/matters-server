@@ -15,7 +15,7 @@ export class AuthDirective extends SchemaDirectiveVisitor {
 
     field.resolve = async (...args) => {
       const { mode: requireMode, group: requireGroup } = this.args
-      const [root, _, { viewer }, { path, operation }] = args
+      const [root, , { viewer }, { path, operation }] = args
       const nodes = responsePathAsArray(path) || []
 
       const isQuery = operation.operation === 'query'

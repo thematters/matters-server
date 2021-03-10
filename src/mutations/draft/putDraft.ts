@@ -4,6 +4,7 @@ import { v4 } from 'uuid'
 import {
   ARTICLE_STATE,
   ASSET_TYPE,
+  CIRCLE_STATE,
   PUBLISH_STATE,
   USER_STATE,
 } from 'common/enums'
@@ -11,19 +12,34 @@ import {
   ArticleNotFoundError,
   AssetNotFoundError,
   AuthenticationError,
+  CircleNotFoundError,
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
+  UserInputError,
 } from 'common/errors'
-import { fromGlobalId, makeSummary, sanitize } from 'common/utils'
+import { fromGlobalId, sanitize } from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const resolver: MutationToPutDraftResolver = async (
   root,
   { input },
-  { viewer, dataSources: { draftService, systemService, articleService } }
+  {
+    viewer,
+    dataSources: { draftService, systemService, articleService, atomService },
+  }
 ) => {
-  const { id, title, content, tags, cover, collection } = input
+  const {
+    id,
+    title,
+    summary,
+    content,
+    tags,
+    cover,
+    collection,
+    circle: circleGlobalId,
+  } = input
+
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
@@ -55,37 +71,70 @@ const resolver: MutationToPutDraftResolver = async (
     collectionIds = await Promise.all(
       collection.map(async (articleGlobalId) => {
         if (!articleGlobalId) {
-          throw new ArticleNotFoundError(
-            `Cannot find article ${articleGlobalId}`
-          )
+          return
         }
+
         const { id: articleId } = fromGlobalId(articleGlobalId)
         const article = await articleService.baseFindById(articleId)
+
         if (!article) {
           throw new ArticleNotFoundError(
             `Cannot find article ${articleGlobalId}`
           )
         } else if (article.state !== ARTICLE_STATE.active) {
           throw new ForbiddenError(
-            `Article ${article.title} cannot be collected.`
+            `Article ${articleGlobalId} cannot be collected.`
           )
         } else {
           return articleId
         }
       })
     )
+
+    collectionIds = collectionIds.filter((_id) => !!_id)
+  }
+
+  // check circle
+  let circleId = null
+  if (circleGlobalId) {
+    const { id: cId } = fromGlobalId(circleGlobalId)
+    const circle = await atomService.findFirst({
+      table: 'circle',
+      where: { id: cId, state: CIRCLE_STATE.active },
+    })
+
+    if (!circle) {
+      throw new CircleNotFoundError(`Cannot find circle ${circleGlobalId}`)
+    } else if (circle.owner !== viewer.id) {
+      throw new ForbiddenError(
+        `Viewer isn't the owner of circle ${circleGlobalId}.`
+      )
+    } else if (circle.state !== CIRCLE_STATE.active) {
+      throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
+    }
+
+    circleId = cId
   }
 
   // assemble data
+  const resetSummary = summary === null || summary === ''
+  const resetCover = cover === null
+  const resetCircle = circleGlobalId === null
+  const resetCollection =
+    collection === null || (collection && collection.length === 0)
+  const resetTags = tags === null || (tags && tags.length === 0)
+
   const data: ItemData = _.omitBy(
     {
       authorId: id ? undefined : viewer.id,
       title,
-      summary: content && makeSummary(content),
+      summary,
+      summaryCustomized: summary === undefined ? undefined : !resetSummary,
       content: content && sanitize(content),
       tags,
       cover: coverId,
       collection: collectionIds,
+      circleId,
     },
     _.isNil
   )
@@ -115,11 +164,21 @@ const resolver: MutationToPutDraftResolver = async (
       )
     }
 
+    // check for summary length limit
+    if (data?.summary?.length > 200) {
+      throw new UserInputError('summary reach length limit')
+    }
+
     // update
     return draftService.baseUpdate(dbId, {
       ...data,
       updatedAt: new Date(),
-      cover: cover === null ? null : data.cover || draft.cover,
+      // reset fields
+      summary: resetSummary ? null : data.summary || draft.summary,
+      cover: resetCover ? null : data.cover || draft.cover,
+      collection: resetCollection ? null : data.collection || draft.collection,
+      tags: resetTags ? null : data.tags || draft.tags,
+      circleId: resetCircle ? null : data.circleId || draft.circleId,
     })
   }
 

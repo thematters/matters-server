@@ -1,4 +1,5 @@
-import { makeSummary } from 'common/utils'
+import { makeSummary } from '@matters/matters-html-formatter'
+
 import { i18n } from 'common/utils/i18n'
 
 export default {

@@ -1,12 +1,12 @@
 import { ARTICLE_STATE } from 'common/enums'
-import { correctHtml } from 'common/utils'
+import { correctHtml, isArticleLimitedFree } from 'common/utils'
 import { ArticleToContentResolver } from 'definitions'
 
 // ACL for article content
 const resolver: ArticleToContentResolver = async (
   { articleId, authorId, content },
   _,
-  { viewer, dataSources: { articleService } }
+  { viewer, dataSources: { articleService, atomService, paymentService } }
 ) => {
   const article = await articleService.dataloader.load(articleId)
 
@@ -14,11 +14,43 @@ const resolver: ArticleToContentResolver = async (
   const isAdmin = viewer.hasRole('admin')
   const isAuthor = authorId === viewer.id
 
-  if (isActive || isAdmin || isAuthor) {
+  if (isAdmin || isAuthor) {
     return correctHtml(content)
   }
 
-  return ''
+  // inactive
+  if (!isActive) {
+    return ''
+  }
+
+  // active
+  const articleCircle = await atomService.findFirst({
+    table: 'article_circle',
+    where: { articleId },
+  })
+
+  // not in circle
+  if (!articleCircle) {
+    return correctHtml(content)
+  }
+
+  if (!viewer.id) {
+    return ''
+  }
+
+  // not under the free period or not circle member
+  if (!isArticleLimitedFree(articleCircle.createdAt)) {
+    const isCircleMember = await paymentService.isCircleMember({
+      userId: viewer.id,
+      circleId: articleCircle.circleId,
+    })
+
+    if (!isCircleMember) {
+      return ''
+    }
+  }
+
+  return correctHtml(content)
 }
 
 export default resolver

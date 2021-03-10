@@ -1,6 +1,7 @@
 import _get from 'lodash/get'
 
 import { toGlobalId } from 'common/utils'
+import { GQLCommentType } from 'definitions'
 
 import { testClient } from './utils'
 
@@ -13,7 +14,7 @@ const isDesc = (ints: number[]) =>
 const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
 const COMMENT_ID = toGlobalId({ type: 'Comment', id: 1 })
 
-const GET_ARTILCE_COMMENTS = `
+const GET_ARTILCE_COMMENTS = /* GraphQL */ `
   query($nodeInput: NodeInput!, $commentsInput: CommentsInput!) {
     node(input: $nodeInput) {
       ... on Article {
@@ -35,7 +36,7 @@ const GET_ARTILCE_COMMENTS = `
   }
 `
 
-const VOTE_COMMENT = `
+const VOTE_COMMENT = /* GraphQL */ `
   mutation($input: VoteCommentInput!) {
     voteComment(input: $input) {
       upvotes
@@ -44,7 +45,7 @@ const VOTE_COMMENT = `
   }
 `
 
-const UNVOTE_COMMENT = `
+const UNVOTE_COMMENT = /* GraphQL */ `
   mutation($input: UnvoteCommentInput!) {
     unvoteComment(input: $input) {
       upvotes
@@ -53,7 +54,7 @@ const UNVOTE_COMMENT = `
   }
 `
 
-const DELETE_COMMENT = `
+const DELETE_COMMENT = /* GraphQL */ `
   mutation($input: DeleteCommentInput!) {
     deleteComment(input: $input) {
       state
@@ -61,7 +62,7 @@ const DELETE_COMMENT = `
   }
 `
 
-const GET_COMMENT = `
+const GET_COMMENT = /* GraphQL */ `
   query($input: NodeInput!) {
     node(input: $input) {
       ... on Comment {
@@ -72,7 +73,7 @@ const GET_COMMENT = `
   }
 `
 
-const PUT_COMMENT = `
+const PUT_COMMENT = /* GraphQL */ `
   mutation($input: PutCommentInput!) {
     putComment(input: $input) {
       replyTo {
@@ -82,7 +83,7 @@ const PUT_COMMENT = `
   }
 `
 
-const TOGGLE_PIN_COMMENT = `
+const TOGGLE_PIN_COMMENT = /* GraphQL */ `
   mutation($input: ToggleItemInput!) {
     togglePinComment(input: $input) {
       id
@@ -144,7 +145,7 @@ describe('query comment list on article', () => {
 describe('mutations on comment', () => {
   const commentId = toGlobalId({ type: 'Comment', id: 3 })
 
-  test('create a comment', async () => {
+  test('create a article comment', async () => {
     const { mutate } = await testClient({ isAuth: true })
 
     const result = await mutate({
@@ -157,6 +158,7 @@ describe('mutations on comment', () => {
             parentId: COMMENT_ID,
             replyTo: COMMENT_ID,
             articleId: ARTICLE_ID,
+            type: GQLCommentType.article,
           },
         },
       },
@@ -167,7 +169,7 @@ describe('mutations on comment', () => {
 
   test('upvote a comment', async () => {
     const { mutate } = await testClient({ isAuth: true })
-    const { upvotes, downvotes } = await getCommentVotes(commentId)
+    const { upvotes } = await getCommentVotes(commentId)
 
     // upvote
     const { data } = await mutate({

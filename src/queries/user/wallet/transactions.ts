@@ -2,6 +2,7 @@ import { CacheScope } from 'apollo-cache-control'
 
 import {
   CACHE_TTL,
+  TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TransactionRemarkText,
 } from 'common/enums'
@@ -27,6 +28,7 @@ const resolver: WalletToTransactionsResolver = async (
     id: txId,
     states: states as any,
     excludeCanceledLIKE: true,
+    notIn: ['purpose', [TRANSACTION_PURPOSE.subscription]],
   })
 
   // no-cache for single transaction query, used by client polling
@@ -42,6 +44,7 @@ const resolver: WalletToTransactionsResolver = async (
     id: txId,
     states: states as any,
     excludeCanceledLIKE: true,
+    notIn: ['purpose', [TRANSACTION_PURPOSE.subscription]],
     limit: first,
     offset,
   })

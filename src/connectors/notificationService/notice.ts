@@ -7,6 +7,7 @@ import logger from 'common/logger'
 import { BaseService } from 'connectors'
 import {
   DBNoticeType,
+  GQLNotificationSettingType,
   NoticeDetail,
   NoticeEntitiesMap,
   NoticeEntity,
@@ -17,6 +18,8 @@ import {
   PutNoticeParams,
   User,
 } from 'definitions'
+
+export type DBNotificationSettingType = keyof typeof GQLNotificationSettingType
 
 class Notice extends BaseService {
   constructor() {
@@ -495,7 +498,7 @@ class Notice extends BaseService {
     setting,
   }: {
     event: NotificationType
-    setting: any
+    setting: { [key in DBNotificationSettingType]: boolean }
   }) => {
     if (!setting || !setting.enable) {
       return false
@@ -503,32 +506,38 @@ class Notice extends BaseService {
 
     const noticeSettingMap: Record<NotificationType, boolean> = {
       // user
-      user_new_follower: setting.follow,
+      user_new_follower: setting.userNewFollower,
 
       // article
       article_published: true,
-      article_new_appreciation: setting.appreciation,
-      article_new_subscriber: setting.articleSubscription,
+      article_new_appreciation: setting.articleNewAppreciation,
+      article_new_subscriber: setting.articleNewSubscription,
       article_mentioned_you: setting.mention,
       revised_article_published: true,
       revised_article_not_published: true,
+      circle_new_article: true,
 
       // article-article
-      article_new_collected: setting.downstream,
+      article_new_collected: true,
 
       // comment
-      comment_pinned: setting.commentPinned,
+      comment_pinned: setting.articleCommentPinned,
       comment_mentioned_you: setting.mention,
-      article_new_comment: setting.comment,
-      subscribed_article_new_comment: setting.commentSubscribed,
+      circle_broadcast_mentioned_you: setting.mention,
+      circle_discussion_mentioned_you: setting.mention,
+      article_new_comment: setting.articleNewComment,
+      subscribed_article_new_comment: setting.articleSubscribedNewComment,
+      circle_new_broadcast: true,
 
       // comment-comment
-      comment_new_reply: setting.comment,
+      comment_new_reply: setting.articleNewComment,
+      circle_broadcast_new_reply: true,
+      circle_discussion_new_reply: setting.circleNewDiscussion,
 
       // article-tag
-      article_tag_has_been_added: setting.tag,
-      article_tag_has_been_removed: setting.tag,
-      article_tag_has_been_unselected: setting.tag,
+      article_tag_has_been_added: true,
+      article_tag_has_been_removed: true,
+      article_tag_has_been_unselected: true,
 
       // tag
       tag_adoption: true,
@@ -540,16 +549,21 @@ class Notice extends BaseService {
       payment_received_donation: true,
       payment_payout: true,
 
-      // misc
-      official_announcement: setting.officialNotice,
+      // circle
+      circle_new_follower: setting.circleNewFollower,
+      circle_new_subscriber: true,
+      circle_new_unsubscriber: true,
+
+      // system
+      official_announcement: true,
       user_activated: true,
       user_banned: true,
       user_frozen: true,
       user_unbanned: true,
-      comment_banned: setting.reportFeedback,
-      article_banned: setting.reportFeedback,
-      comment_reported: setting.reportFeedback,
-      article_reported: setting.reportFeedback,
+      comment_banned: true,
+      article_banned: true,
+      comment_reported: true,
+      article_reported: true,
     }
 
     return noticeSettingMap[event]

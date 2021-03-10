@@ -8,6 +8,7 @@ import {
   AtomService,
   CommentService,
   DraftService,
+  knex,
   NotificationService,
   OAuthService,
   PaymentService,
@@ -119,7 +120,7 @@ export const testClient = async (
   const server = new ApolloServer({
     schema,
     context: ({ req }: { req: Request }) => {
-      return { req, ..._context }
+      return { req, ..._context, knex }
     },
     dataSources: (): DataSources => ({
       atomService: new AtomService(),
@@ -178,15 +179,18 @@ export const putDraft = async ({ draft, client }: PutDraftInput) => {
       putDraft(input: $input) {
         id
         collection(input: { first: 10 }) {
+          totalCount
           edges {
             node {
               id
             }
           }
         }
+        tags
         cover
         title
         summary
+        summaryCustomized
         content
         createdAt
       }

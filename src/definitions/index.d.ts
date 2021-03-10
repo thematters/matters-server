@@ -2,6 +2,7 @@ import { RedisCache } from 'apollo-server-cache-redis'
 import { Request, Response } from 'express'
 import Knex from 'knex'
 
+import { PAYMENT_CURRENCY, PAYMENT_PROVIDER } from 'common/enums'
 import {
   ArticleService,
   AtomService,
@@ -87,7 +88,7 @@ export type DataSources = {
   paymentService: InstanceType<typeof PaymentService>
 }
 
-export type TableName =
+export type BasicTableName =
   | 'action'
   | 'article_boost'
   | 'action_user'
@@ -139,21 +140,30 @@ export type TableName =
   | 'customer'
   | 'payout_account'
   | 'punish_record'
+  | 'entity_type'
+  | 'circle'
+  | 'circle_price'
+  | 'circle_subscription'
+  | 'circle_subscription_item'
+  | 'action_circle'
+  | 'article_circle'
+  | 'feature_flag'
+  | 'seeding_user'
 
 export type MaterializedView =
   | 'article_count_materialized'
   | 'tag_count_materialized'
   | 'user_reader_materialized'
-  | 'article_activity_materialized'
   | 'article_value_materialized'
   | 'featured_comment_materialized'
   | 'article_interest_materialized'
   | 'curation_tag_materialized'
-  | 'article_hottest_a_materialized'
-  | 'article_hottest_b_materialized'
+  | 'article_hottest_materialized'
   | 'most_active_author_materialized'
   | 'most_appreciated_author_materialized'
   | 'most_trendy_author_materialized'
+
+export type TableName = BasicTableName | MaterializedView
 
 export type ThirdPartyAccount = {
   accountName: 'facebook' | 'wechat' | 'google'
@@ -242,7 +252,26 @@ export type SkippedListItemType = 'agent_hash' | 'email' | 'domain'
  * Payment
  */
 export type Customer = {
+  id: string
   userId: string
   provider: string
   customerId: string
+  cardLast4: string
+}
+
+export type CircleSubscription = {
+  id: string
+  state: string
+  userId: string
+  provider: string
+  providerSubscriptionId: string
+}
+
+export type CirclePrice = {
+  id: string
+  amount: number
+  currency: PAYMENT_CURRENCY
+  circleId: string
+  provider: PAYMENT_PROVIDER
+  providerPriceId: string
 }

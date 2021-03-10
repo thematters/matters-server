@@ -32,16 +32,11 @@ export const QUEUE_JOB = {
   refreshArticleCountView: 'refreshArticleCountView',
   refreshTagCountMaterialView: 'refreshTagCountMaterialView',
   refreshUserReaderView: 'refreshUserReaderView',
-  refreshArticleActivityView: 'refreshArticleActivityView',
   refreshArticleValueView: 'refreshArticleValueView',
   refreshFeaturedCommentView: 'refreshFeaturedCommentView',
   refreshArticleInterestView: 'refreshArticleInterestView',
   refreshCurationTagMaterialView: 'refreshCurationTagMaterialView',
-
-  /* Refresh Views - hottest articles A/B test*/
-  refreshArticleHottestAView: 'refreshArticleHottestAView',
-  refreshArticleHottestBView: 'refreshArticleHottestBView',
-
+  refreshArticleHottestView: 'refreshArticleHottestView',
   refreshMostActiveAuthorView: 'refreshMostActiveAuthorView',
   refreshMostAppreciatedAuthorView: 'refreshMostAppreciatedAuthorView',
   refreshMostTrendyAuthorView: 'refreshMostTrendyAuthorView',
@@ -54,12 +49,18 @@ export const QUEUE_JOB = {
   payTo: 'payTo',
   txTimeout: 'txTimeout',
 
+  // Stripe
+  syncDeliveryFailedEvents: 'syncDeliveryFailedEvents',
+
   // Appreciation
   appreciation: 'appreciation',
 
   // Revision
   publishRevisedArticle: 'publishRevisedArticle',
   publishPendingRevisionDrafts: 'publishPendingRevisionDrafts',
+
+  // Asset
+  deleteAsset: 'deleteAsset',
 }
 
 export const QUEUE_NAME = {
@@ -75,6 +76,8 @@ export const QUEUE_NAME = {
   appreciation: 'appreciation',
   txTimeout: 'txTimeout',
   revision: 'revision',
+  asset: 'asset',
+  stripe: 'stripe',
 }
 
 export const QUEUE_CONCURRENCY = {

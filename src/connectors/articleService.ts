@@ -1,4 +1,9 @@
-import slugify from '@matters/slugify'
+import {
+  FormatterVars,
+  makeHtmlBundle,
+  makeMetaData,
+  stripHtml,
+} from '@matters/matters-html-formatter'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
@@ -10,6 +15,9 @@ import {
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
+  CIRCLE_STATE,
+  COMMENT_TYPE,
+  IPFS_PREFIX,
   MATERIALIZED_VIEW,
   MINUTE,
   TRANSACTION_PURPOSE,
@@ -18,18 +26,11 @@ import {
   USER_ACTION,
   VIEW,
 } from 'common/enums'
-import { isTest } from 'common/environment'
+import { environment, isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import logger from 'common/logger'
-import {
-  countWords,
-  makeSummary,
-  outputCleanHTML,
-  removeEmpty,
-  stripHtml,
-} from 'common/utils'
 import { BaseService, gcp, ipfs, SystemService, UserService } from 'connectors'
-import { GQLSearchInput, Item, ItemData } from 'definitions'
+import { GQLSearchInput, Item } from 'definitions'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
@@ -110,73 +111,95 @@ export class ArticleService extends BaseService {
   }
 
   /**
-   * Publish data to IPFS
+   * Publish draft data to IPFS
    */
   publishToIPFS = async ({
     authorId,
     title,
     cover,
-    summary,
     content,
+    circleId,
+    summary,
+    summaryCustomized,
   }: Record<string, any>) => {
     const userService = new UserService()
     const systemService = new SystemService()
-    const now = new Date()
 
     // prepare metadata
     const author = await userService.dataloader.load(authorId)
-    const { avatar, description, displayName, userName } = author
+    const {
+      avatar,
+      description,
+      displayName,
+      userName,
+      paymentPointer,
+    } = author
     const userImg = avatar && (await systemService.findAssetUrl(avatar))
     const articleImg = cover && (await systemService.findAssetUrl(cover))
 
-    // add content to ipfs
-    const html = this.ipfs.makeHTML({
+    const bundleInfo = {
       title,
       author: { userName, displayName },
       summary,
-      content: outputCleanHTML(content),
-      publishedAt: now,
-    })
-    const dataHash = await this.ipfs.addHTML(html)
+      summaryCustomized,
+      content,
+      prefix: IPFS_PREFIX,
+    } as FormatterVars
+
+    // paywall info
+    if (circleId) {
+      const circle = await this.knex('circle')
+        .select('name', 'displayName')
+        .where({ id: circleId, state: CIRCLE_STATE.active })
+        .first()
+      const circleName = circle?.name
+      const circleDisplayName = circle?.displayName
+
+      if (circleName && circleDisplayName) {
+        bundleInfo.readMore = {
+          url: `${environment.siteDomain}/~${circleName}`,
+          text: circleDisplayName,
+        }
+        bundleInfo.content = ''
+      }
+    }
+    if (paymentPointer) {
+      bundleInfo.paymentPointer = paymentPointer
+    }
+
+    // add content to ipfs
+    const bundle = await makeHtmlBundle(bundleInfo)
+
+    const result = await this.ipfs.client.add(bundle)
+
+    // filter out the hash for the bundle
+    const [{ hash: contentHash }] = result.filter(
+      ({ path }: { path: string }) => path === IPFS_PREFIX
+    )
 
     // add meta data to ipfs
-    const mediaObj: { [key: string]: any } = {
-      '@context': 'http://schema.org',
-      '@type': 'Article',
-      '@id': `ipfs://ipfs/${dataHash}`,
+    const articleInfo = {
+      contentHash,
       author: {
         name: userName,
-        image: userImg,
+        image: userImg || undefined,
         url: `https://matters.news/@${userName}`,
         description,
       },
-      dateCreated: now.toISOString(),
       description: summary,
       image: articleImg,
     }
 
-    // add cover to ipfs
-    // TODO: check data type for cover
-    if (articleImg) {
-      const coverData = await this.ipfs.getDataAsFile(articleImg, '/')
-      if (coverData && coverData.content) {
-        const [{ hash }] = await this.ipfs.client.add(coverData.content, {
-          pin: true,
-        })
-        mediaObj.cover = { '/': hash }
-      }
-    }
+    const metaData = makeMetaData(articleInfo)
 
-    const mediaObjectCleaned = removeEmpty(mediaObj)
-
-    const cid = await this.ipfs.client.dag.put(mediaObjectCleaned, {
+    const cid = await this.ipfs.client.dag.put(metaData, {
       format: 'dag-cbor',
       pin: true,
       hashAlg: 'sha2-256',
     })
     const mediaHash = cid.toBaseEncodedString()
 
-    return { dataHash, mediaHash }
+    return { contentHash, mediaHash }
   }
 
   /**
@@ -379,7 +402,7 @@ export class ArticleService extends BaseService {
     displayName,
     tags,
   }: {
-    [key: string]: string
+    [key: string]: any
   }) => {
     const result = await this.es.indexItems({
       index: this.table,
@@ -520,34 +543,22 @@ export class ArticleService extends BaseService {
    *           Recommand           *
    *                               *
    *********************************/
-  /**
-   * Find Many
-   */
-  recommendByScore = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
+  makeRecommendByValueQuery = ({
+    limit,
+    offset,
     where = {},
     oss = false,
-    score = 'activity',
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
     oss?: boolean
-    score?: 'activity' | 'value'
   }) => {
     // use view when oss for real time update
     // use materialized in other cases
-    let table
-    if (score === 'activity') {
-      table = oss
-        ? VIEW.articleHottestA
-        : MATERIALIZED_VIEW.articleHottestAMaterialized
-    } else {
-      table = oss
-        ? VIEW.articleValue
-        : MATERIALIZED_VIEW.articleValueMaterialized
-    }
+    const table = oss
+      ? VIEW.articleValue
+      : MATERIALIZED_VIEW.articleValueMaterialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
@@ -560,8 +571,14 @@ export class ArticleService extends BaseService {
       .orderByRaw('score desc nulls last')
       .orderBy([{ column: 'view.id', order: 'desc' }])
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
-      .limit(limit)
-      .offset(offset)
+
+    if (limit) {
+      qs = qs.limit(limit)
+    }
+
+    if (offset) {
+      qs = qs.offset(offset)
+    }
 
     if (!oss) {
       qs = qs.andWhere(function () {
@@ -569,38 +586,38 @@ export class ArticleService extends BaseService {
       })
     }
 
-    const result = await qs
-    return result
+    return qs
   }
 
-  /**
-   * TODO: temporary for A/B testing of hottest
-   */
-  recommendByScoreB = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
+  recommendByValue = (params: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+    oss?: boolean
+  }) => {
+    return this.makeRecommendByValueQuery({
+      ...params,
+      limit: params.limit || BATCH_SIZE,
+      offset: params.offset || 0,
+    })
+  }
+
+  makeRecommendByHottestQuery = ({
+    limit,
+    offset,
     where = {},
     oss = false,
-    score = 'activity',
   }: {
     limit?: number
     offset?: number
     where?: { [key: string]: any }
     oss?: boolean
-    score?: 'activity' | 'value'
   }) => {
     // use view when oss for real time update
     // use materialized in other cases
-    let table
-    if (score === 'activity') {
-      table = oss
-        ? VIEW.articleHottestB
-        : MATERIALIZED_VIEW.articleHottestBMaterialized
-    } else {
-      table = oss
-        ? VIEW.articleValue
-        : MATERIALIZED_VIEW.articleValueMaterialized
-    }
+    const table = oss
+      ? VIEW.articleHottest
+      : MATERIALIZED_VIEW.articleHottestMaterialized
 
     let qs = this.knex(`${table} as view`)
       .select('view.id', 'setting.in_hottest', 'article.*')
@@ -613,8 +630,14 @@ export class ArticleService extends BaseService {
       .orderByRaw('score desc nulls last')
       .orderBy([{ column: 'view.id', order: 'desc' }])
       .where({ 'article.state': ARTICLE_STATE.active, ...where })
-      .limit(limit)
-      .offset(offset)
+
+    if (limit) {
+      qs = qs.limit(limit)
+    }
+
+    if (offset) {
+      qs = qs.offset(offset)
+    }
 
     if (!oss) {
       qs = qs.andWhere(function () {
@@ -622,8 +645,20 @@ export class ArticleService extends BaseService {
       })
     }
 
-    const result = await qs
-    return result
+    return qs
+  }
+
+  recommendByHottest = (params: {
+    limit?: number
+    offset?: number
+    where?: { [key: string]: any }
+    oss?: boolean
+  }) => {
+    return this.makeRecommendByHottestQuery({
+      ...params,
+      limit: params.limit || BATCH_SIZE,
+      offset: params.offset || 0,
+    })
   }
 
   recommendNewest = async ({
@@ -686,7 +721,7 @@ export class ArticleService extends BaseService {
     oss?: boolean
   }) => {
     const table = oss
-      ? 'article_count_view'
+      ? VIEW.articleCount
       : MATERIALIZED_VIEW.articleCountMaterialized
 
     return this.knex(`${table} as view`)
@@ -815,36 +850,25 @@ export class ArticleService extends BaseService {
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
-  countRecommendHottest = async ({
-    where = {},
-    oss = false,
-  }: {
+  countRecommendHottest = async (params: {
     where?: { [key: string]: any }
     oss?: boolean
   }) => {
-    // use view when oss for real time update
-    // use materialized in other cases
-    const table = oss
-      ? 'article_activity_view'
-      : MATERIALIZED_VIEW.articleActivityMaterialized
-
-    let qs = this.knex(`${table} as view`)
-      .leftJoin(
-        'article_recommend_setting as setting',
-        'view.id',
-        'setting.article_id'
-      )
-      .join('article', 'article.id', 'view.id')
-      .where(where)
+    const result = await this.knex()
+      .from(this.makeRecommendByHottestQuery(params).as('view'))
       .count()
       .first()
+    return parseInt(result ? (result.count as string) : '0', 10)
+  }
 
-    if (!oss) {
-      qs = qs.andWhere(function () {
-        this.where({ inHottest: true }).orWhereNull('in_hottest')
-      })
-    }
-    const result = await qs
+  countRecommendValue = async (params: {
+    where?: { [key: string]: any }
+    oss?: boolean
+  }) => {
+    const result = await this.knex()
+      .from(this.makeRecommendByValueQuery(params).as('view'))
+      .count()
+      .first()
     return parseInt(result ? (result.count as string) : '0', 10)
   }
 
@@ -1299,7 +1323,7 @@ export class ArticleService extends BaseService {
           ...newData,
           count: 1,
           timedCount: 1,
-          readTime: 0,
+          readTime: userId ? 0 : null,
           lastRead: new Date(),
         },
         table
@@ -1309,28 +1333,7 @@ export class ArticleService extends BaseService {
 
     // get old data
     const oldData = record[0]
-
-    // calculate heart beat lapsed time in secondes
-    const lapse = Date.now() - new Date(oldData.updatedAt).getTime()
-
-    // calculate last read total time
-    const readLength = Date.now() - new Date(oldData.lastRead).getTime()
-
-    // if original read longer than 30 minutes
-    // skip
-    if (readLength > MINUTE * 30) {
-      return { newRead: false }
-    }
-
-    // if lapse is longer than 5 minutes,
-    // or total length longer than 30 minutes,
-    // or if a visitor read with a new ip,
-    // add a new count and update last read timestamp
-    if (
-      lapse > MINUTE * 5 ||
-      readLength > MINUTE * 30 ||
-      (!userId && ip !== oldData.ip)
-    ) {
+    const updateReadCount = async () => {
       await this.baseUpdate(
         oldData.id,
         {
@@ -1342,16 +1345,45 @@ export class ArticleService extends BaseService {
         },
         table
       )
+    }
+
+    // visitor
+    // add a new count and update last read timestamp for visitors
+    if (!userId) {
+      await updateReadCount()
+      return { newRead: true }
+    }
+
+    // logged-in user
+    // calculate heart beat lapsed time in secondes
+    const lapse = Date.now() - new Date(oldData.updatedAt).getTime()
+
+    // calculate last read total time
+    const readLength = Date.now() - new Date(oldData.lastRead).getTime()
+
+    // if original read longer than 30 minutes
+    // skip
+    if (userId && readLength > MINUTE * 30) {
+      return { newRead: false }
+    }
+
+    // if lapse is longer than 5 minutes,
+    // or total length longer than 30 minutes,
+    // add a new count and update last read timestamp
+    if (lapse > MINUTE * 5 || readLength > MINUTE * 30) {
+      await updateReadCount()
       return { newRead: true }
     }
 
     // other wise accumulate time
+    // NOTE: we don't accumulate read time for visitors
+    const readTime = Math.round(parseInt(oldData.readTime, 10) + lapse / 1000)
     await this.baseUpdate(
       oldData.id,
       {
         ...oldData,
         ...newData,
-        readTime: Math.round(parseInt(oldData.readTime, 10) + lapse / 1000),
+        readTime,
       },
       table
     )
@@ -1554,7 +1586,6 @@ export class ArticleService extends BaseService {
    *           Response            *
    *                               *
    *********************************/
-
   makeResponseQuery = ({
     id,
     order,
@@ -1595,7 +1626,11 @@ export class ArticleService extends BaseService {
                   )
                 )
                 .from('comment')
-                .where({ articleId: id, parentCommentId: null })
+                .where({
+                  targetId: id,
+                  parentCommentId: null,
+                  type: COMMENT_TYPE.article,
+                })
             })
           }
 

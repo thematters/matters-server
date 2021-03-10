@@ -1,5 +1,3 @@
-import { TagNotFoundError } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
 import { TagToIsFollowerResolver } from 'definitions'
 
 const resolver: TagToIsFollowerResolver = async (

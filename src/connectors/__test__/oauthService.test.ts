@@ -2,7 +2,7 @@ import _ from 'lodash'
 
 import { SCOPE_PREFIX } from 'common/enums'
 import { OAuthService, UserService } from 'connectors'
-import { OAuthClient, User } from 'definitions'
+import { User } from 'definitions'
 
 const getClient = () => {
   const oauthService = new OAuthService()

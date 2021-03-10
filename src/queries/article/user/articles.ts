@@ -1,5 +1,5 @@
 import { ARTICLE_STATE } from 'common/enums'
-import { connectionFromPromisedArray } from 'common/utils'
+import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
 import { UserToArticlesResolver } from 'definitions'
 
 const resolver: UserToArticlesResolver = async (
@@ -7,6 +7,10 @@ const resolver: UserToArticlesResolver = async (
   { input },
   { dataSources: { articleService, draftService }, viewer }
 ) => {
+  if (!id) {
+    return connectionFromArray([], input)
+  }
+
   const isViewer = viewer.id === id
   const isAdmin = viewer.hasRole('admin')
 

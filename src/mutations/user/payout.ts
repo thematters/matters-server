@@ -3,20 +3,18 @@ import { v4 } from 'uuid'
 
 import {
   PAYMENT_CURRENCY,
-  PAYMENT_MAXIMUM_AMOUNT,
-  PAYMENT_PAYOUT_MINIMUM_AMOUNT,
+  PAYMENT_MINIMAL_PAYOUT_AMOUNT,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
 } from 'common/enums'
 import {
   AuthenticationError,
   EntityNotFoundError,
-  ForbiddenError,
   PasswordInvalidError,
+  PaymentAmountTooSmallError,
   PaymentBalanceInsufficientError,
   PaymentPasswordNotSetError,
   PaymentPayoutTransactionExistsError,
-  PaymentReachMaximumLimitError,
   UserInputError,
 } from 'common/errors'
 import { calcMattersFee } from 'common/utils'
@@ -26,7 +24,7 @@ import { MutationToPayoutResolver } from 'definitions'
 const resolver: MutationToPayoutResolver = async (
   parent,
   { input: { amount, password } },
-  { viewer, dataSources: { paymentService } }
+  { viewer, dataSources: { atomService, paymentService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -36,8 +34,10 @@ const resolver: MutationToPayoutResolver = async (
     throw new UserInputError('amount is incorrect')
   }
 
-  if (amount < PAYMENT_PAYOUT_MINIMUM_AMOUNT.HKD) {
-    throw new UserInputError('amount below minimum limit')
+  if (amount < PAYMENT_MINIMAL_PAYOUT_AMOUNT.HKD) {
+    throw new PaymentAmountTooSmallError(
+      `The minimal amount is ${PAYMENT_MINIMAL_PAYOUT_AMOUNT.HKD}`
+    )
   }
 
   if (!viewer.paymentPasswordHash) {
@@ -54,7 +54,10 @@ const resolver: MutationToPayoutResolver = async (
       userId: viewer.id,
     }),
     paymentService.countPendingPayouts({ userId: viewer.id }),
-    paymentService.findPayoutAccount({ userId: viewer.id }),
+    atomService.findFirst({
+      table: 'payout_account',
+      where: { userId: viewer.id, archived: false },
+    }),
   ])
 
   if (pending > 0) {
@@ -67,7 +70,7 @@ const resolver: MutationToPayoutResolver = async (
     throw new PaymentBalanceInsufficientError('viewer has insufficient balance')
   }
 
-  const recipient = customer[0]
+  const recipient = customer
   if (!recipient || !recipient.accountId) {
     throw new EntityNotFoundError(`payout recipient is not found`)
   }

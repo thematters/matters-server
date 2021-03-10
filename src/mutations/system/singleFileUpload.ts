@@ -6,7 +6,6 @@ import {
   ACCEPTED_UPLOAD_AUDIO_TYPES,
   ACCEPTED_UPLOAD_IMAGE_TYPES,
   ASSET_TYPE,
-  UPLOAD_AUDIO_SIZE_LIMIT,
   UPLOAD_IMAGE_SIZE_LIMIT,
 } from 'common/enums'
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'
@@ -44,6 +43,8 @@ const resolver: MutationToSingleFileUploadResolver = async (
       ASSET_TYPE.profileCover,
       ASSET_TYPE.oauthClientAvatar,
       ASSET_TYPE.tagCover,
+      ASSET_TYPE.circleAvatar,
+      ASSET_TYPE.circleCover,
     ].indexOf(type) >= 0
   const isAudioType = [ASSET_TYPE.embedaudio].indexOf(type) >= 0
 

@@ -1,4 +1,4 @@
-import { PAYMENT_CURRENCY, PAYMENT_PAYOUT_MINIMUM_AMOUNT } from 'common/enums'
+import { PAYMENT_CURRENCY, PAYMENT_MINIMAL_PAYOUT_AMOUNT } from 'common/enums'
 import {
   AuthenticationError,
   PaymentBalanceInsufficientError,
@@ -9,16 +9,18 @@ import { MutationToConnectStripeAccountResolver } from 'definitions'
 const resolver: MutationToConnectStripeAccountResolver = async (
   _,
   __,
-  { viewer, dataSources: { paymentService } }
+  { viewer, dataSources: { atomService, paymentService } }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
 
   // check if payout account already exists
-  const payoutAccount = (
-    await paymentService.findPayoutAccount({ userId: viewer.id })
-  )[0]
+  const payoutAccount = await atomService.findFirst({
+    table: 'payout_account',
+    where: { userId: viewer.id, archived: false },
+  })
+
   if (payoutAccount) {
     throw new PaymentPayoutAccountExistsError('payout account already exists.')
   }
@@ -28,9 +30,9 @@ const resolver: MutationToConnectStripeAccountResolver = async (
     userId: viewer.id,
     currency: PAYMENT_CURRENCY.HKD,
   })
-  if (balanceHKD < PAYMENT_PAYOUT_MINIMUM_AMOUNT.HKD) {
+  if (balanceHKD < PAYMENT_MINIMAL_PAYOUT_AMOUNT.HKD) {
     throw new PaymentBalanceInsufficientError(
-      `require minimum ${PAYMENT_PAYOUT_MINIMUM_AMOUNT.HKD} HKD to connect stripe account.`
+      `require minimum ${PAYMENT_MINIMAL_PAYOUT_AMOUNT.HKD} HKD to connect stripe account.`
     )
   }
 
