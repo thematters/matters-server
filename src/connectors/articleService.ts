@@ -298,8 +298,11 @@ export class ArticleService extends BaseService {
       .select('article.*')
       .max('comment.id', { as: '_comment_id_' })
       .from('comment')
-      .innerJoin(this.table, 'comment.article_id', 'article.id')
-      .where({ 'comment.author_id': authorId })
+      .innerJoin(this.table, 'comment.target_id', 'article.id')
+      .where({
+        'comment.author_id': authorId,
+        'comment.type': COMMENT_TYPE.article,
+      })
       .groupBy('article.id')
       .orderBy('_comment_id_', 'desc')
 
