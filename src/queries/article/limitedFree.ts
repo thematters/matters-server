@@ -8,7 +8,7 @@ const resolver: ArticleToLimitedFreeResolver = async (
   { dataSources: {}, knex }
 ) => {
   const articleCircle = await knex
-    .select('article_circle.created_at')
+    .select('article_circle.*')
     .from('article_circle')
     .join('circle', 'article_circle.circle_id', 'circle.id')
     .where({
