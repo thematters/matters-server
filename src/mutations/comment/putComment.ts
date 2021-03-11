@@ -441,6 +441,8 @@ const resolver: MutationToPutCommentResolver = async (
 
   // invalidate extra nodes
   newComment[CACHE_KEYWORD] = [
+    parentComment ? { id: parentComment.id, type: NODE_TYPES.comment } : {},
+    replyToComment ? { id: replyToComment.id, type: NODE_TYPES.comment } : {},
     {
       id: article ? article.id : circle.id,
       type: article ? NODE_TYPES.article : NODE_TYPES.circle,
