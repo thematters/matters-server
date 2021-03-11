@@ -14,7 +14,7 @@ import {
 import {
   AuthenticationError,
   CircleNotFoundError,
-  DuplicateCircleError,
+  DuplicateCircleSubscriptionError,
   EntityNotFoundError,
   ForbiddenError,
   PasswordInvalidError,
@@ -123,7 +123,7 @@ const resolver: MutationToSubscribeCircleResolver = async (
       : null
 
   if (items && items.length > 0) {
-    throw new DuplicateCircleError('circle subscribed alraedy')
+    throw new DuplicateCircleSubscriptionError('circle subscribed alraedy')
   }
 
   // FIXME: check subscribed circles

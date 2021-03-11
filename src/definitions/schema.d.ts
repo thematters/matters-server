@@ -823,12 +823,6 @@ export interface GQLComment extends GQLNode {
   remark?: string
 
   /**
-   * Article that the comment is belonged to.
-   * @deprecated No longer in use
-   */
-  article?: GQLArticle
-
-  /**
    * Current comment belongs to which Node.
    */
   node: GQLNode
@@ -5292,7 +5286,6 @@ export interface GQLCommentTypeResolver<TParent = any> {
   parentComment?: CommentToParentCommentResolver<TParent>
   replyTo?: CommentToReplyToResolver<TParent>
   remark?: CommentToRemarkResolver<TParent>
-  article?: CommentToArticleResolver<TParent>
   node?: CommentToNodeResolver<TParent>
 }
 
@@ -5417,15 +5410,6 @@ export interface CommentToReplyToResolver<TParent = any, TResult = any> {
 }
 
 export interface CommentToRemarkResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CommentToArticleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
