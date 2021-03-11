@@ -20,7 +20,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, sanitize } from 'common/utils'
+import { fromGlobalId, isArticleLimitedFree, sanitize } from 'common/utils'
 import { GQLCommentType, MutationToPutCommentResolver } from 'definitions'
 
 const resolver: MutationToPutCommentResolver = async (
@@ -43,7 +43,7 @@ const resolver: MutationToPutCommentResolver = async (
     viewer,
     dataSources: {
       atomService,
-      systemService,
+      paymentService,
       commentService,
       articleService,
       notificationService,
@@ -170,28 +170,38 @@ const resolver: MutationToPutCommentResolver = async (
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
+  // only allow the owner and members to comment on circle
   if (circle && !isTargetAuthor) {
-    const records = await knex
-      .select()
-      .from('circle_subscription_item as csi')
-      .join('circle_price', 'circle_price.id', 'csi.price_id')
-      .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
-      .where({
-        'csi.user_id': viewer.id,
-        'csi.archived': false,
-        'circle_price.circle_id': circle.id,
-        'circle_price.state': PRICE_STATE.active,
-      })
-      .whereIn('cs.state', [
-        SUBSCRIPTION_STATE.active,
-        SUBSCRIPTION_STATE.trialing,
-      ])
-    const isCircleMember = records && records.length > 0
+    const isCircleMember = await paymentService.isCircleMember({
+      userId: viewer.id,
+      circleId: circle.id,
+    })
     const isReplyToBroadcast =
       replyToComment?.type === COMMENT_TYPE.circleBroadcast
 
     if (!isCircleMember || (isCircleBroadcast && !isReplyToBroadcast)) {
       throw new ForbiddenError('only circle members have the permission')
+    }
+  }
+
+  // only allow the author, members,
+  // or within free limited period to comment on article
+  if (article && !isTargetAuthor) {
+    const circleArticle = await atomService.findFirst({
+      table: 'article_circle',
+      where: { articleId: article.id },
+    })
+
+    if (circleArticle) {
+      const isCircleMember = await paymentService.isCircleMember({
+        userId: viewer.id,
+        circleId: circleArticle.circleId,
+      })
+      const isLimitedFree = isArticleLimitedFree(circleArticle.createdAt)
+
+      if (!isCircleMember || !isLimitedFree) {
+        throw new ForbiddenError('only circle members have the permission')
+      }
     }
   }
 
