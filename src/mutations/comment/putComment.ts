@@ -189,7 +189,7 @@ const resolver: MutationToPutCommentResolver = async (
   if (article && !isTargetAuthor) {
     const circleArticle = await atomService.findFirst({
       table: 'article_circle',
-      where: { articleId },
+      where: { articleId: article.id },
     })
 
     if (circleArticle) {
