@@ -4,6 +4,7 @@ import { v4 } from 'uuid'
 import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
+  CIRCLE_STATE,
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
@@ -187,19 +188,24 @@ const resolver: MutationToPutCommentResolver = async (
   // only allow the author, members,
   // or within free limited period to comment on article
   if (article && !isTargetAuthor) {
-    const circleArticle = await atomService.findFirst({
-      table: 'article_circle',
-      where: { articleId: article.id },
-    })
+    const articleCircle = await knex
+      .select()
+      .from('article_circle')
+      .join('circle', 'article_circle.circle_id', 'circle.id')
+      .where({
+        'article_circle.article_id': article.id,
+        'circle.state': CIRCLE_STATE.active,
+      })
+      .first()
 
-    if (circleArticle) {
+    if (articleCircle) {
       const isCircleMember = await paymentService.isCircleMember({
         userId: viewer.id,
-        circleId: circleArticle.circleId,
+        circleId: articleCircle.circleId,
       })
-      const isLimitedFree = isArticleLimitedFree(circleArticle.createdAt)
+      const isLimitedFree = isArticleLimitedFree(articleCircle.createdAt)
 
-      if (!isCircleMember || !isLimitedFree) {
+      if (!isCircleMember && !isLimitedFree) {
         throw new ForbiddenError('only circle members have the permission')
       }
     }
