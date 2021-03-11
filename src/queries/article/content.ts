@@ -25,7 +25,7 @@ const resolver: ArticleToContentResolver = async (
 
   // active
   const articleCircle = await knex
-    .select()
+    .select('article_circle.created_at')
     .from('article_circle')
     .join('circle', 'article_circle.circle_id', 'circle.id')
     .where({
