@@ -1,4 +1,4 @@
-import { ARTICLE_STATE } from 'common/enums'
+import { ARTICLE_STATE, CIRCLE_STATE } from 'common/enums'
 import { correctHtml, isArticleLimitedFree } from 'common/utils'
 import { ArticleToContentResolver } from 'definitions'
 
@@ -6,7 +6,7 @@ import { ArticleToContentResolver } from 'definitions'
 const resolver: ArticleToContentResolver = async (
   { articleId, authorId, content },
   _,
-  { viewer, dataSources: { articleService, atomService, paymentService } }
+  { viewer, dataSources: { articleService, atomService, paymentService }, knex }
 ) => {
   const article = await articleService.dataloader.load(articleId)
 
@@ -24,10 +24,15 @@ const resolver: ArticleToContentResolver = async (
   }
 
   // active
-  const articleCircle = await atomService.findFirst({
-    table: 'article_circle',
-    where: { articleId },
-  })
+  const articleCircle = await knex
+    .select()
+    .from('article_circle')
+    .join('circle', 'article_circle.circle_id', 'circle.id')
+    .where({
+      'article_circle.article_id': articleId,
+      'circle.state': CIRCLE_STATE.active,
+    })
+    .first()
 
   // not in circle
   if (!articleCircle) {
