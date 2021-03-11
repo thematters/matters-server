@@ -189,7 +189,7 @@ const resolver: MutationToPutCommentResolver = async (
   // or within free limited period to comment on article
   if (article && !isTargetAuthor) {
     const articleCircle = await knex
-      .select()
+      .select('article_circle.created_at')
       .from('article_circle')
       .join('circle', 'article_circle.circle_id', 'circle.id')
       .where({
