@@ -708,6 +708,7 @@ export class PaymentService extends BaseService {
     const [subscription] = await this.knex('circle_subscription')
       .insert({
         providerSubscriptionId: stripeSubscription.id,
+        state: stripeSubscription.status,
         userId,
       })
       .returning('*')
