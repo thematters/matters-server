@@ -389,7 +389,7 @@ const resolver: MutationToPutCommentResolver = async (
     }
 
     // notify cirlce members and followers
-    if (circle && isCircleBroadcast) {
+    if (circle && isCircleBroadcast && isLevel1Comment) {
       // retrieve circle members and followers
       const members = await knex
         .from('circle_subscription_item as csi')
