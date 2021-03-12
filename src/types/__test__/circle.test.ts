@@ -185,7 +185,7 @@ describe('circle CRUD', () => {
       mutation: PUT_CIRCLE,
       variables: { input },
     })
-    expect(_get(data6, errorPath)).toBe('FORBIDDEN')
+    expect(_get(data6, errorPath)).toBe('CIRCLE_CREATION_REACH_LIMIT')
 
     // test create a duplicate circle
     const { mutate: adminMutate } = await testClient(adminClient)
