@@ -14,6 +14,7 @@ import { isProd } from 'common/environment'
 import {
   AssetNotFoundError,
   AuthenticationError,
+  CircleCreationReachLimitError,
   CircleNotFoundError,
   DisplayNameInvalidError,
   DuplicateCircleError,
@@ -113,7 +114,7 @@ const resolver: MutationToPutCircleResolver = async (
       ])
 
       if (hasCircle > 0) {
-        throw new ForbiddenError('already own a circle')
+        throw new CircleCreationReachLimitError('already own a circle')
       }
       if (sameCircle > 0) {
         throw new NameExistsError(`duplicate circle name: ${trimedName}`)
