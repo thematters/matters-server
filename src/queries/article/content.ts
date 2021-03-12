@@ -6,7 +6,7 @@ import { ArticleToContentResolver } from 'definitions'
 const resolver: ArticleToContentResolver = async (
   { articleId, authorId, content },
   _,
-  { viewer, dataSources: { articleService, atomService, paymentService }, knex }
+  { viewer, dataSources: { articleService, paymentService }, knex }
 ) => {
   const article = await articleService.dataloader.load(articleId)
 
@@ -14,16 +14,16 @@ const resolver: ArticleToContentResolver = async (
   const isAdmin = viewer.hasRole('admin')
   const isAuthor = authorId === viewer.id
 
+  // check viewer
   if (isAdmin || isAuthor) {
     return correctHtml(content)
   }
 
-  // inactive
+  // check article state
   if (!isActive) {
     return ''
   }
 
-  // active
   const articleCircle = await knex
     .select('article_circle.*')
     .from('article_circle')
@@ -39,20 +39,24 @@ const resolver: ArticleToContentResolver = async (
     return correctHtml(content)
   }
 
+  // limited free
+  const isLimitedFree = isArticleLimitedFree(articleCircle.createdAt)
+  if (isLimitedFree) {
+    return correctHtml(content)
+  }
+
   if (!viewer.id) {
     return ''
   }
 
-  // not under the free period or not circle member
-  if (!isArticleLimitedFree(articleCircle.createdAt)) {
-    const isCircleMember = await paymentService.isCircleMember({
-      userId: viewer.id,
-      circleId: articleCircle.circleId,
-    })
+  const isCircleMember = await paymentService.isCircleMember({
+    userId: viewer.id,
+    circleId: articleCircle.circleId,
+  })
 
-    if (!isCircleMember) {
-      return ''
-    }
+  // not circle member
+  if (!isCircleMember) {
+    return ''
   }
 
   return correctHtml(content)
