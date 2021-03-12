@@ -38,8 +38,8 @@ const triggerNotice = async ({
     (id) => id !== viewerId
   )
 
-  users.map((user) => {
-    notificationService.trigger({
+  for (const user of users) {
+    await notificationService.trigger({
       event: DB_NOTICE_TYPE.article_tag_has_been_added,
       recipientId: user,
       actorId: viewerId,
@@ -56,7 +56,7 @@ const triggerNotice = async ({
         },
       ],
     })
-  })
+  }
 }
 
 const resolver: MutationToAddArticlesTagsResolver = async (

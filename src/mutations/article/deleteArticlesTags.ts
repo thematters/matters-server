@@ -67,7 +67,7 @@ const resolver: MutationToDeleteArticlesTagsResolver = async (
   // trigger notification for deleting article tag
   for (const articleId of deleteIds) {
     const article = await articleService.baseFindById(articleId)
-    notificationService.trigger({
+    await notificationService.trigger({
       event: DB_NOTICE_TYPE.article_tag_has_been_removed,
       recipientId: article.authorId,
       actorId: viewer.id,
