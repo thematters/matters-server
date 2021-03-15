@@ -1,6 +1,8 @@
+import { last } from 'lodash'
 import Stripe from 'stripe'
 
 import {
+  DAY,
   LOCAL_STRIPE,
   METADATA_KEY,
   PAYMENT_CURRENCY,
@@ -361,11 +363,42 @@ class StripeService {
     }
   }
 
+  /**
+   * Get delivery failed events in last 7 days.
+   */
   getDeliveryFailedEvents = async () => {
     try {
-      const events = await this.stripeAPI.events.list({
-        delivery_success: false,
-      })
+      let cursor
+      let fetch = true
+      let hasMore = true
+
+      const now = Date.now()
+      const week = DAY * 7
+      const events: Array<Record<string, any>> = []
+
+      while (hasMore && fetch) {
+        // fetch events from stripe
+        const batch: Record<string, any> = await this.stripeAPI.events.list({
+          delivery_success: false,
+          limit: 50,
+          starting_after: cursor,
+        })
+
+        // Process batch data
+        const data = batch?.data || []
+        data.map((event: Record<string, any>) => {
+          const time = (event?.created || 0) * 1000
+          if (now - time < week) {
+            events.push(event)
+          } else {
+            fetch = false
+          }
+        })
+
+        // Check should run next batch
+        hasMore = !!batch?.has_more
+        cursor = last(events)?.id
+      }
       return events
     } catch (error) {
       this.handleError(error)
