@@ -380,7 +380,7 @@ class StripeService {
         // fetch events from stripe
         const batch: Record<string, any> = await this.stripeAPI.events.list({
           delivery_success: false,
-          limit: 10,
+          limit: 50,
           starting_after: cursor,
         })
 
