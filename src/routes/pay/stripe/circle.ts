@@ -3,18 +3,24 @@ import _ from 'lodash'
 import Stripe from 'stripe'
 
 import {
+  CIRCLE_ACTION,
   CIRCLE_STATE,
+  DB_NOTICE_TYPE,
   METADATA_KEY,
   NODE_TYPES,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PRICE_STATE,
-  SUBSCRIPTION_STATE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { toDBAmount } from 'common/utils'
-import { AtomService, CacheService, PaymentService } from 'connectors'
+import {
+  AtomService,
+  CacheService,
+  NotificationService,
+  PaymentService,
+} from 'connectors'
 import SlackService from 'connectors/slack'
 import { CirclePrice, CircleSubscription, Customer } from 'definitions'
 
@@ -37,6 +43,7 @@ export const completeCircleSubscription = async ({
 }) => {
   const atomService = new AtomService()
   const paymentService = new PaymentService()
+  const notificationService = new NotificationService()
   const slack = new SlackService()
   const slackEventData = {
     id: event.id,
@@ -80,13 +87,8 @@ export const completeCircleSubscription = async ({
     return
   }
 
-  const subscription = await atomService.findFirst({
-    table: 'circle_subscription',
-    where: {
-      state: SUBSCRIPTION_STATE.active,
-      userId,
-    },
-  })
+  const subscriptions = await paymentService.findSubscriptions({ userId })
+  const subscription = subscriptions[0]
 
   if (!subscription) {
     await paymentService.createSubscription({
@@ -102,6 +104,40 @@ export const completeCircleSubscription = async ({
       subscriptionId: subscription.id,
       providerPriceId: price.providerPriceId,
       providerSubscriptionId: subscription.providerSubscriptionId,
+    })
+  }
+
+  // trigger notificaiton
+  notificationService.trigger({
+    event: DB_NOTICE_TYPE.circle_new_subscriber,
+    actorId: userId,
+    recipientId: circle.owner,
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'circle',
+        entity: circle,
+      },
+    ],
+  })
+
+  // auto follow circle without notification
+  const hasFollow = await atomService.count({
+    table: 'action_circle',
+    where: {
+      action: CIRCLE_ACTION.follow,
+      userId,
+      targetId: circleId,
+    },
+  })
+  if (hasFollow === 0) {
+    await atomService.create({
+      table: 'action_circle',
+      data: {
+        action: CIRCLE_ACTION.follow,
+        userId,
+        targetId: circleId,
+      },
     })
   }
 

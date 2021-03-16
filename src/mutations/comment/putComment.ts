@@ -3,6 +3,7 @@ import { v4 } from 'uuid'
 
 import {
   CACHE_KEYWORD,
+  CIRCLE_ACTION,
   CIRCLE_STATE,
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
@@ -20,7 +21,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, sanitize } from 'common/utils'
+import { fromGlobalId, isArticleLimitedFree, sanitize } from 'common/utils'
 import { GQLCommentType, MutationToPutCommentResolver } from 'definitions'
 
 const resolver: MutationToPutCommentResolver = async (
@@ -43,7 +44,7 @@ const resolver: MutationToPutCommentResolver = async (
     viewer,
     dataSources: {
       atomService,
-      systemService,
+      paymentService,
       commentService,
       articleService,
       notificationService,
@@ -130,53 +131,6 @@ const resolver: MutationToPutCommentResolver = async (
   }
 
   /**
-   * check permission
-   */
-  const isTargetAuthor = targetAuthor === viewer.id
-  const isOnboarding = viewer.state === USER_STATE.onboarding
-  const isInactive = [
-    USER_STATE.banned,
-    USER_STATE.archived,
-    USER_STATE.frozen,
-  ].includes(viewer.state)
-
-  if ((isOnboarding && !isTargetAuthor) || isInactive) {
-    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
-  }
-
-  if (circle && !isTargetAuthor) {
-    const records = await knex
-      .select()
-      .from('circle_subscription_item as csi')
-      .join('circle_price', 'circle_price.id', 'csi.price_id')
-      .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
-      .where({
-        'csi.user_id': viewer.id,
-        'csi.archived': false,
-        'circle_price.circle_id': circle.id,
-        'circle_price.state': PRICE_STATE.active,
-      })
-      .whereIn('cs.state', [
-        SUBSCRIPTION_STATE.active,
-        SUBSCRIPTION_STATE.trialing,
-      ])
-    const isCircleMember = records && records.length > 0
-
-    if (!isCircleMember || isCircleBroadcast) {
-      throw new ForbiddenError('only circle members have the permission')
-    }
-  }
-
-  // check whether viewer is blocked by target author
-  const isBlocked = await userService.blocked({
-    userId: targetAuthor,
-    targetId: viewer.id,
-  })
-  if (isBlocked) {
-    throw new ForbiddenError('viewer is blocked by target author')
-  }
-
-  /**
    * check parentComment
    */
   let parentComment: any
@@ -196,7 +150,74 @@ const resolver: MutationToPutCommentResolver = async (
   if (replyTo) {
     const { id: replyToDBId } = fromGlobalId(replyTo)
     replyToComment = await commentService.dataloader.load(replyToDBId)
+    if (!replyToComment) {
+      throw new CommentNotFoundError('target replyToComment does not exists')
+    }
     data.replyTo = replyToDBId
+  }
+
+  /**
+   * check permission
+   */
+  const isTargetAuthor = targetAuthor === viewer.id
+  const isOnboarding = viewer.state === USER_STATE.onboarding
+  const isInactive = [
+    USER_STATE.banned,
+    USER_STATE.archived,
+    USER_STATE.frozen,
+  ].includes(viewer.state)
+
+  if ((isOnboarding && !isTargetAuthor) || isInactive) {
+    throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
+  }
+
+  // only allow the owner and members to comment on circle
+  if (circle && !isTargetAuthor) {
+    const isCircleMember = await paymentService.isCircleMember({
+      userId: viewer.id,
+      circleId: circle.id,
+    })
+    const isReplyToBroadcast =
+      replyToComment?.type === COMMENT_TYPE.circleBroadcast
+
+    if (!isCircleMember || (isCircleBroadcast && !isReplyToBroadcast)) {
+      throw new ForbiddenError('only circle members have the permission')
+    }
+  }
+
+  // only allow the author, members,
+  // or within free limited period to comment on article
+  if (article && !isTargetAuthor) {
+    const articleCircle = await knex
+      .select('article_circle.*')
+      .from('article_circle')
+      .join('circle', 'article_circle.circle_id', 'circle.id')
+      .where({
+        'article_circle.article_id': article.id,
+        'circle.state': CIRCLE_STATE.active,
+      })
+      .first()
+
+    if (articleCircle) {
+      const isCircleMember = await paymentService.isCircleMember({
+        userId: viewer.id,
+        circleId: articleCircle.circleId,
+      })
+      const isLimitedFree = isArticleLimitedFree(articleCircle.createdAt)
+
+      if (!isCircleMember && !isLimitedFree) {
+        throw new ForbiddenError('only circle members have the permission')
+      }
+    }
+  }
+
+  // check whether viewer is blocked by target author
+  const isBlocked = await userService.blocked({
+    userId: targetAuthor,
+    targetId: viewer.id,
+  })
+  if (isBlocked) {
+    throw new ForbiddenError('viewer is blocked by target author')
   }
 
   /**
@@ -229,7 +250,6 @@ const resolver: MutationToPutCommentResolver = async (
         authorId: data.authorId,
         parentCommentId: data.parentCommentId,
         replyTo: data.replyTo,
-        mentionedUserIds: data.mentionedUserIds,
         updatedAt: new Date(),
       },
     })
@@ -254,7 +274,6 @@ const resolver: MutationToPutCommentResolver = async (
     /**
      * Notifications
      */
-    const articleAuthor = _.get(article, 'authorId')
     const parentCommentAuthor = _.get(parentComment, 'authorId')
     const parentCommentId = _.get(parentComment, 'id')
     const replyToCommentAuthor = _.get(replyToComment, 'authorId')
@@ -270,14 +289,14 @@ const resolver: MutationToPutCommentResolver = async (
     const shouldNotifyArticleAuthor =
       article &&
       (isLevel1Comment ||
-        (articleAuthor !== parentCommentAuthor &&
-          articleAuthor !== replyToCommentAuthor))
+        (targetAuthor !== parentCommentAuthor &&
+          targetAuthor !== replyToCommentAuthor))
 
     if (shouldNotifyArticleAuthor) {
       notificationService.trigger({
         event: DB_NOTICE_TYPE.article_new_comment,
         actorId: viewer.id,
-        recipientId: articleAuthor,
+        recipientId: targetAuthor,
         entities: [
           {
             type: 'target',
@@ -294,11 +313,16 @@ const resolver: MutationToPutCommentResolver = async (
     }
 
     // notify parentComment's author
+    const replyEvent = isCircleBroadcast
+      ? DB_NOTICE_TYPE.circle_broadcast_new_reply
+      : isCircleDiscussion
+      ? DB_NOTICE_TYPE.circle_discussion_new_reply
+      : DB_NOTICE_TYPE.comment_new_reply
     const shouldNotifyParentCommentAuthor =
       isReplyLevel1Comment || parentCommentAuthor !== replyToCommentAuthor
     if (shouldNotifyParentCommentAuthor) {
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.comment_new_reply,
+        event: replyEvent,
         actorId: viewer.id,
         recipientId: parentCommentAuthor,
         entities: [
@@ -320,7 +344,7 @@ const resolver: MutationToPutCommentResolver = async (
     const shouldNotifyReplyToCommentAuthor = isReplyingLevel2Comment
     if (shouldNotifyReplyToCommentAuthor) {
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.comment_new_reply,
+        event: replyEvent,
         actorId: viewer.id,
         recipientId: replyToCommentAuthor,
         entities: [
@@ -344,9 +368,6 @@ const resolver: MutationToPutCommentResolver = async (
         id: article.id,
       })
       articleSubscribers.forEach((subscriber: any) => {
-        if (subscriber.id === articleAuthor) {
-          return
-        }
         notificationService.trigger({
           event: DB_NOTICE_TYPE.subscribed_article_new_comment,
           actorId: viewer.id,
@@ -366,13 +387,61 @@ const resolver: MutationToPutCommentResolver = async (
         })
       })
     }
+
+    // notify cirlce members and followers
+    if (circle && isCircleBroadcast && isLevel1Comment) {
+      // retrieve circle members and followers
+      const members = await knex
+        .from('circle_subscription_item as csi')
+        .join('circle_price', 'circle_price.id', 'csi.price_id')
+        .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+        .where({
+          'circle_price.circle_id': circle.id,
+          'circle_price.state': PRICE_STATE.active,
+          'csi.archived': false,
+        })
+        .whereIn('cs.state', [
+          SUBSCRIPTION_STATE.active,
+          SUBSCRIPTION_STATE.trialing,
+        ])
+
+      const followers = await atomService.findMany({
+        table: 'action_circle',
+        select: ['user_id'],
+        where: { targetId: circle.id, action: CIRCLE_ACTION.follow },
+      })
+      const recipients = _.uniq([
+        ...members.map((m) => m.userId),
+        ...followers.map((f) => f.userId),
+      ])
+
+      recipients.forEach((recipientId) => {
+        notificationService.trigger({
+          event: DB_NOTICE_TYPE.circle_new_broadcast,
+          actorId: viewer.id,
+          recipientId,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'comment',
+              entity: newComment,
+            },
+          ],
+        })
+      })
+    }
   }
 
   // notify mentioned users
   if (data.mentionedUserIds) {
+    const mentionedEvent = isCircleBroadcast
+      ? DB_NOTICE_TYPE.circle_broadcast_mentioned_you
+      : isCircleDiscussion
+      ? DB_NOTICE_TYPE.circle_discussion_mentioned_you
+      : DB_NOTICE_TYPE.comment_mentioned_you
     data.mentionedUserIds.forEach((userId: string) => {
       notificationService.trigger({
-        event: DB_NOTICE_TYPE.comment_mentioned_you,
+        event: mentionedEvent,
         actorId: viewer.id,
         recipientId: userId,
         entities: [
@@ -388,6 +457,8 @@ const resolver: MutationToPutCommentResolver = async (
 
   // invalidate extra nodes
   newComment[CACHE_KEYWORD] = [
+    parentComment ? { id: parentComment.id, type: NODE_TYPES.comment } : {},
+    replyToComment ? { id: replyToComment.id, type: NODE_TYPES.comment } : {},
     {
       id: article ? article.id : circle.id,
       type: article ? NODE_TYPES.article : NODE_TYPES.circle,

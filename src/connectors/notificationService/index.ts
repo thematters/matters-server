@@ -28,9 +28,9 @@ export class NotificationService extends BaseService {
     this.pubsub = pubsub
   }
 
-  trigger = (params: NotificationPrarms) => {
+  trigger = async (params: NotificationPrarms) => {
     try {
-      this.__trigger(params)
+      await this.__trigger(params)
     } catch (e) {
       logger.error('[Notification:trigger]', e)
     }
@@ -41,30 +41,38 @@ export class NotificationService extends BaseService {
     language: LANGUAGES
   ): Promise<PutNoticeParams | undefined> => {
     switch (params.event) {
+      // entity-free
       case DB_NOTICE_TYPE.user_new_follower:
         return {
           type: params.event,
           recipientId: params.recipientId,
           actorId: params.actorId,
         }
+      // system as the actor
       case DB_NOTICE_TYPE.article_published:
       case DB_NOTICE_TYPE.comment_pinned:
       case DB_NOTICE_TYPE.payment_payout:
       case DB_NOTICE_TYPE.revised_article_published:
       case DB_NOTICE_TYPE.revised_article_not_published:
+      case DB_NOTICE_TYPE.circle_new_article:
         return {
           type: params.event,
           recipientId: params.recipientId,
           entities: params.entities,
         }
+      // single actor with one or more entities
       case DB_NOTICE_TYPE.article_new_collected:
       case DB_NOTICE_TYPE.article_new_appreciation:
       case DB_NOTICE_TYPE.article_new_subscriber:
       case DB_NOTICE_TYPE.article_mentioned_you:
       case DB_NOTICE_TYPE.comment_mentioned_you:
+      case DB_NOTICE_TYPE.circle_broadcast_mentioned_you:
+      case DB_NOTICE_TYPE.circle_discussion_mentioned_you:
       case DB_NOTICE_TYPE.article_new_comment:
       case DB_NOTICE_TYPE.subscribed_article_new_comment:
       case DB_NOTICE_TYPE.comment_new_reply:
+      case DB_NOTICE_TYPE.circle_broadcast_new_reply:
+      case DB_NOTICE_TYPE.circle_discussion_new_reply:
       case DB_NOTICE_TYPE.article_tag_has_been_added:
       case DB_NOTICE_TYPE.article_tag_has_been_removed:
       case DB_NOTICE_TYPE.article_tag_has_been_unselected:
@@ -73,12 +81,17 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.tag_leave:
       case DB_NOTICE_TYPE.tag_add_editor:
       case DB_NOTICE_TYPE.tag_leave_editor:
+      case DB_NOTICE_TYPE.circle_new_follower:
+      case DB_NOTICE_TYPE.circle_new_subscriber:
+      case DB_NOTICE_TYPE.circle_new_unsubscriber:
+      case DB_NOTICE_TYPE.circle_new_broadcast:
         return {
           type: params.event,
           recipientId: params.recipientId,
           actorId: params.actorId,
           entities: params.entities,
         }
+      // act as official annonuncement
       case DB_NOTICE_TYPE.official_announcement:
         return {
           type: DB_NOTICE_TYPE.official_announcement,

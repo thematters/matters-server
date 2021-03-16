@@ -6,7 +6,6 @@ import {
   AUTH_MODE,
   COOKIE_TOKEN_NAME,
   COOKIE_USER_GROUP,
-  LANGUAGE,
   USER_ROLE,
   USER_STATE,
 } from 'common/enums'
@@ -127,7 +126,9 @@ export const getViewerFromReq = async ({
 }): Promise<Viewer> => {
   const headers = req ? req.headers : {}
   // const isWeb = headers['x-client-name'] === 'web'
-  const language = getLanguage(LANGUAGE.zh_hant as string)
+  const language = getLanguage(
+    (headers['Accept-Language'] || headers['accept-language']) as string
+  )
   const agentHash = headers['x-user-agent-hash'] as string
   const userGroup = headers['x-user-group'] as string
   const userAgent = headers['user-agent'] as string

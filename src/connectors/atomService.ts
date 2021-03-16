@@ -29,6 +29,7 @@ interface FindManyInput {
   where?: Record<string, any>
   whereIn?: [string, string[]]
   orderBy?: Array<{ column: string; order: 'asc' | 'desc' }>
+  orderByRaw?: string
   skip?: number
   take?: number
 }
@@ -92,13 +93,18 @@ export class AtomService extends DataSource {
    */
   initLoader = ({ table, mode }: InitLoaderInput) => {
     const batchFn = async (keys: readonly string[]) => {
-      const records = await this.findMany({
+      let records = await this.findMany({
         table,
         whereIn: [mode, keys as string[]],
       })
+
       if (records.findIndex((item: any) => !item) >= 0) {
         throw new EntityNotFoundError(`Cannot find entity from ${table}`)
       }
+
+      // fix order based on keys
+      records = keys.map((key) => records.find((r: any) => r[mode] === key))
+
       return records
     }
     return new DataLoader(batchFn)
@@ -133,6 +139,7 @@ export class AtomService extends DataSource {
     where,
     whereIn,
     orderBy,
+    orderByRaw,
     skip,
     take,
   }: FindManyInput) => {
@@ -148,6 +155,10 @@ export class AtomService extends DataSource {
 
     if (orderBy) {
       query.orderBy(orderBy)
+    }
+
+    if (orderByRaw) {
+      query.orderByRaw(orderByRaw)
     }
 
     if (skip) {

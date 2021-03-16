@@ -6,6 +6,8 @@ import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE,
+  PRICE_STATE,
+  SUBSCRIPTION_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
@@ -18,14 +20,13 @@ import {
   getUTC8Midnight,
   numRound,
 } from 'common/utils'
-import { AtomService, BaseService } from 'connectors'
+import { BaseService } from 'connectors'
 import { CirclePrice, Customer, User } from 'definitions'
 
 import { stripe } from './stripe'
 
 export class PaymentService extends BaseService {
   stripe: typeof stripe
-  atomService: AtomService
 
   constructor() {
     super('transaction')
@@ -63,12 +64,14 @@ export class PaymentService extends BaseService {
     providerTxId,
     states,
     excludeCanceledLIKE,
+    notIn,
   }: {
     userId?: string
     id?: string
     providerTxId?: string
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
+    notIn?: [string, string[]]
   }) => {
     let qs = this.knex('transaction_delta_view').select()
 
@@ -114,6 +117,10 @@ export class PaymentService extends BaseService {
         .whereNull('canceled_like_txs.tx_id')
     }
 
+    if (notIn) {
+      qs.whereNotIn(...notIn)
+    }
+
     return qs
   }
 
@@ -123,6 +130,7 @@ export class PaymentService extends BaseService {
     id?: string
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
+    notIn?: [string, string[]]
   }) => {
     const qs = this.makeTransactionsQuery(params)
     const result = await qs.count()
@@ -141,6 +149,7 @@ export class PaymentService extends BaseService {
     providerTxId?: string
     states?: TRANSACTION_STATE[]
     excludeCanceledLIKE?: boolean
+    notIn?: [string, string[]]
     offset?: number
     limit?: number
   }) => {
@@ -633,6 +642,49 @@ export class PaymentService extends BaseService {
    *                               *
    *********************************/
   /**
+   * Check if user is circle member
+   */
+  isCircleMember = async ({
+    circleId,
+    userId,
+  }: {
+    circleId: string
+    userId: string
+  }) => {
+    const records = await this.knex
+      .select()
+      .from('circle_subscription_item as csi')
+      .join('circle_price', 'circle_price.id', 'csi.price_id')
+      .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+      .where({
+        'csi.user_id': userId,
+        'csi.archived': false,
+        'circle_price.circle_id': circleId,
+        'circle_price.state': PRICE_STATE.active,
+      })
+      .whereIn('cs.state', [
+        SUBSCRIPTION_STATE.active,
+        SUBSCRIPTION_STATE.trialing,
+      ])
+    const isCircleMember = records && records.length > 0
+
+    return isCircleMember
+  }
+
+  findSubscriptions = async ({ userId }: { userId: string }) => {
+    const subscriptions = await this.knex
+      .select()
+      .from('circle_subscription')
+      .where({ userId })
+      .whereIn('state', [
+        SUBSCRIPTION_STATE.active,
+        SUBSCRIPTION_STATE.trialing,
+      ])
+
+    return subscriptions || []
+  }
+
+  /**
    * Create a subscription by a given circle price
    */
   createSubscription = async (data: {
@@ -641,8 +693,6 @@ export class PaymentService extends BaseService {
     providerCustomerId: string
     providerPriceId: string
   }) => {
-    const atomService = new AtomService()
-
     const { userId, priceId, providerCustomerId, providerPriceId } = data
 
     // Create from Stripe
@@ -656,22 +706,22 @@ export class PaymentService extends BaseService {
     }
 
     // Save to DB
-    const subscription = await atomService.create({
-      table: 'circle_subscription',
-      data: {
+    const [subscription] = await this.knex('circle_subscription')
+      .insert({
         providerSubscriptionId: stripeSubscription.id,
+        state: stripeSubscription.status,
         userId,
-      },
-    })
-    await atomService.create({
-      table: 'circle_subscription_item',
-      data: {
+      })
+      .returning('*')
+
+    await this.knex('circle_subscription_item')
+      .insert({
         priceId,
         providerSubscriptionItemId: stripeSubscription.items.data[0].id,
         subscriptionId: subscription.id,
         userId,
-      },
-    })
+      })
+      .returning('*')
   }
 
   /**
@@ -684,8 +734,6 @@ export class PaymentService extends BaseService {
     providerPriceId: string
     providerSubscriptionId: string
   }) => {
-    const atomService = new AtomService()
-
     const {
       userId,
       priceId,
@@ -704,14 +752,13 @@ export class PaymentService extends BaseService {
       throw new ServerError('failed to create stripe subscription item')
     }
 
-    await atomService.create({
-      table: 'circle_subscription_item',
-      data: {
+    await this.knex('circle_subscription_item')
+      .insert({
         priceId,
         providerSubscriptionItemId: stripeItem.id,
         subscriptionId,
         userId,
-      },
-    })
+      })
+      .returning('*')
   }
 }

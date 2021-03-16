@@ -1,16 +1,15 @@
 import {
   CACHE_KEYWORD,
   CIRCLE_STATE,
+  DB_NOTICE_TYPE,
   NODE_TYPES,
   PRICE_STATE,
-  SUBSCRIPTION_STATE,
 } from 'common/enums'
 import {
   AuthenticationError,
   CircleNotFoundError,
   EntityNotFoundError,
   ForbiddenError,
-  UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { MutationToUnsubscribeCircleResolver } from 'definitions'
@@ -18,7 +17,16 @@ import { MutationToUnsubscribeCircleResolver } from 'definitions'
 const resolver: MutationToUnsubscribeCircleResolver = async (
   root,
   { input: { id } },
-  { viewer, dataSources: { atomService, paymentService, systemService }, knex }
+  {
+    viewer,
+    dataSources: {
+      atomService,
+      paymentService,
+      systemService,
+      notificationService,
+    },
+    knex,
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
@@ -52,64 +60,79 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
     throw new EntityNotFoundError(`price of circle ${id} not found`)
   }
 
-  const subscription = await atomService.findFirst({
-    table: 'circle_subscription',
-    where: {
-      userId: viewer.id,
-      state: SUBSCRIPTION_STATE.active,
-    },
+  const subscriptions = await paymentService.findSubscriptions({
+    userId: viewer.id,
   })
-  const items = subscription
-    ? await atomService.findMany({
-        table: 'circle_subscription_item',
-        where: {
-          subscriptionId: subscription.id,
-          archived: false,
-        },
-      })
-    : []
-  const targetItem = items.find((item) => item.priceId === price.id)
 
-  if (!targetItem) {
-    return circle
-  }
+  await Promise.all(
+    subscriptions.map(async (subscription) => {
+      const items = subscription
+        ? await atomService.findMany({
+            table: 'circle_subscription_item',
+            where: {
+              subscriptionId: subscription.id,
+              archived: false,
+            },
+          })
+        : []
+      const targetItem = items.find((item) => item.priceId === price.id)
 
-  if (items.length <= 1) {
-    // cancel stripe subscription
-    const stripeSubscription = await paymentService.stripe.cancelSubscription(
-      subscription.providerSubscriptionId
-    )
+      if (!targetItem) {
+        return circle
+      }
 
-    // update db subscription
-    if (stripeSubscription) {
-      await atomService.update({
-        table: 'circle_subscription',
-        where: { id: subscription.id },
-        data: {
-          state: stripeSubscription.status,
-          canceledAt: stripeSubscription.canceled_at
-            ? new Date(stripeSubscription.canceled_at * 1000)
-            : undefined,
-          updatedAt: new Date(),
-        },
-      })
-    }
-  } else {
-    // remove stripe subscription item
-    await paymentService.stripe.deleteSubscriptionItem(
-      targetItem.providerSubscriptionItemId
-    )
+      if (items.length <= 1) {
+        // cancel stripe subscription
+        const stripeSubscription = await paymentService.stripe.cancelSubscription(
+          subscription.providerSubscriptionId
+        )
 
-    // archive subscription item
-    await atomService.update({
-      table: 'circle_subscription_item',
-      where: { id: targetItem.id },
-      data: {
-        archived: true,
-        updatedAt: new Date(),
-      },
+        // update db subscription
+        if (stripeSubscription) {
+          await atomService.update({
+            table: 'circle_subscription',
+            where: { id: subscription.id },
+            data: {
+              state: stripeSubscription.status,
+              canceledAt: stripeSubscription.canceled_at
+                ? new Date(stripeSubscription.canceled_at * 1000)
+                : undefined,
+              updatedAt: new Date(),
+            },
+          })
+        }
+      } else {
+        // remove stripe subscription item
+        await paymentService.stripe.deleteSubscriptionItem(
+          targetItem.providerSubscriptionItemId
+        )
+
+        // archive subscription item
+        await atomService.update({
+          table: 'circle_subscription_item',
+          where: { id: targetItem.id },
+          data: {
+            archived: true,
+            updatedAt: new Date(),
+          },
+        })
+      }
     })
-  }
+  )
+
+  // trigger notificaiton
+  notificationService.trigger({
+    event: DB_NOTICE_TYPE.circle_new_unsubscriber,
+    actorId: viewer.id,
+    recipientId: circle.owner,
+    entities: [
+      {
+        type: 'target',
+        entityTable: 'circle',
+        entity: circle,
+      },
+    ],
+  })
 
   // invalidate cache
   circle[CACHE_KEYWORD] = [
@@ -118,6 +141,8 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
       type: NODE_TYPES.user,
     },
   ]
+
+  console.log(circle)
 
   return circle
 }

@@ -1,4 +1,4 @@
-import { ARTICLE_STATE } from 'common/enums'
+import { ARTICLE_STATE, CIRCLE_STATE } from 'common/enums'
 import { correctHtml, isArticleLimitedFree } from 'common/utils'
 import { ArticleToContentResolver } from 'definitions'
 
@@ -6,7 +6,7 @@ import { ArticleToContentResolver } from 'definitions'
 const resolver: ArticleToContentResolver = async (
   { articleId, authorId, content },
   _,
-  { viewer, dataSources: { articleService, atomService } }
+  { viewer, dataSources: { articleService, paymentService }, knex }
 ) => {
   const article = await articleService.dataloader.load(articleId)
 
@@ -14,28 +14,48 @@ const resolver: ArticleToContentResolver = async (
   const isAdmin = viewer.hasRole('admin')
   const isAuthor = authorId === viewer.id
 
+  // check viewer
   if (isAdmin || isAuthor) {
     return correctHtml(content)
   }
 
-  // inactive
+  // check article state
   if (!isActive) {
     return ''
   }
 
-  // active
-  const record = await atomService.findFirst({
-    table: 'article_circle',
-    where: { articleId },
-  })
+  const articleCircle = await knex
+    .select('article_circle.*')
+    .from('article_circle')
+    .join('circle', 'article_circle.circle_id', 'circle.id')
+    .where({
+      'article_circle.article_id': articleId,
+      'circle.state': CIRCLE_STATE.active,
+    })
+    .first()
 
   // not in circle
-  if (!record) {
+  if (!articleCircle) {
     return correctHtml(content)
   }
 
-  // not under the free period
-  if (!isArticleLimitedFree(record.createdAt)) {
+  // limited free
+  const isLimitedFree = isArticleLimitedFree(articleCircle.createdAt)
+  if (isLimitedFree) {
+    return correctHtml(content)
+  }
+
+  if (!viewer.id) {
+    return ''
+  }
+
+  const isCircleMember = await paymentService.isCircleMember({
+    userId: viewer.id,
+    circleId: articleCircle.circleId,
+  })
+
+  // not circle member
+  if (!isCircleMember) {
     return ''
   }
 

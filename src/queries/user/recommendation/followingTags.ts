@@ -1,5 +1,8 @@
-import { AuthenticationError } from 'common/errors'
-import { connectionFromPromisedArray, cursorToIndex } from 'common/utils'
+import {
+  connectionFromArray,
+  connectionFromPromisedArray,
+  cursorToIndex,
+} from 'common/utils'
 import { RecommendationToFollowingTagsResolver } from 'definitions'
 
 export const followingTags: RecommendationToFollowingTagsResolver = async (
@@ -8,7 +11,7 @@ export const followingTags: RecommendationToFollowingTagsResolver = async (
   { dataSources: { tagService, userService } }
 ) => {
   if (!id) {
-    throw new AuthenticationError('visitor has no permission')
+    return connectionFromArray([], input)
   }
 
   const { first, after } = input

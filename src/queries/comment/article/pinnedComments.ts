@@ -14,6 +14,7 @@ const resolver: ArticleToPinnedCommentsResolver = (
       targetId: articleId,
       type: COMMENT_TYPE.article,
     },
+    orderBy: [{ column: 'pinned_at', order: 'desc' }],
   })
 
 export default resolver

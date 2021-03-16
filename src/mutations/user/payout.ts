@@ -3,20 +3,18 @@ import { v4 } from 'uuid'
 
 import {
   PAYMENT_CURRENCY,
-  PAYMENT_MAXIMUM_AMOUNT,
-  PAYMENT_PAYOUT_MINIMUM_AMOUNT,
+  PAYMENT_MINIMAL_PAYOUT_AMOUNT,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
 } from 'common/enums'
 import {
   AuthenticationError,
   EntityNotFoundError,
-  ForbiddenError,
   PasswordInvalidError,
+  PaymentAmountTooSmallError,
   PaymentBalanceInsufficientError,
   PaymentPasswordNotSetError,
   PaymentPayoutTransactionExistsError,
-  PaymentReachMaximumLimitError,
   UserInputError,
 } from 'common/errors'
 import { calcMattersFee } from 'common/utils'
@@ -36,8 +34,10 @@ const resolver: MutationToPayoutResolver = async (
     throw new UserInputError('amount is incorrect')
   }
 
-  if (amount < PAYMENT_PAYOUT_MINIMUM_AMOUNT.HKD) {
-    throw new UserInputError('amount below minimum limit')
+  if (amount < PAYMENT_MINIMAL_PAYOUT_AMOUNT.HKD) {
+    throw new PaymentAmountTooSmallError(
+      `The minimal amount is ${PAYMENT_MINIMAL_PAYOUT_AMOUNT.HKD}`
+    )
   }
 
   if (!viewer.paymentPasswordHash) {

@@ -1,4 +1,3 @@
-import { connectionFromArray, connectionFromPromisedArray } from 'common/utils'
 import { DraftToCircleResolver } from 'definitions'
 
 const resolver: DraftToCircleResolver = (

@@ -1,16 +1,28 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
 import _trim from 'lodash/trim'
 
-import { ASSET_TYPE, CIRCLE_STATE, PAYMENT_CURRENCY } from 'common/enums'
+import {
+  ASSET_TYPE,
+  CIRCLE_STATE,
+  NODE_TYPES,
+  PAYMENT_CURRENCY,
+  PAYMENT_MAX_DECIMAL_PLACES,
+  PAYMENT_MAXIMUM_CIRCLE_AMOUNT,
+  PAYMENT_MINIMAL_CIRCLE_AMOUNT,
+} from 'common/enums'
 import { isProd } from 'common/environment'
 import {
   AssetNotFoundError,
   AuthenticationError,
+  CircleCreationReachLimitError,
   CircleNotFoundError,
   DisplayNameInvalidError,
   DuplicateCircleError,
   ForbiddenError,
   NameExistsError,
   NameInvalidError,
+  PaymentAmountTooSmallError,
+  PaymentReachMaximumLimitError,
   ServerError,
   UserInputError,
 } from 'common/errors'
@@ -19,6 +31,7 @@ import {
   isValidCircleName,
   isValidDisplayName,
 } from 'common/utils'
+import { CacheService } from 'connectors'
 import { assetQueue } from 'connectors/queue'
 import { MutationToPutCircleResolver } from 'definitions'
 
@@ -72,9 +85,21 @@ const resolver: MutationToPutCircleResolver = async (
           'circleName and displayName is required for creation'
         )
       }
+
+      if (amount < PAYMENT_MINIMAL_CIRCLE_AMOUNT.HKD) {
+        throw new PaymentAmountTooSmallError(
+          `The minimal amount is ${PAYMENT_MINIMAL_CIRCLE_AMOUNT.HKD}`
+        )
+      }
+      if (amount > PAYMENT_MAXIMUM_CIRCLE_AMOUNT.HKD) {
+        throw new PaymentReachMaximumLimitError('payment reached maximum limit')
+      }
+
       const places = amount % 1 ? amount.toString().split('.')[1].length : 0
-      if (places > 2) {
-        throw new UserInputError('maximum 2 decimal places')
+      if (places > PAYMENT_MAX_DECIMAL_PLACES) {
+        throw new UserInputError(
+          `maximum ${PAYMENT_MAX_DECIMAL_PLACES} decimal places`
+        )
       }
 
       const [hasCircle, sameCircle] = await Promise.all([
@@ -89,7 +114,7 @@ const resolver: MutationToPutCircleResolver = async (
       ])
 
       if (hasCircle > 0) {
-        throw new ForbiddenError('already own a circle')
+        throw new CircleCreationReachLimitError('already own a circle')
       }
       if (sameCircle > 0) {
         throw new NameExistsError(`duplicate circle name: ${trimedName}`)
@@ -140,6 +165,13 @@ const resolver: MutationToPutCircleResolver = async (
           .into('circle_price')
 
         return record
+      })
+
+      // invalidate user
+      const cacheService = new CacheService()
+      invalidateFQC({
+        node: { type: NODE_TYPES.user, id: viewer.id },
+        redis: cacheService.redis,
       })
 
       return circle

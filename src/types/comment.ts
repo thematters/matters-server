@@ -109,6 +109,12 @@ export default /* GraphQL */ `
 
     "Comments made by Circle member."
     discussion(input: ConnectionArgs!): CommentConnection!
+
+    "Discussion (exclude replies) count of this circle."
+    discussionThreadCount: Int!
+
+    "Discussion (include replies) count of this circle."
+    discussionCount: Int!
   }
 
   type CommentConnection implements Connection {

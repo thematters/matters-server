@@ -1,6 +1,13 @@
+import { last } from 'lodash'
 import Stripe from 'stripe'
 
-import { LOCAL_STRIPE, METADATA_KEY, PAYMENT_CURRENCY } from 'common/enums'
+import {
+  DAY,
+  LOCAL_STRIPE,
+  METADATA_KEY,
+  PAYMENT_CURRENCY,
+  PAYMENT_MAX_DECIMAL_PLACES,
+} from 'common/enums'
 import { environment, isProd, isTest } from 'common/environment'
 import { PaymentAmountInvalidError, ServerError } from 'common/errors'
 import logger from 'common/logger'
@@ -9,6 +16,7 @@ import {
   getUTC8NextMonthDayOne,
   toProviderAmount,
 } from 'common/utils'
+import SlackService from 'connectors/slack'
 import { User } from 'definitions'
 
 /**
@@ -38,13 +46,23 @@ class StripeService {
   }
 
   handleError(err: Stripe.StripeError) {
+    const slack = new SlackService()
+
     logger.error(err)
 
     switch (err.code) {
       case 'parameter_invalid_integer':
-        throw new PaymentAmountInvalidError('maximum 2 decimal places')
+        throw new PaymentAmountInvalidError(
+          `maximum ${PAYMENT_MAX_DECIMAL_PLACES} decimal places`
+        )
       default:
-        throw new ServerError('failed to process the stripe request')
+        slack.sendStripeAlert({
+          data: { type: err.type, code: err.code },
+          message: err.message,
+        })
+        throw new ServerError(
+          `failed to process the stripe request: ${err.message}`
+        )
     }
   }
 
@@ -345,11 +363,42 @@ class StripeService {
     }
   }
 
+  /**
+   * Get delivery failed events in last 7 days.
+   */
   getDeliveryFailedEvents = async () => {
     try {
-      const events = await this.stripeAPI.events.list({
-        delivery_success: false,
-      })
+      let cursor
+      let fetch = true
+      let hasMore = true
+
+      const now = Date.now()
+      const week = DAY * 7
+      const events: Array<Record<string, any>> = []
+
+      while (hasMore && fetch) {
+        // fetch events from stripe
+        const batch: Record<string, any> = await this.stripeAPI.events.list({
+          delivery_success: false,
+          limit: 50,
+          starting_after: cursor,
+        })
+
+        // Process batch data
+        const data = batch?.data || []
+        data.map((event: Record<string, any>) => {
+          const time = (event?.created || 0) * 1000
+          if (now - time < week) {
+            events.push(event)
+          } else {
+            fetch = false
+          }
+        })
+
+        // Check should run next batch
+        hasMore = !!batch?.has_more
+        cursor = last(events)?.id
+      }
       return events
     } catch (error) {
       this.handleError(error)

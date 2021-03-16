@@ -6,7 +6,6 @@ import {
   ACCEPTED_UPLOAD_AUDIO_TYPES,
   ACCEPTED_UPLOAD_IMAGE_TYPES,
   ASSET_TYPE,
-  UPLOAD_AUDIO_SIZE_LIMIT,
   UPLOAD_IMAGE_SIZE_LIMIT,
 } from 'common/enums'
 import { UnableToUploadFromUrl, UserInputError } from 'common/errors'

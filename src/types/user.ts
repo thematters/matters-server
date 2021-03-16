@@ -119,7 +119,10 @@ export default /* GraphQL */ `
     followers(input: ConnectionArgs!): UserConnection!
 
     "Users that this user follows."
-    followees(input: ConnectionArgs!): UserConnection!
+    followees(input: ConnectionArgs!): UserConnection! @deprecated(reason: "Move to a new field")
+
+    "Following contents of this user."
+    following: Following!
 
     "Whether current user is following viewer."
     isFollower: Boolean!
@@ -148,19 +151,19 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    followeeArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Comments published by user's followees."
-    followeeComments(input: ConnectionArgs!): CommentConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    followeeComments(input: ConnectionArgs!): CommentConnection!
 
     "Articles that followee donated"
-    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
 
     "Tags that user followed."
-    followingTags(input: ConnectionArgs!): TagConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    followingTags(input: ConnectionArgs!): TagConnection! @deprecated(reason: "Move to a new field")
 
     "Articles has been added into followed tags."
-    followingTagsArticles(input: ConnectionArgs!): ArticleConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
 
     "Global articles sort by publish time."
     newest(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
@@ -334,16 +337,14 @@ export default /* GraphQL */ `
     enable: Boolean!
     email: Boolean!
     mention: Boolean!
-    follow: Boolean!
-    comment: Boolean!
-    appreciation: Boolean!
-    articleSubscription: Boolean!
-    commentSubscribed: Boolean!
-    downstream: Boolean!
-    commentPinned: Boolean!
-    commentVoted: Boolean!
-    officialNotice: Boolean!
-    reportFeedback: Boolean!
+    userNewFollower: Boolean!
+    articleNewComment: Boolean!
+    articleNewAppreciation: Boolean!
+    articleNewSubscription: Boolean!
+    articleSubscribedNewComment: Boolean!
+    articleCommentPinned: Boolean!
+    circleNewFollower: Boolean!
+    circleNewDiscussion: Boolean!
   }
 
   type ReadHistory {
@@ -418,6 +419,12 @@ export default /* GraphQL */ `
   type FolloweeDonatedArticle {
     article: Article! @logCache(type: "${NODE_TYPES.article}")
     followee: User! @logCache(type: "${NODE_TYPES.user}")
+  }
+
+  type Following {
+    circles(input: ConnectionArgs!): CircleConnection!
+    tags(input: ConnectionArgs!): TagConnection!
+    users(input: ConnectionArgs!): UserConnection!
   }
 
   input UserInput {
@@ -547,16 +554,14 @@ export default /* GraphQL */ `
     enable
     email
     mention
-    follow
-    comment
-    appreciation
-    articleSubscription
-    commentSubscribed
-    downstream
-    commentPinned
-    commentVoted
-    officialNotice
-    reportFeedback
+    userNewFollower
+    articleNewComment
+    articleNewAppreciation
+    articleNewSubscription
+    articleSubscribedNewComment
+    articleCommentPinned
+    circleNewFollower
+    circleNewDiscussion
   }
 
   enum UserState {

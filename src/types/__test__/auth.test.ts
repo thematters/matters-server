@@ -42,7 +42,7 @@ const VIEWER_NO_SCOPED_PRIVATE = /* GraphQL */ `
     viewer {
       settings {
         notification {
-          officialNotice
+          mention
         }
       }
     }
@@ -248,7 +248,7 @@ describe('OAuth viewer qeury and mutation', () => {
   })
 
   test('query with no scoped and other private fields', async () => {
-    const { context, query } = await prepare({
+    const { query } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
       scope: queryScopes,
@@ -274,7 +274,7 @@ describe('OAuth viewer qeury and mutation', () => {
   })
 
   test('query nested other private fields', async () => {
-    const { context, query } = await prepare({
+    const { query } = await prepare({
       email: defaultTestUser.email,
       mode: AUTH_MODE.oauth,
       scope: queryScopes,
@@ -401,12 +401,10 @@ describe('General viewer query and mutation', () => {
   })
 
   test('query with private fields', async () => {
-    const { context, query } = await prepare({ email: defaultTestUser.email })
+    const { query } = await prepare({ email: defaultTestUser.email })
     // query no scope field error
     const { data } = await query({ query: VIEWER_NO_SCOPED_PRIVATE })
-    expect(_.get(data, 'viewer.settings.notification.officialNotice')).toBe(
-      true
-    )
+    expect(_.get(data, 'viewer.settings.notification.mention')).toBe(true)
 
     // query other private field error
     const otherUserName = 'test2'
@@ -419,7 +417,7 @@ describe('General viewer query and mutation', () => {
   })
 
   test('query nested other private fields', async () => {
-    const { context, query } = await prepare({
+    const { query } = await prepare({
       email: defaultTestUser.email,
     })
     const errorCase1 = await query({ query: VIEWER_NESTED_OTHER_PARIVATE })
@@ -441,7 +439,7 @@ describe('General viewer query and mutation', () => {
 
   test('level1 mutation', async () => {
     const description = 'foo bar'
-    const { context, mutate } = await prepare({ email: defaultTestUser.email })
+    const { mutate } = await prepare({ email: defaultTestUser.email })
     const { data } = await mutate({
       mutation: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } },
@@ -491,13 +489,11 @@ describe('Admin viewer query and mutation', () => {
   })
 
   test('query with private fields', async () => {
-    const { context, query } = await prepare({ email: adminUser.email })
+    const { query } = await prepare({ email: adminUser.email })
 
     // query no scope field error
     const { data } = await query({ query: VIEWER_NO_SCOPED_PRIVATE })
-    expect(_.get(data, 'viewer.settings.notification.officialNotice')).toBe(
-      true
-    )
+    expect(_.get(data, 'viewer.settings.notification.mention')).toBe(true)
 
     // query other private field error
     const otherUserName = 'test2'
@@ -509,7 +505,7 @@ describe('Admin viewer query and mutation', () => {
   })
 
   test('query nested other private fields', async () => {
-    const { context, query } = await prepare({
+    const { query } = await prepare({
       email: adminUser.email,
     })
 
@@ -528,7 +524,7 @@ describe('Admin viewer query and mutation', () => {
 
   test('level1 mutation', async () => {
     const description = 'foo bar'
-    const { context, mutate } = await prepare({ email: adminUser.email })
+    const { mutate } = await prepare({ email: adminUser.email })
     const { data } = await mutate({
       mutation: UPDATE_USER_INFO_DESCRIPTION,
       variables: { input: { description } },

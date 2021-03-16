@@ -34,12 +34,26 @@ export enum PAYMENT_PROVIDER {
   stripe = 'stripe',
 }
 
-export const PAYMENT_MAXIMUM_AMOUNT = {
-  HKD: 5000,
+export const PAYMENT_MAX_DECIMAL_PLACES = 2
+
+export enum PAYMENT_MINIMAL_ADD_CREDIT_AMOUNT {
+  HKD = 20,
 }
 
-export enum PAYMENT_PAYOUT_MINIMUM_AMOUNT {
+export enum PAYMENT_MAXIMUM_PAYTO_AMOUNT {
+  HKD = 5000,
+}
+
+export enum PAYMENT_MINIMAL_PAYOUT_AMOUNT {
   HKD = 500,
+}
+
+export enum PAYMENT_MINIMAL_CIRCLE_AMOUNT {
+  HKD = 20,
+}
+
+export enum PAYMENT_MAXIMUM_CIRCLE_AMOUNT {
+  HKD = 5000,
 }
 
 export enum PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE {
@@ -120,6 +134,38 @@ export const TransactionRemarkText = {
 
     // fallback
     unknow_error: '未知支付错误',
+  },
+
+  [LANGUAGE.en]: {
+    amount_too_large: 'amount is larger than upper limit',
+    amount_too_small: 'amount is less than lower limit',
+    card_decline_rate_limit_exceeded:
+      'card declined multiple times, please try again in 24 hours',
+    card_declined: 'credit card declined',
+    expired_card: 'credit card expired',
+    incorrect_address: 'wrong billing address',
+    incorrect_cvc: 'incorrect CVC code',
+    invalid_cvc: 'invalid CVC code',
+    incomplete_cvc: 'incomplete CVC code',
+    incorrect_number: 'incorrect card number',
+    incorrect_zip: 'incorrect zip code',
+    incomplete_zip: 'incomplete zip code',
+    invalid_expiry_month: 'invalid expiration month',
+    invalid_expiry_month_past: 'invalid expiration month',
+    invalid_expiry_year: 'invalid expiration year',
+    invalid_expiry_year_past: 'invalid expiration year',
+    incomplete_expiry: 'incomplete expiration month',
+    invalid_number: 'invalid card number',
+    incomplete_number: 'incomplete card number',
+    postal_code_invalid: 'invalid post code',
+    processing_error: 'process error',
+    rate_limit: 'you have reached the rate limit',
+
+    // likecoin
+    unknown_likecoin_failue: 'LIKE Pay payment failed',
+
+    // fallback
+    unknow_error: 'unknown error',
   },
 }
 

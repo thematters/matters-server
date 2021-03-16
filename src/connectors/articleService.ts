@@ -15,6 +15,7 @@ import {
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
+  CIRCLE_STATE,
   COMMENT_TYPE,
   IPFS_PREFIX,
   MATERIALIZED_VIEW,
@@ -119,6 +120,7 @@ export class ArticleService extends BaseService {
     content,
     circleId,
     summary,
+    summaryCustomized,
   }: Record<string, any>) => {
     const userService = new UserService()
     const systemService = new SystemService()
@@ -139,25 +141,26 @@ export class ArticleService extends BaseService {
       title,
       author: { userName, displayName },
       summary,
+      summaryCustomized,
       content,
       prefix: IPFS_PREFIX,
     } as FormatterVars
 
     // paywall info
     if (circleId) {
-      const circleResult = await this.knex('circle')
+      const circle = await this.knex('circle')
         .select('name', 'displayName')
-        .where({ id: circleId })
+        .where({ id: circleId, state: CIRCLE_STATE.active })
+        .first()
+      const circleName = circle?.name
+      const circleDisplayName = circle?.displayName
 
-      if (circleResult) {
-        const [
-          { name: circleName, displayName: circleDisplayName },
-        ] = circleResult
-
+      if (circleName && circleDisplayName) {
         bundleInfo.readMore = {
-          url: `${environment.domain}/~${circleName}`,
+          url: `${environment.siteDomain}/~${circleName}`,
           text: circleDisplayName,
         }
+        bundleInfo.content = ''
       }
     }
     if (paymentPointer) {
@@ -295,8 +298,11 @@ export class ArticleService extends BaseService {
       .select('article.*')
       .max('comment.id', { as: '_comment_id_' })
       .from('comment')
-      .innerJoin(this.table, 'comment.article_id', 'article.id')
-      .where({ 'comment.author_id': authorId })
+      .innerJoin(this.table, 'comment.target_id', 'article.id')
+      .where({
+        'comment.author_id': authorId,
+        'comment.type': COMMENT_TYPE.article,
+      })
       .groupBy('article.id')
       .orderBy('_comment_id_', 'desc')
 

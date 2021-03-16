@@ -3,11 +3,9 @@ import { v4 } from 'uuid'
 
 import {
   PAYMENT_CURRENCY,
-  PAYMENT_MAXIMUM_AMOUNT,
+  PAYMENT_MAXIMUM_PAYTO_AMOUNT,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
-  TRANSACTION_STATE,
-  TRANSACTION_TARGET_TYPE,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -24,8 +22,7 @@ import {
   UserInputError,
   UserNotFoundError,
 } from 'common/errors'
-import { fromGlobalId, numRound } from 'common/utils'
-import { CacheService } from 'connectors'
+import { fromGlobalId } from 'common/utils'
 import { payToQueue } from 'connectors/queue'
 import { MutationToPayToResolver } from 'definitions'
 
@@ -159,14 +156,14 @@ const resolver: MutationToPayToResolver = async (
         )
       }
 
-      if (amount > PAYMENT_MAXIMUM_AMOUNT.HKD) {
+      if (amount > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD) {
         throw new PaymentReachMaximumLimitError('payment reached maximum limit')
       }
 
       const hasPaidAmount = await paymentService.sumTodayDonationTransactions({
         senderId: viewer.id,
       })
-      if (amount + hasPaidAmount > PAYMENT_MAXIMUM_AMOUNT.HKD) {
+      if (amount + hasPaidAmount > PAYMENT_MAXIMUM_PAYTO_AMOUNT.HKD) {
         throw new PaymentReachMaximumLimitError(
           'payment reached daily maximum limit'
         )

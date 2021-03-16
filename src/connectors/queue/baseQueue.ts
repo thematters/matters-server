@@ -1,4 +1,4 @@
-import Queue, { RateLimiter } from 'bull'
+import Queue from 'bull'
 
 import logger from 'common/logger'
 import {
