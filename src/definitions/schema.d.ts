@@ -4105,7 +4105,6 @@ export interface GQLNodeTypeResolver<TParent = any> {
     | 'Tag'
     | 'Circle'
     | 'Draft'
-    | Promise<'Article' | 'User' | 'Comment' | 'Tag' | 'Circle' | 'Draft'>
 }
 export interface GQLUserTypeResolver<TParent = any> {
   id?: UserToIdResolver<TParent>
@@ -5117,25 +5116,6 @@ export interface GQLConnectionTypeResolver<TParent = any> {
     | 'SearchResultConnection'
     | 'OAuthClientConnection'
     | 'SkippedListItemsConnection'
-    | Promise<
-        | 'ArticleConnection'
-        | 'CommentConnection'
-        | 'FolloweeDonatedArticleConnection'
-        | 'TagConnection'
-        | 'UserConnection'
-        | 'CircleConnection'
-        | 'MemberConnection'
-        | 'DraftConnection'
-        | 'ReadHistoryConnection'
-        | 'RecentSearchConnection'
-        | 'AppreciationConnection'
-        | 'NoticeConnection'
-        | 'TransactionConnection'
-        | 'ResponseConnection'
-        | 'SearchResultConnection'
-        | 'OAuthClientConnection'
-        | 'SkippedListItemsConnection'
-      >
 }
 export interface GQLPageInfoTypeResolver<TParent = any> {
   startCursor?: PageInfoToStartCursorResolver<TParent>
@@ -7290,18 +7270,6 @@ export interface GQLNoticeTypeResolver<TParent = any> {
     | 'TagNotice'
     | 'TransactionNotice'
     | 'UserNotice'
-    | Promise<
-        | 'ArticleArticleNotice'
-        | 'ArticleNotice'
-        | 'ArticleTagNotice'
-        | 'CircleNotice'
-        | 'CommentCommentNotice'
-        | 'CommentNotice'
-        | 'OfficialAnnouncementNotice'
-        | 'TagNotice'
-        | 'TransactionNotice'
-        | 'UserNotice'
-      >
 }
 export interface GQLWalletTypeResolver<TParent = any> {
   balance?: WalletToBalanceResolver<TParent>
@@ -7555,7 +7523,6 @@ export interface GQLTransactionTargetTypeResolver<TParent = any> {
     | 'Article'
     | 'Circle'
     | 'Transaction'
-    | Promise<'Article' | 'Circle' | 'Transaction'>
 }
 export interface GQLStripeAccountTypeResolver<TParent = any> {
   id?: StripeAccountToIdResolver<TParent>
@@ -7740,7 +7707,6 @@ export interface GQLResponseTypeResolver<TParent = any> {
   (parent: TParent, context: Context, info: GraphQLResolveInfo):
     | 'Article'
     | 'Comment'
-    | Promise<'Article' | 'Comment'>
 }
 export interface GQLSearchResultConnectionTypeResolver<TParent = any> {
   totalCount?: SearchResultConnectionToTotalCountResolver<TParent>
