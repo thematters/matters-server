@@ -26,6 +26,7 @@ exports.up = async (knex) => {
     t.foreign('user_id').references('id').inTable('user')
     t.foreign('inviter').references('id').inTable('user')
     t.foreign('circle_id').references('id').inTable('circle')
+    t.foreign('coupon_id').references('id').inTable('circle_coupon')
   })
 }
 
