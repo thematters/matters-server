@@ -1,0 +1,27 @@
+const { baseDown } = require('../utils')
+
+const table = 'circle_coupon'
+
+exports.up = async (knex) => {
+  await knex('entity_type').insert({ table })
+  await knex.schema.createTable(table, (t) => {
+    t.bigIncrements('id').primary()
+    t.bigInteger('circle_id').unsigned().notNullable()
+
+    t.enu('duration', ['forever', 'once', 'repeating'])
+      .notNullable()
+      .defaultTo('repeating')
+    t.string('provider_coupon_id').notNullable().unique()
+
+    t.timestamp('created_at').defaultTo(knex.fn.now())
+    t.timestamp('updated_at').defaultTo(knex.fn.now())
+
+    // index
+    t.index(['circle_id'])
+
+    // reference
+    t.foreign('circle_id').references('id').inTable('circle')
+  })
+}
+
+exports.down = baseDown(table)
