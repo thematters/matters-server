@@ -4,6 +4,7 @@ import { v4 } from 'uuid'
 import {
   CACHE_KEYWORD,
   CIRCLE_ACTION,
+  CIRCLE_STATE,
   COMMENT_TYPE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
@@ -20,7 +21,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, sanitize } from 'common/utils'
+import { fromGlobalId, isArticleLimitedFree, sanitize } from 'common/utils'
 import { GQLCommentType, MutationToPutCommentResolver } from 'definitions'
 
 const resolver: MutationToPutCommentResolver = async (
@@ -43,7 +44,7 @@ const resolver: MutationToPutCommentResolver = async (
     viewer,
     dataSources: {
       atomService,
-      systemService,
+      paymentService,
       commentService,
       articleService,
       notificationService,
@@ -170,28 +171,43 @@ const resolver: MutationToPutCommentResolver = async (
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
+  // only allow the owner and members to comment on circle
   if (circle && !isTargetAuthor) {
-    const records = await knex
-      .select()
-      .from('circle_subscription_item as csi')
-      .join('circle_price', 'circle_price.id', 'csi.price_id')
-      .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
-      .where({
-        'csi.user_id': viewer.id,
-        'csi.archived': false,
-        'circle_price.circle_id': circle.id,
-        'circle_price.state': PRICE_STATE.active,
-      })
-      .whereIn('cs.state', [
-        SUBSCRIPTION_STATE.active,
-        SUBSCRIPTION_STATE.trialing,
-      ])
-    const isCircleMember = records && records.length > 0
+    const isCircleMember = await paymentService.isCircleMember({
+      userId: viewer.id,
+      circleId: circle.id,
+    })
     const isReplyToBroadcast =
       replyToComment?.type === COMMENT_TYPE.circleBroadcast
 
     if (!isCircleMember || (isCircleBroadcast && !isReplyToBroadcast)) {
       throw new ForbiddenError('only circle members have the permission')
+    }
+  }
+
+  // only allow the author, members,
+  // or within free limited period to comment on article
+  if (article && !isTargetAuthor) {
+    const articleCircle = await knex
+      .select('article_circle.*')
+      .from('article_circle')
+      .join('circle', 'article_circle.circle_id', 'circle.id')
+      .where({
+        'article_circle.article_id': article.id,
+        'circle.state': CIRCLE_STATE.active,
+      })
+      .first()
+
+    if (articleCircle) {
+      const isCircleMember = await paymentService.isCircleMember({
+        userId: viewer.id,
+        circleId: articleCircle.circleId,
+      })
+      const isLimitedFree = isArticleLimitedFree(articleCircle.createdAt)
+
+      if (!isCircleMember && !isLimitedFree) {
+        throw new ForbiddenError('only circle members have the permission')
+      }
     }
   }
 
@@ -373,7 +389,7 @@ const resolver: MutationToPutCommentResolver = async (
     }
 
     // notify cirlce members and followers
-    if (circle && isCircleBroadcast) {
+    if (circle && isCircleBroadcast && isLevel1Comment) {
       // retrieve circle members and followers
       const members = await knex
         .from('circle_subscription_item as csi')
@@ -441,6 +457,8 @@ const resolver: MutationToPutCommentResolver = async (
 
   // invalidate extra nodes
   newComment[CACHE_KEYWORD] = [
+    parentComment ? { id: parentComment.id, type: NODE_TYPES.comment } : {},
+    replyToComment ? { id: replyToComment.id, type: NODE_TYPES.comment } : {},
     {
       id: article ? article.id : circle.id,
       type: article ? NODE_TYPES.article : NODE_TYPES.circle,

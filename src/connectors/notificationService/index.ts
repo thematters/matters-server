@@ -28,9 +28,9 @@ export class NotificationService extends BaseService {
     this.pubsub = pubsub
   }
 
-  trigger = (params: NotificationPrarms) => {
+  trigger = async (params: NotificationPrarms) => {
     try {
-      this.__trigger(params)
+      await this.__trigger(params)
     } catch (e) {
       logger.error('[Notification:trigger]', e)
     }
