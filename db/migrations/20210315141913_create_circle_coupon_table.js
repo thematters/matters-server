@@ -7,10 +7,7 @@ exports.up = async (knex) => {
   await knex.schema.createTable(table, (t) => {
     t.bigIncrements('id').primary()
     t.bigInteger('circle_id').unsigned().notNullable()
-
-    t.enu('duration', ['forever', 'once', 'repeating'])
-      .notNullable()
-      .defaultTo('repeating')
+    t.integer('duration_in_months').defaultTo(1)
     t.string('provider_coupon_id').notNullable().unique()
 
     t.timestamp('created_at').defaultTo(knex.fn.now())

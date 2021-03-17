@@ -475,6 +475,9 @@ type Circle implements Node {
   """Setting of this Circle."""
   setting: CircleSetting!
 
+  """Invitations belonged to this Circle."""
+  invitations(input: ConnectionArgs!): InvitationConnection!
+
   """Comments broadcasted by Circle owner."""
   broadcast(input: ConnectionArgs!): CommentConnection!
 
@@ -920,6 +923,43 @@ input FrequentSearchInput {
 enum GrantType {
   authorization_code
   refresh_token
+}
+
+type Invitation {
+  """Unique ID."""
+  id: ID!
+
+  """Email or invitee."""
+  invitee: User!
+
+  """Creator of this invitation."""
+  inviter: User!
+
+  """Invitation of current Circle."""
+  circle: Circle!
+
+  """Free period of this invitation."""
+  freePeriod: PositiveInt!
+
+  """Created time."""
+  createdAt: DateTime!
+
+  """Sent time."""
+  sentAt: DateTime!
+
+  """Determine it is accepted or not."""
+  accepted: Boolean!
+}
+
+type InvitationConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [InvitationEdge!]
+}
+
+type InvitationEdge {
+  cursor: String!
+  node: Invitation!
 }
 
 scalar JSON

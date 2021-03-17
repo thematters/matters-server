@@ -10,8 +10,6 @@ exports.up = async (knex) => {
     t.string('email')
     t.bigInteger('inviter').unsigned().notNullable()
     t.bigInteger('circle_id').unsigned().notNullable()
-
-    t.integer('free_period').defaultTo(1)
     t.boolean('accepted').defaultTo(false)
 
     t.timestamp('created_at').defaultTo(knex.fn.now())
