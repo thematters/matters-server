@@ -1,5 +1,6 @@
 import _get from 'lodash/get'
 
+import { toGlobalId } from 'common/utils'
 import { GQLCommentType } from 'definitions'
 
 import { testClient } from './utils'
@@ -118,6 +119,60 @@ const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
           }
         }
       }
+    }
+  }
+`
+
+const QUERY_VIEWER_CIRCLE_INVITATIONS = /* GraphQL*/ `
+  query {
+    viewer {
+      ownCircles {
+        id
+        invitations(input: { first: null }) {
+          totalCount
+          edges {
+            node {
+              id
+              invitee {
+                ... on User {
+                  id
+                }
+                ... on Person {
+                  email
+                }
+              }
+              inviter {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+const CIRCLE_INVITE = /* GraphQL*/ `
+  mutation($input: InviteCircleInput!) {
+    invite(input: $input) {
+      id
+      circle {
+        id
+        name
+      }
+      invitee {
+        ... on User {
+          id
+        }
+        ... on Person {
+          email
+        }
+      }
+      inviter {
+        id
+      }
+      freePeriod
+      accepted
     }
   }
 `
@@ -404,5 +459,41 @@ describe('circle CRUD', () => {
     expect(_get(retrieveData, 'data.circle.pinnedBroadcast.0.id')).toBe(
       commentId
     )
+  })
+})
+
+describe('circle invitation management', () => {
+  // shared setting
+  // const errorPath = 'errors.0.extensions.code'
+  const userClient = { isAuth: true, isAdmin: false }
+  // const adminClient = { isAuth: true, isAdmin: true }
+
+  test('create invitation', async () => {
+    const { query, mutate } = await testClient(userClient)
+    const { data } = await query({
+      query: QUERY_VIEWER_CIRCLE_INVITATIONS,
+    })
+
+    const circle = _get(data, 'viewer.ownCircles.0')
+    expect(circle.invitations.totalCount).toBe(0)
+
+    const inviteData1 = await mutate({
+      mutation: CIRCLE_INVITE,
+      variables: {
+        input: {
+          invitees: [
+            { id: toGlobalId({ type: 'User', id: 3 }), email: null },
+            { id: null, email: 'someone@matters.news' },
+          ],
+          freePeriod: 3,
+          circleId: circle.id
+        }
+      }
+    })
+    expect(_get(inviteData1, 'data.invite').length).toBe(2)
+    expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(3)
+    expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(toGlobalId({ type: 'User', id: 3 }))
+    expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(3)
+    expect(_get(inviteData1, 'data.invite.1.invitee.email')).toBe('someone@matters.news')
   })
 })
