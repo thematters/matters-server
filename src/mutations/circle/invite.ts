@@ -1,4 +1,4 @@
-import { USER_STATE } from 'common/enums'
+import { CIRCLE_STATE, USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
   EntityNotFoundError,
@@ -33,9 +33,10 @@ const resolver: MutationToInviteResolver = async (
     throw new UserInputError('free period is invalid')
   }
 
-  const circle = await atomService.findUnique({
+  const circleDbId = fromGlobalId(circleId).id
+  const circle = await atomService.findFirst({
     table: 'circle',
-    where: { id: circleId },
+    where: { id: circleDbId, state: CIRCLE_STATE.active },
   })
 
   if (!circle) {
@@ -48,7 +49,7 @@ const resolver: MutationToInviteResolver = async (
 
   let coupon = await atomService.findFirst({
     table: 'circle_coupon',
-    where: { circleId, durationInMonths: freePeriod },
+    where: { circleId: circleDbId, durationInMonths: freePeriod },
   })
 
   // check coupon is existed, if not create Stripe and matters coupon
@@ -72,7 +73,7 @@ const resolver: MutationToInviteResolver = async (
       },
     })
 
-    if (coupon) {
+    if (!coupon) {
       throw new ServerError('failed to create matters coupon')
     }
   }
@@ -85,7 +86,7 @@ const resolver: MutationToInviteResolver = async (
 
     let invitation = await atomService.findFirst({
       table: 'circle_invitation',
-      where: { circleId: circle.id, email, userId },
+      where: { circleId: circle.id, email, userId, accepted: false },
     })
 
     // if not existed, create one

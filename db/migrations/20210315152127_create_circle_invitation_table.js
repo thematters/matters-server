@@ -18,6 +18,8 @@ exports.up = async (knex) => {
     t.bigInteger('coupon_id').unsigned().notNullable()
 
     // index
+    t.index('user_id')
+    t.index('email')
     t.index(['inviter', 'circle_id'])
 
     // reference
