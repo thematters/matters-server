@@ -1,9 +1,9 @@
 import { InvitationToCircleResolver } from 'definitions'
 
 const resolver: InvitationToCircleResolver = async (
-  { circle_id },
+  { circleId },
   _,
   { dataSources: { atomService } }
-) => (circle_id ? atomService.circleIdLoader.load(circle_id) : null)
+) => (circleId ? atomService.circleIdLoader.load(circleId) : null)
 
 export default resolver

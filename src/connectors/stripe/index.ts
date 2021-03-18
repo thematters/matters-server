@@ -424,7 +424,7 @@ class StripeService {
         },
         duration: 'repeating',
         duration_in_months: months,
-        name: `coupon-${productId}-${months}`,
+        name: `${productId}-${months}months-coupon`,
         percent_off: percentOff,
       })
     } catch (error) {

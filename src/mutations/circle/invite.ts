@@ -21,7 +21,11 @@ const resolver: MutationToInviteResolver = async (
     throw new AuthenticationError('visitor has no permisson')
   }
 
-  if (USER_STATE.active !== viewer.state) {
+  if (
+    [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
+      viewer.state
+    )
+  ) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
@@ -33,9 +37,10 @@ const resolver: MutationToInviteResolver = async (
     throw new UserInputError('free period is invalid')
   }
 
+  const circleDbId = fromGlobalId(circleId).id
   const circle = await atomService.findUnique({
     table: 'circle',
-    where: { id: circleId },
+    where: { id: circleDbId },
   })
 
   if (!circle) {
@@ -48,7 +53,7 @@ const resolver: MutationToInviteResolver = async (
 
   let coupon = await atomService.findFirst({
     table: 'circle_coupon',
-    where: { circleId, durationInMonths: freePeriod },
+    where: { circleId: circleDbId, durationInMonths: freePeriod },
   })
 
   // check coupon is existed, if not create Stripe and matters coupon
@@ -56,7 +61,7 @@ const resolver: MutationToInviteResolver = async (
     const stripeCoupon = await paymentService.stripe.createCoupon({
       months: freePeriod,
       percentOff: 100,
-      productId: circle.provider_product_id,
+      productId: circle.providerProductId,
     })
 
     if (!stripeCoupon) {
@@ -72,7 +77,7 @@ const resolver: MutationToInviteResolver = async (
       },
     })
 
-    if (coupon) {
+    if (!coupon) {
       throw new ServerError('failed to create matters coupon')
     }
   }
