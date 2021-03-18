@@ -57,7 +57,7 @@ const resolver: MutationToInviteResolver = async (
     const stripeCoupon = await paymentService.stripe.createCoupon({
       months: freePeriod,
       percentOff: 100,
-      productId: circle.provider_product_id,
+      productId: circle.providerProductId,
     })
 
     if (!stripeCoupon) {
