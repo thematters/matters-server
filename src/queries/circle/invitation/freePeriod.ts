@@ -7,7 +7,7 @@ const resolver: InvitationToFreePeriodResolver = async (
 ) => {
   const coupon = await atomService.findUnique({
     table: 'circle_coupon',
-    where: { id: couponId }
+    where: { id: couponId },
   })
   return coupon.durationInMonths
 }
