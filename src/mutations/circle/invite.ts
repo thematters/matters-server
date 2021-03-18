@@ -111,7 +111,6 @@ const resolver: MutationToInviteResolver = async (
         data: {
           couponId: coupon.id,
           sentAt: new Date(),
-          updatedAt: new Date(),
         },
       })
     }
