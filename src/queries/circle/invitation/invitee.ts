@@ -1,7 +1,7 @@
 import { InvitationToInviteeResolver } from 'definitions'
 
 const resolver: InvitationToInviteeResolver = async (
-  { email, user_id },
+  { email, userId },
   _,
   { dataSources: { atomService } }
 ) => {
@@ -9,7 +9,7 @@ const resolver: InvitationToInviteeResolver = async (
     return { __type: 'Person', email }
   }
 
-  const user = await atomService.userIdLoader.load(user_id)
+  const user = await atomService.userIdLoader.load(userId)
   if (user) {
     return { __type: 'User', ...user }
   }
