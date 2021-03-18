@@ -486,14 +486,18 @@ describe('circle invitation management', () => {
             { id: null, email: 'someone@matters.news' },
           ],
           freePeriod: 3,
-          circleId: circle.id
-        }
-      }
+          circleId: circle.id,
+        },
+      },
     })
     expect(_get(inviteData1, 'data.invite').length).toBe(2)
     expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(3)
-    expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(toGlobalId({ type: 'User', id: 3 }))
+    expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(
+      toGlobalId({ type: 'User', id: 3 })
+    )
     expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(3)
-    expect(_get(inviteData1, 'data.invite.1.invitee.email')).toBe('someone@matters.news')
+    expect(_get(inviteData1, 'data.invite.1.invitee.email')).toBe(
+      'someone@matters.news'
+    )
   })
 })
