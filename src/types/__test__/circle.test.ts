@@ -464,9 +464,16 @@ describe('circle CRUD', () => {
 
 describe('circle invitation management', () => {
   // shared setting
-  // const errorPath = 'errors.0.extensions.code'
+  const errorPath = 'errors.0.extensions.code'
   const userClient = { isAuth: true, isAdmin: false }
-  // const adminClient = { isAuth: true, isAdmin: true }
+  const adminClient = { isAuth: true, isAdmin: true }
+
+  // shared invitee
+  const inviteeId = toGlobalId({ type: 'User', id: 3 })
+  const invitees = [
+    { id: inviteeId, email: null },
+    { id: null, email: 'someone@matters.news' },
+  ]
 
   test('create invitation', async () => {
     const { query, mutate } = await testClient(userClient)
@@ -474,17 +481,16 @@ describe('circle invitation management', () => {
       query: QUERY_VIEWER_CIRCLE_INVITATIONS,
     })
 
+    // check current invitations
     const circle = _get(data, 'viewer.ownCircles.0')
     expect(circle.invitations.totalCount).toBe(0)
 
+    // invite users
     const inviteData1 = await mutate({
       mutation: CIRCLE_INVITE,
       variables: {
         input: {
-          invitees: [
-            { id: toGlobalId({ type: 'User', id: 3 }), email: null },
-            { id: null, email: 'someone@matters.news' },
-          ],
+          invitees,
           freePeriod: 3,
           circleId: circle.id,
         },
@@ -492,12 +498,63 @@ describe('circle invitation management', () => {
     })
     expect(_get(inviteData1, 'data.invite').length).toBe(2)
     expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(3)
-    expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(
-      toGlobalId({ type: 'User', id: 3 })
-    )
+    expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(inviteeId)
     expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(3)
     expect(_get(inviteData1, 'data.invite.1.invitee.email')).toBe(
       'someone@matters.news'
     )
+
+    // re-invite users with different duration
+    const inviteData2 = await mutate({
+      mutation: CIRCLE_INVITE,
+      variables: {
+        input: {
+          invitees,
+          freePeriod: 1,
+          circleId: circle.id,
+        },
+      },
+    })
+    expect(_get(inviteData2, 'data.invite').length).toBe(2)
+    expect(_get(inviteData2, 'data.invite.0.freePeriod')).toBe(1)
+    expect(_get(inviteData2, 'data.invite.1.freePeriod')).toBe(1)
+
+    // test validator
+    const inviteData3 = await mutate({
+      mutation: CIRCLE_INVITE,
+      variables: {
+        input: {
+          invitees,
+          freePeriod: 18,
+          circleId: circle.id,
+        },
+      },
+    })
+    expect(_get(inviteData3, errorPath)).toBe('BAD_USER_INPUT')
+
+    const inviteData4 = await mutate({
+      mutation: CIRCLE_INVITE,
+      variables: {
+        input: {
+          invitees: [],
+          freePeriod: 1,
+          circleId: circle.id,
+        },
+      },
+    })
+    expect(_get(inviteData4, errorPath)).toBe('BAD_USER_INPUT')
+
+    const { mutate: adminMutate } = await testClient(adminClient)
+    const inviteData5 = await adminMutate({
+      mutation: CIRCLE_INVITE,
+      variables: {
+        input: {
+          invitees,
+          freePeriod: 1,
+          circleId: circle.id,
+        },
+      },
+    })
+    expect(_get(inviteData5, errorPath)).toBe('FORBIDDEN')
   })
 })
