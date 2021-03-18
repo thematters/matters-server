@@ -1,4 +1,4 @@
-import { USER_STATE } from 'common/enums'
+import { CIRCLE_STATE, USER_STATE } from 'common/enums'
 import {
   AuthenticationError,
   EntityNotFoundError,
@@ -38,9 +38,9 @@ const resolver: MutationToInviteResolver = async (
   }
 
   const circleDbId = fromGlobalId(circleId).id
-  const circle = await atomService.findUnique({
+  const circle = await atomService.findFirst({
     table: 'circle',
-    where: { id: circleDbId },
+    where: { id: circleDbId, state: CIRCLE_STATE.active },
   })
 
   if (!circle) {
@@ -90,7 +90,7 @@ const resolver: MutationToInviteResolver = async (
 
     let invitation = await atomService.findFirst({
       table: 'circle_invitation',
-      where: { circleId: circle.id, email, userId },
+      where: { circleId: circle.id, email, userId, accepted: false },
     })
 
     // if not existed, create one
@@ -115,7 +115,6 @@ const resolver: MutationToInviteResolver = async (
         data: {
           couponId: coupon.id,
           sentAt: new Date(),
-          updatedAt: new Date(),
         },
       })
     }
