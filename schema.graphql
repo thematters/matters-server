@@ -929,8 +929,8 @@ type Invitation {
   """Unique ID."""
   id: ID!
 
-  """Email or invitee."""
-  invitee: User!
+  """Target person of this invitation."""
+  invitee: Invitee!
 
   """Creator of this invitation."""
   inviter: User!
@@ -961,6 +961,19 @@ type InvitationEdge {
   cursor: String!
   node: Invitation!
 }
+
+input InviteCircleInput {
+  invitees: [InviteCircleInvitee!]
+  freePeriod: PositiveInt!
+  circleId: ID!
+}
+
+input InviteCircleInvitee {
+  id: ID
+  email: String
+}
+
+union Invitee = Person | User
 
 scalar JSON
 
@@ -1081,6 +1094,9 @@ type Mutation {
 
   """Add or remove Circle's articles"""
   putCircleArticles(input: PutCircleArticlesInput!): Circle!
+
+  """Invite others to join circle"""
+  invite(input: InviteCircleInput!): [Invitation!]
 
   """Publish or update a comment."""
   putComment(input: PutCommentInput!): Comment!
@@ -1391,6 +1407,10 @@ type PayToResult {
 
   """Only available when paying with LIKE."""
   redirectUrl: URL
+}
+
+type Person {
+  email: Email!
 }
 
 input PinCommentInput {

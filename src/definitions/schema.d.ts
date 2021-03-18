@@ -1261,9 +1261,9 @@ export interface GQLInvitation {
   id: string
 
   /**
-   * Email or invitee.
+   * Target person of this invitation.
    */
-  invitee: GQLUser
+  invitee: GQLInvitee
 
   /**
    * Creator of this invitation.
@@ -1294,6 +1294,21 @@ export interface GQLInvitation {
    * Determine it is accepted or not.
    */
   accepted: boolean
+}
+
+export type GQLInvitee = GQLPerson | GQLUser
+
+/** Use this to resolve union type Invitee */
+export type GQLPossibleInviteeTypeNames = 'Person' | 'User'
+
+export interface GQLInviteeNameMap {
+  Invitee: GQLInvitee
+  Person: GQLPerson
+  User: GQLUser
+}
+
+export interface GQLPerson {
+  email: GQLEmail
 }
 
 export type GQLPositiveInt = any
@@ -2218,6 +2233,11 @@ export interface GQLMutation {
   putCircleArticles: GQLCircle
 
   /**
+   * Invite others to join circle
+   */
+  invite?: Array<GQLInvitation>
+
+  /**
    * Publish or update a comment.
    */
   putComment: GQLComment
@@ -2601,6 +2621,17 @@ export interface GQLPutCircleArticlesInput {
 export const enum GQLPutCircleArticlesType {
   add = 'add',
   remove = 'remove',
+}
+
+export interface GQLInviteCircleInput {
+  invitees?: Array<GQLInviteCircleInvitee>
+  freePeriod: GQLPositiveInt
+  circleId: string
+}
+
+export interface GQLInviteCircleInvitee {
+  id?: string
+  email?: string
 }
 
 export interface GQLPutCommentInput {
@@ -3409,6 +3440,11 @@ export interface GQLResolver {
   InvitationConnection?: GQLInvitationConnectionTypeResolver
   InvitationEdge?: GQLInvitationEdgeTypeResolver
   Invitation?: GQLInvitationTypeResolver
+  Invitee?: {
+    __resolveType: GQLInviteeTypeResolver
+  }
+
+  Person?: GQLPersonTypeResolver
   PositiveInt?: GraphQLScalarType
   DraftConnection?: GQLDraftConnectionTypeResolver
   DraftEdge?: GQLDraftEdgeTypeResolver
@@ -6577,6 +6613,25 @@ export interface InvitationToAcceptedResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface GQLInviteeTypeResolver<TParent = any> {
+  (parent: TParent, context: Context, info: GraphQLResolveInfo):
+    | 'Person'
+    | 'User'
+    | Promise<'Person' | 'User'>
+}
+export interface GQLPersonTypeResolver<TParent = any> {
+  email?: PersonToEmailResolver<TParent>
+}
+
+export interface PersonToEmailResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLDraftConnectionTypeResolver<TParent = any> {
   totalCount?: DraftConnectionToTotalCountResolver<TParent>
   pageInfo?: DraftConnectionToPageInfoResolver<TParent>
@@ -8527,6 +8582,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   subscribeCircle?: MutationToSubscribeCircleResolver<TParent>
   unsubscribeCircle?: MutationToUnsubscribeCircleResolver<TParent>
   putCircleArticles?: MutationToPutCircleArticlesResolver<TParent>
+  invite?: MutationToInviteResolver<TParent>
   putComment?: MutationToPutCommentResolver<TParent>
   deleteComment?: MutationToDeleteCommentResolver<TParent>
   togglePinComment?: MutationToTogglePinCommentResolver<TParent>
@@ -8891,6 +8947,18 @@ export interface MutationToPutCircleArticlesResolver<
   (
     parent: TParent,
     args: MutationToPutCircleArticlesArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToInviteArgs {
+  input: GQLInviteCircleInput
+}
+export interface MutationToInviteResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: MutationToInviteArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

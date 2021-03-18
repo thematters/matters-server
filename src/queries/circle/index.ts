@@ -2,7 +2,11 @@ import { toGlobalId } from 'common/utils'
 import {
   GQLCircleSettingTypeResolver,
   GQLCircleTypeResolver,
+  GQLInvitationTypeResolver,
+  GQLInviteeTypeResolver,
   GQLMemberTypeResolver,
+  GQLPersonTypeResolver,
+  GQLPossibleInviteeTypeNames,
   GQLPriceTypeResolver,
   GQLQueryTypeResolver,
 } from 'definitions'
@@ -10,6 +14,10 @@ import {
 import avatar from './avatar'
 import cover from './cover'
 import followers from './followers'
+import invitationCircle from './invitation/circle'
+import invitee from './invitation/invitee'
+import inviter from './invitation/inviter'
+import invitations from './invitations'
 import isFollower from './isFollower'
 import isMember from './isMember'
 import memberPrice from './member/price'
@@ -30,6 +38,11 @@ const circle: {
   CircleSetting: GQLCircleSettingTypeResolver
   Member: GQLMemberTypeResolver
   Price: GQLPriceTypeResolver
+  Invitation: GQLInvitationTypeResolver
+  Invitee: {
+    __resolveType: GQLInviteeTypeResolver
+  }
+  Person: GQLPersonTypeResolver
 } = {
   Query: {
     circle: rootCircle,
@@ -47,6 +60,7 @@ const circle: {
     isFollower,
     isMember,
     setting: (root: any) => root,
+    invitations,
   },
 
   CircleSetting: {
@@ -62,6 +76,22 @@ const circle: {
   Price: {
     id: ({ id }) => (id ? toGlobalId({ type: 'Price', id }) : ''),
     circle: priceCircle,
+  },
+
+  Invitation: {
+    id: ({ id }) => (id ? toGlobalId({ type: 'Invitation', id }) : ''),
+    invitee,
+    inviter,
+    circle: invitationCircle,
+  },
+
+  Invitee: {
+    __resolveType: ({ __type }: { __type: GQLPossibleInviteeTypeNames }) =>
+      __type,
+  },
+
+  Person: {
+    email: ({ email }) => email,
   },
 }
 
