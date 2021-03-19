@@ -622,6 +622,7 @@ export class PaymentService extends BaseService {
 
           targetType: entityTypeId,
           targetId: p.id,
+          remark: `stripe:${providerTxId}`,
         })
       }
       await trx.commit()
