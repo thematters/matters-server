@@ -21,7 +21,11 @@ const resolver: MutationToInviteResolver = async (
     throw new AuthenticationError('visitor has no permisson')
   }
 
-  if (USER_STATE.active !== viewer.state) {
+  if (
+    [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
+      viewer.state
+    )
+  ) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
