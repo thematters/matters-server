@@ -509,15 +509,22 @@ describe('circle invitation management', () => {
       mutation: CIRCLE_INVITE,
       variables: {
         input: {
-          invitees,
+          invitees: [
+            ...invitees,
+            { id: null, email: 'someone2@matters.news' }
+          ],
           freePeriod: 1,
           circleId: circle.id,
         },
       },
     })
-    expect(_get(inviteData2, 'data.invite').length).toBe(2)
+    expect(_get(inviteData2, 'data.invite').length).toBe(3)
     expect(_get(inviteData2, 'data.invite.0.freePeriod')).toBe(1)
     expect(_get(inviteData2, 'data.invite.1.freePeriod')).toBe(1)
+    expect(_get(inviteData2, 'data.invite.2.freePeriod')).toBe(1)
+    expect(_get(inviteData1, 'data.invite.2.invitee.email')).toBe(
+      'someone2@matters.news'
+    )
 
     // test validator
     const inviteData3 = await mutate({
