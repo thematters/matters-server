@@ -475,6 +475,9 @@ type Circle implements Node {
   """Setting of this Circle."""
   setting: CircleSetting!
 
+  """Invitations belonged to this Circle."""
+  invitations(input: ConnectionArgs!): InvitationConnection!
+
   """Comments broadcasted by Circle owner."""
   broadcast(input: ConnectionArgs!): CommentConnection!
 
@@ -922,6 +925,56 @@ enum GrantType {
   refresh_token
 }
 
+type Invitation {
+  """Unique ID."""
+  id: ID!
+
+  """Target person of this invitation."""
+  invitee: Invitee!
+
+  """Creator of this invitation."""
+  inviter: User!
+
+  """Invitation of current Circle."""
+  circle: Circle!
+
+  """Free period of this invitation."""
+  freePeriod: PositiveInt!
+
+  """Created time."""
+  createdAt: DateTime!
+
+  """Sent time."""
+  sentAt: DateTime!
+
+  """Determine it is accepted or not."""
+  accepted: Boolean!
+}
+
+type InvitationConnection implements Connection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [InvitationEdge!]
+}
+
+type InvitationEdge {
+  cursor: String!
+  node: Invitation!
+}
+
+input InviteCircleInput {
+  invitees: [InviteCircleInvitee!]
+  freePeriod: PositiveInt!
+  circleId: ID!
+}
+
+input InviteCircleInvitee {
+  id: ID
+  email: String
+}
+
+union Invitee = Person | User
+
 scalar JSON
 
 type Liker {
@@ -1041,6 +1094,9 @@ type Mutation {
 
   """Add or remove Circle's articles"""
   putCircleArticles(input: PutCircleArticlesInput!): Circle!
+
+  """Invite others to join circle"""
+  invite(input: InviteCircleInput!): [Invitation!]
 
   """Publish or update a comment."""
   putComment(input: PutCommentInput!): Comment!
@@ -1351,6 +1407,10 @@ type PayToResult {
 
   """Only available when paying with LIKE."""
   redirectUrl: URL
+}
+
+type Person {
+  email: Email!
 }
 
 input PinCommentInput {

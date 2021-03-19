@@ -404,6 +404,33 @@ class StripeService {
       this.handleError(error)
     }
   }
+
+  /**
+   * Create a coupon for a specific product.
+   */
+  createCoupon = async ({
+    months,
+    percentOff,
+    productId,
+  }: {
+    months: number
+    percentOff: number
+    productId: string
+  }) => {
+    try {
+      return await this.stripeAPI.coupons.create({
+        applies_to: {
+          products: [productId],
+        },
+        duration: 'repeating',
+        duration_in_months: months,
+        name: `${productId}-${months}months-coupon`,
+        percent_off: percentOff,
+      })
+    } catch (error) {
+      this.handleError(error)
+    }
+  }
 }
 
 export const stripe = new StripeService()
