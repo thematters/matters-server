@@ -53,7 +53,13 @@ const resolver: MutationToTogglePinCommentResolver = async (
   // determine action
   let action: 'pin' | 'unpin'
   if (enabled === undefined) {
-    const pinned = await commentService.findPinned(dbId)
+    const pinned = await atomService.findFirst({
+      table: 'comment',
+      where: {
+        id: dbId,
+        pinned: true,
+      },
+    })
     action = !!pinned ? 'unpin' : 'pin'
   } else {
     action = enabled ? 'pin' : 'unpin'
@@ -62,6 +68,7 @@ const resolver: MutationToTogglePinCommentResolver = async (
   // run action
   let pinnedComment
   if (action === 'pin') {
+    // limits on article
     if (article) {
       const pinLeft = await commentService.pinLeftByArticle(article.id)
       if (pinLeft <= 0) {
@@ -69,9 +76,31 @@ const resolver: MutationToTogglePinCommentResolver = async (
       }
     }
 
-    pinnedComment = await commentService.togglePinned({
-      commentId: dbId,
-      pinned: true,
+    // unpin all circle broadcast first
+    if (circle) {
+      await atomService.update({
+        table: 'comment',
+        where: {
+          targetId: circle.id,
+          type: COMMENT_TYPE.circleBroadcast,
+        },
+        data: {
+          pinned: false,
+          updatedAt: new Date(),
+          pinnedAt: null,
+        },
+      })
+    }
+
+    // pin target comment
+    pinnedComment = await atomService.update({
+      table: 'comment',
+      where: { id: dbId },
+      data: {
+        pinned: true,
+        updatedAt: new Date(),
+        pinnedAt: new Date(),
+      },
     })
 
     // trigger notifications
@@ -88,9 +117,14 @@ const resolver: MutationToTogglePinCommentResolver = async (
       ],
     })
   } else {
-    pinnedComment = commentService.togglePinned({
-      commentId: dbId,
-      pinned: false,
+    pinnedComment = await atomService.update({
+      table: 'comment',
+      where: { id: dbId },
+      data: {
+        pinned: false,
+        updatedAt: new Date(),
+        pinnedAt: null,
+      },
     })
   }
 

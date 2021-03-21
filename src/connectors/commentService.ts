@@ -266,33 +266,6 @@ export class CommentService extends BaseService {
    *              Pin              *
    *                               *
    *********************************/
-
-  /**
-   * Pin or Unpin a comment
-   */
-  togglePinned = async ({
-    commentId,
-    pinned,
-  }: {
-    commentId: string
-    pinned: boolean
-  }) =>
-    this.baseUpdate(commentId, {
-      pinned,
-      updatedAt: new Date(),
-      pinnedAt: pinned ? new Date() : null,
-    })
-
-  /**
-   * Find a pinned comment by a given comment id
-   */
-  findPinned = async (commentId: string) =>
-    this.knex
-      .select()
-      .from(this.table)
-      .where({ id: commentId, pinned: true })
-      .first()
-
   /**
    * Find pinned comments by a given article id.
    */

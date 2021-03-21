@@ -1,3 +1,4 @@
+import invite from './invite'
 import putCircle from './putCircle'
 import putCircleArticles from './putCircleArticles'
 import subscribeCircle from './subscribeCircle'
@@ -11,5 +12,6 @@ export default {
     toggleFollowCircle,
     unsubscribeCircle,
     putCircleArticles,
+    invite,
   },
 }
