@@ -85,6 +85,7 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.circle_new_subscriber:
       case DB_NOTICE_TYPE.circle_new_unsubscriber:
       case DB_NOTICE_TYPE.circle_new_broadcast:
+      case DB_NOTICE_TYPE.circle_invitation:
         return {
           type: params.event,
           recipientId: params.recipientId,
@@ -176,7 +177,6 @@ export class NotificationService extends BaseService {
     }
 
     const noticeParams = await this.getNoticeParams(params, recipient.language)
-
     if (!noticeParams) {
       return
     }

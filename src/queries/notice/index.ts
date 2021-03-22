@@ -102,9 +102,11 @@ const notice: {
         payment_received_donation: NOTICE_TYPE.TransactionNotice,
         payment_payout: NOTICE_TYPE.TransactionNotice,
 
+        // circle
         circle_new_follower: NOTICE_TYPE.CircleNotice,
         circle_new_subscriber: NOTICE_TYPE.CircleNotice,
         circle_new_unsubscriber: NOTICE_TYPE.CircleNotice,
+        circle_invitation: NOTICE_TYPE.CircleNotice,
 
         // official
         official_announcement: NOTICE_TYPE.OfficialAnnouncementNotice,
