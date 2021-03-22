@@ -70,7 +70,6 @@ export const generatePasswordhash = (password: string) =>
 // https://github.com/Urigo/graphql-scalars#url
 export const resolveUrl = (url: any) => _.get(url, 'href')
 
-
 /**
  * Generate redirect link for registeration
  */

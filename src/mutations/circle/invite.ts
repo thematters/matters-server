@@ -7,7 +7,11 @@ import {
   ServerError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, generateRegisterRedirectUrl, makeUserName } from 'common/utils'
+import {
+  fromGlobalId,
+  generateRegisterRedirectUrl,
+  makeUserName,
+} from 'common/utils'
 import { MutationToInviteResolver } from 'definitions'
 
 const months = [1, 3, 6, 12]
@@ -100,7 +104,7 @@ const resolver: MutationToInviteResolver = async (
     if (email) {
       const isSkipped = await atomService.findFirst({
         table: 'blocklist',
-        where: { type: 'email', value: email, archived: false }
+        where: { type: 'email', value: email, archived: false },
       })
 
       if (isSkipped) {
