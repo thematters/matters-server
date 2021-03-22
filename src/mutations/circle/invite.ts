@@ -1,4 +1,4 @@
-import { CIRCLE_STATE, USER_STATE } from 'common/enums'
+import { CIRCLE_STATE, USER_STATE, VERIFICATION_CODE_TYPES } from 'common/enums'
 import {
   AuthenticationError,
   EntityNotFoundError,
@@ -7,7 +7,7 @@ import {
   ServerError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, generateRegisterRedirectUrl, makeUserName } from 'common/utils'
 import { MutationToInviteResolver } from 'definitions'
 
 const months = [1, 3, 6, 12]
@@ -15,7 +15,15 @@ const months = [1, 3, 6, 12]
 const resolver: MutationToInviteResolver = async (
   root,
   { input: { invitees, freePeriod, circleId } },
-  { dataSources: { atomService, paymentService }, viewer }
+  {
+    dataSources: {
+      atomService,
+      paymentService,
+      notificationService,
+      userService,
+    },
+    viewer,
+  }
 ) => {
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permisson')
@@ -88,6 +96,19 @@ const resolver: MutationToInviteResolver = async (
     const { id, email } = invitee
     const userId = id ? fromGlobalId(id).id : null
 
+    // skip if it's marked already
+    if (email) {
+      const isSkipped = await atomService.findFirst({
+        table: 'blocklist',
+        where: { type: 'email', value: email, archived: false }
+      })
+
+      if (isSkipped) {
+        // skip if it's in marked already
+        continue
+      }
+    }
+
     let invitation = await atomService.findFirst({
       table: 'circle_invitation',
       where: { circleId: circle.id, email, userId, accepted: false },
@@ -122,9 +143,63 @@ const resolver: MutationToInviteResolver = async (
     invitations.push(invitation)
   }
 
-  // TODO: Trigger notices
+  // send notifications
+  for (const invitation of invitations) {
+    let code
+    let recipient
+    let redirectUrl
+    const { email, userId } = invitation
 
-  // TODO: Send emails
+    if (userId) {
+      recipient = await atomService.findFirst({
+        table: 'user',
+        where: { id: userId },
+      })
+    } else {
+      recipient = await atomService.findFirst({
+        table: 'user',
+        where: { email },
+      })
+    }
+
+    // if user not found by id and email, then generate code
+    if (!recipient && email) {
+      code = await userService.createVerificationCode({
+        email,
+        type: VERIFICATION_CODE_TYPES.register,
+        strong: true,
+      })
+
+      const tempDisplayName = makeUserName(email)
+      redirectUrl = generateRegisterRedirectUrl({
+        email,
+        displayName: tempDisplayName,
+      })
+    }
+
+    // TODO: Trigger notices
+
+    // send email to invitee
+    if (recipient?.email || email) {
+      notificationService.mail.sendCircleInvitation({
+        code,
+        circle: {
+          displayName: circle.displayName,
+          freePeriod: circle.freePeriod,
+          name: circle.name,
+        },
+        language: recipient?.language,
+        recipient: {
+          displayName: recipient?.displayName,
+        },
+        redirectUrl,
+        sender: {
+          displayName: viewer.displayName,
+        },
+        to: recipient?.email || email,
+      })
+    }
+  }
 
   return invitations
 }
