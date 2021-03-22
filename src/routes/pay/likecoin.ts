@@ -1,4 +1,5 @@
 import { invalidateFQC } from '@matters/apollo-response-cache'
+import bodyParser from 'body-parser'
 import { Router } from 'express'
 import NP from 'number-precision'
 
@@ -37,13 +38,13 @@ const invalidateCache = async ({
   }
 }
 
+likecoinRouter.use(bodyParser.json())
+
 likecoinRouter.get('/', async (req, res) => {
   const successRedirect = `${environment.siteDomain}/pay/likecoin/success`
   const failureRedirect = `${environment.siteDomain}/pay/likecoin/failure`
 
-  const userService = new UserService()
   const paymentService = new PaymentService()
-  const notificationService = new NotificationService()
 
   try {
     const { tx_hash, state, success } = req.query
@@ -63,38 +64,99 @@ likecoinRouter.get('/', async (req, res) => {
     // get pending transaction
     const tx = (
       await paymentService.findTransactions({
-        providerTxId: state,
+        providerTxId: tx_hash,
       })
     )[0]
 
     if (!tx) {
       throw new Error('could not found tx id passing from like pay')
     }
+  } catch (error) {
+    logger.error(error)
+    return res.redirect(failureRedirect)
+  }
+
+  return res.redirect(successRedirect)
+})
+
+/**
+ * Basic Auth for Like Pay Webhook Events
+ */
+likecoinRouter.use(async (req, res, next) => {
+  const b64auth = (req.headers.authorization || '').split(' ')[1] || ''
+  const secret = Buffer.from(b64auth, 'base64').toString()
+
+  if (secret === environment.likecoinPayWebhookSecret) {
+    next()
+  } else {
+    // deny webhook call
+    res.set('WWW-Authenticate', 'Basic realm="incorrect webhook credential"')
+    res.status(401).send('401 Unauthorized')
+  }
+})
+
+/**
+ * Handling Incoming Like Pay Webhook Events
+ *
+ * @see {@url https://docs.like.co/developer/like-pay/web-widget/webhook}
+ */
+likecoinRouter.post('/', async (req, res, next) => {
+  const userService = new UserService()
+  const paymentService = new PaymentService()
+  const notificationService = new NotificationService()
+  let txHash = ''
+
+  try {
+    const { tx, metadata } = req.body
+    if (!tx || !tx.txHash) {
+      throw new Error('callback has no "tx"')
+    }
+    txHash = tx.txHash
+
+    if (!metadata) {
+      throw new Error('callback has no "metadata"')
+    }
+
+    const trans = (
+      await paymentService.findTransactions({
+        providerTxId: tx.txHash,
+      })
+    )[0]
+
+    if (!trans) {
+      throw new Error(`counld not find tx hash`)
+    }
 
     // check like chain tx state
+    // 1 like is 10^9 nanolike
     const rate = Math.pow(10, 9)
     const cosmosData = await userService.likecoin.getCosmosTxData({
-      hash: tx_hash,
+      hash: tx.txHash,
     })
     const cosmosAmount = NP.divide(cosmosData.amount, rate)
     const cosmosState =
-      success === 'true'
+      tx.status === 'success'
         ? TRANSACTION_STATE.succeeded
-        : TRANSACTION_STATE.failed
+        : tx.status === 'failed'
+        ? TRANSACTION_STATE.failed
+        : tx.status === 'timeout'
+        ? TRANSACTION_STATE.failed
+        : TRANSACTION_STATE.pending
+
     const updateParams: Record<string, any> = {
-      id: tx.id,
-      provider_tx_id: tx_hash,
+      id: trans.id,
+      provider_tx_id: tx.txHash,
       state: cosmosState,
       updatedAt: new Date(),
     }
 
     // correct amount if it changed via LikePay
-    if (tx.amount !== cosmosAmount) {
+    if (trans.amount !== cosmosAmount) {
       updateParams.amount = cosmosAmount
     }
 
     // update transaction
-    const updatedTx = await paymentService.baseUpdate(tx.id, updateParams)
+    const updatedTx = await paymentService.baseUpdate(trans.id, updateParams)
 
     if (cosmosState === TRANSACTION_STATE.failed) {
       invalidateCache({
@@ -102,16 +164,14 @@ likecoinRouter.get('/', async (req, res) => {
         typeId: updatedTx.targetType,
         userService,
       })
-      throw new Error('like pay failure')
+      throw new Error(`like pay failure`)
     }
 
-    /**
-     * trigger notifications
-     */
+    // notification
     const sender = await userService.baseFindById(updatedTx.senderId)
     const recipient = await userService.baseFindById(updatedTx.recipientId)
 
-    // send to sender
+    // to sender
     notificationService.mail.sendPayment({
       to: sender.email,
       recipient: {
@@ -126,8 +186,7 @@ likecoinRouter.get('/', async (req, res) => {
         currency: updatedTx.currency,
       },
     })
-
-    // send to recipient
+    // to recipient
     notificationService.trigger({
       event: DB_NOTICE_TYPE.payment_received_donation,
       actorId: sender.id,
@@ -161,12 +220,13 @@ likecoinRouter.get('/', async (req, res) => {
       typeId: updatedTx.targetType,
       userService,
     })
-  } catch (error) {
-    logger.error(error)
-    return res.redirect(failureRedirect)
-  }
 
-  return res.redirect(successRedirect)
+    res.json({ received: true })
+  } catch (error) {
+    const errMsg = `webhook err: ${error}, tx hash: ${txHash}`
+    logger.error(errMsg)
+    next(errMsg)
+  }
 })
 
 export default likecoinRouter
