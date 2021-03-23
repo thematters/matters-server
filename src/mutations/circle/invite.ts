@@ -157,12 +157,12 @@ const resolver: MutationToInviteResolver = async (
     if (userId) {
       recipient = await atomService.findFirst({
         table: 'user',
-        where: { id: userId },
+        where: { id: userId, state: USER_STATE.active },
       })
     } else {
       recipient = await atomService.findFirst({
         table: 'user',
-        where: { email },
+        where: { email, state: USER_STATE.active },
       })
     }
 
