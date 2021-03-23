@@ -695,10 +695,12 @@ export class PaymentService extends BaseService {
   }) => {
     const { userId, priceId, providerCustomerId, providerPriceId } = data
 
+    const coupon = await this.findUserCoupon({ userId, priceId })
     // Create from Stripe
     const stripeSubscription = await this.stripe.createSubscription({
       customer: providerCustomerId,
       price: providerPriceId,
+      coupon,
     })
 
     if (!stripeSubscription) {
@@ -760,5 +762,29 @@ export class PaymentService extends BaseService {
         userId,
       })
       .returning('*')
+  }
+
+  /*********************************
+   *                               *
+   *            Coupon             *
+   *                               *
+   *********************************/
+  /**
+   * Find coupons applicable to a user for a cirlce
+   */
+  findUserCoupon = async (params: { userId: string; priceId: string }) => {
+    const records = await this.knex
+      .select()
+      .from('circle_invitation as ci')
+      .join('circle_price as cp', 'cp.circle_id', 'ci.circle_id')
+      .join('circle_coupon as cc', 'cc.id', 'ci.coupon_id')
+      .where({
+        'cp.id': params.priceId,
+        'ci.user_id': params.userId,
+        accepted: false,
+      })
+      .orderBy('created_at', 'desc')
+
+    return records.length > 0 ? records[0] : undefined
   }
 }
