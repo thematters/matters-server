@@ -1501,7 +1501,8 @@ export class UserService extends BaseService {
         email,
         type,
         code,
-        expiredAt: expiredAt || new Date(Date.now() + VERIFICATION_CODE_EXIPRED_AFTER),
+        expiredAt:
+          expiredAt || new Date(Date.now() + VERIFICATION_CODE_EXIPRED_AFTER),
       },
       'verification_code'
     )

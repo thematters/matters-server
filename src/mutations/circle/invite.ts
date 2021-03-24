@@ -177,7 +177,9 @@ const resolver: MutationToInviteResolver = async (
         email,
         type: VERIFICATION_CODE_TYPES.register,
         strong: true,
-        expiredAt: new Date(Date.now() + CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER)
+        expiredAt: new Date(
+          Date.now() + CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER
+        ),
       })
 
       const tempDisplayName = makeUserName(email)
