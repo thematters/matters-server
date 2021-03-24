@@ -1,4 +1,5 @@
 import {
+  CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   USER_STATE,
@@ -162,12 +163,12 @@ const resolver: MutationToInviteResolver = async (
     if (userId) {
       recipient = await atomService.findFirst({
         table: 'user',
-        where: { id: userId },
+        where: { id: userId, state: USER_STATE.active },
       })
     } else {
       recipient = await atomService.findFirst({
         table: 'user',
-        where: { email },
+        where: { email, state: USER_STATE.active },
       })
     }
 
@@ -177,6 +178,9 @@ const resolver: MutationToInviteResolver = async (
         email,
         type: VERIFICATION_CODE_TYPES.register,
         strong: true,
+        expiredAt: new Date(
+          Date.now() + CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER
+        ),
       })
 
       const tempDisplayName = makeUserName(email)
