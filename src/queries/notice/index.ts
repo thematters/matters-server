@@ -276,6 +276,8 @@ const notice: {
           return GQLCircleNoticeType.CircleNewSubscriber
         case DB_NOTICE_TYPE.circle_new_unsubscriber:
           return GQLCircleNoticeType.CircleNewUnsubscriber
+        case DB_NOTICE_TYPE.circle_invitation:
+          return GQLCircleNoticeType.CircleInvitation
       }
     },
     target: ({ entities, type }) => {
@@ -283,6 +285,7 @@ const notice: {
         case DB_NOTICE_TYPE.circle_new_follower:
         case DB_NOTICE_TYPE.circle_new_subscriber:
         case DB_NOTICE_TYPE.circle_new_unsubscriber:
+        case DB_NOTICE_TYPE.circle_invitation:
           return entities.target
       }
     },
