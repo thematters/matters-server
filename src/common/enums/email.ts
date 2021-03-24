@@ -46,6 +46,11 @@ const DEV_EMAIL_TEMPLATE_ID = {
     zh_hans: 'd-6fe4334692e2475dba68a135831f0f40',
     en: 'd-ea7389447e9d48549a7d0ad86b90fa9f',
   },
+  circleInvitation: {
+    zh_hant: 'd-d3c45a17feb441eca8b979db18596b6c',
+    zh_hans: 'd-80a66fac2361413bb4ea594cf0238d53',
+    en: 'd-d3c45a17feb441eca8b979db18596b6c',
+  },
 }
 
 const PROD_EMAIL_TEMPLATE_ID = {
@@ -93,6 +98,11 @@ const PROD_EMAIL_TEMPLATE_ID = {
     zh_hant: 'd-3dc33b89e89442fe8c25c51502c9f4d6',
     zh_hans: 'd-fba153b334af44cb9c1ecc3695eff9fc',
     en: 'd-3dc33b89e89442fe8c25c51502c9f4d6',
+  },
+  circleInvitation: {
+    zh_hant: 'd-409e5bce4c8343df828d9393a5a4c32d',
+    zh_hans: 'd-75f9d85caae141278a8a816fa44ef9f7',
+    en: 'd-409e5bce4c8343df828d9393a5a4c32d',
   },
 }
 
