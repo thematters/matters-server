@@ -1,4 +1,9 @@
-import { CIRCLE_STATE, USER_STATE, VERIFICATION_CODE_TYPES } from 'common/enums'
+import {
+  CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER,
+  CIRCLE_STATE,
+  USER_STATE,
+  VERIFICATION_CODE_TYPES,
+} from 'common/enums'
 import {
   AuthenticationError,
   EntityNotFoundError,
@@ -172,6 +177,7 @@ const resolver: MutationToInviteResolver = async (
         email,
         type: VERIFICATION_CODE_TYPES.register,
         strong: true,
+        expiredAt: new Date(Date.now() + CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER)
       })
 
       const tempDisplayName = makeUserName(email)
