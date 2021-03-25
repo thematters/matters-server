@@ -141,7 +141,7 @@ const resolver: MutationToInviteResolver = async (
       const isFreePeriodChanged = invitation.couponId !== coupon.id
       const updateData = {
         sentAt: new Date(),
-        ...(isFreePeriodChanged ? { couponId: coupon.id } : {})
+        ...(isFreePeriodChanged ? { couponId: coupon.id } : {}),
       }
 
       invitation = await atomService.update({
