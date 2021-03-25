@@ -478,6 +478,9 @@ type Circle implements Node {
   """Invitations belonged to this Circle."""
   invitations(input: ConnectionArgs!): InvitationConnection!
 
+  """Invitation used by current viewer."""
+  invitedBy: Invitation
+
   """Comments broadcasted by Circle owner."""
   broadcast(input: ConnectionArgs!): CommentConnection!
 
@@ -537,6 +540,7 @@ enum CircleNoticeType {
   CircleNewFollower
   CircleNewSubscriber
   CircleNewUnsubscriber
+  CircleInvitation
 }
 
 type CircleSetting {

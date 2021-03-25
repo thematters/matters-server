@@ -1131,6 +1131,11 @@ export interface GQLCircle extends GQLNode {
   invitations: GQLInvitationConnection
 
   /**
+   * Invitation used by current viewer.
+   */
+  invitedBy?: GQLInvitation
+
+  /**
    * Comments broadcasted by Circle owner.
    */
   broadcast: GQLCommentConnection
@@ -3116,6 +3121,7 @@ export const enum GQLCircleNoticeType {
   CircleNewFollower = 'CircleNewFollower',
   CircleNewSubscriber = 'CircleNewSubscriber',
   CircleNewUnsubscriber = 'CircleNewUnsubscriber',
+  CircleInvitation = 'CircleInvitation',
 }
 
 export interface GQLCommentCommentNotice extends GQLNotice {
@@ -6043,6 +6049,7 @@ export interface GQLCircleTypeResolver<TParent = any> {
   isMember?: CircleToIsMemberResolver<TParent>
   setting?: CircleToSettingResolver<TParent>
   invitations?: CircleToInvitationsResolver<TParent>
+  invitedBy?: CircleToInvitedByResolver<TParent>
   broadcast?: CircleToBroadcastResolver<TParent>
   pinnedBroadcast?: CircleToPinnedBroadcastResolver<TParent>
   discussion?: CircleToDiscussionResolver<TParent>
@@ -6219,6 +6226,15 @@ export interface CircleToInvitationsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: CircleToInvitationsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToInvitedByResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -19,6 +19,7 @@ import freePeriod from './invitation/freePeriod'
 import invitee from './invitation/invitee'
 import inviter from './invitation/inviter'
 import invitations from './invitations'
+import invitedBy from './invitedBy'
 import isFollower from './isFollower'
 import isMember from './isMember'
 import memberPrice from './member/price'
@@ -62,6 +63,7 @@ const circle: {
     isMember,
     setting: (root: any) => root,
     invitations,
+    invitedBy,
   },
 
   CircleSetting: {

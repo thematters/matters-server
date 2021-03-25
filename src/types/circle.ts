@@ -86,6 +86,9 @@ export default /* GraphQL */ `
 
     "Invitations belonged to this Circle."
     invitations(input: ConnectionArgs!): InvitationConnection!
+
+    "Invitation used by current viewer."
+    invitedBy: Invitation
   }
 
   extend type User {

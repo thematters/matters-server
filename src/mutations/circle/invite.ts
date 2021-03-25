@@ -1,6 +1,7 @@
 import {
   CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER,
   CIRCLE_STATE,
+  DB_NOTICE_TYPE,
   USER_STATE,
   VERIFICATION_CODE_TYPES,
 } from 'common/enums'
@@ -189,7 +190,21 @@ const resolver: MutationToInviteResolver = async (
       })
     }
 
-    // TODO: Trigger notices
+    // send notification to invitee
+    if (recipient) {
+      notificationService.trigger({
+        event: DB_NOTICE_TYPE.circle_invitation,
+        actorId: viewer.id,
+        recipientId: recipient.id,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'circle',
+            entity: circle,
+          },
+        ],
+      })
+    }
 
     // send email to invitee
     if (recipient?.email || email) {
