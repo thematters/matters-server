@@ -136,17 +136,18 @@ const resolver: MutationToInviteResolver = async (
           userId,
         },
       })
-    }
+    } else {
+      // if existed, then update sentAt and possible couponId
+      const isFreePeriodChanged = invitation.couponId !== coupon.id
+      const updateData = {
+        sentAt: new Date(),
+        ...(isFreePeriodChanged ? { couponId: coupon.id } : {}),
+      }
 
-    // if existed, but free period changed
-    if (invitation && invitation.couponId !== coupon.id) {
       invitation = await atomService.update({
         table: 'circle_invitation',
         where: { circleId: circle.id, email, userId },
-        data: {
-          couponId: coupon.id,
-          sentAt: new Date(),
-        },
+        data: updateData,
       })
     }
 
