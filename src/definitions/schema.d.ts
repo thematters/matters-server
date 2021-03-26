@@ -2629,7 +2629,7 @@ export const enum GQLPutCircleArticlesType {
 }
 
 export interface GQLInviteCircleInput {
-  invitees?: Array<GQLInviteCircleInvitee>
+  invitees: Array<GQLInviteCircleInvitee>
   freePeriod: GQLPositiveInt
   circleId: string
 }
