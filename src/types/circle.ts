@@ -274,7 +274,7 @@ export default /* GraphQL */ `
   }
 
   input InviteCircleInput {
-    invitees: [InviteCircleInvitee!]
+    invitees: [InviteCircleInvitee!]!
     freePeriod: PositiveInt!
     circleId: ID!
   }
