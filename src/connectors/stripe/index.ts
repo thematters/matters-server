@@ -324,11 +324,19 @@ class StripeService {
   createSubscriptionItem = async ({
     price,
     subscription,
+    coupon,
   }: {
     price: string
     subscription: string
+    coupon?: string
   }) => {
     try {
+      if (!isUndefined(coupon)) {
+        // Apply coupon discount to subscription
+        await this.stripeAPI.subscriptions.update(subscription, {
+          coupon,
+        })
+      }
       return await this.stripeAPI.subscriptionItems.create({
         price,
         proration_behavior: 'none',

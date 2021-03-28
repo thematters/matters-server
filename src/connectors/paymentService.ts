@@ -698,7 +698,7 @@ export class PaymentService extends BaseService {
 
     const ivt = await this.findPendingInvitation({ userId, priceId })
     // Create from Stripe
-    let stripeSubscription = null
+    let stripeSubscription
     if (isUndefined(ivt)) {
       stripeSubscription = await this.stripe.createSubscription({
         customer: providerCustomerId,
@@ -734,14 +734,9 @@ export class PaymentService extends BaseService {
       })
       .returning('*')
 
+    // Mark coupon invitation as accepted
     if (!isUndefined(ivt)) {
-      await this.knex('circle_invitation')
-        .where('id', ivt.id)
-        .update({
-          accepted: true,
-          accepted_at: this.knex.fn.now(),
-        })
-        .returning('*')
+      await this.acceptCouponInvitation(ivt.id)
     }
   }
 
@@ -762,12 +757,22 @@ export class PaymentService extends BaseService {
       providerPriceId,
       providerSubscriptionId,
     } = data
-
+    // If any discount coupon invitation
+    const ivt = await this.findPendingInvitation({ userId, priceId })
     // Create from Stripe
-    const stripeItem = await this.stripe.createSubscriptionItem({
-      price: providerPriceId,
-      subscription: providerSubscriptionId,
-    })
+    let stripeItem
+    if (isUndefined(ivt)) {
+      stripeItem = await this.stripe.createSubscriptionItem({
+        price: providerPriceId,
+        subscription: providerSubscriptionId,
+      })
+    } else {
+      stripeItem = await this.stripe.createSubscriptionItem({
+        price: providerPriceId,
+        subscription: providerSubscriptionId,
+        coupon: ivt.providerCouponId,
+      })
+    }
 
     if (!stripeItem) {
       throw new ServerError('failed to create stripe subscription item')
@@ -781,6 +786,11 @@ export class PaymentService extends BaseService {
         userId,
       })
       .returning('*')
+
+    // Mark coupon invitation as accepted
+    if (!isUndefined(ivt)) {
+      await this.acceptCouponInvitation(ivt.id)
+    }
   }
 
   /*********************************
@@ -808,5 +818,18 @@ export class PaymentService extends BaseService {
       .orderBy('ci.created_at', 'desc')
 
     return records.length > 0 ? records[0] : undefined
+  }
+
+  /**
+   * Accept coupon invitation
+   */
+  acceptCouponInvitation = async (ivtId: string) => {
+    await this.knex('circle_invitation')
+      .where('id', ivtId)
+      .update({
+        accepted: true,
+        accepted_at: this.knex.fn.now(),
+      })
+      .returning('*')
   }
 }
