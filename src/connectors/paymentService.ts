@@ -1,4 +1,5 @@
 import DataLoader from 'dataloader'
+import { isUndefined } from 'util'
 import { v4 } from 'uuid'
 
 import {
@@ -695,13 +696,21 @@ export class PaymentService extends BaseService {
   }) => {
     const { userId, priceId, providerCustomerId, providerPriceId } = data
 
-    const coupon = await this.findUserCoupon({ userId, priceId })
+    const ivt = await this.findPendingInvitation({ userId, priceId })
     // Create from Stripe
-    const stripeSubscription = await this.stripe.createSubscription({
-      customer: providerCustomerId,
-      price: providerPriceId,
-      coupon,
-    })
+    let stripeSubscription = null
+    if (isUndefined(ivt)) {
+      stripeSubscription = await this.stripe.createSubscription({
+        customer: providerCustomerId,
+        price: providerPriceId,
+      })
+    } else {
+      stripeSubscription = await this.stripe.createSubscription({
+        customer: providerCustomerId,
+        price: providerPriceId,
+        coupon: ivt.providerCouponId,
+      })
+    }
 
     if (!stripeSubscription) {
       throw new ServerError('failed to create stripe subscription')
@@ -724,6 +733,16 @@ export class PaymentService extends BaseService {
         userId,
       })
       .returning('*')
+
+    if (!isUndefined(ivt)) {
+      await this.knex('circle_invitation')
+        .where('id', ivt.id)
+        .update({
+          accepted: true,
+          accepted_at: this.knex.fn.now(),
+        })
+        .returning('*')
+    }
   }
 
   /**
@@ -772,9 +791,12 @@ export class PaymentService extends BaseService {
   /**
    * Find coupons applicable to a user for a cirlce
    */
-  findUserCoupon = async (params: { userId: string; priceId: string }) => {
+  findPendingInvitation = async (params: {
+    userId: string
+    priceId: string
+  }) => {
     const records = await this.knex
-      .select()
+      .select('ci.id', 'cc.provider_coupon_id')
       .from('circle_invitation as ci')
       .join('circle_price as cp', 'cp.circle_id', 'ci.circle_id')
       .join('circle_coupon as cc', 'cc.id', 'ci.coupon_id')
@@ -783,7 +805,7 @@ export class PaymentService extends BaseService {
         'ci.user_id': params.userId,
         accepted: false,
       })
-      .orderBy('created_at', 'desc')
+      .orderBy('ci.created_at', 'desc')
 
     return records.length > 0 ? records[0] : undefined
   }
