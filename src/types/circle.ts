@@ -86,6 +86,9 @@ export default /* GraphQL */ `
 
     "Invitations belonged to this Circle."
     invitations(input: ConnectionArgs!): InvitationConnection!
+
+    "Invitation used by current viewer."
+    invitedBy: Invitation
   }
 
   extend type User {
@@ -271,7 +274,7 @@ export default /* GraphQL */ `
   }
 
   input InviteCircleInput {
-    invitees: [InviteCircleInvitee!]
+    invitees: [InviteCircleInvitee!]!
     freePeriod: PositiveInt!
     circleId: ID!
   }

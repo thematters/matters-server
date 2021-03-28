@@ -553,6 +553,7 @@ class Notice extends BaseService {
       circle_new_follower: setting.circleNewFollower,
       circle_new_subscriber: true,
       circle_new_unsubscriber: true,
+      circle_invitation: true,
 
       // system
       official_announcement: true,

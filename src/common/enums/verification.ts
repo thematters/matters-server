@@ -1,4 +1,4 @@
-import { MINUTE } from './time'
+import { DAY, MINUTE } from './time'
 
 export const VERIFICATION_CODE_STATUS = {
   active: 'active',
@@ -23,3 +23,5 @@ export const VERIFICATION_CODE_PROTECTED_TYPES = [
 ]
 
 export const VERIFICATION_CODE_EXIPRED_AFTER = MINUTE * 5 // 5 mins
+
+export const CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER = DAY * 180 // 6 months

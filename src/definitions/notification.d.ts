@@ -317,6 +317,14 @@ export interface NoticeCircleNewUnsubscriberParams
   entities: [NotificationEntity<'target', 'circle'>]
 }
 
+export interface NoticeCircleInvitationParams
+  extends NotificationRequiredParams {
+  event: DB_NOTICE_TYPE.circle_invitation
+  actorId: string
+  recipientId: string
+  entities: [NotificationEntity<'target', 'circle'>]
+}
+
 /**
  * System
  */
@@ -414,6 +422,7 @@ export type NotificationPrarms =
   | NoticeCircleNewFollowerParams
   | NoticeCircleNewSubscriberParams
   | NoticeCircleNewUnsubscriberParams
+  | NoticeCircleInvitationParams
   // Official
   | NoticeOfficialAnnouncementParams
   | NoticeUserActivatedParams
