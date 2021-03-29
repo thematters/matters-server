@@ -22,6 +22,7 @@ const resolver: CircleToInvitationsResolver = async (
     atomService.findMany({
       table: 'circle_invitation',
       where: { circleId: id, inviter: owner },
+      orderBy: [{ column: 'created_at', order: 'desc' }],
       skip,
       take,
     }),

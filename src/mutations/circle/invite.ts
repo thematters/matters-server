@@ -1,7 +1,10 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
 import {
   CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
+  NODE_TYPES,
   USER_STATE,
   VERIFICATION_CODE_TYPES,
 } from 'common/enums'
@@ -18,6 +21,7 @@ import {
   generateRegisterRedirectUrl,
   makeUserName,
 } from 'common/utils'
+import { CacheService } from 'connectors'
 import { MutationToInviteResolver } from 'definitions'
 
 const months = [1, 3, 6, 12]
@@ -227,6 +231,15 @@ const resolver: MutationToInviteResolver = async (
         to: recipient?.email || email,
       })
     }
+  }
+
+  // invalidate cache
+  if (invitations && invitations.length > 0) {
+    const cacheService = new CacheService()
+    invalidateFQC({
+      node: { type: NODE_TYPES.circle, id: circle.id },
+      redis: cacheService.redis,
+    })
   }
 
   return invitations
