@@ -474,4 +474,5 @@ export type PutNoticeParams = {
   entities?: NotificationEntity[]
   message?: NoticeMessage | null
   data?: NoticeData | null
+  resend?: boolean
 }
