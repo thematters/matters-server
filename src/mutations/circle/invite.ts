@@ -118,7 +118,28 @@ const resolver: MutationToInviteResolver = async (
       })
 
       if (isSkipped) {
-        // skip if it's in marked already
+        continue
+      }
+    }
+
+    // skip if user is member already
+    const recipientId = email
+      ? (
+          await atomService.findFirst({
+            table: 'user',
+            where: { email },
+            whereIn: ['state', [USER_STATE.onboarding, USER_STATE.active]],
+          })
+        )?.id
+      : userId
+
+    if (recipientId) {
+      const isMember = await paymentService.isCircleMember({
+        circleId: circle.id,
+        userId: recipientId,
+      })
+
+      if (isMember) {
         continue
       }
     }
@@ -161,21 +182,16 @@ const resolver: MutationToInviteResolver = async (
   // send notifications
   for (const invitation of invitations) {
     let codeObject
-    let recipient
     let redirectUrl
     const { email, userId } = invitation
 
-    if (userId) {
-      recipient = await atomService.findFirst({
-        table: 'user',
-        where: { id: userId, state: USER_STATE.active },
-      })
-    } else {
-      recipient = await atomService.findFirst({
-        table: 'user',
-        where: { email, state: USER_STATE.active },
-      })
-    }
+    const recipient = await atomService.findFirst({
+      table: 'user',
+      where: {
+        ...(userId ? { id: userId } : { email }),
+      },
+      whereIn: ['state', [USER_STATE.onboarding, USER_STATE.active]],
+    })
 
     // if user not found by id and email, then generate code
     if (!recipient && email) {
