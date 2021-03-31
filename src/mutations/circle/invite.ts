@@ -118,7 +118,27 @@ const resolver: MutationToInviteResolver = async (
       })
 
       if (isSkipped) {
-        // skip if it's in marked already
+        continue
+      }
+    }
+
+    // skip if user is member already
+    const recipientId = email
+      ? (
+          await atomService.findFirst({
+            table: 'user',
+            where: { email, state: USER_STATE.active },
+          })
+        )?.id
+      : userId
+
+    if (recipientId) {
+      const isMember = await paymentService.isCircleMember({
+        circleId: circle.id,
+        userId: recipientId,
+      })
+
+      if (isMember) {
         continue
       }
     }
