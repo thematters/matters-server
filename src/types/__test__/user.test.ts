@@ -264,7 +264,7 @@ const GET_VIEWER_BADGES = /* GraphQL */ `
 `
 
 const QUERY_BADGED_USERS = `
-  query($input: ConnectionArgs!) {
+  query($input: BadgedUsersInput!) {
     oss {
       badgedUsers(input: $input) {
         totalCount
@@ -281,7 +281,9 @@ const QUERY_BADGED_USERS = `
 
 const TOGGLE_USERS_BADGE = `
   mutation($input: ToggleUsersBadgeInput!) {
-    toggleUsersBadge(input: $input)
+    toggleUsersBadge(input: $input) {
+      id
+    }
   }
 `
 
@@ -665,39 +667,40 @@ describe('badges', () => {
 
   test('manage users badge', async () => {
     const badgeType = 'golden_motor'
+    const userId = toGlobalId({ type: 'User', id: '1' })
+
     const { query: adminQuery, mutate: adminMutate } = await testClient(
       adminClient
     )
     const { data } = await adminQuery({
       query: QUERY_BADGED_USERS,
-      variables: { input: { first: null, badge: badgeType } },
+      variables: { input: { first: null, type: badgeType } },
     })
-    expect(_get(data, 'oss.badgedUsers.totalCount')).toBe(1)
+    expect(_get(data, 'oss.badgedUsers.totalCount')).toBe(0)
 
     // remove existing badged user
-    const badgedUser = _get(data, 'oss.badgedUsers.edges[0].node')
     await adminMutate({
       mutation: TOGGLE_USERS_BADGE,
-      variables: { input: { ids: [badgedUser.id], enabled: false } },
+      variables: { input: { ids: [userId], type: badgeType, enabled: true } },
     })
     const { data: data2 } = await adminQuery({
       query: QUERY_BADGED_USERS,
-      variables: { input: { first: null, badge: badgeType } },
+      variables: { input: { first: null, type: badgeType } },
     })
-    expect(_get(data2, 'oss.badgedUsers.totalCount')).toBe(0)
+    expect(_get(data2, 'oss.badgedUsers.totalCount')).toBe(1)
 
-    // re-add badged user
+    // re-disable badged user
     await adminMutate({
       mutation: TOGGLE_USERS_BADGE,
       variables: {
-        input: { ids: [badgedUser.id], type: badgeType, enabled: true },
+        input: { ids: [userId], type: badgeType, enabled: false },
       },
     })
     const { data: data3 } = await adminQuery({
       query: QUERY_BADGED_USERS,
       variables: { input: { first: null, type: badgeType } },
     })
-    expect(_get(data3, 'oss.badgedUsers.totalCount')).toBe(1)
+    expect(_get(data3, 'oss.badgedUsers.totalCount')).toBe(0)
 
     // check user couldn't query and mutate
     const { query: userQuery, mutate: userMutate } = await testClient(
@@ -712,7 +715,7 @@ describe('badges', () => {
     const updateData3 = await userMutate({
       mutation: TOGGLE_USERS_BADGE,
       variables: {
-        input: { ids: [badgedUser.id], type: badgeType, enabled: false },
+        input: { ids: [userId], type: badgeType, enabled: false },
       },
     })
     expect(_get(updateData3, errorPath)).toBe('FORBIDDEN')

@@ -133,7 +133,9 @@ const QUERY_SEEDING_USERS = `
 
 const TOGGLE_SEEDING_USERS = `
   mutation($input: ToggleSeedingUsersInput!) {
-    toggleSeedingUsers(input: $input)
+    toggleSeedingUsers(input: $input) {
+      id
+    }
   }
 `
 
