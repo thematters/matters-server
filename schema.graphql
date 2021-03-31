@@ -397,10 +397,10 @@ type Badge {
   type: BadgeType!
 }
 
-input BadgedUserInput {
+input BadgedUsersInput {
   after: String
   first: Int
-  type: BadgeType!
+  type: BadgeType
 }
 
 enum BadgeType {
@@ -1158,7 +1158,7 @@ type Mutation {
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
   setFeature(input: SetFeatureInput!): Feature!
-  toggleSeedingUsers(input: ToggleSeedingUsersInput!): Boolean!
+  toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1213,7 +1213,7 @@ type Mutation {
 
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
-  toggleUsersBadge(input: ToggleUsersBadgeInput!): Boolean!
+  toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]!
 
   """Add Credit to User Wallet"""
   addCredit(input: AddCreditInput!): AddCreditResult!
@@ -1392,7 +1392,7 @@ type OSS {
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
   seedingUsers(input: ConnectionArgs!): UserConnection!
-  badgedUsers(input: BadgedUserInput!): UserConnection!
+  badgedUsers(input: BadgedUsersInput!): UserConnection!
 }
 
 type PageInfo {

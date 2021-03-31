@@ -65,7 +65,7 @@ export default /* GraphQL */ `
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
 
-    toggleUsersBadge(input: ToggleUsersBadgeInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
   }
 
   type User implements Node {

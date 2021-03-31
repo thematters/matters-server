@@ -31,7 +31,7 @@ const resolver: MutationToToggleUsersBadgeResolver = async (
     })
   }
 
-  return true
+  return atomService.findMany({ table: 'user', whereIn: ['id', userIds] })
 }
 
 export default resolver

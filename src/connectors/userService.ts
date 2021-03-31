@@ -1378,9 +1378,6 @@ export class UserService extends BaseService {
       'user_notify_setting'
     )
 
-  findBadges = async (userId: string) =>
-    this.knex.select().from('user_badge').where({ userId })
-
   /*********************************
    *                               *
    *         Subscription          *

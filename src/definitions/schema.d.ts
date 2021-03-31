@@ -2137,10 +2137,10 @@ export interface GQLSkippedListItem {
   updatedAt: GQLDateTime
 }
 
-export interface GQLBadgedUserInput {
+export interface GQLBadgedUsersInput {
   after?: string
   first?: number
-  type: GQLBadgeType
+  type?: GQLBadgeType
 }
 
 export interface GQLUserInput {
@@ -2325,7 +2325,7 @@ export interface GQLMutation {
   putRemark?: string
   putSkippedListItem?: Array<GQLSkippedListItem>
   setFeature: GQLFeature
-  toggleSeedingUsers: boolean
+  toggleSeedingUsers: Array<GQLUser | null>
 
   /**
    * Send verification code for email.
@@ -2416,7 +2416,7 @@ export interface GQLMutation {
    * Update state of a user, used in OSS.
    */
   updateUserRole: GQLUser
-  toggleUsersBadge: boolean
+  toggleUsersBadge: Array<GQLUser | null>
 
   /**
    * Add Credit to User Wallet
@@ -8255,7 +8255,7 @@ export interface OSSToSeedingUsersResolver<TParent = any, TResult = any> {
 }
 
 export interface OSSToBadgedUsersArgs {
-  input: GQLBadgedUserInput
+  input: GQLBadgedUsersInput
 }
 export interface OSSToBadgedUsersResolver<TParent = any, TResult = any> {
   (

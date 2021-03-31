@@ -24,7 +24,7 @@ export default /* GraphQL */ `
     putRemark(input: PutRemarkInput!): String @auth(mode: "${AUTH_MODE.admin}")
     putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @auth(mode: "${AUTH_MODE.admin}")
     setFeature(input: SetFeatureInput!): Feature! @auth(mode: "${AUTH_MODE.admin}")
-    toggleSeedingUsers(input: ToggleSeedingUsersInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
   }
 
   extend type Subscription {
@@ -66,7 +66,7 @@ export default /* GraphQL */ `
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
     skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
     seedingUsers(input: ConnectionArgs!): UserConnection!
-    badgedUsers(input: BadgedUserInput!): UserConnection!
+    badgedUsers(input: BadgedUsersInput!): UserConnection!
   }
 
 
@@ -104,10 +104,10 @@ export default /* GraphQL */ `
     type: SkippedListItemType
   }
 
-  input BadgedUserInput {
+  input BadgedUsersInput {
     after: String
     first: Int
-    type: BadgeType!
+    type: BadgeType
   }
 
   type SkippedListItemsConnection implements Connection {
