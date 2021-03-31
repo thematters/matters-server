@@ -735,7 +735,7 @@ export class PaymentService extends BaseService {
       .returning('*')
 
     // Mark coupon invitation as accepted
-    if (!isUndefined(ivt)) {
+    if (ivt) {
       await this.acceptCouponInvitation(ivt.id)
     }
   }
@@ -788,7 +788,7 @@ export class PaymentService extends BaseService {
       .returning('*')
 
     // Mark coupon invitation as accepted
-    if (!isUndefined(ivt)) {
+    if (ivt) {
       await this.acceptCouponInvitation(ivt.id)
     }
   }
