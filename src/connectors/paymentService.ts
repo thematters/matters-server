@@ -1,5 +1,4 @@
 import DataLoader from 'dataloader'
-import { isUndefined } from 'util'
 import { v4 } from 'uuid'
 
 import {
@@ -699,16 +698,16 @@ export class PaymentService extends BaseService {
     const ivt = await this.findPendingInvitation({ userId, priceId })
     // Create from Stripe
     let stripeSubscription
-    if (isUndefined(ivt)) {
+    if (ivt) {
       stripeSubscription = await this.stripe.createSubscription({
         customer: providerCustomerId,
         price: providerPriceId,
+        coupon: ivt.providerCouponId,
       })
     } else {
       stripeSubscription = await this.stripe.createSubscription({
         customer: providerCustomerId,
         price: providerPriceId,
-        coupon: ivt.providerCouponId,
       })
     }
 
@@ -761,16 +760,16 @@ export class PaymentService extends BaseService {
     const ivt = await this.findPendingInvitation({ userId, priceId })
     // Create from Stripe
     let stripeItem
-    if (isUndefined(ivt)) {
+    if (ivt) {
       stripeItem = await this.stripe.createSubscriptionItem({
         price: providerPriceId,
         subscription: providerSubscriptionId,
+        coupon: ivt.providerCouponId,
       })
     } else {
       stripeItem = await this.stripe.createSubscriptionItem({
         price: providerPriceId,
         subscription: providerSubscriptionId,
-        coupon: ivt.providerCouponId,
       })
     }
 
