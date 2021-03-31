@@ -160,7 +160,7 @@ const resolver: MutationToInviteResolver = async (
 
   // send notifications
   for (const invitation of invitations) {
-    let code
+    let codeObject
     let recipient
     let redirectUrl
     const { email, userId } = invitation
@@ -179,7 +179,7 @@ const resolver: MutationToInviteResolver = async (
 
     // if user not found by id and email, then generate code
     if (!recipient && email) {
-      code = await userService.createVerificationCode({
+      codeObject = await userService.createVerificationCode({
         email,
         type: VERIFICATION_CODE_TYPES.register,
         strong: true,
@@ -214,7 +214,7 @@ const resolver: MutationToInviteResolver = async (
     // send email to invitee
     if (recipient?.email || email) {
       notificationService.mail.sendCircleInvitation({
-        code,
+        code: codeObject?.code,
         circle: {
           displayName: circle.displayName,
           freePeriod: circle.freePeriod,
