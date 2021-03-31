@@ -125,9 +125,9 @@ export const trans = {
   circle: {
     invitation: i18n<{ sender: string; circle: string }>({
       zh_hant: ({ sender, circle }) =>
-        `Matters | ${sender} 正在邀請你進入${circle}圍爐，並為你開通了免費資格的限時福利`,
+        `Matters | ${sender} 正在邀請你進入${circle}圍爐，你現在可免費加入！`,
       zh_hans: ({ sender, circle }) =>
-        `Matters | ${sender} 正在邀请你进入${circle}围炉，并为你开通了免费资格的限时福利`,
+        `Matters | ${sender} 正在邀请你进入${circle}围炉，你现在可免费加入！`,
     }),
   },
 }
