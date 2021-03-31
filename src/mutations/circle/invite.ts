@@ -127,7 +127,8 @@ const resolver: MutationToInviteResolver = async (
       ? (
           await atomService.findFirst({
             table: 'user',
-            where: { email, state: USER_STATE.active },
+            where: { email },
+            whereIn: ['state', [USER_STATE.onboarding, USER_STATE.active]],
           })
         )?.id
       : userId
@@ -181,21 +182,16 @@ const resolver: MutationToInviteResolver = async (
   // send notifications
   for (const invitation of invitations) {
     let codeObject
-    let recipient
     let redirectUrl
     const { email, userId } = invitation
 
-    if (userId) {
-      recipient = await atomService.findFirst({
-        table: 'user',
-        where: { id: userId, state: USER_STATE.active },
-      })
-    } else {
-      recipient = await atomService.findFirst({
-        table: 'user',
-        where: { email, state: USER_STATE.active },
-      })
-    }
+    const recipient = await atomService.findFirst({
+      table: 'user',
+      where: {
+        ...(userId ? { id: userId } : { email }),
+      },
+      whereIn: ['state', [USER_STATE.onboarding, USER_STATE.active]],
+    })
 
     // if user not found by id and email, then generate code
     if (!recipient && email) {

@@ -21,6 +21,7 @@ interface FindFirstInput {
   table: TableName
   select?: string[]
   where: Record<string, any>
+  whereIn?: [string, string[]]
 }
 
 interface FindManyInput {
@@ -125,8 +126,15 @@ export class AtomService extends DataSource {
    *
    * A Prisma like method for getting the first record in rows.
    */
-  findFirst = async ({ table, where }: FindFirstInput) =>
-    this.knex.select().from(table).where(where).first()
+  findFirst = async ({ table, where, whereIn }: FindFirstInput) => {
+    const query = this.knex.select().from(table).where(where)
+
+    if (whereIn) {
+      query.whereIn(...whereIn)
+    }
+
+    return query.first()
+  }
 
   /**
    * Find multiple records by given clauses.
