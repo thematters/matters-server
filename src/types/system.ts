@@ -66,6 +66,7 @@ export default /* GraphQL */ `
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
     skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
     seedingUsers(input: ConnectionArgs!): UserConnection!
+    badgedUsers(input: BadgedUserInput!): UserConnection!
   }
 
 
@@ -101,6 +102,12 @@ export default /* GraphQL */ `
     after: String
     first: Int
     type: SkippedListItemType
+  }
+
+  input BadgedUserInput {
+    after: String
+    first: Int
+    type: BadgeType!
   }
 
   type SkippedListItemsConnection implements Connection {

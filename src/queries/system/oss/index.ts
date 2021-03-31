@@ -1,4 +1,5 @@
 import { articles } from './articles'
+import { badgedUsers } from './badgedUsers'
 import { comments } from './comments'
 import { oauthClients } from './oauthClients'
 import { seedingUsers } from './seedingUsers'
@@ -13,5 +14,6 @@ export default {
   tags,
   oauthClients,
   seedingUsers,
+  badgedUsers,
   skippedListItems,
 }

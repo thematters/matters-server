@@ -108,6 +108,7 @@ export type BasicTableName =
   | 'noop'
   | 'user'
   | 'user_oauth'
+  | 'user_badge'
   | 'user_notify_setting'
   | 'username_edit_history'
   | 'notice_detail'

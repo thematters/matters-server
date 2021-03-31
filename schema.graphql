@@ -397,8 +397,16 @@ type Badge {
   type: BadgeType!
 }
 
+input BadgedUserInput {
+  after: String
+  first: Int
+  type: BadgeType!
+}
+
 enum BadgeType {
   seed
+  golden_motor
+  architect
 }
 
 type Balance {
@@ -1205,6 +1213,7 @@ type Mutation {
 
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
+  toggleUsersBadge(input: ToggleUsersBadgeInput!): Boolean!
 
   """Add Credit to User Wallet"""
   addCredit(input: AddCreditInput!): AddCreditResult!
@@ -1383,6 +1392,7 @@ type OSS {
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
   seedingUsers(input: ConnectionArgs!): UserConnection!
+  badgedUsers(input: BadgedUserInput!): UserConnection!
 }
 
 type PageInfo {
@@ -2018,6 +2028,12 @@ input ToggleRecommendInput {
 
 input ToggleSeedingUsersInput {
   ids: [ID!]
+  enabled: Boolean!
+}
+
+input ToggleUsersBadgeInput {
+  ids: [ID!]
+  type: BadgeType!
   enabled: Boolean!
 }
 
