@@ -804,6 +804,11 @@ export class PaymentService extends BaseService {
     userId: string
     priceId: string
   }) => {
+    const user = await this.knex
+      .select()
+      .from('user')
+      .where({ id: params.userId })
+      .first()
     const records = await this.knex
       .select('ci.id', 'cc.provider_coupon_id')
       .from('circle_invitation as ci')
@@ -811,8 +816,10 @@ export class PaymentService extends BaseService {
       .join('circle_coupon as cc', 'cc.id', 'ci.coupon_id')
       .where({
         'cp.id': params.priceId,
-        'ci.user_id': params.userId,
         accepted: false,
+      })
+      .andWhere(function () {
+        this.where('ci.user_id', params.userId).orWhere('ci.email', user.email)
       })
       .orderBy('ci.created_at', 'desc')
 
