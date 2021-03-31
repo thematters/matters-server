@@ -145,7 +145,7 @@ class Notice extends BaseService {
     const bundleables = await this.findBundleables(params)
 
     // bundle
-    if (bundleables[0] && params.actorId) {
+    if (bundleables[0] && params.actorId && params.resend !== true) {
       await this.addNoticeActor({
         noticeId: bundleables[0].id,
         actorId: params.actorId,
