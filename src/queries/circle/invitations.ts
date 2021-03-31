@@ -17,11 +17,11 @@ const resolver: CircleToInvitationsResolver = async (
   const [totalCount, records] = await Promise.all([
     atomService.count({
       table: 'circle_invitation',
-      where: { circleId: id, inviter: owner },
+      where: { circleId: id, inviter: owner, accepted: false },
     }),
     atomService.findMany({
       table: 'circle_invitation',
-      where: { circleId: id, inviter: owner },
+      where: { circleId: id, inviter: owner, accepted: false },
       orderBy: [{ column: 'created_at', order: 'desc' }],
       skip,
       take,
