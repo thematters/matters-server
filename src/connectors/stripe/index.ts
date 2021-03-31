@@ -1,5 +1,6 @@
 import { last } from 'lodash'
 import Stripe from 'stripe'
+import { isUndefined } from 'util'
 
 import {
   DAY,
@@ -282,20 +283,31 @@ class StripeService {
   createSubscription = async ({
     customer,
     price,
+    coupon,
   }: {
     customer: string
     price: string
+    coupon?: string
   }) => {
     try {
       const trialEndAt =
         (isProd ? getUTC8NextMonthDayOne() : getUTC8NextMonday()) / 1000
-      const subscription = await this.stripeAPI.subscriptions.create({
-        trial_end: trialEndAt,
-        customer,
-        items: [{ price }],
-        proration_behavior: 'none',
-      })
-      return subscription
+      if (isUndefined(coupon)) {
+        return this.stripeAPI.subscriptions.create({
+          trial_end: trialEndAt,
+          customer,
+          items: [{ price }],
+          proration_behavior: 'none',
+        })
+      } else {
+        return this.stripeAPI.subscriptions.create({
+          trial_end: trialEndAt,
+          customer,
+          items: [{ price }],
+          proration_behavior: 'none',
+          coupon,
+        })
+      }
     } catch (error) {
       this.handleError(error)
     }
@@ -312,11 +324,19 @@ class StripeService {
   createSubscriptionItem = async ({
     price,
     subscription,
+    coupon,
   }: {
     price: string
     subscription: string
+    coupon?: string
   }) => {
     try {
+      if (!isUndefined(coupon)) {
+        // Apply coupon discount to subscription
+        await this.stripeAPI.subscriptions.update(subscription, {
+          coupon,
+        })
+      }
       return await this.stripeAPI.subscriptionItems.create({
         price,
         proration_behavior: 'none',
