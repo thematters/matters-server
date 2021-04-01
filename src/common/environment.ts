@@ -91,6 +91,8 @@ export const environment = {
   likecoinPayURL: process.env.MATTERS_LIKECOIN_PAY_URL || '',
   likecoinPayCallbackURL: process.env.MATTERS_LIKECOIN_PAY_CALLBACK_URL || '',
   likecoinPayLikerId: process.env.MATTERS_LIKECOIN_PAY_LIKER_ID || '',
+  likecoinPayWebhookSecret:
+    process.env.MATTERS_LIKECOIN_PAY_WEBHOOK_SECRET || '',
   stripeSecret: process.env.MATTERS_STRIPE_SECRET || '',
   stripeWebhookSecret: process.env.MATTERS_STRIPE_WEBHOOK_SECRET || '',
   stripeConnectClientId: process.env.MATTERS_STRIPE_CONNECT_CLIENT_ID || '',

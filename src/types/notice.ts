@@ -291,8 +291,8 @@ export default /* GraphQL */ `
     CircleNewFollower
     CircleNewSubscriber
     CircleNewUnsubscriber
+    CircleInvitation
   }
-
 
   #################################
   #                               #

@@ -67,6 +67,7 @@ describe('user notify setting', () => {
     circle_new_follower: true,
     circle_new_subscriber: true,
     circle_new_unsubscriber: true,
+    circle_invitation: true,
 
     // misc
     official_announcement: true,

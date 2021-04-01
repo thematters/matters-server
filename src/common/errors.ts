@@ -476,3 +476,13 @@ export class DuplicateCircleSubscriptionError extends ApolloError {
     })
   }
 }
+
+export class CircleCreationReachLimitError extends ApolloError {
+  constructor(message: string) {
+    super(message, 'CIRCLE_CREATION_REACH_LIMIT')
+
+    Object.defineProperty(this, 'name', {
+      value: 'CircleCreationReachLimitError',
+    })
+  }
+}

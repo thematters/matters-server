@@ -91,6 +91,14 @@ export class NotificationService extends BaseService {
           actorId: params.actorId,
           entities: params.entities,
         }
+      case DB_NOTICE_TYPE.circle_invitation:
+        return {
+          type: params.event,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          resend: true,
+        }
       // act as official annonuncement
       case DB_NOTICE_TYPE.official_announcement:
         return {
@@ -176,7 +184,6 @@ export class NotificationService extends BaseService {
     }
 
     const noticeParams = await this.getNoticeParams(params, recipient.language)
-
     if (!noticeParams) {
       return
     }

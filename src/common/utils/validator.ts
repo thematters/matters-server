@@ -1,6 +1,6 @@
 import isEmail from 'validator/lib/isEmail'
 
-import { RESERVED_NAMES } from 'common/enums'
+import { RESERVED_CIRCLE_NAMES, RESERVED_NAMES } from 'common/enums'
 
 /**
  * Validate email address.
@@ -106,7 +106,12 @@ export const isValidTagName = (name: string, maxLen = 20): boolean => {
  * Validate circle name. It only accepts alphabets, numbers and _.
  */
 export const isValidCircleName = (name: string): boolean => {
-  if (!name || name.length < 2 || name.length > 20) {
+  if (
+    !name ||
+    name.length < 2 ||
+    name.length > 20 ||
+    RESERVED_CIRCLE_NAMES.includes(name.toLowerCase())
+  ) {
     return false
   }
 

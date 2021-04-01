@@ -16,6 +16,7 @@ export const toGlobalId = ({
     | 'SkippedListItem'
     | 'Transaction'
     | 'Price'
+    | 'Invitation'
   id: number | string
 }) => Base64.encodeURI(`${type}:${id}`)
 
