@@ -233,7 +233,7 @@ const resolver: MutationToInviteResolver = async (
         code: codeObject?.code,
         circle: {
           displayName: circle.displayName,
-          freePeriod: circle.freePeriod,
+          freePeriod,
           name: circle.name,
         },
         language: recipient?.language,
