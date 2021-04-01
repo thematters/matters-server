@@ -136,7 +136,7 @@ const resolver: MutationToUserRegisterResolver = async (
   // send circle invitations' notices if user is invited
   const invitations = await atomService.findMany({
     table: 'circle_invitation',
-    where: { email, accepted: false }
+    where: { email, accepted: false },
   })
   await Promise.all(
     invitations.map(async (invitation) => {
@@ -159,8 +159,8 @@ const resolver: MutationToUserRegisterResolver = async (
           },
         ],
       })
-    }
-  ))
+    })
+  )
 
   const { token, user } = await userService.login({ ...input, email })
 
