@@ -539,6 +539,8 @@ export interface GQLBadge {
 
 export const enum GQLBadgeType {
   seed = 'seed',
+  golden_motor = 'golden_motor',
+  architect = 'architect',
 }
 
 export const enum GQLUserGroup {
@@ -2009,6 +2011,7 @@ export interface GQLOSS {
   oauthClients: GQLOAuthClientConnection
   skippedListItems: GQLSkippedListItemsConnection
   seedingUsers: GQLUserConnection
+  badgedUsers: GQLUserConnection
 }
 
 export interface GQLTagsInput {
@@ -2132,6 +2135,12 @@ export interface GQLSkippedListItem {
   archived: boolean
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
+}
+
+export interface GQLBadgedUsersInput {
+  after?: string
+  first?: number
+  type?: GQLBadgeType
 }
 
 export interface GQLUserInput {
@@ -2316,7 +2325,7 @@ export interface GQLMutation {
   putRemark?: string
   putSkippedListItem?: Array<GQLSkippedListItem>
   setFeature: GQLFeature
-  toggleSeedingUsers: boolean
+  toggleSeedingUsers: Array<GQLUser | null>
 
   /**
    * Send verification code for email.
@@ -2407,6 +2416,7 @@ export interface GQLMutation {
    * Update state of a user, used in OSS.
    */
   updateUserRole: GQLUser
+  toggleUsersBadge: Array<GQLUser | null>
 
   /**
    * Add Credit to User Wallet
@@ -2905,6 +2915,12 @@ export interface GQLUpdateUserStateInput {
 export interface GQLUpdateUserRoleInput {
   id: string
   role: GQLUserRole
+}
+
+export interface GQLToggleUsersBadgeInput {
+  ids?: Array<string>
+  type: GQLBadgeType
+  enabled: boolean
 }
 
 /**
@@ -8151,6 +8167,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   oauthClients?: OSSToOauthClientsResolver<TParent>
   skippedListItems?: OSSToSkippedListItemsResolver<TParent>
   seedingUsers?: OSSToSeedingUsersResolver<TParent>
+  badgedUsers?: OSSToBadgedUsersResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -8232,6 +8249,18 @@ export interface OSSToSeedingUsersResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToSeedingUsersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToBadgedUsersArgs {
+  input: GQLBadgedUsersInput
+}
+export interface OSSToBadgedUsersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToBadgedUsersArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8637,6 +8666,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   migration?: MutationToMigrationResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
+  toggleUsersBadge?: MutationToToggleUsersBadgeResolver<TParent>
   addCredit?: MutationToAddCreditResolver<TParent>
   payTo?: MutationToPayToResolver<TParent>
   payout?: MutationToPayoutResolver<TParent>
@@ -9449,6 +9479,21 @@ export interface MutationToUpdateUserRoleResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserRoleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleUsersBadgeArgs {
+  input: GQLToggleUsersBadgeInput
+}
+export interface MutationToToggleUsersBadgeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleUsersBadgeArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

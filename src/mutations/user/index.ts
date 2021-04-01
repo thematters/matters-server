@@ -14,6 +14,7 @@ import toggleBlockUser from './toggleBlockUser'
 import toggleFollowTag from './toggleFollowTag'
 import toggleFollowUser from './toggleFollowUser'
 import toggleSubscribePush from './toggleSubscribePush'
+import toggleUsersBadge from './toggleUsersBadge'
 import updateNotificationSetting from './updateNotificationSetting'
 import updateUserInfo from './updateUserInfo'
 import updateUserRole from './updateUserRole'
@@ -47,5 +48,6 @@ export default {
     payTo,
     payout,
     connectStripeAccount,
+    toggleUsersBadge,
   },
 }
