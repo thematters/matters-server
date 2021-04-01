@@ -13,6 +13,7 @@ const UTC_2020_11_30_16 = new Date('November 30, 2020 16:30:00 GMT+00:00')
 const UTC8_2020_11_30_16 = new Date('November 30, 2020 16:30:00 GMT+08:00')
 const UTC_2020_12_31_16 = new Date('December 31, 2020 16:30:00 GMT+00:00')
 const UTC8_2020_12_31_16 = new Date('December 31, 2020 16:30:00 GMT+08:00')
+const UTC8_2021_03_31_16 = new Date('March 31, 2021 16:30:00 GMT+08:00')
 
 test('getPunishExpiredDate', async () => {
   const times = [
@@ -47,6 +48,10 @@ test('getPunishExpiredDate', async () => {
     {
       value: UTC8_2020_12_31_16,
       expectValue: new Date('January 02, 2021 00:00:00 GMT+08:00').getTime(),
+    },
+    {
+      value: UTC8_2021_03_31_16,
+      expectValue: new Date('April 02, 2021 00:00:00 GMT+08:00').getTime(),
     },
   ]
 
@@ -89,6 +94,10 @@ test('getUTC8Midnight', async () => {
       value: UTC8_2020_12_31_16,
       expectValue: new Date('December 31, 2020 00:00:00 GMT+08:00').getTime(),
     },
+    {
+      value: UTC8_2021_03_31_16,
+      expectValue: new Date('March 31, 2021 00:00:00 GMT+08:00').getTime(),
+    },
   ]
 
   times.forEach(({ value, expectValue }) => {
@@ -114,6 +123,7 @@ test('getUTC8NextMonday', async () => {
       value: UTC_2020_02_29_16,
       expectValue: new Date('March 02, 2020 00:00:00 GMT+08:00').getTime(),
     },
+    // Monday
     {
       value: UTC_2020_11_30_16,
       expectValue: new Date('Decemeber 07, 2020 00:00:00 GMT+08:00').getTime(),
@@ -129,6 +139,15 @@ test('getUTC8NextMonday', async () => {
     {
       value: UTC8_2020_12_31_16,
       expectValue: new Date('January 04, 2021 00:00:00 GMT+08:00').getTime(),
+    },
+    {
+      value: UTC8_2021_03_31_16,
+      expectValue: new Date('April 05, 2021 00:00:00 GMT+08:00').getTime(),
+    },
+    // Sunday
+    {
+      value: new Date('April 04, 2021 00:00:00 GMT+08:00'),
+      expectValue: new Date('April 05, 2021 00:00:00 GMT+08:00').getTime(),
     },
   ]
 
@@ -170,6 +189,12 @@ test('getUTC8NextMonthDayOne', async () => {
     {
       value: UTC8_2020_12_31_16,
       expectValue: new Date('January 01, 2021 00:00:00 GMT+08:00').getTime(),
+    },
+    // The next month (May) of April doesn't have 31st
+    // https://stackoverflow.com/a/52107834
+    {
+      value: UTC8_2021_03_31_16,
+      expectValue: new Date('April 01, 2021 00:00:00 GMT+08:00').getTime(),
     },
   ]
 
