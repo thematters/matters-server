@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio'
 import _ from 'lodash'
 
 import { BCRYPT_ROUNDS } from 'common/enums'
+import { environment } from 'common/environment'
 
 export * from './makeContext'
 export * from './getFileName'
@@ -68,3 +69,17 @@ export const generatePasswordhash = (password: string) =>
 
 // https://github.com/Urigo/graphql-scalars#url
 export const resolveUrl = (url: any) => _.get(url, 'href')
+
+/**
+ * Generate redirect link for registeration
+ */
+export const generateRegisterRedirectUrl = ({
+  email,
+  displayName,
+}: {
+  email: string
+  displayName: string
+}) =>
+  `${environment.siteDomain}/signup?email=${encodeURIComponent(
+    email
+  )}&displayName=${encodeURIComponent(displayName)}`

@@ -122,6 +122,14 @@ export const trans = {
         `${displayName}，你已成为 #${content} 的协作者，你做好准备了吗？`,
     }),
   },
+  circle: {
+    invitation: i18n<{ sender: string; circle: string }>({
+      zh_hant: ({ sender, circle }) =>
+        `Matters | ${sender} 正在邀請你進入${circle}圍爐，你現在可免費加入！`,
+      zh_hans: ({ sender, circle }) =>
+        `Matters | ${sender} 正在邀请你进入${circle}围炉，你现在可免费加入！`,
+    }),
+  },
 }
 
 const userService = new UserService()

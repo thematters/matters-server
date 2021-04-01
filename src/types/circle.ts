@@ -25,6 +25,9 @@ export default /* GraphQL */ `
 
     "Add or remove Circle's articles"
     putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
+
+    "Invite others to join circle"
+    invite(input: InviteCircleInput!): [Invitation!]
   }
 
   type Circle implements Node {
@@ -80,6 +83,12 @@ export default /* GraphQL */ `
 
     "Setting of this Circle."
     setting: CircleSetting!
+
+    "Invitations belonged to this Circle."
+    invitations(input: ConnectionArgs!): InvitationConnection!
+
+    "Invitation used by current viewer."
+    invitedBy: Invitation
   }
 
   extend type User {
@@ -158,6 +167,49 @@ export default /* GraphQL */ `
     client_secret: String
   }
 
+  type Invitation {
+    "Unique ID."
+    id: ID!
+
+    "Target person of this invitation."
+    invitee: Invitee!
+
+    "Creator of this invitation."
+    inviter: User!
+
+    "Invitation of current Circle."
+    circle: Circle!
+
+    "Free period of this invitation."
+    freePeriod: PositiveInt!
+
+    "Created time."
+    createdAt: DateTime!
+
+    "Sent time."
+    sentAt: DateTime!
+
+    "Determine it is accepted or not."
+    accepted: Boolean!
+  }
+
+  type Person {
+    email: Email!
+  }
+
+  union Invitee = Person | User
+
+  type InvitationConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [InvitationEdge!]
+  }
+
+  type InvitationEdge {
+    cursor: String!
+    node: Invitation!
+  }
+
   input CircleInput {
     "Slugified name of a Circle."
     name: String!
@@ -219,6 +271,17 @@ export default /* GraphQL */ `
 
     "Action Type"
     type: PutCircleArticlesType!
+  }
+
+  input InviteCircleInput {
+    invitees: [InviteCircleInvitee!]!
+    freePeriod: PositiveInt!
+    circleId: ID!
+  }
+
+  input InviteCircleInvitee {
+    id: ID
+    email: String
   }
 
   enum CircleState {

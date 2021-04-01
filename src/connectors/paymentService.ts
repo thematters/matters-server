@@ -622,6 +622,7 @@ export class PaymentService extends BaseService {
 
           targetType: entityTypeId,
           targetId: p.id,
+          remark: `stripe:${providerTxId}`,
         })
       }
       await trx.commit()
@@ -694,11 +695,21 @@ export class PaymentService extends BaseService {
   }) => {
     const { userId, priceId, providerCustomerId, providerPriceId } = data
 
+    const ivt = await this.findPendingInvitation({ userId, priceId })
     // Create from Stripe
-    const stripeSubscription = await this.stripe.createSubscription({
-      customer: providerCustomerId,
-      price: providerPriceId,
-    })
+    let stripeSubscription
+    if (ivt) {
+      stripeSubscription = await this.stripe.createSubscription({
+        customer: providerCustomerId,
+        price: providerPriceId,
+        coupon: ivt.providerCouponId,
+      })
+    } else {
+      stripeSubscription = await this.stripe.createSubscription({
+        customer: providerCustomerId,
+        price: providerPriceId,
+      })
+    }
 
     if (!stripeSubscription) {
       throw new ServerError('failed to create stripe subscription')
@@ -708,6 +719,7 @@ export class PaymentService extends BaseService {
     const [subscription] = await this.knex('circle_subscription')
       .insert({
         providerSubscriptionId: stripeSubscription.id,
+        state: stripeSubscription.status,
         userId,
       })
       .returning('*')
@@ -720,6 +732,11 @@ export class PaymentService extends BaseService {
         userId,
       })
       .returning('*')
+
+    // Mark coupon invitation as accepted
+    if (ivt) {
+      await this.acceptCouponInvitation(ivt.id)
+    }
   }
 
   /**
@@ -739,12 +756,22 @@ export class PaymentService extends BaseService {
       providerPriceId,
       providerSubscriptionId,
     } = data
-
+    // If any discount coupon invitation
+    const ivt = await this.findPendingInvitation({ userId, priceId })
     // Create from Stripe
-    const stripeItem = await this.stripe.createSubscriptionItem({
-      price: providerPriceId,
-      subscription: providerSubscriptionId,
-    })
+    let stripeItem
+    if (ivt) {
+      stripeItem = await this.stripe.createSubscriptionItem({
+        price: providerPriceId,
+        subscription: providerSubscriptionId,
+        coupon: ivt.providerCouponId,
+      })
+    } else {
+      stripeItem = await this.stripe.createSubscriptionItem({
+        price: providerPriceId,
+        subscription: providerSubscriptionId,
+      })
+    }
 
     if (!stripeItem) {
       throw new ServerError('failed to create stripe subscription item')
@@ -756,6 +783,58 @@ export class PaymentService extends BaseService {
         providerSubscriptionItemId: stripeItem.id,
         subscriptionId,
         userId,
+      })
+      .returning('*')
+
+    // Mark coupon invitation as accepted
+    if (ivt) {
+      await this.acceptCouponInvitation(ivt.id)
+    }
+  }
+
+  /*********************************
+   *                               *
+   *            Coupon             *
+   *                               *
+   *********************************/
+  /**
+   * Find coupons applicable to a user for a cirlce
+   */
+  findPendingInvitation = async (params: {
+    userId: string
+    priceId: string
+  }) => {
+    const user = await this.knex
+      .select()
+      .from('user')
+      .where({ id: params.userId })
+      .first()
+    const records = await this.knex
+      .select('ci.id', 'cc.provider_coupon_id')
+      .from('circle_invitation as ci')
+      .join('circle_price as cp', 'cp.circle_id', 'ci.circle_id')
+      .join('circle_coupon as cc', 'cc.id', 'ci.coupon_id')
+      .where({
+        'cp.id': params.priceId,
+        accepted: false,
+      })
+      .andWhere(function () {
+        this.where('ci.user_id', params.userId).orWhere('ci.email', user.email)
+      })
+      .orderBy('ci.created_at', 'desc')
+
+    return records.length > 0 ? records[0] : undefined
+  }
+
+  /**
+   * Accept coupon invitation
+   */
+  acceptCouponInvitation = async (ivtId: string) => {
+    await this.knex('circle_invitation')
+      .where('id', ivtId)
+      .update({
+        accepted: true,
+        accepted_at: this.knex.fn.now(),
       })
       .returning('*')
   }

@@ -1,6 +1,6 @@
 import { random } from 'lodash'
 
-import { AUTO_FOLLOW_TAGS } from 'common/enums'
+import { AUTO_FOLLOW_TAGS, CIRCLE_STATE, DB_NOTICE_TYPE } from 'common/enums'
 import { environment } from 'common/environment'
 import {
   CodeInvalidError,
@@ -26,7 +26,7 @@ const resolver: MutationToUserRegisterResolver = async (
   { input },
   {
     viewer,
-    dataSources: { tagService, userService, notificationService },
+    dataSources: { atomService, tagService, userService, notificationService },
     req,
     res,
   }
@@ -132,6 +132,35 @@ const resolver: MutationToUserRegisterResolver = async (
     },
     language: viewer.language,
   })
+
+  // send circle invitations' notices if user is invited
+  const invitations = await atomService.findMany({
+    table: 'circle_invitation',
+    where: { email, accepted: false }
+  })
+  await Promise.all(
+    invitations.map(async (invitation) => {
+      const circle = await atomService.findFirst({
+        table: 'circle',
+        where: {
+          id: invitation.circleId,
+          state: CIRCLE_STATE.active,
+        },
+      })
+      notificationService.trigger({
+        event: DB_NOTICE_TYPE.circle_invitation,
+        actorId: invitation.inviter,
+        recipientId: newUser.id,
+        entities: [
+          {
+            type: 'target',
+            entityTable: 'circle',
+            entity: circle,
+          },
+        ],
+      })
+    }
+  ))
 
   const { token, user } = await userService.login({ ...input, email })
 

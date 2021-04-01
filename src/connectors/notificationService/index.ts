@@ -28,9 +28,9 @@ export class NotificationService extends BaseService {
     this.pubsub = pubsub
   }
 
-  trigger = (params: NotificationPrarms) => {
+  trigger = async (params: NotificationPrarms) => {
     try {
-      this.__trigger(params)
+      await this.__trigger(params)
     } catch (e) {
       logger.error('[Notification:trigger]', e)
     }
@@ -90,6 +90,14 @@ export class NotificationService extends BaseService {
           recipientId: params.recipientId,
           actorId: params.actorId,
           entities: params.entities,
+        }
+      case DB_NOTICE_TYPE.circle_invitation:
+        return {
+          type: params.event,
+          recipientId: params.recipientId,
+          actorId: params.actorId,
+          entities: params.entities,
+          resend: true,
         }
       // act as official annonuncement
       case DB_NOTICE_TYPE.official_announcement:
@@ -176,7 +184,6 @@ export class NotificationService extends BaseService {
     }
 
     const noticeParams = await this.getNoticeParams(params, recipient.language)
-
     if (!noticeParams) {
       return
     }

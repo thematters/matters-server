@@ -1484,11 +1484,13 @@ export class UserService extends BaseService {
     email,
     type,
     strong,
+    expiredAt,
   }: {
     userId?: string | null
     email: string
     type: string
     strong?: boolean
+    expiredAt?: Date
   }) => {
     const code = strong ? nanoid(40) : _.random(100000, 999999)
 
@@ -1499,7 +1501,8 @@ export class UserService extends BaseService {
         email,
         type,
         code,
-        expiredAt: new Date(Date.now() + VERIFICATION_CODE_EXIPRED_AFTER),
+        expiredAt:
+          expiredAt || new Date(Date.now() + VERIFICATION_CODE_EXIPRED_AFTER),
       },
       'verification_code'
     )

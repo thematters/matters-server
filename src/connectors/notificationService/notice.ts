@@ -145,7 +145,7 @@ class Notice extends BaseService {
     const bundleables = await this.findBundleables(params)
 
     // bundle
-    if (bundleables[0] && params.actorId) {
+    if (bundleables[0] && params.actorId && params.resend !== true) {
       await this.addNoticeActor({
         noticeId: bundleables[0].id,
         actorId: params.actorId,
@@ -553,6 +553,7 @@ class Notice extends BaseService {
       circle_new_follower: setting.circleNewFollower,
       circle_new_subscriber: true,
       circle_new_unsubscriber: true,
+      circle_invitation: true,
 
       // system
       official_announcement: true,
