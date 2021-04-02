@@ -23,6 +23,7 @@
 - `docker-compose -f docker/docker-compose.yml run app npm run db:seed`
 - `docker-compose -f docker/docker-compose.yml up`
 - Run test cases: `docker-compose -f docker/docker-compose.yml run app npm run test`
+- Init search indices: `docker-compose -f docker/docker-compose.yml run app npm run search:init`
 
 ## DB migrations and seeds
 
