@@ -348,6 +348,21 @@ export class TagService extends BaseService {
    *           Search              *
    *                               *
    *********************************/
+  initSearch = async () => {
+    const tags = await this.knex(this.table).select(
+      'id',
+      'content',
+      'description'
+    )
+
+    return this.es.indexManyItems({
+      index: this.table,
+      items: tags.map((tag) => ({
+        ...tag,
+      })),
+    })
+  }
+
   addToSearch = async ({
     id,
     content,
