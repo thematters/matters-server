@@ -397,8 +397,16 @@ type Badge {
   type: BadgeType!
 }
 
+input BadgedUsersInput {
+  after: String
+  first: Int
+  type: BadgeType
+}
+
 enum BadgeType {
   seed
+  golden_motor
+  architect
 }
 
 type Balance {
@@ -1150,7 +1158,7 @@ type Mutation {
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
   setFeature(input: SetFeatureInput!): Feature!
-  toggleSeedingUsers(input: ToggleSeedingUsersInput!): Boolean!
+  toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1205,6 +1213,7 @@ type Mutation {
 
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
+  toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]!
 
   """Add Credit to User Wallet"""
   addCredit(input: AddCreditInput!): AddCreditResult!
@@ -1383,6 +1392,7 @@ type OSS {
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
   seedingUsers(input: ConnectionArgs!): UserConnection!
+  badgedUsers(input: BadgedUsersInput!): UserConnection!
 }
 
 type PageInfo {
@@ -2018,6 +2028,12 @@ input ToggleRecommendInput {
 
 input ToggleSeedingUsersInput {
   ids: [ID!]
+  enabled: Boolean!
+}
+
+input ToggleUsersBadgeInput {
+  ids: [ID!]
+  type: BadgeType!
   enabled: Boolean!
 }
 
