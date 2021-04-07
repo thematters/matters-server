@@ -106,17 +106,17 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
         await paymentService.stripe.deleteSubscriptionItem(
           targetItem.providerSubscriptionItemId
         )
-
-        // archive subscription item
-        await atomService.update({
-          table: 'circle_subscription_item',
-          where: { id: targetItem.id },
-          data: {
-            archived: true,
-            updatedAt: new Date(),
-          },
-        })
       }
+
+      // archive subscription item
+      await atomService.update({
+        table: 'circle_subscription_item',
+        where: { id: targetItem.id },
+        data: {
+          archived: true,
+          updatedAt: new Date(),
+        },
+      })
     })
   )
 
