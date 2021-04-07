@@ -139,7 +139,7 @@ const resolver: MutationToInviteResolver = async (
         userId: recipientId,
       })
 
-      if (isMember) {
+      if (isMember || recipientId === viewer.id) {
         continue
       }
     }
