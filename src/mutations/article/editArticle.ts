@@ -303,7 +303,7 @@ const resolver: MutationToEditArticleResolver = async (
       table: 'article_circle',
       where: data,
       create: data,
-      update: data,
+      update: { ...data, updatedAt: new Date() },
     })
   } else if (resetCircle) {
     throw new ForbiddenError(

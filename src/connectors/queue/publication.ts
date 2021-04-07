@@ -270,7 +270,7 @@ class PublicationQueue extends BaseQueue {
       table: 'article_circle',
       where: data,
       create: data,
-      update: data,
+      update: { ...data, updatedAt: new Date() },
     })
 
     await invalidateFQC({

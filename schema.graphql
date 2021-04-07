@@ -1500,6 +1500,9 @@ input PutCircleArticlesInput {
 
   """Action Type"""
   type: PutCircleArticlesType!
+
+  """Access Type, `public` or `paywall` only."""
+  accessType: ArticleAccessType!
 }
 
 enum PutCircleArticlesType {

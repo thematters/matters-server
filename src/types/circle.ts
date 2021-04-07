@@ -271,6 +271,9 @@ export default /* GraphQL */ `
 
     "Action Type"
     type: PutCircleArticlesType!
+
+    "Access Type, \`public\` or \`paywall\` only."
+    accessType: ArticleAccessType!
   }
 
   input InviteCircleInput {
