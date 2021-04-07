@@ -104,7 +104,7 @@ type Article implements Node {
   state: ArticleState!
 
   """This value determines if this article is under Subscription or not."""
-  live: Boolean!
+  live: Boolean! @deprecated(reason: "No longer in use")
 
   """Author of this article."""
   author: User!
@@ -195,10 +195,13 @@ type Article implements Node {
   """
   This value determines if this article is free for a limited time or not.
   """
-  limitedFree: Boolean!
+  limitedFree: Boolean! @deprecated(reason: "Use `access.type` instead")
 
   """Current article belongs to which Circle."""
-  circle: Circle
+  circle: Circle @deprecated(reason: "Use `access.circle` instead")
+
+  """Fields on circle article"""
+  access: ArticleAccess!
 
   """
   #############
@@ -231,6 +234,19 @@ type Article implements Node {
 
   """List of responses of a article."""
   responses(input: ResponsesInput!): ResponseConnection!
+}
+
+type ArticleAccess {
+  type: ArticleAccessType!
+  secret: String
+  circle: Circle
+}
+
+"""Enums for types of article access"""
+enum ArticleAccessType {
+  public
+  paywall
+  limitedFree
 }
 
 type ArticleArticleNotice implements Notice {
