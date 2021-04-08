@@ -97,7 +97,6 @@ const resolver: MutationToSubscribeCircleResolver = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
-
   const provider = PAYMENT_PROVIDER.stripe
 
   // retrieve or create a Customer
