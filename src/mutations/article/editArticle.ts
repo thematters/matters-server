@@ -54,12 +54,13 @@ const resolver: MutationToEditArticleResolver = async (
   {
     viewer,
     dataSources: {
-      draftService,
-      systemService,
       articleService,
-      tagService,
-      notificationService,
       atomService,
+      draftService,
+      notificationService,
+      systemService,
+      tagService,
+      userService,
     },
   }
 ) => {
@@ -219,9 +220,47 @@ const resolver: MutationToEditArticleResolver = async (
         limit: null,
       })
     ).map(({ articleId }: { articleId: string }) => articleId)
+
     const newIds = uniq(
-      collection.map((articleId) => fromGlobalId(articleId).id)
+      (
+        await Promise.all(
+          collection.map(async (articleId) => {
+            const articleDbId = fromGlobalId(articleId).id
+
+            if (!articleDbId) {
+              return
+            }
+
+            const collectedArticle = await atomService.findUnique({
+              table: 'article',
+              where: { id: articleDbId },
+            })
+
+            if (!collectedArticle) {
+              throw new ArticleNotFoundError(`Cannot find article ${articleId}`)
+            }
+
+            if (collectedArticle.state !== ARTICLE_STATE.active) {
+              throw new ForbiddenError(
+                `Article ${articleId} cannot be collected.`
+              )
+            }
+
+            const isBlocked = await userService.blocked({
+              userId: collectedArticle.authorId,
+              targetId: viewer.id,
+            })
+
+            if (isBlocked) {
+              return
+            }
+
+            return articleDbId
+          })
+        )
+      ).filter((articleId): articleId is string => !!articleId)
     )
+
     const addItems: any[] = []
     const updateItems: any[] = []
     const diff = difference(newIds, oldIds)
