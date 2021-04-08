@@ -2654,6 +2654,11 @@ export interface GQLPutCircleArticlesInput {
    * Action Type
    */
   type: GQLPutCircleArticlesType
+
+  /**
+   * Access Type, `public` or `paywall` only.
+   */
+  accessType: GQLArticleAccessType
 }
 
 export const enum GQLPutCircleArticlesType {

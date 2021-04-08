@@ -30,7 +30,7 @@ const resolver: CircleToWorksResolver = async (
     .from('article_circle')
     .innerJoin('article', 'article.id', 'article_circle.article_id')
     .where({ circleId: id, 'article.state': ARTICLE_STATE.active })
-    .orderBy('article_circle.created_at', 'desc')
+    .orderBy('article_circle.updated_at', 'desc')
     .offset(skip)
     .limit(take || BATCH_SIZE)
 

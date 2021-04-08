@@ -142,8 +142,6 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
     },
   ]
 
-  console.log(circle)
-
   return circle
 }
 

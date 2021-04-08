@@ -1,6 +1,7 @@
 import _ from 'lodash'
 
 import {
+  ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
   CACHE_KEYWORD,
   CIRCLE_ACTION,
@@ -19,12 +20,12 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId } from 'common/utils'
+import { fromGlobalId, toGlobalId } from 'common/utils'
 import { MutationToPutCircleArticlesResolver } from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (
   root,
-  { input: { id, articles, type } },
+  { input: { id, articles, type: actionType, accessType } },
   {
     viewer,
     dataSources: { atomService, systemService, notificationService },
@@ -37,6 +38,10 @@ const resolver: MutationToPutCircleArticlesResolver = async (
 
   if (viewer.state === USER_STATE.frozen) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
+  }
+
+  if (accessType === ARTICLE_ACCESS_TYPE.limitedFree) {
+    throw new UserInputError('"accessType" can only be `public` or `paywall`.')
   }
 
   if (!articles) {
@@ -68,6 +73,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       },
     }),
   ])
+  const targetArticleIds = targetArticles.map((a) => a.id)
 
   if (!circle) {
     throw new CircleNotFoundError(`circle ${id} not found`)
@@ -82,67 +88,94 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     throw new ForbiddenError('only circle owner has the access')
   }
 
-  switch (type) {
-    case 'add':
-      // retrieve circle members and followers
-      const members = await knex
-        .from('circle_subscription_item as csi')
-        .join('circle_price', 'circle_price.id', 'csi.price_id')
-        .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
-        .where({
-          'circle_price.circle_id': circleId,
-          'circle_price.state': PRICE_STATE.active,
-          'csi.archived': false,
-        })
-        .whereIn('cs.state', [
-          SUBSCRIPTION_STATE.active,
-          SUBSCRIPTION_STATE.trialing,
-        ])
-      const followers = await atomService.findMany({
-        table: 'action_circle',
-        select: ['user_id'],
-        where: { targetId: circleId, action: CIRCLE_ACTION.follow },
-      })
-      const recipients = _.uniq([
-        ...members.map((m) => m.userId),
-        ...followers.map((f) => f.userId),
-      ])
+  const checkPaywalledArticles = async () => {
+    const paywalledArticles = await atomService.findMany({
+      table: 'article_circle',
+      where: { circleId: circle.id, access: ARTICLE_ACCESS_TYPE.paywall },
+      whereIn: ['article_id', targetArticleIds],
+    })
+    const hasPaywalledArticles =
+      paywalledArticles && paywalledArticles.length > 0
 
-      for (const article of targetArticles) {
-        const data = { articleId: article.id, circleId: circle.id }
-        await atomService.upsert({
-          table: 'article_circle',
-          where: data,
-          create: data,
-          update: data,
-        })
-
-        // notify
-        recipients.forEach((recipientId: any) => {
-          notificationService.trigger({
-            event: DB_NOTICE_TYPE.circle_new_article,
-            recipientId,
-            entities: [
-              {
-                type: 'target',
-                entityTable: 'article',
-                entity: article,
-              },
-            ],
-          })
-        })
-      }
-      break
-    case 'remove':
-      throw new ForbiddenError(
-        `removing articles from circle is unsupported now.`
+    if (hasPaywalledArticles) {
+      const paywalledArticleIds = paywalledArticles.map((a) =>
+        toGlobalId({ type: 'Article', id: a.id })
       )
-      // await atomService.deleteMany({
-      //   table: 'article_circle',
-      //   where: { circleId: circle.id },
-      //   whereIn: ['article_id', targetArticleIds],
-      // })
-      break
+      throw new ForbiddenError(
+        `forbid to perform the action on paywalled articles: ${paywalledArticleIds.join(
+          ', '
+        )}.`
+      )
+    }
+  }
+
+  // add articles to circle
+  if (actionType === 'add') {
+    if (accessType === ARTICLE_ACCESS_TYPE.public) {
+      await checkPaywalledArticles()
+    }
+
+    // retrieve circle members and followers
+    const members = await knex
+      .from('circle_subscription_item as csi')
+      .join('circle_price', 'circle_price.id', 'csi.price_id')
+      .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+      .where({
+        'circle_price.circle_id': circleId,
+        'circle_price.state': PRICE_STATE.active,
+        'csi.archived': false,
+      })
+      .whereIn('cs.state', [
+        SUBSCRIPTION_STATE.active,
+        SUBSCRIPTION_STATE.trialing,
+      ])
+    const followers = await atomService.findMany({
+      table: 'action_circle',
+      select: ['user_id'],
+      where: { targetId: circleId, action: CIRCLE_ACTION.follow },
+    })
+    const recipients = _.uniq([
+      ...members.map((m) => m.userId),
+      ...followers.map((f) => f.userId),
+    ])
+
+    for (const article of targetArticles) {
+      const data = {
+        articleId: article.id,
+        circleId: circle.id,
+      }
+      await atomService.upsert({
+        table: 'article_circle',
+        where: data,
+        create: { ...data, access: accessType },
+        update: { ...data, access: accessType, updatedAt: new Date() },
+      })
+
+      // notify
+      recipients.forEach((recipientId: any) => {
+        notificationService.trigger({
+          event: DB_NOTICE_TYPE.circle_new_article,
+          recipientId,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'article',
+              entity: article,
+            },
+          ],
+        })
+      })
+    }
+  }
+  // remove articles from circle
+  else if (actionType === 'remove') {
+    await checkPaywalledArticles()
+
+    await atomService.deleteMany({
+      table: 'article_circle',
+      where: { circleId: circle.id },
+      whereIn: ['article_id', targetArticleIds],
+    })
   }
 
   // invalidate articles
