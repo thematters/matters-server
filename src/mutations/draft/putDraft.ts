@@ -157,7 +157,7 @@ const resolver: MutationToPutDraftResolver = async (
       cover: coverId,
       collection: collectionIds,
       circleId,
-      accessType,
+      access: accessType,
     },
     _.isNil
   )
