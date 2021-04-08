@@ -26,7 +26,13 @@ const resolver: MutationToPutDraftResolver = async (
   { input },
   {
     viewer,
-    dataSources: { draftService, systemService, articleService, atomService },
+    dataSources: {
+      articleService,
+      atomService,
+      draftService,
+      systemService,
+      userService,
+    },
   }
 ) => {
   const {
@@ -81,13 +87,24 @@ const resolver: MutationToPutDraftResolver = async (
           throw new ArticleNotFoundError(
             `Cannot find article ${articleGlobalId}`
           )
-        } else if (article.state !== ARTICLE_STATE.active) {
+        }
+
+        if (article.state !== ARTICLE_STATE.active) {
           throw new ForbiddenError(
             `Article ${articleGlobalId} cannot be collected.`
           )
-        } else {
-          return articleId
         }
+
+        const isBlocked = await userService.blocked({
+          userId: article.authorId,
+          targetId: viewer.id,
+        })
+
+        if (isBlocked) {
+          return
+        }
+
+        return articleId
       })
     )
 
