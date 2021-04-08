@@ -44,6 +44,7 @@ const resolver: MutationToPutDraftResolver = async (
     cover,
     collection,
     circle: circleGlobalId,
+    accessType,
   } = input
 
   if (!viewer.id) {
@@ -130,6 +131,10 @@ const resolver: MutationToPutDraftResolver = async (
       throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
     }
 
+    if (!accessType) {
+      throw new UserInputError('"accessType" is required on `circle`.')
+    }
+
     circleId = cId
   }
 
@@ -152,6 +157,7 @@ const resolver: MutationToPutDraftResolver = async (
       cover: coverId,
       collection: collectionIds,
       circleId,
+      accessType,
     },
     _.isNil
   )

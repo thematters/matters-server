@@ -85,6 +85,9 @@ export default /* GraphQL */ `
     cover: ID
     collection: [ID]
     circle: ID
+
+    "Access Type, \`public\` or \`paywall\` only."
+    accessType: ArticleAccessType
   }
 
   input DeleteDraftInput {

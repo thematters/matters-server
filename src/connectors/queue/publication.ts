@@ -269,8 +269,8 @@ class PublicationQueue extends BaseQueue {
     await this.atomService.upsert({
       table: 'article_circle',
       where: data,
-      create: data,
-      update: { ...data, updatedAt: new Date() },
+      create: { ...data, access: draft.accessType },
+      update: { ...data, access: draft.accessType, updatedAt: new Date() },
     })
 
     await invalidateFQC({

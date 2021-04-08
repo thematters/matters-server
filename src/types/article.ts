@@ -307,6 +307,7 @@ export default /* GraphQL */ `
     cover: ID
     collection: [ID!]
     circle: ID
+    accessType: ArticleAccessType
   }
 
   input AppreciateArticleInput {

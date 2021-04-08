@@ -874,6 +874,7 @@ input EditArticleInput {
   cover: ID
   collection: [ID!]
   circle: ID
+  accessType: ArticleAccessType
 }
 
 scalar Email
@@ -1549,6 +1550,9 @@ input PutDraftInput {
   cover: ID
   collection: [ID]
   circle: ID
+
+  """Access Type, `public` or `paywall` only."""
+  accessType: ArticleAccessType
 }
 
 input PutOAuthClientInput {

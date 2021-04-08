@@ -2481,6 +2481,7 @@ export interface GQLEditArticleInput {
   cover?: string
   collection?: Array<string>
   circle?: string
+  accessType?: GQLArticleAccessType
 }
 
 /**
@@ -2741,6 +2742,11 @@ export interface GQLPutDraftInput {
   cover?: string
   collection?: Array<string | null>
   circle?: string
+
+  /**
+   * Access Type, `public` or `paywall` only.
+   */
+  accessType?: GQLArticleAccessType
 }
 
 export interface GQLDeleteDraftInput {
