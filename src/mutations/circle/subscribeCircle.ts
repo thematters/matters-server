@@ -32,9 +32,10 @@ const resolver: MutationToSubscribeCircleResolver = async (
     viewer,
     dataSources: {
       atomService,
-      paymentService,
       notificationService,
+      paymentService,
       systemService,
+      userService,
     },
     knex,
   }
@@ -85,6 +86,17 @@ const resolver: MutationToSubscribeCircleResolver = async (
   if (!price) {
     throw new EntityNotFoundError(`price of circle ${id} not found`)
   }
+
+  // check viewer is blocked by circle owner
+  const isBlocked = await userService.blocked({
+    userId: circle.owner,
+    targetId: viewer.id,
+  })
+
+  if (isBlocked) {
+    throw new ForbiddenError('viewer has no permission')
+  }
+
 
   const provider = PAYMENT_PROVIDER.stripe
 
