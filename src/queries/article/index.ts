@@ -4,6 +4,7 @@ import slugify from '@matters/slugify'
 import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
+import * as articleAccess from './access'
 import appreciateLeft from './appreciateLeft'
 import appreciationsReceived from './appreciationsReceived'
 import appreciationsReceivedTotal from './appreciationsReceivedTotal'
@@ -97,6 +98,7 @@ export default {
     revisedAt,
     limitedFree,
     circle,
+    access: (root: any) => root,
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
@@ -110,6 +112,11 @@ export default {
     oss: (root: any) => root,
     cover: tagCover,
     participants: tagParticipants,
+  },
+  ArticleAccess: {
+    type: articleAccess.type,
+    secret: articleAccess.secret,
+    circle: articleAccess.circle,
   },
   ArticleOSS: {
     boost: articleOSS.boost,
