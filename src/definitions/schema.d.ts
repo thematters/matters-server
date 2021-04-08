@@ -70,6 +70,7 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * This value determines if this article is under Subscription or not.
+   * @deprecated No longer in use
    */
   live: boolean
 
@@ -215,13 +216,20 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * This value determines if this article is free for a limited time or not.
+   * @deprecated Use `access.type` instead
    */
   limitedFree: boolean
 
   /**
    * Current article belongs to which Circle.
+   * @deprecated Use `access.circle` instead
    */
   circle?: GQLCircle
+
+  /**
+   * Fields on circle article
+   */
+  access: GQLArticleAccess
 
   /**
    * #############
@@ -1850,6 +1858,21 @@ export interface GQLTransactionsReceivedByArgs {
   after?: string
   first?: number
   purpose: GQLTransactionPurpose
+}
+
+export interface GQLArticleAccess {
+  type: GQLArticleAccessType
+  secret?: string
+  circle?: GQLCircle
+}
+
+/**
+ * Enums for types of article access
+ */
+export const enum GQLArticleAccessType {
+  public = 'public',
+  paywall = 'paywall',
+  limitedFree = 'limitedFree',
 }
 
 export interface GQLArticleOSS {
@@ -3501,6 +3524,7 @@ export interface GQLResolver {
 
   StripeAccount?: GQLStripeAccountTypeResolver
   ArticleTranslation?: GQLArticleTranslationTypeResolver
+  ArticleAccess?: GQLArticleAccessTypeResolver
   ArticleOSS?: GQLArticleOSSTypeResolver
   ResponseConnection?: GQLResponseConnectionTypeResolver
   ResponseEdge?: GQLResponseEdgeTypeResolver
@@ -3723,6 +3747,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   drafts?: ArticleToDraftsResolver<TParent>
   limitedFree?: ArticleToLimitedFreeResolver<TParent>
   circle?: ArticleToCircleResolver<TParent>
+  access?: ArticleToAccessResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
@@ -4105,6 +4130,15 @@ export interface ArticleToLimitedFreeResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToCircleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToAccessResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7914,6 +7948,39 @@ export interface ArticleTranslationToContentResolver<
   TParent = any,
   TResult = any
 > {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLArticleAccessTypeResolver<TParent = any> {
+  type?: ArticleAccessToTypeResolver<TParent>
+  secret?: ArticleAccessToSecretResolver<TParent>
+  circle?: ArticleAccessToCircleResolver<TParent>
+}
+
+export interface ArticleAccessToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleAccessToSecretResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleAccessToCircleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
