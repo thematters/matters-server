@@ -227,7 +227,7 @@ export interface GQLArticle extends GQLNode {
   circle?: GQLCircle
 
   /**
-   * Fields on circle article
+   * Access related fields on circle
    */
   access: GQLArticleAccess
 
@@ -1425,8 +1425,14 @@ export interface GQLDraft extends GQLNode {
 
   /**
    * Circle of this draft.
+   * @deprecated Use `access.circle` instead
    */
   circle?: GQLCircle
+
+  /**
+   * Access related fields on circle
+   */
+  access: GQLDraftAccess
 }
 
 /**
@@ -1477,6 +1483,20 @@ export const enum GQLAssetType {
   tagCover = 'tagCover',
   circleAvatar = 'circleAvatar',
   circleCover = 'circleCover',
+}
+
+export interface GQLDraftAccess {
+  type: GQLArticleAccessType
+  circle?: GQLCircle
+}
+
+/**
+ * Enums for types of article access
+ */
+export const enum GQLArticleAccessType {
+  public = 'public',
+  paywall = 'paywall',
+  limitedFree = 'limitedFree',
 }
 
 export interface GQLUserActivity {
@@ -1864,15 +1884,6 @@ export interface GQLArticleAccess {
   type: GQLArticleAccessType
   secret?: string
   circle?: GQLCircle
-}
-
-/**
- * Enums for types of article access
- */
-export const enum GQLArticleAccessType {
-  public = 'public',
-  paywall = 'paywall',
-  limitedFree = 'limitedFree',
 }
 
 export interface GQLArticleOSS {
@@ -3506,6 +3517,7 @@ export interface GQLResolver {
   DraftEdge?: GQLDraftEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
   Asset?: GQLAssetTypeResolver
+  DraftAccess?: GQLDraftAccessTypeResolver
   UserActivity?: GQLUserActivityTypeResolver
   ReadHistoryConnection?: GQLReadHistoryConnectionTypeResolver
   ReadHistoryEdge?: GQLReadHistoryEdgeTypeResolver
@@ -6789,6 +6801,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   article?: DraftToArticleResolver<TParent>
   collection?: DraftToCollectionResolver<TParent>
   circle?: DraftToCircleResolver<TParent>
+  access?: DraftToAccessResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -6950,6 +6963,15 @@ export interface DraftToCircleResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface DraftToAccessResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLAssetTypeResolver<TParent = any> {
   id?: AssetToIdResolver<TParent>
   type?: AssetToTypeResolver<TParent>
@@ -6985,6 +7007,29 @@ export interface AssetToPathResolver<TParent = any, TResult = any> {
 }
 
 export interface AssetToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLDraftAccessTypeResolver<TParent = any> {
+  type?: DraftAccessToTypeResolver<TParent>
+  circle?: DraftAccessToCircleResolver<TParent>
+}
+
+export interface DraftAccessToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftAccessToCircleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
