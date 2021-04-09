@@ -156,11 +156,21 @@ export default /* GraphQL */ `
   }
 
   input SearchInput {
+    "search keyword"
     key: String!
+
+    "types of search target"
     type: SearchTypes!
+
     after: String
     first: Int
+
+    "extra query filter for searching"
     filter: SearchFilter
+
+    "specific condition for rule data out"
+    exclude: SearchExclude
+
     "whether this search operation should be recorded in search history"
     record: Boolean
     oss: Boolean
@@ -304,6 +314,10 @@ export default /* GraphQL */ `
     off
     admin
     seeding
+  }
+
+  enum SearchExclude {
+    blocked
   }
 
   input CostComplexity {

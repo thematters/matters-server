@@ -1966,11 +1966,27 @@ export interface GQLFrequentSearchInput {
 }
 
 export interface GQLSearchInput {
+  /**
+   * search keyword
+   */
   key: string
+
+  /**
+   * types of search target
+   */
   type: GQLSearchTypes
   after?: string
   first?: number
+
+  /**
+   * extra query filter for searching
+   */
   filter?: GQLSearchFilter
+
+  /**
+   * specific condition for rule data out
+   */
+  exclude?: GQLSearchExclude
 
   /**
    * whether this search operation should be recorded in search history
@@ -1987,6 +2003,10 @@ export const enum GQLSearchTypes {
 
 export interface GQLSearchFilter {
   authorId?: string
+}
+
+export const enum GQLSearchExclude {
+  blocked = 'blocked',
 }
 
 export interface GQLSearchResultConnection extends GQLConnection {
