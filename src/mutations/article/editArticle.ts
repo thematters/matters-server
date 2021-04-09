@@ -329,7 +329,7 @@ const resolver: MutationToEditArticleResolver = async (
     const paywalledArticle = await atomService.findFirst({
       table: 'article_circle',
       where: {
-        circleId: circle.id,
+        // circleId: circle.id,
         articleId: article.id,
         access: ARTICLE_ACCESS_TYPE.paywall,
       },
@@ -382,8 +382,7 @@ const resolver: MutationToEditArticleResolver = async (
 
     await atomService.deleteMany({
       table: 'article_circle',
-      where: { circleId: circle.id },
-      whereIn: ['article_id', [article.id]],
+      where: { articleId: article.id },
     })
   }
 
