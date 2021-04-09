@@ -260,7 +260,7 @@ class PublicationQueue extends BaseQueue {
     draft: any
     article: any
   }) => {
-    if (!draft.circleId) {
+    if (!draft.circleId || !draft.access) {
       return
     }
 
