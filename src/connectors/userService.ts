@@ -37,6 +37,7 @@ import { BaseService, OAuthService } from 'connectors'
 import {
   GQLAuthorsType,
   GQLResetPasswordType,
+  GQLSearchExclude,
   GQLSearchInput,
   ItemData,
   UserOAuthLikeCoin,
@@ -386,7 +387,13 @@ export class UserService extends BaseService {
     first = 20,
     offset,
     oss = false,
-  }: GQLSearchInput & { offset: number; oss?: boolean }) => {
+    exclude,
+    viewerId,
+  }: GQLSearchInput & {
+    offset: number
+    oss?: boolean
+    viewerId?: string | null
+  }) => {
     const body = bodybuilder()
       .from(offset)
       .size(first)
@@ -435,7 +442,18 @@ export class UserService extends BaseService {
       )
 
       // merge two ID arrays and remove duplicates
-      const ids = [...new Set([...matchIds, ...displayNameIds, ...userNameIds])]
+      let ids = [...new Set([...matchIds, ...displayNameIds, ...userNameIds])]
+
+      // filter out users who blocked viewer
+      if (exclude === GQLSearchExclude.blocked && viewerId) {
+        const blockedIds = (
+          await this.knex('action_user')
+            .select('user_id')
+            .where({ action: USER_ACTION.block, targetId: viewerId })
+        ).map(({ userId }) => userId)
+
+        ids = _.difference(ids, blockedIds)
+      }
       const nodes = await this.baseFindByIds(ids)
       return { nodes, totalCount: nodes.length }
     } catch (err) {

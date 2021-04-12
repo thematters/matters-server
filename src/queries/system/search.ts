@@ -43,7 +43,7 @@ const resolver: QueryToSearchResolver = async (
   }
 
   const connection = await serviceMap[input.type]
-    .search({ ...input, offset })
+    .search({ ...input, offset, viewerId: viewer.id })
     .then(({ nodes, totalCount }) => {
       nodes = _.compact(nodes)
       return {
