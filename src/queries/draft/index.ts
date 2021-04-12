@@ -3,6 +3,7 @@ import slugify from '@matters/slugify'
 
 import { countWords, toGlobalId } from 'common/utils'
 
+import * as draftAccess from './access'
 import article from './article'
 import articleDrafts from './article/drafts'
 import assets from './assets'
@@ -30,5 +31,10 @@ export default {
     assets,
     article,
     circle,
+    access: (root: any) => root,
+  },
+  DraftAccess: {
+    type: ({ access }: { access: string }) => access,
+    circle: draftAccess.circle,
   },
 }

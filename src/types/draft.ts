@@ -62,7 +62,11 @@ export default /* GraphQL */ `
     collection(input: ConnectionArgs!): ArticleConnection!
 
     "Circle of this draft."
-    circle: Circle @logCache(type: "${NODE_TYPES.circle}")
+    circle: Circle @logCache(type: "${NODE_TYPES.circle}") @deprecated(reason: "Use \`access.circle\` instead")
+
+    "Access related fields on circle"
+    access: DraftAccess!
+
   }
 
   type DraftConnection implements Connection {
@@ -76,6 +80,11 @@ export default /* GraphQL */ `
     node: Draft! @logCache(type: "${NODE_TYPES.draft}")
   }
 
+  type DraftAccess {
+    type: ArticleAccessType!
+    circle: Circle @logCache(type: "${NODE_TYPES.circle}")
+  }
+
   input PutDraftInput {
     id: ID
     title: String
@@ -85,6 +94,9 @@ export default /* GraphQL */ `
     cover: ID
     collection: [ID]
     circle: ID
+
+    "Access Type, \`public\` or \`paywall\` only."
+    accessType: ArticleAccessType
   }
 
   input DeleteDraftInput {

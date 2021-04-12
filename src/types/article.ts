@@ -176,7 +176,7 @@ export default /* GraphQL */ `
     "Current article belongs to which Circle."
     circle: Circle @logCache(type: "${NODE_TYPES.circle}") @deprecated(reason: "Use \`access.circle\` instead")
 
-    "Fields on circle article"
+    "Access related fields on circle"
     access: ArticleAccess!
 
     ##############
@@ -307,6 +307,7 @@ export default /* GraphQL */ `
     cover: ID
     collection: [ID!]
     circle: ID
+    accessType: ArticleAccessType
   }
 
   input AppreciateArticleInput {

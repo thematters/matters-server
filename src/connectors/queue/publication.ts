@@ -260,7 +260,7 @@ class PublicationQueue extends BaseQueue {
     draft: any
     article: any
   }) => {
-    if (!draft.circleId) {
+    if (!draft.circleId || !draft.access) {
       return
     }
 
@@ -269,8 +269,8 @@ class PublicationQueue extends BaseQueue {
     await this.atomService.upsert({
       table: 'article_circle',
       where: data,
-      create: data,
-      update: { ...data, updatedAt: new Date() },
+      create: { ...data, access: draft.access },
+      update: { ...data, access: draft.access, updatedAt: new Date() },
     })
 
     await invalidateFQC({
