@@ -200,7 +200,7 @@ type Article implements Node {
   """Current article belongs to which Circle."""
   circle: Circle @deprecated(reason: "Use `access.circle` instead")
 
-  """Fields on circle article"""
+  """Access related fields on circle"""
   access: ArticleAccess!
 
   """
@@ -850,6 +850,14 @@ type Draft implements Node {
   collection(input: ConnectionArgs!): ArticleConnection!
 
   """Circle of this draft."""
+  circle: Circle @deprecated(reason: "Use `access.circle` instead")
+
+  """Access related fields on circle"""
+  access: DraftAccess!
+}
+
+type DraftAccess {
+  type: ArticleAccessType!
   circle: Circle
 }
 
@@ -874,6 +882,7 @@ input EditArticleInput {
   cover: ID
   collection: [ID!]
   circle: ID
+  accessType: ArticleAccessType
 }
 
 scalar Email
@@ -1549,6 +1558,9 @@ input PutDraftInput {
   cover: ID
   collection: [ID]
   circle: ID
+
+  """Access Type, `public` or `paywall` only."""
+  accessType: ArticleAccessType
 }
 
 input PutOAuthClientInput {

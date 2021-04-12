@@ -3,6 +3,7 @@ import { difference, flow, trim, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
   ASSET_TYPE,
   CACHE_KEYWORD,
@@ -24,6 +25,7 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   NameInvalidError,
+  UserInputError,
 } from 'common/errors'
 import {
   correctHtml,
@@ -32,6 +34,7 @@ import {
   measureDiffs,
   sanitize,
   stripClass,
+  toGlobalId,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { ItemData, MutationToEditArticleResolver } from 'definitions'
@@ -49,6 +52,7 @@ const resolver: MutationToEditArticleResolver = async (
       cover,
       collection,
       circle: circleGlobalId,
+      accessType,
     },
   },
   {
@@ -87,6 +91,9 @@ const resolver: MutationToEditArticleResolver = async (
   }
   if (article.state !== ARTICLE_STATE.active) {
     throw new ForbiddenError('only active article is allowed to be edited.')
+  }
+  if (accessType && accessType === ARTICLE_ACCESS_TYPE.limitedFree) {
+    throw new UserInputError('"accessType" can only be `public` or `paywall`.')
   }
 
   /**
@@ -318,6 +325,24 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Circle
    */
+  const checkPaywalledArticle = async () => {
+    const paywalledArticle = await atomService.findFirst({
+      table: 'article_circle',
+      where: {
+        // circleId: circle.id,
+        articleId: article.id,
+        access: ARTICLE_ACCESS_TYPE.paywall,
+      },
+    })
+
+    if (paywalledArticle) {
+      const paywalledArticleId = toGlobalId({ type: 'Article', id: article.id })
+      throw new ForbiddenError(
+        `forbid to perform the action on paywalled articles: ${paywalledArticleId}.`
+      )
+    }
+  }
+
   const resetCircle = circleGlobalId === null
   let circle: any
   if (circleGlobalId) {
@@ -336,18 +361,29 @@ const resolver: MutationToEditArticleResolver = async (
     } else if (circle.state !== CIRCLE_STATE.active) {
       throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
     }
+
+    if (!accessType) {
+      throw new UserInputError('"accessType" is required on `circle`.')
+    }
+    if (accessType === ARTICLE_ACCESS_TYPE.public) {
+      await checkPaywalledArticle()
+    }
+
     // insert to db
     const data = { articleId: article.id, circleId: circle.id }
     await atomService.upsert({
       table: 'article_circle',
       where: data,
-      create: data,
-      update: { ...data, updatedAt: new Date() },
+      create: { ...data, access: accessType },
+      update: { ...data, access: accessType, updatedAt: new Date() },
     })
   } else if (resetCircle) {
-    throw new ForbiddenError(
-      `removing articles from circle is unsupported now.`
-    )
+    await checkPaywalledArticle()
+
+    await atomService.deleteMany({
+      table: 'article_circle',
+      where: { articleId: article.id },
+    })
   }
 
   /**

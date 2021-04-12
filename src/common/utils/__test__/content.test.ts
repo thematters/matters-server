@@ -5,7 +5,7 @@ test('correctSelfClosingHtmlTag', async () => {
     {
       tag: 'iframe',
       data: '<p><iframe/></p>',
-      toBe: '<p><iframe></iframe></p>'
+      toBe: '<p><iframe></iframe></p>',
     },
     {
       tag: 'iframe',
@@ -50,7 +50,8 @@ test('correctNestedBrTag', async () => {
       toBe: '<p><br class="smart"><br class="smart"></p>',
     },
     {
-      data: '<p><br class="smart"><br class="smart"><br class="smart" /></br></br></p>',
+      data:
+        '<p><br class="smart"><br class="smart"><br class="smart" /></br></br></p>',
       toBe: '<p><br class="smart"><br class="smart"><br class="smart"></p>',
     },
     {
@@ -58,8 +59,10 @@ test('correctNestedBrTag', async () => {
       toBe: '<blockquote><br class="smart"></blockquote>',
     },
     {
-      data: '<blockquote><br class="smart"><br class="smart"><br class="smart" /></br></br></blockquote>',
-      toBe: '<blockquote><br class="smart"><br class="smart"><br class="smart"></blockquote>',
+      data:
+        '<blockquote><br class="smart"><br class="smart"><br class="smart" /></br></br></blockquote>',
+      toBe:
+        '<blockquote><br class="smart"><br class="smart"><br class="smart"></blockquote>',
     },
     {
       data: '<p><br class="not-smart"><br class="not-smart" /></br></p>',
