@@ -1,9 +1,9 @@
-import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
+import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
     "Create or update a draft."
-    putDraft(input: PutDraftInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    putDraft(input: PutDraftInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.draft}")
 
     "Remove a draft."
     deleteDraft(input: DeleteDraftInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}")
@@ -12,9 +12,9 @@ export default /* GraphQL */ `
   """
   This type contains content, collections, assets and related data of a draft.
   """
-  type Draft implements Node @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
+  type Draft implements Node {
     "Unique ID of this draft."
-    id: ID! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    id: ID!
 
     "Media hash, composed of cid encoding, of this draft."
     mediaHash: String
