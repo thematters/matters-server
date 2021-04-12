@@ -524,7 +524,7 @@ export class ArticleService extends BaseService {
         )) as Array<Record<string, any>>
 
         if (excludeBlocked) {
-          items = items.filter((item) => !_.some(blockedIds, item.authorId))
+          items = items.filter((item) => !blockedIds.includes(item.authorId))
         }
         return { nodes: items, totalCount: items.length }
       }
@@ -547,12 +547,13 @@ export class ArticleService extends BaseService {
       const ids = idsByTitle.concat(
         hits.hits.map(({ _id }: { _id: any }) => _id)
       )
+
       let nodes = (await this.draftLoader.loadMany(ids)) as Array<
         Record<string, any>
       >
 
       if (excludeBlocked) {
-        nodes = nodes.filter((node) => !_.some(blockedIds, node.authorId))
+        nodes = nodes.filter((node) => !blockedIds.includes(node.authorId))
       }
 
       return { nodes, totalCount: nodes.length }
