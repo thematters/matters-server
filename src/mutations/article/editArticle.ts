@@ -39,6 +39,8 @@ import {
 import { revisionQueue } from 'connectors/queue'
 import { ItemData, MutationToEditArticleResolver } from 'definitions'
 
+const MAX_REVISION_COUNT = 3
+
 const resolver: MutationToEditArticleResolver = async (
   _,
   {
@@ -408,41 +410,30 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   /**
-   * Content
+   * Republish article on content changes or paywalled
    */
-  if (content) {
-    const revisionCount = await draftService.countValidByArticleId({
-      articleId: article.id,
-    })
-    // cannot have drafts more than first draft plus 2 pending or published revision
-    if (revisionCount > 3) {
-      throw new ArticleRevisionReachLimitError(
-        'number of revisions reach limit'
-      )
-    }
-
-    const cleanedContent = stripClass(content, 'u-area-disable')
-
-    // check diff distances reaches limit or not
-    const diffs = measureDiffs(
-      stripHtml(draft.content, ''),
-      stripHtml(cleanedContent, '')
-    )
-    if (diffs > 50) {
-      throw new ArticleRevisionContentInvalidError('revised content invalid')
-    }
-
+  const republish = async (newContent?: string) => {
     // fetch updated data before create draft
     const [
       currDraft,
       currArticle,
       currCollections,
       currTags,
+      currArticleCircle,
     ] = await Promise.all([
       draftService.baseFindById(article.draftId), // fetch latest draft
       articleService.baseFindById(dbId), // fetch latest article
       articleService.findCollections({ entranceId: article.id, limit: null }),
       tagService.findByArticleId({ articleId: article.id }),
+      knex
+        .select('article_circle.*')
+        .from('article_circle')
+        .join('circle', 'article_circle.circle_id', 'circle.id')
+        .where({
+          'article_circle.article_id': article.id,
+          'circle.state': CIRCLE_STATE.active,
+        })
+        .first(),
     ])
     const currTagContents = currTags.map((currTag) => currTag.content)
     const currCollectionIds = currCollections.map(
@@ -450,6 +441,10 @@ const resolver: MutationToEditArticleResolver = async (
     )
 
     // create draft linked to this article
+    const cleanedContent = stripClass(
+      newContent || article.content,
+      'u-area-disable'
+    )
     const pipe = flow(sanitize, correctHtml)
     const data: ItemData = {
       uuid: v4(),
@@ -464,6 +459,8 @@ const resolver: MutationToEditArticleResolver = async (
       collection: currCollectionIds,
       archived: false,
       publishState: PUBLISH_STATE.pending,
+      circleId: currArticleCircle?.circleId,
+      access: currArticleCircle?.access,
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -471,6 +468,32 @@ const resolver: MutationToEditArticleResolver = async (
 
     // add job to publish queue
     revisionQueue.publishRevisedArticle({ draftId: revisedDraft.id })
+  }
+
+  if (content) {
+    // cannot have drafts more than first draft plus 2 pending or published revision
+    const revisionCount = await draftService.countValidByArticleId({
+      articleId: article.id,
+    })
+    if (revisionCount > MAX_REVISION_COUNT) {
+      throw new ArticleRevisionReachLimitError(
+        'number of revisions reach limit'
+      )
+    }
+
+    // check diff distances reaches limit or not
+    const cleanedContent = stripClass(content, 'u-area-disable')
+    const diffs = measureDiffs(
+      stripHtml(draft.content, ''),
+      stripHtml(cleanedContent, '')
+    )
+    if (diffs > 50) {
+      throw new ArticleRevisionContentInvalidError('revised content invalid')
+    }
+
+    await republish(content)
+  } else if (accessType === ARTICLE_ACCESS_TYPE.paywall) {
+    await republish()
   }
 
   /**

@@ -71,13 +71,10 @@ export class DraftService extends BaseService {
     const result = await this.knex
       .from(this.table)
       .where({ articleId })
-      .andWhere(
-        this.knex.raw(`(
-          (archived = true and publish_state = '${PUBLISH_STATE.published}')
-          OR
-          (archived = false and publish_state = '${PUBLISH_STATE.pending}')
-        )`)
-      )
+      .whereIn('publish_state', [
+        PUBLISH_STATE.published,
+        PUBLISH_STATE.pending,
+      ])
       .count()
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
