@@ -39,7 +39,7 @@ import {
 import { revisionQueue } from 'connectors/queue'
 import { ItemData, MutationToEditArticleResolver } from 'definitions'
 
-const MAX_REVISION_COUNT = 3
+const MAX_REVISION_COUNT = 2
 
 const resolver: MutationToEditArticleResolver = async (
   _,
