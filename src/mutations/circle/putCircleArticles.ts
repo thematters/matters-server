@@ -89,11 +89,17 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   }
 
   const checkPaywalledArticles = async () => {
-    const paywalledArticles = await atomService.findMany({
-      table: 'article_circle',
-      where: { circleId: circle.id, access: ARTICLE_ACCESS_TYPE.paywall },
-      whereIn: ['article_id', targetArticleIds],
-    })
+    const paywalledArticles = await knex
+      .select('article_circle.*')
+      .from('article_circle')
+      .join('circle', 'article_circle.circle_id', 'circle.id')
+      .where({
+        'article_circle.circle_id': circle.id,
+        'article_circle.access': ARTICLE_ACCESS_TYPE.paywall,
+        'circle.state': CIRCLE_STATE.active,
+      })
+      .whereIn('article_id', targetArticleIds)
+
     const hasPaywalledArticles =
       paywalledArticles && paywalledArticles.length > 0
 

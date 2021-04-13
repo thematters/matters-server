@@ -66,6 +66,7 @@ const resolver: MutationToEditArticleResolver = async (
       tagService,
       userService,
     },
+    knex,
   }
 ) => {
   if (!viewer.id) {
@@ -326,14 +327,16 @@ const resolver: MutationToEditArticleResolver = async (
    * Circle
    */
   const checkPaywalledArticle = async () => {
-    const paywalledArticle = await atomService.findFirst({
-      table: 'article_circle',
-      where: {
-        // circleId: circle.id,
-        articleId: article.id,
-        access: ARTICLE_ACCESS_TYPE.paywall,
-      },
-    })
+    const paywalledArticle = await knex
+      .select('article_circle.*')
+      .from('article_circle')
+      .join('circle', 'article_circle.circle_id', 'circle.id')
+      .where({
+        'article_circle.article_id': article.id,
+        'article_circle.access': ARTICLE_ACCESS_TYPE.paywall,
+        'circle.state': CIRCLE_STATE.active,
+      })
+      .first()
 
     if (paywalledArticle) {
       const paywalledArticleId = toGlobalId({ type: 'Article', id: article.id })
