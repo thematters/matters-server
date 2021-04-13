@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader'
 
-import { PUBLISH_STATE } from 'common/enums'
+import { ARTICLE_ACCESS_TYPE, PUBLISH_STATE } from 'common/enums'
 import { BaseService } from 'connectors'
 
 export class DraftService extends BaseService {
@@ -65,18 +65,35 @@ export class DraftService extends BaseService {
     this.knex.select().from(this.table).where({ mediaHash }).first()
 
   /**
-   * Count pending and published drafts by given article id.
+   * Count revisions by given article id.
    */
-  countValidByArticleId = async ({ articleId }: { articleId: string }) => {
-    const result = await this.knex
+  countRevisions = async ({ articleId }: { articleId: string }) => {
+    const drafts = await this.knex
       .from(this.table)
       .where({ articleId })
       .whereIn('publish_state', [
         PUBLISH_STATE.published,
         PUBLISH_STATE.pending,
       ])
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
+      .orderBy('created_at', 'asc')
+
+    if (!drafts || drafts.length <= 1) {
+      return 0
+    }
+
+    const initDraft = drafts[0]
+    const isInitPaywalled = initDraft?.access === ARTICLE_ACCESS_TYPE.paywall
+
+    // count all drafts if the first draft is paywalled
+    // since subsequent revisions won't change the access
+    if (isInitPaywalled) {
+      return drafts.length - 1
+    }
+
+    // otherwise, count all drafts except the paywalled one
+    const hasPaywalled = drafts.some(
+      (d) => d.access === ARTICLE_ACCESS_TYPE.paywall
+    )
+    return drafts.length - 1 - (hasPaywalled ? 1 : 0)
   }
 }

@@ -26,6 +26,7 @@ import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
 import remark from './remark'
 import revisedAt from './revisedAt'
+import revisionCount from './revisionCount'
 import rootArticle from './rootArticle'
 import state from './state'
 import sticky from './sticky'
@@ -99,6 +100,7 @@ export default {
     limitedFree,
     circle,
     access: (root: any) => root,
+    revisionCount,
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
