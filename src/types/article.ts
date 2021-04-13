@@ -168,7 +168,7 @@ export default /* GraphQL */ `
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
     "Drafts linked to this article."
-    drafts: [Draft!]
+    drafts: [Draft!] @logCache(type: "${NODE_TYPES.draft}")
 
     "This value determines if this article is free for a limited time or not."
     limitedFree: Boolean! @deprecated(reason: "Use \`access.type\` instead")
