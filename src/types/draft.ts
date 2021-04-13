@@ -1,9 +1,9 @@
-import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
+import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Mutation {
     "Create or update a draft."
-    putDraft(input: PutDraftInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    putDraft(input: PutDraftInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.draft}")
 
     "Remove a draft."
     deleteDraft(input: DeleteDraftInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}")
@@ -12,9 +12,9 @@ export default /* GraphQL */ `
   """
   This type contains content, collections, assets and related data of a draft.
   """
-  type Draft implements Node @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
+  type Draft implements Node {
     "Unique ID of this draft."
-    id: ID! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    id: ID!
 
     "Media hash, composed of cid encoding, of this draft."
     mediaHash: String
@@ -62,7 +62,11 @@ export default /* GraphQL */ `
     collection(input: ConnectionArgs!): ArticleConnection!
 
     "Circle of this draft."
-    circle: Circle @logCache(type: "${NODE_TYPES.circle}")
+    circle: Circle @logCache(type: "${NODE_TYPES.circle}") @deprecated(reason: "Use \`access.circle\` instead")
+
+    "Access related fields on circle"
+    access: DraftAccess!
+
   }
 
   type DraftConnection implements Connection {
@@ -76,6 +80,11 @@ export default /* GraphQL */ `
     node: Draft! @logCache(type: "${NODE_TYPES.draft}")
   }
 
+  type DraftAccess {
+    type: ArticleAccessType!
+    circle: Circle @logCache(type: "${NODE_TYPES.circle}")
+  }
+
   input PutDraftInput {
     id: ID
     title: String
@@ -85,6 +94,9 @@ export default /* GraphQL */ `
     cover: ID
     collection: [ID]
     circle: ID
+
+    "Access Type, \`public\` or \`paywall\` only."
+    accessType: ArticleAccessType
   }
 
   input DeleteDraftInput {

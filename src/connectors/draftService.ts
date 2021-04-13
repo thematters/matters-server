@@ -82,33 +82,4 @@ export class DraftService extends BaseService {
       .first()
     return parseInt(result ? (result.count as string) : '0', 10)
   }
-
-  /**
-   * Find pending and published drafts by given article id.
-   */
-  findValidByArticleId = async ({ articleId }: { articleId: string }) =>
-    this.knex
-      .from(this.table)
-      .where({ articleId })
-      .andWhere(
-        this.knex.raw(`(
-          (archived = true and publish_state = '${PUBLISH_STATE.published}')
-          OR
-          (archived = false and publish_state = '${PUBLISH_STATE.pending}')
-        )`)
-      )
-      .orderBy('created_at', 'desc')
-
-  /**
-   * Find published drafts by given article id.
-   */
-  findPublishedByArticleId = async ({ articleId }: { articleId: string }) =>
-    this.knex
-      .from(this.table)
-      .where({
-        articleId,
-        archived: true,
-        publishState: PUBLISH_STATE.published,
-      })
-      .orderBy('created_at', 'desc')
 }

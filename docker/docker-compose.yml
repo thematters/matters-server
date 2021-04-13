@@ -52,7 +52,7 @@ services:
     image: matterslab/elasticsearch:latest
     container_name: elasticsearch
     environment:
-      - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'
+      - 'ES_JAVA_OPTS=-Xms750m -Xmx750m'
       - 'discovery.type=single-node'
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data

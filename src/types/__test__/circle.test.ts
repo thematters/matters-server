@@ -1,5 +1,6 @@
 import _get from 'lodash/get'
 
+import { ARTICLE_ACCESS_TYPE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLCommentType } from 'definitions'
 
@@ -8,6 +9,7 @@ import { testClient } from './utils'
 const GET_VIEWER_OWN_CIRCLES = `
   query {
     viewer {
+      id
       ownCircles {
         id
         name
@@ -15,7 +17,7 @@ const GET_VIEWER_OWN_CIRCLES = `
           totalCount
         }
       }
-      articles(input: { first: 1 }) {
+      articles(input: { first: null }) {
         edges {
           node {
             id
@@ -66,12 +68,17 @@ const PUT_CIRCLE_ARTICLES = /* GraphQL */ `
   mutation($input: PutCircleArticlesInput!) {
     putCircleArticles(input: $input) {
       id
-      works(input: { first: 0 }) {
+      works(input: { first: null }) {
         totalCount
         edges {
           node {
             id
-            limitedFree
+            access {
+              type
+              circle {
+                id
+              }
+            }
           }
         }
       }
@@ -332,7 +339,7 @@ describe('circle CRUD', () => {
     expect(_get(updatedData2, `${path}.followers.edges`).length).toBe(0)
   })
 
-  test('toggle circle articles', async () => {
+  test('add article to circle with public access, then removes from circle', async () => {
     const path = 'data.putCircleArticles'
     const { query, mutate } = await testClient(userClient)
     const { data } = await query({
@@ -341,30 +348,150 @@ describe('circle CRUD', () => {
     const circle = _get(data, 'viewer.ownCircles[0]')
     const article = _get(data, 'viewer.articles.edges[0].node')
 
-    // add
-    const input: Record<string, any> = {
+    // add to circle with public access
+    const publicInput: Record<string, any> = {
       id: circle.id,
       articles: [article.id],
       type: 'add',
+      accessType: ARTICLE_ACCESS_TYPE.public,
     }
-
-    const addedData = await mutate({
+    const addedPublicData = await mutate({
       mutation: PUT_CIRCLE_ARTICLES,
-      variables: { input },
+      variables: { input: publicInput },
     })
-    expect(_get(addedData, `${path}.works.edges[0].node.id`)).toBe(article.id)
-    expect(_get(addedData, `${path}.works.totalCount`)).toBe(1)
-    expect(_get(addedData, `${path}.works.edges[0].node.limitedFree`)).toBe(
-      true
+    expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
+      article.id
     )
+    expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
+    expect(
+      _get(addedPublicData, `${path}.works.edges[0].node.access.circle.id`)
+    ).toBe(circle.id)
+    expect(
+      _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
+    ).toBe(ARTICLE_ACCESS_TYPE.public)
 
-    // remove
-    input.type = 'remove'
+    // remove public article from circle
     const removedData = await mutate({
       mutation: PUT_CIRCLE_ARTICLES,
-      variables: { input },
+      variables: {
+        input: {
+          ...publicInput,
+          type: 'remove',
+        },
+      },
+    })
+    expect(_get(removedData, `${path}.works.totalCount`)).toBe(0)
+  })
+
+  test('add article to circle with public access, then turns to paywall access', async () => {
+    const path = 'data.putCircleArticles'
+    const { query, mutate } = await testClient(userClient)
+    const { data } = await query({
+      query: GET_VIEWER_OWN_CIRCLES,
+    })
+    const circle = _get(data, 'viewer.ownCircles[0]')
+    const article = _get(data, 'viewer.articles.edges[0].node')
+
+    // add to circle with public access
+    const publicInput: Record<string, any> = {
+      id: circle.id,
+      articles: [article.id],
+      type: 'add',
+      accessType: ARTICLE_ACCESS_TYPE.public,
+    }
+    const addedPublicData = await mutate({
+      mutation: PUT_CIRCLE_ARTICLES,
+      variables: { input: publicInput },
+    })
+    expect(_get(addedPublicData, `${path}.works.edges[0].node.id`)).toBe(
+      article.id
+    )
+    expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
+    expect(
+      _get(addedPublicData, `${path}.works.edges[0].node.access.circle.id`)
+    ).toBe(circle.id)
+    expect(
+      _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
+    ).toBe(ARTICLE_ACCESS_TYPE.public)
+
+    // turns to paywall access
+    const paywallInput: Record<string, any> = {
+      id: circle.id,
+      articles: [article.id],
+      type: 'add',
+      accessType: ARTICLE_ACCESS_TYPE.paywall,
+    }
+    const addedPaywallData = await mutate({
+      mutation: PUT_CIRCLE_ARTICLES,
+      variables: { input: paywallInput },
+    })
+    expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
+      article.id
+    )
+    expect(_get(addedPaywallData, `${path}.works.totalCount`)).toBe(1)
+    expect(
+      _get(addedPaywallData, `${path}.works.edges[0].node.access.circle.id`)
+    ).toBe(circle.id)
+    expect(
+      _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
+    ).toBe(ARTICLE_ACCESS_TYPE.limitedFree)
+
+    // remove from circle
+    const removedData = await mutate({
+      mutation: PUT_CIRCLE_ARTICLES,
+      variables: {
+        input: {
+          ...paywallInput,
+          type: 'remove',
+        },
+      },
     })
     expect(_get(removedData, errorPath)).toBe('FORBIDDEN')
+  })
+
+  test('add article to circle with paywall access, then turns to public access', async () => {
+    const path = 'data.putCircleArticles'
+    const { query, mutate } = await testClient(userClient)
+    const { data } = await query({
+      query: GET_VIEWER_OWN_CIRCLES,
+    })
+    const circle = _get(data, 'viewer.ownCircles[0]')
+    const article = _get(data, 'viewer.articles.edges[1].node')
+
+    // add to circle with public access
+    const paywallInput: Record<string, any> = {
+      id: circle.id,
+      articles: [article.id],
+      type: 'add',
+      accessType: ARTICLE_ACCESS_TYPE.paywall,
+    }
+    const addedPaywallData = await mutate({
+      mutation: PUT_CIRCLE_ARTICLES,
+      variables: { input: paywallInput },
+    })
+    expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
+      article.id
+    )
+    expect(_get(addedPaywallData, `${path}.works.totalCount`)).toBe(2)
+    expect(
+      _get(addedPaywallData, `${path}.works.edges[0].node.access.circle.id`)
+    ).toBe(circle.id)
+    expect(
+      _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
+    ).toBe(ARTICLE_ACCESS_TYPE.limitedFree)
+
+    // try to turn to public access but an error occurs
+    const publicInput: Record<string, any> = {
+      id: circle.id,
+      articles: [article.id],
+      type: 'add',
+      accessType: ARTICLE_ACCESS_TYPE.public,
+    }
+    const addedPublicData = await mutate({
+      mutation: PUT_CIRCLE_ARTICLES,
+      variables: { input: publicInput },
+    })
+    expect(_get(addedPublicData, errorPath)).toBe('FORBIDDEN')
   })
 
   test('add and retrieve discussion', async () => {

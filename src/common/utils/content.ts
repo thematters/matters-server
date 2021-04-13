@@ -1,6 +1,8 @@
 import { stripHtml } from '@matters/matters-html-formatter'
 import * as cheerio from 'cheerio'
+import fill from 'lodash/fill'
 import flow from 'lodash/flow'
+import range from 'lodash/range'
 
 export const countWords = (html: string) => {
   const matches = stripHtml(html).match(/[\u4e00-\u9fcc]|\w+/g)
@@ -28,9 +30,35 @@ export const correctSelfClosingHtmlTag = (name: string) => (html: string) => {
 }
 
 /**
+ * Correct sepecific nested br tag produced by third-party lib.
+ */
+export const correctNestedBrTag = () => (html: string) => {
+  const $ = cheerio.load(html, { decodeEntities: false, xmlMode: true })
+  const base = '<br class="smart">'
+
+  let cleanedHtml = html
+  $('blockquote > br.smart, p > br.smart').each((i, node) => {
+    const dom = $(node)
+    if (dom) {
+      const inner = dom.html() || ''
+      const content = inner.replace(
+        '<br class="smart"/>',
+        '<br class="smart" />'
+      )
+      const num = dom.find('br.smart').length + 1
+      const match = `${base}${content}</br>`
+      const sub = fill(range(num), base).join('')
+      cleanedHtml = cleanedHtml.replace(match, sub)
+    }
+  })
+
+  return cleanedHtml
+}
+
+/**
  * Pipe for pre-processing html tag.
  */
 export const correctHtml = (html: string) => {
-  const pipe = flow(correctSelfClosingHtmlTag('iframe'))
+  const pipe = flow(correctSelfClosingHtmlTag('iframe'), correctNestedBrTag())
   return pipe(html)
 }
