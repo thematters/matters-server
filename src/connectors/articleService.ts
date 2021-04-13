@@ -30,7 +30,7 @@ import { environment, isTest } from 'common/environment'
 import { ArticleNotFoundError, ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { BaseService, gcp, ipfs, SystemService, UserService } from 'connectors'
-import { GQLSearchInput, Item } from 'definitions'
+import { GQLSearchExclude, GQLSearchInput, Item } from 'definitions'
 
 export class ArticleService extends BaseService {
   ipfs: typeof ipfs
@@ -463,11 +463,14 @@ export class ArticleService extends BaseService {
     offset,
     oss = false,
     filter,
+    exclude,
+    viewerId,
   }: GQLSearchInput & {
     author?: string
     offset: number
     oss?: boolean
     filter?: Record<string, any>
+    viewerId?: string | null
   }) => {
     const searchBody = bodybuilder()
       .query('multi_match', {
@@ -495,6 +498,17 @@ export class ArticleService extends BaseService {
       searchBody.filter('term', filter)
     }
 
+    // gather users that blocked viewer
+    const excludeBlocked = exclude === GQLSearchExclude.blocked && viewerId
+    let blockedIds: string[] = []
+    if (excludeBlocked) {
+      blockedIds = (
+        await this.knex('action_user')
+          .select('user_id')
+          .where({ action: USER_ACTION.block, targetId: viewerId })
+      ).map(({ userId }) => userId)
+    }
+
     try {
       // check if media hash in search key
       const re = /^([0-9a-zA-Z]{49,59})$/gi
@@ -505,10 +519,14 @@ export class ArticleService extends BaseService {
           oss,
           filter,
         })
-        const items = await this.draftLoader.loadMany(
+        let items = (await this.draftLoader.loadMany(
           matched.nodes.map((item) => item.id)
-        )
-        return { nodes: items, totalCount: matched.totalCount }
+        )) as Array<Record<string, any>>
+
+        if (excludeBlocked) {
+          items = items.filter((item) => !blockedIds.includes(item.authorId))
+        }
+        return { nodes: items, totalCount: items.length }
       }
 
       // take the condition that searching for exact article title into consideration
@@ -529,12 +547,16 @@ export class ArticleService extends BaseService {
       const ids = idsByTitle.concat(
         hits.hits.map(({ _id }: { _id: any }) => _id)
       )
-      const nodes = await this.draftLoader.loadMany(ids)
 
-      return {
-        nodes,
-        totalCount: idsByTitle.length + hits.total.value,
+      let nodes = (await this.draftLoader.loadMany(ids)) as Array<
+        Record<string, any>
+      >
+
+      if (excludeBlocked) {
+        nodes = nodes.filter((node) => !blockedIds.includes(node.authorId))
       }
+
+      return { nodes, totalCount: nodes.length }
     } catch (err) {
       logger.error(err)
       throw new ServerError('article search failed')
