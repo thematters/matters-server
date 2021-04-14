@@ -23,6 +23,7 @@ exports.up = async (knex) => {
         JOIN article ON article.id = draft.article_id
       WHERE
         publish_state = 'published'
+        OR publish_state = 'pending'
       GROUP BY
         article_id) AS source
     WHERE
