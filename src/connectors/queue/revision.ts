@@ -27,7 +27,13 @@ class RevisionQueue extends BaseQueue {
     this.addConsumers()
   }
 
-  publishRevisedArticle = ({ draftId }: { draftId: string }) => {
+  publishRevisedArticle = ({
+    draftId,
+    increaseRevisionCount,
+  }: {
+    draftId: string
+    increaseRevisionCount: boolean
+  }) => {
     return this.q.add(
       QUEUE_JOB.publishRevisedArticle,
       { draftId },
@@ -59,7 +65,10 @@ class RevisionQueue extends BaseQueue {
   private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<
     unknown
   > = async (job, done) => {
-    const { draftId } = job.data as { draftId: string }
+    const { draftId, increaseRevisionCount } = job.data as {
+      draftId: string
+      increaseRevisionCount: boolean
+    }
     const draft = await this.draftService.baseFindById(draftId)
 
     // Step 1: checks
@@ -112,13 +121,17 @@ class RevisionQueue extends BaseQueue {
       job.progress(40)
 
       // Step 4: update back to article
+      const revisionCount =
+        (article.revisionCount || 0) + (increaseRevisionCount ? 1 : 0)
       const updatedArticle = await this.articleService.baseUpdate(article.id, {
         draftId: draft.id,
         dataHash,
         mediaHash,
         summary,
         wordCount,
+        revisionCount,
         slug: slugify(draft.title),
+        updatedAt: new Date(),
       })
       job.progress(50)
 
