@@ -66,7 +66,6 @@ export default /* GraphQL */ `
 
     "Access related fields on circle"
     access: DraftAccess!
-
   }
 
   type DraftConnection implements Connection {
