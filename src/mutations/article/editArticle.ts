@@ -442,7 +442,7 @@ const resolver: MutationToEditArticleResolver = async (
 
     // create draft linked to this article
     const cleanedContent = stripClass(
-      newContent || article.content,
+      newContent || currDraft.content,
       'u-area-disable'
     )
     const pipe = flow(sanitize, correctHtml)
