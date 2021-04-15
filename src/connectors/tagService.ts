@@ -371,7 +371,7 @@ export class TagService extends BaseService {
     [key: string]: any
   }) => {
     try {
-      return this.es.indexItems({
+      return await this.es.indexItems({
         index: this.table,
         items: [
           {

@@ -365,7 +365,7 @@ export class UserService extends BaseService {
     [key: string]: string
   }) => {
     try {
-      return this.es.indexItems({
+      return await this.es.indexItems({
         index: this.table,
         items: [
           {
