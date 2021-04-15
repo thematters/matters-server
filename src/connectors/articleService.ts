@@ -408,24 +408,28 @@ export class ArticleService extends BaseService {
   }: {
     [key: string]: any
   }) => {
-    const result = await this.es.indexItems({
-      index: this.table,
-      items: [
-        {
-          id,
-          title,
-          content: stripHtml(content),
-          state: ARTICLE_STATE.active,
-          authorId,
-          userName,
-          displayName,
-          tags,
-          factor: ALS_DEFAULT_VECTOR.factor,
-          embedding_vector: ALS_DEFAULT_VECTOR.embedding,
-        },
-      ],
-    })
-    return result
+    try {
+      const result = await this.es.indexItems({
+        index: this.table,
+        items: [
+          {
+            id,
+            title,
+            content: stripHtml(content),
+            state: ARTICLE_STATE.active,
+            authorId,
+            userName,
+            displayName,
+            tags,
+            factor: ALS_DEFAULT_VECTOR.factor,
+            embedding_vector: ALS_DEFAULT_VECTOR.embedding,
+          },
+        ],
+      })
+      return result
+    } catch (error) {
+      logger.error(error)
+    }
   }
 
   searchByMediaHash = async ({

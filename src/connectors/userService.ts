@@ -99,11 +99,7 @@ export class UserService extends BaseService {
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
 
-    try {
-      await this.addToSearch(user)
-    } catch (e) {
-      logger.error(e)
-    }
+    await this.addToSearch(user)
 
     return user
   }
@@ -367,20 +363,25 @@ export class UserService extends BaseService {
     description,
   }: {
     [key: string]: string
-  }) =>
-    this.es.indexItems({
-      index: this.table,
-      items: [
-        {
-          id,
-          userName,
-          displayName,
-          description,
-          factor: ALS_DEFAULT_VECTOR.factor,
-          embedding_vector: ALS_DEFAULT_VECTOR.embedding,
-        },
-      ],
-    })
+  }) => {
+    try {
+      this.es.indexItems({
+        index: this.table,
+        items: [
+          {
+            id,
+            userName,
+            displayName,
+            description,
+            factor: ALS_DEFAULT_VECTOR.factor,
+            embedding_vector: ALS_DEFAULT_VECTOR.embedding,
+          },
+        ],
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
 
   search = async ({
     key,
