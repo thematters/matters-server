@@ -3,9 +3,10 @@ import { ArticleToRevisionCountResolver } from 'definitions'
 const resolver: ArticleToRevisionCountResolver = async (
   { articleId },
   _,
-  { dataSources: { draftService } }
+  { dataSources: { articleService } }
 ) => {
-  return draftService.countRevisions({ articleId })
+  const article = await articleService.dataloader.load(articleId)
+  return article.revisionCount || 0
 }
 
 export default resolver

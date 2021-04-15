@@ -412,7 +412,10 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Republish article on content changes or paywalled
    */
-  const republish = async (newContent?: string) => {
+  const republish = async (
+    newContent?: string,
+    increaseRevisionCount?: boolean
+  ) => {
     // fetch updated data before create draft
     const [
       currDraft,
@@ -467,14 +470,15 @@ const resolver: MutationToEditArticleResolver = async (
     const revisedDraft = await draftService.baseCreate(data)
 
     // add job to publish queue
-    revisionQueue.publishRevisedArticle({ draftId: revisedDraft.id })
+    revisionQueue.publishRevisedArticle({
+      draftId: revisedDraft.id,
+      increaseRevisionCount: !!increaseRevisionCount,
+    })
   }
 
   if (content) {
     // cannot have drafts more than first draft plus 2 pending or published revision
-    const revisionCount = await draftService.countRevisions({
-      articleId: article.id,
-    })
+    const revisionCount = article.revisionCount || 0
     if (revisionCount >= MAX_REVISION_COUNT) {
       throw new ArticleRevisionReachLimitError(
         'number of revisions reach limit'
@@ -491,9 +495,9 @@ const resolver: MutationToEditArticleResolver = async (
       throw new ArticleRevisionContentInvalidError('revised content invalid')
     }
 
-    await republish(content)
+    await republish(content, true)
   } else if (accessType === ARTICLE_ACCESS_TYPE.paywall) {
-    await republish()
+    await republish(undefined, false)
   }
 
   /**

@@ -176,7 +176,10 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     const revisedDraft = await draftService.baseCreate(data)
 
     // add job to publish queue
-    revisionQueue.publishRevisedArticle({ draftId: revisedDraft.id })
+    revisionQueue.publishRevisedArticle({
+      draftId: revisedDraft.id,
+      increaseRevisionCount: false,
+    })
   }
 
   // add articles to circle
