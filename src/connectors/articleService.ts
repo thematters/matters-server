@@ -409,7 +409,7 @@ export class ArticleService extends BaseService {
     [key: string]: any
   }) => {
     try {
-      const result = await this.es.indexItems({
+      return this.es.indexItems({
         index: this.table,
         items: [
           {
@@ -426,7 +426,6 @@ export class ArticleService extends BaseService {
           },
         ],
       })
-      return result
     } catch (error) {
       logger.error(error)
     }

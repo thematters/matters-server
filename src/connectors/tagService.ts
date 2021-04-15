@@ -371,7 +371,7 @@ export class TagService extends BaseService {
     [key: string]: any
   }) => {
     try {
-      const result = await this.es.indexItems({
+      return this.es.indexItems({
         index: this.table,
         items: [
           {
@@ -381,7 +381,6 @@ export class TagService extends BaseService {
           },
         ],
       })
-      return result
     } catch (error) {
       logger.error(error)
     }
