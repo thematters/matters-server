@@ -144,6 +144,7 @@ export class ArticleService extends BaseService {
       summaryCustomized,
       content,
       prefix: IPFS_PREFIX,
+      siteDomain: environment.siteDomain,
     } as FormatterVars
 
     // paywall info
