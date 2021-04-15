@@ -1766,20 +1766,6 @@ export class ArticleService extends BaseService {
     }
   }
 
-  countByResponses = async ({
-    id,
-    order = 'desc',
-    state = ARTICLE_STATE.active,
-  }: {
-    id: string
-    order?: string
-    state?: string
-  }) => {
-    const query = this.makeResponseQuery({ id, order, state, fields: '' })
-    const { count } = await query.count().first()
-    return parseInt(count, 10)
-  }
-
   /*********************************
    *                               *
    *             Churn             *
