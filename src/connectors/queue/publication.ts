@@ -190,6 +190,10 @@ class PublicationQueue extends BaseQueue {
 
         // Step 9: invalidate user cache
         await invalidateFQC({
+          node: { type: NODE_TYPES.draft, id: draft.id },
+          redis: this.cacheService.redis,
+        })
+        await invalidateFQC({
           node: { type: NODE_TYPES.user, id: article.authorId },
           redis: this.cacheService.redis,
         })
