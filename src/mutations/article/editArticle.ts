@@ -262,7 +262,7 @@ const resolver: MutationToEditArticleResolver = async (
             })
 
             if (isBlocked) {
-              return
+              throw new ForbiddenError('viewer has no permission')
             }
 
             return articleDbId
