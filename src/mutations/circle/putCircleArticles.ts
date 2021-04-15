@@ -257,8 +257,8 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   }
 
   // invalidate articles
-  circle[CACHE_KEYWORD] = targetArticles.map((articleId) => ({
-    id: articleId,
+  circle[CACHE_KEYWORD] = targetArticles.map((article) => ({
+    id: article.id,
     type: NODE_TYPES.article,
   }))
   return circle
