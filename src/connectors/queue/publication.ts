@@ -190,6 +190,10 @@ class PublicationQueue extends BaseQueue {
 
         // Step 9: invalidate user cache
         await invalidateFQC({
+          node: { type: NODE_TYPES.draft, id: draft.id },
+          redis: this.cacheService.redis,
+        })
+        await invalidateFQC({
           node: { type: NODE_TYPES.user, id: article.authorId },
           redis: this.cacheService.redis,
         })
@@ -260,7 +264,7 @@ class PublicationQueue extends BaseQueue {
     draft: any
     article: any
   }) => {
-    if (!draft.circleId) {
+    if (!draft.circleId || !draft.access) {
       return
     }
 
@@ -269,8 +273,8 @@ class PublicationQueue extends BaseQueue {
     await this.atomService.upsert({
       table: 'article_circle',
       where: data,
-      create: data,
-      update: data,
+      create: { ...data, access: draft.access },
+      update: { ...data, access: draft.access, updatedAt: new Date() },
     })
 
     await invalidateFQC({

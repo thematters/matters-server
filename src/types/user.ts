@@ -64,6 +64,8 @@ export default /* GraphQL */ `
 
     "Update state of a user, used in OSS."
     updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
+
+    toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
   }
 
   type User implements Node {
@@ -510,6 +512,12 @@ export default /* GraphQL */ `
     role: UserRole!
   }
 
+  input ToggleUsersBadgeInput {
+    ids: [ID!]
+    type: BadgeType!
+    enabled: Boolean!
+  }
+
   input ClearReadHistoryInput {
     id: ID!
   }
@@ -521,6 +529,8 @@ export default /* GraphQL */ `
 
   enum BadgeType {
     seed
+    golden_motor
+    architect
   }
 
   enum VerificationCodeType {

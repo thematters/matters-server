@@ -37,6 +37,7 @@ import { BaseService, OAuthService } from 'connectors'
 import {
   GQLAuthorsType,
   GQLResetPasswordType,
+  GQLSearchExclude,
   GQLSearchInput,
   ItemData,
   UserOAuthLikeCoin,
@@ -98,11 +99,7 @@ export class UserService extends BaseService {
     })
     await this.baseCreate({ userId: user.id }, 'user_notify_setting')
 
-    try {
-      await this.addToSearch(user)
-    } catch (e) {
-      logger.error(e)
-    }
+    await this.addToSearch(user)
 
     return user
   }
@@ -366,27 +363,38 @@ export class UserService extends BaseService {
     description,
   }: {
     [key: string]: string
-  }) =>
-    this.es.indexItems({
-      index: this.table,
-      items: [
-        {
-          id,
-          userName,
-          displayName,
-          description,
-          factor: ALS_DEFAULT_VECTOR.factor,
-          embedding_vector: ALS_DEFAULT_VECTOR.embedding,
-        },
-      ],
-    })
+  }) => {
+    try {
+      return await this.es.indexItems({
+        index: this.table,
+        items: [
+          {
+            id,
+            userName,
+            displayName,
+            description,
+            factor: ALS_DEFAULT_VECTOR.factor,
+            embedding_vector: ALS_DEFAULT_VECTOR.embedding,
+          },
+        ],
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
 
   search = async ({
     key,
     first = 20,
     offset,
     oss = false,
-  }: GQLSearchInput & { offset: number; oss?: boolean }) => {
+    exclude,
+    viewerId,
+  }: GQLSearchInput & {
+    offset: number
+    oss?: boolean
+    viewerId?: string | null
+  }) => {
     const body = bodybuilder()
       .from(offset)
       .size(first)
@@ -435,7 +443,18 @@ export class UserService extends BaseService {
       )
 
       // merge two ID arrays and remove duplicates
-      const ids = [...new Set([...matchIds, ...displayNameIds, ...userNameIds])]
+      let ids = [...new Set([...matchIds, ...displayNameIds, ...userNameIds])]
+
+      // filter out users who blocked viewer
+      if (exclude === GQLSearchExclude.blocked && viewerId) {
+        const blockedIds = (
+          await this.knex('action_user')
+            .select('user_id')
+            .where({ action: USER_ACTION.block, targetId: viewerId })
+        ).map(({ userId }) => userId)
+
+        ids = _.difference(ids, blockedIds)
+      }
       const nodes = await this.baseFindByIds(ids)
       return { nodes, totalCount: nodes.length }
     } catch (err) {
@@ -1377,9 +1396,6 @@ export class UserService extends BaseService {
       { updatedAt: new Date(), ...data },
       'user_notify_setting'
     )
-
-  findBadges = async (userId: string) =>
-    this.knex.select().from('user_badge').where({ userId })
 
   /*********************************
    *                               *

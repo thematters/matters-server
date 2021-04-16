@@ -104,7 +104,7 @@ type Article implements Node {
   state: ArticleState!
 
   """This value determines if this article is under Subscription or not."""
-  live: Boolean!
+  live: Boolean! @deprecated(reason: "No longer in use")
 
   """Author of this article."""
   author: User!
@@ -192,13 +192,19 @@ type Article implements Node {
   """Drafts linked to this article."""
   drafts: [Draft!]
 
+  """Revision Count"""
+  revisionCount: Int!
+
   """
   This value determines if this article is free for a limited time or not.
   """
-  limitedFree: Boolean!
+  limitedFree: Boolean! @deprecated(reason: "Use `access.type` instead")
 
   """Current article belongs to which Circle."""
-  circle: Circle
+  circle: Circle @deprecated(reason: "Use `access.circle` instead")
+
+  """Access related fields on circle"""
+  access: ArticleAccess!
 
   """
   #############
@@ -231,6 +237,19 @@ type Article implements Node {
 
   """List of responses of a article."""
   responses(input: ResponsesInput!): ResponseConnection!
+}
+
+type ArticleAccess {
+  type: ArticleAccessType!
+  secret: String
+  circle: Circle
+}
+
+"""Enums for types of article access"""
+enum ArticleAccessType {
+  public
+  paywall
+  limitedFree
 }
 
 type ArticleArticleNotice implements Notice {
@@ -397,8 +416,16 @@ type Badge {
   type: BadgeType!
 }
 
+input BadgedUsersInput {
+  after: String
+  first: Int
+  type: BadgeType
+}
+
 enum BadgeType {
   seed
+  golden_motor
+  architect
 }
 
 type Balance {
@@ -826,6 +853,14 @@ type Draft implements Node {
   collection(input: ConnectionArgs!): ArticleConnection!
 
   """Circle of this draft."""
+  circle: Circle @deprecated(reason: "Use `access.circle` instead")
+
+  """Access related fields on circle"""
+  access: DraftAccess!
+}
+
+type DraftAccess {
+  type: ArticleAccessType!
   circle: Circle
 }
 
@@ -850,6 +885,7 @@ input EditArticleInput {
   cover: ID
   collection: [ID!]
   circle: ID
+  accessType: ArticleAccessType
 }
 
 scalar Email
@@ -1150,7 +1186,7 @@ type Mutation {
   putRemark(input: PutRemarkInput!): String
   putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!]
   setFeature(input: SetFeatureInput!): Feature!
-  toggleSeedingUsers(input: ToggleSeedingUsersInput!): Boolean!
+  toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]!
 
   """Send verification code for email."""
   sendVerificationCode(input: SendVerificationCodeInput!): Boolean
@@ -1205,6 +1241,7 @@ type Mutation {
 
   """Update state of a user, used in OSS."""
   updateUserRole(input: UpdateUserRoleInput!): User!
+  toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]!
 
   """Add Credit to User Wallet"""
   addCredit(input: AddCreditInput!): AddCreditResult!
@@ -1383,6 +1420,7 @@ type OSS {
   oauthClients(input: ConnectionArgs!): OAuthClientConnection!
   skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
   seedingUsers(input: ConnectionArgs!): UserConnection!
+  badgedUsers(input: BadgedUsersInput!): UserConnection!
 }
 
 type PageInfo {
@@ -1474,6 +1512,9 @@ input PutCircleArticlesInput {
 
   """Action Type"""
   type: PutCircleArticlesType!
+
+  """Access Type, `public` or `paywall` only."""
+  accessType: ArticleAccessType!
 }
 
 enum PutCircleArticlesType {
@@ -1520,6 +1561,9 @@ input PutDraftInput {
   cover: ID
   collection: [ID]
   circle: ID
+
+  """Access Type, `public` or `paywall` only."""
+  accessType: ArticleAccessType
 }
 
 input PutOAuthClientInput {
@@ -1748,16 +1792,28 @@ enum Role {
   admin
 }
 
+enum SearchExclude {
+  blocked
+}
+
 input SearchFilter {
   authorId: ID
 }
 
 input SearchInput {
+  """search keyword"""
   key: String!
+
+  """types of search target"""
   type: SearchTypes!
   after: String
   first: Int
+
+  """extra query filter for searching"""
   filter: SearchFilter
+
+  """specific condition for rule data out"""
+  exclude: SearchExclude
 
   """whether this search operation should be recorded in search history"""
   record: Boolean
@@ -2018,6 +2074,12 @@ input ToggleRecommendInput {
 
 input ToggleSeedingUsersInput {
   ids: [ID!]
+  enabled: Boolean!
+}
+
+input ToggleUsersBadgeInput {
+  ids: [ID!]
+  type: BadgeType!
   enabled: Boolean!
 }
 
