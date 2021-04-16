@@ -26,7 +26,13 @@ const resolver: MutationToPutDraftResolver = async (
   { input },
   {
     viewer,
-    dataSources: { draftService, systemService, articleService, atomService },
+    dataSources: {
+      articleService,
+      atomService,
+      draftService,
+      systemService,
+      userService,
+    },
   }
 ) => {
   const {
@@ -38,6 +44,7 @@ const resolver: MutationToPutDraftResolver = async (
     cover,
     collection,
     circle: circleGlobalId,
+    accessType,
   } = input
 
   if (!viewer.id) {
@@ -81,13 +88,24 @@ const resolver: MutationToPutDraftResolver = async (
           throw new ArticleNotFoundError(
             `Cannot find article ${articleGlobalId}`
           )
-        } else if (article.state !== ARTICLE_STATE.active) {
+        }
+
+        if (article.state !== ARTICLE_STATE.active) {
           throw new ForbiddenError(
             `Article ${articleGlobalId} cannot be collected.`
           )
-        } else {
-          return articleId
         }
+
+        const isBlocked = await userService.blocked({
+          userId: article.authorId,
+          targetId: viewer.id,
+        })
+
+        if (isBlocked) {
+          throw new ForbiddenError('viewer has no permission')
+        }
+
+        return articleId
       })
     )
 
@@ -113,6 +131,10 @@ const resolver: MutationToPutDraftResolver = async (
       throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
     }
 
+    if (!accessType) {
+      throw new UserInputError('"accessType" is required on `circle`.')
+    }
+
     circleId = cId
   }
 
@@ -135,6 +157,7 @@ const resolver: MutationToPutDraftResolver = async (
       cover: coverId,
       collection: collectionIds,
       circleId,
+      access: accessType,
     },
     _.isNil
   )

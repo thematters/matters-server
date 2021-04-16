@@ -1,6 +1,6 @@
 {
   "name": "matters-server",
-  "version": "3.15.0",
+  "version": "3.16.0",
   "description": "Matters Server",
   "author": "Matters <hi@matters.news>",
   "main": "build/index.js",
@@ -22,8 +22,9 @@
     "start": "node build/index.js",
     "start:dev": "npm-run-all clean build --parallel watch:build watch:server --print-label",
     "test:connectors": "MATTERS_ENV=test jest src/connectors --forceExit",
+    "test:utils": "MATTERS_ENV=test jest src/common/utils --forceExit",
     "test:types": "MATTERS_ENV=test jest src/types --forceExit",
-    "test": "npm run test:connectors && npm run test:types && codecov",
+    "test": "npm run test:utils && npm run test:connectors && npm run test:types && codecov",
     "lint": "tslint -p .",
     "lint:fix": "tslint -p . --fix",
     "format": "prettier --write \"{,!(node_modules|build|coverage)/**/}*.{js,jsx,ts,tsx,json}\"",
@@ -31,13 +32,14 @@
     "gen:schema": "ts-node --files src/common/utils/exportSchema.ts",
     "gen:types": "ts-node --files src/common/utils/generateTypes.ts",
     "gen": "npm run gen:schema && npm run gen:types",
-    "schema:push": "apollo service:push --key=$APOLLO_API_KEY --localSchemaFile=schema.graphql"
+    "schema:push": "apollo service:push --key=$APOLLO_API_KEY --localSchemaFile=schema.graphql",
+    "search:init": "ts-node --files src/common/utils/initSearchIndices.ts"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.8.0",
     "@google-cloud/translate": "^6.0.2",
     "@matters/apollo-response-cache": "^1.3.0",
-    "@matters/matters-html-formatter": "0.0.4",
+    "@matters/matters-html-formatter": "0.0.5",
     "@matters/passport-likecoin": "^1.0.0",
     "@matters/slugify": "^0.7.3",
     "@okgrow/graphql-scalars": "^0.4.6",

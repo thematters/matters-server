@@ -24,7 +24,7 @@ export default /* GraphQL */ `
     putRemark(input: PutRemarkInput!): String @auth(mode: "${AUTH_MODE.admin}")
     putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @auth(mode: "${AUTH_MODE.admin}")
     setFeature(input: SetFeatureInput!): Feature! @auth(mode: "${AUTH_MODE.admin}")
-    toggleSeedingUsers(input: ToggleSeedingUsersInput!): Boolean! @auth(mode: "${AUTH_MODE.admin}")
+    toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
   }
 
   extend type Subscription {
@@ -66,6 +66,7 @@ export default /* GraphQL */ `
     oauthClients(input: ConnectionArgs!): OAuthClientConnection!
     skippedListItems(input: SkippedListItemsInput!): SkippedListItemsConnection!
     seedingUsers(input: ConnectionArgs!): UserConnection!
+    badgedUsers(input: BadgedUsersInput!): UserConnection!
   }
 
 
@@ -101,6 +102,12 @@ export default /* GraphQL */ `
     after: String
     first: Int
     type: SkippedListItemType
+  }
+
+  input BadgedUsersInput {
+    after: String
+    first: Int
+    type: BadgeType
   }
 
   type SkippedListItemsConnection implements Connection {
@@ -149,11 +156,21 @@ export default /* GraphQL */ `
   }
 
   input SearchInput {
+    "search keyword"
     key: String!
+
+    "types of search target"
     type: SearchTypes!
+
     after: String
     first: Int
+
+    "extra query filter for searching"
     filter: SearchFilter
+
+    "specific condition for rule data out"
+    exclude: SearchExclude
+
     "whether this search operation should be recorded in search history"
     record: Boolean
     oss: Boolean
@@ -297,6 +314,10 @@ export default /* GraphQL */ `
     off
     admin
     seeding
+  }
+
+  enum SearchExclude {
+    blocked
   }
 
   input CostComplexity {

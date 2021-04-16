@@ -25,7 +25,7 @@ const resolver: MutationToToggleSeedingUsersResolver = async (
     await atomService.deleteMany({ table, whereIn: ['user_id', userIds] })
   }
 
-  return true
+  return atomService.findMany({ table: 'user', whereIn: ['id', userIds] })
 }
 
 export default resolver

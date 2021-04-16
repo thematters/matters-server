@@ -70,6 +70,7 @@ export interface GQLArticle extends GQLNode {
 
   /**
    * This value determines if this article is under Subscription or not.
+   * @deprecated No longer in use
    */
   live: boolean
 
@@ -214,14 +215,26 @@ export interface GQLArticle extends GQLNode {
   drafts?: Array<GQLDraft>
 
   /**
+   * Revision Count
+   */
+  revisionCount: number
+
+  /**
    * This value determines if this article is free for a limited time or not.
+   * @deprecated Use `access.type` instead
    */
   limitedFree: boolean
 
   /**
    * Current article belongs to which Circle.
+   * @deprecated Use `access.circle` instead
    */
   circle?: GQLCircle
+
+  /**
+   * Access related fields on circle
+   */
+  access: GQLArticleAccess
 
   /**
    * #############
@@ -539,6 +552,8 @@ export interface GQLBadge {
 
 export const enum GQLBadgeType {
   seed = 'seed',
+  golden_motor = 'golden_motor',
+  architect = 'architect',
 }
 
 export const enum GQLUserGroup {
@@ -1415,8 +1430,14 @@ export interface GQLDraft extends GQLNode {
 
   /**
    * Circle of this draft.
+   * @deprecated Use `access.circle` instead
    */
   circle?: GQLCircle
+
+  /**
+   * Access related fields on circle
+   */
+  access: GQLDraftAccess
 }
 
 /**
@@ -1467,6 +1488,20 @@ export const enum GQLAssetType {
   tagCover = 'tagCover',
   circleAvatar = 'circleAvatar',
   circleCover = 'circleCover',
+}
+
+export interface GQLDraftAccess {
+  type: GQLArticleAccessType
+  circle?: GQLCircle
+}
+
+/**
+ * Enums for types of article access
+ */
+export const enum GQLArticleAccessType {
+  public = 'public',
+  paywall = 'paywall',
+  limitedFree = 'limitedFree',
 }
 
 export interface GQLUserActivity {
@@ -1850,6 +1885,12 @@ export interface GQLTransactionsReceivedByArgs {
   purpose: GQLTransactionPurpose
 }
 
+export interface GQLArticleAccess {
+  type: GQLArticleAccessType
+  secret?: string
+  circle?: GQLCircle
+}
+
 export interface GQLArticleOSS {
   boost: GQLNonNegativeFloat
   score: GQLNonNegativeFloat
@@ -1941,11 +1982,27 @@ export interface GQLFrequentSearchInput {
 }
 
 export interface GQLSearchInput {
+  /**
+   * search keyword
+   */
   key: string
+
+  /**
+   * types of search target
+   */
   type: GQLSearchTypes
   after?: string
   first?: number
+
+  /**
+   * extra query filter for searching
+   */
   filter?: GQLSearchFilter
+
+  /**
+   * specific condition for rule data out
+   */
+  exclude?: GQLSearchExclude
 
   /**
    * whether this search operation should be recorded in search history
@@ -1962,6 +2019,10 @@ export const enum GQLSearchTypes {
 
 export interface GQLSearchFilter {
   authorId?: string
+}
+
+export const enum GQLSearchExclude {
+  blocked = 'blocked',
 }
 
 export interface GQLSearchResultConnection extends GQLConnection {
@@ -2009,6 +2070,7 @@ export interface GQLOSS {
   oauthClients: GQLOAuthClientConnection
   skippedListItems: GQLSkippedListItemsConnection
   seedingUsers: GQLUserConnection
+  badgedUsers: GQLUserConnection
 }
 
 export interface GQLTagsInput {
@@ -2132,6 +2194,12 @@ export interface GQLSkippedListItem {
   archived: boolean
   createdAt: GQLDateTime
   updatedAt: GQLDateTime
+}
+
+export interface GQLBadgedUsersInput {
+  after?: string
+  first?: number
+  type?: GQLBadgeType
 }
 
 export interface GQLUserInput {
@@ -2316,7 +2384,7 @@ export interface GQLMutation {
   putRemark?: string
   putSkippedListItem?: Array<GQLSkippedListItem>
   setFeature: GQLFeature
-  toggleSeedingUsers: boolean
+  toggleSeedingUsers: Array<GQLUser | null>
 
   /**
    * Send verification code for email.
@@ -2407,6 +2475,7 @@ export interface GQLMutation {
    * Update state of a user, used in OSS.
    */
   updateUserRole: GQLUser
+  toggleUsersBadge: Array<GQLUser | null>
 
   /**
    * Add Credit to User Wallet
@@ -2448,6 +2517,7 @@ export interface GQLEditArticleInput {
   cover?: string
   collection?: Array<string>
   circle?: string
+  accessType?: GQLArticleAccessType
 }
 
 /**
@@ -2621,6 +2691,11 @@ export interface GQLPutCircleArticlesInput {
    * Action Type
    */
   type: GQLPutCircleArticlesType
+
+  /**
+   * Access Type, `public` or `paywall` only.
+   */
+  accessType: GQLArticleAccessType
 }
 
 export const enum GQLPutCircleArticlesType {
@@ -2703,6 +2778,11 @@ export interface GQLPutDraftInput {
   cover?: string
   collection?: Array<string | null>
   circle?: string
+
+  /**
+   * Access Type, `public` or `paywall` only.
+   */
+  accessType?: GQLArticleAccessType
 }
 
 export interface GQLDeleteDraftInput {
@@ -2905,6 +2985,12 @@ export interface GQLUpdateUserStateInput {
 export interface GQLUpdateUserRoleInput {
   id: string
   role: GQLUserRole
+}
+
+export interface GQLToggleUsersBadgeInput {
+  ids?: Array<string>
+  type: GQLBadgeType
+  enabled: boolean
 }
 
 /**
@@ -3456,6 +3542,7 @@ export interface GQLResolver {
   DraftEdge?: GQLDraftEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
   Asset?: GQLAssetTypeResolver
+  DraftAccess?: GQLDraftAccessTypeResolver
   UserActivity?: GQLUserActivityTypeResolver
   ReadHistoryConnection?: GQLReadHistoryConnectionTypeResolver
   ReadHistoryEdge?: GQLReadHistoryEdgeTypeResolver
@@ -3485,6 +3572,7 @@ export interface GQLResolver {
 
   StripeAccount?: GQLStripeAccountTypeResolver
   ArticleTranslation?: GQLArticleTranslationTypeResolver
+  ArticleAccess?: GQLArticleAccessTypeResolver
   ArticleOSS?: GQLArticleOSSTypeResolver
   ResponseConnection?: GQLResponseConnectionTypeResolver
   ResponseEdge?: GQLResponseEdgeTypeResolver
@@ -3705,8 +3793,10 @@ export interface GQLArticleTypeResolver<TParent = any> {
   translation?: ArticleToTranslationResolver<TParent>
   transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
   drafts?: ArticleToDraftsResolver<TParent>
+  revisionCount?: ArticleToRevisionCountResolver<TParent>
   limitedFree?: ArticleToLimitedFreeResolver<TParent>
   circle?: ArticleToCircleResolver<TParent>
+  access?: ArticleToAccessResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
@@ -4079,6 +4169,15 @@ export interface ArticleToDraftsResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface ArticleToRevisionCountResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface ArticleToLimitedFreeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -4089,6 +4188,15 @@ export interface ArticleToLimitedFreeResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToCircleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToAccessResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6728,6 +6836,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   article?: DraftToArticleResolver<TParent>
   collection?: DraftToCollectionResolver<TParent>
   circle?: DraftToCircleResolver<TParent>
+  access?: DraftToAccessResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -6889,6 +6998,15 @@ export interface DraftToCircleResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface DraftToAccessResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLAssetTypeResolver<TParent = any> {
   id?: AssetToIdResolver<TParent>
   type?: AssetToTypeResolver<TParent>
@@ -6924,6 +7042,29 @@ export interface AssetToPathResolver<TParent = any, TResult = any> {
 }
 
 export interface AssetToCreatedAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLDraftAccessTypeResolver<TParent = any> {
+  type?: DraftAccessToTypeResolver<TParent>
+  circle?: DraftAccessToCircleResolver<TParent>
+}
+
+export interface DraftAccessToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftAccessToCircleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -7906,6 +8047,39 @@ export interface ArticleTranslationToContentResolver<
   ): TResult
 }
 
+export interface GQLArticleAccessTypeResolver<TParent = any> {
+  type?: ArticleAccessToTypeResolver<TParent>
+  secret?: ArticleAccessToSecretResolver<TParent>
+  circle?: ArticleAccessToCircleResolver<TParent>
+}
+
+export interface ArticleAccessToTypeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleAccessToSecretResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleAccessToCircleResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLArticleOSSTypeResolver<TParent = any> {
   boost?: ArticleOSSToBoostResolver<TParent>
   score?: ArticleOSSToScoreResolver<TParent>
@@ -8151,6 +8325,7 @@ export interface GQLOSSTypeResolver<TParent = any> {
   oauthClients?: OSSToOauthClientsResolver<TParent>
   skippedListItems?: OSSToSkippedListItemsResolver<TParent>
   seedingUsers?: OSSToSeedingUsersResolver<TParent>
+  badgedUsers?: OSSToBadgedUsersResolver<TParent>
 }
 
 export interface OSSToUsersArgs {
@@ -8232,6 +8407,18 @@ export interface OSSToSeedingUsersResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: OSSToSeedingUsersArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface OSSToBadgedUsersArgs {
+  input: GQLBadgedUsersInput
+}
+export interface OSSToBadgedUsersResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: OSSToBadgedUsersArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8637,6 +8824,7 @@ export interface GQLMutationTypeResolver<TParent = any> {
   migration?: MutationToMigrationResolver<TParent>
   updateUserState?: MutationToUpdateUserStateResolver<TParent>
   updateUserRole?: MutationToUpdateUserRoleResolver<TParent>
+  toggleUsersBadge?: MutationToToggleUsersBadgeResolver<TParent>
   addCredit?: MutationToAddCreditResolver<TParent>
   payTo?: MutationToPayToResolver<TParent>
   payout?: MutationToPayoutResolver<TParent>
@@ -9449,6 +9637,21 @@ export interface MutationToUpdateUserRoleResolver<
   (
     parent: TParent,
     args: MutationToUpdateUserRoleArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface MutationToToggleUsersBadgeArgs {
+  input: GQLToggleUsersBadgeInput
+}
+export interface MutationToToggleUsersBadgeResolver<
+  TParent = any,
+  TResult = any
+> {
+  (
+    parent: TParent,
+    args: MutationToToggleUsersBadgeArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

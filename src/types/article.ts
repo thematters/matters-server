@@ -84,7 +84,7 @@ export default /* GraphQL */ `
     state: ArticleState!
 
     "This value determines if this article is under Subscription or not."
-    live: Boolean!
+    live: Boolean! @deprecated(reason: "No longer in use")
 
     "Author of this article."
     author: User! @logCache(type: "${NODE_TYPES.user}")
@@ -168,13 +168,19 @@ export default /* GraphQL */ `
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
     "Drafts linked to this article."
-    drafts: [Draft!]
+    drafts: [Draft!] @logCache(type: "${NODE_TYPES.draft}")
+
+    "Revision Count"
+    revisionCount: Int!
 
     "This value determines if this article is free for a limited time or not."
-    limitedFree: Boolean!
+    limitedFree: Boolean! @deprecated(reason: "Use \`access.type\` instead")
 
     "Current article belongs to which Circle."
-    circle: Circle @logCache(type: "${NODE_TYPES.circle}")
+    circle: Circle @logCache(type: "${NODE_TYPES.circle}") @deprecated(reason: "Use \`access.circle\` instead")
+
+    "Access related fields on circle"
+    access: ArticleAccess!
 
     ##############
     #     OSS    #
@@ -230,6 +236,12 @@ export default /* GraphQL */ `
     oss: TagOSS! @auth(mode: "${AUTH_MODE.admin}")
     remark: String @auth(mode: "${AUTH_MODE.admin}")
     deleted: Boolean! @auth(mode: "${AUTH_MODE.admin}")
+  }
+
+  type ArticleAccess {
+    type: ArticleAccessType!
+    secret: String @auth(mode: "${AUTH_MODE.oauth}")
+    circle: Circle @logCache(type: "${NODE_TYPES.circle}")
   }
 
   type ArticleOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -298,6 +310,7 @@ export default /* GraphQL */ `
     cover: ID
     collection: [ID!]
     circle: ID
+    accessType: ArticleAccessType
   }
 
   input AppreciateArticleInput {
@@ -407,6 +420,13 @@ export default /* GraphQL */ `
     active
     archived
     banned
+  }
+
+  "Enums for types of article access"
+  enum ArticleAccessType {
+    public
+    paywall
+    limitedFree
   }
 
   "Enums for types of recommend articles."

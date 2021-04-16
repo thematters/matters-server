@@ -3,6 +3,7 @@ import { difference, flow, trim, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
   ASSET_TYPE,
   CACHE_KEYWORD,
@@ -24,6 +25,7 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   NameInvalidError,
+  UserInputError,
 } from 'common/errors'
 import {
   correctHtml,
@@ -32,9 +34,12 @@ import {
   measureDiffs,
   sanitize,
   stripClass,
+  toGlobalId,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { ItemData, MutationToEditArticleResolver } from 'definitions'
+
+const MAX_REVISION_COUNT = 2
 
 const resolver: MutationToEditArticleResolver = async (
   _,
@@ -49,18 +54,21 @@ const resolver: MutationToEditArticleResolver = async (
       cover,
       collection,
       circle: circleGlobalId,
+      accessType,
     },
   },
   {
     viewer,
     dataSources: {
-      draftService,
-      systemService,
       articleService,
-      tagService,
-      notificationService,
       atomService,
+      draftService,
+      notificationService,
+      systemService,
+      tagService,
+      userService,
     },
+    knex,
   }
 ) => {
   if (!viewer.id) {
@@ -86,6 +94,9 @@ const resolver: MutationToEditArticleResolver = async (
   }
   if (article.state !== ARTICLE_STATE.active) {
     throw new ForbiddenError('only active article is allowed to be edited.')
+  }
+  if (accessType && accessType === ARTICLE_ACCESS_TYPE.limitedFree) {
+    throw new UserInputError('"accessType" can only be `public` or `paywall`.')
   }
 
   /**
@@ -219,9 +230,47 @@ const resolver: MutationToEditArticleResolver = async (
         limit: null,
       })
     ).map(({ articleId }: { articleId: string }) => articleId)
+
     const newIds = uniq(
-      collection.map((articleId) => fromGlobalId(articleId).id)
+      (
+        await Promise.all(
+          collection.map(async (articleId) => {
+            const articleDbId = fromGlobalId(articleId).id
+
+            if (!articleDbId) {
+              return
+            }
+
+            const collectedArticle = await atomService.findUnique({
+              table: 'article',
+              where: { id: articleDbId },
+            })
+
+            if (!collectedArticle) {
+              throw new ArticleNotFoundError(`Cannot find article ${articleId}`)
+            }
+
+            if (collectedArticle.state !== ARTICLE_STATE.active) {
+              throw new ForbiddenError(
+                `Article ${articleId} cannot be collected.`
+              )
+            }
+
+            const isBlocked = await userService.blocked({
+              userId: collectedArticle.authorId,
+              targetId: viewer.id,
+            })
+
+            if (isBlocked) {
+              throw new ForbiddenError('viewer has no permission')
+            }
+
+            return articleDbId
+          })
+        )
+      ).filter((articleId): articleId is string => !!articleId)
     )
+
     const addItems: any[] = []
     const updateItems: any[] = []
     const diff = difference(newIds, oldIds)
@@ -279,6 +328,26 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Circle
    */
+  const checkPaywalledArticle = async () => {
+    const paywalledArticle = await knex
+      .select('article_circle.*')
+      .from('article_circle')
+      .join('circle', 'article_circle.circle_id', 'circle.id')
+      .where({
+        'article_circle.article_id': article.id,
+        'article_circle.access': ARTICLE_ACCESS_TYPE.paywall,
+        'circle.state': CIRCLE_STATE.active,
+      })
+      .first()
+
+    if (paywalledArticle) {
+      const paywalledArticleId = toGlobalId({ type: 'Article', id: article.id })
+      throw new ForbiddenError(
+        `forbid to perform the action on paywalled articles: ${paywalledArticleId}.`
+      )
+    }
+  }
+
   const resetCircle = circleGlobalId === null
   let circle: any
   if (circleGlobalId) {
@@ -297,18 +366,29 @@ const resolver: MutationToEditArticleResolver = async (
     } else if (circle.state !== CIRCLE_STATE.active) {
       throw new ForbiddenError(`Circle ${circleGlobalId} cannot be added.`)
     }
+
+    if (!accessType) {
+      throw new UserInputError('"accessType" is required on `circle`.')
+    }
+    if (accessType === ARTICLE_ACCESS_TYPE.public) {
+      await checkPaywalledArticle()
+    }
+
     // insert to db
     const data = { articleId: article.id, circleId: circle.id }
     await atomService.upsert({
       table: 'article_circle',
       where: data,
-      create: data,
-      update: data,
+      create: { ...data, access: accessType },
+      update: { ...data, access: accessType, updatedAt: new Date() },
     })
   } else if (resetCircle) {
-    throw new ForbiddenError(
-      `removing articles from circle is unsupported now.`
-    )
+    await checkPaywalledArticle()
+
+    await atomService.deleteMany({
+      table: 'article_circle',
+      where: { articleId: article.id },
+    })
   }
 
   /**
@@ -330,41 +410,33 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   /**
-   * Content
+   * Republish article on content changes or paywalled
    */
-  if (content) {
-    const revisionCount = await draftService.countValidByArticleId({
-      articleId: article.id,
-    })
-    // cannot have drafts more than first draft plus 2 pending or published revision
-    if (revisionCount > 3) {
-      throw new ArticleRevisionReachLimitError(
-        'number of revisions reach limit'
-      )
-    }
-
-    const cleanedContent = stripClass(content, 'u-area-disable')
-
-    // check diff distances reaches limit or not
-    const diffs = measureDiffs(
-      stripHtml(draft.content, ''),
-      stripHtml(cleanedContent, '')
-    )
-    if (diffs > 50) {
-      throw new ArticleRevisionContentInvalidError('revised content invalid')
-    }
-
+  const republish = async (
+    newContent?: string,
+    increaseRevisionCount?: boolean
+  ) => {
     // fetch updated data before create draft
     const [
       currDraft,
       currArticle,
       currCollections,
       currTags,
+      currArticleCircle,
     ] = await Promise.all([
       draftService.baseFindById(article.draftId), // fetch latest draft
       articleService.baseFindById(dbId), // fetch latest article
       articleService.findCollections({ entranceId: article.id, limit: null }),
       tagService.findByArticleId({ articleId: article.id }),
+      knex
+        .select('article_circle.*')
+        .from('article_circle')
+        .join('circle', 'article_circle.circle_id', 'circle.id')
+        .where({
+          'article_circle.article_id': article.id,
+          'circle.state': CIRCLE_STATE.active,
+        })
+        .first(),
     ])
     const currTagContents = currTags.map((currTag) => currTag.content)
     const currCollectionIds = currCollections.map(
@@ -372,6 +444,10 @@ const resolver: MutationToEditArticleResolver = async (
     )
 
     // create draft linked to this article
+    const cleanedContent = stripClass(
+      newContent || currDraft.content,
+      'u-area-disable'
+    )
     const pipe = flow(sanitize, correctHtml)
     const data: ItemData = {
       uuid: v4(),
@@ -386,13 +462,42 @@ const resolver: MutationToEditArticleResolver = async (
       collection: currCollectionIds,
       archived: false,
       publishState: PUBLISH_STATE.pending,
+      circleId: currArticleCircle?.circleId,
+      access: currArticleCircle?.access,
       createdAt: new Date(),
       updatedAt: new Date(),
     }
     const revisedDraft = await draftService.baseCreate(data)
 
     // add job to publish queue
-    revisionQueue.publishRevisedArticle({ draftId: revisedDraft.id })
+    revisionQueue.publishRevisedArticle({
+      draftId: revisedDraft.id,
+      increaseRevisionCount: !!increaseRevisionCount,
+    })
+  }
+
+  if (content) {
+    // cannot have drafts more than first draft plus 2 pending or published revision
+    const revisionCount = article.revisionCount || 0
+    if (revisionCount >= MAX_REVISION_COUNT) {
+      throw new ArticleRevisionReachLimitError(
+        'number of revisions reach limit'
+      )
+    }
+
+    // check diff distances reaches limit or not
+    const cleanedContent = stripClass(content, 'u-area-disable')
+    const diffs = measureDiffs(
+      stripHtml(draft.content, ''),
+      stripHtml(cleanedContent, '')
+    )
+    if (diffs > 50) {
+      throw new ArticleRevisionContentInvalidError('revised content invalid')
+    }
+
+    await republish(content, true)
+  } else if (accessType === ARTICLE_ACCESS_TYPE.paywall) {
+    await republish(undefined, false)
   }
 
   /**
