@@ -46,6 +46,14 @@ test('correctNestedBrTag', async () => {
       toBe: '<p><br class="smart"></p>',
     },
     {
+      data: '<p><br class="smart"><br class="smart"></p>',
+      toBe: '<p><br class="smart"><br class="smart"></p>',
+    },
+    {
+      data: '<p><br class="smart">A<br class="smart">B</p>',
+      toBe: '<p><br class="smart">A<br class="smart">B</p>',
+    },
+    {
       data: '<p><br class="smart"><br class="smart" /></br></p>',
       toBe: '<p><br class="smart"><br class="smart"></p>',
     },
@@ -67,6 +75,33 @@ test('correctNestedBrTag', async () => {
     {
       data: '<p><br class="not-smart"><br class="not-smart" /></br></p>',
       toBe: '<p><br class="not-smart"><br class="not-smart" /></br></p>',
+    },
+    {
+      data: '<p><br class="smart">A<br class="smart" /></br></p>',
+      toBe: '<p><br class="smart">A<br class="smart"></p>',
+    },
+    {
+      data:
+        '<p><br class="smart">A<br class="smart">B<br class="smart" /></br></br></p>',
+      toBe: '<p><br class="smart">A<br class="smart">B<br class="smart"></p>',
+    },
+    {
+      data:
+        '<p><br class="smart">A is something... <br class="smart">B<br class="smart" /></br></br></p>',
+      toBe:
+        '<p><br class="smart">A is something... <br class="smart">B<br class="smart"></p>',
+    },
+    {
+      data:
+        '<p><br class="smart">A is something... <br class="smart"><em>B</em><br class="smart" /></br></br></p>',
+      toBe:
+        '<p><br class="smart">A is something... <br class="smart"><em>B</em><br class="smart"></p>',
+    },
+    {
+      data:
+        '<p><br class="smart">A is something... <br class="smart"><em>B</em>C<br class="smart" /></br></br></p>',
+      toBe:
+        '<p><br class="smart">A is something... <br class="smart"><em>B</em>C<br class="smart"></p>',
     },
   ]
 
