@@ -59,6 +59,6 @@ export const correctNestedBrTag = () => (html: string) => {
  * Pipe for pre-processing html tag.
  */
 export const correctHtml = (html: string) => {
-  const pipe = flow(correctSelfClosingHtmlTag('iframe'), correctNestedBrTag())
+  const pipe = flow(correctSelfClosingHtmlTag('iframe'))
   return pipe(html)
 }
