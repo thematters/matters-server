@@ -8,7 +8,7 @@ const resolver: DraftToAssetsResolver = async (
   const isAdmin = viewer.hasRole('admin')
   const isAuthor = authorId === viewer.id
 
-  if (isAdmin || isAuthor) {
+  if (!isAdmin && !isAuthor) {
     return []
   }
 
