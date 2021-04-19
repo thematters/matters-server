@@ -2,6 +2,7 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ARTICLE_ACCESS_TYPE,
   CACHE_KEYWORD,
   CIRCLE_ACTION,
   CIRCLE_STATE,
@@ -203,9 +204,12 @@ const resolver: MutationToPutCommentResolver = async (
         userId: viewer.id,
         circleId: articleCircle.circleId,
       })
-      const isLimitedFree = isArticleLimitedFree(articleCircle.createdAt)
+      const isPublic = articleCircle.access === ARTICLE_ACCESS_TYPE.public
+      const isPaywalled = articleCircle.access === ARTICLE_ACCESS_TYPE.paywall
+      const isLimitedFree =
+        isPaywalled && isArticleLimitedFree(articleCircle.createdAt)
 
-      if (!isCircleMember && !isLimitedFree) {
+      if (!isCircleMember && !isLimitedFree && !isPublic) {
         throw new ForbiddenError('only circle members have the permission')
       }
     }
