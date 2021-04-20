@@ -192,6 +192,9 @@ type Article implements Node {
   """Drafts linked to this article."""
   drafts: [Draft!]
 
+  """Revision Count"""
+  revisionCount: Int!
+
   """
   This value determines if this article is free for a limited time or not.
   """

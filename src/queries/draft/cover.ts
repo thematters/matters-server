@@ -1,11 +1,18 @@
 import { DraftToCoverResolver } from 'definitions'
 
 const resolver: DraftToCoverResolver = async (
-  { cover },
+  { cover, authorId },
   _,
-  { dataSources: { systemService } }
+  { viewer, dataSources: { systemService } }
 ) => {
-  return cover ? systemService.findAssetUrl(cover) : null
+  const isAdmin = viewer.hasRole('admin')
+  const isAuthor = authorId === viewer.id
+
+  if (isAdmin || isAuthor) {
+    return cover ? systemService.findAssetUrl(cover) : null
+  }
+
+  return null
 }
 
 export default resolver

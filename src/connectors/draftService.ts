@@ -63,23 +63,4 @@ export class DraftService extends BaseService {
    */
   findByMediaHash = async (mediaHash: string) =>
     this.knex.select().from(this.table).where({ mediaHash }).first()
-
-  /**
-   * Count pending and published drafts by given article id.
-   */
-  countValidByArticleId = async ({ articleId }: { articleId: string }) => {
-    const result = await this.knex
-      .from(this.table)
-      .where({ articleId })
-      .andWhere(
-        this.knex.raw(`(
-          (archived = true and publish_state = '${PUBLISH_STATE.published}')
-          OR
-          (archived = false and publish_state = '${PUBLISH_STATE.pending}')
-        )`)
-      )
-      .count()
-      .first()
-    return parseInt(result ? (result.count as string) : '0', 10)
-  }
 }

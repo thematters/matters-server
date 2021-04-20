@@ -1,10 +1,17 @@
 import { DraftToAssetsResolver } from 'definitions'
 
 const resolver: DraftToAssetsResolver = async (
-  { id },
+  { id, authorId },
   _,
-  { dataSources: { systemService } }
+  { viewer, dataSources: { systemService } }
 ) => {
+  const isAdmin = viewer.hasRole('admin')
+  const isAuthor = authorId === viewer.id
+
+  if (!isAdmin && !isAuthor) {
+    return []
+  }
+
   const { id: draftEntityTypeId } = await systemService.baseFindEntityTypeId(
     'draft'
   )

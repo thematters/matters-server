@@ -10,13 +10,7 @@ const resolver: ArticleToDraftsResolver = async (
   let drafts = await knex
     .from('draft')
     .where({ articleId })
-    .andWhere(
-      knex.raw(`(
-      (archived = true and publish_state = '${PUBLISH_STATE.published}')
-      OR
-      (archived = false and publish_state = '${PUBLISH_STATE.pending}')
-    )`)
-    )
+    .whereIn('publish_state', [PUBLISH_STATE.published, PUBLISH_STATE.pending])
     .orderBy('created_at', 'desc')
 
   drafts = drafts.map((draft) => ({

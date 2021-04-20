@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { v4 } from 'uuid'
 
 import {
   ARTICLE_ACCESS_TYPE,
@@ -9,6 +10,7 @@ import {
   DB_NOTICE_TYPE,
   NODE_TYPES,
   PRICE_STATE,
+  PUBLISH_STATE,
   SUBSCRIPTION_STATE,
   USER_STATE,
 } from 'common/enums'
@@ -20,15 +22,23 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, toGlobalId } from 'common/utils'
-import { MutationToPutCircleArticlesResolver } from 'definitions'
+import { correctHtml, fromGlobalId, sanitize, toGlobalId } from 'common/utils'
+import { revisionQueue } from 'connectors/queue'
+import { ItemData, MutationToPutCircleArticlesResolver } from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (
   root,
   { input: { id, articles, type: actionType, accessType } },
   {
     viewer,
-    dataSources: { atomService, systemService, notificationService },
+    dataSources: {
+      atomService,
+      systemService,
+      draftService,
+      tagService,
+      articleService,
+      notificationService,
+    },
     knex,
   }
 ) => {
@@ -89,11 +99,17 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   }
 
   const checkPaywalledArticles = async () => {
-    const paywalledArticles = await atomService.findMany({
-      table: 'article_circle',
-      where: { circleId: circle.id, access: ARTICLE_ACCESS_TYPE.paywall },
-      whereIn: ['article_id', targetArticleIds],
-    })
+    const paywalledArticles = await knex
+      .select('article_circle.*')
+      .from('article_circle')
+      .join('circle', 'article_circle.circle_id', 'circle.id')
+      .where({
+        'article_circle.circle_id': circle.id,
+        'article_circle.access': ARTICLE_ACCESS_TYPE.paywall,
+        'circle.state': CIRCLE_STATE.active,
+      })
+      .whereIn('article_id', targetArticleIds)
+
     const hasPaywalledArticles =
       paywalledArticles && paywalledArticles.length > 0
 
@@ -107,6 +123,63 @@ const resolver: MutationToPutCircleArticlesResolver = async (
         )}.`
       )
     }
+  }
+
+  const republish = async (article: any) => {
+    // fetch updated data before create draft
+    const [
+      currDraft,
+      currArticle,
+      currCollections,
+      currTags,
+      currArticleCircle,
+    ] = await Promise.all([
+      draftService.baseFindById(article.draftId), // fetch latest draft
+      articleService.baseFindById(article.id), // fetch latest article
+      articleService.findCollections({ entranceId: article.id, limit: null }),
+      tagService.findByArticleId({ articleId: article.id }),
+      knex
+        .select('article_circle.*')
+        .from('article_circle')
+        .join('circle', 'article_circle.circle_id', 'circle.id')
+        .where({
+          'article_circle.article_id': article.id,
+          'circle.state': CIRCLE_STATE.active,
+        })
+        .first(),
+    ])
+    const currTagContents = currTags.map((currTag) => currTag.content)
+    const currCollectionIds = currCollections.map(
+      ({ articleId }: { articleId: string }) => articleId
+    )
+
+    // create draft linked to this article
+    const pipe = _.flow(sanitize, correctHtml)
+    const data: ItemData = {
+      uuid: v4(),
+      authorId: currDraft.authorId,
+      articleId: currArticle.id,
+      title: currDraft.title,
+      summary: currDraft.summary,
+      summaryCustomized: currDraft.summaryCustomized,
+      content: pipe(currDraft.content),
+      tags: currTagContents,
+      cover: currArticle.cover,
+      collection: currCollectionIds,
+      archived: false,
+      publishState: PUBLISH_STATE.pending,
+      circleId: currArticleCircle?.circleId,
+      access: currArticleCircle?.access,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    const revisedDraft = await draftService.baseCreate(data)
+
+    // add job to publish queue
+    revisionQueue.publishRevisedArticle({
+      draftId: revisedDraft.id,
+      increaseRevisionCount: false,
+    })
   }
 
   // add articles to circle
@@ -151,6 +224,11 @@ const resolver: MutationToPutCircleArticlesResolver = async (
         update: { ...data, access: accessType, updatedAt: new Date() },
       })
 
+      // republish on paywall
+      if (accessType === ARTICLE_ACCESS_TYPE.paywall) {
+        await republish(article)
+      }
+
       // notify
       recipients.forEach((recipientId: any) => {
         notificationService.trigger({
@@ -179,8 +257,8 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   }
 
   // invalidate articles
-  circle[CACHE_KEYWORD] = targetArticles.map((articleId) => ({
-    id: articleId,
+  circle[CACHE_KEYWORD] = targetArticles.map((article) => ({
+    id: article.id,
     type: NODE_TYPES.article,
   }))
   return circle

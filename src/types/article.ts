@@ -170,6 +170,9 @@ export default /* GraphQL */ `
     "Drafts linked to this article."
     drafts: [Draft!] @logCache(type: "${NODE_TYPES.draft}")
 
+    "Revision Count"
+    revisionCount: Int!
+
     "This value determines if this article is free for a limited time or not."
     limitedFree: Boolean! @deprecated(reason: "Use \`access.type\` instead")
 
