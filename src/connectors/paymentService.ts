@@ -5,7 +5,6 @@ import {
   BATCH_SIZE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
-  PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
   TRANSACTION_PURPOSE,
@@ -394,28 +393,6 @@ export class PaymentService extends BaseService {
    *             Payout            *
    *                               *
    *********************************/
-  createPayoutAccount = async ({
-    user,
-    accountId,
-    type = PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express,
-    provider = PAYMENT_PROVIDER.stripe,
-  }: {
-    user: User
-    accountId: string
-    type?: PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express
-    provider?: PAYMENT_PROVIDER.stripe
-  }) => {
-    return this.baseCreate(
-      {
-        userId: user.id,
-        accountId,
-        type,
-        provider,
-      },
-      'payout_account'
-    )
-  }
-
   calculateHKDBalance = async ({ userId }: { userId: string }) => {
     const result = await this.knex
       .select()

@@ -1,9 +1,19 @@
-import { PAYMENT_CURRENCY, PAYMENT_MINIMAL_PAYOUT_AMOUNT } from 'common/enums'
+import { invalidateFQC } from '@matters/apollo-response-cache'
+
+import {
+  NODE_TYPES,
+  PAYMENT_CURRENCY,
+  PAYMENT_MINIMAL_PAYOUT_AMOUNT,
+  PAYMENT_PROVIDER,
+  PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE,
+} from 'common/enums'
 import {
   AuthenticationError,
   PaymentBalanceInsufficientError,
   PaymentPayoutAccountExistsError,
+  ServerError,
 } from 'common/errors'
+import { CacheService } from 'connectors'
 import { MutationToConnectStripeAccountResolver } from 'definitions'
 
 const resolver: MutationToConnectStripeAccountResolver = async (
@@ -18,7 +28,7 @@ const resolver: MutationToConnectStripeAccountResolver = async (
   // check if payout account already exists
   const payoutAccount = await atomService.findFirst({
     table: 'payout_account',
-    where: { userId: viewer.id, archived: false },
+    where: { userId: viewer.id, capabilitiesTransfers: true, archived: false },
   })
   if (payoutAccount) {
     throw new PaymentPayoutAccountExistsError('payout account already exists.')
@@ -36,13 +46,36 @@ const resolver: MutationToConnectStripeAccountResolver = async (
   }
 
   // create acccount and return onboarding url
-  const onboardingUrl = await paymentService.stripe.createExpressAccount({
+  const account = await paymentService.stripe.createExpressAccount({
     country,
     user: viewer,
   })
 
+  if (!account) {
+    throw new ServerError('failed to create stripe account')
+  }
+
+  // save to db
+  await atomService.create({
+    table: 'payout_account',
+    data: {
+      userId: viewer.id,
+      accountId: account.accountId,
+      capabilitiesTransfers: false,
+      type: PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express,
+      provider: PAYMENT_PROVIDER.stripe,
+    },
+  })
+
+  // invalidate user cache
+  const cacheService = new CacheService()
+  await invalidateFQC({
+    node: { type: NODE_TYPES.user, id: viewer.id },
+    redis: cacheService.redis,
+  })
+
   return {
-    redirectUrl: onboardingUrl,
+    redirectUrl: account.onboardingUrl,
   }
 }
 

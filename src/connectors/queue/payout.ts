@@ -101,15 +101,19 @@ class PayoutQueue extends BaseQueue {
         return done(null, job.data)
       }
 
-      const [balance, customer, pending] = await Promise.all([
+      const [balance, payoutAccount, pending] = await Promise.all([
         this.paymentService.calculateHKDBalance({ userId: tx.senderId }),
         this.atomService.findFirst({
           table: 'payout_account',
-          where: { userId: tx.senderId, archived: false },
+          where: {
+            userId: tx.senderId,
+            capabilitiesTransfers: true,
+            archived: false,
+          },
         }),
         this.paymentService.countPendingPayouts({ userId: tx.senderId }),
       ])
-      const recipient = customer
+      const recipient = payoutAccount
 
       // cancel payout if:
       // 1. balance including pending amounts < 0

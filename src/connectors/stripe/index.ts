@@ -194,7 +194,7 @@ class StripeService {
         refresh_url: `${returnUrl}?code=${OAUTH_CALLBACK_ERROR_CODE.stripeAccountRefresh}`,
         return_url: `${returnUrl}?code=${OAUTH_CALLBACK_ERROR_CODE.stripeAccountReturn}`,
       })
-      return url
+      return { accountId: account.id, onboardingUrl: url }
     } catch (err) {
       this.handleError(err)
     }
