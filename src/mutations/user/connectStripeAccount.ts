@@ -8,7 +8,7 @@ import { MutationToConnectStripeAccountResolver } from 'definitions'
 
 const resolver: MutationToConnectStripeAccountResolver = async (
   _,
-  __,
+  { input: { country } },
   { viewer, dataSources: { atomService, paymentService } }
 ) => {
   if (!viewer.id) {
@@ -20,7 +20,6 @@ const resolver: MutationToConnectStripeAccountResolver = async (
     table: 'payout_account',
     where: { userId: viewer.id, archived: false },
   })
-
   if (payoutAccount) {
     throw new PaymentPayoutAccountExistsError('payout account already exists.')
   }
@@ -36,13 +35,14 @@ const resolver: MutationToConnectStripeAccountResolver = async (
     )
   }
 
-  // create and return redirectUrl
-  const redirectUrl = paymentService.stripe.createOAuthLink({
+  // create acccount and return onboarding url
+  const onboardingUrl = await paymentService.stripe.createExpressAccount({
+    country,
     user: viewer,
   })
 
   return {
-    redirectUrl,
+    redirectUrl: onboardingUrl,
   }
 }
 

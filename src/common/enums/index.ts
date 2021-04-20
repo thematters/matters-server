@@ -145,6 +145,9 @@ export const OAUTH_CALLBACK_ERROR_CODE = {
   stripeAccountNotFound: 4,
   stripeAuthFailed: 5,
   stripeAccountExists: 6,
+  // https://stripe.com/docs/api/account_links/create#create_account_link-refresh_url
+  stripeAccountRefresh: 7,
+  stripeAccountReturn: 8,
 }
 
 export const NODE_TYPES = {

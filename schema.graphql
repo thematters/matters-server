@@ -770,6 +770,11 @@ input ConnectionArgs {
   oss: Boolean
 }
 
+"""Stripe Account"""
+input ConnectStripeAccountInput {
+  country: StripeAccountCountry!
+}
+
 type ConnectStripeAccountResult {
   redirectUrl: URL!
 }
@@ -1253,7 +1258,7 @@ type Mutation {
   payout(input: PayoutInput!): Transaction!
 
   """Create Stripe Connect account for Payout"""
-  connectStripeAccount: ConnectStripeAccountResult!
+  connectStripeAccount(input: ConnectStripeAccountInput!): ConnectStripeAccountResult!
 
   """Create or Update an OAuth Client, used in OSS."""
   putOAuthClient(input: PutOAuthClientInput!): OAuthClient
@@ -1901,10 +1906,44 @@ enum SkippedListItemType {
   domain
 }
 
-"""Stripe Account"""
 type StripeAccount {
   id: ID!
   loginUrl: URL!
+}
+
+enum StripeAccountCountry {
+  Australia
+  Austria
+  Belgium
+  Bulgaria
+  Canada
+  Cyprus
+  Denmark
+  Estonia
+  Finland
+  France
+  Germany
+  Greece
+  HongKong
+  Ireland
+  Italy
+  Latvia
+  Lithuania
+  Luxembourg
+  Malta
+  Netherlands
+  NewZealand
+  Norway
+  Poland
+  Portugal
+  Romania
+  Singapore
+  Slovakia
+  Slovenia
+  Spain
+  Sweden
+  UnitedKingdom
+  UnitedStates
 }
 
 input SubscribeCircleInput {

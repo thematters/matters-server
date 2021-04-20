@@ -121,11 +121,12 @@ class PayoutQueue extends BaseQueue {
       }
 
       // create stripe payment
-      const payment = await this.paymentService.stripe.createDestinationCharge({
+      const payment = await this.paymentService.stripe.transfer({
         amount: numRound(tx.amount),
         currency: PAYMENT_CURRENCY.HKD,
         fee: numRound(tx.fee),
         recipientStripeConnectedId: recipient.accountId,
+        txId,
       })
 
       if (!payment || !payment.id) {

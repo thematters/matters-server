@@ -14,12 +14,7 @@ import {
 } from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
-import {
-  calcMattersFee,
-  // calcStripeFee,
-  getUTC8Midnight,
-  numRound,
-} from 'common/utils'
+import { getUTC8Midnight, numRound } from 'common/utils'
 import { BaseService } from 'connectors'
 import { CirclePrice, Customer, User } from 'definitions'
 
@@ -419,43 +414,6 @@ export class PaymentService extends BaseService {
       },
       'payout_account'
     )
-  }
-
-  createPayout = async ({
-    amount,
-    recipientId,
-    recipientStripeConnectedId,
-  }: {
-    amount: number
-    recipientId: string
-    recipientStripeConnectedId: string
-  }) => {
-    const fee = calcMattersFee(amount)
-
-    // create stripe payment
-    const payment = await this.stripe.createDestinationCharge({
-      amount,
-      currency: PAYMENT_CURRENCY.HKD,
-      fee,
-      recipientStripeConnectedId,
-    })
-
-    if (!payment) {
-      throw new ServerError('failed to create payment')
-    }
-
-    // create pending matters transaction. To make number of wallet
-    // balance right, set recipient as sender here.
-    return this.createTransaction({
-      amount,
-      currency: PAYMENT_CURRENCY.HKD,
-      fee,
-      purpose: TRANSACTION_PURPOSE.payout,
-      provider: PAYMENT_PROVIDER.stripe,
-      providerTxId: payment.id,
-      senderId: recipientId,
-      targetType: undefined,
-    })
   }
 
   calculateHKDBalance = async ({ userId }: { userId: string }) => {

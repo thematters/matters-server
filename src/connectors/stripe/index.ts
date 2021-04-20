@@ -3,9 +3,11 @@ import Stripe from 'stripe'
 import { isUndefined } from 'util'
 
 import {
+  COUNTRY_CODE,
   DAY,
   LOCAL_STRIPE,
   METADATA_KEY,
+  OAUTH_CALLBACK_ERROR_CODE,
   PAYMENT_CURRENCY,
   PAYMENT_MAX_DECIMAL_PLACES,
 } from 'common/enums'
@@ -41,7 +43,7 @@ class StripeService {
     }
 
     this.stripeAPI = new Stripe(environment.stripeSecret, {
-      apiVersion: '2020-03-02',
+      apiVersion: '2020-08-27',
       ...options,
     })
   }
@@ -74,9 +76,7 @@ class StripeService {
     try {
       return await this.stripeAPI.customers.create({
         email: user.email,
-        metadata: {
-          [METADATA_KEY.USER_ID]: user.id,
-        },
+        metadata: { [METADATA_KEY.USER_ID]: user.id },
       })
     } catch (err) {
       this.handleError(err)
@@ -165,28 +165,39 @@ class StripeService {
   }
 
   /**
-   * Create OAuth Link for viewer to connect Stripe account
+   * Create Stripe Connect account and obtain the login link for onboarding
    *
-   * @see {@url https://stripe.com/docs/connect/oauth-reference}
-   * @see {@url https://stripe.com/docs/connect/express-accounts#integrating-oauth}
+   * @see {@url https://stripe.com/docs/connect/service-agreement-types}
    */
-  createOAuthLink = ({ user }: { user: User }) => {
-    return this.stripeAPI.oauth.authorizeUrl(
-      {
-        client_id: environment.stripeConnectClientId,
-        response_type: 'code',
-        redirect_uri: environment.stripeConnectCallbackURL,
-        suggested_capabilities: ['card_payments', 'transfers'],
-        stripe_user: {
-          email: user.email,
-          url: `${environment.siteDomain}/@${user.userName}`,
-          country: 'HK',
-        },
-      },
-      {
-        express: true,
-      }
-    )
+  createExpressAccount = async ({
+    country,
+    user,
+  }: {
+    country: keyof typeof COUNTRY_CODE
+    user: User
+  }) => {
+    const isUS = country === 'UnitedStates'
+    const returnUrl = `${environment.siteDomain}/oauth/stripe-connect/success`
+
+    try {
+      const account = await this.stripeAPI.accounts.create({
+        type: 'express',
+        country: COUNTRY_CODE[country],
+        email: user.email,
+        metadata: { [METADATA_KEY.USER_ID]: user.id },
+        capabilities: { transfers: { requested: true } },
+        ...(isUS ? {} : { tos_acceptance: { service_agreement: 'recipient' } }),
+      })
+      const { url } = await this.stripeAPI.accountLinks.create({
+        account: account.id,
+        type: 'account_onboarding',
+        refresh_url: `${returnUrl}?code=${OAUTH_CALLBACK_ERROR_CODE.stripeAccountRefresh}`,
+        return_url: `${returnUrl}?code=${OAUTH_CALLBACK_ERROR_CODE.stripeAccountReturn}`,
+      })
+      return url
+    } catch (err) {
+      this.handleError(err)
+    }
   }
 
   createExpressLoginLink = async (accountId: string) => {
@@ -195,37 +206,30 @@ class StripeService {
   }
 
   /**
-   * Create destination charge.
+   * Transfer and Payout
    *
-   * @see {@url https://stripe.com/docs/connect/destination-charges}
+   * @see {url https://stripe.com/docs/connect/cross-border-payouts}
    */
-  createDestinationCharge = async ({
+  transfer = async ({
     amount,
     currency,
     fee,
     recipientStripeConnectedId,
+    txId,
   }: {
     amount: number
     currency: PAYMENT_CURRENCY
     fee: number
     recipientStripeConnectedId: string
+    txId: string
   }) => {
     try {
-      if (!environment.stripeCustomerId) {
-        throw new ServerError('matters stripe customer id has not been set')
-      }
-
-      return await this.stripeAPI.paymentIntents.create({
-        amount: toProviderAmount({ amount }),
-        application_fee_amount: toProviderAmount({ amount: fee }),
-        confirm: true,
+      return this.stripeAPI.transfers.create({
+        amount:
+          toProviderAmount({ amount }) - toProviderAmount({ amount: fee }),
         currency,
-        customer: environment.stripeCustomerId,
-        off_session: true,
-        on_behalf_of: recipientStripeConnectedId,
-        transfer_data: {
-          destination: recipientStripeConnectedId,
-        },
+        destination: recipientStripeConnectedId,
+        metadata: { [METADATA_KEY.TX_ID]: txId },
       })
     } catch (error) {
       this.handleError(error)

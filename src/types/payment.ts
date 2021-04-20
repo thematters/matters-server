@@ -12,7 +12,7 @@ export default /* GraphQL */ `
     payout(input: PayoutInput!): Transaction! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
 
     "Create Stripe Connect account for Payout"
-    connectStripeAccount: ConnectStripeAccountResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
+    connectStripeAccount(input: ConnectStripeAccountInput!): ConnectStripeAccountResult! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
   }
 
   extend type User {
@@ -155,6 +155,10 @@ export default /* GraphQL */ `
   }
 
   # Stripe Account
+  input ConnectStripeAccountInput {
+    country: StripeAccountCountry!
+  }
+
   type StripeAccount {
     id: ID!
     loginUrl: URL! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
@@ -162,5 +166,40 @@ export default /* GraphQL */ `
 
   type ConnectStripeAccountResult {
     redirectUrl: URL!
+  }
+
+  enum StripeAccountCountry {
+    Australia
+    Austria
+    Belgium
+    Bulgaria
+    Canada
+    Cyprus
+    Denmark
+    Estonia
+    Finland
+    France
+    Germany
+    Greece
+    HongKong
+    Ireland
+    Italy
+    Latvia
+    Lithuania
+    Luxembourg
+    Malta
+    Netherlands
+    NewZealand
+    Norway
+    Poland
+    Portugal
+    Romania
+    Singapore
+    Slovakia
+    Slovenia
+    Spain
+    Sweden
+    UnitedKingdom
+    UnitedStates
   }
 `
