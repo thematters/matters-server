@@ -544,6 +544,8 @@ export class PaymentService extends BaseService {
     subscriptionId,
     userId,
     prices,
+    providerCouponId,
+    discounts,
   }: {
     amount: number
     currency: string
@@ -552,10 +554,13 @@ export class PaymentService extends BaseService {
     subscriptionId: string
     userId: string
     prices: CirclePrice[]
+    providerCouponId: string
+    discounts: number[]
   }) => {
     const trx = await this.knex.transaction()
     try {
       // create subscription top up transaction
+      const totalDiscount = discounts.reduce((d1, d2) => d1 + d2)
       const transactionId = await trx('transaction')
         .insert({
           amount,
@@ -570,6 +575,7 @@ export class PaymentService extends BaseService {
 
           targetType: undefined,
           targetId: undefined,
+          discount: totalDiscount,
         })
         .returning('id')
 
@@ -593,12 +599,19 @@ export class PaymentService extends BaseService {
         }
       }
 
-      const totalAmount = prices
+      const totalPrice = prices
         .map((p) => Number(p.amount))
         .reduce((p1, p2) => p1 + p2)
-      if (totalAmount !== amount) {
+
+      if (prices.length !== discounts.length) {
         throw new ServerError(
-          `sum of plan prices '${totalAmount}' != invoice paid amount '${amount}'`
+          `prices.length != discounts.length: ${providerInvoiceId}`
+        )
+      }
+
+      if (totalPrice - totalDiscount !== amount) {
+        throw new ServerError(
+          `sum(prices):'${totalPrice}' with discounts:'${totalDiscount}' != paid amount:'${amount}': ${providerInvoiceId}`
         )
       }
 
@@ -606,7 +619,9 @@ export class PaymentService extends BaseService {
       const { id: entityTypeId } = await this.baseFindEntityTypeId(
         TRANSACTION_TARGET_TYPE.circlePrice
       )
-      for (const p of prices) {
+
+      for (let i = 0; i < prices.length; i++) {
+        const p = prices[i]
         const circle = await this.baseFindById(p.circleId, 'circle')
         await trx('transaction').insert({
           amount: p.amount,
@@ -622,6 +637,7 @@ export class PaymentService extends BaseService {
 
           targetType: entityTypeId,
           targetId: p.id,
+          discount: discounts[i],
           remark: `stripe:${providerTxId}`,
         })
       }

@@ -336,6 +336,14 @@ export const completeCircleInvoice = async ({
     const providerTxId = invoice.payment_intent as string
     const amount = toDBAmount({ amount: invoice.amount_paid })
     const currency = _.toUpper(invoice.currency) as PAYMENT_CURRENCY
+    const totalDiscount = invoice.total_discount_amounts
+      ? toDBAmount({
+          amount: invoice.total_discount_amounts.reduce(
+            (sum, d) => sum + d.amount,
+            0
+          ),
+        })
+      : 0
 
     if (!providerTxId) {
       return
@@ -372,6 +380,21 @@ export const completeCircleInvoice = async ({
     const providerPriceIds = invoice.lines.data.map((item) =>
       item.price ? item.price.id : ''
     )
+    const priceDiscounts = invoice.lines.data.map((item) => {
+      if (item.price && item.discount_amounts) {
+        return toDBAmount({
+          amount: item.discount_amounts.reduce((sum, d) => sum + d.amount, 0),
+        })
+      }
+      return 0
+    })
+
+    if (totalDiscount !== priceDiscounts.reduce((sum, amt) => sum + amt, 0)) {
+      throw new ServerError(
+        `total discount is not equal to sum of price discounts: ${providerInvoiceId}`
+      )
+    }
+
     const prices = (await atomService.findMany({
       table: 'circle_price',
       whereIn: ['providerPriceId', providerPriceIds],
@@ -386,6 +409,8 @@ export const completeCircleInvoice = async ({
         subscriptionId: subscription.id,
         userId: customer.userId,
         prices,
+        providerCouponId: '',
+        discounts: priceDiscounts,
       })
     } else {
       throw new ServerError(`failed to complete invoice ${providerInvoiceId}`)
