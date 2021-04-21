@@ -200,14 +200,18 @@ const resolver: MutationToPutDraftResolver = async (
       (!resetCover && isUpdateContent && !draft.cover)
     ) {
       const draftContent = isUpdateContent ? content : draft.content
-      const uuids = (extractAssetDataFromHtml(draftContent, 'image') || []).filter(
-        (uuid) => uuid && uuid !== 'embed'
-      )
+      const uuids = (
+        extractAssetDataFromHtml(draftContent, 'image') || []
+      ).filter((uuid) => uuid && uuid !== 'embed')
 
       if (uuids.length > 0) {
         const candidateCover = await atomService.findFirst({
           table: 'asset',
-          where: { uuid: uuids[0], type: ASSET_TYPE.embed, authorId: viewer.id }
+          where: {
+            uuid: uuids[0],
+            type: ASSET_TYPE.embed,
+            authorId: viewer.id,
+          },
         })
 
         if (candidateCover) {
