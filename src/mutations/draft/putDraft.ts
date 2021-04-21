@@ -18,7 +18,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, sanitize } from 'common/utils'
+import { extractAssetDataFromHtml, fromGlobalId, sanitize } from 'common/utils'
 import { ItemData, MutationToPutDraftResolver } from 'definitions'
 
 const resolver: MutationToPutDraftResolver = async (
@@ -192,13 +192,38 @@ const resolver: MutationToPutDraftResolver = async (
       throw new UserInputError('summary reach length limit')
     }
 
+    // handle candidate cover
+    const isUpdateContent = content || content === ''
+    if (
+      (resetCover && !isUpdateContent) ||
+      (resetCover && isUpdateContent && draft.cover) ||
+      (!resetCover && isUpdateContent && !draft.cover)
+    ) {
+      const draftContent = isUpdateContent ? content : draft.content
+      const uuids = (extractAssetDataFromHtml(draftContent, 'image') || []).filter(
+        (uuid) => uuid && uuid !== 'embed'
+      )
+
+      if (uuids.length > 0) {
+        const candidateCover = await atomService.findFirst({
+          table: 'asset',
+          where: { uuid: uuids[0], type: ASSET_TYPE.embed, authorId: viewer.id }
+        })
+
+        if (candidateCover) {
+          data.cover = candidateCover.id
+        }
+      } else {
+        data.cover = null
+      }
+    }
+
     // update
     return draftService.baseUpdate(dbId, {
       ...data,
       updatedAt: new Date(),
       // reset fields
       summary: resetSummary ? null : data.summary || draft.summary,
-      cover: resetCover ? null : data.cover || draft.cover,
       collection: resetCollection ? null : data.collection || draft.collection,
       tags: resetTags ? null : data.tags || draft.tags,
       circleId: resetCircle ? null : data.circleId || draft.circleId,
