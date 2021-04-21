@@ -6,6 +6,7 @@ import {
   PAYMENT_MINIMAL_PAYOUT_AMOUNT,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
 } from 'common/enums'
 import {
   AuthenticationError,
@@ -85,6 +86,7 @@ const resolver: MutationToPayoutResolver = async (
     amount,
     currency: PAYMENT_CURRENCY.HKD,
     fee,
+    state: TRANSACTION_STATE.pending,
     purpose: TRANSACTION_PURPOSE.payout,
     provider: PAYMENT_PROVIDER.stripe,
     providerTxId: v4(),

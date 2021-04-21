@@ -124,8 +124,8 @@ class PayoutQueue extends BaseQueue {
         return done(null, job.data)
       }
 
-      // create stripe payment
-      const payment = await this.paymentService.stripe.transfer({
+      // transfer to recipient's account
+      const transfer = await this.paymentService.stripe.transfer({
         amount: numRound(tx.amount),
         currency: PAYMENT_CURRENCY.HKD,
         fee: numRound(tx.fee),
@@ -133,19 +133,20 @@ class PayoutQueue extends BaseQueue {
         txId,
       })
 
-      if (!payment || !payment.id) {
+      if (!transfer || !transfer.id) {
         await this.failTx(txId)
         return done(null, job.data)
       }
 
-      // update pending tx
+      // update tx
       await this.paymentService.baseUpdate(tx.id, {
-        provider_tx_id: payment.id,
+        state: TRANSACTION_STATE.succeeded,
+        provider_tx_id: transfer.id,
         updatedAt: new Date(),
       })
 
       job.progress(100)
-      done(null, { txId, stripeTxId: payment.id })
+      done(null, { txId, stripeTxId: transfer.id })
     } catch (error) {
       if (txId && error.name !== 'PaymentQueueJobDataError') {
         try {

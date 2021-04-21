@@ -156,7 +156,7 @@ export class PaymentService extends BaseService {
     amount,
     fee,
 
-    state = TRANSACTION_STATE.pending,
+    state,
     purpose,
     currency = PAYMENT_CURRENCY.HKD,
 
@@ -172,7 +172,7 @@ export class PaymentService extends BaseService {
     amount: number
     fee?: number
 
-    state?: TRANSACTION_STATE
+    state: TRANSACTION_STATE
     purpose: TRANSACTION_PURPOSE
     currency?: PAYMENT_CURRENCY
 
@@ -374,6 +374,7 @@ export class PaymentService extends BaseService {
       const transaction = await this.createTransaction({
         amount,
         // fee,
+        state: TRANSACTION_STATE.pending,
         currency,
         purpose,
         provider,
