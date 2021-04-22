@@ -177,7 +177,7 @@ class StripeService {
     user: User
   }) => {
     const isUS = country === 'UnitedStates'
-    const returnUrl = `${environment.siteDomain}/oauth/stripe-connect/success`
+    const returnUrlPrefix = `${environment.siteDomain}/oauth/stripe-connect`
 
     try {
       const account = await this.stripeAPI.accounts.create({
@@ -191,8 +191,8 @@ class StripeService {
       const { url } = await this.stripeAPI.accountLinks.create({
         account: account.id,
         type: 'account_onboarding',
-        refresh_url: `${returnUrl}?code=${OAUTH_CALLBACK_ERROR_CODE.stripeAccountRefresh}`,
-        return_url: `${returnUrl}?code=${OAUTH_CALLBACK_ERROR_CODE.stripeAccountReturn}`,
+        refresh_url: `${returnUrlPrefix}/failure?code=${OAUTH_CALLBACK_ERROR_CODE.stripeAccountRefresh}`,
+        return_url: `${returnUrlPrefix}/success`,
       })
       return { accountId: account.id, onboardingUrl: url }
     } catch (err) {
