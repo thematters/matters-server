@@ -1,4 +1,4 @@
-import { ARTICLE_PIN_COMMENT_LIMIT } from 'common/enums'
+import { ARTICLE_PIN_COMMENT_LIMIT, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import articleCommentCount from './article/commentCount'
@@ -36,7 +36,8 @@ export default {
     comments: articleComments,
   },
   Comment: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: 'Comment', id }),
+    id: ({ id }: { id: string }) =>
+      toGlobalId({ type: NODE_TYPES.Comment, id }),
     replyTo,
     content,
     author,

@@ -1,6 +1,6 @@
 import _get from 'lodash/get'
 
-import { ARTICLE_ACCESS_TYPE } from 'common/enums'
+import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLCommentType } from 'definitions'
 
@@ -596,7 +596,7 @@ describe('circle invitation management', () => {
   const adminClient = { isAuth: true, isAdmin: true }
 
   // shared invitee
-  const inviteeId = toGlobalId({ type: 'User', id: 3 })
+  const inviteeId = toGlobalId({ type: NODE_TYPES.User, id: 3 })
   const invitees = [
     { id: inviteeId, email: null },
     { id: null, email: 'someone@matters.news' },

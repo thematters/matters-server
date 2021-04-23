@@ -1,3 +1,4 @@
+import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import {
   GQLAppreciationTypeResolver,
@@ -81,7 +82,7 @@ const user: {
     user: rootUser,
   },
   User: {
-    id: ({ id }) => (id ? toGlobalId({ type: 'User', id }) : ''),
+    id: ({ id }) => (id ? toGlobalId({ type: NODE_TYPES.User, id }) : ''),
     avatar,
     likerId,
     liker: (root) => root,

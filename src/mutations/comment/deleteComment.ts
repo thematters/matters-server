@@ -53,7 +53,7 @@ const resolver: MutationToDeleteCommentResolver = async (
   newComment[CACHE_KEYWORD] = [
     {
       id: article ? article.id : circle.id,
-      type: article ? NODE_TYPES.article : NODE_TYPES.circle,
+      type: article ? NODE_TYPES.Article : NODE_TYPES.Circle,
     },
   ]
 

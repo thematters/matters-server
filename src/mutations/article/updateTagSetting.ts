@@ -290,7 +290,7 @@ const resolver: MutationToUpdateTagSettingResolver = async (
 
   if (updatedTag) {
     // invalidate extra nodes
-    updatedTag[CACHE_KEYWORD] = [{ id: viewer.id, type: NODE_TYPES.user }]
+    updatedTag[CACHE_KEYWORD] = [{ id: viewer.id, type: NODE_TYPES.User }]
   }
   return updatedTag
 }

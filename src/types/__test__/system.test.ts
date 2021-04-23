@@ -1,5 +1,6 @@
 import _get from 'lodash/get'
 
+import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import {
@@ -165,7 +166,7 @@ const TOGGLE_USERS_BADGE = `
 
 describe('query nodes of different type', () => {
   test('query user node', async () => {
-    const id = toGlobalId({ type: 'User', id: 1 })
+    const id = toGlobalId({ type: NODE_TYPES.User, id: 1 })
     const { query } = await testClient()
     const result = await query({
       query: GET_USER,
@@ -178,7 +179,7 @@ describe('query nodes of different type', () => {
   })
 
   test('query article node', async () => {
-    const id = toGlobalId({ type: 'Article', id: 1 })
+    const id = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
     const { query } = await testClient()
     const { data } = await query({
       query: GET_ARTICLE,
@@ -190,7 +191,7 @@ describe('query nodes of different type', () => {
   })
 
   test('query comment node', async () => {
-    const id = toGlobalId({ type: 'Comment', id: 1 })
+    const id = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
     const { query } = await testClient()
     const { data } = await query({
       query: GET_COMMENT,
@@ -213,7 +214,7 @@ describe.skip('Search', () => {
       variables: {
         input: {
           key: draft.title,
-          type: 'Article',
+          type: NODE_TYPES.Article,
           first: 1,
         },
       },
@@ -252,7 +253,7 @@ describe.skip('Search', () => {
       variables: {
         input: {
           key: userDescription,
-          type: 'User',
+          type: NODE_TYPES.User,
           first: 1,
         },
       },
@@ -424,7 +425,7 @@ describe('manage user badges', () => {
     const userClient = { isAuth: true, isAdmin: false }
 
     const badgeType = 'golden_motor'
-    const userId = toGlobalId({ type: 'User', id: '1' })
+    const userId = toGlobalId({ type: NODE_TYPES.User, id: '1' })
 
     const { query: adminQuery, mutate: adminMutate } = await testClient(
       adminClient
