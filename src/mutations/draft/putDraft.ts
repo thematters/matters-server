@@ -4,7 +4,9 @@ import { v4 } from 'uuid'
 import {
   ARTICLE_STATE,
   ASSET_TYPE,
+  CACHE_KEYWORD,
   CIRCLE_STATE,
+  NODE_TYPES,
   PUBLISH_STATE,
   USER_STATE,
 } from 'common/enums'
@@ -237,6 +239,12 @@ const resolver: MutationToPutDraftResolver = async (
   // Create
   else {
     const draft = await draftService.baseCreate({ uuid: v4(), ...data })
+    draft[CACHE_KEYWORD] = [
+      {
+        id: viewer.id,
+        type: NODE_TYPES.user,
+      }
+    ]
     return draft
   }
 }
