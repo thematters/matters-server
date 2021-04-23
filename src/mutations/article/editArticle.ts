@@ -341,7 +341,10 @@ const resolver: MutationToEditArticleResolver = async (
       .first()
 
     if (paywalledArticle) {
-      const paywalledArticleId = toGlobalId({ type: 'Article', id: article.id })
+      const paywalledArticleId = toGlobalId({
+        type: NODE_TYPES.Article,
+        id: article.id,
+      })
       throw new ForbiddenError(
         `forbid to perform the action on paywalled articles: ${paywalledArticleId}.`
       )
@@ -510,7 +513,7 @@ const resolver: MutationToEditArticleResolver = async (
     node[CACHE_KEYWORD] = [
       {
         id: circle.id,
-        type: NODE_TYPES.circle,
+        type: NODE_TYPES.Circle,
       },
     ]
   }

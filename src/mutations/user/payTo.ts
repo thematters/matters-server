@@ -26,8 +26,6 @@ import { fromGlobalId } from 'common/utils'
 import { payToQueue } from 'connectors/queue'
 import { MutationToPayToResolver } from 'definitions'
 
-type PayToTargetType = 'Article'
-
 const resolver: MutationToPayToResolver = async (
   parent,
   { input: { amount, currency, password, purpose, recipientId, targetId } },
@@ -58,7 +56,7 @@ const resolver: MutationToPayToResolver = async (
     throw new UserInputError(`now only support article target`)
   }
 
-  const services: Record<PayToTargetType, any> = { Article: articleService }
+  const services = { Article: articleService }
   const targetService = services[targetType]
   const [recipient, target] = await Promise.all([
     userService.baseFindById(recipientDbId),

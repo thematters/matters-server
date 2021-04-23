@@ -2,8 +2,8 @@ import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    viewer: User @privateCache @logCache(type: "${NODE_TYPES.user}")
-    user(input: UserInput!): User @privateCache @logCache(type: "${NODE_TYPES.user}")
+    viewer: User @privateCache @logCache(type: "${NODE_TYPES.User}")
+    user(input: UserInput!): User @privateCache @logCache(type: "${NODE_TYPES.User}")
   }
 
   extend type Mutation {
@@ -17,7 +17,7 @@ export default /* GraphQL */ `
     resetPassword(input: ResetPasswordInput!): Boolean
 
     "Change user email."
-    changeEmail(input: ChangeEmailInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.user}")
+    changeEmail(input: ChangeEmailInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Register user, can only be used on matters.news website."
     userRegister(input: UserRegisterInput!): AuthResult!
@@ -29,23 +29,23 @@ export default /* GraphQL */ `
     userLogout: Boolean!
 
     "Generate or claim a Liker ID through LikeCoin"
-    generateLikerId: User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.user}")
+    generateLikerId: User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Update user information."
-    updateUserInfo(input: UpdateUserInfoInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
+    updateUserInfo(input: UpdateUserInfoInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Update user notification settings."
     updateNotificationSetting(input: UpdateNotificationSettingInput!): User!
-      @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
+      @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Follow or Unfollow current user."
-    toggleFollowUser(input: ToggleItemInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
+    toggleFollowUser(input: ToggleItemInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Block or Unblock a given user."
-    toggleBlockUser(input: ToggleItemInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
+    toggleBlockUser(input: ToggleItemInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Subscribe/ Unsubscribe Push Notification."
-    toggleSubscribePush(input: ToggleItemInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.user}")
+    toggleSubscribePush(input: ToggleItemInput!): User! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Clear read history for user."
     clearReadHistory(input: ClearReadHistoryInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}")
@@ -60,12 +60,12 @@ export default /* GraphQL */ `
     #     OSS    #
     ##############
     "Update state of a user, used in OSS."
-    updateUserState(input: UpdateUserStateInput!): [User!] @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
+    updateUserState(input: UpdateUserStateInput!): [User!] @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
     "Update state of a user, used in OSS."
-    updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
+    updateUserRole(input: UpdateUserRoleInput!): User! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
 
-    toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
+    toggleUsersBadge(input: ToggleUsersBadgeInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
   }
 
   type User implements Node {
@@ -326,13 +326,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "Recipient of appreciation."
-    recipient: User! @logCache(type: "${NODE_TYPES.user}")
+    recipient: User! @logCache(type: "${NODE_TYPES.User}")
 
     "Sender of appreciation."
-    sender: User @logCache(type: "${NODE_TYPES.user}")
+    sender: User @logCache(type: "${NODE_TYPES.User}")
 
     "Object that appreciation is meant for."
-    target: Article @logCache(type: "${NODE_TYPES.article}")
+    target: Article @logCache(type: "${NODE_TYPES.Article}")
   }
 
   type NotificationSetting {
@@ -350,7 +350,7 @@ export default /* GraphQL */ `
   }
 
   type ReadHistory {
-    article: Article! @logCache(type: "${NODE_TYPES.article}")
+    article: Article! @logCache(type: "${NODE_TYPES.Article}")
     readAt: DateTime!
   }
 
@@ -371,7 +371,7 @@ export default /* GraphQL */ `
 
   type UserEdge {
     cursor: String!
-    node: User! @logCache(type: "${NODE_TYPES.user}")
+    node: User! @logCache(type: "${NODE_TYPES.User}")
   }
 
   type ReadHistoryConnection implements Connection {
@@ -419,8 +419,8 @@ export default /* GraphQL */ `
   }
 
   type FolloweeDonatedArticle {
-    article: Article! @logCache(type: "${NODE_TYPES.article}")
-    followee: User! @logCache(type: "${NODE_TYPES.user}")
+    article: Article! @logCache(type: "${NODE_TYPES.Article}")
+    followee: User! @logCache(type: "${NODE_TYPES.User}")
   }
 
   type Following {

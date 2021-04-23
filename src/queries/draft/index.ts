@@ -1,6 +1,7 @@
 import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 
+import { NODE_TYPES } from 'common/enums'
 import { countWords, toGlobalId } from 'common/utils'
 
 import * as draftAccess from './access'
@@ -21,7 +22,7 @@ export default {
     drafts,
   },
   Draft: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: 'Draft', id }),
+    id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Draft, id }),
     slug: ({ title }: { title: string }) => slugify(title),
     wordCount: ({ content }: { content?: string }) =>
       content ? countWords(content) : 0,

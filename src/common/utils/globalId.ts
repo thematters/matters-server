@@ -1,22 +1,13 @@
 import { Base64 } from 'js-base64'
 
+import { NODE_TYPES } from 'common/enums'
 import { UserInputError } from 'common/errors'
 
 export const toGlobalId = ({
   type,
   id,
 }: {
-  type:
-    | 'Article'
-    | 'Circle'
-    | 'Comment'
-    | 'User'
-    | 'Tag'
-    | 'Draft'
-    | 'SkippedListItem'
-    | 'Transaction'
-    | 'Price'
-    | 'Invitation'
+  type: NODE_TYPES
   id: number | string
 }) => Base64.encodeURI(`${type}:${id}`)
 
@@ -26,5 +17,5 @@ export const fromGlobalId = (globalId: string) => {
   if (!id) {
     throw new UserInputError('invalid globalId')
   }
-  return { type, id }
+  return { type: type as NODE_TYPES, id }
 }

@@ -51,7 +51,7 @@ const resolver: MutationToToggleBlockUserResolver = async (
   user[CACHE_KEYWORD] = [
     {
       id: viewer.id,
-      type: NODE_TYPES.user,
+      type: NODE_TYPES.User,
     },
   ]
 
