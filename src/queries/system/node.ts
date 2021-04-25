@@ -1,6 +1,8 @@
+import _ from 'lodash'
+
 import { EntityNotFoundError, ForbiddenError } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { NodeTypes, QueryToNodeResolver } from 'definitions'
+import { QueryToNodeResolver } from 'definitions'
 
 const resolver: QueryToNodeResolver = async (
   root,
@@ -17,7 +19,7 @@ const resolver: QueryToNodeResolver = async (
     },
   }
 ) => {
-  const loaders = {
+  const services = {
     Article: articleService.draftLoader,
     User: userService.dataloader,
     Comment: commentService.dataloader,
@@ -26,11 +28,9 @@ const resolver: QueryToNodeResolver = async (
     Circle: atomService.circleIdLoader,
   }
 
-  const { type, id: dbId } = fromGlobalId(id) as {
-    type: NodeTypes
-    id: string
-  }
-  const node = await loaders[type].load(dbId)
+  const { type, id: dbId } = fromGlobalId(id)
+  const nodeService = _.get(services, type)
+  const node = await nodeService.load(dbId)
 
   if (!node) {
     throw new EntityNotFoundError('target does not exist')

@@ -29,46 +29,46 @@ import { MutationToPayToResolver } from 'definitions'
 const resolver: MutationToPayToResolver = async (
   parent,
   { input: { amount, currency, password, purpose, recipientId, targetId } },
-  {
-    viewer,
-    dataSources: {
-      articleService,
-      paymentService,
-      userService,
-      notificationService,
-    },
-  }
+  { viewer, dataSources: { articleService, paymentService, userService } }
 ) => {
-  // params validators
   if (!viewer.id) {
     throw new AuthenticationError('visitor has no permission')
   }
 
+  // check purpose
   // keep purpose params for future usage, but only allow donation for now
   if (TRANSACTION_PURPOSE[purpose] !== TRANSACTION_PURPOSE.donation) {
     throw new UserInputError('now only support donation')
   }
 
+  // check amount
   if (!amount || typeof amount !== 'number' || amount <= 0) {
     throw new UserInputError('amount is incorrect')
   }
 
-  // pre-process params
+  // check target and recipient
   const { id: recipientDbId } = fromGlobalId(recipientId || '')
   const { id: targetDbId, type: targetType } = fromGlobalId(targetId || '')
 
-  const services: Record<string, any> = { Article: articleService }
-  const targetService = services[targetType]
+  // only allow article target for now
+  const isArticleTarget = targetType === 'Article'
+  if (targetType !== 'Article') {
+    throw new UserInputError(`now only support article target`)
+  }
 
-  // fetch entities
+  const services = { Article: articleService }
+  const targetService = services[targetType]
   const [recipient, target] = await Promise.all([
     userService.baseFindById(recipientDbId),
     targetService ? targetService.baseFindById(targetDbId) : undefined,
   ])
 
-  // safety checks
   if (!recipient) {
     throw new UserNotFoundError('recipient is not found')
+  }
+
+  if (recipient.id === viewer.id) {
+    throw new ForbiddenError('cannot payTo yourself')
   }
 
   if (
@@ -91,6 +91,11 @@ const resolver: MutationToPayToResolver = async (
     throw new EntityNotFoundError(`entity ${targetId} is not found`)
   }
 
+  if (isArticleTarget && target.authorId !== recipientDbId) {
+    throw new UserInputError('target author is not the same as the recipient')
+  }
+
+  // check password for non-LIKE currency
   if (PAYMENT_CURRENCY[currency] !== PAYMENT_CURRENCY.LIKE) {
     if (!viewer.paymentPasswordHash) {
       throw new PaymentPasswordNotSetError(

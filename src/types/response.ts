@@ -19,7 +19,7 @@ export default /* GraphQL */ `
 
   type ResponseEdge {
     cursor: String!
-    node: Response! @logCache(type: "${NODE_TYPES.response}")
+    node: Response! @logCache(type: "${NODE_TYPES.Response}")
   }
 
   input ResponsesInput {

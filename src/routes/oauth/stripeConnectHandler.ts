@@ -85,7 +85,7 @@ const stripeConnectHandler = async (
 
     // invalidate user cache
     await invalidateFQC({
-      node: { type: NODE_TYPES.user, id: viewer.id },
+      node: { type: NODE_TYPES.User, id: viewer.id },
       redis: cacheService.redis,
     })
   } catch (err) {

@@ -106,7 +106,7 @@ const resolver: MutationToToggleFollowCircleResolver = async (
   circle[CACHE_KEYWORD] = [
     {
       id: viewer.id,
-      type: NODE_TYPES.user,
+      type: NODE_TYPES.User,
     },
   ]
 

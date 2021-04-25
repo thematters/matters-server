@@ -1,7 +1,7 @@
 import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 
-import { ARTICLE_APPRECIATE_LIMIT } from 'common/enums'
+import { ARTICLE_APPRECIATE_LIMIT, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import * as articleAccess from './access'
@@ -75,7 +75,7 @@ export default {
     collection,
     collectedBy,
     id: ({ articleId }: { articleId: string }) =>
-      toGlobalId({ type: 'Article', id: articleId }),
+      toGlobalId({ type: NODE_TYPES.Article, id: articleId }),
     hasAppreciate,
     canSuperLike,
     language,
@@ -103,7 +103,7 @@ export default {
     revisionCount,
   },
   Tag: {
-    id: ({ id }: { id: string }) => toGlobalId({ type: 'Tag', id }),
+    id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),
     articles: tagArticles,
     selected: tagSelected,
     creator: tagCreator,
