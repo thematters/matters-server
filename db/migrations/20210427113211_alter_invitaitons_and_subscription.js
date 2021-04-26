@@ -11,7 +11,6 @@ const subscription_item = 'circle_subscription_item'
 const durations = [1, 3, 6, 12]
 
 exports.up = async (knex) => {
-
   // alter circle invitation
   await knex.schema.table(invitation, (t) => {
     t.integer('duration_in_days')
@@ -33,7 +32,7 @@ exports.up = async (knex) => {
     }
     await knex(invitation)
       .where({ id: item.id })
-      .update({ 'duration_in_days': item.duration_in_months * 30 })
+      .update({ duration_in_days: item.duration_in_months * 30 })
   }
 
   await knex.schema.table(invitation, (t) => {
