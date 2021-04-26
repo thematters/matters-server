@@ -699,7 +699,7 @@ export class PaymentService extends BaseService {
     /**
      * Create Matters subscription if it's with trial invitation
      */
-    // If any discount coupon invitation
+    // If any discount invitation
     const ivt = await this.findPendingInvitation({ userId, priceId })
 
     if (ivt) {
@@ -722,8 +722,8 @@ export class PaymentService extends BaseService {
         })
         .returning('*')
 
-      // Mark coupon invitation as accepted
-      await this.acceptCouponInvitation(ivt.id, mattersDBSubItem.id)
+      // Mark invitation as accepted
+      await this.acceptInvitation(ivt.id, mattersDBSubItem.id)
     }
 
     /**
@@ -781,7 +781,7 @@ export class PaymentService extends BaseService {
     /**
      * Create Matters subscription item if it's with trial invitation
      */
-    // If any discount coupon invitation
+    // If any discount invitation
     const ivt = await this.findPendingInvitation({ userId, priceId })
 
     if (ivt) {
@@ -796,8 +796,8 @@ export class PaymentService extends BaseService {
         })
         .returning('*')
 
-      // Mark coupon invitation as accepted
-      await this.acceptCouponInvitation(ivt.id, mattersDBSubItem.id)
+      // Mark invitation as accepted
+      await this.acceptInvitation(ivt.id, mattersDBSubItem.id)
     }
 
     /**
@@ -827,11 +827,11 @@ export class PaymentService extends BaseService {
 
   /*********************************
    *                               *
-   *            Coupon             *
+   *           Invitation          *
    *                               *
    *********************************/
   /**
-   * Find coupons applicable to a user for a cirlce
+   * Find invitation applicable to a user for a cirlce
    */
   findPendingInvitation = async (params: {
     userId: string
@@ -843,10 +843,9 @@ export class PaymentService extends BaseService {
       .where({ id: params.userId })
       .first()
     const records = await this.knex
-      .select('ci.id', 'cc.provider_coupon_id')
+      .select('ci.id')
       .from('circle_invitation as ci')
       .join('circle_price as cp', 'cp.circle_id', 'ci.circle_id')
-      .join('circle_coupon as cc', 'cc.id', 'ci.coupon_id')
       .where({
         'cp.id': params.priceId,
         accepted: false,
@@ -860,12 +859,9 @@ export class PaymentService extends BaseService {
   }
 
   /**
-   * Accept coupon invitation
+   * Accept invitation
    */
-  acceptCouponInvitation = async (
-    ivtId: string,
-    subscriptionItemId: string
-  ) => {
+  acceptInvitation = async (ivtId: string, subscriptionItemId: string) => {
     await this.knex('circle_invitation')
       .where('id', ivtId)
       .update({
