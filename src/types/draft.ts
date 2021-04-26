@@ -3,7 +3,7 @@ import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 export default /* GraphQL */ `
   extend type Mutation {
     "Create or update a draft."
-    putDraft(input: PutDraftInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.draft}")
+    putDraft(input: PutDraftInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Draft}")
 
     "Remove a draft."
     deleteDraft(input: DeleteDraftInput!): Boolean @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}")
@@ -56,13 +56,13 @@ export default /* GraphQL */ `
     assets: [Asset!]!
 
     "Published article"
-    article: Article @logCache(type: "${NODE_TYPES.article}")
+    article: Article @logCache(type: "${NODE_TYPES.Article}")
 
     "Collection list of this draft."
     collection(input: ConnectionArgs!): ArticleConnection!
 
     "Circle of this draft."
-    circle: Circle @logCache(type: "${NODE_TYPES.circle}") @deprecated(reason: "Use \`access.circle\` instead")
+    circle: Circle @logCache(type: "${NODE_TYPES.Circle}") @deprecated(reason: "Use \`access.circle\` instead")
 
     "Access related fields on circle"
     access: DraftAccess!
@@ -76,12 +76,12 @@ export default /* GraphQL */ `
 
   type DraftEdge {
     cursor: String!
-    node: Draft! @logCache(type: "${NODE_TYPES.draft}")
+    node: Draft! @logCache(type: "${NODE_TYPES.Draft}")
   }
 
   type DraftAccess {
     type: ArticleAccessType!
-    circle: Circle @logCache(type: "${NODE_TYPES.circle}")
+    circle: Circle @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   input PutDraftInput {

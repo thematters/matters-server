@@ -1,5 +1,6 @@
 import _get from 'lodash/get'
 
+import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLCommentType } from 'definitions'
 
@@ -11,8 +12,8 @@ const isDesc = (ints: number[]) =>
     .map((e, i) => e <= ints[i])
     .every((x) => x)
 
-const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
-const COMMENT_ID = toGlobalId({ type: 'Comment', id: 1 })
+const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
+const COMMENT_ID = toGlobalId({ type: NODE_TYPES.Comment, id: 1 })
 
 const GET_ARTILCE_COMMENTS = /* GraphQL */ `
   query($nodeInput: NodeInput!, $commentsInput: CommentsInput!) {
@@ -106,7 +107,7 @@ const getCommentVotes = async (commentId: string) => {
 
 describe('query comment list on article', () => {
   test('query comments by author', async () => {
-    const authorId = toGlobalId({ type: 'User', id: 2 })
+    const authorId = toGlobalId({ type: NODE_TYPES.User, id: 2 })
     const { query } = await testClient()
     const result = await query({
       query: GET_ARTILCE_COMMENTS,
@@ -143,7 +144,7 @@ describe('query comment list on article', () => {
 })
 
 describe('mutations on comment', () => {
-  const commentId = toGlobalId({ type: 'Comment', id: 3 })
+  const commentId = toGlobalId({ type: NODE_TYPES.Comment, id: 3 })
 
   test('create a article comment', async () => {
     const { mutate } = await testClient({ isAuth: true })
@@ -183,7 +184,7 @@ describe('mutations on comment', () => {
   })
 
   test('onboarding user vote a comment', async () => {
-    const onboardingCommentId = toGlobalId({ type: 'Comment', id: 6 })
+    const onboardingCommentId = toGlobalId({ type: NODE_TYPES.Comment, id: 6 })
     const { mutate } = await testClient({ isAuth: true, isOnboarding: true })
 
     // upvote
@@ -267,7 +268,7 @@ describe('mutations on comment', () => {
       mutation: DELETE_COMMENT,
       // @ts-ignore
       variables: {
-        input: { id: toGlobalId({ type: 'Comment', id: 1 }) },
+        input: { id: toGlobalId({ type: NODE_TYPES.Comment, id: 1 }) },
       },
     })
     expect(_get(data, 'deleteComment.state')).toBe('archived')
