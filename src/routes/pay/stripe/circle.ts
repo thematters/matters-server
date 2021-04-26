@@ -187,35 +187,34 @@ export const updateSubscription = async ({
     return
   }
 
-  if (dbSub.state === subscription.status) {
-    return
-  }
-
+  const isSubStateChanged = dbSub.state !== subscription.status
   const userId = dbSub.userId
   const subscriptionId = dbSub.id
 
   /**
-   * subscription
+   * sync subscription
    */
-  try {
-    await atomService.update({
-      table: 'circle_subscription',
-      where: { id: dbSub.id },
-      data: {
-        state: subscription.status,
-        canceledAt: subscription.canceled_at
-          ? new Date(subscription.canceled_at * 1000)
-          : undefined,
-        updatedAt: new Date(),
-      },
-    })
-  } catch (error) {
-    logger.error(error)
-    throw new ServerError('failed to update subscription')
+  if (isSubStateChanged) {
+    try {
+      await atomService.update({
+        table: 'circle_subscription',
+        where: { id: dbSub.id },
+        data: {
+          state: subscription.status,
+          canceledAt: subscription.canceled_at
+            ? new Date(subscription.canceled_at * 1000)
+            : undefined,
+          updatedAt: new Date(),
+        },
+      })
+    } catch (error) {
+      logger.error(error)
+      throw new ServerError('failed to update subscription')
+    }
   }
 
   /**
-   * subscription items
+   * sync subscription items
    */
   let addedPriceIds = []
   let removedPriceIds = []
@@ -225,11 +224,7 @@ export const updateSubscription = async ({
       paymentService.stripe.listSubscriptionItems(subscription.id),
       atomService.findMany({
         table: 'circle_subscription_item',
-        where: {
-          userId,
-          subscriptionId,
-          archived: false,
-        },
+        where: { userId, subscriptionId, archived: false },
       }),
     ])
 
@@ -258,10 +253,11 @@ export const updateSubscription = async ({
         await atomService.create({
           table: 'circle_subscription_item',
           data: {
-            priceId,
-            providerSubscriptionItemId,
             subscriptionId,
             userId,
+            priceId,
+            provider: PAYMENT_PROVIDER.stripe,
+            providerSubscriptionItemId,
           },
         })
       })
@@ -273,15 +269,8 @@ export const updateSubscription = async ({
       removedPriceIds.map(async (priceId) => {
         await atomService.update({
           table: 'circle_subscription_item',
-          where: {
-            userId,
-            subscriptionId,
-            priceId,
-          },
-          data: {
-            archived: true,
-            updatedAt: new Date(),
-          },
+          where: { userId, subscriptionId, priceId },
+          data: { archived: true, updatedAt: new Date() },
         })
       })
     )
