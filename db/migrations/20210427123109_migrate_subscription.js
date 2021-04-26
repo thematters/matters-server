@@ -109,7 +109,7 @@ exports.up = async (knex) => {
     await update({
       table: t_invitation,
       where: { id: invt.id },
-      data: { subscription_item_id: mattersItem.id }
+      data: { subscription_item_id: mattersItem.id },
     })
 
     // Step 5: remove Stripe subscription item, including Stripe subscription if it has no or only one item
