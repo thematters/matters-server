@@ -243,7 +243,7 @@ const resolver: MutationToPutDraftResolver = async (
       {
         id: viewer.id,
         type: NODE_TYPES.User,
-      }
+      },
     ]
     return draft
   }
