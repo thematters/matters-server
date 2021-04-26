@@ -96,7 +96,7 @@ exports.up = async (knex) => {
 
     // Step 3: create Matters subscription item
     const { id, ...rest } = item
-    await insert({
+    const mattersItem = await insert({
       table: t_subscription_item,
       data: {
         ...rest,
@@ -105,7 +105,14 @@ exports.up = async (knex) => {
       },
     })
 
-    // Step 4: remove Stripe subscription item, including Stripe subscription if it has no or only one item
+    // Step 4: update invitation with newly added subscription item
+    await update({
+      table: t_invitation,
+      where: { id: invt.id },
+      data: { subscription_item_id: mattersItem.id }
+    })
+
+    // Step 5: remove Stripe subscription item, including Stripe subscription if it has no or only one item
     let canceledStripeSubscription
     const stripeItems = await stripeAPI.subscriptionItems.list({
       subscription: subscription.provider_subscription_id,
@@ -128,35 +135,38 @@ exports.up = async (knex) => {
       }
     }
 
-    // Step 5: archive Matters-Stripe subscription item
+    // Step 6: archive Matters-Stripe subscription item
     await update({
       table: t_subscription_item,
       where: { id: item.id },
       data: { archived: true, remark: 'trial_migration' },
     })
 
-    // Step 6: update Matters-Stripe subscription
+    // Step 7: update Matters-Stripe subscription
     if (canceledStripeSubscription) {
       const record = await knex
         .count()
         .from(t_subscription_item)
         .where({ archived: false, subscription_id: subscription.id })
         .first()
+
       const count = parseInt(record ? `${record.count}` : '0', 10)
 
-      if (count === 0) {
-        await update({
-          table: t_subscription,
-          where: { id: subscription.id },
-          data: {
-            state: canceledStripeSubscription.status,
-            canceled_at: canceledStripeSubscription.canceled_at
-              ? new Date(canceledStripeSubscription.canceled_at * 1000)
-              : new Date(),
-            updated_at: new Date(),
-          },
-        })
+      if (count > 0) {
+        continue
       }
+
+      await update({
+        table: t_subscription,
+        where: { id: subscription.id },
+        data: {
+          state: canceledStripeSubscription.status,
+          canceled_at: canceledStripeSubscription.canceled_at
+            ? new Date(canceledStripeSubscription.canceled_at * 1000)
+            : new Date(),
+          updated_at: new Date(),
+        },
+      })
     }
   }
 }
