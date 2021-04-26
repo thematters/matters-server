@@ -14,7 +14,12 @@ exports.up = async (knex) => {
   // alter circle invitation
   await knex.schema.table(invitation, (t) => {
     t.integer('duration_in_days')
-    t.string('subscription_item_id')
+    t.bigInteger('subscription_item_id').unsigned()
+
+    // reference
+    t.foreign('subscription_item_id')
+      .references('id')
+      .inTable(subscription_item)
   })
 
   const items = await knex
