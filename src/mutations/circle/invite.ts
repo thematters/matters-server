@@ -253,7 +253,7 @@ const resolver: MutationToInviteResolver = async (
   if (invitations && invitations.length > 0) {
     const cacheService = new CacheService()
     invalidateFQC({
-      node: { type: NODE_TYPES.circle, id: circle.id },
+      node: { type: NODE_TYPES.Circle, id: circle.id },
       redis: cacheService.redis,
     })
   }

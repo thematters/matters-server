@@ -1,6 +1,7 @@
 import _difference from 'lodash/difference'
 import _get from 'lodash/get'
 
+import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import {
   GQLFeatureFlag,
@@ -250,7 +251,7 @@ describe('manage tag', () => {
     const mergeTagId = mergeResult?.data?.mergeTags?.id
     expect(mergeResult?.data?.mergeTags?.content).toBe(mergeContent)
     expect(mergeResult?.data?.mergeTags?.owner?.id).toBe(
-      toGlobalId({ type: 'User', id: 6 })
+      toGlobalId({ type: NODE_TYPES.User, id: 6 })
     )
 
     // delete
@@ -276,8 +277,8 @@ describe('manage article tag', () => {
     })
 
     const articleIds = [
-      toGlobalId({ type: 'Article', id: 1 }),
-      toGlobalId({ type: 'Article', id: 2 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 1 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 2 }),
     ]
 
     // add
@@ -328,8 +329,8 @@ describe('manage settings of a tag', () => {
   const editorFilter = (editor: any) => editor?.id
 
   test('adopt and leave tag', async () => {
-    const authedId = toGlobalId({ type: 'User', id: 1 })
-    const mattyId = toGlobalId({ type: 'User', id: 6 })
+    const authedId = toGlobalId({ type: NODE_TYPES.User, id: 1 })
+    const mattyId = toGlobalId({ type: NODE_TYPES.User, id: 6 })
 
     // matty enable user can adopt tag
     await setFeature({
@@ -399,13 +400,13 @@ describe('manage settings of a tag', () => {
   })
 
   test('add and remove editor to a tag', async () => {
-    const user1Id = toGlobalId({ type: 'User', id: 1 })
-    const user2Id = toGlobalId({ type: 'User', id: 2 })
-    const user3Id = toGlobalId({ type: 'User', id: 3 })
-    const user4Id = toGlobalId({ type: 'User', id: 4 })
-    const user7Id = toGlobalId({ type: 'User', id: 7 })
-    const mattyId = toGlobalId({ type: 'User', id: 6 })
-    const user9Id = toGlobalId({ type: 'User', id: 9 })
+    const user1Id = toGlobalId({ type: NODE_TYPES.User, id: 1 })
+    const user2Id = toGlobalId({ type: NODE_TYPES.User, id: 2 })
+    const user3Id = toGlobalId({ type: NODE_TYPES.User, id: 3 })
+    const user4Id = toGlobalId({ type: NODE_TYPES.User, id: 4 })
+    const user7Id = toGlobalId({ type: NODE_TYPES.User, id: 7 })
+    const mattyId = toGlobalId({ type: NODE_TYPES.User, id: 6 })
+    const user9Id = toGlobalId({ type: NODE_TYPES.User, id: 9 })
 
     // matty create tag
     const tag = await putTag({ tag: { content: 'Tag editor #1' } })
@@ -592,9 +593,9 @@ describe('manage settings of a tag', () => {
   })
 
   test('leave editor from a tag', async () => {
-    const user1Id = toGlobalId({ type: 'User', id: 1 })
-    // const user2Id = toGlobalId({ type: 'User', id: 2 })
-    const mattyId = toGlobalId({ type: 'User', id: 6 })
+    const user1Id = toGlobalId({ type: NODE_TYPES.User, id: 1 })
+    // const user2Id = toGlobalId({ type: NODE_TYPES.User, id: 2 })
+    const mattyId = toGlobalId({ type: NODE_TYPES.User, id: 6 })
 
     // matty create tag
     const tag = await putTag({ tag: { content: 'Tag editor #3' } })

@@ -5,7 +5,7 @@ import {
   ForbiddenError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
-import { Item, NodeTypes, QueryToNodesResolver } from 'definitions'
+import { Item, QueryToNodesResolver } from 'definitions'
 
 const resolver: QueryToNodesResolver = async (
   root,
@@ -38,10 +38,8 @@ const resolver: QueryToNodesResolver = async (
   const tagDbIds: string[] = []
   const tagIds: string[] = []
   const globalIds = ids.map((id) => {
-    const { type, id: dbId } = fromGlobalId(id) as {
-      type: NodeTypes
-      id: string
-    }
+    const { type, id: dbId } = fromGlobalId(id)
+
     switch (type) {
       case 'Article':
         articleDbIds.push(dbId)
@@ -76,7 +74,7 @@ const resolver: QueryToNodesResolver = async (
   const tags = await tagService.dataloader.loadMany(tagDbIds)
 
   const nodes = globalIds.map(({ type, id }) => {
-    let node: Item | Error
+    let node: Item | Error | undefined
 
     switch (type) {
       case 'Article':

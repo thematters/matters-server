@@ -19,8 +19,6 @@ import {
 export * from './schema'
 export * from './notification'
 
-export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
-
 export type User = {
   id: string
   uuid: string

@@ -1,7 +1,11 @@
 import _get from 'lodash/get'
 import _values from 'lodash/values'
 
-import { MATERIALIZED_VIEW, VERIFICATION_CODE_STATUS } from 'common/enums'
+import {
+  MATERIALIZED_VIEW,
+  NODE_TYPES,
+  VERIFICATION_CODE_STATUS,
+} from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { refreshView, UserService } from 'connectors'
 import { MaterializedView } from 'definitions'
@@ -456,7 +460,7 @@ describe('user query fields', () => {
 
 describe('mutations on User object', () => {
   test('follow a user with `toggleFollowUser`', async () => {
-    const followeeId = toGlobalId({ type: 'User', id: '4' })
+    const followeeId = toGlobalId({ type: NODE_TYPES.User, id: '4' })
     const { mutate } = await testClient({ isAuth: true })
     const result = await mutate({
       mutation: TOGGLE_FOLLOW_USER,
@@ -472,7 +476,7 @@ describe('mutations on User object', () => {
   })
 
   test('unfollow a user with `toggleFollowUser`', async () => {
-    const followeeId = toGlobalId({ type: 'User', id: '4' })
+    const followeeId = toGlobalId({ type: NODE_TYPES.User, id: '4' })
     const { mutate } = await testClient({ isAuth: true })
     const { data } = await mutate({
       mutation: TOGGLE_FOLLOW_USER,
@@ -488,7 +492,7 @@ describe('mutations on User object', () => {
   })
 
   test('block a user with `toggleBlockUser`', async () => {
-    const blockUserId = toGlobalId({ type: 'User', id: '2' })
+    const blockUserId = toGlobalId({ type: NODE_TYPES.User, id: '2' })
     const { mutate } = await testClient({ isAuth: true })
     const result = await mutate({
       mutation: TOGGLE_BLOCK_USER,
@@ -504,7 +508,7 @@ describe('mutations on User object', () => {
   })
 
   test('block a user with `toggleBlockUser`', async () => {
-    const blockUserId = toGlobalId({ type: 'User', id: '2' })
+    const blockUserId = toGlobalId({ type: NODE_TYPES.User, id: '2' })
     const { mutate } = await testClient({ isAuth: true })
     const result = await mutate({
       mutation: TOGGLE_BLOCK_USER,
@@ -680,13 +684,13 @@ describe('frozen user do mutations', () => {
   // make sure user state in db is correct
   beforeAll(async () => {
     await updateUserState({
-      id: toGlobalId({ type: 'User', id: 8 }),
+      id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
       state: 'frozen',
     })
   })
   afterAll(async () => {
     await updateUserState({
-      id: toGlobalId({ type: 'User', id: 8 }),
+      id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
       state: 'active',
     })
   })

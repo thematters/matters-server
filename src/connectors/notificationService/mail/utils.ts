@@ -1,6 +1,7 @@
 import { makeSummary } from '@matters/matters-html-formatter'
 import _ from 'lodash'
 
+import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { i18n } from 'common/utils/i18n'
 import {
@@ -195,7 +196,7 @@ export const getCommentDigest = async (comment: any | undefined) => {
 
   return {
     id: comment.id,
-    globalId: toGlobalId({ type: 'Comment', id: comment.id }),
+    globalId: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
     content: content.length === comment.content ? content : `${content}…`,
     article: await getArticleDigest(
       await articleService.baseFindById(comment.articleId)

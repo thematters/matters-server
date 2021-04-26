@@ -2,8 +2,8 @@ import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    node(input: NodeInput!): Node @privateCache @logCache(type: "${NODE_TYPES.node}")
-    nodes(input: NodesInput!): [Node!] @privateCache @logCache(type: "${NODE_TYPES.node}")
+    node(input: NodeInput!): Node @privateCache @logCache(type: "${NODE_TYPES.Node}")
+    nodes(input: NodesInput!): [Node!] @privateCache @logCache(type: "${NODE_TYPES.Node}")
     frequentSearch(input: FrequentSearchInput!): [String!] @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     search(input: SearchInput!): SearchResultConnection! @privateCache @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     official: Official! @privateCache
@@ -24,7 +24,7 @@ export default /* GraphQL */ `
     putRemark(input: PutRemarkInput!): String @auth(mode: "${AUTH_MODE.admin}")
     putSkippedListItem(input: PutSkippedListItemInput!): [SkippedListItem!] @auth(mode: "${AUTH_MODE.admin}")
     setFeature(input: SetFeatureInput!): Feature! @auth(mode: "${AUTH_MODE.admin}")
-    toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.user}")
+    toggleSeedingUsers(input: ToggleSeedingUsersInput!): [User]! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.User}")
   }
 
   extend type Subscription {
@@ -95,7 +95,7 @@ export default /* GraphQL */ `
 
   type SearchResultEdge {
     cursor: String!
-    node: Node! @logCache(type: "${NODE_TYPES.node}")
+    node: Node! @logCache(type: "${NODE_TYPES.Node}")
   }
 
   input SkippedListItemsInput {

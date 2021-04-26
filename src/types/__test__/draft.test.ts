@@ -1,5 +1,6 @@
 import _get from 'lodash/get'
 
+import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import { putDraft } from './utils'
@@ -51,8 +52,8 @@ describe('put draft', () => {
 
   test('edit draft collection', async () => {
     const collection = [
-      toGlobalId({ type: 'Article', id: 3 }),
-      toGlobalId({ type: 'Article', id: 4 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 3 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 4 }),
     ]
     const result = await putDraft({ draft: { id: draftId, collection } })
     expect(_get(result, 'collection.totalCount')).toBe(2)

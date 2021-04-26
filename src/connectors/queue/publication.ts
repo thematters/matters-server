@@ -190,11 +190,11 @@ class PublicationQueue extends BaseQueue {
 
         // Step 9: invalidate user cache
         await invalidateFQC({
-          node: { type: NODE_TYPES.draft, id: draft.id },
+          node: { type: NODE_TYPES.Draft, id: draft.id },
           redis: this.cacheService.redis,
         })
         await invalidateFQC({
-          node: { type: NODE_TYPES.user, id: article.authorId },
+          node: { type: NODE_TYPES.User, id: article.authorId },
           redis: this.cacheService.redis,
         })
         job.progress(100)
@@ -278,7 +278,7 @@ class PublicationQueue extends BaseQueue {
     })
 
     await invalidateFQC({
-      node: { type: NODE_TYPES.circle, id: draft.circleId },
+      node: { type: NODE_TYPES.Circle, id: draft.circleId },
       redis: this.cacheService.redis,
     })
   }

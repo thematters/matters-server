@@ -37,7 +37,7 @@ const resolver: MutationToDeleteTagsResolver = async (
   await Promise.all(
     tagIds.map((id) =>
       invalidateFQC({
-        node: { type: NODE_TYPES.tag, id },
+        node: { type: NODE_TYPES.Tag, id },
         redis: cacheService.redis,
       })
     )
