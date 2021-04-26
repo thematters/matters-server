@@ -174,12 +174,12 @@ export const updateSubscription = async ({
     type: event.type,
   }
 
-  const dbSubscription = await atomService.findFirst({
+  const dbSub = await atomService.findFirst({
     table: 'circle_subscription',
     where: { providerSubscriptionId: subscription.id },
   })
 
-  if (!dbSubscription) {
+  if (!dbSub) {
     slack.sendStripeAlert({
       data: slackEventData,
       message: `can't find subscription ${subscription.id}.`,
@@ -187,12 +187,12 @@ export const updateSubscription = async ({
     return
   }
 
-  if (dbSubscription.state === subscription.status) {
+  if (dbSub.state === subscription.status) {
     return
   }
 
-  const userId = dbSubscription.userId
-  const subscriptionId = dbSubscription.id
+  const userId = dbSub.userId
+  const subscriptionId = dbSub.id
 
   /**
    * subscription
@@ -200,7 +200,7 @@ export const updateSubscription = async ({
   try {
     await atomService.update({
       table: 'circle_subscription',
-      where: { id: dbSubscription.id },
+      where: { id: dbSub.id },
       data: {
         state: subscription.status,
         canceledAt: subscription.canceled_at
@@ -297,7 +297,7 @@ export const updateSubscription = async ({
       whereIn: ['id', [...addedPriceIds, ...removedPriceIds]],
     })
     invalidateFQC({
-      node: { type: NODE_TYPES.User, id: dbSubscription.userId },
+      node: { type: NODE_TYPES.User, id: dbSub.userId },
       redis: cacheService.redis,
     })
     dbDiffPrices.map((price) => {

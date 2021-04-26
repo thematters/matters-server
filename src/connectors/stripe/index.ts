@@ -292,22 +292,14 @@ class StripeService {
     try {
       const trialEndAt =
         (isProd ? getUTC8NextMonthDayOne() : getUTC8NextMonday()) / 1000
-      if (isUndefined(coupon)) {
-        return this.stripeAPI.subscriptions.create({
-          trial_end: trialEndAt,
-          customer,
-          items: [{ price }],
-          proration_behavior: 'none',
-        })
-      } else {
-        return this.stripeAPI.subscriptions.create({
-          trial_end: trialEndAt,
-          customer,
-          items: [{ price }],
-          proration_behavior: 'none',
-          coupon,
-        })
-      }
+
+      return this.stripeAPI.subscriptions.create({
+        trial_end: trialEndAt,
+        customer,
+        items: [{ price }],
+        proration_behavior: 'none',
+        coupon,
+      })
     } catch (error) {
       this.handleError(error)
     }
