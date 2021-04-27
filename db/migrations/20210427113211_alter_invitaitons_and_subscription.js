@@ -65,7 +65,6 @@ exports.up = async (knex) => {
     t.bigIncrements('id').primary()
     t.string('subscription').nullable()
     t.string('item').nullable()
-    t.string('coupon').nullable()
     t.boolean('archived').notNullable.defaultTo(false)
   })
 }
