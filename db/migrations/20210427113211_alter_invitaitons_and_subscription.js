@@ -63,7 +63,10 @@ exports.up = async (knex) => {
   // create temp migration table
   await knex.schema.createTable(temp_migration, (t) => {
     t.bigIncrements('id').primary()
-    t.jsonb('data').notNullable()
+    t.string('subscription').nullable()
+    t.string('item').nullable()
+    t.string('coupon').nullable()
+    t.boolean('archived').notNullable.defaultTo(false)
   })
 }
 
