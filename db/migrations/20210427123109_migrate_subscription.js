@@ -1,4 +1,8 @@
-const stripe = require('stripe')
+require('dotenv').config()
+
+const Stripe = require('stripe')
+
+const { v4 } = require('uuid')
 
 const t_coupon = 'circle_coupon'
 
@@ -13,6 +17,7 @@ const t_subscription_item = 'circle_subscription_item'
 const t_user = 'user'
 
 exports.up = async (knex) => {
+
   const secret = process.env['MATTERS_STRIPE_SECRET']
 
   if (!secret) {
@@ -23,13 +28,15 @@ exports.up = async (knex) => {
   const stripeAPI = new Stripe(secret, { apiVersion: '2020-03-02' })
 
   const findFirst = async ({ table, where }) => {
-    return kenx.select().from(table).where(where).first()
+    return knex.select().from(table).where(where).first()
   }
   const insert = async ({ table, data }) => {
-    return knex(table).insert(data).returning('*')
+    const [record] = await knex(table).insert(data).returning('*')
+    return record
   }
   const update = async ({ table, where, data }) => {
-    return knex(table).where(where).update(data).returning('*')
+    const [record] = await knex(table).where(where).update(data).returning('*')
+    return record
   }
 
   // fetch accepted invitations
@@ -73,10 +80,12 @@ exports.up = async (knex) => {
     }
 
     // Step 2: create Matters subscription if it doesn't exist
-    const subscription = await findFirst({
-      table: t_subscription,
-      where: { provider: 'stripe', user_id: user.id, state: 'active' },
-    })
+    const subscription = await knex
+      .select()
+      .from(t_subscription)
+      .where({ provider: 'stripe', user_id: user.id })
+      .whereIn('state', ['active', 'trialing'])
+      .first()
 
     if (!subscription) {
       continue
@@ -84,23 +93,29 @@ exports.up = async (knex) => {
 
     let mattersSubscription = await findFirst({
       table: t_subscription,
-      where: { provider: 'matters', user_id: user.id, state: 'active' },
+      where: { provider: 'matters', user_id: user.id, state: 'trialing' },
     })
 
     if (!mattersSubscription) {
       mattersSubscription = await insert({
         table: t_subscription,
-        data: { provider: 'matters', state: 'active', user_id: user.id },
+        data: {
+          provider: 'matters',
+          provider_subscription_id: v4(),
+          state: 'trialing',
+          user_id: user.id,
+        },
       })
     }
 
     // Step 3: create Matters subscription item
-    const { id, ...rest } = item
+    const { id, circle_id, ...rest } = item
     const mattersItem = await insert({
       table: t_subscription_item,
       data: {
         ...rest,
         provider: 'matters',
+        provider_subscription_item_id: v4(),
         subscription_id: subscription.id,
       },
     })
@@ -131,6 +146,10 @@ exports.up = async (knex) => {
         await stripeAPI.subscriptionItems.del(
           item.provider_subscription_item_id,
           { proration_behavior: 'none' }
+        )
+        await stripeAPI.subscriptions.update(
+          subscription.provider_subscription_id,
+          { coupon: '' }
         )
       }
     }
