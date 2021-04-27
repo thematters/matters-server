@@ -68,6 +68,7 @@ exports.up = async (knex) => {
       .join(t_price, 'circle_subscription_item.price_id', 'circle_price.id')
       .where({
         'circle_subscription_item.archived': false,
+        'circle_subscription_item.provider': 'stripe',
         'circle_subscription_item.user_id': user.id,
         'circle_price.circle_id': invt.circle_id,
         'circle_price.state': 'active',
