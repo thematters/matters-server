@@ -124,18 +124,32 @@ exports.up = async (knex) => {
     console.log(`Matters subscription: ${mattersSubscription.id}`)
 
     // Step 3: create Matters subscription item
-    const mattersItem = await insert({
+    let mattersItem = await findFirst({
       table: t_subscription_item,
-      data: {
+      where: {
         user_id: item.user_id,
         subscription_id: mattersSubscription.id,
         price_id: item.price_id,
         provider: 'matters',
-        provider_subscription_item_id: v4(),
-        archived: false,
-      },
+        archvied: false,
+      }
     })
-    console.log(`Inserted Matters subscription item: ${mattersItem.id}`)
+
+    if (!mattersItem) {
+      mattersItem = await insert({
+        table: t_subscription_item,
+        data: {
+          user_id: item.user_id,
+          subscription_id: mattersSubscription.id,
+          price_id: item.price_id,
+          provider: 'matters',
+          provider_subscription_item_id: v4(),
+          archived: false,
+        },
+      })
+      console.log(`Inserted Matters subscription item: ${mattersItem.id}`)
+    }
+    console.log(`Matters subscription item: ${mattersItem.id}`)
 
     // Step 4: update invitation with newly added subscription item
     await update({
