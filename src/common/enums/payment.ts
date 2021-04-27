@@ -25,6 +25,7 @@ export enum TRANSACTION_TARGET_TYPE {
 
 export enum PAYMENT_CURRENCY {
   HKD = 'HKD',
+  USD = 'USD',
   LIKE = 'LIKE',
 }
 

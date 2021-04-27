@@ -70,7 +70,7 @@ const resolver: MutationToConnectStripeAccountResolver = async (
   // invalidate user cache
   const cacheService = new CacheService()
   await invalidateFQC({
-    node: { type: NODE_TYPES.user, id: viewer.id },
+    node: { type: NODE_TYPES.User, id: viewer.id },
     redis: cacheService.redis,
   })
 

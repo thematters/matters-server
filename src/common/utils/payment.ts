@@ -8,6 +8,10 @@ export const numRound = (num: number, decPlaces: number = 2) => {
   return NP.round(num, decPlaces)
 }
 
+export const numDivide = (num1: number, num2: number) => {
+  return NP.divide(num1, num2)
+}
+
 /**
  * Convert DB amount to provider amount
  *
@@ -26,6 +30,7 @@ interface ToAmountArgs {
 const PROVIDER_CURRENCY_RATE = {
   stripe: {
     HKD: 100,
+    USD: 100,
     LIKE: 1,
   },
 }

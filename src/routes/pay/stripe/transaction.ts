@@ -82,6 +82,9 @@ export const updateTxState = async (
     })
 
     // send slack message
+    // NOTE: the amount currency of payout is USD, not HKD in the DB,
+    // please don't sync with Stripe.
+    // @see /src/connectors/queue/payout.ts
     if (isPayout) {
       const slack = new SlackService()
       if (slack) {

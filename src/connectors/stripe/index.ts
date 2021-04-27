@@ -224,9 +224,8 @@ class StripeService {
     txId: string
   }) => {
     try {
-      return this.stripeAPI.transfers.create({
-        amount:
-          toProviderAmount({ amount }) - toProviderAmount({ amount: fee }),
+      return await this.stripeAPI.transfers.create({
+        amount: toProviderAmount({ amount: amount - fee }),
         currency,
         destination: recipientStripeConnectedId,
         metadata: { [METADATA_KEY.TX_ID]: txId },

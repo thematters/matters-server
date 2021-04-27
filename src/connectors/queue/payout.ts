@@ -9,8 +9,9 @@ import {
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
 import logger from 'common/logger'
-import { numRound } from 'common/utils'
+import { numDivide, numRound } from 'common/utils'
 import { AtomService, PaymentService } from 'connectors'
+import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
 
@@ -80,9 +81,11 @@ class PayoutQueue extends BaseQueue {
     job,
     done
   ) => {
+    const slack = new SlackService()
+    const data = job.data as PaymentParams
+
     let txId
     try {
-      const data = job.data as PaymentParams
       txId = data.txId
 
       if (!txId) {
@@ -124,11 +127,22 @@ class PayoutQueue extends BaseQueue {
         return done(null, job.data)
       }
 
-      // transfer to recipient's account
+      // transfer to recipient's account in USD
+      let HKDtoUSD: number
+      try {
+        HKDtoUSD = await this.paymentService.getUSDtoHKDRate()
+      } catch (error) {
+        slack.sendStripeAlert({
+          data,
+          message: 'failed to get currency rate.',
+        })
+        throw error
+      }
+
       const transfer = await this.paymentService.stripe.transfer({
-        amount: numRound(tx.amount),
-        currency: PAYMENT_CURRENCY.HKD,
-        fee: numRound(tx.fee),
+        amount: numRound(numDivide(tx.amount, HKDtoUSD)),
+        fee: numRound(numDivide(tx.fee, HKDtoUSD)),
+        currency: PAYMENT_CURRENCY.USD,
         recipientStripeConnectedId: recipient.accountId,
         txId,
       })
@@ -148,6 +162,11 @@ class PayoutQueue extends BaseQueue {
       job.progress(100)
       done(null, { txId, stripeTxId: transfer.id })
     } catch (error) {
+      slack.sendStripeAlert({
+        data,
+        message: `failed to payout: ${data.txId}.`,
+      })
+
       if (txId && error.name !== 'PaymentQueueJobDataError') {
         try {
           await this.failTx(txId)
@@ -155,6 +174,7 @@ class PayoutQueue extends BaseQueue {
           logger.error(error)
         }
       }
+
       logger.error(error)
       done(error)
     }

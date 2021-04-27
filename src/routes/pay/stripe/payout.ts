@@ -60,7 +60,7 @@ export const updateAccount = async ({
   // invalidate user cache
   const cacheService = new CacheService()
   await invalidateFQC({
-    node: { type: NODE_TYPES.user, id: userId },
+    node: { type: NODE_TYPES.User, id: userId },
     redis: cacheService.redis,
   })
 }

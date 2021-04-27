@@ -1,8 +1,11 @@
+import axios from 'axios'
 import DataLoader from 'dataloader'
+import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
   BATCH_SIZE,
+  HOUR,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PRICE_STATE,
@@ -11,10 +14,11 @@ import {
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
+import { environment } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
-import { BaseService } from 'connectors'
+import { BaseService, CacheService } from 'connectors'
 import { CirclePrice, Customer, User } from 'definitions'
 
 import { stripe } from './stripe'
@@ -435,6 +439,39 @@ export class PaymentService extends BaseService {
       return 0
     }
     return parseInt(`${result[0].count}` || '0', 10)
+  }
+
+  /**
+   * Get the exchange rates from the Open Exchange Rates API and cache hourly.
+   *
+   */
+  getUSDtoHKDRate = async (): Promise<number> => {
+    const cacheService = new CacheService()
+    const cacheKey = 'openExRate:usdtohkd'
+    const cacheTTl = HOUR
+
+    // get from cache
+    const cachedRate = await cacheService.redis.get(cacheKey)
+
+    if (cachedRate) {
+      return JSON.parse(cachedRate)
+    }
+
+    // get from API, then cache it
+    const { data } = await axios.get(
+      `https://openexchangerates.org/api/latest.json?app_id=${environment.openExchangeRatesAppId}`
+    )
+    const base = _.get(data, 'base')
+    const USDtoHKD = _.get(data, 'rates.HKD')
+
+    if (base !== 'USD' || !USDtoHKD || typeof USDtoHKD !== 'number') {
+      throw new Error('neither USD base nor valid rate.')
+    }
+
+    const serializedData = JSON.stringify(USDtoHKD)
+    cacheService.redis.client.set(cacheKey, serializedData, 'EX', cacheTTl)
+
+    return USDtoHKD
   }
 
   /*********************************
