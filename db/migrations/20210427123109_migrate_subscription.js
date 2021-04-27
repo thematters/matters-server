@@ -43,7 +43,7 @@ exports.up = async (knex) => {
     .select()
     .from(t_invitation)
     .where({ accepted: true })
-    .andWhereNull('subscription_item_id')
+    .whereNull('subscription_item_id')
     .orderBy('accepted_at', 'asc')
 
   const total = (invts || []).length
@@ -131,7 +131,7 @@ exports.up = async (knex) => {
         subscription_id: mattersSubscription.id,
         price_id: item.price_id,
         provider: 'matters',
-        archvied: false,
+        archived: false,
       }
     })
 
