@@ -115,7 +115,7 @@ exports.up = async (knex) => {
         ...rest,
         provider: 'matters',
         provider_subscription_item_id: v4(),
-        subscription_id: subscription.id,
+        subscription_id: mattersSubscription.id,
       },
     })
 
