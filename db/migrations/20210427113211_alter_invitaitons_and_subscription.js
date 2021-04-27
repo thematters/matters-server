@@ -13,6 +13,7 @@ const durations = [1, 3, 6, 12]
 exports.up = async (knex) => {
   // alter circle invitation
   await knex.schema.table(invitation, (t) => {
+    t.bigInteger('coupon_id').nullable().alter()
     t.integer('duration_in_days')
     t.bigInteger('subscription_item_id').unsigned()
 
@@ -61,6 +62,7 @@ exports.up = async (knex) => {
 exports.down = async (knex) => {
   // revert circle invitation
   await knex.schema.table(invitation, (t) => {
+    t.bigInteger('coupon_id').notNullable().alter()
     t.dropColumn('duration_in_days')
     t.dropColumn('subscription_item_id')
   })
