@@ -115,7 +115,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
 
     if (hasPaywalledArticles) {
       const paywalledArticleIds = paywalledArticles.map((a) =>
-        toGlobalId({ type: 'Article', id: a.id })
+        toGlobalId({ type: NODE_TYPES.Article, id: a.id })
       )
       throw new ForbiddenError(
         `forbid to perform the action on paywalled articles: ${paywalledArticleIds.join(
@@ -259,7 +259,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   // invalidate articles
   circle[CACHE_KEYWORD] = targetArticles.map((article) => ({
     id: article.id,
-    type: NODE_TYPES.article,
+    type: NODE_TYPES.Article,
   }))
   return circle
 }

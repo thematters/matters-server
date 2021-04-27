@@ -21,13 +21,13 @@ import {
 
 const typeResolver = (type: string, result: any) => {
   const unionsAndInterfaces = [
-    NODE_TYPES.node,
-    NODE_TYPES.response,
-    NODE_TYPES.transactionTarget,
-    NODE_TYPES.notice,
+    NODE_TYPES.Node,
+    NODE_TYPES.Response,
+    NODE_TYPES.TransactionTarget,
+    NODE_TYPES.Notice,
   ]
 
-  if (unionsAndInterfaces.indexOf(type) >= 0 && result?.__type) {
+  if (unionsAndInterfaces.indexOf(type as NODE_TYPES) >= 0 && result?.__type) {
     return result.__type
   }
 
@@ -36,7 +36,7 @@ const typeResolver = (type: string, result: any) => {
 
 const idResolver = (type: string, result: any) => {
   // correct the article id since we return draft as article in resolver
-  if (type === NODE_TYPES.article && result?.articleId) {
+  if (type === NODE_TYPES.Article && result?.articleId) {
     return result.articleId
   }
 

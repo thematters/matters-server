@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken'
 import { nanoid } from 'nanoid'
 
 import {
+  NODE_TYPES,
   OAUTH_ACCESS_TOKEN_EXPIRES_IN_MS,
   OAUTH_REFRESH_TOKEN_EXPIRES_IN_MS,
 } from 'common/enums'
@@ -162,7 +163,7 @@ export class OAuthService extends BaseService {
     )
 
     const payload = {
-      sub: toGlobalId({ type: 'User', id: user.id }),
+      sub: toGlobalId({ type: NODE_TYPES.User, id: user.id }),
       name: user.userName,
       email: user.email,
       emailVerified: user.emailVerified,

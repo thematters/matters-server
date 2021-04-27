@@ -1,30 +1,29 @@
 import {
   AUTH_MODE as MODE,
   NODE_TYPES,
-  NODE_TYPES as NODE,
   SCOPE_GROUP as GROUP,
 } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    circle(input: CircleInput!): Circle @privateCache @logCache(type: "${NODE.circle}")
+    circle(input: CircleInput!): Circle @privateCache @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   extend type Mutation {
     "Create or update a Circle."
-    putCircle(input: PutCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
+    putCircle(input: PutCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Follow or unfollow a Circle."
-    toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
+    toggleFollowCircle(input: ToggleItemInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Subscribe a Circle."
     subscribeCircle(input: SubscribeCircleInput!): SubscribeCircleResult! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}")
 
     "Unsubscribe a Circle."
-    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE.circle}")
+    unsubscribeCircle(input: UnsubscribeCircleInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Add or remove Circle's articles"
-    putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE.circle}")
+    putCircleArticles(input: PutCircleArticlesInput!): Circle! @auth(mode: "${MODE.oauth}", group: "${GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Circle}")
 
     "Invite others to join circle"
     invite(input: InviteCircleInput!): [Invitation!]
@@ -53,7 +52,7 @@ export default /* GraphQL */ `
     prices: [Price!]
 
     "Circle owner."
-    owner: User! @logCache(type: "${NODE.user}")
+    owner: User! @logCache(type: "${NODE_TYPES.User}")
 
     "List of Circle member."
     members(input: ConnectionArgs!): MemberConnection!
@@ -93,10 +92,10 @@ export default /* GraphQL */ `
 
   extend type User {
     "Circles belong to current user."
-    ownCircles: [Circle!] @logCache(type: "${NODE_TYPES.circle}")
+    ownCircles: [Circle!] @logCache(type: "${NODE_TYPES.Circle}")
 
     "Circles whiches user has subscribed."
-    subscribedCircles(input: ConnectionArgs!): CircleConnection! @logCache(type: "${NODE_TYPES.circle}")
+    subscribedCircles(input: ConnectionArgs!): CircleConnection! @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   type CircleSetting {
@@ -109,7 +108,7 @@ export default /* GraphQL */ `
 
   type Member {
     "User who join to a Circle."
-    user: User! @logCache(type: "${NODE.user}")
+    user: User! @logCache(type: "${NODE_TYPES.User}")
 
     "Price chosen by user when joining a Circle."
     price: Price!
@@ -146,7 +145,7 @@ export default /* GraphQL */ `
 
   type CircleEdge {
     cursor: String!
-    node: Circle! @logCache(type: "${NODE.circle}")
+    node: Circle! @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   type MemberConnection implements Connection {

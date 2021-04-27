@@ -3,32 +3,32 @@ import { AUTH_MODE, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 export default /* GraphQL */ `
   extend type Mutation {
     "Publish or update a comment."
-    putComment(input: PutCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.comment}") @rateLimit(limit:3, period:120)
+    putComment(input: PutCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}") @rateLimit(limit:3, period:120)
 
     "Remove a comment."
-    deleteComment(input: DeleteCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.comment}")
+    deleteComment(input: DeleteCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}")
 
     "Pin or Unpin a comment."
-    togglePinComment(input: ToggleItemInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
+    togglePinComment(input: ToggleItemInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Comment}")
 
     "Upvote or downvote a comment."
-    voteComment(input: VoteCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
+    voteComment(input: VoteCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Comment}")
 
     "Unvote a comment."
-    unvoteComment(input: UnvoteCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
+    unvoteComment(input: UnvoteCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Comment}")
 
     "Update a comments' state."
-    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.comment}")
+    updateCommentsState(input: UpdateCommentsStateInput!): [Comment!]! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Comment}")
 
 
     ##############
     # DEPRECATED #
     ##############
     "Pin a comment."
-    pinComment(input: PinCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
+    pinComment(input: PinCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Comment}")
 
     "Unpin a comment."
-    unpinComment(input: UnpinCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.comment}")
+    unpinComment(input: UnpinCommentInput!): Comment! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Comment}")
   }
 
   """
@@ -48,7 +48,7 @@ export default /* GraphQL */ `
     content: String
 
     "Author of this comment."
-    author: User! @logCache(type: "${NODE_TYPES.user}")
+    author: User! @logCache(type: "${NODE_TYPES.User}")
 
     "This value determines this comment is pinned or not."
     pinned: Boolean!
@@ -69,15 +69,15 @@ export default /* GraphQL */ `
     comments(input: CommentCommentsInput!): CommentConnection!
 
     "Parent comment of this comment."
-    parentComment: Comment @logCache(type: "${NODE_TYPES.comment}")
+    parentComment: Comment @logCache(type: "${NODE_TYPES.Comment}")
 
     "A Comment that this comment replied to."
-    replyTo: Comment @logCache(type: "${NODE_TYPES.comment}")
+    replyTo: Comment @logCache(type: "${NODE_TYPES.Comment}")
 
     remark: String @auth(mode: "${AUTH_MODE.admin}")
 
     "Current comment belongs to which Node."
-    node: Node! @logCache(type: "${NODE_TYPES.node}")
+    node: Node! @logCache(type: "${NODE_TYPES.Node}")
   }
 
   extend type Article {
@@ -91,7 +91,7 @@ export default /* GraphQL */ `
     pinCommentLeft: Int!
 
     "List of pinned comments."
-    pinnedComments: [Comment!] @logCache(type: "${NODE_TYPES.comment}")
+    pinnedComments: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
 
     "List of featured comments of this article."
     featuredComments(input: FeaturedCommentsInput!): CommentConnection!
@@ -105,7 +105,7 @@ export default /* GraphQL */ `
     broadcast(input: ConnectionArgs!): CommentConnection!
 
     "Pinned comments broadcasted by Circle owner."
-    pinnedBroadcast: [Comment!] @logCache(type: "${NODE_TYPES.comment}")
+    pinnedBroadcast: [Comment!] @logCache(type: "${NODE_TYPES.Comment}")
 
     "Comments made by Circle member."
     discussion(input: ConnectionArgs!): CommentConnection!
@@ -125,7 +125,7 @@ export default /* GraphQL */ `
 
   type CommentEdge {
     cursor: String!
-    node: Comment! @logCache(type: "${NODE_TYPES.comment}")
+    node: Comment! @logCache(type: "${NODE_TYPES.Comment}")
   }
 
   input PutCommentInput {

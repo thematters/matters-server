@@ -156,11 +156,11 @@ class AppreciationQueue extends BaseQueue {
       // invalidate cache
       if (this.cacheService) {
         invalidateFQC({
-          node: { type: NODE_TYPES.article, id: article.id },
+          node: { type: NODE_TYPES.Article, id: article.id },
           redis: this.cacheService.redis,
         })
         invalidateFQC({
-          node: { type: NODE_TYPES.user, id: article.authorId },
+          node: { type: NODE_TYPES.User, id: article.authorId },
           redis: this.cacheService.redis,
         })
       }

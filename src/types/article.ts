@@ -2,7 +2,7 @@ import { AUTH_MODE, CACHE_TTL, NODE_TYPES, SCOPE_GROUP } from 'common/enums'
 
 export default /* GraphQL */ `
   extend type Query {
-    article(input: ArticleInput!): Article @privateCache @logCache(type: "${NODE_TYPES.article}")
+    article(input: ArticleInput!): Article @privateCache @logCache(type: "${NODE_TYPES.Article}")
   }
 
   extend type Mutation {
@@ -10,16 +10,16 @@ export default /* GraphQL */ `
     #   Article  #
     ##############
     "Publish an article onto IPFS."
-    publishArticle(input: PublishArticleInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.draft}") @rateLimit(limit:10, period:7200)
+    publishArticle(input: PublishArticleInput!): Draft! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level2}") @purgeCache(type: "${NODE_TYPES.Draft}") @rateLimit(limit:10, period:7200)
 
     "Edit an article."
-    editArticle(input: EditArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}")
+    editArticle(input: EditArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Article}")
 
     "Subscribe or Unsubscribe article"
-    toggleSubscribeArticle(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.article}")
+    toggleSubscribeArticle(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Article}")
 
     "Appreciate an article."
-    appreciateArticle(input: AppreciateArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.article}") @rateLimit(limit:5, period:60)
+    appreciateArticle(input: AppreciateArticleInput!): Article! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level3}") @purgeCache(type: "${NODE_TYPES.Article}") @rateLimit(limit:5, period:60)
 
     "Read an article."
     readArticle(input: ReadArticleInput!): Article!
@@ -29,35 +29,35 @@ export default /* GraphQL */ `
     #     Tag    #
     ##############
     "Follow or unfollow tag."
-    toggleFollowTag(input: ToggleItemInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
+    toggleFollowTag(input: ToggleItemInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
 
     "Create or update tag."
-    putTag(input: PutTagInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
+    putTag(input: PutTagInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
 
     "Update member, permission and othters of a tag."
-    updateTagSetting(input: UpdateTagSettingInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
+    updateTagSetting(input: UpdateTagSettingInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
 
     "Add one tag to articles."
-    addArticlesTags(input: AddArticlesTagsInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
+    addArticlesTags(input: AddArticlesTagsInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
 
     "Update articles' tag."
-    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
+    updateArticlesTags(input: UpdateArticlesTagsInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
 
     "Delete one tag from articles"
-    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.tag}")
+    deleteArticlesTags(input: DeleteArticlesTagsInput!): Tag! @auth(mode: "${AUTH_MODE.oauth}", group: "${SCOPE_GROUP.level1}") @purgeCache(type: "${NODE_TYPES.Tag}")
 
 
     ##############
     #     OSS    #
     ##############
-    toggleArticleLive(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}") @deprecated(reason: "No longer in use")
-    toggleArticleRecommend(input: ToggleRecommendInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
-    updateArticleState(input: UpdateArticleStateInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.article}")
+    toggleArticleLive(input: ToggleItemInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}") @deprecated(reason: "No longer in use")
+    toggleArticleRecommend(input: ToggleRecommendInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
+    updateArticleState(input: UpdateArticleStateInput!): Article! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Article}")
 
-    toggleTagRecommend(input: ToggleRecommendInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.tag}")
+    toggleTagRecommend(input: ToggleRecommendInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Tag}")
     deleteTags(input: DeleteTagsInput!): Boolean @auth(mode: "${AUTH_MODE.admin}")
-    renameTag(input: RenameTagInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.tag}")
-    mergeTags(input: MergeTagsInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.tag}")
+    renameTag(input: RenameTagInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Tag}")
+    mergeTags(input: MergeTagsInput!): Tag! @auth(mode: "${AUTH_MODE.admin}") @purgeCache(type: "${NODE_TYPES.Tag}")
   }
 
   """
@@ -87,7 +87,7 @@ export default /* GraphQL */ `
     live: Boolean! @deprecated(reason: "No longer in use")
 
     "Author of this article."
-    author: User! @logCache(type: "${NODE_TYPES.user}")
+    author: User! @logCache(type: "${NODE_TYPES.User}")
 
     "Article title."
     title: String!
@@ -105,7 +105,7 @@ export default /* GraphQL */ `
     summaryCustomized: Boolean!
 
     "Tags attached to this article."
-    tags: [Tag!] @logCache(type: "${NODE_TYPES.tag}")
+    tags: [Tag!] @logCache(type: "${NODE_TYPES.Tag}")
 
     "Word count of this article."
     wordCount: Int
@@ -168,7 +168,7 @@ export default /* GraphQL */ `
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
     "Drafts linked to this article."
-    drafts: [Draft!] @logCache(type: "${NODE_TYPES.draft}")
+    drafts: [Draft!] @logCache(type: "${NODE_TYPES.Draft}")
 
     "Revision Count"
     revisionCount: Int!
@@ -177,7 +177,7 @@ export default /* GraphQL */ `
     limitedFree: Boolean! @deprecated(reason: "Use \`access.type\` instead")
 
     "Current article belongs to which Circle."
-    circle: Circle @logCache(type: "${NODE_TYPES.circle}") @deprecated(reason: "Use \`access.circle\` instead")
+    circle: Circle @logCache(type: "${NODE_TYPES.Circle}") @deprecated(reason: "Use \`access.circle\` instead")
 
     "Access related fields on circle"
     access: ArticleAccess!
@@ -213,10 +213,10 @@ export default /* GraphQL */ `
     description: String
 
     "Editors of this tag."
-    editors(input: TagEditorsInput): [User!] @logCache(type: "${NODE_TYPES.user}")
+    editors(input: TagEditorsInput): [User!] @logCache(type: "${NODE_TYPES.User}")
 
     "Creator of this tag."
-    creator: User @logCache(type: "${NODE_TYPES.user}")
+    creator: User @logCache(type: "${NODE_TYPES.User}")
 
     "Owner of this tag."
     owner: User
@@ -241,7 +241,7 @@ export default /* GraphQL */ `
   type ArticleAccess {
     type: ArticleAccessType!
     secret: String @auth(mode: "${AUTH_MODE.oauth}")
-    circle: Circle @logCache(type: "${NODE_TYPES.circle}")
+    circle: Circle @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   type ArticleOSS @cacheControl(maxAge: ${CACHE_TTL.INSTANT}) {
@@ -271,7 +271,7 @@ export default /* GraphQL */ `
 
   type ArticleEdge {
     cursor: String!
-    node: Article! @logCache(type: "${NODE_TYPES.article}")
+    node: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
 
   type TagConnection implements Connection {
@@ -282,7 +282,7 @@ export default /* GraphQL */ `
 
   type TagEdge {
     cursor: String!
-    node: Tag! @logCache(type: "${NODE_TYPES.tag}")
+    node: Tag! @logCache(type: "${NODE_TYPES.Tag}")
   }
 
   input TagsInput {

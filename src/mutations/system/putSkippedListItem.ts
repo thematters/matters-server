@@ -1,4 +1,4 @@
-import { SKIPPED_LIST_ITEM_TYPES } from 'common/enums'
+import { NODE_TYPES, SKIPPED_LIST_ITEM_TYPES } from 'common/enums'
 import { EntityNotFoundError, UserInputError } from 'common/errors'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { MutationToPutSkippedListItemResolver } from 'definitions'
@@ -32,7 +32,10 @@ const resolver: MutationToPutSkippedListItemResolver = async (
       if (relatedItem) {
         updatedItems.push({
           ...relatedItem,
-          id: toGlobalId({ type: 'SkippedListItem', id: relatedItem.id }),
+          id: toGlobalId({
+            type: NODE_TYPES.SkippedListItem,
+            id: relatedItem.id,
+          }),
         })
       }
     }
@@ -55,7 +58,7 @@ const resolver: MutationToPutSkippedListItemResolver = async (
     return [
       {
         ...item,
-        id: toGlobalId({ type: 'SkippedListItem', id: item.id }),
+        id: toGlobalId({ type: NODE_TYPES.SkippedListItem, id: item.id }),
       },
     ]
   }

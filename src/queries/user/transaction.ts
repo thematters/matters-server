@@ -1,10 +1,11 @@
 import { camelCase } from 'lodash'
 
+import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLTransactionTypeResolver, TransactionTargetType } from 'definitions'
 
 export const Transaction: GQLTransactionTypeResolver = {
-  id: ({ id }) => toGlobalId({ type: 'Transaction', id }),
+  id: ({ id }) => toGlobalId({ type: NODE_TYPES.Transaction, id }),
   fee: ({ fee }) => fee || 0,
   purpose: ({ purpose }) => camelCase(purpose),
   sender: (trx, _, { dataSources: { userService } }) =>
