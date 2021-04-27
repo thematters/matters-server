@@ -147,21 +147,25 @@ export const OAUTH_CALLBACK_ERROR_CODE = {
   stripeAccountExists: 6,
 }
 
-export const NODE_TYPES = {
-  article: 'Article',
-  comment: 'Comment',
-  draft: 'Draft',
-  user: 'User',
-  tag: 'Tag',
-  appreciation: 'Appreciation',
-  transaction: 'Transaction',
-  circle: 'Circle',
+export enum NODE_TYPES {
+  Article = 'Article',
+  Comment = 'Comment',
+  Draft = 'Draft',
+  User = 'User',
+  Tag = 'Tag',
+  Appreciation = 'Appreciation',
+  Transaction = 'Transaction',
+  Circle = 'Circle',
+
+  SkippedListItem = 'SkippedListItem',
+  Price = 'Price',
+  Invitation = 'Invitation',
 
   // Unions & Interfaces
-  node: 'Node',
-  notice: 'Notice',
-  response: 'Response',
-  transactionTarget: 'TransactionTarget',
+  Node = 'Node',
+  Notice = 'Notice',
+  Response = 'Response',
+  TransactionTarget = 'TransactionTarget',
 }
 
 export const APPRECIATION_TYPES = {

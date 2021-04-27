@@ -32,7 +32,7 @@ export default /* GraphQL */ `
 
   type NoticeEdge {
     cursor: String!
-    node: Notice! @logCache(type: "${NODE_TYPES.notice}")
+    node: Notice! @logCache(type: "${NODE_TYPES.Notice}")
   }
 
 
@@ -52,11 +52,11 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.user}")
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
 
     type: UserNoticeType!
 
-    target: User! @logCache(type: "${NODE_TYPES.user}")
+    target: User! @logCache(type: "${NODE_TYPES.User}")
   }
 
   enum UserNoticeType {
@@ -80,11 +80,11 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.user}")
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
 
     type: ArticleNoticeType!
 
-    target: Article! @logCache(type: "${NODE_TYPES.article}")
+    target: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
 
   enum ArticleNoticeType {
@@ -108,13 +108,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.user}")
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
 
     type: ArticleArticleNoticeType!
 
-    target: Article! @logCache(type: "${NODE_TYPES.article}")
+    target: Article! @logCache(type: "${NODE_TYPES.Article}")
 
-    article: Article! @logCache(type: "${NODE_TYPES.article}")
+    article: Article! @logCache(type: "${NODE_TYPES.Article}")
   }
 
   enum ArticleArticleNoticeType {
@@ -139,11 +139,11 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.user}")
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
 
     type: CommentNoticeType!
 
-    target: Comment! @logCache(type: "${NODE_TYPES.comment}")
+    target: Comment! @logCache(type: "${NODE_TYPES.Comment}")
   }
 
   enum CommentNoticeType {
@@ -165,13 +165,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.user}")
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
 
     type: CommentCommentNoticeType!
 
-    target: Comment! @logCache(type: "${NODE_TYPES.comment}")
+    target: Comment! @logCache(type: "${NODE_TYPES.Comment}")
 
-    comment: Comment! @logCache(type: "${NODE_TYPES.comment}")
+    comment: Comment! @logCache(type: "${NODE_TYPES.Comment}")
   }
 
   enum CommentCommentNoticeType {
@@ -194,13 +194,13 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.user}")
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
 
     type: ArticleTagNoticeType!
 
-    target: Article! @logCache(type: "${NODE_TYPES.article}")
+    target: Article! @logCache(type: "${NODE_TYPES.Article}")
 
-    tag: Tag! @logCache(type: "${NODE_TYPES.tag}")
+    tag: Tag! @logCache(type: "${NODE_TYPES.Tag}")
   }
 
   enum ArticleTagNoticeType {
@@ -220,11 +220,11 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.user}")
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
 
     type: TagNoticeType!
 
-    target: Tag! @logCache(type: "${NODE_TYPES.tag}")
+    target: Tag! @logCache(type: "${NODE_TYPES.Tag}")
   }
 
   enum TagNoticeType {
@@ -251,11 +251,11 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.user}")
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
 
     type: TransactionNoticeType!
 
-    target: Transaction! @logCache(type: "${NODE_TYPES.transaction}")
+    target: Transaction! @logCache(type: "${NODE_TYPES.Transaction}")
   }
 
   enum TransactionNoticeType {
@@ -280,11 +280,11 @@ export default /* GraphQL */ `
     createdAt: DateTime!
 
     "List of notice actors."
-    actors: [User!] @logCache(type: "${NODE_TYPES.user}")
+    actors: [User!] @logCache(type: "${NODE_TYPES.User}")
 
     type: CircleNoticeType!
 
-    target: Circle! @logCache(type: "${NODE_TYPES.circle}")
+    target: Circle! @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   enum CircleNoticeType {

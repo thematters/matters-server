@@ -1,3 +1,4 @@
+import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import {
   GQLCircleSettingTypeResolver,
@@ -51,7 +52,7 @@ const circle: {
   },
 
   Circle: {
-    id: ({ id }) => (id ? toGlobalId({ type: 'Circle', id }) : ''),
+    id: ({ id }) => (id ? toGlobalId({ type: NODE_TYPES.Circle, id }) : ''),
     avatar,
     cover,
     prices,
@@ -77,12 +78,12 @@ const circle: {
   },
 
   Price: {
-    id: ({ id }) => (id ? toGlobalId({ type: 'Price', id }) : ''),
+    id: ({ id }) => (id ? toGlobalId({ type: NODE_TYPES.Price, id }) : ''),
     circle: priceCircle,
   },
 
   Invitation: {
-    id: ({ id }) => (id ? toGlobalId({ type: 'Invitation', id }) : ''),
+    id: ({ id }) => (id ? toGlobalId({ type: NODE_TYPES.Invitation, id }) : ''),
     invitee,
     inviter,
     circle: invitationCircle,
