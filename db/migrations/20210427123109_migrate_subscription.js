@@ -132,7 +132,7 @@ exports.up = async (knex) => {
         price_id: item.price_id,
         provider: 'matters',
         archived: false,
-      }
+      },
     })
 
     if (!mattersItem) {
