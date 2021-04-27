@@ -121,10 +121,7 @@ const resolver: MutationToSubscribeCircleResolver = async (
     subscriptions && subscriptions.length > 0
       ? await atomService.findMany({
           table: 'circle_subscription_item',
-          where: {
-            priceId: price.id,
-            archived: false,
-          },
+          where: { priceId: price.id, archived: false },
           whereIn: ['subscription_id', subscriptions.map((sub) => sub.id)],
         })
       : null

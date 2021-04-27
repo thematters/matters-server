@@ -706,8 +706,8 @@ export class PaymentService extends BaseService {
       // Create to DB
       const [mattersDBSub] = await this.knex('circle_subscription')
         .insert({
-          providerSubscriptionId: null,
           provider: PAYMENT_PROVIDER.matters,
+          providerSubscriptionId: v4(),
           state: SUBSCRIPTION_STATE.trialing,
           userId,
         })
@@ -718,7 +718,7 @@ export class PaymentService extends BaseService {
           userId,
           priceId,
           provider: PAYMENT_PROVIDER.matters,
-          providerSubscriptionItemId: null,
+          providerSubscriptionItemId: v4(),
         })
         .returning('*')
 
@@ -792,7 +792,7 @@ export class PaymentService extends BaseService {
           userId,
           priceId,
           provider: PAYMENT_PROVIDER.matters,
-          providerSubscriptionItemId: null,
+          providerSubscriptionItemId: v4(),
         })
         .returning('*')
 
