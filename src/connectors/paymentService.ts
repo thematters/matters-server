@@ -685,7 +685,8 @@ export class PaymentService extends BaseService {
   }
 
   /**
-   * Create a subscription by a given circle price
+   * Create a subscription by a given circle price,
+   * subscription item will be created correspondingly.
    */
   createSubscription = async (data: {
     userId: string
@@ -695,52 +696,72 @@ export class PaymentService extends BaseService {
   }) => {
     const { userId, priceId, providerCustomerId, providerPriceId } = data
 
+    /**
+     * Create Matters subscription if it's with trial invitation
+     */
+    // If any discount invitation
     const ivt = await this.findPendingInvitation({ userId, priceId })
-    // Create from Stripe
-    let stripeSubscription
+
     if (ivt) {
-      stripeSubscription = await this.stripe.createSubscription({
-        customer: providerCustomerId,
-        price: providerPriceId,
-        coupon: ivt.providerCouponId,
-      })
-    } else {
-      stripeSubscription = await this.stripe.createSubscription({
-        customer: providerCustomerId,
-        price: providerPriceId,
-      })
+      // Create to DB
+      const [mattersDBSub] = await this.knex('circle_subscription')
+        .insert({
+          provider: PAYMENT_PROVIDER.matters,
+          providerSubscriptionId: v4(),
+          state: SUBSCRIPTION_STATE.trialing,
+          userId,
+        })
+        .returning('*')
+      const [mattersDBSubItem] = await this.knex('circle_subscription_item')
+        .insert({
+          subscriptionId: mattersDBSub.id,
+          userId,
+          priceId,
+          provider: PAYMENT_PROVIDER.matters,
+          providerSubscriptionItemId: v4(),
+        })
+        .returning('*')
+
+      // Mark invitation as accepted
+      await this.acceptInvitation(ivt.id, mattersDBSubItem.id)
     }
 
-    if (!stripeSubscription) {
+    /**
+     * Create Stripe subscription
+     */
+    // Create from Stripe
+    const stripeSub = await this.stripe.createSubscription({
+      customer: providerCustomerId,
+      price: providerPriceId,
+    })
+
+    if (!stripeSub) {
       throw new ServerError('failed to create stripe subscription')
     }
 
     // Save to DB
-    const [subscription] = await this.knex('circle_subscription')
+    const [stripeDBSub] = await this.knex('circle_subscription')
       .insert({
-        providerSubscriptionId: stripeSubscription.id,
-        state: stripeSubscription.status,
+        state: stripeSub.status,
         userId,
+        provider: PAYMENT_PROVIDER.stripe,
+        providerSubscriptionId: stripeSub.id,
       })
       .returning('*')
-
     await this.knex('circle_subscription_item')
       .insert({
-        priceId,
-        providerSubscriptionItemId: stripeSubscription.items.data[0].id,
-        subscriptionId: subscription.id,
+        subscriptionId: stripeDBSub.id,
         userId,
+        priceId,
+        provider: PAYMENT_PROVIDER.stripe,
+        providerSubscriptionItemId: stripeSub.items.data[0].id,
       })
       .returning('*')
-
-    // Mark coupon invitation as accepted
-    if (ivt) {
-      await this.acceptCouponInvitation(ivt.id)
-    }
   }
 
   /**
-   * Create a subscription item by a given circle price
+   * Create a subscription item by a given circle price,
+   * and added to subscription.
    */
   createSubscriptionItem = async (data: {
     userId: string
@@ -756,49 +777,61 @@ export class PaymentService extends BaseService {
       providerPriceId,
       providerSubscriptionId,
     } = data
-    // If any discount coupon invitation
+
+    /**
+     * Create Matters subscription item if it's with trial invitation
+     */
+    // If any discount invitation
     const ivt = await this.findPendingInvitation({ userId, priceId })
-    // Create from Stripe
-    let stripeItem
+
     if (ivt) {
-      stripeItem = await this.stripe.createSubscriptionItem({
-        price: providerPriceId,
-        subscription: providerSubscriptionId,
-        coupon: ivt.providerCouponId,
-      })
-    } else {
-      stripeItem = await this.stripe.createSubscriptionItem({
-        price: providerPriceId,
-        subscription: providerSubscriptionId,
-      })
+      // Create to DB
+      const [mattersDBSubItem] = await this.knex('circle_subscription_item')
+        .insert({
+          subscriptionId,
+          userId,
+          priceId,
+          provider: PAYMENT_PROVIDER.matters,
+          providerSubscriptionItemId: v4(),
+        })
+        .returning('*')
+
+      // Mark invitation as accepted
+      await this.acceptInvitation(ivt.id, mattersDBSubItem.id)
     }
 
-    if (!stripeItem) {
+    /**
+     * Create Stripe subscription item
+     */
+    // Create from Stripe
+    const stripeSubItem = await this.stripe.createSubscriptionItem({
+      price: providerPriceId,
+      subscription: providerSubscriptionId,
+    })
+
+    if (!stripeSubItem) {
       throw new ServerError('failed to create stripe subscription item')
     }
 
+    // Save to DB
     await this.knex('circle_subscription_item')
       .insert({
-        priceId,
-        providerSubscriptionItemId: stripeItem.id,
         subscriptionId,
         userId,
+        priceId,
+        provider: PAYMENT_PROVIDER.stripe,
+        providerSubscriptionItemId: stripeSubItem.id,
       })
       .returning('*')
-
-    // Mark coupon invitation as accepted
-    if (ivt) {
-      await this.acceptCouponInvitation(ivt.id)
-    }
   }
 
   /*********************************
    *                               *
-   *            Coupon             *
+   *           Invitation          *
    *                               *
    *********************************/
   /**
-   * Find coupons applicable to a user for a cirlce
+   * Find invitation applicable to a user for a cirlce
    */
   findPendingInvitation = async (params: {
     userId: string
@@ -810,10 +843,9 @@ export class PaymentService extends BaseService {
       .where({ id: params.userId })
       .first()
     const records = await this.knex
-      .select('ci.id', 'cc.provider_coupon_id')
+      .select('ci.id')
       .from('circle_invitation as ci')
       .join('circle_price as cp', 'cp.circle_id', 'ci.circle_id')
-      .join('circle_coupon as cc', 'cc.id', 'ci.coupon_id')
       .where({
         'cp.id': params.priceId,
         accepted: false,
@@ -827,14 +859,15 @@ export class PaymentService extends BaseService {
   }
 
   /**
-   * Accept coupon invitation
+   * Accept invitation
    */
-  acceptCouponInvitation = async (ivtId: string) => {
+  acceptInvitation = async (ivtId: string, subscriptionItemId: string) => {
     await this.knex('circle_invitation')
       .where('id', ivtId)
       .update({
         accepted: true,
         accepted_at: this.knex.fn.now(),
+        subscriptionItemId,
       })
       .returning('*')
   }

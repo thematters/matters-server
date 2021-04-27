@@ -175,3 +175,8 @@ export enum METADATA_KEY {
   CIRCLE_ID = 'db_circle_id',
   CIRCLE_PRICE_ID = 'db_circle_price_id',
 }
+
+export enum SUBSCRIPTION_ITEM_REMARK {
+  trial_end = 'trial_end',
+  trial_cancel = 'trial_cancel',
+}
