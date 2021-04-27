@@ -409,7 +409,6 @@ export const completeCircleInvoice = async ({
         subscriptionId: subscription.id,
         userId: customer.userId,
         prices,
-        providerCouponId: '',
         discounts: priceDiscounts,
       })
     } else {

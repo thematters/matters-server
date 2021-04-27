@@ -544,7 +544,6 @@ export class PaymentService extends BaseService {
     subscriptionId,
     userId,
     prices,
-    providerCouponId,
     discounts,
   }: {
     amount: number
@@ -554,7 +553,6 @@ export class PaymentService extends BaseService {
     subscriptionId: string
     userId: string
     prices: CirclePrice[]
-    providerCouponId: string
     discounts: number[]
   }) => {
     const trx = await this.knex.transaction()
