@@ -17,7 +17,6 @@ const t_subscription_item = 'circle_subscription_item'
 const t_user = 'user'
 
 exports.up = async (knex) => {
-
   const secret = process.env['MATTERS_STRIPE_SECRET']
 
   if (!secret) {
