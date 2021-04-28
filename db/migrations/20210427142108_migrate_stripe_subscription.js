@@ -18,9 +18,16 @@ exports.up = async (knex) => {
 
   // fetch migrated subscription items
   const items = await knex
-    .select('circle_subscription_item.*', 'circle_subscription.provider_subscription_id')
+    .select(
+      'circle_subscription_item.*',
+      'circle_subscription.provider_subscription_id'
+    )
     .from(t_subscription_item)
-    .join(t_subscription, 'circle_subscription_item.subscription_id', 'circle_subscription.id')
+    .join(
+      t_subscription,
+      'circle_subscription_item.subscription_id',
+      'circle_subscription.id'
+    )
     .where({
       'circle_subscription_item.archived': true,
       'circle_subscription_item.provider': 'stripe',
@@ -37,10 +44,10 @@ exports.up = async (knex) => {
       console.log(item)
 
       const stripeItems = await stripeAPI.subscriptionItems.list({
-        subscription: item.provider_subscription_id
+        subscription: item.provider_subscription_id,
       })
 
-      if (!stripeItems || !stripeItems.data && stripeItems.data <= 0) {
+      if (!stripeItems || (!stripeItems.data && stripeItems.data <= 0)) {
         console.log('Subscription items not found')
         continue
       }
@@ -50,7 +57,7 @@ exports.up = async (knex) => {
 
       if (count === 1 && data[0].id === item.provider_subscription_item_id) {
         const sub = await stripeAPI.subscriptions.retrieve(
-          item.provider_subscription_id,
+          item.provider_subscription_id
         )
 
         if (!sub) {
@@ -63,13 +70,12 @@ exports.up = async (knex) => {
           continue
         }
 
-        await stripeAPI.subscriptions.del(
-          item.provider_subscription_id,
-          { prorate: false }
-        )
+        await stripeAPI.subscriptions.del(item.provider_subscription_id, {
+          prorate: false,
+        })
       } else if (count > 1) {
         const sub = await stripeAPI.subscriptions.retrieve(
-          item.provider_subscription_id,
+          item.provider_subscription_id
         )
 
         if (!sub) {
@@ -81,10 +87,9 @@ exports.up = async (knex) => {
           item.provider_subscription_item_id,
           { proration_behavior: 'none' }
         )
-        await stripeAPI.subscriptions.update(
-          item.provider_subscription_id,
-          { coupon: '' }
-        )
+        await stripeAPI.subscriptions.update(item.provider_subscription_id, {
+          coupon: '',
+        })
       }
     } catch (error) {
       console.error(error)
