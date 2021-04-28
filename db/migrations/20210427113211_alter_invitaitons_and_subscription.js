@@ -8,8 +8,6 @@ const subscription = 'circle_subscription'
 
 const subscription_item = 'circle_subscription_item'
 
-const temp_migration = 'temp_migration_data'
-
 const durations = [1, 3, 6, 12]
 
 exports.up = async (knex) => {
@@ -59,14 +57,6 @@ exports.up = async (knex) => {
   await knex.raw(
     alterEnumString(subscription_item, 'provider', ['matters', 'stripe'])
   )
-
-  // create temp migration table
-  await knex.schema.createTable(temp_migration, (t) => {
-    t.bigIncrements('id').primary()
-    t.string('subscription').nullable()
-    t.string('item').nullable()
-    t.boolean('archived').notNullable.defaultTo(false)
-  })
 }
 
 exports.down = async (knex) => {
@@ -85,7 +75,4 @@ exports.down = async (knex) => {
     t.dropColumn('remark')
   })
   await knex.raw(alterEnumString(subscription_item, 'provider', ['stripe']))
-
-  // remove temp migration table
-  await knex.schema.dropTableIfExists(temp_migration)
 }
