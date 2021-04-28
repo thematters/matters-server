@@ -41,48 +41,47 @@ exports.up = async (knex) => {
     try {
       console.log('-------------------------------')
       console.log(`Process ${index + 1}/${total} item: ${item.id}`)
-      console.log(item)
 
+      // fetch stripe subscription item
       const stripeItems = await stripeAPI.subscriptionItems.list({
         subscription: item.provider_subscription_id,
       })
 
-      if (!stripeItems || (!stripeItems.data && stripeItems.data <= 0)) {
+      if (!stripeItems || !stripeItems.data || stripeItems.data.length <= 0) {
         console.log('Subscription items not found')
+        continue
+      }
+
+      // fetch stripe subscription
+      const stripeSubscription = await stripeAPI.subscriptions.retrieve(
+        item.provider_subscription_id
+      )
+
+      if (!stripeSubscription) {
+        console.log('Stripe subscription not found')
+        continue
+      }
+
+      if (stripeSubscription.canceled_at > 0) {
+        console.log('Stripe subscription arleady canceled')
         continue
       }
 
       const data = stripeItems.data || []
       const count = data.length
 
-      if (count === 1 && data[0].id === item.provider_subscription_item_id) {
-        const sub = await stripeAPI.subscriptions.retrieve(
-          item.provider_subscription_id
-        )
-
-        if (!sub) {
-          console.log('Stripe subscription not found')
-          continue
+      if (count === 1) {
+        if (data[0].id === item.provider_subscription_item_id) {
+          // cancel stripe subscription if the only one item applied coupon
+          await stripeAPI.subscriptions.del(item.provider_subscription_id, {
+            prorate: false,
+          })
+          console.log('Stripe subscription canceled')
+        } else {
+          console.log('Stripe subscription has other items, will not cancel')
         }
-
-        if (sub.canceled_at > 0) {
-          console.log('Stripe subscription arleady canceled')
-          continue
-        }
-
-        await stripeAPI.subscriptions.del(item.provider_subscription_id, {
-          prorate: false,
-        })
       } else if (count > 1) {
-        const sub = await stripeAPI.subscriptions.retrieve(
-          item.provider_subscription_id
-        )
-
-        if (!sub) {
-          console.log('Stripe subscription not found')
-          continue
-        }
-
+        // remove stripe item and coupon from stripe subscription
         await stripeAPI.subscriptionItems.del(
           item.provider_subscription_item_id,
           { proration_behavior: 'none' }
@@ -90,9 +89,9 @@ exports.up = async (knex) => {
         await stripeAPI.subscriptions.update(item.provider_subscription_id, {
           coupon: '',
         })
+        console.log('Stripe subscription item deleted and subscription updated')
       }
     } catch (error) {
-      console.error(error)
       console.error(`Failed to process item: ${item.id}`)
     }
   }
