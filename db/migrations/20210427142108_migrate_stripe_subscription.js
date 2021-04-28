@@ -82,6 +82,22 @@ exports.up = async (knex) => {
         }
       } else if (count > 1) {
         // remove stripe item and coupon from stripe subscription
+        let stripeSubscriptionItem
+        try {
+          stripeSubscriptionItem = await stripeAPI.subscriptionItems.retrieve(
+            item.provider_subscription_item_id
+          )
+        } catch (error) {
+          if (error.statusCode !== 404) {
+            throw error
+          }
+        }
+
+        if (!stripeSubscriptionItem) {
+          console.log('Stripe subscription item not found')
+          continue
+        }
+
         await stripeAPI.subscriptionItems.del(
           item.provider_subscription_item_id,
           { proration_behavior: 'none' }
@@ -92,6 +108,7 @@ exports.up = async (knex) => {
         console.log('Stripe subscription item deleted and subscription updated')
       }
     } catch (error) {
+      console.error(error)
       console.error(`Failed to process item: ${item.id}`)
     }
   }
