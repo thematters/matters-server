@@ -463,8 +463,14 @@ export class PaymentService extends BaseService {
     )
     const base = _.get(data, 'base')
     const USDtoHKD = _.get(data, 'rates.HKD')
+    const MAX_USD_TO_HKD_RATE = 50
 
-    if (base !== 'USD' || !USDtoHKD || typeof USDtoHKD !== 'number') {
+    if (
+      base !== 'USD' ||
+      !USDtoHKD ||
+      typeof USDtoHKD !== 'number' ||
+      USDtoHKD >= MAX_USD_TO_HKD_RATE
+    ) {
       throw new Error('neither USD base nor valid rate.')
     }
 
