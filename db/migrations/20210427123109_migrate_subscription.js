@@ -1,7 +1,3 @@
-require('dotenv').config()
-
-const Stripe = require('stripe')
-
 const { v4 } = require('uuid')
 
 const t_coupon = 'circle_coupon'
@@ -17,15 +13,6 @@ const t_subscription_item = 'circle_subscription_item'
 const t_user = 'user'
 
 exports.up = async (knex) => {
-  const secret = process.env['MATTERS_STRIPE_SECRET']
-
-  if (!secret) {
-    console.error('Stripe secret is not provided')
-    return
-  }
-
-  const stripeAPI = new Stripe(secret, { apiVersion: '2020-03-02' })
-
   const findFirst = async ({ table, where }) => {
     return knex.select().from(table).where(where).first()
   }
@@ -48,6 +35,7 @@ exports.up = async (knex) => {
 
   const total = (invts || []).length
 
+  // process invitations
   for (const [index, invt] of invts.entries()) {
     console.log('-------------------------------')
     console.log(`Process ${index + 1}/${total} invitation: ${invt.id}`)
@@ -158,90 +146,45 @@ exports.up = async (knex) => {
       data: { subscription_item_id: mattersItem.id },
     })
     console.log(
-      `Updated subscription item (${mattersItem.id}) to invitation (${invt.id}`
+      `Updated Matters subscription item (${mattersItem.id}) to invitation (${invt.id})`
     )
 
-    // Step 5: remove Stripe subscription item, including Stripe subscription if it has no or only one item
-    let canceledStripeSubscription
-    const stripeItems = await stripeAPI.subscriptionItems.list({
-      subscription: subscription.provider_subscription_id,
-    })
-
-    if (stripeItems && stripeItems.data && stripeItems.data.length > 0) {
-      if (
-        stripeItems.data.length === 1 &&
-        stripeItems.data[0].id === item.provider_subscription_item_id
-      ) {
-        console.log(
-          `Cancel entire Stripe subscription: ${subscription.provider_subscription_id}`
-        )
-        canceledStripeSubscription = await stripeAPI.subscriptions.del(
-          subscription.provider_subscription_id,
-          { prorate: false }
-        )
-        console.log('Cancel completed')
-      } else if (stripeItems.data.length > 1) {
-        console.log(
-          `Remove Stripe subscription item: ${item.provider_subscription_item_id}`
-        )
-        await stripeAPI.subscriptionItems.del(
-          item.provider_subscription_item_id,
-          { proration_behavior: 'none' }
-        )
-        console.log('Remove completed')
-        console.log(
-          `Update Stripe subscription with empty coupon: ${subscription.provider_subscription_id}`
-        )
-        await stripeAPI.subscriptions.update(
-          subscription.provider_subscription_id,
-          { coupon: '' }
-        )
-        console.log('Update completed')
-      }
-    } else {
-      console.log('No Stripe subscription items need to update')
-    }
-
-    // Step 6: archive Matters-Stripe subscription item
+    // Step 5: archive subscription item
     await update({
       table: t_subscription_item,
       where: { id: item.id },
       data: { archived: true, remark: 'trial_migration' },
     })
-    console.log(`Upadted matters-stripe subscription item: ${item.id}`)
+    console.log(`Upadted subscription item: ${item.id}`)
 
-    // Step 7: update Matters-Stripe subscription
-    if (canceledStripeSubscription) {
-      const record = await knex
-        .count()
-        .from(t_subscription_item)
-        .where({ archived: false, subscription_id: subscription.id })
-        .first()
+    // Step 6: update subscription
+    const record = await knex
+      .count()
+      .from(t_subscription_item)
+      .where({ archived: false, subscription_id: subscription.id })
+      .first()
 
-      const count = parseInt(record ? `${record.count}` : '0', 10)
+    const count = parseInt(record ? `${record.count}` : '0', 10)
 
-      if (count > 0) {
-        console.log(
-          `Subscription has other items, won't cancel: ${subscription.id}`
-        )
-        continue
-      }
-
-      await update({
-        table: t_subscription,
-        where: { id: subscription.id },
-        data: {
-          state: canceledStripeSubscription.status,
-          canceled_at: canceledStripeSubscription.canceled_at
-            ? new Date(canceledStripeSubscription.canceled_at * 1000)
-            : new Date(),
-          updated_at: new Date(),
-        },
-      })
+    if (count > 0) {
       console.log(
-        `Updated subscription status and action times: ${subscription.id}`
+        `Subscription has other items, won't cancel: ${subscription.id}`
       )
+      continue
     }
+
+    await update({
+      table: t_subscription,
+      where: { id: subscription.id },
+      data: {
+        state: 'canceled',
+        canceled_at: new Date(),
+        updated_at: new Date(),
+      },
+    })
+    console.log(
+      `Updated subscription status and action times: ${subscription.id}`
+    )
   }
 }
 
