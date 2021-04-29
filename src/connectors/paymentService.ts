@@ -693,7 +693,8 @@ export class PaymentService extends BaseService {
   createSubscriptionOrItem = async (data: {
     userId: string
     priceId: string
-    customerId: string
+    providerPriceId: string
+    providerCustomerId: string
     subscriptions: any[]
   }) => {
     const { userId, priceId, subscriptions } = data
@@ -725,12 +726,14 @@ export class PaymentService extends BaseService {
   createSubscription = async ({
     userId,
     priceId,
-    customerId,
+    providerPriceId,
+    providerCustomerId,
     invitation,
   }: {
     userId: string
     priceId: string
-    customerId: string
+    providerPriceId: string
+    providerCustomerId: string
     invitation: any
   }) => {
     /**
@@ -748,7 +751,6 @@ export class PaymentService extends BaseService {
           userId,
         })
         .returning('*')
-
       const [mattersDBSubItem] = await this.knex('circle_subscription_item')
         .insert({
           subscriptionId: mattersDBSub.id,
@@ -767,8 +769,8 @@ export class PaymentService extends BaseService {
        */
       // Create from Stripe
       const stripeSub = await this.stripe.createSubscription({
-        customer: customerId,
-        price: priceId,
+        customer: providerCustomerId,
+        price: providerPriceId,
       })
 
       if (!stripeSub) {
@@ -803,11 +805,13 @@ export class PaymentService extends BaseService {
   createSubscriptionItem = async ({
     userId,
     priceId,
+    providerPriceId,
     subscriptions,
     invitation,
   }: {
     userId: string
     priceId: string
+    providerPriceId: string
     subscriptions: any[]
     invitation: any
   }) => {
@@ -846,8 +850,8 @@ export class PaymentService extends BaseService {
 
       // Create from Stripe
       const stripeSubItem = await this.stripe.createSubscriptionItem({
-        price: priceId,
-        subscription: stripeDBSub.id,
+        price: providerPriceId,
+        subscription: stripeDBSub.providerSubscriptionId,
       })
 
       if (!stripeSubItem) {

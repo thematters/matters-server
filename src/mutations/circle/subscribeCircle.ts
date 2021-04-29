@@ -166,7 +166,8 @@ const resolver: MutationToSubscribeCircleResolver = async (
     await paymentService.createSubscriptionOrItem({
       userId: viewer.id,
       priceId: price.id,
-      customerId: customer.customerId,
+      providerPriceId: price.providerPriceId,
+      providerCustomerId: customer.customerId,
       subscriptions,
     })
 

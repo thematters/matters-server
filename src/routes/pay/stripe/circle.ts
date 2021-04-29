@@ -92,7 +92,8 @@ export const completeCircleSubscription = async ({
   await paymentService.createSubscriptionOrItem({
     userId,
     priceId: price.id,
-    customerId: customer.customerId,
+    providerPriceId: price.providerPriceId,
+    providerCustomerId: customer.customerId,
     subscriptions,
   })
 
