@@ -3,7 +3,10 @@ import {
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
+  PAYMENT_PROVIDER,
   PRICE_STATE,
+  SUBSCRIPTION_ITEM_REMARK,
+  SUBSCRIPTION_STATE,
 } from 'common/enums'
 import {
   AuthenticationError,
@@ -41,6 +44,7 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
     throw new ForbiddenError('viewer has no permission')
   }
 
+  // check circle
   const { id: circleId } = fromGlobalId(id || '')
   const [circle, price] = await Promise.all([
     atomService.findFirst({
@@ -60,63 +64,82 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
     throw new EntityNotFoundError(`price of circle ${id} not found`)
   }
 
-  const subscriptions = await paymentService.findSubscriptions({
+  // loop subscriptions
+  const subscriptions = await paymentService.findActiveSubscriptions({
     userId: viewer.id,
   })
 
+  const cancelSubscription = async (sub: any) => {
+    let state
+    let canceledAt
+
+    // cancel stripe subscription
+    if (sub.provider === PAYMENT_PROVIDER.stripe) {
+      const stripeSub = await paymentService.stripe.cancelSubscription(
+        sub.providerSubscriptionId
+      )
+      state = stripeSub?.status
+      canceledAt = stripeSub?.canceled_at
+        ? stripeSub?.canceled_at * 1000
+        : undefined
+    }
+
+    // update db
+    await atomService.update({
+      table: 'circle_subscription',
+      where: { id: sub.id },
+      data: {
+        state: state || SUBSCRIPTION_STATE.canceled,
+        canceledAt: canceledAt || new Date(),
+        updatedAt: new Date(),
+      },
+    })
+  }
+
   await Promise.all(
-    subscriptions.map(async (subscription) => {
-      const items = subscription
+    subscriptions.map(async (sub) => {
+      const isStripeSub = sub.provider === PAYMENT_PROVIDER.stripe
+      const isMattersSub = sub.provider === PAYMENT_PROVIDER.matters
+
+      const subItems = sub
         ? await atomService.findMany({
             table: 'circle_subscription_item',
-            where: {
-              subscriptionId: subscription.id,
-              archived: false,
-            },
+            where: { subscriptionId: sub.id, archived: false },
           })
         : []
-      const targetItem = items.find((item) => item.priceId === price.id)
+      const targetSubItem = subItems.find((item) => item.priceId === price.id)
 
-      if (!targetItem) {
-        return circle
+      if (!targetSubItem) {
+        return
       }
 
-      if (items.length <= 1) {
-        // cancel stripe subscription
-        const stripeSubscription = await paymentService.stripe.cancelSubscription(
-          subscription.providerSubscriptionId
-        )
-
-        // update db subscription
-        if (stripeSubscription) {
-          await atomService.update({
-            table: 'circle_subscription',
-            where: { id: subscription.id },
-            data: {
-              state: stripeSubscription.status,
-              canceledAt: stripeSubscription.canceled_at
-                ? new Date(stripeSubscription.canceled_at * 1000)
-                : undefined,
-              updatedAt: new Date(),
-            },
-          })
+      // cancel the subscription if only one subscription item left
+      if (subItems.length <= 1) {
+        await cancelSubscription(sub)
+      }
+      // remove subscription item from Stripe
+      else {
+        if (isStripeSub) {
+          await paymentService.stripe.deleteSubscriptionItem(
+            targetSubItem.providerSubscriptionItemId
+          )
         }
-      } else {
-        // remove stripe subscription item
-        await paymentService.stripe.deleteSubscriptionItem(
-          targetItem.providerSubscriptionItemId
-        )
       }
 
       // archive subscription item
       await atomService.update({
         table: 'circle_subscription_item',
-        where: { id: targetItem.id },
+        where: { id: targetSubItem.id },
         data: {
           archived: true,
           updatedAt: new Date(),
+          ...(isMattersSub
+            ? { remark: SUBSCRIPTION_ITEM_REMARK.trial_cancel }
+            : {}),
         },
       })
+
+      return
     })
   )
 
