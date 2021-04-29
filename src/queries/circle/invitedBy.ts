@@ -12,7 +12,7 @@ const resolver: CircleToInvitedByResolver = async (
   const invitation = await knex
     .select()
     .from('circle_invitation')
-    .where({ circleId: id, accept: false })
+    .where({ circleId: id, accepted: false })
     .andWhere(function () {
       this.where('user_id', viewer.id).orWhere('email', viewer.email)
     })
