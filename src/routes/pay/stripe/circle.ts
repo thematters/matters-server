@@ -221,7 +221,7 @@ export const updateSubscription = async ({
   let updatedPriceIds = null
   if (isToCanceled) {
     try {
-      const updatedItems = await atomService.update({
+      const updatedItems = await atomService.updateMany({
         table: 'circle_subscription_item',
         where: {
           userId,
@@ -231,7 +231,7 @@ export const updateSubscription = async ({
         },
         data: { archived: true, updatedAt: new Date() },
       })
-      updatedPriceIds = updatedItems.map((i: any) => i.priceId)
+      updatedPriceIds = updatedItems.map((i) => i.priceId)
     } catch (error) {
       logger.error(error)
       throw new ServerError('failed to update subscription items')
