@@ -65,7 +65,7 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
   }
 
   // loop subscriptions
-  const subscriptions = await paymentService.findSubscriptions({
+  const subscriptions = await paymentService.findActiveSubscriptions({
     userId: viewer.id,
   })
 
@@ -110,7 +110,7 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
       const targetSubItem = subItems.find((item) => item.priceId === price.id)
 
       if (!targetSubItem) {
-        return circle
+        return
       }
 
       // cancel the subscription if only one subscription item left
@@ -138,6 +138,8 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
             : {}),
         },
       })
+
+      return
     })
   )
 
