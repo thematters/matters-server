@@ -229,49 +229,57 @@ export const updateSubscription = async ({
       paymentService.stripe.listSubscriptionItems(subscription.id),
       atomService.findMany({
         table: 'circle_subscription_item',
-        where: { userId, subscriptionId, archived: false },
+        where: { userId, subscriptionId },
       }),
     ])
 
-    if (!stripeSubItems) {
+    if (!stripeSubItems?.data || stripeSubItems.data.length <= 0) {
       return
     }
 
-    const dbPriceIds = (
-      await atomService.findMany({
-        table: 'circle_price',
-        whereIn: [
-          'provider_price_id',
-          stripeSubItems.data.map((item) => item.price.id),
-        ],
-      })
-    ).map((item) => item.id)
-    const dbCurrPriceIds = dbSubItems.map((item) => item.priceId)
+    const newPrices = await atomService.findMany({
+      table: 'circle_price',
+      whereIn: [
+        'provider_price_id',
+        stripeSubItems.data.map((item) => item.price.id),
+      ],
+    })
+    const newPriceIds = newPrices.map((item) => item.id)
+    const oldPriceIds = dbSubItems.map((item) => item.priceId)
 
     // added
-    addedPriceIds = _.difference(dbPriceIds, dbCurrPriceIds)
+    addedPriceIds = _.difference(newPriceIds, oldPriceIds)
     await Promise.all(
       addedPriceIds.map(async (priceId) => {
+        const providerPriceId = newPrices.find((p) => p.id === priceId)
+          ?.providerPriceId
         const providerSubscriptionItem = stripeSubItems.data.find(
-          (item) => item.price.id === priceId
+          (item) => item.price.id === providerPriceId
         )
-        if (providerSubscriptionItem) {
-          await atomService.create({
-            table: 'circle_subscription_item',
-            data: {
-              subscriptionId,
-              userId,
-              priceId,
-              provider: PAYMENT_PROVIDER.stripe,
-              providerSubscriptionItemId: providerSubscriptionItem.id,
-            },
-          })
+
+        if (!providerSubscriptionItem) {
+          return
         }
+
+        await atomService.create({
+          table: 'circle_subscription_item',
+          data: {
+            subscriptionId,
+            userId,
+            priceId,
+            archived: subscription.status === SUBSCRIPTION_STATE.canceled,
+            provider: PAYMENT_PROVIDER.stripe,
+            providerSubscriptionItemId: providerSubscriptionItem.id,
+          },
+        })
       })
     )
 
     // removed
-    removedPriceIds = _.difference(dbCurrPriceIds, dbPriceIds)
+    const oldArchivedPriceIds = dbSubItems
+      .filter((item) => item.archived === true)
+      .map((item) => item.priceId)
+    removedPriceIds = _.difference(oldArchivedPriceIds, newPriceIds)
     await Promise.all(
       removedPriceIds.map(async (priceId) => {
         await atomService.update({
