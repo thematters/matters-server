@@ -1,15 +1,16 @@
 import { InvitationToFreePeriodResolver } from 'definitions'
 
 const resolver: InvitationToFreePeriodResolver = async (
-  { couponId },
+  { durationInDays },
   _,
   { dataSources: { atomService } }
 ) => {
-  const coupon = await atomService.findUnique({
-    table: 'circle_coupon',
-    where: { id: couponId },
-  })
-  return coupon.durationInMonths
+  // TODO: alter `freePeriod` input as day unit
+  if (durationInDays && durationInDays >= 0) {
+    return durationInDays / 30
+  }
+
+  return null
 }
 
 export default resolver

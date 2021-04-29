@@ -141,7 +141,6 @@ export type BasicTableName =
   | 'punish_record'
   | 'entity_type'
   | 'circle'
-  | 'circle_coupon'
   | 'circle_invitation'
   | 'circle_price'
   | 'circle_subscription'

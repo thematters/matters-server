@@ -92,27 +92,23 @@ const resolver: MutationToSubscribeCircleResolver = async (
     userId: circle.owner,
     targetId: viewer.id,
   })
-
   if (isBlocked) {
     throw new ForbiddenError('viewer has no permission')
   }
-
-  const provider = PAYMENT_PROVIDER.stripe
 
   // retrieve or create a Customer
   let customer = (await atomService.findFirst({
     table: 'customer',
     where: {
       userId: viewer.id,
-      provider,
+      provider: PAYMENT_PROVIDER.stripe,
       archived: false,
     },
   })) as Customer
-
   if (!customer) {
     customer = (await paymentService.createCustomer({
       user: viewer,
-      provider,
+      provider: PAYMENT_PROVIDER.stripe,
     })) as Customer
   }
 
@@ -125,10 +121,7 @@ const resolver: MutationToSubscribeCircleResolver = async (
     subscriptions && subscriptions.length > 0
       ? await atomService.findMany({
           table: 'circle_subscription_item',
-          where: {
-            priceId: price.id,
-            archived: false,
-          },
+          where: { priceId: price.id, archived: false },
           whereIn: ['subscription_id', subscriptions.map((sub) => sub.id)],
         })
       : null
