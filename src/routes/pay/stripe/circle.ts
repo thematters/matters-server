@@ -188,6 +188,10 @@ export const updateSubscription = async ({
     return
   }
 
+  if (dbSub.state === SUBSCRIPTION_STATE.canceled) {
+    return
+  }
+
   const isSubStateChanged = dbSub.state !== subscription.status
   const userId = dbSub.userId
   const subscriptionId = dbSub.id
@@ -195,7 +199,7 @@ export const updateSubscription = async ({
   /**
    * sync subscription
    */
-  if (isSubStateChanged && dbSub.state !== SUBSCRIPTION_STATE.canceled) {
+  if (isSubStateChanged) {
     try {
       await atomService.update({
         table: 'circle_subscription',
