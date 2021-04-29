@@ -763,39 +763,40 @@ export class PaymentService extends BaseService {
 
       // Mark invitation as accepted
       await this.acceptInvitation(invitation.id, mattersDBSubItem.id)
-    } else {
-      /**
-       * Create Stripe subscription
-       */
-      // Create from Stripe
-      const stripeSub = await this.stripe.createSubscription({
-        customer: providerCustomerId,
-        price: providerPriceId,
-      })
-
-      if (!stripeSub) {
-        throw new ServerError('failed to create stripe subscription')
-      }
-
-      // Save to DB
-      const [stripeDBSub] = await this.knex('circle_subscription')
-        .insert({
-          state: stripeSub.status,
-          userId,
-          provider: PAYMENT_PROVIDER.stripe,
-          providerSubscriptionId: stripeSub.id,
-        })
-        .returning('*')
-      await this.knex('circle_subscription_item')
-        .insert({
-          subscriptionId: stripeDBSub.id,
-          userId,
-          priceId,
-          provider: PAYMENT_PROVIDER.stripe,
-          providerSubscriptionItemId: stripeSub.items.data[0].id,
-        })
-        .returning('*')
+      return
     }
+
+    /**
+     * Create Stripe subscription
+     */
+    // Create from Stripe
+    const stripeSub = await this.stripe.createSubscription({
+      customer: providerCustomerId,
+      price: providerPriceId,
+    })
+
+    if (!stripeSub) {
+      throw new ServerError('failed to create stripe subscription')
+    }
+
+    // Save to DB
+    const [stripeDBSub] = await this.knex('circle_subscription')
+      .insert({
+        state: stripeSub.status,
+        userId,
+        provider: PAYMENT_PROVIDER.stripe,
+        providerSubscriptionId: stripeSub.id,
+      })
+      .returning('*')
+    await this.knex('circle_subscription_item')
+      .insert({
+        subscriptionId: stripeDBSub.id,
+        userId,
+        priceId,
+        provider: PAYMENT_PROVIDER.stripe,
+        providerSubscriptionItemId: stripeSub.items.data[0].id,
+      })
+      .returning('*')
   }
 
   /**
@@ -839,36 +840,37 @@ export class PaymentService extends BaseService {
 
       // Mark invitation as accepted
       await this.acceptInvitation(invitation.id, mattersDBSubItem.id)
-    } else {
-      /**
-       * Create Stripe subscription item
-       */
-      const stripeDBSubs = subscriptions.filter(
-        (sub) => sub.provider === PAYMENT_PROVIDER.stripe
-      )
-      const stripeDBSub = stripeDBSubs && stripeDBSubs[0]
-
-      // Create from Stripe
-      const stripeSubItem = await this.stripe.createSubscriptionItem({
-        price: providerPriceId,
-        subscription: stripeDBSub.providerSubscriptionId,
-      })
-
-      if (!stripeSubItem) {
-        throw new ServerError('failed to create stripe subscription item')
-      }
-
-      // Save to DB
-      await this.knex('circle_subscription_item')
-        .insert({
-          subscriptionId: stripeDBSub.id,
-          userId,
-          priceId,
-          provider: PAYMENT_PROVIDER.stripe,
-          providerSubscriptionItemId: stripeSubItem.id,
-        })
-        .returning('*')
+      return
     }
+
+    /**
+     * Create Stripe subscription item
+     */
+    const stripeDBSubs = subscriptions.filter(
+      (sub) => sub.provider === PAYMENT_PROVIDER.stripe
+    )
+    const stripeDBSub = stripeDBSubs && stripeDBSubs[0]
+
+    // Create from Stripe
+    const stripeSubItem = await this.stripe.createSubscriptionItem({
+      price: providerPriceId,
+      subscription: stripeDBSub.providerSubscriptionId,
+    })
+
+    if (!stripeSubItem) {
+      throw new ServerError('failed to create stripe subscription item')
+    }
+
+    // Save to DB
+    await this.knex('circle_subscription_item')
+      .insert({
+        subscriptionId: stripeDBSub.id,
+        userId,
+        priceId,
+        provider: PAYMENT_PROVIDER.stripe,
+        providerSubscriptionItemId: stripeSubItem.id,
+      })
+      .returning('*')
   }
 
   /*********************************
