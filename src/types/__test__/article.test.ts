@@ -1,6 +1,6 @@
 import _get from 'lodash/get'
 
-import { ARTICLE_STATE, PUBLISH_STATE } from 'common/enums'
+import { ARTICLE_STATE, NODE_TYPES, PUBLISH_STATE } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
 
@@ -8,7 +8,7 @@ import { publishArticle, putDraft, testClient, updateUserState } from './utils'
 
 const mediaHash = 'someIpfsMediaHash1'
 
-const ARTICLE_ID = toGlobalId({ type: 'Article', id: 1 })
+const ARTICLE_ID = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
 
 const GET_ARTICLES = /* GraphQL */ `
   query($input: ConnectionArgs!) {
@@ -165,7 +165,7 @@ describe('query article', () => {
 
 describe('query tag on article', () => {
   test('query tag on article', async () => {
-    const id = toGlobalId({ type: 'Article', id: 1 })
+    const id = toGlobalId({ type: NODE_TYPES.Article, id: 1 })
     const { query } = await testClient()
     const { data } = await query({
       query: GET_ARTICLE_TAGS,
@@ -262,13 +262,13 @@ describe('frozen user do muations to article', () => {
   // make sure user state in db is correct
   beforeAll(async () => {
     await updateUserState({
-      id: toGlobalId({ type: 'User', id: 8 }),
+      id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
       state: 'frozen',
     })
   })
   afterAll(async () => {
     await updateUserState({
-      id: toGlobalId({ type: 'User', id: 8 }),
+      id: toGlobalId({ type: NODE_TYPES.User, id: 8 }),
       state: 'active',
     })
   })
@@ -404,8 +404,8 @@ describe('edit article', () => {
 
   test('edit article collection', async () => {
     const collection = [
-      toGlobalId({ type: 'Article', id: 3 }),
-      toGlobalId({ type: 'Article', id: 4 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 3 }),
+      toGlobalId({ type: NODE_TYPES.Article, id: 4 }),
     ]
     const { mutate } = await testClient({ isAuth: true, isAdmin: false })
     const result = await mutate({

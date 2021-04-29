@@ -1,6 +1,7 @@
 import {
   COMMENT_STATE,
   COMMENT_TYPE,
+  NODE_TYPES,
   OFFICIAL_NOTICE_EXTEND_TYPE,
 } from 'common/enums'
 import { ForbiddenError } from 'common/errors'
@@ -52,7 +53,7 @@ const resolver: MutationToUpdateCommentsStateResolver = async (
     if (!isTargetAuthor || !isValidFromState || !isValidToState) {
       throw new ForbiddenError(
         `viewer has no permission on ${toGlobalId({
-          type: 'Comment',
+          type: NODE_TYPES.Comment,
           id,
         })}`
       )

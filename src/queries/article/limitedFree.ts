@@ -1,4 +1,4 @@
-import { CIRCLE_STATE } from 'common/enums'
+import { ARTICLE_ACCESS_TYPE, CIRCLE_STATE } from 'common/enums'
 import { isArticleLimitedFree } from 'common/utils'
 import { ArticleToLimitedFreeResolver } from 'definitions'
 
@@ -22,7 +22,9 @@ const resolver: ArticleToLimitedFreeResolver = async (
     return false
   }
 
-  return isArticleLimitedFree(articleCircle.createdAt)
+  const isPaywalled = articleCircle.access === ARTICLE_ACCESS_TYPE.paywall
+
+  return isPaywalled && isArticleLimitedFree(articleCircle.createdAt)
 }
 
 export default resolver

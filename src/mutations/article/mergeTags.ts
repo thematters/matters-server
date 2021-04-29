@@ -27,7 +27,7 @@ const resolver: MutationToMergeTagsResolver = async (
   )
 
   // invalidate extra nodes
-  newTag[CACHE_KEYWORD] = tagIds.map((id) => ({ id, type: NODE_TYPES.tag }))
+  newTag[CACHE_KEYWORD] = tagIds.map((id) => ({ id, type: NODE_TYPES.Tag }))
   return newTag
 }
 

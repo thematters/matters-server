@@ -39,7 +39,7 @@ export default /* GraphQL */ `
     grantTypes: [GrantType!] @auth(mode: "${AUTH_MODE.admin}")
 
     "Linked Developer Account"
-    user: User @logCache(type: "${NODE_TYPES.user}")
+    user: User @logCache(type: "${NODE_TYPES.User}")
 
     "Creation Date"
     createdAt: Date!
