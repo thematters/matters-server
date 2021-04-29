@@ -188,7 +188,7 @@ export const updateSubscription = async ({
   }
 
   const isFromCanceled = dbSub.state === SUBSCRIPTION_STATE.canceled
-  const isToCanceled = dbSub.state === SUBSCRIPTION_STATE.canceled
+  const isToCanceled = subscription.status === SUBSCRIPTION_STATE.canceled
   const isSubStateChanged = dbSub.state !== subscription.status
   const userId = dbSub.userId
   const subscriptionId = dbSub.id
