@@ -204,6 +204,20 @@ export class AtomService extends DataSource {
   }
 
   /**
+   * Update many records.
+   *
+   * A Prisma like method for updating many records.
+   */
+  updateMany = async ({ table, where, data }: UpdateInput) => {
+    const records = await this.knex
+      .where(where)
+      .update(data)
+      .into(table)
+      .returning('*')
+    return records
+  }
+
+  /**
    * Upsert an unique record.
    *
    * A Prisma like method for updating or creating a record.
