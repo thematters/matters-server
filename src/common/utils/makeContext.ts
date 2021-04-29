@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/node'
 import { Request, Response } from 'express'
 import { cloneDeep } from 'lodash'
 
+import { NODE_TYPES } from 'common/enums'
 import { getViewerFromReq, toGlobalId } from 'common/utils'
 import { knex } from 'connectors'
 import { RequestContext } from 'definitions'
@@ -51,7 +52,9 @@ export const makeContext = async ({
   // Add user info for Sentry
   Sentry.configureScope((scope: any) => {
     scope.setUser({
-      id: viewer.id ? toGlobalId({ type: 'User', id: viewer.id }) : viewer.id,
+      id: viewer.id
+        ? toGlobalId({ type: NODE_TYPES.User, id: viewer.id })
+        : viewer.id,
       role: viewer.role,
       language: viewer.language,
     })

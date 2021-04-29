@@ -11,6 +11,7 @@ import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PRICE_STATE,
+  SUBSCRIPTION_STATE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
@@ -87,25 +88,15 @@ export const completeCircleSubscription = async ({
     return
   }
 
-  const subscriptions = await paymentService.findSubscriptions({ userId })
-  const subscription = subscriptions[0]
+  const subscriptions = await paymentService.findActiveSubscriptions({ userId })
 
-  if (!subscription) {
-    await paymentService.createSubscription({
-      userId,
-      priceId: price.id,
-      providerCustomerId: customer.customerId,
-      providerPriceId: price.providerPriceId,
-    })
-  } else {
-    await paymentService.createSubscriptionItem({
-      userId,
-      priceId: price.id,
-      subscriptionId: subscription.id,
-      providerPriceId: price.providerPriceId,
-      providerSubscriptionId: subscription.providerSubscriptionId,
-    })
-  }
+  await paymentService.createSubscriptionOrItem({
+    userId,
+    priceId: price.id,
+    providerPriceId: price.providerPriceId,
+    providerCustomerId: customer.customerId,
+    subscriptions,
+  })
 
   // trigger notificaiton
   notificationService.trigger({
@@ -144,11 +135,11 @@ export const completeCircleSubscription = async ({
   // invalidate user & circle
   const cacheService = new CacheService()
   invalidateFQC({
-    node: { type: NODE_TYPES.circle, id: circle.id },
+    node: { type: NODE_TYPES.Circle, id: circle.id },
     redis: cacheService.redis,
   })
   invalidateFQC({
-    node: { type: NODE_TYPES.user, id: userId },
+    node: { type: NODE_TYPES.User, id: userId },
     redis: cacheService.redis,
   })
 }
@@ -166,7 +157,6 @@ export const updateSubscription = async ({
   event: Stripe.Event
 }) => {
   const atomService = new AtomService()
-  const paymentService = new PaymentService()
   const cacheService = new CacheService()
   const slack = new SlackService()
   const slackEventData = {
@@ -174,12 +164,12 @@ export const updateSubscription = async ({
     type: event.type,
   }
 
-  const dbSubscription = await atomService.findFirst({
+  const dbSub = await atomService.findFirst({
     table: 'circle_subscription',
     where: { providerSubscriptionId: subscription.id },
   })
 
-  if (!dbSubscription) {
+  if (!dbSub) {
     slack.sendStripeAlert({
       data: slackEventData,
       message: `can't find subscription ${subscription.id}.`,
@@ -187,127 +177,79 @@ export const updateSubscription = async ({
     return
   }
 
-  if (dbSubscription.state === subscription.status) {
-    return
-  }
-
-  const userId = dbSubscription.userId
-  const subscriptionId = dbSubscription.id
-
-  /**
-   * subscription
-   */
-  try {
-    await atomService.update({
-      table: 'circle_subscription',
-      where: { id: dbSubscription.id },
-      data: {
-        state: subscription.status,
-        canceledAt: subscription.canceled_at
-          ? new Date(subscription.canceled_at * 1000)
-          : undefined,
-        updatedAt: new Date(),
-      },
-    })
-  } catch (error) {
-    logger.error(error)
-    throw new ServerError('failed to update subscription')
-  }
+  const isFromCanceled = dbSub.state === SUBSCRIPTION_STATE.canceled
+  const isToCanceled = subscription.status === SUBSCRIPTION_STATE.canceled
+  const isSubStateChanged = dbSub.state !== subscription.status
+  const userId = dbSub.userId
+  const subscriptionId = dbSub.id
 
   /**
-   * subscription items
+   * update subscription status
    */
-  let addedPriceIds = []
-  let removedPriceIds = []
-  try {
-    // retrieve all subscription items
-    const [stripeSubItems, dbSubItems] = await Promise.all([
-      paymentService.stripe.listSubscriptionItems(subscription.id),
-      atomService.findMany({
+  if (isSubStateChanged && !isFromCanceled) {
+    try {
+      await atomService.update({
+        table: 'circle_subscription',
+        where: { id: dbSub.id },
+        data: {
+          state: subscription.status,
+          canceledAt: subscription.canceled_at
+            ? new Date(subscription.canceled_at * 1000)
+            : undefined,
+          updatedAt: new Date(),
+        },
+      })
+    } catch (error) {
+      logger.error(error)
+      throw new ServerError('failed to update subscription')
+    }
+  }
+
+  /**
+   * archive subscription items if subscription becomes canceled
+   */
+  let updatedPriceIds = null
+  if (isToCanceled) {
+    try {
+      const updatedItems = await atomService.updateMany({
         table: 'circle_subscription_item',
         where: {
           userId,
           subscriptionId,
           archived: false,
+          provider: PAYMENT_PROVIDER.stripe,
         },
-      }),
-    ])
-
-    if (!stripeSubItems) {
-      return
+        data: { archived: true, updatedAt: new Date() },
+      })
+      updatedPriceIds = updatedItems.map((i) => i.priceId)
+    } catch (error) {
+      logger.error(error)
+      throw new ServerError('failed to update subscription items')
     }
-
-    const dbPriceIds = (
-      await atomService.findMany({
-        table: 'circle_price',
-        whereIn: [
-          'provider_price_id',
-          stripeSubItems.data.map((item) => item.price.id),
-        ],
-      })
-    ).map((item) => item.id)
-    const dbCurrPriceIds = dbSubItems.map((item) => item.priceId)
-
-    // added
-    addedPriceIds = _.difference(dbPriceIds, dbCurrPriceIds)
-    await Promise.all(
-      addedPriceIds.map(async (priceId) => {
-        const providerSubscriptionItemId = stripeSubItems.data.find(
-          (item) => item.price.id === priceId
-        )
-        await atomService.create({
-          table: 'circle_subscription_item',
-          data: {
-            priceId,
-            providerSubscriptionItemId,
-            subscriptionId,
-            userId,
-          },
-        })
-      })
-    )
-
-    // removed
-    removedPriceIds = _.difference(dbCurrPriceIds, dbPriceIds)
-    await Promise.all(
-      removedPriceIds.map(async (priceId) => {
-        await atomService.update({
-          table: 'circle_subscription_item',
-          where: {
-            userId,
-            subscriptionId,
-            priceId,
-          },
-          data: {
-            archived: true,
-            updatedAt: new Date(),
-          },
-        })
-      })
-    )
-  } catch (error) {
-    logger.error(error)
-    throw new ServerError('failed to update subscription items')
   }
 
-  // invalidate user & circle
-  try {
-    const dbDiffPrices = await atomService.findMany({
-      table: 'circle_price',
-      whereIn: ['id', [...addedPriceIds, ...removedPriceIds]],
-    })
-    invalidateFQC({
-      node: { type: NODE_TYPES.user, id: dbSubscription.userId },
-      redis: cacheService.redis,
-    })
-    dbDiffPrices.map((price) => {
-      invalidateFQC({
-        node: { type: NODE_TYPES.circle, id: price.circleId },
-        redis: cacheService.redis,
+  // invalidate user
+  invalidateFQC({
+    node: { type: NODE_TYPES.User, id: dbSub.userId },
+    redis: cacheService.redis,
+  })
+
+  // invalidatecircle
+  if (isToCanceled && updatedPriceIds) {
+    try {
+      const dbDiffPrices = await atomService.findMany({
+        table: 'circle_price',
+        whereIn: ['id', updatedPriceIds],
       })
-    })
-  } catch (error) {
-    logger.error(error)
+      dbDiffPrices.map((price) => {
+        invalidateFQC({
+          node: { type: NODE_TYPES.Circle, id: price.circleId },
+          redis: cacheService.redis,
+        })
+      })
+    } catch (error) {
+      logger.error(error)
+    }
   }
 
   return

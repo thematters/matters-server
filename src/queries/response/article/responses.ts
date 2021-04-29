@@ -1,5 +1,6 @@
 import _last from 'lodash/last'
 
+import { NODE_TYPES } from 'common/enums'
 import { fromGlobalId, toGlobalId } from 'common/utils'
 import { ArticleToResponsesResolver } from 'definitions'
 
@@ -62,7 +63,7 @@ const resolver: ArticleToResponsesResolver = async (
 
   // re-process edges
   const edges = items.map((item: { [key: string]: any }) => {
-    const type = !!item.title ? 'Article' : 'Comment'
+    const type = !!item.title ? NODE_TYPES.Article : NODE_TYPES.Comment
     const id = type === 'Article' ? item.articleId : item.id
 
     return {

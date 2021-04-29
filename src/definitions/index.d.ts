@@ -19,8 +19,6 @@ import {
 export * from './schema'
 export * from './notification'
 
-export type NodeTypes = 'Article' | 'User' | 'Comment' | 'Draft' | 'Tag'
-
 export type User = {
   id: string
   uuid: string
@@ -143,7 +141,6 @@ export type BasicTableName =
   | 'punish_record'
   | 'entity_type'
   | 'circle'
-  | 'circle_coupon'
   | 'circle_invitation'
   | 'circle_price'
   | 'circle_subscription'

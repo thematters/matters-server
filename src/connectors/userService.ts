@@ -407,6 +407,9 @@ export class UserService extends BaseService {
         prefix: key,
         completion: {
           field: 'userName',
+          fuzzy: {
+            fuzziness: 0,
+          },
           size: first,
         },
       },
@@ -443,7 +446,7 @@ export class UserService extends BaseService {
       )
 
       // merge two ID arrays and remove duplicates
-      let ids = [...new Set([...matchIds, ...displayNameIds, ...userNameIds])]
+      let ids = [...new Set([...userNameIds, ...displayNameIds, ...matchIds])]
 
       // filter out users who blocked viewer
       if (exclude === GQLSearchExclude.blocked && viewerId) {

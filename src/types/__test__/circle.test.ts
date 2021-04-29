@@ -1,6 +1,6 @@
 import _get from 'lodash/get'
 
-import { ARTICLE_ACCESS_TYPE } from 'common/enums'
+import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLCommentType } from 'definitions'
 
@@ -151,6 +151,7 @@ const QUERY_VIEWER_CIRCLE_INVITATIONS = /* GraphQL*/ `
               inviter {
                 id
               }
+              accepted
             }
           }
         }
@@ -180,6 +181,17 @@ const CIRCLE_INVITE = /* GraphQL*/ `
       }
       freePeriod
       accepted
+    }
+  }
+`
+
+const SUBSCRIBE_CIRCLE = /* GraphQL */ `
+  mutation($input: SubscribeCircleInput!) {
+    subscribeCircle(input: $input) {
+      circle {
+        id
+        isMember
+      }
     }
   }
 `
@@ -589,6 +601,12 @@ describe('circle CRUD', () => {
   })
 })
 
+const ADMIN_USER_ID = 5
+const ADMIN_USER_GLOBAL_ID = toGlobalId({
+  type: NODE_TYPES.User,
+  id: ADMIN_USER_ID,
+})
+
 describe('circle invitation management', () => {
   // shared setting
   const errorPath = 'errors.0.extensions.code'
@@ -596,9 +614,8 @@ describe('circle invitation management', () => {
   const adminClient = { isAuth: true, isAdmin: true }
 
   // shared invitee
-  const inviteeId = toGlobalId({ type: 'User', id: 3 })
   const invitees = [
-    { id: inviteeId, email: null },
+    { id: ADMIN_USER_GLOBAL_ID, email: null },
     { id: null, email: 'someone@matters.news' },
   ]
 
@@ -625,7 +642,9 @@ describe('circle invitation management', () => {
     })
     expect(_get(inviteData1, 'data.invite').length).toBe(2)
     expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(3)
-    expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(inviteeId)
+    expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(
+      ADMIN_USER_GLOBAL_ID
+    )
     expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(3)
     expect(_get(inviteData1, 'data.invite.1.invitee.email')).toBe(
       'someone@matters.news'
@@ -687,5 +706,53 @@ describe('circle invitation management', () => {
       },
     })
     expect(_get(inviteData5, errorPath)).toBe('FORBIDDEN')
+  })
+
+  test('accept invitation', async () => {
+    const { query } = await testClient(userClient)
+    const { mutate } = await testClient(adminClient)
+
+    // check init state of invitations
+    const { data: ivtData } = await query({
+      query: QUERY_VIEWER_CIRCLE_INVITATIONS,
+    })
+    const circle = _get(ivtData, 'viewer.ownCircles.0')
+    const ivtEdges = _get(ivtData, 'viewer.ownCircles.0.invitations.edges', [])
+    ivtEdges.forEach((edge: any) => {
+      const inviteeId = _get(edge, 'node.invitee.id')
+
+      if (inviteeId === ADMIN_USER_GLOBAL_ID) {
+        expect(_get(edge, 'node.accepted')).toBe(false)
+      }
+    })
+
+    // subscribe invited circle
+    const subscribeResult = await mutate({
+      mutation: SUBSCRIBE_CIRCLE,
+      variables: { input: { id: circle.id, password: '123456' } },
+    })
+    expect(_get(subscribeResult, 'data.subscribeCircle.circle.id')).toBe(
+      circle.id
+    )
+    expect(_get(subscribeResult, 'data.subscribeCircle.circle.isMember')).toBe(
+      true
+    )
+
+    // check if it's accept
+    const { data: newIvtData } = await query({
+      query: QUERY_VIEWER_CIRCLE_INVITATIONS,
+    })
+    const newIvtEdges = _get(
+      newIvtData,
+      'viewer.ownCircles.0.invitations.edges',
+      []
+    )
+    newIvtEdges.forEach((edge: any) => {
+      const inviteeId = _get(edge, 'node.invitee.id')
+
+      if (inviteeId === ADMIN_USER_GLOBAL_ID) {
+        expect(_get(edge, 'node.accepted')).toBe(true)
+      }
+    })
   })
 })

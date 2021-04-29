@@ -92,43 +92,35 @@ const resolver: MutationToSubscribeCircleResolver = async (
     userId: circle.owner,
     targetId: viewer.id,
   })
-
   if (isBlocked) {
     throw new ForbiddenError('viewer has no permission')
   }
-
-  const provider = PAYMENT_PROVIDER.stripe
 
   // retrieve or create a Customer
   let customer = (await atomService.findFirst({
     table: 'customer',
     where: {
       userId: viewer.id,
-      provider,
+      provider: PAYMENT_PROVIDER.stripe,
       archived: false,
     },
   })) as Customer
-
   if (!customer) {
     customer = (await paymentService.createCustomer({
       user: viewer,
-      provider,
+      provider: PAYMENT_PROVIDER.stripe,
     })) as Customer
   }
 
   // check subscription
-  const subscriptions = await paymentService.findSubscriptions({
+  const subscriptions = await paymentService.findActiveSubscriptions({
     userId: viewer.id,
   })
-  const subscription = subscriptions[0]
   const items =
     subscriptions && subscriptions.length > 0
       ? await atomService.findMany({
           table: 'circle_subscription_item',
-          where: {
-            priceId: price.id,
-            archived: false,
-          },
+          where: { priceId: price.id, archived: false },
           whereIn: ['subscription_id', subscriptions.map((sub) => sub.id)],
         })
       : null
@@ -171,22 +163,13 @@ const resolver: MutationToSubscribeCircleResolver = async (
       )
     }
 
-    if (!subscription) {
-      await paymentService.createSubscription({
-        userId: viewer.id,
-        priceId: price.id,
-        providerCustomerId: customer.customerId,
-        providerPriceId: price.providerPriceId,
-      })
-    } else {
-      await paymentService.createSubscriptionItem({
-        userId: viewer.id,
-        priceId: price.id,
-        subscriptionId: subscription.id,
-        providerPriceId: price.providerPriceId,
-        providerSubscriptionId: subscription.providerSubscriptionId,
-      })
-    }
+    await paymentService.createSubscriptionOrItem({
+      userId: viewer.id,
+      priceId: price.id,
+      providerPriceId: price.providerPriceId,
+      providerCustomerId: customer.customerId,
+      subscriptions,
+    })
 
     // trigger notificaiton
     notificationService.trigger({
@@ -225,11 +208,11 @@ const resolver: MutationToSubscribeCircleResolver = async (
     // invalidate user & circle
     const cacheService = new CacheService()
     invalidateFQC({
-      node: { type: NODE_TYPES.circle, id: circle.id },
+      node: { type: NODE_TYPES.Circle, id: circle.id },
       redis: cacheService.redis,
     })
     invalidateFQC({
-      node: { type: NODE_TYPES.user, id: viewer.id },
+      node: { type: NODE_TYPES.User, id: viewer.id },
       redis: cacheService.redis,
     })
 
