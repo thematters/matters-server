@@ -11,6 +11,7 @@ import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PRICE_STATE,
+  SUBSCRIPTION_STATE,
 } from 'common/enums'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
@@ -194,7 +195,7 @@ export const updateSubscription = async ({
   /**
    * sync subscription
    */
-  if (isSubStateChanged) {
+  if (isSubStateChanged && dbSub.state !== SUBSCRIPTION_STATE.canceled) {
     try {
       await atomService.update({
         table: 'circle_subscription',
@@ -247,19 +248,21 @@ export const updateSubscription = async ({
     addedPriceIds = _.difference(dbPriceIds, dbCurrPriceIds)
     await Promise.all(
       addedPriceIds.map(async (priceId) => {
-        const providerSubscriptionItemId = stripeSubItems.data.find(
+        const providerSubscriptionItem = stripeSubItems.data.find(
           (item) => item.price.id === priceId
         )
-        await atomService.create({
-          table: 'circle_subscription_item',
-          data: {
-            subscriptionId,
-            userId,
-            priceId,
-            provider: PAYMENT_PROVIDER.stripe,
-            providerSubscriptionItemId,
-          },
-        })
+        if (providerSubscriptionItem) {
+          await atomService.create({
+            table: 'circle_subscription_item',
+            data: {
+              subscriptionId,
+              userId,
+              priceId,
+              provider: PAYMENT_PROVIDER.stripe,
+              providerSubscriptionItemId: providerSubscriptionItem.id,
+            },
+          })
+        }
       })
     )
 
