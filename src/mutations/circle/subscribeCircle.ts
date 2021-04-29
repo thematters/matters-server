@@ -113,10 +113,9 @@ const resolver: MutationToSubscribeCircleResolver = async (
   }
 
   // check subscription
-  const subscriptions = await paymentService.findSubscriptions({
+  const subscriptions = await paymentService.findActiveSubscriptions({
     userId: viewer.id,
   })
-  const subscription = subscriptions[0]
   const items =
     subscriptions && subscriptions.length > 0
       ? await atomService.findMany({
@@ -164,22 +163,12 @@ const resolver: MutationToSubscribeCircleResolver = async (
       )
     }
 
-    if (!subscription) {
-      await paymentService.createSubscription({
-        userId: viewer.id,
-        priceId: price.id,
-        providerCustomerId: customer.customerId,
-        providerPriceId: price.providerPriceId,
-      })
-    } else {
-      await paymentService.createSubscriptionItem({
-        userId: viewer.id,
-        priceId: price.id,
-        subscriptionId: subscription.id,
-        providerPriceId: price.providerPriceId,
-        providerSubscriptionId: subscription.providerSubscriptionId,
-      })
-    }
+    await paymentService.createSubscriptionOrItem({
+      userId: viewer.id,
+      priceId: price.id,
+      customerId: customer.customerId,
+      subscriptions,
+    })
 
     // trigger notificaiton
     notificationService.trigger({

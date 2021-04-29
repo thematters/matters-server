@@ -87,25 +87,14 @@ export const completeCircleSubscription = async ({
     return
   }
 
-  const subscriptions = await paymentService.findSubscriptions({ userId })
-  const subscription = subscriptions[0]
+  const subscriptions = await paymentService.findActiveSubscriptions({ userId })
 
-  if (!subscription) {
-    await paymentService.createSubscription({
-      userId,
-      priceId: price.id,
-      providerCustomerId: customer.customerId,
-      providerPriceId: price.providerPriceId,
-    })
-  } else {
-    await paymentService.createSubscriptionItem({
-      userId,
-      priceId: price.id,
-      subscriptionId: subscription.id,
-      providerPriceId: price.providerPriceId,
-      providerSubscriptionId: subscription.providerSubscriptionId,
-    })
-  }
+  await paymentService.createSubscriptionOrItem({
+    userId,
+    priceId: price.id,
+    customerId: customer.customerId,
+    subscriptions,
+  })
 
   // trigger notificaiton
   notificationService.trigger({
