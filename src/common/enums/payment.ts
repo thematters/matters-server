@@ -212,3 +212,8 @@ export const COUNTRY_CODE = {
   UnitedKingdom: 'UK',
   UnitedStates: 'US',
 }
+
+export enum SUBSCRIPTION_ITEM_REMARK {
+  trial_end = 'trial_end',
+  trial_cancel = 'trial_cancel',
+}
