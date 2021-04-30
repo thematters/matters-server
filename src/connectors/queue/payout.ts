@@ -5,11 +5,12 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
+  SLACK_MESSAGE_STATE,
   TRANSACTION_STATE,
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
 import logger from 'common/logger'
-import { numDivide, numRound } from 'common/utils'
+import { numDivide, numMinus, numRound } from 'common/utils'
 import { AtomService, PaymentService } from 'connectors'
 import SlackService from 'connectors/slack'
 
@@ -127,6 +128,12 @@ class PayoutQueue extends BaseQueue {
         return done(null, job.data)
       }
 
+      // only support HKD
+      if (tx.currency !== PAYMENT_CURRENCY.HKD) {
+        await this.cancelTx(txId)
+        return done(null, job.data)
+      }
+
       // transfer to recipient's account in USD
       let HKDtoUSD: number
       try {
@@ -134,14 +141,19 @@ class PayoutQueue extends BaseQueue {
       } catch (error) {
         slack.sendStripeAlert({
           data,
-          message: 'failed to get currency rate.',
+          message: error?.message || 'failed to get currency rate.',
         })
         throw error
       }
 
+      const amount = numRound(tx.amount)
+      const amountInUSD = numRound(numDivide(amount, HKDtoUSD))
+      const fee = numRound(tx.fee)
+      const feeInUSD = numRound(numDivide(fee, HKDtoUSD))
+      const net = numRound(numMinus(amount, fee))
+      const netInUSD = numRound(numMinus(amountInUSD, feeInUSD))
       const transfer = await this.paymentService.stripe.transfer({
-        amount: numRound(numDivide(tx.amount, HKDtoUSD)),
-        fee: numRound(numDivide(tx.fee, HKDtoUSD)),
+        amount: netInUSD,
         currency: PAYMENT_CURRENCY.USD,
         recipientStripeConnectedId: recipient.accountId,
         txId,
@@ -157,6 +169,39 @@ class PayoutQueue extends BaseQueue {
         state: TRANSACTION_STATE.succeeded,
         provider_tx_id: transfer.id,
         updatedAt: new Date(),
+      })
+
+      // notifications
+      const user = await this.atomService.findFirst({
+        table: 'user',
+        where: { id: tx.senderId },
+      })
+
+      this.notificationService.mail.sendPayment({
+        to: recipient.email,
+        recipient: {
+          displayName: user.displayName,
+          userName: user.userName,
+        },
+        type: 'payout',
+        tx: {
+          recipient,
+          amount: net,
+          currency: tx.currency,
+        },
+      })
+
+      slack.sendPayoutMessage({
+        amount,
+        amountInUSD,
+        fee,
+        feeInUSD,
+        net,
+        netInUSD,
+        currency: tx.currency,
+        state: SLACK_MESSAGE_STATE.successful,
+        txId: tx.providerTxId,
+        userName: user.userName,
       })
 
       job.progress(100)

@@ -212,19 +212,17 @@ class StripeService {
   transfer = async ({
     amount,
     currency,
-    fee,
     recipientStripeConnectedId,
     txId,
   }: {
     amount: number
     currency: PAYMENT_CURRENCY
-    fee: number
     recipientStripeConnectedId: string
     txId: string
   }) => {
     try {
       return await this.stripeAPI.transfers.create({
-        amount: toProviderAmount({ amount: amount - fee }),
+        amount: toProviderAmount({ amount }),
         currency,
         destination: recipientStripeConnectedId,
         metadata: { [METADATA_KEY.TX_ID]: txId },

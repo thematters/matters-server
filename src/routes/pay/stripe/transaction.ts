@@ -4,14 +4,12 @@ import Stripe from 'stripe'
 import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
-  SLACK_MESSAGE_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
 import { numRound, toDBAmount } from 'common/utils'
 import { NotificationService, PaymentService, UserService } from 'connectors'
-import SlackService from 'connectors/slack'
 
 const mappingTxPurposeToMailType = (type: TRANSACTION_PURPOSE) => {
   switch (type) {
@@ -63,10 +61,7 @@ export const updateTxState = async (
   // trigger notifications
   const mailType = mappingTxPurposeToMailType(tx.purpose)
   if (eventType === 'payment_intent.succeeded' && mailType) {
-    const isPayout = tx.purpose === TRANSACTION_PURPOSE.payout
-    const recipient = await userService.baseFindById(
-      isPayout ? tx.senderId : tx.recipientId
-    )
+    const recipient = await userService.baseFindById(tx.recipientId)
     notificationService.mail.sendPayment({
       to: recipient.email,
       recipient: {
@@ -76,27 +71,10 @@ export const updateTxState = async (
       type: mailType,
       tx: {
         recipient,
-        amount: numRound(isPayout ? tx.amount - tx.fee : tx.amount),
+        amount: numRound(tx.amount),
         currency: tx.currency,
       },
     })
-
-    // send slack message
-    // NOTE: the amount currency of payout is USD, not HKD in the DB,
-    // please don't sync with Stripe.
-    // @see /src/connectors/queue/payout.ts
-    if (isPayout) {
-      const slack = new SlackService()
-      if (slack) {
-        slack.sendPayoutMessage({
-          amount: tx.amount,
-          fee: tx.fee,
-          state: SLACK_MESSAGE_STATE.successful,
-          txId: tx.providerTxId,
-          userName: recipient.userName,
-        })
-      }
-    }
   }
 }
 

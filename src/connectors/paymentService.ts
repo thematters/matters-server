@@ -447,37 +447,50 @@ export class PaymentService extends BaseService {
    */
   getUSDtoHKDRate = async (): Promise<number> => {
     const cacheService = new CacheService()
-    const cacheKey = 'openExRate:usdtohkd'
-    const cacheTTl = HOUR
+    const cacheKey = 'openExRate'
+    const cacheTTl = HOUR / 1000
+
+    const checkRate = ({ base, HKD }: { base: string; HKD: number }) => {
+      const MAX_USD_TO_HKD_RATE = 10
+
+      if (base !== 'USD') {
+        throw new Error('rate base is not USD.')
+      }
+
+      if (!HKD || typeof HKD !== 'number') {
+        throw new Error('invalid HKD rate.')
+      }
+
+      if (HKD >= MAX_USD_TO_HKD_RATE) {
+        throw new Error(`HKD rate (${HKD}) >= ${MAX_USD_TO_HKD_RATE}.`)
+      }
+    }
 
     // get from cache
-    const cachedRate = await cacheService.redis.get(cacheKey)
+    const cachedRates = JSON.parse(
+      (await cacheService.redis.get(cacheKey)) || JSON.stringify('')
+    )
 
-    if (cachedRate) {
-      return JSON.parse(cachedRate)
+    if (cachedRates) {
+      checkRate(cachedRates)
+      return cachedRates.HKD
     }
 
     // get from API, then cache it
     const { data } = await axios.get(
       `https://openexchangerates.org/api/latest.json?app_id=${environment.openExchangeRatesAppId}`
     )
-    const base = _.get(data, 'base')
-    const USDtoHKD = _.get(data, 'rates.HKD')
-    const MAX_USD_TO_HKD_RATE = 50
-
-    if (
-      base !== 'USD' ||
-      !USDtoHKD ||
-      typeof USDtoHKD !== 'number' ||
-      USDtoHKD >= MAX_USD_TO_HKD_RATE
-    ) {
-      throw new Error('neither USD base nor valid rate.')
+    const rates = {
+      base: _.get(data, 'base'),
+      HKD: _.get(data, 'rates.HKD'),
     }
 
-    const serializedData = JSON.stringify(USDtoHKD)
+    checkRate(rates)
+
+    const serializedData = JSON.stringify(rates)
     cacheService.redis.client.set(cacheKey, serializedData, 'EX', cacheTTl)
 
-    return USDtoHKD
+    return rates.HKD
   }
 
   /*********************************
