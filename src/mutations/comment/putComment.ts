@@ -168,7 +168,7 @@ const resolver: MutationToPutCommentResolver = async (
     USER_STATE.frozen,
   ].includes(viewer.state)
 
-  if ((isOnboarding && !isTargetAuthor) || isInactive) {
+  if ((article && isOnboarding && !isTargetAuthor) || isInactive) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 

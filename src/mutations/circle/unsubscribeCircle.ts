@@ -80,7 +80,7 @@ const resolver: MutationToUnsubscribeCircleResolver = async (
       )
       state = stripeSub?.status
       canceledAt = stripeSub?.canceled_at
-        ? stripeSub?.canceled_at * 1000
+        ? new Date(stripeSub.canceled_at * 1000)
         : undefined
     }
 
