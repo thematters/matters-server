@@ -317,10 +317,12 @@ export const completeCircleInvoice = async ({
 
     // retrieve prices
     const lines = invoice.lines.has_more
-      ? await stripe.invoices.listLineItems(providerInvoiceId, {limit: 100})
+      ? await stripe.invoices.listLineItems(providerInvoiceId, { limit: 100 })
       : invoice.lines
 
-    const providerPriceIds = lines.data.map((item) => item.price ? item.price.id : '')
+    const providerPriceIds = lines.data.map((item) =>
+      item.price ? item.price.id : ''
+    )
 
     const prices = (await atomService.findMany({
       table: 'circle_price',
