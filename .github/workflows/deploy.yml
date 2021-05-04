@@ -142,7 +142,6 @@ jobs:
           MATTERS_PG_DATABASE: ${{ secrets.DEVELOP_PG_DATABASE }}
           MATTERS_PG_USER: ${{ secrets.DEVELOP_PG_USER }}
           MATTERS_PG_PASSWORD: ${{ secrets.DEVELOP_PG_PASSWORD }}
-          MATTERS_STRIPE_SECRET: ${{ secrets.DEVELOP_STRIPE_SECRET }}
 
       - name: Build, tag, and push image to Amazon ECR (develop)
         if: github.base_ref == 'develop'
@@ -180,7 +179,6 @@ jobs:
           MATTERS_PG_DATABASE: ${{ secrets.STAGE_PG_DATABASE }}
           MATTERS_PG_USER: ${{ secrets.STAGE_PG_USER }}
           MATTERS_PG_PASSWORD: ${{ secrets.STAGE_PG_PASSWORD }}
-          MATTERS_STRIPE_SECRET: ${{ secrets.STAGE_STRIPE_SECRET }}
 
       - name: Build, tag, and push image to Amazon ECR (stage)
         if: github.base_ref == 'stage'
@@ -238,7 +236,6 @@ jobs:
           MATTERS_PG_DATABASE: ${{ secrets.PROD_PG_DATABASE }}
           MATTERS_PG_USER: ${{ secrets.PROD_PG_USER }}
           MATTERS_PG_PASSWORD: ${{ secrets.PROD_PG_PASSWORD }}
-          MATTERS_STRIPE_SECRET: ${{ secrets.PROD_STRIPE_SECRET }}
 
       - name: Kill VPN
         if: always()
