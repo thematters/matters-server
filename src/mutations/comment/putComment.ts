@@ -22,7 +22,7 @@ import {
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { fromGlobalId, isArticleLimitedFree, sanitize } from 'common/utils'
+import { fromGlobalId, sanitize } from 'common/utils'
 import { GQLCommentType, MutationToPutCommentResolver } from 'definitions'
 
 const resolver: MutationToPutCommentResolver = async (
@@ -205,11 +205,8 @@ const resolver: MutationToPutCommentResolver = async (
         circleId: articleCircle.circleId,
       })
       const isPublic = articleCircle.access === ARTICLE_ACCESS_TYPE.public
-      const isPaywalled = articleCircle.access === ARTICLE_ACCESS_TYPE.paywall
-      const isLimitedFree =
-        isPaywalled && isArticleLimitedFree(articleCircle.createdAt)
 
-      if (!isCircleMember && !isLimitedFree && !isPublic) {
+      if (!isCircleMember && !isPublic) {
         throw new ForbiddenError('only circle members have the permission')
       }
     }

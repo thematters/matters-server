@@ -95,9 +95,6 @@ const resolver: MutationToEditArticleResolver = async (
   if (article.state !== ARTICLE_STATE.active) {
     throw new ForbiddenError('only active article is allowed to be edited.')
   }
-  if (accessType && accessType === ARTICLE_ACCESS_TYPE.limitedFree) {
-    throw new UserInputError('"accessType" can only be `public` or `paywall`.')
-  }
 
   /**
    * Archive

@@ -57,9 +57,3 @@ export const getUTC8NextMonday = (_date?: Date) => {
   date.setHours(date.getHours() - 8)
   return date.getTime()
 }
-
-export const isArticleLimitedFree = (date: string | Date) => {
-  const now = Date.now()
-  const endAt = new Date(date).getTime() + HOUR * 24
-  return now <= endAt
-}

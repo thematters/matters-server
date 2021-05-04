@@ -76,7 +76,6 @@ export const ARTICLE_STATE = {
 export const ARTICLE_ACCESS_TYPE = {
   public: 'public',
   paywall: 'paywall',
-  limitedFree: 'limitedFree',
 }
 
 export const PUBLISH_STATE = {

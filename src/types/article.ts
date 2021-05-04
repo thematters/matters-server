@@ -173,9 +173,6 @@ export default /* GraphQL */ `
     "Revision Count"
     revisionCount: Int!
 
-    "This value determines if this article is free for a limited time or not."
-    limitedFree: Boolean! @deprecated(reason: "Use \`access.type\` instead")
-
     "Current article belongs to which Circle."
     circle: Circle @logCache(type: "${NODE_TYPES.Circle}") @deprecated(reason: "Use \`access.circle\` instead")
 
@@ -426,7 +423,6 @@ export default /* GraphQL */ `
   enum ArticleAccessType {
     public
     paywall
-    limitedFree
   }
 
   "Enums for types of recommend articles."

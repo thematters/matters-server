@@ -50,10 +50,6 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
   }
 
-  if (accessType === ARTICLE_ACCESS_TYPE.limitedFree) {
-    throw new UserInputError('"accessType" can only be `public` or `paywall`.')
-  }
-
   if (!articles) {
     throw new UserInputError('"articles" is required')
   }

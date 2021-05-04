@@ -446,7 +446,7 @@ describe('circle CRUD', () => {
     ).toBe(circle.id)
     expect(
       _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
-    ).toBe(ARTICLE_ACCESS_TYPE.limitedFree)
+    ).toBe(ARTICLE_ACCESS_TYPE.paywall)
 
     // remove from circle
     const removedData = await mutate({
@@ -470,7 +470,7 @@ describe('circle CRUD', () => {
     const circle = _get(data, 'viewer.ownCircles[0]')
     const article = _get(data, 'viewer.articles.edges[1].node')
 
-    // add to circle with public access
+    // add to circle with paywall access
     const paywallInput: Record<string, any> = {
       id: circle.id,
       articles: [article.id],
@@ -490,7 +490,7 @@ describe('circle CRUD', () => {
     ).toBe(circle.id)
     expect(
       _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
-    ).toBe(ARTICLE_ACCESS_TYPE.limitedFree)
+    ).toBe(ARTICLE_ACCESS_TYPE.paywall)
 
     // try to turn to public access but an error occurs
     const publicInput: Record<string, any> = {

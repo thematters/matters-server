@@ -1,5 +1,5 @@
 import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE, CIRCLE_STATE } from 'common/enums'
-import { correctHtml, isArticleLimitedFree } from 'common/utils'
+import { correctHtml } from 'common/utils'
 import { ArticleToContentResolver } from 'definitions'
 
 // ACL for article content
@@ -40,15 +40,9 @@ const resolver: ArticleToContentResolver = async (
   }
 
   const isPublic = articleCircle.access === ARTICLE_ACCESS_TYPE.public
-  const isPaywalled = articleCircle.access === ARTICLE_ACCESS_TYPE.paywall
 
   // public
   if (isPublic) {
-    return correctHtml(content)
-  }
-
-  // limited free
-  if (isPaywalled && isArticleLimitedFree(articleCircle.createdAt)) {
     return correctHtml(content)
   }
 
