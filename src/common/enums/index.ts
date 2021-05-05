@@ -208,3 +208,5 @@ export const LOCAL_STRIPE = {
   port: '12111',
   protocol: 'http',
 }
+
+export const MAX_ARTICLE_REVISION_COUNT = 2

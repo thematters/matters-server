@@ -8,6 +8,7 @@ import {
   CACHE_KEYWORD,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
+  MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
   PUBLISH_STATE,
   USER_STATE,
@@ -36,8 +37,6 @@ import {
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { ItemData, MutationToEditArticleResolver } from 'definitions'
-
-const MAX_REVISION_COUNT = 2
 
 const resolver: MutationToEditArticleResolver = async (
   _,
@@ -383,6 +382,13 @@ const resolver: MutationToEditArticleResolver = async (
    * Republish article if content or access is changed
    */
   const republish = async (newContent?: string) => {
+    const revisionCount = article.revisionCount || 0
+    if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
+      throw new ArticleRevisionReachLimitError(
+        'number of revisions reach limit'
+      )
+    }
+
     // fetch updated data before create draft
     const [
       currDraft,
@@ -443,14 +449,6 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   if (content) {
-    // cannot have drafts more than first draft plus 2 pending or published revision
-    const revisionCount = article.revisionCount || 0
-    if (revisionCount >= MAX_REVISION_COUNT) {
-      throw new ArticleRevisionReachLimitError(
-        'number of revisions reach limit'
-      )
-    }
-
     // check diff distances reaches limit or not
     const cleanedContent = stripClass(content, 'u-area-disable')
     const diffs = measureDiffs(

@@ -7,6 +7,7 @@ import {
   CIRCLE_ACTION,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
+  MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
   PRICE_STATE,
   PUBLISH_STATE,
@@ -15,6 +16,7 @@ import {
 } from 'common/enums'
 import {
   ArticleNotFoundError,
+  ArticleRevisionReachLimitError,
   AuthenticationError,
   CircleNotFoundError,
   ForbiddenByStateError,
@@ -94,6 +96,13 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   }
 
   const republish = async (article: any) => {
+    const revisionCount = article.revisionCount || 0
+    if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
+      throw new ArticleRevisionReachLimitError(
+        'number of revisions reach limit'
+      )
+    }
+
     // fetch updated data before create draft
     const [
       currDraft,
