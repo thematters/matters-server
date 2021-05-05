@@ -3,7 +3,6 @@ import { difference, flow, trim, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
-  ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
   ASSET_TYPE,
   CACHE_KEYWORD,
@@ -34,7 +33,6 @@ import {
   measureDiffs,
   sanitize,
   stripClass,
-  toGlobalId,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { ItemData, MutationToEditArticleResolver } from 'definitions'
@@ -325,29 +323,6 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Circle
    */
-  const checkPaywalledArticle = async () => {
-    const paywalledArticle = await knex
-      .select('article_circle.*')
-      .from('article_circle')
-      .join('circle', 'article_circle.circle_id', 'circle.id')
-      .where({
-        'article_circle.article_id': article.id,
-        'article_circle.access': ARTICLE_ACCESS_TYPE.paywall,
-        'circle.state': CIRCLE_STATE.active,
-      })
-      .first()
-
-    if (paywalledArticle) {
-      const paywalledArticleId = toGlobalId({
-        type: NODE_TYPES.Article,
-        id: article.id,
-      })
-      throw new ForbiddenError(
-        `forbid to perform the action on paywalled articles: ${paywalledArticleId}.`
-      )
-    }
-  }
-
   const resetCircle = circleGlobalId === null
   let circle: any
   if (circleGlobalId) {
@@ -370,9 +345,6 @@ const resolver: MutationToEditArticleResolver = async (
     if (!accessType) {
       throw new UserInputError('"accessType" is required on `circle`.')
     }
-    if (accessType === ARTICLE_ACCESS_TYPE.public) {
-      await checkPaywalledArticle()
-    }
 
     // insert to db
     const data = { articleId: article.id, circleId: circle.id }
@@ -383,8 +355,6 @@ const resolver: MutationToEditArticleResolver = async (
       update: { ...data, access: accessType, updatedAt: new Date() },
     })
   } else if (resetCircle) {
-    await checkPaywalledArticle()
-
     await atomService.deleteMany({
       table: 'article_circle',
       where: { articleId: article.id },
@@ -410,12 +380,9 @@ const resolver: MutationToEditArticleResolver = async (
   }
 
   /**
-   * Republish article on content changes or paywalled
+   * Republish article if content or access is changed
    */
-  const republish = async (
-    newContent?: string,
-    increaseRevisionCount?: boolean
-  ) => {
+  const republish = async (newContent?: string) => {
     // fetch updated data before create draft
     const [
       currDraft,
@@ -472,7 +439,6 @@ const resolver: MutationToEditArticleResolver = async (
     // add job to publish queue
     revisionQueue.publishRevisedArticle({
       draftId: revisedDraft.id,
-      increaseRevisionCount: !!increaseRevisionCount,
     })
   }
 
@@ -495,9 +461,9 @@ const resolver: MutationToEditArticleResolver = async (
       throw new ArticleRevisionContentInvalidError('revised content invalid')
     }
 
-    await republish(content, true)
-  } else if (accessType === ARTICLE_ACCESS_TYPE.paywall) {
-    await republish(undefined, false)
+    await republish(content)
+  } else if (circle || resetCircle) {
+    await republish()
   }
 
   /**
