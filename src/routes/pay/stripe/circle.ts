@@ -348,5 +348,6 @@ export const completeCircleInvoice = async ({
       data: slackEventData,
       message: error,
     })
+    throw error
   }
 }
