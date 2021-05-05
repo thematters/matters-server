@@ -31,6 +31,7 @@ try {
 const PORT = 4000
 const app = express()
 const httpServer = http.createServer(app)
+app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal'])
 
 /**
  * Middlewares
