@@ -504,7 +504,7 @@ describe('circle CRUD', () => {
     })
     expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
     expect(
-      _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
+      _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
     ).toBe(ARTICLE_ACCESS_TYPE.public)
   })
 
