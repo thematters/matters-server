@@ -220,12 +220,6 @@ export interface GQLArticle extends GQLNode {
   revisionCount: number
 
   /**
-   * This value determines if this article is free for a limited time or not.
-   * @deprecated Use `access.type` instead
-   */
-  limitedFree: boolean
-
-  /**
    * Current article belongs to which Circle.
    * @deprecated Use `access.circle` instead
    */
@@ -1501,7 +1495,6 @@ export interface GQLDraftAccess {
 export const enum GQLArticleAccessType {
   public = 'public',
   paywall = 'paywall',
-  limitedFree = 'limitedFree',
 }
 
 export interface GQLUserActivity {
@@ -3794,7 +3787,6 @@ export interface GQLArticleTypeResolver<TParent = any> {
   transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
   drafts?: ArticleToDraftsResolver<TParent>
   revisionCount?: ArticleToRevisionCountResolver<TParent>
-  limitedFree?: ArticleToLimitedFreeResolver<TParent>
   circle?: ArticleToCircleResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
@@ -4170,15 +4162,6 @@ export interface ArticleToDraftsResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToRevisionCountResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleToLimitedFreeResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
