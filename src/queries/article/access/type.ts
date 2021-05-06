@@ -1,5 +1,4 @@
 import { ARTICLE_ACCESS_TYPE, CIRCLE_STATE } from 'common/enums'
-import { isArticleLimitedFree } from 'common/utils'
 import { ArticleAccessToTypeResolver } from 'definitions'
 
 export const type: ArticleAccessToTypeResolver = async (
@@ -25,14 +24,6 @@ export const type: ArticleAccessToTypeResolver = async (
   // public
   if (articleCircle.access === ARTICLE_ACCESS_TYPE.public) {
     return ARTICLE_ACCESS_TYPE.public
-  }
-
-  // limitedFree
-  if (
-    articleCircle.access === ARTICLE_ACCESS_TYPE.paywall &&
-    isArticleLimitedFree(articleCircle.createdAt)
-  ) {
-    return ARTICLE_ACCESS_TYPE.limitedFree
   }
 
   // paywall

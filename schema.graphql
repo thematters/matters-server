@@ -195,11 +195,6 @@ type Article implements Node {
   """Revision Count"""
   revisionCount: Int!
 
-  """
-  This value determines if this article is free for a limited time or not.
-  """
-  limitedFree: Boolean! @deprecated(reason: "Use `access.type` instead")
-
   """Current article belongs to which Circle."""
   circle: Circle @deprecated(reason: "Use `access.circle` instead")
 
@@ -249,7 +244,6 @@ type ArticleAccess {
 enum ArticleAccessType {
   public
   paywall
-  limitedFree
 }
 
 type ArticleArticleNotice implements Notice {

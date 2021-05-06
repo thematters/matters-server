@@ -79,6 +79,7 @@ const PUT_CIRCLE_ARTICLES = /* GraphQL */ `
                 id
               }
             }
+            revisionCount
           }
         }
       }
@@ -398,9 +399,7 @@ describe('circle CRUD', () => {
   test('add article to circle with public access, then turns to paywall access', async () => {
     const path = 'data.putCircleArticles'
     const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
-      query: GET_VIEWER_OWN_CIRCLES,
-    })
+    const { data } = await query({ query: GET_VIEWER_OWN_CIRCLES })
     const circle = _get(data, 'viewer.ownCircles[0]')
     const article = _get(data, 'viewer.articles.edges[0].node')
 
@@ -446,7 +445,7 @@ describe('circle CRUD', () => {
     ).toBe(circle.id)
     expect(
       _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
-    ).toBe(ARTICLE_ACCESS_TYPE.limitedFree)
+    ).toBe(ARTICLE_ACCESS_TYPE.paywall)
 
     // remove from circle
     const removedData = await mutate({
@@ -458,7 +457,7 @@ describe('circle CRUD', () => {
         },
       },
     })
-    expect(_get(removedData, errorPath)).toBe('FORBIDDEN')
+    expect(_get(removedData, `${path}.works.totalCount`)).toBe(0)
   })
 
   test('add article to circle with paywall access, then turns to public access', async () => {
@@ -470,7 +469,7 @@ describe('circle CRUD', () => {
     const circle = _get(data, 'viewer.ownCircles[0]')
     const article = _get(data, 'viewer.articles.edges[1].node')
 
-    // add to circle with public access
+    // add to circle with paywall access
     const paywallInput: Record<string, any> = {
       id: circle.id,
       articles: [article.id],
@@ -484,15 +483,15 @@ describe('circle CRUD', () => {
     expect(_get(addedPaywallData, `${path}.works.edges[0].node.id`)).toBe(
       article.id
     )
-    expect(_get(addedPaywallData, `${path}.works.totalCount`)).toBe(2)
+    expect(_get(addedPaywallData, `${path}.works.totalCount`)).toBe(1)
     expect(
       _get(addedPaywallData, `${path}.works.edges[0].node.access.circle.id`)
     ).toBe(circle.id)
     expect(
       _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
-    ).toBe(ARTICLE_ACCESS_TYPE.limitedFree)
+    ).toBe(ARTICLE_ACCESS_TYPE.paywall)
 
-    // try to turn to public access but an error occurs
+    // turns to public access
     const publicInput: Record<string, any> = {
       id: circle.id,
       articles: [article.id],
@@ -503,7 +502,10 @@ describe('circle CRUD', () => {
       mutation: PUT_CIRCLE_ARTICLES,
       variables: { input: publicInput },
     })
-    expect(_get(addedPublicData, errorPath)).toBe('FORBIDDEN')
+    expect(_get(addedPublicData, `${path}.works.totalCount`)).toBe(1)
+    expect(
+      _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
+    ).toBe(ARTICLE_ACCESS_TYPE.public)
   })
 
   test('add and retrieve discussion', async () => {
