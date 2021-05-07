@@ -19,7 +19,7 @@ import { ServerError } from 'common/errors'
 import logger from 'common/logger'
 import { getUTC8Midnight, numRound } from 'common/utils'
 import { BaseService, CacheService } from 'connectors'
-import { CirclePrice, Customer, User } from 'definitions'
+import { CirclePrice, User } from 'definitions'
 
 import { stripe } from './stripe'
 
@@ -318,25 +318,6 @@ export class PaymentService extends BaseService {
     }
 
     return qs.del()
-  }
-
-  getCustomerPortal = async ({ userId }: { userId: string }) => {
-    // retrieve customer
-    const customer = (await this.knex
-      .select()
-      .from('customer')
-      .where({
-        userId,
-        provider: PAYMENT_PROVIDER.stripe,
-        archived: false,
-      })
-      .first()) as Customer
-
-    if (customer) {
-      const customerId = customer.customerId
-      return this.stripe.getCustomerPortal({ customerId })
-    }
-    return null
   }
 
   /*********************************
