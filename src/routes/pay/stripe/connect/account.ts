@@ -35,7 +35,7 @@ export const updateAccount = async ({
   if (!payoutAccount) {
     slack.sendStripeAlert({
       data: slackEventData,
-      message: `can't find valid payout account (${account.id}).`,
+      message: `[Connect] can't find valid payout account (${account.id}).`,
     })
     return
   }

@@ -80,7 +80,7 @@
     "js-base64": "^3.4.5",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.19.5",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "mime-types": "^2.1.27",
     "module-alias": "^2.2.2",
     "nanoid": "^3.1.11",
