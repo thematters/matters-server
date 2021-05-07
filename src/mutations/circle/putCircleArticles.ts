@@ -2,12 +2,12 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
-  ARTICLE_ACCESS_TYPE,
   ARTICLE_STATE,
   CACHE_KEYWORD,
   CIRCLE_ACTION,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
+  MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
   PRICE_STATE,
   PUBLISH_STATE,
@@ -16,13 +16,14 @@ import {
 } from 'common/enums'
 import {
   ArticleNotFoundError,
+  ArticleRevisionReachLimitError,
   AuthenticationError,
   CircleNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
   UserInputError,
 } from 'common/errors'
-import { correctHtml, fromGlobalId, sanitize, toGlobalId } from 'common/utils'
+import { correctHtml, fromGlobalId, sanitize } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
 import { ItemData, MutationToPutCircleArticlesResolver } from 'definitions'
 
@@ -48,10 +49,6 @@ const resolver: MutationToPutCircleArticlesResolver = async (
 
   if (viewer.state === USER_STATE.frozen) {
     throw new ForbiddenByStateError(`${viewer.state} user has no permission`)
-  }
-
-  if (accessType === ARTICLE_ACCESS_TYPE.limitedFree) {
-    throw new UserInputError('"accessType" can only be `public` or `paywall`.')
   }
 
   if (!articles) {
@@ -98,34 +95,14 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     throw new ForbiddenError('only circle owner has the access')
   }
 
-  const checkPaywalledArticles = async () => {
-    const paywalledArticles = await knex
-      .select('article_circle.*')
-      .from('article_circle')
-      .join('circle', 'article_circle.circle_id', 'circle.id')
-      .where({
-        'article_circle.circle_id': circle.id,
-        'article_circle.access': ARTICLE_ACCESS_TYPE.paywall,
-        'circle.state': CIRCLE_STATE.active,
-      })
-      .whereIn('article_id', targetArticleIds)
-
-    const hasPaywalledArticles =
-      paywalledArticles && paywalledArticles.length > 0
-
-    if (hasPaywalledArticles) {
-      const paywalledArticleIds = paywalledArticles.map((a) =>
-        toGlobalId({ type: NODE_TYPES.Article, id: a.id })
-      )
-      throw new ForbiddenError(
-        `forbid to perform the action on paywalled articles: ${paywalledArticleIds.join(
-          ', '
-        )}.`
+  const republish = async (article: any) => {
+    const revisionCount = article.revisionCount || 0
+    if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
+      throw new ArticleRevisionReachLimitError(
+        'number of revisions reach limit'
       )
     }
-  }
 
-  const republish = async (article: any) => {
     // fetch updated data before create draft
     const [
       currDraft,
@@ -178,16 +155,11 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     // add job to publish queue
     revisionQueue.publishRevisedArticle({
       draftId: revisedDraft.id,
-      increaseRevisionCount: false,
     })
   }
 
   // add articles to circle
   if (actionType === 'add') {
-    if (accessType === ARTICLE_ACCESS_TYPE.public) {
-      await checkPaywalledArticles()
-    }
-
     // retrieve circle members and followers
     const members = await knex
       .from('circle_subscription_item as csi')
@@ -224,10 +196,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
         update: { ...data, access: accessType, updatedAt: new Date() },
       })
 
-      // republish on paywall
-      if (accessType === ARTICLE_ACCESS_TYPE.paywall) {
-        await republish(article)
-      }
+      await republish(article)
 
       // notify
       recipients.forEach((recipientId: any) => {
@@ -247,13 +216,15 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   }
   // remove articles from circle
   else if (actionType === 'remove') {
-    await checkPaywalledArticles()
-
     await atomService.deleteMany({
       table: 'article_circle',
       where: { circleId: circle.id },
       whereIn: ['article_id', targetArticleIds],
     })
+
+    for (const article of targetArticles) {
+      await republish(article)
+    }
   }
 
   // invalidate articles
