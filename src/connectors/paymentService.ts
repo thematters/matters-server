@@ -1,26 +1,24 @@
+import axios from 'axios'
 import DataLoader from 'dataloader'
+import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
   BATCH_SIZE,
+  HOUR,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
-  PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE,
   PRICE_STATE,
   SUBSCRIPTION_STATE,
   TRANSACTION_PURPOSE,
   TRANSACTION_STATE,
   TRANSACTION_TARGET_TYPE,
 } from 'common/enums'
+import { environment } from 'common/environment'
 import { ServerError } from 'common/errors'
 import logger from 'common/logger'
-import {
-  calcMattersFee,
-  // calcStripeFee,
-  getUTC8Midnight,
-  numRound,
-} from 'common/utils'
-import { BaseService } from 'connectors'
+import { getUTC8Midnight, numRound } from 'common/utils'
+import { BaseService, CacheService } from 'connectors'
 import { CirclePrice, Customer, User } from 'definitions'
 
 import { stripe } from './stripe'
@@ -162,7 +160,7 @@ export class PaymentService extends BaseService {
     amount,
     fee,
 
-    state = TRANSACTION_STATE.pending,
+    state,
     purpose,
     currency = PAYMENT_CURRENCY.HKD,
 
@@ -178,7 +176,7 @@ export class PaymentService extends BaseService {
     amount: number
     fee?: number
 
-    state?: TRANSACTION_STATE
+    state: TRANSACTION_STATE
     purpose: TRANSACTION_PURPOSE
     currency?: PAYMENT_CURRENCY
 
@@ -380,6 +378,7 @@ export class PaymentService extends BaseService {
       const transaction = await this.createTransaction({
         amount,
         // fee,
+        state: TRANSACTION_STATE.pending,
         currency,
         purpose,
         provider,
@@ -399,65 +398,6 @@ export class PaymentService extends BaseService {
    *             Payout            *
    *                               *
    *********************************/
-  createPayoutAccount = async ({
-    user,
-    accountId,
-    type = PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express,
-    provider = PAYMENT_PROVIDER.stripe,
-  }: {
-    user: User
-    accountId: string
-    type?: PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express
-    provider?: PAYMENT_PROVIDER.stripe
-  }) => {
-    return this.baseCreate(
-      {
-        userId: user.id,
-        accountId,
-        type,
-        provider,
-      },
-      'payout_account'
-    )
-  }
-
-  createPayout = async ({
-    amount,
-    recipientId,
-    recipientStripeConnectedId,
-  }: {
-    amount: number
-    recipientId: string
-    recipientStripeConnectedId: string
-  }) => {
-    const fee = calcMattersFee(amount)
-
-    // create stripe payment
-    const payment = await this.stripe.createDestinationCharge({
-      amount,
-      currency: PAYMENT_CURRENCY.HKD,
-      fee,
-      recipientStripeConnectedId,
-    })
-
-    if (!payment) {
-      throw new ServerError('failed to create payment')
-    }
-
-    // create pending matters transaction. To make number of wallet
-    // balance right, set recipient as sender here.
-    return this.createTransaction({
-      amount,
-      currency: PAYMENT_CURRENCY.HKD,
-      fee,
-      purpose: TRANSACTION_PURPOSE.payout,
-      provider: PAYMENT_PROVIDER.stripe,
-      providerTxId: payment.id,
-      senderId: recipientId,
-      targetType: undefined,
-    })
-  }
-
   calculateHKDBalance = async ({ userId }: { userId: string }) => {
     const result = await this.knex
       .select()
@@ -499,6 +439,58 @@ export class PaymentService extends BaseService {
       return 0
     }
     return parseInt(`${result[0].count}` || '0', 10)
+  }
+
+  /**
+   * Get the exchange rates from the Open Exchange Rates API and cache hourly.
+   *
+   */
+  getUSDtoHKDRate = async (): Promise<number> => {
+    const cacheService = new CacheService()
+    const cacheKey = 'openExRate'
+    const cacheTTl = HOUR / 1000
+
+    const checkRate = ({ base, HKD }: { base: string; HKD: number }) => {
+      const MAX_USD_TO_HKD_RATE = 10
+
+      if (base !== 'USD') {
+        throw new Error('rate base is not USD.')
+      }
+
+      if (!HKD || typeof HKD !== 'number') {
+        throw new Error('invalid HKD rate.')
+      }
+
+      if (HKD >= MAX_USD_TO_HKD_RATE) {
+        throw new Error(`HKD rate (${HKD}) >= ${MAX_USD_TO_HKD_RATE}.`)
+      }
+    }
+
+    // get from cache
+    const cachedRates = JSON.parse(
+      (await cacheService.redis.get(cacheKey)) || JSON.stringify('')
+    )
+
+    if (cachedRates) {
+      checkRate(cachedRates)
+      return cachedRates.HKD
+    }
+
+    // get from API, then cache it
+    const { data } = await axios.get(
+      `https://openexchangerates.org/api/latest.json?app_id=${environment.openExchangeRatesAppId}`
+    )
+    const rates = {
+      base: _.get(data, 'base'),
+      HKD: _.get(data, 'rates.HKD'),
+    }
+
+    checkRate(rates)
+
+    const serializedData = JSON.stringify(rates)
+    cacheService.redis.client.set(cacheKey, serializedData, 'EX', cacheTTl)
+
+    return rates.HKD
   }
 
   /*********************************

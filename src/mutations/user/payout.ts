@@ -6,6 +6,7 @@ import {
   PAYMENT_MINIMAL_PAYOUT_AMOUNT,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
 } from 'common/enums'
 import {
   AuthenticationError,
@@ -49,14 +50,18 @@ const resolver: MutationToPayoutResolver = async (
     throw new PasswordInvalidError('password is incorrect, payment failed.')
   }
 
-  const [balance, pending, customer] = await Promise.all([
+  const [balance, pending, payoutAccount] = await Promise.all([
     paymentService.calculateHKDBalance({
       userId: viewer.id,
     }),
     paymentService.countPendingPayouts({ userId: viewer.id }),
     atomService.findFirst({
       table: 'payout_account',
-      where: { userId: viewer.id, archived: false },
+      where: {
+        userId: viewer.id,
+        capabilitiesTransfers: true,
+        archived: false,
+      },
     }),
   ])
 
@@ -70,7 +75,7 @@ const resolver: MutationToPayoutResolver = async (
     throw new PaymentBalanceInsufficientError('viewer has insufficient balance')
   }
 
-  const recipient = customer
+  const recipient = payoutAccount
   if (!recipient || !recipient.accountId) {
     throw new EntityNotFoundError(`payout recipient is not found`)
   }
@@ -81,6 +86,7 @@ const resolver: MutationToPayoutResolver = async (
     amount,
     currency: PAYMENT_CURRENCY.HKD,
     fee,
+    state: TRANSACTION_STATE.pending,
     purpose: TRANSACTION_PURPOSE.payout,
     provider: PAYMENT_PROVIDER.stripe,
     providerTxId: v4(),

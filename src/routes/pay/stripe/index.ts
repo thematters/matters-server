@@ -14,10 +14,11 @@ import {
   updateSubscription,
 } from './circle'
 import { updateCustomerCard } from './customer'
+import { updateAccount } from './payout'
 import { createRefundTxs, updateTxState } from './transaction'
 
 const stripe = new Stripe(environment.stripeSecret, {
-  apiVersion: '2020-03-02',
+  apiVersion: '2020-08-27',
 })
 
 const stripeRouter = Router()
@@ -88,6 +89,10 @@ stripeRouter.post('/', async (req, res) => {
       case 'charge.refunded':
         const charge = event.data.object as Stripe.Charge
         await createRefundTxs(charge.refunds)
+        break
+      case 'account.updated':
+        const account = event.data.object as Stripe.Account
+        await updateAccount({ account, event })
         break
       case 'customer.deleted':
         const customer = event.data.object as Stripe.Customer

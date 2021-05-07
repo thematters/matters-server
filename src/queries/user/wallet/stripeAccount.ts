@@ -7,7 +7,7 @@ const resolver: WalletToStripeAccountResolver = async (
 ) => {
   const payoutAccount = await atomService.findFirst({
     table: 'payout_account',
-    where: { userId: id, archived: false },
+    where: { userId: id, capabilitiesTransfers: true, archived: false },
   })
 
   if (!payoutAccount) {
