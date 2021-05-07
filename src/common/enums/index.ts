@@ -76,7 +76,6 @@ export const ARTICLE_STATE = {
 export const ARTICLE_ACCESS_TYPE = {
   public: 'public',
   paywall: 'paywall',
-  limitedFree: 'limitedFree',
 }
 
 export const PUBLISH_STATE = {
@@ -211,3 +210,5 @@ export const LOCAL_STRIPE = {
   port: '12111',
   protocol: 'http',
 }
+
+export const MAX_ARTICLE_REVISION_COUNT = 2
