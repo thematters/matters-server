@@ -27,7 +27,7 @@ import SlackService from 'connectors/slack'
 import { CirclePrice, CircleSubscription, Customer } from 'definitions'
 
 const stripe = new Stripe(environment.stripeSecret, {
-  apiVersion: '2020-03-02',
+  apiVersion: '2020-08-27',
 })
 
 /**
