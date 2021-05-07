@@ -95,6 +95,8 @@ export const environment = {
     process.env.MATTERS_LIKECOIN_PAY_WEBHOOK_SECRET || '',
   stripeSecret: process.env.MATTERS_STRIPE_SECRET || '',
   stripeWebhookSecret: process.env.MATTERS_STRIPE_WEBHOOK_SECRET || '',
+  stripeConnectWebhookSecret:
+    process.env.MATTERS_STRIPE_CONNECT_WEBHOOK_SECRET || '',
   stripeConnectClientId: process.env.MATTERS_STRIPE_CONNECT_CLIENT_ID || '',
   slackToken: process.env.MATTERS_SLACK_TOKEN || '',
   slackPayoutChannel: process.env.MATTERS_SLACK_PAYOUT_CHANNEL || '',
