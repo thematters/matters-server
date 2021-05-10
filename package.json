@@ -99,7 +99,7 @@
     "validator": "^13.1.1",
     "winston": "^3.3.3",
     "winston-transport": "^4.4.0",
-    "xss": "^1.0.7"
+    "xss": "^1.0.9"
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",
