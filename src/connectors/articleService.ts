@@ -172,7 +172,7 @@ export class ArticleService extends BaseService {
       }
 
       // encrypt paywalled content
-      if (access === ARTICLE_ACCESS_TYPE) {
+      if (access === ARTICLE_ACCESS_TYPE.paywall) {
         bundleInfo.encrypt = true
       }
     }
