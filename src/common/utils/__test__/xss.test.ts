@@ -1,6 +1,6 @@
 import { sanitize } from 'common/utils'
 
-test('valid tags & attributes', async () => {
+test('valid contents', async () => {
   const htmls = [
     // link:mention
     {
@@ -44,13 +44,21 @@ test('valid tags & attributes', async () => {
   })
 })
 
-test('invalid tags & attributes', async () => {
+test('invalid contents', async () => {
   const htmls = [
-    // src
+    // img:src
     {
       content:
         '<figure class="image"><img src="https://assets.matters.news/processed/1080w/embed/test style=animation-name:spinning onanimationstart=console.log(1337)" data-asset-id="5d29c54b-9dd1-4256-9fe2-16a4b4148dc3"><figcaption>',
       toMatch: /^((?!test\sstyle).)*$/,
+    },
+    {
+      content: '<img src=`javascript:alert("RSnake says, \'XSS\'")`>',
+      toMatch: '',
+    },
+    {
+      content: '<img """><SCRIPT>alert("XSS")</SCRIPT>">',
+      toMatch: '<img>&lt;SCRIPT&gt;alert("XSS")&lt;/SCRIPT&gt;"&gt;',
     },
 
     // iframe:src
@@ -67,9 +75,19 @@ test('invalid tags & attributes', async () => {
         '<iframe sandbox="allow-scripts allow-same-origin" src="https://www.youtube.com/embed/sQIhDW2cWIo?rel=0"></iframe>',
     },
 
-    // href
+    // link:href
     {
       content: '<link rel="stylesheet" href="javascript:alert(\'XSS\');">',
+      toMatch: '',
+    },
+
+    // others
+    {
+      content: '<svg onload=alert(1)>',
+      toMatch: '',
+    },
+    {
+      content: '<img/src/onerror=alert(1)>',
       toMatch: '',
     },
   ]
