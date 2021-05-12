@@ -121,6 +121,7 @@ export class ArticleService extends BaseService {
     content,
     circleId,
     summary,
+    summaryCustomized,
     access,
   }: Record<string, any>) => {
     const userService = new UserService()
@@ -151,7 +152,6 @@ export class ArticleService extends BaseService {
         text: 'Matters',
         url: environment.siteDomain,
       },
-      summary,
       content,
     } as TemplateOptions
 
@@ -177,14 +177,18 @@ export class ArticleService extends BaseService {
       }
     }
 
+    // add summury when customized or encrypted
+    if (summaryCustomized || bundleInfo.encrypt) {
+      bundleInfo.summary = summary
+    }
+
     // payment pointer
     if (paymentPointer) {
       bundleInfo.paymentPointer = paymentPointer
     }
 
-    // add content to ipfs
+    // make bundle and add content to ipfs
     const { bundle, key } = await makeHtmlBundle(bundleInfo)
-
     const result = await this.ipfs.client.add(bundle)
 
     // filter out the hash for the bundle
