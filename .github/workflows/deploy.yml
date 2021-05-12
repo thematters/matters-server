@@ -129,7 +129,7 @@ jobs:
       - name: Login to Amazon ECR
         if: github.base_ref == 'develop' || github.base_ref == 'stage' || github.base_ref == 'master'
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v1.3.3
       # === [END] predeploy ===
 
       # === `develop` branch ===
