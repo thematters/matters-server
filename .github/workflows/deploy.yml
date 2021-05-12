@@ -120,7 +120,7 @@ jobs:
 
       - name: Setup AWS
         if: github.base_ref == 'develop' || github.base_ref == 'stage' || github.base_ref == 'master'
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1.5.9
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
