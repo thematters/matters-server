@@ -1844,9 +1844,6 @@ export interface GQLTransactionTargetNameMap {
   Transaction: GQLTransaction
 }
 
-/**
- * Stripe Account
- */
 export interface GQLStripeAccount {
   id: string
   loginUrl: GQLURL
@@ -3025,6 +3022,48 @@ export interface GQLPayToResult {
 export interface GQLPayoutInput {
   amount: GQLPositiveFloat
   password: string
+}
+
+/**
+ * Stripe Account
+ */
+export interface GQLConnectStripeAccountInput {
+  country: GQLStripeAccountCountry
+}
+
+export const enum GQLStripeAccountCountry {
+  Australia = 'Australia',
+  Austria = 'Austria',
+  Belgium = 'Belgium',
+  Bulgaria = 'Bulgaria',
+  Canada = 'Canada',
+  Cyprus = 'Cyprus',
+  Denmark = 'Denmark',
+  Estonia = 'Estonia',
+  Finland = 'Finland',
+  France = 'France',
+  Germany = 'Germany',
+  Greece = 'Greece',
+  HongKong = 'HongKong',
+  Ireland = 'Ireland',
+  Italy = 'Italy',
+  Latvia = 'Latvia',
+  Lithuania = 'Lithuania',
+  Luxembourg = 'Luxembourg',
+  Malta = 'Malta',
+  Netherlands = 'Netherlands',
+  NewZealand = 'NewZealand',
+  Norway = 'Norway',
+  Poland = 'Poland',
+  Portugal = 'Portugal',
+  Romania = 'Romania',
+  Singapore = 'Singapore',
+  Slovakia = 'Slovakia',
+  Slovenia = 'Slovenia',
+  Spain = 'Spain',
+  Sweden = 'Sweden',
+  UnitedKingdom = 'UnitedKingdom',
+  UnitedStates = 'UnitedStates',
 }
 
 export interface GQLConnectStripeAccountResult {
@@ -9676,13 +9715,16 @@ export interface MutationToPayoutResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface MutationToConnectStripeAccountArgs {
+  input: GQLConnectStripeAccountInput
+}
 export interface MutationToConnectStripeAccountResolver<
   TParent = any,
   TResult = any
 > {
   (
     parent: TParent,
-    args: {},
+    args: MutationToConnectStripeAccountArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

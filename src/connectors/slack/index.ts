@@ -1,9 +1,8 @@
 import { WebClient } from '@slack/web-api'
 
-import { SLACK_MESSAGE_STATE } from 'common/enums'
+import { PAYMENT_CURRENCY, SLACK_MESSAGE_STATE } from 'common/enums'
 import { environment } from 'common/environment'
 import logger from 'common/logger'
-import { numRound } from 'common/utils'
 
 class SlackService {
   client: WebClient
@@ -25,13 +24,23 @@ class SlackService {
 
   sendPayoutMessage = async ({
     amount,
+    amountInUSD,
     fee,
+    feeInUSD,
+    net,
+    netInUSD,
+    currency,
     state,
     txId,
     userName,
   }: {
     amount: number
+    amountInUSD: number
     fee: number
+    feeInUSD: number
+    net: number
+    netInUSD: number
+    currency: PAYMENT_CURRENCY
     state: SLACK_MESSAGE_STATE
     txId: string
     userName: string
@@ -45,10 +54,11 @@ class SlackService {
             color: this.getMessageColor(state),
             text:
               '\n' +
-              `\n- *Matters id:* ${userName}` +
-              `\n- *Stripe tx id*: ${txId}` +
-              `\n- *Amount*: ${numRound(amount)}` +
-              `\n- *Fee*: ${numRound(fee)}`,
+              `\n- *Matters ID:* ${userName}` +
+              `\n- *Stripe Tx ID*: ${txId}` +
+              `\n- *Amount*: ${amount} ${currency} (${amountInUSD} USD)` +
+              `\n- *Fee*: ${fee} ${currency} (${feeInUSD} USD)` +
+              `\n- *Net*: ${net} ${currency} (${netInUSD} USD)`,
           },
         ],
         markdown: true,

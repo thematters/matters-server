@@ -6,6 +6,7 @@ import {
   PAYMENT_MAXIMUM_PAYTO_AMOUNT,
   PAYMENT_PROVIDER,
   TRANSACTION_PURPOSE,
+  TRANSACTION_STATE,
   USER_STATE,
 } from 'common/enums'
 import { environment } from 'common/environment'
@@ -129,6 +130,7 @@ const resolver: MutationToPayToResolver = async (
       const pendingTxId = v4()
       transaction = await paymentService.createTransaction({
         ...baseParams,
+        state: TRANSACTION_STATE.pending,
         currency: PAYMENT_CURRENCY.LIKE,
         purpose: TRANSACTION_PURPOSE[purpose],
         provider: PAYMENT_PROVIDER.likecoin,
@@ -177,6 +179,7 @@ const resolver: MutationToPayToResolver = async (
       // insert pending tx
       transaction = await paymentService.createTransaction({
         ...baseParams,
+        state: TRANSACTION_STATE.pending,
         currency: PAYMENT_CURRENCY.HKD,
         purpose: TRANSACTION_PURPOSE[purpose],
         provider: PAYMENT_PROVIDER.matters,

@@ -5,12 +5,14 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
+  SLACK_MESSAGE_STATE,
   TRANSACTION_STATE,
 } from 'common/enums'
 import { PaymentQueueJobDataError } from 'common/errors'
 import logger from 'common/logger'
-import { numRound } from 'common/utils'
+import { numDivide, numMinus, numRound } from 'common/utils'
 import { AtomService, PaymentService } from 'connectors'
+import SlackService from 'connectors/slack'
 
 import { BaseQueue } from './baseQueue'
 
@@ -80,9 +82,11 @@ class PayoutQueue extends BaseQueue {
     job,
     done
   ) => {
+    const slack = new SlackService()
+    const data = job.data as PaymentParams
+
     let txId
     try {
-      const data = job.data as PaymentParams
       txId = data.txId
 
       if (!txId) {
@@ -101,15 +105,19 @@ class PayoutQueue extends BaseQueue {
         return done(null, job.data)
       }
 
-      const [balance, customer, pending] = await Promise.all([
+      const [balance, payoutAccount, pending] = await Promise.all([
         this.paymentService.calculateHKDBalance({ userId: tx.senderId }),
         this.atomService.findFirst({
           table: 'payout_account',
-          where: { userId: tx.senderId, archived: false },
+          where: {
+            userId: tx.senderId,
+            capabilitiesTransfers: true,
+            archived: false,
+          },
         }),
         this.paymentService.countPendingPayouts({ userId: tx.senderId }),
       ])
-      const recipient = customer
+      const recipient = payoutAccount
 
       // cancel payout if:
       // 1. balance including pending amounts < 0
@@ -120,28 +128,90 @@ class PayoutQueue extends BaseQueue {
         return done(null, job.data)
       }
 
-      // create stripe payment
-      const payment = await this.paymentService.stripe.createDestinationCharge({
-        amount: numRound(tx.amount),
-        currency: PAYMENT_CURRENCY.HKD,
-        fee: numRound(tx.fee),
+      // only support HKD
+      if (tx.currency !== PAYMENT_CURRENCY.HKD) {
+        await this.cancelTx(txId)
+        return done(null, job.data)
+      }
+
+      // transfer to recipient's account in USD
+      let HKDtoUSD: number
+      try {
+        HKDtoUSD = await this.paymentService.getUSDtoHKDRate()
+      } catch (error) {
+        slack.sendStripeAlert({
+          data,
+          message: error?.message || 'failed to get currency rate.',
+        })
+        throw error
+      }
+
+      const amount = numRound(tx.amount)
+      const amountInUSD = numRound(numDivide(amount, HKDtoUSD))
+      const fee = numRound(tx.fee)
+      const feeInUSD = numRound(numDivide(fee, HKDtoUSD))
+      const net = numRound(numMinus(amount, fee))
+      const netInUSD = numRound(numMinus(amountInUSD, feeInUSD))
+      const transfer = await this.paymentService.stripe.transfer({
+        amount: netInUSD,
+        currency: PAYMENT_CURRENCY.USD,
         recipientStripeConnectedId: recipient.accountId,
+        txId,
       })
 
-      if (!payment || !payment.id) {
+      if (!transfer || !transfer.id) {
         await this.failTx(txId)
         return done(null, job.data)
       }
 
-      // update pending tx
+      // update tx
       await this.paymentService.baseUpdate(tx.id, {
-        provider_tx_id: payment.id,
+        state: TRANSACTION_STATE.succeeded,
+        provider_tx_id: transfer.id,
         updatedAt: new Date(),
       })
 
+      // notifications
+      const user = await this.atomService.findFirst({
+        table: 'user',
+        where: { id: tx.senderId },
+      })
+
+      this.notificationService.mail.sendPayment({
+        to: recipient.email,
+        recipient: {
+          displayName: user.displayName,
+          userName: user.userName,
+        },
+        type: 'payout',
+        tx: {
+          recipient,
+          amount: net,
+          currency: tx.currency,
+        },
+      })
+
+      slack.sendPayoutMessage({
+        amount,
+        amountInUSD,
+        fee,
+        feeInUSD,
+        net,
+        netInUSD,
+        currency: tx.currency,
+        state: SLACK_MESSAGE_STATE.successful,
+        txId: tx.providerTxId,
+        userName: user.userName,
+      })
+
       job.progress(100)
-      done(null, { txId, stripeTxId: payment.id })
+      done(null, { txId, stripeTxId: transfer.id })
     } catch (error) {
+      slack.sendStripeAlert({
+        data,
+        message: `failed to payout: ${data.txId}.`,
+      })
+
       if (txId && error.name !== 'PaymentQueueJobDataError') {
         try {
           await this.failTx(txId)
@@ -149,6 +219,7 @@ class PayoutQueue extends BaseQueue {
           logger.error(error)
         }
       }
+
       logger.error(error)
       done(error)
     }
