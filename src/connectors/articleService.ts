@@ -1970,7 +1970,7 @@ export class ArticleService extends BaseService {
       notIn,
     })
 
-    const result = await this.knex.count('target_id').from(query).first()
+    const result = await this.knex.from(query.as('base')).count().first()
 
     return parseInt(result ? (result.count as string) : '0', 10)
   }

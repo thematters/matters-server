@@ -25,6 +25,7 @@ export enum TRANSACTION_TARGET_TYPE {
 
 export enum PAYMENT_CURRENCY {
   HKD = 'HKD',
+  USD = 'USD',
   LIKE = 'LIKE',
 }
 
@@ -174,6 +175,42 @@ export enum METADATA_KEY {
   CUSTOMER_ID = 'db_customer_id',
   CIRCLE_ID = 'db_circle_id',
   CIRCLE_PRICE_ID = 'db_circle_price_id',
+  TX_ID = 'db_tx_id',
+}
+
+export const COUNTRY_CODE = {
+  Australia: 'AU',
+  Austria: 'AT',
+  Belgium: 'BE',
+  Bulgaria: 'BG',
+  Canada: 'CA',
+  Cyprus: 'CY',
+  Denmark: 'DK',
+  Estonia: 'EE',
+  Finland: 'FI',
+  France: 'FR',
+  Germany: 'DE',
+  Greece: 'GR',
+  HongKong: 'HK',
+  Ireland: 'IE',
+  Italy: 'IT',
+  Latvia: 'LV',
+  Lithuania: 'LT',
+  Luxembourg: 'LU',
+  Malta: 'MT',
+  Netherlands: 'NL',
+  NewZealand: 'NZ',
+  Norway: 'NO',
+  Poland: 'PL',
+  Portugal: 'PT',
+  Romania: 'RO',
+  Singapore: 'SG',
+  Slovakia: 'SK',
+  Slovenia: 'SI',
+  Spain: 'ES',
+  Sweden: 'SE',
+  UnitedKingdom: 'UK',
+  UnitedStates: 'US',
 }
 
 export enum SUBSCRIPTION_ITEM_REMARK {
