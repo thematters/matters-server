@@ -4,30 +4,50 @@ import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
 import _difference from 'lodash/difference'
+import _uniq from 'lodash/uniq'
 
 import {
   ARTICLE_STATE,
+  CIRCLE_ACTION,
   DB_NOTICE_TYPE,
   NODE_TYPES,
+  PRICE_STATE,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
+  SUBSCRIPTION_STATE,
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
 import { countWords, fromGlobalId } from 'common/utils'
+import { AtomService, NotificationService } from 'connectors'
+import { GQLArticleAccessType, GQLPutCircleArticlesType } from 'definitions'
 
 import { BaseQueue } from './baseQueue'
 
+interface RevisedArticleData {
+  draftId: string
+  circleInfo?: {
+    circleId: string
+    accessType: GQLArticleAccessType
+    articleCircleActionType: GQLPutCircleArticlesType
+  }
+}
+
 class RevisionQueue extends BaseQueue {
+  atomService: InstanceType<typeof AtomService>
+  notificationService: InstanceType<typeof NotificationService>
+
   constructor() {
     super(QUEUE_NAME.revision)
+    this.atomService = new AtomService()
+    this.notificationService = new NotificationService()
     this.addConsumers()
   }
 
-  publishRevisedArticle = (data: { draftId: string }) => {
+  publishRevisedArticle = (data: RevisedArticleData) => {
     return this.q.add(QUEUE_JOB.publishRevisedArticle, data, {
       priority: QUEUE_PRIORITY.CRITICAL,
     })
@@ -55,9 +75,8 @@ class RevisionQueue extends BaseQueue {
   private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<
     unknown
   > = async (job, done) => {
-    const { draftId } = job.data as {
-      draftId: string
-    }
+    const { draftId, circleInfo } = job.data as RevisedArticleData
+
     const draft = await this.draftService.baseFindById(draftId)
 
     // Step 1: checks
@@ -93,6 +112,7 @@ class RevisionQueue extends BaseQueue {
       const {
         contentHash: dataHash,
         mediaHash,
+        key,
       } = await this.articleService.publishToIPFS({
         ...draft,
         summary,
@@ -109,7 +129,17 @@ class RevisionQueue extends BaseQueue {
       })
       job.progress(40)
 
-      // Step 4: update back to article
+      // Step 4: update cricle
+      if (circleInfo) {
+        await this.handleCircle({
+          article,
+          secret: key,
+          ...circleInfo,
+        })
+      }
+      job.progress(45)
+
+      // Step 5: update back to article
       const revisionCount = (article.revisionCount || 0) + 1
       const updatedArticle = await this.articleService.baseUpdate(article.id, {
         draftId: draft.id,
@@ -125,7 +155,7 @@ class RevisionQueue extends BaseQueue {
 
       // Note: the following steps won't affect the publication.
       try {
-        // Step 5: copy previous draft asset maps for current draft
+        // Step 6: copy previous draft asset maps for current draft
         // Note: collection and tags are handled in edit resolver.
         // @see src/mutations/article/editArticle.ts
         const {
@@ -138,7 +168,7 @@ class RevisionQueue extends BaseQueue {
         })
         job.progress(60)
 
-        // Step 6: add to search
+        // Step 7: add to search
         const author = await this.userService.baseFindById(article.authorId)
         const { userName, displayName } = author
         await this.articleService.addToSearch({
@@ -149,7 +179,7 @@ class RevisionQueue extends BaseQueue {
         })
         job.progress(70)
 
-        // Step 7: handle newly added mentions
+        // Step 8: handle newly added mentions
         await this.handleMentions({
           article: updatedArticle,
           preDraftContent: preDraft.content,
@@ -157,7 +187,7 @@ class RevisionQueue extends BaseQueue {
         })
         job.progress(90)
 
-        // Step 8: trigger notifications
+        // Step 9: trigger notifications
         this.notificationService.trigger({
           event: DB_NOTICE_TYPE.revised_article_published,
           recipientId: article.authorId,
@@ -171,7 +201,7 @@ class RevisionQueue extends BaseQueue {
         })
         job.progress(95)
 
-        // Step 9: invalidate article and user cache
+        // Step 10: invalidate article and user cache
         await Promise.all([
           invalidateFQC({
             node: { type: NODE_TYPES.User, id: article.authorId },
@@ -212,6 +242,78 @@ class RevisionQueue extends BaseQueue {
       })
 
       done(e)
+    }
+  }
+
+  private handleCircle = async ({
+    article,
+    secret,
+    circleId,
+    accessType,
+    articleCircleActionType,
+  }: {
+    article: any
+    secret: any
+    circleId: string
+    accessType: GQLArticleAccessType
+    articleCircleActionType: GQLPutCircleArticlesType
+  }) => {
+    // add articles to circle
+    if (articleCircleActionType === 'add') {
+      // retrieve circle members and followers
+      const members = await this.atomService.knex
+        .from('circle_subscription_item as csi')
+        .join('circle_price', 'circle_price.id', 'csi.price_id')
+        .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
+        .where({
+          'circle_price.circle_id': circleId,
+          'circle_price.state': PRICE_STATE.active,
+          'csi.archived': false,
+        })
+        .whereIn('cs.state', [
+          SUBSCRIPTION_STATE.active,
+          SUBSCRIPTION_STATE.trialing,
+        ])
+      const followers = await this.atomService.findMany({
+        table: 'action_circle',
+        select: ['user_id'],
+        where: { targetId: circleId, action: CIRCLE_ACTION.follow },
+      })
+      const recipients = _uniq([
+        ...members.map((m) => m.userId),
+        ...followers.map((f) => f.userId),
+      ])
+
+      const data = {
+        articleId: article.id,
+        circleId,
+      }
+      await this.atomService.upsert({
+        table: 'article_circle',
+        where: data,
+        create: { ...data, access: accessType, secret },
+        update: { ...data, access: accessType, secret, updatedAt: new Date() },
+      })
+
+      // notify
+      recipients.forEach((recipientId: any) => {
+        this.notificationService.trigger({
+          event: DB_NOTICE_TYPE.circle_new_article,
+          recipientId,
+          entities: [
+            {
+              type: 'target',
+              entityTable: 'article',
+              entity: article,
+            },
+          ],
+        })
+      })
+    } else if (articleCircleActionType === 'remove') {
+      await this.atomService.deleteMany({
+        table: 'article_circle',
+        where: { circleId, articleId: article.id },
+      })
     }
   }
 

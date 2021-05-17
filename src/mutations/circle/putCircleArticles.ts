@@ -4,14 +4,10 @@ import { v4 } from 'uuid'
 import {
   ARTICLE_STATE,
   CACHE_KEYWORD,
-  CIRCLE_ACTION,
   CIRCLE_STATE,
-  DB_NOTICE_TYPE,
   MAX_ARTICLE_REVISION_COUNT,
   NODE_TYPES,
-  PRICE_STATE,
   PUBLISH_STATE,
-  SUBSCRIPTION_STATE,
   USER_STATE,
 } from 'common/enums'
 import {
@@ -25,7 +21,12 @@ import {
 } from 'common/errors'
 import { correctHtml, fromGlobalId, sanitize } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
-import { ItemData, MutationToPutCircleArticlesResolver } from 'definitions'
+import {
+  GQLArticleAccessType,
+  GQLPutCircleArticlesType,
+  ItemData,
+  MutationToPutCircleArticlesResolver,
+} from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (
   root,
@@ -38,7 +39,6 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       draftService,
       tagService,
       articleService,
-      notificationService,
     },
     knex,
   }
@@ -80,7 +80,6 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       },
     }),
   ])
-  const targetArticleIds = targetArticles.map((a) => a.id)
 
   if (!circle) {
     throw new CircleNotFoundError(`circle ${id} not found`)
@@ -95,7 +94,17 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     throw new ForbiddenError('only circle owner has the access')
   }
 
-  const republish = async (article: any) => {
+  const republish = async ({
+    article,
+    circleId: republishCircleId,
+    articleAccessType,
+    articleCircleActionType,
+  }: {
+    article: any
+    circleId: string
+    articleAccessType: GQLArticleAccessType
+    articleCircleActionType: GQLPutCircleArticlesType
+  }) => {
     const revisionCount = article.revisionCount || 0
     if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
       throw new ArticleRevisionReachLimitError(
@@ -155,76 +164,22 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     // add job to publish queue
     revisionQueue.publishRevisedArticle({
       draftId: revisedDraft.id,
+      circleInfo: {
+        circleId: republishCircleId,
+        accessType: articleAccessType,
+        articleCircleActionType,
+      },
     })
   }
 
-  // add articles to circle
-  if (actionType === 'add') {
-    // retrieve circle members and followers
-    const members = await knex
-      .from('circle_subscription_item as csi')
-      .join('circle_price', 'circle_price.id', 'csi.price_id')
-      .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
-      .where({
-        'circle_price.circle_id': circleId,
-        'circle_price.state': PRICE_STATE.active,
-        'csi.archived': false,
-      })
-      .whereIn('cs.state', [
-        SUBSCRIPTION_STATE.active,
-        SUBSCRIPTION_STATE.trialing,
-      ])
-    const followers = await atomService.findMany({
-      table: 'action_circle',
-      select: ['user_id'],
-      where: { targetId: circleId, action: CIRCLE_ACTION.follow },
+  // add or remove articles from circle
+  for (const article of targetArticles) {
+    await republish({
+      article,
+      circleId,
+      articleAccessType: accessType,
+      articleCircleActionType: actionType,
     })
-    const recipients = _.uniq([
-      ...members.map((m) => m.userId),
-      ...followers.map((f) => f.userId),
-    ])
-
-    for (const article of targetArticles) {
-      const data = {
-        articleId: article.id,
-        circleId: circle.id,
-      }
-      await atomService.upsert({
-        table: 'article_circle',
-        where: data,
-        create: { ...data, access: accessType },
-        update: { ...data, access: accessType, updatedAt: new Date() },
-      })
-
-      await republish(article)
-
-      // notify
-      recipients.forEach((recipientId: any) => {
-        notificationService.trigger({
-          event: DB_NOTICE_TYPE.circle_new_article,
-          recipientId,
-          entities: [
-            {
-              type: 'target',
-              entityTable: 'article',
-              entity: article,
-            },
-          ],
-        })
-      })
-    }
-  }
-  // remove articles from circle
-  else if (actionType === 'remove') {
-    await atomService.deleteMany({
-      table: 'article_circle',
-      where: { circleId: circle.id },
-      whereIn: ['article_id', targetArticleIds],
-    })
-
-    for (const article of targetArticles) {
-      await republish(article)
-    }
   }
 
   // invalidate articles
