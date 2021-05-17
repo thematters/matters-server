@@ -322,7 +322,12 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Circle
    */
-  const resetCircle = circleGlobalId === null
+  const currCircle = await atomService.findFirst({
+    table: 'article_circle',
+    where: { articleId: article.id },
+  })
+  const resetCircle = currCircle && circleGlobalId === null
+
   let circle: any
   if (circleGlobalId) {
     const { id: circleId } = fromGlobalId(circleGlobalId)
