@@ -6,6 +6,7 @@ import { v4 } from 'uuid'
 import {
   BATCH_SIZE,
   HOUR,
+  INVITATION_STATE,
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PRICE_STATE,
@@ -869,7 +870,7 @@ export class PaymentService extends BaseService {
       .join('circle_price as cp', 'cp.circle_id', 'ci.circle_id')
       .where({
         'cp.id': params.priceId,
-        accepted: false,
+        state: INVITATION_STATE.pending,
       })
       .andWhere(function () {
         this.where('ci.user_id', params.userId).orWhere('ci.email', user.email)
@@ -887,6 +888,7 @@ export class PaymentService extends BaseService {
       .where('id', ivtId)
       .update({
         accepted: true,
+        state: INVITATION_STATE.accepted,
         accepted_at: this.knex.fn.now(),
         subscriptionItemId,
       })

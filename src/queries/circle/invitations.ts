@@ -1,3 +1,4 @@
+import { INVITATION_STATE } from 'common/enums'
 import { connectionFromArray, cursorToIndex } from 'common/utils'
 import { CircleToInvitationsResolver } from 'definitions'
 
@@ -17,11 +18,11 @@ const resolver: CircleToInvitationsResolver = async (
   const [totalCount, records] = await Promise.all([
     atomService.count({
       table: 'circle_invitation',
-      where: { circleId: id, inviter: owner, accepted: false },
+      where: { state: INVITATION_STATE.pending, circleId: id, inviter: owner },
     }),
     atomService.findMany({
       table: 'circle_invitation',
-      where: { circleId: id, inviter: owner, accepted: false },
+      where: { state: INVITATION_STATE.pending, circleId: id, inviter: owner },
       orderBy: [{ column: 'created_at', order: 'desc' }],
       skip,
       take,

@@ -3,6 +3,7 @@ import Queue from 'bull'
 
 import {
   HOUR,
+  INVITATION_STATE,
   NODE_TYPES,
   PAYMENT_PROVIDER,
   PRICE_STATE,
@@ -35,13 +36,13 @@ class CircleQueue extends BaseQueue {
    * Producers
    */
   addRepeatJobs = async () => {
-    // handle trial end subscriptions every 6 hours
+    // transfer trial end subscriptions every 12 hours
     this.q.add(
-      QUEUE_JOB.handleTrialEndSubscriptions,
+      QUEUE_JOB.transferTrialEndSubscriptions,
       {},
       {
         priority: QUEUE_PRIORITY.CRITICAL,
-        repeat: { every: HOUR * 6 },
+        repeat: { every: HOUR * 12 },
       }
     )
   }
@@ -51,16 +52,16 @@ class CircleQueue extends BaseQueue {
    */
   private addConsumers = () => {
     this.q.process(
-      QUEUE_JOB.handleTrialEndSubscriptions,
-      this.handleTrialEndSubscriptions
+      QUEUE_JOB.transferTrialEndSubscriptions,
+      this.transferTrialEndSubscriptions
     )
   }
 
-  private handleTrialEndSubscriptions: Queue.ProcessCallbackFunction<
+  private transferTrialEndSubscriptions: Queue.ProcessCallbackFunction<
     unknown
   > = async (job, done) => {
     try {
-      logger.info('[schedule job] handle trial end subscriptions')
+      logger.info('[schedule job] transfer trial end subscriptions')
       const knex = this.atomService.knex
 
       // obtain trial end subscription items from the past 7 days
@@ -79,7 +80,7 @@ class CircleQueue extends BaseQueue {
               '*',
               `accepted_at + duration_in_days * '1 day'::interval AS ended_at`
             )
-            .where({ accepted: true })
+            .where({ state: INVITATION_STATE.accepted })
             .whereNotNull('subscription_item_id')
             .as('expired_invitations')
         )
@@ -115,7 +116,19 @@ class CircleQueue extends BaseQueue {
             priceId: item.priceId,
             providerPriceId: item.providerPriceId,
           })
+
+          // mark invitation as `transfer_succeeded`
+          await this.markInvitationAs({
+            invitationId: item.invitationId,
+            state: INVITATION_STATE.transfer_succeeded,
+          })
         } catch (error) {
+          // mark invitation as `transfer_failed`
+          await this.markInvitationAs({
+            invitationId: item.invitationId,
+            state: INVITATION_STATE.transfer_failed,
+          })
+
           failedItemIds.push(item.id)
           logger.error(error)
         }
@@ -137,6 +150,12 @@ class CircleQueue extends BaseQueue {
       }
 
       job.progress(100)
+      if (trialEndSubItems.length >= 1) {
+        this.slackService.sendStripeAlert({
+          data: { succeedItemIds, failedItemIds },
+          message: '',
+        })
+      }
       done(null, { succeedItemIds, failedItemIds })
     } catch (error) {
       logger.error(error)
@@ -235,6 +254,20 @@ class CircleQueue extends BaseQueue {
       })
       throw error
     }
+  }
+
+  private markInvitationAs = async ({
+    invitationId,
+    state,
+  }: {
+    invitationId: string
+    state: INVITATION_STATE
+  }) => {
+    await this.atomService.update({
+      table: 'circle_invitation',
+      where: { id: invitationId },
+      data: { state },
+    })
   }
 }
 
