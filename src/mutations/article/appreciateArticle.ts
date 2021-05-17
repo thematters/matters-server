@@ -9,6 +9,7 @@ import {
   ForbiddenByStateError,
   ForbiddenByTargetStateError,
   ForbiddenError,
+  UserInputError,
 } from 'common/errors'
 import { fromGlobalId } from 'common/utils'
 import { gcp } from 'connectors'
@@ -43,6 +44,10 @@ const resolver: MutationToAppreciateArticleResolver = async (
 
   if (!viewer.likerId) {
     throw new ForbiddenError('viewer has no liker id')
+  }
+
+  if (!amount || amount <= 0) {
+    throw new UserInputError('invalid amount')
   }
 
   const { id: dbId } = fromGlobalId(id)
