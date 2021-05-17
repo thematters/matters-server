@@ -1,0 +1,241 @@
+import { invalidateFQC } from '@matters/apollo-response-cache'
+import Queue from 'bull'
+
+import {
+  HOUR,
+  NODE_TYPES,
+  PAYMENT_PROVIDER,
+  PRICE_STATE,
+  QUEUE_JOB,
+  QUEUE_NAME,
+  QUEUE_PRIORITY,
+  SUBSCRIPTION_ITEM_REMARK,
+  SUBSCRIPTION_STATE,
+} from 'common/enums'
+import logger from 'common/logger'
+import { CacheService, PaymentService } from 'connectors'
+import SlackService from 'connectors/slack'
+import { Customer } from 'definitions'
+
+import { BaseQueue } from './baseQueue'
+
+class CircleQueue extends BaseQueue {
+  paymentService: InstanceType<typeof PaymentService>
+  slackService: InstanceType<typeof SlackService>
+
+  constructor() {
+    super(QUEUE_NAME.stripe)
+    this.paymentService = new PaymentService()
+    this.slackService = new SlackService()
+    this.cacheService = new CacheService()
+    this.addConsumers()
+  }
+
+  /**
+   * Producers
+   */
+  addRepeatJobs = async () => {
+    // handle trial end subscriptions every 6 hours
+    this.q.add(
+      QUEUE_JOB.handleTrialEndSubscriptions,
+      {},
+      {
+        priority: QUEUE_PRIORITY.CRITICAL,
+        repeat: { every: HOUR * 6 },
+      }
+    )
+  }
+
+  /**
+   * Consumers
+   */
+  private addConsumers = () => {
+    this.q.process(
+      QUEUE_JOB.handleTrialEndSubscriptions,
+      this.handleTrialEndSubscriptions
+    )
+  }
+
+  private handleTrialEndSubscriptions: Queue.ProcessCallbackFunction<
+    unknown
+  > = async (job, done) => {
+    try {
+      logger.info('[schedule job] handle trial end subscriptions')
+      const knex = this.atomService.knex
+
+      // obtain trial end subscription items from the past 7 days
+      const trialEndSubItems = await knex
+        .select(
+          'csi.id',
+          'csi.subscription_id',
+          'csi.user_id',
+          'csi.price_id',
+          'circle_price.provider_price_id',
+          'circle_price.circle_id'
+        )
+        .from(
+          knex('circle_invitation')
+            .select(
+              '*',
+              `accepted_at + duration_in_days * '1 day'::interval AS ended_at`
+            )
+            .where({ accepted: true })
+            .whereNotNull('subscription_item_id')
+            .as('expired_invitations')
+        )
+        .leftJoin(
+          'circle_subscription_item as csi',
+          'csi.id',
+          'circle_invitation.subscription_item_id'
+        )
+        .leftJoin('circle_price', 'circle_price.id', 'csi.price_id')
+        .where({
+          'csi.provider': PAYMENT_PROVIDER.matters,
+          'csi.archived': false,
+          'circle_price.state': PRICE_STATE.active,
+        })
+        .andWhere('ended_at', '>', knex.raw(`now() - interval '7 days'`))
+        .andWhere('ended_at', '<=', knex.raw(`now()`))
+      job.progress(30)
+
+      const succeedItemIds = []
+      const failedItemIds = []
+      for (const item of trialEndSubItems) {
+        try {
+          // archive Matters subscription item
+          await this.archiveMattersSubItem({
+            subscriptionId: item.subscriptionId,
+            subscriptionItemId: item.id,
+          })
+
+          // create Stripe subscription item
+          await this.createStripeSubItem({
+            userId: item.userId,
+            subscriptionItemId: item.id,
+            priceId: item.priceId,
+            providerPriceId: item.providerPriceId,
+          })
+        } catch (error) {
+          failedItemIds.push(item.id)
+          logger.error(error)
+        }
+
+        // invalidate user & circle
+        invalidateFQC({
+          node: { type: NODE_TYPES.User, id: item.userId },
+          redis: this.cacheService.redis,
+        })
+        invalidateFQC({
+          node: { type: NODE_TYPES.Circle, id: item.circleId },
+          redis: this.cacheService.redis,
+        })
+
+        succeedItemIds.push(item.id)
+        logger.info(
+          `[schedule job] Matters subscription item ${item.id} moved to Stripe.`
+        )
+      }
+
+      job.progress(100)
+      done(null, { succeedItemIds, failedItemIds })
+    } catch (error) {
+      logger.error(error)
+      done(error)
+    }
+  }
+
+  private archiveMattersSubItem = async ({
+    subscriptionId,
+    subscriptionItemId,
+  }: {
+    subscriptionId: string
+    subscriptionItemId: string
+  }) => {
+    try {
+      const subItems = await this.atomService.findMany({
+        table: 'circle_subscription_item',
+        where: { subscriptionId, archived: false },
+      })
+
+      // cancel the subscription if only one subscription item left
+      if (subItems.length <= 1) {
+        await this.atomService.update({
+          table: 'circle_subscription',
+          where: { id: subscriptionId },
+          data: {
+            state: SUBSCRIPTION_STATE.canceled,
+            canceledAt: new Date(),
+            updatedAt: new Date(),
+          },
+        })
+      }
+
+      await this.atomService.update({
+        table: 'circle_subscription_item',
+        where: { id: subscriptionItemId },
+        data: {
+          archived: true,
+          updatedAt: new Date(),
+          remark: SUBSCRIPTION_ITEM_REMARK.trial_end,
+        },
+      })
+    } catch (error) {
+      this.slackService.sendStripeAlert({
+        data: { subscriptionItemId },
+        message: 'Failed to archive subscription item that trial ends',
+      })
+      throw error
+    }
+  }
+
+  private createStripeSubItem = async ({
+    userId,
+    subscriptionItemId,
+    priceId,
+    providerPriceId,
+  }: {
+    userId: string
+    subscriptionItemId: string
+    priceId: string
+    providerPriceId: string
+  }) => {
+    try {
+      // retrieve user customer and subscriptions
+      const customer = (await this.atomService.findFirst({
+        table: 'customer',
+        where: {
+          userId,
+          provider: PAYMENT_PROVIDER.stripe,
+          archived: false,
+        },
+      })) as Customer
+      const subscriptions = await this.paymentService.findActiveSubscriptions({
+        userId,
+      })
+      if (!customer || !customer.cardLast4) {
+        this.slackService.sendStripeAlert({
+          data: { subscriptionItemId, customerId: customer?.id },
+          message:
+            'Failed to create Stripe subscription item: customer credit card is required',
+        })
+        return
+      }
+
+      await this.paymentService.createSubscriptionOrItem({
+        userId,
+        priceId,
+        providerPriceId,
+        providerCustomerId: customer.customerId,
+        subscriptions,
+      })
+    } catch (error) {
+      this.slackService.sendStripeAlert({
+        data: { subscriptionItemId },
+        message: 'Failed to create Stripe subscription item',
+      })
+      throw error
+    }
+  }
+}
+
+export const circleQueue = new CircleQueue()

@@ -61,6 +61,9 @@ export const QUEUE_JOB = {
 
   // Asset
   deleteAsset: 'deleteAsset',
+
+  // Circle
+  handleTrialEndSubscriptions: 'handleTrialEndSubscriptions',
 }
 
 export const QUEUE_NAME = {
