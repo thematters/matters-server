@@ -322,13 +322,14 @@ const resolver: MutationToEditArticleResolver = async (
   /**
    * Circle
    */
-  const currCircle = await atomService.findFirst({
+  const currAccess = await atomService.findFirst({
     table: 'article_circle',
     where: { articleId: article.id },
   })
-  const resetCircle = currCircle && circleGlobalId === null
-
+  const resetCircle = currAccess && circleGlobalId === null
+  let isUpdatingAccess = false
   let circle: any
+
   if (circleGlobalId) {
     const { id: circleId } = fromGlobalId(circleGlobalId)
     circle = await atomService.findFirst({
@@ -348,6 +349,13 @@ const resolver: MutationToEditArticleResolver = async (
 
     if (!accessType) {
       throw new UserInputError('"accessType" is required on `circle`.')
+    }
+
+    if (
+      circle.id !== currAccess?.circleId ||
+      (circle.id === currAccess?.circleId && accessType !== currAccess?.access)
+    ) {
+      isUpdatingAccess = true
     }
 
     // insert to db
@@ -465,7 +473,7 @@ const resolver: MutationToEditArticleResolver = async (
     }
 
     await republish(content)
-  } else if (circle || resetCircle) {
+  } else if (isUpdatingAccess || resetCircle) {
     await republish()
   }
 
