@@ -887,7 +887,6 @@ export class PaymentService extends BaseService {
     await this.knex('circle_invitation')
       .where('id', ivtId)
       .update({
-        accepted: true,
         state: INVITATION_STATE.accepted,
         accepted_at: this.knex.fn.now(),
         subscriptionItemId,
