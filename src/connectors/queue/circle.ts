@@ -10,6 +10,7 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
+  SLACK_MESSAGE_STATE,
   SUBSCRIPTION_ITEM_REMARK,
   SUBSCRIPTION_STATE,
 } from 'common/enums'
@@ -25,7 +26,7 @@ class CircleQueue extends BaseQueue {
   slackService: InstanceType<typeof SlackService>
 
   constructor() {
-    super(QUEUE_NAME.stripe)
+    super(QUEUE_NAME.circle)
     this.paymentService = new PaymentService()
     this.slackService = new SlackService()
     this.cacheService = new CacheService()
@@ -72,22 +73,25 @@ class CircleQueue extends BaseQueue {
           'csi.user_id',
           'csi.price_id',
           'circle_price.provider_price_id',
-          'circle_price.circle_id'
+          'circle_price.circle_id',
+          'expired_ivts.id as invitation_id'
         )
         .from(
           knex('circle_invitation')
             .select(
               '*',
-              `accepted_at + duration_in_days * '1 day'::interval AS ended_at`
+              knex.raw(
+                `accepted_at + duration_in_days * '1 day'::interval AS ended_at`
+              )
             )
             .where({ state: INVITATION_STATE.accepted })
             .whereNotNull('subscription_item_id')
-            .as('expired_invitations')
+            .as('expired_ivts')
         )
         .leftJoin(
           'circle_subscription_item as csi',
           'csi.id',
-          'circle_invitation.subscription_item_id'
+          'expired_ivts.subscription_item_id'
         )
         .leftJoin('circle_price', 'circle_price.id', 'csi.price_id')
         .where({
@@ -95,7 +99,7 @@ class CircleQueue extends BaseQueue {
           'csi.archived': false,
           'circle_price.state': PRICE_STATE.active,
         })
-        .andWhere('ended_at', '>', knex.raw(`now() - interval '7 days'`))
+        .andWhere('ended_at', '>', knex.raw(`now() - interval '1 months'`))
         .andWhere('ended_at', '<=', knex.raw(`now()`))
       job.progress(30)
 
@@ -151,9 +155,11 @@ class CircleQueue extends BaseQueue {
 
       job.progress(100)
       if (trialEndSubItems.length >= 1) {
-        this.slackService.sendStripeAlert({
+        this.slackService.sendQueueMessage({
           data: { succeedItemIds, failedItemIds },
-          message: '',
+          title: `${QUEUE_NAME.circle}:transferTrialEndSubscriptions`,
+          message: 'Completed to transfer',
+          state: SLACK_MESSAGE_STATE.successful,
         })
       }
       done(null, { succeedItemIds, failedItemIds })
@@ -199,9 +205,11 @@ class CircleQueue extends BaseQueue {
         },
       })
     } catch (error) {
-      this.slackService.sendStripeAlert({
+      this.slackService.sendQueueMessage({
         data: { subscriptionItemId },
-        message: 'Failed to archive subscription item that trial ends',
+        title: `${QUEUE_NAME.circle}:archiveMattersSubItem`,
+        message: 'Failed to archive subscription item',
+        state: SLACK_MESSAGE_STATE.failed,
       })
       throw error
     }
@@ -231,11 +239,13 @@ class CircleQueue extends BaseQueue {
       const subscriptions = await this.paymentService.findActiveSubscriptions({
         userId,
       })
+
       if (!customer || !customer.cardLast4) {
-        this.slackService.sendStripeAlert({
+        this.slackService.sendQueueMessage({
           data: { subscriptionItemId, customerId: customer?.id },
-          message:
-            'Failed to create Stripe subscription item: customer credit card is required',
+          title: `${QUEUE_NAME.circle}:createStripeSubItem`,
+          message: 'Credit card is required on customer',
+          state: SLACK_MESSAGE_STATE.failed,
         })
         return
       }
@@ -248,9 +258,11 @@ class CircleQueue extends BaseQueue {
         subscriptions,
       })
     } catch (error) {
-      this.slackService.sendStripeAlert({
+      this.slackService.sendQueueMessage({
         data: { subscriptionItemId },
+        title: `${QUEUE_NAME.circle}:createStripeSubItem`,
         message: 'Failed to create Stripe subscription item',
+        state: SLACK_MESSAGE_STATE.failed,
       })
       throw error
     }

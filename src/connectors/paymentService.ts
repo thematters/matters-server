@@ -870,7 +870,7 @@ export class PaymentService extends BaseService {
       .join('circle_price as cp', 'cp.circle_id', 'ci.circle_id')
       .where({
         'cp.id': params.priceId,
-        state: INVITATION_STATE.pending,
+        'ci.state': INVITATION_STATE.pending,
       })
       .andWhere(function () {
         this.where('ci.user_id', params.userId).orWhere('ci.email', user.email)

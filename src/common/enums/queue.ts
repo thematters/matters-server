@@ -81,6 +81,7 @@ export const QUEUE_NAME = {
   revision: 'revision',
   asset: 'asset',
   stripe: 'stripe',
+  circle: 'circle',
 }
 
 export const QUEUE_CONCURRENCY = {
