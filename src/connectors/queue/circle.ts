@@ -158,13 +158,18 @@ class CircleQueue extends BaseQueue {
         this.slackService.sendQueueMessage({
           data: { succeedItemIds, failedItemIds },
           title: `${QUEUE_NAME.circle}:transferTrialEndSubscriptions`,
-          message: 'Completed to transfer',
+          message: `Completed handling ${trialEndSubItems.length} trial ended subscription items.`,
           state: SLACK_MESSAGE_STATE.successful,
         })
       }
       done(null, { succeedItemIds, failedItemIds })
     } catch (error) {
       logger.error(error)
+      this.slackService.sendQueueMessage({
+        title: `${QUEUE_NAME.circle}:transferTrialEndSubscriptions`,
+        message: `Failed to process cron job`,
+        state: SLACK_MESSAGE_STATE.failed,
+      })
       done(error)
     }
   }

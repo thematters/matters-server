@@ -26,7 +26,6 @@ export const QUEUE_JOB = {
 
   // Emails
   sendDailySummaryEmails: 'sendDailySummaryEmails',
-  sendChurnEmails: 'sendChurnEmails',
 
   // Refresh Views
   refreshArticleCountView: 'refreshArticleCountView',

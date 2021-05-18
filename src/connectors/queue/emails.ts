@@ -5,15 +5,22 @@ import {
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
+  SLACK_MESSAGE_STATE,
 } from 'common/enums'
 import logger from 'common/logger'
+import SlackService from 'connectors/slack'
 import { DBNoticeType } from 'definitions'
 
 import { BaseQueue } from './baseQueue'
 
 class EmailsQueue extends BaseQueue {
+  slackService: InstanceType<typeof SlackService>
+
   constructor() {
     super(QUEUE_NAME.emails)
+
+    this.slackService = new SlackService()
+
     this.addConsumers()
   }
 
@@ -30,16 +37,6 @@ class EmailsQueue extends BaseQueue {
         repeat: { cron: '0 9 * * *', tz: 'Asia/Hong_Kong' },
       }
     )
-
-    // send churn emails, check every day at 08:00 and 20:00
-    // this.q.add(
-    //   QUEUE_JOB.sendChurnEmails,
-    //   {},
-    //   {
-    //     priority: QUEUE_PRIORITY.MEDIUM,
-    //     repeat: { cron: '0 8,20 * * *', tz: 'Asia/Hong_Kong' },
-    //   }
-    // )
   }
 
   /**
@@ -51,9 +48,6 @@ class EmailsQueue extends BaseQueue {
       QUEUE_JOB.sendDailySummaryEmails,
       this.sendDailySummaryEmails
     )
-
-    // send churn emails
-    // this.q.process(QUEUE_JOB.sendChurnEmails, this.sendChurnEmails)
   }
 
   private sendDailySummaryEmails: Queue.ProcessCallbackFunction<
@@ -109,8 +103,18 @@ class EmailsQueue extends BaseQueue {
       })
 
       job.progress(100)
+      this.slackService.sendQueueMessage({
+        title: `${QUEUE_NAME.emails}:sendDailySummaryEmails`,
+        message: `Sent daily summary email to ${users.length} users.`,
+        state: SLACK_MESSAGE_STATE.successful,
+      })
       done(null, `send daily emails to ${users.length} users`)
     } catch (e) {
+      this.slackService.sendQueueMessage({
+        title: `${QUEUE_NAME.emails}:sendDailySummaryEmails`,
+        message: `Failed to process cron job`,
+        state: SLACK_MESSAGE_STATE.failed,
+      })
       done(e)
     }
   }
