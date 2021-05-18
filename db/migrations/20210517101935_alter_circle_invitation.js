@@ -28,13 +28,14 @@ exports.up = async (knex) => {
   `)
 
   // drop `accepted` & `coupon_id` columns
-  await knex.schema.table(circle_invitation, function (t) {
+  await knex.schema.table(circle_invitation, (t) => {
     t.dropColumn('accepted')
     t.dropColumn('coupon_id')
   })
 
   // drop `circle_coupon` table
-  await baseDown(circle_coupon)
+  await knex('entity_type').where({ table: circle_coupon }).del()
+  await knex.schema.dropTable(circle_coupon)
 }
 
 exports.down = async (knex) => {
