@@ -18,7 +18,6 @@ import {
   BATCH_SIZE,
   CIRCLE_STATE,
   COMMENT_TYPE,
-  IPFS_PREFIX,
   MATERIALIZED_VIEW,
   MINUTE,
   TRANSACTION_PURPOSE,
@@ -191,9 +190,13 @@ export class ArticleService extends BaseService {
     const { bundle, key } = await makeHtmlBundle(bundleInfo)
     const result = await this.ipfs.client.add(bundle)
 
+    console.log({ result })
+
     // filter out the hash for the bundle
-    const [{ hash: contentHash }] = result.filter(
-      ({ path }: { path: string }) => path === IPFS_PREFIX
+    const [
+      { hash: contentHash },
+    ] = result.filter(({ path }: { path: string }) =>
+      path.endsWith('index.html')
     )
 
     // add meta data to ipfs

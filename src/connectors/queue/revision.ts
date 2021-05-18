@@ -109,14 +109,19 @@ class RevisionQueue extends BaseQueue {
       const wordCount = countWords(draft.content)
 
       // Step 2: publish content to IPFS
+      const revised = {
+        ...draft,
+        summary,
+      }
+      if (circleInfo) {
+        revised.access = circleInfo.accessType
+      }
+
       const {
         contentHash: dataHash,
         mediaHash,
         key,
-      } = await this.articleService.publishToIPFS({
-        ...draft,
-        summary,
-      })
+      } = await this.articleService.publishToIPFS(revised)
       job.progress(30)
 
       // Step 3: update draft
