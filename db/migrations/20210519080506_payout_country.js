@@ -4,9 +4,10 @@ const Stripe = require('stripe')
 const payoutAccount = 'payout_account'
 
 exports.up = async (knex) => {
-  // add `country` column
+  // add `country` and `currency` column
   await knex.schema.table(payoutAccount, function (t) {
     t.string('country')
+    t.string('currency')
   })
 
   // update country of connected accounts via Stripe API
@@ -53,12 +54,16 @@ exports.up = async (knex) => {
         continue
       }
 
-      // update country to db record
+      // update to db record
       const country = stripeAccount.country
+      const currency = stripeAccount.default_currency
       await knex(payoutAccount).where({ account_id: stripeAccountId }).update({
         country,
+        currency,
       })
-      console.log(`Updated ${stripeAccountId} country to ${country}`)
+      console.log(
+        `Updated ${stripeAccountId} with country: "${country}" and currency: "${currency}"`
+      )
     } catch (error) {
       console.error(error)
       console.error(`Failed to process item: ${account.id}`)
@@ -68,6 +73,7 @@ exports.up = async (knex) => {
 
 exports.down = async (knex) => {
   await knex.schema.table(payoutAccount, function (t) {
+    t.dropColumn('currency')
     t.dropColumn('country')
   })
 }

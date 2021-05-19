@@ -193,7 +193,12 @@ class StripeService {
         refresh_url: `${returnUrlPrefix}/failure?code=${OAUTH_CALLBACK_ERROR_CODE.stripeAccountRefresh}`,
         return_url: `${returnUrlPrefix}/success`,
       })
-      return { accountId: account.id, onboardingUrl: url }
+      return {
+        accountId: account.id,
+        country: account.country,
+        currency: account.default_currency,
+        onboardingUrl: url,
+      }
     } catch (err) {
       this.handleError(err)
     }
