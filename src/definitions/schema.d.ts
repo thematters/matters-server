@@ -2520,7 +2520,7 @@ export interface GQLToggleItemInput {
 
 export interface GQLAppreciateArticleInput {
   id: string
-  amount: number
+  amount: GQLPositiveInt
   token?: string
   superLike?: boolean
 }

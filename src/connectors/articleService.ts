@@ -1067,6 +1067,7 @@ export class ArticleService extends BaseService {
       .groupBy('sender_id', 'reference_id')
       .sum('amount as amount')
       .max('created_at as created_at')
+      .orderBy('created_at', 'desc')
       .limit(limit)
       .offset(offset)
 
