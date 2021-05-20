@@ -61,6 +61,8 @@ const resolver: MutationToConnectStripeAccountResolver = async (
     data: {
       userId: viewer.id,
       accountId: account.accountId,
+      country: account.country,
+      currency: account.currency,
       capabilitiesTransfers: false,
       type: PAYMENT_STRIPE_PAYOUT_ACCOUNT_TYPE.express,
       provider: PAYMENT_PROVIDER.stripe,
