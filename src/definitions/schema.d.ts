@@ -231,6 +231,11 @@ export interface GQLArticle extends GQLNode {
   access: GQLArticleAccess
 
   /**
+   * License Type
+   */
+  license: GQLArticleLicenseType
+
+  /**
    * #############
    *      OSS    #
    * #############
@@ -1432,6 +1437,11 @@ export interface GQLDraft extends GQLNode {
    * Access related fields on circle
    */
   access: GQLDraftAccess
+
+  /**
+   * License Type
+   */
+  license: GQLArticleLicenseType
 }
 
 /**
@@ -1495,6 +1505,15 @@ export interface GQLDraftAccess {
 export const enum GQLArticleAccessType {
   public = 'public',
   paywall = 'paywall',
+}
+
+/**
+ * Enums for types of article license
+ */
+export const enum GQLArticleLicenseType {
+  CC_0 = 'CC_0',
+  CC_BY_NC_ND_2 = 'CC_BY_NC_ND_2',
+  ARR = 'ARR',
 }
 
 export interface GQLUserActivity {
@@ -2508,6 +2527,11 @@ export interface GQLEditArticleInput {
   collection?: Array<string>
   circle?: string
   accessType?: GQLArticleAccessType
+
+  /**
+   * License Type, `ARR` is only for paywalled article
+   */
+  license?: GQLArticleLicenseType
 }
 
 /**
@@ -2768,11 +2792,12 @@ export interface GQLPutDraftInput {
   cover?: string
   collection?: Array<string | null>
   circle?: string
+  accessType?: GQLArticleAccessType
 
   /**
-   * Access Type, `public` or `paywall` only.
+   * License Type, `ARR` is only for paywalled article
    */
-  accessType?: GQLArticleAccessType
+  license?: GQLArticleLicenseType
 }
 
 export interface GQLDeleteDraftInput {
@@ -3828,6 +3853,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   circle?: ArticleToCircleResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
+  license?: ArticleToLicenseResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
   remark?: ArticleToRemarkResolver<TParent>
   commentCount?: ArticleToCommentCountResolver<TParent>
@@ -4219,6 +4245,15 @@ export interface ArticleToCircleResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToAccessResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToLicenseResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6859,6 +6894,7 @@ export interface GQLDraftTypeResolver<TParent = any> {
   collection?: DraftToCollectionResolver<TParent>
   circle?: DraftToCircleResolver<TParent>
   access?: DraftToAccessResolver<TParent>
+  license?: DraftToLicenseResolver<TParent>
 }
 
 export interface DraftToIdResolver<TParent = any, TResult = any> {
@@ -7021,6 +7057,15 @@ export interface DraftToCircleResolver<TParent = any, TResult = any> {
 }
 
 export interface DraftToAccessResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface DraftToLicenseResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

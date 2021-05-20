@@ -13,6 +13,7 @@ import collection from './collection'
 import draftContent from './content'
 import draftCover from './cover'
 import drafts from './drafts'
+import license from './license'
 
 export default {
   Article: {
@@ -35,6 +36,7 @@ export default {
     article,
     circle,
     access: (root: any) => root,
+    license,
   },
   DraftAccess: {
     type: ({ access }: { access: string }) => access,

@@ -179,6 +179,10 @@ export default /* GraphQL */ `
     "Access related fields on circle"
     access: ArticleAccess!
 
+    "License Type"
+    license: ArticleLicenseType!
+
+
     ##############
     #     OSS    #
     ##############
@@ -308,6 +312,9 @@ export default /* GraphQL */ `
     collection: [ID!]
     circle: ID
     accessType: ArticleAccessType
+
+    "License Type, \`ARR\` is only for paywalled article"
+    license: ArticleLicenseType
   }
 
   input AppreciateArticleInput {
@@ -423,6 +430,13 @@ export default /* GraphQL */ `
   enum ArticleAccessType {
     public
     paywall
+  }
+
+  "Enums for types of article license"
+  enum ArticleLicenseType {
+    CC_0 # CC0
+    CC_BY_NC_ND_2 # CC BY-NC-ND 2.0
+    ARR # All Right Reserved
   }
 
   "Enums for types of recommend articles."
