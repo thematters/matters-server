@@ -1,4 +1,3 @@
-
 const view = `article_hottest_view`
 const materialized = `article_hottest_materialized`
 
