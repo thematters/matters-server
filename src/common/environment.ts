@@ -101,6 +101,7 @@ export const environment = {
   slackToken: process.env.MATTERS_SLACK_TOKEN || '',
   slackPayoutChannel: process.env.MATTERS_SLACK_PAYOUT_CHANNEL || '',
   slackStripeAlertChannel: process.env.MATTERS_SLACK_STRIPE_ALERT_CHANNEL || '',
+  slackStripeQueueChannel: process.env.MATTERS_SLACK_QUEUE_CHANNEL || '',
   openExchangeRatesAppId: process.env.MATTERS_OPEN_EXCHANGE_RATES_APP_ID || '',
 }
 
