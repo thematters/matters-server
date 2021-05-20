@@ -217,3 +217,10 @@ export enum SUBSCRIPTION_ITEM_REMARK {
   trial_end = 'trial_end',
   trial_cancel = 'trial_cancel',
 }
+
+export enum INVITATION_STATE {
+  pending = 'pending',
+  accepted = 'accepted',
+  transfer_succeeded = 'transfer_succeeded',
+  transfer_failed = 'transfer_failed',
+}

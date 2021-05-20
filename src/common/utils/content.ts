@@ -32,12 +32,29 @@ export const correctSelfClosingHtmlTag = (name: string) => (html: string) => {
  * Correct sepecific nested br tag produced by third-party lib.
  */
 export const correctNestedBrTag = () => (html: string) => {
-  const $ = cheerio.load(html, { decodeEntities: false, xmlMode: true })
+  // forcely transform html string to make sure input's formats are inconsistent
+  const options = { decodeEntities: false, xmlMode: true }
+  const $pre = cheerio.load(html, options)
+
+  // process transformed html string
+  const $ = cheerio.load($pre.html(), options)
   const base = '<br class="smart">'
   const selector = 'br.smart'
 
   let output = html
-  $('blockquote > br.smart, p > br.smart').each((i, dom) => {
+  const outers = $('br.smart').filter((i, dom) => {
+    if (!dom) {
+      return false
+    }
+
+    const node = $(dom).parent('br.smart')
+    if (!node) {
+      return false
+    }
+    return node.length === 0
+  })
+
+  outers.each((i, dom) => {
     const node = $(dom)
 
     if (!dom || !node) {
@@ -73,7 +90,6 @@ export const correctNestedBrTag = () => (html: string) => {
     )
     const match = `${base}${content}</br>`
     const replacement = nodes.map((sub) => `${base}${sub.content}`).join('')
-
     output = output.replace(match, replacement)
   })
 

@@ -4,6 +4,7 @@ import {
   CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
+  INVITATION_STATE,
   NODE_TYPES,
   USER_STATE,
   VERIFICATION_CODE_TYPES,
@@ -122,7 +123,12 @@ const resolver: MutationToInviteResolver = async (
 
     let invitation = await atomService.findFirst({
       table: 'circle_invitation',
-      where: { circleId: circle.id, email, userId, accepted: false },
+      where: {
+        state: INVITATION_STATE.pending,
+        circleId: circle.id,
+        email,
+        userId,
+      },
     })
 
     // if not existed, create one
@@ -130,6 +136,7 @@ const resolver: MutationToInviteResolver = async (
       invitation = await atomService.create({
         table: 'circle_invitation',
         data: {
+          state: INVITATION_STATE.pending,
           circleId: circle.id,
           email,
           inviter: viewer.id,
