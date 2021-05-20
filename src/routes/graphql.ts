@@ -1,6 +1,7 @@
 import { responseCachePlugin } from '@matters/apollo-response-cache'
 import { RedisCache } from 'apollo-server-cache-redis'
 import { ApolloServer, GraphQLOptions } from 'apollo-server-express'
+import bodyParser from 'body-parser'
 import { Express, Request, Response } from 'express'
 import costAnalysis from 'graphql-cost-analysis'
 import depthLimit from 'graphql-depth-limit'
@@ -132,6 +133,8 @@ const server = new ProtectedApolloServer({
 })
 
 export const graphql = (app: Express) => {
+  app.use(bodyParser.json({ limit: '512kb' }))
+
   // API
   server.applyMiddleware({
     app,
