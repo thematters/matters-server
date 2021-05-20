@@ -146,7 +146,15 @@ class PayoutQueue extends BaseQueue {
         throw error
       }
 
-      const amount = numRound(tx.amount)
+      // plus additional 1% fee to amount if the recipient currency isn't USD
+      // @see {@url https://github.com/thematters/matters-server/issues/2029}
+      const canRecipientReceiveUSD =
+        (recipient.currency as string).toLowerCase() === 'usd'
+      const adjustedAmount = canRecipientReceiveUSD
+        ? tx.amount
+        : (tx.amount * 100) / 99
+
+      const amount = numRound(adjustedAmount)
       const amountInUSD = numRound(numDivide(amount, HKDtoUSD))
       const fee = numRound(tx.fee)
       const feeInUSD = numRound(numDivide(fee, HKDtoUSD))

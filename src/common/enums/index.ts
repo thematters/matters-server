@@ -125,8 +125,6 @@ export const IMAGE_DIMENSION_LIMIT = 1400
 export const LOG_RECORD_TYPES = {
   ReadFolloweeArticles: 'read_followee_articles',
   ReadResponseInfoPopUp: 'read_response_info_pop_up',
-  SentNewRegisterChurnEmail: 'sent_new_register_churn_email',
-  SentMediumTermChurnEmail: 'sent_medium_term_churn_email',
 }
 
 export const UTM_PARAMETER = {

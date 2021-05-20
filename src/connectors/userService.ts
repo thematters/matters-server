@@ -12,7 +12,6 @@ import {
   ARTICLE_STATE,
   BATCH_SIZE,
   COMMENT_STATE,
-  LOG_RECORD_TYPES,
   MATERIALIZED_VIEW,
   SEARCH_KEY_TRUNCATE_LENGTH,
   TRANSACTION_PURPOSE,
@@ -1825,97 +1824,6 @@ export class UserService extends BaseService {
       },
       table: 'user_oauth',
     })
-  }
-
-  /*********************************
-   *                               *
-   *             Churn             *
-   *                               *
-   *********************************/
-  findLost = ({
-    type,
-    group,
-  }: {
-    type: 'new-register' | 'medium-term'
-    group?: 'a' | 'b'
-  }) => {
-    const userLastReadQuery = this.knex('article_read_count')
-      .select('user_id')
-      .max('article_read_count.updated_at', { as: 'last_read' })
-      .groupBy('user_id')
-      .orderBy('last_read', 'desc')
-      .as('user_last_read')
-
-    // get A/B testing group filter if provied
-    const groupFilter = group
-      ? this.knex.raw(`("user".id % 2) ${group === 'a' ? '=' : '<>'} 0`)
-      : undefined
-
-    // registered within one month and last read a week ago
-    if (type === 'new-register') {
-      // registered within one month and last read a week ago
-      const newRegisterQuery = this.knex
-        .select('user.*', 'last_read')
-        .from('user')
-        .leftJoin(userLastReadQuery, 'user.id', 'user_last_read.user_id')
-        .leftJoin(
-          this.knex('log_record')
-            .select('user_id', 'type')
-            .where('type', LOG_RECORD_TYPES.SentNewRegisterChurnEmail)
-            .as('sent_record'),
-          'user.id',
-          'sent_record.user_id'
-        )
-        .where(
-          'user.created_at',
-          '>=',
-          this.knex.raw(`now() -  interval '30 days'`)
-        )
-        .where('last_read', '<', this.knex.raw(`now() -  interval '7 days'`))
-        .whereNotIn('user.state', [
-          USER_STATE.archived,
-          USER_STATE.banned,
-          USER_STATE.frozen,
-        ])
-        .whereNull('sent_record.type')
-
-      if (groupFilter) {
-        newRegisterQuery.where(groupFilter)
-      }
-      return newRegisterQuery
-    }
-
-    // read within six months and last read two weeks ago
-    if (type === 'medium-term') {
-      const mediumTermQuery = this.knex
-        .select('user.*', 'last_read')
-        .from(userLastReadQuery)
-        .leftJoin('user', 'user_last_read.user_id', 'user.id')
-        .leftJoin(
-          this.knex('log_record')
-            .select('user_id', 'type')
-            .where('type', LOG_RECORD_TYPES.SentMediumTermChurnEmail)
-            .as('sent_record'),
-          'user_last_read.user_id',
-          'sent_record.user_id'
-        )
-        .where('last_read', '>=', this.knex.raw(`now() -  interval '180 days'`))
-        .where('last_read', '<', this.knex.raw(`now() -  interval '14 days'`))
-        .whereNotIn('user.state', [
-          USER_STATE.archived,
-          USER_STATE.banned,
-          USER_STATE.frozen,
-        ])
-        .whereNull('sent_record.type')
-        .whereNotNull('user.id')
-
-      if (groupFilter) {
-        mediumTermQuery.where(groupFilter)
-      }
-      return mediumTermQuery
-    }
-
-    return []
   }
 
   /*********************************
