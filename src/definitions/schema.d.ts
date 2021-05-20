@@ -1136,8 +1136,14 @@ export interface GQLCircle extends GQLNode {
 
   /**
    * Invitations belonged to this Circle.
+   * @deprecated No longer use
    */
   invitations: GQLInvitationConnection
+
+  /**
+   * Invitations belonged to this Circle.
+   */
+  invites: GQLInvites
 
   /**
    * Invitation used by current viewer.
@@ -1305,7 +1311,13 @@ export interface GQLInvitation {
   sentAt: GQLDateTime
 
   /**
+   * Determine it's state.
+   */
+  state: GQLInvitationState
+
+  /**
    * Determine it is accepted or not.
+   * @deprecated No longer use
    */
   accepted: boolean
 }
@@ -1326,6 +1338,25 @@ export interface GQLPerson {
 }
 
 export type GQLPositiveInt = any
+
+export const enum GQLInvitationState {
+  accepted = 'accepted',
+  pending = 'pending',
+  transfer_succeded = 'transfer_succeded',
+  transfer_failed = 'transfer_failed',
+}
+
+export interface GQLInvites {
+  /**
+   * Accepted invitation list
+   */
+  accepted: GQLInvitationConnection
+
+  /**
+   * Pending invitation list
+   */
+  pending: GQLInvitationConnection
+}
 
 export interface GQLDraftConnection extends GQLConnection {
   totalCount: number
@@ -3570,6 +3601,7 @@ export interface GQLResolver {
 
   Person?: GQLPersonTypeResolver
   PositiveInt?: GraphQLScalarType
+  Invites?: GQLInvitesTypeResolver
   DraftConnection?: GQLDraftConnectionTypeResolver
   DraftEdge?: GQLDraftEdgeTypeResolver
   Draft?: GQLDraftTypeResolver
@@ -6179,6 +6211,7 @@ export interface GQLCircleTypeResolver<TParent = any> {
   isMember?: CircleToIsMemberResolver<TParent>
   setting?: CircleToSettingResolver<TParent>
   invitations?: CircleToInvitationsResolver<TParent>
+  invites?: CircleToInvitesResolver<TParent>
   invitedBy?: CircleToInvitedByResolver<TParent>
   broadcast?: CircleToBroadcastResolver<TParent>
   pinnedBroadcast?: CircleToPinnedBroadcastResolver<TParent>
@@ -6356,6 +6389,15 @@ export interface CircleToInvitationsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: CircleToInvitationsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface CircleToInvitesResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6684,6 +6726,7 @@ export interface GQLInvitationTypeResolver<TParent = any> {
   freePeriod?: InvitationToFreePeriodResolver<TParent>
   createdAt?: InvitationToCreatedAtResolver<TParent>
   sentAt?: InvitationToSentAtResolver<TParent>
+  state?: InvitationToStateResolver<TParent>
   accepted?: InvitationToAcceptedResolver<TParent>
 }
 
@@ -6750,6 +6793,15 @@ export interface InvitationToSentAtResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
+export interface InvitationToStateResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface InvitationToAcceptedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
@@ -6773,6 +6825,35 @@ export interface PersonToEmailResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface GQLInvitesTypeResolver<TParent = any> {
+  accepted?: InvitesToAcceptedResolver<TParent>
+  pending?: InvitesToPendingResolver<TParent>
+}
+
+export interface InvitesToAcceptedArgs {
+  input: GQLConnectionArgs
+}
+export interface InvitesToAcceptedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: InvitesToAcceptedArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface InvitesToPendingArgs {
+  input: GQLConnectionArgs
+}
+export interface InvitesToPendingResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: InvitesToPendingArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

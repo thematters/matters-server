@@ -84,7 +84,10 @@ export default /* GraphQL */ `
     setting: CircleSetting!
 
     "Invitations belonged to this Circle."
-    invitations(input: ConnectionArgs!): InvitationConnection!
+    invitations(input: ConnectionArgs!): InvitationConnection! @deprecated(reason: "No longer use")
+
+    "Invitations belonged to this Circle."
+    invites: Invites!
 
     "Invitation used by current viewer."
     invitedBy: Invitation
@@ -166,6 +169,14 @@ export default /* GraphQL */ `
     client_secret: String
   }
 
+  type Invites {
+    "Accepted invitation list"
+    accepted(input: ConnectionArgs!): InvitationConnection!
+
+    "Pending invitation list"
+    pending(input: ConnectionArgs!): InvitationConnection!
+  }
+
   type Invitation {
     "Unique ID."
     id: ID!
@@ -188,8 +199,11 @@ export default /* GraphQL */ `
     "Sent time."
     sentAt: DateTime!
 
+    "Determine it's state."
+    state: InvitationState!
+
     "Determine it is accepted or not."
-    accepted: Boolean!
+    accepted: Boolean! @deprecated(reason: "No longer use")
   }
 
   type Person {
@@ -299,5 +313,12 @@ export default /* GraphQL */ `
   enum PutCircleArticlesType {
     add
     remove
+  }
+
+  enum InvitationState {
+    accepted
+    pending
+    transfer_succeded
+    transfer_failed
   }
 `

@@ -5,6 +5,7 @@ import {
   GQLCircleTypeResolver,
   GQLInvitationTypeResolver,
   GQLInviteeTypeResolver,
+  GQLInvitesTypeResolver,
   GQLMemberTypeResolver,
   GQLPersonTypeResolver,
   GQLPossibleInviteeTypeNames,
@@ -21,6 +22,7 @@ import invitee from './invitation/invitee'
 import inviter from './invitation/inviter'
 import invitations from './invitations'
 import invitedBy from './invitedBy'
+import Invites from './invites'
 import isFollower from './isFollower'
 import isMember from './isMember'
 import memberPrice from './member/price'
@@ -41,6 +43,7 @@ const circle: {
   CircleSetting: GQLCircleSettingTypeResolver
   Member: GQLMemberTypeResolver
   Price: GQLPriceTypeResolver
+  Invites: GQLInvitesTypeResolver
   Invitation: GQLInvitationTypeResolver
   Invitee: {
     __resolveType: GQLInviteeTypeResolver
@@ -65,6 +68,7 @@ const circle: {
     setting: (root: any) => root,
     invitations,
     invitedBy,
+    invites: (root) => root,
   },
 
   CircleSetting: {
@@ -82,6 +86,8 @@ const circle: {
     circle: priceCircle,
   },
 
+  Invites,
+
   Invitation: {
     id: ({ id }) => (id ? toGlobalId({ type: NODE_TYPES.Invitation, id }) : ''),
     invitee,
@@ -89,6 +95,7 @@ const circle: {
     circle: invitationCircle,
     freePeriod,
     accepted: ({ state }) => state === INVITATION_STATE.accepted,
+    state: ({ state }) => state,
   },
 
   Invitee: {
