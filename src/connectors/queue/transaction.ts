@@ -51,7 +51,7 @@ class TxTimeoutQueue extends BaseQueue {
     done
   ) => {
     try {
-      // cancel pending tx that are 30minutes+ old
+      // cancel pending tx that are 30 minutes+ old
       logger.info(`[schedule job] canceling timeout pending transactions`)
       await this.paymentService
         .knex(this.paymentService.table)

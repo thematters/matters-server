@@ -1773,51 +1773,6 @@ export class ArticleService extends BaseService {
 
   /*********************************
    *                               *
-   *             Churn             *
-   *                               *
-   *********************************/
-  /**
-   * Find top appreciations articles in a range of time
-   */
-  findTopAppreciations = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-    since,
-  }: {
-    limit?: number
-    offset?: number
-    since?: Date | string
-  }) => {
-    let qs = this.knex
-      .select('article.*')
-      .from('article')
-      .rightJoin(
-        this.knex
-          .select('referenceId')
-          .sum('amount', { as: 'total' })
-          .from('appreciation')
-          .whereIn('purpose', [
-            APPRECIATION_PURPOSE.appreciate,
-            APPRECIATION_PURPOSE.appreciateSubsidy,
-          ])
-          .groupBy('referenceId')
-          .orderBy('total', 'desc')
-          .as('tx'),
-        'tx.referenceId',
-        'article.id'
-      )
-      .where('state', ARTICLE_STATE.active)
-      .offset(offset)
-      .limit(limit)
-
-    if (since) {
-      qs = qs.where('createdAt', '>=', since)
-    }
-    return qs
-  }
-
-  /*********************************
-   *                               *
    *          Transaction          *
    *                               *
    *********************************/
