@@ -17,7 +17,6 @@ import avatar from './avatar'
 import cover from './cover'
 import followers from './followers'
 import invitationCircle from './invitation/circle'
-import freePeriod from './invitation/freePeriod'
 import invitee from './invitation/invitee'
 import inviter from './invitation/inviter'
 import invitations from './invitations'
@@ -93,9 +92,9 @@ const circle: {
     invitee,
     inviter,
     circle: invitationCircle,
-    freePeriod,
-    accepted: ({ state }) => state === INVITATION_STATE.accepted,
+    freePeriod: ({ durationInDays }) => durationInDays,
     state: ({ state }) => state,
+    accepted: ({ state }) => state === INVITATION_STATE.accepted,
   },
 
   Invitee: {

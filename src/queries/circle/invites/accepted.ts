@@ -14,16 +14,21 @@ const resolver: InvitesToAcceptedResolver = async (
 
   const { first: take, after } = input
   const skip = cursorToIndex(after) + 1
+  const states = Object.values(INVITATION_STATE).filter(
+    (state) => state !== INVITATION_STATE.pending
+  )
 
   const [totalCount, records] = await Promise.all([
     atomService.count({
       table: 'circle_invitation',
-      where: { state: INVITATION_STATE.accepted, circleId: id, inviter: owner },
+      where: { circleId: id, inviter: owner },
+      whereIn: ['state', states],
     }),
     atomService.findMany({
       table: 'circle_invitation',
-      where: { state: INVITATION_STATE.accepted, circleId: id, inviter: owner },
-      orderBy: [{ column: 'created_at', order: 'desc' }],
+      where: { circleId: id, inviter: owner },
+      whereIn: ['state', states],
+      orderBy: [{ column: 'accepted_at', order: 'desc' }],
       skip,
       take,
     }),

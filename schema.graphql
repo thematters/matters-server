@@ -989,6 +989,9 @@ type Invitation {
   """Sent time."""
   sentAt: DateTime!
 
+  """Accepted time."""
+  acceptedAt: DateTime
+
   """Determine it's state."""
   state: InvitationState!
 
@@ -1010,7 +1013,7 @@ type InvitationEdge {
 enum InvitationState {
   accepted
   pending
-  transfer_succeded
+  transfer_succeeded
   transfer_failed
 }
 

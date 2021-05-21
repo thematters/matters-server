@@ -199,6 +199,9 @@ export default /* GraphQL */ `
     "Sent time."
     sentAt: DateTime!
 
+    "Accepted time."
+    acceptedAt: DateTime
+
     "Determine it's state."
     state: InvitationState!
 
@@ -318,7 +321,7 @@ export default /* GraphQL */ `
   enum InvitationState {
     accepted
     pending
-    transfer_succeded
+    transfer_succeeded
     transfer_failed
   }
 `

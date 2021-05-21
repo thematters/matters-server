@@ -1311,6 +1311,11 @@ export interface GQLInvitation {
   sentAt: GQLDateTime
 
   /**
+   * Accepted time.
+   */
+  acceptedAt?: GQLDateTime
+
+  /**
    * Determine it's state.
    */
   state: GQLInvitationState
@@ -1342,7 +1347,7 @@ export type GQLPositiveInt = any
 export const enum GQLInvitationState {
   accepted = 'accepted',
   pending = 'pending',
-  transfer_succeded = 'transfer_succeded',
+  transfer_succeeded = 'transfer_succeeded',
   transfer_failed = 'transfer_failed',
 }
 
@@ -6726,6 +6731,7 @@ export interface GQLInvitationTypeResolver<TParent = any> {
   freePeriod?: InvitationToFreePeriodResolver<TParent>
   createdAt?: InvitationToCreatedAtResolver<TParent>
   sentAt?: InvitationToSentAtResolver<TParent>
+  acceptedAt?: InvitationToAcceptedAtResolver<TParent>
   state?: InvitationToStateResolver<TParent>
   accepted?: InvitationToAcceptedResolver<TParent>
 }
@@ -6785,6 +6791,15 @@ export interface InvitationToCreatedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface InvitationToSentAtResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface InvitationToAcceptedAtResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
