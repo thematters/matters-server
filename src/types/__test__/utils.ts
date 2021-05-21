@@ -193,6 +193,7 @@ export const putDraft = async ({ draft, client }: PutDraftInput) => {
         summaryCustomized
         content
         createdAt
+        license
       }
     }
   `

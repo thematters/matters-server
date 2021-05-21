@@ -3,6 +3,8 @@ import { difference, flow, trim, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   ASSET_TYPE,
   CACHE_KEYWORD,
@@ -36,7 +38,11 @@ import {
   stripClass,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
-import { ItemData, MutationToEditArticleResolver } from 'definitions'
+import {
+  GQLArticleLicenseType,
+  ItemData,
+  MutationToEditArticleResolver,
+} from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
@@ -52,6 +58,7 @@ const resolver: MutationToEditArticleResolver = async (
       collection,
       circle: circleGlobalId,
       accessType,
+      license,
     },
   },
   {
@@ -378,16 +385,75 @@ const resolver: MutationToEditArticleResolver = async (
    */
   const resetSummary = summary === null || summary === ''
   if (summary) {
-    await draftService.baseUpdate(dbId, {
-      summary,
-      summaryCustomized: true,
-      updatedAt: new Date(),
+    await atomService.update({
+      table: 'draft',
+      where: { id: article.draftId },
+      data: { summary, summaryCustomized: true, updatedAt: new Date() },
     })
   } else if (resetSummary) {
-    await draftService.baseUpdate(dbId, {
-      summary: null,
-      summaryCustomized: false,
-      updatedAt: new Date(),
+    await atomService.update({
+      table: 'draft',
+      where: { id: article.draftId },
+      data: { summary: null, summaryCustomized: false, updatedAt: new Date() },
+    })
+  }
+
+  /**
+   * Revision Count
+   */
+  const shouldRepublish = content || isUpdatingAccess || resetCircle
+  const checkRevisionCount = () => {
+    const revisionCount = article.revisionCount || 0
+    if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
+      throw new ArticleRevisionReachLimitError(
+        'number of revisions reach limit'
+      )
+    }
+  }
+  const increaseRevisionCount = async () => {
+    checkRevisionCount()
+
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: {
+        revisionCount: (article.revisionCount || 0) + 1,
+        updatedAt: new Date(),
+      },
+    })
+  }
+
+  /**
+   * License
+   */
+  const resetLicense = license === null
+
+  // check license
+  const isARR = license === GQLArticleLicenseType.ARR
+  const isPaywall =
+    (accessType || currAccess?.access) === ARTICLE_ACCESS_TYPE.paywall
+
+  if (isARR && !isPaywall) {
+    throw new ForbiddenError(
+      'ARR (All Right Reserved) license can only be used by paywalled content.'
+    )
+  }
+
+  if (license || resetLicense) {
+    // we wont increase twice if the article will be republish later
+    if (!shouldRepublish) {
+      await increaseRevisionCount()
+    }
+
+    await atomService.update({
+      table: 'draft',
+      where: { id: article.draftId },
+      data: {
+        license: license
+          ? ARTICLE_LICENSE_TYPE[license]
+          : ARTICLE_LICENSE_TYPE.CC_BY_NC_ND_2,
+        updatedAt: new Date(),
+      },
     })
   }
 
@@ -395,12 +461,7 @@ const resolver: MutationToEditArticleResolver = async (
    * Republish article if content or access is changed
    */
   const republish = async (newContent?: string) => {
-    const revisionCount = article.revisionCount || 0
-    if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
-      throw new ArticleRevisionReachLimitError(
-        'number of revisions reach limit'
-      )
-    }
+    checkRevisionCount()
 
     // fetch updated data before create draft
     const [
@@ -450,6 +511,7 @@ const resolver: MutationToEditArticleResolver = async (
       publishState: PUBLISH_STATE.pending,
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
+      license: currDraft?.license,
       createdAt: new Date(),
       updatedAt: new Date(),
     }

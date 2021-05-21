@@ -75,4 +75,38 @@ describe('put draft', () => {
     })
     expect(_get(resetResult2, 'collection.totalCount')).toBe(0)
   })
+
+  test('edit draft license', async () => {
+    const { id } = await putDraft({
+      draft: {
+        title: Math.random().toString(),
+        content: Math.random().toString(),
+      },
+    })
+    draftId = id
+
+    const result = await putDraft({ draft: { id: draftId } })
+
+    // default license
+    expect(_get(result, 'license')).toBe('CC_BY_NC_ND_2')
+
+    // set to CC0
+    const result2 = await putDraft({
+      draft: { id: draftId, license: 'CC_0' as any },
+    })
+    expect(_get(result2, 'license')).toBe('CC_0')
+
+    // forbid to ARR if it's not a paywalled article
+    const errorPath = 'errors.0.extensions.code'
+    const forbidResult = await putDraft({
+      draft: { id: draftId, license: 'ARR' as any },
+    })
+    expect(_get(forbidResult, errorPath)).toBe('FORBIDDEN')
+
+    // reset license
+    const resetResult1 = await putDraft({
+      draft: { id: draftId, license: null as any },
+    })
+    expect(_get(resetResult1, 'license')).toBe('CC_BY_NC_ND_2')
+  })
 })

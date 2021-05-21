@@ -2,6 +2,8 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   ASSET_TYPE,
   CACHE_KEYWORD,
@@ -21,7 +23,12 @@ import {
   UserInputError,
 } from 'common/errors'
 import { extractAssetDataFromHtml, fromGlobalId, sanitize } from 'common/utils'
-import { ItemData, MutationToPutDraftResolver } from 'definitions'
+import {
+  GQLArticleAccessType,
+  GQLArticleLicenseType,
+  ItemData,
+  MutationToPutDraftResolver,
+} from 'definitions'
 
 const resolver: MutationToPutDraftResolver = async (
   root,
@@ -47,6 +54,7 @@ const resolver: MutationToPutDraftResolver = async (
     collection,
     circle: circleGlobalId,
     accessType,
+    license,
   } = input
 
   if (!viewer.id) {
@@ -140,6 +148,19 @@ const resolver: MutationToPutDraftResolver = async (
     circleId = cId
   }
 
+  // check license
+  const checkLicense = (access?: GQLArticleAccessType) => {
+    const isARR = license === GQLArticleLicenseType.ARR
+    const isPaywall = access === ARTICLE_ACCESS_TYPE.paywall
+
+    if (isARR && !isPaywall) {
+      throw new ForbiddenError(
+        'ARR (All Right Reserved) license can only be used by paywalled content.'
+      )
+    }
+  }
+  checkLicense(accessType)
+
   // assemble data
   const resetSummary = summary === null || summary === ''
   const resetCover = cover === null
@@ -160,6 +181,7 @@ const resolver: MutationToPutDraftResolver = async (
       collection: collectionIds,
       circleId,
       access: accessType,
+      license: ARTICLE_LICENSE_TYPE[license || 'CC_BY_NC_ND_2'],
     },
     _.isNil
   )
@@ -193,6 +215,9 @@ const resolver: MutationToPutDraftResolver = async (
     if (data?.summary?.length > 200) {
       throw new UserInputError('summary reach length limit')
     }
+
+    // check license
+    checkLicense(accessType || draft.access)
 
     // handle candidate cover
     const isUpdateContent = content || content === ''
