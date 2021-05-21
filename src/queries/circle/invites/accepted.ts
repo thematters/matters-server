@@ -14,6 +14,8 @@ const resolver: InvitesToAcceptedResolver = async (
 
   const { first: take, after } = input
   const skip = cursorToIndex(after) + 1
+
+  // here consider accepted, transfer failed and succeeded as true accepted
   const states = Object.values(INVITATION_STATE).filter(
     (state) => state !== INVITATION_STATE.pending
   )
