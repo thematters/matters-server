@@ -146,22 +146,24 @@ class PayoutQueue extends BaseQueue {
         throw error
       }
 
-      // plus additional 1% fee to amount if the recipient currency isn't USD
-      // @see {@url https://github.com/thematters/matters-server/issues/2029}
-      const canRecipientReceiveUSD =
-        (recipient.currency as string).toLowerCase() === 'usd'
-      const adjustedAmount = canRecipientReceiveUSD
-        ? tx.amount
-        : (tx.amount * 100) / 99
-
-      const amount = numRound(adjustedAmount)
+      const amount = numRound(tx.amount)
       const amountInUSD = numRound(numDivide(amount, HKDtoUSD))
       const fee = numRound(tx.fee)
       const feeInUSD = numRound(numDivide(fee, HKDtoUSD))
       const net = numRound(numMinus(amount, fee))
       const netInUSD = numRound(numMinus(amountInUSD, feeInUSD))
+
+      // plus additional 1% fee to amount if the recipient currency isn't USD
+      // @see {@url https://github.com/thematters/matters-server/issues/2029}
+      const canRecipientReceiveUSD =
+        (recipient.currency as string).toLowerCase() === 'usd'
+      const adjustedNetInUSD = canRecipientReceiveUSD
+        ? netInUSD
+        : (netInUSD * 100) / 99
+
+      // start transfer
       const transfer = await this.paymentService.stripe.transfer({
-        amount: netInUSD,
+        amount: adjustedNetInUSD,
         currency: PAYMENT_CURRENCY.USD,
         recipientStripeConnectedId: recipient.accountId,
         txId,
