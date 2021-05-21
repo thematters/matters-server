@@ -1316,15 +1316,14 @@ export interface GQLInvitation {
   acceptedAt?: GQLDateTime
 
   /**
-   * Determine it's state.
-   */
-  state: GQLInvitationState
-
-  /**
    * Determine it is accepted or not.
-   * @deprecated No longer use
    */
   accepted: boolean
+
+  /**
+   * Determine it's specific state.
+   */
+  state: GQLInvitationState
 }
 
 export type GQLInvitee = GQLPerson | GQLUser
@@ -6732,8 +6731,8 @@ export interface GQLInvitationTypeResolver<TParent = any> {
   createdAt?: InvitationToCreatedAtResolver<TParent>
   sentAt?: InvitationToSentAtResolver<TParent>
   acceptedAt?: InvitationToAcceptedAtResolver<TParent>
-  state?: InvitationToStateResolver<TParent>
   accepted?: InvitationToAcceptedResolver<TParent>
+  state?: InvitationToStateResolver<TParent>
 }
 
 export interface InvitationToIdResolver<TParent = any, TResult = any> {
@@ -6808,7 +6807,7 @@ export interface InvitationToAcceptedAtResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface InvitationToStateResolver<TParent = any, TResult = any> {
+export interface InvitationToAcceptedResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6817,7 +6816,7 @@ export interface InvitationToStateResolver<TParent = any, TResult = any> {
   ): TResult
 }
 
-export interface InvitationToAcceptedResolver<TParent = any, TResult = any> {
+export interface InvitationToStateResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},

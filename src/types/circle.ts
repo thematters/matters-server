@@ -202,11 +202,11 @@ export default /* GraphQL */ `
     "Accepted time."
     acceptedAt: DateTime
 
-    "Determine it's state."
-    state: InvitationState!
-
     "Determine it is accepted or not."
-    accepted: Boolean! @deprecated(reason: "No longer use")
+    accepted: Boolean!
+
+    "Determine it's specific state."
+    state: InvitationState!
   }
 
   type Person {
