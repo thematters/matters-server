@@ -1,6 +1,6 @@
 import _get from 'lodash/get'
 
-import { NODE_TYPES } from 'common/enums'
+import { ARTICLE_LICENSE_TYPE, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import { putDraft } from './utils'
@@ -88,18 +88,18 @@ describe('put draft', () => {
     const result = await putDraft({ draft: { id: draftId } })
 
     // default license
-    expect(_get(result, 'license')).toBe('CC_BY_NC_ND_2')
+    expect(_get(result, 'license')).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2)
 
     // set to CC0
     const result2 = await putDraft({
-      draft: { id: draftId, license: 'CC_0' as any },
+      draft: { id: draftId, license: ARTICLE_LICENSE_TYPE.cc_0 as any },
     })
-    expect(_get(result2, 'license')).toBe('CC_0')
+    expect(_get(result2, 'license')).toBe(ARTICLE_LICENSE_TYPE.cc_0)
 
     // forbid to ARR if it's not a paywalled article
     const errorPath = 'errors.0.extensions.code'
     const forbidResult = await putDraft({
-      draft: { id: draftId, license: 'ARR' as any },
+      draft: { id: draftId, license: ARTICLE_LICENSE_TYPE.arr as any },
     })
     expect(_get(forbidResult, errorPath)).toBe('FORBIDDEN')
 
@@ -107,6 +107,8 @@ describe('put draft', () => {
     const resetResult1 = await putDraft({
       draft: { id: draftId, license: null as any },
     })
-    expect(_get(resetResult1, 'license')).toBe('CC_BY_NC_ND_2')
+    expect(_get(resetResult1, 'license')).toBe(
+      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2
+    )
   })
 })

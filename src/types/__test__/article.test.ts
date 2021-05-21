@@ -1,6 +1,11 @@
 import _get from 'lodash/get'
 
-import { ARTICLE_STATE, NODE_TYPES, PUBLISH_STATE } from 'common/enums'
+import {
+  ARTICLE_LICENSE_TYPE,
+  ARTICLE_STATE,
+  NODE_TYPES,
+  PUBLISH_STATE,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
 
@@ -493,11 +498,13 @@ describe('edit article', () => {
       variables: {
         input: {
           id: ARTICLE_ID,
-          license: 'CC_0',
+          license: ARTICLE_LICENSE_TYPE.cc_0,
         },
       },
     })
-    expect(_get(result, 'data.editArticle.license')).toBe('CC_0')
+    expect(_get(result, 'data.editArticle.license')).toBe(
+      ARTICLE_LICENSE_TYPE.cc_0
+    )
 
     // forbid to ARR if it's not a paywalled article
     const errorPath = 'errors.0.extensions.code'
@@ -507,7 +514,7 @@ describe('edit article', () => {
       variables: {
         input: {
           id: ARTICLE_ID,
-          license: 'ARR',
+          license: ARTICLE_LICENSE_TYPE.arr,
         },
       },
     })

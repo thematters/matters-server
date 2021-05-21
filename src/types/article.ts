@@ -434,9 +434,9 @@ export default /* GraphQL */ `
 
   "Enums for types of article license"
   enum ArticleLicenseType {
-    CC_0 # CC0
-    CC_BY_NC_ND_2 # CC BY-NC-ND 2.0
-    ARR # All Right Reserved
+    cc_0 # CC0
+    cc_by_nc_nd_2 # CC BY-NC-ND 2.0
+    arr # All Right Reserved
   }
 
   "Enums for types of recommend articles."

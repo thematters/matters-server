@@ -1,7 +1,11 @@
 import { makeSummary } from '@matters/matters-html-formatter'
 import slugify from '@matters/slugify'
 
-import { ARTICLE_APPRECIATE_LIMIT, NODE_TYPES } from 'common/enums'
+import {
+  ARTICLE_APPRECIATE_LIMIT,
+  ARTICLE_LICENSE_TYPE,
+  NODE_TYPES,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
 
 import * as articleAccess from './access'
@@ -19,7 +23,6 @@ import articleCover from './cover'
 import createdAt from './createdAt'
 import hasAppreciate from './hasAppreciate'
 import language from './language'
-import license from './license'
 import live from './live'
 import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
@@ -100,7 +103,8 @@ export default {
     circle,
     access: (root: any) => root,
     revisionCount,
-    license,
+    license: ({ license }: { license: any }) =>
+      license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
   },
   Tag: {
     id: ({ id }: { id: string }) => toGlobalId({ type: NODE_TYPES.Tag, id }),

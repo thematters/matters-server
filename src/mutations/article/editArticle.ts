@@ -429,7 +429,7 @@ const resolver: MutationToEditArticleResolver = async (
   const resetLicense = license === null
 
   // check license
-  const isARR = license === GQLArticleLicenseType.ARR
+  const isARR = license === GQLArticleLicenseType.arr
   const isPaywall =
     (accessType || currAccess?.access) === ARTICLE_ACCESS_TYPE.paywall
 
@@ -449,9 +449,7 @@ const resolver: MutationToEditArticleResolver = async (
       table: 'draft',
       where: { id: article.draftId },
       data: {
-        license: license
-          ? ARTICLE_LICENSE_TYPE[license]
-          : ARTICLE_LICENSE_TYPE.CC_BY_NC_ND_2,
+        license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
         updatedAt: new Date(),
       },
     })

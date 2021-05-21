@@ -288,9 +288,9 @@ input ArticleInput {
 
 """Enums for types of article license"""
 enum ArticleLicenseType {
-  CC_0
-  CC_BY_NC_ND_2
-  ARR
+  cc_0
+  cc_by_nc_nd_2
+  arr
 }
 
 """

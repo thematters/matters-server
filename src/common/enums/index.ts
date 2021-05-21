@@ -79,9 +79,9 @@ export const ARTICLE_ACCESS_TYPE = {
 }
 
 export const ARTICLE_LICENSE_TYPE = {
-  CC_0: 'cc_0',
-  CC_BY_NC_ND_2: 'cc_by_nc_nd_2',
-  ARR: 'arr',
+  cc_0: 'cc_0',
+  cc_by_nc_nd_2: 'cc_by_nc_nd_2',
+  arr: 'arr',
 }
 
 export const PUBLISH_STATE = {

@@ -1,6 +1,10 @@
 import _get from 'lodash/get'
 
-import { ARTICLE_ACCESS_TYPE, NODE_TYPES } from 'common/enums'
+import {
+  ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
+  NODE_TYPES,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLCommentType } from 'definitions'
 
@@ -368,7 +372,7 @@ describe('circle CRUD', () => {
       articles: [article.id],
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.public,
-      license: 'CC_0',
+      license: ARTICLE_LICENSE_TYPE.cc_0,
     }
     const addedPublicData = await mutate({
       mutation: PUT_CIRCLE_ARTICLES,
@@ -386,7 +390,7 @@ describe('circle CRUD', () => {
     ).toBe(ARTICLE_ACCESS_TYPE.public)
     expect(
       _get(addedPublicData, `${path}.works.edges[0].node.access.license`)
-    ).toBe('CC_0')
+    ).toBe(ARTICLE_LICENSE_TYPE.cc_0)
 
     // remove public article from circle
     const removedData = await mutate({
@@ -431,7 +435,7 @@ describe('circle CRUD', () => {
     ).toBe(ARTICLE_ACCESS_TYPE.public)
     expect(
       _get(addedPublicData, `${path}.works.edges[0].node.access.license`)
-    ).toBe('CC_BY_NC_ND_2')
+    ).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2)
 
     // turns to paywall access
     const paywallInput: Record<string, any> = {
@@ -439,7 +443,7 @@ describe('circle CRUD', () => {
       articles: [article.id],
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.paywall,
-      license: 'ARR',
+      license: ARTICLE_LICENSE_TYPE.arr,
     }
     const addedPaywallData = await mutate({
       mutation: PUT_CIRCLE_ARTICLES,
@@ -457,7 +461,7 @@ describe('circle CRUD', () => {
     ).toBe(ARTICLE_ACCESS_TYPE.paywall)
     expect(
       _get(addedPaywallData, `${path}.works.edges[0].node.access.license`)
-    ).toBe('ARR')
+    ).toBe(ARTICLE_LICENSE_TYPE.arr)
 
     // remove from circle
     const removedData = await mutate({
@@ -487,7 +491,7 @@ describe('circle CRUD', () => {
       articles: [article.id],
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.paywall,
-      license: 'ARR',
+      license: ARTICLE_LICENSE_TYPE.arr,
     }
     const addedPaywallData = await mutate({
       mutation: PUT_CIRCLE_ARTICLES,
@@ -505,7 +509,7 @@ describe('circle CRUD', () => {
     ).toBe(ARTICLE_ACCESS_TYPE.paywall)
     expect(
       _get(addedPaywallData, `${path}.works.edges[0].node.access.license`)
-    ).toBe('ARR')
+    ).toBe(ARTICLE_LICENSE_TYPE.arr)
 
     // turns to public access
     const publicInput: Record<string, any> = {
@@ -513,7 +517,7 @@ describe('circle CRUD', () => {
       articles: [article.id],
       type: 'add',
       accessType: ARTICLE_ACCESS_TYPE.public,
-      license: 'CC_0',
+      license: ARTICLE_LICENSE_TYPE.cc_0,
     }
     const addedPublicData = await mutate({
       mutation: PUT_CIRCLE_ARTICLES,

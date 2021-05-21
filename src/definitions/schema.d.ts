@@ -1511,9 +1511,9 @@ export const enum GQLArticleAccessType {
  * Enums for types of article license
  */
 export const enum GQLArticleLicenseType {
-  CC_0 = 'CC_0',
-  CC_BY_NC_ND_2 = 'CC_BY_NC_ND_2',
-  ARR = 'ARR',
+  cc_0 = 'cc_0',
+  cc_by_nc_nd_2 = 'cc_by_nc_nd_2',
+  arr = 'arr',
 }
 
 export interface GQLUserActivity {

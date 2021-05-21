@@ -150,7 +150,7 @@ const resolver: MutationToPutDraftResolver = async (
 
   // check license
   const checkLicense = (access?: GQLArticleAccessType) => {
-    const isARR = license === GQLArticleLicenseType.ARR
+    const isARR = license === GQLArticleLicenseType.arr
     const isPaywall = access === ARTICLE_ACCESS_TYPE.paywall
 
     if (isARR && !isPaywall) {
@@ -181,7 +181,7 @@ const resolver: MutationToPutDraftResolver = async (
       collection: collectionIds,
       circleId,
       access: accessType,
-      license: ARTICLE_LICENSE_TYPE[license || 'CC_BY_NC_ND_2'],
+      license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
     },
     _.isNil
   )
