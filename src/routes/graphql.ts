@@ -133,7 +133,7 @@ const server = new ProtectedApolloServer({
 })
 
 export const graphql = (app: Express) => {
-  app.use(bodyParser.json({ limit: '512kb' }))
+  app.use(API_ENDPOINT, bodyParser.json({ limit: '512kb' }))
 
   // API
   server.applyMiddleware({
