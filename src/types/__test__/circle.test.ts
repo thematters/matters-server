@@ -689,7 +689,7 @@ describe('circle invitation management', () => {
       variables: {
         input: {
           invitees: [],
-          freePeriod: 1,
+          freePeriod: 30,
           circleId: circle.id,
         },
       },
@@ -702,7 +702,7 @@ describe('circle invitation management', () => {
       variables: {
         input: {
           invitees,
-          freePeriod: 1,
+          freePeriod: 30,
           circleId: circle.id,
         },
       },
