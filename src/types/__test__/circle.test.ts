@@ -162,7 +162,7 @@ const QUERY_VIEWER_CIRCLE_INVITATIONS = /* GraphQL*/ `
 `
 
 const QUERY_VIEWER_CIRCLE_PENDING_INVITES = /* GraphQL */ `
-  qeury {
+  query {
     viewer {
       ownCircles {
         id
@@ -194,7 +194,7 @@ const QUERY_VIEWER_CIRCLE_PENDING_INVITES = /* GraphQL */ `
 `
 
 const QUERY_VIEWER_CIRCLE_ACCEPTED_INVITES = /* GraphQL */ `
-  qeury {
+  query {
     viewer {
       ownCircles {
         id
