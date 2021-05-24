@@ -38,11 +38,7 @@ import {
   stripClass,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
-import {
-  GQLArticleLicenseType,
-  ItemData,
-  MutationToEditArticleResolver,
-} from 'definitions'
+import { ItemData, MutationToEditArticleResolver } from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
@@ -384,24 +380,24 @@ const resolver: MutationToEditArticleResolver = async (
    * Summary
    */
   const resetSummary = summary === null || summary === ''
-  if (summary) {
+  if (summary || resetSummary) {
     await atomService.update({
       table: 'draft',
       where: { id: article.draftId },
-      data: { summary, summaryCustomized: true, updatedAt: new Date() },
-    })
-  } else if (resetSummary) {
-    await atomService.update({
-      table: 'draft',
-      where: { id: article.draftId },
-      data: { summary: null, summaryCustomized: false, updatedAt: new Date() },
+      data: {
+        summary: summary || null,
+        summaryCustomized: !!summary,
+        updatedAt: new Date(),
+      },
     })
   }
 
   /**
    * Revision Count
    */
-  const shouldRepublish = content || isUpdatingAccess || resetCircle
+  const isUpdatingContent = !!content
+  const isUpdatingCircleOrAccess = isUpdatingAccess || resetCircle
+  const shouldRepublish = isUpdatingContent || isUpdatingCircleOrAccess
   const checkRevisionCount = () => {
     const revisionCount = article.revisionCount || 0
     if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
@@ -429,7 +425,7 @@ const resolver: MutationToEditArticleResolver = async (
   const resetLicense = license === null
 
   // check license
-  const isARR = license === GQLArticleLicenseType.arr
+  const isARR = license === ARTICLE_LICENSE_TYPE.arr
   const isPaywall =
     (accessType || currAccess?.access) === ARTICLE_ACCESS_TYPE.paywall
 
@@ -521,9 +517,9 @@ const resolver: MutationToEditArticleResolver = async (
     })
   }
 
-  if (content) {
+  if (isUpdatingContent) {
     // check diff distances reaches limit or not
-    const cleanedContent = stripClass(content, 'u-area-disable')
+    const cleanedContent = stripClass(content || '', 'u-area-disable')
     const diffs = measureDiffs(
       stripHtml(draft.content, ''),
       stripHtml(cleanedContent, '')
@@ -533,7 +529,7 @@ const resolver: MutationToEditArticleResolver = async (
     }
 
     await republish(content)
-  } else if (isUpdatingAccess || resetCircle) {
+  } else if (isUpdatingCircleOrAccess) {
     await republish()
   }
 

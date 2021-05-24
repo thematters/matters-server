@@ -2,6 +2,8 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   CACHE_KEYWORD,
   CIRCLE_ACTION,
@@ -25,11 +27,15 @@ import {
 } from 'common/errors'
 import { correctHtml, fromGlobalId, sanitize } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
-import { ItemData, MutationToPutCircleArticlesResolver } from 'definitions'
+import {
+  GQLArticleAccessType,
+  ItemData,
+  MutationToPutCircleArticlesResolver,
+} from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (
   root,
-  { input: { id, articles, type: actionType, accessType } },
+  { input: { id, articles, type: actionType, accessType, license } },
   {
     viewer,
     dataSources: {
@@ -147,6 +153,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       publishState: PUBLISH_STATE.pending,
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
+      license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -156,6 +163,17 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     revisionQueue.publishRevisedArticle({
       draftId: revisedDraft.id,
     })
+  }
+
+  const checkLicense = (access?: GQLArticleAccessType) => {
+    const isARR = license === ARTICLE_LICENSE_TYPE.arr
+    const isPaywall = access === ARTICLE_ACCESS_TYPE.paywall
+
+    if (isARR && !isPaywall) {
+      throw new ForbiddenError(
+        'ARR (All Right Reserved) license can only be used by paywalled content.'
+      )
+    }
   }
 
   // add articles to circle
@@ -185,10 +203,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     ])
 
     for (const article of targetArticles) {
-      const data = {
-        articleId: article.id,
-        circleId: circle.id,
-      }
+      const data = { articleId: article.id, circleId: circle.id }
       await atomService.upsert({
         table: 'article_circle',
         where: data,
@@ -196,6 +211,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
         update: { ...data, access: accessType, updatedAt: new Date() },
       })
 
+      checkLicense(accessType)
       await republish(article)
 
       // notify

@@ -1530,6 +1530,9 @@ input PutCircleArticlesInput {
 
   """Access Type, `public` or `paywall` only."""
   accessType: ArticleAccessType!
+
+  """License Type, `ARR` is only for paywalled article"""
+  license: ArticleLicenseType
 }
 
 enum PutCircleArticlesType {

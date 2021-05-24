@@ -2710,6 +2710,11 @@ export interface GQLPutCircleArticlesInput {
    * Access Type, `public` or `paywall` only.
    */
   accessType: GQLArticleAccessType
+
+  /**
+   * License Type, `ARR` is only for paywalled article
+   */
+  license?: GQLArticleLicenseType
 }
 
 export const enum GQLPutCircleArticlesType {

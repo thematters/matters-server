@@ -25,7 +25,6 @@ import {
 import { extractAssetDataFromHtml, fromGlobalId, sanitize } from 'common/utils'
 import {
   GQLArticleAccessType,
-  GQLArticleLicenseType,
   ItemData,
   MutationToPutDraftResolver,
 } from 'definitions'
@@ -150,7 +149,7 @@ const resolver: MutationToPutDraftResolver = async (
 
   // check license
   const checkLicense = (access?: GQLArticleAccessType) => {
-    const isARR = license === GQLArticleLicenseType.arr
+    const isARR = license === ARTICLE_LICENSE_TYPE.arr
     const isPaywall = access === ARTICLE_ACCESS_TYPE.paywall
 
     if (isARR && !isPaywall) {
