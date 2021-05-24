@@ -388,9 +388,9 @@ describe('circle CRUD', () => {
     expect(
       _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
     ).toBe(ARTICLE_ACCESS_TYPE.public)
-    expect(
-      _get(addedPublicData, `${path}.works.edges[0].node.access.license`)
-    ).toBe(ARTICLE_LICENSE_TYPE.cc_0)
+    expect(_get(addedPublicData, `${path}.works.edges[0].node.license`)).toBe(
+      ARTICLE_LICENSE_TYPE.cc_0
+    )
 
     // remove public article from circle
     const removedData = await mutate({
@@ -433,9 +433,9 @@ describe('circle CRUD', () => {
     expect(
       _get(addedPublicData, `${path}.works.edges[0].node.access.type`)
     ).toBe(ARTICLE_ACCESS_TYPE.public)
-    expect(
-      _get(addedPublicData, `${path}.works.edges[0].node.access.license`)
-    ).toBe(ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2)
+    expect(_get(addedPublicData, `${path}.works.edges[0].node.license`)).toBe(
+      ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2
+    )
 
     // turns to paywall access
     const paywallInput: Record<string, any> = {
@@ -459,9 +459,9 @@ describe('circle CRUD', () => {
     expect(
       _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
     ).toBe(ARTICLE_ACCESS_TYPE.paywall)
-    expect(
-      _get(addedPaywallData, `${path}.works.edges[0].node.access.license`)
-    ).toBe(ARTICLE_LICENSE_TYPE.arr)
+    expect(_get(addedPaywallData, `${path}.works.edges[0].node.license`)).toBe(
+      ARTICLE_LICENSE_TYPE.arr
+    )
 
     // remove from circle
     const removedData = await mutate({
@@ -507,9 +507,9 @@ describe('circle CRUD', () => {
     expect(
       _get(addedPaywallData, `${path}.works.edges[0].node.access.type`)
     ).toBe(ARTICLE_ACCESS_TYPE.paywall)
-    expect(
-      _get(addedPaywallData, `${path}.works.edges[0].node.access.license`)
-    ).toBe(ARTICLE_LICENSE_TYPE.arr)
+    expect(_get(addedPaywallData, `${path}.works.edges[0].node.license`)).toBe(
+      ARTICLE_LICENSE_TYPE.arr
+    )
 
     // turns to public access
     const publicInput: Record<string, any> = {

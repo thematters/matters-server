@@ -27,11 +27,7 @@ import {
 } from 'common/errors'
 import { correctHtml, fromGlobalId, sanitize } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
-import {
-  GQLArticleAccessType,
-  ItemData,
-  MutationToPutCircleArticlesResolver,
-} from 'definitions'
+import { ItemData, MutationToPutCircleArticlesResolver } from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (
   root,
@@ -153,7 +149,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       publishState: PUBLISH_STATE.pending,
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
-      license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+      license: currDraft?.license,
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -165,15 +161,24 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     })
   }
 
-  const checkLicense = (access?: GQLArticleAccessType) => {
+  const editLicense = async (draftId: string) => {
     const isARR = license === ARTICLE_LICENSE_TYPE.arr
-    const isPaywall = access === ARTICLE_ACCESS_TYPE.paywall
+    const isPaywall = accessType === ARTICLE_ACCESS_TYPE.paywall
 
     if (isARR && !isPaywall) {
       throw new ForbiddenError(
         'ARR (All Right Reserved) license can only be used by paywalled content.'
       )
     }
+
+    await atomService.update({
+      table: 'draft',
+      where: { id: draftId },
+      data: {
+        license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+        updatedAt: new Date(),
+      },
+    })
   }
 
   // add articles to circle
@@ -211,7 +216,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
         update: { ...data, access: accessType, updatedAt: new Date() },
       })
 
-      checkLicense(accessType)
+      await editLicense(article.draftId)
       await republish(article)
 
       // notify
@@ -239,6 +244,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     })
 
     for (const article of targetArticles) {
+      await editLicense(article.draftId)
       await republish(article)
     }
   }
