@@ -159,7 +159,7 @@ class PayoutQueue extends BaseQueue {
         (recipient.currency as string).toLowerCase() === 'usd'
       const adjustedNetInUSD = canRecipientReceiveUSD
         ? netInUSD
-        : (netInUSD * 100) / 99
+        : numRound((netInUSD * 100) / 99)
 
       // start transfer
       const transfer = await this.paymentService.stripe.transfer({
