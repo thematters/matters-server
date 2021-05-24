@@ -203,7 +203,7 @@ export default /* GraphQL */ `
     acceptedAt: DateTime
 
     "Determine it is accepted or not."
-    accepted: Boolean!
+    accepted: Boolean! @deprecated(reason: "No longer use")
 
     "Determine it's specific state."
     state: InvitationState!

@@ -1317,6 +1317,7 @@ export interface GQLInvitation {
 
   /**
    * Determine it is accepted or not.
+   * @deprecated No longer use
    */
   accepted: boolean
 
