@@ -62,6 +62,7 @@ interface DeleteManyInput {
 interface CountInput {
   table: TableName
   where: Record<string, any>
+  whereIn?: [string, string[]]
 }
 
 /**
@@ -262,8 +263,12 @@ export class AtomService extends DataSource {
    *
    * A Prisma like method for counting records.
    */
-  count = async ({ table, where }: CountInput) => {
-    const record = await this.knex.count().from(table).where(where).first()
+  count = async ({ table, where, whereIn }: CountInput) => {
+    const action = this.knex.count().from(table).where(where)
+    if (whereIn) {
+      action.whereIn(...whereIn)
+    }
+    const record = await action.first()
 
     return parseInt(record ? (record.count as string) : '0', 10)
   }

@@ -637,17 +637,17 @@ describe('circle invitation management', () => {
       variables: {
         input: {
           invitees,
-          freePeriod: 3,
+          freePeriod: 90,
           circleId: circle.id,
         },
       },
     })
     expect(_get(inviteData1, 'data.invite').length).toBe(2)
-    expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(3)
+    expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(90)
     expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(
       ADMIN_USER_GLOBAL_ID
     )
-    expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(3)
+    expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(90)
     expect(_get(inviteData1, 'data.invite.1.invitee.email')).toBe(
       'someone@matters.news'
     )
@@ -658,15 +658,15 @@ describe('circle invitation management', () => {
       variables: {
         input: {
           invitees: [...invitees, { id: null, email: 'someone2@matters.news' }],
-          freePeriod: 1,
+          freePeriod: 30,
           circleId: circle.id,
         },
       },
     })
     expect(_get(inviteData2, 'data.invite').length).toBe(3)
-    expect(_get(inviteData2, 'data.invite.0.freePeriod')).toBe(1)
-    expect(_get(inviteData2, 'data.invite.1.freePeriod')).toBe(1)
-    expect(_get(inviteData2, 'data.invite.2.freePeriod')).toBe(1)
+    expect(_get(inviteData2, 'data.invite.0.freePeriod')).toBe(30)
+    expect(_get(inviteData2, 'data.invite.1.freePeriod')).toBe(30)
+    expect(_get(inviteData2, 'data.invite.2.freePeriod')).toBe(30)
     expect(_get(inviteData2, 'data.invite.2.invitee.email')).toBe(
       'someone2@matters.news'
     )
@@ -689,7 +689,7 @@ describe('circle invitation management', () => {
       variables: {
         input: {
           invitees: [],
-          freePeriod: 1,
+          freePeriod: 30,
           circleId: circle.id,
         },
       },
@@ -702,7 +702,7 @@ describe('circle invitation management', () => {
       variables: {
         input: {
           invitees,
-          freePeriod: 1,
+          freePeriod: 30,
           circleId: circle.id,
         },
       },

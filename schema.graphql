@@ -497,7 +497,10 @@ type Circle implements Node {
   setting: CircleSetting!
 
   """Invitations belonged to this Circle."""
-  invitations(input: ConnectionArgs!): InvitationConnection!
+  invitations(input: ConnectionArgs!): InvitationConnection! @deprecated(reason: "No longer use")
+
+  """Invitations belonged to this Circle."""
+  invites: Invites!
 
   """Invitation used by current viewer."""
   invitedBy: Invitation
@@ -986,8 +989,14 @@ type Invitation {
   """Sent time."""
   sentAt: DateTime!
 
+  """Accepted time."""
+  acceptedAt: DateTime
+
   """Determine it is accepted or not."""
-  accepted: Boolean!
+  accepted: Boolean! @deprecated(reason: "No longer use")
+
+  """Determine it's specific state."""
+  state: InvitationState!
 }
 
 type InvitationConnection implements Connection {
@@ -999,6 +1008,13 @@ type InvitationConnection implements Connection {
 type InvitationEdge {
   cursor: String!
   node: Invitation!
+}
+
+enum InvitationState {
+  accepted
+  pending
+  transfer_succeeded
+  transfer_failed
 }
 
 input InviteCircleInput {
@@ -1013,6 +1029,14 @@ input InviteCircleInvitee {
 }
 
 union Invitee = Person | User
+
+type Invites {
+  """Accepted invitation list"""
+  accepted(input: ConnectionArgs!): InvitationConnection!
+
+  """Pending invitation list"""
+  pending(input: ConnectionArgs!): InvitationConnection!
+}
 
 scalar JSON
 
