@@ -103,11 +103,13 @@ class EmailsQueue extends BaseQueue {
       })
 
       job.progress(100)
-      this.slackService.sendQueueMessage({
-        title: `${QUEUE_NAME.emails}:sendDailySummaryEmails`,
-        message: `Sent daily summary email to ${users.length} users.`,
-        state: SLACK_MESSAGE_STATE.successful,
-      })
+      if (users.length > 0) {
+        this.slackService.sendQueueMessage({
+          title: `${QUEUE_NAME.emails}:sendDailySummaryEmails`,
+          message: `Sent daily summary email to ${users.length} users.`,
+          state: SLACK_MESSAGE_STATE.successful,
+        })
+      }
       done(null, `send daily emails to ${users.length} users`)
     } catch (e) {
       this.slackService.sendQueueMessage({
