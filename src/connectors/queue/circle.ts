@@ -37,13 +37,13 @@ class CircleQueue extends BaseQueue {
    * Producers
    */
   addRepeatJobs = async () => {
-    // transfer trial end subscriptions every 12 hours
+    // transfer trial end subscriptions every 3 hours
     this.q.add(
       QUEUE_JOB.transferTrialEndSubscriptions,
       {},
       {
         priority: QUEUE_PRIORITY.CRITICAL,
-        repeat: { every: HOUR * 12 },
+        repeat: { every: HOUR * 3 },
       }
     )
   }
@@ -63,6 +63,12 @@ class CircleQueue extends BaseQueue {
   > = async (job, done) => {
     try {
       logger.info('[schedule job] transfer trial end subscriptions')
+      this.slackService.sendQueueMessage({
+        title: `${QUEUE_NAME.circle}:transferTrialEndSubscriptions`,
+        message: `Start processing trial ended subscription items.`,
+        state: SLACK_MESSAGE_STATE.successful,
+      })
+
       const knex = this.atomService.knex
 
       // obtain trial end subscription items from the past 7 days
