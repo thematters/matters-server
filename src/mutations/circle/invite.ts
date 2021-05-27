@@ -24,7 +24,7 @@ import {
 import { CacheService } from 'connectors'
 import { MutationToInviteResolver } from 'definitions'
 
-const VALID_INVITATION_MONTHS = [1, 3, 6, 12]
+const VALID_INVITATION_DAYS = [30, 90, 180, 360]
 
 const resolver: MutationToInviteResolver = async (
   root,
@@ -57,15 +57,14 @@ const resolver: MutationToInviteResolver = async (
     throw new UserInputError('invitees are required')
   }
 
-  if (!VALID_INVITATION_MONTHS.includes(freePeriod)) {
+  if (!VALID_INVITATION_DAYS.includes(freePeriod)) {
     throw new UserInputError(
-      `free period is invalid, should be one of [${VALID_INVITATION_MONTHS.join(
+      `free period is invalid, should be one of [${VALID_INVITATION_DAYS.join(
         ', '
       )}]`
     )
   }
-  // TODO: alter `freePeriod` input as day unit
-  const durationInDays = freePeriod * 30
+  const durationInDays = freePeriod
 
   // check circle
   const circleDbId = fromGlobalId(circleId).id

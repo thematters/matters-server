@@ -166,6 +166,70 @@ const QUERY_VIEWER_CIRCLE_INVITATIONS = /* GraphQL*/ `
   }
 `
 
+const QUERY_VIEWER_CIRCLE_PENDING_INVITES = /* GraphQL */ `
+  query {
+    viewer {
+      ownCircles {
+        id
+        invites {
+          pending(input: { first: null }) {
+            totalCount
+            edges {
+              node {
+                id
+                invitee {
+                  ... on User {
+                    id
+                  }
+                  ... on Person {
+                    email
+                  }
+                }
+                inviter {
+                  id
+                }
+                state
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+const QUERY_VIEWER_CIRCLE_ACCEPTED_INVITES = /* GraphQL */ `
+  query {
+    viewer {
+      ownCircles {
+        id
+        invites {
+          accepted(input: { first: null }) {
+            totalCount
+            edges {
+              node {
+                id
+                invitee {
+                  ... on User {
+                    id
+                  }
+                  ... on Person {
+                    email
+                  }
+                }
+                inviter {
+                  id
+                }
+                state
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 const CIRCLE_INVITE = /* GraphQL*/ `
   mutation($input: InviteCircleInput!) {
     invite(input: $input) {
@@ -649,8 +713,16 @@ describe('circle invitation management', () => {
     })
 
     // check current invitations
-    const circle = _get(data, 'viewer.ownCircles.0')
-    expect(circle.invitations.totalCount).toBe(0)
+    const deprecatedCircle = _get(data, 'viewer.ownCircles.0')
+    expect(deprecatedCircle.invitations.totalCount).toBe(0)
+
+    const { data: pendingInvites } = await query({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
+    })
+
+    // check current invites
+    const circle = _get(pendingInvites, 'viewer.ownCircles.0')
+    expect(circle.invites.pending.totalCount).toBe(0)
 
     // invite users
     const inviteData1 = await mutate({
@@ -658,17 +730,17 @@ describe('circle invitation management', () => {
       variables: {
         input: {
           invitees,
-          freePeriod: 3,
+          freePeriod: 90,
           circleId: circle.id,
         },
       },
     })
     expect(_get(inviteData1, 'data.invite').length).toBe(2)
-    expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(3)
+    expect(_get(inviteData1, 'data.invite.0.freePeriod')).toBe(90)
     expect(_get(inviteData1, 'data.invite.0.invitee.id')).toBe(
       ADMIN_USER_GLOBAL_ID
     )
-    expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(3)
+    expect(_get(inviteData1, 'data.invite.1.freePeriod')).toBe(90)
     expect(_get(inviteData1, 'data.invite.1.invitee.email')).toBe(
       'someone@matters.news'
     )
@@ -679,15 +751,15 @@ describe('circle invitation management', () => {
       variables: {
         input: {
           invitees: [...invitees, { id: null, email: 'someone2@matters.news' }],
-          freePeriod: 1,
+          freePeriod: 30,
           circleId: circle.id,
         },
       },
     })
     expect(_get(inviteData2, 'data.invite').length).toBe(3)
-    expect(_get(inviteData2, 'data.invite.0.freePeriod')).toBe(1)
-    expect(_get(inviteData2, 'data.invite.1.freePeriod')).toBe(1)
-    expect(_get(inviteData2, 'data.invite.2.freePeriod')).toBe(1)
+    expect(_get(inviteData2, 'data.invite.0.freePeriod')).toBe(30)
+    expect(_get(inviteData2, 'data.invite.1.freePeriod')).toBe(30)
+    expect(_get(inviteData2, 'data.invite.2.freePeriod')).toBe(30)
     expect(_get(inviteData2, 'data.invite.2.invitee.email')).toBe(
       'someone2@matters.news'
     )
@@ -710,7 +782,7 @@ describe('circle invitation management', () => {
       variables: {
         input: {
           invitees: [],
-          freePeriod: 1,
+          freePeriod: 30,
           circleId: circle.id,
         },
       },
@@ -723,7 +795,7 @@ describe('circle invitation management', () => {
       variables: {
         input: {
           invitees,
-          freePeriod: 1,
+          freePeriod: 30,
           circleId: circle.id,
         },
       },
@@ -736,16 +808,37 @@ describe('circle invitation management', () => {
     const { mutate } = await testClient(adminClient)
 
     // check init state of invitations
-    const { data: ivtData } = await query({
+    const { data: deprecatedIvtData } = await query({
       query: QUERY_VIEWER_CIRCLE_INVITATIONS,
     })
-    const circle = _get(ivtData, 'viewer.ownCircles.0')
-    const ivtEdges = _get(ivtData, 'viewer.ownCircles.0.invitations.edges', [])
-    ivtEdges.forEach((edge: any) => {
+    const deprecatedIvtEdges = _get(
+      deprecatedIvtData,
+      'viewer.ownCircles.0.invitations.edges',
+      []
+    )
+    deprecatedIvtEdges.forEach((edge: any) => {
       const inviteeId = _get(edge, 'node.invitee.id')
 
       if (inviteeId === ADMIN_USER_GLOBAL_ID) {
         expect(_get(edge, 'node.accepted')).toBe(false)
+      }
+    })
+
+    // check init state of invitations
+    const { data: ivtData } = await query({
+      query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
+    })
+    const circle = _get(ivtData, 'viewer.ownCircles.0')
+    const ivtEdges = _get(
+      ivtData,
+      'viewer.ownCircles.0.invites.pending.edges',
+      []
+    )
+    ivtEdges.forEach((edge: any) => {
+      const inviteeId = _get(edge, 'node.invitee.id')
+
+      if (inviteeId === ADMIN_USER_GLOBAL_ID) {
+        expect(_get(edge, 'node.state')).toBe('pending')
       }
     })
 
@@ -761,20 +854,20 @@ describe('circle invitation management', () => {
       true
     )
 
-    // check if it's accept
+    // check if it's accepted
     const { data: newIvtData } = await query({
-      query: QUERY_VIEWER_CIRCLE_INVITATIONS,
+      query: QUERY_VIEWER_CIRCLE_ACCEPTED_INVITES,
     })
     const newIvtEdges = _get(
       newIvtData,
-      'viewer.ownCircles.0.invitations.edges',
+      'viewer.ownCircles.0.invites.accepted.edges',
       []
     )
     newIvtEdges.forEach((edge: any) => {
       const inviteeId = _get(edge, 'node.invitee.id')
 
       if (inviteeId === ADMIN_USER_GLOBAL_ID) {
-        expect(_get(edge, 'node.accepted')).toBe(true)
+        expect(_get(edge, 'node.state')).toBe('accepted')
       }
     })
   })
