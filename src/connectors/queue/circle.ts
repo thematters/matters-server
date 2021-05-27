@@ -105,7 +105,6 @@ class CircleQueue extends BaseQueue {
           'csi.archived': false,
           'circle_price.state': PRICE_STATE.active,
         })
-        .andWhere('ended_at', '>', knex.raw(`now() - interval '1 months'`))
         .andWhere('ended_at', '<=', knex.raw(`now()`))
       job.progress(30)
 
