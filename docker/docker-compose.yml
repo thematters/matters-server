@@ -18,6 +18,7 @@ services:
       - s3
       - elasticsearch
       - ipfs
+      - stripe
     ports:
       - '4000:4000'
   db:
@@ -74,5 +75,5 @@ services:
       - '12112:12112'
 
 volumes:
-  ? postgres_data
-  ? elasticsearch_data
+  postgres_data:
+  elasticsearch_data:

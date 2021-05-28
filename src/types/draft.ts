@@ -66,6 +66,9 @@ export default /* GraphQL */ `
 
     "Access related fields on circle"
     access: DraftAccess!
+
+    "License Type"
+    license: ArticleLicenseType!
   }
 
   type DraftConnection implements Connection {
@@ -93,9 +96,10 @@ export default /* GraphQL */ `
     cover: ID
     collection: [ID]
     circle: ID
-
-    "Access Type, \`public\` or \`paywall\` only."
     accessType: ArticleAccessType
+
+    "License Type, \`ARR\` is only for paywalled article"
+    license: ArticleLicenseType
   }
 
   input DeleteDraftInput {

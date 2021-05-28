@@ -2,6 +2,8 @@ import _ from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   CACHE_KEYWORD,
   CIRCLE_ACTION,
@@ -29,7 +31,7 @@ import { ItemData, MutationToPutCircleArticlesResolver } from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (
   root,
-  { input: { id, articles, type: actionType, accessType } },
+  { input: { id, articles, type: actionType, accessType, license } },
   {
     viewer,
     dataSources: {
@@ -147,6 +149,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       publishState: PUBLISH_STATE.pending,
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
+      license: currDraft?.license,
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -155,6 +158,26 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     // add job to publish queue
     revisionQueue.publishRevisedArticle({
       draftId: revisedDraft.id,
+    })
+  }
+
+  const editLicense = async (draftId: string) => {
+    const isARR = license === ARTICLE_LICENSE_TYPE.arr
+    const isPaywall = accessType === ARTICLE_ACCESS_TYPE.paywall
+
+    if (isARR && !isPaywall) {
+      throw new ForbiddenError(
+        'ARR (All Right Reserved) license can only be used by paywalled content.'
+      )
+    }
+
+    await atomService.update({
+      table: 'draft',
+      where: { id: draftId },
+      data: {
+        license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+        updatedAt: new Date(),
+      },
     })
   }
 
@@ -185,10 +208,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     ])
 
     for (const article of targetArticles) {
-      const data = {
-        articleId: article.id,
-        circleId: circle.id,
-      }
+      const data = { articleId: article.id, circleId: circle.id }
       await atomService.upsert({
         table: 'article_circle',
         where: data,
@@ -196,6 +216,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
         update: { ...data, access: accessType, updatedAt: new Date() },
       })
 
+      await editLicense(article.draftId)
       await republish(article)
 
       // notify
@@ -223,6 +244,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
     })
 
     for (const article of targetArticles) {
+      await editLicense(article.draftId)
       await republish(article)
     }
   }
