@@ -1,8 +1,8 @@
 import { INVITATION_STATE } from 'common/enums'
 import { connectionFromArray, cursorToIndex } from 'common/utils'
-import { CircleToInvitationsResolver } from 'definitions'
+import { InvitesToAcceptedResolver } from 'definitions'
 
-const resolver: CircleToInvitationsResolver = async (
+const resolver: InvitesToAcceptedResolver = async (
   { id, owner },
   { input },
   { dataSources: { atomService }, viewer }
@@ -15,15 +15,22 @@ const resolver: CircleToInvitationsResolver = async (
   const { first: take, after } = input
   const skip = cursorToIndex(after) + 1
 
+  // here consider accepted, transfer failed and succeeded as true accepted
+  const states = Object.values(INVITATION_STATE).filter(
+    (state) => state !== INVITATION_STATE.pending
+  )
+
   const [totalCount, records] = await Promise.all([
     atomService.count({
       table: 'circle_invitation',
-      where: { state: INVITATION_STATE.pending, circleId: id, inviter: owner },
+      where: { circleId: id, inviter: owner },
+      whereIn: ['state', states],
     }),
     atomService.findMany({
       table: 'circle_invitation',
-      where: { state: INVITATION_STATE.pending, circleId: id, inviter: owner },
-      orderBy: [{ column: 'created_at', order: 'desc' }],
+      where: { circleId: id, inviter: owner },
+      whereIn: ['state', states],
+      orderBy: [{ column: 'accepted_at', order: 'desc' }],
       skip,
       take,
     }),

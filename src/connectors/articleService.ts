@@ -1067,6 +1067,7 @@ export class ArticleService extends BaseService {
       .groupBy('sender_id', 'reference_id')
       .sum('amount as amount')
       .max('created_at as created_at')
+      .orderBy('created_at', 'desc')
       .limit(limit)
       .offset(offset)
 
@@ -1768,51 +1769,6 @@ export class ArticleService extends BaseService {
       max: parseInt(max, 10),
       min: parseInt(min, 10),
     }
-  }
-
-  /*********************************
-   *                               *
-   *             Churn             *
-   *                               *
-   *********************************/
-  /**
-   * Find top appreciations articles in a range of time
-   */
-  findTopAppreciations = async ({
-    limit = BATCH_SIZE,
-    offset = 0,
-    since,
-  }: {
-    limit?: number
-    offset?: number
-    since?: Date | string
-  }) => {
-    let qs = this.knex
-      .select('article.*')
-      .from('article')
-      .rightJoin(
-        this.knex
-          .select('referenceId')
-          .sum('amount', { as: 'total' })
-          .from('appreciation')
-          .whereIn('purpose', [
-            APPRECIATION_PURPOSE.appreciate,
-            APPRECIATION_PURPOSE.appreciateSubsidy,
-          ])
-          .groupBy('referenceId')
-          .orderBy('total', 'desc')
-          .as('tx'),
-        'tx.referenceId',
-        'article.id'
-      )
-      .where('state', ARTICLE_STATE.active)
-      .offset(offset)
-      .limit(limit)
-
-    if (since) {
-      qs = qs.where('createdAt', '>=', since)
-    }
-    return qs
   }
 
   /*********************************

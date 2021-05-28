@@ -97,6 +97,37 @@ class SlackService {
       logger.error(error)
     }
   }
+
+  sendQueueMessage = async ({
+    data,
+    title,
+    message,
+    state,
+  }: {
+    data?: Record<string, any> | null
+    title: string
+    message?: string
+    state: SLACK_MESSAGE_STATE
+  }) => {
+    try {
+      await this.client.chat.postMessage({
+        channel: environment.slackStripeQueueChannel,
+        text: `[${environment.env}] - ${title}`,
+        attachments: [
+          {
+            color: this.getMessageColor(state),
+            text:
+              '\n' +
+              `\n- *Message*: ${message}` +
+              `\n- *Data*: ${JSON.stringify(data || {})}`,
+          },
+        ],
+        markdownn: true,
+      })
+    } catch (error) {
+      logger.error(error)
+    }
+  }
 }
 
 export default SlackService

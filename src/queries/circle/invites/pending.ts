@@ -1,8 +1,8 @@
 import { INVITATION_STATE } from 'common/enums'
 import { connectionFromArray, cursorToIndex } from 'common/utils'
-import { CircleToInvitationsResolver } from 'definitions'
+import { InvitesToPendingResolver } from 'definitions'
 
-const resolver: CircleToInvitationsResolver = async (
+const resolver: InvitesToPendingResolver = async (
   { id, owner },
   { input },
   { dataSources: { atomService }, viewer }

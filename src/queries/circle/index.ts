@@ -1,10 +1,11 @@
-import { NODE_TYPES } from 'common/enums'
+import { INVITATION_STATE, NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import {
   GQLCircleSettingTypeResolver,
   GQLCircleTypeResolver,
   GQLInvitationTypeResolver,
   GQLInviteeTypeResolver,
+  GQLInvitesTypeResolver,
   GQLMemberTypeResolver,
   GQLPersonTypeResolver,
   GQLPossibleInviteeTypeNames,
@@ -16,11 +17,11 @@ import avatar from './avatar'
 import cover from './cover'
 import followers from './followers'
 import invitationCircle from './invitation/circle'
-import freePeriod from './invitation/freePeriod'
 import invitee from './invitation/invitee'
 import inviter from './invitation/inviter'
 import invitations from './invitations'
 import invitedBy from './invitedBy'
+import Invites from './invites'
 import isFollower from './isFollower'
 import isMember from './isMember'
 import memberPrice from './member/price'
@@ -41,6 +42,7 @@ const circle: {
   CircleSetting: GQLCircleSettingTypeResolver
   Member: GQLMemberTypeResolver
   Price: GQLPriceTypeResolver
+  Invites: GQLInvitesTypeResolver
   Invitation: GQLInvitationTypeResolver
   Invitee: {
     __resolveType: GQLInviteeTypeResolver
@@ -65,6 +67,7 @@ const circle: {
     setting: (root: any) => root,
     invitations,
     invitedBy,
+    invites: (root) => root,
   },
 
   CircleSetting: {
@@ -82,12 +85,16 @@ const circle: {
     circle: priceCircle,
   },
 
+  Invites,
+
   Invitation: {
     id: ({ id }) => (id ? toGlobalId({ type: NODE_TYPES.Invitation, id }) : ''),
     invitee,
     inviter,
     circle: invitationCircle,
-    freePeriod,
+    freePeriod: ({ durationInDays }) => durationInDays,
+    state: ({ state }) => state,
+    accepted: ({ state }) => state === INVITATION_STATE.accepted,
   },
 
   Invitee: {
