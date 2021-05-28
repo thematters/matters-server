@@ -4,6 +4,7 @@ import {
   CIRCLE_INVITATION_VERIFICATION_CODE_EXPIRED_AFTER,
   CIRCLE_STATE,
   DB_NOTICE_TYPE,
+  INVITATION_STATE,
   NODE_TYPES,
   USER_STATE,
   VERIFICATION_CODE_TYPES,
@@ -23,7 +24,7 @@ import {
 import { CacheService } from 'connectors'
 import { MutationToInviteResolver } from 'definitions'
 
-const VALID_INVITATION_MONTHS = [1, 3, 6, 12]
+const VALID_INVITATION_DAYS = [30, 90, 180, 360]
 
 const resolver: MutationToInviteResolver = async (
   root,
@@ -56,15 +57,14 @@ const resolver: MutationToInviteResolver = async (
     throw new UserInputError('invitees are required')
   }
 
-  if (!VALID_INVITATION_MONTHS.includes(freePeriod)) {
+  if (!VALID_INVITATION_DAYS.includes(freePeriod)) {
     throw new UserInputError(
-      `free period is invalid, should be one of [${VALID_INVITATION_MONTHS.join(
+      `free period is invalid, should be one of [${VALID_INVITATION_DAYS.join(
         ', '
       )}]`
     )
   }
-  // TODO: alter `freePeriod` input as day unit
-  const durationInDays = freePeriod * 30
+  const durationInDays = freePeriod
 
   // check circle
   const circleDbId = fromGlobalId(circleId).id
@@ -122,7 +122,12 @@ const resolver: MutationToInviteResolver = async (
 
     let invitation = await atomService.findFirst({
       table: 'circle_invitation',
-      where: { circleId: circle.id, email, userId, accepted: false },
+      where: {
+        state: INVITATION_STATE.pending,
+        circleId: circle.id,
+        email,
+        userId,
+      },
     })
 
     // if not existed, create one
@@ -130,6 +135,7 @@ const resolver: MutationToInviteResolver = async (
       invitation = await atomService.create({
         table: 'circle_invitation',
         data: {
+          state: INVITATION_STATE.pending,
           circleId: circle.id,
           email,
           inviter: viewer.id,

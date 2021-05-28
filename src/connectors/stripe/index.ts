@@ -193,7 +193,12 @@ class StripeService {
         refresh_url: `${returnUrlPrefix}/failure?code=${OAUTH_CALLBACK_ERROR_CODE.stripeAccountRefresh}`,
         return_url: `${returnUrlPrefix}/success`,
       })
-      return { accountId: account.id, onboardingUrl: url }
+      return {
+        accountId: account.id,
+        country: account.country,
+        currency: account.default_currency,
+        onboardingUrl: url,
+      }
     } catch (err) {
       this.handleError(err)
     }
@@ -374,7 +379,7 @@ class StripeService {
       let hasMore = true
 
       const now = Date.now()
-      const week = DAY * 7
+      const threeDays = DAY * 3
       const events: Array<Record<string, any>> = []
 
       while (hasMore && fetch) {
@@ -389,7 +394,7 @@ class StripeService {
         const data = batch?.data || []
         data.map((event: Record<string, any>) => {
           const time = (event?.created || 0) * 1000
-          if (now - time < week) {
+          if (now - time < threeDays) {
             events.push(event)
           } else {
             fetch = false

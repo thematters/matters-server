@@ -26,7 +26,6 @@ export const QUEUE_JOB = {
 
   // Emails
   sendDailySummaryEmails: 'sendDailySummaryEmails',
-  sendChurnEmails: 'sendChurnEmails',
 
   // Refresh Views
   refreshArticleCountView: 'refreshArticleCountView',
@@ -61,6 +60,9 @@ export const QUEUE_JOB = {
 
   // Asset
   deleteAsset: 'deleteAsset',
+
+  // Circle
+  transferTrialEndSubscriptions: 'transferTrialEndSubscriptions',
 }
 
 export const QUEUE_NAME = {
@@ -78,6 +80,7 @@ export const QUEUE_NAME = {
   revision: 'revision',
   asset: 'asset',
   stripe: 'stripe',
+  circle: 'circle',
 }
 
 export const QUEUE_CONCURRENCY = {

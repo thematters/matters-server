@@ -312,7 +312,7 @@ export default /* GraphQL */ `
 
   input AppreciateArticleInput {
     id: ID!
-    amount: Int!
+    amount: PositiveInt!
     token: String
     superLike: Boolean
   }
