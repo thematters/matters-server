@@ -190,8 +190,6 @@ export class ArticleService extends BaseService {
     const { bundle, key } = await makeHtmlBundle(bundleInfo)
     const result = await this.ipfs.client.add(bundle)
 
-    console.log({ result })
-
     // filter out the hash for the bundle
     const [
       { hash: contentHash },

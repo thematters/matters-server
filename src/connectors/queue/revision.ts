@@ -237,11 +237,11 @@ class RevisionQueue extends BaseQueue {
   private handleCircle = async ({
     article,
     circleId,
-    secret,
+    secret = null,
   }: {
     article: any
     circleId: string
-    secret: string | null
+    secret?: string | null
   }) => {
     await this.atomService.update({
       table: 'article_circle',

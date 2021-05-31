@@ -76,6 +76,12 @@ export const ARTICLE_ACCESS_TYPE = {
   paywall: 'paywall',
 }
 
+export const ARTICLE_LICENSE_TYPE = {
+  cc_0: 'cc_0',
+  cc_by_nc_nd_2: 'cc_by_nc_nd_2',
+  arr: 'arr',
+}
+
 export const PUBLISH_STATE = {
   unpublished: 'unpublished',
   pending: 'pending',
@@ -207,4 +213,4 @@ export const LOCAL_STRIPE = {
   protocol: 'http',
 }
 
-export const MAX_ARTICLE_REVISION_COUNT = 2
+export const MAX_ARTICLE_REVISION_COUNT = 4
