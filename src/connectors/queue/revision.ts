@@ -8,32 +8,24 @@ import _uniq from 'lodash/uniq'
 
 import {
   ARTICLE_STATE,
-  CIRCLE_ACTION,
   DB_NOTICE_TYPE,
   NODE_TYPES,
-  PRICE_STATE,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
   QUEUE_NAME,
   QUEUE_PRIORITY,
-  SUBSCRIPTION_STATE,
 } from 'common/enums'
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
 import { countWords, fromGlobalId } from 'common/utils'
 import { AtomService, NotificationService } from 'connectors'
-import { GQLArticleAccessType, GQLPutCircleArticlesType } from 'definitions'
+import { GQLArticleAccessType } from 'definitions'
 
 import { BaseQueue } from './baseQueue'
 
 interface RevisedArticleData {
   draftId: string
-  circleInfo?: {
-    circleId: string
-    accessType: GQLArticleAccessType
-    articleCircleActionType: GQLPutCircleArticlesType
-  }
 }
 
 class RevisionQueue extends BaseQueue {
@@ -75,7 +67,7 @@ class RevisionQueue extends BaseQueue {
   private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<
     unknown
   > = async (job, done) => {
-    const { draftId, circleInfo } = job.data as RevisedArticleData
+    const { draftId } = job.data as RevisedArticleData
 
     const draft = await this.draftService.baseFindById(draftId)
 
@@ -109,13 +101,7 @@ class RevisionQueue extends BaseQueue {
       const wordCount = countWords(draft.content)
 
       // Step 2: publish content to IPFS
-      const revised = {
-        ...draft,
-        summary,
-      }
-      if (circleInfo) {
-        revised.access = circleInfo.accessType
-      }
+      const revised = { ...draft, summary }
 
       const {
         contentHash: dataHash,
@@ -134,13 +120,11 @@ class RevisionQueue extends BaseQueue {
       })
       job.progress(40)
 
-      // Step 4: update cricle
-      if (circleInfo) {
-        await this.handleCircle({
-          article,
-          secret: key,
-          ...circleInfo,
-        })
+      // Step 4: update secret
+      if (draft.circleId) {
+        const secret =
+          draft.access === GQLArticleAccessType.paywall ? key : null
+        await this.handleCircle({ article, circleId: draft.circleId, secret })
       }
       job.progress(45)
 
@@ -252,74 +236,18 @@ class RevisionQueue extends BaseQueue {
 
   private handleCircle = async ({
     article,
-    secret,
     circleId,
-    accessType,
-    articleCircleActionType,
+    secret,
   }: {
     article: any
-    secret: any
     circleId: string
-    accessType: GQLArticleAccessType
-    articleCircleActionType: GQLPutCircleArticlesType
+    secret: string | null
   }) => {
-    // add articles to circle
-    if (articleCircleActionType === 'add') {
-      // retrieve circle members and followers
-      const members = await this.atomService.knex
-        .from('circle_subscription_item as csi')
-        .join('circle_price', 'circle_price.id', 'csi.price_id')
-        .join('circle_subscription as cs', 'cs.id', 'csi.subscription_id')
-        .where({
-          'circle_price.circle_id': circleId,
-          'circle_price.state': PRICE_STATE.active,
-          'csi.archived': false,
-        })
-        .whereIn('cs.state', [
-          SUBSCRIPTION_STATE.active,
-          SUBSCRIPTION_STATE.trialing,
-        ])
-      const followers = await this.atomService.findMany({
-        table: 'action_circle',
-        select: ['user_id'],
-        where: { targetId: circleId, action: CIRCLE_ACTION.follow },
-      })
-      const recipients = _uniq([
-        ...members.map((m) => m.userId),
-        ...followers.map((f) => f.userId),
-      ])
-
-      const data = {
-        articleId: article.id,
-        circleId,
-      }
-      await this.atomService.upsert({
-        table: 'article_circle',
-        where: data,
-        create: { ...data, access: accessType, secret },
-        update: { ...data, access: accessType, secret, updatedAt: new Date() },
-      })
-
-      // notify
-      recipients.forEach((recipientId: any) => {
-        this.notificationService.trigger({
-          event: DB_NOTICE_TYPE.circle_new_article,
-          recipientId,
-          entities: [
-            {
-              type: 'target',
-              entityTable: 'article',
-              entity: article,
-            },
-          ],
-        })
-      })
-    } else if (articleCircleActionType === 'remove') {
-      await this.atomService.deleteMany({
-        table: 'article_circle',
-        where: { circleId, articleId: article.id },
-      })
-    }
+    await this.atomService.update({
+      table: 'article_circle',
+      where: { articleId: article.id, circleId },
+      data: { secret, updatedAt: new Date() },
+    })
   }
 
   private handleMentions = async ({
