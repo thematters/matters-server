@@ -241,7 +241,7 @@ export default /* GraphQL */ `
 
   type ArticleAccess {
     type: ArticleAccessType!
-    secret: String @auth(mode: "${AUTH_MODE.oauth}")
+    secret: String
     circle: Circle @logCache(type: "${NODE_TYPES.Circle}")
   }
 
