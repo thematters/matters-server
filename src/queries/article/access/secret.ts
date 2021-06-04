@@ -1,4 +1,5 @@
 import { CIRCLE_STATE } from 'common/enums'
+import { ForbiddenError } from 'common/errors'
 import { ArticleAccessToSecretResolver } from 'definitions'
 
 export const secret: ArticleAccessToSecretResolver = async (
@@ -12,7 +13,7 @@ export const secret: ArticleAccessToSecretResolver = async (
 
   // check viewer is owner
   if (authorId !== viewer.id) {
-    return
+    throw new ForbiddenError('viewer has no permission')
   }
 
   const articleCircle = await knex
