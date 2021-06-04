@@ -1,8 +1,8 @@
 import {
   getPunishExpiredDate,
   getUTC8Midnight,
-  getUTC8NextMonday,
-  getUTC8NextMonthDayOne,
+  getUTCNextMonday,
+  getUTCNextMonthDayOne,
 } from 'common/utils'
 
 const UTC_1975_08_19_16 = new Date('August 19, 1975 16:30:00 GMT+00:00')
@@ -105,100 +105,100 @@ test('getUTC8Midnight', async () => {
   })
 })
 
-test('getUTC8NextMonday', async () => {
+test('getUTCNextMonday', async () => {
   const times = [
     {
       value: UTC_1975_08_19_16,
-      expectValue: new Date('August 25, 1975 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('August 25, 1975 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC8_1975_08_19_16,
-      expectValue: new Date('August 25, 1975 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('August 25, 1975 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC_2020_01_01_12,
-      expectValue: new Date('January 06, 2020 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('January 06, 2020 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC_2020_02_29_16,
-      expectValue: new Date('March 02, 2020 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('March 02, 2020 08:00:00 GMT+08:00').getTime(),
     },
     // Monday
     {
       value: UTC_2020_11_30_16,
-      expectValue: new Date('Decemeber 07, 2020 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('Decemeber 07, 2020 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC8_2020_11_30_16,
-      expectValue: new Date('Decemeber 07, 2020 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('Decemeber 07, 2020 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC_2020_12_31_16,
-      expectValue: new Date('January 04, 2021 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('January 04, 2021 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC8_2020_12_31_16,
-      expectValue: new Date('January 04, 2021 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('January 04, 2021 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC8_2021_03_31_16,
-      expectValue: new Date('April 05, 2021 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('April 05, 2021 08:00:00 GMT+08:00').getTime(),
     },
     // Sunday
     {
-      value: new Date('April 04, 2021 00:00:00 GMT+08:00'),
-      expectValue: new Date('April 05, 2021 00:00:00 GMT+08:00').getTime(),
+      value: new Date('April 04, 2021 08:00:00 GMT+08:00'),
+      expectValue: new Date('April 05, 2021 08:00:00 GMT+08:00').getTime(),
     },
   ]
 
   times.forEach(({ value, expectValue }) => {
-    expect(getUTC8NextMonday(value)).toBe(expectValue)
+    expect(getUTCNextMonday(value)).toBe(expectValue)
   })
 })
 
-test('getUTC8NextMonthDayOne', async () => {
+test('getUTCNextMonthDayOne', async () => {
   const times = [
     {
       value: UTC_1975_08_19_16,
-      expectValue: new Date('September 01, 1975 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('September 01, 1975 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC8_1975_08_19_16,
-      expectValue: new Date('September 01, 1975 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('September 01, 1975 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC_2020_01_01_12,
-      expectValue: new Date('February 01, 2020 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('February 01, 2020 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC_2020_02_29_16,
-      expectValue: new Date('April 01, 2020 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('April 01, 2020 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC_2020_11_30_16,
-      expectValue: new Date('January 01, 2021 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('January 01, 2021 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC8_2020_11_30_16,
-      expectValue: new Date('December 01, 2020 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('December 01, 2020 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC_2020_12_31_16,
-      expectValue: new Date('February 01, 2021 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('February 01, 2021 08:00:00 GMT+08:00').getTime(),
     },
     {
       value: UTC8_2020_12_31_16,
-      expectValue: new Date('January 01, 2021 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('January 01, 2021 08:00:00 GMT+08:00').getTime(),
     },
     // The next month (May) of April doesn't have 31st
     // https://stackoverflow.com/a/52107834
     {
       value: UTC8_2021_03_31_16,
-      expectValue: new Date('April 01, 2021 00:00:00 GMT+08:00').getTime(),
+      expectValue: new Date('April 01, 2021 08:00:00 GMT+08:00').getTime(),
     },
   ]
 
   times.forEach(({ value, expectValue }) => {
-    expect(getUTC8NextMonthDayOne(value)).toBe(expectValue)
+    expect(getUTCNextMonthDayOne(value)).toBe(expectValue)
   })
 })
