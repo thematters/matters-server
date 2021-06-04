@@ -296,7 +296,7 @@ class StripeService {
       const trialEndAt =
         (isProd ? getUTCNextMonthDayOne() : getUTCNextMonday()) / 1000
 
-      return this.stripeAPI.subscriptions.create({
+      return await this.stripeAPI.subscriptions.create({
         trial_end: trialEndAt,
         customer,
         items: [{ price }],
