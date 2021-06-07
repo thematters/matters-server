@@ -46,6 +46,11 @@ exports.up = async (knex) => {
   const isProd = process.env['MATTERS_ENV'] === 'production'
   const secret = process.env['MATTERS_STRIPE_SECRET']
   const stripeAPI = new Stripe(secret, { apiVersion: '2020-08-27' })
+  const envLabel = `[${process.env['MATTERS_ENV']}]`
+
+  if (!process.env['MATTERS_ENV'] || !secret) {
+    throw new Error('`MATTERS_ENV` and `MATTERS_STRIPE_SECRET` are required.')
+  }
 
   // retrieve active and trialing subscriptions
   const subs = await knex
@@ -53,7 +58,7 @@ exports.up = async (knex) => {
     .from(circleSubscription)
     .whereIn('state', ['active', 'trialing'])
   if (!subs || subs.length <= 0) {
-    console.log('subscriptions not found')
+    console.log(`${envLabel} subscriptions not found`)
     return
   }
 
@@ -63,7 +68,9 @@ exports.up = async (knex) => {
     try {
       const stripeSubId = sub.provider_subscription_id
       console.log('-------------------------------')
-      console.log(`Process ${index + 1}/${total} subscription: ${stripeSubId}`)
+      console.log(
+        `${envLabel} Process ${index + 1}/${total} subscription: ${stripeSubId}`
+      )
 
       const trialEndAt =
         (isProd ? getUTCNextMonthDayOne() : getUTCNextMonday()) / 1000
@@ -72,10 +79,10 @@ exports.up = async (knex) => {
         trial_end: trialEndAt,
         proration_behavior: 'none',
       })
-      console.log(`Reset ${stripeSubId} to ${trialEndAt}`)
+      console.log(`${envLabel} Reset ${stripeSubId} to ${trialEndAt}`)
     } catch (error) {
       console.error(error)
-      console.error(`Failed to process item: ${sub.id}`)
+      console.error(`${envLabel} Failed to process item: ${sub.id}`)
     }
   }
 }
