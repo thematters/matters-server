@@ -20,7 +20,7 @@ export const getUTC8Midnight = (_date?: Date) => {
   return date
 }
 
-export const getUTC8NextMonthDayOne = (_date?: Date) => {
+export const getUTCNextMonthDayOne = (_date?: Date) => {
   const date = new Date((_date?.getTime() || Date.now()) + 8 * HOUR)
   date.setUTCHours(0, 0, 0, 0)
 
@@ -42,11 +42,10 @@ export const getUTC8NextMonthDayOne = (_date?: Date) => {
     date.setFullYear(date.getFullYear() + 1)
   }
 
-  date.setHours(date.getHours() - 8)
   return date.getTime()
 }
 
-export const getUTC8NextMonday = (_date?: Date) => {
+export const getUTCNextMonday = (_date?: Date) => {
   const date = new Date((_date?.getTime() || Date.now()) + 8 * HOUR)
   date.setUTCHours(0, 0, 0, 0)
 
@@ -54,6 +53,5 @@ export const getUTC8NextMonday = (_date?: Date) => {
   const offset = ((7 - date.getDay()) % 7) + 1
   date.setDate(date.getDate() + offset)
 
-  date.setHours(date.getHours() - 8)
   return date.getTime()
 }
