@@ -59,7 +59,7 @@ export default /* GraphQL */ `
     article: Article @logCache(type: "${NODE_TYPES.Article}")
 
     "Collection list of this draft."
-    collection(input: ConnectionArgs!): ArticleConnection!
+    collection(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Circle of this draft."
     circle: Circle @logCache(type: "${NODE_TYPES.Circle}") @deprecated(reason: "Use \`access.circle\` instead")
