@@ -7,7 +7,7 @@ export default /* GraphQL */ `
   }
 
   extend type User {
-    notices(input: ConnectionArgs!): NoticeConnection! @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
+    notices(input: ConnectionArgs!): NoticeConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @auth(mode: "${AUTH_MODE.oauth}") @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
   }
 
   """

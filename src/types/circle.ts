@@ -55,13 +55,13 @@ export default /* GraphQL */ `
     owner: User! @logCache(type: "${NODE_TYPES.User}")
 
     "List of Circle member."
-    members(input: ConnectionArgs!): MemberConnection!
+    members(input: ConnectionArgs!): MemberConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "List of Circle follower."
-    followers(input: ConnectionArgs!): UserConnection!
+    followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "List of works belong to this Circle."
-    works(input: ConnectionArgs!): ArticleConnection!
+    works(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "State of this Circle."
     state: CircleState!
@@ -84,7 +84,7 @@ export default /* GraphQL */ `
     setting: CircleSetting!
 
     "Invitations belonged to this Circle."
-    invitations(input: ConnectionArgs!): InvitationConnection! @deprecated(reason: "No longer use")
+    invitations(input: ConnectionArgs!): InvitationConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "No longer use")
 
     "Invitations belonged to this Circle."
     invites: Invites!
@@ -98,7 +98,7 @@ export default /* GraphQL */ `
     ownCircles: [Circle!] @logCache(type: "${NODE_TYPES.Circle}")
 
     "Circles whiches user has subscribed."
-    subscribedCircles(input: ConnectionArgs!): CircleConnection! @logCache(type: "${NODE_TYPES.Circle}")
+    subscribedCircles(input: ConnectionArgs!): CircleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @logCache(type: "${NODE_TYPES.Circle}")
   }
 
   type CircleSetting {
@@ -171,10 +171,10 @@ export default /* GraphQL */ `
 
   type Invites {
     "Accepted invitation list"
-    accepted(input: ConnectionArgs!): InvitationConnection!
+    accepted(input: ConnectionArgs!): InvitationConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Pending invitation list"
-    pending(input: ConnectionArgs!): InvitationConnection!
+    pending(input: ConnectionArgs!): InvitationConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
   }
 
   type Invitation {
