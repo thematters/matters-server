@@ -2,6 +2,7 @@ import Queue from 'bull'
 import _ from 'lodash'
 
 import {
+  // HOUR,
   MINUTE,
   PIN_STATE,
   QUEUE_JOB,
@@ -21,7 +22,7 @@ class IPFSQueue extends BaseQueue {
   ipfs: typeof ipfs
 
   constructor() {
-    super(QUEUE_NAME.circle)
+    super(QUEUE_NAME.ipfs)
 
     this.ipfs = ipfs
     this.slackService = new SlackService()
@@ -42,6 +43,16 @@ class IPFSQueue extends BaseQueue {
         repeat: { every: MINUTE * 30 },
       }
     )
+
+    // republish drafts that hash was missing to pin every hour
+    // this.q.add(
+    //   QUEUE_JOB.republishMissingHashes,
+    //   {},
+    //   {
+    //     priority: QUEUE_PRIORITY.LOW,
+    //     repeat: { every: HOUR * 1 },
+    //   }
+    // )
   }
 
   /**
@@ -49,6 +60,10 @@ class IPFSQueue extends BaseQueue {
    */
   private addConsumers = () => {
     this.q.process(QUEUE_JOB.verifyIPFSPinHashes, this.verifyIPFSPinHashes)
+    // this.q.process(
+    //   QUEUE_JOB.republishMissingHashes,
+    //   this.republishMissingHashes
+    // )
   }
 
   private verifyIPFSPinHashes: Queue.ProcessCallbackFunction<unknown> = async (
@@ -72,38 +87,38 @@ class IPFSQueue extends BaseQueue {
       const failedIds: string[] = []
       const chunks = _.chunk(pinningDrafts, 10)
 
-      const verifyHash = async (draftId: string, hash: string) => {
-        try {
-          await timeout(3000, async () => {
-            // ping hash
-            await this.ipfs.client.get(hash)
+      const verifyHash = async (draft: any) => {
+        // ping hash
+        await this.ipfs.client.get(draft.dataHash)
 
-            // mark as pin state as `pinned`
-            await this.markDraftPinStateAs({
-              draftId,
-              pinState: PIN_STATE.pinned,
-            })
+        // mark as pin state as `pinned`
+        await this.markDraftPinStateAs({
+          draftId: draft.id,
+          pinState: PIN_STATE.pinned,
+        })
 
-            succeedIds.push(draftId)
-            logger.info(
-              `[schedule job] hash (${hash}) of draft (${draftId}) was pinned.`
-            )
-          })
-        } catch (error) {
-          // mark as pin state as `failed`
-          await this.markDraftPinStateAs({
-            draftId,
-            pinState: PIN_STATE.failed,
-          })
-
-          failedIds.push(draftId)
-          logger.error(error)
-        }
+        succeedIds.push(draft.id)
+        logger.info(
+          `[schedule job] draft ${draft.id} (${draft.dataHash}) was pinned.`
+        )
       }
 
       for (const drafts of chunks) {
         await Promise.all(
-          drafts.map((draft) => verifyHash(draft.id, draft.dataHash))
+          drafts.map(async (draft) => {
+            try {
+              await timeout(5000, verifyHash(draft))
+            } catch (error) {
+              // mark as pin state as `failed`
+              await this.markDraftPinStateAs({
+                draftId: draft.id,
+                pinState: PIN_STATE.failed,
+              })
+
+              failedIds.push(draft.id)
+              logger.error(error)
+            }
+          })
         )
       }
 
@@ -127,6 +142,74 @@ class IPFSQueue extends BaseQueue {
       done(error)
     }
   }
+
+  // private republishMissingHashes: Queue.ProcessCallbackFunction<
+  //   unknown
+  // > = async (job, done) => {
+  //   try {
+  //     logger.info('[schedule job] republish missing hashes')
+
+  //     // obtain first 50
+  //     const drafts = await this.atomService.findMany({
+  //       table: 'draft',
+  //       where: { pinState: PIN_STATE.failed },
+  //       take: 50,
+  //       orderBy: [{ column: 'id', order: 'desc' }],
+  //     })
+
+  //     job.progress(30)
+
+  //     const succeedIds: string[] = []
+  //     const failedIds: string[] = []
+  //     const republish = async (draft: any) => {
+  //       // republish to IPFS
+  //       const {
+  //         contentHash: dataHash,
+  //         mediaHash,
+  //       } = await this.articleService.publishToIPFS(draft)
+
+  //       // update to DB
+  //       await this.atomService.update({
+  //         table: 'draft',
+  //         where: { id: draft.id },
+  //         data: { dataHash, mediaHash },
+  //       })
+
+  //       succeedIds.push(draft.id)
+  //       logger.info(
+  //         `[schedule job] draft ${draft.id} (${draft.dataHash}) was republished, new hash is ${dataHash}.`
+  //       )
+  //     }
+
+  //     for (const draft of drafts) {
+  //       try {
+  //         await timeout(5000, republish(draft))
+  //       } catch (error) {
+  //         failedIds.push(draft.id)
+  //         logger.error(error)
+  //       }
+  //     }
+
+  //     job.progress(100)
+  //     if (drafts.length >= 1) {
+  //       this.slackService.sendQueueMessage({
+  //         data: { succeedIds, failedIds },
+  //         title: `${QUEUE_NAME.ipfs}:republishMissingHashes`,
+  //         message: `Completed handling ${drafts.length} hashes.`,
+  //         state: SLACK_MESSAGE_STATE.successful,
+  //       })
+  //     }
+  //     done(null, { succeedIds, failedIds })
+  //   } catch (error) {
+  //     logger.error(error)
+  //     this.slackService.sendQueueMessage({
+  //       title: `${QUEUE_NAME.ipfs}:republishMissingHashes`,
+  //       message: `Failed to process cron job`,
+  //       state: SLACK_MESSAGE_STATE.failed,
+  //     })
+  //     done(error)
+  //   }
+  // }
 
   private markDraftPinStateAs = async ({
     draftId,

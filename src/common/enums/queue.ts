@@ -11,6 +11,7 @@ export const QUEUE_JOB = {
   publishArticle: 'publishArticle',
   publishPendingDrafts: 'publishPendingDrafts',
   verifyIPFSPinHashes: 'verifyIPFSPinHashes',
+  republishMissingHashes: 'republishMissingHashes',
 
   // Notification
   sendMail: 'sendMail',
