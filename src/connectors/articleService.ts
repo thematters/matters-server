@@ -1391,7 +1391,7 @@ export class ArticleService extends BaseService {
     // calculate last read total time
     const readLength = Date.now() - new Date(oldData.lastRead).getTime()
 
-    // if original read longer than 30 minutes
+    // if original read shorter than 30 minutes
     // skip
     if (userId && readLength < MINUTE * 30) {
       return { newRead: false }
