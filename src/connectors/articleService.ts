@@ -1385,7 +1385,7 @@ export class ArticleService extends BaseService {
     }
 
     // logged-in user
-    // calculate heart beat lapsed time in secondes
+    // calculate heart beat lapsed time in milisecondes
     const lapse = Date.now() - new Date(oldData.updatedAt).getTime()
 
     // calculate last read total time
@@ -1393,7 +1393,7 @@ export class ArticleService extends BaseService {
 
     // if original read longer than 30 minutes
     // skip
-    if (userId && readLength > MINUTE * 30) {
+    if (userId && readLength < MINUTE * 30) {
       return { newRead: false }
     }
 
