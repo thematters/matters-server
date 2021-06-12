@@ -1,6 +1,10 @@
 import slugify from '@matters/slugify'
 
-import { APPRECIATION_TYPES, USER_STATE } from 'common/enums'
+import {
+  APPRECIATION_TYPES,
+  ARTICLE_ACCESS_TYPE,
+  USER_STATE,
+} from 'common/enums'
 import { environment } from 'common/environment'
 import {
   ActionLimitExceededError,
@@ -25,7 +29,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
       userService,
       articleService,
       draftService,
-      notificationService,
+      paymentService,
       systemService,
     },
   }
@@ -34,6 +38,7 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new AuthenticationError('visitor has no permission')
   }
 
+  // check viewer
   if (
     [USER_STATE.archived, USER_STATE.banned, USER_STATE.frozen].includes(
       viewer.state
@@ -46,10 +51,12 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ForbiddenError('viewer has no liker id')
   }
 
+  // check amount
   if (!amount || amount <= 0) {
     throw new UserInputError('invalid amount')
   }
 
+  // check target
   const { id: dbId } = fromGlobalId(id)
   const article = await articleService.dataloader.load(dbId)
   if (!article) {
@@ -62,7 +69,9 @@ const resolver: MutationToAppreciateArticleResolver = async (
     )
   }
 
-  if (article.authorId === viewer.id && !superLike) {
+  // check author
+  const isAuthor = article.authorId === viewer.id
+  if (isAuthor && !superLike) {
     throw new ForbiddenError('cannot appreciate your own article')
   }
 
@@ -75,6 +84,21 @@ const resolver: MutationToAppreciateArticleResolver = async (
     throw new ForbiddenByTargetStateError(
       `cannot appreciate ${author.state} user`
     )
+  }
+
+  // check access
+  const articleCircle = await articleService.findArticleCircle(article.id)
+
+  if (articleCircle && !isAuthor) {
+    const isCircleMember = await paymentService.isCircleMember({
+      userId: viewer.id,
+      circleId: articleCircle.circleId,
+    })
+    const isPaywall = articleCircle.access === ARTICLE_ACCESS_TYPE.paywall
+
+    if (isPaywall && !isCircleMember) {
+      throw new ForbiddenError('only circle members have the permission')
+    }
   }
 
   /**

@@ -1,4 +1,4 @@
-import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE, CIRCLE_STATE } from 'common/enums'
+import { ARTICLE_ACCESS_TYPE, ARTICLE_STATE } from 'common/enums'
 import { correctHtml } from 'common/utils'
 import { ArticleToContentResolver } from 'definitions'
 
@@ -24,15 +24,7 @@ const resolver: ArticleToContentResolver = async (
     return ''
   }
 
-  const articleCircle = await knex
-    .select('article_circle.*')
-    .from('article_circle')
-    .join('circle', 'article_circle.circle_id', 'circle.id')
-    .where({
-      'article_circle.article_id': articleId,
-      'circle.state': CIRCLE_STATE.active,
-    })
-    .first()
+  const articleCircle = await articleService.findArticleCircle(articleId)
 
   // not in circle
   if (!articleCircle) {

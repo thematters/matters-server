@@ -1,24 +1,15 @@
-import { CIRCLE_STATE } from 'common/enums'
 import { ArticleToCircleResolver } from 'definitions'
 
 const resolver: ArticleToCircleResolver = async (
   { articleId },
   _,
-  { dataSources: { atomService }, knex }
+  { dataSources: { atomService, articleService } }
 ) => {
   if (!articleId) {
     return
   }
 
-  const articleCircle = await knex
-    .select('article_circle.*')
-    .from('article_circle')
-    .join('circle', 'article_circle.circle_id', 'circle.id')
-    .where({
-      'article_circle.article_id': articleId,
-      'circle.state': CIRCLE_STATE.active,
-    })
-    .first()
+  const articleCircle = await articleService.findArticleCircle(articleId)
 
   if (!articleCircle || !articleCircle.circleId) {
     return
