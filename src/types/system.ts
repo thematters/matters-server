@@ -5,7 +5,7 @@ export default /* GraphQL */ `
     node(input: NodeInput!): Node @privateCache @logCache(type: "${NODE_TYPES.Node}")
     nodes(input: NodesInput!): [Node!] @privateCache @logCache(type: "${NODE_TYPES.Node}")
     frequentSearch(input: FrequentSearchInput!): [String!] @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
-    search(input: SearchInput!): SearchResultConnection! @privateCache @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
+    search(input: SearchInput!): SearchResultConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @privateCache @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_SEARCH})
     official: Official! @privateCache
     oss: OSS! @auth(mode: "${AUTH_MODE.admin}") @privateCache
   }

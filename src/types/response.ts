@@ -8,7 +8,7 @@ export default /* GraphQL */ `
     responseCount: Int!
 
     "List of responses of a article."
-    responses(input: ResponsesInput!): ResponseConnection!
+    responses(input: ResponsesInput!): ResponseConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
   }
 
   type ResponseConnection implements Connection {

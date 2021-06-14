@@ -1985,4 +1985,21 @@ export class ArticleService extends BaseService {
 
     return !!result
   }
+
+  /*********************************
+   *                               *
+   *            Access             *
+   *                               *
+   *********************************/
+  findArticleCircle = async (articleId: string) => {
+    return this.knex
+      .select('article_circle.*')
+      .from('article_circle')
+      .join('circle', 'article_circle.circle_id', 'circle.id')
+      .where({
+        'article_circle.article_id': articleId,
+        'circle.state': CIRCLE_STATE.active,
+      })
+      .first()
+  }
 }
