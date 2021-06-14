@@ -36,7 +36,7 @@
     "search:init": "ts-node --files src/common/utils/initSearchIndices.ts"
   },
   "dependencies": {
-    "@elastic/elasticsearch": "^7.8.0",
+    "@elastic/elasticsearch": "^7.13.0",
     "@google-cloud/translate": "^6.0.2",
     "@matters/apollo-response-cache": "^1.3.0",
     "@matters/matters-html-formatter": "0.0.6",
