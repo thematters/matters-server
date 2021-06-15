@@ -1393,7 +1393,7 @@ export class ArticleService extends BaseService {
 
     // if lapse shorter than 5 minutes or readLength longer than 30 minutes, 
     // only update the updatedAt and then return
-   if (lapse < MINUTE * 5 && readLength > MINUTE * 30) {
+   if (lapse < MINUTE * 5 || readLength > MINUTE * 30) {
       await this.baseUpdate(
           oldData.id,
           {
