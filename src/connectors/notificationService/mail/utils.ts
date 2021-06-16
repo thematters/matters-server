@@ -173,7 +173,7 @@ export const getCommentDigest = async (comment: any | undefined) => {
     globalId: toGlobalId({ type: NODE_TYPES.Comment, id: comment.id }),
     content: content.length === comment.content ? content : `${content}…`,
     article: await getArticleDigest(
-      await articleService.baseFindById(comment.articleId)
+      await articleService.baseFindById(comment.targetId)
     ),
   }
 }
