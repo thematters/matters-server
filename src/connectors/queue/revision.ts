@@ -9,6 +9,7 @@ import {
   ARTICLE_STATE,
   DB_NOTICE_TYPE,
   NODE_TYPES,
+  PIN_STATE,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
@@ -105,6 +106,7 @@ class RevisionQueue extends BaseQueue {
         mediaHash,
         archived: true,
         publishState: PUBLISH_STATE.published,
+        pinState: PIN_STATE.pinned,
         updatedAt: new Date(),
       })
       job.progress(40)
