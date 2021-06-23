@@ -39,7 +39,7 @@ export default /* GraphQL */ `
   type Wallet {
     balance: Balance! @cacheControl(maxAge: ${CACHE_TTL.INSTANT})
 
-    transactions(input: TransactionsArgs!): TransactionConnection!
+    transactions(input: TransactionsArgs!): TransactionConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Account of Stripe Connect to manage payout"
     stripeAccount: StripeAccount

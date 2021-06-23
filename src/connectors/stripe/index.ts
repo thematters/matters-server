@@ -14,8 +14,8 @@ import { environment, isProd, isTest } from 'common/environment'
 import { PaymentAmountInvalidError, ServerError } from 'common/errors'
 import logger from 'common/logger'
 import {
-  getUTC8NextMonday,
-  getUTC8NextMonthDayOne,
+  getUTCNextMonday,
+  getUTCNextMonthDayOne,
   toProviderAmount,
 } from 'common/utils'
 import SlackService from 'connectors/slack'
@@ -294,9 +294,9 @@ class StripeService {
   }) => {
     try {
       const trialEndAt =
-        (isProd ? getUTC8NextMonthDayOne() : getUTC8NextMonday()) / 1000
+        (isProd ? getUTCNextMonthDayOne() : getUTCNextMonday()) / 1000
 
-      return this.stripeAPI.subscriptions.create({
+      return await this.stripeAPI.subscriptions.create({
         trial_end: trialEndAt,
         customer,
         items: [{ price }],

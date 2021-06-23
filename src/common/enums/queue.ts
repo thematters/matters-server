@@ -10,6 +10,8 @@ export const QUEUE_JOB = {
   // Publication
   publishArticle: 'publishArticle',
   publishPendingDrafts: 'publishPendingDrafts',
+  verifyIPFSPinHashes: 'verifyIPFSPinHashes',
+  republishMissingHashes: 'republishMissingHashes',
 
   // Notification
   sendMail: 'sendMail',
@@ -81,6 +83,7 @@ export const QUEUE_NAME = {
   asset: 'asset',
   stripe: 'stripe',
   circle: 'circle',
+  ipfs: 'ipfs',
 }
 
 export const QUEUE_CONCURRENCY = {
