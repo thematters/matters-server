@@ -469,15 +469,7 @@ const resolver: MutationToEditArticleResolver = async (
       articleService.baseFindById(dbId), // fetch latest article
       articleService.findCollections({ entranceId: article.id, limit: null }),
       tagService.findByArticleId({ articleId: article.id }),
-      knex
-        .select('article_circle.*')
-        .from('article_circle')
-        .join('circle', 'article_circle.circle_id', 'circle.id')
-        .where({
-          'article_circle.article_id': article.id,
-          'circle.state': CIRCLE_STATE.active,
-        })
-        .first(),
+      articleService.findArticleCircle(article.id),
     ])
     const currTagContents = currTags.map((currTag) => currTag.content)
     const currCollectionIds = currCollections.map(

@@ -187,14 +187,6 @@ export const APPRECIATION_TYPES = {
 export const SEARCH_KEY_TRUNCATE_LENGTH = 100
 export const SEARCH_ARTICLE_URL_REGEX = /^(https:\/\/([a-z0-9-]+.)?matters.news\/)@([a-zA-Z0-9_-]+)\/(.+?)-([0-9a-zA-Z]{49,59})$/gi
 
-// this is the base64 representation of a vector of [0] * 20, the rank of our ALS model is 20
-export const ALS_DEFAULT_VECTOR = {
-  factor:
-    '0|0 1|0 2|0 3|0 4|0 5|0 6|0 7|0 8|0 9|0 10|0 11|0 12|0 13|0 14|0 15|0 16|0 17|0 18|0 19|0',
-  embedding:
-    'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
-}
-
 export const OAUTH_PROVIDER = {
   facebbook: 'facebook',
   google: 'google',
