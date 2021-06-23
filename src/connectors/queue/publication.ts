@@ -83,6 +83,7 @@ class PublicationQueue extends BaseQueue {
       const {
         contentHash: dataHash,
         mediaHash,
+        key,
       } = await this.articleService.publishToIPFS(draft)
       job.progress(10)
 
@@ -118,7 +119,7 @@ class PublicationQueue extends BaseQueue {
         await this.handleCollection({ draft, article })
         job.progress(40)
 
-        await this.handleCircle({ draft, article })
+        await this.handleCircle({ draft, article, secret: key })
         job.progress(45)
 
         const tags = await this.handleTags({ draft, article })
@@ -262,15 +263,21 @@ class PublicationQueue extends BaseQueue {
   private handleCircle = async ({
     draft,
     article,
+    secret,
   }: {
     draft: any
     article: any
+    secret: any
   }) => {
     if (!draft.circleId || !draft.access) {
       return
     }
 
-    const data = { articleId: article.id, circleId: draft.circleId }
+    const data = {
+      articleId: article.id,
+      circleId: draft.circleId,
+      secret,
+    }
 
     await this.atomService.upsert({
       table: 'article_circle',

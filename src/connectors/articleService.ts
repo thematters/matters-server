@@ -1,8 +1,8 @@
 import {
-  FormatterVars,
   makeHtmlBundle,
   makeMetaData,
   stripHtml,
+  TemplateOptions,
 } from '@matters/matters-html-formatter'
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
@@ -11,12 +11,12 @@ import { v4 } from 'uuid'
 
 import {
   APPRECIATION_PURPOSE,
+  ARTICLE_ACCESS_TYPE,
   ARTICLE_APPRECIATE_LIMIT,
   ARTICLE_STATE,
   BATCH_SIZE,
   CIRCLE_STATE,
   COMMENT_TYPE,
-  IPFS_PREFIX,
   MATERIALIZED_VIEW,
   MINUTE,
   TRANSACTION_PURPOSE,
@@ -120,6 +120,7 @@ export class ArticleService extends BaseService {
     circleId,
     summary,
     summaryCustomized,
+    access,
   }: Record<string, any>) => {
     const userService = new UserService()
     const systemService = new SystemService()
@@ -138,13 +139,19 @@ export class ArticleService extends BaseService {
 
     const bundleInfo = {
       title,
-      author: { userName, displayName },
-      summary,
-      summaryCustomized,
+      author: {
+        name: displayName,
+        link: {
+          text: `${displayName} (@${userName})`,
+          url: new URL(`/@${userName}`, environment.siteDomain).href,
+        },
+      },
+      from: {
+        text: 'Matters',
+        url: environment.siteDomain,
+      },
       content,
-      prefix: IPFS_PREFIX,
-      siteDomain: environment.siteDomain,
-    } as FormatterVars
+    } as TemplateOptions
 
     // paywall info
     if (circleId) {
@@ -160,21 +167,33 @@ export class ArticleService extends BaseService {
           url: `${environment.siteDomain}/~${circleName}`,
           text: circleDisplayName,
         }
-        bundleInfo.content = ''
+      }
+
+      // encrypt paywalled content
+      if (access === ARTICLE_ACCESS_TYPE.paywall) {
+        bundleInfo.encrypt = true
       }
     }
+
+    // add summury when customized or encrypted
+    if (summaryCustomized || bundleInfo.encrypt) {
+      bundleInfo.summary = summary
+    }
+
+    // payment pointer
     if (paymentPointer) {
       bundleInfo.paymentPointer = paymentPointer
     }
 
-    // add content to ipfs
-    const bundle = await makeHtmlBundle(bundleInfo)
-
+    // make bundle and add content to ipfs
+    const { bundle, key } = await makeHtmlBundle(bundleInfo)
     const result = await this.ipfs.client.add(bundle)
 
     // filter out the hash for the bundle
-    const [{ hash: contentHash }] = result.filter(
-      ({ path }: { path: string }) => path === IPFS_PREFIX
+    const [
+      { hash: contentHash },
+    ] = result.filter(({ path }: { path: string }) =>
+      path.endsWith('index.html')
     )
 
     // add meta data to ipfs
@@ -199,7 +218,7 @@ export class ArticleService extends BaseService {
     })
     const mediaHash = cid.toBaseEncodedString()
 
-    return { contentHash, mediaHash }
+    return { contentHash, mediaHash, key }
   }
 
   /**
