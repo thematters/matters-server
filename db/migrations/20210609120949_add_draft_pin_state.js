@@ -13,6 +13,7 @@ exports.up = async (knex) => {
     UPDATE ${table}
     SET pin_state = 'pinning'
     WHERE publish_state = 'published'
+      AND data_hash IS NOT NULL
   `)
 }
 
