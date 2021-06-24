@@ -4,6 +4,7 @@ import slugify from '@matters/slugify'
 import Queue from 'bull'
 import * as cheerio from 'cheerio'
 import _difference from 'lodash/difference'
+import _uniq from 'lodash/uniq'
 
 import {
   ARTICLE_STATE,
@@ -19,16 +20,27 @@ import {
 import { isTest } from 'common/environment'
 import logger from 'common/logger'
 import { countWords, fromGlobalId } from 'common/utils'
+import { AtomService, NotificationService } from 'connectors'
+import { GQLArticleAccessType } from 'definitions'
 
 import { BaseQueue } from './baseQueue'
 
+interface RevisedArticleData {
+  draftId: string
+}
+
 class RevisionQueue extends BaseQueue {
+  atomService: InstanceType<typeof AtomService>
+  notificationService: InstanceType<typeof NotificationService>
+
   constructor() {
     super(QUEUE_NAME.revision)
+    this.atomService = new AtomService()
+    this.notificationService = new NotificationService()
     this.addConsumers()
   }
 
-  publishRevisedArticle = (data: { draftId: string }) => {
+  publishRevisedArticle = (data: RevisedArticleData) => {
     return this.q.add(QUEUE_JOB.publishRevisedArticle, data, {
       priority: QUEUE_PRIORITY.CRITICAL,
     })
@@ -56,9 +68,8 @@ class RevisionQueue extends BaseQueue {
   private handlePublishRevisedArticle: Queue.ProcessCallbackFunction<
     unknown
   > = async (job, done) => {
-    const { draftId } = job.data as {
-      draftId: string
-    }
+    const { draftId } = job.data as RevisedArticleData
+
     const draft = await this.draftService.baseFindById(draftId)
 
     // Step 1: checks
@@ -91,13 +102,13 @@ class RevisionQueue extends BaseQueue {
       const wordCount = countWords(draft.content)
 
       // Step 2: publish content to IPFS
+      const revised = { ...draft, summary }
+
       const {
         contentHash: dataHash,
         mediaHash,
-      } = await this.articleService.publishToIPFS({
-        ...draft,
-        summary,
-      })
+        key,
+      } = await this.articleService.publishToIPFS(revised)
       job.progress(30)
 
       // Step 3: update draft
@@ -111,7 +122,15 @@ class RevisionQueue extends BaseQueue {
       })
       job.progress(40)
 
-      // Step 4: update back to article
+      // Step 4: update secret
+      if (draft.circleId) {
+        const secret =
+          draft.access === GQLArticleAccessType.paywall ? key : null
+        await this.handleCircle({ article, circleId: draft.circleId, secret })
+      }
+      job.progress(45)
+
+      // Step 5: update back to article
       const revisionCount = (article.revisionCount || 0) + 1
       const updatedArticle = await this.articleService.baseUpdate(article.id, {
         draftId: draft.id,
@@ -127,7 +146,7 @@ class RevisionQueue extends BaseQueue {
 
       // Note: the following steps won't affect the publication.
       try {
-        // Step 5: copy previous draft asset maps for current draft
+        // Step 6: copy previous draft asset maps for current draft
         // Note: collection and tags are handled in edit resolver.
         // @see src/mutations/article/editArticle.ts
         const {
@@ -140,7 +159,7 @@ class RevisionQueue extends BaseQueue {
         })
         job.progress(60)
 
-        // Step 6: add to search
+        // Step 7: add to search
         const author = await this.userService.baseFindById(article.authorId)
         const { userName, displayName } = author
         await this.articleService.addToSearch({
@@ -151,7 +170,7 @@ class RevisionQueue extends BaseQueue {
         })
         job.progress(70)
 
-        // Step 7: handle newly added mentions
+        // Step 8: handle newly added mentions
         await this.handleMentions({
           article: updatedArticle,
           preDraftContent: preDraft.content,
@@ -159,7 +178,7 @@ class RevisionQueue extends BaseQueue {
         })
         job.progress(90)
 
-        // Step 8: trigger notifications
+        // Step 9: trigger notifications
         this.notificationService.trigger({
           event: DB_NOTICE_TYPE.revised_article_published,
           recipientId: article.authorId,
@@ -173,7 +192,7 @@ class RevisionQueue extends BaseQueue {
         })
         job.progress(95)
 
-        // Step 9: invalidate article and user cache
+        // Step 10: invalidate article and user cache
         await Promise.all([
           invalidateFQC({
             node: { type: NODE_TYPES.User, id: article.authorId },
@@ -215,6 +234,22 @@ class RevisionQueue extends BaseQueue {
 
       done(e)
     }
+  }
+
+  private handleCircle = async ({
+    article,
+    circleId,
+    secret = null,
+  }: {
+    article: any
+    circleId: string
+    secret?: string | null
+  }) => {
+    await this.atomService.update({
+      table: 'article_circle',
+      where: { articleId: article.id, circleId },
+      data: { secret, updatedAt: new Date() },
+    })
   }
 
   private handleMentions = async ({

@@ -27,7 +27,7 @@ import {
 } from 'common/errors'
 import { correctHtml, fromGlobalId, sanitize } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
-import { ItemData, MutationToPutCircleArticlesResolver } from 'definitions'
+import { MutationToPutCircleArticlesResolver } from 'definitions'
 
 const resolver: MutationToPutCircleArticlesResolver = async (
   root,
@@ -71,7 +71,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
   const [circle, targetArticles] = await Promise.all([
     atomService.findFirst({
       table: 'circle',
-      where: { id: circleId, state: CIRCLE_STATE.active },
+      where: { id: circleId, owner: viewer.id, state: CIRCLE_STATE.active },
     }),
     atomService.findMany({
       table: 'article',
@@ -82,19 +82,12 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       },
     }),
   ])
-  const targetArticleIds = targetArticles.map((a) => a.id)
 
   if (!circle) {
     throw new CircleNotFoundError(`circle ${id} not found`)
   }
   if (!targetArticles || targetArticles.length <= 0) {
     throw new ArticleNotFoundError('articles not found')
-  }
-
-  // check ownership
-  const isOwner = circle.owner === viewer.id
-  if (!isOwner) {
-    throw new ForbiddenError('only circle owner has the access')
   }
 
   const republish = async (article: any) => {
@@ -126,7 +119,7 @@ const resolver: MutationToPutCircleArticlesResolver = async (
 
     // create draft linked to this article
     const pipe = _.flow(sanitize, correctHtml)
-    const data: ItemData = {
+    const data: Record<string, any> = {
       uuid: v4(),
       authorId: currDraft.authorId,
       articleId: currArticle.id,
@@ -172,6 +165,9 @@ const resolver: MutationToPutCircleArticlesResolver = async (
       },
     })
   }
+
+  // add or remove articles from circle
+  const targetArticleIds = targetArticles.map((a) => a.id)
 
   // add articles to circle
   if (actionType === 'add') {

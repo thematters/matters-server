@@ -38,7 +38,7 @@ import {
   stripClass,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
-import { ItemData, MutationToEditArticleResolver } from 'definitions'
+import { MutationToEditArticleResolver } from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
@@ -482,7 +482,7 @@ const resolver: MutationToEditArticleResolver = async (
       'u-area-disable'
     )
     const pipe = flow(sanitize, correctHtml)
-    const data: ItemData = {
+    const data: Record<string, any> = {
       uuid: v4(),
       authorId: currDraft.authorId,
       articleId: currArticle.id,
