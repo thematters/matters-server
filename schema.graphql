@@ -189,6 +189,9 @@ type Article implements Node {
   """Transactions history of this article."""
   transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
 
+  """Cumulative reading time in seconds"""
+  readTime: NonNegativeFloat!
+
   """Drafts linked to this article."""
   drafts: [Draft!]
 
