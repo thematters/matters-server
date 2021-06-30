@@ -3,6 +3,8 @@ import { difference, flow, trim, uniq } from 'lodash'
 import { v4 } from 'uuid'
 
 import {
+  ARTICLE_ACCESS_TYPE,
+  ARTICLE_LICENSE_TYPE,
   ARTICLE_STATE,
   ASSET_TYPE,
   CACHE_KEYWORD,
@@ -36,7 +38,7 @@ import {
   stripClass,
 } from 'common/utils'
 import { revisionQueue } from 'connectors/queue'
-import { ItemData, MutationToEditArticleResolver } from 'definitions'
+import { MutationToEditArticleResolver } from 'definitions'
 
 const resolver: MutationToEditArticleResolver = async (
   _,
@@ -52,6 +54,7 @@ const resolver: MutationToEditArticleResolver = async (
       collection,
       circle: circleGlobalId,
       accessType,
+      license,
     },
   },
   {
@@ -377,17 +380,74 @@ const resolver: MutationToEditArticleResolver = async (
    * Summary
    */
   const resetSummary = summary === null || summary === ''
-  if (summary) {
-    await draftService.baseUpdate(dbId, {
-      summary,
-      summaryCustomized: true,
-      updatedAt: new Date(),
+  if (summary || resetSummary) {
+    await atomService.update({
+      table: 'draft',
+      where: { id: article.draftId },
+      data: {
+        summary: summary || null,
+        summaryCustomized: !!summary,
+        updatedAt: new Date(),
+      },
     })
-  } else if (resetSummary) {
-    await draftService.baseUpdate(dbId, {
-      summary: null,
-      summaryCustomized: false,
-      updatedAt: new Date(),
+  }
+
+  /**
+   * Revision Count
+   */
+  const isUpdatingContent = !!content
+  const isUpdatingCircleOrAccess = isUpdatingAccess || resetCircle
+  const shouldRepublish = isUpdatingContent || isUpdatingCircleOrAccess
+  const checkRevisionCount = () => {
+    const revisionCount = article.revisionCount || 0
+    if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
+      throw new ArticleRevisionReachLimitError(
+        'number of revisions reach limit'
+      )
+    }
+  }
+  const increaseRevisionCount = async () => {
+    checkRevisionCount()
+
+    await atomService.update({
+      table: 'article',
+      where: { id: article.id },
+      data: {
+        revisionCount: (article.revisionCount || 0) + 1,
+        updatedAt: new Date(),
+      },
+    })
+  }
+
+  /**
+   * License
+   */
+  const resetLicense = license === null
+
+  // check license
+  const isARR = license === ARTICLE_LICENSE_TYPE.arr
+  const isPaywall =
+    (accessType || currAccess?.access) === ARTICLE_ACCESS_TYPE.paywall
+
+  if (isARR && !isPaywall) {
+    throw new ForbiddenError(
+      'ARR (All Right Reserved) license can only be used by paywalled content.'
+    )
+  }
+
+  if (license || resetLicense) {
+    // we wont increase twice if the article will be republish later
+    if (!shouldRepublish) {
+      await increaseRevisionCount()
+    }
+
+    await atomService.update({
+      table: 'draft',
+      where: { id: article.draftId },
+      data: {
+        license: license || ARTICLE_LICENSE_TYPE.cc_by_nc_nd_2,
+        updatedAt: new Date(),
+      },
     })
   }
 
@@ -395,12 +455,7 @@ const resolver: MutationToEditArticleResolver = async (
    * Republish article if content or access is changed
    */
   const republish = async (newContent?: string) => {
-    const revisionCount = article.revisionCount || 0
-    if (revisionCount >= MAX_ARTICLE_REVISION_COUNT) {
-      throw new ArticleRevisionReachLimitError(
-        'number of revisions reach limit'
-      )
-    }
+    checkRevisionCount()
 
     // fetch updated data before create draft
     const [
@@ -414,15 +469,7 @@ const resolver: MutationToEditArticleResolver = async (
       articleService.baseFindById(dbId), // fetch latest article
       articleService.findCollections({ entranceId: article.id, limit: null }),
       tagService.findByArticleId({ articleId: article.id }),
-      knex
-        .select('article_circle.*')
-        .from('article_circle')
-        .join('circle', 'article_circle.circle_id', 'circle.id')
-        .where({
-          'article_circle.article_id': article.id,
-          'circle.state': CIRCLE_STATE.active,
-        })
-        .first(),
+      articleService.findArticleCircle(article.id),
     ])
     const currTagContents = currTags.map((currTag) => currTag.content)
     const currCollectionIds = currCollections.map(
@@ -435,7 +482,7 @@ const resolver: MutationToEditArticleResolver = async (
       'u-area-disable'
     )
     const pipe = flow(sanitize, correctHtml)
-    const data: ItemData = {
+    const data: Record<string, any> = {
       uuid: v4(),
       authorId: currDraft.authorId,
       articleId: currArticle.id,
@@ -450,6 +497,7 @@ const resolver: MutationToEditArticleResolver = async (
       publishState: PUBLISH_STATE.pending,
       circleId: currArticleCircle?.circleId,
       access: currArticleCircle?.access,
+      license: currDraft?.license,
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -461,9 +509,9 @@ const resolver: MutationToEditArticleResolver = async (
     })
   }
 
-  if (content) {
+  if (isUpdatingContent) {
     // check diff distances reaches limit or not
-    const cleanedContent = stripClass(content, 'u-area-disable')
+    const cleanedContent = stripClass(content || '', 'u-area-disable')
     const diffs = measureDiffs(
       stripHtml(draft.content, ''),
       stripHtml(cleanedContent, '')
@@ -473,7 +521,7 @@ const resolver: MutationToEditArticleResolver = async (
     }
 
     await republish(content)
-  } else if (isUpdatingAccess || resetCircle) {
+  } else if (isUpdatingCircleOrAccess) {
     await republish()
   }
 

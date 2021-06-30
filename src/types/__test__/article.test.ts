@@ -1,6 +1,11 @@
 import _get from 'lodash/get'
 
-import { ARTICLE_STATE, NODE_TYPES, PUBLISH_STATE } from 'common/enums'
+import {
+  ARTICLE_LICENSE_TYPE,
+  ARTICLE_STATE,
+  NODE_TYPES,
+  PUBLISH_STATE,
+} from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import { GQLAppreciateArticleInput, GQLNodeInput } from 'definitions'
 
@@ -78,6 +83,11 @@ const EDIT_ARTICLE = /* GraphQL */ `
       summary
       summaryCustomized
       content
+      access {
+        circle {
+          id
+        }
+      }
       collection(input: { first: null }) {
         totalCount
         edges {
@@ -92,6 +102,7 @@ const EDIT_ARTICLE = /* GraphQL */ `
       }
       sticky
       state
+      license
     }
   }
 `
@@ -477,6 +488,53 @@ describe('edit article', () => {
       },
     })
     expect(_get(disableResult, 'data.editArticle.sticky')).toBe(false)
+  })
+
+  test('edit license', async () => {
+    const { mutate } = await testClient({ isAuth: true, isAdmin: false })
+    const result = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          license: ARTICLE_LICENSE_TYPE.cc_0,
+        },
+      },
+    })
+    expect(_get(result, 'data.editArticle.license')).toBe(
+      ARTICLE_LICENSE_TYPE.cc_0
+    )
+
+    // forbid to ARR if it's not a paywalled article
+    const errorPath = 'errors.0.extensions.code'
+    const forbidResult = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          license: ARTICLE_LICENSE_TYPE.arr,
+        },
+      },
+    })
+    expect(_get(forbidResult, errorPath)).toBe('FORBIDDEN')
+
+    // reset license
+    const resetResult1 = await mutate({
+      mutation: EDIT_ARTICLE,
+      // @ts-ignore
+      variables: {
+        input: {
+          id: ARTICLE_ID,
+          license: null,
+        },
+      },
+    })
+    expect(
+      _get(resetResult1, 'data.editArticle.summary.length')
+    ).toBeGreaterThan(0)
+    expect(_get(resetResult1, 'data.editArticle.summaryCustomized')).toBe(false)
   })
 
   test('archive article', async () => {

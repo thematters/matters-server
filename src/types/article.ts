@@ -123,25 +123,25 @@ export default /* GraphQL */ `
     language: String
 
     "List of articles which added this article into their collections."
-    collectedBy(input: ConnectionArgs!): ArticleConnection!
+    collectedBy(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "List of articles added into this article' collection."
-    collection(input: ConnectionArgs!): ArticleConnection!
+    collection(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Related articles to this article."
-    relatedArticles(input: ConnectionArgs!): ArticleConnection!
+    relatedArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Donation-related articles to this article."
-    relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection!
+    relatedDonationArticles(input: RelatedDonationArticlesInput!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Appreciations history of this article."
-    appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
+    appreciationsReceived(input: ConnectionArgs!): AppreciationConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Total number of appreciations recieved of this article."
     appreciationsReceivedTotal: Int!
 
     "Subscribers of this article."
-    subscribers(input: ConnectionArgs!): UserConnection!
+    subscribers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Limit the nuhmber of appreciate per user."
     appreciateLimit: Int!
@@ -165,7 +165,7 @@ export default /* GraphQL */ `
     translation(input: TranslationArgs): ArticleTranslation @objectCache(maxAge: ${CACHE_TTL.STATIC})
 
     "Transactions history of this article."
-    transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection!
+    transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Drafts linked to this article."
     drafts: [Draft!] @logCache(type: "${NODE_TYPES.Draft}")
@@ -178,6 +178,10 @@ export default /* GraphQL */ `
 
     "Access related fields on circle"
     access: ArticleAccess!
+
+    "License Type"
+    license: ArticleLicenseType!
+
 
     ##############
     #     OSS    #
@@ -195,7 +199,7 @@ export default /* GraphQL */ `
     content: String!
 
     "List of how many articles were attached with this tag."
-    articles(input: TagArticlesInput!): ArticleConnection!
+    articles(input: TagArticlesInput!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "This value determines if this article is selected by this tag or not."
     selected(input: TagSelectedInput!): Boolean!
@@ -222,10 +226,10 @@ export default /* GraphQL */ `
     isFollower: Boolean
 
     "Followers of this tag."
-    followers(input: ConnectionArgs!): UserConnection!
+    followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Participants of this tag."
-    participants(input: ConnectionArgs!): UserConnection!
+    participants(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     ##############
     #     OSS    #
@@ -237,7 +241,7 @@ export default /* GraphQL */ `
 
   type ArticleAccess {
     type: ArticleAccessType!
-    secret: String @auth(mode: "${AUTH_MODE.oauth}")
+    secret: String
     circle: Circle @logCache(type: "${NODE_TYPES.Circle}")
   }
 
@@ -308,6 +312,9 @@ export default /* GraphQL */ `
     collection: [ID!]
     circle: ID
     accessType: ArticleAccessType
+
+    "License Type, \`ARR\` is only for paywalled article"
+    license: ArticleLicenseType
   }
 
   input AppreciateArticleInput {
@@ -423,6 +430,13 @@ export default /* GraphQL */ `
   enum ArticleAccessType {
     public
     paywall
+  }
+
+  "Enums for types of article license"
+  enum ArticleLicenseType {
+    cc_0 # CC0
+    cc_by_nc_nd_2 # CC BY-NC-ND 2.0
+    arr # All Right Reserved
   }
 
   "Enums for types of recommend articles."

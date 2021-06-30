@@ -35,7 +35,6 @@ import {
 } from 'connectors'
 import { sentryMiddleware } from 'middlewares/sentry'
 
-import costMap from '../costMap'
 import schema from '../schema'
 
 const API_ENDPOINT = '/graphql'
@@ -57,7 +56,6 @@ class ProtectedApolloServer extends ApolloServer {
           variables: req.body.variables,
           maximumCost,
           defaultCost: 1,
-          costMap,
           createError: (max: number, actual: number) => {
             const err = new ActionLimitExceededError(
               `GraphQL query exceeds maximum complexity,` +

@@ -8,6 +8,7 @@ import { trim, uniq } from 'lodash'
 import {
   DB_NOTICE_TYPE,
   NODE_TYPES,
+  PIN_STATE,
   PUBLISH_STATE,
   QUEUE_CONCURRENCY,
   QUEUE_JOB,
@@ -82,6 +83,7 @@ class PublicationQueue extends BaseQueue {
       const {
         contentHash: dataHash,
         mediaHash,
+        key,
       } = await this.articleService.publishToIPFS(draft)
       job.progress(10)
 
@@ -106,6 +108,7 @@ class PublicationQueue extends BaseQueue {
         mediaHash,
         archived: true,
         publishState: PUBLISH_STATE.published,
+        pinState: PIN_STATE.pinned,
         updatedAt: new Date(),
       })
       job.progress(30)
@@ -116,7 +119,7 @@ class PublicationQueue extends BaseQueue {
         await this.handleCollection({ draft, article })
         job.progress(40)
 
-        await this.handleCircle({ draft, article })
+        await this.handleCircle({ draft, article, secret: key })
         job.progress(45)
 
         const tags = await this.handleTags({ draft, article })
@@ -260,15 +263,21 @@ class PublicationQueue extends BaseQueue {
   private handleCircle = async ({
     draft,
     article,
+    secret,
   }: {
     draft: any
     article: any
+    secret: any
   }) => {
     if (!draft.circleId || !draft.access) {
       return
     }
 
-    const data = { articleId: article.id, circleId: draft.circleId }
+    const data = {
+      articleId: article.id,
+      circleId: draft.circleId,
+      secret,
+    }
 
     await this.atomService.upsert({
       table: 'article_circle',

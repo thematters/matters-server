@@ -100,28 +100,28 @@ export default /* GraphQL */ `
     recommendation: Recommendation!
 
     "Articles authored by current user."
-    articles(input: ConnectionArgs!): ArticleConnection!
+    articles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Tags owned and maintained by current user."
-    tags(input: ConnectionArgs!): TagConnection!
+    tags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Drafts authored by current user."
-    drafts(input: ConnectionArgs!): DraftConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    drafts(input: ConnectionArgs!): DraftConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Articles current user commented on"
-    commentedArticles(input: ConnectionArgs!): ArticleConnection!
+    commentedArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Artilces current user subscribed to."
-    subscriptions(input: ConnectionArgs!): ArticleConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    subscriptions(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Record of user activity, only accessable by current user."
     activity: UserActivity! @auth(mode: "${AUTH_MODE.oauth}")
 
     "Followers of this user."
-    followers(input: ConnectionArgs!): UserConnection!
+    followers(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Users that this user follows."
-    followees(input: ConnectionArgs!): UserConnection! @deprecated(reason: "Move to a new field")
+    followees(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Move to a new field")
 
     "Following contents of this user."
     following: Following!
@@ -133,7 +133,7 @@ export default /* GraphQL */ `
     isFollowee: Boolean!
 
     "Users that blocked by current user."
-    blockList(input: ConnectionArgs!): UserConnection! @auth(mode: "${AUTH_MODE.oauth}")
+    blockList(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @auth(mode: "${AUTH_MODE.oauth}")
 
     "Whether current user is blocking viewer."
     isBlocking: Boolean!
@@ -153,58 +153,58 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection!
+    followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Comments published by user's followees."
-    followeeComments(input: ConnectionArgs!): CommentConnection!
+    followeeComments(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Articles that followee donated"
-    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
+    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Tags that user followed."
-    followingTags(input: ConnectionArgs!): TagConnection! @deprecated(reason: "Move to a new field")
+    followingTags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Move to a new field")
 
     "Articles has been added into followed tags."
-    followingTagsArticles(input: ConnectionArgs!): ArticleConnection!
+    followingTagsArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Global articles sort by publish time."
-    newest(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+    newest(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global articles sort by latest activity time."
-    hottest(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+    hottest(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "'In case you missed it' recommendation."
-    icymi(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+    icymi(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global articles sort by appreciate, donation and subscription."
-    valued(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+    valued(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global tag list, sort by activities in recent 14 days."
-    tags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
+    tags(input: RecommendInput!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
     "Hottest tag list"
-    hottestTags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
+    hottestTags(input: RecommendInput!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
     "Selected tag list"
-    selectedTags(input: RecommendInput!): TagConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
+    selectedTags(input: RecommendInput!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_TAG})
 
     "Gloabl article list, sort by activities in recent 72 hours."
-    topics(input: ConnectionArgs!): ArticleConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
+    topics(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_ARTICLE})
 
     "Global user list, sort by activities in recent 6 month."
-    authors(input: RecommendInput!): UserConnection! @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
+    authors(input: RecommendInput!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.PUBLIC_FEED_USER})
 
     "Personalized recommendation based on interaction with tags."
-    interest(input: ConnectionArgs!): ArticleConnection!
+    interest(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Recommend articles with collaborative filtering"
-    recommendArticles(input: ConnectionArgs!): ArticleConnection!
+    recommendArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Global circles sort by created time."
-    newestCircles(input: ConnectionArgs!): CircleConnection! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+    newestCircles(input: ConnectionArgs!): CircleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.SHORT})
 
     "Global circles sort by latest activity time."
-    hottestCircles(input: ConnectionArgs!): CircleConnection! @cacheControl(maxAge: ${CACHE_TTL.SHORT})
+    hottestCircles(input: ConnectionArgs!): CircleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @cacheControl(maxAge: ${CACHE_TTL.SHORT})
   }
 
   input RecommendInput {
@@ -257,19 +257,19 @@ export default /* GraphQL */ `
 
   type UserActivity {
     "User reading history."
-    history(input: ConnectionArgs!): ReadHistoryConnection!
+    history(input: ConnectionArgs!): ReadHistoryConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "User search history."
-    recentSearches(input: ConnectionArgs!): RecentSearchConnection!
+    recentSearches(input: ConnectionArgs!): RecentSearchConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Appreciations current user gave."
-    appreciationsSent(input: ConnectionArgs!): AppreciationConnection!
+    appreciationsSent(input: ConnectionArgs!): AppreciationConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Total number of appreciation current user gave."
     appreciationsSentTotal: Int!
 
     "Appreciations current user received."
-    appreciationsReceived(input: ConnectionArgs!): AppreciationConnection!
+    appreciationsReceived(input: ConnectionArgs!): AppreciationConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Total number of appreciation current user received."
     appreciationsReceivedTotal: Int!
@@ -424,9 +424,9 @@ export default /* GraphQL */ `
   }
 
   type Following {
-    circles(input: ConnectionArgs!): CircleConnection!
-    tags(input: ConnectionArgs!): TagConnection!
-    users(input: ConnectionArgs!): UserConnection!
+    circles(input: ConnectionArgs!): CircleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    tags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    users(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
   }
 
   input UserInput {

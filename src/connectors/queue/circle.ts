@@ -126,6 +126,11 @@ class CircleQueue extends BaseQueue {
             invitationId: item.invitationId,
             state: INVITATION_STATE.transfer_succeeded,
           })
+
+          succeedItemIds.push(item.id)
+          logger.info(
+            `[schedule job] Matters subscription item ${item.id} moved to Stripe.`
+          )
         } catch (error) {
           // mark invitation as `transfer_failed`
           await this.markInvitationAs({
@@ -146,11 +151,6 @@ class CircleQueue extends BaseQueue {
           node: { type: NODE_TYPES.Circle, id: item.circleId },
           redis: this.cacheService.redis,
         })
-
-        succeedItemIds.push(item.id)
-        logger.info(
-          `[schedule job] Matters subscription item ${item.id} moved to Stripe.`
-        )
       }
 
       job.progress(100)

@@ -59,13 +59,16 @@ export default /* GraphQL */ `
     article: Article @logCache(type: "${NODE_TYPES.Article}")
 
     "Collection list of this draft."
-    collection(input: ConnectionArgs!): ArticleConnection!
+    collection(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
     "Circle of this draft."
     circle: Circle @logCache(type: "${NODE_TYPES.Circle}") @deprecated(reason: "Use \`access.circle\` instead")
 
     "Access related fields on circle"
     access: DraftAccess!
+
+    "License Type"
+    license: ArticleLicenseType!
   }
 
   type DraftConnection implements Connection {
@@ -93,9 +96,10 @@ export default /* GraphQL */ `
     cover: ID
     collection: [ID]
     circle: ID
-
-    "Access Type, \`public\` or \`paywall\` only."
     accessType: ArticleAccessType
+
+    "License Type, \`ARR\` is only for paywalled article"
+    license: ArticleLicenseType
   }
 
   input DeleteDraftInput {

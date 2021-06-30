@@ -201,6 +201,9 @@ type Article implements Node {
   """Access related fields on circle"""
   access: ArticleAccess!
 
+  """License Type"""
+  license: ArticleLicenseType!
+
   """
   #############
        OSS    #
@@ -281,6 +284,13 @@ type ArticleEdge {
 input ArticleInput {
   mediaHash: String
   uuid: UUID
+}
+
+"""Enums for types of article license"""
+enum ArticleLicenseType {
+  cc_0
+  cc_by_nc_nd_2
+  arr
 }
 
 """
@@ -859,6 +869,9 @@ type Draft implements Node {
 
   """Access related fields on circle"""
   access: DraftAccess!
+
+  """License Type"""
+  license: ArticleLicenseType!
 }
 
 type DraftAccess {
@@ -888,6 +901,9 @@ input EditArticleInput {
   collection: [ID!]
   circle: ID
   accessType: ArticleAccessType
+
+  """License Type, `ARR` is only for paywalled article"""
+  license: ArticleLicenseType
 }
 
 scalar Email
@@ -1538,6 +1554,9 @@ input PutCircleArticlesInput {
 
   """Access Type, `public` or `paywall` only."""
   accessType: ArticleAccessType!
+
+  """License Type, `ARR` is only for paywalled article"""
+  license: ArticleLicenseType
 }
 
 enum PutCircleArticlesType {
@@ -1584,9 +1603,10 @@ input PutDraftInput {
   cover: ID
   collection: [ID]
   circle: ID
-
-  """Access Type, `public` or `paywall` only."""
   accessType: ArticleAccessType
+
+  """License Type, `ARR` is only for paywalled article"""
+  license: ArticleLicenseType
 }
 
 input PutOAuthClientInput {

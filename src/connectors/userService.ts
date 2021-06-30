@@ -7,7 +7,6 @@ import { nanoid } from 'nanoid'
 import { v4 } from 'uuid'
 
 import {
-  ALS_DEFAULT_VECTOR,
   APPRECIATION_PURPOSE,
   ARTICLE_STATE,
   BATCH_SIZE,
@@ -349,8 +348,6 @@ export class UserService extends BaseService {
       index: this.table,
       items: users.map((user) => ({
         ...user,
-        factor: ALS_DEFAULT_VECTOR.factor,
-        embedding_vector: ALS_DEFAULT_VECTOR.embedding,
       })),
     })
   }
@@ -372,8 +369,6 @@ export class UserService extends BaseService {
             userName,
             displayName,
             description,
-            factor: ALS_DEFAULT_VECTOR.factor,
-            embedding_vector: ALS_DEFAULT_VECTOR.embedding,
           },
         ],
       })
@@ -1265,29 +1260,34 @@ export class UserService extends BaseService {
       id: userId,
     })
 
-    const factorString = _.get(scoreResult.body, '_source.embedding_vector')
+    const factors = _.get(scoreResult.body, '_source.embedding_vector')
 
-    if (!factorString || factorString === ALS_DEFAULT_VECTOR.embedding) {
+    if (!factors) {
       return []
     }
 
     const searchBody = bodybuilder()
-      .query('function_score', {
-        boost_mode: 'replace',
-        script_score: {
-          script: {
-            source: 'binary_vector_score',
-            lang: 'knn',
-            params: {
-              cosine: true,
-              field: 'embedding_vector',
-              encoded_vector: factorString,
-            },
+      .query('script_score', {
+        query: {
+          bool: {
+            must: [
+              {
+                exists: {
+                  field: 'embedding_vector',
+                },
+              },
+            ],
+          },
+        },
+        script: {
+          source:
+            "cosineSimilarity(params.query_vector, 'embedding_vector') + 1.0",
+          params: {
+            query_vector: factors,
           },
         },
       })
       .filter('term', { state: ARTICLE_STATE.active })
-      .notFilter('term', { factor: ALS_DEFAULT_VECTOR.factor })
       .notFilter('ids', { values: notIn })
       .from(offset)
       .size(first)
