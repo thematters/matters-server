@@ -18,7 +18,6 @@ const triggerNotice = async ({
   articleId,
   articleService,
   notificationService,
-  selected,
   tag,
   viewerId,
   isOwner,
@@ -26,7 +25,6 @@ const triggerNotice = async ({
   articleId: string
   articleService: InstanceType<typeof ArticleService>
   notificationService: InstanceType<typeof NotificationService>
-  selected: boolean
   tag: any
   viewerId: string
   isOwner: boolean
@@ -39,14 +37,9 @@ const triggerNotice = async ({
     (user) => user !== viewerId
   )
 
-  const event =
-    selected === true
-      ? DB_NOTICE_TYPE.article_tag_has_been_added
-      : DB_NOTICE_TYPE.article_tag_has_been_unselected
-
   users.map((user) => {
     notificationService.trigger({
-      event,
+      event: DB_NOTICE_TYPE.article_tag_has_been_added,
       recipientId: user,
       actorId: viewerId,
       entities: [
@@ -115,15 +108,16 @@ const resolver: MutationToUpdateArticlesTagsResolver = async (
   })
 
   // trigger notification for adding article tag
-  await triggerNotice({
-    articleId,
-    articleService,
-    notificationService,
-    selected: isSelected,
-    tag,
-    viewerId: viewer.id,
-    isOwner,
-  })
+  if (isSelected) {
+    await triggerNotice({
+      articleId,
+      articleService,
+      notificationService,
+      tag,
+      viewerId: viewer.id,
+      isOwner,
+    })
+  }
 
   return tag
 }

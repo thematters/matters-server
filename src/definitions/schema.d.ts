@@ -3262,7 +3262,6 @@ export interface GQLArticleTagNotice extends GQLNotice {
 export const enum GQLArticleTagNoticeType {
   ArticleTagAdded = 'ArticleTagAdded',
   ArticleTagRemoved = 'ArticleTagRemoved',
-  ArticleTagUnselected = 'ArticleTagUnselected',
 }
 
 export const enum GQLCacheScope {

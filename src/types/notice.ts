@@ -206,7 +206,6 @@ export default /* GraphQL */ `
   enum ArticleTagNoticeType {
     ArticleTagAdded
     ArticleTagRemoved
-    ArticleTagUnselected
   }
 
   type TagNotice implements Notice {

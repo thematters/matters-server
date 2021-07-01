@@ -368,7 +368,6 @@ type ArticleTagNotice implements Notice {
 enum ArticleTagNoticeType {
   ArticleTagAdded
   ArticleTagRemoved
-  ArticleTagUnselected
 }
 
 type ArticleTranslation {

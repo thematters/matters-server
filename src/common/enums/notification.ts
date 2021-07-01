@@ -17,7 +17,6 @@ export enum DB_NOTICE_TYPE {
   // article-tag
   article_tag_has_been_added = 'article_tag_has_been_added',
   article_tag_has_been_removed = 'article_tag_has_been_removed',
-  article_tag_has_been_unselected = 'article_tag_has_been_unselected',
 
   // tag
   tag_adoption = 'tag_adoption',

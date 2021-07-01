@@ -537,7 +537,6 @@ class Notice extends BaseService {
       // article-tag
       article_tag_has_been_added: true,
       article_tag_has_been_removed: true,
-      article_tag_has_been_unselected: true,
 
       // tag
       tag_adoption: true,

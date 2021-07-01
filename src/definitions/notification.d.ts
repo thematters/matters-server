@@ -262,17 +262,6 @@ export interface NoticeArticleTagHasBeenRemovedParams
   ]
 }
 
-export interface NoticeArticleTagHasBeenUnselectedParams
-  extends NotificationRequiredParams {
-  event: DB_NOTICE_TYPE.article_tag_has_been_unselected
-  recipientId: string
-  actorId: string
-  entities: [
-    NotificationEntity<'target', 'article'>,
-    NotificationEntity<'tag', 'tag'>
-  ]
-}
-
 /**
  * Transaction
  */
@@ -410,7 +399,6 @@ export type NotificationPrarms =
   // Tag
   | NoticeArticleTagHasBeenAddedParams
   | NoticeArticleTagHasBeenRemovedParams
-  | NoticeArticleTagHasBeenUnselectedParams
   | NoticeTagAdoptionParams
   | NoticeTagLeaveParams
   | NoticeTagAddEditorParams
