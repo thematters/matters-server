@@ -23,7 +23,6 @@ import articleCover from './cover'
 import createdAt from './createdAt'
 import hasAppreciate from './hasAppreciate'
 import language from './language'
-import live from './live'
 import * as articleOSS from './oss'
 import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
@@ -82,7 +81,6 @@ export default {
     hasAppreciate,
     canSuperLike,
     language,
-    live,
     oss: (root: any) => root,
     relatedArticles,
     relatedDonationArticles,

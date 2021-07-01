@@ -103,9 +103,6 @@ type Article implements Node {
   """State of this article."""
   state: ArticleState!
 
-  """This value determines if this article is under Subscription or not."""
-  live: Boolean! @deprecated(reason: "No longer in use")
-
   """Author of this article."""
   author: User!
 
@@ -1150,7 +1147,6 @@ type Mutation {
        OSS    #
   #############
   """
-  toggleArticleLive(input: ToggleItemInput!): Article! @deprecated(reason: "No longer in use")
   toggleArticleRecommend(input: ToggleRecommendInput!): Article!
   updateArticleState(input: UpdateArticleStateInput!): Article!
   toggleTagRecommend(input: ToggleRecommendInput!): Tag!
@@ -1688,16 +1684,13 @@ type RecentSearchEdge {
 
 type Recommendation {
   """Articles published by user's followees."""
-  followeeArticles(input: ConnectionArgs!): ArticleConnection!
+  followeeArticles(input: ConnectionArgs!): ArticleConnection! @deprecated(reason: "Merged into `Recommendation.following`")
 
   """Comments published by user's followees."""
-  followeeComments(input: ConnectionArgs!): CommentConnection!
+  followeeComments(input: ConnectionArgs!): CommentConnection! @deprecated(reason: "Merged into `Recommendation.following`")
 
   """Articles that followee donated"""
-  followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection!
-
-  """Tags that user followed."""
-  followingTags(input: ConnectionArgs!): TagConnection! @deprecated(reason: "Move to a new field")
+  followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @deprecated(reason: "Merged into `Recommendation.following`")
 
   """Articles has been added into followed tags."""
   followingTagsArticles(input: ConnectionArgs!): ArticleConnection!

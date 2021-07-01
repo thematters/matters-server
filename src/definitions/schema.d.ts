@@ -69,12 +69,6 @@ export interface GQLArticle extends GQLNode {
   state: GQLArticleState
 
   /**
-   * This value determines if this article is under Subscription or not.
-   * @deprecated No longer in use
-   */
-  live: boolean
-
-  /**
    * Author of this article.
    */
   author: GQLUser
@@ -595,24 +589,21 @@ export interface GQLNotificationSetting {
 export interface GQLRecommendation {
   /**
    * Articles published by user's followees.
+   * @deprecated Merged into `Recommendation.following`
    */
   followeeArticles: GQLArticleConnection
 
   /**
    * Comments published by user's followees.
+   * @deprecated Merged into `Recommendation.following`
    */
   followeeComments: GQLCommentConnection
 
   /**
    * Articles that followee donated
+   * @deprecated Merged into `Recommendation.following`
    */
   followeeDonatedArticles: GQLFolloweeDonatedArticleConnection
-
-  /**
-   * Tags that user followed.
-   * @deprecated Move to a new field
-   */
-  followingTags: GQLTagConnection
 
   /**
    * Articles has been added into followed tags.
@@ -893,6 +884,31 @@ export interface GQLFolloweeDonatedArticle {
   followee: GQLUser
 }
 
+export interface GQLRecommendInput {
+  after?: string
+  first?: number
+  oss?: boolean
+  filter?: GQLFilterInput
+  type?: GQLAuthorsType
+}
+
+export interface GQLFilterInput {
+  /**
+   * index of list, min: 0, max: 49
+   */
+  random?: GQLNonNegativeInt
+  followed?: boolean
+}
+
+export type GQLNonNegativeInt = any
+
+export const enum GQLAuthorsType {
+  active = 'active',
+  appreciated = 'appreciated',
+  default = 'default',
+  trendy = 'trendy',
+}
+
 export interface GQLTagConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
@@ -1015,31 +1031,6 @@ export interface GQLTagOSS {
   boost: GQLNonNegativeFloat
   score: GQLNonNegativeFloat
   selected: boolean
-}
-
-export interface GQLRecommendInput {
-  after?: string
-  first?: number
-  oss?: boolean
-  filter?: GQLFilterInput
-  type?: GQLAuthorsType
-}
-
-export interface GQLFilterInput {
-  /**
-   * index of list, min: 0, max: 49
-   */
-  random?: GQLNonNegativeInt
-  followed?: boolean
-}
-
-export type GQLNonNegativeInt = any
-
-export const enum GQLAuthorsType {
-  active = 'active',
-  appreciated = 'appreciated',
-  default = 'default',
-  trendy = 'trendy',
 }
 
 export interface GQLCircleConnection extends GQLConnection {
@@ -2315,9 +2306,7 @@ export interface GQLMutation {
    * #############
    *      OSS    #
    * #############
-   * @deprecated No longer in use
    */
-  toggleArticleLive: GQLArticle
   toggleArticleRecommend: GQLArticle
   updateArticleState: GQLArticle
   toggleTagRecommend: GQLTag
@@ -3611,13 +3600,13 @@ export interface GQLResolver {
   FolloweeDonatedArticleConnection?: GQLFolloweeDonatedArticleConnectionTypeResolver
   FolloweeDonatedArticleEdge?: GQLFolloweeDonatedArticleEdgeTypeResolver
   FolloweeDonatedArticle?: GQLFolloweeDonatedArticleTypeResolver
+  NonNegativeInt?: GraphQLScalarType
   TagConnection?: GQLTagConnectionTypeResolver
   TagEdge?: GQLTagEdgeTypeResolver
   Tag?: GQLTagTypeResolver
   UserConnection?: GQLUserConnectionTypeResolver
   UserEdge?: GQLUserEdgeTypeResolver
   TagOSS?: GQLTagOSSTypeResolver
-  NonNegativeInt?: GraphQLScalarType
   CircleConnection?: GQLCircleConnectionTypeResolver
   CircleEdge?: GQLCircleEdgeTypeResolver
   Circle?: GQLCircleTypeResolver
@@ -3860,7 +3849,6 @@ export interface GQLArticleTypeResolver<TParent = any> {
   createdAt?: ArticleToCreatedAtResolver<TParent>
   revisedAt?: ArticleToRevisedAtResolver<TParent>
   state?: ArticleToStateResolver<TParent>
-  live?: ArticleToLiveResolver<TParent>
   author?: ArticleToAuthorResolver<TParent>
   title?: ArticleToTitleResolver<TParent>
   cover?: ArticleToCoverResolver<TParent>
@@ -3953,15 +3941,6 @@ export interface ArticleToRevisedAtResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToStateResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleToLiveResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -5101,7 +5080,6 @@ export interface GQLRecommendationTypeResolver<TParent = any> {
   followeeDonatedArticles?: RecommendationToFolloweeDonatedArticlesResolver<
     TParent
   >
-  followingTags?: RecommendationToFollowingTagsResolver<TParent>
   followingTagsArticles?: RecommendationToFollowingTagsArticlesResolver<TParent>
   newest?: RecommendationToNewestResolver<TParent>
   hottest?: RecommendationToHottestResolver<TParent>
@@ -5158,21 +5136,6 @@ export interface RecommendationToFolloweeDonatedArticlesResolver<
   (
     parent: TParent,
     args: RecommendationToFolloweeDonatedArticlesArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface RecommendationToFollowingTagsArgs {
-  input: GQLConnectionArgs
-}
-export interface RecommendationToFollowingTagsResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: RecommendationToFollowingTagsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -8940,7 +8903,6 @@ export interface GQLMutationTypeResolver<TParent = any> {
   addArticlesTags?: MutationToAddArticlesTagsResolver<TParent>
   updateArticlesTags?: MutationToUpdateArticlesTagsResolver<TParent>
   deleteArticlesTags?: MutationToDeleteArticlesTagsResolver<TParent>
-  toggleArticleLive?: MutationToToggleArticleLiveResolver<TParent>
   toggleArticleRecommend?: MutationToToggleArticleRecommendResolver<TParent>
   updateArticleState?: MutationToUpdateArticleStateResolver<TParent>
   toggleTagRecommend?: MutationToToggleTagRecommendResolver<TParent>
@@ -9150,21 +9112,6 @@ export interface MutationToDeleteArticlesTagsResolver<
   (
     parent: TParent,
     args: MutationToDeleteArticlesTagsArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface MutationToToggleArticleLiveArgs {
-  input: GQLToggleItemInput
-}
-export interface MutationToToggleArticleLiveResolver<
-  TParent = any,
-  TResult = any
-> {
-  (
-    parent: TParent,
-    args: MutationToToggleArticleLiveArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

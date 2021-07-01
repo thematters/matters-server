@@ -153,16 +153,13 @@ export default /* GraphQL */ `
 
   type Recommendation {
     "Articles published by user's followees."
-    followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
 
     "Comments published by user's followees."
-    followeeComments(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
+    followeeComments(input: ConnectionArgs!): CommentConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
 
     "Articles that followee donated"
-    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
-
-    "Tags that user followed."
-    followingTags(input: ConnectionArgs!): TagConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Move to a new field")
+    followeeDonatedArticles(input: ConnectionArgs!): FolloweeDonatedArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
 
     "Articles has been added into followed tags."
     followingTagsArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
