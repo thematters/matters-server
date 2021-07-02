@@ -24,6 +24,7 @@ import createdAt from './createdAt'
 import hasAppreciate from './hasAppreciate'
 import language from './language'
 import * as articleOSS from './oss'
+import readTime from './readTime'
 import relatedArticles from './relatedArticles'
 import relatedDonationArticles from './relatedDonationArticles'
 import remark from './remark'
@@ -96,6 +97,7 @@ export default {
     topicScore: ({ score }: { score: number }) =>
       score ? Math.round(score) : null,
     transactionsReceivedBy,
+    readTime,
     createdAt,
     revisedAt,
     circle,
