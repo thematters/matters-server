@@ -152,6 +152,9 @@ export default /* GraphQL */ `
   }
 
   type Recommendation {
+    "Activities based on user's following, sort by creation time."
+    following(input: ConnectionArgs!): FollowingActivityConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
+
     "Articles published by user's followees."
     followeeArticles(input: ConnectionArgs!): ArticleConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "Merged into \`Recommendation.following\`")
 
@@ -403,6 +406,92 @@ export default /* GraphQL */ `
     cursor: String!
     node: Appreciation!
   }
+
+  type FollowingActivityConnection implements Connection {
+    totalCount: Int!
+    pageInfo: PageInfo!
+    edges: [FollowingActivityEdge!]
+  }
+
+  type FollowingActivityEdge {
+    cursor: String!
+    node: FollowingActivity!
+  }
+
+  union FollowingActivity = UserPublishArticleActivity | UserBroadcastCircleActivity | UserCreateCircleActivity | UserCollectArticleActivity | UserSubscribeCircleActivity | UserFollowUserActivity | UserDonateArticleActivity | UserBookmarkArticleActivity | UserAddArticleTagActivity
+
+  type UserPublishArticleActivity {
+    actor: User!
+
+    "Article published by actor"
+    node: Article!
+  }
+
+  type UserBroadcastCircleActivity {
+    actor: User!
+
+    "Comment boardcast by actor"
+    node: Comment!
+
+    "Circle that comment belongs to"
+    target: Circle!
+  }
+
+  type UserCreateCircleActivity {
+    actor: User!
+
+    "Circle created by actor"
+    node: Circle!
+  }
+
+  type UserCollectArticleActivity {
+    actor: User!
+
+    "Article created by actor"
+    node: Article!
+
+    "Article that collected by"
+    target: Article!
+  }
+
+  type UserSubscribeCircleActivity {
+    actor: User!
+
+    "Circle subscribed by actor"
+    node: Circle!
+  }
+
+  type UserFollowUserActivity {
+    actor: User!
+
+    "User followed by actor"
+    node: User!
+  }
+
+  type UserDonateArticleActivity {
+    actor: User!
+
+    "Article donated by actor"
+    node: Article!
+  }
+
+  type UserBookmarkArticleActivity {
+    actor: User!
+
+    "Article bookmarked by actor"
+    node: Article!
+  }
+
+  type UserAddArticleTagActivity {
+    actor: User!
+
+    "Article added to tag"
+    node: Article!
+
+    "Tag added by article"
+    target: Tag!
+  }
+
 
   type FolloweeDonatedArticleConnection implements Connection {
     totalCount: Int!
