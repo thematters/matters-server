@@ -76,6 +76,7 @@ const notice: {
         // article-tag
         article_tag_has_been_added: NOTICE_TYPE.ArticleTagNotice,
         article_tag_has_been_removed: NOTICE_TYPE.ArticleTagNotice,
+        article_tag_has_been_unselected: NOTICE_TYPE.ArticleTagNotice,
 
         // tag
         tag_adoption: NOTICE_TYPE.TagNotice,
@@ -177,6 +178,8 @@ const notice: {
           return GQLArticleTagNoticeType.ArticleTagAdded
         case DB_NOTICE_TYPE.article_tag_has_been_removed:
           return GQLArticleTagNoticeType.ArticleTagRemoved
+        case DB_NOTICE_TYPE.article_tag_has_been_unselected:
+          return GQLArticleTagNoticeType.ArticleTagUnselected
       }
     },
     target: ({ entities }, _, { dataSources: { draftService } }) =>

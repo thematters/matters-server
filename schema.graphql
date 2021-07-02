@@ -368,6 +368,7 @@ type ArticleTagNotice implements Notice {
 enum ArticleTagNoticeType {
   ArticleTagAdded
   ArticleTagRemoved
+  ArticleTagUnselected @deprecated(reason: "No longer in use")
 }
 
 type ArticleTranslation {
