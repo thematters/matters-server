@@ -219,12 +219,6 @@ export interface GQLArticle extends GQLNode {
   revisionCount: number
 
   /**
-   * Current article belongs to which Circle.
-   * @deprecated Use `access.circle` instead
-   */
-  circle?: GQLCircle
-
-  /**
    * Access related fields on circle
    */
   access: GQLArticleAccess
@@ -1028,12 +1022,6 @@ export interface GQLCircle extends GQLNode {
 
   /**
    * Invitations belonged to this Circle.
-   * @deprecated No longer use
-   */
-  invitations: GQLInvitationConnection
-
-  /**
-   * Invitations belonged to this Circle.
    */
   invites: GQLInvites
 
@@ -1177,6 +1165,18 @@ export interface GQLCircleSetting {
   enableDiscussion: boolean
 }
 
+export interface GQLInvites {
+  /**
+   * Accepted invitation list
+   */
+  accepted: GQLInvitationConnection
+
+  /**
+   * Pending invitation list
+   */
+  pending: GQLInvitationConnection
+}
+
 export interface GQLInvitationConnection extends GQLConnection {
   totalCount: number
   pageInfo: GQLPageInfo
@@ -1263,18 +1263,6 @@ export const enum GQLInvitationState {
   pending = 'pending',
   transfer_succeeded = 'transfer_succeeded',
   transfer_failed = 'transfer_failed',
-}
-
-export interface GQLInvites {
-  /**
-   * Accepted invitation list
-   */
-  accepted: GQLInvitationConnection
-
-  /**
-   * Pending invitation list
-   */
-  pending: GQLInvitationConnection
 }
 
 export interface GQLUserCreateCircleActivity {
@@ -1609,12 +1597,6 @@ export interface GQLDraft extends GQLNode {
    * Collection list of this draft.
    */
   collection: GQLArticleConnection
-
-  /**
-   * Circle of this draft.
-   * @deprecated Use `access.circle` instead
-   */
-  circle?: GQLCircle
 
   /**
    * Access related fields on circle
@@ -3775,6 +3757,7 @@ export interface GQLResolver {
   ArticleConnection?: GQLArticleConnectionTypeResolver
   ArticleEdge?: GQLArticleEdgeTypeResolver
   CircleSetting?: GQLCircleSettingTypeResolver
+  Invites?: GQLInvitesTypeResolver
   InvitationConnection?: GQLInvitationConnectionTypeResolver
   InvitationEdge?: GQLInvitationEdgeTypeResolver
   Invitation?: GQLInvitationTypeResolver
@@ -3784,7 +3767,6 @@ export interface GQLResolver {
 
   Person?: GQLPersonTypeResolver
   PositiveInt?: GraphQLScalarType
-  Invites?: GQLInvitesTypeResolver
   UserCreateCircleActivity?: GQLUserCreateCircleActivityTypeResolver
   UserCollectArticleActivity?: GQLUserCollectArticleActivityTypeResolver
   UserSubscribeCircleActivity?: GQLUserSubscribeCircleActivityTypeResolver
@@ -4058,7 +4040,6 @@ export interface GQLArticleTypeResolver<TParent = any> {
   readTime?: ArticleToReadTimeResolver<TParent>
   drafts?: ArticleToDraftsResolver<TParent>
   revisionCount?: ArticleToRevisionCountResolver<TParent>
-  circle?: ArticleToCircleResolver<TParent>
   access?: ArticleToAccessResolver<TParent>
   license?: ArticleToLicenseResolver<TParent>
   oss?: ArticleToOssResolver<TParent>
@@ -4434,15 +4415,6 @@ export interface ArticleToDraftsResolver<TParent = any, TResult = any> {
 }
 
 export interface ArticleToRevisionCountResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface ArticleToCircleResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
@@ -6026,7 +5998,6 @@ export interface GQLCircleTypeResolver<TParent = any> {
   isFollower?: CircleToIsFollowerResolver<TParent>
   isMember?: CircleToIsMemberResolver<TParent>
   setting?: CircleToSettingResolver<TParent>
-  invitations?: CircleToInvitationsResolver<TParent>
   invites?: CircleToInvitesResolver<TParent>
   invitedBy?: CircleToInvitedByResolver<TParent>
   broadcast?: CircleToBroadcastResolver<TParent>
@@ -6193,18 +6164,6 @@ export interface CircleToSettingResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface CircleToInvitationsArgs {
-  input: GQLConnectionArgs
-}
-export interface CircleToInvitationsResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: CircleToInvitationsArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -6596,6 +6555,35 @@ export interface CircleSettingToEnableDiscussionResolver<
   ): TResult
 }
 
+export interface GQLInvitesTypeResolver<TParent = any> {
+  accepted?: InvitesToAcceptedResolver<TParent>
+  pending?: InvitesToPendingResolver<TParent>
+}
+
+export interface InvitesToAcceptedArgs {
+  input: GQLConnectionArgs
+}
+export interface InvitesToAcceptedResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: InvitesToAcceptedArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface InvitesToPendingArgs {
+  input: GQLConnectionArgs
+}
+export interface InvitesToPendingResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: InvitesToPendingArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
 export interface GQLInvitationConnectionTypeResolver<TParent = any> {
   totalCount?: InvitationConnectionToTotalCountResolver<TParent>
   pageInfo?: InvitationConnectionToPageInfoResolver<TParent>
@@ -6778,35 +6766,6 @@ export interface PersonToEmailResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: {},
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface GQLInvitesTypeResolver<TParent = any> {
-  accepted?: InvitesToAcceptedResolver<TParent>
-  pending?: InvitesToPendingResolver<TParent>
-}
-
-export interface InvitesToAcceptedArgs {
-  input: GQLConnectionArgs
-}
-export interface InvitesToAcceptedResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: InvitesToAcceptedArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface InvitesToPendingArgs {
-  input: GQLConnectionArgs
-}
-export interface InvitesToPendingResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: InvitesToPendingArgs,
     context: Context,
     info: GraphQLResolveInfo
   ): TResult
@@ -7554,7 +7513,6 @@ export interface GQLDraftTypeResolver<TParent = any> {
   assets?: DraftToAssetsResolver<TParent>
   article?: DraftToArticleResolver<TParent>
   collection?: DraftToCollectionResolver<TParent>
-  circle?: DraftToCircleResolver<TParent>
   access?: DraftToAccessResolver<TParent>
   license?: DraftToLicenseResolver<TParent>
 }
@@ -7704,15 +7662,6 @@ export interface DraftToCollectionResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: DraftToCollectionArgs,
-    context: Context,
-    info: GraphQLResolveInfo
-  ): TResult
-}
-
-export interface DraftToCircleResolver<TParent = any, TResult = any> {
-  (
-    parent: TParent,
-    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

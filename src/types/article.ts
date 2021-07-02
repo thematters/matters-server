@@ -172,9 +172,6 @@ export default /* GraphQL */ `
     "Revision Count"
     revisionCount: Int!
 
-    "Current article belongs to which Circle."
-    circle: Circle @logCache(type: "${NODE_TYPES.Circle}") @deprecated(reason: "Use \`access.circle\` instead")
-
     "Access related fields on circle"
     access: ArticleAccess!
 

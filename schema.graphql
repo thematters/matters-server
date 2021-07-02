@@ -195,9 +195,6 @@ type Article implements Node {
   """Revision Count"""
   revisionCount: Int!
 
-  """Current article belongs to which Circle."""
-  circle: Circle @deprecated(reason: "Use `access.circle` instead")
-
   """Access related fields on circle"""
   access: ArticleAccess!
 
@@ -505,9 +502,6 @@ type Circle implements Node {
 
   """Setting of this Circle."""
   setting: CircleSetting!
-
-  """Invitations belonged to this Circle."""
-  invitations(input: ConnectionArgs!): InvitationConnection! @deprecated(reason: "No longer use")
 
   """Invitations belonged to this Circle."""
   invites: Invites!
@@ -863,9 +857,6 @@ type Draft implements Node {
 
   """Collection list of this draft."""
   collection(input: ConnectionArgs!): ArticleConnection!
-
-  """Circle of this draft."""
-  circle: Circle @deprecated(reason: "Use `access.circle` instead")
 
   """Access related fields on circle"""
   access: DraftAccess!

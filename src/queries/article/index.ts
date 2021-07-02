@@ -15,7 +15,6 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import canSuperLike from './canSuperLike'
-import circle from './circle'
 import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
@@ -100,7 +99,6 @@ export default {
     readTime,
     createdAt,
     revisedAt,
-    circle,
     access: (root: any) => root,
     revisionCount,
     license: ({ license }: { license: any }) =>
