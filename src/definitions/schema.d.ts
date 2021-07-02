@@ -210,6 +210,11 @@ export interface GQLArticle extends GQLNode {
   transactionsReceivedBy: GQLUserConnection
 
   /**
+   * Cumulative reading time in seconds
+   */
+  readTime: GQLNonNegativeFloat
+
+  /**
    * Drafts linked to this article.
    */
   drafts?: Array<GQLDraft>
@@ -3891,6 +3896,7 @@ export interface GQLArticleTypeResolver<TParent = any> {
   sticky?: ArticleToStickyResolver<TParent>
   translation?: ArticleToTranslationResolver<TParent>
   transactionsReceivedBy?: ArticleToTransactionsReceivedByResolver<TParent>
+  readTime?: ArticleToReadTimeResolver<TParent>
   drafts?: ArticleToDraftsResolver<TParent>
   revisionCount?: ArticleToRevisionCountResolver<TParent>
   circle?: ArticleToCircleResolver<TParent>
@@ -4254,6 +4260,15 @@ export interface ArticleToTransactionsReceivedByResolver<
   (
     parent: TParent,
     args: ArticleToTransactionsReceivedByArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface ArticleToReadTimeResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -167,6 +167,9 @@ export default /* GraphQL */ `
     "Transactions history of this article."
     transactionsReceivedBy(input: TransactionsReceivedByArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
+    "Cumulative reading time in seconds"
+    readTime: NonNegativeFloat!
+
     "Drafts linked to this article."
     drafts: [Draft!] @logCache(type: "${NODE_TYPES.Draft}")
 
