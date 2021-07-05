@@ -75,7 +75,6 @@ export class NotificationService extends BaseService {
       case DB_NOTICE_TYPE.circle_discussion_new_reply:
       case DB_NOTICE_TYPE.article_tag_has_been_added:
       case DB_NOTICE_TYPE.article_tag_has_been_removed:
-      case DB_NOTICE_TYPE.article_tag_has_been_unselected:
       case DB_NOTICE_TYPE.payment_received_donation:
       case DB_NOTICE_TYPE.tag_adoption:
       case DB_NOTICE_TYPE.tag_leave:

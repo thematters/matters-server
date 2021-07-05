@@ -206,7 +206,7 @@ export default /* GraphQL */ `
   enum ArticleTagNoticeType {
     ArticleTagAdded
     ArticleTagRemoved
-    ArticleTagUnselected
+    ArticleTagUnselected @deprecated(reason: "No longer in use")
   }
 
   type TagNotice implements Notice {
