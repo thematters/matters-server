@@ -219,6 +219,21 @@ const resolver: MutationToPutCommentResolver = async (
     data.mentionedUserIds = mentions.map(
       (userId: string) => fromGlobalId(userId).id
     )
+
+    // check if mentioned user blocked viewer
+    const anyBlocked = _.some(
+      await Promise.all(
+        data.mentionedUserIds.map((mentionUserId: string) =>
+          userService.blocked({
+            userId: mentionUserId,
+            targetId: viewer.id,
+          })
+        )
+      )
+    )
+    if (anyBlocked) {
+      throw new ForbiddenError('mentioned user blocked viewer')
+    }
   }
 
   /**
