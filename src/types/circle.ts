@@ -84,9 +84,6 @@ export default /* GraphQL */ `
     setting: CircleSetting!
 
     "Invitations belonged to this Circle."
-    invitations(input: ConnectionArgs!): InvitationConnection! @cost(multipliers: ["input.first"], useMultipliers: true) @deprecated(reason: "No longer use")
-
-    "Invitations belonged to this Circle."
     invites: Invites!
 
     "Invitation used by current viewer."

@@ -136,36 +136,6 @@ const QUERY_CIRCLE_COMMENTS = /* GraphQL */ `
   }
 `
 
-const QUERY_VIEWER_CIRCLE_INVITATIONS = /* GraphQL*/ `
-  query {
-    viewer {
-      ownCircles {
-        id
-        invitations(input: { first: null }) {
-          totalCount
-          edges {
-            node {
-              id
-              invitee {
-                ... on User {
-                  id
-                }
-                ... on Person {
-                  email
-                }
-              }
-              inviter {
-                id
-              }
-              accepted
-            }
-          }
-        }
-      }
-    }
-  }
-`
-
 const QUERY_VIEWER_CIRCLE_PENDING_INVITES = /* GraphQL */ `
   query {
     viewer {
@@ -708,14 +678,6 @@ describe('circle invitation management', () => {
 
   test('create invitation', async () => {
     const { query, mutate } = await testClient(userClient)
-    const { data } = await query({
-      query: QUERY_VIEWER_CIRCLE_INVITATIONS,
-    })
-
-    // check current invitations
-    const deprecatedCircle = _get(data, 'viewer.ownCircles.0')
-    expect(deprecatedCircle.invitations.totalCount).toBe(0)
-
     const { data: pendingInvites } = await query({
       query: QUERY_VIEWER_CIRCLE_PENDING_INVITES,
     })
@@ -806,23 +768,6 @@ describe('circle invitation management', () => {
   test('accept invitation', async () => {
     const { query } = await testClient(userClient)
     const { mutate } = await testClient(adminClient)
-
-    // check init state of invitations
-    const { data: deprecatedIvtData } = await query({
-      query: QUERY_VIEWER_CIRCLE_INVITATIONS,
-    })
-    const deprecatedIvtEdges = _get(
-      deprecatedIvtData,
-      'viewer.ownCircles.0.invitations.edges',
-      []
-    )
-    deprecatedIvtEdges.forEach((edge: any) => {
-      const inviteeId = _get(edge, 'node.invitee.id')
-
-      if (inviteeId === ADMIN_USER_GLOBAL_ID) {
-        expect(_get(edge, 'node.accepted')).toBe(false)
-      }
-    })
 
     // check init state of invitations
     const { data: ivtData } = await query({

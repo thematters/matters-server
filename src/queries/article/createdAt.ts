@@ -1,6 +1,6 @@
-import { ArticleToLiveResolver } from 'definitions'
+import { ArticleToCreatedAtResolver } from 'definitions'
 
-const resolver: ArticleToLiveResolver = async (
+const resolver: ArticleToCreatedAtResolver = async (
   { articleId },
   _,
   { dataSources: { articleService } }
