@@ -9,6 +9,7 @@ const resolver: ArticleToRevisionCountResolver = async (
     .sum('read_time as total')
     .from('article_read_count')
     .where({ articleId })
+    .andWhereNot({ readTime: null })
     .groupBy('article_id')
     .first()
 
@@ -18,7 +19,7 @@ const resolver: ArticleToRevisionCountResolver = async (
 
   const total = parseFloat(result.total)
 
-  if (total <= 0) {
+  if (!total || total <= 0) {
     return 0
   }
 
