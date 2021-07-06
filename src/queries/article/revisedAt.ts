@@ -1,7 +1,7 @@
 import { PUBLISH_STATE } from 'common/enums'
-import { ArticleToLiveResolver } from 'definitions'
+import { ArticleToRevisedAtResolver } from 'definitions'
 
-const resolver: ArticleToLiveResolver = async (
+const resolver: ArticleToRevisedAtResolver = async (
   { articleId },
   _,
   { dataSources: { atomService } }

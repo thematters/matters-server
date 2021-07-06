@@ -8,7 +8,6 @@ import publishArticle from './publishArticle'
 import putTag from './putTag'
 import readArticle from './readArticle'
 import renameTag from './renameTag'
-import toggleArticleLive from './toggleArticleLive'
 import toggleArticleRecommend from './toggleArticleRecommend'
 import toggleSubscribeArticle from './toggleSubscribeArticle'
 import toggleTagRecommend from './toggleTagRecommend'
@@ -22,7 +21,6 @@ export default {
     editArticle,
     appreciateArticle,
     readArticle,
-    toggleArticleLive,
     toggleArticleRecommend,
     toggleSubscribeArticle,
     updateArticleState,

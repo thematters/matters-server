@@ -2,8 +2,10 @@ import { NODE_TYPES } from 'common/enums'
 import { toGlobalId } from 'common/utils'
 import {
   GQLAppreciationTypeResolver,
+  GQLFollowingActivityTypeResolver,
   GQLFollowingTypeResolver,
   GQLLikerTypeResolver,
+  GQLPossibleFollowingActivityTypeNames,
   GQLQueryTypeResolver,
   GQLRecommendationTypeResolver,
   GQLStripeAccountTypeResolver,
@@ -63,7 +65,12 @@ const user: {
   UserActivity: GQLUserActivityTypeResolver
   UserStatus: GQLUserStatusTypeResolver
   Appreciation: GQLAppreciationTypeResolver
+
   Following: GQLFollowingTypeResolver
+  FollowingActivity: {
+    __resolveType: GQLFollowingActivityTypeResolver
+  }
+
   Recommendation: GQLRecommendationTypeResolver
 
   Liker: GQLLikerTypeResolver
@@ -129,7 +136,16 @@ const user: {
     receivedDonationCount,
   },
   Appreciation,
+
   Following,
+  FollowingActivity: {
+    __resolveType: ({
+      __type,
+    }: {
+      __type: GQLPossibleFollowingActivityTypeNames
+    }) => __type,
+  },
+
   Recommendation,
 
   // LikeCoin

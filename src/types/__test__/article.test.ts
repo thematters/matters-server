@@ -60,14 +60,6 @@ const APPRECIATE_ARTICLE = /* GraphQL */ `
   }
 `
 
-const TOGGLE_ARTICLE_LIVE = /* GraphQL */ `
-  mutation($input: ToggleItemInput!) {
-    toggleArticleLive(input: $input) {
-      live
-    }
-  }
-`
-
 const TOGGLE_SUBSCRIBE_ARTICLE = /* GraphQL */ `
   mutation($input: ToggleItemInput!) {
     toggleSubscribeArticle(input: $input) {
@@ -204,36 +196,6 @@ describe('publish article', () => {
 })
 
 describe('toggle article state', () => {
-  test('enable article live', async () => {
-    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
-    const result = await mutate({
-      mutation: TOGGLE_ARTICLE_LIVE,
-      // @ts-ignore
-      variables: {
-        input: {
-          id: ARTICLE_ID,
-          enabled: true,
-        },
-      },
-    })
-    expect(_get(result, 'data.toggleArticleLive.live')).toBe(true)
-  })
-
-  test('disable article live', async () => {
-    const { mutate } = await testClient({ isAuth: true, isAdmin: true })
-    const result = await mutate({
-      mutation: TOGGLE_ARTICLE_LIVE,
-      // @ts-ignore
-      variables: {
-        input: {
-          id: ARTICLE_ID,
-          enabled: false,
-        },
-      },
-    })
-    expect(_get(result, 'data.toggleArticleLive.live')).toBe(false)
-  })
-
   test('subscribe an article', async () => {
     const { mutate } = await testClient({ isAuth: true, isAdmin: true })
     const { data } = await mutate({
