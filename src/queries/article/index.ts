@@ -15,7 +15,6 @@ import appreciationsReceivedTotal from './appreciationsReceivedTotal'
 import assets from './assets'
 import author from './author'
 import canSuperLike from './canSuperLike'
-import circle from './circle'
 import collectedBy from './collectedBy'
 import collection from './collection'
 import content from './content'
@@ -23,7 +22,6 @@ import articleCover from './cover'
 import createdAt from './createdAt'
 import hasAppreciate from './hasAppreciate'
 import language from './language'
-import live from './live'
 import * as articleOSS from './oss'
 import readTime from './readTime'
 import relatedArticles from './relatedArticles'
@@ -83,7 +81,6 @@ export default {
     hasAppreciate,
     canSuperLike,
     language,
-    live,
     oss: (root: any) => root,
     relatedArticles,
     relatedDonationArticles,
@@ -102,7 +99,6 @@ export default {
     readTime,
     createdAt,
     revisedAt,
-    circle,
     access: (root: any) => root,
     revisionCount,
     license: ({ license }: { license: any }) =>
