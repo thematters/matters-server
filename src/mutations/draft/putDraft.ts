@@ -12,6 +12,7 @@ import {
   PUBLISH_STATE,
   USER_STATE,
 } from 'common/enums'
+import { environment } from 'common/environment'
 import {
   ArticleNotFoundError,
   AssetNotFoundError,
@@ -20,6 +21,7 @@ import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
+  TagManagedByAdminError,
   UserInputError,
 } from 'common/errors'
 import { extractAssetDataFromHtml, fromGlobalId, sanitize } from 'common/utils'
@@ -159,6 +161,16 @@ const resolver: MutationToPutDraftResolver = async (
     }
   }
   checkLicense(accessType)
+
+  // check if tags includes matty's tag
+  const mattyTagId = environment.mattyChoiceTagId || ''
+  const mattyTag = await atomService.findUnique({
+    table: 'tag',
+    where: { id: mattyTagId },
+  })
+  if (mattyTag && tags && tags.length > 0 && tags.includes(mattyTag.content)) {
+    throw new TagManagedByAdminError('cannot add tag managed by admin')
+  }
 
   // assemble data
   const resetSummary = summary === null || summary === ''

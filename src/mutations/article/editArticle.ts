@@ -27,6 +27,7 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   NameInvalidError,
+  TagManagedByAdminError,
   UserInputError,
 } from 'common/errors'
 import {
@@ -164,6 +165,13 @@ const resolver: MutationToEditArticleResolver = async (
     const oldIds = (
       await tagService.findByArticleId({ articleId: article.id })
     ).map(({ id: tagId }: { id: string }) => tagId)
+
+    // check if add tags include matty's tag
+    const mattyTagId = environment.mattyChoiceTagId || ''
+    const addIds = difference(newIds, oldIds)
+    if (addIds.includes(mattyTagId)) {
+      throw new TagManagedByAdminError('cannot add tag managed by admin')
+    }
 
     // add
     await tagService.createArticleTags({
