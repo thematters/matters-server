@@ -27,7 +27,7 @@ import {
   ForbiddenByStateError,
   ForbiddenError,
   NameInvalidError,
-  TagManagedByAdminError,
+  OfficialTagAddError,
   UserInputError,
 } from 'common/errors'
 import {
@@ -170,7 +170,7 @@ const resolver: MutationToEditArticleResolver = async (
     const mattyTagId = environment.mattyChoiceTagId || ''
     const addIds = difference(newIds, oldIds)
     if (addIds.includes(mattyTagId)) {
-      throw new TagManagedByAdminError('cannot add tag managed by admin')
+      throw new OfficialTagAddError('not allow to add official tag')
     }
 
     // add
