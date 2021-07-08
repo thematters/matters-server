@@ -64,11 +64,7 @@ const resolver: RecommendationToFollowingResolver = async (
           knex
             .select('acty.*')
             .from('action_tag as at')
-            .join(
-              `${MATERIALIZED_VIEW.userActivityMaterialized} as acty`,
-              'acty.target_id',
-              'at.target_id'
-            )
+            .join(`${viewName} as acty`, 'acty.target_id', 'at.target_id')
             .where({
               'at.user_id': userId,
               'at.action': 'follow',
@@ -78,11 +74,7 @@ const resolver: RecommendationToFollowingResolver = async (
           knex
             .select('acty.*')
             .from('action_circle as ac')
-            .join(
-              `${MATERIALIZED_VIEW.userActivityMaterialized} as acty`,
-              'acty.target_id',
-              'ac.target_id'
-            )
+            .join(`${viewName} as acty`, 'acty.target_id', 'ac.target_id')
             .where({
               'ac.user_id': userId,
               'ac.action': 'follow',
