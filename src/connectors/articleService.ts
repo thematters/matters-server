@@ -197,7 +197,7 @@ export class ArticleService extends BaseService {
     // filter out the hash for the bundle
     let entry  = result.filter(
       ({ path }: { path: string }) => path === directoryName
-    )}
+    )
     
     // FIXME: fix missing bundle path and remove fallback logic
     // fallback to index file when no bundle path is matched
@@ -205,7 +205,7 @@ export class ArticleService extends BaseService {
       console.log(result)
       entry = result.filter(
         ({ path }: { path: string }) => path.endsWith("index.html")
-      )}
+      )
     }
   
     const [{ hash: contentHash }] = entry
