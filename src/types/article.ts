@@ -227,6 +227,9 @@ export default /* GraphQL */ `
     "Participants of this tag."
     participants(input: ConnectionArgs!): UserConnection! @cost(multipliers: ["input.first"], useMultipliers: true)
 
+    "This value determines if it is official."
+    isOfficial: Boolean
+
     ##############
     #     OSS    #
     ##############

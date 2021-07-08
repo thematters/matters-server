@@ -72,6 +72,7 @@ export const environment = {
   cachePort: (process.env.MATTERS_CACHE_PORT || 6379) as number,
   sgKey: process.env.MATTERS_SENDGRID_API_KEY,
   mattyId: process.env.MATTERS_MATTY_ID || '',
+  mattyChoiceTagId: process.env.MATTERS_MATTY_CHOICE_TAG_ID || '',
   emailFromAsk: process.env.MATTERS_EMAIL_FROM_ASK,
   jwtSecret: process.env.MATTERS_JWT_SECRET || '_dev_jwt_secret_',
   apiKey: process.env.MATTERS_APOLLO_API_KEY,

@@ -8,6 +8,7 @@ import {
   AuthenticationError,
   ForbiddenByStateError,
   ForbiddenError,
+  NotAllowAddOfficialTagError,
   TagNotFoundError,
   UserInputError,
 } from 'common/errors'
@@ -98,6 +99,10 @@ const resolver: MutationToAddArticlesTagsResolver = async (
 
   if (!isMaintainer && selected) {
     throw new ForbiddenError('not allow add tag to article')
+  }
+
+  if (!isMatty && tag.id === environment.mattyChoiceTagId) {
+    throw new NotAllowAddOfficialTagError('not allow to add official tag')
   }
 
   // compare new and old article ids that have this tag (dedupe)
