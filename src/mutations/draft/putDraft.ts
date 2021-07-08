@@ -21,7 +21,7 @@ import {
   DraftNotFoundError,
   ForbiddenByStateError,
   ForbiddenError,
-  OfficialTagAddError,
+  NotAllowAddOfficialTagError,
   UserInputError,
 } from 'common/errors'
 import { extractAssetDataFromHtml, fromGlobalId, sanitize } from 'common/utils'
@@ -169,7 +169,7 @@ const resolver: MutationToPutDraftResolver = async (
     where: { id: mattyTagId },
   })
   if (mattyTag && tags && tags.length > 0 && tags.includes(mattyTag.content)) {
-    throw new OfficialTagAddError('not allow to add official tag')
+    throw new NotAllowAddOfficialTagError('not allow to add official tag')
   }
 
   // assemble data

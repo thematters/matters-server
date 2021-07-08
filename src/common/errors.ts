@@ -263,11 +263,13 @@ export class TagEditorsReachLimitError extends ApolloError {
   }
 }
 
-export class OfficialTagAddError extends ApolloError {
+export class NotAllowAddOfficialTagError extends ApolloError {
   constructor(message: string) {
-    super(message, 'OFFICIAL_TAG_ADD')
+    super(message, 'NOT_ALLOW_ADD_OFFICIAL_TAG')
 
-    Object.defineProperty(this, 'name', { value: 'OfficialTagAddError' })
+    Object.defineProperty(this, 'name', {
+      value: 'NotAllowAddOfficialTagError',
+    })
   }
 }
 
