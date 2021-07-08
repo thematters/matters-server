@@ -163,8 +163,9 @@ const resolver: MutationToPutDraftResolver = async (
   checkLicense(accessType)
 
   // check if tags includes matty's tag
+  const isMatty = viewer.id === environment.mattyId
   const mattyTagId = environment.mattyChoiceTagId
-  if (mattyTagId) {
+  if (mattyTagId && !isMatty) {
     const mattyTag = await atomService.findUnique({
       table: 'tag',
       where: { id: mattyTagId },

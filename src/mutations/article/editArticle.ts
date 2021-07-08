@@ -168,8 +168,9 @@ const resolver: MutationToEditArticleResolver = async (
 
     // check if add tags include matty's tag
     const mattyTagId = environment.mattyChoiceTagId || ''
+    const isMatty = environment.mattyId === viewer.id
     const addIds = difference(newIds, oldIds)
-    if (addIds.includes(mattyTagId)) {
+    if (addIds.includes(mattyTagId) && !isMatty) {
       throw new NotAllowAddOfficialTagError('not allow to add official tag')
     }
 
