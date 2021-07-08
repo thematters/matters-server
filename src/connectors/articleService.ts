@@ -195,6 +195,8 @@ export class ArticleService extends BaseService {
       )
     )
 
+    console.log(result)
+
     // filter out the hash for the bundle
     const [{ hash: contentHash }] = result.filter(
       ({ path }: { path: string }) => path === directoryName
