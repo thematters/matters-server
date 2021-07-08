@@ -169,7 +169,12 @@ const resolver: MutationToPutDraftResolver = async (
       table: 'tag',
       where: { id: mattyTagId },
     })
-    if (mattyTag && tags && tags.length > 0 && tags.includes(mattyTag.content)) {
+    if (
+      mattyTag &&
+      tags &&
+      tags.length > 0 &&
+      tags.includes(mattyTag.content)
+    ) {
       throw new NotAllowAddOfficialTagError('not allow to add official tag')
     }
   }
