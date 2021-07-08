@@ -7,7 +7,6 @@ import {
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
-import { nanoid } from 'nanoid'
 import { v4 } from 'uuid'
 
 import {
@@ -187,7 +186,7 @@ export class ArticleService extends BaseService {
     }
 
     // make bundle and add content to ipfs
-    const directoryName = nanoid()
+    const directoryName = 'article'
     const { bundle, key } = await makeHtmlBundle(bundleInfo)
     const result = await this.ipfs.client.add(
       bundle.map((file) =>
