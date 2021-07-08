@@ -193,13 +193,22 @@ export class ArticleService extends BaseService {
         file ? { ...file, path: `${directoryName}/${file.path}` } : undefined
       )
     )
-
-    console.log(result)
-
+    
     // filter out the hash for the bundle
-    const [{ hash: contentHash }] = result.filter(
+    let entry  = result.filter(
       ({ path }: { path: string }) => path === directoryName
-    )
+    )}
+    
+    // FIXME: fix missing bundle path and remove fallback logic
+    // fallback to index file when no bundle path is matched
+    if (entry.length === 0) {
+      console.log(result)
+      entry = result.filter(
+        ({ path }: { path: string }) => path.endsWith("index.html")
+      )}
+    }
+  
+    const [{ hash: contentHash }] = entry
 
     // add meta data to ipfs
     const articleInfo = {
