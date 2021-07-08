@@ -163,13 +163,15 @@ const resolver: MutationToPutDraftResolver = async (
   checkLicense(accessType)
 
   // check if tags includes matty's tag
-  const mattyTagId = environment.mattyChoiceTagId || ''
-  const mattyTag = await atomService.findUnique({
-    table: 'tag',
-    where: { id: mattyTagId },
-  })
-  if (mattyTag && tags && tags.length > 0 && tags.includes(mattyTag.content)) {
-    throw new NotAllowAddOfficialTagError('not allow to add official tag')
+  const mattyTagId = environment.mattyChoiceTagId
+  if (mattyTagId) {
+    const mattyTag = await atomService.findUnique({
+      table: 'tag',
+      where: { id: mattyTagId },
+    })
+    if (mattyTag && tags && tags.length > 0 && tags.includes(mattyTag.content)) {
+      throw new NotAllowAddOfficialTagError('not allow to add official tag')
+    }
   }
 
   // assemble data
