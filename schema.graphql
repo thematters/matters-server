@@ -2047,6 +2047,9 @@ type Tag implements Node {
   """Participants of this tag."""
   participants(input: ConnectionArgs!): UserConnection!
 
+  """This value determines if it is official."""
+  isOfficial: Boolean
+
   """
   #############
        OSS    #

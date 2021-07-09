@@ -1416,6 +1416,11 @@ export interface GQLTag extends GQLNode {
   participants: GQLUserConnection
 
   /**
+   * This value determines if it is official.
+   */
+  isOfficial?: boolean
+
+  /**
    * #############
    *      OSS    #
    * #############
@@ -7139,6 +7144,7 @@ export interface GQLTagTypeResolver<TParent = any> {
   isFollower?: TagToIsFollowerResolver<TParent>
   followers?: TagToFollowersResolver<TParent>
   participants?: TagToParticipantsResolver<TParent>
+  isOfficial?: TagToIsOfficialResolver<TParent>
   oss?: TagToOssResolver<TParent>
   remark?: TagToRemarkResolver<TParent>
   deleted?: TagToDeletedResolver<TParent>
@@ -7271,6 +7277,15 @@ export interface TagToParticipantsResolver<TParent = any, TResult = any> {
   (
     parent: TParent,
     args: TagToParticipantsArgs,
+    context: Context,
+    info: GraphQLResolveInfo
+  ): TResult
+}
+
+export interface TagToIsOfficialResolver<TParent = any, TResult = any> {
+  (
+    parent: TParent,
+    args: {},
     context: Context,
     info: GraphQLResolveInfo
   ): TResult

@@ -7,7 +7,6 @@ import {
 import bodybuilder from 'bodybuilder'
 import DataLoader from 'dataloader'
 import _ from 'lodash'
-import { nanoid } from 'nanoid'
 import { v4 } from 'uuid'
 
 import {
@@ -187,18 +186,29 @@ export class ArticleService extends BaseService {
     }
 
     // make bundle and add content to ipfs
-    const directoryName = nanoid()
+    const directoryName = 'article'
     const { bundle, key } = await makeHtmlBundle(bundleInfo)
     const result = await this.ipfs.client.add(
       bundle.map((file) =>
         file ? { ...file, path: `${directoryName}/${file.path}` } : undefined
       )
     )
-
+    
     // filter out the hash for the bundle
-    const [{ hash: contentHash }] = result.filter(
+    let entry  = result.filter(
       ({ path }: { path: string }) => path === directoryName
     )
+    
+    // FIXME: fix missing bundle path and remove fallback logic
+    // fallback to index file when no bundle path is matched
+    if (entry.length === 0) {
+      console.log(result)
+      entry = result.filter(
+        ({ path }: { path: string }) => path.endsWith("index.html")
+      )
+    }
+  
+    const [{ hash: contentHash }] = entry
 
     // add meta data to ipfs
     const articleInfo = {
