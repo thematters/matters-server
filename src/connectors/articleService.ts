@@ -203,7 +203,7 @@ export class ArticleService extends BaseService {
     // FIXME: fix missing bundle path and remove fallback logic
     // fallback to index file when no bundle path is matched
     if (entry.length === 0) {
-      console.log(result)
+      logger.error(`No hash found for directory: ${JSON.stringify(result)}`)
       entry = result.filter(({ path }: { path: string }) =>
         path.endsWith('index.html')
       )
