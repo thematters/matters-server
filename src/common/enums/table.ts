@@ -15,4 +15,6 @@ export const MATERIALIZED_VIEW = {
   mostActiveAuthorMaterialized: 'most_active_author_materialized',
   mostAppreciatedAuthorMaterialized: 'most_appreciated_author_materialized',
   mostTrendyAuthorMaterialized: 'most_trendy_author_materialized',
+  userActivityMaterialized: 'user_activity_materialized',
+  userActivityLongMaterialized: 'user_activity_long_materialized',
 }
