@@ -188,26 +188,29 @@ export class ArticleService extends BaseService {
     // make bundle and add content to ipfs
     const directoryName = 'article'
     const { bundle, key } = await makeHtmlBundle(bundleInfo)
+    console.log('bundle to ipfs', bundle)
     const result = await this.ipfs.client.add(
       bundle.map((file) =>
         file ? { ...file, path: `${directoryName}/${file.path}` } : undefined
       )
     )
-    
+
     // filter out the hash for the bundle
-    let entry  = result.filter(
+    let entry = result.filter(
       ({ path }: { path: string }) => path === directoryName
     )
-    
+
     // FIXME: fix missing bundle path and remove fallback logic
     // fallback to index file when no bundle path is matched
     if (entry.length === 0) {
-      console.log(result)
-      entry = result.filter(
-        ({ path }: { path: string }) => path.endsWith("index.html")
+      console.log('fallback to index.html', result)
+      entry = result.filter(({ path }: { path: string }) =>
+        path.endsWith('index.html')
       )
+    } else {
+      console.log('use directory hash', result)
     }
-  
+
     const [{ hash: contentHash }] = entry
 
     // add meta data to ipfs
